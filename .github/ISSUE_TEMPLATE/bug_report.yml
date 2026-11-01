@@ -1,0 +1,21 @@
+name: Bug report
+description: Report a reproducible problem without private data.
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Include reproduction steps. Remove tokens, endpoints and conversation content.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: App, Android and Hermes versions
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options: [Demo, Real Hermes]
