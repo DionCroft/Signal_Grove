@@ -16,7 +16,7 @@ Four interchangeable palettes, persistent conversations, English / Simplified Ch
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Get the installable debug APK from the [alpha release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v0.1.0-alpha).
+The installable debug APK is generated locally at `app/build/outputs/apk/debug/app-debug.apk`. Public repository and alpha-release publication are prepared and await explicit approval. The in-app GitHub link targets the planned repository.
 
 ## Features
 
