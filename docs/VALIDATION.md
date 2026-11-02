@@ -50,6 +50,8 @@ Fresh-cache verification follow-up: [strict Linux CI](https://github.com/DionCro
 
 Fresh runtime-classpath follow-up: [the next Linux check](https://github.com/DionCroft/hermes-agent-android/actions/runs/41524534447) passed plugin-classpath verification and stopped on the missing serialization BOM 1.7.3 POM. Its exact Maven Central descriptor was reviewed and added, bringing the baseline to 491 components/799 artifacts without accepting a mismatch. CI also now installs and verifies the exact API 37.0/build-tools package IDs; the earlier slash-form arguments produced an SDK-manager warning and depended on AGP installation. The hosted rerun remains pending.
 
+Metadata-closure follow-up: [the next Linux pass](https://github.com/DionCroft/hermes-agent-android/actions/runs/41525947617) reached KSP and refused the missing Guava parent 33.2.1-jre POM. A bounded traversal of existing component descriptors and referenced cached parents/BOMs found 272 additional metadata files. All matched canonical publisher HTTPS copies; all 244 available SHA-256 sidecars matched. Only POM/module hashes were added, every existing hash was preserved, and no binary versions changed. The resulting baseline contains 495 components/1071 artifacts. Local policy/offline/build checks and the subsequent hosted results are verified separately.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0
