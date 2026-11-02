@@ -16,7 +16,7 @@ class HermesStreamParser {
 data class ToolUpdate(val tool: String,val kind: String,val preview: String,val durationMs: Long?)
 data class StreamUpdate(val delta: String="",val finalText: String?=null,val status: String?=null,val activity: String?=null,
     val runId: String="",val sessionId: String="",val approval: org.hermesmobile.app.data.Approval?=null,
-    val control: ControlRequest?=null,val tool: ToolUpdate?=null,val sequence: Long?=null,val settledRequestId: String="",val replayGap: Boolean=false,val responseBoundary: Boolean=false)
+    val control: ControlRequest?=null,val tool: ToolUpdate?=null,val sequence: Long?=null,val settledRequestId: String="",val replayGap: Boolean=false,val responseBoundary: Boolean=false,val settledGeneration: Long?=null)
 object StreamDecoder {
     private val json=Json {ignoreUnknownKeys=true}
     fun decode(event: SseEvent): StreamUpdate {
@@ -52,6 +52,6 @@ object StreamDecoder {
                 StreamUpdate(delta=(d?.get("content") as? JsonPrimitive)?.contentOrNull.orEmpty(),status=when(finish) {"cancelled"->"response_cancelled";"error"->"response_failed";"length"->"response_incomplete";null->null;else->"response_finished"})
             }
         }
-        return update.copy(runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())
+        return update.copy(settledGeneration=(j["execution_generation"] as? JsonPrimitive)?.longOrNull,runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())
     }
 }

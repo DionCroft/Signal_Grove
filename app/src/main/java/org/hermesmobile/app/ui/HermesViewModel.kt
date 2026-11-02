@@ -278,7 +278,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     update.sequence?.let {c=c.copy(lastEventSeq=it)}
                     val control=update.control?.copy(runId=update.control.runId.ifBlank {c.runId})?.stored(c.key)
                     val event=update.tool?.let {t -> ToolEvent("${c.key}|${c.runId}|${update.sequence ?: java.util.UUID.randomUUID()}",c.key,c.runId,t.tool,t.kind,t.preview,t.durationMs,System.currentTimeMillis())}
-                    dao.saveTurn(c,assistant.copy(content=text,status=c.status),control,event,update.settledRequestId)
+                    dao.saveTurn(c,assistant.copy(content=text,status=c.status),control,event,update.settledRequestId,update.settledGeneration)
                 }
             if(!terminalSeen) {
                 c=c.copy(status=if(c.transport=="compat" && c.status=="response_finished") "response_finished" else "unknown")

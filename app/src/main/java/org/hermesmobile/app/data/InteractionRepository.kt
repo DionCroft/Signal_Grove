@@ -5,8 +5,9 @@ import org.hermesmobile.app.network.*
 
 class InteractionRepository(private val dao: HermesDao) {
     suspend fun synchronize(c: Conversation,snapshot: JsonObject,resetUnknown: Boolean = false) {
-        if(dao.conversation(c.key)?.sameSubmission(c)!=true) return
-        dao.replaceControls(c.key,c.runId,ControlProtocol.snapshot(snapshot,c.runId).map {it.stored(c.key)},resetUnknown)
+        // A partial legacy status reply cannot prove that every pending control disappeared.
+        if(!snapshot.containsKey("pending_controls") && !snapshot.containsKey("approval") && snapshot.text("status") !in RunStates.authoritativeTerminal) return
+        dao.replaceControls(c,ControlProtocol.snapshot(snapshot,c.runId).map {it.stored(c.key)},resetUnknown)
     }
     suspend fun respond(api: HermesApiClient,c: Conversation,expected: PendingControl,response: String) {
         val key=expected.key
@@ -17,10 +18,10 @@ class InteractionRepository(private val dao: HermesDao) {
             ?: throw IllegalArgumentException("The prompt changed or expired. Refresh the run and review it again.")
         val fresh=current.stored(c.key)
         ControlProtocol.responseBody(fresh,response)
-        dao.controlState(key,"responding")
+        check(dao.claimControl(control,c)) {"The prompt changed while checking the server. Refresh before responding."}
         try {
             api.respondControl(fresh,response)
-            dao.controlState(key,"resolved")
-        } catch(e: Exception) {kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {dao.controlState(key,"unknown")};throw e}
+            dao.finishControl(control,"resolved")
+        } catch(e: Exception) {kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {dao.finishControl(control,"unknown")};throw e}
     }
 }

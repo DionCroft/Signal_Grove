@@ -73,6 +73,55 @@ class ControlStorageTest {
             assertEquals("sample",db.dao().events("c").first().single().tool)
         } finally {db.close();context.deleteDatabase(name)}
     }
+    @Test fun delayedStreamPromptsCannotReopenProtectedStatesOrOlderGenerations()=runBlocking {
+        val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build()
+        try {
+            val dao=db.dao();val c=Conversation("c","scope","api",runId="r",status="waiting_for_approval",lastEventSeq=4)
+            dao.save(c);val prompt=ControlProtocol.snapshot(snapshot(),"r").single().stored(c.key)
+            for(state in listOf("unknown","responding","resolved")) {
+                dao.save(prompt.copy(state=state))
+                dao.saveTurn(c.copy(lastEventSeq=5),ChatMessage("a",c.key,"assistant","Waiting"),prompt,null,"")
+                assertEquals(state,dao.control(prompt.key)!!.state)
+            }
+            dao.mergeControl(prompt.copy(generation=2))
+            assertEquals(2L,dao.control(prompt.key)!!.generation);assertEquals("pending",dao.control(prompt.key)!!.state)
+            dao.mergeControl(prompt);dao.mergeControl(prompt.copy(generation=null))
+            assertEquals(2L,dao.control(prompt.key)!!.generation)
+        } finally {db.close()}
+    }
+    @Test fun settledTombstonesSurviveEmptySnapshotsAndOldStreamReplays()=runBlocking {
+        val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build()
+        try {
+            val dao=db.dao();val c=Conversation("c","scope","api",runId="r",status="waiting_for_approval")
+            dao.save(c);val prompt=ControlProtocol.snapshot(snapshot(),"r").single().stored(c.key);dao.save(prompt)
+            dao.replaceControls(c,emptyList(),false)
+            dao.saveTurn(c,ChatMessage("a",c.key,"assistant","Waiting"),prompt,null,"")
+            assertEquals("resolved",dao.control(prompt.key)!!.state);assertTrue(dao.controls(c.key).first().isEmpty())
+            dao.mergeControl(prompt.copy(generation=2))
+            dao.saveTurn(c,ChatMessage("a",c.key,"assistant","Waiting"),null,null,prompt.requestId,1)
+            assertEquals("pending",dao.control(prompt.key)!!.state)
+            dao.saveTurn(c,ChatMessage("a",c.key,"assistant","Waiting"),null,null,prompt.requestId,2)
+            assertEquals("resolved",dao.control(prompt.key)!!.state)
+        } finally {db.close()}
+    }
+    @Test fun concurrentRespondersSendExactlyOneDecisionAndOldAcknowledgementsCannotSettleNewGenerations()=runBlocking {
+        val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build()
+        try {
+            val dao=db.dao();val c=Conversation("c","scope","api",runId="r",status="waiting_for_approval");dao.save(c)
+            val prompt=ControlProtocol.snapshot(snapshot(),"r").single().stored(c.key);dao.save(prompt)
+            val decisions=java.util.concurrent.atomic.AtomicInteger()
+            val api=object:FakeHermesApiClient() {
+                override suspend fun run(id:String)=snapshot()
+                override suspend fun respondControl(control:PendingControl,response:String) {decisions.incrementAndGet();delay(50)}
+            }
+            coroutineScope {(1..2).map {async {runCatching {InteractionRepository(dao).respond(api,c,prompt,"once")}}}.awaitAll()}
+            assertEquals(1,decisions.get());assertEquals("resolved",dao.control(prompt.key)!!.state)
+            dao.mergeControl(prompt.copy(generation=2));assertTrue(dao.claimControl(dao.control(prompt.key)!!,c))
+            dao.finishControl(prompt,"resolved")
+            assertEquals("responding",dao.control(prompt.key)!!.state)
+        } finally {db.close()}
+    }
+
     @Test fun versionTwoTasksAndCachedJobsSurviveTheVoiceAndControlUpgrade()=runBlocking {
         val name="upgrade2-qa.db";context.deleteDatabase(name)
         val schema=Json.parseToJsonElement(InstrumentationRegistry.getInstrumentation().context.assets.open("org.hermesmobile.app.data.HermesDatabase/2.json").bufferedReader().use {it.readText()}).jsonObject["database"]!!.jsonObject

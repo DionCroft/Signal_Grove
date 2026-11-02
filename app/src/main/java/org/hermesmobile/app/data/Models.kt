@@ -118,16 +118,32 @@ object RunStates {
     @Query("DELETE FROM pending_controls WHERE sessionKey = :key") suspend fun deleteControls(key: String)
     @Query("SELECT * FROM pending_controls WHERE sessionKey = :key AND runId = :run") suspend fun runControls(key: String,run: String): List<PendingControl>
     @Query("DELETE FROM pending_controls WHERE sessionKey = :key AND runId = :run") suspend fun deleteRunControls(key: String,run: String)
-    @Query("UPDATE pending_controls SET state = :state WHERE `key` = :key") suspend fun controlState(key: String,state: String)
-    @Transaction suspend fun replaceControls(key: String,run: String,rows: List<PendingControl>,resetUnknown: Boolean) {
-        if(conversation(key)?.status in RunStates.terminal) {deleteRunControls(key,run);return}
-        val previous=runControls(key,run).associateBy {it.key}
-        deleteRunControls(key,run)
-        rows.forEach {row ->
-            val old=previous[row.key]
-            val state=if(old!=null && old.generation==row.generation && (old.state=="resolved" || old.state=="responding" || (old.state=="unknown" && !resetUnknown))) old.state else "pending"
-            save(row.copy(state=state,receivedAt=old?.receivedAt ?: row.receivedAt))
-        }
+    @Query("UPDATE pending_controls SET state = :state WHERE `key` = :key AND (state != 'resolved' OR :state = 'resolved')") suspend fun controlState(key: String,state: String)
+    /** Generation-aware merge shared by SSE and GET; settled/ambiguous responses never auto-reopen. */
+    @Transaction suspend fun mergeControl(row: PendingControl,resetUnknown: Boolean=false) {
+        val old=control(row.key)
+        if(old?.generation!=null && (row.generation==null || row.generation<old.generation)) return
+        val same=old!=null && old.generation==row.generation
+        val state=if(same && (old!!.state in setOf("resolved","responding") || (old.state=="unknown" && !resetUnknown))) old.state else "pending"
+        save(row.copy(state=state,receivedAt=if(same) old!!.receivedAt else row.receivedAt))
+    }
+    @Transaction suspend fun replaceControls(expected: Conversation,rows: List<PendingControl>,resetUnknown: Boolean) {
+        val current=conversation(expected.key) ?: return
+        if(!current.sameSubmission(expected)) return
+        if(current.status in RunStates.terminal) {deleteRunControls(expected.key,expected.runId);return}
+        val incoming=rows.map {it.key}.toSet()
+        // Keep tombstones: a later stream frame must not resurrect an absent settled prompt.
+        runControls(expected.key,expected.runId).filter {it.key !in incoming}.forEach {controlState(it.key,"resolved")}
+        rows.forEach {mergeControl(it,resetUnknown)}
+    }
+    @Transaction suspend fun claimControl(expected: PendingControl,receipt: Conversation): Boolean {
+        val current=conversation(receipt.key) ?: return false
+        if(!current.sameSubmission(receipt) || current.status in RunStates.terminal || control(expected.key)!=expected || expected.state!="pending") return false
+        save(expected.copy(state="responding"));return true
+    }
+    @Transaction suspend fun finishControl(expected: PendingControl,state: String) {
+        val current=control(expected.key) ?: return
+        if(current.generation==expected.generation && current.runId==expected.runId && current.state=="responding") controlState(expected.key,state)
     }
     /** A response belongs to one durable submission, even when a conversation is reused. */
     @Transaction suspend fun applyRunSnapshot(expected: Conversation,snapshot: JsonObject): Conversation? {
@@ -144,14 +160,15 @@ object RunStates {
         if(answer!=null) save(answer.copy(content=snapshot.text("output").ifBlank {answer.content},status=status))
         return fresh
     }
-    @Transaction suspend fun saveTurn(receipt: Conversation,message: ChatMessage,control: PendingControl?,event: ToolEvent?,settledId: String) {
+    @Transaction suspend fun saveTurn(receipt: Conversation,message: ChatMessage,control: PendingControl?,event: ToolEvent?,settledId: String,settledGeneration: Long?=null) {
         val current=conversation(receipt.key) ?: return
         if(!current.sameSubmission(receipt,allowAdmission=true) || (receipt.lastEventSeq>=0 && current.lastEventSeq>receipt.lastEventSeq)) return
+        if(current.status in RunStates.terminal && receipt.status !in RunStates.terminal) return
         save(receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt))
         save(message)
-        if(control!=null) save(control)
+        if(control!=null && control.runId==receipt.runId) mergeControl(control)
         if(event!=null) save(event)
-        if(settledId.isNotBlank()) runControls(receipt.key,receipt.runId).filter {it.requestId==settledId}.forEach {deleteControl(it.key)}
+        if(settledId.isNotBlank()) runControls(receipt.key,receipt.runId).filter {it.requestId==settledId && (it.generation==null || it.generation==settledGeneration)}.forEach {controlState(it.key,"resolved")}
         if(receipt.status in RunStates.terminal) deleteRunControls(receipt.key,receipt.runId)
     }
     @Transaction suspend fun replaceHistory(expected: Conversation, remoteId: String, messages: List<ChatMessage>) {

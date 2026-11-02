@@ -4,6 +4,8 @@
 
 Response-history chunk: 44 JVM tests passed; 6 targeted API 36 regressions passed (compatibility history, run recovery, connection isolation). Required build/lint/APK checks passed. Compatibility finish reasons now describe response outcomes separately; `[DONE]` cannot overwrite an earlier failure/cancellation outcome or assert native run completion. Completed and usable partial answers remain eligible for subsequent compatibility history. No schema change.
 
+Approval-storage chunk: 44 JVM tests passed; 13 targeted API 36 tests passed (8 control-storage, 2 recovery, 3 isolation). Required build/lint/APK checks passed. New regressions cover SSE state preservation, generation ordering, tombstones after empty snapshots, concurrent response claims and late acknowledgements. No schema change; existing generation/request IDs remain the decision identity.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0
