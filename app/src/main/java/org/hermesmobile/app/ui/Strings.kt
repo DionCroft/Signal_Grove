@@ -5,6 +5,17 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    TaskFiles("Task backup and migration","任务备份与迁移","Rènwù bèifèn yǔ qiānyí"),
+    TaskFilesInfo("Export includes task titles and notes in a plain JSON file. Choose a private location. It excludes server credentials, conversations and jobs. Import merges tasks by ID, replacing matching tasks only after confirmation.","导出将任务标题和备注保存在明文 JSON 文件中，请选择私密位置。不包含凭据、对话或服务器作业。导入在确认后按标识合并并替换匹配任务。","Dǎochū jiāng rènwù biāotí hé bèizhù bǎocún zài míngwén JSON wénjiàn zhōng, qǐng xuǎnzé sīmì wèizhì."),
+    ExportTasks("Export tasks","导出任务","Dǎochū rènwù"),
+    ImportTasks("Import tasks","导入任务","Dǎorù rènwù"),
+    ReviewImport("Review task import","审核任务导入","Shěnhé rènwù dǎorù"),
+    ImportInfo("Tasks to merge: {count}. Other tasks remain. Matching IDs are replaced. No agent work will be executed.","合并任务数：{count}。其余任务保留，匹配标识的任务会被替换，不会执行智能体工作。","Hébìng rènwù shù: {count}. Qíyú rènwù bǎoliú, bú huì zhíxíng zhìnéngtǐ gōngzuò."),
+    TaskFileDone("Task file operation completed.","任务文件操作已完成。","Rènwù wénjiàn cāozuò yǐ wánchéng."),
+    TaskFileError("Could not read or write this task file. Use a valid Hermes task JSON file up to 2 MB and 5000 tasks. Saved tasks were kept.","无法读写任务文件。请使用不超过 2 MB 和 5000 个任务的有效 Hermes JSON 文件。原任务已保留。","Wúfǎ dúxiě rènwù wénjiàn. Yuán rènwù yǐ bǎoliú."),
+    SpeechEnglish("English (UK)","英语（英国）","Yīngyǔ (Yīngguó)"),
+    SpeechChinese("Simplified Chinese","简体中文","Jiǎntǐ Zhōngwén"),
+
     Notifications("Notifications","通知","Tōngzhī"),
     NotificationInfo("Optional checks about every 15 minutes. Android may delay them. Due-task and run-status notices contain no task titles, prompts or replies.","可选检查约每十五分钟一次，Android 可能延迟通知。通知不包含任务标题、提示或回复。","Kěxuǎn jiǎnchá yuē měi shíwǔ fēnzhōng yí cì, Android kěnéng yánchí tōngzhī."),
     EnableNotifications("Enable notifications","启用通知","Qǐyòng tōngzhī"),

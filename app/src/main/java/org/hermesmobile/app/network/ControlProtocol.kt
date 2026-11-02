@@ -18,9 +18,12 @@ object ControlProtocol {
         val shown=buildString {original.forEach {c ->
             if((c.isISOControl() && c!='\n' && c!='\t') || Character.getType(c)==Character.FORMAT.toInt()) append("\\u%04X".format(c.code)) else append(c)
         }}
+        val rawChoices=(j["choices"] as? JsonArray)?.mapNotNull {(it as? JsonPrimitive)?.contentOrNull}.orEmpty()
+        val choices=rawChoices.take(100).map {it.take(400)}
+        val limited=shown.isBlank() || shown.length>32000 || rawChoices.size>100 || rawChoices.any {it.length>400 || it.any {c -> c.isISOControl() || Character.getType(c)==Character.FORMAT.toInt()}}
         return ControlRequest(run,j.text("prompt_id").ifBlank {j.text("request_id")},
             (j["execution_generation"] as? JsonPrimitive)?.longOrNull ?: fallbackGeneration,kind,shown.take(32000),
-            (j["choices"] as? JsonArray)?.mapNotNull {(it as? JsonPrimitive)?.contentOrNull}?.take(100).orEmpty(),shown.length>32000)
+            choices,limited)
     }
     fun snapshot(j: JsonObject,run: String): List<ControlRequest> {
         val generation=(j["execution_generation"] as? JsonPrimitive)?.longOrNull
@@ -28,12 +31,12 @@ object ControlProtocol {
         val approval=j["approval"] as? JsonObject
         return if(j.text("status")=="waiting_for_approval" && approval!=null) listOf(prompt(approval,run,"approval",generation)) else emptyList()
     }
-    fun matches(a: PendingControl,b: ControlRequest) = a.runId==b.runId && a.requestId.isNotBlank() && a.requestId==b.requestId && a.generation==b.generation && a.kind==b.kind && a.prompt==b.prompt && a.limited==b.limited
+    fun matches(a: PendingControl,b: ControlRequest) = a.runId==b.runId && a.requestId.isNotBlank() && a.requestId==b.requestId && a.generation==b.generation && a.kind==b.kind && a.prompt==b.prompt && a.limited==b.limited && a.choices()==b.choices
     fun responseBody(control: PendingControl,response: String): JsonObject {
         require(control.runId.isNotBlank() && control.requestId.isNotBlank()) {"The server did not provide an exact prompt identity. Refresh the run."}
         if(control.kind=="approval") {
             require(response in listOf("once","deny") && response in control.choices()) {"Unsupported approval decision."}
-            require(!control.limited || response=="deny") {"The consent text was truncated; allowing is unavailable."}
+            require((!control.limited && control.prompt.isNotBlank()) || response=="deny") {"The consent text was truncated; allowing is unavailable."}
         } else {
             require(control.kind=="clarify" && !control.limited && control.generation!=null && response.isNotBlank() && response.length<=16384) {"A current clarification identity and non-empty answer are required."}
         }

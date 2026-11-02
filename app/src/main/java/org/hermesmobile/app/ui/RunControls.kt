@@ -59,7 +59,7 @@ import java.time.format.DateTimeFormatter
             }
         }
     },confirmButton={
-        if(c.kind=="approval") {if("once" in c.choices()) TextButton({respond(c,"once")},enabled=enabled && !c.limited) {Text(label(Words.AllowOnce))}}
+        if(c.kind=="approval") {if("once" in c.choices()) TextButton({respond(c,"once")},enabled=enabled && !c.limited && c.prompt.isNotBlank()) {Text(label(Words.AllowOnce))}}
         else TextButton({respond(c,answer)},enabled=enabled && !c.limited && answer.isNotBlank() && answer.length<=16384) {Text(label(Words.SubmitAnswer))}
     },dismissButton={Row {if(c.kind=="approval" && "deny" in c.choices()) TextButton({respond(c,"deny")},enabled=enabled) {Text(label(Words.Deny))};TextButton(dismiss) {Text(label(Words.Later))}}})
 }

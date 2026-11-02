@@ -36,7 +36,7 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
                 topBar={ Column(Modifier.statusBarsPadding().fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp)) {
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
                         Text("HERMES",style=MaterialTheme.typography.titleLarge)
-                        Text("MOBILE  /  01",style=MaterialTheme.typography.labelSmall)
+                        Text("MOBILE  /  "+org.hermesmobile.app.BuildConfig.VERSION_NAME,style=MaterialTheme.typography.labelSmall)
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(label(when(connection) { "demo"->Words.Demo; "connected"->Words.Connected; else->Words.Offline }),style=MaterialTheme.typography.labelMedium)

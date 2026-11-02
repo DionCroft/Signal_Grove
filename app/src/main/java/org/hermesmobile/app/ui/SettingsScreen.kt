@@ -46,6 +46,7 @@ import org.hermesmobile.app.BuildConfig
             capabilities?.let { c -> Text("${c.model} · Sessions: ${c.sessions} · Runs: ${c.runs}",style=MaterialTheme.typography.labelSmall) }
             TextButton(vm::forgetServer,enabled=!busy && !connecting) {Text(label(Words.Forget))}
         }
+        TaskFiles(vm)
         BackgroundSettings(vm)
         Word(Words.Appearance)
         HermesTheme.entries.forEach { t ->

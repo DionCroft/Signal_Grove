@@ -42,9 +42,9 @@ class NavigationTest {
     }
     @Test fun taskCreateEditCompleteAndDeletePersists() {
         go(Words.Tasks)
-        compose.onNodeWithText(Words.AddTask.localized(AppPreferences())).performClick()
+        compose.onNodeWithText(Words.AddTask.localized(AppPreferences())).performScrollTo().performClick()
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextInput("QA task")
-        compose.onNode(hasSetTextAction() and hasText(Words.DueDate.localized(AppPreferences()))).performTextInput("2026-11-30")
+        compose.onNode(hasSetTextAction() and hasText(Words.DueDate.localized(AppPreferences()))).performScrollTo().performTextInput("2026-11-30")
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
         compose.onNodeWithTag("task-list").performScrollToNode(hasText("QA task"))
         compose.onNodeWithText("QA task").assertExists()

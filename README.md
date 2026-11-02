@@ -2,13 +2,13 @@
 
 An unofficial, open-source native Android client for [Hermes Agent](https://github.com/NousResearch/hermes-agent). Your agent runs on your infrastructure; the phone is its companion.
 
-**0.4.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
+**1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
 
 Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.
 
 ## A calm place for your agent
 
-Four interchangeable palettes, persistent conversations, English / Simplified Chinese / accented pinyin, local tasks, read-only scheduled jobs, and push-to-talk transcription.
+Four interchangeable palettes, persistent conversations, English / Simplified Chinese / accented pinyin, local tasks, confirmed scheduled-job controls, and push-to-talk transcription.
 
 | Lavender Original | Jade Terminal | Solar Archive | Mint Circuit |
 | --- | --- | --- | --- |
@@ -16,7 +16,7 @@ Four interchangeable palettes, persistent conversations, English / Simplified Ch
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Get the installable debug APK from the [development release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v0.4.0). Local build output is `app/build/outputs/apk/debug/app-debug.apk`.
+Get the signed production APK and optional development-upgrade APK from the [stable community release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
 
 ## Features
 
@@ -27,13 +27,13 @@ Get the installable debug APK from the [development release](https://github.com/
 - Capability discovery. Native server sessions where supported; Runs API for resumable streams and explicit status; native session streams on older installs; OpenAI-compatible completion fallback.
 - Durable local turn keys for safely retrying Runs submission. Connection interruptions show **unknown** until checked. Assistant finalisation never implies run completion. Compatibility streams say **response received / run outcome unavailable**.
 - Persisted tool activity with timestamps/duration and visible previews. Durable allow-once / deny approvals and explicit clarification answers verify current prompt identity/generation/content. Uncertain delivery never automatically retries a decision. Demo includes harmless exercises.
-- Room tasks: create, edit, complete, delete, notes, title/notes search, open/completed/overdue filters, priority and ISO due date, with real local progress.
+- Room tasks: create, edit, complete, delete, notes, title/notes search, open/completed/overdue filters, priority and ISO due date, with real local progress. Reviewed task JSON export/import enables backup and migration without exporting credentials or conversations.
 - Hermes scheduled jobs: list and fetch details, enabled state and supplied run timestamps. Profile-partitioned snapshots remain available offline with stale indicators. Confirmed create/edit/pause/resume/run/delete controls are available after a per-connection opt-in. New jobs start paused with local delivery. Uncertain mutations are retained for review and never automatically replayed.
 - Foreground speech recognition defaults to on-device-only, with explicit microphone permission, English/Chinese input and editable transcription transferred to Chat for review. Optional read-aloud supports installed language voices, speed and stop. Network voices require opt-in. Audio stops when leaving Voice or backgrounding.
 - Opt-in, generic private notifications for local due tasks and optionally tracked run outcomes/action requests. WorkManager checks are best effort, about every 15 minutes; they never submit agent work or answer approvals. A local-task widget shows counts and opens Tasks.
 - Explicit **Demo mode**, enabled initially. Sample text and job are labelled; no network requests are made by the fake client. Demo and real conversation storage are separated.
 
-See [0.4.0 release evidence](docs/releases/0.4.0.md) for notifications, widget, automation and credential-pairing validation. Earlier [0.3.0](docs/releases/0.3.0.md) and [0.2.0](docs/releases/0.2.0.md) records remain available.
+See [1.0.0 release evidence](docs/releases/1.0.0.md), [user guide](docs/USER_GUIDE.md), [compatibility](docs/COMPATIBILITY.md) and [release/signing process](docs/RELEASING.md). Earlier milestone evidence remains under `docs/releases/`.
 
 ## Build
 
@@ -43,7 +43,7 @@ Use JDK 24 (CI), Android SDK Platform 37 and Build Tools 36.0.0. Gradle 9.8.2 is
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-On Windows, use `gradlew.bat`. Set `ANDROID_HOME` or an untracked `local.properties` with `sdk.dir`. The debug APK is `app/build/outputs/apk/debug/app-debug.apk`. Release builds are unsigned; release signing is intentionally not configured.
+On Windows, use `gradlew.bat`. Set `ANDROID_HOME` or an untracked `local.properties` with `sdk.dir`. The debug APK is `app/build/outputs/apk/debug/app-debug.apk`. Release builds are unsigned unless signing environment variables are supplied. The public production APK is privately signed; see the [signing process](docs/RELEASING.md).
 
 For an E:-only Windows tool/cache/temp setup:
 
@@ -59,7 +59,7 @@ See [development](docs/DEVELOPMENT.md) for the toolchain, tests, emulator and di
 2. Make it reachable through a private VPN and a trusted HTTPS reverse proxy. Do not expose its raw port publicly.
 3. In Settings enter the server root, e.g. `https://agent.example.net/p/work/`, and its bearer token. The app appends API paths while retaining your prefix.
 4. Tap **Save & test connection**. The settings become active only after an authenticated discovery request succeeds. Empty token retains the saved credential only for the same URL.
-5. Start Chat. Imported sessions are restricted to `api_server` ownership. CLI/Desktop conversations need upstream shared-session protocols and are outside this alpha.
+5. Start Chat. Imported sessions are restricted to `api_server` ownership. CLI/Desktop conversations need upstream shared-session protocols and are outside this release's supported ownership scope.
 
 `127.0.0.1` on Android is the **phone**, not your computer. Cleartext testing requires both the debug build and an explicit Settings toggle. Release builds always require HTTPS. A token can grant terminal/tool access: protect it as a powerful credential.
 
@@ -69,7 +69,7 @@ See [connection details](docs/HERMES_CONNECTION.md) and the [official API refere
 
 ## Known limits
 
-- Development release. Real-server interoperability requires testing against your specific Hermes install. The project does not include a live server or credentials.
+- Community release. Real-server interoperability depends on your specific Hermes install and advertised features. The project does not include a live server or credentials. See the exact [tested matrix](docs/VALIDATION.md).
 - No full-duplex voice or file attachments. Background monitoring is read-only and delayed by Android scheduling; it is not server push or an exact reminder alarm. The widget exposes counts and opens the app for task changes.
 - A dropped stream does not mean the server stopped. Use Check / recover run; a run with a known ID is queried without resubmission. No run ID on a non-Runs transport means automatic resending is deliberately unavailable.
 - Run streams are not automatically reattached after process death. Check / recover run uses the saved ID and sequence cursor without creating new work. Replay gaps use status-only recovery. Hermes may expire event buffers/status records; unknown outcomes may require server review.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0 — 2026-11-02
+
+Stable signed community release. Task JSON backup/reviewed migration, strict consent choices and visibility, bounded import parsing, credential/header hardening, current screenshots and user/compatibility/security/signing documentation. 43 unit tests, 30 device cases each on Android 8 and 16, plus large-text/tablet reruns passed. Production install and real file-picker task round-trip verified. See docs/releases/1.0.0.md.
+
 ## 0.4.0
 
 Opt-in private best-effort notifications, local-task widget, confirmed job create/edit/pause/resume/run/delete, durable uncertain mutation receipts, atomic encrypted connection snapshots and schema 4 preservation. 39 unit / 26 connected cases passed. See docs/releases/0.4.0.md.

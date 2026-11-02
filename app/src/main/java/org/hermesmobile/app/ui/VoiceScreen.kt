@@ -102,9 +102,9 @@ import java.util.UUID
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Text(label(Words.LocalSpeech),Modifier.weight(1f));Switch(p.onDeviceSpeechOnly,{vm.updatePreferences(p.copy(onDeviceSpeechOnly=it))},enabled=state=="idle" && !speaking)
         }
-        if(mode==RecognitionMode.UNAVAILABLE) Text(label(if(p.onDeviceSpeechOnly) Words.LocalSpeechUnavailable else Words.VoiceUnavailable))
+        if(recognizer==null) Text(label(if(p.onDeviceSpeechOnly) Words.LocalSpeechUnavailable else Words.VoiceUnavailable))
         Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            FilterChip(language=="en-GB",{language="en-GB"},enabled=state=="idle" && !speaking,label={Text("English")})
+            FilterChip(language=="en-GB",{language="en-GB"},enabled=state=="idle" && !speaking,label={Text(label(Words.SpeechEnglish))})
             FilterChip(language=="zh-CN",{language="zh-CN"},enabled=state=="idle" && !speaking,label={Text("中文 · Zhōngwén")})
         }
         FilledTonalIconButton({if(state=="listening") {recognizer?.stopListening();state="processing"} else if(ContextCompat.checkSelfPermission(context,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED) start() else permission.launch(Manifest.permission.RECORD_AUDIO)},

@@ -1,33 +1,29 @@
-# Hermes connection contract
+# Hermes connection contract — 1.0.0
 
-Verified against the [official API documentation](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/) and upstream `gateway/platforms/api_server.py` / `api_server_runs.py` on 2026-11-01. No upstream source is bundled.
+Reviewed against the [official API reference](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/) and upstream gateway/API/pending-control implementations during these milestones through 2026-11-02. No upstream source is bundled. Compatibility depends on the server's advertised features and route behavior; no version string alone establishes support.
 
-| Purpose | Documented route | Client behavior |
+| Purpose | Route | Behavior |
 | --- | --- | --- |
-| Discovery | GET `/v1/capabilities` | Parse features/endpoints. Only 404/405 falls back to models. |
-| Legacy discovery | GET `/v1/models` | Select advertised model, local-history compatibility mode. |
-| List/create | GET/POST `/api/sessions` | `source=api_server`; paginated listing. Client-generated API IDs. |
-| History | GET `/api/sessions/{id}/messages` | `inline_images=false`, oldest order, bounded pagination. |
-| Session stream | POST `/api/sessions/{id}/chat/stream` | `{input}`; exact terminal events required. |
-| Resumable turn | POST `/v1/runs` | `{session_id,input}` and unique persisted Idempotency-Key. |
-| Run stream/status | GET `/v1/runs/{id}/events`, GET `/v1/runs/{id}` | Typed progress and explicit terminal state; manual recovery. |
-| Stop | POST `/v1/runs/{id}/stop` | Only when advertised and ID exists; status checked separately. |
-| Approval | POST `/v1/runs/{id}/approval` | `{choice,request_id}` from visible server request; once/deny only. |
-| Compatibility | POST `/v1/chat/completions` | `{model,messages,stream:true}` with persisted turn key. No agent-success claim. |
-| Jobs | GET `/api/jobs`, GET `/api/jobs/{id}` | Read-only documented probe (some servers omit job discovery). 404/405/501 is unsupported. |
+| Discovery | GET `/v1/capabilities` | Parse features/endpoints; only 404/405 falls back to GET `/v1/models`. |
+| API sessions | GET/POST `/api/sessions` | API-owned IDs, `source=api_server`, explicit pagination. Advertised PATCH/DELETE control rename/delete. |
+| History | GET `/api/sessions/{id}/messages` | `inline_images=false`, oldest-first bounded pagination; stable IDs and compression continuation retained. |
+| Native stream | POST `/api/sessions/{id}/chat/stream` | `{input}`; actual terminal run events required. |
+| Runs admission | POST `/v1/runs` | Exact `{session_id,input}` plus a durable Idempotency-Key. |
+| Run events/status | GET `/v1/runs/{id}/events`, GET `/v1/runs/{id}` | Saved sequence / Last-Event-ID resume; repeated events ignored. Replay gaps use status-only recovery. |
+| Stop | POST `/v1/runs/{id}/stop` | Only with an advertised control and known ID; acceptance is reconciled separately. |
+| Approval | POST `/v1/runs/{id}/approval` | Exact `{request_id,execution_generation,choice}` for canonical controls; legacy identity-bearing controls omit generation. Only current once/deny choices. |
+| Clarification | POST `/v1/runs/{id}/clarify` | Exact `{request_id,execution_generation,answer}`; no new inference turn. |
+| Unknown execution | POST `/v1/runs/{id}/resolve-unknown` | Only when advertised; exact admission/generation identity, fresh status and explicit confirmation. Never reruns the lost execution. |
+| Compatibility | POST `/v1/chat/completions` | `{model,messages,stream:true}` with local history. Response completion is not proof of agent success. |
+| Read jobs | GET `/api/jobs`, GET `/api/jobs/{id}` | Profile-specific offline snapshots; unsupported/auth/network errors remain distinct from an empty list. |
+| Change jobs | POST `/api/jobs`, PATCH/DELETE `/api/jobs/{id}`, POST pause/resume/run subroutes | Per-connection opt-in, review/confirmation and one-shot requests with durable uncertainty receipts. |
 
-Native events include `assistant.delta`, `assistant.commentary`, `assistant.completed`, `tool.started/completed/failed`, `approval.request`, and terminal `run.completed/failed/cancelled/interrupted`. Runs streams use `message.delta` and final `run.completed.output`. Private reasoning is not shown. Commentary appears as progress rather than final response. Job errors remain distinguishable from an empty job list.
+Use a trusted HTTPS reverse proxy/private VPN and retain profile prefixes. Redirects, certificate bypass and automatic transport retries are disabled. Debug HTTP requires explicit opt-in and is unavailable in production. Phone localhost is not desktop localhost; use the host's reachable trusted address. Connection settings activate only after authenticated discovery succeeds. Workers read URL/token/debug policy as one atomically encrypted vault snapshot.
 
-Use a trusted HTTPS reverse proxy/private VPN, retaining path prefixes. Debug HTTP is explicit and unavailable in the release configuration; it does not weaken certificate checks. The default host binding is localhost port 8642. Phone localhost is not desktop localhost. Use the host's reachable address, not a copied desktop loopback URL.
+Native streams separate text, commentary, visible tool activity, approval/question requests and terminal run events. Private reasoning is not displayed. Assistant finalisation, EOF, compatibility finish reasons and accepted stop requests do not establish completed tool execution. A known run is queried/resumed without a new submission. Only a lost Runs admission can retry the exact persisted key/body within the supported retention window; no new-key replay is automatic. Expired receipts or unknown execution require server review.
 
-Hermes API tokens can grant tool and terminal access. The client never auto-approves requests. It does not implement permanent approvals, unknown-execution resolution, clarification submission or arbitrary server endpoints. A 409 ownership refusal is surfaced, not worked around by changing session IDs. Desktop/CLI-owned sessions are excluded from imported API sessions.
+Canonical pending controls carry exact prompt identity and execution generation. The app compares current identity, kind, prompt contents, choices and visibility to the displayed request before responding. Missing/incomplete consent cannot allow work. An uncertain acknowledgement requires explicit status review and never automatically resends a decision. Permanent/bulk approvals and arbitrary endpoint access are outside scope. Hosted/ownership refusals are surfaced rather than worked around; CLI/Desktop-owned sessions are excluded from API imports.
 
-For a dropped connection, use Check / recover run. If an existing run ID is known, only query it; if the Runs admission response was lost, the same persisted key/body can recover the run within the retention window. Legacy/native stream submissions without usable admission replay are not automatically resent. Unknown execution may need server-side review.
+Job creates request paused state and local delivery. Resume/run can execute server tools; delete also cancels an in-flight job run. The editor changes only name/prompt and an explicitly replaced schedule; blank replacement preserves existing schedule fields. Server validation/timezone apply. Skills/provider/advanced delivery remain server-owned and are preserved. A lost mutation acknowledgement blocks subsequent changes until human review. Acknowledging that local marker never sends/repeats/undoes the action, especially for create/run whose effects cannot safely be inferred from missing acknowledgements.
 
-## Job controls and background checks
-
-Job management uses the documented authenticated `/api/jobs` POST and `/api/jobs/{id}` PATCH/DELETE plus POST pause/resume/run routes. Enable changes for the current connection, review the exact action and confirm. New jobs start paused with `deliver: local`; resume/run can execute server tools. Empty replacement schedule preserves the current schedule, and server timezone/validation apply. Skills/provider/delivery advanced settings are preserved; edit those on Hermes directly.
-
-If a mutation outcome is unknown, inspect/refresh the server before acknowledging the local marker. That acknowledgement never sends, repeats or undoes the action. This matters particularly for create and run, whose effects cannot be inferred safely from a missing network acknowledgement.
-
-Notifications require explicit app opt-in and Android permission. Optional background run checks only read already tracked run IDs; they do not stream, execute, cancel or approve anything. Availability and payloads follow the [official Hermes API reference](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/). Scheduling follows [Android WorkManager](https://developer.android.com/develop/background-work/background-tasks/persistent/getting-started); force-stop/battery/network policies may delay it.
+Notifications need explicit opt-in and Android permission. Optional background checks only read already tracked run IDs; they never stream, submit, cancel or approve work. [WorkManager scheduling](https://developer.android.com/develop/background-work/background-tasks/persistent/getting-started) is best effort and subject to force-stop, battery, permission and network policies. See [compatibility](COMPATIBILITY.md) and the [user guide](USER_GUIDE.md).

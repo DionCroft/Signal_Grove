@@ -353,6 +353,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             else { error.value="Server cancellation is unavailable. The agent may continue running." }
         } catch(e: Exception) { error.value=connectionError(e) }
     } }
+    suspend fun taskBackup(): ByteArray=TaskTransfer.encode(dao.tasks().first())
+    suspend fun importTasks(rows: List<LocalTask>) {TaskTransfer.validate(rows);dao.importTasks(rows)}
     fun saveTask(task: LocalTask) { if(task.title.isBlank()) return; viewModelScope.launch { dao.save(task.copy(title=task.title.trim())) } }
     fun deleteTask(task: LocalTask) { viewModelScope.launch { dao.delete(task) } }
     fun clearLocalChats() { if(busy.value) return; viewModelScope.launch { dao.clearChats(); newChat() } }

@@ -11,16 +11,23 @@ android {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 100
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs.getByName("debug") {
         storeFile = file((System.getenv("HERMES_BUILD_HOME") ?: rootProject.file(".local").path) + "/debug.keystore")
     }
+    val releaseKey=System.getenv("HERMES_RELEASE_KEYSTORE")
+    if(!releaseKey.isNullOrBlank()) signingConfigs.create("communityRelease") {
+        storeFile=file(releaseKey)
+        storePassword=System.getenv("HERMES_RELEASE_STORE_PASSWORD") ?: error("Release password is missing")
+        keyAlias=System.getenv("HERMES_RELEASE_KEY_ALIAS") ?: "hermesmobile"
+        keyPassword=System.getenv("HERMES_RELEASE_KEY_PASSWORD") ?: storePassword
+    }
     buildTypes {
         debug { applicationIdSuffix = ".debug" }
-        release { isMinifyEnabled = false; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") }
+        release { if(!releaseKey.isNullOrBlank()) signingConfig=signingConfigs.getByName("communityRelease"); isMinifyEnabled = false; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") }
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { compose = true; buildConfig = true }

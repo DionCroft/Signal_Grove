@@ -71,5 +71,5 @@ import java.util.UUID
             Text(label(Words.Priority))
             Row(horizontalArrangement=Arrangement.spacedBy(4.dp)) { listOf(Words.Low,Words.Normal,Words.High).forEachIndexed { i,w -> FilterChip(priority==i,{priority=i},label={Text(w.en)}) } }
         }
-    },confirmButton={TextButton({save(task.copy(title=title,dueDate=due,priority=priority,notes=notes))},enabled=title.isNotBlank() && valid) {Text(label(Words.Save))}},dismissButton={TextButton(dismiss) {Text(label(Words.Cancel))}})
+    },confirmButton={TextButton({save(task.copy(title=title,dueDate=due,priority=priority,notes=notes))},enabled=title.isNotBlank() && title.length<=500 && notes.length<=32000 && valid) {Text(label(Words.Save))}},dismissButton={TextButton(dismiss) {Text(label(Words.Cancel))}})
 }

@@ -192,7 +192,7 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
             val b=config.url.trim().trimEnd('/').plus("/").toHttpUrl()
             require(b.username.isBlank() && b.password.isBlank() && b.query == null && b.fragment == null) { "Use a server URL without credentials, query parameters or fragments." }
             require(b.isHttps || (debugBuild && config.allowDebugHttp && b.scheme == "http")) { "Use HTTPS. Local HTTP testing is available only when explicitly enabled in a debug build." }
-            require(config.token.isNotBlank() && config.token.none { it == '\r' || it == '\n' }) { "Enter your Hermes bearer token." }
+            require(config.token.isNotBlank() && config.token.all { it.code in 33..126 }) { "Enter your Hermes bearer token." }
             return b
         }
     }

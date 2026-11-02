@@ -24,3 +24,9 @@ CI builds all variants, tests and lint without signing secrets. Unit tests cover
 Exercise every navigation destination on a narrow phone and a wide tablet; use Android back. Send a Demo message, switch conversations, copy code, rotate and restart. Add/edit/complete/delete a task with a due date. Check each theme and each of the three language layouts. Increase system font size and enable reduced motion. Voice requires a supported recognition service and explicit permission; test deny/grant/background cleanup on hardware. Use a trusted live test server for auth expiry, job availability and sensitive approval review. Never use destructive operations for integration testing.
 
 Build reports: `app/build/reports/tests`, `app/build/reports/lint-results-*.html`. APK: `app/build/outputs/apk/debug/app-debug.apk`. Generated reports and debug signing material are excluded from Git. Run `python -B scripts/secret_review.py` before publishing.
+
+## Stable release coverage and contribution scope
+
+The 1.0 suite has 43 unit and 30 device cases. Use unique fixture notification/task identities when testing durable receipts across repeated installs. UI tests must scroll controls into view on API-26-sized screens. ActivityScenario route tests restore their original launch Intent after exercising onNewIntent. Exported task files are bounded and fully validated before atomic import; never add server credentials or execution definitions to that format.
+
+Use [the release process](RELEASING.md) for signing, private key backup and public asset verification. Contributors can build unsigned release variants; the owner's production key/password are never required for ordinary tests or CI. Update [compatibility](COMPATIBILITY.md) and [user instructions](USER_GUIDE.md) when behavior changes.

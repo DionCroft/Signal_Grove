@@ -17,7 +17,7 @@ class BackgroundTest {
     private val app get()=instrumentation.targetContext.applicationContext as HermesApplication
     @Test fun notificationsAreOptInPrivateAndDeduplicatedAcrossWorkerInstances()=runBlocking {
         val previous=app.preferences.flow.first();val manager=app.getSystemService(NotificationManager::class.java)
-        val task=LocalTask("notification-qa","PRIVATE FIXTURE TITLE",LocalDate.now().toString(),notes="PRIVATE FIXTURE NOTES")
+        val task=LocalTask("notification-qa-${java.util.UUID.randomUUID()}","PRIVATE FIXTURE TITLE",LocalDate.now().toString(),notes="PRIVATE FIXTURE NOTES")
         val id=ReminderPolicy.taskKey(task,LocalDate.now()).hashCode()
         if(android.os.Build.VERSION.SDK_INT>=33) instrumentation.uiAutomation.executeShellCommand("pm grant ${app.packageName} android.permission.POST_NOTIFICATIONS").use {android.os.ParcelFileDescriptor.AutoCloseInputStream(it).readBytes()}
         try {

@@ -146,6 +146,7 @@ object RunStates {
     @Upsert suspend fun save(message: ChatMessage)
     @Upsert suspend fun saveMessages(messages: List<ChatMessage>)
     @Query("SELECT * FROM tasks ORDER BY completed, priority DESC, dueDate, title") fun tasks(): Flow<List<LocalTask>>
+    @Transaction suspend fun importTasks(rows: List<LocalTask>) {rows.forEach {save(it)}}
     @Upsert suspend fun save(task: LocalTask)
     @Delete suspend fun delete(task: LocalTask)
     @Query("DELETE FROM messages") suspend fun clearMessages()
