@@ -16,11 +16,11 @@ class HermesStreamParser {
 data class ToolUpdate(val tool: String,val kind: String,val preview: String,val durationMs: Long?)
 data class StreamUpdate(val delta: String="",val finalText: String?=null,val status: String?=null,val activity: String?=null,
     val runId: String="",val sessionId: String="",val approval: org.hermesmobile.app.data.Approval?=null,
-    val control: ControlRequest?=null,val tool: ToolUpdate?=null,val sequence: Long?=null,val settledRequestId: String="",val replayGap: Boolean=false)
+    val control: ControlRequest?=null,val tool: ToolUpdate?=null,val sequence: Long?=null,val settledRequestId: String="",val replayGap: Boolean=false,val responseBoundary: Boolean=false)
 object StreamDecoder {
     private val json=Json {ignoreUnknownKeys=true}
     fun decode(event: SseEvent): StreamUpdate {
-        if(event.data=="[DONE]") return StreamUpdate(status="response_finished")
+        if(event.data=="[DONE]") return StreamUpdate(responseBoundary=true)
         val j=json.parseToJsonElement(event.data).jsonObject
         fun text(key: String)=(j[key] as? JsonPrimitive)?.contentOrNull.orEmpty()
         val name=if(event.name=="message") text("type").ifBlank {text("event")}.ifBlank {event.name} else event.name
@@ -49,7 +49,7 @@ object StreamDecoder {
             else->{
                 val choice=(j["choices"] as? JsonArray)?.firstOrNull() as? JsonObject;val d=choice?.get("delta") as? JsonObject
                 val finish=(choice?.get("finish_reason") as? JsonPrimitive)?.contentOrNull
-                StreamUpdate(delta=(d?.get("content") as? JsonPrimitive)?.contentOrNull.orEmpty(),status=when(finish) {"cancelled"->"cancelled";"error"->"failed";"length"->"incomplete";null->null;else->"response_finished"})
+                StreamUpdate(delta=(d?.get("content") as? JsonPrimitive)?.contentOrNull.orEmpty(),status=when(finish) {"cancelled"->"response_cancelled";"error"->"response_failed";"length"->"response_incomplete";null->null;else->"response_finished"})
             }
         }
         return update.copy(runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())

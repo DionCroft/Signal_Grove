@@ -2,6 +2,8 @@
 
 2026-11-02, connection-isolation chunk: 43 JVM tests passed; full API 36 suite passed 33 tests (30 existing + 3 regressions). A final targeted 10-test rerun passed after the history/recovery guards were tightened. `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed. New coverage blocks switching during unknown acknowledgement, discards delayed job details, and rejects old run/stream writes against a newer durable submission. No schema change. API 26 has not yet been rerun for this chunk. See [implementation progress](AUDIT_FOLLOW_UP.md).
 
+Response-history chunk: 44 JVM tests passed; 6 targeted API 36 regressions passed (compatibility history, run recovery, connection isolation). Required build/lint/APK checks passed. Compatibility finish reasons now describe response outcomes separately; `[DONE]` cannot overwrite an earlier failure/cancellation outcome or assert native run completion. Completed and usable partial answers remain eligible for subsequent compatibility history. No schema change.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0

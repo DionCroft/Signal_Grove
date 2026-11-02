@@ -16,7 +16,7 @@ class HermesSessionRepository(val dao: HermesDao) {
         return page
     }
     suspend fun importMessages(api: HermesApiClient, session: Conversation) {
-        if(session.status !in setOf("idle","completed","failed","cancelled","interrupted","response_finished","incomplete")) return
+        if(session.status !in (RunStates.terminal+"idle")) return
         val history=api.history(session.remoteId)
         val rows=history.rows.mapIndexed { index,m ->
             ChatMessage("remote_${session.key}_${m.id.ifBlank { index.toString() }}",session.key,m.role,m.content,

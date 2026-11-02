@@ -75,7 +75,12 @@ data class JobOperation(@PrimaryKey val key: String,val scope: String,val operat
 @Entity(tableName="notification_receipts")
 data class NotificationReceipt(@PrimaryKey val key: String,val createdAt: Long)
 object RunStates {
-    val terminal=setOf("completed","failed","cancelled","interrupted","response_finished","incomplete")
+    val authoritativeTerminal=setOf("completed","failed","cancelled","interrupted","incomplete")
+    val responseEnded=setOf("response_finished","response_failed","response_cancelled","response_incomplete")
+    // Local turn availability is separate from authoritative server execution status.
+    val terminal=authoritativeTerminal+responseEnded
+    fun usableHistory(message: ChatMessage)=message.role=="user" ||
+        (message.role=="assistant" && message.content.isNotBlank() && message.status in setOf("completed","incomplete","response_finished","response_incomplete"))
     val active=setOf("running","queued","submitting","stopping","waiting_for_approval","waiting_for_input","response_submitted")
 }
 
@@ -86,7 +91,7 @@ object RunStates {
     @Query("UPDATE job_operations SET state='unknown' WHERE state='sending'") suspend fun recoverJobOperations()
     @Query("UPDATE job_operations SET state=:state WHERE `key`=:key") suspend fun jobOperationState(key: String,state: String)
     @Insert(onConflict=OnConflictStrategy.IGNORE) suspend fun claimNotification(receipt: NotificationReceipt): Long
-    @Query("SELECT * FROM sessions WHERE scope=:scope AND runId!='' AND status NOT IN ('idle','completed','failed','cancelled','interrupted','response_finished','incomplete') ORDER BY updatedAt DESC LIMIT 20") suspend fun trackedRuns(scope: String): List<Conversation>
+    @Query("SELECT * FROM sessions WHERE scope=:scope AND runId!='' AND status NOT IN ('idle','completed','failed','cancelled','interrupted','response_finished','response_failed','response_cancelled','response_incomplete','incomplete') ORDER BY updatedAt DESC LIMIT 20") suspend fun trackedRuns(scope: String): List<Conversation>
 
     @Query("SELECT * FROM sessions WHERE scope = :scope ORDER BY pinned DESC, updatedAt DESC") fun conversations(scope: String): Flow<List<Conversation>>
     @Query("SELECT * FROM sessions WHERE `key` = :key") suspend fun conversation(key: String): Conversation?

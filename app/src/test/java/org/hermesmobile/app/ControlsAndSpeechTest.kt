@@ -61,7 +61,7 @@ class ControlsAndSpeechTest {
     @Test fun toolFailureAndCompatibilityTerminalStatesAreDistinct() {
         val tool=StreamDecoder.decode(SseEvent("tool.completed","""{"tool":"terminal","error":true,"duration":0.2,"preview":"denied","seq":5}"""))
         assertEquals("failed",tool.tool!!.kind);assertEquals(200L,tool.tool!!.durationMs);assertNull(tool.status);assertEquals(5L,tool.sequence)
-        mapOf("cancelled" to "cancelled","error" to "failed","length" to "incomplete","stop" to "response_finished").forEach {(finish,status) ->
+        mapOf("cancelled" to "response_cancelled","error" to "response_failed","length" to "response_incomplete","stop" to "response_finished").forEach {(finish,status) ->
             assertEquals(status,StreamDecoder.decode(SseEvent("message","""{"choices":[{"delta":{},"finish_reason":"$finish"}]}""")).status)
         }
         val reasoning=StreamDecoder.decode(SseEvent("reasoning.available","""{"text":"hidden"}"""))

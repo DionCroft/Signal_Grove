@@ -5,6 +5,9 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    ResponseFailed("Response failed · execution unverified","回复失败 · 执行状态未确认","Huífù shībài · zhíxíng zhuàngtài wèi quèrèn"),
+    ResponseCancelled("Response cancelled · execution unverified","回复已取消 · 执行状态未确认","Huífù yǐ qǔxiāo · zhíxíng zhuàngtài wèi quèrèn"),
+    ResponseIncomplete("Partial response · execution unverified","部分回复 · 执行状态未确认","Bùfèn huífù · zhíxíng zhuàngtài wèi quèrèn"),
     TaskFiles("Task backup and migration","任务备份与迁移","Rènwù bèifèn yǔ qiānyí"),
     TaskFilesInfo("Export includes task titles and notes in a plain JSON file. Choose a private location. It excludes server credentials, conversations and jobs. Import merges tasks by ID, replacing matching tasks only after confirmation.","导出将任务标题和备注保存在明文 JSON 文件中，请选择私密位置。不包含凭据、对话或服务器作业。导入在确认后按标识合并并替换匹配任务。","Dǎochū jiāng rènwù biāotí hé bèizhù bǎocún zài míngwén JSON wénjiàn zhōng, qǐng xuǎnzé sīmì wèizhì."),
     ExportTasks("Export tasks","导出任务","Dǎochū rènwù"),
@@ -150,6 +153,7 @@ val LocalPreferences=staticCompositionLocalOf { AppPreferences() }
 fun Words.localized(p: AppPreferences): String = buildList { add(en); if(p.chinese) { add(zh); if(p.pinyin) add(pin) } }.joinToString("\n")
 @Composable fun label(w: Words) = w.localized(LocalPreferences.current)
 fun statusWord(status: String) = when(status) {
+    "response_failed" -> Words.ResponseFailed; "response_cancelled" -> Words.ResponseCancelled; "response_incomplete" -> Words.ResponseIncomplete
     "completed" -> Words.Completed; "failed" -> Words.Failed; "cancelled" -> Words.Cancelled; "interrupted" -> Words.Interrupted
     "response_submitted" -> Words.ResponseSubmitted; "incomplete" -> Words.Incomplete; "waiting_for_input" -> Words.WaitingInput; "unknown" -> Words.Unknown; "response_finished" -> Words.ResponseFinished; "waiting_for_approval" -> Words.Approval
     "running","submitting","queued" -> Words.Running; else -> Words.Chat

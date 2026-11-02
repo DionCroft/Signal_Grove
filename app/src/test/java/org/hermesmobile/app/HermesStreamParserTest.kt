@@ -23,7 +23,7 @@ class HermesStreamParserTest {
         listOf("completed","failed","cancelled","interrupted").forEach { status ->
             assertEquals(status,StreamDecoder.decode(SseEvent("run.$status","{}")).status)
         }
-        assertEquals("response_finished",StreamDecoder.decode(SseEvent("message","[DONE]")).status)
+        assertTrue(StreamDecoder.decode(SseEvent("message","[DONE]")).responseBoundary)
     }
     @Test fun approvalRetainsServerChoicesAndRequestIdentity() {
         val a=StreamDecoder.decode(SseEvent("approval.request","""{"run_id":"r1","request_id":"q1","command":"rm sample","choices":["once","deny"]}""")).approval!!
@@ -33,6 +33,16 @@ class HermesStreamParserTest {
         val u=StreamDecoder.decode(SseEvent("message","""{"choices":[{"delta":{"content":"Hello"},"finish_reason":null}]}"""))
         assertEquals("Hello",u.delta);assertNull(u.status)
         assertEquals("response_finished",StreamDecoder.decode(SseEvent("message","""{"choices":[{"delta":{},"finish_reason":"stop"}]}""")).status)
+    }
+    @Test fun responseOutcomesNeverBecomeAuthoritativeExecutionStates() {
+        for(reason in listOf("stop","length","cancelled","error")) {
+            val state=StreamDecoder.decode(SseEvent("message","""{"choices":[{"delta":{},"finish_reason":"$reason"}]}""")).status!!
+            assertTrue(state in org.hermesmobile.app.data.RunStates.responseEnded)
+            assertFalse(state in org.hermesmobile.app.data.RunStates.authoritativeTerminal)
+        }
+        val partial=org.hermesmobile.app.data.ChatMessage("p","c","assistant","Useful partial",status="response_incomplete")
+        assertTrue(org.hermesmobile.app.data.RunStates.usableHistory(partial))
+        assertFalse(org.hermesmobile.app.data.RunStates.usableHistory(partial.copy(status="unknown")))
     }
     @Test(expected=IllegalArgumentException::class) fun boundsUntrustedEventSize() {HermesStreamParser().line("data: "+"x".repeat(2_000_001))}
 }

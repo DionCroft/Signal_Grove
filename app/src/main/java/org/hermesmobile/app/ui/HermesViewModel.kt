@@ -81,7 +81,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         if(switchingBlocked()) return
         connecting.value=true
         viewModelScope.launch {
-           error.value=null
+            error.value=null
             try {
                 val old=preferences.value
                 val previous=withContext(Dispatchers.IO) {graph.credentials.readConfig(old)}
@@ -212,7 +212,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         if(!preferences.value.demo && connectionStatus.value!="connected") { error.value="Connect to your Hermes server in Settings first."; return }
         busy.value=true
         worker=viewModelScope.launch {
-           error.value=null; activity.value=""
+            error.value=null; activity.value=""
             try {
                 var c=selected.value.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }
@@ -250,7 +250,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             "session","demo"->{path="api/sessions/${OkHttpHermesApiClient.segment(c.remoteId)}/chat/stream";body=buildJsonObject {put("input",c.pendingInput)}}
             else->{
                 path="v1/chat/completions"
-                val history=dao.history(c.key).filter {it.role=="user" || (it.role=="assistant" && it.status=="completed")}
+                val history=dao.history(c.key).filter(RunStates::usableHistory)
                 body=buildJsonObject {put("model",capabilities.value?.model ?: "hermes-agent");put("stream",true);put("messages",buildJsonArray {history.forEach {m -> add(buildJsonObject {put("role",m.role);put("content",m.content)})}})}
             }
         }
@@ -264,7 +264,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         }
         try {
             client.stream(path,body,c.pendingKey,if(resuming) c.lastEventSeq.takeIf {it>=0} else null)
-                .transformWhile {emit(it);it.status !in terminal.filter {s -> s!="response_finished"}}
+                .transformWhile {emit(it);it.status !in RunStates.authoritativeTerminal}
                 .collect {update ->
                     if(update.replayGap) {c=c.copy(lastEventSeq=-2);throw IllegalArgumentException("The server's event replay expired. Check run status; this request will not be resent.")}
                     if(update.sequence!=null && update.sequence<=c.lastEventSeq) return@collect
@@ -272,7 +272,9 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     if(update.sessionId.isNotBlank()) c=c.copy(remoteId=update.sessionId)
                     text+=update.delta;update.finalText?.let {text=it}
                     update.activity?.let {activity.value=it.take(1000)}
-                    update.status?.let {status -> runStatus.value=status;c=c.copy(status=status);terminalSeen=status in terminal}
+                    val status=update.status?.takeUnless {c.transport!="compat" && it in RunStates.responseEnded}
+                        ?: "response_finished".takeIf {update.responseBoundary && c.transport=="compat" && c.status !in RunStates.responseEnded && c.status !in RunStates.authoritativeTerminal}
+                    status?.let {runStatus.value=it;c=c.copy(status=it);terminalSeen=it in terminal}
                     update.sequence?.let {c=c.copy(lastEventSeq=it)}
                     val control=update.control?.copy(runId=update.control.runId.ifBlank {c.runId})?.stored(c.key)
                     val event=update.tool?.let {t -> ToolEvent("${c.key}|${c.runId}|${update.sequence ?: java.util.UUID.randomUUID()}",c.key,c.runId,t.tool,t.kind,t.preview,t.durationMs,System.currentTimeMillis())}
@@ -290,7 +292,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
     fun prepareRetry() { viewModelScope.launch {
         val c=dao.conversation(selected.value) ?: return@launch
-        if(c.status in setOf("failed","cancelled","interrupted","incomplete")) draft.value=c.pendingInput
+        if(c.status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) draft.value=c.pendingInput
     } }
     fun retryOrRefresh() {
         if(busy.value || controlBusy.value || connecting.value) return
@@ -299,7 +301,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             val c=dao.conversation(selected.value)
             try {
                 if(c==null || c.scope!=scope.value) return@launch
-               error.value=null
+                error.value=null
                 when {
                     c.runId.isNotBlank()->{
                         val fresh=reconcile(c,true)

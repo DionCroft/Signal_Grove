@@ -61,7 +61,7 @@ import java.time.format.DateTimeFormatter
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 if(status !in HermesViewModel.terminal) TextButton(vm::stop,enabled=LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true)) { Text(label(Words.Stop)) }
                 if(!busy && status !in setOf("completed","idle","response_finished")) TextButton(vm::retryOrRefresh) { Text(label(Words.CheckRun)) }
-                if(!busy && status in setOf("failed","cancelled","interrupted","incomplete")) TextButton(vm::prepareRetry) { Text(label(Words.Retry)) }
+                if(!busy && status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) TextButton(vm::prepareRetry) { Text(label(Words.Retry)) }
             }
         }
         if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy) {Text(label(Words.ResolveUnknown))}
