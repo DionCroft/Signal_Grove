@@ -42,6 +42,8 @@ MCP-catalog checkpoint: 93 JVM tests passed, along with required unit/lint/debug
 
 MCP-OAuth checkpoint: 96 JVM tests and required unit/lint/debug/instrumentation builds passed. Three focused OAuth cases passed on API 26/36/37. Full suites passed 90 cases on API 26/36 and 91 on API 37. Large-text API 26 browser review was inspected. Coverage verifies exact prefixed/profile start and profile-free flow GET/DELETE paths, separate management bearer use, validated browser destinations, immutable original flow binding, redacted persisted state, restart/chat-clear preservation, wrong-profile/actor refusal, approval reopening, unavailable flow without restart, claim-before-start, lost start without guessed handles/replay, cancellation acknowledgement retaining approved status, and lost cancellation clearing the transient URL and disabling another mutation. Eight parser tests and stable/main contract checks passed with OAuth lifecycle and host-worker handlers tracked. The external provider browser was reviewed but not launched by these fixtures; no real provider authorization, callback, credential revocation or gateway reconnect was verified.
 
+Executed-device CI setup: the workflow now schedules complete fresh API 26/37 instrumentation jobs after the verified APK build. The helper was parsed and its workflow matrix/dependency/read-only permissions checked locally. Initial remote execution is pending; compilation or configuration alone is not recorded as a connected pass. Local fixture/device results above remain distinct from hosted-runner results.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0
