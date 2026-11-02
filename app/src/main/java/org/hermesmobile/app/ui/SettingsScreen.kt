@@ -43,11 +43,13 @@ import org.hermesmobile.app.BuildConfig
             Text(label(Words.ServerHelp),style=MaterialTheme.typography.bodySmall)
             LocalNetworkSettings()
             if(BuildConfig.DEBUG) Toggle(Words.DebugHttp,http,!busy && !connecting) {http=it}
+            Text(label(Words.RotationPolicy),style=MaterialTheme.typography.bodySmall)
             Button({vm.configure(url,token,http);token=""},enabled=!busy && !connecting && url.isNotBlank()) {Text(label(Words.Connect))}
             if(connecting) QuietProgress()
             capabilities?.let { c -> Text("${c.model} · Sessions: ${c.sessions} · Runs: ${c.runs}",style=MaterialTheme.typography.labelSmall) }
             TextButton(vm::forgetServer,enabled=!busy && !connecting) {Text(label(Words.Forget))}
         }
+        ConnectionProfiles(vm)
         TextButton(openServer) {Text(label(Words.ServerDetails))}
         TaskFiles(vm)
         BackgroundSettings(vm)

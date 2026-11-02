@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Encrypted named API connections, guarded switching, explicit token-rotation boundaries and read-only cached history after credential removal.
+
 Connection/submission isolation for delayed controls and run replies; preserved compatibility assistant history with distinct response outcomes; monotonic approval state and atomic decision claims; verified 5000-character cron prompt limit, known refusal handling and safe structured HTTP error metadata. 46 JVM tests and 38 connected tests each on API 26/36 passed. See docs/AUDIT_FOLLOW_UP.md.
 
 Read-only server details now includes advertised capabilities, payload-based readiness, provider/model inventory, installed skills and API-server toolsets. Connection-scoped loading, offline startup preservation, explicit provider probing, lazy model lists and bilingual/pinyin scrolling are covered by 48 JVM / 43 API 36 cases and targeted large-text API 26 checks.

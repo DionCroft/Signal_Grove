@@ -9,6 +9,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class StableStorageTest {
+    @get:org.junit.Rule val credentialFixture=CredentialFixtureRule()
     @Test fun reviewedTaskImportMergesAtomicallyWithoutDeletingUnlistedTasks()=runBlocking {
         val db=Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getInstrumentation().targetContext,HermesDatabase::class.java).build()
         try {

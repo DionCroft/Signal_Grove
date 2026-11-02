@@ -61,6 +61,7 @@ class PreferenceStore(context: Context) {
 }
 class SecureCredentialStore(context: Context) {
     private val prefs = context.getSharedPreferences("credentials", Context.MODE_PRIVATE)
+    private val monitor=locks.getOrPut(context.applicationInfo.dataDir) {Any()}
     private fun key(): SecretKey {
         val ks = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (ks.getKey("hermes_token_v1", null) as? SecretKey)?.let { return it }
@@ -79,21 +80,56 @@ class SecureCredentialStore(context: Context) {
         val cipher=Cipher.getInstance("AES/GCM/NoPadding").apply {init(Cipher.DECRYPT_MODE,key(),GCMParameterSpec(128,bytes.copyOfRange(0,12)))}
         return cipher.doFinal(bytes.copyOfRange(12,bytes.size)).toString(Charsets.UTF_8)
     }
-    @Synchronized fun writeConfig(config: ServerConfig) {
-        val payload=buildJsonObject {put("url",config.url);put("token",config.token);put("debugHttp",config.allowDebugHttp)}.toString()
-        check(prefs.edit().putString("connection_v2",encrypt(payload)).remove("token").commit()) {"Credential storage unavailable"}
-    }
-    @Synchronized fun readConfig(legacy: AppPreferences? = null): ServerConfig? {
-        prefs.getString("connection_v2",null)?.let {
-            val j=Json.parseToJsonElement(decrypt(it)).jsonObject
-            return ServerConfig(j.text("url"),j.text("token"),j["debugHttp"]?.jsonPrimitive?.booleanOrNull==true)
+    private fun configRow(config:ServerConfig)=buildJsonObject {put("url",config.url);put("token",config.token);put("debugHttp",config.allowDebugHttp)}
+    private fun parseConfig(j:JsonObject)=ServerConfig(j.text("url"),j.text("token"),j["debugHttp"]?.jsonPrimitive?.booleanOrNull==true)
+    private fun active():ServerConfig?=prefs.getString("connection_v2",null)?.let {parseConfig(Json.parseToJsonElement(decrypt(it)).jsonObject)}
+    private fun defaultName(config:ServerConfig)=runCatching {java.net.URI(config.url).let {it.host.orEmpty()+it.path.orEmpty().trimEnd('/')}}.getOrDefault("Hermes").ifBlank {"Hermes"}.take(80)
+    private fun rows():Map<String,JsonObject> {
+        prefs.getString("profiles_v1",null)?.let {value ->
+            val data=Json.parseToJsonElement(decrypt(value)).jsonObject
+            require(data.size<=10000) {"Saved connection metadata exceeds the mobile limit."}
+            return data.mapValues {(id,row) ->
+                val entry=row.jsonObject;require(id.matches(Regex("[a-f0-9]{64}")))
+                if(entry.containsKey("token")) require(parseConfig(entry).scope==id) {"Saved credential scope does not match."}
+                entry
+            }
         }
-        // Only a foreground caller supplies the legacy URL. Workers never pair independent stores.
+        return active()?.let {config -> mapOf(config.scope to JsonObject(configRow(config)+mapOf("name" to JsonPrimitive(defaultName(config)))))}.orEmpty()
+    }
+    private fun encryptedRows(rows:Map<String,JsonObject>)=encrypt(JsonObject(rows).toString())
+    fun profiles():List<SavedConnection> = synchronized(monitor) {rows().map {(id,row)->SavedConnection(id,row.text("name").ifBlank {"Hermes"},row.text("url"),row["debugHttp"]?.jsonPrimitive?.booleanOrNull==true,row.containsKey("token"))}.sortedBy {it.name.lowercase()}}
+    fun profile(id:String):ServerConfig?=synchronized(monitor) {rows()[id]?.takeIf {it.containsKey("token")}?.let(::parseConfig)}
+    fun writeConfig(config:ServerConfig)=synchronized(monitor) {
+        val old=rows();require(old.count {it.value.containsKey("token")}<32 || old[config.scope]?.containsKey("token")==true) {"At most 32 saved credentials are supported. Remove an unused credential first."}
+        val name=old[config.scope]?.text("name").orEmpty().ifBlank {defaultName(config)}
+        val updated=old+mapOf(config.scope to JsonObject(configRow(config)+mapOf("name" to JsonPrimitive(name))))
+        check(prefs.edit().putString("connection_v2",encrypt(configRow(config).toString())).putString("profiles_v1",encryptedRows(updated)).remove("token").commit()) {"Credential storage unavailable"}
+    }
+    fun activate(id:String):ServerConfig=synchronized(monitor) {val config=profile(id) ?: error("Enter the original credential again to use this connection.");writeConfig(config);config}
+    fun rename(id:String,name:String)=synchronized(monitor) {
+        require(name.isNotBlank() && name.length<=80 && name.none(Char::isISOControl)) {"Use a connection name of 1–80 characters."}
+        val old=rows();val entry=old[id] ?: error("Saved connection no longer exists.")
+        check(prefs.edit().putString("profiles_v1",encryptedRows(old+mapOf(id to JsonObject(entry+mapOf("name" to JsonPrimitive(name.trim())))))).commit()) {"Credential storage unavailable"}
+    }
+    fun forget(id:String)=synchronized(monitor) {
+        val old=rows();val entry=old[id] ?: return@synchronized
+        val editor=prefs.edit().putString("profiles_v1",encryptedRows(old+mapOf(id to JsonObject(entry.filterKeys {it!="token"}))))
+        if(active()?.scope==id) editor.remove("connection_v2").remove("token")
+        check(editor.commit()) {"Credential storage unavailable"}
+    }
+    fun forgetCurrent()=synchronized(monitor) {
+        val current=active()
+        if(current!=null) forget(current.scope) else check(prefs.edit().remove("connection_v2").remove("token").commit())
+    }
+    fun readConfig(legacy:AppPreferences?=null):ServerConfig?=synchronized(monitor) {
+        active()?.let {return@synchronized it}
+        // Only foreground migration pairs a legacy token with its original preference URL.
         if(legacy!=null && legacy.url.isNotBlank()) prefs.getString("token",null)?.let {
             val config=ServerConfig(legacy.url,decrypt(it),legacy.debugHttp)
-            writeConfig(config);return config
+            writeConfig(config);return@synchronized config
         }
-        return null
+        null
     }
-    @Synchronized fun clear() {check(prefs.edit().clear().commit())}
+    fun clear()=synchronized(monitor) {check(prefs.edit().clear().commit())}
+    companion object {private val locks=java.util.concurrent.ConcurrentHashMap<String,Any>()}
 }

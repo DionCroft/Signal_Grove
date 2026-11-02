@@ -22,6 +22,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val preferences=graph.preferences.flow.stateIn(viewModelScope,SharingStarted.Eagerly,AppPreferences())
     private val scope=MutableStateFlow("demo")
     val profileScope: StateFlow<String> get()=scope.asStateFlow()
+    val savedConnections=MutableStateFlow<List<SavedConnection>>(emptyList())
+    private suspend fun reloadConnections() {savedConnections.value=withContext(Dispatchers.IO) {graph.credentials.profiles()}}
     val jobBusy=MutableStateFlow(false)
     val serverOperations=scope.flatMapLatest {dao.serverOperations(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val sessionDetailsLoading=MutableStateFlow(false)
@@ -125,6 +127,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     init {viewModelScope.launch {try {dao.recoverControls();dao.recoverJobOperations();dao.recoverServerOperations();activate(graph.preferences.flow.first())} finally {connecting.value=false}}}
     fun dismissError() { error.value=null }
     private suspend fun activate(p: AppPreferences) {
+        try {reloadConnections()} catch(e:Exception) {savedConnections.value=emptyList();error.value=connectionError(e)}
+        draft.value="";runStatus.value="idle";activity.value=""
         clearDraftImages()
         selected.value=""; capabilities.value=null;discovery.value=DiscoveryState();sessionDetailsLoading.value=false; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
         if(p.demo) {
@@ -135,6 +139,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             var configured=false
             try {
                 val config=withContext(Dispatchers.IO) {graph.credentials.readConfig(p)} ?: throw IllegalArgumentException("Enter your server connection again.")
+                reloadConnections()
                 api=connection.client(config); scope.value=config.scope;configured=true
                 capabilities.value=connection.test(api)
                 connectionStatus.value="connected";loadSessions();refreshJobs()
@@ -159,9 +164,9 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val config=ServerConfig(url.trim(),saved,debugHttp)
                 val candidate=connection.client(config)
                 val discovered=connection.test(candidate)
-                withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) }
+                withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) };reloadConnections()
                 graph.preferences.connection(urlValue=config.url,demoValue=false,httpValue=debugHttp)
-                clearDraftImages()
+                clearDraftImages();draft.value="";runStatus.value="idle";activity.value=""
                 api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState();sessionDetailsLoading.value=false
                 connectionStatus.value="connected"; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"; sessionsLoading.value=false; error.value=null
                 loadSessions(); refreshJobs()
@@ -580,8 +585,31 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         try {withContext(Dispatchers.IO) {graph.requests.clearAll();graph.images.blobs.clearAll()};dao.clearChats();newChat()}
         catch(e: Exception) {error.value=Words.LocalDataError.localized(preferences.value)}
     }}
+    fun useSavedConnection(id:String) {
+        if(switchingBlocked()) return
+        connecting.value=true
+        viewModelScope.launch {try {
+            val config=withContext(Dispatchers.IO) {graph.credentials.activate(id)}
+            graph.preferences.connection(urlValue=config.url,demoValue=false,httpValue=config.allowDebugHttp)
+            error.value=null;activate(graph.preferences.flow.first())
+        } catch(e:Exception) {error.value=connectionError(e)} finally {connecting.value=false}}
+    }
+    fun renameConnection(id:String,name:String) {
+        if(switchingBlocked()) return
+        controlBusy.value=true
+        viewModelScope.launch {try {withContext(Dispatchers.IO) {graph.credentials.rename(id,name)};reloadConnections()}
+            catch(e:Exception) {error.value=connectionError(e)} finally {controlBusy.value=false}}
+    }
+    fun removeConnectionCredential(id:String) {
+        if(switchingBlocked()) return
+        connecting.value=true
+        viewModelScope.launch {try {
+            val wasActive=withContext(Dispatchers.IO) {val active=graph.credentials.readConfig()?.scope==id;graph.credentials.forget(id);active}
+            if(wasActive) {graph.preferences.connection(urlValue="",demoValue=true,httpValue=false);activate(graph.preferences.flow.first())} else reloadConnections()
+        } catch(e:Exception) {error.value=connectionError(e)} finally {connecting.value=false}}
+    }
     fun forgetServer() { if(switchingBlocked()) return; connecting.value=true; viewModelScope.launch {try {
-        withContext(Dispatchers.IO) { graph.credentials.clear() }
+        withContext(Dispatchers.IO) { graph.credentials.forgetCurrent() }
         graph.preferences.connection(urlValue="",demoValue=true,httpValue=false);activate(graph.preferences.flow.first())
     } finally {connecting.value=false} } }
     companion object { val terminal=RunStates.terminal }

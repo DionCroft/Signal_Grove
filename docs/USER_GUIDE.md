@@ -85,3 +85,9 @@ On Android 17, Settings includes **Allow local network access** for LAN or priva
 Settings offers Lavender, Jade, Solar and Mint independently of connectivity, Chinese and accented pinyin switches, reduced motion and system font scaling. Wide displays use a navigation rail. No bundled fonts, telemetry, advertisements or analytics are included. App-private Room storage and image/request files are not database/file encryption; backups/transfer are disabled. Explicit clipboard, speech services and exported task files leave that private storage boundary.
 
 For bugs, use the issue templates with app/Android/Hermes versions and a synthetic reproduction. Never attach credentials or private transcripts. For security issues use [private reporting](https://github.com/DionCroft/hermes-agent-android/security/advisories/new). See [validation](VALIDATION.md) for exactly what was tested and what requires your hardware/server.
+
+## Saved connections and token rotation
+
+Settings → Saved connections lists encrypted named connection records. Connect first to save a server; rename it without changing its identity. Use this connection switches the exact saved URL/token pair after current operations finish. Switching clears the unsent draft and does not replay or reconcile old work. View cached history is read only and remains available after removing a credential.
+
+A new URL or token creates a separate connection with separate conversations, requested runtime, approvals, recovery requests and automation consent. Previous credentials remain saved until explicitly removed. Re-enter the exact original pair to recover its original scope; the app does not guess that a rotated token can own an earlier admission. Up to 32 credentials can be saved. Removing one affects this device; server work can continue. All saved credentials and names use Android Keystore encryption; conversation/request files retain their existing app-private storage policy.

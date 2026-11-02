@@ -11,6 +11,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AutomationStorageTest {
+    @get:org.junit.Rule val credentialFixture=CredentialFixtureRule()
     private val context get()=InstrumentationRegistry.getInstrumentation().targetContext
     @Test fun knownValidationRefusalDoesNotBlockCorrectionsButAmbiguous400StillDoes()=runBlocking {
         val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build()

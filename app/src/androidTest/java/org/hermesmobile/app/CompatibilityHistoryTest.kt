@@ -18,10 +18,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /** Compatibility responses remain useful history without asserting run success. */
 class CompatibilityHistoryTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val credentialFixture=CredentialFixtureRule()
+    @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
-    @After fun reset() {compose.runOnUiThread {vm.forgetServer()};compose.waitUntil(10000) {vm.preferences.value.demo && !vm.controlBusy.value}}
+    @After fun reset() {compose.runOnUiThread {vm.forgetServer()};compose.waitUntil(10000) {vm.preferences.value.demo && !vm.controlBusy.value && !vm.connecting.value}}
     private fun json(body:String)=MockResponse().setHeader("Content-Type","application/json").setBody(body)
     private fun connect(server:MockWebServer,path:String,token:String) {
         compose.waitUntil(10000) {!vm.connecting.value}

@@ -264,6 +264,17 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     Github("Source on GitHub","GitHub 源代码","GitHub yuán dàimǎ"), Licences("Open-source licences","开源许可证","Kāiyuán xǔkězhèng"),
     ClearChats("Clear local conversation cache","清除本地对话缓存","Qīngchú běndì duìhuà huǎncún"),
     ClearConfirm("Delete cached conversations and saved recovery requests on this device? Server work may continue. Server conversations and local tasks remain available.","删除本机对话缓存和已保存的恢复请求？服务器工作可能继续，服务器对话和本地任务仍会保留。","Shānchú běnjī duìhuà huǎncún hé yǐ bǎocún de huīfù qǐngqiú? Fúwùqì gōngzuò kěnéng jìxù, fúwùqì duìhuà hé běndì rènwù réng huì bǎoliú."),
+    Connections("Saved connections","已保存的连接","Yǐ bǎocún de liánjiē"),
+    ConnectionName("Connection name","连接名称","Liánjiē míngchēng"),
+    UseConnection("Use this connection","使用此连接","Shǐyòng cǐ liánjiē"),
+    CurrentConnection("Current connection","当前连接","Dāngqián liánjiē"),
+    SavedCache("View cached history","查看缓存历史","Chákàn huǎncún lìshǐ"),
+    ReadOnlyCache("Cached history is read only. Refresh and recovery require the original credential.","缓存历史为只读。刷新和恢复需要原始凭据。","Huǎncún lìshǐ wéi zhǐdú. Shuāxīn hé huīfù xūyào yuánshǐ píngjù."),
+    CredentialRemoved("Credential removed","凭据已移除","Píngjù yǐ yíchú"),
+    RemoveCredential("Remove saved credential","移除已保存的凭据","Yíchú yǐ bǎocún de píngjù"),
+    RemoveCredentialInfo("Remove this device's saved credential? Cached history remains read only. Server work may continue. Re-enter the original URL and token to recover it.","移除本机保存的凭据？缓存历史保留为只读，服务器工作可能继续。重新输入原始网址和令牌可恢复。","Yíchú běnjī bǎocún de píngjù? Huǎncún lìshǐ bǎoliú wéi zhǐdú, fúwùqì gōngzuò kěnéng jìxù. Chóngxīn shūrù yuánshǐ wǎngzhǐ hé lìngpái kě huīfù."),
+    RotationPolicy("A changed URL or token creates a separate connection. Existing history, requests and approvals stay with their original credential. Previous credentials remain saved until you remove them.","更改网址或令牌会创建独立连接。历史、请求和审批保留在原始凭据下。旧凭据会保存至手动移除。","Gēnggǎi wǎngzhǐ huò lìngpái huì chuàngjiàn dúlì liánjiē. Lìshǐ, qǐngqiú hé shěnpī bǎoliú zài yuánshǐ píngjù xià. Jiù píngjù huì bǎocún zhì shǒudòng yíchú."),
+    NoSavedConnections("Connect to a server to save a connection.","连接服务器以保存连接。","Liánjiē fúwùqì yǐ bǎocún liánjiē."),
     Dismiss("Dismiss","关闭提示","Guānbì tíshì"), Loading("Loading…","正在加载…","Zhèngzài jiāzài…")
 }
 val LocalPreferences=staticCompositionLocalOf { AppPreferences() }

@@ -14,10 +14,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /** Real client/VM/Room over fixture HTTP. No Hermes credentials, agent or microphone. */
 class RunRecoveryTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val credentialFixture=CredentialFixtureRule()
+    @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
-    @After fun resetConnection() {compose.runOnUiThread {vm.forgetServer()};compose.waitUntil(5000) {vm.preferences.value.demo}}
+    @After fun resetConnection() {compose.runOnUiThread {vm.forgetServer()};compose.waitUntil(5000) {vm.preferences.value.demo && !vm.connecting.value}}
     private class Fixture(private val gap:Boolean):Dispatcher() {
         val admissions=AtomicInteger();val streams=AtomicInteger();val cursors=mutableListOf<String?>()
         @Volatile var terminal=false

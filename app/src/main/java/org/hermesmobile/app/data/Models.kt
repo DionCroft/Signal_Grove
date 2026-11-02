@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.*
 import java.security.MessageDigest
 
+data class SavedConnection(val id:String,val name:String,val url:String,val debugHttp:Boolean,val hasCredential:Boolean)
+
 data class ServerConfig(val url: String, val token: String, val allowDebugHttp: Boolean = false) {
     val scope: String get() = MessageDigest.getInstance("SHA-256").digest((url.trimEnd('/') + "\u0000" + token).toByteArray()).joinToString("") { "%02x".format(it) }
 }

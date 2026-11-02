@@ -20,7 +20,8 @@ import org.junit.Test
 import java.io.File
 
 class ActivityFlowTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val credentialFixture=CredentialFixtureRule()
+    @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private val context get()=compose.activity.applicationContext
     private fun json(body:String)=MockResponse().setHeader("Content-Type","application/json").setBody(body)

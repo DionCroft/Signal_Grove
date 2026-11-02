@@ -23,7 +23,8 @@ import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 
 class ImageInputTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val credentialFixture=CredentialFixtureRule()
+    @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
     private fun uri(name:String)=Uri.parse("content://org.hermesmobile.app.test.images/$name")
