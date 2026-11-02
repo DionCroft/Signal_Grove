@@ -60,7 +60,7 @@ import java.time.format.DateTimeFormatter
             Text(job.schedule)
             Text(label(if(job.enabled) Words.Enabled else Words.Paused),style=MaterialTheme.typography.labelMedium)
             if(job.nextRun.isNotBlank()) Text(label(Words.NextRun)+": "+job.nextRun,style=MaterialTheme.typography.bodySmall)
-            TextButton({scope.launch {loading=true;detailError=null;try {detail=vm.jobDetail(job.id)} catch(e:Exception) {detailError=connectionError(e)} finally {loading=false}}},enabled=!loading) {Text(label(Words.JobDetails))}
+            TextButton({scope.launch {loading=true;detailError=null;try {val result=vm.jobDetail(job.id);if(vm.profileScope.value==profile) detail=result} catch(e:Exception) {if(vm.profileScope.value==profile) detailError=connectionError(e)} finally {if(vm.profileScope.value==profile) loading=false}}},enabled=!loading) {Text(label(Words.JobDetails))}
         }}
     }
     detail?.let {job -> AlertDialog(onDismissRequest={detail=null},title={Text(job.name)},text={LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp)) {

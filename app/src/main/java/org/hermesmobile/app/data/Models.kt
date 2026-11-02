@@ -52,6 +52,9 @@ data class Conversation(
     @ColumnInfo(defaultValue = "''") val admissionId: String = "",
     @ColumnInfo(defaultValue = "NULL") val executionGeneration: Long? = null
 )
+fun Conversation.sameSubmission(other: Conversation,allowAdmission: Boolean=false): Boolean =
+    key==other.key && scope==other.scope && pendingKey==other.pendingKey && pendingAt==other.pendingAt &&
+        (runId==other.runId || (allowAdmission && runId.isBlank()))
 @Entity(tableName = "messages", indices = [Index("sessionKey")])
 data class ChatMessage(@PrimaryKey val id: String, val sessionKey: String, val role: String, val content: String, val timestamp: Long = System.currentTimeMillis(), val status: String = "completed")
 @Entity(tableName = "tasks")
@@ -121,8 +124,24 @@ object RunStates {
             save(row.copy(state=state,receivedAt=old?.receivedAt ?: row.receivedAt))
         }
     }
+    /** A response belongs to one durable submission, even when a conversation is reused. */
+    @Transaction suspend fun applyRunSnapshot(expected: Conversation,snapshot: JsonObject): Conversation? {
+        val current=conversation(expected.key) ?: return null
+        if(!current.sameSubmission(expected)) return null
+        val status=snapshot.text("status").ifBlank {"unknown"}
+        if(current.status in RunStates.terminal && status !in RunStates.terminal) return null
+        val generation=(snapshot["execution_generation"] as? JsonPrimitive)?.longOrNull
+        if(generation!=null && current.executionGeneration!=null && generation<current.executionGeneration) return null
+        val fresh=current.copy(status=status,remoteId=snapshot.text("session_id").ifBlank {current.remoteId},
+            admissionId=snapshot.text("admission_id").ifBlank {current.admissionId},executionGeneration=generation ?: current.executionGeneration)
+        save(fresh)
+        val answer=history(expected.key).let {rows -> if(expected.pendingKey.isNotBlank()) rows.firstOrNull {it.id=="${expected.pendingKey}_assistant"} else rows.lastOrNull {it.role=="assistant"}}
+        if(answer!=null) save(answer.copy(content=snapshot.text("output").ifBlank {answer.content},status=status))
+        return fresh
+    }
     @Transaction suspend fun saveTurn(receipt: Conversation,message: ChatMessage,control: PendingControl?,event: ToolEvent?,settledId: String) {
         val current=conversation(receipt.key) ?: return
+        if(!current.sameSubmission(receipt,allowAdmission=true) || (receipt.lastEventSeq>=0 && current.lastEventSeq>receipt.lastEventSeq)) return
         save(receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt))
         save(message)
         if(control!=null) save(control)
@@ -130,8 +149,10 @@ object RunStates {
         if(settledId.isNotBlank()) runControls(receipt.key,receipt.runId).filter {it.requestId==settledId}.forEach {deleteControl(it.key)}
         if(receipt.status in RunStates.terminal) deleteRunControls(receipt.key,receipt.runId)
     }
-    @Transaction suspend fun replaceHistory(key: String, remoteId: String, messages: List<ChatMessage>) {
+    @Transaction suspend fun replaceHistory(expected: Conversation, remoteId: String, messages: List<ChatMessage>) {
+        val key=expected.key
         val current = conversation(key) ?: return
+        if(!current.sameSubmission(expected)) return
         if(current.status !in (RunStates.terminal+"idle")) return
         deleteMessages(key); saveMessages(messages)
         save(current.copy(remoteId=remoteId,syncedAt=System.currentTimeMillis()))

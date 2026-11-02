@@ -20,7 +20,8 @@ import org.hermesmobile.app.BuildConfig
     val p by vm.preferences.collectAsStateWithLifecycle()
     val runBusy by vm.busy.collectAsStateWithLifecycle()
     val jobBusy by vm.jobBusy.collectAsStateWithLifecycle()
-    val busy=runBusy || jobBusy
+    val controlBusy by vm.controlBusy.collectAsStateWithLifecycle()
+    val busy=runBusy || jobBusy || controlBusy
     val connecting by vm.connecting.collectAsStateWithLifecycle()
     val capabilities by vm.capabilities.collectAsStateWithLifecycle()
     var url by remember(p.url) {mutableStateOf(p.url)}

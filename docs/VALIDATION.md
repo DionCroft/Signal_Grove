@@ -1,4 +1,10 @@
-# Current validation — 1.0.0
+# Current development validation — audit follow-up
+
+2026-11-02, connection-isolation chunk: 43 JVM tests passed; full API 36 suite passed 33 tests (30 existing + 3 regressions). A final targeted 10-test rerun passed after the history/recovery guards were tightened. `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed. New coverage blocks switching during unknown acknowledgement, discards delayed job details, and rejects old run/stream writes against a newer durable submission. No schema change. API 26 has not yet been rerun for this chunk. See [implementation progress](AUDIT_FOLLOW_UP.md).
+
+The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
+
+# Released validation — 1.0.0
 
 | Check | Verified result |
 | --- | --- |

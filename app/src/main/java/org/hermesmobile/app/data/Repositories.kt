@@ -22,7 +22,7 @@ class HermesSessionRepository(val dao: HermesDao) {
             ChatMessage("remote_${session.key}_${m.id.ifBlank { index.toString() }}",session.key,m.role,m.content,
                 m.timestamp.takeIf { it>0 } ?: index.toLong())
         }
-        dao.replaceHistory(session.key,history.sessionId,rows)
+        dao.replaceHistory(session,history.sessionId,rows)
     }
 }
 class HermesJobsRepository(private val dao: HermesDao) {

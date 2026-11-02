@@ -5,6 +5,7 @@ import org.hermesmobile.app.network.*
 
 class InteractionRepository(private val dao: HermesDao) {
     suspend fun synchronize(c: Conversation,snapshot: JsonObject,resetUnknown: Boolean = false) {
+        if(dao.conversation(c.key)?.sameSubmission(c)!=true) return
         dao.replaceControls(c.key,c.runId,ControlProtocol.snapshot(snapshot,c.runId).map {it.stored(c.key)},resetUnknown)
     }
     suspend fun respond(api: HermesApiClient,c: Conversation,expected: PendingControl,response: String) {
