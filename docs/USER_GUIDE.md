@@ -95,3 +95,9 @@ A new URL or token creates a separate connection with separate conversations, re
 ## Management login and MCP inventory
 
 Settings → Hermes management links the separate dashboard HTTPS URL to a saved API connection. Sign in through the browser, return to the app and explicitly select a server profile. The screen lists that profile’s MCP configuration; enabled entries do not imply a successful connection test. Restored logins require Refresh to verify identity and available profiles. Renew sign-in rotates the session explicitly; after a lost or rejected renewal, start a new browser sign-in. Closing the panel or changing connections cancels pending work. Forgetting management sign-in affects this device’s management tokens; removing its API credential removes those linked tokens too. See [management setup and contracts](MANAGEMENT.md).
+
+## MCP connection tests and configuration changes
+
+After management sign-in and explicit profile selection, review a server action before confirming. Test connects to the configured host MCP process and lists tools. Enable/disable and Remove affect that profile’s configuration; existing sessions or processes may continue. Plugin-owned settings cannot be changed here.
+
+An uncertain outcome stays in Management action history and blocks further changes to that same resource. Read current configuration to inspect it, then explicitly Review uncertainty when ready. Neither reading nor reviewing repeats the operation. Acknowledged actions whose readback failed remain labelled acknowledged. Chat-cache clearing keeps management receipts, and the saved-connection cache viewer shows them read only. See [management safety and contracts](MANAGEMENT.md).

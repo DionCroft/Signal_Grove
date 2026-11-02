@@ -4,26 +4,34 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.BuildConfig
 import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class ManagedServer(val name:String,val transport:String,val auth:String,val enabled:Boolean,val source:String,val tools:List<String>)
+data class ReviewedMcpAction(val target:ManagementTarget,val request:McpRequest,val generation:Long)
+data class ManagementObservation(val key:String,val name:String,val exists:Boolean,val enabled:Boolean?)
 data class ManagementState(val apiScope:String="",val url:String="",val debugHttp:Boolean=false,val signedIn:Boolean=false,
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
-    val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null)
+    val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val operations=ManagementOperationsRepository(app.database.dao(),app.managementReady)
+    fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,client(s).base.toString(),s.profile,"scope").resourceScope}.getOrDefault("")
+    val receipts=state.map(::resourceScope).distinctUntilChanged().flatMapLatest {scope->if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementResourceOperations(scope)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     private var generation=0L
     private var work:Job?=null
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is McpReviewChanged->Words.ManagementReviewChanged
+        is McpReadbackPending->Words.ManagementReadbackPending
+        is ManagementOutcomePending->Words.ManagementOutcomePending
         is LocalNetworkPermissionException->Words.ManagementLanError
         is javax.net.ssl.SSLException->Words.ManagementTlsError
         is HermesHttpException->when(e.code) {401->Words.ManagementExpired;404,405->Words.ManagementUnsupported;else->Words.ManagementFailed}
@@ -51,9 +59,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }}
     private fun operation(block:suspend (Long)->Unit) {
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
-        val id=++generation;state.value=state.value.copy(busy=true,error=null)
+        val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
@@ -97,11 +105,43 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         state.value=selected;loadServers(id,client(selected),current,profile)
     }
     private suspend fun loadServers(id:Long,api:ManagementClient,current:ManagementTokens,profile:String) {
-        val j=api.mcp(current,profile);require(j["servers"] is JsonArray)
-        val rows=j.items("servers");require(rows.size<=500)
-        val servers=rows.map {row ->ManagedServer(row.text("name").take(256),row.text("transport").take(32),row.text("auth").take(64),row["enabled"]?.jsonPrimitive?.booleanOrNull ?: error("Invalid management inventory."),row.text("source").take(32),(row["tools"] as? JsonArray).orEmpty().take(100).mapNotNull {(it as? JsonPrimitive)?.contentOrNull?.take(256)})}.distinctBy {it.name}
+        val servers=McpProtocol.inventory(api.mcp(current,profile))
         if(id==generation) state.value=state.value.copy(servers=servers,loaded=true)
     }
+    private fun target():ManagementTarget? {
+        val saved=state.value;val identity=saved.identity ?: return null
+        if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
+        return ManagementTarget(saved.apiScope,client(saved).base.toString(),saved.profile,identity.provider+" · "+identity.userId)
+    }
+    fun prepareMcp(server:ManagedServer,action:McpAction):ReviewedMcpAction? {
+        val saved=state.value
+        if(saved.busy || !saved.loaded || saved.servers.none {it==server}) return null
+        val target=target() ?: return null
+        return runCatching {ReviewedMcpAction(target,McpRequest(action,server.name,server.enabled,server.source,if(action==McpAction.Toggle) !server.enabled else null),generation)}.getOrNull()
+    }
+    fun performMcp(review:ReviewedMcpAction) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in to management first.")
+            val result=operations.execute(review.target,review.request,client(state.value),current)
+            if(id==generation) state.value=state.value.copy(servers=result.servers,loaded=true,notice=if(result.observedOnly) Words.ManagementAlreadyObserved else if(review.request.action==McpAction.Probe) {
+                if(Json.parseToJsonElement(result.receipt!!.resultSummary).jsonObject["ok"]?.jsonPrimitive?.booleanOrNull==true) Words.McpProbeReady else Words.McpProbeFailed
+            } else Words.ManagementVerified)
+        }
+    }
+    fun observeReceipt(key:String)=operation {id ->
+        val target=target() ?: error("Verify management identity first.")
+        val receipt=app.database.dao().managementOperation(key)?.takeIf {it.resourceScope==target.resourceScope} ?: error("Management receipt no longer exists.")
+        val current=tokens ?: error("Sign in to management first.")
+        val api=client(state.value);api.identity(current)
+        val servers=McpProtocol.inventory(api.mcp(current,target.profile));val row=servers.singleOrNull {it.name==receipt.target}
+        if(id==generation) state.value=state.value.copy(servers=servers,loaded=true,observation=ManagementObservation(key,receipt.target,row!=null,row?.enabled))
+    }
+    fun reviewReceipt(key:String,expected:ManagementTarget) {
+        if(target()!=expected) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {operations.review(expected,key)}
+    }
+    fun reviewTarget():ManagementTarget?=target()
     fun disconnect()=operation {id ->
         val scope=state.value.apiScope
         withContext(Dispatchers.IO) {app.credentials.saveManagement(scope,null)}

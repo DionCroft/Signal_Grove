@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.hermesmobile.app.BuildConfig
+import org.hermesmobile.app.data.*
 
 @Composable fun ManagementEntry(api:HermesViewModel,vm:ManagementViewModel=viewModel()) {
     val scope by api.profileScope.collectAsStateWithLifecycle()
@@ -28,6 +29,10 @@ import org.hermesmobile.app.BuildConfig
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    val allReceipts by vm.receipts.collectAsStateWithLifecycle()
+    val receipts=allReceipts.filter {it.resourceScope==vm.resourceScope(s)}
+    val pending=receipts.any {it.state in setOf("sending","unknown")}
+    var review by remember {mutableStateOf<ReviewedMcpAction?>(null)}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.Management),style=MaterialTheme.typography.titleMedium)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("management-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(label(Words.ManagementBoundary),style=MaterialTheme.typography.bodySmall);Text(apiUrl,style=MaterialTheme.typography.labelSmall)}
@@ -50,17 +55,34 @@ import org.hermesmobile.app.BuildConfig
                     }
                     if(s.profile.isNotBlank()) item {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
                     if(s.loaded && s.servers.isEmpty()) item {Text(label(Words.EmptyInventory))}
+                    if(pending) item {Text(label(Words.ManagementOutcomePending),color=MaterialTheme.colorScheme.error)}
+                    s.notice?.let {word->item {Text(label(word))}}
+                    s.observation?.let {observation->item {
+                        Text(observation.name)
+                        Text(label(if(!observation.exists) Words.McpAbsent else if(observation.enabled==true) Words.Enabled else Words.Disabled))
+                        Text(label(Words.ManagementObservationOnly),style=MaterialTheme.typography.bodySmall)
+                    }}
                     items(s.servers,key={it.name}) {server ->Column {
                         Text(server.name,style=MaterialTheme.typography.titleMedium)
                         Text(listOf(server.transport,server.auth,server.source).filter {it.isNotBlank()}.joinToString(" · "))
                         Text(label(if(server.enabled) Words.Enabled else Words.Disabled))
                         if(server.tools.isNotEmpty()) Text(server.tools.joinToString("\n"),style=MaterialTheme.typography.bodySmall)
+                        val addressable=McpProtocol.addressable(server.name)
+                        val ready=!s.busy && !pending && s.identity!=null && s.loaded && addressable
+                        if(!addressable) Text(label(Words.McpUnsupportedName),style=MaterialTheme.typography.bodySmall)
+                        if(server.source!="config") Text(label(Words.McpPluginManaged),style=MaterialTheme.typography.bodySmall)
+                        TextButton({review=vm.prepareMcp(server,McpAction.Probe)},enabled=ready,modifier=Modifier.testTag("mcp-probe-${server.name}")) {Text(label(Words.McpProbe))}
+                        TextButton({review=vm.prepareMcp(server,McpAction.Toggle)},enabled=ready && server.source=="config",modifier=Modifier.testTag("mcp-toggle-${server.name}")) {Text(label(if(server.enabled) Words.McpDisable else Words.McpEnable))}
+                        TextButton({review=vm.prepareMcp(server,McpAction.Delete)},enabled=ready && server.source=="config",modifier=Modifier.testTag("mcp-delete-${server.name}")) {Text(label(Words.McpRemove))}
                     }}
                 }
+                if(receipts.isNotEmpty()) item {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
+                items(receipts,key={it.key}) {receipt ->ManagementReceiptCard(receipt,vm,s)}
                 s.error?.let {message->item {Text(label(message),color=MaterialTheme.colorScheme.error)}}
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    review?.let {frozen ->McpActionReview(frozen,!s.busy,{review=null}) {vm.performMcp(frozen);review=null}}
     if(profiles) AlertDialog(onDismissRequest={profiles=false},title={Text(label(Words.ManagementProfile))},text={
         LazyColumn(Modifier.heightIn(max=400.dp)) {items(s.profiles,key={it.name}) {row ->TextButton({vm.chooseProfile(row.name);profiles=false},enabled=!s.busy) {Text(row.displayName.takeIf {it.isNotBlank()}?.let {"$it\n${row.name}"} ?: row.name)}}}
     },confirmButton={TextButton({profiles=false}) {Text(label(Words.Cancel))}})

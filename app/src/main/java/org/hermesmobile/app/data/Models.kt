@@ -86,6 +86,9 @@ data class JobOperation(@PrimaryKey val key: String,val scope: String,val operat
 @Entity(tableName="server_operations",indices=[Index("scope"),Index("sessionKey")])
 data class ServerOperation(@PrimaryKey val key: String,val scope: String,val sessionKey: String,val action: String,val target: String,
     val requestJson: String,val state: String,val responseJson: String,val createdAt: Long)
+@Entity(tableName="management_operations",indices=[Index("resourceScope"),Index("apiScope")])
+data class ManagementOperation(@PrimaryKey val key:String,val resourceScope:String,val apiScope:String,val url:String,val profile:String,
+    val actor:String,val action:String,val target:String,val requestSummary:String,val state:String,val resultSummary:String,val createdAt:Long)
 @Entity(tableName="notification_receipts")
 data class NotificationReceipt(@PrimaryKey val key: String,val createdAt: Long)
 object RunStates {
@@ -99,6 +102,20 @@ object RunStates {
 }
 
 @Dao interface HermesDao {
+    @Query("SELECT * FROM management_operations WHERE apiScope=:apiScope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementOperations(apiScope:String):Flow<List<ManagementOperation>>
+    @Query("SELECT * FROM management_operations WHERE resourceScope=:scope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementResourceOperations(scope:String):Flow<List<ManagementOperation>>
+    @Query("SELECT * FROM management_operations WHERE resourceScope=:scope AND state IN ('sending','unknown')") suspend fun unresolvedManagementOperations(scope:String):List<ManagementOperation>
+    @Query("SELECT * FROM management_operations WHERE `key`=:key") suspend fun managementOperation(key:String):ManagementOperation?
+    @Insert suspend fun insertManagementOperation(receipt:ManagementOperation)
+    @Transaction suspend fun claimManagementOperation(receipt:ManagementOperation) {
+        if(unresolvedManagementOperations(receipt.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        insertManagementOperation(receipt)
+    }
+    @Query("UPDATE management_operations SET state='unknown' WHERE state='sending'") suspend fun recoverManagementOperations()
+    @Query("UPDATE management_operations SET state=:state,resultSummary=:result WHERE `key`=:key AND state IN ('sending','unknown')") suspend fun finishManagementOperation(key:String,state:String,result:String)
+    @Query("UPDATE management_operations SET state='confirmed',resultSummary=:result WHERE `key`=:key AND state='acknowledged'") suspend fun confirmManagementOperation(key:String,result:String)
+    @Query("UPDATE management_operations SET state='reviewed' WHERE `key`=:key AND resourceScope=:scope AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String)
+
     @Query("SELECT * FROM run_reports WHERE sessionKey=:key ORDER BY updatedAt DESC LIMIT 100") fun reports(key:String):Flow<List<RunReport>>
     @Query("SELECT * FROM run_reports WHERE `key`=:key") suspend fun report(key:String):RunReport?
     @Upsert suspend fun saveReport(report:RunReport)
@@ -266,5 +283,5 @@ object RunStates {
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
     @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearReports(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class], version = 8, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class,ManagementOperation::class], version = 9, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

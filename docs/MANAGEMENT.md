@@ -4,7 +4,7 @@ The inference API and dashboard are different listeners and authentication syste
 
 1. Select a saved API connection. Enter the dashboard URL, including any deployment prefix.
 2. Choose **Sign in using browser**. Complete the dashboard password/OAuth provider flow in the system browser, then return to the app. The server can present its own provider chooser.
-3. Select a verified **Managed server profile**. The initial management surface lists MCP configuration for that explicit profile. Enabled configuration does not prove connectivity or credentials work.
+3. Select a verified **Managed server profile**. The MCP surface lists configuration and offers reviewed connection tests, enable/disable and configuration removal for that explicit profile. Enabled configuration does not prove connectivity or credentials work.
 4. **Refresh** re-verifies identity and the available profiles. **Renew sign-in** explicitly rotates the management session. If a refresh response is lost or rejected, sign in again; no mutation or refresh is automatically replayed.
 5. **Forget this device’s management sign-in** removes its local tokens without changing the API connection. Removing the API credential also atomically removes its linked management session. Browser/server sessions are governed by the dashboard.
 
@@ -14,6 +14,20 @@ Token exchange and explicit renewal use JSON requests with no API bearer header 
 
 Restored sign-ins are labelled saved until manually verified. Server profile selection is explicit and constrained to the authenticated profile list; MCP requests always carry `?profile=...`. There is no inferred default profile or mapping from the API path. Configuration URLs, command arguments, environment values and credentials are excluded from the inventory display.
 
-This chunk implements authenticated read access. Reviewed integration mutations and their durable uncertainty receipts follow separately. It does not claim an HTTP substitute for CLI-only features or support bearer API admin routes that Hermes advertises as unavailable.
+MCP connection tests, enable/disable and configuration removal are implemented with reviewed targets and durable uncertainty receipts. Catalog installation, server creation and OAuth setup are subsequent chunks. It does not claim an HTTP substitute for CLI-only features or support bearer API admin routes that Hermes advertises as unavailable.
 
 Contracts verified against stable v0.22.5 (`bf0203a794a07aac3ff764972ab9087baa4e4f4e`): [native authentication](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/dashboard_auth/routes.py), [loopback code/PKCE lifetime](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/dashboard_auth/native_flow.py), [profiles](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/web_routers/profiles.py), [MCP](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/web_routers/mcp.py), and [dashboard guide](https://hermes-agent.nousresearch.com/docs/user-guide/features/web-dashboard).
+
+## Reviewed MCP controls
+
+Each action review names the dashboard URL, explicit profile, authenticated actor, server and intended effect. Before writing, the client re-verifies identity and reads configuration. A changed source or enabled state requires a fresh review. Already-present desired configuration is reported as an observation without another write. Plugin/unknown-source configurations cannot be enabled or removed here; connection tests remain available. Names that cannot use the verified route are visibly unsupported.
+
+Enable/disable sends only `enabled` and the matching `profile`; removal deletes configuration, not running processes. Changes affect new sessions or gateway reloads; existing work may continue. Connection testing can start the configured host process to list its tools. The probe result is separate from agent execution status. The result view reports the supplied tool count and up to 100 names, without persisting descriptions, schemas, environment values or server error text.
+
+Schema 9 keeps management action receipts separately from chat caches. The receipt records the exact resource/actor/action and a redacted summary before the single request. It contains no management tokens, arbitrary secret payload or command arguments. One unresolved action blocks further changes on that same API/dashboard/profile resource. Process restart changes interrupted sends to unknown. No management action is automatically replayed, refreshed with another credential, or retargeted. A valid acknowledgement cannot be downgraded when later readback fails.
+
+**Read current configuration** gives an observation without settling uncertain earlier work or claiming causality. **Review uncertainty** explicitly marks that local receipt reviewed; it does not resend or cancel server work. Changing server profiles keeps each resource’s uncertainty separate. Clearing chat caches retains these independent receipts. Saved connections → View cached history also shows their read-only management history after a credential is removed.
+
+Controls use the verified stable [MCP routes and acknowledgements](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/web_routers/mcp.py). A lost or malformed response and non-successful HTTP result remain uncertain; they are never treated as proof that no side effect occurred.
+
+The used native-login and MCP control contracts were also rechecked against stable v0.22.6 (`f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab`). See the [source recheck](COMPATIBILITY.md#stable-v0226-source-recheck). Native renewal uses only tokens issued through this app’s native sign-in.

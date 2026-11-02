@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Reviewed, profile-scoped MCP connection tests and enable/remove controls, with independent durable receipts and explicit uncertainty review (schema 9).
+
 - Independent dashboard sign-in using browser PKCE, encrypted management sessions, explicit authenticated profile selection and scoped MCP inventory.
 
 - Encrypted named API connections, guarded switching, explicit token-rotation boundaries and read-only cached history after credential removal.

@@ -32,12 +32,12 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     private val dns=PermissionAwareDns(localNetworkAllowed)
     private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(30,TimeUnit.SECONDS)
         .writeTimeout(30,TimeUnit.SECONDS).callTimeout(45,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
-    private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null):JsonObject=suspendCancellableCoroutine {continuation ->
+    private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=suspendCancellableCoroutine {continuation ->
         dns.checkHost(base.host)
-        val endpoint=base.newBuilder().addPathSegments(path).apply {profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
+        val endpoint=base.newBuilder().addPathSegments(path).apply {tail.forEach {addPathSegment(it)};profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
         val request=Request.Builder().url(endpoint).header("Accept","application/json").apply {
             token?.let {header("Authorization","Bearer $it")}
-            body?.let {post(it.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))}
+            method(method,body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType()))
         }.build()
         val call=http.newCall(request);continuation.invokeOnCancellation {call.cancel()}
         call.enqueue(object:Callback {
@@ -69,6 +69,11 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         val j=json("api/profiles",tokens.access);require(j["profiles"] is JsonArray)
         val rows=j.items("profiles");require(rows.size<=500)
         return rows.map {row ->val name=row.text("name");require(name.isNotBlank() && name.length<=128 && name.none(Char::isISOControl));ManagedProfile(name,row.text("display_name").take(160))}.distinctBy {it.name}
+    }
+    suspend fun mcpControl(tokens:ManagementTokens,profile:String,request:McpRequest):JsonObject {
+        val tail=listOf(request.name)+when(request.action) {McpAction.Toggle->listOf("enabled");McpAction.Probe->listOf("test");McpAction.Delete->emptyList()}
+        val method=when(request.action) {McpAction.Toggle->"PUT";McpAction.Probe->"POST";McpAction.Delete->"DELETE"}
+        return json("api/mcp/servers",tokens.access,if(request.action==McpAction.Delete) null else request.body(profile),profile,method,tail)
     }
     suspend fun mcp(tokens:ManagementTokens,profile:String)=json("api/mcp/servers",tokens.access,profile=profile)
 }

@@ -54,6 +54,7 @@ import org.hermesmobile.app.data.*
     val app=LocalContext.current.applicationContext as HermesApplication
     val dao=app.database.dao()
     val rows by remember(profile.id) {dao.conversations(profile.id)}.collectAsStateWithLifecycle(emptyList())
+    val operations by remember(profile.id) {dao.managementOperations(profile.id)}.collectAsStateWithLifecycle(emptyList())
     var selected by remember(profile.id) {mutableStateOf<Conversation?>(null)}
     val current=selected
     val messages by remember(current?.key) {if(current==null) kotlinx.coroutines.flow.flowOf(emptyList()) else dao.messages(current.key)}.collectAsStateWithLifecycle(emptyList())
@@ -62,6 +63,10 @@ import org.hermesmobile.app.data.*
             item {Text(label(Words.ReadOnlyCache),style=MaterialTheme.typography.bodySmall)}
             if(current==null) items(rows,key={it.key}) {row ->Text(row.title.ifBlank {row.remoteId},Modifier.fillMaxWidth().clickable {selected=row}.padding(vertical=12.dp))}
             else items(messages,key={it.id}) {MessageCard(it,current)}
+            if(current==null && operations.isNotEmpty()) {
+                item {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
+                items(operations,key={it.key}) {ManagementReceiptCard(it)}
+            }
         }
     },confirmButton={TextButton(close,Modifier.testTag("close-connection-cache")) {Text(label(Words.Close))}},dismissButton={if(current!=null) TextButton({selected=null}) {Text(label(Words.History))}})
 }

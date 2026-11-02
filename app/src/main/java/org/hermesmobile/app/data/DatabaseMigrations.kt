@@ -4,6 +4,14 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_8_TO_9=object:Migration(8,9) {
+        override fun migrate(db:SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS management_operations (`key` TEXT NOT NULL,resourceScope TEXT NOT NULL,apiScope TEXT NOT NULL,url TEXT NOT NULL,profile TEXT NOT NULL,actor TEXT NOT NULL,action TEXT NOT NULL,target TEXT NOT NULL,requestSummary TEXT NOT NULL,state TEXT NOT NULL,resultSummary TEXT NOT NULL,createdAt INTEGER NOT NULL,PRIMARY KEY(`key`))")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_management_operations_resourceScope ON management_operations(resourceScope)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_management_operations_apiScope ON management_operations(apiScope)")
+        }
+    }
+
     val FROM_7_TO_8=object:Migration(7,8) {
         override fun migrate(db:SupportSQLiteDatabase) {db.execSQL("ALTER TABLE messages ADD COLUMN imagesJson TEXT NOT NULL DEFAULT ''")}
     }
@@ -68,4 +76,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9)

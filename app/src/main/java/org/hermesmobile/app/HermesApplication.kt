@@ -12,9 +12,11 @@ class HermesApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         imageDraftReady.start()
+        managementReady.start()
         appScope.launch {preferences.flow.collect {BackgroundChecks.schedule(this@HermesApplication,it);TaskWidget.updateAll(this@HermesApplication)}}
         appScope.launch {database.dao().tasks().collect {TaskWidget.updateAll(this@HermesApplication)}}
     }
+    val managementReady by lazy {appScope.async {database.dao().recoverManagementOperations()}}
     val database by lazy { Room.databaseBuilder(this,HermesDatabase::class.java,"hermes.db").addMigrations(*ALL_HERMES_MIGRATIONS).build() }
     val imageDrafts by lazy {ImageBlobStore(java.io.File(filesDir,"image-drafts"))}
     val imageDraftReady by lazy {appScope.async {imageDrafts.clearAll()}}
