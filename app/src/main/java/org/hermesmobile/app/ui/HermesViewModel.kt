@@ -15,7 +15,7 @@ import java.util.UUID
 class HermesViewModel(application: Application) : AndroidViewModel(application) {
     private val graph=application as HermesApplication
     private val dao=graph.database.dao()
-    private val connection=HermesConnectionRepository()
+    private val connection=HermesConnectionRepository(application)
     private val sessionRepo=HermesSessionRepository(dao)
     private val jobsRepo=HermesJobsRepository(dao)
     private val interactionsRepo=InteractionRepository(dao)

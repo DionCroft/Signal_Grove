@@ -68,7 +68,7 @@ class ReminderWorker(context: Context,params: WorkerParameters):CoroutineWorker(
         if(p.monitorRuns && !p.demo) {
             try {withTimeout(60_000) {
                 val config=app.credentials.readConfig() ?: return@withTimeout
-                val api=HermesConnectionRepository().client(config)
+                val api=HermesConnectionRepository(app).client(config)
                 for(c in dao.trackedRuns(config.scope)) {
                     ensureActive();if(!enabled(config)) break
                     try {

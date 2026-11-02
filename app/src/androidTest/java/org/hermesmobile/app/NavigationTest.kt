@@ -20,6 +20,9 @@ class NavigationTest {
     private val vm get()=androidx.lifecycle.ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     @Before fun reset() {
         runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats();app.database.dao().tasks().first().forEach {app.database.dao().delete(it)}}
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="demo" && vm.preferences.value.demo && vm.tasks.value.isEmpty()}
         compose.waitForIdle()
     }
     private fun go(word: Words) {
@@ -51,17 +54,23 @@ class NavigationTest {
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextInput("QA task")
         compose.onNode(hasSetTextAction() and hasText(Words.DueDate.localized(AppPreferences()))).performScrollTo().performTextInput("2026-11-30")
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
+        compose.waitUntil(5000) {vm.tasks.value.any {it.title=="QA task"}}
+        compose.runOnUiThread {androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime())}
+        compose.waitForIdle()
         compose.onNodeWithTag("task-list").performScrollToNode(hasText("QA task"))
         compose.onNodeWithText("QA task").assertExists()
         compose.onNodeWithContentDescription(Words.Edit.localized(AppPreferences())).performScrollTo().performClick()
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextReplacement("QA edited")
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
+        compose.waitUntil(5000) {vm.tasks.value.any {it.title=="QA edited"}}
+        compose.onNodeWithTag("task-list").performScrollToNode(hasText("QA edited"))
         compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).performScrollTo().performClick()
         compose.waitUntil(5000) {runBlocking {app.database.dao().tasks().first().firstOrNull {it.title=="QA edited"}?.completed==true}}
         assertTrue(runBlocking {app.database.dao().tasks().first().first {it.title=="QA edited"}.completed})
         screenshot("tasks")
         compose.onNodeWithContentDescription(Words.Delete.localized(AppPreferences())).performScrollTo().performClick()
         compose.onNode(hasText(Words.Delete.localized(AppPreferences())) and hasClickAction()).performClick()
+        compose.waitUntil(5000) {vm.tasks.value.none {it.title=="QA edited"}}
         compose.onNodeWithText("QA edited").assertDoesNotExist()
     }
     @Test fun allFourThemesPersistAndRender() {

@@ -5,6 +5,10 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    LocalNetworkInfo("Android 17 requires permission to reach a Hermes server on your LAN or private VPN. Public internet connections do not need this permission. After granting it, connect or check the run status again.","Android 17 需要权限才能访问局域网或专用 VPN 上的 Hermes 服务器。公共互联网连接不需要此权限。授权后，请重新连接或检查运行状态。","Android 17 xūyào quánxiàn cái néng fǎngwèn júyùwǎng huò zhuānyòng VPN shàng de Hermes fúwùqì. Gōnggòng hùliánwǎng liánjiē bù xūyào cǐ quánxiàn. Shòuquán hòu, qǐng chóngxīn liánjiē huò jiǎnchá yùnxíng zhuàngtài."),
+    LocalNetworkAllow("Allow local network access","允许本地网络访问","Yǔnxǔ běndì wǎngluò fǎngwèn"),
+    LocalNetworkGranted("Local network access granted","已允许本地网络访问","Yǐ yǔnxǔ běndì wǎngluò fǎngwèn"),
+    SystemPermissions("App permission settings","应用权限设置","Yìngyòng quánxiàn shèzhì"),
     SessionControls("Session controls","会话控制","Huìhuà kòngzhì"),
     SessionIdentity("Session ID","会话标识","Huìhuà biāozhì"),
     SessionMetadata("Server session snapshot","服务器会话快照","Fúwùqì huìhuà kuàizhào"),

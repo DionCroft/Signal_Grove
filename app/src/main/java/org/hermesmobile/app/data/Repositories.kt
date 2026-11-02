@@ -3,8 +3,8 @@ package org.hermesmobile.app.data
 import org.hermesmobile.app.BuildConfig
 import org.hermesmobile.app.network.*
 
-class HermesConnectionRepository {
-    fun client(config: ServerConfig): HermesApiClient = OkHttpHermesApiClient(config,BuildConfig.DEBUG)
+class HermesConnectionRepository(private val context:android.content.Context) {
+    fun client(config: ServerConfig): HermesApiClient = OkHttpHermesApiClient(config,BuildConfig.DEBUG) {LocalNetworkAccess.granted(context)}
     suspend fun test(api: HermesApiClient) = api.capabilities()
 }
 class HermesSessionRepository(val dao: HermesDao) {

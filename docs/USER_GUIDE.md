@@ -70,6 +70,8 @@ WorkManager checks are best effort, about every 15 minutes. Battery restrictions
 
 Add the task widget from Settings where pinning is supported, or your launcher's widget picker. It shows local open/due counts, Refresh and Manage tasks. Compact widget text uses English/Chinese; accessibility labels include your selected language/pinyin. Titles/notes and credentials stay inside the app. Complete/edit tasks after opening the app.
 
+On Android 17, Settings includes **Allow local network access** for LAN or private VPN servers. The app opens Android’s permission dialog only when you tap that control. Denial leaves public internet connections available. After granting access, connect or refresh the run status again; no uncertain operation is automatically repeated. If Android stops showing the dialog, open **App permission settings**. Revoking permission blocks subsequent private-address connections, including background checks.
+
 ## Appearance, privacy and help
 
 Settings offers Lavender, Jade, Solar and Mint independently of connectivity, Chinese and accented pinyin switches, reduced motion and system font scaling. Wide displays use a navigation rail. No bundled fonts, telemetry, advertisements or analytics are included. App-private Room storage is not database encryption; backups/transfer are disabled. Explicit clipboard, speech services and exported task files leave that private storage boundary.

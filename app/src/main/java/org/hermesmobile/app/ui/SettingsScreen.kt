@@ -41,6 +41,7 @@ import org.hermesmobile.app.BuildConfig
             OutlinedTextField(token,{token=it},Modifier.fillMaxWidth(),label={Text(label(Words.Token))},singleLine=true,visualTransformation=PasswordVisualTransformation(),keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),enabled=!busy && !connecting)
             Text(label(Words.TokenHint),style=MaterialTheme.typography.labelMedium)
             Text(label(Words.ServerHelp),style=MaterialTheme.typography.bodySmall)
+            LocalNetworkSettings()
             if(BuildConfig.DEBUG) Toggle(Words.DebugHttp,http,!busy && !connecting) {http=it}
             Button({vm.configure(url,token,http);token=""},enabled=!busy && !connecting && url.isNotBlank()) {Text(label(Words.Connect))}
             if(connecting) QuietProgress()

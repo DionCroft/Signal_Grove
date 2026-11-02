@@ -47,6 +47,7 @@ class HermesHttpException(val code: Int,val serverCode: String="",val retryAfter
     }
 }
 fun connectionError(e: Throwable): String = when(e) {
+    is LocalNetworkPermissionException -> e.message.orEmpty()
     is HermesHttpException -> e.message.orEmpty()
     is javax.net.ssl.SSLException -> "The server's HTTPS certificate could not be trusted."
     is java.net.SocketTimeoutException -> "The connection timed out. The agent may still be working."
@@ -85,13 +86,15 @@ interface HermesApiClient {
     suspend fun resolveUnknown(run: String,admission: String,generation: Long): JsonObject {throw UnsupportedOperationException("Unknown-run resolution is unavailable.")}
 }
 
-class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolean = false) : HermesApiClient {
+class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolean = false,localNetworkAllowed:()->Boolean={true}) : HermesApiClient {
     private val base = validateUrl(config, debugBuild)
+    private val permissionDns=PermissionAwareDns(localNetworkAllowed)
     // Redirects are disabled so credentials cannot follow a redirect to a different host.
     private val client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).readTimeout(90, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
+        .dns(permissionDns).writeTimeout(30, TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
     private val jsonType = "application/json; charset=utf-8".toMediaType()
     private fun request(path: String, body: JsonObject? = null, key: String = "",channelKey: String=""): Request {
+        permissionDns.checkHost(base.host)
         // Never resolve a leading slash: multi-profile /p/name/ prefixes must survive.
         val url = base.newBuilder().addPathSegments(path.substringBefore('?').trimStart('/')).apply {
             if ('?' in path) encodedQuery(path.substringAfter('?'))
