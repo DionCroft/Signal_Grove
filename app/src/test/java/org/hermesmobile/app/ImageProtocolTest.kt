@@ -47,6 +47,7 @@ class ImageProtocolTest {
             val request=TurnRequest.create(c,listOf(user),"default",RuntimeChoice("vision","provider")) {m->ImageContent.parts(m.content,ImageContent.refs(m.imagesJson)) {bytes}}
             val parts=when(transport) {"runs"->request.body["input"]!!.jsonArray.single().jsonObject["content"]!!;"session"->request.body["input"]!!;else->request.body["messages"]!!.jsonArray.single().jsonObject["content"]!!}.jsonArray
             assertEquals("data:image/jpeg;base64,AQID",parts.last().jsonObject["image_url"]!!.jsonObject.text("url"))
+            assertEquals(listOf("data:image/jpeg;base64,AQID"),ImageContent.parse(ImageContent.requestInput(request)).sources)
             val hash=store.freeze(c.scope,c.key,transport,request)
             assertEquals(request,TurnRequestStore(folder).read(c.scope,c.key,transport,hash))
         }

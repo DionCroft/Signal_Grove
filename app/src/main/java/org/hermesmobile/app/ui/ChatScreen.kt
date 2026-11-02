@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
     var accountingHistory by remember {mutableStateOf(false)}
     val conversations by vm.conversations.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
+    val pictureDraft by vm.imageDraft.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val connecting by vm.connecting.collectAsStateWithLifecycle()
     val controlling by vm.controlBusy.collectAsStateWithLifecycle()
@@ -88,8 +89,10 @@ import java.time.format.DateTimeFormatter
             if(!busy && status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) IconButton(vm::prepareRetry,enabled=!controlling) {Icon(Icons.Outlined.Replay,label(Words.Retry))}
         }
         if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy && !controlling) {Text(label(Words.ResolveUnknown))}
+        DraftImageStrip(vm)
         OutlinedTextField(draft,{vm.draft.value=it},Modifier.fillMaxWidth(),placeholder={Text(label(Words.Message))},maxLines=5,
-            trailingIcon={IconButton({vm.send()},enabled=draft.isNotBlank() && !busy && !controlling && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
+            leadingIcon={ImagePickerButton(vm)},
+            trailingIcon={IconButton({vm.send()},enabled=(draft.isNotBlank() || pictureDraft?.refs?.isNotEmpty()==true) && !busy && !controlling && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
         Spacer(Modifier.height(4.dp))
     }
     if(accountingHistory) AccountingHistoryDialog(reports) {accountingHistory=false}
@@ -116,7 +119,7 @@ import java.time.format.DateTimeFormatter
             Text(if(message.role=="user") label(Words.You) else "Hermes",Modifier.weight(1f),style=MaterialTheme.typography.labelLarge)
             Text(DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(message.timestamp)),style=MaterialTheme.typography.labelSmall)
             if(message.role=="assistant" && message.telemetryJson.isNotBlank()) IconButton({runtimeUsage=true},Modifier.testTag("runtime-usage-${message.id}")) {Icon(Icons.Outlined.Assessment,label(Words.RuntimeUsage),Modifier.size(18.dp))}
-            IconButton({clipboard.setText(AnnotatedString(message.content));copied=true}) { Icon(Icons.Outlined.ContentCopy,label(if(copied) Words.Copied else Words.Copy),Modifier.size(18.dp)) }
+            if(message.content.isNotBlank()) IconButton({clipboard.setText(AnnotatedString(message.content));copied=true}) { Icon(Icons.Outlined.ContentCopy,label(if(copied) Words.Copied else Words.Copy),Modifier.size(18.dp)) }
         }
         if(message.content.isNotEmpty()) AndroidView(factory={context -> TextView(context).apply {setTextIsSelectable(true);setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,16f);tag=Markwon.create(context)}},
             modifier=Modifier.fillMaxWidth().testTag("message-body-${message.id}"),update={ view ->

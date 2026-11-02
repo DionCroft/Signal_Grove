@@ -18,6 +18,8 @@ Parallel tool-call pairing, public subagent lifecycle/lineage, server-reported r
 
 Structured image history now preserves typed image parts in scoped private files, with bounded metadata-only Room references and schema 8 preservation. Inline images are oriented, resized and stripped of source metadata; previews can be enlarged, and remote links open explicitly in the browser. Exact Runs/session/compatibility image envelopes and smaller-page history GET recovery are implemented. Picker/share-target input follows as a separate chunk.
 
+Native image picking now stages up to three private, cancellable, connection/conversation-bound previews. Sending remains separate, including image-only messages. Lost-admission recovery retains the original pixels/body/key/channel after a different draft image/model is chosen; explicit retry restores original JPEG bytes into a reviewable draft. Temporary drafts clear on context change/process restart, and Demo forks copy their image cache. Reviewed sharing into the app follows separately.
+
 ## 1.0.0 — 2026-11-02
 
 Stable signed community release. Task JSON backup/reviewed migration, strict consent choices and visibility, bounded import parsing, credential/header hardening, current screenshots and user/compatibility/security/signing documentation. 43 unit tests, 30 device cases each on Android 8 and 16, plus large-text/tablet reruns passed. Production install and real file-picker task round-trip verified. See docs/releases/1.0.0.md.

@@ -53,6 +53,14 @@ object ImageContent {
     fun encode(refs:List<ImageRef>):String {
         val value=JsonArray(refs.map {it.json()}).toString();this.refs(value);return value
     }
+    fun requestInput(request:TurnRequest):JsonElement {
+        val raw=request.body["input"]
+        return when(request.transport) {
+            "runs" -> if(raw is JsonArray) raw.lastOrNull()?.jsonObject?.get("content") ?: JsonPrimitive("") else raw ?: JsonPrimitive("")
+            "session","demo" -> raw ?: JsonPrimitive("")
+            else -> request.body["messages"]?.jsonArray?.lastOrNull {it.jsonObject.text("role")=="user"}?.jsonObject?.get("content") ?: JsonPrimitive("")
+        }
+    }
     fun parts(text:String,refs:List<ImageRef>,bytes:(ImageRef)->ByteArray):JsonElement {
         if(refs.isEmpty()) return JsonPrimitive(text)
         require(refs.none {it.unavailable}) {"An image in this history is unavailable. Start a new conversation to avoid silently losing its context."}

@@ -52,6 +52,68 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val controlBusy=MutableStateFlow(false)
     val selectedConversation=combine(selected,conversations) {key,rows -> rows.firstOrNull {it.key==key}}.stateIn(viewModelScope,SharingStarted.Eagerly,null)
     val draft=MutableStateFlow("")
+    val imageDraft=MutableStateFlow<ImageDraft?>(null)
+    val imageLoading=MutableStateFlow(false)
+    private var imageGeneration=0L
+    private var imageImport:Job?=null
+    private data class DraftPayload(val refs:List<ImageRef>,val text:String?=null,val append:Boolean=false)
+    private class DraftProblem(val word:Words):Exception()
+    private fun discardImages(value:ImageDraft?) {value?.let {graph.discardImageDraft(it.scope,it.namespace)}}
+    fun cancelImageImport() {
+        if(!imageLoading.value) return
+        imageGeneration++;imageImport?.cancel();imageLoading.value=false;controlBusy.value=false
+    }
+    fun clearDraftImages() {cancelImageImport();val previous=imageDraft.value;imageDraft.value=null;discardImages(previous)}
+    fun removeDraftImage(hash:String) {
+        if(busy.value || controlBusy.value || connecting.value) return
+        val current=imageDraft.value ?: return
+        val refs=current.refs.filterNot {it.hash.ifBlank {it.url}==hash}
+        if(refs.isEmpty()) clearDraftImages() else imageDraft.value=current.copy(refs=refs)
+    }
+    private fun stageImages(expectedScope:String,expectedConversation:String,producer:suspend (String)->DraftPayload) {
+        if(busy.value || controlBusy.value || connecting.value) return
+        if(expectedScope!=scope.value || expectedConversation!=selected.value) {error.value=Words.ImageContextChanged.localized(preferences.value);return}
+        val generation=++imageGeneration;val namespace="draft_${UUID.randomUUID()}"
+        imageLoading.value=true;controlBusy.value=true
+        imageImport=viewModelScope.launch {
+            var accepted=false
+            try {
+                graph.imageDraftReady.await()
+                val payload=withTimeout(20_000) {withContext(Dispatchers.IO) {producer(namespace)}}
+                ensureActive()
+                require(payload.refs.size<=ImageContent.MAX_IMAGES)
+                if(generation!=imageGeneration || expectedScope!=scope.value || expectedConversation!=selected.value) throw DraftProblem(Words.ImageContextChanged)
+                val text=payload.text?.let {if(payload.append && draft.value.isNotBlank()) draft.value+"\n"+it else it}
+                if(text!=null && text.length>64000) throw DraftProblem(Words.MessageTooLong)
+                val previous=imageDraft.value
+                imageDraft.value=payload.refs.takeIf {it.isNotEmpty()}?.let {ImageDraft(expectedScope,expectedConversation,namespace,it)}
+                text?.let {draft.value=it};discardImages(previous);accepted=true
+            } catch(e:TimeoutCancellationException) {if(generation==imageGeneration) error.value=Words.ImageImportFailed.localized(preferences.value)}
+            catch(e:CancellationException) {throw e}
+            catch(e:Exception) {if(generation==imageGeneration) error.value=(if(e is DraftProblem) e.word else Words.ImageImportFailed).localized(preferences.value)}
+            finally {
+                if(!accepted) withContext(NonCancellable+Dispatchers.IO) {runCatching {graph.imageDrafts.deleteConversation(expectedScope,namespace)}}
+                if(generation==imageGeneration) {imageLoading.value=false;controlBusy.value=false}
+            }
+        }
+    }
+    fun importImages(uris:List<android.net.Uri>,expectedScope:String,expectedConversation:String,caption:String?=null) {
+        if(uris.isEmpty()) return
+        val distinct=uris.distinct()
+        if(distinct.size>ImageContent.MAX_IMAGES) {error.value=Words.ImageInputLimit.localized(preferences.value);return}
+        stageImages(expectedScope,expectedConversation) {namespace ->
+            val refs=runInterruptible {distinct.map {uri ->
+                require(uri.scheme=="content")
+                val mime=graph.contentResolver.getType(uri);require(mime==null || mime.startsWith("image/"))
+                val bytes=graph.contentResolver.openInputStream(uri)?.use(ImageCodec::readBounded) ?: error("Image access unavailable")
+                val image=ImageCodec.normalize(bytes)
+                graph.imageDrafts.write(expectedScope,namespace,image.bytes,image.width,image.height)
+            }.distinctBy {it.hash}}
+            DraftPayload(refs,caption?.takeIf {it.isNotBlank()},append=true)
+        }
+    }
+    override fun onCleared() {discardImages(imageDraft.value);super.onCleared()}
+
     val requestedRuntime=combine(preferences,scope) {p,partition -> RuntimeChoice.saved(p.runtimeChoices,partition)}.stateIn(viewModelScope,SharingStarted.Eagerly,RuntimeChoice())
     private var api: HermesApiClient=UnavailableHermesApiClient()
     private data class ConnectionContext(val client: HermesApiClient,val partition: String)
@@ -62,6 +124,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     init {viewModelScope.launch {try {dao.recoverControls();dao.recoverJobOperations();dao.recoverServerOperations();activate(graph.preferences.flow.first())} finally {connecting.value=false}}}
     fun dismissError() { error.value=null }
     private suspend fun activate(p: AppPreferences) {
+        clearDraftImages()
         selected.value=""; capabilities.value=null;discovery.value=DiscoveryState();sessionDetailsLoading.value=false; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
         if(p.demo) {
             api=FakeHermesApiClient(); scope.value="demo"; connectionStatus.value="demo"
@@ -97,6 +160,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val discovered=connection.test(candidate)
                 withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) }
                 graph.preferences.connection(urlValue=config.url,demoValue=false,httpValue=debugHttp)
+                clearDraftImages()
                 api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState();sessionDetailsLoading.value=false
                 connectionStatus.value="connected"; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"; sessionsLoading.value=false; error.value=null
                 loadSessions(); refreshJobs()
@@ -200,7 +264,14 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     val child=Conversation("${c.scope}:${remote.text("id")}",c.scope,remote.text("id"),remote.text("title"),
                         channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "",detailsJson=remote.toString())
                     dao.save(child);selected.value=child.key;runStatus.value="idle"
-                    try {if(c.scope=="demo") dao.saveMessages(dao.history(c.key).map {it.copy(id="branch_${child.key}_${it.id}",sessionKey=child.key)}) else sessionRepo.importMessages(operation.client,child)} catch(e: Exception) {error.value=connectionError(e)}
+                    try {if(c.scope=="demo") {
+                        val source=dao.history(c.key)
+                        val copied=withContext(Dispatchers.IO) {source.map {message ->
+                            val refs=ImageContent.refs(message.imagesJson).map {ref -> if(ref.hash.isNotBlank()) graph.images.blobs.copy(c.scope,c.key,child.key,ref) else ref}
+                            message.copy(id="branch_${child.key}_${message.id}",sessionKey=child.key,imagesJson=ImageContent.encode(refs))
+                        }}
+                        dao.saveMessages(copied)
+                    } else sessionRepo.importMessages(operation.client,child)} catch(e: Exception) {error.value=connectionError(e)}
                 } else if(action==SessionAction.Steer) activity.value=Words.SteerDelivered.localized(preferences.value)
             } catch(e: CancellationException) {throw e}
             catch(e: Exception) {if(current(operation)) error.value=connectionError(e)}
@@ -267,10 +338,11 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun acknowledgeJobOperation(key: String) {if(jobBusy.value) return;viewModelScope.launch {
         if(dao.unresolvedOperations(scope.value).any {it.key==key && it.state=="unknown"}) dao.jobOperationState(key,"reviewed")
     }}
-    fun newChat() { if(busy.value || controlBusy.value) return; selected.value=""; runStatus.value="idle"; activity.value=""; draft.value="" }
+    fun newChat() { if(busy.value || controlBusy.value) return; clearDraftImages(); selected.value=""; runStatus.value="idle"; activity.value=""; draft.value="" }
     fun select(key: String) {
         if(busy.value || controlBusy.value || connecting.value) return
         val operation=context()
+        if(key!=selected.value) clearDraftImages()
         selected.value=key; activity.value=""
         viewModelScope.launch {
             val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
@@ -282,7 +354,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
     fun send(text: String = draft.value) {
         if(text.length>64000) {error.value=Words.MessageTooLong.localized(preferences.value);return}
-        if(text.isBlank() || busy.value || controlBusy.value || connecting.value) return
+        if((text.isBlank() && imageDraft.value?.refs.isNullOrEmpty()) || busy.value || controlBusy.value || connecting.value) return
         if(!preferences.value.demo && connectionStatus.value!="connected") { error.value="Connect to your Hermes server in Settings first."; return }
         busy.value=true
         worker=viewModelScope.launch {
@@ -290,19 +362,30 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             var receipt:Conversation?=null
             try {
                 require(dao.unresolvedServerOperations(scope.value).isEmpty()) {Words.ReviewServerOutcome.localized(preferences.value)}
+                val pictures=imageDraft.value
+                require(pictures==null || (pictures.scope==scope.value && pictures.conversation==selected.value)) {Words.ImageContextChanged.localized(preferences.value)}
                 var c=selected.value.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }
                 val transport=when {c?.transport=="compat"->"compat";preferences.value.demo->"demo";capabilities.value?.sessions==true && capabilities.value?.runs==true->"runs";capabilities.value?.nativeStream==true->"session";else->"compat"}
                 if(c == null) {
                     val id="api_mobile_${UUID.randomUUID().toString().replace("-","")}"
-                    val remote=if(transport!="compat" && capabilities.value?.sessions==true) api.createSession(id,text.take(60)) else RemoteSession(id,text.take(60))
+                    val title=text.take(60).ifBlank {Words.ImageMessage.en}
+                    val remote=if(transport!="compat" && capabilities.value?.sessions==true) api.createSession(id,title) else RemoteSession(id,title)
                     c=Conversation("${scope.value}:${remote.id}",scope.value,remote.id,remote.title,
                         channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "")
                     dao.save(c); selected.value=c.key
+                    if(pictures!=null) imageDraft.value=pictures.copy(conversation=c.key)
                 }
                 val key=UUID.randomUUID().toString()
                 c=c.copy(pendingInput=text,pendingKey=key,pendingAt=System.currentTimeMillis(),transport=transport,runId="",status="submitting",lastEventSeq=-1,admissionId="",executionGeneration=null,updatedAt=System.currentTimeMillis())
-                val user=ChatMessage("${key}_user",c.key,"user",text)
+                val imageOwner=c
+                val imageRefs=withContext(Dispatchers.IO) {pictures?.let {snapshot -> snapshot.refs.map {ref ->
+                    if(ref.hash.isBlank()) ref else {
+                        val bytes=graph.imageDrafts.read(snapshot.scope,snapshot.namespace,ref)
+                        graph.images.blobs.write(imageOwner.scope,imageOwner.key,bytes,ref.width,ref.height)
+                    }
+                }}.orEmpty()}
+                val user=ChatMessage("${key}_user",c.key,"user",text,imagesJson=ImageContent.encode(imageRefs))
                 val requested=RuntimeChoice.saved(graph.preferences.flow.first().runtimeChoices,c.scope)
                 require(requested.isDefault || capabilities.value?.has("model_options")==true || capabilities.value?.endpoints?.containsKey("model_options")==true) {Words.NotAdvertised.localized(preferences.value)}
                 val target=c;val history=dao.history(target.key)+user;val model=capabilities.value?.model ?: "hermes-agent"
@@ -312,7 +395,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 dao.beginTurn(c,user,ChatMessage("${key}_assistant",c.key,"assistant","",System.currentTimeMillis()+1,"submitting"))
                 receipt=c
                 withContext(Dispatchers.IO) {runCatching {graph.requests.retainCurrent(c.scope,c.key,key)}}
-                draft.value=""
+                draft.value="";clearDraftImages()
                 execute(c)
             } catch(e: CancellationException) { throw e }
             catch(e: Exception) {error.value=if(e is RequestTooLarge) Words.RequestTooLarge.localized(preferences.value) else connectionError(e);receipt?.let {dao.submissionUnknown(it);runStatus.value=dao.conversation(it.key)?.status ?: "unknown"}}
@@ -381,10 +464,30 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             if(!terminalSeen) {c=c.copy(status="unknown");dao.saveTurn(c,assistant.copy(content=text,status="unknown",telemetryJson=telemetry),null,null,"");runStatus.value="unknown";throw e}
         } finally {monitor.cancel()}
     }
-    fun prepareRetry() { viewModelScope.launch {
-        val c=dao.conversation(selected.value) ?: return@launch
-        if(c.status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) draft.value=c.pendingInput
-    } }
+    fun prepareRetry() {
+        val c=selectedConversation.value ?: return
+        val failed=setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")
+        if(runStatus.value !in failed) return
+        stageImages(c.scope,c.key) {namespace ->
+            val current=dao.conversation(c.key) ?: throw DraftProblem(Words.ImageContextChanged)
+            if(!current.sameSubmission(c) || current.status !in failed) throw DraftProblem(Words.ImageContextChanged)
+            if(c.pendingRequestHash.isBlank()) DraftPayload(emptyList(),c.pendingInput)
+            else {
+                val parts=ImageContent.parse(ImageContent.requestInput(savedRequest(c)))
+                val refs=parts.sources.map {source ->
+                    if(source.startsWith("data:image/jpeg;base64,")) {
+                        val bytes=java.util.Base64.getDecoder().decode(source.substringAfter(','))
+                        val bounds=android.graphics.BitmapFactory.Options().apply {inJustDecodeBounds=true}
+                        android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.size,bounds)
+                        graph.imageDrafts.write(c.scope,namespace,bytes,bounds.outWidth,bounds.outHeight)
+                    } else graph.images.importSource(c.scope,c.key,source).let {ref ->
+                        if(ref.hash.isNotBlank()) graph.imageDrafts.write(c.scope,namespace,graph.images.blobs.read(c.scope,c.key,ref),ref.width,ref.height) else ref
+                    }
+                }
+                DraftPayload(refs,parts.text)
+            }
+        }
+    }
     fun retryOrRefresh() {
         if(busy.value || controlBusy.value || connecting.value) return
         busy.value=true

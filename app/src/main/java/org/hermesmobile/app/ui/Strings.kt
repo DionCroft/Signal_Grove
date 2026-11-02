@@ -5,6 +5,15 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    ChooseImages("Choose images","选择图片","Xuǎnzé túpiàn"),
+    ImageMessage("Image message","图片消息","Túpiàn xiāoxi"),
+    RemoveImage("Remove image","移除图片","Yíchú túpiàn"),
+    LoadingImages("Preparing private image previews…","正在准备私有图片预览…","Zhèngzài zhǔnbèi sīyǒu túpiàn yùlǎn…"),
+    ImageContextChanged("The connection or conversation changed. Choose the images again for the current draft.","连接或对话已更改。请为当前草稿重新选择图片。","Liánjiē huò duìhuà yǐ gēnggǎi. Qǐng wèi dāngqián cǎogǎo chóngxīn xuǎnzé túpiàn."),
+    ImageInputLimit("Choose at most three images.","最多选择三张图片。","Zuì duō xuǎnzé sān zhāng túpiàn."),
+    ImageImportFailed("Images could not be prepared. Choose up to three raster images under 8 MB each, and check that access is still available.","无法准备图片。请选择最多三张、每张小于 8 MB 的位图，并检查是否仍有访问权限。","Wúfǎ zhǔnbèi túpiàn. Qǐng xuǎnzé zuì duō sān zhāng, měi zhāng xiǎo yú 8 MB de wèitú, bìng jiǎnchá shìfǒu réng yǒu fǎngwèn quánxiàn."),
+    ImagePickerUnavailable("No compatible photo or document picker is available on this device.","本机上没有兼容的照片或文档选择器。","Běnjī shàng méiyǒu jiānróng de zhàopiàn huò wéndàng xuǎnzéqì."),
+    ImageInputInfo("Choose up to three images, each under 8 MB. The app keeps resized JPEG copies without source metadata. Review the previews; Send submits them to Hermes. Your selected server/model must support images. Image drafts are cleared when you change connection/conversation or restart the app.","最多选择三张图片，每张小于 8 MB。应用会保存不含原始元数据的缩放 JPEG 副本。请检查预览，点击发送后才提交给 Hermes。所选服务器和模型必须支持图片。切换连接、对话或重启应用会清除图片草稿。","Zuì duō xuǎnzé sān zhāng túpiàn, měi zhāng xiǎo yú 8 MB. Yìngyòng huì bǎocún bù hán yuánshǐ yuán shùjù de suōfàng JPEG fùběn. Qǐng jiǎnchá yùlǎn, diǎnjī fāsòng hòu cái tíjiāo gěi Hermes. Suǒ xuǎn fúwùqì hé móxíng bìxū zhīchí túpiàn. Qiēhuàn liánjiē, duìhuà huò chóngqǐ yìngyòng huì qīngchú túpiàn cǎogǎo."),
     EnlargeImage("Enlarge image","放大图片","Fàngdà túpiàn"),
     ImageCacheMissing("The cached image is missing or unreadable.","缓存图片丢失或无法读取。","Huǎncún túpiàn diūshī huò wúfǎ dúqǔ."),
     ImageOpenFailed("No browser could open this image.","没有浏览器可以打开此图片。","Méiyǒu liúlǎnqì kěyǐ dǎkāi cǐ túpiàn."),
