@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Reviewed gateway schedule pause/resume/removal, known selector-collision refusal, durable single-send receipts, exact acknowledgements and separate configuration/run outcomes.
+
 - Explicitly reviewed gateway schedule reads through single-use ticket authentication, exact profile proof and non-reconnecting bounded JSON-RPC.
 
 - Reviewed installed-skill availability and curator lock controls, plain-text SKILL.md inspection, essential-skill protection and scoped durable receipts.

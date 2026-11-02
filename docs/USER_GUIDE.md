@@ -122,4 +122,11 @@ In **Settings → Hermes management**, sign in, verify the listener and choose a
 
 ### Inspect the gateway's schedules
 
-In verified Hermes management, open **Gateway schedule inspection** and choose **Read gateway schedules**. Review the selected listener/profile/actor and connection effect before confirming. The connection may initialize configured MCP processes on the host. The view includes paused schedules and requires the gateway to prove the selected profile; an older/unproven gateway remains unavailable. The read does not change schedules or start an agent turn. Scheduler readiness and prompt previews are labelled as host reports. Advanced schedules continues to provide the separate full dashboard configuration view and paused creation.
+In verified Hermes management, open **Gateway schedules** and choose **Read gateway schedules**. Review the selected listener/profile/actor and connection effect before confirming. The connection may initialize configured MCP processes on the host. The view includes paused schedules and requires the gateway to prove the selected profile; an older/unproven gateway remains unavailable. The read does not change schedules or start an agent turn. Scheduler readiness and prompt previews are labelled as host reports. Advanced schedules continues to provide the separate full dashboard configuration view and paused creation.
+
+
+### Pause, resume or remove a gateway schedule
+
+After reading the selected profile in **Gateway schedules**, choose an available action and review its exact target and effect before confirming. Pause affects future scheduling; resume can activate overdue work. Removal deletes saved output and the notepad as well as the schedule, and requests cooperative cancellation. Its receipt does not prove that execution stopped. Unknown states, legacy profile aliases and known ID/name collisions leave the corresponding controls unavailable with a reason.
+
+A lost response blocks new changes until you inspect and explicitly review the uncertainty; it is never resent automatically. From a receipt, **Read current configuration** opens a separately reviewed read, without repeating the action. The gateway provides a prompt preview and may omit toolset distinctions; **Advanced schedules** has the fuller dashboard detail view. See [schedule control behavior and concurrency limits](MANAGEMENT.md#reviewed-gateway-schedule-controls).

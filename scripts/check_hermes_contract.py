@@ -39,6 +39,7 @@ EXTRA_SOURCES = {
     'cron_time': 'cron/jobs_time.py',
     'cron_invariants': 'cron/jobs_invariants.py',
     'cron_scheduler': 'cron/scheduler.py',
+    'gateway_models': 'tui_gateway/contracts/tools_commands.py',
     'gateway_rpc': 'tui_gateway/methods_tools.py',
     'gateway_scope': 'tui_gateway/model_switch.py',
     'gateway_runtime': 'tui_gateway/server.py',
@@ -47,6 +48,7 @@ EXTRA_SOURCES = {
     'chat_auth': 'hermes_cli/web_server_chat.py',
     'ws_boundary': 'hermes_cli/web_server_boundary.py',
     'ws_tickets': 'hermes_cli/dashboard_auth/ws_tickets.py',
+    'cron_cancel': 'cron/cancellation.py',
     'cron_tool': 'tools/cronjob_tools.py',
     'cron_format': 'tools/cronjob_job_args.py',
     'skills': 'hermes_cli/web_routers/skills.py',
@@ -82,12 +84,13 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
+                if source=='gateway_models' and node.name=='CronAction':handlers[f'{source}:enum:CronAction']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
-            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets'):
-                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'}}[source]
+            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format'):
+                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'}}[source]
                 for target in node.targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':

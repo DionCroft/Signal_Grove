@@ -11,6 +11,7 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
+data class ReviewedGatewayCron(val target:ManagementTarget,val request:GatewayCronRequest,val generation:Long)
 data class ReviewedGatewayRead(val target:ManagementTarget,val generation:Long)
 data class GatewayAutomationState(val inventory:GatewayCronInventory?=null)
 
@@ -36,6 +37,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val gatewayOperations=GatewayCronRepository(app.database.dao(),app.managementReady)
     private val skillOperations=SkillOperationsRepository(app.database.dao(),app.managementReady)
     private val cronCreations=CronCreationRepository(app.database.dao(),app.managementReady)
     private val oauthOperations=McpOAuthRepository(app.database.dao(),app.managementReady)
@@ -49,6 +51,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is GatewayCronReviewChanged->Words.ManagementReviewChanged
+        is GatewayCronOutcomeUncertain->Words.ManagementOutcomePending
+        is GatewayCronReadbackPending->Words.ManagementReadbackPending
         is GatewayScopeUnproven->Words.GatewayScopeUnsupported
         is GatewayProtocolException->Words.GatewayScopeUnsupported
         is GatewayRpcException->Words.GatewayScopeUnsupported
@@ -146,6 +151,25 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val saved=state.value;val identity=saved.identity ?: return null
         if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
         return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,identity.provider+" · "+identity.userId)
+    }
+    fun prepareGatewayCron(job:GatewayCronJob,action:GatewayCronAction):ReviewedGatewayCron? {
+        val saved=state.value;val inventory=saved.gateway.inventory ?: return null
+        if(saved.busy || !GatewayCronInventory.supportedProfile(saved.profile) || inventory.profile!=saved.profile || inventory.jobs.none {it===job} || GatewayCronRequest.collision(job,inventory.jobs)) return null
+        val request=runCatching {GatewayCronRequest(job,action)}.getOrNull() ?: return null
+        return target()?.let {ReviewedGatewayCron(it,request,generation)}
+    }
+    fun performGatewayCron(review:ReviewedGatewayCron) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in first.")
+            try {
+                val outcome=gatewayOperations.execute(review.target,review.request,client(state.value),current)
+                if(id==generation) state.value=state.value.copy(gateway=GatewayAutomationState(outcome.inventory),notice=if(outcome.observedOnly) Words.ManagementObservationOnly else Words.GatewayCronChanged)
+            } catch(e:GatewayCronReviewChanged) {
+                if(id==generation) state.value=state.value.copy(gateway=GatewayAutomationState(e.inventory))
+                throw e
+            }
+        }
     }
     fun prepareGatewayRead():ReviewedGatewayRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedGatewayRead(it,generation)}
     fun loadGatewayCron(review:ReviewedGatewayRead) {

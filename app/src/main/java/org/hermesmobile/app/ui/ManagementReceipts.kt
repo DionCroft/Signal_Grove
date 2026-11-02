@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
-fun mcpActionWord(action:String)=when(action) {"SkillToggle"->Words.SkillToggle;"SkillLock"->Words.SkillLockControl;"CronCreate"->Words.HostCronCreate;"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
+fun mcpActionWord(action:String)=when(action) {"GatewayCronPause"->Words.GatewayCronPause;"GatewayCronResume"->Words.GatewayCronResume;"GatewayCronDelete"->Words.GatewayCronDelete;"SkillToggle"->Words.SkillToggle;"SkillLock"->Words.SkillLockControl;"CronCreate"->Words.HostCronCreate;"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
 fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSending;"unknown"->Words.ManagementUncertain;"acknowledged"->Words.ManagementAcknowledged;"confirmed"->Words.ManagementVerified;"reviewed"->Words.ManagementReviewed;else->Words.Management}
 
 @Composable fun McpActionReview(review:ReviewedMcpAction,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
@@ -25,6 +25,7 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
 }
 
 @Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null) {
+    var gateway by remember(receipt.key) {mutableStateOf(false)}
     var skills by remember(receipt.key) {mutableStateOf(false)}
     var cron by remember(receipt.key) {mutableStateOf(false)}
     var result by remember(receipt.key) {mutableStateOf(false)}
@@ -38,10 +39,11 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
         else if(receipt.resultSummary.isNotBlank()) TextButton({result=true},Modifier.testTag("management-result-${receipt.key}")) {Text(label(Words.ManagementResult))}
         if(vm!=null && s!=null) {
             val enabled=!s.busy && s.identity!=null && vm.reviewTarget()!=null
-            TextButton({if(receipt.action in setOf("SkillToggle","SkillLock")) {skills=true;vm.observeSkillReceipt(receipt.key)} else if(receipt.action=="CronCreate") {cron=true;vm.observeCronReceipt(receipt.key)} else vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
+            TextButton({if(receipt.action in setOf("GatewayCronPause","GatewayCronResume","GatewayCronDelete")) {gateway=true} else if(receipt.action in setOf("SkillToggle","SkillLock")) {skills=true;vm.observeSkillReceipt(receipt.key)} else if(receipt.action=="CronCreate") {cron=true;vm.observeCronReceipt(receipt.key)} else vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
             if(receipt.state=="unknown") TextButton({review=vm.reviewTarget()},enabled=enabled,modifier=Modifier.testTag("management-review-${receipt.key}")) {Text(label(Words.ManagementReview))}
         }
     }
+    if(gateway && vm!=null && s!=null) GatewayAutomationDialog(vm,s) {vm.cancel();gateway=false}
     if(skills && vm!=null && s!=null) HostSkillsDialog(vm,s) {vm.cancel();skills=false}
     if(cron && vm!=null && s!=null) HostCronDialog(vm,s) {vm.cancel();cron=false}
     review?.let {target ->AlertDialog(onDismissRequest={review=null},title={Text(label(Words.ManagementReview))},text={
@@ -54,7 +56,8 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
             if(receipt.action=="Probe") {
                 item {Text(label(if(parsed["ok"]?.jsonPrimitive?.booleanOrNull==true) Words.McpProbeReady else Words.McpProbeFailed));Text(label(Words.McpToolCount)+" "+parsed.text("tool_count"))}
                 items((parsed["tools"] as? JsonArray).orEmpty()) {Text((it as? JsonPrimitive)?.contentOrNull.orEmpty())}
-            } else if(receipt.action=="CronCreate") item {Text(label(Words.HostCronCreatedPaused));Text(parsed.text("job_id"))}
+            } else if(receipt.action in setOf("GatewayCronPause","GatewayCronResume","GatewayCronDelete")) item {Text(label(if(receipt.state=="confirmed") Words.GatewayCronChanged else Words.GatewayCronAccepted));Text(parsed.text("job_id"));Text(label(Words.GatewayReceiptEffect))}
+            else if(receipt.action=="CronCreate") item {Text(label(Words.HostCronCreatedPaused));Text(parsed.text("job_id"))}
             else if(receipt.action=="CatalogInstall") item {Text(label(Words.McpCatalogAccepted));if(parsed["background"]?.jsonPrimitive?.booleanOrNull==true) Text(label(Words.McpCatalogBackground))}
             else if(receipt.action=="Create") item {Text(label(Words.McpCreated));Text(parsed.text("transport")+" · "+parsed.text("auth"))}
             else if(receipt.action=="SkillLock") item {Text(label(if(parsed["locked"]?.jsonPrimitive?.booleanOrNull==true) Words.SkillLocked else Words.SkillUnlocked))}

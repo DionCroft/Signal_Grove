@@ -62,6 +62,7 @@ class GatewayRpcSession private constructor():Closeable {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("cron.manage",buildJsonObject {put("profile",profile);put("action","list");put("include_disabled",true)})
     }
+    suspend fun cronControl(profile:String,request:org.hermesmobile.app.data.GatewayCronRequest)=call("cron.manage",request.params(profile))
     private suspend fun call(method:String,params:JsonObject):JsonObject {
         check(!stopped.get());val id=ids.incrementAndGet().toString();val waiter=CompletableDeferred<JsonObject>()
         require(pending.size<8);pending[id]=waiter
