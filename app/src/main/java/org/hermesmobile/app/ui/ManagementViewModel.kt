@@ -22,7 +22,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
     private val operations=ManagementOperationsRepository(app.database.dao(),app.managementReady)
-    fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,client(s).base.toString(),s.profile,"scope").resourceScope}.getOrDefault("")
+    fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,baseUrl(s).toString(),s.profile,"scope").resourceScope}.getOrDefault("")
     val receipts=state.map(::resourceScope).distinctUntilChanged().flatMapLatest {scope->if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementResourceOperations(scope)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     private var generation=0L
     private var work:Job?=null
@@ -38,6 +38,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         is IllegalArgumentException->Words.ManagementInvalid
         else->Words.ManagementInterrupted
     }
+    private fun baseUrl(s:ManagementState)=OkHttpHermesApiClient.validateBaseUrl(s.url,s.debugHttp,BuildConfig.DEBUG)
     private fun client(s:ManagementState)=ManagementClient(s.url,s.debugHttp,BuildConfig.DEBUG) {LocalNetworkAccess.granted(app)}
     fun bind(scope:String) {
         if(state.value.apiScope==scope) return
@@ -49,7 +50,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id!=generation || saved==null) return@launch
             val restored=ManagementTokens.parse(saved["tokens"]!!.jsonObject)
             val next=state.value.copy(url=saved.text("url"),debugHttp=saved["debugHttp"]?.jsonPrimitive?.booleanOrNull==true,signedIn=true,profile=saved.text("profile"))
-            client(next);tokens=restored;state.value=next
+            baseUrl(next);tokens=restored;state.value=next
         } catch(e:CancellationException) {throw e} catch(e:Exception) {if(id==generation) state.value=state.value.copy(error=managementError(e))}}
     }
     private suspend fun save(s:ManagementState,t:ManagementTokens) {withContext(Dispatchers.IO) {
@@ -111,7 +112,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private fun target():ManagementTarget? {
         val saved=state.value;val identity=saved.identity ?: return null
         if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
-        return ManagementTarget(saved.apiScope,client(saved).base.toString(),saved.profile,identity.provider+" · "+identity.userId)
+        return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,identity.provider+" · "+identity.userId)
     }
     fun prepareMcp(server:ManagedServer,action:McpAction):ReviewedMcpAction? {
         val saved=state.value
