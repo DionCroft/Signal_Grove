@@ -31,7 +31,7 @@ class StorageUpgradeTest {
             old.execSQL("INSERT INTO messages VALUES('old-message','old-chat','assistant','Saved text',123,'unknown')")
             old.version=1
         }
-        val db=Room.databaseBuilder(context,HermesDatabase::class.java,name).addMigrations(DatabaseMigrations.FROM_1_TO_2).build()
+        val db=Room.databaseBuilder(context,HermesDatabase::class.java,name).addMigrations(*ALL_HERMES_MIGRATIONS).build()
         try {
             val task=db.dao().tasks().first().single();assertEquals("Keep this",task.title);assertEquals("",task.notes)
             val chat=db.dao().conversation("old-chat")!!;assertEquals("turn-key",chat.pendingKey);assertEquals("run_1",chat.runId);assertFalse(chat.pinned)

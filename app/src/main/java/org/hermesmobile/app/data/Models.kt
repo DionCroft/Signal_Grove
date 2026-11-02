@@ -30,7 +30,7 @@ data class CachedJob(@PrimaryKey val key: String, val scope: String, val id: Str
     val schedule: String, val state: String, val enabled: Boolean, val nextRun: String, val lastRun: String, val fetchedAt: Long) {
     fun remote() = HermesJob(id,name,prompt,schedule,state,enabled,nextRun,lastRun)
 }
-data class Approval(val runId: String, val requestId: String, val description: String, val choices: List<String>)
+data class Approval(val runId: String, val requestId: String, val description: String, val choices: List<String>, val generation: Long? = null)
 
 @Entity(tableName = "sessions")
 data class Conversation(
@@ -47,12 +47,30 @@ data class Conversation(
     val status: String = "idle",
     @ColumnInfo(defaultValue = "0") val pinned: Boolean = false,
     @ColumnInfo(defaultValue = "0") val hidden: Boolean = false,
-    @ColumnInfo(defaultValue = "0") val syncedAt: Long = 0
+    @ColumnInfo(defaultValue = "0") val syncedAt: Long = 0,
+    @ColumnInfo(defaultValue = "-1") val lastEventSeq: Long = -1,
+    @ColumnInfo(defaultValue = "''") val admissionId: String = "",
+    @ColumnInfo(defaultValue = "NULL") val executionGeneration: Long? = null
 )
 @Entity(tableName = "messages", indices = [Index("sessionKey")])
 data class ChatMessage(@PrimaryKey val id: String, val sessionKey: String, val role: String, val content: String, val timestamp: Long = System.currentTimeMillis(), val status: String = "completed")
 @Entity(tableName = "tasks")
 data class LocalTask(@PrimaryKey val id: String, val title: String, val dueDate: String = "", val priority: Int = 1, val completed: Boolean = false, @ColumnInfo(defaultValue = "''") val notes: String = "")
+
+@Entity(tableName = "tool_events", indices = [Index("sessionKey")])
+data class ToolEvent(@PrimaryKey val key: String, val sessionKey: String, val runId: String, val tool: String,
+    val kind: String, val preview: String, val durationMs: Long?, val receivedAt: Long)
+@Entity(tableName = "pending_controls", indices = [Index("sessionKey")])
+data class PendingControl(@PrimaryKey val key: String, val sessionKey: String, val runId: String, val requestId: String,
+    val generation: Long?, val kind: String, val prompt: String, val choicesJson: String, val limited: Boolean,
+    val state: String = "pending", val receivedAt: Long = System.currentTimeMillis()) {
+    fun choices() = runCatching {Json.parseToJsonElement(choicesJson).jsonArray.mapNotNull {(it as? JsonPrimitive)?.contentOrNull}}.getOrDefault(emptyList())
+    fun approval() = Approval(runId,requestId,prompt,choices(),generation)
+}
+object RunStates {
+    val terminal=setOf("completed","failed","cancelled","interrupted","response_finished","incomplete")
+    val active=setOf("running","queued","submitting","stopping","waiting_for_approval","waiting_for_input","response_submitted")
+}
 
 @Dao interface HermesDao {
     @Query("SELECT * FROM sessions WHERE scope = :scope ORDER BY pinned DESC, updatedAt DESC") fun conversations(scope: String): Flow<List<Conversation>>
@@ -68,10 +86,41 @@ data class LocalTask(@PrimaryKey val id: String, val title: String, val dueDate:
     }
     @Query("DELETE FROM messages WHERE sessionKey = :key") suspend fun deleteMessages(key: String)
     @Query("DELETE FROM sessions WHERE `key` = :key") suspend fun deleteSession(key: String)
-    @Transaction suspend fun deleteConversation(key: String) { deleteMessages(key); deleteSession(key) }
+    @Transaction suspend fun deleteConversation(key: String) { deleteMessages(key); deleteEvents(key); deleteControls(key); deleteSession(key) }
+    @Query("SELECT * FROM tool_events WHERE sessionKey = :key ORDER BY receivedAt DESC LIMIT 200") fun events(key: String): Flow<List<ToolEvent>>
+    @Upsert suspend fun save(event: ToolEvent)
+    @Query("DELETE FROM tool_events WHERE sessionKey = :key") suspend fun deleteEvents(key: String)
+    @Query("SELECT * FROM pending_controls WHERE sessionKey = :key AND state != 'resolved' ORDER BY receivedAt, `key`") fun controls(key: String): Flow<List<PendingControl>>
+    @Query("SELECT * FROM pending_controls WHERE `key` = :key") suspend fun control(key: String): PendingControl?
+    @Upsert suspend fun save(control: PendingControl)
+    @Query("UPDATE pending_controls SET state = 'unknown' WHERE state = 'responding'") suspend fun recoverControls()
+    @Query("DELETE FROM pending_controls WHERE `key` = :key") suspend fun deleteControl(key: String)
+    @Query("DELETE FROM pending_controls WHERE sessionKey = :key") suspend fun deleteControls(key: String)
+    @Query("SELECT * FROM pending_controls WHERE sessionKey = :key AND runId = :run") suspend fun runControls(key: String,run: String): List<PendingControl>
+    @Query("DELETE FROM pending_controls WHERE sessionKey = :key AND runId = :run") suspend fun deleteRunControls(key: String,run: String)
+    @Query("UPDATE pending_controls SET state = :state WHERE `key` = :key") suspend fun controlState(key: String,state: String)
+    @Transaction suspend fun replaceControls(key: String,run: String,rows: List<PendingControl>,resetUnknown: Boolean) {
+        if(conversation(key)?.status in RunStates.terminal) {deleteRunControls(key,run);return}
+        val previous=runControls(key,run).associateBy {it.key}
+        deleteRunControls(key,run)
+        rows.forEach {row ->
+            val old=previous[row.key]
+            val state=if(old!=null && old.generation==row.generation && (old.state=="resolved" || old.state=="responding" || (old.state=="unknown" && !resetUnknown))) old.state else "pending"
+            save(row.copy(state=state,receivedAt=old?.receivedAt ?: row.receivedAt))
+        }
+    }
+    @Transaction suspend fun saveTurn(receipt: Conversation,message: ChatMessage,control: PendingControl?,event: ToolEvent?,settledId: String) {
+        val current=conversation(receipt.key) ?: return
+        save(receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt))
+        save(message)
+        if(control!=null) save(control)
+        if(event!=null) save(event)
+        if(settledId.isNotBlank()) runControls(receipt.key,receipt.runId).filter {it.requestId==settledId}.forEach {deleteControl(it.key)}
+        if(receipt.status in RunStates.terminal) deleteRunControls(receipt.key,receipt.runId)
+    }
     @Transaction suspend fun replaceHistory(key: String, remoteId: String, messages: List<ChatMessage>) {
         val current = conversation(key) ?: return
-        if(current.status !in setOf("idle","completed","failed","cancelled","interrupted","response_finished")) return
+        if(current.status !in (RunStates.terminal+"idle")) return
         deleteMessages(key); saveMessages(messages)
         save(current.copy(remoteId=remoteId,syncedAt=System.currentTimeMillis()))
     }
@@ -89,7 +138,9 @@ data class LocalTask(@PrimaryKey val id: String, val title: String, val dueDate:
     @Delete suspend fun delete(task: LocalTask)
     @Query("DELETE FROM messages") suspend fun clearMessages()
     @Query("DELETE FROM sessions") suspend fun clearSessions()
-    @Transaction suspend fun clearChats() { clearMessages(); clearSessions() }
+    @Query("DELETE FROM tool_events") suspend fun clearEvents()
+    @Query("DELETE FROM pending_controls") suspend fun clearControls()
+    @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class], version = 2, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class], version = 3, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

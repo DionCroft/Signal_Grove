@@ -5,6 +5,31 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    ResponseSubmitted("Response delivered · waiting for server status","回复已送达 · 等待服务器状态","Huífù yǐ sòngdá · děngdài fúwùqì zhuàngtài"),
+    ResponseSending("Sending your response…","正在发送回复…","Zhèngzài fāsòng huífù…"),
+    NoReadText("This reply contains no plain text to read aloud.","此回复没有可朗读的普通文本。","Cǐ huífù méiyǒu kě lǎngdú de pǔtōng wénběn."),
+    AppPermissions("Open app permissions","打开应用权限","Dǎkāi yìngyòng quánxiàn"),
+    ToolActivity("Tool activity","工具活动","Gōngjù huódòng"), Started("Started","已开始","Yǐ kāishǐ"),
+    Incomplete("Stopped short of completion","未完全完成","Wèi wánquán wánchéng"), WaitingInput("An answer is needed","需要回答","Xūyào huídá"),
+    ReviewRequest("Review pending request","查看待处理请求","Chákàn dài chǔlǐ qǐngqiú"), Later("Review later","稍后查看","Shāo hòu chákàn"),
+    Answer("Your answer","你的回答","Nǐ de huídá"), SubmitAnswer("Submit answer","提交回答","Tíjiāo huídá"),
+    DecisionUnknown("Delivery is uncertain. Check the run before responding again.","发送结果不确定，请检查运行状态后再回复。","Fāsòng jiéguǒ bù quèdìng, qǐng jiǎnchá yùnxíng zhuàngtài hòu zài huífù."),
+    LimitedConsent("The prompt is incomplete. Allowing is unavailable; you can deny or review it on the server.","提示内容不完整，无法允许。你可以拒绝或在服务器上查看。","Tíshì nèiróng bù wánzhěng, wúfǎ yǔnxǔ. Nǐ kěyǐ jùjué huò zài fúwùqì shàng chákàn."),
+    MissingIdentity("The server did not provide an exact prompt identity. Refresh the run or review it on the server.","服务器未提供准确的请求标识，请刷新或在服务器上查看。","Fúwùqì wèi tígōng zhǔnquè de qǐngqiú biāozhì, qǐng shuāxīn huò zài fúwùqì shàng chákàn."),
+    ResolveUnknown("Acknowledge interrupted execution","确认执行已中断","Quèrèn zhíxíng yǐ zhōngduàn"),
+    ResolveInfo("Acknowledge that this lost execution will not finish. Queued turns may then proceed. Review its server state first.","确认此丢失的执行不会继续完成，随后排队的请求可能开始。请先检查服务器状态。","Quèrèn cǐ diūshī de zhíxíng bú huì jìxù wánchéng, suíhòu páiduì de qǐngqiú kěnéng kāishǐ. Qǐng xiān jiǎnchá fúwùqì zhuàngtài."),
+    DemoApproval("Try a Demo approval","体验演示批准流程","Tǐyàn yǎnshì pīzhǔn liúchéng"),
+    DemoClarification("Try a Demo question","体验演示提问","Tǐyàn yǎnshì tíwèn"),
+    LocalSpeech("On-device speech recognition only","仅在设备上识别语音","Jǐn zài shèbèi shàng shíbié yǔyīn"),
+    LocalSpeechUnavailable("On-device recognition is unavailable. Disable the on-device-only switch to explicitly use the system service; it may process audio online.","本机识别不可用。关闭仅本机识别选项可明确使用系统服务，该服务可能在线处理音频。","Běnjī shíbié bù kěyòng. Guānbì jǐn běnjī shíbié xuǎnxiàng kě míngquè shǐyòng xìtǒng fúwù, gāi fúwù kěnéng zàixiàn chǔlǐ yīnpín."),
+    ReadReply("Read latest reply aloud","朗读最新回复","Lǎngdú zuìxīn huífù"), StopSpeech("Stop speaking","停止朗读","Tíngzhǐ lǎngdú"),
+    NetworkSpeech("Allow online read-aloud voices","允许在线朗读声音","Yǔnxǔ zàixiàn lǎngdú shēngyīn"),
+    SpeechDisclosure("Read-aloud uses Android's speech engine. Online voices may send response text to that service. Code blocks are skipped; responses are not translated.","朗读使用 Android 语音引擎。在线声音可能将回复文字发送至该服务。代码块会跳过，回复不会翻译。","Lǎngdú shǐyòng Android yǔyīn yǐnqíng. Zàixiàn shēngyīn kěnéng jiāng huífù wénzì fāsòng zhì gāi fúwù. Dàimǎkuài huì tiàoguò, huífù bú huì fānyì."),
+    SpeechRate("Reading speed","朗读速度","Lǎngdú sùdù"), SpeechVoiceUnavailable("No suitable installed voice is available for this language and privacy setting.","当前语言和隐私设置没有可用的已安装声音。","Dāngqián yǔyán hé yǐnsī shèzhì méiyǒu kěyòng de yǐ ānzhuāng shēngyīn."),
+    SpeechPermission("Microphone permission was not granted. You can still type your message.","未授予麦克风权限，你仍可输入文字。","Wèi shòuyǔ màikèfēng quánxiàn, nǐ réng kě shūrù wénzì."),
+    SpeechNetwork("The speech service could not connect. Review your network or use on-device recognition.","语音服务无法连接，请检查网络或使用本机识别。","Yǔyīn fúwù wúfǎ liánjiē, qǐng jiǎnchá wǎngluò huò shǐyòng běnjī shíbié."),
+    SpeechNoMatch("No speech was recognised. Tap to try again.","未识别到语音，请点击重试。","Wèi shíbié dào yǔyīn, qǐng diǎnjī chóngshì."),
+    SpeechBusy("The speech service is busy. Wait a moment and try again.","语音服务正忙，请稍后重试。","Yǔyīn fúwù zhèng máng, qǐng shāo hòu chóngshì."),
     Search("Search","搜索","Sōusuǒ"), LoadMore("Load more conversations","加载更多对话","Jiāzài gèng duō duìhuà"),
     Rename("Rename","重命名","Chóng mìngmíng"), Pin("Pin / unpin locally","本地置顶或取消置顶","Běndì zhìdǐng huò qǔxiāo zhìdǐng"),
     Hide("Hide / show locally","本地隐藏或显示","Běndì yǐncáng huò xiǎnshì"), ShowHidden("Include hidden conversations","包括隐藏的对话","Bāokuò yǐncáng de duìhuà"),
@@ -79,6 +104,6 @@ fun Words.localized(p: AppPreferences): String = buildList { add(en); if(p.chine
 @Composable fun label(w: Words) = w.localized(LocalPreferences.current)
 fun statusWord(status: String) = when(status) {
     "completed" -> Words.Completed; "failed" -> Words.Failed; "cancelled" -> Words.Cancelled; "interrupted" -> Words.Interrupted
-    "unknown" -> Words.Unknown; "response_finished" -> Words.ResponseFinished; "waiting_for_approval" -> Words.Approval
+    "response_submitted" -> Words.ResponseSubmitted; "incomplete" -> Words.Incomplete; "waiting_for_input" -> Words.WaitingInput; "unknown" -> Words.Unknown; "response_finished" -> Words.ResponseFinished; "waiting_for_approval" -> Words.Approval
     "running","submitting","queued" -> Words.Running; else -> Words.Chat
 }

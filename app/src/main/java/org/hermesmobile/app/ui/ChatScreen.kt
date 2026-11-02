@@ -34,7 +34,8 @@ import java.time.format.DateTimeFormatter
     val caps by vm.capabilities.collectAsStateWithLifecycle()
     val status by vm.runStatus.collectAsStateWithLifecycle()
     val activity by vm.activity.collectAsStateWithLifecycle()
-    val approval by vm.approval.collectAsStateWithLifecycle()
+    val current by vm.selectedConversation.collectAsStateWithLifecycle()
+    var resolve by rememberSaveable {mutableStateOf(false)}
     var history by rememberSaveable { mutableStateOf(false) }
     val list=rememberLazyListState()
     LaunchedEffect(messages.size,messages.lastOrNull()?.content?.length) { if(messages.isNotEmpty()) list.scrollToItem(messages.lastIndex) }
@@ -46,27 +47,30 @@ import java.time.format.DateTimeFormatter
             IconButton(vm::newChat,enabled=!busy) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
         }
         if(busy || historyLoading) QuietProgress()
-        if(messages.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center) { Word(Words.NoChats) }
+        if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth(),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
+            Word(Words.NoChats)
+            if(LocalPreferences.current.demo) {TextButton({vm.sendDemoExercise("approval")},enabled=!busy) {Text(label(Words.DemoApproval))};TextButton({vm.sendDemoExercise("clarify")},enabled=!busy) {Text(label(Words.DemoClarification))}}
+        }
         else LazyColumn(Modifier.weight(1f).fillMaxWidth(),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
             items(messages,key={it.id}) { MessageCard(it) }
         }
-        if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=3)
+        if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=2)
+        RunControls(vm)
         if(status!="idle") {
             Text(label(statusWord(status)),style=MaterialTheme.typography.labelMedium)
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                if(status !in HermesViewModel.terminal) TextButton(vm::stop) { Text(label(Words.Stop)) }
+                if(status !in HermesViewModel.terminal) TextButton(vm::stop,enabled=LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true)) { Text(label(Words.Stop)) }
                 if(!busy && status !in setOf("completed","idle","response_finished")) TextButton(vm::retryOrRefresh) { Text(label(Words.CheckRun)) }
-                if(!busy && status in setOf("failed","cancelled","interrupted")) TextButton(vm::prepareRetry) { Text(label(Words.Retry)) }
+                if(!busy && status in setOf("failed","cancelled","interrupted","incomplete")) TextButton(vm::prepareRetry) { Text(label(Words.Retry)) }
             }
         }
+        if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy) {Text(label(Words.ResolveUnknown))}
         OutlinedTextField(draft,{vm.draft.value=it},Modifier.fillMaxWidth(),placeholder={Text(label(Words.Message))},maxLines=5,
             trailingIcon={IconButton({vm.send()},enabled=draft.isNotBlank() && !busy && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
         Spacer(Modifier.height(4.dp))
     }
     if(history) ConversationBrowser(vm) {history=false}
-    approval?.let { a -> AlertDialog(onDismissRequest={},title={Text(label(Words.Approval))},text={SelectionContainer {Text(a.description.ifBlank { label(Words.Approval) })}},
-        confirmButton={if("once" in a.choices) TextButton({vm.approve("once")}) {Text(label(Words.AllowOnce))}},
-        dismissButton={if("deny" in a.choices) TextButton({vm.approve("deny")}) {Text(label(Words.Deny))}}) }
+    if(resolve) AlertDialog(onDismissRequest={resolve=false},title={Text(label(Words.ResolveUnknown))},text={Text(label(Words.ResolveInfo))},confirmButton={TextButton({resolve=false;vm.acknowledgeUnknown()}) {Text(label(Words.ResolveUnknown))}},dismissButton={TextButton({resolve=false}) {Text(label(Words.Cancel))}})
 }
 @Suppress("DEPRECATION")
 @Composable fun MessageCard(message: ChatMessage) {

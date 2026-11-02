@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+On-device speech policy, optional foreground read-aloud, persisted tool events, durable explicit approvals/clarification, exact prompt verification, ambiguous-delivery handling, cursor-based run recovery and replay-gap fallback. Schema 3 preservation and 33 unit / 20 device cases passed. See docs/releases/0.3.0.md.
+
 ## 0.2.0
 
 Session search/pagination, local pin/hide, guarded rename/delete, atomic history synchronization, task notes and calendar-aware filters, offline read-only job snapshots, and schema 1→2 preservation tests. See docs/releases/0.2.0.md for validation.

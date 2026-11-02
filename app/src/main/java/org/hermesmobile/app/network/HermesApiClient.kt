@@ -40,9 +40,14 @@ interface HermesApiClient {
     suspend fun job(id: String): HermesJob
     suspend fun submitRun(session: String, input: String, key: String): String
     suspend fun run(id: String): JsonObject
-    fun stream(path: String, body: JsonObject? = null, key: String = ""): Flow<StreamUpdate>
+    fun stream(path: String, body: JsonObject? = null, key: String = "",lastEventId: Long? = null): Flow<StreamUpdate>
     suspend fun stop(id: String)
     suspend fun approve(approval: Approval, choice: String)
+    suspend fun respondControl(control: PendingControl,response: String) {
+        if(control.kind=="approval") approve(control.approval(),response)
+        else throw UnsupportedOperationException("Clarification responses are unavailable.")
+    }
+    suspend fun resolveUnknown(run: String,admission: String,generation: Long): JsonObject {throw UnsupportedOperationException("Unknown-run resolution is unavailable.")}
 }
 
 class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolean = false) : HermesApiClient {
@@ -139,12 +144,19 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     override suspend fun submitRun(session: String, input: String, key: String) = json("v1/runs", buildJsonObject { put("session_id",session); put("input",input) }, key).text("run_id").also { require(it.isNotBlank()) { "The server did not return a run identifier." } }
     override suspend fun run(id: String) = json("v1/runs/${segment(id)}")
     override suspend fun stop(id: String) { json("v1/runs/${segment(id)}/stop", buildJsonObject {}) }
-    override suspend fun approve(approval: Approval, choice: String) {
-        require(choice in listOf("once","deny") && choice in approval.choices) { "Unsupported approval choice" }
-        json("v1/runs/${segment(approval.runId)}/approval", buildJsonObject { put("choice",choice); if(approval.requestId.isNotBlank()) put("request_id",approval.requestId) })
+    override suspend fun approve(approval: Approval,choice: String) {
+        respondControl(ControlRequest(approval.runId,approval.requestId,approval.generation,"approval",approval.description,approval.choices).stored(""),choice)
     }
-    override fun stream(path: String, body: JsonObject?, key: String): Flow<StreamUpdate> = callbackFlow {
-        val call = client.newBuilder().readTimeout(3,TimeUnit.MINUTES).build().newCall(request(path,body,key))
+    override suspend fun respondControl(control: PendingControl,response: String) {
+        val ack=json("v1/runs/${segment(control.runId)}/${if(control.kind=="approval") "approval" else "clarify"}",ControlProtocol.responseBody(control,response))
+        val request=ack.text("prompt_id").ifBlank {ack.text("request_id")}
+        val resolved=ack.text("status") in listOf("resolved","already_resolved") ||
+            (ack["resolved"] as? JsonPrimitive)?.booleanOrNull==true || ((ack["resolved"] as? JsonPrimitive)?.intOrNull ?: 0)>0
+        require(resolved && request==control.requestId && ack.text("run_id")==control.runId) {"The server did not confirm this exact response. Refresh run status before trying again."}
+    }
+    override suspend fun resolveUnknown(run: String,admission: String,generation: Long) = json("v1/runs/${segment(run)}/resolve-unknown",buildJsonObject {put("admission_id",admission);put("execution_generation",generation)})
+    override fun stream(path: String, body: JsonObject?, key: String,lastEventId: Long?): Flow<StreamUpdate> = callbackFlow {
+        val call = client.newBuilder().readTimeout(3,TimeUnit.MINUTES).build().newCall(request(path,body,key).newBuilder().apply {if(lastEventId!=null && lastEventId>=0 && body==null) header("Last-Event-ID",lastEventId.toString())}.build())
         val worker = launch(Dispatchers.IO) {
             try {
                 call.execute().use { response ->

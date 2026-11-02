@@ -14,7 +14,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 private val Context.dataStore by preferencesDataStore("preferences")
-data class AppPreferences(val theme: String = "LAVENDER", val chinese: Boolean = true, val pinyin: Boolean = true, val reducedMotion: Boolean = false, val demo: Boolean = true, val url: String = "", val debugHttp: Boolean = false)
+data class AppPreferences(val theme: String = "LAVENDER", val chinese: Boolean = true, val pinyin: Boolean = true, val reducedMotion: Boolean = false, val demo: Boolean = true, val url: String = "", val debugHttp: Boolean = false, val onDeviceSpeechOnly: Boolean = true, val allowNetworkSpeech: Boolean = false, val speechRate: Float = 1f)
 class PreferenceStore(context: Context) {
     private val store = context.dataStore
     private val theme = stringPreferencesKey("theme")
@@ -24,8 +24,11 @@ class PreferenceStore(context: Context) {
     private val demo = booleanPreferencesKey("demo")
     private val url = stringPreferencesKey("server_url")
     private val http = booleanPreferencesKey("debug_http")
-    val flow = store.data.map { p -> AppPreferences(p[theme] ?: "LAVENDER", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false) }
-    suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp } }
+    private val localSpeech=booleanPreferencesKey("on_device_speech_only")
+    private val networkSpeech=booleanPreferencesKey("allow_network_speech")
+    private val rate=floatPreferencesKey("speech_rate")
+    val flow = store.data.map { p -> AppPreferences(p[theme] ?: "LAVENDER", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f)) }
+    suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp;it[localSpeech]=p.onDeviceSpeechOnly;it[networkSpeech]=p.allowNetworkSpeech;it[rate]=p.speechRate.coerceIn(.75f,1.25f) } }
 }
 class SecureCredentialStore(context: Context) {
     private val prefs = context.getSharedPreferences("credentials", Context.MODE_PRIVATE)

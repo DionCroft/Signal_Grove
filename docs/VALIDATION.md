@@ -1,11 +1,11 @@
-# Current validation — 0.2.0
+# Current validation — 0.3.0
 
-Debug APK, unit tests, lint and instrumentation compilation passed. **23 unit tests and 10 Android 16 connected cases passed**. The device suite covers all four palettes, English/Chinese/pinyin settings, navigation/chat, task CRUD/notes/search, conversation pin/rename/delete, cached job details, schema-1 migration preservation and active-turn history synchronization.
+**33 unit tests and 20 Android 16 connected cases passed**. `assembleDebug testDebugUnitTest lint assembleDebugAndroidTest connectedDebugAndroidTest` passed. APK signature verification passed before publication.
 
-The schema migration test reads the checked-in alpha schema from instrumentation assets; it preserves task/message content and unresolved run IDs/keys. Room cache tests verify credential/profile isolation and preservation after an outage.
+New coverage includes strict approval/clarification identity and payloads, ambiguous acknowledgements, no decision replay, persisted prompt/cursor/tool records, schemas 1→2→3, offline speech policy and Unicode-safe TTS chunks. Real HTTP fixture integration exercises saved-cursor resume without another run admission or duplicated text, and replay-gap fallback to read-only status recovery. Earlier session/task/cache/theme/language/navigation checks remain passing.
 
-APK checksum: `bfc0f867a0d659936138b71e9fab04040b0a4d2930023df3e99de43959945342`. Prepared APK and checksum are in ignored `artifacts/0.2.0/`; normal Gradle outputs remain under `app/build/`.
+APK SHA-256: `b0349a49dc64176cd32694ca3f2ba0303dbbb99cbaeec72b05beeb68d2e6a761`. Prepared deliverables are in ignored `artifacts/0.3.0/`.
 
-Toolchain: Gradle 9.8.2, AGP 9.5.0, JDK 24, compile/target API 37, min API 26. Test device: Android 16 / API 36 Google APIs x86_64 emulator, phone viewport 1080×2400 / 420 dpi. Tools, caches and emulator data use E:; repository files use the requested project directory.
+Toolchain: Gradle 9.8.2, AGP 9.5.0, JDK 24, compile/target API 37, minimum API 26. Device: Android 16 / API 36 Google APIs x86_64 emulator, 1080×2400 / 420 dpi. Repository uses the chosen project directory; tools/cache/temp/emulator data use E:.
 
-No real Hermes credentials, physical microphone, foldable hardware or production provider were supplied. Contract tests and emulator results do not assert live-provider interoperability or physical speech-recognition accuracy. These limits remain explicit in release notes. See [the version evidence](releases/0.2.0.md) and [the earlier screenshots](screenshots.md).
+No live Hermes credentials, physical microphone or speaker validation was supplied. Audio tests verify policy, state and text review without recording or playback. See [release evidence](releases/0.3.0.md); [screenshots](screenshots.md) show the earlier visual baseline. CI compiles instrumentation but connected tests are run locally.

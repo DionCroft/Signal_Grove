@@ -4,9 +4,9 @@ Versions are completed in order with one active version goal at a time. A goal r
 
 | Version | Scope | Status |
 | --- | --- | --- |
-| 0.2.0 | Better session management; task notes/search/filters; cached read-only Hermes scheduled jobs; non-destructive migration | Implemented and locally validated; see release evidence |
-| 0.3.0 | Voice improvements; richer persisted tool activity; explicit approval/clarification handling and run-state recovery | Next |
-| 0.4.0 | Opt-in notifications; Android task widget; explicit, supported server automation controls | Pending |
+| 0.2.0 | Better session management; task notes/search/filters; cached read-only Hermes scheduled jobs; non-destructive migration | Complete; public release available |
+| 0.3.0 | Voice improvements; richer persisted tool activity; explicit approval/clarification handling and run-state recovery | Implemented and validated; see release evidence |
+| 0.4.0 | Opt-in notifications; Android task widget; explicit, supported server automation controls | Next |
 | 1.0.0 | Stability/security/migration hardening; documented compatibility and release process; signed community release | Pending |
 
 ## 0.2.0 evidence

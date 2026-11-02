@@ -2,7 +2,7 @@
 
 An unofficial, open-source native Android client for [Hermes Agent](https://github.com/NousResearch/hermes-agent). Your agent runs on your infrastructure; the phone is its companion.
 
-**0.2.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
+**0.3.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
 
 Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.
 
@@ -16,7 +16,7 @@ Four interchangeable palettes, persistent conversations, English / Simplified Ch
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Get the installable debug APK from the [development release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v0.2.0). Local build output is `app/build/outputs/apk/debug/app-debug.apk`.
+Get the installable debug APK from the [development release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v0.3.0). Local build output is `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Features
 
@@ -26,13 +26,13 @@ Get the installable debug APK from the [development release](https://github.com/
 - Trusted HTTPS with bearer authentication. AES-GCM token encryption backed by Android Keystore; no certificate bypass, redirects or HTTP request logging. Path prefixes such as `/p/work/` are preserved.
 - Capability discovery. Native server sessions where supported; Runs API for resumable streams and explicit status; native session streams on older installs; OpenAI-compatible completion fallback.
 - Durable local turn keys for safely retrying Runs submission. Connection interruptions show **unknown** until checked. Assistant finalisation never implies run completion. Compatibility streams say **response received / run outcome unavailable**.
-- Tool progress and explicit allow-once / deny controls for advertised server approvals. No automatic approvals and no permanent approval option.
+- Persisted tool activity with timestamps/duration and visible previews. Durable allow-once / deny approvals and explicit clarification answers verify current prompt identity/generation/content. Uncertain delivery never automatically retries a decision. Demo includes harmless exercises.
 - Room tasks: create, edit, complete, delete, notes, title/notes search, open/completed/overdue filters, priority and ISO due date, with real local progress.
 - Hermes scheduled jobs: list and fetch details, enabled state and supplied run timestamps. Profile-partitioned snapshots remain available offline with stale indicators. No server job editing controls yet.
-- Android speech recognition: explicit microphone permission, English/Chinese input, editable transcription, then transfer to Chat for review and sending. Service may process audio online. Listening stops when leaving Voice or backgrounding.
+- Foreground speech recognition defaults to on-device-only, with explicit microphone permission, English/Chinese input and editable transcription transferred to Chat for review. Optional read-aloud supports installed language voices, speed and stop. Network voices require opt-in. Audio stops when leaving Voice or backgrounding.
 - Explicit **Demo mode**, enabled initially. Sample text and job are labelled; no network requests are made by the fake client. Demo and real conversation storage are separated.
 
-See [0.2.0 release evidence](docs/releases/0.2.0.md) for session management, migration and offline-cache validation.
+See [0.3.0 release evidence](docs/releases/0.3.0.md) for voice, decisions and recovery validation; [0.2.0](docs/releases/0.2.0.md) covers session/task/cache improvements.
 
 ## Build
 
@@ -69,14 +69,14 @@ See [connection details](docs/HERMES_CONNECTION.md) and the [official API refere
 ## Known limits
 
 - Development release. Real-server interoperability requires testing against your specific Hermes install. The project does not include a live server or credentials.
-- No background execution, notification, full-duplex voice, TTS, file attachments or job mutation UI.
+- No background monitoring, notifications, widgets, full-duplex voice, file attachments or job mutation UI yet.
 - A dropped stream does not mean the server stopped. Use Check / recover run; a run with a known ID is queried without resubmission. No run ID on a non-Runs transport means automatic resending is deliberately unavailable.
-- Run streams are not automatically reattached after process death. Saved run IDs allow manual status reconciliation. Hermes may expire event buffers/status records. Unknown outcomes require review on the server.
+- Run streams are not automatically reattached after process death. Check / recover run uses the saved ID and sequence cursor without creating new work. Replay gaps use status-only recovery. Hermes may expire event buffers/status records; unknown outcomes may require server review.
 - Legacy OpenAI-compatible chat has local history only and no authoritative run outcome. It does not advertise cancellation unless a usable run ID/control exists.
 - The conversation browser searches loaded local records and loads additional server pages explicitly. Selecting/refreshing settled API sessions synchronizes saved history atomically; active/unknown turns retain their receipts. A history beyond 100,000 server rows produces an explicit limit error and keeps the cache. Server compression continuation IDs are retained.
 - Conversations/tasks use Android app-private Room storage, **not database encryption**. Backups/transfer are excluded. The token alone is Keystore encrypted. Clear local cache does not delete server history or tasks.
 - Only system-provided fonts are used. Theme typography/outlines differ, with restrained gradients and no ornamental animations. Actual UI labels and pinyin wrap; compact navigation retains English labels and multilingual accessibility descriptions.
-- Speech recognition availability and accuracy depend on the Android service. On-device-only recognition is not guaranteed.
+- Speech recognition availability and accuracy depend on the Android service. On-device-only mode fails closed when no local recognizer is available; system recognition may use the network when that mode is explicitly disabled.
 
 ## Contributing
 

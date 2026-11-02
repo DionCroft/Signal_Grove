@@ -11,8 +11,8 @@ android {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs.getByName("debug") {
@@ -57,6 +57,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
 
