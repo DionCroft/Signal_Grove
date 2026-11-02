@@ -18,7 +18,7 @@ Parallel tool-call pairing, public subagent lifecycle/lineage, server-reported r
 
 Structured image history now preserves typed image parts in scoped private files, with bounded metadata-only Room references and schema 8 preservation. Inline images are oriented, resized and stripped of source metadata; previews can be enlarged, and remote links open explicitly in the browser. Exact Runs/session/compatibility image envelopes and smaller-page history GET recovery are implemented. Picker/share-target input follows as a separate chunk.
 
-Native image picking now stages up to three private, cancellable, connection/conversation-bound previews. Sending remains separate, including image-only messages. Lost-admission recovery retains the original pixels/body/key/channel after a different draft image/model is chosen; explicit retry restores original JPEG bytes into a reviewable draft. Temporary drafts clear on context change/process restart, and Demo forks copy their image cache. Reviewed sharing into the app follows separately.
+Native image picking now stages up to three private, cancellable, connection/conversation-bound previews. Sending remains separate, including image-only messages. Lost-admission recovery retains the original pixels/body/key/channel after a different draft image/model is chosen; explicit retry restores original JPEG bytes into a reviewable draft. Temporary drafts clear on context change/process restart, and Demo forks copy their image cache. Reviewed image sharing into the current draft is implemented, with caption append, bounded content-URI parsing, selected-target review, cancellation and pending/consumed state across recreation.
 
 ## 1.0.0 — 2026-11-02
 

@@ -70,9 +70,9 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         val refs=current.refs.filterNot {it.hash.ifBlank {it.url}==hash}
         if(refs.isEmpty()) clearDraftImages() else imageDraft.value=current.copy(refs=refs)
     }
-    private fun stageImages(expectedScope:String,expectedConversation:String,producer:suspend (String)->DraftPayload) {
-        if(busy.value || controlBusy.value || connecting.value) return
-        if(expectedScope!=scope.value || expectedConversation!=selected.value) {error.value=Words.ImageContextChanged.localized(preferences.value);return}
+    private fun stageImages(expectedScope:String,expectedConversation:String,producer:suspend (String)->DraftPayload):Boolean {
+        if(busy.value || controlBusy.value || connecting.value) return false
+        if(expectedScope!=scope.value || expectedConversation!=selected.value) {error.value=Words.ImageContextChanged.localized(preferences.value);return false}
         val generation=++imageGeneration;val namespace="draft_${UUID.randomUUID()}"
         imageLoading.value=true;controlBusy.value=true
         imageImport=viewModelScope.launch {
@@ -96,12 +96,13 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 if(generation==imageGeneration) {imageLoading.value=false;controlBusy.value=false}
             }
         }
+        return true
     }
-    fun importImages(uris:List<android.net.Uri>,expectedScope:String,expectedConversation:String,caption:String?=null) {
-        if(uris.isEmpty()) return
+    fun importImages(uris:List<android.net.Uri>,expectedScope:String,expectedConversation:String,caption:String?=null):Boolean {
+        if(uris.isEmpty()) return false
         val distinct=uris.distinct()
-        if(distinct.size>ImageContent.MAX_IMAGES) {error.value=Words.ImageInputLimit.localized(preferences.value);return}
-        stageImages(expectedScope,expectedConversation) {namespace ->
+        if(distinct.size>ImageContent.MAX_IMAGES) {error.value=Words.ImageInputLimit.localized(preferences.value);return false}
+        return stageImages(expectedScope,expectedConversation) {namespace ->
             val refs=runInterruptible {distinct.map {uri ->
                 require(uri.scheme=="content")
                 val mime=graph.contentResolver.getType(uri);require(mime==null || mime.startsWith("image/"))

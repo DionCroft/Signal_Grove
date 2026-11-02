@@ -25,8 +25,15 @@ class Milestone02Test {
     @Test fun conversationSearchPinRenameAndLocalDeleteWork() {
         compose.onNodeWithText("New conversation").performScrollTo().performClick()
         compose.onNode(hasSetTextAction()).performTextInput("Session sample")
-        go(Words.Send)
-        compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}
+        compose.waitUntil(5000) {vm.draft.value=="Session sample" && !vm.connecting.value}
+        compose.runOnUiThread {
+            compose.activity.currentFocus?.clearFocus()
+            androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime())
+        }
+        if(android.os.Build.VERSION.SDK_INT>=30) compose.waitUntil(5000) {(androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: 0)==0}
+        compose.onNodeWithContentDescription(Words.Send.localized(AppPreferences())).assertIsEnabled().performClick()
+        try {compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}}
+        catch(e:androidx.compose.ui.test.ComposeTimeoutException) {fail("Demo session send: busy=${vm.busy.value}, status=${vm.runStatus.value}, connection=${vm.connectionStatus.value}, connecting=${vm.connecting.value}, draftLength=${vm.draft.value.length}, error=${vm.error.value}")}
         compose.onNodeWithContentDescription(Words.Completed.localized(AppPreferences())).assertExists()
         go(Words.History)
         compose.onNode(hasSetTextAction() and hasText(Words.Search.localized(AppPreferences()))).performTextInput("sample")

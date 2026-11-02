@@ -5,6 +5,12 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    ReviewSharedImages("Review shared images","检查共享图片","Jiǎnchá gòngxiǎng túpiàn"),
+    InvalidImageShare("Share up to three images using temporary content-URI access. This share cannot be imported.","请通过临时内容 URI 访问权限共享最多三张图片。无法导入此次共享。","Qǐng tōngguò línshí nèiróng URI fǎngwèn quánxiàn gòngxiǎng zuì duō sān zhāng túpiàn. Wúfǎ dǎorù cǐ cì gòngxiǎng."),
+    SharedImageInfo("These images replace the image selection in the current draft. Shared text is appended. Sending remains a separate action.","这些图片将替换当前草稿中的图片选择。共享文字会追加到草稿中。发送仍需单独操作。","Zhèxiē túpiàn jiāng tìhuàn dāngqián cǎogǎo zhōng de túpiàn xuǎnzé. Gòngxiǎng wénzì huì zhuījiā dào cǎogǎo zhōng. Fāsòng réng xū dāndú cāozuò."),
+    SharedCaption("Shared text","共享文字","Gòngxiǎng wénzì"),
+    WaitForImageTarget("Finish the current operation before importing these images.","请先完成当前操作，再导入这些图片。","Qǐng xiān wánchéng dāngqián cāozuò, zài dǎorù zhèxiē túpiàn."),
+    UseSharedImages("Use images in this draft","在此草稿中使用图片","Zài cǐ cǎogǎo zhōng shǐyòng túpiàn"),
     ChooseImages("Choose images","选择图片","Xuǎnzé túpiàn"),
     ImageMessage("Image message","图片消息","Túpiàn xiāoxi"),
     RemoveImage("Remove image","移除图片","Yíchú túpiàn"),

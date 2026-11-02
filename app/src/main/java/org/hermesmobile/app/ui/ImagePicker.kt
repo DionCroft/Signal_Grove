@@ -36,7 +36,7 @@ import org.hermesmobile.app.data.*
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(ImageContent.MAX_IMAGES)) {uris -> pending=ArrayList(uris)}
     LaunchedEffect(pending,connecting,busy,control) {
         val uris=pending
-        if(uris!=null && !connecting && !busy && !control) {pending=null;vm.importImages(uris,expectedScope,expectedConversation)}
+        if(uris!=null && !vm.connecting.value && !vm.busy.value && !vm.controlBusy.value) {pending=null;vm.importImages(uris,expectedScope,expectedConversation)}
     }
     IconButton({
         expectedScope=vm.profileScope.value;expectedConversation=vm.selected.value
