@@ -29,7 +29,10 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
       - name: Install SDK
-        run: sdkmanager 'platforms/android-37' 'build-tools/36.0.0'
+        run: |
+          sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
+          test -f "$ANDROID_HOME/platforms/android-37.0/android.jar"
+          test -x "$ANDROID_HOME/build-tools/36.0.0/aapt2"
       - name: Build, test, lint and compile instrumentation
         env:
           HERMES_BUILD_HOME: ${{ runner.temp }}/hermes-signing

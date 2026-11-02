@@ -48,6 +48,8 @@ Dependency-integrity checkpoint: full debug/release build, JVM tests, lint and i
 
 Fresh-cache verification follow-up: [strict Linux CI](https://github.com/DionCroft/hermes-agent-android/actions/runs/41523372488) refused six missing parent/BOM descriptors before compilation. All six were absent from the baseline, rather than checksum mismatches. Exact Maven Central files were parsed and SHA-256 hashed; all three available SHA-256 sidecars matched, while the other three were reviewed canonical HTTPS downloads. The additive baseline now has 490 components/798 artifacts. Strict mode and metadata verification remain enabled. Detailed verification reports are retained separately from APK artifacts. The hosted rerun is pending.
 
+Fresh runtime-classpath follow-up: [the next Linux check](https://github.com/DionCroft/hermes-agent-android/actions/runs/41524534447) passed plugin-classpath verification and stopped on the missing serialization BOM 1.7.3 POM. Its exact Maven Central descriptor was reviewed and added, bringing the baseline to 491 components/799 artifacts without accepting a mismatch. CI also now installs and verifies the exact API 37.0/build-tools package IDs; the earlier slash-form arguments produced an SDK-manager warning and depended on AGP installation. The hosted rerun remains pending.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0
