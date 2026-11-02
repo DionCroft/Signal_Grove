@@ -50,7 +50,9 @@ data class Conversation(
     @ColumnInfo(defaultValue = "0") val syncedAt: Long = 0,
     @ColumnInfo(defaultValue = "-1") val lastEventSeq: Long = -1,
     @ColumnInfo(defaultValue = "''") val admissionId: String = "",
-    @ColumnInfo(defaultValue = "NULL") val executionGeneration: Long? = null
+    @ColumnInfo(defaultValue = "NULL") val executionGeneration: Long? = null,
+    @ColumnInfo(defaultValue = "''") val channelKey: String = "",
+    @ColumnInfo(defaultValue = "''") val pendingRequestHash: String = ""
 )
 fun Conversation.sameSubmission(other: Conversation,allowAdmission: Boolean=false): Boolean =
     key==other.key && scope==other.scope && pendingKey==other.pendingKey && pendingAt==other.pendingAt &&
@@ -145,6 +147,23 @@ object RunStates {
         val current=control(expected.key) ?: return
         if(current.generation==expected.generation && current.runId==expected.runId && current.state=="responding") controlState(expected.key,state)
     }
+    @Transaction suspend fun beginTurn(receipt: Conversation,user: ChatMessage,assistant: ChatMessage) {
+        val previous=conversation(receipt.key)
+        require(previous==null || (previous.scope==receipt.scope && previous.status in (RunStates.terminal+"idle"))) {"The previous turn must settle first."}
+        require(receipt.pendingRequestHash.isNotBlank()) {"Save the exact request before admitting a turn."}
+        save(if(previous==null) receipt else receipt.copy(title=previous.title,pinned=previous.pinned,hidden=previous.hidden,syncedAt=previous.syncedAt))
+        save(user);save(assistant)
+    }
+    @Transaction suspend fun recordAdmission(expected: Conversation,run: String): Conversation {
+        val current=conversation(expected.key) ?: error("The request receipt is missing.")
+        require(expected.sameSubmission(current,allowAdmission=true) && (current.runId.isBlank() || current.runId==run)) {"The admission belongs to an older turn."}
+        return current.copy(runId=run).also {save(it)}
+    }
+    @Transaction suspend fun submissionUnknown(expected: Conversation) {
+        val current=conversation(expected.key) ?: return
+        if(!expected.sameSubmission(current,allowAdmission=true) || current.status in RunStates.terminal) return
+        save(current.copy(status="unknown"))
+    }
     /** A response belongs to one durable submission, even when a conversation is reused. */
     @Transaction suspend fun applyRunSnapshot(expected: Conversation,snapshot: JsonObject): Conversation? {
         val current=conversation(expected.key) ?: return null
@@ -198,5 +217,5 @@ object RunStates {
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
     @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class], version = 4, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class], version = 5, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

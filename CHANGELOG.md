@@ -6,6 +6,8 @@ Connection/submission isolation for delayed controls and run replies; preserved 
 
 Read-only server details now includes advertised capabilities, payload-based readiness, provider/model inventory, installed skills and API-server toolsets. Connection-scoped loading, offline startup preservation, explicit provider probing, lazy model lists and bilingual/pinyin scrolling are covered by 48 JVM / 43 API 36 cases and targeted large-text API 26 checks.
 
+Hash-checked durable full requests, stable advertised conversation keys for new chats, atomic submission receipts and schema 5 migration are implemented. Per-conversation request cleanup accompanies cache deletion. 55 JVM and 45 connected cases each on API 26/36 passed.
+
 ## 1.0.0 — 2026-11-02
 
 Stable signed community release. Task JSON backup/reviewed migration, strict consent choices and visibility, bounded import parsing, credential/header hardening, current screenshots and user/compatibility/security/signing documentation. 43 unit tests, 30 device cases each on Android 8 and 16, plus large-text/tablet reruns passed. Production install and real file-picker task round-trip verified. See docs/releases/1.0.0.md.

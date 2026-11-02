@@ -32,6 +32,14 @@ Tool activity shows visible previews, timestamps and supplied durations. Tool er
 
 A closed stream or completed assistant reply may leave server work running. Use Check / recover run. Saved run IDs/cursors resume without submitting new work. Replay gaps fall back to status-only recovery. Uncertain decision delivery requires status review. An advertised interrupted-execution acknowledgement is separately confirmed and never reruns the lost work. If the server has expired its records, inspect Hermes directly before starting anything new.
 
+### Durable recovery (development)
+
+New turns save their exact request before sending. Check / recover uses that receipt; changing the draft or later settings does not alter an uncertain request. Missing or damaged saved request data disables resubmission. Known run IDs can still be checked. Older Runs receipts retain their original text-only body and header behavior.
+
+New mobile conversations use a stable conversation key when Hermes advertises support. A transcript/session ID may rotate while this key remains the same. Imported and pre-upgrade conversations keep their prior memory behavior; starting a new conversation establishes a new logical channel. Memory/provider behavior is controlled by Hermes.
+
+Recovery requests contain message/history data in app-private files. They contain no bearer credentials and are not exported with tasks. Deleting a cached conversation also deletes its saved requests. Clearing cached chats discards recovery receipts; server work may continue. App-private request files and Room data are not application-level encrypted.
+
 ## Local tasks and server jobs
 
 Tasks stay on this device: create, edit, notes, ISO due date (`YYYY-MM-DD`), priority, complete/delete, title/notes search and all/open/completed/overdue filters. Due dates use the device's calendar. Tasks are separate from server jobs.

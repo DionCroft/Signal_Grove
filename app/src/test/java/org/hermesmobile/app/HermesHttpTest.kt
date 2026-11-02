@@ -1,6 +1,7 @@
 package org.hermesmobile.app
 
 import org.hermesmobile.app.data.*
+import kotlinx.serialization.json.*
 import org.hermesmobile.app.network.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -18,6 +19,20 @@ class HermesHttpTest {
             val request=server.takeRequest(2,TimeUnit.SECONDS)!!
             assertEquals("/p/mobile/v1/capabilities",request.path)
             assertEquals("Bearer test-fixture-token",request.getHeader("Authorization"))
+        }
+    }
+    @Test fun fullRunRequestAndStableChannelAreSentWithoutRebuildingTheBody()=runBlocking {
+        MockWebServer().use {server ->
+            val api=client(server)
+            val body=Json.parseToJsonElement("""{"session_id":"api-original","input":[{"type":"text","text":"Review"}],"model":"chosen","provider":"p","model_options":{"reasoning":{"enabled":false}}}""").jsonObject
+            server.enqueue(MockResponse().setBody("""{"run_id":"r"}"""))
+            assertEquals("r",api.submitRun(body,"same-key","mobile-channel"))
+            val request=server.takeRequest();assertEquals("/p/mobile/v1/runs",request.path)
+            assertEquals(body,Json.parseToJsonElement(request.body.readUtf8()).jsonObject)
+            assertEquals("same-key",request.getHeader("Idempotency-Key"));assertEquals("mobile-channel",request.getHeader("X-Hermes-Session-Key"))
+            server.enqueue(MockResponse().setHeader("Content-Type","text/event-stream").setBody("data: {\"event\":\"run.completed\"}\n\n"))
+            api.stream("v1/runs/r/events",lastEventId=8,channelKey="mobile-channel").toList()
+            val events=server.takeRequest();assertEquals("GET",events.method);assertEquals("8",events.getHeader("Last-Event-ID"));assertEquals("mobile-channel",events.getHeader("X-Hermes-Session-Key"))
         }
     }
     @Test fun onlyMissingCapabilitiesFallsBackToModels()=runBlocking {

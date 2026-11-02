@@ -77,7 +77,7 @@ class ConnectionIsolationTest {
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
                     request.path=="/saved/v1/capabilities"->{if(calls.incrementAndGet()>1) {entered.countDown();check(release.await(15,TimeUnit.SECONDS))};json("""{"features":{},"endpoints":{}}""")}
-                    request.path=="/other/v1/capabilities"->{otherCalls.incrementAndGet();json("{}")} 
+                    request.path=="/other/v1/capabilities"->{otherCalls.incrementAndGet();json("{}")}
                     request.path.orEmpty().contains("/api/jobs?")->json("""{"jobs":[]}""")
                     else->json("{}").setResponseCode(404)
                 }

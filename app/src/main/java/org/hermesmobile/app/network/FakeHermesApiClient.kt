@@ -52,7 +52,7 @@ open class FakeHermesApiClient : HermesApiClient {
         require(r.control?.requestId==control.requestId && control.generation==1L) {"The Demo prompt is no longer pending."}
         r.control=null;r.status="running";r.answer.complete(response)
     }
-    override fun stream(path:String,body:JsonObject?,key:String,lastEventId:Long?)=flow {
+    override fun stream(path:String,body:JsonObject?,key:String,lastEventId:Long?,channelKey:String)=flow {
         val r=DemoRun("demo_${UUID.randomUUID().toString().replace("-","")}");runs[r.id]=r
         var seq=0L
         suspend fun frame(update:StreamUpdate) {emit(update.copy(runId=r.id,sequence=seq++))}
@@ -89,5 +89,5 @@ class UnavailableHermesApiClient : HermesApiClient {
     override suspend fun run(id:String):JsonObject=unavailable()
     override suspend fun stop(id:String):Unit=unavailable()
     override suspend fun approve(approval:Approval,choice:String):Unit=unavailable()
-    override fun stream(path:String,body:JsonObject?,key:String,lastEventId:Long?)=flow<StreamUpdate> {unavailable()}
+    override fun stream(path:String,body:JsonObject?,key:String,lastEventId:Long?,channelKey:String)=flow<StreamUpdate> {unavailable()}
 }

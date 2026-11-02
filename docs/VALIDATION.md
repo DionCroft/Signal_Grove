@@ -10,6 +10,8 @@ All-four-defects checkpoint: 46 JVM tests and all 38 connected tests passed on b
 
 Server-discovery chunk (`1.1.0-dev`): 48 JVM tests and the full 43-test API 36 suite passed. All 8 discovery/isolation cases also passed on API 26 at 130% font scale. English and bilingual/pinyin screenshots were inspected. Tests cover prefixed bearer GETs, explicit full-catalog probes, degraded readiness over HTTP 200, unavailable provider metadata, a delayed old-connection response that is awaited before asserting the new inventory, offline cache activation and startup restoration/configuration races. Build/lint/debug/instrumentation checks passed after correcting a lint indentation finding. Runtime providers, skills and readiness are synthetic fixtures; live-server integration remains unverified.
 
+Durable-request chunk: 55 JVM tests and all 45 connected cases passed on both API 26 and API 36. Required unit/lint/debug/instrumentation build checks passed. Added coverage includes full JSON/header retention, reopen and concurrent-writer immutability, wrong-scope/missing/corrupt request refusal, size limits, per-conversation deletion/clear, v4→v5 migration, and HTTP loss after admission followed by exact body/key/channel recovery. Earlier v1/v2/v3 migrations still pass. No live agent executed; the lost-ack fixture confirms client traffic, not a production server's deduplication implementation.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0

@@ -157,6 +157,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 require(capabilities.value?.endpoints?.containsKey("session_delete")==true) {"Server conversation deletion is unavailable."}
                 operation.client.deleteSession(c.remoteId)
             }
+            withContext(Dispatchers.IO) {graph.requests.deleteConversation(c.scope,c.key)}
             dao.deleteConversation(key)
             if(selected.value==key) {selected.value="";runStatus.value="idle"}
         } catch(e: Exception) {error.value=connectionError(e)} finally {controlBusy.value=false}
@@ -224,34 +225,46 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     fun send(text: String = draft.value) {
+        if(text.length>64000) {error.value=Words.MessageTooLong.localized(preferences.value);return}
         if(text.isBlank() || busy.value || controlBusy.value || connecting.value) return
         if(!preferences.value.demo && connectionStatus.value!="connected") { error.value="Connect to your Hermes server in Settings first."; return }
         busy.value=true
         worker=viewModelScope.launch {
             error.value=null; activity.value=""
+            var receipt:Conversation?=null
             try {
                 var c=selected.value.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }
                 if(c == null) {
                     val id="api_mobile_${UUID.randomUUID().toString().replace("-","")}"
                     val remote=if(capabilities.value?.sessions==true) api.createSession(id,text.take(60)) else RemoteSession(id,text.take(60))
-                    c=Conversation("${scope.value}:${remote.id}",scope.value,remote.id,remote.title)
+                    c=Conversation("${scope.value}:${remote.id}",scope.value,remote.id,remote.title,
+                        channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "")
                     dao.save(c); selected.value=c.key
                 }
                 val key=UUID.randomUUID().toString()
                 val transport=when { preferences.value.demo -> "demo"; capabilities.value?.sessions==true && capabilities.value?.runs==true -> "runs"; capabilities.value?.nativeStream==true -> "session"; else -> "compat" }
                 c=c.copy(pendingInput=text,pendingKey=key,pendingAt=System.currentTimeMillis(),transport=transport,runId="",status="submitting",lastEventSeq=-1,admissionId="",executionGeneration=null,updatedAt=System.currentTimeMillis())
-                dao.save(c)
-                dao.save(ChatMessage("${key}_user",c.key,"user",text))
-                dao.save(ChatMessage("${key}_assistant",c.key,"assistant","",System.currentTimeMillis()+1,"submitting"))
+                val user=ChatMessage("${key}_user",c.key,"user",text)
+                val request=TurnRequest.create(c,dao.history(c.key)+user,capabilities.value?.model ?: "hermes-agent")
+                val hash=withContext(Dispatchers.IO) {graph.requests.freeze(c.scope,c.key,key,request)}
+                c=c.copy(pendingRequestHash=hash)
+                dao.beginTurn(c,user,ChatMessage("${key}_assistant",c.key,"assistant","",System.currentTimeMillis()+1,"submitting"))
+                receipt=c
+                withContext(Dispatchers.IO) {runCatching {graph.requests.retainCurrent(c.scope,c.key,key)}}
                 draft.value=""
                 execute(c)
             } catch(e: CancellationException) { throw e }
-            catch(e: Exception) { error.value=connectionError(e); runStatus.value="unknown"; markUnknown() }
+            catch(e: Exception) {error.value=if(e is RequestTooLarge) Words.RequestTooLarge.localized(preferences.value) else connectionError(e);receipt?.let {dao.submissionUnknown(it);runStatus.value=dao.conversation(it.key)?.status ?: "unknown"}}
             finally { busy.value=false }
         }
     }
-    private suspend fun markUnknown() { val c=dao.conversation(selected.value) ?: return; if(c.pendingKey.isNotBlank()) dao.save(c.copy(status="unknown")) }
+    private suspend fun savedRequest(c: Conversation): TurnRequest {
+        if(c.pendingRequestHash.isNotBlank()) return withContext(Dispatchers.IO) {graph.requests.read(c.scope,c.key,c.pendingKey,c.pendingRequestHash)}
+        // Pre-upgrade Runs receipts had exactly these two fields and no channel header.
+        require(c.transport=="runs" && c.channelKey.isBlank()) {"This older receipt cannot safely be rebuilt. Check its server status."}
+        return TurnRequest("runs","v1/runs",buildJsonObject {put("session_id",c.remoteId);put("input",c.pendingInput)},"")
+    }
     private suspend fun execute(initial: Conversation,resuming: Boolean = false) {
         var c=initial
         val operation=context();val client=operation.client
@@ -261,14 +274,11 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         var text=if(resuming) assistant.content else "";var terminalSeen=false
         val path: String;var body: JsonObject?=null
         runStatus.value="running"
+        val request=if(c.transport=="runs" && c.runId.isNotBlank()) null else savedRequest(c)
+        if(request!=null) require(request.transport==c.transport && request.channelKey==c.channelKey) {"The saved request identity does not match."}
         when(c.transport) {
-            "runs"->{if(c.runId.isBlank()) {c=c.copy(runId=client.submitRun(c.remoteId,c.pendingInput,c.pendingKey));dao.save(c)};path="v1/runs/${OkHttpHermesApiClient.segment(c.runId)}/events"}
-            "session","demo"->{path="api/sessions/${OkHttpHermesApiClient.segment(c.remoteId)}/chat/stream";body=buildJsonObject {put("input",c.pendingInput)}}
-            else->{
-                path="v1/chat/completions"
-                val history=dao.history(c.key).filter(RunStates::usableHistory)
-                body=buildJsonObject {put("model",capabilities.value?.model ?: "hermes-agent");put("stream",true);put("messages",buildJsonArray {history.forEach {m -> add(buildJsonObject {put("role",m.role);put("content",m.content)})}})}
-            }
+            "runs" -> {if(c.runId.isBlank()) {c=dao.recordAdmission(c,client.submitRun(request!!.body,c.pendingKey,request.channelKey))};path="v1/runs/${OkHttpHermesApiClient.segment(c.runId)}/events"}
+            else -> {path=request!!.path;body=request.body}
         }
         val monitor=viewModelScope.launch {
             while(isActive) {
@@ -279,7 +289,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
         try {
-            client.stream(path,body,c.pendingKey,if(resuming) c.lastEventSeq.takeIf {it>=0} else null)
+            client.stream(path,body,c.pendingKey,if(resuming) c.lastEventSeq.takeIf {it>=0} else null,c.channelKey)
                 .transformWhile {emit(it);it.status !in RunStates.authoritativeTerminal}
                 .collect {update ->
                     if(update.replayGap) {c=c.copy(lastEventSeq=-2);throw IllegalArgumentException("The server's event replay expired. Check run status; this request will not be resent.")}
@@ -397,7 +407,10 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     suspend fun importTasks(rows: List<LocalTask>) {TaskTransfer.validate(rows);dao.importTasks(rows)}
     fun saveTask(task: LocalTask) { if(task.title.isBlank()) return; viewModelScope.launch { dao.save(task.copy(title=task.title.trim())) } }
     fun deleteTask(task: LocalTask) { viewModelScope.launch { dao.delete(task) } }
-    fun clearLocalChats() { if(switchingBlocked()) return; viewModelScope.launch { dao.clearChats(); newChat() } }
+    fun clearLocalChats() {if(switchingBlocked()) return;viewModelScope.launch {
+        try {withContext(Dispatchers.IO) {graph.requests.clearAll()};dao.clearChats();newChat()}
+        catch(e: Exception) {error.value=Words.LocalDataError.localized(preferences.value)}
+    }}
     fun forgetServer() { if(switchingBlocked()) return; connecting.value=true; viewModelScope.launch {try {
         withContext(Dispatchers.IO) { graph.credentials.clear() }
         val p=preferences.value.copy(url="",demo=true,debugHttp=false); graph.preferences.update(p); activate(p)

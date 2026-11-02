@@ -5,6 +5,9 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    LocalDataError("Local request data could not be removed. Try clearing the cache again.","无法删除本地请求数据，请重试清除缓存。","Wúfǎ shānchú běndì qǐngqiú shùjù, qǐng chóngshì qīngchú huǎncún."),
+    MessageTooLong("Use at most 64000 characters per message.","每条消息最多 64000 个字符。","Měi tiáo xiāoxi zuì duō liù wàn sì qiān gè zìfú."),
+    RequestTooLarge("This request is too large to save safely. Shorten the message or history.","此请求过大，无法安全保存。请缩短消息或历史记录。","Cǐ qǐngqiú guò dà, wúfǎ ānquán bǎocún. Qǐng suōduǎn xiāoxi huò lìshǐ jìlù."),
     MoreInformation("About these details","关于这些详情","Guānyú zhèxiē xiángqíng"),
     ServerDetails("Server details","服务器详情","Fúwùqì xiángqíng"),
     Capabilities("Capabilities","功能能力","Gōngnéng nénglì"),
@@ -168,7 +171,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     Security("Your token can grant powerful server access. Use a private VPN or trusted HTTPS. Approvals always require your explicit choice.","令牌可能授予强大的服务器权限。请使用私有 VPN 或可信 HTTPS。批准操作始终需要你明确选择。","Lìngpái kěnéng shòuyǔ qiángdà de fúwùqì quánxiàn. Qǐng shǐyòng sīyǒu VPN huò kěxìn HTTPS. Pīzhǔn cāozuò shǐzhōng xūyào nǐ míngquè xuǎnzé."),
     Github("Source on GitHub","GitHub 源代码","GitHub yuán dàimǎ"), Licences("Open-source licences","开源许可证","Kāiyuán xǔkězhèng"),
     ClearChats("Clear local conversation cache","清除本地对话缓存","Qīngchú běndì duìhuà huǎncún"),
-    ClearConfirm("Delete cached conversations on this device? Server conversations and local tasks remain available.","删除本机对话缓存？服务器对话和本地任务仍会保留。","Shānchú běnjī duìhuà huǎncún? Fúwùqì duìhuà hé běndì rènwù réng huì bǎoliú."),
+    ClearConfirm("Delete cached conversations and saved recovery requests on this device? Server work may continue. Server conversations and local tasks remain available.","删除本机对话缓存和已保存的恢复请求？服务器工作可能继续，服务器对话和本地任务仍会保留。","Shānchú běnjī duìhuà huǎncún hé yǐ bǎocún de huīfù qǐngqiú? Fúwùqì gōngzuò kěnéng jìxù, fúwùqì duìhuà hé běndì rènwù réng huì bǎoliú."),
     Dismiss("Dismiss","关闭提示","Guānbì tíshì"), Loading("Loading…","正在加载…","Zhèngzài jiāzài…")
 }
 val LocalPreferences=staticCompositionLocalOf { AppPreferences() }

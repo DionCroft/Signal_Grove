@@ -67,9 +67,13 @@ interface HermesApiClient {
     suspend fun jobs(): List<HermesJob>
     suspend fun mutateJob(operation: String,id: String = "",body: JsonObject = buildJsonObject {}): HermesJob? {throw UnsupportedOperationException("Job management is unavailable.")}
     suspend fun job(id: String): HermesJob
+    suspend fun submitRun(body: JsonObject,key: String,channelKey: String): String {
+        require(body.keys==setOf("session_id","input") && channelKey.isBlank()) {"Exact request submission is unavailable."}
+        return submitRun(body.text("session_id"),body.text("input"),key)
+    }
     suspend fun submitRun(session: String, input: String, key: String): String
     suspend fun run(id: String): JsonObject
-    fun stream(path: String, body: JsonObject? = null, key: String = "",lastEventId: Long? = null): Flow<StreamUpdate>
+    fun stream(path: String, body: JsonObject? = null, key: String = "",lastEventId: Long? = null,channelKey: String = ""): Flow<StreamUpdate>
     suspend fun stop(id: String)
     suspend fun approve(approval: Approval, choice: String)
     suspend fun respondControl(control: PendingControl,response: String) {
@@ -85,17 +89,18 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     private val client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).readTimeout(90, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
     private val jsonType = "application/json; charset=utf-8".toMediaType()
-    private fun request(path: String, body: JsonObject? = null, key: String = ""): Request {
+    private fun request(path: String, body: JsonObject? = null, key: String = "",channelKey: String=""): Request {
         // Never resolve a leading slash: multi-profile /p/name/ prefixes must survive.
         val url = base.newBuilder().addPathSegments(path.substringBefore('?').trimStart('/')).apply {
             if ('?' in path) encodedQuery(path.substringAfter('?'))
         }.build()
+        require(channelKey.length<=256 && channelKey.all {it.code in 33..126}) {"Invalid conversation identity."}
         return Request.Builder().url(url).header("Authorization", "Bearer ${config.token}")
             .header("Accept", if (path.endsWith("stream") || path.endsWith("events") || body?.get("stream")?.jsonPrimitive?.booleanOrNull == true) "text/event-stream" else "application/json")
-            .apply { if(key.isNotBlank()) header("Idempotency-Key", key); if(body != null) post(body.toString().toRequestBody(jsonType)) }.build()
+            .apply { if(channelKey.isNotBlank()) header("X-Hermes-Session-Key",channelKey);if(key.isNotBlank()) header("Idempotency-Key", key); if(body != null) post(body.toString().toRequestBody(jsonType)) }.build()
     }
-    private suspend fun json(path: String, body: JsonObject? = null, key: String = "", method: String = ""): JsonObject = suspendCancellableCoroutine { continuation ->
-        val req=request(path,body,key)
+    private suspend fun json(path: String, body: JsonObject? = null, key: String = "", method: String = "",channelKey: String=""): JsonObject = suspendCancellableCoroutine { continuation ->
+        val req=request(path,body,key,channelKey)
         val call = client.newCall(if(method.isBlank()) req else req.newBuilder().method(method,if(method=="DELETE") null else body.toString().toRequestBody(jsonType)).build())
         continuation.invokeOnCancellation { call.cancel() }
         call.enqueue(object : Callback {
@@ -181,7 +186,8 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
         require(job.id.isNotBlank() && (operation=="create" || job.id==id)) {"Job acknowledgement identity does not match."}
         return job
     }
-    override suspend fun submitRun(session: String, input: String, key: String) = json("v1/runs", buildJsonObject { put("session_id",session); put("input",input) }, key).text("run_id").also { require(it.isNotBlank()) { "The server did not return a run identifier." } }
+    override suspend fun submitRun(session: String,input: String,key: String)=submitRun(buildJsonObject {put("session_id",session);put("input",input)},key,"")
+    override suspend fun submitRun(body: JsonObject,key: String,channelKey: String) = json("v1/runs",body,key,channelKey=channelKey).text("run_id").also {require(it.isNotBlank()) {"The server did not return a run identifier."}}
     override suspend fun run(id: String) = json("v1/runs/${segment(id)}")
     override suspend fun stop(id: String) { json("v1/runs/${segment(id)}/stop", buildJsonObject {}) }
     override suspend fun approve(approval: Approval,choice: String) {
@@ -195,8 +201,8 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
         require(resolved && request==control.requestId && ack.text("run_id")==control.runId) {"The server did not confirm this exact response. Refresh run status before trying again."}
     }
     override suspend fun resolveUnknown(run: String,admission: String,generation: Long) = json("v1/runs/${segment(run)}/resolve-unknown",buildJsonObject {put("admission_id",admission);put("execution_generation",generation)})
-    override fun stream(path: String, body: JsonObject?, key: String,lastEventId: Long?): Flow<StreamUpdate> = callbackFlow {
-        val call = client.newBuilder().readTimeout(3,TimeUnit.MINUTES).build().newCall(request(path,body,key).newBuilder().apply {if(lastEventId!=null && lastEventId>=0 && body==null) header("Last-Event-ID",lastEventId.toString())}.build())
+    override fun stream(path: String, body: JsonObject?, key: String,lastEventId: Long?,channelKey: String): Flow<StreamUpdate> = callbackFlow {
+        val call = client.newBuilder().readTimeout(3,TimeUnit.MINUTES).build().newCall(request(path,body,key,channelKey).newBuilder().apply {if(lastEventId!=null && lastEventId>=0 && body==null) header("Last-Event-ID",lastEventId.toString())}.build())
         val worker = launch(Dispatchers.IO) {
             try {
                 call.execute().use { response ->
