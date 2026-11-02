@@ -22,7 +22,7 @@ fun JsonObject.items(key: String) = (this[key] as? JsonArray)?.mapNotNull { it a
 data class RemoteSession(val id: String, val title: String, val updatedAt: Long = 0)
 data class SessionPage(val rows: List<RemoteSession>, val nextOffset: Int, val hasMore: Boolean)
 data class MessageHistory(val sessionId: String, val rows: List<RemoteMessage>)
-data class RemoteMessage(val role: String, val content: String, val timestamp: Long, val id: String = "")
+data class RemoteMessage(val role: String, val content: String, val timestamp: Long, val id: String = "",val images:List<String> = emptyList())
 data class HermesJob(val id: String, val name: String, val prompt: String, val schedule: String, val state: String,
     val enabled: Boolean = true, val nextRun: String = "", val lastRun: String = "")
 @Entity(tableName = "cached_jobs", indices = [Index("scope")])
@@ -59,7 +59,7 @@ fun Conversation.sameSubmission(other: Conversation,allowAdmission: Boolean=fals
     key==other.key && scope==other.scope && pendingKey==other.pendingKey && pendingAt==other.pendingAt &&
         (runId==other.runId || (allowAdmission && runId.isBlank()))
 @Entity(tableName = "messages", indices = [Index("sessionKey")])
-data class ChatMessage(@PrimaryKey val id: String, val sessionKey: String, val role: String, val content: String, val timestamp: Long = System.currentTimeMillis(), val status: String = "completed", @ColumnInfo(defaultValue="''") val telemetryJson:String="")
+data class ChatMessage(@PrimaryKey val id: String, val sessionKey: String, val role: String, val content: String, val timestamp: Long = System.currentTimeMillis(), val status: String = "completed", @ColumnInfo(defaultValue="''") val telemetryJson:String="", @ColumnInfo(defaultValue="''") val imagesJson:String="")
 @Entity(tableName = "tasks")
 data class LocalTask(@PrimaryKey val id: String, val title: String, val dueDate: String = "", val priority: Int = 1, val completed: Boolean = false, @ColumnInfo(defaultValue = "''") val notes: String = "")
 
@@ -264,5 +264,5 @@ object RunStates {
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
     @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearReports(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class], version = 7, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class], version = 8, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

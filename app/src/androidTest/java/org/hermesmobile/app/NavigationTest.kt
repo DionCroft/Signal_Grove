@@ -38,8 +38,17 @@ class NavigationTest {
     @Test fun demoConversationStreamsAndEveryDestinationOpens() {
         compose.onNodeWithText("New conversation",useUnmergedTree=true).performScrollTo().performClick()
         compose.onNode(hasSetTextAction()).performTextInput("A test question")
-        compose.onNodeWithContentDescription(Words.Send.localized(AppPreferences())).performClick()
-        compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}
+        compose.waitUntil(5000) {vm.draft.value=="A test question" && !vm.connecting.value}
+        compose.runOnUiThread {
+            compose.activity.currentFocus?.clearFocus()
+            androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime())
+        }
+        // Pre-30 IME insets are inferred and can retain a stale height after dismissal.
+        if(android.os.Build.VERSION.SDK_INT>=30) compose.waitUntil(5000) {(androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: 0)==0}
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription(Words.Send.localized(AppPreferences())).assertIsEnabled().performClick()
+        try {compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}}
+        catch(e:androidx.compose.ui.test.ComposeTimeoutException) {fail("Demo send: busy=${vm.busy.value}, status=${vm.runStatus.value}, connection=${vm.connectionStatus.value}, connecting=${vm.connecting.value}, draftLength=${vm.draft.value.length}, error=${vm.error.value}")}
         compose.onNodeWithContentDescription(Words.Completed.localized(AppPreferences())).assertExists()
         screenshot("chat-demo")
         go(Words.Tasks);compose.onNodeWithText("Personal tasks stay on this device.",substring=true).assertExists()

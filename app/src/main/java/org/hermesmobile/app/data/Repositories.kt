@@ -7,7 +7,7 @@ class HermesConnectionRepository(private val context:android.content.Context) {
     fun client(config: ServerConfig): HermesApiClient = OkHttpHermesApiClient(config,BuildConfig.DEBUG) {LocalNetworkAccess.granted(context)}
     suspend fun test(api: HermesApiClient) = api.capabilities()
 }
-class HermesSessionRepository(val dao: HermesDao) {
+class HermesSessionRepository(val dao: HermesDao,private val images:ImageMedia?=null) {
     suspend fun importSessions(api: HermesApiClient, scope: String, offset: Int = 0): SessionPage {
         val page = api.sessionPage(offset)
         page.rows.forEachIndexed { index, remote ->
@@ -19,10 +19,11 @@ class HermesSessionRepository(val dao: HermesDao) {
         if(session.transport=="compat") return
         if(session.status !in (RunStates.terminal+"idle")) return
         val history=api.history(session.remoteId)
-        val rows=history.rows.mapIndexed { index,m ->
+        val rows=kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {history.rows.mapIndexed { index,m ->
+            val refs=m.images.map {source -> (images ?: error("Image history storage is unavailable.")).importSource(session.scope,session.key,source)}
             ChatMessage("remote_${session.key}_${m.id.ifBlank { index.toString() }}",session.key,m.role,m.content,
-                m.timestamp.takeIf { it>0 } ?: index.toLong())
-        }
+                m.timestamp.takeIf { it>0 } ?: index.toLong(),imagesJson=ImageContent.encode(refs))
+        }}
         dao.replaceHistory(session,history.sessionId,rows)
     }
 }

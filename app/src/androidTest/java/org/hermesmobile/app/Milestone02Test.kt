@@ -15,7 +15,12 @@ class Milestone02Test {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     private val app get()=compose.activity.application as HermesApplication
     private val vm get()=androidx.lifecycle.ViewModelProvider(compose.activity)[HermesViewModel::class.java]
-    @Before fun reset() {runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats();app.database.dao().tasks().first().forEach {app.database.dao().delete(it)}};compose.waitForIdle()}
+    @Before fun reset() {runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats();app.database.dao().tasks().first().forEach {app.database.dao().delete(it)}}
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="demo" && vm.preferences.value.demo}
+        compose.waitForIdle()
+    }
     private fun go(w:Words)=compose.onNodeWithContentDescription(w.localized(AppPreferences()),useUnmergedTree=true).performClick()
     @Test fun conversationSearchPinRenameAndLocalDeleteWork() {
         compose.onNodeWithText("New conversation").performScrollTo().performClick()

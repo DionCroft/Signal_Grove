@@ -21,13 +21,14 @@ data class TurnRequest(val transport: String,val path: String,val body: JsonObje
         }
     }
     companion object {
-        fun create(c: Conversation,history: List<ChatMessage>,model: String,runtime: RuntimeChoice=RuntimeChoice()): TurnRequest {
+        fun create(c: Conversation,history: List<ChatMessage>,model: String,runtime: RuntimeChoice=RuntimeChoice(),content:(ChatMessage)->JsonElement={JsonPrimitive(it.content)}): TurnRequest {
             val path=when(c.transport) {"runs"->"v1/runs";"session","demo"->"api/sessions/${OkHttpHermesApiClient.segment(c.remoteId)}/chat/stream";else->"v1/chat/completions"}
+            val input=history.lastOrNull {it.id=="${c.pendingKey}_user"}?.let(content) ?: JsonPrimitive(c.pendingInput)
             val body=buildJsonObject {
                 when(c.transport) {
-                    "runs" -> {put("session_id",c.remoteId);put("input",c.pendingInput)}
-                    "session","demo" -> put("input",c.pendingInput)
-                    else -> {put("model",model);put("stream",true);put("messages",buildJsonArray {history.filter(RunStates::usableHistory).forEach {m -> add(buildJsonObject {put("role",m.role);put("content",m.content)})}})}
+                    "runs" -> {put("session_id",c.remoteId);put("input",if(input is JsonArray) buildJsonArray {add(buildJsonObject {put("role","user");put("content",input)})} else input)}
+                    "session","demo" -> put("input",input)
+                    else -> {put("model",model);put("stream",true);put("messages",buildJsonArray {history.filter(RunStates::usableHistory).forEach {m -> add(buildJsonObject {put("role",m.role);put("content",content(m))})}})}
                 }
             }
             val selected=JsonObject(body+runtime.fields())

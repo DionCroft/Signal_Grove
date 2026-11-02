@@ -16,6 +16,8 @@ Android 17 local-network permission and explicit Settings controls now support p
 
 Parallel tool-call pairing, public subagent lifecycle/lineage, server-reported runtime and usage, explicit incomplete outcomes, and SSE run-identity checks are implemented. Schema 7 preserves legacy activity and keeps accounting available independently of refreshed transcript IDs. Recent views are bounded, with no inferred zero usage or provider invoice.
 
+Structured image history now preserves typed image parts in scoped private files, with bounded metadata-only Room references and schema 8 preservation. Inline images are oriented, resized and stripped of source metadata; previews can be enlarged, and remote links open explicitly in the browser. Exact Runs/session/compatibility image envelopes and smaller-page history GET recovery are implemented. Picker/share-target input follows as a separate chunk.
+
 ## 1.0.0 — 2026-11-02
 
 Stable signed community release. Task JSON backup/reviewed migration, strict consent choices and visibility, bounded import parsing, credential/header hardening, current screenshots and user/compatibility/security/signing documentation. 43 unit tests, 30 device cases each on Android 8 and 16, plus large-text/tablet reruns passed. Production install and real file-picker task round-trip verified. See docs/releases/1.0.0.md.

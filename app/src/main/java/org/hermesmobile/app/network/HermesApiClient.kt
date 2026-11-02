@@ -12,6 +12,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+class HermesResponseTooLargeException:IOException("The server response exceeds the mobile size limit.")
 class HermesHttpException(val code: Int,val serverCode: String="",val retryAfterSeconds: Long?=null,
     val documentedJobRefusal: Boolean=false) : IOException(
     (if(documentedJobRefusal) "The server refused this job before starting it. Review its fields." else when (code) {
@@ -47,6 +48,7 @@ class HermesHttpException(val code: Int,val serverCode: String="",val retryAfter
     }
 }
 fun connectionError(e: Throwable): String = when(e) {
+    is HermesResponseTooLargeException -> e.message.orEmpty()
     is LocalNetworkPermissionException -> e.message.orEmpty()
     is HermesHttpException -> e.message.orEmpty()
     is javax.net.ssl.SSLException -> "The server's HTTPS certificate could not be trusted."
@@ -113,11 +115,11 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
             override fun onResponse(call: Call, response: Response) {
                 val result = runCatching { response.use {
                     if(!it.isSuccessful) throw HermesHttpException.from(it)
-                    require(it.body.contentLength() <= 10_000_000) { "Server response is too large" }
+                    if(it.body.contentLength()>10_000_000) throw HermesResponseTooLargeException()
                     val source=it.body.source()
                     val buffer=okio.Buffer()
                     while(buffer.size <= 10_000_000 && source.read(buffer,8192) != -1L) { }
-                    require(buffer.size <= 10_000_000) { "Server response is too large" }
+                    if(buffer.size>10_000_000) throw HermesResponseTooLargeException()
                     Json.parseToJsonElement(buffer.readUtf8()).jsonObject
                 } }
                 if (continuation.isActive) continuation.resumeWith(result)
@@ -160,22 +162,23 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     }
     override suspend fun messages(id: String) = history(id).rows
     override suspend fun history(id: String): MessageHistory {
-        val all=mutableListOf<RemoteMessage>();var offset=0;var resolved=id
+        val all=mutableListOf<RemoteMessage>();var offset=0;var resolved=id;var pageLimit=500;var retainedBytes=0L
         do {
-            val j=json("api/sessions/${segment(resolved)}/messages?inline_images=false&limit=500&offset=$offset&order=oldest")
+            val j=try {json("api/sessions/${segment(resolved)}/messages?inline_images=false&limit=$pageLimit&offset=$offset&order=oldest")} catch(e:HermesResponseTooLargeException) {
+                if(pageLimit==1) throw e
+                pageLimit=when(pageLimit) {500->50;50->5;else->1};continue
+            }
             resolved=j.text("session_id").ifBlank {resolved}
             val rows=j.items("data")
+            retainedBytes+=rows.sumOf {it.toString().toByteArray(Charsets.UTF_8).size.toLong()}
+            require(retainedBytes<=25_000_000) {"History exceeds the mobile memory limit. Saved messages were kept."}
             all+=rows.filter {it.text("role") in listOf("user","assistant")}.mapIndexed {index,m ->
                 val ts=(m["timestamp"] as? JsonPrimitive)?.doubleOrNull ?: 0.0
-                val content=when(val value=m["content"]) {
-                    is JsonPrimitive -> value.contentOrNull.orEmpty()
-                    is JsonArray -> value.mapNotNull {it as? JsonObject}.filter {it.text("type")=="text"}.joinToString("\n") {it.text("text")}
-                    else -> ""
-                }
-                RemoteMessage(m.text("role"),content,(ts*1000).toLong(),m.text("id").ifBlank {"legacy_${offset+index}"})
+                val content=ImageContent.parse(m["content"])
+                RemoteMessage(m.text("role"),content.text,(ts*1000).toLong(),m.text("id").ifBlank {"legacy_${offset+index}"},content.sources)
             }
             offset+=rows.size
-            if(rows.size<500) break
+            if(rows.size<pageLimit) break
             require(offset<100_000) { "History exceeds the mobile import limit. Saved messages were kept." }
         } while(true)
         return MessageHistory(resolved,all.distinctBy {it.id})

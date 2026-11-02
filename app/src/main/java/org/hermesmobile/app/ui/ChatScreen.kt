@@ -76,7 +76,7 @@ import java.time.format.DateTimeFormatter
             if(LocalPreferences.current.demo) {TextButton({vm.sendDemoExercise("approval")},enabled=!busy) {Text(label(Words.DemoApproval))};TextButton({vm.sendDemoExercise("clarify")},enabled=!busy) {Text(label(Words.DemoClarification))}}
         }
         else LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("chat-messages"),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
-            items(messages,key={it.id}) { MessageCard(it) }
+            items(messages,key={it.id}) { MessageCard(it,current) }
         }
         if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
@@ -103,7 +103,7 @@ import java.time.format.DateTimeFormatter
     if(resolve) AlertDialog(onDismissRequest={resolve=false},title={Text(label(Words.ResolveUnknown))},text={Text(label(Words.ResolveInfo))},confirmButton={TextButton({resolve=false;vm.acknowledgeUnknown()}) {Text(label(Words.ResolveUnknown))}},dismissButton={TextButton({resolve=false}) {Text(label(Words.Cancel))}})
 }
 @Suppress("DEPRECATION")
-@Composable fun MessageCard(message: ChatMessage) {
+@Composable fun MessageCard(message: ChatMessage,conversation:org.hermesmobile.app.data.Conversation?=null) {
     val clipboard=LocalClipboardManager.current
     var copied by remember {mutableStateOf(false)}
     var runtimeUsage by remember(message.id) {mutableStateOf(false)}
@@ -124,6 +124,10 @@ import java.time.format.DateTimeFormatter
                 view.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,16f*density.density*density.fontScale)
                 (view.tag as Markwon).setMarkdown(view,message.content)
             })
+        if(message.imagesJson.isNotBlank() && conversation?.key==message.sessionKey) {
+            val app=androidx.compose.ui.platform.LocalContext.current.applicationContext as org.hermesmobile.app.HermesApplication
+            ImageAttachments(app.images,conversation.scope,conversation.key,message.imagesJson)
+        }
         if(message.role=="assistant" && message.status!="completed") Text(label(statusWord(message.status)),style=MaterialTheme.typography.labelSmall)
     }
 }

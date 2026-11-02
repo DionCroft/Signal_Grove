@@ -16,7 +16,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private val graph=application as HermesApplication
     private val dao=graph.database.dao()
     private val connection=HermesConnectionRepository(application)
-    private val sessionRepo=HermesSessionRepository(dao)
+    private val sessionRepo=HermesSessionRepository(dao,graph.images)
     private val jobsRepo=HermesJobsRepository(dao)
     private val interactionsRepo=InteractionRepository(dao)
     val preferences=graph.preferences.flow.stateIn(viewModelScope,SharingStarted.Eagerly,AppPreferences())
@@ -161,7 +161,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 require(capabilities.value?.endpoints?.containsKey("session_delete")==true) {"Server conversation deletion is unavailable."}
                 operation.client.deleteSession(c.remoteId)
             }
-            withContext(Dispatchers.IO) {graph.requests.deleteConversation(c.scope,c.key)}
+            withContext(Dispatchers.IO) {graph.requests.deleteConversation(c.scope,c.key);graph.images.blobs.deleteConversation(c.scope,c.key)}
             dao.deleteConversation(key)
             if(selected.value==key) {selected.value="";runStatus.value="idle"}
         } catch(e: Exception) {error.value=connectionError(e)} finally {controlBusy.value=false}
@@ -305,7 +305,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val user=ChatMessage("${key}_user",c.key,"user",text)
                 val requested=RuntimeChoice.saved(graph.preferences.flow.first().runtimeChoices,c.scope)
                 require(requested.isDefault || capabilities.value?.has("model_options")==true || capabilities.value?.endpoints?.containsKey("model_options")==true) {Words.NotAdvertised.localized(preferences.value)}
-                val request=TurnRequest.create(c,dao.history(c.key)+user,capabilities.value?.model ?: "hermes-agent",requested)
+                val target=c;val history=dao.history(target.key)+user;val model=capabilities.value?.model ?: "hermes-agent"
+                val request=withContext(Dispatchers.IO) {TurnRequest.create(target,history,model,requested) {m -> graph.images.content(target.scope,target.key,m)}}
                 val hash=withContext(Dispatchers.IO) {graph.requests.freeze(c.scope,c.key,key,request)}
                 c=c.copy(pendingRequestHash=hash)
                 dao.beginTurn(c,user,ChatMessage("${key}_assistant",c.key,"assistant","",System.currentTimeMillis()+1,"submitting"))
@@ -472,7 +473,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun saveTask(task: LocalTask) { if(task.title.isBlank()) return; viewModelScope.launch { dao.save(task.copy(title=task.title.trim())) } }
     fun deleteTask(task: LocalTask) { viewModelScope.launch { dao.delete(task) } }
     fun clearLocalChats() {if(switchingBlocked()) return;viewModelScope.launch {
-        try {withContext(Dispatchers.IO) {graph.requests.clearAll()};dao.clearChats();newChat()}
+        try {withContext(Dispatchers.IO) {graph.requests.clearAll();graph.images.blobs.clearAll()};dao.clearChats();newChat()}
         catch(e: Exception) {error.value=Words.LocalDataError.localized(preferences.value)}
     }}
     fun forgetServer() { if(switchingBlocked()) return; connecting.value=true; viewModelScope.launch {try {

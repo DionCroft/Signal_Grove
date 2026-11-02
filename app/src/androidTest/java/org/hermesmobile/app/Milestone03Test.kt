@@ -16,7 +16,12 @@ class Milestone03Test {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     private val app get()=compose.activity.application as HermesApplication
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
-    @Before fun reset() {runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats()};compose.waitForIdle()}
+    @Before fun reset() {runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats()}
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="demo" && vm.preferences.value.demo}
+        compose.waitForIdle()
+    }
     private fun go(w:Words)=compose.onAllNodesWithContentDescription(w.localized(AppPreferences()),useUnmergedTree=true).onLast().performClick()
     @Test fun demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure() {
         compose.onNodeWithText("New conversation").performScrollTo().performClick()

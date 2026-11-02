@@ -56,6 +56,8 @@ Activity groups parallel tools by exact server call IDs, never just a shared too
 
 An assistant response with accounting has a **Runtime and usage** icon. The status dialog also opens recent accounting records, which survive server history refresh. Requested and server-reported runtime are separate. Missing usage stays unknown, and counters may cover the session; the app does not total them into a provider bill. Private reasoning text is not stored or displayed. Deleting a conversation or clearing chats also removes its accounting records.
 
+Structured inline images in native server history are cached privately and shown in Chat. Tap a preview to enlarge it. Raster images are resized, oriented and re-encoded without source metadata; transparency is flattened onto white. Remote image links show their host and open only when you choose **Open image in browser**. The app does not fetch those links automatically or attach its Hermes bearer token. Host-local files and unsupported content remain unavailable rather than using guessed download routes. Deleting a conversation or clearing chats removes its cached images. Image picking and sharing into Chat are being implemented in the next development chunk.
+
 ## Local tasks and server jobs
 
 Tasks stay on this device: create, edit, notes, ISO due date (`YYYY-MM-DD`), priority, complete/delete, title/notes search and all/open/completed/overdue filters. Due dates use the device's calendar. Tasks are separate from server jobs.
@@ -78,6 +80,6 @@ On Android 17, Settings includes **Allow local network access** for LAN or priva
 
 ## Appearance, privacy and help
 
-Settings offers Lavender, Jade, Solar and Mint independently of connectivity, Chinese and accented pinyin switches, reduced motion and system font scaling. Wide displays use a navigation rail. No bundled fonts, telemetry, advertisements or analytics are included. App-private Room storage is not database encryption; backups/transfer are disabled. Explicit clipboard, speech services and exported task files leave that private storage boundary.
+Settings offers Lavender, Jade, Solar and Mint independently of connectivity, Chinese and accented pinyin switches, reduced motion and system font scaling. Wide displays use a navigation rail. No bundled fonts, telemetry, advertisements or analytics are included. App-private Room storage and image/request files are not database/file encryption; backups/transfer are disabled. Explicit clipboard, speech services and exported task files leave that private storage boundary.
 
 For bugs, use the issue templates with app/Android/Hermes versions and a synthetic reproduction. Never attach credentials or private transcripts. For security issues use [private reporting](https://github.com/DionCroft/hermes-agent-android/security/advisories/new). See [validation](VALIDATION.md) for exactly what was tested and what requires your hardware/server.

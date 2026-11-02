@@ -5,6 +5,14 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    EnlargeImage("Enlarge image","放大图片","Fàngdà túpiàn"),
+    ImageCacheMissing("The cached image is missing or unreadable.","缓存图片丢失或无法读取。","Huǎncún túpiàn diūshī huò wúfǎ dúqǔ."),
+    ImageOpenFailed("No browser could open this image.","没有浏览器可以打开此图片。","Méiyǒu liúlǎnqì kěyǐ dǎkāi cǐ túpiàn."),
+    ImagePreview("Image preview","图片预览","Túpiàn yùlǎn"),
+    ImageUnavailable("This image is unavailable on this device. Host files and unsupported image formats have no supported mobile download route.","此图片在本机上不可用。主机文件和不支持的图片格式没有可用的移动端下载接口。","Cǐ túpiàn zài běnjī shàng bù kěyòng. Zhǔjī wénjiàn hé bù zhīchí de túpiàn géshì méiyǒu kěyòng de yídòngduān xiàzài jiēkǒu."),
+    RemoteImage("Remote image","远程图片","Yuǎnchéng túpiàn"),
+    RemoteImageInfo("Opening this image contacts its host in your browser. The app does not attach your Hermes bearer token.","打开此图片会在浏览器中访问图片主机。应用不会附加 Hermes 访问令牌。","Dǎkāi cǐ túpiàn huì zài liúlǎnqì zhōng fǎngwèn túpiàn zhǔjī. Yìngyòng bú huì fùjiā Hermes fǎngwèn lìngpái."),
+    OpenImageBrowser("Open image in browser","在浏览器中打开图片","Zài liúlǎnqì zhōng dǎkāi túpiàn"),
     AccountingHistoryInfo("Recent accounting for this conversation, up to 100 runs or local turns. These records survive server history refresh. A local turn ID does not establish a native run identity.","此对话最近的用量记录，最多显示 100 个运行或本地请求。这些记录在刷新服务器历史后仍保留。本地请求标识不代表原生运行身份。","Cǐ duìhuà zuìjìn de yòngliàng jìlù, zuì duō xiǎnshì yì bǎi gè yùnxíng huò běndì qǐngqiú. Zhèxiē jìlù zài shuāxīn fúwùqì lìshǐ hòu réng bǎoliú. Běndì qǐngqiú biāozhì bù dàibiǎo yuánshēng yùnxíng shēnfèn."),
     RuntimeUsage("Runtime and usage","运行模型与用量","Yùnxíng móxíng yǔ yòngliàng"),
     RuntimeUsageInfo("Hermes supplied these values. Counters may cover the session; missing values are unknown. These values do not establish your provider invoice.","这些值由 Hermes 提供。计数可能涵盖整个会话，缺失值表示未知。这些值不代表提供商账单。","Zhèxiē zhí yóu Hermes tígōng. Jìshù kěnéng hángài zhěnggè huìhuà, quēshī zhí biǎoshì wèizhī. Zhèxiē zhí bù dàibiǎo tígōngshāng zhàngdān."),

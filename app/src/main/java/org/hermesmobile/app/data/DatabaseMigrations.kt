@@ -4,6 +4,10 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_7_TO_8=object:Migration(7,8) {
+        override fun migrate(db:SupportSQLiteDatabase) {db.execSQL("ALTER TABLE messages ADD COLUMN imagesJson TEXT NOT NULL DEFAULT ''")}
+    }
+
     val FROM_6_TO_7=object:Migration(6,7) {
         override fun migrate(db:SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS run_reports (`key` TEXT NOT NULL,sessionKey TEXT NOT NULL,runId TEXT NOT NULL,pendingKey TEXT NOT NULL,transport TEXT NOT NULL,telemetryJson TEXT NOT NULL,status TEXT NOT NULL,updatedAt INTEGER NOT NULL,PRIMARY KEY(`key`))")
@@ -64,4 +68,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8)
