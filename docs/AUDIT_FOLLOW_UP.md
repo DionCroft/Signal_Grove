@@ -23,7 +23,8 @@ One active long-horizon goal covers the [2026-11-02 audit](audits/2026-11-02/REP
 | Reviewed MCP controls | Exact target reviews, connection probes, enable/remove controls, scoped schema 9 receipts, acknowledgement/readback separation and explicit uncertainty review | Implemented; validation in VALIDATION.md |
 | Management and automation | Reviewed integration mutations, advanced automation contracts/readback and scoped notifications | In progress |
 | Android 17 LAN access | Explicit system permission, private-address/DNS guards, revocation-aware checks and real permission-dialog coverage | Implemented; device matrix in VALIDATION.md |
-| Maintenance | Automated upstream drift checks, executed device CI, dependency/security checks, documentation | Pending |
+| Upstream compatibility | Active stable baseline, inference/management route and handler/field checks, weekly stable/main CI, source-only inspection and offline regressions | Implemented; see MAINTENANCE.md |
+| Remaining maintenance | Executed device CI, dependency verification/security checks and final documentation reconciliation | In progress |
 
 No interface will claim that unsupported server mutations, native audio endpoints, host-file retrieval, or push delivery are available. Live Hermes interoperability and physical/OEM behavior require their actual environments and remain explicit validation gaps.
 
