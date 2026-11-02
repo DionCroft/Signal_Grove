@@ -26,10 +26,13 @@ class BackgroundTest {
             assertFalse(manager.activeNotifications.any {it.id==id})
             app.preferences.update(previous.copy(notifications=true,monitorRuns=false))
             TestListenableWorkerBuilder<ReminderWorker>(app).build().doWork()
+            // Notification posting is asynchronous across the system service boundary.
+            withTimeout(5000) {while(manager.activeNotifications.none {it.id==id}) delay(25)}
             val notice=manager.activeNotifications.single {it.id==id}.notification
             assertEquals(android.app.Notification.VISIBILITY_PRIVATE,notice.visibility)
             assertFalse(notice.extras.toString().contains(task.title));assertFalse(notice.extras.toString().contains(task.notes))
             manager.cancel(id)
+            withTimeout(5000) {while(manager.activeNotifications.any {it.id==id}) delay(25)}
             TestListenableWorkerBuilder<ReminderWorker>(app).build().doWork()
             assertFalse(manager.activeNotifications.any {it.id==id})
         } finally {app.database.dao().delete(task);app.preferences.update(previous);manager.cancelAll()}
@@ -38,7 +41,7 @@ class BackgroundTest {
         val task=LocalTask("widget-qa","PRIVATE WIDGET TITLE",LocalDate.now().toString())
         try {
             app.database.dao().save(task)
-            val info=android.appwidget.AppWidgetManager.getInstance(app).installedProviders.single {it.provider.className==TaskWidget::class.java.name}
+            val info=android.appwidget.AppWidgetManager.getInstance(app).installedProviders.single {it.provider.packageName==app.packageName && it.provider.className==TaskWidget::class.java.name}
             assertTrue(info.minWidth>0)
             val views=TaskWidget.buildViews(app)
             instrumentation.runOnMainSync {
