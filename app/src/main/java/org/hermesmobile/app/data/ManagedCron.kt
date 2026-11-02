@@ -10,6 +10,8 @@ class ManagedCronJob private constructor(private val row:JsonObject) {
     val schedule=row.text("schedule_display").ifBlank {(row["schedule"] as? JsonObject)?.text("display").orEmpty()}.take(2048)
     val nextRun=row.text("next_run_at").take(128)
     val lastRun=row.text("last_run_at").take(128)
+    val createdAt=row.text("created_at").take(128)
+    val noToolsAllowed=(row["enabled_toolsets"] as? JsonArray)?.isEmpty()==true
     val lastStatus=row.text("last_status").take(64)
     val hasRunError=row.text("last_error").isNotBlank() || row.text("last_delivery_error").isNotBlank() || row["last_failure"] is JsonObject
     val addressable get()=id!="unknown" && id.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}"))

@@ -57,6 +57,9 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun cronSchema(tokens:ManagementTokens)=json("openapi.json",tokens.access)
+    suspend fun cronDeliveries(tokens:ManagementTokens,profile:String):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return json("api/cron/delivery-targets",tokens.access,profile=profile)}
+    suspend fun createCron(tokens:ManagementTokens,profile:String,request:CronCreation):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return json("api/cron/jobs",tokens.access,request.body(),profile)}
     suspend fun cronJobs(tokens:ManagementTokens,profile:String):JsonArray {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return element("api/cron/jobs",tokens.access,profile=profile).jsonArray}
     suspend fun cronJob(tokens:ManagementTokens,profile:String,id:String):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true) && id!="unknown" && id.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}")));return json("api/cron/jobs",tokens.access,profile=profile,tail=listOf(id))}
     suspend fun exchange(code:String,verifier:String)=ManagementTokens.parse(json("auth/native/token",body=buildJsonObject {put("code",code);put("code_verifier",verifier)}))

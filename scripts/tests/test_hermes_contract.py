@@ -14,7 +14,11 @@ def sources():
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",
         'cron_helpers':"raise RuntimeError('Do not execute upstream')\ndef _call_cron_for_profile():\n    return []\n",
-        'cron_jobs':"raise RuntimeError('Do not execute upstream')\ndef get_job():\n    return {}\n",
+        'cron_time':"MIN_GRACE_MINUTES=0\nMAX_GRACE_MINUTES=24*60\n",
+        'cron_invariants':"raise RuntimeError('Do not execute upstream')\ndef validate_schedule_knobs():\n    pass\n",
+        'cron_scheduler':"raise RuntimeError('Do not execute upstream')\ndef create_job_with_scheduler_registration():\n    return {}\n",
+        'web_bootstrap':"raise RuntimeError('Do not execute upstream')\napp=FastAPI()\n",
+        'cron_jobs':"raise RuntimeError('Do not execute upstream')\n_CREATE_FIELD_NORMALIZERS:dict={}\ndef get_job():\n    return {}\n",
         'mcp_oauth':"raise RuntimeError('Do not execute upstream')\nclass DashboardOAuthFlow:\n    def snapshot(self):\n        return {}\n",
         'mcp_catalog':"raise RuntimeError('Do not execute upstream')\ndef install_entry():\n    pass\n",
         'mcp_helpers':"raise RuntimeError('Do not execute upstream')\ndef _mcp_server_summary():\n    return {}\n",
@@ -32,6 +36,23 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_implicit_openapi_route_removal_and_dynamic_configuration_cannot_pass_silently(self):
+        old=checker.extract(sources());self.assertIn('GET /openapi.json',old['management_routes'])
+        changed=sources();changed['web_bootstrap']='app=FastAPI(openapi_url=None)';new=checker.extract(changed)
+        tracked=baseline(old);tracked['mobile_used_management_routes'].append('GET /openapi.json')
+        self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':new})['mobile_review_required'])
+        changed['web_bootstrap']='app=FastAPI(openapi_url=unsafe())'
+        with self.assertRaises(ValueError):checker.extract(changed)
+    def test_management_grace_bounds_are_read_as_data_without_arbitrary_evaluation(self):
+        old=checker.extract(sources());self.assertEqual(1440,old['job_constraints']['management_max_grace_minutes'])
+        changed=sources();changed['cron_time']='MIN_GRACE_MINUTES=0\nMAX_GRACE_MINUTES=10*60\n'
+        self.assertTrue(compare(old,checker.extract(changed))['mobile_review_required'])
+        changed['cron_time']='MIN_GRACE_MINUTES=0\nMAX_GRACE_MINUTES=unsafe()\n'
+        with self.assertRaises(ValueError):checker.extract(changed)
+    def test_create_normalizer_mapping_is_tracked_with_executable_definitions(self):
+        old=checker.extract(sources());changed=sources();changed['cron_jobs']=changed['cron_jobs'].replace('_CREATE_FIELD_NORMALIZERS:dict={}',"_CREATE_FIELD_NORMALIZERS:dict={'model':normalize}")
+        tracked=baseline(old);tracked['mobile_used_handlers'].append('cron_jobs:_CREATE_FIELD_NORMALIZERS')
+        self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
     def test_optional_empty_ast_fields_do_not_depend_on_the_python_minor_version(self):
         first=ast.parse('def sample():\n    return b"fixture", ..., 2j\n').body[0]
         second=copy.deepcopy(first)

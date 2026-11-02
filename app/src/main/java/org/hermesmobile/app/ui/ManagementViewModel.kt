@@ -11,6 +11,8 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
+data class ReviewedCronCreation(val target:ManagementTarget,val request:CronCreation,val contract:CronCreateContract,val generation:Long)
+
 data class ReviewedMcpOAuth(val target:ManagementTarget,val server:ManagedServer,val generation:Long)
 
 data class ReviewedCatalogInstall(val target:ManagementTarget,val request:McpCatalogInstall,val generation:Long)
@@ -18,7 +20,7 @@ data class ReviewedCatalogInstall(val target:ManagementTarget,val request:McpCat
 data class ReviewedMcpCreation(val target:ManagementTarget,val creation:McpCreation,val generation:Long)
 data class ReviewedMcpAction(val target:ManagementTarget,val request:McpRequest,val generation:Long)
 data class ManagementObservation(val key:String,val name:String,val exists:Boolean,val enabled:Boolean?)
-data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:Boolean=false,val detail:ManagedCronJob?=null)
+data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:Boolean=false,val detail:ManagedCronJob?=null,val contract:CronCreateContract?=null,val deliveries:List<CronDeliveryTarget> = emptyList())
 
 data class ManagementState(val apiScope:String="",val url:String="",val debugHttp:Boolean=false,val signedIn:Boolean=false,
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
@@ -28,6 +30,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val cronCreations=CronCreationRepository(app.database.dao(),app.managementReady)
     private val oauthOperations=McpOAuthRepository(app.database.dao(),app.managementReady)
     private val catalogOperations=McpCatalogRepository(app.database.dao(),app.managementReady)
     private val creations=McpCreationRepository(app.database.dao(),app.managementReady)
@@ -39,6 +42,10 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is CronCreationUnsupported->Words.HostCronCreateUnsupported
+        is CronCreationChanged->Words.ManagementReviewChanged
+        is CronCreationReadbackPending->Words.ManagementReadbackPending
+        is InvalidCronCreation->Words.HostCronCreateInvalid
         is HermesResponseTooLargeException->Words.ManagementTooLarge
         is McpOAuthUnavailable->Words.McpOAuthExpired
         is McpCatalogChanged->Words.ManagementReviewChanged
@@ -126,6 +133,34 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val saved=state.value;val identity=saved.identity ?: return null
         if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
         return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,identity.provider+" · "+identity.userId)
+    }
+    fun loadCronCreationSetup()=operation {id ->
+        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")
+        val api=client(state.value);api.identity(current)
+        val contract=try {CronCreateContract.parse(api.cronSchema(current))} catch(e:HermesHttpException) {if(e.code in setOf(404,405)) throw CronCreationUnsupported() else throw e}
+        val deliveries=try {CronDeliveryTarget.inventory(api.cronDeliveries(current,target.profile))} catch(e:HermesHttpException) {if(e.code in setOf(404,405)) listOf(CronDeliveryTarget.local) else throw e}
+        if(id==generation) state.value=state.value.copy(cron=state.value.cron.copy(contract=contract,deliveries=(listOf(CronDeliveryTarget.local)+deliveries.filter {it.id!="local"})))
+    }
+    fun prepareCronCreation(request:CronCreation):ReviewedCronCreation? {
+        val saved=state.value;val contract=saved.cron.contract ?: return null
+        if(saved.busy || !saved.cron.loaded || !contract.accepts(request)) return null
+        return target()?.let {ReviewedCronCreation(it,request,contract,generation)}
+    }
+    fun createCron(review:ReviewedCronCreation) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in first.")
+            val result=cronCreations.create(review.target,review.request,review.contract,client(state.value),current)
+            if(id==generation) state.value=state.value.copy(cron=state.value.cron.copy(jobs=(listOf(result.job)+state.value.cron.jobs).distinctBy {it.id},detail=result.job,contract=null),notice=Words.HostCronCreatedPaused)
+        }
+    }
+    fun observeCronReceipt(key:String)=operation {id ->
+        val target=target() ?: error("Verify management profile first.")
+        val record=app.database.dao().managementOperation(key) ?: error("Missing receipt.")
+        require(record.resourceScope==target.resourceScope && record.action=="CronCreate")
+        val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
+        val rows=ManagedCronJob.inventory(api.cronJobs(current,target.profile),target.profile)
+        if(id==generation) state.value=state.value.copy(cron=HostCronState(jobs=rows,loaded=true),notice=Words.ManagementObservationOnly)
     }
     fun loadHostCron()=operation {id ->
         val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")

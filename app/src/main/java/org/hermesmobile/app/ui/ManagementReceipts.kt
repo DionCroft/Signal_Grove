@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
-fun mcpActionWord(action:String)=when(action) {"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
+fun mcpActionWord(action:String)=when(action) {"CronCreate"->Words.HostCronCreate;"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
 fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSending;"unknown"->Words.ManagementUncertain;"acknowledged"->Words.ManagementAcknowledged;"confirmed"->Words.ManagementVerified;"reviewed"->Words.ManagementReviewed;else->Words.Management}
 
 @Composable fun McpActionReview(review:ReviewedMcpAction,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
@@ -25,20 +25,23 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
 }
 
 @Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null) {
+    var cron by remember(receipt.key) {mutableStateOf(false)}
     var result by remember(receipt.key) {mutableStateOf(false)}
     var review by remember(receipt.key) {mutableStateOf<ManagementTarget?>(null)}
     Column(Modifier.fillMaxWidth().testTag("management-receipt-${receipt.key}"),verticalArrangement=Arrangement.spacedBy(6.dp)) {
         Text(label(mcpActionWord(receipt.action))+" · "+receipt.target,style=MaterialTheme.typography.titleSmall)
         Text(label(managementStateWord(receipt.state)))
         Text(receipt.url+"\n"+receipt.profile+"\n"+receipt.actor,style=MaterialTheme.typography.bodySmall)
+        Text(label(Words.ManagementRequestedAt)+" "+java.time.Instant.ofEpochMilli(receipt.createdAt).toString(),style=MaterialTheme.typography.bodySmall)
         if(receipt.action in setOf("OAuthStart","OAuthCancel") && receipt.resultSummary.isNotBlank()) McpOAuthReceipt(receipt,vm,s)
         else if(receipt.resultSummary.isNotBlank()) TextButton({result=true},Modifier.testTag("management-result-${receipt.key}")) {Text(label(Words.ManagementResult))}
         if(vm!=null && s!=null) {
             val enabled=!s.busy && s.identity!=null && vm.reviewTarget()!=null
-            TextButton({vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
+            TextButton({if(receipt.action=="CronCreate") {cron=true;vm.observeCronReceipt(receipt.key)} else vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
             if(receipt.state=="unknown") TextButton({review=vm.reviewTarget()},enabled=enabled,modifier=Modifier.testTag("management-review-${receipt.key}")) {Text(label(Words.ManagementReview))}
         }
     }
+    if(cron && vm!=null && s!=null) HostCronDialog(vm,s) {vm.cancel();cron=false}
     review?.let {target ->AlertDialog(onDismissRequest={review=null},title={Text(label(Words.ManagementReview))},text={
         LazyColumn(Modifier.heightIn(max=440.dp)) {item {Text(receipt.url);Text(receipt.profile);Text(receipt.target);Text(label(Words.ManagementReviewEffect))}}
     },confirmButton={TextButton({vm!!.reviewReceipt(receipt.key,target);review=null},enabled=s?.busy!=true,modifier=Modifier.testTag("management-review-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})}
@@ -49,7 +52,8 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
             if(receipt.action=="Probe") {
                 item {Text(label(if(parsed["ok"]?.jsonPrimitive?.booleanOrNull==true) Words.McpProbeReady else Words.McpProbeFailed));Text(label(Words.McpToolCount)+" "+parsed.text("tool_count"))}
                 items((parsed["tools"] as? JsonArray).orEmpty()) {Text((it as? JsonPrimitive)?.contentOrNull.orEmpty())}
-            } else if(receipt.action=="CatalogInstall") item {Text(label(Words.McpCatalogAccepted));if(parsed["background"]?.jsonPrimitive?.booleanOrNull==true) Text(label(Words.McpCatalogBackground))}
+            } else if(receipt.action=="CronCreate") item {Text(label(Words.HostCronCreatedPaused));Text(parsed.text("job_id"))}
+            else if(receipt.action=="CatalogInstall") item {Text(label(Words.McpCatalogAccepted));if(parsed["background"]?.jsonPrimitive?.booleanOrNull==true) Text(label(Words.McpCatalogBackground))}
             else if(receipt.action=="Create") item {Text(label(Words.McpCreated));Text(parsed.text("transport")+" · "+parsed.text("auth"))}
             else if(parsed.containsKey("enabled")) item {Text(label(if(parsed["enabled"]?.jsonPrimitive?.booleanOrNull==true) Words.Enabled else Words.Disabled))}
         }

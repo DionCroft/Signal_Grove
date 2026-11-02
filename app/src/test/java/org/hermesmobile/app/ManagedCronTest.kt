@@ -35,6 +35,8 @@ class ManagedCronTest {
         val parsed=ManagedCronJob.parse(row,"worker");assertTrue(parsed.hasRunError);assertEquals(false,parsed.enabled);assertEquals("__unlimited__",parsed.fields()["repeat"])
         assertFalse(parsed.toString().contains("private-prompt-fixture"));assertFalse(parsed.toString().contains("private-error-fixture"));assertFalse(parsed.fields().toString().contains("private-error-fixture"));assertFalse(parsed.fields().toString().contains("private-home-fixture"));assertFalse(parsed.fields().toString().contains("private-key-fixture"))
         val missing=ManagedCronJob.parse(JsonObject(row-"enabled"+("repeat" to obj("{}"))),"worker");assertNull(missing.enabled);assertFalse(missing.fields().containsKey("repeat"))
+        assertTrue(ManagedCronJob.parse(JsonObject(row+("enabled_toolsets" to JsonArray(emptyList()))),"worker").noToolsAllowed)
+        assertFalse(ManagedCronJob.parse(JsonObject(row+("enabled_toolsets" to JsonNull)),"worker").noToolsAllowed)
         val invalid=ManagedCronJob.parse(JsonObject(row+("repeat" to obj("""{"times":"__unlimited__","completed":-1}"""))),"worker");assertFalse(invalid.fields().containsKey("repeat"));assertFalse(invalid.fields().containsKey("repeat_completed"))
 
     }

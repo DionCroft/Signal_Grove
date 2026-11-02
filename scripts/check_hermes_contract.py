@@ -36,6 +36,10 @@ EXTRA_SOURCES = {
     'cron': 'hermes_cli/web_routers/cron.py',
     'cron_helpers': 'hermes_cli/web_server_cron.py',
     'cron_jobs': 'cron/jobs.py',
+    'cron_time': 'cron/jobs_time.py',
+    'cron_invariants': 'cron/jobs_invariants.py',
+    'cron_scheduler': 'cron/scheduler.py',
+    'web_bootstrap': 'hermes_cli/web_server.py',
     'models': 'hermes_cli/web_models.py',
 }
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron'}
@@ -66,6 +70,8 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
+            elif source == 'cron_jobs' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == '_CREATE_FIELD_NORMALIZERS':
+                handlers[f'{source}:{node.target.id}'] = fingerprint(node)
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 # Strip prose only; all executable statements/defaults/decorators remain in the hash.
                 normalized = copy.deepcopy(node)
@@ -144,6 +150,27 @@ def extract(source: dict[str, str]) -> dict:
                     method, path = decorator.func.attr.upper(), decorator.args[0]
                     if method in ('GET', 'POST', 'PATCH', 'PUT', 'DELETE') and isinstance(path, ast.Constant) and isinstance(path.value, str) and path.value.startswith('/'):
                         management_routes.add(f'{method} {path.value}')
+    # FastAPI supplies this route implicitly; detect only a reviewed literal/default.
+    applications=[node for node in ast.walk(trees['web_bootstrap']) if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=='FastAPI']
+    if len(applications)!=1:raise ValueError('Cannot identify the management OpenAPI route')
+    configured=next((item for item in applications[0].keywords if item.arg=='openapi_url'),None)
+    openapi='/openapi.json' if configured is None else ast.literal_eval(configured.value)
+    if openapi is not None:
+        if not isinstance(openapi,str) or not openapi.startswith('/') or openapi.startswith('//'):raise ValueError('Invalid management OpenAPI route')
+        management_routes.add('GET '+openapi)
+    def integer_limit(node):
+        if isinstance(node,ast.Constant) and type(node.value) is int:return node.value
+        if isinstance(node,ast.BinOp) and isinstance(node.op,ast.Mult):
+            result=integer_limit(node.left)*integer_limit(node.right)
+            if abs(result)<=1000000:return result
+        raise ValueError('Unsupported cron grace limit; inspect upstream without execution')
+    grace={}
+    for node in trees['cron_time'].body:
+        if isinstance(node,ast.Assign):
+            for target in node.targets:
+                if isinstance(target,ast.Name) and target.id in ('MIN_GRACE_MINUTES','MAX_GRACE_MINUTES'):grace['management_'+target.id.lower()]=integer_limit(node.value)
+    if len(grace)!=2:raise ValueError('Missing management cron grace bounds')
+    constraints.update(grace)
     return {'routes': sorted(routes), 'management_routes': sorted(management_routes), 'source_hashes': {name: hashlib.sha256(value.encode()).hexdigest() for name,value in source.items()}, 'handlers': handlers, 'request_fields': request_fields,
             'static_features': flags, 'job_constraints': constraints, 'job_update_fields': update_fields}
 
