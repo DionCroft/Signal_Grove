@@ -29,6 +29,7 @@ import org.hermesmobile.app.data.*
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    var catalog by remember {mutableStateOf(false)}
     var create by remember {mutableStateOf(false)}
     val allReceipts by vm.receipts.collectAsStateWithLifecycle()
     val receipts=allReceipts.filter {it.resourceScope==vm.resourceScope(s)}
@@ -56,6 +57,7 @@ import org.hermesmobile.app.data.*
                     }
                     if(s.profile.isNotBlank()) item {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
                     if(s.profile.isNotBlank()) item {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
+                    if(s.profile.isNotBlank()) item {TextButton({catalog=true;vm.loadCatalog()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("mcp-catalog-open")) {Text(label(Words.McpCatalog))}}
                     if(s.loaded && s.servers.isEmpty()) item {Text(label(Words.EmptyInventory))}
                     if(pending) item {Text(label(Words.ManagementOutcomePending),color=MaterialTheme.colorScheme.error)}
                     s.notice?.let {word->item {Text(label(word))}}
@@ -84,6 +86,7 @@ import org.hermesmobile.app.data.*
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    if(catalog) McpCatalogDialog(vm,s,pending) {catalog=false}
     if(create) McpCreationForm(vm,!s.busy) {create=false}
     review?.let {frozen ->McpActionReview(frozen,!s.busy,{review=null}) {vm.performMcp(frozen);review=null}}
     if(profiles) AlertDialog(onDismissRequest={profiles=false},title={Text(label(Words.ManagementProfile))},text={

@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Reviewed MCP catalog installation with masked declared inputs, stale-manifest refusal, accepted/background distinctions and explicit host-setup limits.
+
 - Typed MCP HTTP/stdio server creation with reviewed provisioning, protected existing names and receipts that omit secrets.
 
 - Reviewed, profile-scoped MCP connection tests and enable/remove controls, with independent durable receipts and explicit uncertainty review (schema 9).

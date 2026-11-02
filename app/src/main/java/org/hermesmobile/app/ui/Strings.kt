@@ -352,6 +352,13 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     McpBadToken("Enter a valid bearer credential without control characters, up to 16384 characters.","请输入有效的 Bearer 凭据，不含控制字符，最多 16384 字符。","Qǐng shūrù yǒuxiào de Bearer píngjù, bù hán kòngzhì zìfú, zuìduō yīwàn liùqiān sānbǎi bāshísì zìfú."),
     McpShowQuery("Show query values","显示查询值","Xiǎnshì cháxún zhí"),
     McpHideQuery("Hide query values","隐藏查询值","Yǐncáng cháxún zhí"),
+    McpCatalog("MCP catalog","MCP 目录","MCP mùlù"),
+    McpCatalogInstall("Install catalog entry","安装目录项目","Ānzhuāng mùlù xiàngmù"),
+    McpCatalogInstalled("Already installed; use the server controls to manage it.","已安装；请使用服务器控制进行管理。","Yǐ ānzhuāng; qǐng shǐyòng fúwùqì kòngzhì jìnxíng guǎnlǐ."),
+    McpCatalogHostSetup("This transport or background installation with environment inputs needs host-side setup. The current API cannot reliably forward every supplied value to its background command.","此传输或带环境输入的后台安装需要在主机设置。当前 API 无法可靠地将所有值传给后台命令。","Cǐ chuánshū huò dài huánjìng shūrù de hòutái ānzhuāng xūyào zài zhǔjī shèzhì. Dāngqián API wúfǎ kěkào de jiāng suǒyǒu zhí chuán gěi hòutái mìnglìng."),
+    McpCatalogEffect("Review the source, executable, arguments and bootstrap commands. Confirming can install and execute code on the Hermes host and save supplied values there. A failed reply can follow partial changes. Values stay masked and are not kept in the phone receipt.","请核查来源、程序、参数和构建命令。确认可能在 Hermes 主机安装和执行代码并保存提供的值。回复失败前可能已部分更改。值保持隐藏，不保存在手机记录中。","Qǐng héchá láiyuán, chéngxù, cānshù hé gòujiàn mìnglìng. Quèrèn kěnéng zài Hermes zhǔjī ānzhuāng hé zhíxíng dàimǎ bìng bǎocún tígōng de zhí. Huífù shībài qián kěnéng yǐ bùfèn gēnggǎi. Zhí bǎochí yǐncáng, bù bǎocún zài shǒujī jìlù zhōng."),
+    McpCatalogBackground("This starts a background clone/build with the host's enabled default. An acknowledgement is not installation completion. Read the configuration and test the server separately; do not repeat an uncertain install.","这会按主机默认启用状态开始后台克隆和构建。收到确认不代表安装完成。请单独读取配置并测试服务器，不要重复不确定的安装。","Zhè huì àn zhǔjī mòrèn qǐyòng zhuàngtài kāishǐ hòutái kèlóng hé gòujiàn. Shōudào quèrèn bù dàibiǎo ānzhuāng wánchéng. Qǐng dāndú dúqǔ pèizhì bìng cèshì fúwùqì, bú yào chóngfù bù quèdìng de ānzhuāng."),
+    McpCatalogAccepted("Installation request accepted. Read the current configuration and test the server to inspect its state.","安装请求已接受。请读取当前配置并测试服务器以检查状态。","Ānzhuāng qǐngqiú yǐ jiēshòu. Qǐng dúqǔ dāngqián pèizhì bìng cèshì fúwùqì yǐ jiǎnchá zhuàngtài."),
     Dismiss("Dismiss","关闭提示","Guānbì tíshì"), Loading("Loading…","正在加载…","Zhèngzài jiāzài…")
 }
 val LocalPreferences=staticCompositionLocalOf { AppPreferences() }
