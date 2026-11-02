@@ -70,6 +70,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         val rows=j.items("profiles");require(rows.size<=500)
         return rows.map {row ->val name=row.text("name");require(name.isNotBlank() && name.length<=128 && name.none(Char::isISOControl));ManagedProfile(name,row.text("display_name").take(160))}.distinctBy {it.name}
     }
+    suspend fun createMcp(tokens:ManagementTokens,profile:String,creation:McpCreation)=json("api/mcp/servers",tokens.access,creation.body(profile),profile)
     suspend fun mcpControl(tokens:ManagementTokens,profile:String,request:McpRequest):JsonObject {
         val tail=listOf(request.name)+when(request.action) {McpAction.Toggle->listOf("enabled");McpAction.Probe->listOf("test");McpAction.Delete->emptyList()}
         val method=when(request.action) {McpAction.Toggle->"PUT";McpAction.Probe->"POST";McpAction.Delete->"DELETE"}

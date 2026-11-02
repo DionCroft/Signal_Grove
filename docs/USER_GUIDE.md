@@ -101,3 +101,7 @@ Settings → Hermes management links the separate dashboard HTTPS URL to a saved
 After management sign-in and explicit profile selection, review a server action before confirming. Test connects to the configured host MCP process and lists tools. Enable/disable and Remove affect that profile’s configuration; existing sessions or processes may continue. Plugin-owned settings cannot be changed here.
 
 An uncertain outcome stays in Management action history and blocks further changes to that same resource. Read current configuration to inspect it, then explicitly Review uncertainty when ready. Neither reading nor reviewing repeats the operation. Acknowledged actions whose readback failed remain labelled acknowledged. Chat-cache clearing keeps management receipts, and the saved-connection cache viewer shows them read only. See [management safety and contracts](MANAGEMENT.md).
+
+## Adding MCP connections
+
+Hermes management → Add MCP server configures a URL or command on the selected Hermes host/profile. Enter HTTP authentication or stdio arguments/environment fields, then review the exact target before confirming. New configurations are enabled by default upstream; test them separately. Existing names are protected from overwrites. Values used for provisioning are omitted from mobile receipts and are not retained for automatic retry. After an uncertain response, inspect configuration and review the uncertainty before another attempt. OAuth authorization and catalog bootstrap have their own setup flows; see [current management support](MANAGEMENT.md).

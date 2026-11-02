@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Typed MCP HTTP/stdio server creation with reviewed provisioning, protected existing names and receipts that omit secrets.
+
 - Reviewed, profile-scoped MCP connection tests and enable/remove controls, with independent durable receipts and explicit uncertainty review (schema 9).
 
 - Independent dashboard sign-in using browser PKCE, encrypted management sessions, explicit authenticated profile selection and scoped MCP inventory.

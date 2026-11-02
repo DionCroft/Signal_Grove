@@ -30,6 +30,7 @@ EXTRA_SOURCES = {
     'auth': 'hermes_cli/dashboard_auth/routes.py',
     'profiles': 'hermes_cli/web_routers/profiles.py',
     'mcp': 'hermes_cli/web_routers/mcp.py',
+    'mcp_helpers': 'hermes_cli/web_server_mcp.py',
     'models': 'hermes_cli/web_models.py',
 }
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp'}

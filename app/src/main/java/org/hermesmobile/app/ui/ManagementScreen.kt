@@ -29,6 +29,7 @@ import org.hermesmobile.app.data.*
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    var create by remember {mutableStateOf(false)}
     val allReceipts by vm.receipts.collectAsStateWithLifecycle()
     val receipts=allReceipts.filter {it.resourceScope==vm.resourceScope(s)}
     val pending=receipts.any {it.state in setOf("sending","unknown")}
@@ -54,6 +55,7 @@ import org.hermesmobile.app.data.*
                         TextButton(vm::disconnect,enabled=!s.busy) {Text(label(Words.ManagementForget))}
                     }
                     if(s.profile.isNotBlank()) item {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
+                    if(s.profile.isNotBlank()) item {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
                     if(s.loaded && s.servers.isEmpty()) item {Text(label(Words.EmptyInventory))}
                     if(pending) item {Text(label(Words.ManagementOutcomePending),color=MaterialTheme.colorScheme.error)}
                     s.notice?.let {word->item {Text(label(word))}}
@@ -82,6 +84,7 @@ import org.hermesmobile.app.data.*
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    if(create) McpCreationForm(vm,!s.busy) {create=false}
     review?.let {frozen ->McpActionReview(frozen,!s.busy,{review=null}) {vm.performMcp(frozen);review=null}}
     if(profiles) AlertDialog(onDismissRequest={profiles=false},title={Text(label(Words.ManagementProfile))},text={
         LazyColumn(Modifier.heightIn(max=400.dp)) {items(s.profiles,key={it.name}) {row ->TextButton({vm.chooseProfile(row.name);profiles=false},enabled=!s.busy) {Text(row.displayName.takeIf {it.isNotBlank()}?.let {"$it\n${row.name}"} ?: row.name)}}}
