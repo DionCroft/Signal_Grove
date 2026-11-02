@@ -35,7 +35,7 @@ class NavigationTest {
         compose.waitUntil(15000) {compose.onAllNodesWithText("Completed",substring=true).fetchSemanticsNodes().isNotEmpty()}
         screenshot("chat-demo")
         go(Words.Tasks);compose.onNodeWithText("Personal tasks stay on this device.",substring=true).assertExists()
-        go(Words.Automation);compose.onNodeWithText("Read-only view",substring=true).assertExists()
+        go(Words.Automation);compose.onNodeWithText("Changes affect the selected Hermes server.",substring=true).assertExists()
         go(Words.Voice);compose.onNodeWithText("Tap to speak. Review",substring=true).assertExists()
         go(Words.Settings);compose.onNodeWithText("Hermes connection").assertExists()
         go(Words.Home);compose.onNodeWithText("A little space to think.").assertExists()

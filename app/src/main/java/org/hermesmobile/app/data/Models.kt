@@ -67,12 +67,24 @@ data class PendingControl(@PrimaryKey val key: String, val sessionKey: String, v
     fun choices() = runCatching {Json.parseToJsonElement(choicesJson).jsonArray.mapNotNull {(it as? JsonPrimitive)?.contentOrNull}}.getOrDefault(emptyList())
     fun approval() = Approval(runId,requestId,prompt,choices(),generation)
 }
+@Entity(tableName="job_operations",indices=[Index("scope")])
+data class JobOperation(@PrimaryKey val key: String,val scope: String,val operation: String,val jobId: String,val state: String,val createdAt: Long)
+@Entity(tableName="notification_receipts")
+data class NotificationReceipt(@PrimaryKey val key: String,val createdAt: Long)
 object RunStates {
     val terminal=setOf("completed","failed","cancelled","interrupted","response_finished","incomplete")
     val active=setOf("running","queued","submitting","stopping","waiting_for_approval","waiting_for_input","response_submitted")
 }
 
 @Dao interface HermesDao {
+    @Query("SELECT * FROM job_operations WHERE scope=:scope AND state IN ('sending','unknown') ORDER BY createdAt DESC") fun jobOperations(scope: String): Flow<List<JobOperation>>
+    @Query("SELECT * FROM job_operations WHERE scope=:scope AND state IN ('sending','unknown')") suspend fun unresolvedOperations(scope: String): List<JobOperation>
+    @Upsert suspend fun save(operation: JobOperation)
+    @Query("UPDATE job_operations SET state='unknown' WHERE state='sending'") suspend fun recoverJobOperations()
+    @Query("UPDATE job_operations SET state=:state WHERE `key`=:key") suspend fun jobOperationState(key: String,state: String)
+    @Insert(onConflict=OnConflictStrategy.IGNORE) suspend fun claimNotification(receipt: NotificationReceipt): Long
+    @Query("SELECT * FROM sessions WHERE scope=:scope AND runId!='' AND status NOT IN ('idle','completed','failed','cancelled','interrupted','response_finished','incomplete') ORDER BY updatedAt DESC LIMIT 20") suspend fun trackedRuns(scope: String): List<Conversation>
+
     @Query("SELECT * FROM sessions WHERE scope = :scope ORDER BY pinned DESC, updatedAt DESC") fun conversations(scope: String): Flow<List<Conversation>>
     @Query("SELECT * FROM sessions WHERE `key` = :key") suspend fun conversation(key: String): Conversation?
     @Upsert suspend fun save(conversation: Conversation)
@@ -142,5 +154,5 @@ object RunStates {
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
     @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class], version = 3, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class], version = 4, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

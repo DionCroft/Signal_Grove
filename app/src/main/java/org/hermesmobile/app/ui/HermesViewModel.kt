@@ -21,6 +21,9 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private val interactionsRepo=InteractionRepository(dao)
     val preferences=graph.preferences.flow.stateIn(viewModelScope,SharingStarted.Eagerly,AppPreferences())
     private val scope=MutableStateFlow("demo")
+    val profileScope: StateFlow<String> get()=scope.asStateFlow()
+    val jobBusy=MutableStateFlow(false)
+    val jobOperations=scope.flatMapLatest {dao.jobOperations(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val selected=MutableStateFlow("")
     val conversations=scope.flatMapLatest { dao.conversations(it) }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val messages=selected.flatMapLatest { if(it.isBlank()) flowOf(emptyList()) else dao.messages(it) }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
@@ -47,7 +50,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val draft=MutableStateFlow("")
     private var api: HermesApiClient=UnavailableHermesApiClient()
     private var worker: Job?=null
-    init { viewModelScope.launch { dao.recoverControls();val p=graph.preferences.flow.first(); activate(p) } }
+    init { viewModelScope.launch { dao.recoverControls();dao.recoverJobOperations();val p=graph.preferences.flow.first(); activate(p) } }
     fun dismissError() { error.value=null }
     private suspend fun activate(p: AppPreferences) {
         selected.value=""; capabilities.value=null; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
@@ -57,8 +60,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         } else {
             connectionStatus.value="offline"; api=UnavailableHermesApiClient()
             try {
-                val token=withContext(Dispatchers.IO) { graph.credentials.read() }
-                val config=ServerConfig(p.url,token,p.debugHttp)
+                val config=withContext(Dispatchers.IO) {graph.credentials.readConfig(p)} ?: throw IllegalArgumentException("Enter your server connection again.")
                 api=connection.client(config); scope.value=config.scope
                 refresh()
             } catch(e: Exception) { scope.value="unconfigured"; error.value=connectionError(e) }
@@ -66,20 +68,21 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
     fun updatePreferences(p: AppPreferences) { viewModelScope.launch { graph.preferences.update(p) } }
     fun setDemo(enabled: Boolean) {
-        if(busy.value || connecting.value) return
+        if(busy.value || connecting.value || jobBusy.value) return
         viewModelScope.launch { val p=preferences.value.copy(demo=enabled); graph.preferences.update(p); activate(p) }
     }
     fun configure(url: String, token: String, debugHttp: Boolean) {
-        if(busy.value || connecting.value) return
+        if(busy.value || connecting.value || jobBusy.value) return
         viewModelScope.launch {
             connecting.value=true; error.value=null
             try {
                 val old=preferences.value
-                val saved=if(token.isBlank() && old.url.trimEnd('/')==url.trim().trimEnd('/')) withContext(Dispatchers.IO) { graph.credentials.read() } else token.trim()
+                val previous=withContext(Dispatchers.IO) {graph.credentials.readConfig(old)}
+                val saved=if(token.isBlank() && previous?.url?.trimEnd('/')==url.trim().trimEnd('/')) previous.token else token.trim()
                 val config=ServerConfig(url.trim(),saved,debugHttp)
                 val candidate=connection.client(config)
                 val discovered=connection.test(candidate)
-                withContext(Dispatchers.IO) { graph.credentials.write(saved) }
+                withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) }
                 val p=old.copy(url=url.trim(),debugHttp=debugHttp,demo=false)
                 graph.preferences.update(p)
                 api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered
@@ -161,6 +164,24 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     suspend fun jobDetail(id: String) = jobsRepo.detail(api,scope.value,id,connectionStatus.value in listOf("connected","demo") && jobsStatus.value=="ready")
+    fun mutateJob(expectedScope: String,operation: String,id: String,body: JsonObject) {
+        if(jobBusy.value || busy.value || connecting.value) return
+        if(expectedScope!=scope.value || preferences.value.automationScope!=scope.value) {error.value="Enable job changes for this connection first.";return}
+        val client=api;val partition=scope.value
+        jobBusy.value=true
+        viewModelScope.launch {
+            try {
+                require(connectionStatus.value in setOf("connected","demo") && jobsStatus.value=="ready") {"Refresh online job details before changing this server."}
+                JobOperationsRepository(dao).perform(client,partition,operation,id,body)
+                // Refresh failure does not turn a confirmed mutation into an uncertain one.
+                refreshJobs()
+            } catch(e: Exception) {error.value=connectionError(e)}
+            finally {jobBusy.value=false}
+        }
+    }
+    fun acknowledgeJobOperation(key: String) {if(jobBusy.value) return;viewModelScope.launch {
+        if(dao.unresolvedOperations(scope.value).any {it.key==key && it.state=="unknown"}) dao.jobOperationState(key,"reviewed")
+    }}
     fun newChat() { if(busy.value) return; selected.value=""; runStatus.value="idle"; activity.value=""; draft.value="" }
     fun select(key: String) {
         if(busy.value) return
@@ -335,7 +356,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun saveTask(task: LocalTask) { if(task.title.isBlank()) return; viewModelScope.launch { dao.save(task.copy(title=task.title.trim())) } }
     fun deleteTask(task: LocalTask) { viewModelScope.launch { dao.delete(task) } }
     fun clearLocalChats() { if(busy.value) return; viewModelScope.launch { dao.clearChats(); newChat() } }
-    fun forgetServer() { if(busy.value || connecting.value) return; viewModelScope.launch {
+    fun forgetServer() { if(busy.value || connecting.value || jobBusy.value) return; viewModelScope.launch {
         withContext(Dispatchers.IO) { graph.credentials.clear() }
         val p=preferences.value.copy(url="",demo=true,debugHttp=false); graph.preferences.update(p); activate(p)
     } }

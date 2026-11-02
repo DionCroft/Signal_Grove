@@ -17,8 +17,21 @@ open class FakeHermesApiClient : HermesApiClient {
     override suspend fun sessions() = emptyList<RemoteSession>()
     override suspend fun createSession(id:String,title:String)=RemoteSession(id,title)
     override suspend fun messages(id:String)=emptyList<RemoteMessage>()
-    override suspend fun jobs()=listOf(HermesJob("demo-job","Weekly reflection · Demo","Review completed local goals. This sample job never runs.","Every Sunday · example only","demo"))
-    override suspend fun job(id:String)=jobs().first()
+    private val demoJobs=ConcurrentHashMap<String,HermesJob>().apply {put("demo-job",HermesJob("demo-job","Weekly reflection · Demo","Review completed local goals. This sample job never runs.","Every Sunday · example only","demo"))}
+    override suspend fun jobs()=demoJobs.values.sortedBy {it.name}
+    override suspend fun job(id:String)=demoJobs[id] ?: throw HermesHttpException(404)
+    override suspend fun mutateJob(operation: String,id: String,body: JsonObject): HermesJob? {
+        JobProtocol.validate(operation,id,body)
+        if(operation=="delete") {demoJobs.remove(id);return null}
+        val old=if(operation=="create") HermesJob("demo-${UUID.randomUUID()}","","","","paused",false) else job(id)
+        val next=when(operation) {
+            "create","update"->old.copy(name=body.text("name"),prompt=body.text("prompt"),schedule=body.text("schedule").ifBlank {old.schedule})
+            "pause"->old.copy(enabled=false,state="paused")
+            "resume"->old.copy(enabled=true,state="demo")
+            else->old.copy(state="demo",lastRun="Demo simulation only · no agent executed")
+        }
+        demoJobs[next.id]=next;return next
+    }
     override suspend fun submitRun(session:String,input:String,key:String)="demo-run"
     override suspend fun run(id:String):JsonObject {
         val r=runs[id] ?: return buildJsonObject {put("status","interrupted");put("pending_controls",buildJsonArray {})}

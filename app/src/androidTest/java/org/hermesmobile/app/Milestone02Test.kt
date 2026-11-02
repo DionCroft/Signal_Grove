@@ -45,7 +45,7 @@ class Milestone02Test {
     }
     @Test fun scheduledJobDetailsOpenFromTheCachedList() {
         go(Words.Automation)
-        compose.waitUntil(5000) {compose.onAllNodesWithText("Weekly reflection · Demo").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithTag("job-list").performScrollToNode(hasText("Weekly reflection · Demo"))
         compose.onNodeWithText(Words.JobDetails.localized(AppPreferences())).performScrollTo().performClick()
         compose.onNodeWithText("Review completed local goals. This sample job never runs.").assertExists()
     }

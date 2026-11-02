@@ -4,6 +4,14 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_3_TO_4=object:Migration(3,4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS job_operations (`key` TEXT NOT NULL, scope TEXT NOT NULL, operation TEXT NOT NULL, jobId TEXT NOT NULL, state TEXT NOT NULL, createdAt INTEGER NOT NULL, PRIMARY KEY(`key`))")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_job_operations_scope ON job_operations(scope)")
+            db.execSQL("CREATE TABLE IF NOT EXISTS notification_receipts (`key` TEXT NOT NULL, createdAt INTEGER NOT NULL, PRIMARY KEY(`key`))")
+        }
+    }
+
     val FROM_2_TO_3 = object : Migration(2,3) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE sessions ADD COLUMN lastEventSeq INTEGER NOT NULL DEFAULT -1")
@@ -27,4 +35,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4)

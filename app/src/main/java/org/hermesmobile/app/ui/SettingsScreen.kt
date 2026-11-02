@@ -18,7 +18,9 @@ import org.hermesmobile.app.BuildConfig
 
 @Composable fun SettingsScreen(vm: HermesViewModel) {
     val p by vm.preferences.collectAsStateWithLifecycle()
-    val busy by vm.busy.collectAsStateWithLifecycle()
+    val runBusy by vm.busy.collectAsStateWithLifecycle()
+    val jobBusy by vm.jobBusy.collectAsStateWithLifecycle()
+    val busy=runBusy || jobBusy
     val connecting by vm.connecting.collectAsStateWithLifecycle()
     val capabilities by vm.capabilities.collectAsStateWithLifecycle()
     var url by remember(p.url) {mutableStateOf(p.url)}
@@ -44,6 +46,7 @@ import org.hermesmobile.app.BuildConfig
             capabilities?.let { c -> Text("${c.model} · Sessions: ${c.sessions} · Runs: ${c.runs}",style=MaterialTheme.typography.labelSmall) }
             TextButton(vm::forgetServer,enabled=!busy && !connecting) {Text(label(Words.Forget))}
         }
+        BackgroundSettings(vm)
         Word(Words.Appearance)
         HermesTheme.entries.forEach { t ->
             Surface(Modifier.fillMaxWidth().clickable {vm.updatePreferences(p.copy(theme=t.name))},color=t.background,shape=RoundedCornerShape(t.radius.dp),border=BorderStroke(if(p.theme==t.name) 2.dp else 1.dp,t.button)) {

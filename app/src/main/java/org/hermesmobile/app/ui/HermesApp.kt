@@ -17,7 +17,7 @@ import androidx.navigation.compose.*
 
 data class Destination(val word: Words, val icon: ImageVector) { val route get()=word.name }
 val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(Words.Chat,Icons.Outlined.ChatBubbleOutline),Destination(Words.Tasks,Icons.Outlined.CheckCircleOutline),Destination(Words.Automation,Icons.Outlined.Schedule),Destination(Words.Voice,Icons.Outlined.MicNone),Destination(Words.Settings,Icons.Outlined.Tune))
-@Composable fun HermesApp(vm: HermesViewModel) {
+@Composable fun HermesApp(vm: HermesViewModel,requestedRoute: String? = null,handled: ()->Unit = {}) {
     val nav=rememberNavController()
     val back by nav.currentBackStackEntryAsState()
     val current=back?.destination?.route ?: "Home"
@@ -25,6 +25,7 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
     val connection by vm.connectionStatus.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     fun go(route: String) { nav.navigate(route) { launchSingleTop=true; restoreState=true; popUpTo(nav.graph.startDestinationId) { saveState=true } } }
+    LaunchedEffect(requestedRoute) {if(requestedRoute in setOf("Tasks","Chat")) {go(requestedRoute!!);handled()}}
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val wide=maxWidth>=840.dp
         Row(Modifier.fillMaxSize()) {

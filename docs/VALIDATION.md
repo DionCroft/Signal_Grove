@@ -1,11 +1,9 @@
-# Current validation — 0.3.0
+# Current validation — 0.4.0
 
-**33 unit tests and 20 Android 16 connected cases passed**. `assembleDebug testDebugUnitTest lint assembleDebugAndroidTest connectedDebugAndroidTest` passed. APK signature verification passed before publication.
+**39 unit tests and 26 Android 16 connected cases passed**. `assembleDebug testDebugUnitTest lint assembleDebugAndroidTest connectedDebugAndroidTest` passed, followed by APK signature verification.
 
-New coverage includes strict approval/clarification identity and payloads, ambiguous acknowledgements, no decision replay, persisted prompt/cursor/tool records, schemas 1→2→3, offline speech policy and Unicode-safe TTS chunks. Real HTTP fixture integration exercises saved-cursor resume without another run admission or duplicated text, and replay-gap fallback to read-only status recovery. Earlier session/task/cache/theme/language/navigation checks remain passing.
+Added exact job mutation contracts, no automatic mutation replay, durable ambiguity blocking, atomic encrypted connection pairing under concurrent reads/writes, schema 3→4 preservation, actual private notification delivery and deduplication, widget provider/rendering and individually confirmed Demo job actions. Earlier voice, controls, saved-cursor recovery, migrations, sessions, task/cache, language/theme/navigation coverage remains passing.
 
-APK SHA-256: `b0349a49dc64176cd32694ca3f2ba0303dbbb99cbaeec72b05beeb68d2e6a761`. Prepared deliverables are in ignored `artifacts/0.3.0/`.
+APK SHA-256: `4de3d668e378883d6dc08299533638548de7e4102e4be83bd6656f9ef51d174f`. Deliverables are in ignored `artifacts/0.4.0/`. Compile/target API 37; minimum API 26. Android 16/API 36 Google APIs x86_64 emulator, 1080×2400/420 dpi. Gradle 9.8.2, AGP 9.5.0, JDK 24. Repository stays in the chosen project directory; temp/cache/tool/emulator data stay on E:.
 
-Toolchain: Gradle 9.8.2, AGP 9.5.0, JDK 24, compile/target API 37, minimum API 26. Device: Android 16 / API 36 Google APIs x86_64 emulator, 1080×2400 / 420 dpi. Repository uses the chosen project directory; tools/cache/temp/emulator data use E:.
-
-No live Hermes credentials, physical microphone or speaker validation was supplied. Audio tests verify policy, state and text review without recording or playback. See [release evidence](releases/0.3.0.md); [screenshots](screenshots.md) show the earlier visual baseline. CI compiles instrumentation but connected tests are run locally.
+Notification testing uses harmless local fixtures and grants the test app's Android notification permission. No microphone, speaker, real agent or production provider was used. Device battery scheduling, live Hermes and physical hardware remain separately reportable checks. See [release evidence](releases/0.4.0.md). CI compiles instrumentation; connected tests run locally.

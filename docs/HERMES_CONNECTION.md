@@ -23,3 +23,11 @@ Use a trusted HTTPS reverse proxy/private VPN, retaining path prefixes. Debug HT
 Hermes API tokens can grant tool and terminal access. The client never auto-approves requests. It does not implement permanent approvals, unknown-execution resolution, clarification submission or arbitrary server endpoints. A 409 ownership refusal is surfaced, not worked around by changing session IDs. Desktop/CLI-owned sessions are excluded from imported API sessions.
 
 For a dropped connection, use Check / recover run. If an existing run ID is known, only query it; if the Runs admission response was lost, the same persisted key/body can recover the run within the retention window. Legacy/native stream submissions without usable admission replay are not automatically resent. Unknown execution may need server-side review.
+
+## Job controls and background checks
+
+Job management uses the documented authenticated `/api/jobs` POST and `/api/jobs/{id}` PATCH/DELETE plus POST pause/resume/run routes. Enable changes for the current connection, review the exact action and confirm. New jobs start paused with `deliver: local`; resume/run can execute server tools. Empty replacement schedule preserves the current schedule, and server timezone/validation apply. Skills/provider/delivery advanced settings are preserved; edit those on Hermes directly.
+
+If a mutation outcome is unknown, inspect/refresh the server before acknowledging the local marker. That acknowledgement never sends, repeats or undoes the action. This matters particularly for create and run, whose effects cannot be inferred safely from a missing network acknowledgement.
+
+Notifications require explicit app opt-in and Android permission. Optional background run checks only read already tracked run IDs; they do not stream, execute, cancel or approve anything. Availability and payloads follow the [official Hermes API reference](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/). Scheduling follows [Android WorkManager](https://developer.android.com/develop/background-work/background-tasks/persistent/getting-started); force-stop/battery/network policies may delay it.

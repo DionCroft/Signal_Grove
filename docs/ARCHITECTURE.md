@@ -33,3 +33,11 @@ Schema 3 adds tool events, pending controls and sequence/admission/generation re
 InteractionRepository compares the full displayed request to current local state, refreshes the server snapshot, and verifies identity, generation, kind and prompt before mutation. Responding rows survive process death as unknown; resolved tombstones resist stale snapshots. No response is retried automatically. A tool failure never decides the run outcome.
 
 SpeechRecognizer and TextToSpeech are foreground screen resources. Recognition defaults to a local recognizer or a visible unavailable state. TTS requires an explicit tap, filters network voices unless opted in, splits at safe UTF-16 boundaries, and stops/disposes with lifecycle. Audio is not sent to the Hermes client.
+
+## Background and automation in 0.4
+
+The credential vault stores one AES-GCM payload containing URL, token and debug policy. SharedPreferences commit atomically replaces it. Foreground migration pairs the old token with the old preferences once; workers read only the complete vault. Each network check uses a fixed pair, rechecks active preferences/vault before notification, and never submits runs or decisions.
+
+WorkManager schedules opt-in 15-minute best-effort checks. Local due dates use the local calendar. Database insert-ignore receipts claim notification identities before posting, preferring a missed notice over duplicate delivery after a crash. Force-stop/battery/network restrictions can delay or suppress checks. The widget uses RemoteViews with aggregate local counts, immutable explicit PendingIntents, a refresh action and Tasks navigation; no secret or task text leaves the app.
+
+JobOperationsRepository persists sending/unknown/confirmed/reviewed outcomes in schema 4. All mutation requests are one-shot. A lost acknowledgement blocks subsequent changes in that profile until human review. UI locks profile switching during mutation. Confirmed action and list refresh are separate, so refresh failure cannot replay a mutation. The editor sends only name/prompt and an explicitly replaced schedule; create also requests paused local delivery.

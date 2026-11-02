@@ -37,6 +37,7 @@ interface HermesApiClient {
     suspend fun createSession(id: String, title: String): RemoteSession
     suspend fun messages(id: String): List<RemoteMessage>
     suspend fun jobs(): List<HermesJob>
+    suspend fun mutateJob(operation: String,id: String = "",body: JsonObject = buildJsonObject {}): HermesJob? {throw UnsupportedOperationException("Job management is unavailable.")}
     suspend fun job(id: String): HermesJob
     suspend fun submitRun(session: String, input: String, key: String): String
     suspend fun run(id: String): JsonObject
@@ -136,11 +137,21 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     }
     private fun parseJob(j: JsonObject): HermesJob {
         val schedule=when(val value=j["schedule"]) {is JsonObject -> value.text("display").ifBlank {value.text("cron")}.ifBlank {value.toString()}; is JsonPrimitive -> value.contentOrNull.orEmpty();else -> ""}
-        val enabled=j["enabled"]?.jsonPrimitive?.booleanOrNull ?: true
+        val enabled=(j["enabled"]?.jsonPrimitive?.booleanOrNull ?: true) && j.text("state")!="paused"
         return HermesJob(j.text("id"),j.text("name"),j.text("prompt"),schedule,j.text("last_status").ifBlank {j.text("state")}.ifBlank {if(enabled) "scheduled" else "paused"},enabled,j.text("next_run_at").ifBlank {j.text("next_run")},j.text("last_run_at").ifBlank {j.text("last_run")} )
     }
     override suspend fun jobs() = json("api/jobs?include_disabled=true").items("jobs").map(::parseJob)
     override suspend fun job(id: String): HermesJob { val j=json("api/jobs/${segment(id)}"); return parseJob(j["job"] as? JsonObject ?: j) }
+    override suspend fun mutateJob(operation: String,id: String,body: JsonObject): HermesJob? {
+        JobProtocol.validate(operation,id,body)
+        val path=if(operation=="create") "api/jobs" else "api/jobs/${segment(id)}"+if(operation in setOf("pause","resume","run")) "/$operation" else ""
+        val method=when(operation) {"update"->"PATCH";"delete"->"DELETE";else->"POST"}
+        val ack=json(path,if(method=="DELETE") null else body,method=method)
+        if(operation=="delete") {require(ack["ok"]?.jsonPrimitive?.booleanOrNull==true) {"Deletion was not confirmed."};return null}
+        val job=parseJob(ack["job"] as? JsonObject ?: throw IllegalArgumentException("Job acknowledgement is incomplete."))
+        require(job.id.isNotBlank() && (operation=="create" || job.id==id)) {"Job acknowledgement identity does not match."}
+        return job
+    }
     override suspend fun submitRun(session: String, input: String, key: String) = json("v1/runs", buildJsonObject { put("session_id",session); put("input",input) }, key).text("run_id").also { require(it.isNotBlank()) { "The server did not return a run identifier." } }
     override suspend fun run(id: String) = json("v1/runs/${segment(id)}")
     override suspend fun stop(id: String) { json("v1/runs/${segment(id)}/stop", buildJsonObject {}) }
@@ -176,7 +187,7 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
         awaitClose { call.cancel(); worker.cancel() }
     }
     companion object {
-        fun segment(id: String): String { require(id.matches(Regex("[A-Za-z0-9_.:-]+"))) { "Unsupported server identifier" }; return id }
+        fun segment(id: String): String { require(id !in setOf(".","..") && id.matches(Regex("[A-Za-z0-9_.:-]+"))) { "Unsupported server identifier" }; return id }
         fun validateUrl(config: ServerConfig, debugBuild: Boolean): HttpUrl {
             val b=config.url.trim().trimEnd('/').plus("/").toHttpUrl()
             require(b.username.isBlank() && b.password.isBlank() && b.query == null && b.fragment == null) { "Use a server URL without credentials, query parameters or fragments." }
