@@ -51,6 +51,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: Retain dependency verification failure details
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: dependency-verification-reports
+          path: build/reports/dependency-verification/
+          if-no-files-found: ignore
+          retention-days: 7
+
   device:
     name: Device API ${{ matrix.api }}
     needs: verify
