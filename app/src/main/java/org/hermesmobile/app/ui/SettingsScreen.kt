@@ -50,6 +50,7 @@ import org.hermesmobile.app.BuildConfig
             TextButton(vm::forgetServer,enabled=!busy && !connecting) {Text(label(Words.Forget))}
         }
         ConnectionProfiles(vm)
+        ManagementEntry(vm)
         TextButton(openServer) {Text(label(Words.ServerDetails))}
         TaskFiles(vm)
         BackgroundSettings(vm)

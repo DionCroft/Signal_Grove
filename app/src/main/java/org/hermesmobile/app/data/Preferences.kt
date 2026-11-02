@@ -114,6 +114,8 @@ class SecureCredentialStore(context: Context) {
     fun forget(id:String)=synchronized(monitor) {
         val old=rows();val entry=old[id] ?: return@synchronized
         val editor=prefs.edit().putString("profiles_v1",encryptedRows(old+mapOf(id to JsonObject(entry.filterKeys {it!="token"}))))
+        val management=managementRows().filterKeys {it!=id}
+        editor.putString("management_v1",encrypt(JsonObject(management).toString()))
         if(active()?.scope==id) editor.remove("connection_v2").remove("token")
         check(editor.commit()) {"Credential storage unavailable"}
     }
@@ -129,6 +131,16 @@ class SecureCredentialStore(context: Context) {
             writeConfig(config);return@synchronized config
         }
         null
+    }
+    private fun managementRows()=prefs.getString("management_v1",null)?.let {Json.parseToJsonElement(decrypt(it)).jsonObject} ?: JsonObject(emptyMap())
+    fun management(scope:String):JsonObject?=synchronized(monitor) {managementRows()[scope] as? JsonObject}
+    fun saveManagement(scope:String,value:JsonObject?)=synchronized(monitor) {
+        require(scope.matches(Regex("[a-f0-9]{64}")))
+        if(value!=null) require(rows()[scope]?.containsKey("token")==true) {"The API connection credential was removed."}
+        val previous=managementRows().filterKeys {it!=scope}
+        val next=if(value==null) previous else previous+mapOf(scope to value)
+        require(next.size<=32) {"Remove an unused management sign-in first."}
+        check(prefs.edit().putString("management_v1",encrypt(JsonObject(next).toString())).commit()) {"Credential storage unavailable"}
     }
     fun clear()=synchronized(monitor) {check(prefs.edit().clear().commit())}
     companion object {private val locks=java.util.concurrent.ConcurrentHashMap<String,Any>()}

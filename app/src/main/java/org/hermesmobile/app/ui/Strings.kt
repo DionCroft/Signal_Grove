@@ -275,6 +275,23 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     RemoveCredentialInfo("Remove this device's saved credential? Cached history remains read only. Server work may continue. Re-enter the original URL and token to recover it.","移除本机保存的凭据？缓存历史保留为只读，服务器工作可能继续。重新输入原始网址和令牌可恢复。","Yíchú běnjī bǎocún de píngjù? Huǎncún lìshǐ bǎoliú wéi zhǐdú, fúwùqì gōngzuò kěnéng jìxù. Chóngxīn shūrù yuánshǐ wǎngzhǐ hé lìngpái kě huīfù."),
     RotationPolicy("A changed URL or token creates a separate connection. Existing history, requests and approvals stay with their original credential. Previous credentials remain saved until you remove them.","更改网址或令牌会创建独立连接。历史、请求和审批保留在原始凭据下。旧凭据会保存至手动移除。","Gēnggǎi wǎngzhǐ huò lìngpái huì chuàngjiàn dúlì liánjiē. Lìshǐ, qǐngqiú hé shěnpī bǎoliú zài yuánshǐ píngjù xià. Jiù píngjù huì bǎocún zhì shǒudòng yíchú."),
     NoSavedConnections("Connect to a server to save a connection.","连接服务器以保存连接。","Liánjiē fúwùqì yǐ bǎocún liánjiē."),
+    Management("Hermes management","Hermes 管理","Hermes guǎnlǐ"),
+    ManagementBoundary("Connect the separate Hermes dashboard and sign in with your browser. Management is linked to this saved API connection.","连接独立的 Hermes 仪表盘并使用浏览器登录。管理关联至此已保存的 API 连接。","Liánjiē dúlì de Hermes yíbiǎopán bìng shǐyòng liúlǎnqì dēnglù. Guǎnlǐ guānlián zhì cǐ yǐ bǎocún de API liánjiē."),
+    ManagementNeedsConnection("Select a saved API connection first.","请先选择已保存的 API 连接。","Qǐng xiān xuǎnzé yǐ bǎocún de API liánjiē."),
+    ManagementUrl("Dashboard HTTPS URL","仪表盘 HTTPS 地址","Yíbiǎopán HTTPS dìzhǐ"),
+    ManagementSignIn("Sign in using browser","使用浏览器登录","Shǐyòng liúlǎnqì dēnglù"),
+    ManagementVerify("Saved sign-in. Refresh to verify identity and available profiles.","已保存登录。请刷新以验证身份和可用配置。","Yǐ bǎocún dēnglù. Qǐng shuāxīn yǐ yànzhèng shēnfèn hé kěyòng pèizhì."),
+    ManagementRenew("Renew sign-in","续期登录","Xùqī dēnglù"),
+    ManagementProfile("Managed server profile","管理的服务器配置","Guǎnlǐ de fúwùqì pèizhì"),
+    ManagementForget("Forget this device's management sign-in","移除本机的管理登录","Yíchú běnjī de guǎnlǐ dēnglù"),
+    ManagementReadOnly("MCP inventory for this explicit profile. This screen currently reads configuration only.","此明确配置的 MCP 清单。此屏幕当前仅读取配置。","Cǐ míngquè pèizhì de MCP qīngdān. Cǐ píngmù dāngqián jǐn dúqǔ pèizhì."),
+    ManagementLanError("Allow local network access in Settings to reach this dashboard.","请在设置中允许本地网络访问以连接此仪表盘。","Qǐng zài shèzhì zhōng yǔnxǔ běndì wǎngluò fǎngwèn yǐ liánjiē cǐ yíbiǎopán."),
+    ManagementTlsError("The dashboard HTTPS certificate could not be trusted.","无法信任仪表盘的 HTTPS 证书。","Wúfǎ xìnrèn yíbiǎopán de HTTPS zhèngshū."),
+    ManagementExpired("Management sign-in was rejected. Renew it or sign in again.","管理登录被拒绝。请续期或重新登录。","Guǎnlǐ dēnglù bèi jùjué. Qǐng xùqī huò chóngxīn dēnglù."),
+    ManagementUnsupported("This dashboard does not offer the requested management feature. Check the URL and Hermes version.","此仪表盘不提供请求的管理功能。请检查地址和 Hermes 版本。","Cǐ yíbiǎopán bù tígōng qǐngqiú de guǎnlǐ gōngnéng. Qǐng jiǎnchá dìzhǐ hé Hermes bǎnběn."),
+    ManagementFailed("The management server reported an error. Refresh to verify the current state.","管理服务器报告错误。请刷新以验证当前状态。","Guǎnlǐ fúwùqì bàogào cuòwù. Qǐng shuāxīn yǐ yànzhèng dāngqián zhuàngtài."),
+    ManagementInvalid("Check the dashboard HTTPS URL and selected profile. The returned sign-in or configuration could not be verified.","请检查仪表盘 HTTPS 地址和选定配置。无法验证返回的登录或配置。","Qǐng jiǎnchá yíbiǎopán HTTPS dìzhǐ hé xuǎndìng pèizhì. Wúfǎ yànzhèng fǎnhuí de dēnglù huò pèizhì."),
+    ManagementInterrupted("Management connection interrupted or sign-in timed out. Check your network and refresh. If a sign-in or renewal response was lost, start a new browser sign-in.","管理连接中断或登录超时。请检查网络并刷新。如果登录或续期响应丢失，请重新使用浏览器登录。","Guǎnlǐ liánjiē zhōngduàn huò dēnglù chāoshí. Qǐng jiǎnchá wǎngluò bìng shuāxīn. Rúguǒ dēnglù huò xùqī xiǎngyìng diūshī, qǐng chóngxīn shǐyòng liúlǎnqì dēnglù."),
     Dismiss("Dismiss","关闭提示","Guānbì tíshì"), Loading("Loading…","正在加载…","Zhèngzài jiāzài…")
 }
 val LocalPreferences=staticCompositionLocalOf { AppPreferences() }

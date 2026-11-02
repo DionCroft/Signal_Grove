@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Independent dashboard sign-in using browser PKCE, encrypted management sessions, explicit authenticated profile selection and scoped MCP inventory.
+
 - Encrypted named API connections, guarded switching, explicit token-rotation boundaries and read-only cached history after credential removal.
 
 Connection/submission isolation for delayed controls and run replies; preserved compatibility assistant history with distinct response outcomes; monotonic approval state and atomic decision claims; verified 5000-character cron prompt limit, known refusal handling and safe structured HTTP error metadata. 46 JVM tests and 38 connected tests each on API 26/36 passed. See docs/AUDIT_FOLLOW_UP.md.

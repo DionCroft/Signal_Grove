@@ -238,10 +238,14 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     companion object {
         fun segment(id: String): String { require(id !in setOf(".","..") && id.matches(Regex("[A-Za-z0-9_.:-]+"))) { "Unsupported server identifier" }; return id }
         fun validateUrl(config: ServerConfig, debugBuild: Boolean): HttpUrl {
-            val b=config.url.trim().trimEnd('/').plus("/").toHttpUrl()
-            require(b.username.isBlank() && b.password.isBlank() && b.query == null && b.fragment == null) { "Use a server URL without credentials, query parameters or fragments." }
-            require(b.isHttps || (debugBuild && config.allowDebugHttp && b.scheme == "http")) { "Use HTTPS. Local HTTP testing is available only when explicitly enabled in a debug build." }
+            val b=validateBaseUrl(config.url,config.allowDebugHttp,debugBuild)
             require(config.token.isNotBlank() && config.token.all { it.code in 33..126 }) { "Enter your Hermes bearer token." }
+            return b
+        }
+        fun validateBaseUrl(url:String,debugHttp:Boolean,debugBuild:Boolean):HttpUrl {
+            val b=url.trim().trimEnd('/').plus("/").toHttpUrl()
+            require(b.username.isBlank() && b.password.isBlank() && b.query == null && b.fragment == null) { "Use a server URL without credentials, query parameters or fragments." }
+            require(b.isHttps || (debugBuild && debugHttp && b.scheme == "http")) { "Use HTTPS. Local HTTP testing is available only when explicitly enabled in a debug build." }
             return b
         }
     }

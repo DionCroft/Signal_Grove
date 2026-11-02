@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -61,4 +62,23 @@ class SavedConnectionsTest {
             assertTrue(runCatching {first.activate("unavailable")}.isFailure)
         } finally {first.clear()}
     }
+    @Test fun managementSecretsStayBoundToTheirApiCredentialAndRemovalCannotBeUndone() {
+        val sandbox=isolated();val store=SecureCredentialStore(sandbox)
+        val a=ServerConfig("https://api.example/first/","api-first-fixture")
+        val b=ServerConfig("https://api.example/second/","api-second-fixture")
+        val secret=buildJsonObject {put("url","https://management.example/private/");put("token","management-secret-fixture")}
+        try {
+            store.writeConfig(a);store.writeConfig(b)
+            store.saveManagement(a.scope,secret);store.saveManagement(b.scope,secret)
+            assertEquals(secret,store.management(a.scope));assertEquals(b,store.readConfig())
+            val raw=sandbox.getSharedPreferences("credentials",0).all.values.joinToString()
+            assertFalse(raw.contains("management-secret-fixture"));assertFalse(raw.contains("management.example"))
+            store.forget(a.scope)
+            assertNull(store.management(a.scope));assertEquals(secret,store.management(b.scope));assertEquals(b,store.readConfig())
+            assertTrue(runCatching {store.saveManagement(a.scope,secret)}.isFailure)
+            assertNull(store.management(a.scope))
+            store.saveManagement(b.scope,null);assertNull(store.management(b.scope));assertEquals(b,store.readConfig())
+        } finally {store.clear()}
+    }
+
 }

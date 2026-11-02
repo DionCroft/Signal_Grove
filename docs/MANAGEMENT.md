@@ -1,0 +1,19 @@
+# Hermes management connection
+
+The inference API and dashboard are different listeners and authentication systems. Settings → Hermes management explicitly links a dashboard HTTPS URL to the selected saved API connection. Production requires HTTPS; debug HTTP is an explicit test setting. The API bearer token is never sent to management. Demo has no management backend.
+
+1. Select a saved API connection. Enter the dashboard URL, including any deployment prefix.
+2. Choose **Sign in using browser**. Complete the dashboard password/OAuth provider flow in the system browser, then return to the app. The server can present its own provider chooser.
+3. Select a verified **Managed server profile**. The initial management surface lists MCP configuration for that explicit profile. Enabled configuration does not prove connectivity or credentials work.
+4. **Refresh** re-verifies identity and the available profiles. **Renew sign-in** explicitly rotates the management session. If a refresh response is lost or rejected, sign in again; no mutation or refresh is automatically replayed.
+5. **Forget this device’s management sign-in** removes its local tokens without changing the API connection. Removing the API credential also atomically removes its linked management session. Browser/server sessions are governed by the dashboard.
+
+The browser flow uses Hermes’ RFC 8252 native authorization contract and S256 PKCE. The app binds an ephemeral socket only to device loopback 127.0.0.1, requires the expected Host and callback path, rejects duplicate/mismatched state and code parameters, and does not reflect codes in its response. The verifier and code remain in memory. Cancellation, connection changes and view-model disposal close the listener; the login expires after ten minutes. A killed app must start a new sign-in.
+
+Token exchange and explicit renewal use JSON requests with no API bearer header or cookies. Authenticated reads use only the management access token. The app verifies `/api/auth/me` against the returned provider/user identity before accepting a sign-in. `/api/status` is not used as authentication proof. Requests retain URL prefixes, use TLS validation, refuse redirects and automatic connection retries, check Android LAN permission and bound response sizes. Saved access/refresh pairs and profile selection use Keystore encryption under the exact API credential scope. A later profile switch cannot attach an older login result to the new connection.
+
+Restored sign-ins are labelled saved until manually verified. Server profile selection is explicit and constrained to the authenticated profile list; MCP requests always carry `?profile=...`. There is no inferred default profile or mapping from the API path. Configuration URLs, command arguments, environment values and credentials are excluded from the inventory display.
+
+This chunk implements authenticated read access. Reviewed integration mutations and their durable uncertainty receipts follow separately. It does not claim an HTTP substitute for CLI-only features or support bearer API admin routes that Hermes advertises as unavailable.
+
+Contracts verified against stable v0.22.5 (`bf0203a794a07aac3ff764972ab9087baa4e4f4e`): [native authentication](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/dashboard_auth/routes.py), [loopback code/PKCE lifetime](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/dashboard_auth/native_flow.py), [profiles](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/web_routers/profiles.py), [MCP](https://github.com/NousResearch/hermes-agent/blob/bf0203a794a07aac3ff764972ab9087baa4e4f4e/hermes_cli/web_routers/mcp.py), and [dashboard guide](https://hermes-agent.nousresearch.com/docs/user-guide/features/web-dashboard).
