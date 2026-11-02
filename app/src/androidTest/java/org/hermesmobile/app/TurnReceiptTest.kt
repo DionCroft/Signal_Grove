@@ -27,7 +27,7 @@ class TurnReceiptTest {
         MockWebServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
-                    request.path=="/p/work/v1/capabilities"->json("""{"model":"initial-default","features":{"session_resources":true,"session_chat":true,"run_events_sse":true,"session_key_header":"X-Hermes-Session-Key"},"endpoints":{"runs":{"method":"POST","path":"/v1/runs"}}}""")
+                    request.path=="/p/work/v1/capabilities"->json("""{"model":"initial-default","features":{"session_resources":true,"session_chat":true,"run_events_sse":true,"model_options":true,"session_key_header":"X-Hermes-Session-Key"},"endpoints":{"runs":{"method":"POST","path":"/v1/runs"}}}""")
                     request.path.orEmpty().contains("/api/jobs?")->json("""{"jobs":[]}""")
                     request.path.orEmpty().startsWith("/p/work/api/sessions?")->json("""{"data":[],"has_more":false}""")
                     request.path=="/p/work/api/sessions"->{val body=Json.parseToJsonElement(request.body.readUtf8()).jsonObject;json(buildJsonObject {put("session",buildJsonObject {put("id",body.text("id"));put("title","Receipt fixture")})}.toString())}
@@ -44,15 +44,22 @@ class TurnReceiptTest {
             val url=server.url("p/work/").toString()
             compose.runOnUiThread {vm.configure(url,"receipt-fixture",true)}
             compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="connected"}
+            val original=RuntimeChoice("original-model","original-provider",false,serviceTier="priority")
+            compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,original)}
+            compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value==original}
             compose.runOnUiThread {vm.newChat();vm.send("Original work")}
             compose.waitUntil(10000) {!vm.busy.value && vm.runStatus.value=="unknown"}
             val before=runBlocking {app.database.dao().conversation(vm.selected.value)!!}
             assertEquals("",before.runId);assertEquals(64,before.pendingRequestHash.length);assertTrue(before.channelKey.startsWith("mobile_"))
             val frozen=app.requests.read(before.scope,before.key,before.pendingKey,before.pendingRequestHash)
-            compose.runOnUiThread {vm.draft.value="Different work";vm.capabilities.value=vm.capabilities.value!!.copy(model="changed-default");vm.retryOrRefresh()}
+            compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice("different-model","different-provider"))}
+            compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.model=="different-model"}
+            compose.runOnUiThread {vm.draft.value="Different work";vm.retryOrRefresh()}
             compose.waitUntil(10000) {!vm.busy.value && vm.runStatus.value=="completed"}
             assertEquals(2,count.get());assertEquals(posts.first(),posts.last())
             assertEquals(frozen.body,Json.parseToJsonElement(posts.last().first).jsonObject)
+            assertEquals("original-model",frozen.body.text("model"));assertEquals("original-provider",frozen.body.text("provider"))
+            assertEquals(original.fields()["model_options"],frozen.body["model_options"])
             val after=runBlocking {app.database.dao().conversation(before.key)!!}
             assertEquals(before.channelKey,after.channelKey);assertEquals(before.pendingRequestHash,after.pendingRequestHash)
             assertEquals("Original work",after.pendingInput)

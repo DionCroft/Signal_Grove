@@ -2,6 +2,12 @@ package org.hermesmobile.app.ui
 
 import android.widget.TextView
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import kotlinx.coroutines.flow.distinctUntilChanged
+import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.automirrored.outlined.Send
@@ -15,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,45 +37,63 @@ import java.time.format.DateTimeFormatter
     val draft by vm.draft.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val connecting by vm.connecting.collectAsStateWithLifecycle()
+    val controlling by vm.controlBusy.collectAsStateWithLifecycle()
+    var runtimePicker by rememberSaveable {mutableStateOf(false)}
     val historyLoading by vm.historyLoading.collectAsStateWithLifecycle()
     val caps by vm.capabilities.collectAsStateWithLifecycle()
     val status by vm.runStatus.collectAsStateWithLifecycle()
     val activity by vm.activity.collectAsStateWithLifecycle()
     val current by vm.selectedConversation.collectAsStateWithLifecycle()
+    var statusDetails by rememberSaveable {mutableStateOf(false)}
     var resolve by rememberSaveable {mutableStateOf(false)}
     var history by rememberSaveable { mutableStateOf(false) }
     val list=rememberLazyListState()
-    LaunchedEffect(messages.size,messages.lastOrNull()?.content?.length) { if(messages.isNotEmpty()) list.scrollToItem(messages.lastIndex) }
+    val dragging by list.interactionSource.collectIsDraggedAsState()
+    var followReply by remember {mutableStateOf(true)}
+    LaunchedEffect(current?.key,current?.pendingKey) {followReply=true}
+    LaunchedEffect(dragging) {if(dragging) followReply=false}
+    LaunchedEffect(list) {snapshotFlow {!list.isScrollInProgress && !list.canScrollForward}.distinctUntilChanged().collect {if(it) followReply=true}}
+    LaunchedEffect(messages.size,messages.lastOrNull()?.content?.length,messages.lastOrNull()?.status,followReply) {
+        if(messages.isNotEmpty() && followReply && !dragging) {
+            list.scrollToItem(messages.lastIndex)
+            val last=list.layoutInfo.visibleItemsInfo.lastOrNull {it.index==messages.lastIndex}
+            if(last!=null) list.scrollBy((last.offset+last.size-list.layoutInfo.viewportEndOffset).coerceAtLeast(0).toFloat())
+        }
+    }
     Column(Modifier.fillMaxSize().imePadding().padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Word(Words.Chat,Modifier.weight(1f))
-            IconButton({history=true},enabled=!busy) { Icon(Icons.Outlined.History,label(Words.History)) }
-            IconButton(vm::refreshHistory,enabled=!busy && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
-            IconButton(vm::newChat,enabled=!busy) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
+            IconButton({runtimePicker=true},enabled=!busy && !controlling && !connecting) {Icon(Icons.Outlined.Tune,label(Words.Models))}
+            IconButton({history=true},enabled=!busy && !controlling) { Icon(Icons.Outlined.History,label(Words.History)) }
+            IconButton(vm::refreshHistory,enabled=!busy && !controlling && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
+            IconButton(vm::newChat,enabled=!busy && !controlling) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
         }
-        if(busy || historyLoading) QuietProgress()
-        if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth(),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
+        if(busy || historyLoading || controlling) QuietProgress()
+        if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
             Word(Words.NoChats)
             if(LocalPreferences.current.demo) {TextButton({vm.sendDemoExercise("approval")},enabled=!busy) {Text(label(Words.DemoApproval))};TextButton({vm.sendDemoExercise("clarify")},enabled=!busy) {Text(label(Words.DemoClarification))}}
         }
-        else LazyColumn(Modifier.weight(1f).fillMaxWidth(),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
+        else LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("chat-messages"),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
             items(messages,key={it.id}) { MessageCard(it) }
         }
-        if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=2)
-        RunControls(vm)
-        if(status!="idle") {
-            Text(label(statusWord(status)),style=MaterialTheme.typography.labelMedium)
-            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                if(status !in HermesViewModel.terminal) TextButton(vm::stop,enabled=LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true)) { Text(label(Words.Stop)) }
-                if(!busy && status !in setOf("completed","idle","response_finished")) TextButton(vm::retryOrRefresh) { Text(label(Words.CheckRun)) }
-                if(!busy && status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) TextButton(vm::prepareRetry) { Text(label(Words.Retry)) }
-            }
+        if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
+        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) {RunControls(vm,compact=true)}
+            if(status!="idle") IconButton({statusDetails=true}) {Icon(if(status=="completed") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(statusWord(status)))}
+            if(status !in HermesViewModel.terminal && status!="idle" && (LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true))) IconButton(vm::stop,enabled=!controlling) {Icon(Icons.Outlined.StopCircle,label(Words.Stop))}
+            if(!busy && status !in setOf("completed","idle","response_finished")) IconButton(vm::retryOrRefresh,enabled=!controlling) {Icon(Icons.Outlined.Refresh,label(Words.CheckRun))}
+            if(!busy && status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) IconButton(vm::prepareRetry,enabled=!controlling) {Icon(Icons.Outlined.Replay,label(Words.Retry))}
         }
-        if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy) {Text(label(Words.ResolveUnknown))}
+        if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy && !controlling) {Text(label(Words.ResolveUnknown))}
         OutlinedTextField(draft,{vm.draft.value=it},Modifier.fillMaxWidth(),placeholder={Text(label(Words.Message))},maxLines=5,
-            trailingIcon={IconButton({vm.send()},enabled=draft.isNotBlank() && !busy && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
+            trailingIcon={IconButton({vm.send()},enabled=draft.isNotBlank() && !busy && !controlling && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
         Spacer(Modifier.height(4.dp))
     }
+    if(statusDetails) AlertDialog(onDismissRequest={statusDetails=false},title={Text(label(Words.RunStatus))},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        Text(label(statusWord(status)))
+        current?.runId?.takeIf {it.isNotBlank()}?.let {Text(label(Words.RunIdentity));Text(it)}
+    }},confirmButton={TextButton({statusDetails=false}) {Text(label(Words.Close))}})
+    if(runtimePicker) RuntimePicker(vm) {runtimePicker=false}
     if(history) ConversationBrowser(vm) {history=false}
     if(resolve) AlertDialog(onDismissRequest={resolve=false},title={Text(label(Words.ResolveUnknown))},text={Text(label(Words.ResolveInfo))},confirmButton={TextButton({resolve=false;vm.acknowledgeUnknown()}) {Text(label(Words.ResolveUnknown))}},dismissButton={TextButton({resolve=false}) {Text(label(Words.Cancel))}})
 }
@@ -86,7 +111,7 @@ import java.time.format.DateTimeFormatter
             IconButton({clipboard.setText(AnnotatedString(message.content));copied=true}) { Icon(Icons.Outlined.ContentCopy,label(if(copied) Words.Copied else Words.Copy),Modifier.size(18.dp)) }
         }
         if(message.content.isNotEmpty()) AndroidView(factory={context -> TextView(context).apply {setTextIsSelectable(true);setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,16f);tag=Markwon.create(context)}},
-            modifier=Modifier.fillMaxWidth(),update={ view ->
+            modifier=Modifier.fillMaxWidth().testTag("message-body-${message.id}"),update={ view ->
                 view.setTextColor(ink);view.setLinkTextColor(primary)
                 view.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,16f*density.density*density.fontScale)
                 (view.tag as Markwon).setMarkdown(view,message.content)

@@ -49,6 +49,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val controlBusy=MutableStateFlow(false)
     val selectedConversation=combine(selected,conversations) {key,rows -> rows.firstOrNull {it.key==key}}.stateIn(viewModelScope,SharingStarted.Eagerly,null)
     val draft=MutableStateFlow("")
+    val requestedRuntime=combine(preferences,scope) {p,partition -> RuntimeChoice.saved(p.runtimeChoices,partition)}.stateIn(viewModelScope,SharingStarted.Eagerly,RuntimeChoice())
     private var api: HermesApiClient=UnavailableHermesApiClient()
     private data class ConnectionContext(val client: HermesApiClient,val partition: String)
     private fun context()=ConnectionContext(api,scope.value)
@@ -162,6 +163,17 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             if(selected.value==key) {selected.value="";runStatus.value="idle"}
         } catch(e: Exception) {error.value=connectionError(e)} finally {controlBusy.value=false}
     }}
+    fun chooseRuntime(expectedScope: String,choice: RuntimeChoice) {
+        if(busy.value || connecting.value || controlBusy.value || expectedScope!=scope.value) return
+        try {choice.validate()} catch(e: Exception) {error.value=connectionError(e);return}
+        if(!choice.isDefault && capabilities.value?.has("model_options")!=true && capabilities.value?.endpoints?.containsKey("model_options")!=true) {error.value=Words.NotAdvertised.localized(preferences.value);return}
+        controlBusy.value=true
+        viewModelScope.launch {
+            try {graph.preferences.runtime(expectedScope,choice)}
+            catch(e: Exception) {error.value=connectionError(e)}
+            finally {controlBusy.value=false}
+        }
+    }
     fun refreshDiscovery(resource: DiscoveryResource,force: Boolean=false,fullModelProbe: Boolean=false): Job? {
         if(connecting.value || resource in discovery.value.loading || (!force && resource in discovery.value.results)) return null
         if(capabilities.value?.endpoints?.containsKey(resource.endpoint)!=true) return null
@@ -246,7 +258,9 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val transport=when { preferences.value.demo -> "demo"; capabilities.value?.sessions==true && capabilities.value?.runs==true -> "runs"; capabilities.value?.nativeStream==true -> "session"; else -> "compat" }
                 c=c.copy(pendingInput=text,pendingKey=key,pendingAt=System.currentTimeMillis(),transport=transport,runId="",status="submitting",lastEventSeq=-1,admissionId="",executionGeneration=null,updatedAt=System.currentTimeMillis())
                 val user=ChatMessage("${key}_user",c.key,"user",text)
-                val request=TurnRequest.create(c,dao.history(c.key)+user,capabilities.value?.model ?: "hermes-agent")
+                val requested=RuntimeChoice.saved(graph.preferences.flow.first().runtimeChoices,c.scope)
+                require(requested.isDefault || capabilities.value?.has("model_options")==true || capabilities.value?.endpoints?.containsKey("model_options")==true) {Words.NotAdvertised.localized(preferences.value)}
+                val request=TurnRequest.create(c,dao.history(c.key)+user,capabilities.value?.model ?: "hermes-agent",requested)
                 val hash=withContext(Dispatchers.IO) {graph.requests.freeze(c.scope,c.key,key,request)}
                 c=c.copy(pendingRequestHash=hash)
                 dao.beginTurn(c,user,ChatMessage("${key}_assistant",c.key,"assistant","",System.currentTimeMillis()+1,"submitting"))

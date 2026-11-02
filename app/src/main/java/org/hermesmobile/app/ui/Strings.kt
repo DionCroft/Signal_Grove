@@ -5,6 +5,23 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    RunStatus("Run status","运行状态","Yùnxíng zhuàngtài"),
+    RunIdentity("Run ID","运行标识","Yùnxíng biāozhì"),
+    Disabled("Disabled","已禁用","Yǐ jìnyòng"),
+    InputPrice("Input price (server)","输入价格（服务器）","Shūrù jiàgé (fúwùqì)"),
+    OutputPrice("Output price (server)","输出价格（服务器）","Shūchū jiàgé (fúwùqì)"),
+    RequestedModel("Requested model","请求的模型","Qǐngqiú de móxíng"),
+    RuntimePrecedence("These settings apply to new turns on this connection. Session model locks take precedence. Server default clears this request override; it does not clear a server lock.","这些设置用于当前连接的新请求。会话模型锁优先。服务器默认会清除请求覆盖设置，但不会清除服务器锁。","Zhèxiē shèzhì yòng yú dāngqián liánjiē de xīn qǐngqiú. Huìhuà móxíng suǒ yōuxiān. Fúwùqì mòrèn huì qīngchú qǐngqiú fùgài shèzhì, dàn bú huì qīngchú fúwùqì suǒ."),
+    Provider("Provider ID","提供商标识","Tígōngshāng biāozhì"), ModelId("Model or route ID","模型或路由标识","Móxíng huò lùyóu biāozhì"),
+    ManualModel("Enter IDs manually","手动输入标识","Shǒudòng shūrù biāozhì"),
+    ManualModelInfo("Hermes validates manual IDs. Availability and pricing can differ from the cached catalog. A bare model on compatibility endpoints may require direct-model support on the server.","Hermes 会验证手动输入的标识。可用性和价格可能与缓存目录不同。兼容接口上的单独模型标识可能需要服务器启用直接模型支持。","Hermes huì yànzhèng shǒudòng shūrù de biāozhì. Kěyòngxìng hé jiàgé kěnéng yǔ huǎncún mùlù bùtóng. Jiānróng jiēkǒu shàng de dāndú móxíng biāozhì kěnéng xūyào fúwùqì qǐyòng zhíjiē móxíng zhīchí."),
+    ReasoningSetting("Reasoning setting","推理设置","Tuīlǐ shèzhì"),
+    ReasoningEffort("Reasoning effort (optional)","推理强度（可选）","Tuīlǐ qiángdù (kě xuǎn)"),
+    ServiceTier("Service tier (optional)","服务层级（可选）","Fúwù céngjí (kě xuǎn)"),
+    ProviderUnavailable("This provider is not authenticated on Hermes.","此提供商尚未在 Hermes 上认证。","Cǐ tígōngshāng shàng wèi zài Hermes shàng rènzhèng."),
+    ModelUnavailable("The server marks this model unavailable for the current account.","服务器将此模型标记为当前账户不可用。","Fúwùqì jiāng cǐ móxíng biāojì wéi dāngqián zhànghù bù kěyòng."),
+    ApplySettings("Apply to new turns","应用于新请求","Yìngyòng yú xīn qǐngqiú"),
+
     LocalDataError("Local request data could not be removed. Try clearing the cache again.","无法删除本地请求数据，请重试清除缓存。","Wúfǎ shānchú běndì qǐngqiú shùjù, qǐng chóngshì qīngchú huǎncún."),
     MessageTooLong("Use at most 64000 characters per message.","每条消息最多 64000 个字符。","Měi tiáo xiāoxi zuì duō liù wàn sì qiān gè zìfú."),
     RequestTooLarge("This request is too large to save safely. Shorten the message or history.","此请求过大，无法安全保存。请缩短消息或历史记录。","Cǐ qǐngqiú guò dà, wúfǎ ānquán bǎocún. Qǐng suōduǎn xiāoxi huò lìshǐ jìlù."),

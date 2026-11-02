@@ -21,7 +21,7 @@ data class TurnRequest(val transport: String,val path: String,val body: JsonObje
         }
     }
     companion object {
-        fun create(c: Conversation,history: List<ChatMessage>,model: String): TurnRequest {
+        fun create(c: Conversation,history: List<ChatMessage>,model: String,runtime: RuntimeChoice=RuntimeChoice()): TurnRequest {
             val path=when(c.transport) {"runs"->"v1/runs";"session","demo"->"api/sessions/${OkHttpHermesApiClient.segment(c.remoteId)}/chat/stream";else->"v1/chat/completions"}
             val body=buildJsonObject {
                 when(c.transport) {
@@ -30,7 +30,8 @@ data class TurnRequest(val transport: String,val path: String,val body: JsonObje
                     else -> {put("model",model);put("stream",true);put("messages",buildJsonArray {history.filter(RunStates::usableHistory).forEach {m -> add(buildJsonObject {put("role",m.role);put("content",m.content)})}})}
                 }
             }
-            return TurnRequest(c.transport,path,body,c.channelKey).also {it.validate()}
+            val selected=JsonObject(body+runtime.fields())
+            return TurnRequest(c.transport,path,selected,c.channelKey).also {it.validate()}
         }
     }
 }

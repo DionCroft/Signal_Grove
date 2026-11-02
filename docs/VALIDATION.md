@@ -12,6 +12,8 @@ Server-discovery chunk (`1.1.0-dev`): 48 JVM tests and the full 43-test API 36 s
 
 Durable-request chunk: 55 JVM tests and all 45 connected cases passed on both API 26 and API 36. Required unit/lint/debug/instrumentation build checks passed. Added coverage includes full JSON/header retention, reopen and concurrent-writer immutability, wrong-scope/missing/corrupt request refusal, size limits, per-conversation deletion/clear, v4→v5 migration, and HTTP loss after admission followed by exact body/key/channel recovery. Earlier v1/v2/v3 migrations still pass. No live agent executed; the lost-ack fixture confirms client traffic, not a production server's deduplication implementation.
 
+Requested-runtime chunk: 59 JVM tests and the full 49-case device suite passed on API 36 and API 26; the complete API 26 run used 130% font scale. Required build/lint/APK checks passed. Added coverage includes all three request transports, scope-separated persisted choices, stale preference updates, catalog account restrictions, reviewed manual selection, model-options-only requests, original model/provider/options retained after lost admission, visible reply content, and a real drag followed by appended output that preserves reader position. English/Chinese/pinyin screenshots were inspected. Existing task UI checks now scroll to recycled/offscreen fields and await asynchronous Room saves; language checks also assert runtime choices are retained. These are fixtures, not live provider executions.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0

@@ -19,20 +19,20 @@ class Milestone03Test {
     @Before fun reset() {runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats()};compose.waitForIdle()}
     private fun go(w:Words)=compose.onAllNodesWithContentDescription(w.localized(AppPreferences()),useUnmergedTree=true).onLast().performClick()
     @Test fun demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure() {
-        compose.onNodeWithText("New conversation").performClick()
-        compose.onNodeWithText(Words.DemoApproval.localized(AppPreferences())).performClick()
+        compose.onNodeWithText("New conversation").performScrollTo().performClick()
+        compose.onNodeWithText(Words.DemoApproval.localized(AppPreferences())).performScrollTo().performClick()
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}
         assertTrue(vm.busy.value);assertEquals("pending",vm.controls.value.single().state)
         compose.onNodeWithText(Words.Deny.localized(AppPreferences())).performClick()
         compose.waitUntil(10000) {!vm.busy.value && vm.runStatus.value=="completed"}
         assertTrue(runBlocking {app.database.dao().events(vm.selected.value).first().any {it.kind=="failed"}})
         assertTrue(vm.controls.value.isEmpty())
-        compose.onNodeWithText(Words.ToolActivity.localized(AppPreferences()),substring=true).performClick()
+        compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()),substring=true).performClick()
         compose.onNodeWithText("The simulated action was denied.").assertExists()
     }
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {
-        compose.onNodeWithText("New conversation").performClick()
-        compose.onNodeWithText(Words.DemoClarification.localized(AppPreferences())).performClick()
+        compose.onNodeWithText("New conversation").performScrollTo().performClick()
+        compose.onNodeWithText(Words.DemoClarification.localized(AppPreferences())).performScrollTo().performClick()
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}
         compose.onNodeWithText("Brief").performClick();assertTrue(vm.busy.value)
         compose.onNodeWithText(Words.SubmitAnswer.localized(AppPreferences())).performClick()

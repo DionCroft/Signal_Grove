@@ -24,6 +24,7 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
     val error by vm.error.collectAsStateWithLifecycle()
     val connection by vm.connectionStatus.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
+    val keyboardOpen=WindowInsets.ime.getBottom(androidx.compose.ui.platform.LocalDensity.current)>0
     fun go(route: String) { nav.navigate(route) { launchSingleTop=true; restoreState=true; popUpTo(nav.graph.startDestinationId) { saveState=true } } }
     LaunchedEffect(requestedRoute) {if(requestedRoute in setOf("Tasks","Chat")) {go(requestedRoute!!);handled()}}
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -36,12 +37,15 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
                 topBar={ Column(Modifier.statusBarsPadding().fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp)) {
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
                         Text("HERMES",style=MaterialTheme.typography.titleLarge)
+                        if(keyboardOpen) Icon(if(connection=="connected") Icons.Outlined.CloudDone else if(connection=="demo") Icons.Outlined.SmartToy else Icons.Outlined.CloudOff,label(when(connection) {"demo"->Words.Demo;"connected"->Words.Connected;else->Words.Offline}))
                         Text("MOBILE  /  "+org.hermesmobile.app.BuildConfig.VERSION_NAME,style=MaterialTheme.typography.labelSmall)
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Text(label(when(connection) { "demo"->Words.Demo; "connected"->Words.Connected; else->Words.Offline }),style=MaterialTheme.typography.labelMedium)
+                    if(!keyboardOpen) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(label(when(connection) { "demo"->Words.Demo; "connected"->Words.Connected; else->Words.Offline }),style=MaterialTheme.typography.labelMedium)
+                    }
                 } },
-                bottomBar={ if(!wide) NavigationBar(containerColor=MaterialTheme.colorScheme.surface) {
+                bottomBar={ if(!wide && !keyboardOpen) NavigationBar(containerColor=MaterialTheme.colorScheme.surface) {
                     destinations.forEach { d -> NavigationBarItem(selected=current==d.route,onClick={go(d.route)},icon={Icon(d.icon,label(d.word))},label={Text(d.word.en,maxLines=1,style=MaterialTheme.typography.labelSmall)},alwaysShowLabel=current==d.route) }
                 } }) { padding ->
                 Column(Modifier.padding(padding).fillMaxSize()) {

@@ -34,7 +34,7 @@ class ReleaseUiTest {
         go(Words.Chat);compose.onNodeWithText(text(Words.DemoApproval)).performClick()
         compose.waitUntil(10000) {vm.controls.value.isNotEmpty()};shot("approval")
         compose.onNodeWithText(text(Words.Deny)).performClick();compose.waitUntil(10000) {!vm.busy.value}
-        compose.onNodeWithText(text(Words.ToolActivity),substring=true).performClick();shot("tools");compose.onNodeWithText(text(Words.Close)).performClick()
+        compose.onNodeWithContentDescription(text(Words.ToolActivity),substring=true).performClick();shot("tools");compose.onNodeWithText(text(Words.Close)).performClick()
         go(Words.Voice);compose.onNodeWithText(text(Words.LocalSpeech)).assertExists();shot("voice")
         go(Words.Automation);shot("automation")
         go(Words.Settings);compose.onNodeWithText(text(Words.TaskFiles)).performScrollTo();shot("task-files")

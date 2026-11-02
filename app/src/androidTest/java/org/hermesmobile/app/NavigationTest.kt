@@ -17,11 +17,15 @@ import java.io.File
 class NavigationTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     private val app get()=compose.activity.application as HermesApplication
+    private val vm get()=androidx.lifecycle.ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     @Before fun reset() {
         runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats();app.database.dao().tasks().first().forEach {app.database.dao().delete(it)}}
         compose.waitForIdle()
     }
-    private fun go(word: Words) {compose.onNodeWithContentDescription(word.localized(AppPreferences()),useUnmergedTree=true).performClick()}
+    private fun go(word: Words) {
+        compose.waitUntil(5000) {compose.onAllNodesWithContentDescription(word.localized(AppPreferences()),useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithContentDescription(word.localized(AppPreferences()),useUnmergedTree=true).performClick()
+    }
     private fun screenshot(name: String) {
         compose.runOnUiThread { androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime()) }
         compose.waitForIdle()
@@ -29,10 +33,11 @@ class NavigationTest {
         file.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     @Test fun demoConversationStreamsAndEveryDestinationOpens() {
-        compose.onNodeWithText("New conversation",useUnmergedTree=true).performClick()
+        compose.onNodeWithText("New conversation",useUnmergedTree=true).performScrollTo().performClick()
         compose.onNode(hasSetTextAction()).performTextInput("A test question")
         compose.onNodeWithContentDescription(Words.Send.localized(AppPreferences())).performClick()
-        compose.waitUntil(15000) {compose.onAllNodesWithText("Completed",substring=true).fetchSemanticsNodes().isNotEmpty()}
+        compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}
+        compose.onNodeWithContentDescription(Words.Completed.localized(AppPreferences())).assertExists()
         screenshot("chat-demo")
         go(Words.Tasks);compose.onNodeWithText("Personal tasks stay on this device.",substring=true).assertExists()
         go(Words.Automation);compose.onNodeWithText("Changes affect the selected Hermes server.",substring=true).assertExists()
@@ -48,14 +53,14 @@ class NavigationTest {
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
         compose.onNodeWithTag("task-list").performScrollToNode(hasText("QA task"))
         compose.onNodeWithText("QA task").assertExists()
-        compose.onNodeWithContentDescription(Words.Edit.localized(AppPreferences())).performClick()
+        compose.onNodeWithContentDescription(Words.Edit.localized(AppPreferences())).performScrollTo().performClick()
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextReplacement("QA edited")
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
-        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).performClick()
-        compose.waitForIdle()
+        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).performScrollTo().performClick()
+        compose.waitUntil(5000) {runBlocking {app.database.dao().tasks().first().firstOrNull {it.title=="QA edited"}?.completed==true}}
         assertTrue(runBlocking {app.database.dao().tasks().first().first {it.title=="QA edited"}.completed})
         screenshot("tasks")
-        compose.onNodeWithContentDescription(Words.Delete.localized(AppPreferences())).performClick()
+        compose.onNodeWithContentDescription(Words.Delete.localized(AppPreferences())).performScrollTo().performClick()
         compose.onNode(hasText(Words.Delete.localized(AppPreferences())) and hasClickAction()).performClick()
         compose.onNodeWithText("QA edited").assertDoesNotExist()
     }
@@ -74,10 +79,12 @@ class NavigationTest {
         compose.onNodeWithText(Words.Pinyin.localized(AppPreferences())).performScrollTo()
         // Preference updates use the same persistent layer as the switches.
         listOf(AppPreferences(chinese=false,pinyin=false),AppPreferences(chinese=true,pinyin=false),AppPreferences(chinese=true,pinyin=true)).forEach {p ->
+            val retained=runBlocking {app.preferences.flow.first().runtimeChoices}
             runBlocking {app.preferences.update(p)};compose.waitForIdle()
             if(p.chinese) compose.onNodeWithText(Words.Settings.zh).assertExists() else compose.onNodeWithText(Words.Settings.zh).assertDoesNotExist()
             if(p.chinese && p.pinyin) compose.onNodeWithText(Words.Settings.pin).assertExists() else compose.onNodeWithText(Words.Settings.pin).assertDoesNotExist()
-            assertEquals(p,runBlocking {app.preferences.flow.first()})
+            val actual=runBlocking {app.preferences.flow.first()}
+            assertEquals(p,actual.copy(runtimeChoices=p.runtimeChoices));assertEquals(retained,actual.runtimeChoices)
         }
     }
 }

@@ -15,14 +15,14 @@ data class DiscoveryState(
     val fetchedAt: Map<DiscoveryResource,Long> = emptyMap()
 )
 data class ModelProvider(val slug: String,val name: String,val authenticated: Boolean?,val models: List<String>,
-    val warning: String,val capabilities: JsonObject,val pricing: JsonObject)
+    val warning: String,val capabilities: JsonObject,val pricing: JsonObject,val unavailableModels: Set<String> = emptySet())
 data class ModelInventory(val model: String,val provider: String,val providers: List<ModelProvider>) {
     companion object {
         fun parse(payload: JsonObject)=ModelInventory(payload.text("model"),payload.text("provider"),payload.items("providers").take(500).mapNotNull {row ->
             val slug=row.text("slug");if(slug.isBlank()) return@mapNotNull null
             ModelProvider(slug,row.text("name").ifBlank {slug},(row["authenticated"] as? JsonPrimitive)?.booleanOrNull,
                 (row["models"] as? JsonArray).orEmpty().mapNotNull {(it as? JsonPrimitive)?.contentOrNull}.filter {it.isNotBlank()}.distinct().take(20000),
-                row.text("warning").take(1000),row["capabilities"] as? JsonObject ?: JsonObject(emptyMap()),row["pricing"] as? JsonObject ?: JsonObject(emptyMap()))
+                row.text("warning").take(1000),row["capabilities"] as? JsonObject ?: JsonObject(emptyMap()),row["pricing"] as? JsonObject ?: JsonObject(emptyMap()),(row["unavailable_models"] as? JsonArray).orEmpty().mapNotNull {(it as? JsonPrimitive)?.contentOrNull}.toSet())
         }.distinctBy {it.slug})
     }
 }

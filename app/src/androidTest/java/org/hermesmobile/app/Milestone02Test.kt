@@ -14,13 +14,15 @@ import org.junit.Test
 class Milestone02Test {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     private val app get()=compose.activity.application as HermesApplication
+    private val vm get()=androidx.lifecycle.ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     @Before fun reset() {runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats();app.database.dao().tasks().first().forEach {app.database.dao().delete(it)}};compose.waitForIdle()}
     private fun go(w:Words)=compose.onNodeWithContentDescription(w.localized(AppPreferences()),useUnmergedTree=true).performClick()
     @Test fun conversationSearchPinRenameAndLocalDeleteWork() {
-        compose.onNodeWithText("New conversation").performClick()
+        compose.onNodeWithText("New conversation").performScrollTo().performClick()
         compose.onNode(hasSetTextAction()).performTextInput("Session sample")
         go(Words.Send)
-        compose.waitUntil(15000) {compose.onAllNodesWithText("Completed",substring=true).fetchSemanticsNodes().isNotEmpty()}
+        compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}
+        compose.onNodeWithContentDescription(Words.Completed.localized(AppPreferences())).assertExists()
         go(Words.History)
         compose.onNode(hasSetTextAction() and hasText(Words.Search.localized(AppPreferences()))).performTextInput("sample")
         go(Words.Pin);go(Words.Rename)
@@ -38,7 +40,8 @@ class Milestone02Test {
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextInput("Notes task")
         compose.onNode(hasSetTextAction() and hasText(Words.Notes.localized(AppPreferences()))).performScrollTo().performTextInput("Searchable details")
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
-        compose.onNode(hasSetTextAction() and hasText(Words.Search.localized(AppPreferences()))).performScrollTo().performTextInput("details")
+        compose.onNodeWithTag("task-list").performScrollToNode(hasSetTextAction() and hasText(Words.Search.localized(AppPreferences())))
+        compose.onNode(hasSetTextAction() and hasText(Words.Search.localized(AppPreferences()))).performTextInput("details")
         compose.onNodeWithTag("task-list").performScrollToNode(hasText("Notes task"))
         compose.onNodeWithText("Notes task").assertExists()
         assertEquals("Searchable details",runBlocking {app.database.dao().tasks().first().single().notes})

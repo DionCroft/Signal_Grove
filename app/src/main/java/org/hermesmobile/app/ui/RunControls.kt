@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -15,7 +17,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@Composable fun RunControls(vm:HermesViewModel) {
+@Composable fun RunControls(vm:HermesViewModel,compact:Boolean=false) {
     val rows by vm.controls.collectAsStateWithLifecycle()
     val selected by vm.selected.collectAsStateWithLifecycle()
     val events by vm.toolEvents.collectAsStateWithLifecycle()
@@ -24,8 +26,14 @@ import java.time.format.DateTimeFormatter
     var timeline by rememberSaveable {mutableStateOf(false)}
     val control=rows.firstOrNull {it.sessionKey==selected}
     Row(Modifier.fillMaxWidth()) {
-        if(events.any {it.sessionKey==selected}) TextButton({timeline=true},Modifier.weight(1f)) {Text(label(Words.ToolActivity)+" (${events.size})")}
-        if(control!=null) TextButton({dismissed=""},Modifier.weight(1f)) {Text(label(Words.ReviewRequest)+" (${rows.size})")}
+        if(events.any {it.sessionKey==selected}) {
+            if(compact) IconButton({timeline=true}) {BadgedBox(badge={Badge {Text(events.size.toString())}}) {Icon(Icons.Outlined.Build,label(Words.ToolActivity)+" (${events.size})")}}
+            else TextButton({timeline=true},Modifier.weight(1f)) {Text(label(Words.ToolActivity)+" (${events.size})")}
+        }
+        if(control!=null) {
+            if(compact) IconButton({dismissed=""}) {BadgedBox(badge={Badge {Text(rows.size.toString())}}) {Icon(Icons.Outlined.HelpOutline,label(Words.ReviewRequest)+" (${rows.size})")}}
+            else TextButton({dismissed=""},Modifier.weight(1f)) {Text(label(Words.ReviewRequest)+" (${rows.size})")}
+        }
     }
     if(timeline) AlertDialog(onDismissRequest={timeline=false},title={Text(label(Words.ToolActivity))},text={
         LazyColumn(Modifier.heightIn(max=450.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
