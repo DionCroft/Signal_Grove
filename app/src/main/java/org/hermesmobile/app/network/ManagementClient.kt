@@ -32,7 +32,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     private val dns=PermissionAwareDns(localNetworkAllowed)
     private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(45,TimeUnit.SECONDS)
         .writeTimeout(30,TimeUnit.SECONDS).callTimeout(60,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
-    private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=suspendCancellableCoroutine {continuation ->
+    private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonElement=suspendCancellableCoroutine {continuation ->
         dns.checkHost(base.host)
         val endpoint=base.newBuilder().addPathSegments(path).apply {tail.forEach {addPathSegment(it)};profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
         val request=Request.Builder().url(endpoint).header("Accept","application/json").apply {
@@ -50,12 +50,15 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
                     val source=it.body.source();val buffer=okio.Buffer()
                     while(buffer.size<=2_000_000 && source.read(buffer,8192)!=-1L) {}
                     if(buffer.size>2_000_000) throw HermesResponseTooLargeException()
-                    Json.parseToJsonElement(buffer.readUtf8()).jsonObject
+                    Json.parseToJsonElement(buffer.readUtf8())
                 }}
                 if(continuation.isActive) continuation.resumeWith(result)
             }
         })
     }
+    private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun cronJobs(tokens:ManagementTokens,profile:String):JsonArray {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return element("api/cron/jobs",tokens.access,profile=profile).jsonArray}
+    suspend fun cronJob(tokens:ManagementTokens,profile:String,id:String):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true) && id!="unknown" && id.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}")));return json("api/cron/jobs",tokens.access,profile=profile,tail=listOf(id))}
     suspend fun exchange(code:String,verifier:String)=ManagementTokens.parse(json("auth/native/token",body=buildJsonObject {put("code",code);put("code_verifier",verifier)}))
     suspend fun refresh(tokens:ManagementTokens)=ManagementTokens.parse(json("auth/native/refresh",body=buildJsonObject {put("refresh_token",tokens.refresh);put("provider",tokens.provider)})).also {
         require(it.userId==tokens.userId && it.provider==tokens.provider) {"Management identity changed. Sign in again."}

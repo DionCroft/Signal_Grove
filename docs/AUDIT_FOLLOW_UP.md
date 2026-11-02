@@ -24,10 +24,13 @@ One active long-horizon goal covers the [2026-11-02 audit](audits/2026-11-02/REP
 | MCP server creation | Typed HTTP/stdio provisioning, frozen reviews, masked credentials, duplicate protection, redacted durable receipts and exact readback | Implemented; validation in VALIDATION.md |
 | MCP catalog | Reviewed public manifests and direct/background install contracts, declared masked inputs, stale-manifest refusal and redacted accepted/uncertain receipts | Implemented with explicit background-input limitations; validation in VALIDATION.md |
 | MCP OAuth | Reviewed host authorization, exact durable flow binding, explicit status/browser/cancel actions, retry-aware reported states and transient URLs | Implemented; validation in VALIDATION.md |
+| Advanced schedule inspection | Exact management-profile inventory and fresh job-ID details, bounded typed projections and strict array/object decoding | Implemented; validation in VALIDATION.md |
 | Management and automation | Reviewed integration mutations, advanced automation contracts/readback and scoped notifications | In progress |
 | Android 17 LAN access | Explicit system permission, private-address/DNS guards, revocation-aware checks and real permission-dialog coverage | Implemented; device matrix in VALIDATION.md |
 | Upstream compatibility | Active stable baseline, inference/management route and handler/field checks, weekly stable/main CI, source-only inspection and offline regressions | Implemented; see MAINTENANCE.md |
-| Remaining maintenance | Executed device CI, dependency verification/security checks and final documentation reconciliation | In progress |
+| Executed device CI | Fresh hosted API 26/37 suites, verified APK artifacts, KVM, bounded logs/screenshots and fail-closed result checks | Implemented; hosted full suites passed in run 41527686477 |
+| Dependency integrity | Strict SHA-256 artifact/metadata verification, publisher-reviewed descriptors, wrapper validation and negative policy/canary checks | Implemented; Windows and Linux checks passed, macOS execution unverified |
+| Remaining maintenance | Ongoing security/dependency review and final documentation reconciliation | In progress |
 
 No interface will claim that unsupported server mutations, native audio endpoints, host-file retrieval, or push delivery are available. Live Hermes interoperability and physical/OEM behavior require their actual environments and remain explicit validation gaps.
 

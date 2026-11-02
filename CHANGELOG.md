@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Explicit management-profile advanced schedule inventory and exact-ID details, with bounded metadata, unknown-state handling and separate inference/management caches.
+
 - Strict dependency SHA-256 verification, metadata/bypass policy checks and a checked multi-platform aapt2 baseline.
 
 - Reviewed MCP OAuth start, exact persisted flow identity, transient browser destinations, explicit retry-aware status refresh and separately acknowledged cancellation.

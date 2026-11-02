@@ -33,9 +33,12 @@ EXTRA_SOURCES = {
     'mcp_helpers': 'hermes_cli/web_server_mcp.py',
     'mcp_catalog': 'hermes_cli/mcp_catalog.py',
     'mcp_oauth': 'tools/mcp_dashboard_oauth.py',
+    'cron': 'hermes_cli/web_routers/cron.py',
+    'cron_helpers': 'hermes_cli/web_server_cron.py',
+    'cron_jobs': 'cron/jobs.py',
     'models': 'hermes_cli/web_models.py',
 }
-MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp'}
+MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron'}
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
