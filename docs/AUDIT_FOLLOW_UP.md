@@ -23,6 +23,7 @@ One active long-horizon goal covers the [2026-11-02 audit](audits/2026-11-02/REP
 | Reviewed MCP controls | Exact target reviews, connection probes, enable/remove controls, scoped schema 9 receipts, acknowledgement/readback separation and explicit uncertainty review | Implemented; validation in VALIDATION.md |
 | MCP server creation | Typed HTTP/stdio provisioning, frozen reviews, masked credentials, duplicate protection, redacted durable receipts and exact readback | Implemented; validation in VALIDATION.md |
 | MCP catalog | Reviewed public manifests and direct/background install contracts, declared masked inputs, stale-manifest refusal and redacted accepted/uncertain receipts | Implemented with explicit background-input limitations; validation in VALIDATION.md |
+| MCP OAuth | Reviewed host authorization, exact durable flow binding, explicit status/browser/cancel actions, retry-aware reported states and transient URLs | Implemented; validation in VALIDATION.md |
 | Management and automation | Reviewed integration mutations, advanced automation contracts/readback and scoped notifications | In progress |
 | Android 17 LAN access | Explicit system permission, private-address/DNS guards, revocation-aware checks and real permission-dialog coverage | Implemented; device matrix in VALIDATION.md |
 | Upstream compatibility | Active stable baseline, inference/management route and handler/field checks, weekly stable/main CI, source-only inspection and offline regressions | Implemented; see MAINTENANCE.md |

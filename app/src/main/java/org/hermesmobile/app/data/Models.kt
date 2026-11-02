@@ -113,6 +113,7 @@ object RunStates {
     }
     @Query("UPDATE management_operations SET state='unknown' WHERE state='sending'") suspend fun recoverManagementOperations()
     @Query("UPDATE management_operations SET state=:state,resultSummary=:result WHERE `key`=:key AND state IN ('sending','unknown')") suspend fun finishManagementOperation(key:String,state:String,result:String)
+    @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='OAuthStart' AND state='acknowledged'") suspend fun updateMcpOAuthObservation(key:String,result:String)
     @Query("UPDATE management_operations SET state='confirmed',resultSummary=:result WHERE `key`=:key AND state='acknowledged'") suspend fun confirmManagementOperation(key:String,result:String)
     @Query("UPDATE management_operations SET state='reviewed' WHERE `key`=:key AND resourceScope=:scope AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String)
 

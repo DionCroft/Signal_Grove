@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
-fun mcpActionWord(action:String)=when(action) {"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
+fun mcpActionWord(action:String)=when(action) {"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
 fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSending;"unknown"->Words.ManagementUncertain;"acknowledged"->Words.ManagementAcknowledged;"confirmed"->Words.ManagementVerified;"reviewed"->Words.ManagementReviewed;else->Words.Management}
 
 @Composable fun McpActionReview(review:ReviewedMcpAction,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
@@ -31,7 +31,8 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
         Text(label(mcpActionWord(receipt.action))+" · "+receipt.target,style=MaterialTheme.typography.titleSmall)
         Text(label(managementStateWord(receipt.state)))
         Text(receipt.url+"\n"+receipt.profile+"\n"+receipt.actor,style=MaterialTheme.typography.bodySmall)
-        if(receipt.resultSummary.isNotBlank()) TextButton({result=true},Modifier.testTag("management-result-${receipt.key}")) {Text(label(Words.ManagementResult))}
+        if(receipt.action in setOf("OAuthStart","OAuthCancel") && receipt.resultSummary.isNotBlank()) McpOAuthReceipt(receipt,vm,s)
+        else if(receipt.resultSummary.isNotBlank()) TextButton({result=true},Modifier.testTag("management-result-${receipt.key}")) {Text(label(Words.ManagementResult))}
         if(vm!=null && s!=null) {
             val enabled=!s.busy && s.identity!=null && vm.reviewTarget()!=null
             TextButton({vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}

@@ -29,6 +29,7 @@ import org.hermesmobile.app.data.*
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    var oauth by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedMcpOAuth?>(null)}
     var catalog by remember {mutableStateOf(false)}
     var create by remember {mutableStateOf(false)}
     val allReceipts by vm.receipts.collectAsStateWithLifecycle()
@@ -75,6 +76,7 @@ import org.hermesmobile.app.data.*
                         val ready=!s.busy && !pending && s.identity!=null && s.loaded && addressable
                         if(!addressable) Text(label(Words.McpUnsupportedName),style=MaterialTheme.typography.bodySmall)
                         if(server.source!="config") Text(label(Words.McpPluginManaged),style=MaterialTheme.typography.bodySmall)
+                        if(McpOAuthSnapshot.eligible(server)) TextButton({oauth=vm.prepareOAuth(server)},enabled=ready,modifier=Modifier.testTag("mcp-oauth-start-${server.name}")) {Text(label(Words.McpOAuthStart))}
                         TextButton({review=vm.prepareMcp(server,McpAction.Probe)},enabled=ready,modifier=Modifier.testTag("mcp-probe-${server.name}")) {Text(label(Words.McpProbe))}
                         TextButton({review=vm.prepareMcp(server,McpAction.Toggle)},enabled=ready && server.source=="config",modifier=Modifier.testTag("mcp-toggle-${server.name}")) {Text(label(if(server.enabled) Words.McpDisable else Words.McpEnable))}
                         TextButton({review=vm.prepareMcp(server,McpAction.Delete)},enabled=ready && server.source=="config",modifier=Modifier.testTag("mcp-delete-${server.name}")) {Text(label(Words.McpRemove))}
@@ -86,6 +88,7 @@ import org.hermesmobile.app.data.*
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    oauth?.let {frozen ->McpOAuthStartReview(frozen,!s.busy,{oauth=null}) {vm.startOAuth(frozen);oauth=null}}
     if(catalog) McpCatalogDialog(vm,s,pending) {catalog=false}
     if(create) McpCreationForm(vm,!s.busy) {create=false}
     review?.let {frozen ->McpActionReview(frozen,!s.busy,{review=null}) {vm.performMcp(frozen);review=null}}

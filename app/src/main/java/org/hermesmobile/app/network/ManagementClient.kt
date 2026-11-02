@@ -30,8 +30,8 @@ data class ManagedProfile(val name:String,val displayName:String)
 class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,localNetworkAllowed:()->Boolean={true}) {
     val base=OkHttpHermesApiClient.validateBaseUrl(url,debugHttp,debugBuild)
     private val dns=PermissionAwareDns(localNetworkAllowed)
-    private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(30,TimeUnit.SECONDS)
-        .writeTimeout(30,TimeUnit.SECONDS).callTimeout(45,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
+    private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(45,TimeUnit.SECONDS)
+        .writeTimeout(30,TimeUnit.SECONDS).callTimeout(60,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=suspendCancellableCoroutine {continuation ->
         dns.checkHost(base.host)
         val endpoint=base.newBuilder().addPathSegments(path).apply {tail.forEach {addPathSegment(it)};profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
@@ -70,6 +70,9 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         val rows=j.items("profiles");require(rows.size<=500)
         return rows.map {row ->val name=row.text("name");require(name.isNotBlank() && name.length<=128 && name.none(Char::isISOControl));ManagedProfile(name,row.text("display_name").take(160))}.distinctBy {it.name}
     }
+    suspend fun startMcpOAuth(tokens:ManagementTokens,profile:String,name:String)=json("api/mcp/servers",tokens.access,JsonObject(emptyMap()),profile,tail=listOf(name,"auth"))
+    suspend fun mcpOAuthFlow(tokens:ManagementTokens,id:String):JsonObject {require(McpOAuthSnapshot.validId(id));return json("api/mcp/oauth/flows",tokens.access,tail=listOf(id))}
+    suspend fun cancelMcpOAuth(tokens:ManagementTokens,id:String):JsonObject {require(McpOAuthSnapshot.validId(id));return json("api/mcp/oauth/flows",tokens.access,method="DELETE",tail=listOf(id))}
     suspend fun catalog(tokens:ManagementTokens,profile:String)=json("api/mcp/catalog",tokens.access,profile=profile)
     suspend fun installCatalog(tokens:ManagementTokens,profile:String,request:McpCatalogInstall)=json("api/mcp/catalog/install",tokens.access,request.body(profile),profile)
     suspend fun createMcp(tokens:ManagementTokens,profile:String,creation:McpCreation)=json("api/mcp/servers",tokens.access,creation.body(profile),profile)

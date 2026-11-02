@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Reviewed MCP OAuth start, exact persisted flow identity, transient browser destinations, explicit retry-aware status refresh and separately acknowledged cancellation.
+
 - Reviewed MCP catalog installation with masked declared inputs, stale-manifest refusal, accepted/background distinctions and explicit host-setup limits.
 
 - Typed MCP HTTP/stdio server creation with reviewed provisioning, protected existing names and receipts that omit secrets.
