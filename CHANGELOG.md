@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Reviewed installed-skill availability and curator lock controls, plain-text SKILL.md inspection, essential-skill protection and scoped durable receipts.
+
 - Reviewed advanced schedule creation with an explicit paused-schema gate, typed runtime/automation fields, preserved empty toolset allowlists and cron-specific durable receipt observation.
 
 - Explicit management-profile advanced schedule inventory and exact-ID details, with bounded metadata, unknown-state handling and separate inference/management caches.

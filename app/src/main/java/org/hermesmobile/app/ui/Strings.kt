@@ -422,6 +422,23 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     HostCronSelfContext("Use this job's previous output","使用此任务的上次输出","Shǐyòng cǐ rènwù de shàngcì shūchū"),
     HostCronCreatedAt("Created on the host","在主机创建时间","Zài zhǔjī chuàngjiàn shíjiān"),
     ManagementRequestedAt("Requested at (UTC)","请求时间（UTC）","Qǐngqiú shíjiān (UTC)"),
+    SkillEssential("Hermes requires this essential skill and ignores disable requests.","Hermes 需要此必要技能，并会忽略禁用请求。","Hermes xūyào cǐ bìyào jìnéng, bìng huì hūlüè jìnyòng qǐngqiú."),
+    HostSkills("Installed skill controls","已安装技能控制","Yǐ ānzhuāng jìnéng kòngzhì"),
+    SkillBoundary("Reads and changes apply only to this management profile. Skill text is displayed as text; opening it does not run its instructions.","读取和更改仅适用于此管理配置。技能文本仅供阅读，打开不会运行其中的指令。","Dúqǔ hé gēnggǎi jǐn shìyòng yú cǐ guǎnlǐ pèizhì. Jìnéng wénběn jǐn gōng yuèdú, dǎkāi bú huì yùnxíng qízhōng de zhǐlìng."),
+    SkillContent("Read SKILL.md","阅读 SKILL.md","Yuèdú SKILL.md"),
+    SkillToggle("Change skill availability","更改技能可用性","Gēnggǎi jìnéng kěyòngxìng"),
+    SkillEnable("Enable skill","启用技能","Qǐyòng jìnéng"),
+    SkillDisable("Disable skill","禁用技能","Jìnyòng jìnéng"),
+    SkillLockControl("Change curator edit lock","更改整理器编辑锁","Gēnggǎi zhěnglǐqì biānjí suǒ"),
+    SkillLock("Lock curator edits","锁定整理器编辑","Suǒdìng zhěnglǐqì biānjí"),
+    SkillUnlock("Allow curator edits","允许整理器编辑","Yǔnxǔ zhěnglǐqì biānjí"),
+    SkillLocked("Curator edit lock: locked","整理器编辑锁：已锁定","Zhěnglǐqì biānjí suǒ: yǐ suǒdìng"),
+    SkillUnlocked("Curator edit lock: unlocked","整理器编辑锁：未锁定","Zhěnglǐqì biānjí suǒ: wèi suǒdìng"),
+    SkillLockUnknown("Curator edit lock: unknown","整理器编辑锁：未知","Zhěnglǐqì biānjí suǒ: wèizhī"),
+    SkillUnsupported("The host did not report a typed state for this control. Refresh or use the Hermes dashboard.","主机未报告此控件的明确状态。请刷新或使用 Hermes 控制台。","Zhǔjī wèi bàogào cǐ kòngjiàn de míngquè zhuàngtài. Qǐng shuāxīn huò shǐyòng Hermes kòngzhìtái."),
+    SkillToggleEffect("Changes profile skill availability for future prompt loading. It does not uninstall files, revoke tool access or stop existing work.","更改此配置后续提示加载的技能可用性。不会卸载文件、撤销工具权限或停止现有工作。","Gēnggǎi cǐ pèizhì hòuxù tíshì jiāzài de jìnéng kěyòngxìng. Bú huì xièzài wénjiàn, chèxiāo gōngjù quánxiàn huò tíngzhǐ xiànyǒu gōngzuò."),
+    SkillLockEffect("Sets the host curator/background-review edit lock. Your own edits remain allowed. This is not a general file permission, skill disable or tool-access restriction.","设置主机整理器和后台审阅的编辑锁。您自己的编辑仍被允许。这不是通用文件权限，不会禁用技能或限制工具访问。","Shèzhì zhǔjī zhěnglǐqì hé hòutái shěnyuè de biānjí suǒ. Nín zìjǐ de biānjí réng bèi yǔnxǔ. Zhè bú shì tōngyòng wénjiàn quánxiàn, bú huì jìnyòng jìnéng huò xiànzhì gōngjù fǎngwèn."),
+    SkillChanged("Skill configuration acknowledged and observed. Existing work may continue.","技能配置已确认并读取验证。现有工作可能继续。","Jìnéng pèizhì yǐ quèrèn bìng dúqǔ yànzhèng. Xiànyǒu gōngzuò kěnéng jìxù."),
     Dismiss("Dismiss","关闭提示","Guānbì tíshì"), Loading("Loading…","正在加载…","Zhèngzài jiāzài…")
 }
 val LocalPreferences=staticCompositionLocalOf { AppPreferences() }

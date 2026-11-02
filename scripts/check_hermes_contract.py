@@ -39,10 +39,16 @@ EXTRA_SOURCES = {
     'cron_time': 'cron/jobs_time.py',
     'cron_invariants': 'cron/jobs_invariants.py',
     'cron_scheduler': 'cron/scheduler.py',
+    'skills': 'hermes_cli/web_routers/skills.py',
+    'skills_config': 'hermes_cli/skills_config.py',
+    'skill_usage': 'tools/skill_usage.py',
+    'skill_manager': 'tools/skill_manager_tool.py',
+    'skill_catalog': 'tools/skills_tool.py',
+    'skill_utils': 'agent/skill_utils.py',
     'web_bootstrap': 'hermes_cli/web_server.py',
     'models': 'hermes_cli/web_models.py',
 }
-MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron'}
+MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills'}
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -70,6 +76,8 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
+            elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':
+                handlers[f'{source}:{node.target.id}'] = fingerprint(node)
             elif source == 'cron_jobs' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == '_CREATE_FIELD_NORMALIZERS':
                 handlers[f'{source}:{node.target.id}'] = fingerprint(node)
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):

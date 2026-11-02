@@ -32,9 +32,9 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     private val dns=PermissionAwareDns(localNetworkAllowed)
     private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(45,TimeUnit.SECONDS)
         .writeTimeout(30,TimeUnit.SECONDS).callTimeout(60,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
-    private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonElement=suspendCancellableCoroutine {continuation ->
+    private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList(),query:Map<String,String> = emptyMap()):JsonElement=suspendCancellableCoroutine {continuation ->
         dns.checkHost(base.host)
-        val endpoint=base.newBuilder().addPathSegments(path).apply {tail.forEach {addPathSegment(it)};profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
+        val endpoint=base.newBuilder().addPathSegments(path).apply {tail.forEach {addPathSegment(it)};query.forEach {(key,value)->addQueryParameter(key,value)};profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
         val request=Request.Builder().url(endpoint).header("Accept","application/json").apply {
             token?.let {header("Authorization","Bearer $it")}
             method(method,body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType()))
@@ -57,6 +57,9 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun skills(tokens:ManagementTokens,profile:String):JsonArray {SkillProtocol.profile(profile);return element("api/skills",tokens.access,profile=profile).jsonArray}
+    suspend fun skillContent(tokens:ManagementTokens,profile:String,name:String):JsonObject {SkillProtocol.profile(profile);require(SkillProtocol.name(name));return element("api/skills/content",tokens.access,profile=profile,query=mapOf("name" to name)).jsonObject}
+    suspend fun skillControl(tokens:ManagementTokens,profile:String,request:SkillRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/"+if(request.action==SkillAction.Toggle) "toggle" else "lock",tokens.access,request.body(profile),profile,method="PUT")}
     suspend fun cronSchema(tokens:ManagementTokens)=json("openapi.json",tokens.access)
     suspend fun cronDeliveries(tokens:ManagementTokens,profile:String):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return json("api/cron/delivery-targets",tokens.access,profile=profile)}
     suspend fun createCron(tokens:ManagementTokens,profile:String,request:CronCreation):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return json("api/cron/jobs",tokens.access,request.body(),profile)}

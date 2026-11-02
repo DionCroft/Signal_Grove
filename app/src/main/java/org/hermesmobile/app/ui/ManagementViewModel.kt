@@ -11,6 +11,9 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
+data class ReviewedSkillAction(val target:ManagementTarget,val request:SkillRequest,val generation:Long)
+data class HostSkillState(val rows:List<ManagedSkill> = emptyList(),val loaded:Boolean=false,val contentName:String="",val content:String?=null)
+
 data class ReviewedCronCreation(val target:ManagementTarget,val request:CronCreation,val contract:CronCreateContract,val generation:Long)
 
 data class ReviewedMcpOAuth(val target:ManagementTarget,val server:ManagedServer,val generation:Long)
@@ -24,12 +27,13 @@ data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:
 
 data class ManagementState(val apiScope:String="",val url:String="",val debugHttp:Boolean=false,val signedIn:Boolean=false,
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
-    val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
+    val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val skillOperations=SkillOperationsRepository(app.database.dao(),app.managementReady)
     private val cronCreations=CronCreationRepository(app.database.dao(),app.managementReady)
     private val oauthOperations=McpOAuthRepository(app.database.dao(),app.managementReady)
     private val catalogOperations=McpCatalogRepository(app.database.dao(),app.managementReady)
@@ -42,6 +46,8 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is SkillReviewChanged->Words.ManagementReviewChanged
+        is SkillReadbackPending->Words.ManagementReadbackPending
         is CronCreationUnsupported->Words.HostCronCreateUnsupported
         is CronCreationChanged->Words.ManagementReviewChanged
         is CronCreationReadbackPending->Words.ManagementReadbackPending
@@ -82,11 +88,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
-        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         val api=client(current)
         val pending=withContext(Dispatchers.IO) {NativeLogin()};login=pending
         try {
@@ -113,14 +119,14 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val identity=api.identity(current);val profiles=api.profiles(current)
         if(id!=generation) return@operation
         val profile=saved.profile.takeIf {name->profiles.any {it.name==name}}.orEmpty()
-        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         if(profile.isNotBlank()) loadServers(id,api,current,profile)
     }
     fun chooseProfile(profile:String)=operation {id ->
         val saved=state.value;require(saved.identity!=null && saved.profiles.any {it.name==profile}) {"Refresh verified management profiles first."}
         val current=tokens ?: error("Sign in to management first.")
         require(current.expiresAt>System.currentTimeMillis()/1000) {"Management sign-in expired. Renew it or sign in again."}
-        val selected=saved.copy(profile=profile,cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val selected=saved.copy(profile=profile,skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         save(selected,current)
         if(id!=generation) return@operation
         state.value=selected;loadServers(id,client(selected),current,profile)
@@ -133,6 +139,41 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val saved=state.value;val identity=saved.identity ?: return null
         if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
         return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,identity.provider+" · "+identity.userId)
+    }
+    fun loadHostSkills()=operation {id ->
+        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")
+        val api=client(state.value);api.identity(current)
+        val rows=SkillProtocol.inventory(api.skills(current,target.profile))
+        if(id==generation) state.value=state.value.copy(skills=HostSkillState(rows,true))
+    }
+    fun loadSkillContent(row:ManagedSkill)=operation {id ->
+        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")
+        val api=client(state.value);api.identity(current)
+        val content=SkillProtocol.content(api.skillContent(current,target.profile,row.name),row.name)
+        if(id==generation) state.value=state.value.copy(skills=state.value.skills.copy(contentName=row.name,content=content))
+    }
+    fun closeSkillContent() {state.value=state.value.copy(skills=state.value.skills.copy(contentName="",content=null))}
+    fun prepareSkill(row:ManagedSkill,action:SkillAction):ReviewedSkillAction? {
+        val saved=state.value
+        if(saved.busy || !saved.skills.loaded || row !in saved.skills.rows) return null
+        val request=runCatching {SkillRequest(row,action)}.getOrNull() ?: return null
+        return target()?.let {ReviewedSkillAction(it,request,generation)}
+    }
+    fun performSkill(review:ReviewedSkillAction) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in first.")
+            val result=skillOperations.execute(review.target,review.request,client(state.value),current)
+            if(id==generation) state.value=state.value.copy(skills=HostSkillState(result.rows,true),notice=Words.SkillChanged)
+        }
+    }
+    fun observeSkillReceipt(key:String)=operation {id ->
+        val target=target() ?: error("Verify management profile first.")
+        val record=app.database.dao().managementOperation(key) ?: error("Missing receipt.")
+        require(record.resourceScope==target.resourceScope && record.action in setOf("SkillToggle","SkillLock"))
+        val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
+        val rows=SkillProtocol.inventory(api.skills(current,target.profile))
+        if(id==generation) state.value=state.value.copy(skills=HostSkillState(rows,true),notice=Words.ManagementObservationOnly)
     }
     fun loadCronCreationSetup()=operation {id ->
         val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")
