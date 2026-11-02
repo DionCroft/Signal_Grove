@@ -24,6 +24,7 @@ class ConnectionIsolationTest {
     @After fun reset() {compose.runOnUiThread {vm.forgetServer()};compose.waitUntil(10000) {vm.preferences.value.demo && !vm.controlBusy.value}}
     private fun json(body:String)=MockResponse().setHeader("Content-Type","application/json").setBody(body)
     private fun connect(server:MockWebServer,path:String,token:String) {
+        compose.waitUntil(10000) {!vm.connecting.value}
         val url=server.url(path).toString()
         compose.runOnUiThread {vm.configure(url,token,true)}
         compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="connected" && vm.preferences.value.url==url}
@@ -69,6 +70,52 @@ class ConnectionIsolationTest {
         }
     }
 
+    @Test fun restoringConnectionCannotRaceASecondConfiguration() {
+        val entered=CountDownLatch(1);val release=CountDownLatch(1)
+        val calls=AtomicInteger();val otherCalls=AtomicInteger();val store=androidx.lifecycle.ViewModelStore()
+        MockWebServer().use {server ->
+            server.dispatcher=object:Dispatcher() {
+                override fun dispatch(request:RecordedRequest):MockResponse=when {
+                    request.path=="/saved/v1/capabilities"->{if(calls.incrementAndGet()>1) {entered.countDown();check(release.await(15,TimeUnit.SECONDS))};json("""{"features":{},"endpoints":{}}""")}
+                    request.path=="/other/v1/capabilities"->{otherCalls.incrementAndGet();json("{}")} 
+                    request.path.orEmpty().contains("/api/jobs?")->json("""{"jobs":[]}""")
+                    else->json("{}").setResponseCode(404)
+                }
+            }
+            try {
+                connect(server,"saved/","restore-fixture");val partition=vm.profileScope.value
+                lateinit var restored:HermesViewModel
+                compose.runOnUiThread {restored=ViewModelProvider(store,ViewModelProvider.AndroidViewModelFactory.getInstance(app))[HermesViewModel::class.java]}
+                assertTrue(entered.await(10,TimeUnit.SECONDS));assertTrue(restored.connecting.value)
+                compose.runOnUiThread {restored.configure(server.url("other/").toString(),"other-fixture",true)}
+                release.countDown();compose.waitUntil(10000) {!restored.connecting.value}
+                assertEquals(partition,restored.profileScope.value);assertEquals(0,otherCalls.get())
+            } finally {release.countDown();compose.runOnUiThread {store.clear()}}
+        }
+    }
+    @Test fun offlineActivationKeepsTheSavedConnectionsCacheVisible() {
+        val server=MockWebServer()
+        server.dispatcher=object:Dispatcher() {
+            override fun dispatch(request:RecordedRequest):MockResponse=when {
+                request.path.orEmpty().endsWith("/v1/capabilities")->json("""{"features":{},"endpoints":{}}""")
+                request.path.orEmpty().contains("/api/jobs?")->json("""{"jobs":[]}""")
+                else->json("{}").setResponseCode(404)
+            }
+        }
+        try {
+            connect(server,"saved/","offline-fixture")
+            val partition=vm.profileScope.value;val cached=Conversation("offline:$partition",partition,"api_saved","Offline cached conversation")
+            runBlocking {app.database.dao().save(cached)}
+            compose.waitUntil(5000) {vm.jobsStatus.value!="loading"}
+            compose.runOnUiThread {vm.setDemo(true)};compose.waitUntil(5000) {!vm.connecting.value && vm.preferences.value.demo}
+            server.close()
+            compose.runOnUiThread {vm.setDemo(false)}
+            compose.waitUntil(10000) {!vm.connecting.value && !vm.preferences.value.demo && vm.connectionStatus.value=="offline"}
+            assertEquals(partition,vm.profileScope.value)
+            compose.waitUntil(5000) {vm.conversations.value.any {it.key==cached.key}}
+            runBlocking {app.database.dao().deleteConversation(cached.key)}
+        } finally {server.close()}
+    }
     @Test fun olderRunRepliesCannotOverwriteANewerSubmissionInTheSameConversation()=runBlocking {
         val db=Room.inMemoryDatabaseBuilder(app,HermesDatabase::class.java).build()
         try {

@@ -58,7 +58,8 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
                         composable("Tasks") { TasksScreen(vm) }
                         composable("Automation") { JobsScreen(vm) }
                         composable("Voice") { VoiceScreen(vm) { go("Chat") } }
-                        composable("Settings") { SettingsScreen(vm) }
+                        composable("Settings") { SettingsScreen(vm) {go("ServerDetails")} }
+                        composable("ServerDetails") { ServerDetailsScreen(vm) {go("Settings")} }
                     }
                 }
             }

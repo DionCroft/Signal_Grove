@@ -55,6 +55,7 @@ fun connectionError(e: Throwable): String = when(e) {
     else -> "Connection interrupted. Check your network and refresh the run status before retrying."
 }
 interface HermesApiClient {
+    suspend fun discovery(resource: DiscoveryResource,refreshModels: Boolean=false): JsonObject {throw UnsupportedOperationException("Server discovery is unavailable.")}
     suspend fun capabilities(): HermesCapabilities
     suspend fun sessions(): List<RemoteSession>
     suspend fun sessionPage(offset: Int = 0, limit: Int = 50): SessionPage = SessionPage(sessions().drop(offset).take(limit),offset+limit,false)
@@ -113,6 +114,7 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
             }
         })
     }
+    override suspend fun discovery(resource: DiscoveryResource,refreshModels: Boolean): JsonObject = json(resource.path+if(resource==DiscoveryResource.Models && refreshModels) "?refresh=1" else "")
     override suspend fun capabilities(): HermesCapabilities = try { HermesCapabilities.parse(json("v1/capabilities")) }
         catch(e: HermesHttpException) { if(e.code !in listOf(404,405)) throw e
             val models = json("v1/models"); HermesCapabilities(model = models.items("data").firstOrNull()?.text("id").orEmpty().ifBlank { "hermes-agent" }) }

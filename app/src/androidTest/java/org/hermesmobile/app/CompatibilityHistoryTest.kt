@@ -24,6 +24,7 @@ class CompatibilityHistoryTest {
     @After fun reset() {compose.runOnUiThread {vm.forgetServer()};compose.waitUntil(10000) {vm.preferences.value.demo && !vm.controlBusy.value}}
     private fun json(body:String)=MockResponse().setHeader("Content-Type","application/json").setBody(body)
     private fun connect(server:MockWebServer,path:String,token:String) {
+        compose.waitUntil(10000) {!vm.connecting.value}
         val url=server.url(path).toString()
         compose.runOnUiThread {vm.configure(url,token,true)}
         compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="connected" && vm.preferences.value.url==url}

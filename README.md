@@ -2,7 +2,9 @@
 
 An unofficial, open-source native Android client for [Hermes Agent](https://github.com/NousResearch/hermes-agent). Your agent runs on your infrastructure; the phone is its companion.
 
-**1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
+**Stable 1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
+
+Development main is `1.1.0-dev`: audit correctness fixes and server capability/readiness/model/skill/toolset discovery. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
 
 Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.
 

@@ -5,6 +5,27 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    MoreInformation("About these details","关于这些详情","Guānyú zhèxiē xiángqíng"),
+    ServerDetails("Server details","服务器详情","Fúwùqì xiángqíng"),
+    Capabilities("Capabilities","功能能力","Gōngnéng nénglì"),
+    Readiness("Readiness","就绪状态","Jiùxù zhuàngtài"),
+    Models("Models and providers","模型与提供商","Móxíng yǔ tígōngshāng"),
+    Skills("Installed skills","已安装技能","Yǐ ānzhuāng jìnéng"),
+    Toolsets("API toolsets","接口工具集","Jiēkǒu gōngjùjí"),
+    NotAdvertised("This server does not advertise this feature.","此服务器未声明支持此功能。","Cǐ fúwùqì wèi shēngmíng zhīchí cǐ gōngnéng."),
+    DiscoveryInfo("These are this connection's server capabilities. Enable integrations and credentials on Hermes; configured tools can execute through chat.","这里显示当前连接的服务器功能。请在 Hermes 上启用集成和凭据，配置后的工具可通过对话执行。","Zhèlǐ xiǎnshì dāngqián liánjiē de fúwùqì gōngnéng. Qǐng zài Hermes shàng qǐyòng jíchéng hé píngjù, pèizhì hòu de gōngjù kě tōngguò duìhuà zhíxíng."),
+    EmptyInventory("The server returned no entries.","服务器未返回条目。","Fúwùqì wèi fǎnhuí tiáomù."),
+    ProbeModels("Refresh all provider models","刷新所有提供商模型","Shuāxīn suǒyǒu tígōngshāng móxíng"),
+    ProbeModelsInfo("A full refresh asks Hermes to probe saved endpoints. It can take longer than opening the cached catalog.","完整刷新会让 Hermes 探测已保存的端点，可能需要更长时间。","Wánzhěng shuāxīn huì ràng Hermes tàncè yǐ bǎocún de duāndiǎn, kěnéng xūyào gèng cháng shíjiān."),
+    Configured("Configured","已配置","Yǐ pèizhì"),
+    Authentication("Authenticated","已认证","Yǐ rènzhèng"),
+    ServerDefault("Server default","服务器默认","Fúwùqì mòrèn"),
+    Version("Version","版本","Bǎnběn"),
+    GatewayState("Gateway state","网关状态","Wǎngguān zhuàngtài"),
+    ActiveAgents("Active agents","活动代理","Huódòng dàilǐ"),
+    ShowModels("Show models","显示模型","Xiǎnshì móxíng"),
+    Yes("Yes","是","Shì"), No("No","否","Fǒu"),
+
     JobPromptLimit("Use a prompt of at most 5000 characters.","提示词不得超过 5000 个字符。","Tíshìcí bùdé chāoguò wǔ qiān gè zìfú."),
     ResponseFailed("Response failed · execution unverified","回复失败 · 执行状态未确认","Huífù shībài · zhíxíng zhuàngtài wèi quèrèn"),
     ResponseCancelled("Response cancelled · execution unverified","回复已取消 · 执行状态未确认","Huífù yǐ qǔxiāo · zhíxíng zhuàngtài wèi quèrèn"),

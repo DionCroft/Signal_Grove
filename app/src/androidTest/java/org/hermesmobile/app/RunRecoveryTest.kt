@@ -65,6 +65,7 @@ data: {"event":"run.completed","run_id":"run_fixture","output":"Hello world","se
         }
     }
     private fun connectAndSend(server:MockWebServer) {
+        compose.waitUntil(10000) {!vm.connecting.value}
         val url=server.url("p/qa/").toString()
         compose.runOnUiThread {vm.configure(url,"instrumentation-fixture-token",true)}
         compose.waitUntil(10000) {!vm.connecting.value && !vm.preferences.value.demo && vm.connectionStatus.value=="connected"}

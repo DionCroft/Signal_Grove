@@ -30,6 +30,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val tasks=dao.tasks().stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val connectionStatus=MutableStateFlow("demo")
     val capabilities=MutableStateFlow<HermesCapabilities?>(null)
+    val discovery=MutableStateFlow(DiscoveryState())
     private val cachedJobs=scope.flatMapLatest {dao.cachedJobs(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val jobs=cachedJobs.map {rows -> rows.map {it.remote()}}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val jobsFetchedAt=cachedJobs.map {it.maxOfOrNull {j -> j.fetchedAt} ?: 0L}.stateIn(viewModelScope,SharingStarted.Eagerly,0L)
@@ -40,7 +41,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val jobsStatus=MutableStateFlow("idle")
     val error=MutableStateFlow<String?>(null)
     val busy=MutableStateFlow(false)
-    val connecting=MutableStateFlow(false)
+    val connecting=MutableStateFlow(true)
     val runStatus=MutableStateFlow("idle")
     val activity=MutableStateFlow("")
     val controls=selected.flatMapLatest {if(it.isBlank()) flowOf(emptyList()) else dao.controls(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
@@ -54,21 +55,22 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private fun current(context: ConnectionContext)=api===context.client && scope.value==context.partition
     private fun switchingBlocked()=busy.value || connecting.value || jobBusy.value || controlBusy.value
     private var worker: Job?=null
-    init { viewModelScope.launch { dao.recoverControls();dao.recoverJobOperations();val p=graph.preferences.flow.first(); activate(p) } }
+    init {viewModelScope.launch {try {dao.recoverControls();dao.recoverJobOperations();activate(graph.preferences.flow.first())} finally {connecting.value=false}}}
     fun dismissError() { error.value=null }
     private suspend fun activate(p: AppPreferences) {
-        selected.value=""; capabilities.value=null; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
+        selected.value=""; capabilities.value=null;discovery.value=DiscoveryState(); sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
         if(p.demo) {
             api=FakeHermesApiClient(); scope.value="demo"; connectionStatus.value="demo"
             capabilities.value=api.capabilities(); refreshJobs()
         } else {
             connectionStatus.value="offline"; api=UnavailableHermesApiClient()
+            var configured=false
             try {
                 val config=withContext(Dispatchers.IO) {graph.credentials.readConfig(p)} ?: throw IllegalArgumentException("Enter your server connection again.")
-                api=connection.client(config); scope.value=config.scope
+                api=connection.client(config); scope.value=config.scope;configured=true
                 capabilities.value=connection.test(api)
                 connectionStatus.value="connected";loadSessions();refreshJobs()
-            } catch(e: Exception) { scope.value="unconfigured"; error.value=connectionError(e) }
+            } catch(e: Exception) {if(!configured) scope.value="unconfigured";error.value=connectionError(e)}
         }
     }
     fun updatePreferences(p: AppPreferences) { viewModelScope.launch { graph.preferences.update(p) } }
@@ -92,7 +94,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) }
                 val p=old.copy(url=url.trim(),debugHttp=debugHttp,demo=false)
                 graph.preferences.update(p)
-                api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered
+                api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState()
                 connectionStatus.value="connected"; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"; sessionsLoading.value=false; error.value=null
                 loadSessions(); refreshJobs()
             } catch(e: Exception) { error.value=connectionError(e) }
@@ -159,6 +161,20 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             if(selected.value==key) {selected.value="";runStatus.value="idle"}
         } catch(e: Exception) {error.value=connectionError(e)} finally {controlBusy.value=false}
     }}
+    fun refreshDiscovery(resource: DiscoveryResource,force: Boolean=false,fullModelProbe: Boolean=false): Job? {
+        if(connecting.value || resource in discovery.value.loading || (!force && resource in discovery.value.results)) return null
+        if(capabilities.value?.endpoints?.containsKey(resource.endpoint)!=true) return null
+        val operation=context()
+        discovery.value=discovery.value.copy(loading=discovery.value.loading+resource,errors=discovery.value.errors-resource)
+        return viewModelScope.launch {
+            try {
+                val result=operation.client.discovery(resource,fullModelProbe && resource==DiscoveryResource.Models)
+                if(current(operation)) discovery.value=discovery.value.copy(results=discovery.value.results+(resource to result),fetchedAt=discovery.value.fetchedAt+(resource to System.currentTimeMillis()))
+            } catch(e: CancellationException) {throw e}
+            catch(e: Exception) {if(current(operation)) discovery.value=discovery.value.copy(errors=discovery.value.errors+(resource to connectionError(e)))}
+            finally {if(current(operation)) discovery.value=discovery.value.copy(loading=discovery.value.loading-resource)}
+        }
+    }
     fun refreshJobs() {
         if(jobsStatus.value=="loading") return
         val client=api;val partition=scope.value

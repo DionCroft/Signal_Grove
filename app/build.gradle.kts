@@ -11,8 +11,8 @@ android {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 100
-        versionName = "1.0.0"
+        versionCode = 101
+        versionName = "1.1.0-dev"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs.getByName("debug") {

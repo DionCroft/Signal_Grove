@@ -1,4 +1,6 @@
-# Using Hermes Agent Mobile 1.0
+# Using Hermes Agent Mobile
+
+The latest published stable release is 1.0.0. Current development builds are marked `1.1.0-dev`; development-only additions are identified below.
 
 ## Install and migrate
 
@@ -13,6 +15,14 @@ Task files are plain JSON containing titles, notes, completion, priority and dat
 Demo starts enabled and makes no agent/network requests. Try themes, tasks, streaming, the harmless approval/question exercises and simulated job changes. Demo jobs reset on Demo restart; local tasks remain.
 
 For your server, follow [connection setup](HERMES_CONNECTION.md). Use a trusted HTTPS endpoint with bearer auth, preferably behind your private VPN. Retain profile prefixes such as `/p/work/`. Save & test activates settings only after authenticated discovery succeeds. Empty token retains the current credential only for the same server URL. Forget connection removes its vault record; cached chats/tasks remain. A credential can authorize powerful tools on your server.
+
+## Server details (development)
+
+Open Settings → Server details to browse the connection's advertised capabilities, detailed readiness, provider/model catalog, installed skills and API-server toolsets. Tabs explain when an endpoint is not advertised. Refresh failures retain the previous result and timestamp. Switching connections clears the view and discards delayed results from the old server.
+
+The readiness status comes from Hermes, including degraded or unavailable states; HTTP success alone is not a ready status. Model/provider rows include authentication state and supplied warnings. Expand a provider to browse its models and supplied metadata. A normal refresh uses the conservative catalog path. **Refresh all provider models** explicitly asks Hermes to probe saved endpoints and may take longer. The information button explains this distinction. This development chunk displays the catalog; it does not yet change your model or provider.
+
+Skills and toolsets describe what the server reports. Provider/MCP credentials and execution remain on Hermes. Installed skills may include disabled or editorial entries, and an available toolset may still need configuration. Demo entries are local simulation. Scroll the whole details page to read long or multilingual entries.
 
 ## Conversations and decisions
 

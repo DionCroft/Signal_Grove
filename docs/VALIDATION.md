@@ -8,6 +8,8 @@ Approval-storage chunk: 44 JVM tests passed; 13 targeted API 36 tests passed (8 
 
 All-four-defects checkpoint: 46 JVM tests and all 38 connected tests passed on both API 26 and API 36. `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed. The first full reruns exposed existing asynchronous notification/package-selection fixture assumptions; bounded delivery waits and exact package matching corrected those checks, then both complete device suites passed. Cron coverage verifies local oversize rejection, known pre-mutation refusal vs ambiguous HTTP 400, durable receipts, no mutation replay, bounded structured errors and Retry-After. No schema change. Physical hardware and live Hermes checks remain open.
 
+Server-discovery chunk (`1.1.0-dev`): 48 JVM tests and the full 43-test API 36 suite passed. All 8 discovery/isolation cases also passed on API 26 at 130% font scale. English and bilingual/pinyin screenshots were inspected. Tests cover prefixed bearer GETs, explicit full-catalog probes, degraded readiness over HTTP 200, unavailable provider metadata, a delayed old-connection response that is awaited before asserting the new inventory, offline cache activation and startup restoration/configuration races. Build/lint/debug/instrumentation checks passed after correcting a lint indentation finding. Runtime providers, skills and readiness are synthetic fixtures; live-server integration remains unverified.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0
