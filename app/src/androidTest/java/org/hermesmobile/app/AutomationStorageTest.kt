@@ -12,6 +12,26 @@ import org.junit.Test
 
 class AutomationStorageTest {
     private val context get()=InstrumentationRegistry.getInstrumentation().targetContext
+    @Test fun knownValidationRefusalDoesNotBlockCorrectionsButAmbiguous400StillDoes()=runBlocking {
+        val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build()
+        try {
+            okhttp3.mockwebserver.MockWebServer().use {server ->
+                val dao=db.dao();val repo=JobOperationsRepository(dao)
+                val api=OkHttpHermesApiClient(ServerConfig(server.url("/").toString(),"fixture",true),true)
+                val body=JobProtocol.body("Job","Review","daily",true)
+                server.enqueue(okhttp3.mockwebserver.MockResponse().setResponseCode(400).setBody("""{"error":"Prompt must be ≤ 5000 characters"}"""))
+                try {repo.perform(api,"scope","create","",body);fail()} catch(_:HermesHttpException) {}
+                assertTrue(dao.unresolvedOperations("scope").isEmpty())
+                server.enqueue(okhttp3.mockwebserver.MockResponse().setResponseCode(400).setBody("""{"error":"Unknown validation/commit ordering"}"""))
+                try {repo.perform(api,"scope","create","",body);fail()} catch(_:HermesHttpException) {}
+                assertEquals("unknown",dao.unresolvedOperations("scope").single().state)
+                try {repo.perform(api,"scope","create","",body);fail()} catch(_:IllegalArgumentException) {}
+                assertEquals(2,server.requestCount)
+                try {JobProtocol.body("Job","x".repeat(6000),"daily",true);fail()} catch(_:IllegalArgumentException) {}
+                assertEquals(2,server.requestCount)
+            }
+        } finally {db.close()}
+    }
     @Test fun lostJobAcknowledgementIsDurableAndBlocksFurtherMutationsWithoutRetry()=runBlocking {
         val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build()
         try {

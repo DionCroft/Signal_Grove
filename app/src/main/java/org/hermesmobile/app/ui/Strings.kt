@@ -5,6 +5,7 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    JobPromptLimit("Use a prompt of at most 5000 characters.","提示词不得超过 5000 个字符。","Tíshìcí bùdé chāoguò wǔ qiān gè zìfú."),
     ResponseFailed("Response failed · execution unverified","回复失败 · 执行状态未确认","Huífù shībài · zhíxíng zhuàngtài wèi quèrèn"),
     ResponseCancelled("Response cancelled · execution unverified","回复已取消 · 执行状态未确认","Huífù yǐ qǔxiāo · zhíxíng zhuàngtài wèi quèrèn"),
     ResponseIncomplete("Partial response · execution unverified","部分回复 · 执行状态未确认","Bùfèn huífù · zhíxíng zhuàngtài wèi quèrèn"),

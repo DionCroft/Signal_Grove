@@ -6,6 +6,8 @@ Response-history chunk: 44 JVM tests passed; 6 targeted API 36 regressions passe
 
 Approval-storage chunk: 44 JVM tests passed; 13 targeted API 36 tests passed (8 control-storage, 2 recovery, 3 isolation). Required build/lint/APK checks passed. New regressions cover SSE state preservation, generation ordering, tombstones after empty snapshots, concurrent response claims and late acknowledgements. No schema change; existing generation/request IDs remain the decision identity.
 
+All-four-defects checkpoint: 46 JVM tests and all 38 connected tests passed on both API 26 and API 36. `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed. The first full reruns exposed existing asynchronous notification/package-selection fixture assumptions; bounded delivery waits and exact package matching corrected those checks, then both complete device suites passed. Cron coverage verifies local oversize rejection, known pre-mutation refusal vs ambiguous HTTP 400, durable receipts, no mutation replay, bounded structured errors and Retry-After. No schema change. Physical hardware and live Hermes checks remain open.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0

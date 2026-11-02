@@ -16,10 +16,12 @@ data class JobChange(val operation: String,val id: String,val name: String,val b
     var name by remember {mutableStateOf(job?.name.orEmpty())}
     var prompt by remember {mutableStateOf(job?.prompt.orEmpty())}
     var schedule by remember {mutableStateOf("")}
-    val valid=name.isNotBlank() && name.length<=200 && prompt.isNotBlank() && prompt.length<=32000 && schedule.length<=500 && (job!=null || schedule.isNotBlank())
+    val valid=name.isNotBlank() && name.length<=200 && prompt.isNotBlank() && prompt.length<=JobProtocol.MAX_PROMPT_LENGTH && schedule.length<=500 && (job!=null || schedule.isNotBlank())
     AlertDialog(onDismissRequest=dismiss,title={Text(label(if(job==null) Words.NewJob else Words.Edit))},text={Column(Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         OutlinedTextField(name,{name=it},label={Text(label(Words.JobName))},singleLine=true)
         OutlinedTextField(prompt,{prompt=it},label={Text(label(Words.Prompt))},minLines=3,maxLines=8)
+        Text("${prompt.length} / ${JobProtocol.MAX_PROMPT_LENGTH}",style=MaterialTheme.typography.labelSmall)
+        if(prompt.length>JobProtocol.MAX_PROMPT_LENGTH) Text(label(Words.JobPromptLimit),color=MaterialTheme.colorScheme.error)
         if(job!=null) Text(job.schedule)
         OutlinedTextField(schedule,{schedule=it},label={Text(label(if(job==null) Words.Schedule else Words.ReplaceSchedule))},singleLine=true)
         Text(label(Words.ScheduleHelp));Text(label(Words.ManageJobsInfo))

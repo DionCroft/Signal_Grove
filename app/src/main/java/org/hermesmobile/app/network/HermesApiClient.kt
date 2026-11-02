@@ -12,13 +12,40 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class HermesHttpException(val code: Int) : IOException(when (code) {
-    401,403 -> "Authentication failed. Check your token and server permissions."
-    404,405,501 -> "This feature is unavailable on this server."
-    409 -> "The server cannot safely start this turn. Check its session ownership and run status."
-    429 -> "The server is busy. Wait, then check the run status."
-    else -> "The server returned HTTP $code."
-})
+class HermesHttpException(val code: Int,val serverCode: String="",val retryAfterSeconds: Long?=null,
+    val documentedJobRefusal: Boolean=false) : IOException(
+    (if(documentedJobRefusal) "The server refused this job before starting it. Review its fields." else when (code) {
+        401,403 -> "Authentication failed. Check your token and server permissions."
+        404,405,501 -> "This feature is unavailable on this server."
+        409 -> "The server cannot safely start this turn. Check its session ownership and run status."
+        429 -> "The server is busy. Wait, then check the run status."
+        else -> "The server returned HTTP $code."
+    }) + (if(serverCode.isNotBlank()) " ($serverCode)" else "") +
+        (retryAfterSeconds?.let {" Retry after $it seconds."} ?: "")
+) {
+    companion object {
+        fun from(response: Response): HermesHttpException {
+            // Retain bounded machine-readable metadata, never arbitrary server error text or HTML.
+            val payload=runCatching {Json.parseToJsonElement(response.peekBody(16_384).string()).jsonObject}.getOrNull()
+            val error=payload?.get("error")
+            val detail=error as? JsonObject
+            val rawCode=detail?.text("code").orEmpty().ifBlank {payload?.text("code").orEmpty()}
+            val code=rawCode.takeIf {it.matches(Regex("[a-z][a-z0-9_]{0,80}"))}.orEmpty()
+            val retry=response.header("Retry-After")?.let {value ->
+                value.toLongOrNull()?.takeIf {it>=0} ?: runCatching {
+                    java.time.Duration.between(java.time.Instant.now(),java.time.ZonedDateTime.parse(value,java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()).seconds.coerceAtLeast(0)
+                }.getOrNull()
+            }
+            val message=(error as? JsonPrimitive)?.contentOrNull.orEmpty()
+            // These exact /api/jobs guards precede _cron_create/_cron_update in both pinned contracts.
+            // An arbitrary HTTP 400 (including a later ValueError) remains ambiguous.
+            val refused=response.code==400 && message in setOf("Name is required","Name must be ≤ 200 characters",
+                "Schedule is required","Prompt must be ≤ 5000 characters","Repeat must be a positive integer",
+                "No valid fields to update","Invalid job ID format")
+            return HermesHttpException(response.code,code,retry,refused)
+        }
+    }
+}
 fun connectionError(e: Throwable): String = when(e) {
     is HermesHttpException -> e.message.orEmpty()
     is javax.net.ssl.SSLException -> "The server's HTTPS certificate could not be trusted."
@@ -74,7 +101,7 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
             override fun onFailure(call: Call, e: IOException) { if (continuation.isActive) continuation.resumeWith(Result.failure(e)) }
             override fun onResponse(call: Call, response: Response) {
                 val result = runCatching { response.use {
-                    if(!it.isSuccessful) throw HermesHttpException(it.code)
+                    if(!it.isSuccessful) throw HermesHttpException.from(it)
                     require(it.body.contentLength() <= 10_000_000) { "Server response is too large" }
                     val source=it.body.source()
                     val buffer=okio.Buffer()
@@ -171,7 +198,7 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
         val worker = launch(Dispatchers.IO) {
             try {
                 call.execute().use { response ->
-                    if (!response.isSuccessful) throw HermesHttpException(response.code)
+                    if (!response.isSuccessful) throw HermesHttpException.from(response)
                     require(response.header("Content-Type").orEmpty().startsWith("text/event-stream")) { "The server did not return an event stream." }
                     val source = response.body.source()
                     val parser = HermesStreamParser()

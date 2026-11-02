@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased — audit follow-up
+
+Connection/submission isolation for delayed controls and run replies; preserved compatibility assistant history with distinct response outcomes; monotonic approval state and atomic decision claims; verified 5000-character cron prompt limit, known refusal handling and safe structured HTTP error metadata. 46 JVM tests and 38 connected tests each on API 26/36 passed. See docs/AUDIT_FOLLOW_UP.md.
+
 ## 1.0.0 — 2026-11-02
 
 Stable signed community release. Task JSON backup/reviewed migration, strict consent choices and visibility, bounded import parsing, credential/header hardening, current screenshots and user/compatibility/security/signing documentation. 43 unit tests, 30 device cases each on Android 8 and 16, plus large-text/tablet reruns passed. Production install and real file-picker task round-trip verified. See docs/releases/1.0.0.md.

@@ -15,8 +15,9 @@ class JobOperationsRepository(private val dao: HermesDao) {
             api.mutateJob(operation,id,body)
             withContext(NonCancellable) {dao.jobOperationState(receipt.key,"confirmed")}
         } catch(e: Exception) {
-            // An error can arrive after the server committed. Do not automatically repeat any mutation.
-            withContext(NonCancellable) {dao.jobOperationState(receipt.key,"unknown")}
+            // Only contract-verified pre-mutation refusals are definite; never auto-repeat a mutation.
+            val state=if(e is HermesHttpException && e.documentedJobRefusal) "rejected" else "unknown"
+            withContext(NonCancellable) {dao.jobOperationState(receipt.key,state)}
             throw e
         }
     }

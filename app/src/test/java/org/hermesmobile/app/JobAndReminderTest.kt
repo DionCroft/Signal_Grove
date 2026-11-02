@@ -41,6 +41,25 @@ class JobAndReminderTest {
             assertEquals(1,server.requestCount)
         }
     }
+    @Test fun jobPromptsRespectTheVerifiedServerLimit() {
+        assertEquals(5000,JobProtocol.body("Job","x".repeat(5000),"daily",true).text("prompt").length)
+        for(size in listOf(5001,6000)) try {JobProtocol.body("Job","x".repeat(size),"daily",true);fail("Oversized prompt")} catch(_:IllegalArgumentException) {}
+    }
+    @Test fun httpErrorsPreserveStructuredCodesAndRetryAfterWithoutExposingRawMessages()=runBlocking {
+        MockWebServer().use {server ->
+            val api=OkHttpHermesApiClient(ServerConfig(server.url("/").toString(),"fixture",true),true)
+            server.enqueue(MockResponse().setResponseCode(429).setHeader("Retry-After","120").setBody("""{"error":{"code":"rate_limited","message":"private server details"}}"""))
+            try {api.run("r");fail()} catch(e:HermesHttpException) {
+                assertEquals("rate_limited",e.serverCode);assertEquals(120L,e.retryAfterSeconds)
+                assertFalse(e.documentedJobRefusal);assertFalse(e.message!!.contains("private server details"))
+            }
+            server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":"Prompt must be ≤ 5000 characters"}"""))
+            try {api.mutateJob("create","",JobProtocol.body("Job","Review","daily",true));fail()} catch(e:HermesHttpException) {assertTrue(e.documentedJobRefusal)}
+            server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":"Failure after committing a change"}"""))
+            try {api.mutateJob("pause","abcdef123456");fail()} catch(e:HermesHttpException) {assertFalse(e.documentedJobRefusal)}
+            assertEquals(3,server.requestCount)
+        }
+    }
     @Test fun dueRemindersUseLocalCalendarAndIgnoreCompletedOrInvalidDates() {
         val day=LocalDate.of(2026,11,2)
         val rows=listOf(LocalTask("a","Past","2026-11-01"),LocalTask("b","Today","2026-11-02"),LocalTask("c","Future","2026-11-03"),LocalTask("d","Done","2026-11-02",completed=true),LocalTask("e","Invalid","bad"))
