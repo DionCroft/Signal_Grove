@@ -17,6 +17,9 @@ def sources():
         'cron_time':"MIN_GRACE_MINUTES=0\nMAX_GRACE_MINUTES=24*60\n",
         'cron_invariants':"raise RuntimeError('Do not execute upstream')\ndef validate_schedule_knobs():\n    pass\n",
         'cron_scheduler':"raise RuntimeError('Do not execute upstream')\ndef create_job_with_scheduler_registration():\n    return {}\n",
+        'gateway_rpc':"@_scoped_rpc('cron.manage',5023)\ndef _(rid,params):\n    return params\n@method('other')\ndef _(rid,params):\n    return {}\n",
+        'gateway_scope':'','gateway_runtime':'','gateway_ws':'','chat_ws':"@router.websocket('/api/ws')\nasync def gateway_ws(ws):\n    pass\n",
+        'chat_auth':'','ws_boundary':"_GATEWAY_WS_PROTOCOL='hermes-gateway-v1'\n_GATEWAY_WS_TICKET_PROTOCOL_PREFIX='hermes-gateway-ticket.'\n",'ws_tickets':'TTL_SECONDS=30\n','cron_tool':'','cron_format':'',
         'skills':"@router.get('/api/skills')\ndef get_skills():\n    return []\n",
         'skills_config':'', 'skill_usage':'', 'skill_manager':'', 'skill_catalog':'',
         'skill_utils':"ESSENTIAL_SKILLS:frozenset=frozenset({'hermes-agent'})\n",
@@ -39,6 +42,27 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_reviewed_handler_variant_is_exact_and_requires_pinned_evidence(self):
+        old=checker.extract(sources());changed=sources();changed['mcp']=changed['mcp'].replace("return {'ok':True}","return {'ok':False}");new=checker.extract(changed)
+        tracked=baseline(old);key='mcp:set_mcp_server_enabled'
+        tracked['reviewed_handler_variants']={key:[{'sha256':new['handlers'][key],'commit':'c'*40,'reason':'Synthetic review fixture'}]}
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':new})['mobile_review_required'])
+        changed['mcp']=changed['mcp'].replace("return {'ok':False}","return {'ok':None}")
+        self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+        for field,value in [('commit','main'),('sha256','*'),('reason',''),('reason',None),('sha256',None)]:
+            invalid=copy.deepcopy(tracked);invalid['reviewed_handler_variants'][key][0][field]=value
+            with self.assertRaises(ValueError):checker.compare(invalid,{'commit':'b'*40,'contract':new})
+
+    def test_named_rpc_handlers_do_not_collapse_to_the_last_underscore_function(self):
+        old=checker.extract(sources());self.assertIn('gateway_rpc:rpc:cron.manage',old['handlers']);self.assertIn('gateway_rpc:rpc:other',old['handlers'])
+        self.assertIn('WEBSOCKET /api/ws',old['management_routes'])
+        self.assertIn('ws_boundary:_GATEWAY_WS_PROTOCOL',old['handlers']);self.assertIn('ws_tickets:TTL_SECONDS',old['handlers'])
+        tracked=baseline(old);tracked['mobile_used_handlers'].append('gateway_rpc:rpc:cron.manage')
+        changed=sources();changed['gateway_rpc']=changed['gateway_rpc'].replace('return params','return {}')
+        self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+        changed=sources();changed['gateway_rpc']=changed['gateway_rpc'].replace("'cron.manage'","'renamed'")
+        self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_skill_routes_and_essential_exclusions_are_tracked_without_execution(self):
         old=checker.extract(sources());self.assertIn('GET /api/skills',old['management_routes'])
         tracked=baseline(old);tracked['mobile_used_management_routes'].append('GET /api/skills');tracked['mobile_used_handlers'].append('skill_utils:ESSENTIAL_SKILLS')

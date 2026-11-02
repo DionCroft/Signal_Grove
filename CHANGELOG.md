@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Explicitly reviewed gateway schedule reads through single-use ticket authentication, exact profile proof and non-reconnecting bounded JSON-RPC.
+
 - Reviewed installed-skill availability and curator lock controls, plain-text SKILL.md inspection, essential-skill protection and scoped durable receipts.
 
 - Reviewed advanced schedule creation with an explicit paused-schema gate, typed runtime/automation fields, preserved empty toolset allowlists and cron-specific durable receipt observation.

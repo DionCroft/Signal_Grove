@@ -29,6 +29,7 @@ import org.hermesmobile.app.data.*
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    var gateway by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var hostSkills by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var hostCron by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var oauth by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedMcpOAuth?>(null)}
@@ -61,6 +62,7 @@ import org.hermesmobile.app.data.*
                     if(s.profile.isNotBlank()) item {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
                     if(s.profile.isNotBlank()) item {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
                     if(s.profile.isNotBlank()) item {TextButton({catalog=true;vm.loadCatalog()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("mcp-catalog-open")) {Text(label(Words.McpCatalog))}}
+                    if(s.profile.isNotBlank()) item {TextButton({gateway=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("gateway-cron-open")) {Text(label(Words.GatewayAutomation))}}
                     if(s.profile.isNotBlank()) item {TextButton({hostSkills=true;vm.loadHostSkills()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-skills-open")) {Text(label(Words.HostSkills))}}
                     if(s.profile.isNotBlank()) item {TextButton({hostCron=true;vm.loadHostCron()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-cron-open")) {Text(label(Words.HostCron))}}
                     if(s.loaded && s.servers.isEmpty()) item {Text(label(Words.EmptyInventory))}
@@ -92,6 +94,7 @@ import org.hermesmobile.app.data.*
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    if(gateway) GatewayAutomationDialog(vm,s) {vm.cancel();gateway=false}
     if(hostSkills) HostSkillsDialog(vm,s) {vm.cancel();vm.closeSkillContent();hostSkills=false}
     if(hostCron) HostCronDialog(vm,s) {vm.cancel();vm.closeHostCronDetail();hostCron=false}
     oauth?.let {frozen ->McpOAuthStartReview(frozen,!s.busy,{oauth=null}) {vm.startOAuth(frozen);oauth=null}}

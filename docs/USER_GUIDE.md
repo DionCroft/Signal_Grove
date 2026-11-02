@@ -118,3 +118,8 @@ In **Management → Advanced schedules → Create paused schedule**, supply a na
 ### Inspect and manage installed skills
 
 In **Settings → Hermes management**, sign in, verify the listener and choose a profile. Open **Installed skill controls** to read skill text or review changes to availability and curator edit locks. Unknown host flags leave the corresponding controls unavailable; Hermes' essential skill cannot be disabled. A curator lock affects its background editing policy, while your own edits remain allowed. Accepted configuration and existing work are separate: these controls do not stop a run. Read current configuration from a skill receipt to inspect skills again without replaying a change. See [management behavior](MANAGEMENT.md#installed-skill-controls).
+
+
+### Inspect the gateway's schedules
+
+In verified Hermes management, open **Gateway schedule inspection** and choose **Read gateway schedules**. Review the selected listener/profile/actor and connection effect before confirming. The connection may initialize configured MCP processes on the host. The view includes paused schedules and requires the gateway to prove the selected profile; an older/unproven gateway remains unavailable. The read does not change schedules or start an agent turn. Scheduler readiness and prompt previews are labelled as host reports. Advanced schedules continues to provide the separate full dashboard configuration view and paused creation.

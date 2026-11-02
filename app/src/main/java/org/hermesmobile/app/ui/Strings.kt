@@ -439,6 +439,14 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     SkillToggleEffect("Changes profile skill availability for future prompt loading. It does not uninstall files, revoke tool access or stop existing work.","更改此配置后续提示加载的技能可用性。不会卸载文件、撤销工具权限或停止现有工作。","Gēnggǎi cǐ pèizhì hòuxù tíshì jiāzài de jìnéng kěyòngxìng. Bú huì xièzài wénjiàn, chèxiāo gōngjù quánxiàn huò tíngzhǐ xiànyǒu gōngzuò."),
     SkillLockEffect("Sets the host curator/background-review edit lock. Your own edits remain allowed. This is not a general file permission, skill disable or tool-access restriction.","设置主机整理器和后台审阅的编辑锁。您自己的编辑仍被允许。这不是通用文件权限，不会禁用技能或限制工具访问。","Shèzhì zhǔjī zhěnglǐqì hé hòutái shěnyuè de biānjí suǒ. Nín zìjǐ de biānjí réng bèi yǔnxǔ. Zhè bú shì tōngyòng wénjiàn quánxiàn, bú huì jìnyòng jìnéng huò xiànzhì gōngjù fǎngwèn."),
     SkillChanged("Skill configuration acknowledged and observed. Existing work may continue.","技能配置已确认并读取验证。现有工作可能继续。","Jìnéng pèizhì yǐ quèrèn bìng dúqǔ yànzhèng. Xiànyǒu gōngzuò kěnéng jìxù."),
+    GatewayAutomation("Gateway schedule inspection","网关计划检查","Wǎngguān jìhuà jiǎnchá"),
+    GatewayLoad("Read gateway schedules","读取网关计划","Dúqǔ wǎngguān jìhuà"),
+    GatewayConnectionEffect("Opens the dashboard gateway connection for this profile. Connecting may initialize configured MCP host processes. Reads include paused schedules; they do not submit an agent turn or change a schedule.","为此配置打开控制台网关连接。连接可能初始化已配置的 MCP 主机进程。读取包括已暂停的计划；不会提交智能体回合或更改计划。","Wèi cǐ pèizhì dǎkāi kòngzhìtái wǎngguān liánjiē. Liánjiē kěnéng chūshǐhuà yǐ pèizhì de MCP zhǔjī jìnchéng. Dúqǔ bāokuò yǐ zàntíng de jìhuà; bú huì tíjiāo zhìnéngtǐ huíhé huò gēnggǎi jìhuà."),
+    GatewayScopeUnsupported("The gateway did not prove this explicit profile scope or returned an unsupported contract. Use the Hermes dashboard.","网关未证明此明确配置范围，或返回了不支持的协议。请使用 Hermes 控制台。","Wǎngguān wèi zhèngmíng cǐ míngquè pèizhì fànwéi, huò fǎnhuí le bù zhīchí de xiéyì. Qǐng shǐyòng Hermes kòngzhìtái."),
+    GatewaySchedulerReported("Host reports the scheduler gateway is running. This does not prove a job ran.","主机报告调度网关正在运行。这不能证明任务已运行。","Zhǔjī bàogào diàodù wǎngguān zhèngzài yùnxíng. Zhè bù néng zhèngmíng rènwù yǐ yùnxíng."),
+    GatewaySchedulerUnavailable("Host reports no running scheduler gateway. Saved schedules may not fire.","主机报告没有运行中的调度网关。已保存的计划可能不会触发。","Zhǔjī bàogào méiyǒu yùnxíng zhōng de diàodù wǎngguān. Yǐ bǎocún de jìhuà kěnéng bú huì chùfā."),
+    GatewaySchedulerUnknown("Scheduler gateway readiness was not established.","尚未确定调度网关是否就绪。","Shàngwèi quèdìng diàodù wǎngguān shìfǒu jiùxù."),
+    GatewayPromptPreview("Prompt preview reported by the gateway","网关报告的提示预览","Wǎngguān bàogào de tíshì yùlǎn"),
     Dismiss("Dismiss","关闭提示","Guānbì tíshì"), Loading("Loading…","正在加载…","Zhèngzài jiāzài…")
 }
 val LocalPreferences=staticCompositionLocalOf { AppPreferences() }

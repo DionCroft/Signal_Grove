@@ -11,6 +11,9 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
+data class ReviewedGatewayRead(val target:ManagementTarget,val generation:Long)
+data class GatewayAutomationState(val inventory:GatewayCronInventory?=null)
+
 data class ReviewedSkillAction(val target:ManagementTarget,val request:SkillRequest,val generation:Long)
 data class HostSkillState(val rows:List<ManagedSkill> = emptyList(),val loaded:Boolean=false,val contentName:String="",val content:String?=null)
 
@@ -27,7 +30,7 @@ data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:
 
 data class ManagementState(val apiScope:String="",val url:String="",val debugHttp:Boolean=false,val signedIn:Boolean=false,
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
-    val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
+    val gateway:GatewayAutomationState=GatewayAutomationState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
@@ -46,6 +49,10 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is GatewayScopeUnproven->Words.GatewayScopeUnsupported
+        is GatewayProtocolException->Words.GatewayScopeUnsupported
+        is GatewayRpcException->Words.GatewayScopeUnsupported
+        is GatewayUnavailable->Words.ManagementInterrupted
         is SkillReviewChanged->Words.ManagementReviewChanged
         is SkillReadbackPending->Words.ManagementReadbackPending
         is CronCreationUnsupported->Words.HostCronCreateUnsupported
@@ -88,11 +95,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
-        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         val api=client(current)
         val pending=withContext(Dispatchers.IO) {NativeLogin()};login=pending
         try {
@@ -119,14 +126,14 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val identity=api.identity(current);val profiles=api.profiles(current)
         if(id!=generation) return@operation
         val profile=saved.profile.takeIf {name->profiles.any {it.name==name}}.orEmpty()
-        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         if(profile.isNotBlank()) loadServers(id,api,current,profile)
     }
     fun chooseProfile(profile:String)=operation {id ->
         val saved=state.value;require(saved.identity!=null && saved.profiles.any {it.name==profile}) {"Refresh verified management profiles first."}
         val current=tokens ?: error("Sign in to management first.")
         require(current.expiresAt>System.currentTimeMillis()/1000) {"Management sign-in expired. Renew it or sign in again."}
-        val selected=saved.copy(profile=profile,skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val selected=saved.copy(profile=profile,gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         save(selected,current)
         if(id!=generation) return@operation
         state.value=selected;loadServers(id,client(selected),current,profile)
@@ -139,6 +146,15 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val saved=state.value;val identity=saved.identity ?: return null
         if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
         return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,identity.provider+" · "+identity.userId)
+    }
+    fun prepareGatewayRead():ReviewedGatewayRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedGatewayRead(it,generation)}
+    fun loadGatewayCron(review:ReviewedGatewayRead) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
+            val inventory=api.gateway(current).use {GatewayCronInventory.parse(it.cronList(review.target.profile),review.target.profile)}
+            if(id==generation) state.value=state.value.copy(gateway=GatewayAutomationState(inventory))
+        }
     }
     fun loadHostSkills()=operation {id ->
         val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")

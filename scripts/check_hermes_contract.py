@@ -39,6 +39,16 @@ EXTRA_SOURCES = {
     'cron_time': 'cron/jobs_time.py',
     'cron_invariants': 'cron/jobs_invariants.py',
     'cron_scheduler': 'cron/scheduler.py',
+    'gateway_rpc': 'tui_gateway/methods_tools.py',
+    'gateway_scope': 'tui_gateway/model_switch.py',
+    'gateway_runtime': 'tui_gateway/server.py',
+    'gateway_ws': 'tui_gateway/ws.py',
+    'chat_ws': 'hermes_cli/web_routers/chat_ws.py',
+    'chat_auth': 'hermes_cli/web_server_chat.py',
+    'ws_boundary': 'hermes_cli/web_server_boundary.py',
+    'ws_tickets': 'hermes_cli/dashboard_auth/ws_tickets.py',
+    'cron_tool': 'tools/cronjob_tools.py',
+    'cron_format': 'tools/cronjob_job_args.py',
     'skills': 'hermes_cli/web_routers/skills.py',
     'skills_config': 'hermes_cli/skills_config.py',
     'skill_usage': 'tools/skill_usage.py',
@@ -48,7 +58,7 @@ EXTRA_SOURCES = {
     'web_bootstrap': 'hermes_cli/web_server.py',
     'models': 'hermes_cli/web_models.py',
 }
-MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills'}
+MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws'}
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -76,6 +86,10 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
+            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets'):
+                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'}}[source]
+                for target in node.targets:
+                    if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':
                 handlers[f'{source}:{node.target.id}'] = fingerprint(node)
             elif source == 'cron_jobs' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == '_CREATE_FIELD_NORMALIZERS':
@@ -86,6 +100,13 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 if normalized.body and isinstance(normalized.body[0], ast.Expr) and isinstance(normalized.body[0].value, ast.Constant) and isinstance(normalized.body[0].value.value, str):
                     normalized.body = normalized.body[1:]
                 handlers[f'{source}:{prefix}{node.name}'] = fingerprint(normalized)
+                # RPC modules intentionally name many handlers `_`; preserve their public method identity.
+                if source == 'gateway_rpc' and not prefix:
+                    for decorator in node.decorator_list:
+                        if (isinstance(decorator,ast.Call) and isinstance(decorator.func,ast.Name)
+                                and decorator.func.id in ('_scoped_rpc','_rpc','method') and decorator.args
+                                and isinstance(decorator.args[0],ast.Constant) and isinstance(decorator.args[0].value,str)):
+                            handlers[f'{source}:rpc:{decorator.args[0].value}'] = fingerprint(normalized)
     visit(tree.body)
     return handlers, fields
 
@@ -156,7 +177,7 @@ def extract(source: dict[str, str]) -> dict:
                     if not isinstance(decorator, ast.Call) or not isinstance(decorator.func, ast.Attribute) or not decorator.args:
                         continue
                     method, path = decorator.func.attr.upper(), decorator.args[0]
-                    if method in ('GET', 'POST', 'PATCH', 'PUT', 'DELETE') and isinstance(path, ast.Constant) and isinstance(path.value, str) and path.value.startswith('/'):
+                    if method in ('GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'WEBSOCKET') and isinstance(path, ast.Constant) and isinstance(path.value, str) and path.value.startswith('/'):
                         management_routes.add(f'{method} {path.value}')
     # FastAPI supplies this route implicitly; detect only a reviewed literal/default.
     applications=[node for node in ast.walk(trees['web_bootstrap']) if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=='FastAPI']
@@ -205,8 +226,20 @@ def compare(baseline: dict, current: dict) -> dict:
     relevant = {'removed_used_routes': sorted(set(removed) & used), 'changed_used_flags': {key: value for key, value in flags.items() if key in baseline['mobile_used_static_flags']}, 'changed_job_constraints': constraints, 'removed_used_job_update_fields': sorted((set(old['job_update_fields']) & set(baseline['mobile_used_job_update_fields'])) - set(new['job_update_fields']))}
     removed_management = sorted(set(old.get('management_routes', []))-set(new.get('management_routes', [])))
     relevant['removed_used_management_routes'] = sorted(set(removed_management) & set(baseline.get('mobile_used_management_routes', [])))
+    variants=baseline.get('reviewed_handler_variants',{})
+    if not isinstance(variants,dict):raise ValueError('Invalid reviewed handler variants')
+    accepted={}
+    for key,entries in variants.items():
+        if key not in baseline.get('mobile_used_handlers',[]) or not isinstance(entries,list):raise ValueError('Invalid reviewed handler variant target')
+        accepted[key]=set()
+        for entry in entries:
+            if (not isinstance(entry,dict) or not isinstance(entry.get('sha256'),str) or not re.fullmatch(r'[a-f0-9]{64}',entry['sha256'])
+                    or not isinstance(entry.get('commit'),str) or not re.fullmatch(r'[a-f0-9]{40}',entry['commit'])
+                    or not isinstance(entry.get('reason'),str) or not entry['reason'].strip()):
+                raise ValueError('Incomplete reviewed handler variant evidence')
+            accepted[key].add(entry['sha256'])
     relevant['changed_used_handlers'] = {key: {'before': old.get('handlers', {}).get(key), 'after': new.get('handlers', {}).get(key)}
-        for key in baseline.get('mobile_used_handlers', []) if old.get('handlers', {}).get(key) != new.get('handlers', {}).get(key)}
+        for key in baseline.get('mobile_used_handlers', []) if old.get('handlers', {}).get(key) != new.get('handlers', {}).get(key) and new.get('handlers', {}).get(key) not in accepted.get(key,set())}
     relevant['changed_used_request_fields'] = {key: {'before': old.get('request_fields', {}).get(key), 'after': new.get('request_fields', {}).get(key)}
         for key in baseline.get('mobile_used_request_fields', []) if old.get('request_fields', {}).get(key) != new.get('request_fields', {}).get(key)}
     return {'baseline_commit': baseline['upstream']['commit'], 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs only; transitive helper changes, runtime feature gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}

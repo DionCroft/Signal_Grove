@@ -57,6 +57,14 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun gateway(tokens:ManagementTokens):GatewayRpcSession {
+        val response=json("api/auth/ws-ticket",tokens.access,JsonObject(emptyMap()))
+        val ticket=response["ticket"] as? JsonPrimitive
+        val ttl=response["ttl_seconds"] as? JsonPrimitive
+        require(ticket!=null && ticket.isString && ttl!=null && !ttl.isString && ttl.intOrNull in 1..120) {"Invalid gateway ticket."}
+        dns.checkHost(base.host)
+        return GatewayRpcSession.connect(http,base,ticket.content)
+    }
     suspend fun skills(tokens:ManagementTokens,profile:String):JsonArray {SkillProtocol.profile(profile);return element("api/skills",tokens.access,profile=profile).jsonArray}
     suspend fun skillContent(tokens:ManagementTokens,profile:String,name:String):JsonObject {SkillProtocol.profile(profile);require(SkillProtocol.name(name));return element("api/skills/content",tokens.access,profile=profile,query=mapOf("name" to name)).jsonObject}
     suspend fun skillControl(tokens:ManagementTokens,profile:String,request:SkillRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/"+if(request.action==SkillAction.Toggle) "toggle" else "lock",tokens.access,request.body(profile),profile,method="PUT")}
