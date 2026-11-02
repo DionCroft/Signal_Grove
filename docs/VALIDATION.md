@@ -52,6 +52,8 @@ Fresh runtime-classpath follow-up: [the next Linux check](https://github.com/Dio
 
 Metadata-closure follow-up: [the next Linux pass](https://github.com/DionCroft/hermes-agent-android/actions/runs/41525947617) reached KSP and refused the missing Guava parent 33.2.1-jre POM. A bounded traversal of existing component descriptors and referenced cached parents/BOMs found 272 additional metadata files. All matched canonical publisher HTTPS copies; all 244 available SHA-256 sidecars matched. Only POM/module hashes were added, every existing hash was preserved, and no binary versions changed. The resulting baseline contains 495 components/1071 artifacts. Local policy/offline/build checks and the subsequent hosted results are verified separately.
 
+Hosted maintenance closure: [run 41527686477](https://github.com/DionCroft/hermes-agent-android/actions/runs/41527686477), commit `f63d0b4`, passed strict Linux debug/release build, JVM/lint/instrumentation checks, checksum policy and offline script tests, then complete fresh API 26 (90 cases) and API 37 (91 cases) suites. Job logs confirm both positive counts. The exact-ID Demo job fixture correction passed remotely; no case was ignored or retried automatically. The SDK package checks and 495-component/1071-artifact baseline worked on Linux without metadata generation or relaxed verification. The prior failed attempts above remain recorded as evidence. This verifies hosted execution for that commit, distinct from subsequent app changes and physical/live-provider behavior.
+
 The 1.0.0 results and APK hashes below describe that released build, not the current development APK.
 
 # Released validation — 1.0.0
