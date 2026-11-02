@@ -34,6 +34,21 @@ class PreferenceStore(context: Context) {
     private val runtimes=stringPreferencesKey("runtime_choices")
     val flow = store.data.map { p -> AppPreferences(p[theme] ?: "LAVENDER", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f),p[notify] ?: false,p[monitor] ?: false,p[automation].orEmpty(),p[runtimes] ?: "{}") }
     suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp;it[localSpeech]=p.onDeviceSpeechOnly;it[networkSpeech]=p.allowNetworkSpeech;it[rate]=p.speechRate.coerceIn(.75f,1.25f);it[notify]=p.notifications;it[monitor]=p.monitorRuns;it[automation]=p.automationScope } }
+    suspend fun patchUserSettings(next: AppPreferences,base: AppPreferences) {store.edit {p ->
+        if(next.theme!=base.theme) p[theme]=next.theme
+        if(next.chinese!=base.chinese) p[chinese]=next.chinese
+        if(next.pinyin!=base.pinyin) p[pinyin]=next.pinyin
+        if(next.reducedMotion!=base.reducedMotion) p[motion]=next.reducedMotion
+        if(next.onDeviceSpeechOnly!=base.onDeviceSpeechOnly) p[localSpeech]=next.onDeviceSpeechOnly
+        if(next.allowNetworkSpeech!=base.allowNetworkSpeech) p[networkSpeech]=next.allowNetworkSpeech
+        if(next.speechRate!=base.speechRate) p[rate]=next.speechRate.coerceIn(.75f,1.25f)
+        if(next.notifications!=base.notifications) p[notify]=next.notifications
+        if(next.monitorRuns!=base.monitorRuns) p[monitor]=next.monitorRuns
+        if(next.automationScope!=base.automationScope) p[automation]=next.automationScope
+    }}
+    suspend fun connection(urlValue: String?=null,demoValue: Boolean?=null,httpValue: Boolean?=null) {store.edit {p ->
+        urlValue?.let {p[url]=it};demoValue?.let {p[demo]=it};httpValue?.let {p[http]=it}
+    }}
     suspend fun runtime(scope: String,choice: RuntimeChoice) {
         val fields=choice.fields();require(scope.isNotBlank())
         store.edit {p ->

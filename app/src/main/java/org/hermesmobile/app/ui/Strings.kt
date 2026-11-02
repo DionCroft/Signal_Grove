@@ -5,6 +5,23 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    SessionControls("Session controls","会话控制","Huìhuà kòngzhì"),
+    SessionIdentity("Session ID","会话标识","Huìhuà biāozhì"),
+    SessionMetadata("Server session snapshot","服务器会话快照","Fúwùqì huìhuà kuàizhào"),
+    LockModel("Lock the requested model for this session","为此会话锁定请求的模型","Wèi cǐ huìhuà suǒdìng qǐngqiú de móxíng"),
+    LockModelInfo("The server stores this model lock for later turns. It overrides per-request model choices. Clearing a request override does not clear the lock; change it on Hermes or apply another confirmed lock.","服务器会为后续请求保存此模型锁，并优先于每次请求的模型设置。清除请求覆盖设置不会清除锁，请在 Hermes 上修改或重新确认另一个锁。","Fúwùqì huì wèi hòuxù qǐngqiú bǎocún cǐ móxíng suǒ, bìng yōuxiān yú měi cì qǐngqiú de móxíng shèzhì. Qīngchú qǐngqiú fùgài shèzhì bú huì qīngchú suǒ, qǐng zài Hermes shàng xiūgǎi huò chóngxīn quèrèn lìng yí gè suǒ."),
+    ChooseLockModel("Choose a concrete requested model in Models and providers first.","请先在模型与提供商中选择具体模型。","Qǐng xiān zài móxíng yǔ tígōngshāng zhōng xuǎnzé jùtǐ móxíng."),
+    LastLockAck("Last acknowledged session lock","上次确认的会话锁","Shàng cì quèrèn de huìhuà suǒ"),
+    ForkSession("Branch this session","分支此会话","Fēnzhī cǐ huìhuà"),
+    ForkInfo("Hermes creates a child session, marks the original as branched, and copies its history. The child uses a new mobile conversation identity. Review the result on Hermes if acknowledgement is lost; this action is never automatically repeated.","Hermes 会创建子会话，将原会话标记为已分支并复制历史记录。子会话使用新的移动端对话身份。如果确认丢失，请在 Hermes 上检查结果，此操作不会自动重复。","Hermes huì chuàngjiàn zǐ huìhuà, jiāng yuán huìhuà biāojì wéi yǐ fēnzhī bìng fùzhì lìshǐ jìlù. Zǐ huìhuà shǐyòng xīn de yídòngduān duìhuà shēnfèn. Rúguǒ quèrèn diūshī, qǐng zài Hermes shàng jiǎnchá jiéguǒ, cǐ cāozuò bú huì zìdòng chóngfù."),
+    SteerRun("Guide the running agent","指导运行中的代理","Zhǐdǎo yùnxíng zhōng de dàilǐ"),
+    SteerInfo("Send additional instructions to this running agent. Acceptance confirms delivery, not execution or completion. It does not stop tools or start a separate run.","向此运行中的代理发送补充指令。接受仅确认已送达，不代表已执行或完成。这不会停止工具或启动独立运行。","Xiàng cǐ yùnxíng zhōng de dàilǐ fāsòng bǔchōng zhǐlìng. Jiēshòu jǐn quèrèn yǐ sòngdá, bù dàibiǎo yǐ zhíxíng huò wánchéng. Zhè bú huì tíngzhǐ gōngjù huò qǐdòng dúlì yùnxíng."),
+    SteerDelivered("Guidance delivered; awaiting server run status.","指令已送达，等待服务器运行状态。","Zhǐlìng yǐ sòngdá, děngdài fúwùqì yùnxíng zhuàngtài."),
+    Guidance("Additional instructions","补充指令","Bǔchōng zhǐlìng"),
+    ReviewServerOutcome("Review the uncertain server operation before continuing.","请先检查不确定的服务器操作结果。","Qǐng xiān jiǎnchá bù quèdìng de fúwùqì cāozuò jiéguǒ."),
+    ServerOutcomeReview("I reviewed the result on Hermes. Clear this local uncertainty marker without sending or repeating the operation.","我已在 Hermes 上检查结果。清除此本地不确定标记，不发送或重复操作。","Wǒ yǐ zài Hermes shàng jiǎnchá jiéguǒ. Qīngchú cǐ běndì bù quèdìng biāojì, bù fāsòng huò chóngfù cāozuò."),
+    SessionBusyInfo("Check pending execution before locking or branching this session. Guidance is available only while the server reports running.","锁定或分支此会话前，请先检查未完成的执行。仅当服务器报告正在运行时可发送指导。","Suǒdìng huò fēnzhī cǐ huìhuà qián, qǐng xiān jiǎnchá wèi wánchéng de zhíxíng. Jǐn dāng fúwùqì bàogào zhèngzài yùnxíng shí kě fāsòng zhǐdǎo."),
+
     RunStatus("Run status","运行状态","Yùnxíng zhuàngtài"),
     RunIdentity("Run ID","运行标识","Yùnxíng biāozhì"),
     Disabled("Disabled","已禁用","Yǐ jìnyòng"),

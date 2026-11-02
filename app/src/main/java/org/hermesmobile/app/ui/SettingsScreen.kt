@@ -52,7 +52,7 @@ import org.hermesmobile.app.BuildConfig
         BackgroundSettings(vm)
         Word(Words.Appearance)
         HermesTheme.entries.forEach { t ->
-            Surface(Modifier.fillMaxWidth().clickable {vm.updatePreferences(p.copy(theme=t.name))},color=t.background,shape=RoundedCornerShape(t.radius.dp),border=BorderStroke(if(p.theme==t.name) 2.dp else 1.dp,t.button)) {
+            Surface(Modifier.fillMaxWidth().clickable {vm.updatePreferences(p.copy(theme=t.name),p)},color=t.background,shape=RoundedCornerShape(t.radius.dp),border=BorderStroke(if(p.theme==t.name) 2.dp else 1.dp,t.button)) {
                 Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     Text(t.title,color=t.ink,style=MaterialTheme.typography.titleLarge)
                     Text(label(Words.Preview),color=t.ink,style=MaterialTheme.typography.labelMedium)
@@ -62,10 +62,10 @@ import org.hermesmobile.app.BuildConfig
         }
         HermesCard {
             Word(Words.Language)
-            Toggle(Words.Chinese,p.chinese) {vm.updatePreferences(p.copy(chinese=it))}
-            Toggle(Words.Pinyin,p.pinyin,p.chinese) {vm.updatePreferences(p.copy(pinyin=it))}
+            Toggle(Words.Chinese,p.chinese) {vm.updatePreferences(p.copy(chinese=it),p)}
+            Toggle(Words.Pinyin,p.pinyin,p.chinese) {vm.updatePreferences(p.copy(pinyin=it),p)}
         }
-        HermesCard {Word(Words.Accessibility);Toggle(Words.ReducedMotion,p.reducedMotion) {vm.updatePreferences(p.copy(reducedMotion=it))}}
+        HermesCard {Word(Words.Accessibility);Toggle(Words.ReducedMotion,p.reducedMotion) {vm.updatePreferences(p.copy(reducedMotion=it),p)}}
         HermesCard {
             Word(Words.About)
             Text(label(Words.AboutBody).replace("{version}",BuildConfig.VERSION_NAME),style=MaterialTheme.typography.bodySmall)

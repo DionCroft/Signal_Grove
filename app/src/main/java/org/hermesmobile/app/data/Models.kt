@@ -52,7 +52,8 @@ data class Conversation(
     @ColumnInfo(defaultValue = "''") val admissionId: String = "",
     @ColumnInfo(defaultValue = "NULL") val executionGeneration: Long? = null,
     @ColumnInfo(defaultValue = "''") val channelKey: String = "",
-    @ColumnInfo(defaultValue = "''") val pendingRequestHash: String = ""
+    @ColumnInfo(defaultValue = "''") val pendingRequestHash: String = "",
+    @ColumnInfo(defaultValue = "''") val detailsJson: String = ""
 )
 fun Conversation.sameSubmission(other: Conversation,allowAdmission: Boolean=false): Boolean =
     key==other.key && scope==other.scope && pendingKey==other.pendingKey && pendingAt==other.pendingAt &&
@@ -74,6 +75,9 @@ data class PendingControl(@PrimaryKey val key: String, val sessionKey: String, v
 }
 @Entity(tableName="job_operations",indices=[Index("scope")])
 data class JobOperation(@PrimaryKey val key: String,val scope: String,val operation: String,val jobId: String,val state: String,val createdAt: Long)
+@Entity(tableName="server_operations",indices=[Index("scope"),Index("sessionKey")])
+data class ServerOperation(@PrimaryKey val key: String,val scope: String,val sessionKey: String,val action: String,val target: String,
+    val requestJson: String,val state: String,val responseJson: String,val createdAt: Long)
 @Entity(tableName="notification_receipts")
 data class NotificationReceipt(@PrimaryKey val key: String,val createdAt: Long)
 object RunStates {
@@ -87,6 +91,23 @@ object RunStates {
 }
 
 @Dao interface HermesDao {
+    @Query("SELECT * FROM server_operations WHERE scope=:scope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END, createdAt DESC LIMIT 100") fun serverOperations(scope: String): Flow<List<ServerOperation>>
+    @Query("SELECT * FROM server_operations WHERE scope=:scope AND state IN ('sending','unknown')") suspend fun unresolvedServerOperations(scope: String): List<ServerOperation>
+    @Insert suspend fun insert(operation: ServerOperation)
+    @Transaction suspend fun claimServerOperation(receipt: ServerOperation) {
+        require(unresolvedServerOperations(receipt.scope).isEmpty()) {"Review the uncertain previous server operation before continuing."}
+        insert(receipt)
+    }
+    @Query("UPDATE server_operations SET state='unknown' WHERE state='sending'") suspend fun recoverServerOperations()
+    @Query("UPDATE server_operations SET state=:state,responseJson=:response WHERE `key`=:key AND state IN ('sending','unknown')") suspend fun finishServerOperation(key: String,state: String,response: String)
+    @Query("UPDATE server_operations SET state='reviewed' WHERE `key`=:key AND scope=:scope AND state='unknown'") suspend fun reviewServerOperation(key: String,scope: String)
+    @Query("DELETE FROM server_operations WHERE sessionKey=:key") suspend fun deleteServerOperations(key: String)
+    @Query("DELETE FROM server_operations") suspend fun clearServerOperations()
+    @Transaction suspend fun saveSessionDetails(expected: Conversation,details: JsonObject) {
+        val current=conversation(expected.key) ?: return
+        if(current.scope!=expected.scope || current.remoteId!=expected.remoteId) return
+        save(current.copy(detailsJson=details.toString()))
+    }
     @Query("SELECT * FROM job_operations WHERE scope=:scope AND state IN ('sending','unknown') ORDER BY createdAt DESC") fun jobOperations(scope: String): Flow<List<JobOperation>>
     @Query("SELECT * FROM job_operations WHERE scope=:scope AND state IN ('sending','unknown')") suspend fun unresolvedOperations(scope: String): List<JobOperation>
     @Upsert suspend fun save(operation: JobOperation)
@@ -108,7 +129,7 @@ object RunStates {
     }
     @Query("DELETE FROM messages WHERE sessionKey = :key") suspend fun deleteMessages(key: String)
     @Query("DELETE FROM sessions WHERE `key` = :key") suspend fun deleteSession(key: String)
-    @Transaction suspend fun deleteConversation(key: String) { deleteMessages(key); deleteEvents(key); deleteControls(key); deleteSession(key) }
+    @Transaction suspend fun deleteConversation(key: String) { deleteMessages(key); deleteEvents(key); deleteControls(key); deleteServerOperations(key); deleteSession(key) }
     @Query("SELECT * FROM tool_events WHERE sessionKey = :key ORDER BY receivedAt DESC LIMIT 200") fun events(key: String): Flow<List<ToolEvent>>
     @Upsert suspend fun save(event: ToolEvent)
     @Query("DELETE FROM tool_events WHERE sessionKey = :key") suspend fun deleteEvents(key: String)
@@ -151,7 +172,7 @@ object RunStates {
         val previous=conversation(receipt.key)
         require(previous==null || (previous.scope==receipt.scope && previous.status in (RunStates.terminal+"idle"))) {"The previous turn must settle first."}
         require(receipt.pendingRequestHash.isNotBlank()) {"Save the exact request before admitting a turn."}
-        save(if(previous==null) receipt else receipt.copy(title=previous.title,pinned=previous.pinned,hidden=previous.hidden,syncedAt=previous.syncedAt))
+        save(if(previous==null) receipt else receipt.copy(title=previous.title,pinned=previous.pinned,hidden=previous.hidden,syncedAt=previous.syncedAt,detailsJson=previous.detailsJson))
         save(user);save(assistant)
     }
     @Transaction suspend fun recordAdmission(expected: Conversation,run: String): Conversation {
@@ -183,7 +204,7 @@ object RunStates {
         val current=conversation(receipt.key) ?: return
         if(!current.sameSubmission(receipt,allowAdmission=true) || (receipt.lastEventSeq>=0 && current.lastEventSeq>receipt.lastEventSeq)) return
         if(current.status in RunStates.terminal && receipt.status !in RunStates.terminal) return
-        save(receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt))
+        save(receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt,detailsJson=current.detailsJson))
         save(message)
         if(control!=null && control.runId==receipt.runId) mergeControl(control)
         if(event!=null) save(event)
@@ -215,7 +236,7 @@ object RunStates {
     @Query("DELETE FROM sessions") suspend fun clearSessions()
     @Query("DELETE FROM tool_events") suspend fun clearEvents()
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
-    @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearSessions() }
+    @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class], version = 5, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class], version = 6, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

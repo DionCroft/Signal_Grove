@@ -16,6 +16,7 @@ class HermesSessionRepository(val dao: HermesDao) {
         return page
     }
     suspend fun importMessages(api: HermesApiClient, session: Conversation) {
+        if(session.transport=="compat") return
         if(session.status !in (RunStates.terminal+"idle")) return
         val history=api.history(session.remoteId)
         val rows=history.rows.mapIndexed { index,m ->

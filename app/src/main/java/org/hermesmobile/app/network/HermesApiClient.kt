@@ -56,6 +56,8 @@ fun connectionError(e: Throwable): String = when(e) {
 }
 interface HermesApiClient {
     suspend fun discovery(resource: DiscoveryResource,refreshModels: Boolean=false): JsonObject {throw UnsupportedOperationException("Server discovery is unavailable.")}
+    suspend fun sessionDetails(id: String): JsonObject {throw UnsupportedOperationException("Session details are unavailable.")}
+    suspend fun sessionAction(action: SessionAction,target: String,body: JsonObject): JsonObject {throw UnsupportedOperationException("This server operation is unavailable.")}
     suspend fun capabilities(): HermesCapabilities
     suspend fun sessions(): List<RemoteSession>
     suspend fun sessionPage(offset: Int = 0, limit: Int = 50): SessionPage = SessionPage(sessions().drop(offset).take(limit),offset+limit,false)
@@ -137,6 +139,12 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
         } while(true)
         return rows.distinctBy {it.id}
     }
+    override suspend fun sessionDetails(id: String): JsonObject = json("api/sessions/${segment(id)}").let {it["session"] as? JsonObject ?: throw IllegalArgumentException("Session metadata is incomplete.")}.also {require(it.text("id")==id) {"The server returned another session."}}
+    override suspend fun sessionAction(action: SessionAction,target: String,body: JsonObject): JsonObject {
+        SessionProtocol.validate(action,target,body)
+        val path=when(action) {SessionAction.Lock->"api/sessions/${segment(target)}/model";SessionAction.Fork->"api/sessions/${segment(target)}/fork";SessionAction.Steer->"v1/runs/${segment(target)}/steer"}
+        return json(path,body)
+    }
     override suspend fun renameSession(id: String,title: String) {
         require(title.isNotBlank() && title.length<=200)
         json("api/sessions/${segment(id)}",buildJsonObject {put("title",title)},method="PATCH")
@@ -188,7 +196,7 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     }
     override suspend fun submitRun(session: String,input: String,key: String)=submitRun(buildJsonObject {put("session_id",session);put("input",input)},key,"")
     override suspend fun submitRun(body: JsonObject,key: String,channelKey: String) = json("v1/runs",body,key,channelKey=channelKey).text("run_id").also {require(it.isNotBlank()) {"The server did not return a run identifier."}}
-    override suspend fun run(id: String) = json("v1/runs/${segment(id)}")
+    override suspend fun run(id: String) = json("v1/runs/${segment(id)}").also {require(it.text("run_id").ifBlank {id}==id) {"The server returned another run identity."}}
     override suspend fun stop(id: String) { json("v1/runs/${segment(id)}/stop", buildJsonObject {}) }
     override suspend fun approve(approval: Approval,choice: String) {
         respondControl(ControlRequest(approval.runId,approval.requestId,approval.generation,"approval",approval.description,approval.choices).stored(""),choice)

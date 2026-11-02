@@ -37,7 +37,7 @@ import org.hermesmobile.app.data.Conversation
                         Row {
                             IconButton({vm.pinConversation(c.key)}) {Icon(Icons.Outlined.PushPin,label(Words.Pin))}
                             IconButton({vm.hideConversation(c.key)}) {Icon(Icons.Outlined.VisibilityOff,label(Words.Hide))}
-                            IconButton({renaming=c},enabled=!loading && (p.demo || caps?.sessions!=true || caps?.endpoints?.containsKey("session_update")==true)) {Icon(Icons.Outlined.Edit,label(Words.Rename))}
+                            IconButton({renaming=c},enabled=!loading && (p.demo || c.transport=="compat" || caps?.sessions!=true || caps?.endpoints?.containsKey("session_update")==true)) {Icon(Icons.Outlined.Edit,label(Words.Rename))}
                             IconButton({deleting=c},enabled=!loading) {Icon(Icons.Outlined.DeleteOutline,label(Words.Delete))}
                         }
                         HorizontalDivider()
@@ -54,7 +54,7 @@ import org.hermesmobile.app.data.Conversation
             confirmButton={TextButton({vm.renameConversation(c.key,title);renaming=null},enabled=title.isNotBlank() && title.length<=200) {Text(label(Words.Save))}},dismissButton={TextButton({renaming=null}) {Text(label(Words.Cancel))}})
     }
     deleting?.let {c ->
-        val remote=!p.demo && caps?.sessions==true
+        val remote=!p.demo && c.transport!="compat" && caps?.sessions==true
         val allowed=!remote || caps?.endpoints?.containsKey("session_delete")==true
         AlertDialog(onDismissRequest={deleting=null},title={Text(label(if(remote) Words.DeleteServer else Words.DeleteLocal))},text={Text(c.title+"\n\n"+label(Words.DeleteSessionConfirm))},
             confirmButton={TextButton({vm.deleteConversation(c.key,remote);deleting=null},enabled=allowed && (c.status in HermesViewModel.terminal || c.status=="idle")) {Text(label(Words.Delete))}},dismissButton={TextButton({deleting=null}) {Text(label(Words.Cancel))}})

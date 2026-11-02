@@ -27,14 +27,14 @@ import org.hermesmobile.app.background.*
     HermesCard {
         Word(Words.Notifications);Text(label(Words.NotificationInfo))
         Button({
-            if(p.notifications) vm.updatePreferences(p.copy(notifications=false))
+            if(p.notifications) vm.updatePreferences(p.copy(notifications=false),p)
             else if(Build.VERSION.SDK_INT>=33 && !BackgroundChecks.permitted(context)) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            else if(BackgroundChecks.permitted(context)) vm.updatePreferences(p.copy(notifications=true))
+            else if(BackgroundChecks.permitted(context)) vm.updatePreferences(p.copy(notifications=true),p)
             else permissionBlocked=true
         }) {Text(label(if(p.notifications) Words.DisableNotifications else Words.EnableNotifications))}
         if(permissionBlocked || (p.notifications && !BackgroundChecks.permitted(context))) Text(label(Words.PermissionNeeded))
         TextButton({context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,context.packageName))}) {Text(label(Words.NotificationSettings))}
-        Row(Modifier.fillMaxWidth()) {Text(label(Words.MonitorRuns),Modifier.weight(1f));Switch(p.monitorRuns,{vm.updatePreferences(p.copy(monitorRuns=it))},enabled=p.notifications)}
+        Row(Modifier.fillMaxWidth()) {Text(label(Words.MonitorRuns),Modifier.weight(1f));Switch(p.monitorRuns,{vm.updatePreferences(p.copy(monitorRuns=it),p)},enabled=p.notifications)}
         TextButton({BackgroundChecks.checkNow(context);queued=true},enabled=p.notifications && BackgroundChecks.permitted(context)) {Text(label(Words.CheckNow))}
         if(queued) Text(label(Words.CheckQueued))
     }

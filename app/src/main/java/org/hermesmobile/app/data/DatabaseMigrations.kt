@@ -4,6 +4,15 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_5_TO_6=object:Migration(5,6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE sessions ADD COLUMN detailsJson TEXT NOT NULL DEFAULT ''")
+            db.execSQL("CREATE TABLE IF NOT EXISTS server_operations (`key` TEXT NOT NULL, scope TEXT NOT NULL, sessionKey TEXT NOT NULL, action TEXT NOT NULL, target TEXT NOT NULL, requestJson TEXT NOT NULL, state TEXT NOT NULL, responseJson TEXT NOT NULL, createdAt INTEGER NOT NULL, PRIMARY KEY(`key`))")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_server_operations_scope ON server_operations(scope)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_server_operations_sessionKey ON server_operations(sessionKey)")
+        }
+    }
+
     val FROM_4_TO_5=object:Migration(4,5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE sessions ADD COLUMN channelKey TEXT NOT NULL DEFAULT ''")
@@ -42,4 +51,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6)

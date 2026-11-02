@@ -65,7 +65,7 @@ import java.time.format.DateTimeFormatter
             Word(Words.Chat,Modifier.weight(1f))
             IconButton({runtimePicker=true},enabled=!busy && !controlling && !connecting) {Icon(Icons.Outlined.Tune,label(Words.Models))}
             IconButton({history=true},enabled=!busy && !controlling) { Icon(Icons.Outlined.History,label(Words.History)) }
-            IconButton(vm::refreshHistory,enabled=!busy && !controlling && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
+            if(current?.transport!="compat") IconButton(vm::refreshHistory,enabled=!busy && !controlling && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
             IconButton(vm::newChat,enabled=!busy && !controlling) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
         }
         if(busy || historyLoading || controlling) QuietProgress()
@@ -79,6 +79,7 @@ import java.time.format.DateTimeFormatter
         if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Box(Modifier.weight(1f)) {RunControls(vm,compact=true)}
+            SessionControls(vm)
             if(status!="idle") IconButton({statusDetails=true}) {Icon(if(status=="completed") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(statusWord(status)))}
             if(status !in HermesViewModel.terminal && status!="idle" && (LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true))) IconButton(vm::stop,enabled=!controlling) {Icon(Icons.Outlined.StopCircle,label(Words.Stop))}
             if(!busy && status !in setOf("completed","idle","response_finished")) IconButton(vm::retryOrRefresh,enabled=!controlling) {Icon(Icons.Outlined.Refresh,label(Words.CheckRun))}

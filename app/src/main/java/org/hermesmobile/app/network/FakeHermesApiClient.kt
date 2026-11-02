@@ -11,15 +11,33 @@ import java.util.concurrent.ConcurrentHashMap
 open class FakeHermesApiClient : HermesApiClient {
     private data class DemoRun(val id: String,var status: String="running",var output: String="",var control: ControlRequest?=null,val answer: CompletableDeferred<String> = CompletableDeferred())
     private val runs=ConcurrentHashMap<String,DemoRun>()
+    private val sessionMetadata=ConcurrentHashMap<String,JsonObject>()
     override suspend fun capabilities() = HermesCapabilities("Demo",buildJsonObject {
-        put("session_resources",true);put("session_chat",true);put("session_chat_streaming",true);put("run_stop",true);put("run_status",true);put("run_approval_response",true)
-    },buildJsonObject {DiscoveryResource.entries.forEach {put(it.endpoint,buildJsonObject {put("method","GET");put("path","/"+it.path)})}})
+        put("session_resources",true);put("session_chat",true);put("session_chat_streaming",true);put("run_stop",true);put("run_status",true);put("run_approval_response",true);put("session_model_lock",true);put("session_fork",true);put("run_steer",true)
+    },buildJsonObject {
+        SessionAction.entries.forEach {put(it.endpoint,buildJsonObject {put("method","POST");put("path",when(it) {SessionAction.Lock->"/api/sessions/{session_id}/model";SessionAction.Fork->"/api/sessions/{session_id}/fork";SessionAction.Steer->"/v1/runs/{run_id}/steer"})})}
+        put("session",buildJsonObject {put("method","GET");put("path","/api/sessions/{session_id}")})
+        DiscoveryResource.entries.forEach {put(it.endpoint,buildJsonObject {put("method","GET");put("path","/"+it.path)})}})
     override suspend fun discovery(resource: DiscoveryResource,refreshModels: Boolean): JsonObject = Json.parseToJsonElement(when(resource) {
         DiscoveryResource.Readiness -> """{"status":"ready","version":"Demo fixture","gateway_state":"simulated","active_agents":0,"readiness":{"status":"ready"}}"""
         DiscoveryResource.Models -> """{"model":"demo-model","provider":"demo","providers":[{"slug":"demo","name":"Demo · local simulation","authenticated":true,"models":["demo-model"],"capabilities":{"demo-model":{"reasoning":false}},"pricing":{}}]}"""
         DiscoveryResource.Skills -> """{"data":[{"name":"demo-reflection","description":"A sample skill entry. No skill executes in Demo.","category":"Demo","disabled":false}]}"""
         DiscoveryResource.Toolsets -> """{"data":[{"name":"demo","label":"Demo tools","description":"Simulated activity only; no server tools run.","enabled":false,"configured":false,"tools":["demo_note"]}]}"""
     }).jsonObject
+    override suspend fun sessionDetails(id:String)=JsonObject(buildJsonObject {put("id",id);put("source","api_server");put("model","demo-model");put("message_count",0);put("preview","Demo metadata only")}+sessionMetadata[id].orEmpty())
+    override suspend fun sessionAction(action:SessionAction,target:String,body:JsonObject):JsonObject {
+        SessionProtocol.validate(action,target,body)
+        return when(action) {
+            SessionAction.Lock->buildJsonObject {put("object","hermes.session.model_lock");put("session_id",target);put("runtime",buildJsonObject {put("model",body.text("model"));put("provider",body.text("provider"));put("route_source","demo");put("model_lock","accepted")})}
+            SessionAction.Fork->{
+                val child=buildJsonObject {put("id",body.text("id"));put("parent_session_id",target);put("title",body.text("title"));put("source","api_server")}
+                sessionMetadata[body.text("id")]=child
+                sessionMetadata[target]=JsonObject(sessionMetadata[target].orEmpty()+mapOf("end_reason" to JsonPrimitive("branched")))
+                buildJsonObject {put("session",child)}
+            }
+            SessionAction.Steer->{require(runs[target]?.status=="running") {"The Demo run is no longer running."};buildJsonObject {put("object","hermes.run.steer");put("run_id",target);put("accepted",true)}}
+        }
+    }
     override suspend fun sessions() = emptyList<RemoteSession>()
     override suspend fun createSession(id:String,title:String)=RemoteSession(id,title)
     override suspend fun messages(id:String)=emptyList<RemoteMessage>()

@@ -39,7 +39,7 @@ import java.time.format.DateTimeFormatter
     LazyColumn(Modifier.testTag("job-list").fillMaxSize().padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp),contentPadding=PaddingValues(vertical=16.dp)) {
         item {Word(Words.Automation,heading=true)}
         item {Text(label(Words.ManageJobsInfo))}
-        item {Row {Text(label(Words.ManageJobs),Modifier.weight(1f));Switch(enabled,{vm.updatePreferences(prefs.copy(automationScope=if(it) profile else ""))},enabled=!jobBusy)}}
+        item {Row {Text(label(Words.ManageJobs),Modifier.weight(1f));Switch(enabled,{vm.updatePreferences(prefs.copy(automationScope=if(it) profile else ""),prefs)},enabled=!jobBusy)}}
         if(enabled) item {Button({editing=null;editor=true},enabled=state=="ready" && !jobBusy && receipts.isEmpty()) {Text(label(Words.NewJob))}}
         if(jobBusy) item {QuietProgress()}
         receipts.forEach {receipt -> item(key=receipt.key) {HermesCard {

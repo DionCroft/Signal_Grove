@@ -23,6 +23,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private val scope=MutableStateFlow("demo")
     val profileScope: StateFlow<String> get()=scope.asStateFlow()
     val jobBusy=MutableStateFlow(false)
+    val serverOperations=scope.flatMapLatest {dao.serverOperations(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
+    val sessionDetailsLoading=MutableStateFlow(false)
     val jobOperations=scope.flatMapLatest {dao.jobOperations(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val selected=MutableStateFlow("")
     val conversations=scope.flatMapLatest { dao.conversations(it) }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
@@ -56,10 +58,10 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private fun current(context: ConnectionContext)=api===context.client && scope.value==context.partition
     private fun switchingBlocked()=busy.value || connecting.value || jobBusy.value || controlBusy.value
     private var worker: Job?=null
-    init {viewModelScope.launch {try {dao.recoverControls();dao.recoverJobOperations();activate(graph.preferences.flow.first())} finally {connecting.value=false}}}
+    init {viewModelScope.launch {try {dao.recoverControls();dao.recoverJobOperations();dao.recoverServerOperations();activate(graph.preferences.flow.first())} finally {connecting.value=false}}}
     fun dismissError() { error.value=null }
     private suspend fun activate(p: AppPreferences) {
-        selected.value=""; capabilities.value=null;discovery.value=DiscoveryState(); sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
+        selected.value=""; capabilities.value=null;discovery.value=DiscoveryState();sessionDetailsLoading.value=false; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
         if(p.demo) {
             api=FakeHermesApiClient(); scope.value="demo"; connectionStatus.value="demo"
             capabilities.value=api.capabilities(); refreshJobs()
@@ -74,11 +76,11 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             } catch(e: Exception) {if(!configured) scope.value="unconfigured";error.value=connectionError(e)}
         }
     }
-    fun updatePreferences(p: AppPreferences) { viewModelScope.launch { graph.preferences.update(p) } }
+    fun updatePreferences(p: AppPreferences,base: AppPreferences=preferences.value) {viewModelScope.launch {graph.preferences.patchUserSettings(p,base)}}
     fun setDemo(enabled: Boolean) {
         if(switchingBlocked()) return
         connecting.value=true
-        viewModelScope.launch { try {val p=preferences.value.copy(demo=enabled); graph.preferences.update(p); activate(p)} finally {connecting.value=false} }
+        viewModelScope.launch { try {graph.preferences.connection(demoValue=enabled);activate(graph.preferences.flow.first())} finally {connecting.value=false} }
     }
     fun configure(url: String, token: String, debugHttp: Boolean) {
         if(switchingBlocked()) return
@@ -93,9 +95,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val candidate=connection.client(config)
                 val discovered=connection.test(candidate)
                 withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) }
-                val p=old.copy(url=url.trim(),debugHttp=debugHttp,demo=false)
-                graph.preferences.update(p)
-                api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState()
+                graph.preferences.connection(urlValue=config.url,demoValue=false,httpValue=debugHttp)
+                api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState();sessionDetailsLoading.value=false
                 connectionStatus.value="connected"; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"; sessionsLoading.value=false; error.value=null
                 loadSessions(); refreshJobs()
             } catch(e: Exception) { error.value=connectionError(e) }
@@ -143,7 +144,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun renameConversation(key: String,title: String) {if(switchingBlocked() || title.isBlank()) return;val operation=context();controlBusy.value=true;viewModelScope.launch {
         try {
             val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
-            if(c.scope!="demo" && capabilities.value?.sessions==true) {
+            if(c.scope!="demo" && c.transport!="compat" && capabilities.value?.sessions==true) {
                 require(capabilities.value?.endpoints?.containsKey("session_update")==true) {"This server does not advertise session renaming."}
                 operation.client.renameSession(c.remoteId,title.trim())
             }
@@ -155,6 +156,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
             require(c.status in terminal || c.status=="idle") {"Check the pending run before deleting this conversation."}
             if(server) {
+                require(c.transport!="compat") {"This compatibility conversation has no verified server session identity."}
                 require(capabilities.value?.endpoints?.containsKey("session_delete")==true) {"Server conversation deletion is unavailable."}
                 operation.client.deleteSession(c.remoteId)
             }
@@ -163,6 +165,47 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             if(selected.value==key) {selected.value="";runStatus.value="idle"}
         } catch(e: Exception) {error.value=connectionError(e)} finally {controlBusy.value=false}
     }}
+    fun refreshSessionDetails(expected: Conversation) {
+        if(sessionDetailsLoading.value || expected.transport=="compat" || expected.scope!=scope.value || connecting.value || capabilities.value?.endpoints?.containsKey("session")!=true) return
+        val operation=context();sessionDetailsLoading.value=true
+        viewModelScope.launch {
+            try {
+                val result=operation.client.sessionDetails(expected.remoteId)
+                require(result.text("id")==expected.remoteId)
+                if(current(operation)) dao.saveSessionDetails(expected,JsonObject(SessionProtocol.sessionSnapshot(result,expected.remoteId)+mapOf("_fetched_at" to JsonPrimitive(System.currentTimeMillis()))))
+            } catch(e: CancellationException) {throw e}
+            catch(e: Exception) {if(current(operation)) error.value=connectionError(e)}
+            finally {if(current(operation)) sessionDetailsLoading.value=false}
+        }
+    }
+    fun reviewServerOutcome(key: String) {if(controlBusy.value) return;val partition=scope.value;viewModelScope.launch {dao.reviewServerOperation(key,partition)}}
+    fun sessionAction(expected: Conversation,action: SessionAction,body: JsonObject) {
+        if(connecting.value || controlBusy.value || jobBusy.value || (busy.value && action!=SessionAction.Steer)) return
+        if(expected.scope!=scope.value || capabilities.value?.endpoints?.containsKey(action.endpoint)!=true || capabilities.value?.has(action.endpoint)!=true) {error.value=Words.NotAdvertised.localized(preferences.value);return}
+        val operation=context();controlBusy.value=true
+        viewModelScope.launch {
+            try {
+                val c=dao.conversation(expected.key) ?: return@launch
+                require(c.transport!="compat") {"This compatibility conversation is stored locally; its server session identity is not verified."}
+                require(c.sameSubmission(expected) && c.remoteId==expected.remoteId && c.key==selected.value) {"Select and review the current conversation first."}
+                val target=if(action==SessionAction.Steer) c.runId else c.remoteId
+                if(action==SessionAction.Steer) {
+                    require(c.runId.isNotBlank() && operation.client.run(c.runId).text("status")=="running") {"The run no longer accepts steering."}
+                    require(dao.conversation(c.key)?.sameSubmission(c)==true) {"This run changed while checking its state."}
+                } else require(c.status in (RunStates.authoritativeTerminal+"idle")) {"Check the previous execution on Hermes before changing this session."}
+                val ack=SessionOperationsRepository(dao).perform(operation.client,c,action,target,body)
+                if(action==SessionAction.Fork) {
+                    val remote=ack["session"]!!.jsonObject
+                    val child=Conversation("${c.scope}:${remote.text("id")}",c.scope,remote.text("id"),remote.text("title"),
+                        channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "",detailsJson=remote.toString())
+                    dao.save(child);selected.value=child.key;runStatus.value="idle"
+                    try {if(c.scope=="demo") dao.saveMessages(dao.history(c.key).map {it.copy(id="branch_${child.key}_${it.id}",sessionKey=child.key)}) else sessionRepo.importMessages(operation.client,child)} catch(e: Exception) {error.value=connectionError(e)}
+                } else if(action==SessionAction.Steer) activity.value=Words.SteerDelivered.localized(preferences.value)
+            } catch(e: CancellationException) {throw e}
+            catch(e: Exception) {if(current(operation)) error.value=connectionError(e)}
+            finally {controlBusy.value=false}
+        }
+    }
     fun chooseRuntime(expectedScope: String,choice: RuntimeChoice) {
         if(busy.value || connecting.value || controlBusy.value || expectedScope!=scope.value) return
         try {choice.validate()} catch(e: Exception) {error.value=connectionError(e);return}
@@ -245,17 +288,18 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             error.value=null; activity.value=""
             var receipt:Conversation?=null
             try {
+                require(dao.unresolvedServerOperations(scope.value).isEmpty()) {Words.ReviewServerOutcome.localized(preferences.value)}
                 var c=selected.value.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }
+                val transport=when {c?.transport=="compat"->"compat";preferences.value.demo->"demo";capabilities.value?.sessions==true && capabilities.value?.runs==true->"runs";capabilities.value?.nativeStream==true->"session";else->"compat"}
                 if(c == null) {
                     val id="api_mobile_${UUID.randomUUID().toString().replace("-","")}"
-                    val remote=if(capabilities.value?.sessions==true) api.createSession(id,text.take(60)) else RemoteSession(id,text.take(60))
+                    val remote=if(transport!="compat" && capabilities.value?.sessions==true) api.createSession(id,text.take(60)) else RemoteSession(id,text.take(60))
                     c=Conversation("${scope.value}:${remote.id}",scope.value,remote.id,remote.title,
                         channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "")
                     dao.save(c); selected.value=c.key
                 }
                 val key=UUID.randomUUID().toString()
-                val transport=when { preferences.value.demo -> "demo"; capabilities.value?.sessions==true && capabilities.value?.runs==true -> "runs"; capabilities.value?.nativeStream==true -> "session"; else -> "compat" }
                 c=c.copy(pendingInput=text,pendingKey=key,pendingAt=System.currentTimeMillis(),transport=transport,runId="",status="submitting",lastEventSeq=-1,admissionId="",executionGeneration=null,updatedAt=System.currentTimeMillis())
                 val user=ChatMessage("${key}_user",c.key,"user",text)
                 val requested=RuntimeChoice.saved(graph.preferences.flow.first().runtimeChoices,c.scope)
@@ -427,7 +471,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }}
     fun forgetServer() { if(switchingBlocked()) return; connecting.value=true; viewModelScope.launch {try {
         withContext(Dispatchers.IO) { graph.credentials.clear() }
-        val p=preferences.value.copy(url="",demo=true,debugHttp=false); graph.preferences.update(p); activate(p)
+        graph.preferences.connection(urlValue="",demoValue=true,httpValue=false);activate(graph.preferences.flow.first())
     } finally {connecting.value=false} } }
     companion object { val terminal=RunStates.terminal }
 }

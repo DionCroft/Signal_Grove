@@ -100,7 +100,7 @@ import java.util.UUID
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp),horizontalAlignment=Alignment.CenterHorizontally) {
         Word(Words.Voice,Modifier.fillMaxWidth(),heading=true);Text(label(Words.VoiceInfo))
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            Text(label(Words.LocalSpeech),Modifier.weight(1f));Switch(p.onDeviceSpeechOnly,{vm.updatePreferences(p.copy(onDeviceSpeechOnly=it))},enabled=state=="idle" && !speaking)
+            Text(label(Words.LocalSpeech),Modifier.weight(1f));Switch(p.onDeviceSpeechOnly,{vm.updatePreferences(p.copy(onDeviceSpeechOnly=it),p)},enabled=state=="idle" && !speaking)
         }
         if(recognizer==null) Text(label(if(p.onDeviceSpeechOnly) Words.LocalSpeechUnavailable else Words.VoiceUnavailable))
         Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -118,10 +118,10 @@ import java.util.UUID
         if(!p.onDeviceSpeechOnly) Text(label(Words.VoiceDisclosure),style=MaterialTheme.typography.bodySmall)
         HorizontalDivider()
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            Text(label(Words.NetworkSpeech),Modifier.weight(1f));Switch(p.allowNetworkSpeech,{vm.updatePreferences(p.copy(allowNetworkSpeech=it))},enabled=!speaking)
+            Text(label(Words.NetworkSpeech),Modifier.weight(1f));Switch(p.allowNetworkSpeech,{vm.updatePreferences(p.copy(allowNetworkSpeech=it),p)},enabled=!speaking)
         }
         Text(label(Words.SpeechRate)+" · "+"%.2f×".format(p.speechRate))
-        Slider(p.speechRate,{vm.updatePreferences(p.copy(speechRate=it))},valueRange=.75f..1.25f,enabled=!speaking)
+        Slider(p.speechRate,{vm.updatePreferences(p.copy(speechRate=it),p)},valueRange=.75f..1.25f,enabled=!speaking)
         Button({
             if(speaking) {utterancePrefix="stopped";tts.stop();speaking=false}
             else try {
