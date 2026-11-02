@@ -1,0 +1,10 @@
+{
+  "packageCount": 150,
+  "advisoryMatches": 0,
+  "findings": [],
+  "auditedOn": "2026-11-02",
+  "provider": "OSV",
+  "api": "https://api.osv.dev/v1/querybatch",
+  "completeResponses": 150,
+  "scope": "Resolved releaseRuntimeClasspath Maven components including BOM/metadata; excludes build tools, OS and a full native/APK SBOM."
+}

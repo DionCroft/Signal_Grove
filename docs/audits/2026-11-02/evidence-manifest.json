@@ -1,0 +1,11 @@
+{
+  "app_commit": "50030c00034d2c496a2c4b57c821e4f1b0de1d7b",
+  "probe_source_sha256": "0100be28d41bbf9fd2661c930d652f9550daff7de565dc6057a0143276dd4c55",
+  "probe_result_sha256": "64e40803c3f8d7f448e8ad4b993b00e82f330ff11cd239c0033bc360fe748d00",
+  "upstream_stable": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+  "upstream_main": "0aab6dcf8b7869acbab06507c34881b53036c09a",
+  "diagnostic_cases": 4,
+  "checker_cases": 5,
+  "advisory_coordinates": 150,
+  "advisory_matches": 0
+}

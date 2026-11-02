@@ -1,0 +1,17 @@
+{
+  "decision_tests": 5,
+  "passed": true,
+  "cases": [
+    "unchanged supported stable",
+    "used route removed",
+    "unused route removed",
+    "job limit changed",
+    "used job update field removed"
+  ],
+  "live_main_removed_routes": [
+    "GET /v1/artifacts/download/{artifact_id}",
+    "GET /v1/browser-control/ws",
+    "POST /v1/artifacts/upload",
+    "POST /v1/browser-control/register"
+  ]
+}

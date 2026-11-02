@@ -1,0 +1,428 @@
+{
+  "audited_on": "2026-11-02",
+  "sources": {
+    "app": {
+      "version": "1.0.0",
+      "commit": "50030c00034d2c496a2c4b57c821e4f1b0de1d7b"
+    },
+    "upstream_stable": {
+      "version": "v0.22.5",
+      "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e"
+    },
+    "upstream_main": {
+      "commit": "0aab6dcf8b7869acbab06507c34881b53036c09a"
+    },
+    "official_docs": "https://hermes-agent.nousresearch.com/docs/",
+    "dashboard_api_note": "The stable dashboard documentation also lists MCP management; dashboard auth/port/profile contract is distinct from the API-server bearer interface."
+  },
+  "product_code_changed": false,
+  "findings": [
+    {
+      "id": "HAM-A001",
+      "priority": "P1",
+      "status": "confirmed_fixture_reproduction",
+      "title": "An in-flight run control can move to a different connection",
+      "locations": [
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/ui/HermesViewModel.kt",
+          "line": 75
+        },
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/ui/HermesViewModel.kt",
+          "line": 303
+        },
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/ui/HermesViewModel.kt",
+          "line": 340
+        }
+      ],
+      "trigger": "Hold the status read for an unknown-run acknowledgement on A, save/test connection B, then release the A response.",
+      "observed": "The resolve-unknown POST goes to B with B credentials but A run/admission identity; a subsequent B status response is written into the A conversation. The probe uses cloned run identities, representing overlapping/cloned deployments. No A bearer token is sent to B.",
+      "expected": "The complete operation stays bound to the original immutable connection/profile and receipt identity; unrelated connection changes cannot redirect it.",
+      "probe": "changingConnectionDuringUnknownAcknowledgementSendsControlToTheNewProfile",
+      "fix": "Pin connection/client/scope for the whole operation, gate connection changes while controls are busy, and reject stale asynchronous context writes. Audit all select/detail/reconcile paths under the same rule."
+    },
+    {
+      "id": "HAM-A002",
+      "priority": "P1",
+      "status": "confirmed_fixture_reproduction",
+      "title": "Compatibility-mode follow-up requests lose assistant history",
+      "locations": [
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/ui/HermesViewModel.kt",
+          "line": 238
+        },
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/network/HermesStreamParser.kt",
+          "line": 30
+        }
+      ],
+      "trigger": "Complete one OpenAI-compatible streaming answer, then send a follow-up referring to that answer.",
+      "observed": "The assistant answer is saved with response_finished, but the next HTTP request includes only the two user messages. The history filter retains assistant rows only when their status is completed.",
+      "expected": "A completed response remains eligible for conversational context without treating response completion as proof of server tool/run completion.",
+      "probe": "compatibilityFollowUpActuallyOmitsThePreviousAssistantAnswer",
+      "fix": "Separate response/history eligibility from authoritative execution outcome. Preserve completed and policy-approved partial assistant text; test wire history over multiple compatibility turns."
+    },
+    {
+      "id": "HAM-A003",
+      "priority": "P2",
+      "status": "confirmed_storage_reproduction",
+      "title": "A delayed SSE prompt resets protected decision states",
+      "locations": [
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/data/Models.kt",
+          "line": 120
+        },
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/data/Models.kt",
+          "line": 128
+        }
+      ],
+      "trigger": "Persist an unknown or resolved control, then save a delayed stream update containing that same prompt.",
+      "observed": "saveTurn unconditionally upserts the incoming pending row. Both unknown and resolved states become pending. replaceControls has protective merge logic, but the SSE path bypasses it.",
+      "expected": "GET snapshots and SSE events share a transactional, generation-aware monotonic state merge.",
+      "probe": "delayedStreamPromptResurrectsUnknownAndResolvedControlRows",
+      "fix": "Centralize control merging; preserve unknown/responding/resolved for the same generation except an explicitly authorized refresh transition. Retain exact server verification before decisions. This probe does not establish a server-side approval bypass."
+    },
+    {
+      "id": "HAM-A004",
+      "priority": "P2",
+      "status": "confirmed_source_contract_and_http_fixture",
+      "title": "Job prompt validation exceeds the upstream REST limit",
+      "locations": [
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/network/JobProtocol.kt",
+          "line": 11
+        },
+        {
+          "file": "app/src/main/java/org/hermesmobile/app/data/JobOperationsRepository.kt",
+          "line": 20
+        }
+      ],
+      "upstream_limits": {
+        "mobile_utf16_limit": 32000,
+        "upstream_prompt_limit": 5000,
+        "stable_source_line": 3776,
+        "main_source_line": 3282
+      },
+      "trigger": "Review/create a job with a 6000-character ASCII prompt.",
+      "observed": "The mobile validator accepts it; both pinned upstream API implementations limit cron prompts to 5000. A matching HTTP-400 fixture causes an unknown receipt that blocks subsequent mutations pending human review.",
+      "expected": "Known supported limits are enforced before submission; documented definite pre-admission refusals are distinguishable from ambiguous delivery.",
+      "probe": "jobPromptAcceptedByMobileButRejectedByServerIsRecordedAsUncertain",
+      "fix": "Use the supported 5000-character contract unless a future negotiated limit says otherwise, provide localized validation feedback, and preserve structured refusal codes/Retry-After. Do not classify every arbitrary HTTP 400 as proof of no mutation."
+    }
+  ],
+  "feature_matrix": [
+    {
+      "feature": "Core native sessions/runs",
+      "mobile_status": "Implemented subset",
+      "integration_boundary": "Bearer API",
+      "required_work": "Create/list/history/rename/delete, run submission/events/status/stop and explicit controls exist; live deployment validation remains open.",
+      "priority": "Maintain",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Model/provider picker and session model lock",
+      "mobile_status": "Missing UI/API methods",
+      "integration_boundary": "Bearer API exists",
+      "required_work": "GET /api/model/options and session /model plus model/provider/model_options request fields. Persist the exact chosen request for replay and show server lock/effective route.",
+      "priority": "1.1",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Skills inventory and request assistance",
+      "mobile_status": "Missing native discovery",
+      "integration_boundary": "Bearer read API exists",
+      "required_work": "GET /v1/skills. Requesting a skill through reviewed input is distinct from installing it or emulating CLI slash commands.",
+      "priority": "1.1",
+      "source_path": "website/docs/user-guide/features/skills.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/skills.md"
+    },
+    {
+      "feature": "Skill hub install/update/bundles/curator",
+      "mobile_status": "Server-mediated; no management UI",
+      "integration_boundary": "Dashboard management",
+      "required_work": "Hub/catalog and curator operations require the dashboard auth/profile contract, not guessed bearer endpoints.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/web-dashboard.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/web-dashboard.md"
+    },
+    {
+      "feature": "Tools/toolsets and readiness",
+      "mobile_status": "Missing visibility",
+      "integration_boundary": "Bearer read APIs exist",
+      "required_work": "GET /v1/toolsets and /health/detailed. Show enabled/configured status; toolsets alone are not a complete MCP connection registry.",
+      "priority": "1.1",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "MCP-backed GitHub/databases/internal services",
+      "mobile_status": "Can be used indirectly when configured",
+      "integration_boundary": "Execution on Hermes",
+      "required_work": "Do not add a second agent or individual provider SDKs on the phone. Configured server tools can already run through chat; verify representative tools live.",
+      "priority": "1.1 visibility",
+      "source_path": "website/docs/user-guide/features/mcp.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/mcp.md"
+    },
+    {
+      "feature": "MCP catalog, server test/enable, OAuth/setup",
+      "mobile_status": "Missing management connection",
+      "integration_boundary": "Dashboard APIs exist",
+      "required_work": "/api/mcp/servers and catalog use dashboard auth. Define secure native login/session handling, explicit target profile and permissions before writes.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/web-dashboard.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/web-dashboard.md"
+    },
+    {
+      "feature": "MCP sampling, form elicitation and trust",
+      "mobile_status": "Partially inherited; integration tests absent",
+      "integration_boundary": "Backend plus controls",
+      "required_work": "Generic once/deny can carry supported form-consent; validate real MCP trust/cost/elicitation cases. URL-mode elicitation is unsupported upstream and should not be advertised as a mobile gap alone.",
+      "priority": "Validation",
+      "source_path": "website/docs/user-guide/features/mcp.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/mcp.md"
+    },
+    {
+      "feature": "Nous Portal, routing/fallbacks/credential pools",
+      "mobile_status": "Provider execution inherited; setup/status UI missing",
+      "integration_boundary": "Server configuration + dashboard",
+      "required_work": "Portal-backed tools/models can work already. Mobile has no subscription state, provider fallback visibility or key-pool administration. Keep provider secrets server-side.",
+      "priority": "1.1 status / later admin",
+      "source_path": "website/docs/integrations/index.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/integrations/index.md"
+    },
+    {
+      "feature": "Session fork/branch and detail metadata",
+      "mobile_status": "Missing native controls",
+      "integration_boundary": "Bearer API exists",
+      "required_work": "POST session /fork and GET session detail. Preserve lineage, current continuation and unknown-run safety.",
+      "priority": "1.1",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Run steering and queue detail",
+      "mobile_status": "Missing native control/detail",
+      "integration_boundary": "Bearer API exists",
+      "required_work": "POST run /steer is supported. Current Send is blocked while busy and decoder flattens queued to running; distinguish steer from another turn or stop.",
+      "priority": "1.1",
+      "source_path": "gateway/platforms/api_server_runs.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server_runs.py"
+    },
+    {
+      "feature": "Rich tool and subagent lifecycle",
+      "mobile_status": "Partial timeline only",
+      "integration_boundary": "Run events already expose fields",
+      "required_work": "Persist tool_call_id; pair concurrent start/completion events; render subagent.start/complete, child identity and supplied bounded summaries. Do not equate tool success with run completion.",
+      "priority": "1.1",
+      "source_path": "gateway/platforms/api_server_runs.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server_runs.py"
+    },
+    {
+      "feature": "Usage/cost/runtime metadata",
+      "mobile_status": "Missing",
+      "integration_boundary": "Run/status/model metadata",
+      "required_work": "Token/cache/cost fields are not persisted or displayed. Label estimates and absent values; never invent totals.",
+      "priority": "1.1",
+      "source_path": "gateway/platforms/api_server_runs.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server_runs.py"
+    },
+    {
+      "feature": "Conversation key / memory continuity",
+      "mobile_status": "Not declared by mobile",
+      "integration_boundary": "Bearer header exists",
+      "required_work": "No X-Hermes-Session-Key is sent. Add an intentional stable conversation identity, test resets/compression/memory isolation; absence does not by itself prove a memory leak.",
+      "priority": "1.1",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Responses API / named conversations",
+      "mobile_status": "Missing optional transport",
+      "integration_boundary": "Bearer API exists",
+      "required_work": "/v1/responses supports stored context and structured tool output. Useful additional transport, not a replacement for reliable Runs.",
+      "priority": "Later parity",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Images, camera/share-in, image output",
+      "mobile_status": "Missing",
+      "integration_boundary": "Images accepted by bearer API",
+      "required_work": "Support image parts and bounded media rendering with provider capability checks and Android pickers/share targets. The app currently sends text and renders core Markdown only.",
+      "priority": "1.1/1.2",
+      "source_path": "website/docs/user-guide/features/api-server.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/api-server.md"
+    },
+    {
+      "feature": "PDF/general file upload",
+      "mobile_status": "Missing, backend API constraint",
+      "integration_boundary": "Not generic bearer upload support",
+      "required_work": "Current API docs reject non-image input_file/file_id. Document extraction tools on the host do not imply arbitrary mobile uploads are supported.",
+      "priority": "Backend contract first",
+      "source_path": "website/docs/user-guide/features/api-server.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/api-server.md"
+    },
+    {
+      "feature": "Browser/web/search/image-generation integrations",
+      "mobile_status": "Usable through configured backend; thin output UI",
+      "integration_boundary": "Server tool execution",
+      "required_work": "Use server-side browser_exec/CDP and actual capabilities. Do not implement the removed browser-extension/artifact-upload protocol as the new mobile media layer.",
+      "priority": "1.1 visibility",
+      "source_path": "website/docs/integrations/index.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/integrations/index.md"
+    },
+    {
+      "feature": "Cron basic operations",
+      "mobile_status": "Implemented subset",
+      "integration_boundary": "Bearer jobs API",
+      "required_work": "List/detail/create/edit/pause/resume/run/delete; new jobs paused/local. Fix the prompt constraint first.",
+      "priority": "1.0.1",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Cron skills/delivery/repeat fields",
+      "mobile_status": "Missing controls; preserved on other edits",
+      "integration_boundary": "Bearer PATCH whitelist exists",
+      "required_work": "Current whitelist includes skills/skill, deliver, repeat and enabled; mobile edits only name/prompt/schedule. Add typed, reviewed controls and verify applied state.",
+      "priority": "1.2",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Cron timezone/cwd/pins/scripts/context/no-agent",
+      "mobile_status": "Not native in app",
+      "integration_boundary": "Broader backend feature than current jobs REST whitelist",
+      "required_work": "Do not send unsupported keys and claim success: current bearer PATCH silently filters fields outside its whitelist. Dashboard/CLI/tool surfaces need separate contracts and consent.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/cron.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/cron.md"
+    },
+    {
+      "feature": "Cron results, last_error/fire errors, stop in-flight",
+      "mobile_status": "Missing rich monitoring/control",
+      "integration_boundary": "Backend; route-by-route review",
+      "required_work": "Current DTO loses error/output/admission-recovery detail. A cron run is not automatically a tracked /v1/runs ID.",
+      "priority": "1.2",
+      "source_path": "website/docs/user-guide/features/cron.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/cron.md"
+    },
+    {
+      "feature": "Local tasks versus Hermes Kanban/projects",
+      "mobile_status": "Local only; no synchronization",
+      "integration_boundary": "Dashboard/tool protocol needed",
+      "required_work": "The phone task database is not a Kanban board or project work queue. Keep separate identities; add explicit remote board/project support only through verified contracts.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/kanban.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/kanban.md"
+    },
+    {
+      "feature": "Goals/heartbeats/loops/delegated jobs",
+      "mobile_status": "No dedicated state/control UI",
+      "integration_boundary": "Hermes runtime/tool surfaces",
+      "required_work": "CLI commands are not HTTP commands. Need authorized status/control contracts and event models; agent-mediated usage is not a native management implementation.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/goals.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/goals.md"
+    },
+    {
+      "feature": "Channels/webhooks/pairing",
+      "mobile_status": "No native configuration or status",
+      "integration_boundary": "Dashboard management APIs exist",
+      "required_work": "Telegram/Slack/Discord/WhatsApp/Signal/Teams/etc. remain server adapters. Channel setup, pairing and webhook creation require separate dashboard auth and reviewed secret handling.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/web-dashboard.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/web-dashboard.md"
+    },
+    {
+      "feature": "Cross-surface chats / room grants",
+      "mobile_status": "API-owned sessions only",
+      "integration_boundary": "Ownership/room authority rules",
+      "required_work": "Do not import CLI/Desktop/messaging sessions by guessed ID. Evaluate advertised room-member grant APIs separately; Bearer and HermesRoom grants are different auth types.",
+      "priority": "Protocol research",
+      "source_path": "gateway/platforms/api_server_room_grants.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server_room_grants.py"
+    },
+    {
+      "feature": "Memory/provider/personality/context/workspace admin",
+      "mobile_status": "No native management",
+      "integration_boundary": "Backend configuration + dashboard",
+      "required_work": "Server memory/persona/context can affect normal turns already. Native selection/edit/reset and remote workspace/project choice need their actual management contracts.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/web-dashboard.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/web-dashboard.md"
+    },
+    {
+      "feature": "Voice STT/TTS",
+      "mobile_status": "Android foreground services only",
+      "integration_boundary": "No bearer audio/realtime API advertised",
+      "required_work": "No native Hermes voice/provider/audio integration; audio_api and realtime_voice are false in both audited API snapshots. Physical audio validation is still missing.",
+      "priority": "Validation / bridge first",
+      "source_path": "gateway/platforms/api_server.py",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/gateway/platforms/api_server.py"
+    },
+    {
+      "feature": "Notifications/deep links",
+      "mobile_status": "15-minute best-effort polling; generic routes",
+      "integration_boundary": "Android + future event bridge",
+      "required_work": "No push/device registration contract here. Add exact conversation/profile routing and job/goal events through a deliberate authenticated bridge; test background/reboot/OEM behavior.",
+      "priority": "1.2",
+      "source_path": "app/src/main/java/org/hermesmobile/app/background/BackgroundChecks.kt",
+      "source_url": "https://github.com/DionCroft/hermes-agent-android/blob/50030c00034d2c496a2c4b57c821e4f1b0de1d7b/app/src/main/java/org/hermesmobile/app/background/BackgroundChecks.kt"
+    },
+    {
+      "feature": "Named connections and token rotation UX",
+      "mobile_status": "One active saved connection",
+      "integration_boundary": "Native client design",
+      "required_work": "Atomic vault pairing exists. Add encrypted named profiles, explicit routing and tested rotation/cache policies after fixing context isolation.",
+      "priority": "1.1/1.2",
+      "source_path": "app/src/main/java/org/hermesmobile/app/data/Preferences.kt",
+      "source_url": "https://github.com/DionCroft/hermes-agent-android/blob/50030c00034d2c496a2c4b57c821e4f1b0de1d7b/app/src/main/java/org/hermesmobile/app/data/Preferences.kt"
+    },
+    {
+      "feature": "Plugins/catalog and provider extensions",
+      "mobile_status": "Backend execution inherited; no native manager",
+      "integration_boundary": "Server plugin interfaces; management contract required",
+      "required_work": "Keep plugin processes/providers on the host. Inventory, installation, updates and permission review require their verified management surface; there is no general plugin-admin route in the audited bearer API.",
+      "priority": "Management phase",
+      "source_path": "website/docs/user-guide/features/plugins.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/user-guide/features/plugins.md"
+    },
+    {
+      "feature": "Terminal/LSP/computer-use/ACP/Codex runtimes",
+      "mobile_status": "Server capabilities, not native phone runtimes",
+      "integration_boundary": "Backend tool/runtime configuration",
+      "required_work": "Monitor actual tool/delegation results and expose authorized status. Reimplementing these runtimes on Android is outside the companion architecture; do not count every Desktop feature as a missing phone requirement.",
+      "priority": "Status/integration validation",
+      "source_path": "website/docs/integrations/index.md",
+      "source_url": "https://github.com/NousResearch/hermes-agent/blob/0aab6dcf8b7869acbab06507c34881b53036c09a/website/docs/integrations/index.md"
+    }
+  ],
+  "checks": {
+    "diagnostic_fixture_probes": 4,
+    "probe_purpose": "Assertions confirm current defects; not passing fixed-behavior regressions.",
+    "runtime_dependency_coordinates_checked": 150,
+    "osv_advisory_matches": 0,
+    "checker_live_targets": [
+      "v0.22.5",
+      "main"
+    ],
+    "checker_decision_tests": 5,
+    "live_hermes_deployment": false,
+    "physical_audio": false,
+    "post_audit_baseline_unit_cases": 43,
+    "post_audit_baseline_android16_cases": 30,
+    "post_audit_build_lint": "passed",
+    "normal_test_source_restored": true
+  },
+  "maintenance_recommendation": [
+    "Release 1.0.1 with the four correctness fixes and desired-behavior regression tests.",
+    "Make latest supported stable a release gate; run main as a separate canary and triage additions/removals.",
+    "Add real Hermes with a deterministic model/tool fixture, minimum/current Android device CI, advisory/dependency checks and release provenance.",
+    "Use the separate dashboard management contract deliberately; do not reuse API bearer credentials or infer admin permissions."
+  ]
+}
