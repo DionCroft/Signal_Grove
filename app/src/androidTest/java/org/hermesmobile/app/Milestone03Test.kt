@@ -28,6 +28,7 @@ class Milestone03Test {
         assertTrue(runBlocking {app.database.dao().events(vm.selected.value).first().any {it.kind=="failed"}})
         assertTrue(vm.controls.value.isEmpty())
         compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()),substring=true).performClick()
+        compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("The simulated action was denied."))
         compose.onNodeWithText("The simulated action was denied.").assertExists()
     }
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {

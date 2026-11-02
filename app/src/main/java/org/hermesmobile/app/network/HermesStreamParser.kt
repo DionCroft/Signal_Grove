@@ -13,10 +13,10 @@ class HermesStreamParser {
         return null
     }
 }
-data class ToolUpdate(val tool: String,val kind: String,val preview: String,val durationMs: Long?)
+data class ToolUpdate(val tool: String,val kind: String,val preview: String,val durationMs: Long?,val callId:String="",val category:String="tool",val details:JsonObject=buildJsonObject {},val generation:Long?=null)
 data class StreamUpdate(val delta: String="",val finalText: String?=null,val status: String?=null,val activity: String?=null,
     val runId: String="",val sessionId: String="",val approval: org.hermesmobile.app.data.Approval?=null,
-    val control: ControlRequest?=null,val tool: ToolUpdate?=null,val sequence: Long?=null,val settledRequestId: String="",val replayGap: Boolean=false,val responseBoundary: Boolean=false,val settledGeneration: Long?=null)
+    val control: ControlRequest?=null,val tool: ToolUpdate?=null,val sequence: Long?=null,val settledRequestId: String="",val replayGap: Boolean=false,val responseBoundary: Boolean=false,val settledGeneration: Long?=null,val telemetry:JsonObject=buildJsonObject {})
 object StreamDecoder {
     private val json=Json {ignoreUnknownKeys=true}
     fun decode(event: SseEvent): StreamUpdate {
@@ -29,7 +29,7 @@ object StreamDecoder {
             "assistant.delta","message.delta","response.output_text.delta"->StreamUpdate(delta=text("delta"))
             "assistant.completed"->StreamUpdate(finalText=text("content"))
             "run.completed"->StreamUpdate(finalText=text("output").takeIf {it.isNotEmpty()},status="completed")
-            "run.failed","run.cancelled","run.interrupted"->StreamUpdate(status=name.removePrefix("run."))
+            "run.failed","run.cancelled","run.interrupted","run.incomplete"->StreamUpdate(status=name.removePrefix("run."))
             "run.started","run.queued"->StreamUpdate(status="running")
             "approval.request","clarify.request"->{
                 val control=ControlProtocol.prompt(j,run,if(name=="approval.request") "approval" else "clarify")
@@ -40,9 +40,9 @@ object StreamDecoder {
             "tool.started","tool.completed","tool.failed"->{
                 val kind=if(name=="tool.failed" || (j["error"] as? JsonPrimitive)?.booleanOrNull==true) "failed" else name.removePrefix("tool.")
                 val tool=text("tool_name").ifBlank {text("tool")}
-                StreamUpdate(activity="tool.$kind: $tool",tool=ToolUpdate(tool,kind,text("preview").take(1000),
-                    (j["duration"] as? JsonPrimitive)?.doubleOrNull?.takeIf {it>=0 && it.isFinite()}?.times(1000)?.toLong()))
+                StreamUpdate(activity="tool.$kind: $tool",tool=ActivityProtocol.tool(j,kind))
             }
+            "subagent.start","subagent.complete" -> StreamUpdate(activity=name,tool=ActivityProtocol.subagent(j,name=="subagent.complete"))
             "assistant.commentary","message.interim"->StreamUpdate(activity=text("text"))
             "replay.truncated"->StreamUpdate(replayGap=true)
             "error","run.error"->StreamUpdate(status="failed")
@@ -52,6 +52,6 @@ object StreamDecoder {
                 StreamUpdate(delta=(d?.get("content") as? JsonPrimitive)?.contentOrNull.orEmpty(),status=when(finish) {"cancelled"->"response_cancelled";"error"->"response_failed";"length"->"response_incomplete";null->null;else->"response_finished"})
             }
         }
-        return update.copy(settledGeneration=(j["execution_generation"] as? JsonPrimitive)?.longOrNull,runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())
+        return update.copy(telemetry=org.hermesmobile.app.data.RunTelemetry.from(j),settledGeneration=(j["execution_generation"] as? JsonPrimitive)?.longOrNull,runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())
     }
 }

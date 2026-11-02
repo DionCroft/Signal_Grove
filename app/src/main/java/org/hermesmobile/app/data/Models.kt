@@ -59,13 +59,19 @@ fun Conversation.sameSubmission(other: Conversation,allowAdmission: Boolean=fals
     key==other.key && scope==other.scope && pendingKey==other.pendingKey && pendingAt==other.pendingAt &&
         (runId==other.runId || (allowAdmission && runId.isBlank()))
 @Entity(tableName = "messages", indices = [Index("sessionKey")])
-data class ChatMessage(@PrimaryKey val id: String, val sessionKey: String, val role: String, val content: String, val timestamp: Long = System.currentTimeMillis(), val status: String = "completed")
+data class ChatMessage(@PrimaryKey val id: String, val sessionKey: String, val role: String, val content: String, val timestamp: Long = System.currentTimeMillis(), val status: String = "completed", @ColumnInfo(defaultValue="''") val telemetryJson:String="")
 @Entity(tableName = "tasks")
 data class LocalTask(@PrimaryKey val id: String, val title: String, val dueDate: String = "", val priority: Int = 1, val completed: Boolean = false, @ColumnInfo(defaultValue = "''") val notes: String = "")
 
 @Entity(tableName = "tool_events", indices = [Index("sessionKey")])
 data class ToolEvent(@PrimaryKey val key: String, val sessionKey: String, val runId: String, val tool: String,
-    val kind: String, val preview: String, val durationMs: Long?, val receivedAt: Long)
+    val kind: String, val preview: String, val durationMs: Long?, val receivedAt: Long,
+    @ColumnInfo(defaultValue="''") val callId:String="", @ColumnInfo(defaultValue="'tool'") val category:String="tool",
+    @ColumnInfo(defaultValue="''") val detailsJson:String="", @ColumnInfo(defaultValue="NULL") val generation:Long?=null,
+    @ColumnInfo(defaultValue="NULL") val sequence:Long?=null)
+@Entity(tableName="run_reports",indices=[Index("sessionKey")])
+data class RunReport(@PrimaryKey val key:String,val sessionKey:String,val runId:String,val pendingKey:String,
+    val transport:String,val telemetryJson:String,val status:String,val updatedAt:Long)
 @Entity(tableName = "pending_controls", indices = [Index("sessionKey")])
 data class PendingControl(@PrimaryKey val key: String, val sessionKey: String, val runId: String, val requestId: String,
     val generation: Long?, val kind: String, val prompt: String, val choicesJson: String, val limited: Boolean,
@@ -91,6 +97,18 @@ object RunStates {
 }
 
 @Dao interface HermesDao {
+    @Query("SELECT * FROM run_reports WHERE sessionKey=:key ORDER BY updatedAt DESC LIMIT 100") fun reports(key:String):Flow<List<RunReport>>
+    @Query("SELECT * FROM run_reports WHERE `key`=:key") suspend fun report(key:String):RunReport?
+    @Upsert suspend fun saveReport(report:RunReport)
+    @Query("DELETE FROM run_reports WHERE sessionKey=:key") suspend fun deleteReports(key:String)
+    @Query("DELETE FROM run_reports") suspend fun clearReports()
+    suspend fun recordAccounting(c:Conversation,telemetry:String) {
+        if(telemetry.isBlank() || (c.pendingKey.isBlank() && c.runId.isBlank())) return
+        val key="${c.key}|${c.pendingKey.ifBlank {c.runId}}"
+        val merged=RunTelemetry.merge(report(key)?.telemetryJson.orEmpty(),RunTelemetry.parse(telemetry))
+        saveReport(RunReport(key,c.key,c.runId,c.pendingKey,c.transport,merged,c.status,System.currentTimeMillis()))
+    }
+
     @Query("SELECT * FROM server_operations WHERE scope=:scope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END, createdAt DESC LIMIT 100") fun serverOperations(scope: String): Flow<List<ServerOperation>>
     @Query("SELECT * FROM server_operations WHERE scope=:scope AND state IN ('sending','unknown')") suspend fun unresolvedServerOperations(scope: String): List<ServerOperation>
     @Insert suspend fun insert(operation: ServerOperation)
@@ -129,8 +147,9 @@ object RunStates {
     }
     @Query("DELETE FROM messages WHERE sessionKey = :key") suspend fun deleteMessages(key: String)
     @Query("DELETE FROM sessions WHERE `key` = :key") suspend fun deleteSession(key: String)
-    @Transaction suspend fun deleteConversation(key: String) { deleteMessages(key); deleteEvents(key); deleteControls(key); deleteServerOperations(key); deleteSession(key) }
+    @Transaction suspend fun deleteConversation(key: String) { deleteMessages(key); deleteEvents(key); deleteControls(key); deleteServerOperations(key); deleteReports(key); deleteSession(key) }
     @Query("SELECT * FROM tool_events WHERE sessionKey = :key ORDER BY receivedAt DESC LIMIT 200") fun events(key: String): Flow<List<ToolEvent>>
+    @Query("DELETE FROM tool_events WHERE sessionKey=:key AND `key` NOT IN (SELECT `key` FROM tool_events WHERE sessionKey=:key ORDER BY receivedAt DESC,sequence DESC LIMIT 500)") suspend fun pruneEvents(key:String)
     @Upsert suspend fun save(event: ToolEvent)
     @Query("DELETE FROM tool_events WHERE sessionKey = :key") suspend fun deleteEvents(key: String)
     @Query("SELECT * FROM pending_controls WHERE sessionKey = :key AND state != 'resolved' ORDER BY receivedAt, `key`") fun controls(key: String): Flow<List<PendingControl>>
@@ -197,7 +216,11 @@ object RunStates {
             admissionId=snapshot.text("admission_id").ifBlank {current.admissionId},executionGeneration=generation ?: current.executionGeneration)
         save(fresh)
         val answer=history(expected.key).let {rows -> if(expected.pendingKey.isNotBlank()) rows.firstOrNull {it.id=="${expected.pendingKey}_assistant"} else rows.lastOrNull {it.role=="assistant"}}
-        if(answer!=null) save(answer.copy(content=snapshot.text("output").ifBlank {answer.content},status=status))
+        if(answer!=null) {
+            val telemetry=RunTelemetry.merge(answer.telemetryJson,snapshot)
+            save(answer.copy(content=snapshot.text("output").ifBlank {answer.content},status=status,telemetryJson=telemetry))
+            recordAccounting(fresh,telemetry)
+        } else recordAccounting(fresh,RunTelemetry.merge("",snapshot))
         return fresh
     }
     @Transaction suspend fun saveTurn(receipt: Conversation,message: ChatMessage,control: PendingControl?,event: ToolEvent?,settledId: String,settledGeneration: Long?=null) {
@@ -205,9 +228,11 @@ object RunStates {
         if(!current.sameSubmission(receipt,allowAdmission=true) || (receipt.lastEventSeq>=0 && current.lastEventSeq>receipt.lastEventSeq)) return
         if(current.status in RunStates.terminal && receipt.status !in RunStates.terminal) return
         save(receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt,detailsJson=current.detailsJson))
-        save(message)
+        val saved=this.message(message.id)
+        val telemetry=RunTelemetry.merge(saved?.telemetryJson.orEmpty(),RunTelemetry.parse(message.telemetryJson))
+        save(message.copy(telemetryJson=telemetry));recordAccounting(receipt,telemetry)
         if(control!=null && control.runId==receipt.runId) mergeControl(control)
-        if(event!=null) save(event)
+        if(event!=null) {save(event);pruneEvents(receipt.key)}
         if(settledId.isNotBlank()) runControls(receipt.key,receipt.runId).filter {it.requestId==settledId && (it.generation==null || it.generation==settledGeneration)}.forEach {controlState(it.key,"resolved")}
         if(receipt.status in RunStates.terminal) deleteRunControls(receipt.key,receipt.runId)
     }
@@ -226,6 +251,7 @@ object RunStates {
     @Transaction suspend fun replaceJobs(scope: String, jobs: List<CachedJob>) { deleteJobs(scope); saveJobs(jobs) }
     @Query("SELECT * FROM messages WHERE sessionKey = :key ORDER BY timestamp, id") fun messages(key: String): Flow<List<ChatMessage>>
     @Query("SELECT * FROM messages WHERE sessionKey = :key ORDER BY timestamp, id") suspend fun history(key: String): List<ChatMessage>
+    @Query("SELECT * FROM messages WHERE id=:id") suspend fun message(id:String):ChatMessage?
     @Upsert suspend fun save(message: ChatMessage)
     @Upsert suspend fun saveMessages(messages: List<ChatMessage>)
     @Query("SELECT * FROM tasks ORDER BY completed, priority DESC, dueDate, title") fun tasks(): Flow<List<LocalTask>>
@@ -236,7 +262,7 @@ object RunStates {
     @Query("DELETE FROM sessions") suspend fun clearSessions()
     @Query("DELETE FROM tool_events") suspend fun clearEvents()
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
-    @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearSessions() }
+    @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearReports(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class], version = 6, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class], version = 7, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

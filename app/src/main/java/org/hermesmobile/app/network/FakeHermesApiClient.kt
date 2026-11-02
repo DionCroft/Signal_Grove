@@ -75,7 +75,7 @@ open class FakeHermesApiClient : HermesApiClient {
         var seq=0L
         suspend fun frame(update:StreamUpdate) {emit(update.copy(runId=r.id,sequence=seq++))}
         frame(StreamUpdate(status="running"))
-        frame(StreamUpdate(tool=ToolUpdate("Demo note","started","A simulated local activity",null)))
+        frame(StreamUpdate(tool=ToolUpdate("Demo note","started","A simulated local activity",null,callId="demo-note")))
         delay(80)
         val exercise=body?.text("input").orEmpty()
         var reply="This is **Demo mode**. Your message stays on this device.\n\nConnect your Hermes server in Settings to start a real conversation.\n\n```text\nYour agent. Your infrastructure.\n```"
@@ -88,8 +88,8 @@ open class FakeHermesApiClient : HermesApiClient {
             frame(StreamUpdate(status=r.status,control=c))
             val answer=r.answer.await()
             reply=if(approval) "Demo decision: **$answer**. No real tool or server action was executed." else "Demo answer received: **$answer**. This stayed on your device."
-            frame(StreamUpdate(tool=ToolUpdate("Demo note",if(answer=="deny") "failed" else "completed",if(answer=="deny") "The simulated action was denied." else "The simulated action finished.",80)))
-        } else frame(StreamUpdate(tool=ToolUpdate("Demo note","completed","The simulated activity finished.",80)))
+            frame(StreamUpdate(tool=ToolUpdate("Demo note",if(answer=="deny") "failed" else "completed",if(answer=="deny") "The simulated action was denied." else "The simulated action finished.",80,callId="demo-note")))
+        } else frame(StreamUpdate(tool=ToolUpdate("Demo note","completed","The simulated activity finished.",80,callId="demo-note")))
         for(chunk in reply.chunked(9)) {delay(20);frame(StreamUpdate(delta=chunk))}
         r.output=reply;r.status="completed";frame(StreamUpdate(status="completed",finalText=reply))
     }

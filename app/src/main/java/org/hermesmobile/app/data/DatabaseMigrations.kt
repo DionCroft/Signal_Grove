@@ -4,6 +4,19 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_6_TO_7=object:Migration(6,7) {
+        override fun migrate(db:SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS run_reports (`key` TEXT NOT NULL,sessionKey TEXT NOT NULL,runId TEXT NOT NULL,pendingKey TEXT NOT NULL,transport TEXT NOT NULL,telemetryJson TEXT NOT NULL,status TEXT NOT NULL,updatedAt INTEGER NOT NULL,PRIMARY KEY(`key`))")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_run_reports_sessionKey ON run_reports(sessionKey)")
+            db.execSQL("ALTER TABLE messages ADD COLUMN telemetryJson TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE tool_events ADD COLUMN callId TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE tool_events ADD COLUMN category TEXT NOT NULL DEFAULT 'tool'")
+            db.execSQL("ALTER TABLE tool_events ADD COLUMN detailsJson TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE tool_events ADD COLUMN generation INTEGER DEFAULT NULL")
+            db.execSQL("ALTER TABLE tool_events ADD COLUMN sequence INTEGER DEFAULT NULL")
+        }
+    }
+
     val FROM_5_TO_6=object:Migration(5,6) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE sessions ADD COLUMN detailsJson TEXT NOT NULL DEFAULT ''")
@@ -51,4 +64,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7)

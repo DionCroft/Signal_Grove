@@ -52,6 +52,10 @@ The branch icon opens Session controls for native Hermes conversations. Choose a
 
 An uncertain session mutation blocks further mutations and new turns on that connection. Inspect Hermes using the displayed target and saved request before marking the outcome reviewed. Reviewing the marker does not repeat or undo the operation. A lost fork acknowledgement retains the chosen child ID so you can locate it on Hermes. Older compatibility chats keep their local history and do not expose native session actions.
 
+Activity groups parallel tools by exact server call IDs, never just a shared tool name. Subagent events show child/delegation identity, public summaries, counts and reported cost when supplied. Child IDs are displayed for inspection; the app does not assume those sessions are API-owned or readable. Recent activity is bounded to 200 events.
+
+An assistant response with accounting has a **Runtime and usage** icon. The status dialog also opens recent accounting records, which survive server history refresh. Requested and server-reported runtime are separate. Missing usage stays unknown, and counters may cover the session; the app does not total them into a provider bill. Private reasoning text is not stored or displayed. Deleting a conversation or clearing chats also removes its accounting records.
+
 ## Local tasks and server jobs
 
 Tasks stay on this device: create, edit, notes, ISO due date (`YYYY-MM-DD`), priority, complete/delete, title/notes search and all/open/completed/overdue filters. Due dates use the device's calendar. Tasks are separate from server jobs.

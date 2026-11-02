@@ -33,6 +33,8 @@ import java.time.format.DateTimeFormatter
 
 @Composable fun ChatScreen(vm: HermesViewModel) {
     val messages by vm.messages.collectAsStateWithLifecycle()
+    val reports by vm.runReports.collectAsStateWithLifecycle()
+    var accountingHistory by remember {mutableStateOf(false)}
     val conversations by vm.conversations.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
@@ -90,9 +92,11 @@ import java.time.format.DateTimeFormatter
             trailingIcon={IconButton({vm.send()},enabled=draft.isNotBlank() && !busy && !controlling && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
         Spacer(Modifier.height(4.dp))
     }
-    if(statusDetails) AlertDialog(onDismissRequest={statusDetails=false},title={Text(label(Words.RunStatus))},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    if(accountingHistory) AccountingHistoryDialog(reports) {accountingHistory=false}
+    if(statusDetails) AlertDialog(onDismissRequest={statusDetails=false},title={Text(label(Words.RunStatus))},text={Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Text(label(statusWord(status)))
         current?.runId?.takeIf {it.isNotBlank()}?.let {Text(label(Words.RunIdentity));Text(it)}
+        if(reports.isNotEmpty()) TextButton({statusDetails=false;accountingHistory=true},Modifier.testTag("accounting-history")) {Text(label(Words.RuntimeUsage)+" (${reports.size})")}
     }},confirmButton={TextButton({statusDetails=false}) {Text(label(Words.Close))}})
     if(runtimePicker) RuntimePicker(vm) {runtimePicker=false}
     if(history) ConversationBrowser(vm) {history=false}
@@ -102,13 +106,16 @@ import java.time.format.DateTimeFormatter
 @Composable fun MessageCard(message: ChatMessage) {
     val clipboard=LocalClipboardManager.current
     var copied by remember {mutableStateOf(false)}
+    var runtimeUsage by remember(message.id) {mutableStateOf(false)}
     val ink=MaterialTheme.colorScheme.onSurface.toArgb()
     val primary=MaterialTheme.colorScheme.primary.toArgb()
+    if(runtimeUsage) RuntimeUsageDialog(message.telemetryJson) {runtimeUsage=false}
     val density=androidx.compose.ui.platform.LocalDensity.current
     HermesCard(Modifier.padding(start=if(message.role=="user") 24.dp else 0.dp,end=if(message.role=="assistant") 8.dp else 0.dp)) {
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Text(if(message.role=="user") label(Words.You) else "Hermes",Modifier.weight(1f),style=MaterialTheme.typography.labelLarge)
             Text(DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(message.timestamp)),style=MaterialTheme.typography.labelSmall)
+            if(message.role=="assistant" && message.telemetryJson.isNotBlank()) IconButton({runtimeUsage=true},Modifier.testTag("runtime-usage-${message.id}")) {Icon(Icons.Outlined.Assessment,label(Words.RuntimeUsage),Modifier.size(18.dp))}
             IconButton({clipboard.setText(AnnotatedString(message.content));copied=true}) { Icon(Icons.Outlined.ContentCopy,label(if(copied) Words.Copied else Words.Copy),Modifier.size(18.dp)) }
         }
         if(message.content.isNotEmpty()) AndroidView(factory={context -> TextView(context).apply {setTextIsSelectable(true);setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,16f);tag=Markwon.create(context)}},

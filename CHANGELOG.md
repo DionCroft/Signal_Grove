@@ -14,6 +14,8 @@ Reviewed session model locks, forks, steering and safe metadata are implemented 
 
 Android 17 local-network permission and explicit Settings controls now support private-address Hermes connections, with DNS/literal-address guards and revocation checks. API 37 emulator coverage adds a real deny/grant/connection flow. Test-only Espresso is updated to stable 3.7 for current platform input support.
 
+Parallel tool-call pairing, public subagent lifecycle/lineage, server-reported runtime and usage, explicit incomplete outcomes, and SSE run-identity checks are implemented. Schema 7 preserves legacy activity and keeps accounting available independently of refreshed transcript IDs. Recent views are bounded, with no inferred zero usage or provider invoice.
+
 ## 1.0.0 — 2026-11-02
 
 Stable signed community release. Task JSON backup/reviewed migration, strict consent choices and visibility, bounded import parsing, credential/header hardening, current screenshots and user/compatibility/security/signing documentation. 43 unit tests, 30 device cases each on Android 8 and 16, plus large-text/tablet reruns passed. Production install and real file-picker task round-trip verified. See docs/releases/1.0.0.md.

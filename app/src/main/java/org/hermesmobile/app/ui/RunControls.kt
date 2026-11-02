@@ -35,19 +35,7 @@ import java.time.format.DateTimeFormatter
             else TextButton({dismissed=""},Modifier.weight(1f)) {Text(label(Words.ReviewRequest)+" (${rows.size})")}
         }
     }
-    if(timeline) AlertDialog(onDismissRequest={timeline=false},title={Text(label(Words.ToolActivity))},text={
-        LazyColumn(Modifier.heightIn(max=450.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            items(events.filter {it.sessionKey==selected},key={it.key}) {e ->
-                Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                    Text(e.tool,style=MaterialTheme.typography.titleSmall)
-                    Text(label(when(e.kind) {"started"->Words.Started;"failed"->Words.Failed;else->Words.Completed}),style=MaterialTheme.typography.labelSmall)
-                    Text(DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(e.receivedAt))+(e.durationMs?.let {" · ${it}ms"} ?: ""),style=MaterialTheme.typography.labelSmall)
-                    if(e.preview.isNotBlank()) SelectionContainer {Text(e.preview,style=MaterialTheme.typography.bodySmall)}
-                    HorizontalDivider()
-                }
-            }
-        }
-    },confirmButton={TextButton({timeline=false}) {Text(label(Words.Close))}})
+    if(timeline) ActivityDialog(events.filter {it.sessionKey==selected}) {timeline=false}
     if(control!=null && dismissed!=control.key) PendingControlDialog(control,sending,{dismissed=control.key},vm::respondControl,vm::retryOrRefresh)
 }
 @Composable private fun PendingControlDialog(c:PendingControl,sending:Boolean,dismiss:()->Unit,respond:(PendingControl,String)->Unit,refresh:()->Unit) {
