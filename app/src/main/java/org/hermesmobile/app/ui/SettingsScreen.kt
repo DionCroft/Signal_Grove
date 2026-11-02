@@ -62,7 +62,7 @@ import org.hermesmobile.app.BuildConfig
         HermesCard {Word(Words.Accessibility);Toggle(Words.ReducedMotion,p.reducedMotion) {vm.updatePreferences(p.copy(reducedMotion=it))}}
         HermesCard {
             Word(Words.About)
-            Text(label(Words.AboutBody),style=MaterialTheme.typography.bodySmall)
+            Text(label(Words.AboutBody).replace("{version}",BuildConfig.VERSION_NAME),style=MaterialTheme.typography.bodySmall)
             Text(label(Words.Security),style=MaterialTheme.typography.bodySmall)
             TextButton({uri.openUri("https://github.com/DionCroft/hermes-agent-android")}) {Text(label(Words.Github))}
             TextButton({licences=true}) {Text(label(Words.Licences))}

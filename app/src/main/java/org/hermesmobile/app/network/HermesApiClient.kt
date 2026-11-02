@@ -30,6 +30,10 @@ fun connectionError(e: Throwable): String = when(e) {
 interface HermesApiClient {
     suspend fun capabilities(): HermesCapabilities
     suspend fun sessions(): List<RemoteSession>
+    suspend fun sessionPage(offset: Int = 0, limit: Int = 50): SessionPage = SessionPage(sessions().drop(offset).take(limit),offset+limit,false)
+    suspend fun history(id: String): MessageHistory = MessageHistory(id,messages(id))
+    suspend fun renameSession(id: String,title: String) { throw UnsupportedOperationException("Session renaming is unavailable.") }
+    suspend fun deleteSession(id: String) { throw UnsupportedOperationException("Session deletion is unavailable.") }
     suspend fun createSession(id: String, title: String): RemoteSession
     suspend fun messages(id: String): List<RemoteMessage>
     suspend fun jobs(): List<HermesJob>
@@ -56,8 +60,9 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
             .header("Accept", if (path.endsWith("stream") || path.endsWith("events") || body?.get("stream")?.jsonPrimitive?.booleanOrNull == true) "text/event-stream" else "application/json")
             .apply { if(key.isNotBlank()) header("Idempotency-Key", key); if(body != null) post(body.toString().toRequestBody(jsonType)) }.build()
     }
-    private suspend fun json(path: String, body: JsonObject? = null, key: String = ""): JsonObject = suspendCancellableCoroutine { continuation ->
-        val call = client.newCall(request(path, body, key))
+    private suspend fun json(path: String, body: JsonObject? = null, key: String = "", method: String = ""): JsonObject = suspendCancellableCoroutine { continuation ->
+        val req=request(path,body,key)
+        val call = client.newCall(if(method.isBlank()) req else req.newBuilder().method(method,if(method=="DELETE") null else body.toString().toRequestBody(jsonType)).build())
         continuation.invokeOnCancellation { call.cancel() }
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) { if (continuation.isActive) continuation.resumeWith(Result.failure(e)) }
@@ -78,33 +83,57 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     override suspend fun capabilities(): HermesCapabilities = try { HermesCapabilities.parse(json("v1/capabilities")) }
         catch(e: HermesHttpException) { if(e.code !in listOf(404,405)) throw e
             val models = json("v1/models"); HermesCapabilities(model = models.items("data").firstOrNull()?.text("id").orEmpty().ifBlank { "hermes-agent" }) }
-    override suspend fun sessions(): List<RemoteSession> {
-        val all = mutableListOf<RemoteSession>(); var offset=0
-        do {
-            val page = json("api/sessions?source=api_server&limit=100&offset=$offset")
-            val rows = page.items("data")
-            all += rows.map { RemoteSession(it.text("id"), it.text("title")) }
-            offset += 100
-        } while (page["has_more"]?.jsonPrimitive?.booleanOrNull == true && rows.isNotEmpty() && offset < 10000)
-        return all.distinctBy { it.id }
+    override suspend fun sessionPage(offset: Int,limit: Int): SessionPage {
+        require(offset>=0 && limit in 1..200)
+        val page=json("api/sessions?source=api_server&limit=$limit&offset=$offset")
+        val rows=page.items("data").map { RemoteSession(it.text("id"),it.text("title"),((it["last_active"] as? JsonPrimitive)?.doubleOrNull?.times(1000))?.toLong() ?: 0) }
+        return SessionPage(rows,offset+limit,page["has_more"]?.jsonPrimitive?.booleanOrNull==true && rows.isNotEmpty())
     }
+    override suspend fun sessions(): List<RemoteSession> {
+        val rows=mutableListOf<RemoteSession>(); var offset=0
+        do { val page=sessionPage(offset,100);rows+=page.rows;offset=page.nextOffset
+            if(!page.hasMore) break
+            require(offset<100_000) { "Too many sessions. Use the paginated conversation browser." }
+        } while(true)
+        return rows.distinctBy {it.id}
+    }
+    override suspend fun renameSession(id: String,title: String) {
+        require(title.isNotBlank() && title.length<=200)
+        json("api/sessions/${segment(id)}",buildJsonObject {put("title",title)},method="PATCH")
+    }
+    override suspend fun deleteSession(id: String) { json("api/sessions/${segment(id)}",method="DELETE") }
     override suspend fun createSession(id: String, title: String): RemoteSession {
         val j = json("api/sessions", buildJsonObject { put("id",id); put("title",title); put("source","api_server") })
         val s = j["session"] as? JsonObject ?: j
         return RemoteSession(s.text("id").ifBlank { id }, s.text("title").ifBlank { title })
     }
-    override suspend fun messages(id: String): List<RemoteMessage> {
-        val all = mutableListOf<RemoteMessage>(); var offset=0
+    override suspend fun messages(id: String) = history(id).rows
+    override suspend fun history(id: String): MessageHistory {
+        val all=mutableListOf<RemoteMessage>();var offset=0;var resolved=id
         do {
-            val j=json("api/sessions/${segment(id)}/messages?inline_images=false&limit=500&offset=$offset&order=oldest")
-            val rows=j.items("data"); all += rows.filter { it.text("role") in listOf("user","assistant") }.map {
-                val ts = (it["timestamp"] as? JsonPrimitive)?.doubleOrNull ?: 0.0
-                RemoteMessage(it.text("role"), it.text("content"), (ts * 1000).toLong())
-            }; offset += rows.size
-        } while (rows.size == 500 && offset < 10000)
-        return all
+            val j=json("api/sessions/${segment(resolved)}/messages?inline_images=false&limit=500&offset=$offset&order=oldest")
+            resolved=j.text("session_id").ifBlank {resolved}
+            val rows=j.items("data")
+            all+=rows.filter {it.text("role") in listOf("user","assistant")}.mapIndexed {index,m ->
+                val ts=(m["timestamp"] as? JsonPrimitive)?.doubleOrNull ?: 0.0
+                val content=when(val value=m["content"]) {
+                    is JsonPrimitive -> value.contentOrNull.orEmpty()
+                    is JsonArray -> value.mapNotNull {it as? JsonObject}.filter {it.text("type")=="text"}.joinToString("\n") {it.text("text")}
+                    else -> ""
+                }
+                RemoteMessage(m.text("role"),content,(ts*1000).toLong(),m.text("id").ifBlank {"legacy_${offset+index}"})
+            }
+            offset+=rows.size
+            if(rows.size<500) break
+            require(offset<100_000) { "History exceeds the mobile import limit. Saved messages were kept." }
+        } while(true)
+        return MessageHistory(resolved,all.distinctBy {it.id})
     }
-    private fun parseJob(j: JsonObject) = HermesJob(j.text("id"), j.text("name"), j.text("prompt"), j["schedule"]?.let { if(it is JsonPrimitive) it.content else it.toString() }.orEmpty(), j.text("last_status").ifBlank { j.text("state") }.ifBlank { if(j["enabled"]?.jsonPrimitive?.booleanOrNull == false) "paused" else "scheduled" })
+    private fun parseJob(j: JsonObject): HermesJob {
+        val schedule=when(val value=j["schedule"]) {is JsonObject -> value.text("display").ifBlank {value.text("cron")}.ifBlank {value.toString()}; is JsonPrimitive -> value.contentOrNull.orEmpty();else -> ""}
+        val enabled=j["enabled"]?.jsonPrimitive?.booleanOrNull ?: true
+        return HermesJob(j.text("id"),j.text("name"),j.text("prompt"),schedule,j.text("last_status").ifBlank {j.text("state")}.ifBlank {if(enabled) "scheduled" else "paused"},enabled,j.text("next_run_at").ifBlank {j.text("next_run")},j.text("last_run_at").ifBlank {j.text("last_run")} )
+    }
     override suspend fun jobs() = json("api/jobs?include_disabled=true").items("jobs").map(::parseJob)
     override suspend fun job(id: String): HermesJob { val j=json("api/jobs/${segment(id)}"); return parseJob(j["job"] as? JsonObject ?: j) }
     override suspend fun submitRun(session: String, input: String, key: String) = json("v1/runs", buildJsonObject { put("session_id",session); put("input",input) }, key).text("run_id").also { require(it.isNotBlank()) { "The server did not return a run identifier." } }

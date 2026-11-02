@@ -30,6 +30,8 @@ import java.time.format.DateTimeFormatter
     val draft by vm.draft.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val connecting by vm.connecting.collectAsStateWithLifecycle()
+    val historyLoading by vm.historyLoading.collectAsStateWithLifecycle()
+    val caps by vm.capabilities.collectAsStateWithLifecycle()
     val status by vm.runStatus.collectAsStateWithLifecycle()
     val activity by vm.activity.collectAsStateWithLifecycle()
     val approval by vm.approval.collectAsStateWithLifecycle()
@@ -40,9 +42,10 @@ import java.time.format.DateTimeFormatter
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Word(Words.Chat,Modifier.weight(1f))
             IconButton({history=true},enabled=!busy) { Icon(Icons.Outlined.History,label(Words.History)) }
+            IconButton(vm::refreshHistory,enabled=!busy && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
             IconButton(vm::newChat,enabled=!busy) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
         }
-        if(busy) QuietProgress()
+        if(busy || historyLoading) QuietProgress()
         if(messages.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center) { Word(Words.NoChats) }
         else LazyColumn(Modifier.weight(1f).fillMaxWidth(),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
             items(messages,key={it.id}) { MessageCard(it) }
@@ -60,12 +63,7 @@ import java.time.format.DateTimeFormatter
             trailingIcon={IconButton({vm.send()},enabled=draft.isNotBlank() && !busy && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
         Spacer(Modifier.height(4.dp))
     }
-    if(history) AlertDialog(onDismissRequest={history=false},title={Text(label(Words.History))},text={
-        LazyColumn(Modifier.heightIn(max=450.dp)) {
-            items(conversations,key={it.key}) { c -> TextButton({vm.select(c.key);history=false},Modifier.fillMaxWidth()) { Text(c.title.ifBlank { Words.NewChat.en },Modifier.fillMaxWidth()) } }
-            if(conversations.isEmpty()) item {Text(label(Words.NoChats))}
-        }
-    },confirmButton={TextButton({history=false}) {Text(label(Words.Close))}})
+    if(history) ConversationBrowser(vm) {history=false}
     approval?.let { a -> AlertDialog(onDismissRequest={},title={Text(label(Words.Approval))},text={SelectionContainer {Text(a.description.ifBlank { label(Words.Approval) })}},
         confirmButton={if("once" in a.choices) TextButton({vm.approve("once")}) {Text(label(Words.AllowOnce))}},
         dismissButton={if("deny" in a.choices) TextButton({vm.approve("deny")}) {Text(label(Words.Deny))}}) }

@@ -11,8 +11,8 @@ android {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0-alpha"
+        versionCode = 2
+        versionName = "0.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs.getByName("debug") {
@@ -24,6 +24,7 @@ android {
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { compose = true; buildConfig = true }
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     testOptions { unitTests.isReturnDefaultValues = true }
     lint { abortOnError = true; checkReleaseBuilds = true }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.*
 
 /** Explicit, deterministic demo. No production endpoint or credentials are used. */
-class FakeHermesApiClient : HermesApiClient {
+open class FakeHermesApiClient : HermesApiClient {
     override suspend fun capabilities() = HermesCapabilities("Demo", buildJsonObject { put("session_resources",true); put("session_chat",true); put("session_chat_streaming",true); put("run_stop",true) })
     override suspend fun sessions() = emptyList<RemoteSession>()
     override suspend fun createSession(id: String, title: String) = RemoteSession(id,title)

@@ -15,7 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable fun HomeScreen(vm: HermesViewModel, go: (String)->Unit) {
-    val conversations by vm.conversations.collectAsStateWithLifecycle()
+    val allConversations by vm.conversations.collectAsStateWithLifecycle()
+    val conversations=allConversations.filterNot {it.hidden}
     val tasks by vm.tasks.collectAsStateWithLifecycle()
     val jobs by vm.jobs.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()

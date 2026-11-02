@@ -46,6 +46,7 @@ class NavigationTest {
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextInput("QA task")
         compose.onNode(hasSetTextAction() and hasText(Words.DueDate.localized(AppPreferences()))).performTextInput("2026-11-30")
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
+        compose.onNodeWithTag("task-list").performScrollToNode(hasText("QA task"))
         compose.onNodeWithText("QA task").assertExists()
         compose.onNodeWithContentDescription(Words.Edit.localized(AppPreferences())).performClick()
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextReplacement("QA edited")

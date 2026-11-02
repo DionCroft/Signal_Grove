@@ -17,7 +17,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private val dao=graph.database.dao()
     private val connection=HermesConnectionRepository()
     private val sessionRepo=HermesSessionRepository(dao)
-    private val jobsRepo=HermesJobsRepository()
+    private val jobsRepo=HermesJobsRepository(dao)
     val preferences=graph.preferences.flow.stateIn(viewModelScope,SharingStarted.Eagerly,AppPreferences())
     private val scope=MutableStateFlow("demo")
     val selected=MutableStateFlow("")
@@ -26,7 +26,13 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val tasks=dao.tasks().stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val connectionStatus=MutableStateFlow("demo")
     val capabilities=MutableStateFlow<HermesCapabilities?>(null)
-    val jobs=MutableStateFlow<List<HermesJob>>(emptyList())
+    private val cachedJobs=scope.flatMapLatest {dao.cachedJobs(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
+    val jobs=cachedJobs.map {rows -> rows.map {it.remote()}}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
+    val jobsFetchedAt=cachedJobs.map {it.maxOfOrNull {j -> j.fetchedAt} ?: 0L}.stateIn(viewModelScope,SharingStarted.Eagerly,0L)
+    val sessionsLoading=MutableStateFlow(false)
+    val sessionsHasMore=MutableStateFlow(false)
+    val historyLoading=MutableStateFlow(false)
+    private var sessionsOffset=0
     val jobsStatus=MutableStateFlow("idle")
     val error=MutableStateFlow<String?>(null)
     val busy=MutableStateFlow(false)
@@ -40,7 +46,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     init { viewModelScope.launch { val p=graph.preferences.flow.first(); activate(p) } }
     fun dismissError() { error.value=null }
     private suspend fun activate(p: AppPreferences) {
-        selected.value=""; capabilities.value=null; jobs.value=emptyList()
+        selected.value=""; capabilities.value=null; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
         if(p.demo) {
             api=FakeHermesApiClient(); scope.value="demo"; connectionStatus.value="demo"
             capabilities.value=api.capabilities(); refreshJobs()
@@ -73,7 +79,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val p=old.copy(url=url.trim(),debugHttp=debugHttp,demo=false)
                 graph.preferences.update(p)
                 api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered
-                connectionStatus.value="connected"; jobs.value=emptyList(); error.value=null
+                connectionStatus.value="connected"; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"; sessionsLoading.value=false; error.value=null
                 loadSessions(); refreshJobs()
             } catch(e: Exception) { error.value=connectionError(e) }
             finally { connecting.value=false }
@@ -88,17 +94,69 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         } catch(e: Exception) { connectionStatus.value="offline"; error.value=connectionError(e) }
         finally { connecting.value=false }
     } }
-    private suspend fun loadSessions() {
-        if(!preferences.value.demo && capabilities.value?.sessions == true) try { sessionRepo.importSessions(api,scope.value) }
-        catch(e: Exception) { error.value=connectionError(e) }
+    private suspend fun loadSessions(reset: Boolean = true) {
+        if(scope.value=="demo" || capabilities.value?.sessions!=true) return
+        val partition=scope.value;val client=api
+        sessionsLoading.value=true
+        try {
+            val page=sessionRepo.importSessions(client,partition,if(reset) 0 else sessionsOffset)
+            if(scope.value==partition) {sessionsOffset=page.nextOffset;sessionsHasMore.value=page.hasMore}
+        } catch(e: CancellationException) {throw e}
+        catch(e: Exception) {if(scope.value==partition) error.value=connectionError(e)}
+        finally {if(scope.value==partition) sessionsLoading.value=false}
     }
-    fun refreshJobs() { viewModelScope.launch {
+    fun refreshSessions(more: Boolean = false) {if(busy.value || sessionsLoading.value) return;viewModelScope.launch {loadSessions(!more)}}
+    fun refreshHistory() {
+        if(busy.value || historyLoading.value) return
+        val key=selected.value;val client=api
+        if(key.isBlank() || scope.value=="demo" || capabilities.value?.sessions!=true) return
+        historyLoading.value=true
+        viewModelScope.launch {try {
+            dao.conversation(key)?.let {sessionRepo.importMessages(client,it)}
+        } catch(e: CancellationException) {throw e}
+        catch(e: Exception) {if(selected.value==key) error.value=connectionError(e)}
+        finally {historyLoading.value=false} }
+    }
+    fun pinConversation(key: String) {viewModelScope.launch {
+        dao.conversation(key)?.takeIf {it.scope==scope.value}?.let {dao.save(it.copy(pinned=!it.pinned))}
+    }}
+    fun hideConversation(key: String) {if(busy.value) return;viewModelScope.launch {
+        dao.conversation(key)?.takeIf {it.scope==scope.value}?.let {dao.save(it.copy(hidden=!it.hidden))}
+    }}
+    fun renameConversation(key: String,title: String) {if(busy.value || title.isBlank()) return;viewModelScope.launch {
+        val c=dao.conversation(key)?.takeIf {it.scope==scope.value} ?: return@launch
+        try {
+            if(c.scope!="demo" && capabilities.value?.sessions==true) {
+                require(capabilities.value?.endpoints?.containsKey("session_update")==true) {"This server does not advertise session renaming."}
+                api.renameSession(c.remoteId,title.trim())
+            }
+            dao.conversation(key)?.let {dao.save(it.copy(title=title.trim()))}
+        } catch(e: Exception) {error.value=connectionError(e)}
+    }}
+    fun deleteConversation(key: String,server: Boolean) {if(busy.value) return;viewModelScope.launch {
+        val c=dao.conversation(key)?.takeIf {it.scope==scope.value} ?: return@launch
+        try {
+            require(c.status in terminal || c.status=="idle") {"Check the pending run before deleting this conversation."}
+            if(server) {
+                require(capabilities.value?.endpoints?.containsKey("session_delete")==true) {"Server conversation deletion is unavailable."}
+                api.deleteSession(c.remoteId)
+            }
+            dao.deleteConversation(key)
+            if(selected.value==key) newChat()
+        } catch(e: Exception) {error.value=connectionError(e)}
+    }}
+    fun refreshJobs() {
+        if(jobsStatus.value=="loading") return
+        val client=api;val partition=scope.value
         jobsStatus.value="loading"
-        try { jobs.value=jobsRepo.list(api); jobsStatus.value=if(jobs.value.isEmpty()) "empty" else "ready" }
-        catch(e: HermesHttpException) { jobs.value=emptyList(); jobsStatus.value=if(e.code in listOf(404,405,501)) "unsupported" else "error" }
-        catch(e: Exception) { jobs.value=emptyList(); jobsStatus.value="error" }
-    } }
-    suspend fun jobDetail(id: String) = jobsRepo.detail(api,id)
+        viewModelScope.launch {
+            try {jobsRepo.refresh(client,partition);if(scope.value==partition) jobsStatus.value="ready"}
+            catch(e: CancellationException) {throw e}
+            catch(e: HermesHttpException) {if(scope.value==partition) jobsStatus.value=if(e.code in listOf(404,405,501)) "unsupported" else "error"}
+            catch(e: Exception) {if(scope.value==partition) jobsStatus.value="error"}
+        }
+    }
+    suspend fun jobDetail(id: String) = jobsRepo.detail(api,scope.value,id,connectionStatus.value in listOf("connected","demo") && jobsStatus.value=="ready")
     fun newChat() { if(busy.value) return; selected.value=""; runStatus.value="idle"; activity.value=""; approval.value=null; draft.value="" }
     fun select(key: String) {
         if(busy.value) return
@@ -106,15 +164,16 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val c=dao.conversation(key) ?: return@launch
             runStatus.value=c.status
-            if(capabilities.value?.sessions == true && c.scope != "demo") try { sessionRepo.importMessages(api,c) } catch(e: Exception) { error.value=connectionError(e) }
-            if(c.runId.isNotBlank() && c.status !in terminal) reconcile(c)
+            if(capabilities.value?.sessions == true && c.scope != "demo") try { val client=api;sessionRepo.importMessages(client,c) } catch(e: Exception) { error.value=connectionError(e) }
+            if(selected.value==key && c.runId.isNotBlank() && c.status !in terminal) reconcile(c)
         }
     }
     fun send(text: String = draft.value) {
         if(text.isBlank() || busy.value || connecting.value) return
         if(!preferences.value.demo && connectionStatus.value!="connected") { error.value="Connect to your Hermes server in Settings first."; return }
+        busy.value=true
         worker=viewModelScope.launch {
-            busy.value=true; error.value=null; activity.value=""; approval.value=null
+            error.value=null; activity.value=""; approval.value=null
             try {
                 var c=selected.value.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }

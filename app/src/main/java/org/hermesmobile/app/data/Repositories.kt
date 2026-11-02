@@ -8,22 +8,31 @@ class HermesConnectionRepository {
     suspend fun test(api: HermesApiClient) = api.capabilities()
 }
 class HermesSessionRepository(val dao: HermesDao) {
-    suspend fun importSessions(api: HermesApiClient, scope: String) {
-        api.sessions().forEachIndexed { index, session ->
-            val key="$scope:${session.id}"
-            if(dao.conversation(key) == null) dao.save(Conversation(key,scope,session.id,session.title, System.currentTimeMillis()-index))
+    suspend fun importSessions(api: HermesApiClient, scope: String, offset: Int = 0): SessionPage {
+        val page = api.sessionPage(offset)
+        page.rows.forEachIndexed { index, remote ->
+            dao.mergeRemoteSession(scope,remote,System.currentTimeMillis()-index)
         }
+        return page
     }
     suspend fun importMessages(api: HermesApiClient, session: Conversation) {
-        val messages=api.messages(session.remoteId)
-        // Keep local pending receipts. Do not infer success from transcript text.
-        if (session.pendingKey.isNotBlank() && session.status !in listOf("completed","idle")) return
-        val local=dao.history(session.key)
-        // Initial import only. Later local turns are maintained by their durable receipts.
-        if(local.isEmpty()) dao.saveMessages(messages.mapIndexed { i,m -> ChatMessage("remote_${session.key}_$i",session.key,m.role,m.content,m.timestamp.takeIf { it > 0 } ?: i.toLong()) })
+        if(session.status !in setOf("idle","completed","failed","cancelled","interrupted","response_finished")) return
+        val history=api.history(session.remoteId)
+        val rows=history.rows.mapIndexed { index,m ->
+            ChatMessage("remote_${session.key}_${m.id.ifBlank { index.toString() }}",session.key,m.role,m.content,
+                m.timestamp.takeIf { it>0 } ?: index.toLong())
+        }
+        dao.replaceHistory(session.key,history.sessionId,rows)
     }
 }
-class HermesJobsRepository {
-    suspend fun list(api: HermesApiClient) = api.jobs()
-    suspend fun detail(api: HermesApiClient, id: String) = api.job(id)
+class HermesJobsRepository(private val dao: HermesDao) {
+    suspend fun refresh(api: HermesApiClient,scope: String) {
+        val now=System.currentTimeMillis()
+        val rows=api.jobs().map {j -> CachedJob("$scope:${j.id}",scope,j.id,j.name,j.prompt,j.schedule,j.state,j.enabled,j.nextRun,j.lastRun,now) }
+        dao.replaceJobs(scope,rows)
+    }
+    suspend fun detail(api: HermesApiClient, scope: String, id: String, online: Boolean): HermesJob {
+        if(online) return api.job(id)
+        return dao.cachedJob(scope,id)?.remote() ?: throw IllegalStateException("No saved job details are available.")
+    }
 }

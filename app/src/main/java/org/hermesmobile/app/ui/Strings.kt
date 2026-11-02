@@ -5,6 +5,19 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    Search("Search","搜索","Sōusuǒ"), LoadMore("Load more conversations","加载更多对话","Jiāzài gèng duō duìhuà"),
+    Rename("Rename","重命名","Chóng mìngmíng"), Pin("Pin / unpin locally","本地置顶或取消置顶","Běndì zhìdǐng huò qǔxiāo zhìdǐng"),
+    Hide("Hide / show locally","本地隐藏或显示","Běndì yǐncáng huò xiǎnshì"), ShowHidden("Include hidden conversations","包括隐藏的对话","Bāokuò yǐncáng de duìhuà"),
+    DeleteServer("Delete on server and this device","删除服务器及本机对话","Shānchú fúwùqì jí běnjī duìhuà"),
+    DeleteLocal("Delete from this device","从本机删除","Cóng běnjī shānchú"),
+    DeleteSessionConfirm("Delete this conversation? Server deletion permanently removes its history. Pending runs must be resolved first.","删除此对话？服务器删除会永久移除记录。请先处理未完成的运行。","Shānchú cǐ duìhuà? Fúwùqì shānchú huì yǒngjiǔ yíchú jìlù. Qǐng xiān chǔlǐ wèi wánchéng de yùnxíng."),
+    ConversationTitle("Conversation title","对话标题","Duìhuà biāotí"), RefreshHistory("Refresh saved history","刷新已存记录","Shuāxīn yǐ cún jìlù"),
+    Notes("Notes","备注","Bèizhù"), All("All","全部","Quánbù"), Open("Open","未完成","Wèi wánchéng"),
+    Overdue("Overdue","已逾期","Yǐ yúqī"), NoMatches("No matching items.","没有匹配的项目。","Méiyǒu pǐpèi de xiàngmù."),
+    JobDetails("View job details","查看定时任务详情","Chákàn dìngshí rènwù xiángqíng"), Enabled("Enabled","已启用","Yǐ qǐyòng"),
+    Paused("Paused","已暂停","Yǐ zàntíng"), NextRun("Next scheduled run","下次计划运行","Xià cì jìhuà yùnxíng"),
+    LastRun("Last run","上次运行","Shàng cì yùnxíng"), Cached("Saved snapshot · may be out of date","已存快照 · 可能已过期","Yǐ cún kuàizhào · kěnéng yǐ guòqī"),
+    LastUpdated("Last refreshed","上次刷新","Shàng cì shuāxīn"),
     Home("Home","首页","Shǒuyè"), Chat("Chat","对话","Duìhuà"), Tasks("Tasks","任务","Rènwù"),
     Automation("Automation","自动化","Zìdònghuà"), Voice("Voice","语音","Yǔyīn"), Settings("Settings","设置","Shèzhì"),
     Assistant("Your everyday companion","你的日常助手","Nǐ de rìcháng zhùshǒu"),
@@ -54,7 +67,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     Chinese("Show Simplified Chinese","显示简体中文","Xiǎnshì jiǎntǐ Zhōngwén"), Pinyin("Show accented pinyin","显示带声调的拼音","Xiǎnshì dài shēngdiào de pīnyīn"),
     Accessibility("Accessibility","无障碍","Wú zhàng'ài"), ReducedMotion("Reduce motion","减少动画","Jiǎnshǎo dònghuà"),
     About("About & security","关于与安全","Guānyú yǔ ānquán"),
-    AboutBody("Hermes Agent Mobile · 0.1.0-alpha. An independent community client, not endorsed by NousResearch. Conversations are stored in app-private storage; the bearer token is encrypted with Android Keystore. Device backups are disabled.","Hermes Agent Mobile · 0.1.0-alpha。独立社区客户端，未经 NousResearch 官方认可。对话保存在应用私有存储中；令牌由 Android Keystore 加密。设备备份已禁用。","Hermes Agent Mobile · 0.1.0-alpha. Dúlì shèqū kèhùduān, wèi jīng NousResearch guānfāng rènkě. Duìhuà bǎocún zài yìngyòng sīyǒu cúnchǔ zhōng; lìngpái yóu Android Keystore jiāmì. Shèbèi bèifèn yǐ jìnyòng."),
+    AboutBody("Hermes Agent Mobile · {version}. An independent community client, not endorsed by NousResearch. Conversations are stored in app-private storage; the bearer token is encrypted with Android Keystore. Device backups are disabled.","Hermes Agent Mobile · {version}。独立社区客户端，未经 NousResearch 官方认可。对话保存在应用私有存储中；令牌由 Android Keystore 加密。设备备份已禁用。","Hermes Agent Mobile · {version}. Dúlì shèqū kèhùduān, wèi jīng NousResearch guānfāng rènkě. Duìhuà bǎocún zài yìngyòng sīyǒu cúnchǔ zhōng; lìngpái yóu Android Keystore jiāmì. Shèbèi bèifèn yǐ jìnyòng."),
     Security("Your token can grant powerful server access. Use a private VPN or trusted HTTPS. Approvals always require your explicit choice.","令牌可能授予强大的服务器权限。请使用私有 VPN 或可信 HTTPS。批准操作始终需要你明确选择。","Lìngpái kěnéng shòuyǔ qiángdà de fúwùqì quánxiàn. Qǐng shǐyòng sīyǒu VPN huò kěxìn HTTPS. Pīzhǔn cāozuò shǐzhōng xūyào nǐ míngquè xuǎnzé."),
     Github("Source on GitHub","GitHub 源代码","GitHub yuán dàimǎ"), Licences("Open-source licences","开源许可证","Kāiyuán xǔkězhèng"),
     ClearChats("Clear local conversation cache","清除本地对话缓存","Qīngchú běndì duìhuà huǎncún"),
