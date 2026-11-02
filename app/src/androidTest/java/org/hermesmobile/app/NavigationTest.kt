@@ -72,9 +72,18 @@ class NavigationTest {
         compose.onNode(hasSetTextAction() and hasText(Words.TaskTitle.localized(AppPreferences()))).performTextReplacement("QA edited")
         compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
         compose.waitUntil(5000) {vm.tasks.value.any {it.title=="QA edited"}}
+        // The edited title can reach Room while the IME/dialog is still leaving the screen.
+        // Wait for the actual checkbox to be reachable before the one real pointer click.
+        compose.runOnUiThread {
+            compose.activity.currentFocus?.clearFocus()
+            androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime())
+        }
+        if(android.os.Build.VERSION.SDK_INT>=30) compose.waitUntil(5000) {(androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: 0)==0}
+        compose.waitForIdle()
         compose.onNodeWithTag("task-list").performScrollToNode(hasText("QA edited"))
-        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).performScrollTo().performClick()
-        compose.waitUntil(5000) {runBlocking {app.database.dao().tasks().first().firstOrNull {it.title=="QA edited"}?.completed==true}}
+        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).performScrollTo().assertIsDisplayed().assertIsOff().performClick()
+        compose.waitUntil(10000) {vm.tasks.value.singleOrNull {it.title=="QA edited"}?.completed==true}
+        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).assertIsOn()
         assertTrue(runBlocking {app.database.dao().tasks().first().first {it.title=="QA edited"}.completed})
         screenshot("tasks")
         compose.onNodeWithContentDescription(Words.Delete.localized(AppPreferences())).performScrollTo().performClick()
