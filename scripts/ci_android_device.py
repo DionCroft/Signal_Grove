@@ -31,8 +31,10 @@ def main() -> int:
     def run(argv,timeout=30,check=True):
         return subprocess.run([str(x) for x in argv],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=timeout,check=check)
     image=f'system-images;android-{"37.0" if args.api==37 else "26"};google_apis;x86_64'
+    print(f'Installing the API {args.api} system image in the isolated runner.',flush=True)
     with (work/'sdk.log').open('w') as log:
         subprocess.run(['sdkmanager','emulator','platform-tools',image],env=env,stdout=log,stderr=subprocess.STDOUT,timeout=900,check=True)
+    print('System image ready; creating the owned emulator.',flush=True)
     name=f'HermesCI{args.api}'
     subprocess.run(['avdmanager','create','avd','--force','--name',name,'--package',image,'--device','pixel_2'],input='no\n',env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=90,check=True)
     app=args.artifacts/'outputs/apk/debug/app-debug.apk'
@@ -44,6 +46,7 @@ def main() -> int:
     with (work/'emulator.log').open('w') as log:
         process=subprocess.Popen([emulator,'-avd',name,'-port','5554','-no-window','-no-audio','-no-boot-anim','-no-snapshot','-gpu','swiftshader_indirect','-accel','on','-memory','3072','-cores','2'],env=env,stdout=log,stderr=subprocess.STDOUT)
         try:
+            print('Waiting for the owned emulator to boot.',flush=True)
             run([adb,'start-server'])
             device('wait-for-device',timeout=180)
             deadline=time.monotonic()+240
@@ -54,6 +57,7 @@ def main() -> int:
                 time.sleep(2)
             actual=device('shell','getprop','ro.build.version.sdk').stdout.strip()
             if actual!=str(args.api):raise ValueError('The emulator API does not match the matrix entry.')
+            print(f'Emulator booted with verified API {actual}; installing APKs.',flush=True)
             device('shell','svc','power','stayon','true')
             device('shell','settings','put','system','screen_off_timeout','2147483647')
             device('shell','settings','put','system','font_scale','1.3' if args.api==26 else '1.0')
@@ -66,6 +70,7 @@ def main() -> int:
             if args.api>=37:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')
+            print('Running the complete instrumentation suite.',flush=True)
             result=device('shell','am','instrument','-w','-r','org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner',timeout=1500,check=False)
             (work/'instrumentation.log').write_text(result.stdout,encoding='utf-8')
             passed=re.search(r'^OK \(([1-9][0-9]*) tests?\)',result.stdout,re.M)

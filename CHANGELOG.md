@@ -2,6 +2,8 @@
 
 ## 1.1.0-dev — audit follow-up
 
+- Strict dependency SHA-256 verification, metadata/bypass policy checks and a checked multi-platform aapt2 baseline.
+
 - Reviewed MCP OAuth start, exact persisted flow identity, transient browser destinations, explicit retry-aware status refresh and separately acknowledged cancellation.
 
 - Reviewed MCP catalog installation with masked declared inputs, stale-manifest refusal, accepted/background distinctions and explicit host-setup limits.

@@ -17,5 +17,5 @@ $env:HERMES_BUILD_HOME=Join-Path $WorkRoot 'signing'
 $env:JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$WorkRoot"
 New-Item -ItemType Directory -Force -Path $env:ANDROID_USER_HOME,$env:ANDROID_AVD_HOME,$env:HERMES_BUILD_HOME | Out-Null
 Push-Location (Split-Path -Parent $PSScriptRoot)
-try { & .\gradlew.bat --no-daemon --console=plain @Tasks; if($LASTEXITCODE) {throw "Gradle failed with exit code $LASTEXITCODE"} }
+try { & .\gradlew.bat --no-daemon --console=plain --dependency-verification strict @Tasks; if($LASTEXITCODE) {throw "Gradle failed with exit code $LASTEXITCODE"} }
 finally {Pop-Location}

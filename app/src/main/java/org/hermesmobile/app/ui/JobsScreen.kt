@@ -55,7 +55,7 @@ import java.time.format.DateTimeFormatter
         if(state!="ready" && jobs.isNotEmpty()) item {Text(label(Words.Cached))}
         if(detailError!=null) item {Text(detailError.orEmpty(),color=MaterialTheme.colorScheme.error)}
         if(visible.isEmpty() && state!="loading") item {HermesCard {Text(label(if(query.isBlank()) Words.NoJobs else Words.NoMatches))}}
-        items(visible,key={it.id}) {job -> HermesCard {
+        items(visible,key={it.id}) {job -> HermesCard(Modifier.testTag("job-card-${job.id}")) {
             Text(job.name,style=MaterialTheme.typography.titleLarge)
             Text(job.schedule)
             Text(label(if(job.enabled) Words.Enabled else Words.Paused),style=MaterialTheme.typography.labelMedium)
@@ -63,7 +63,7 @@ import java.time.format.DateTimeFormatter
             TextButton({scope.launch {loading=true;detailError=null;try {val result=vm.jobDetail(job.id);if(vm.profileScope.value==profile) detail=result} catch(e:Exception) {if(vm.profileScope.value==profile) detailError=connectionError(e)} finally {if(vm.profileScope.value==profile) loading=false}}},enabled=!loading) {Text(label(Words.JobDetails))}
         }}
     }
-    detail?.let {job -> AlertDialog(onDismissRequest={detail=null},title={Text(job.name)},text={LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    detail?.let {job -> AlertDialog(onDismissRequest={detail=null},title={Text(job.name,Modifier.testTag("job-detail-name"))},text={LazyColumn(Modifier.testTag("job-detail-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         if(state!="ready") item {Text(label(Words.Cached))}
         item {Text(label(Words.Schedule));Text(job.schedule)}
         item {Text(label(Words.JobState));Text(job.state)}
