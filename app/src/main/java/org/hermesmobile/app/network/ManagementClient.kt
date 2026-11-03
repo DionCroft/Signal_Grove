@@ -32,14 +32,15 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     private val dns=PermissionAwareDns(localNetworkAllowed)
     private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(45,TimeUnit.SECONDS)
         .writeTimeout(30,TimeUnit.SECONDS).callTimeout(60,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
-    private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList(),query:Map<String,String> = emptyMap()):JsonElement=suspendCancellableCoroutine {continuation ->
+    private val hubHttp=http.newBuilder().readTimeout(180,TimeUnit.SECONDS).callTimeout(210,TimeUnit.SECONDS).build()
+    private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList(),query:Map<String,String> = emptyMap(),slow:Boolean=false):JsonElement=suspendCancellableCoroutine {continuation ->
         dns.checkHost(base.host)
         val endpoint=base.newBuilder().addPathSegments(path).apply {tail.forEach {addPathSegment(it)};query.forEach {(key,value)->addQueryParameter(key,value)};profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
         val request=Request.Builder().url(endpoint).header("Accept","application/json").apply {
             token?.let {header("Authorization","Bearer $it")}
             method(method,body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType()))
         }.build()
-        val call=http.newCall(request);continuation.invokeOnCancellation {call.cancel()}
+        val call=(if(slow) hubHttp else http).newCall(request);continuation.invokeOnCancellation {call.cancel()}
         call.enqueue(object:Callback {
             override fun onFailure(call:Call,e:IOException) {if(continuation.isActive) continuation.resumeWith(Result.failure(e))}
             override fun onResponse(call:Call,response:Response) {
@@ -57,6 +58,11 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun hubSources(tokens:ManagementTokens,profile:String):JsonObject {SkillProtocol.profile(profile);return element("api/skills/hub/sources",tokens.access,profile=profile,slow=true).jsonObject}
+    suspend fun hubOfficial(tokens:ManagementTokens,profile:String):JsonObject {SkillProtocol.profile(profile);return element("api/skills/hub/official",tokens.access,profile=profile).jsonObject}
+    suspend fun hubSearch(tokens:ManagementTokens,profile:String,query:String,source:String):JsonObject {SkillProtocol.profile(profile);require(query.isNotBlank() && query.length<=256 && query.none(Char::isISOControl) && source.isNotBlank() && source.length<=128 && source.none(Char::isISOControl));return element("api/skills/hub/search",tokens.access,profile=profile,query=mapOf("q" to query,"source" to source,"limit" to "20"),slow=true).jsonObject}
+    suspend fun hubPreview(tokens:ManagementTokens,profile:String,skill:HubSkill):JsonObject {SkillProtocol.profile(profile);require(skill.addressable);return element("api/skills/hub/preview",tokens.access,profile=profile,query=mapOf("identifier" to skill.canonicalId),slow=true).jsonObject}
+    suspend fun hubScan(tokens:ManagementTokens,profile:String,skill:HubSkill):JsonObject {SkillProtocol.profile(profile);require(skill.addressable);return element("api/skills/hub/scan",tokens.access,profile=profile,query=mapOf("identifier" to skill.canonicalId),slow=true).jsonObject}
     suspend fun gateway(tokens:ManagementTokens):GatewayRpcSession {
         val response=json("api/auth/ws-ticket",tokens.access,JsonObject(emptyMap()))
         val ticket=response["ticket"] as? JsonPrimitive

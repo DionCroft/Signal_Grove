@@ -59,6 +59,16 @@ EXTRA_SOURCES = {
     'skill_utils': 'agent/skill_utils.py',
     'web_bootstrap': 'hermes_cli/web_server.py',
     'models': 'hermes_cli/web_models.py',
+    'profile_helpers': 'hermes_cli/web_server_profiles.py',
+    'hub_cli': 'hermes_cli/skills_hub.py',
+    'hub_search': 'tools/skills_hub_search.py',
+    'hub_claw': 'tools/skills_hub_clawhub.py',
+    'hub_official': 'tools/skills_hub_official.py',
+    'hub_guard': 'tools/skills_guard.py',
+    'hub_tier1': 'tools/skillevaluator_scan.py',
+    'hub_install': 'tools/skills_hub_install.py',
+    'hub_models': 'tools/skills_hub_models.py',
+
 }
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws'}
 
@@ -89,8 +99,8 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
-            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format'):
-                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'}}[source]
+            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1'):
+                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'}}[source]
                 for target in node.targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':

@@ -27,6 +27,7 @@ One active long-horizon goal covers the [2026-11-02 audit](audits/2026-11-02/REP
 | Advanced schedule inspection | Exact management-profile inventory and fresh job-ID details, bounded typed projections and strict array/object decoding | Implemented; validation in VALIDATION.md |
 | Gateway schedule controls | Separate pause/resume/removal reviews, strict profile preflight, known selector-collision guards, single-send durable receipts and readback | Implemented; validation in VALIDATION.md |
 | Gateway schedule scope | Reviewed one-use-ticket socket, bounded RPC replies, exact profile proof, read-only paused-job inventory and no reconnect/submission | Implemented; validation in VALIDATION.md |
+| Skill Hub discovery | Official/featured catalogs, explicit source search, plain-text previews and host-reported scan policy/findings with incomplete/secret-class handling | Implemented; reviewed installation/update/removal remain subsequent work |
 | Installed skill controls | Profile-scoped typed inventory/content, reviewed enable/disable and curator locks, stale-review refusal and independent durable receipts | Implemented; validation in VALIDATION.md |
 | Paused advanced creation | Declared-schema gate, typed reviewed fields, zero-tool distinction, exact paused ACK/readback and redacted no-replay receipts | Implemented; validation in VALIDATION.md |
 | Management and automation | Reviewed integration mutations, advanced automation contracts/readback and scoped notifications | In progress |

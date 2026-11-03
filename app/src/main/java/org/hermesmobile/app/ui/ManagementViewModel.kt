@@ -11,6 +11,8 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
+data class SkillHubState(val loaded:Boolean=false,val sources:HubSources?=null,val official:List<HubSkill>?=null,val search:HubSearch?=null,val preview:HubPreview?=null,val scan:HubScan?=null)
+
 data class ReviewedGatewayCron(val target:ManagementTarget,val request:GatewayCronRequest,val generation:Long)
 data class ReviewedGatewayRead(val target:ManagementTarget,val generation:Long)
 data class GatewayAutomationState(val inventory:GatewayCronInventory?=null)
@@ -31,7 +33,7 @@ data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:
 
 data class ManagementState(val apiScope:String="",val url:String="",val debugHttp:Boolean=false,val signedIn:Boolean=false,
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
-    val gateway:GatewayAutomationState=GatewayAutomationState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
+    val hub:SkillHubState=SkillHubState(),val gateway:GatewayAutomationState=GatewayAutomationState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
@@ -51,6 +53,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is SkillHubChanged->Words.ManagementReviewChanged
+        is SkillHubUnsupported->Words.ManagementUnsupported
+        is SkillHubInvalid->Words.SkillHubInvalid
         is GatewayCronReviewChanged->Words.ManagementReviewChanged
         is GatewayCronOutcomeUncertain->Words.ManagementOutcomePending
         is GatewayCronReadbackPending->Words.ManagementReadbackPending
@@ -100,11 +105,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
-        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         val api=client(current)
         val pending=withContext(Dispatchers.IO) {NativeLogin()};login=pending
         try {
@@ -121,7 +126,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap())
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -131,14 +136,14 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val identity=api.identity(current);val profiles=api.profiles(current)
         if(id!=generation) return@operation
         val profile=saved.profile.takeIf {name->profiles.any {it.name==name}}.orEmpty()
-        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         if(profile.isNotBlank()) loadServers(id,api,current,profile)
     }
     fun chooseProfile(profile:String)=operation {id ->
         val saved=state.value;require(saved.identity!=null && saved.profiles.any {it.name==profile}) {"Refresh verified management profiles first."}
         val current=tokens ?: error("Sign in to management first.")
         require(current.expiresAt>System.currentTimeMillis()/1000) {"Management sign-in expired. Renew it or sign in again."}
-        val selected=saved.copy(profile=profile,gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val selected=saved.copy(profile=profile,hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         save(selected,current)
         if(id!=generation) return@operation
         state.value=selected;loadServers(id,client(selected),current,profile)
@@ -152,6 +157,32 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
         return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,identity.provider+" · "+identity.userId)
     }
+    fun loadSkillHub()=operation {id ->
+        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
+        val sources=try {SkillHubProtocol.sources(api.hubSources(current,target.profile))} catch(e:HermesHttpException) {if(e.code in setOf(404,405)) null else throw e}
+        val official=try {SkillHubProtocol.official(api.hubOfficial(current,target.profile))} catch(e:HermesHttpException) {if(e.code in setOf(404,405)) null else throw e}
+        if(sources==null && official==null) throw SkillHubUnsupported()
+        if(id==generation) state.value=state.value.copy(hub=SkillHubState(true,sources,official))
+    }
+    fun searchSkillHub(query:String,source:String)=operation {id ->
+        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.");val saved=state.value
+        require(source=="all" || saved.hub.sources?.sources?.any {it.id==source && it.searchable!=false && it.available!=false && it.rateLimited!=true}==true)
+        val api=client(saved);api.identity(current);val result=SkillHubProtocol.search(api.hubSearch(current,target.profile,query.trim(),source))
+        if(id==generation) state.value=state.value.copy(hub=state.value.hub.copy(search=result,preview=null,scan=null))
+    }
+    fun previewHubSkill(skill:HubSkill)=operation {id ->
+        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")
+        require(skill.addressable && listOfNotNull(state.value.hub.official,state.value.hub.sources?.featured,state.value.hub.search?.results).flatten().any {it===skill})
+        val api=client(state.value);api.identity(current);val preview=SkillHubProtocol.preview(api.hubPreview(current,target.profile,skill),skill)
+        if(id==generation) state.value=state.value.copy(hub=state.value.hub.copy(preview=preview,scan=null))
+    }
+    fun scanHubSkill()=operation {id ->
+        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.");val preview=state.value.hub.preview ?: error("Preview a skill first.")
+        val api=client(state.value);api.identity(current);val result=SkillHubProtocol.scan(api.hubScan(current,target.profile,preview.skill),preview.skill)
+        if(id==generation) state.value=state.value.copy(hub=state.value.hub.copy(scan=result))
+    }
+    fun closeHubScan() {state.value=state.value.copy(hub=state.value.hub.copy(scan=null))}
+    fun closeHubPreview() {cancel();state.value=state.value.copy(hub=state.value.hub.copy(preview=null,scan=null))}
     fun prepareGatewayCron(job:GatewayCronJob,action:GatewayCronAction):ReviewedGatewayCron? {
         val saved=state.value;val inventory=saved.gateway.inventory ?: return null
         if(saved.busy || !GatewayCronInventory.supportedProfile(saved.profile) || inventory.profile!=saved.profile || inventory.jobs.none {it===job} || GatewayCronRequest.collision(job,inventory.jobs)) return null

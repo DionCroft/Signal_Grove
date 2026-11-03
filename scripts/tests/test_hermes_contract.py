@@ -22,6 +22,15 @@ def sources():
         'gateway_scope':'','gateway_runtime':'','gateway_ws':'','chat_ws':"@router.websocket('/api/ws')\nasync def gateway_ws(ws):\n    pass\n",
         'chat_auth':'','ws_boundary':"_GATEWAY_WS_PROTOCOL='hermes-gateway-v1'\n_GATEWAY_WS_TICKET_PROTOCOL_PREFIX='hermes-gateway-ticket.'\n",'ws_tickets':'TTL_SECONDS=30\n','cron_cancel':'','cron_tool':"_JOB_ACTIONS={'pause':handler}\n",'cron_format':"_FORMAT_JOB_OPTIONAL_KEYS=('script',)\n",
         'skills':"@router.get('/api/skills')\ndef get_skills():\n    return []\n",
+        'profile_helpers':'',
+        'hub_cli':'',
+        'hub_search':'',
+        'hub_claw':'',
+        'hub_official':'',
+        'hub_guard':'',
+        'hub_tier1':'',
+        'hub_install':'',
+        'hub_models':'',
         'skills_config':'', 'skill_usage':'', 'skill_manager':'', 'skill_catalog':'',
         'skill_utils':"ESSENTIAL_SKILLS:frozenset=frozenset({'hermes-agent'})\n",
         'web_bootstrap':"raise RuntimeError('Do not execute upstream')\napp=FastAPI()\n",
@@ -43,6 +52,21 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_hub_routes_policy_timeout_and_metadata_changes_require_review(self):
+        initial=sources()
+        initial['skills']+="@hub_router.get('/api/skills/hub/scan')\ndef scan_skill_hub():\n    return {}\n"
+        initial['hub_guard']="INSTALL_POLICY={'community':{'safe':'allow'}}\nVERDICT_INDEX={'safe':0}\n"
+        initial['hub_tier1']="SCAN_TIMEOUT_SECONDS=120\nSECRETS_CLASS_CHECKS=frozenset({'hardcoded_secrets'})\n"
+        initial['hub_models']="class SkillMeta:\n    identifier:str\n"
+        old=checker.extract(initial);tracked=baseline(old)
+        tracked['mobile_used_management_routes'].append('GET /api/skills/hub/scan')
+        tracked['mobile_used_handlers']+=['skills:scan_skill_hub','hub_guard:INSTALL_POLICY','hub_tier1:SCAN_TIMEOUT_SECONDS','hub_tier1:SECRETS_CLASS_CHECKS']
+        tracked['mobile_used_request_fields'].append('hub_models:SkillMeta.identifier')
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':old})['mobile_review_required'])
+        for source,before,after in [('skills','/api/skills/hub/scan','/api/skills/hub/changed'),('hub_guard',"'allow'","'ask'"),('hub_tier1','120','30'),('hub_tier1','hardcoded_secrets','changed_check'),('hub_models','identifier:str','identifier:int')]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_gateway_action_enum_mapping_and_request_profile_are_reviewed_contracts(self):
         old=checker.extract(sources());tracked=baseline(old)
         tracked['mobile_used_handlers']+=['gateway_models:enum:CronAction','cron_tool:_JOB_ACTIONS','cron_format:_FORMAT_JOB_OPTIONAL_KEYS']
