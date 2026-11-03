@@ -18,6 +18,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class CronCreationFlowTest {
     @get:Rule(order=0) val credentials=CredentialFixtureRule()
@@ -26,14 +28,28 @@ class CronCreationFlowTest {
     private val management get()=ViewModelProvider(compose.activity)[ManagementViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
     private fun json(text:String)=MockResponse().setHeader("Content-Type","application/json").setBody(text)
+    private fun entryScreenshot(name:String) {
+        val shot=File(compose.activity.getExternalFilesDir(null),"qa/$name.png");shot.parentFile!!.mkdirs()
+        shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+    }
+    private fun awaitCronEntry() {
+        try {compose.waitUntil(5000) {runCatching {compose.onNodeWithTag("host-cron-open").assertIsDisplayed().assertIsEnabled()}.isSuccess}}
+        catch(e:Throwable) {
+            runCatching {entryScreenshot("management-entry-transition-failure")}
+            throw AssertionError("Cron entry: busy=${management.state.value.busy}, loaded=${management.state.value.loaded}, profile=${management.state.value.profile}, signedIn=${management.state.value.signedIn}",e)
+        }
+    }
     @Test fun pausedCreationRequiresDeclaredSupportAndASeparateReviewThenObservesCronInsteadOfMcp() {
-        val writes=AtomicInteger();val mcpReads=AtomicInteger();var configured:JsonObject?=null;var declared=false
+        val writes=AtomicInteger();val mcpReads=AtomicInteger();val identities=AtomicInteger();val refreshStarted=CountDownLatch(1);val releaseRefresh=CountDownLatch(1);var configured:JsonObject?=null;var declared=false
         MockWebServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
                     request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                     request.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")
-                    request.path=="/dashboard/api/auth/me"->json("""{"user_id":"fixture-user","provider":"password","display_name":"Creation fixture"}""")
+                    request.path=="/dashboard/api/auth/me"->{
+                        if(identities.incrementAndGet()==2) {refreshStarted.countDown();check(releaseRefresh.await(10,TimeUnit.SECONDS)) {"Fixture refresh was not released"}}
+                        json("""{"user_id":"fixture-user","provider":"password","display_name":"Creation fixture"}""")
+                    }
                     request.path=="/dashboard/api/profiles"->json("""{"profiles":[{"name":"worker"}]}""")
                     request.path=="/dashboard/api/mcp/servers?profile=worker"->{mcpReads.incrementAndGet();json("""{"servers":[]}""")}
                     request.path=="/dashboard/openapi.json"->json(CronCreationFixture.schema(declared).toString())
@@ -57,7 +73,18 @@ class CronCreationFlowTest {
             compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
             compose.runOnUiThread {compose.activity.setContent {val preferences by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(preferences) {ManagementEntry(api,management)}}}
             compose.onNodeWithTag("management-open").performClick()
-            compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("host-cron-open"));compose.onNodeWithTag("host-cron-open").performClick()
+            compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("host-cron-open"));awaitCronEntry()
+            // Insert/remove a real loading row above the scrolled entry. Its key must retain the anchor.
+            compose.runOnUiThread {management.refresh()}
+            try {
+                compose.waitUntil(10000) {refreshStarted.count==0L}
+                assertTrue(management.state.value.busy)
+                compose.onNodeWithTag("host-cron-open").assertIsDisplayed().assertIsNotEnabled()
+                entryScreenshot("management-entry-refresh")
+                assertEquals(0,writes.get())
+            } finally {releaseRefresh.countDown()}
+            compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
+            awaitCronEntry();compose.onNodeWithTag("host-cron-open").performClick()
             compose.waitUntil(10000) {!management.state.value.busy && management.state.value.cron.loaded}
             compose.onNodeWithTag("host-cron-list").performScrollToNode(hasTestTag("cron-create-open"));compose.onNodeWithTag("cron-create-open").performClick()
             compose.waitUntil(10000) {!management.state.value.busy && management.state.value.error==Words.HostCronCreateUnsupported};compose.onNodeWithTag("cron-create-form").assertDoesNotExist();assertEquals(0,writes.get())

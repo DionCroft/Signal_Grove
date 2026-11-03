@@ -43,17 +43,17 @@ import org.hermesmobile.app.data.*
     var review by remember {mutableStateOf<ReviewedMcpAction?>(null)}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.Management),style=MaterialTheme.typography.titleMedium)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("management-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            item {Text(label(Words.ManagementBoundary),style=MaterialTheme.typography.bodySmall);Text(apiUrl,style=MaterialTheme.typography.labelSmall)}
-            if(unconfigured) item {Text(label(Words.ManagementNeedsConnection))}
+            item(key=1001) {Text(label(Words.ManagementBoundary),style=MaterialTheme.typography.bodySmall);Text(apiUrl,style=MaterialTheme.typography.labelSmall)}
+            if(unconfigured) item(key=1002) {Text(label(Words.ManagementNeedsConnection))}
             else {
-                item {
+                item(key=1003) {
                     OutlinedTextField(url,{url=it},Modifier.fillMaxWidth().testTag("management-url"),label={Text(label(Words.ManagementUrl))},singleLine=true,enabled=!s.busy)
                     if(BuildConfig.DEBUG) Row {Checkbox(http,{http=it},enabled=!s.busy);Text(label(Words.DebugHttp))}
                     Button({vm.signIn(url,http) {link->context.startActivity(Intent(Intent.ACTION_VIEW,android.net.Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},enabled=!s.busy && url.isNotBlank(),modifier=Modifier.testTag("management-sign-in")) {Text(label(Words.ManagementSignIn))}
                 }
-                if(s.busy) item {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel) {Text(label(Words.Cancel))}}
+                if(s.busy) item(key=1004) {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel) {Text(label(Words.Cancel))}}
                 if(s.signedIn) {
-                    item {
+                    item(key=1005) {
                         if(s.identity!=null && s.profiles.isEmpty() && !s.busy) Text(label(Words.EmptyInventory))
                         Text(s.identity?.let {it.displayName.ifBlank {it.userId}+" · "+it.provider} ?: label(Words.ManagementVerify))
                         TextButton({vm.refresh()},enabled=!s.busy) {Text(label(Words.Refresh))}
@@ -61,23 +61,23 @@ import org.hermesmobile.app.data.*
                         TextButton({profiles=true},enabled=!s.busy && s.identity!=null && s.profiles.isNotEmpty(),modifier=Modifier.testTag("management-profile")) {Text(label(Words.ManagementProfile)+s.profile.takeIf {it.isNotBlank()}?.let {"\n$it"}.orEmpty())}
                         TextButton(vm::disconnect,enabled=!s.busy) {Text(label(Words.ManagementForget))}
                     }
-                    if(s.profile.isNotBlank()) item {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
-                    if(s.profile.isNotBlank()) item {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
-                    if(s.profile.isNotBlank()) item {TextButton({catalog=true;vm.loadCatalog()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("mcp-catalog-open")) {Text(label(Words.McpCatalog))}}
-                    if(s.profile.isNotBlank()) item {TextButton({plugins=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("plugins-open")) {Text(label(Words.HostPlugins))}}
-                    if(s.profile.isNotBlank()) item {TextButton({hub=true;vm.loadSkillHub()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("skill-hub-open")) {Text(label(Words.SkillHub))}}
-                    if(s.profile.isNotBlank()) item {TextButton({gateway=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("gateway-cron-open")) {Text(label(Words.GatewayAutomation))}}
-                    if(s.profile.isNotBlank()) item {TextButton({hostSkills=true;vm.loadHostSkills()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-skills-open")) {Text(label(Words.HostSkills))}}
-                    if(s.profile.isNotBlank()) item {TextButton({hostCron=true;vm.loadHostCron()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-cron-open")) {Text(label(Words.HostCron))}}
-                    if(s.loaded && s.servers.isEmpty()) item {Text(label(Words.EmptyInventory))}
-                    if(pending) item {Text(label(Words.ManagementOutcomePending),color=MaterialTheme.colorScheme.error)}
-                    s.notice?.let {word->item {Text(label(word))}}
-                    s.observation?.let {observation->item {
+                    if(s.profile.isNotBlank()) item(key=1006) {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
+                    if(s.profile.isNotBlank()) item(key=1007) {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
+                    if(s.profile.isNotBlank()) item(key=1008) {TextButton({catalog=true;vm.loadCatalog()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("mcp-catalog-open")) {Text(label(Words.McpCatalog))}}
+                    if(s.profile.isNotBlank()) item(key=1009) {TextButton({plugins=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("plugins-open")) {Text(label(Words.HostPlugins))}}
+                    if(s.profile.isNotBlank()) item(key=1010) {TextButton({hub=true;vm.loadSkillHub()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("skill-hub-open")) {Text(label(Words.SkillHub))}}
+                    if(s.profile.isNotBlank()) item(key=1011) {TextButton({gateway=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("gateway-cron-open")) {Text(label(Words.GatewayAutomation))}}
+                    if(s.profile.isNotBlank()) item(key=1012) {TextButton({hostSkills=true;vm.loadHostSkills()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-skills-open")) {Text(label(Words.HostSkills))}}
+                    if(s.profile.isNotBlank()) item(key=1013) {TextButton({hostCron=true;vm.loadHostCron()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-cron-open")) {Text(label(Words.HostCron))}}
+                    if(s.loaded && s.servers.isEmpty()) item(key=1014) {Text(label(Words.EmptyInventory))}
+                    if(pending) item(key=1015) {Text(label(Words.ManagementOutcomePending),color=MaterialTheme.colorScheme.error)}
+                    s.notice?.let {word->item(key=1016) {Text(label(word))}}
+                    s.observation?.let {observation->item(key=1017) {
                         Text(observation.name)
                         Text(label(if(!observation.exists) Words.McpAbsent else if(observation.enabled==true) Words.Enabled else Words.Disabled))
                         Text(label(Words.ManagementObservationOnly),style=MaterialTheme.typography.bodySmall)
                     }}
-                    items(s.servers,key={it.name}) {server ->Column {
+                    items(s.servers,key={"server:${it.name}"}) {server ->Column {
                         Text(server.name,style=MaterialTheme.typography.titleMedium)
                         Text(listOf(server.transport,server.auth,server.source).filter {it.isNotBlank()}.joinToString(" · "))
                         Text(label(if(server.enabled) Words.Enabled else Words.Disabled))
@@ -92,9 +92,9 @@ import org.hermesmobile.app.data.*
                         TextButton({review=vm.prepareMcp(server,McpAction.Delete)},enabled=ready && server.source=="config",modifier=Modifier.testTag("mcp-delete-${server.name}")) {Text(label(Words.McpRemove))}
                     }}
                 }
-                if(receipts.isNotEmpty()) item {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
-                items(receipts,key={it.key}) {receipt ->ManagementReceiptCard(receipt,vm,s)}
-                s.error?.let {message->item {Text(label(message),color=MaterialTheme.colorScheme.error)}}
+                if(receipts.isNotEmpty()) item(key=1018) {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
+                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s)}
+                s.error?.let {message->item(key=1019) {Text(label(message),color=MaterialTheme.colorScheme.error)}}
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
