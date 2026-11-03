@@ -100,6 +100,12 @@ EXTRA_SOURCES = {
     'oauth_routes': 'hermes_cli/web_routers/oauth.py',
     'oauth_helpers': 'hermes_cli/web_server_oauth.py',
     'provider_auth': 'hermes_cli/auth.py',
+    'pool_routes': 'hermes_cli/web_routers/ops.py',
+    'credential_pool': 'agent/credential_pool.py',
+    'pool_admin': 'agent/credential_pool_admin.py',
+    'pool_sources': 'agent/credential_sources.py',
+    'pool_persistence': 'agent/credential_persistence.py',
+    'auth_middleware': 'hermes_cli/dashboard_auth/middleware.py',
     'model_config': 'hermes_cli/web_server_config.py',
     'model_inventory': 'hermes_cli/inventory.py',
     'model_catalog': 'hermes_cli/model_switch_providers.py',
@@ -139,7 +145,7 @@ EXTRA_SOURCES = {
 
 
 }
-MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes'}
+MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes', 'pool_routes'}
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -165,7 +171,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
-                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload','CredentialPoolAdd'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
@@ -180,7 +186,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif not prefix and source in ('env_config','env_routes','web_common') and isinstance(node,(ast.Assign,ast.AnnAssign)):
-                selected={'env_config':{'_ENV_VAR_NAME_RE','_ENV_VAR_NAME_DENYLIST','_ENV_VAR_NAME_DENY_PREFIXES'},'env_routes':{'_AUTH_TYPE_ENV_VARS'},'web_common':{'_LEGACY_MASK_RE','REDACTED_CREDENTIAL_WRITE_DETAIL','_profile_scope','_CONFIG_MUTATION_LOCK'}}[source]
+                selected={'env_config':{'_ENV_VAR_NAME_RE','_ENV_VAR_NAME_DENYLIST','_ENV_VAR_NAME_DENY_PREFIXES'},'env_routes':{'_AUTH_TYPE_ENV_VARS'},'web_common':{'_LEGACY_MASK_RE','REDACTED_CREDENTIAL_WRITE_DETAIL','_profile_scope','_config_profile_scope','_CONFIG_MUTATION_LOCK'}}[source]
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
@@ -192,6 +198,16 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in {'web_deps':{'WEB_SERVER'},'web_bootstrap':{'_CONFIG_MUTATION_LOCK'}}[source]:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('credential_pool','pool_sources','auth_middleware') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                selected={'credential_pool':{'AUTH_TYPE_OAUTH','AUTH_TYPE_API_KEY','SOURCE_MANUAL','SOURCE_MANUAL_DEVICE_CODE','CUSTOM_POOL_PREFIX','STATUS_OK','STATUS_EXHAUSTED','STATUS_DEAD'},'pool_sources':{'_REGISTRY'},'auth_middleware':{'_GATE_PUBLIC_PREFIXES','_GATE_PUBLIC_ICONS','_SAFE_METHODS','_CROSS_ORIGIN_WRITE_DETAIL'}}[source]
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('pool_routes','credential_pool','pool_admin','pool_sources','pool_persistence','auth_middleware') and isinstance(node,ast.ImportFrom):
+                for alias in node.names:
+                    binding=alias.asname or alias.name
+                    if source!='pool_routes' or binding in {'config_scoped_to_thread','destructive_profile','CredentialPoolAdd'}:
+                        handlers[f'{source}:import:{binding}']=fingerprint(ast.ImportFrom(module=node.module,names=[alias],level=node.level))
             elif not prefix and source in ('oauth_routes','oauth_helpers') and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:

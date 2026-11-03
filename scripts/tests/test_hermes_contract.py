@@ -56,6 +56,7 @@ def sources():
         'model_routes':'',
         'moa_config':'',
         'oauth_routes':'','oauth_helpers':'','provider_auth':'',
+        'pool_routes':'','credential_pool':'','pool_admin':'','pool_sources':'','pool_persistence':'','auth_middleware':'',
         'model_config':'',
         'model_inventory':'',
         'model_catalog':'',
@@ -107,6 +108,24 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_credential_pool_order_scope_cleanup_merge_and_request_changes_require_review(self):
+        initial=sources();initial['pool_routes']="from scope_helpers import config_scoped_to_thread,destructive_profile\n@router.delete('/api/credentials/pool/{provider}/{index}')\ndef remove_credential_pool_entry(provider,index,profile=None):\n    removed=pool.remove_index(index)\n    cleanup(removed.source)\n    return config_scoped_to_thread(destructive_profile(profile),result)\n"
+        initial['models']+="class CredentialPoolAdd:\n    provider:str\n    api_key:str\n    label:str|None=None\n"
+        initial['credential_pool']="CUSTOM_POOL_PREFIX='custom:'\nclass PooledCredential:\n    source:str\ndef persist_pool_entries(provider,payloads,removed_ids=None):\n    return write_pool(provider,payloads,removed_ids=removed_ids)\n"
+        initial['pool_admin']="class CredentialPoolAdminMixin:\n    def remove_index(self,index):\n        return self.entries.pop(index-1)\n"
+        initial['pool_sources']="_REGISTRY=('env','device_code')\ndef find_removal_step(provider,source):\n    return profile_hook(provider,source) or registry_match(provider,source)\n"
+        initial['provider_auth']="def read_credential_pool(provider):\n    return profile_pool(provider) or root_pool(provider)\n"
+        initial['web_common']="_config_profile_scope=late('_config_profile_scope','profiles')\ndef config_scoped_to_thread(profile,fn):\n    return _config_profile_scope(profile,fn)\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['web_common:_config_profile_scope','web_common:config_scoped_to_thread','pool_routes:import:config_scoped_to_thread','pool_routes:remove_credential_pool_entry','models:schema:CredentialPoolAdd','credential_pool:CUSTOM_POOL_PREFIX','credential_pool:persist_pool_entries','pool_admin:CredentialPoolAdminMixin.remove_index','pool_sources:_REGISTRY','pool_sources:find_removal_step','provider_auth:read_credential_pool'];tracked['mobile_used_request_fields']+=['models:CredentialPoolAdd.api_key','credential_pool:PooledCredential.source'];tracked['mobile_used_management_routes']+=['DELETE /api/credentials/pool/{provider}/{index}']
+        for module,before,after in [('web_common',"late('_config_profile_scope','profiles')","late('_config_profile_scope','other')"),('web_common','_config_profile_scope(profile,fn)','unscoped(fn)'),('pool_routes','from scope_helpers','from unsafe_helpers'),('pool_routes','/api/credentials/pool/{provider}/{index}','/api/pool/{provider}/{index}'),('pool_routes','destructive_profile(profile)','None'),('pool_routes','cleanup(removed.source)','pass'),('models','api_key:str','api_key:dict'),('models','label:str|None=None','label:str|None=None\n    revision:str|None=None'),('credential_pool',"CUSTOM_POOL_PREFIX='custom:'","CUSTOM_POOL_PREFIX='endpoint:'"),('credential_pool','source:str','source:dict'),('credential_pool','removed_ids=removed_ids','removed_ids=None'),('pool_admin','pop(index-1)','pop(index)'),('pool_sources',"('env','device_code')","('env',)"),('pool_sources','profile_hook(provider,source) or ','') ,('provider_auth','profile_pool(provider) or root_pool(provider)','root_pool(provider)')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],(module,before))
+
+    def test_dashboard_native_bearer_session_gate_and_public_route_changes_require_review(self):
+        initial=sources();initial['auth_middleware']="_GATE_PUBLIC_PREFIXES=('/auth/native/token',)\n_SAFE_METHODS=('GET','HEAD')\ndef _verify_access_token(request,access_token):\n    return scan_session_providers(access_token)\nasync def gated_auth_middleware(request,next):\n    bearer_session=_verify_access_token(request,request.bearer)\n    if bearer_session is not None:request.state.session=bearer_session\n    else:raise Unauthorized()\n    return await next(request)\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['auth_middleware:_GATE_PUBLIC_PREFIXES','auth_middleware:_SAFE_METHODS','auth_middleware:_verify_access_token','auth_middleware:gated_auth_middleware']
+        for before,after in [("('/auth/native/token',)","('/api/',)"),("('GET','HEAD')","('GET','HEAD','POST')"),('scan_session_providers(access_token)','allow_any(access_token)'),('request.state.session=bearer_session','request.state.session=None'),('else:raise Unauthorized()','else:pass')]:
+            changed=dict(initial);changed['auth_middleware']=changed['auth_middleware'].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],before)
+
     def test_native_route_local_auth_guard_changes_require_review(self):
         initial=sources();initial['web_bootstrap']+="\ndef _has_valid_session_token(request):\n    return hmac.compare_digest(request.headers.get('authorization',''),f'Bearer {SESSION_TOKEN}')\ndef _require_token(request):\n    if getattr(request.state,'native_http_principal',None):return\n    if request.app.state.auth_required:\n        ok=request.state.session is not None\n    else:ok=_has_valid_session_token(request)\n    if not ok:raise Unauthorized()\n"
         old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['web_bootstrap:_require_token','web_bootstrap:_has_valid_session_token']

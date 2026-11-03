@@ -58,6 +58,12 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun credentialPool(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/credentials/pool",tokens.access,profile=profile,slow=true).jsonObject}
+    suspend fun changeCredentialPool(tokens:ManagementTokens,profile:String,request:CredentialPoolRequest):JsonObject {
+        GatewayCronInventory.requireProfile(profile);require(CredentialPoolProtocol.provider(request.provider))
+        return if(request.action==CredentialPoolAction.Add) element("api/credentials/pool",tokens.access,request.body(),profile,slow=true).jsonObject
+        else element("api/credentials/pool",tokens.access,profile=profile,method="DELETE",tail=listOf(request.provider,request.entry!!.index.toString()),slow=true).jsonObject
+    }
     suspend fun providerOAuth(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return json("api/providers/oauth",tokens.access,profile=profile)}
     suspend fun startProviderOAuth(tokens:ManagementTokens,profile:String,provider:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(ProviderOAuthProtocol.providerId(provider));return element("api/providers/oauth",tokens.access,JsonObject(emptyMap()),profile,tail=listOf(provider,"start"),slow=true).jsonObject}
     suspend fun pollProviderOAuth(tokens:ManagementTokens,profile:String,provider:String,id:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(ProviderOAuthProtocol.providerId(provider) && ProviderOAuthProtocol.sessionId(id));return element("api/providers/oauth",tokens.access,profile=profile,tail=listOf(provider,"poll",id),query=mapOf("wait" to "0")).jsonObject}

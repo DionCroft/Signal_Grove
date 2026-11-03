@@ -32,6 +32,7 @@ import org.hermesmobile.app.data.*
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    var credentialPool by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
     var providerAccounts by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var hostModels by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var environment by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
@@ -70,6 +71,7 @@ import org.hermesmobile.app.data.*
                     if(s.profile.isNotBlank()) item(key=1006) {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
                     if(s.profile.isNotBlank()) item(key=1007) {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
                     if(s.profile.isNotBlank()) item(key=1008) {TextButton({catalog=true;vm.loadCatalog()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("mcp-catalog-open")) {Text(label(Words.McpCatalog))}}
+                    if(s.profile.isNotBlank()) item(key=1023) {TextButton({credentialPool=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("credential-pool-open")) {Text(label(Words.CredentialPool))}}
                     if(s.profile.isNotBlank()) item(key=1022) {TextButton({providerAccounts=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("provider-accounts-open")) {Text(label(Words.ProviderAccounts))}}
                     if(s.profile.isNotBlank()) item(key=1021) {TextButton({hostModels=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-models-open")) {Text(label(Words.HostModels))}}
                     if(s.profile.isNotBlank()) item(key=1020) {TextButton({environment=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-env-open")) {Text(label(Words.HostEnvironment))}}
@@ -102,11 +104,12 @@ import org.hermesmobile.app.data.*
                     }}
                 }
                 if(receipts.isNotEmpty()) item(key=1018) {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
-                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s)}
+                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s,openCredentialPool={credentialPool=true})}
                 s.error?.let {message->item(key=1019) {Text(label(message),color=MaterialTheme.colorScheme.error)}}
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    if(credentialPool) CredentialPoolDialog(vm,s) {vm.closeCredentialPool();credentialPool=false}
     if(providerAccounts) ProviderAccountsDialog(vm,s) {vm.closeProviderAccounts();providerAccounts=false}
     if(hostModels) HostModelsDialog(vm,s) {vm.closeHostModels();hostModels=false}
     if(environment) HostEnvironmentDialog(vm,s) {vm.closeHostEnvironment();environment=false}
