@@ -30,6 +30,13 @@ def sources():
         'gateway_common':'',
         'plugin_core':'',
         'plugin_servers':'',
+        'gateway_lookup':'',
+        'gateway_method_ctx':'',
+        'plugin_inspect':'',
+        'plugin_presence':'',
+        'plugin_catalog_gate':'',
+        'plugin_catalog_loader':'',
+        'plugin_git':'',
         'hub_cli':'',
         'hub_search':'',
         'hub_claw':'',
@@ -59,6 +66,17 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_plugin_catalog_lookup_registration_and_inspection_cache_are_watched(self):
+        initial=sources();initial['gateway_lookup']="@method('plugins.catalog.lookup')\ndef _(rid,params):\n    return params\n"
+        initial['plugin_inspect']="_RESULT_TTL_SECONDS=600\ndef inspect_plugin_source(identifier):\n    return identifier\n"
+        initial['gateway_plugin_models']="class PluginCatalogLookupStatus:\n    found='found'\nclass PluginCatalogLookupEntry:\n    sha:str\n"
+        old=checker.extract(initial);tracked=baseline(old)
+        tracked['mobile_used_handlers']+=['gateway_lookup:rpc:plugins.catalog.lookup','plugin_inspect:_RESULT_TTL_SECONDS','plugin_inspect:inspect_plugin_source','gateway_plugin_models:enum:PluginCatalogLookupStatus']
+        tracked['mobile_used_request_fields'].append('gateway_plugin_models:PluginCatalogLookupEntry.sha')
+        for source,before,after in [('gateway_lookup','plugins.catalog.lookup','plugins.lookup.renamed'),('plugin_inspect','600','60'),('plugin_inspect','return identifier','return None'),('gateway_plugin_models',"found='found'","found='changed'"),('gateway_plugin_models','sha:str','sha:int')]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_scoped_plugin_dispatch_mapping_action_enum_and_profile_are_watched(self):
         initial=sources();initial['gateway_rpc']+="_PLUGINS_ACTIONS={'list':_plugins_list}\n@_scoped_rpc('plugins.manage')\ndef _(rid,params):\n    return params\n"
         initial['gateway_plugin_models']="class PluginsAction:\n    list='list'\nclass AgentPluginRow:\n    key:str\n"

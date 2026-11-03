@@ -64,3 +64,6 @@ Hub maintenance adds the two real removal/profile-wide update routes, request mo
 
 
 Plugin inventory extends the existing gateway source watch to 263 handlers/constants and 83 typed fields, including `plugins.manage`, its action dispatch/enum, scoped profile decorator, profile-derived discovery/config and server/tool projection. The transport still uses the existing WebSocket route (35 used management routes total). The new offline regression changes the action mapping, RPC method name, enum value, canonical key type and shared profile field. Public status strings remain host reports; source checks cannot establish a live plugin's behavior.
+
+
+Plugin source reads extend the gateway watch to 293 handlers/constants and 109 typed fields (35 management routes remain). It covers lookup registration/profile binding, withdrawal-aware catalog loading, featured manifest/liveness reads, inspection caching/component detection and Git checkout/tag peeling. The new offline case changes the lookup method, inspection cache duration/body, status enum and pin type. Source text is parsed without import/execution. A cache/pin/schema change requires review; metadata equality and returned commit are not a security attestation.

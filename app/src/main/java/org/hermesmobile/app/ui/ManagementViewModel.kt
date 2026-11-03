@@ -11,7 +11,9 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class PluginInventoryState(val inventory:GatewayPluginInventory?=null)
+data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null)
+
+data class ReviewedPluginSource(val target:ManagementTarget,val request:PluginSourceRead,val generation:Long)
 
 data class ReviewedPluginRead(val target:ManagementTarget,val generation:Long)
 
@@ -63,6 +65,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is PluginSourceChanged->Words.ManagementReviewChanged
         is GatewayPluginInvalid->Words.PluginInventoryInvalid
         is SkillHubChanged->Words.ManagementReviewChanged
         is SkillHubUnsupported->Words.ManagementUnsupported
@@ -137,7 +140,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -175,6 +178,27 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
             val result=api.gateway(current).use {GatewayPluginInventory.parse(it.plugins(review.target.profile),review.target.profile)}
             if(id==generation) state.value=state.value.copy(plugins=PluginInventoryState(result))
+        }
+    }
+    fun clearPluginSourceResults() {state.value=state.value.copy(plugins=state.value.plugins.copy(lookup=null,inspection=null))}
+    fun preparePluginSource(request:PluginSourceRead):ReviewedPluginSource?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedPluginSource(it,request,generation)}
+    fun readPluginSource(review:ReviewedPluginSource) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            if(review.request.action!=PluginSourceReadAction.Featured) state.value=state.value.copy(plugins=state.value.plugins.copy(inspection=null,lookup=if(review.request.action==PluginSourceReadAction.Lookup) null else state.value.plugins.lookup))
+            val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
+            val result=api.gateway(current).use {socket ->when(review.request.action) {
+                PluginSourceReadAction.Featured->state.value.plugins.copy(featured=PluginSourcesProtocol.featured(socket.featuredPlugins(review.target.profile)))
+                PluginSourceReadAction.Lookup->{val source=review.request.source!!;state.value.plugins.copy(lookup=PluginSourcesProtocol.lookup(socket.lookupPlugin(review.target.profile,source.value),source.value),inspection=null)}
+                PluginSourceReadAction.Inspect->{
+                    val source=review.request.source!!;val expected=review.request.expected
+                    if(expected!=null) PluginSourcesProtocol.requireCatalog(expected,PluginSourcesProtocol.lookup(socket.lookupPlugin(review.target.profile,expected.name),expected.name))
+                    val inspected=PluginSourcesProtocol.inspection(socket.inspectPlugin(review.target.profile,source),source,expected)
+                    if(expected!=null) PluginSourcesProtocol.requireCatalog(expected,PluginSourcesProtocol.lookup(socket.lookupPlugin(review.target.profile,expected.name),expected.name))
+                    state.value.plugins.copy(inspection=inspected)
+                }
+            }}
+            if(id==generation) state.value=state.value.copy(plugins=result)
         }
     }
     fun loadSkillHub()=operation {id ->

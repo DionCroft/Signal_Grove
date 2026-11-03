@@ -58,6 +58,16 @@ class GatewayRpcSession private constructor():Closeable {
             }
         } catch(e:Exception) {fail(if(e is GatewayProtocolException) e else GatewayProtocolException())}
     }
+    suspend fun featuredPlugins(profile:String):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
+        return call("plugins.manage",buildJsonObject {put("profile",profile);put("action","onboarding")},90000)
+    }
+    suspend fun lookupPlugin(profile:String,name:String):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
+        require(org.hermesmobile.app.data.PluginSource.valid(org.hermesmobile.app.data.PluginSourceKind.Catalog,name))
+        return call("plugins.catalog.lookup",buildJsonObject {put("profile",profile);put("name",name)})
+    }
+    suspend fun inspectPlugin(profile:String,source:org.hermesmobile.app.data.PluginSource)=call("plugins.manage",source.params(profile),180000)
     suspend fun plugins(profile:String):JsonObject {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("plugins.manage",buildJsonObject {put("profile",profile);put("action","list")})
@@ -67,12 +77,12 @@ class GatewayRpcSession private constructor():Closeable {
         return call("cron.manage",buildJsonObject {put("profile",profile);put("action","list");put("include_disabled",true)})
     }
     suspend fun cronControl(profile:String,request:org.hermesmobile.app.data.GatewayCronRequest)=call("cron.manage",request.params(profile))
-    private suspend fun call(method:String,params:JsonObject):JsonObject {
+    private suspend fun call(method:String,params:JsonObject,timeoutMillis:Long=45000):JsonObject {
         check(!stopped.get());val id=ids.incrementAndGet().toString();val waiter=CompletableDeferred<JsonObject>()
         require(pending.size<8);pending[id]=waiter
         try {
             if(stopped.get() || socket?.send(buildJsonObject {put("jsonrpc","2.0");put("id",id);put("method",method);put("params",params)}.toString())!=true) throw GatewayUnavailable()
-            return withTimeout(45000) {waiter.await()}
+            return withTimeoutOrNull(timeoutMillis) {waiter.await()} ?: throw GatewayUnavailable()
         } catch(e:Exception) {fail(if(e is GatewayRpcException || e is GatewayProtocolException) e else GatewayUnavailable());throw e}
         finally {pending.remove(id);waiter.cancel()}
     }
@@ -96,7 +106,7 @@ class GatewayRpcSession private constructor():Closeable {
                     override fun onClosed(webSocket:WebSocket,code:Int,reason:String)=connection.fail(GatewayUnavailable())
                     override fun onFailure(webSocket:WebSocket,t:Throwable,response:Response?)=connection.fail(GatewayUnavailable())
                 })
-                withTimeout(30000) {connection.opened.await();connection.ready.await()}
+                if(withTimeoutOrNull(30000) {connection.opened.await();connection.ready.await();true}!=true) throw GatewayUnavailable()
                 if(connection.stopped.get()) throw GatewayUnavailable()
                 return connection
             } catch(e:Exception) {connection.close();throw e}

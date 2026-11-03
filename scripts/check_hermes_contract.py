@@ -75,6 +75,14 @@ EXTRA_SOURCES = {
     'gateway_common': 'tui_gateway/contracts/common.py',
     'plugin_core': 'hermes_cli/plugins_cmd.py',
     'plugin_servers': 'tui_gateway/methods_tools_plugin_servers.py',
+    'gateway_lookup': 'tui_gateway/methods_plugin_catalog.py',
+    'gateway_method_ctx': 'tui_gateway/method_ctx.py',
+    'plugin_inspect': 'hermes_cli/plugins_cmd_inspect.py',
+    'plugin_presence': 'hermes_cli/plugin_catalog_presence.py',
+    'plugin_catalog_gate': 'hermes_cli/plugins_cmd_catalog.py',
+    'plugin_catalog_loader': 'hermes_cli/plugin_catalog.py',
+    'plugin_git': 'hermes_cli/plugins_cmd_git.py',
+
 
 
 
@@ -103,13 +111,13 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
-                if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name=='PluginsAction'):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
+                if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
-            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc'):
-                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'}}[source]
+            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc','plugin_inspect','plugin_presence'):
+                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'},'plugin_inspect':{'_RESULT_TTL_SECONDS'},'plugin_presence':{'_TIMEOUT','_MAX_BYTES'}}[source]
                 for target in node.targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':
@@ -123,7 +131,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                     normalized.body = normalized.body[1:]
                 handlers[f'{source}:{prefix}{node.name}'] = fingerprint(normalized)
                 # RPC modules intentionally name many handlers `_`; preserve their public method identity.
-                if source == 'gateway_rpc' and not prefix:
+                if source in ('gateway_rpc','gateway_lookup') and not prefix:
                     for decorator in node.decorator_list:
                         if (isinstance(decorator,ast.Call) and isinstance(decorator.func,ast.Name)
                                 and decorator.func.id in ('_scoped_rpc','_rpc','method') and decorator.args

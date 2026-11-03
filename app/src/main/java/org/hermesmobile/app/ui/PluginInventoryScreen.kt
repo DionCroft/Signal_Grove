@@ -12,12 +12,14 @@ import androidx.compose.ui.unit.dp
 import org.hermesmobile.app.data.*
 
 @Composable fun PluginInventoryDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    var catalog by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var review by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedPluginRead?>(null)}
     var details by remember(s.plugins.inventory) {mutableStateOf<ManagedPlugin?>(null)}
     val supported=GatewayCronInventory.supportedProfile(s.profile)
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostPlugins))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("plugins-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(s.url);Text(s.profile);Text(label(Words.PluginInventoryBoundary));TextButton({review=vm.preparePluginRead()},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("plugins-read")) {Text(label(Words.PluginRead))};if(!supported) Text(label(Words.PluginProfileUnsupported))}
+            item {TextButton({catalog=true},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("plugin-catalog-open")) {Text(label(Words.PluginCatalog))}}
             if(s.busy) item {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}
             s.plugins.inventory?.let {inventory ->
                 item {Text(label(Words.PluginUserCount)+" "+inventory.userCount);Text(label(Words.PluginBundledCount)+" "+inventory.bundledCount);if(inventory.plugins.isEmpty()) Text(label(Words.EmptyInventory))}
@@ -26,6 +28,7 @@ import org.hermesmobile.app.data.*
             s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(close,Modifier.testTag("plugins-close")) {Text(label(Words.Close))}})
+    if(catalog) PluginCatalogDialog(vm,s) {vm.cancel();catalog=false}
     review?.let {frozen ->AlertDialog(onDismissRequest={review=null},title={Text(label(Words.PluginRead))},text={LazyColumn(Modifier.heightIn(max=480.dp).testTag("plugins-connection-review")) {item {Text(frozen.target.url);Text(frozen.target.profile);Text(frozen.target.actor);Text(label(Words.GatewayConnectionEffect));Text(label(Words.PluginInventoryBoundary))}}},confirmButton={TextButton({review=null;vm.loadPlugins(frozen)},enabled=!s.busy,modifier=Modifier.testTag("plugins-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})}
     details?.let {row ->AlertDialog(onDismissRequest={details=null},title={Text(row.name)},text={
         LazyColumn(Modifier.heightIn(max=500.dp).testTag("plugin-detail-view"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
