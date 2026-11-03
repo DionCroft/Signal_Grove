@@ -23,6 +23,9 @@ def sources():
         'chat_auth':'','ws_boundary':"_GATEWAY_WS_PROTOCOL='hermes-gateway-v1'\n_GATEWAY_WS_TICKET_PROTOCOL_PREFIX='hermes-gateway-ticket.'\n",'ws_tickets':'TTL_SECONDS=30\n','cron_cancel':'','cron_tool':"_JOB_ACTIONS={'pause':handler}\n",'cron_format':"_FORMAT_JOB_OPTIONAL_KEYS=('script',)\n",
         'skills':"@router.get('/api/skills')\ndef get_skills():\n    return []\n",
         'profile_helpers':'',
+        'web_common':'',
+        'host_actions':'',
+        'bundled_ops':'',
         'hub_cli':'',
         'hub_search':'',
         'hub_claw':'',
@@ -52,6 +55,16 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_bundled_restore_prefix_and_installer_profile_field_are_tracked(self):
+        initial=sources();initial['bundled_ops']="_OWN_REPO_PREFIXES=('nousresearch/hermes-agent/skills/',)\n"
+        initial['models']+="class SkillInstallRequest:\n    identifier:str\n    profile:str|None=None\n"
+        old=checker.extract(initial);tracked=baseline(old)
+        tracked['mobile_used_handlers'].append('bundled_ops:_OWN_REPO_PREFIXES')
+        tracked['mobile_used_request_fields']+=['models:SkillInstallRequest.identifier','models:SkillInstallRequest.profile']
+        for source,before,after in [('bundled_ops','nousresearch/hermes-agent/skills/','changed/'),('models','identifier:str','identifier:int'),('models','profile:str|None=None','scope:str|None=None')]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_hub_routes_policy_timeout_and_metadata_changes_require_review(self):
         initial=sources()
         initial['skills']+="@hub_router.get('/api/skills/hub/scan')\ndef scan_skill_hub():\n    return {}\n"

@@ -70,7 +70,7 @@ class SkillHubFlowTest {
             compose.waitUntil(10000) {!management.state.value.busy && management.state.value.hub.preview?.skill?.canonicalId=="clawhub/fixture-slug"}
             compose.onNodeWithTag("skill-hub-preview-view").performScrollToNode(hasTestTag("skill-hub-scan"));compose.onNodeWithTag("skill-hub-scan").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.hub.scan!=null}
             compose.onNodeWithTag("skill-hub-scan-view").performScrollToNode(hasText(Words.SkillHubIncomplete.en));compose.onNodeWithText("license").assertExists();compose.onNodeWithTag("skill-hub-scan-view").performScrollToNode(hasText(Words.SkillHubSensitiveFinding.en));compose.onNodeWithText(Words.SkillHubSensitiveFinding.en).assertExists()
-            compose.onNodeWithText("private-tier1-message",substring=true).assertDoesNotExist();compose.onNodeWithText("private-scan-home",substring=true).assertDoesNotExist();compose.onNodeWithText("private-install-home",substring=true).assertDoesNotExist()
+            compose.onNodeWithTag("skill-hub-scan-view").performScrollToNode(hasTestTag("skill-hub-install-review"));compose.onNodeWithTag("skill-hub-install-review").assertIsNotEnabled();compose.onNodeWithText("private-tier1-message",substring=true).assertDoesNotExist();compose.onNodeWithText("private-scan-home",substring=true).assertDoesNotExist();compose.onNodeWithText("private-install-home",substring=true).assertDoesNotExist()
             val shot=File(compose.activity.getExternalFilesDir(null),"qa/skill-hub-scan.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             compose.onNodeWithTag("skill-hub-scan-close").performClick();compose.onNodeWithTag("skill-hub-preview-close").performClick();assertNull(management.state.value.hub.preview);assertNull(management.state.value.hub.scan)
             compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-search-tab"));compose.onNodeWithTag("skill-hub-search-tab").performClick();compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-source"));compose.onNodeWithTag("skill-hub-source").performClick();compose.onNodeWithTag("skill-hub-source-github").assertIsNotEnabled();compose.onNodeWithTag("skill-hub-source-all").performClick()
@@ -96,6 +96,36 @@ class SkillHubFlowTest {
             open(server);assertNull(management.state.value.hub.official);compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-official"));compose.onNodeWithTag("skill-hub-official").assertIsNotEnabled()
             compose.onNodeWithTag("skill-hub-featured").performClick();compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-preview-0"));compose.onNodeWithTag("skill-hub-preview-0").performClick();compose.waitUntil(5000) {entered.count==0L}
             compose.runOnUiThread {management.bind("unconfigured")};release.countDown();compose.waitUntil(5000) {returned.count==0L};compose.waitForIdle();assertEquals("unconfigured",management.state.value.apiScope);assertNull(management.state.value.hub.preview);assertNull(management.state.value.hub.scan);assertFalse(management.state.value.hub.loaded)
+        }
+    }
+
+    @Test fun installationNeedsSeparateReviewThenRecordsOnlyStartupAndObservesSkillsWithoutReplay() {
+        val writes=AtomicInteger();val previews=AtomicInteger();val scans=AtomicInteger();val installedReads=AtomicInteger()
+        MockWebServer().use {server ->
+            server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse {
+                basic(request)?.let {return it}
+                assertEquals("Bearer management-hub-fixture",request.getHeader("Authorization"));assertEquals("worker",request.requestUrl!!.queryParameter("profile"))
+                return when(request.requestUrl!!.encodedPath) {
+                    "/dashboard/api/skills/hub/sources"->json(JsonObject(SkillHubFixture.sources()+mapOf("installed" to JsonObject(emptyMap()))))
+                    "/dashboard/api/skills/hub/official"->json(buildJsonObject {put("skills",buildJsonArray {add(SkillHubFixture.entry())})})
+                    "/dashboard/api/skills/hub/preview"->{previews.incrementAndGet();json(SkillHubFixture.preview())}
+                    "/dashboard/api/skills/hub/scan"->{scans.incrementAndGet();json(JsonObject(SkillHubFixture.scan()+mapOf("identifier" to JsonPrimitive("official/general/fixture"),"name" to JsonPrimitive("Official fixture"),"source" to JsonPrimitive("official/general/fixture"),"policy" to JsonPrimitive("allow"))))}
+                    "/dashboard/api/skills"->{installedReads.incrementAndGet();MockResponse().setHeader("Content-Type","application/json").setBody("[]")}
+                    "/dashboard/api/skills/hub/install"->{assertEquals("POST",request.method);assertEquals(buildJsonObject {put("identifier","official/general/fixture");put("profile","worker")},Json.parseToJsonElement(request.body.readUtf8()));writes.incrementAndGet();json(buildJsonObject {put("ok",true);put("pid",333);put("name",HubInstallRequest.actionName("official/general/fixture"))})}
+                    else->json(JsonObject(emptyMap())).setResponseCode(404)
+                }
+            }}
+            open(server);compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-preview-0"));compose.onNodeWithTag("skill-hub-preview-0").performClick();compose.waitUntil(10000) {management.state.value.hub.preview!=null && !management.state.value.busy}
+            compose.onNodeWithTag("skill-hub-preview-view").performScrollToNode(hasTestTag("skill-hub-scan"));compose.onNodeWithTag("skill-hub-scan").performClick();compose.waitUntil(10000) {management.state.value.hub.scan!=null && !management.state.value.busy}
+            compose.onNodeWithTag("skill-hub-scan-view").performScrollToNode(hasTestTag("skill-hub-install-review"));compose.onNodeWithTag("skill-hub-install-review").performClick();assertEquals(0,writes.get())
+            compose.onNodeWithTag("skill-hub-install-confirmation").performScrollToNode(hasText(Words.SkillHubMutableSource.en));compose.onNodeWithText(Words.SkillHubMutableSource.en).assertExists();compose.onNodeWithTag("skill-hub-install-confirm").assertIsDisplayed();compose.onNodeWithText("Cancel").assertExists()
+            val shot=File(compose.activity.getExternalFilesDir(null),"qa/skill-hub-install-review.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+            compose.onNodeWithTag("skill-hub-install-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.action=="HubInstall" && it.state=="acknowledged"}}
+            assertEquals(1,writes.get());assertEquals(2,previews.get());assertEquals(2,scans.get());assertNull(management.state.value.hub.preview);assertNull(management.state.value.hub.scan)
+            val receipt=management.receipts.value.single {it.action=="HubInstall"};assertFalse(receipt.resultSummary.contains("333"));assertFalse(receipt.resultSummary.contains("skills-install-"))
+            compose.onNodeWithTag("skill-hub-close").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("management-observe-${receipt.key}"));compose.onNodeWithTag("management-observe-${receipt.key}").performClick()
+            compose.waitUntil(10000) {!management.state.value.busy && management.state.value.skills.loaded};assertEquals(2,installedReads.get());assertEquals(1,writes.get());assertEquals("acknowledged",management.receipts.value.single {it.key==receipt.key}.state)
+            compose.onNodeWithTag("host-skills-close").performClick()
         }
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 
 @Composable fun SkillHubDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
@@ -51,6 +52,7 @@ import org.hermesmobile.app.data.*
                 TextButton({vm.previewHubSkill(skill)},enabled=canRead && skill.addressable,modifier=Modifier.testTag("skill-hub-preview-$index")) {Text(label(Words.SkillHubPreview))}
                 if(!skill.addressable) Text(label(Words.SkillHubIdentifierUnsupported))
             }}
+            s.notice?.let {item {Text(label(it))}}
             s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(close,Modifier.testTag("skill-hub-close")) {Text(label(Words.Close))}})
@@ -64,7 +66,7 @@ import org.hermesmobile.app.data.*
         }
     },confirmButton={TextButton({picker=false}) {Text(label(Words.Close))}})
     s.hub.preview?.let {preview ->SkillHubPreviewDialog(vm,s,preview)}
-    s.hub.scan?.let {scan ->SkillHubScanDialog(scan,vm::closeHubScan)}
+    s.hub.scan?.let {scan ->SkillHubScanDialog(vm,s,scan)}
 }
 
 @Composable private fun SkillHubPreviewDialog(vm:ManagementViewModel,s:ManagementState,preview:HubPreview) {
@@ -86,7 +88,13 @@ import org.hermesmobile.app.data.*
     },confirmButton={TextButton(vm::closeHubPreview,Modifier.testTag("skill-hub-preview-close")) {Text(label(Words.Close))}})
 }
 
-@Composable private fun SkillHubScanDialog(scan:HubScan,close:()->Unit) {
+@Composable private fun SkillHubScanDialog(vm:ManagementViewModel,s:ManagementState,scan:HubScan) {
+    var review by remember(scan) {mutableStateOf<ReviewedHubInstall?>(null)}
+    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val allowed=s.hub.preview?.let {HubInstallRequest.supported(it,scan)}==true
+    val enabled=!s.busy && !pending && s.identity!=null && vm.reviewTarget()!=null
+    val close:()->Unit={if(s.busy) vm.cancel() else vm.closeHubScan()}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.SkillHubScan))},text={
         LazyColumn(Modifier.heightIn(max=500.dp).testTag("skill-hub-scan-view"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(scan.name);Text(label(Words.SkillHubHostEvidence));Text(label(Words.SkillHubTrust)+": "+scan.trust);Text(label(Words.SkillHubVerdict)+": "+scan.verdict);Text(label(Words.SkillHubPolicy)+": "+scan.policy);Text(scan.reason)}
@@ -95,9 +103,27 @@ import org.hermesmobile.app.data.*
             item {Text(label(Words.SkillHubTier1));Text(label(when(scan.tier1Passed) {true->Words.SkillHubTier1Passed;false->Words.SkillHubTier1Findings;null->Words.SkillHubTier1Unavailable}))}
             if(scan.incomplete.isNotEmpty()) item {Text(label(Words.SkillHubIncomplete));Text(scan.incomplete.joinToString("\n"))}
             items(scan.tier1) {HubFindingView(it)}
+            item {
+                TextButton({review=vm.prepareHubInstall()},enabled=enabled && allowed,modifier=Modifier.testTag("skill-hub-install-review")) {Text(label(Words.SkillHubInstall))}
+                if(!allowed) Text(label(Words.SkillHubInstallUnavailable))
+                if(pending) Text(label(Words.ManagementOutcomePending))
+                if(s.busy) {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}
+                s.error?.let {Text(label(it),color=MaterialTheme.colorScheme.error)}
+            }
         }
     },confirmButton={TextButton(close,Modifier.testTag("skill-hub-scan-close")) {Text(label(Words.Close))}})
+    review?.let {frozen ->
+        var query by remember(frozen) {mutableStateOf(false)}
+        AlertDialog(onDismissRequest={review=null},title={Text(label(Words.SkillHubInstall))},text={
+            LazyColumn(Modifier.heightIn(max=480.dp).testTag("skill-hub-install-confirmation"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                item {Text(frozen.target.url);Text(frozen.target.profile);Text(frozen.target.actor);Text(frozen.request.name);Text(frozen.request.skill.displayIdentifier(query))
+                    if(frozen.request.skill.displayIdentifier(true)!=frozen.request.skill.displayIdentifier(false)) TextButton({query=!query}) {Text(label(if(query) Words.McpHideQuery else Words.McpShowQuery))}}
+                item {Text(frozen.request.skill.source+" · "+frozen.request.scan.trust+" · "+frozen.request.scan.verdict);Text(label(Words.SkillHubInstallEffect));Text(label(Words.SkillHubMutableSource))}
+            }
+        },confirmButton={TextButton({review=null;vm.installHubSkill(frozen)},enabled=enabled,modifier=Modifier.testTag("skill-hub-install-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})
+    }
 }
+
 @Composable private fun HubFindingView(finding:HubFinding) {Column {
     Text(finding.severity+" · "+finding.category)
     val file=finding.displayFile();if(file.isNotBlank()) Text(file+(finding.line?.let {":$it"} ?: ""))

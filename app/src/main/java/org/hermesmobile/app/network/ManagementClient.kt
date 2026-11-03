@@ -63,6 +63,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     suspend fun hubSearch(tokens:ManagementTokens,profile:String,query:String,source:String):JsonObject {SkillProtocol.profile(profile);require(query.isNotBlank() && query.length<=256 && query.none(Char::isISOControl) && source.isNotBlank() && source.length<=128 && source.none(Char::isISOControl));return element("api/skills/hub/search",tokens.access,profile=profile,query=mapOf("q" to query,"source" to source,"limit" to "20"),slow=true).jsonObject}
     suspend fun hubPreview(tokens:ManagementTokens,profile:String,skill:HubSkill):JsonObject {SkillProtocol.profile(profile);require(skill.addressable);return element("api/skills/hub/preview",tokens.access,profile=profile,query=mapOf("identifier" to skill.canonicalId),slow=true).jsonObject}
     suspend fun hubScan(tokens:ManagementTokens,profile:String,skill:HubSkill):JsonObject {SkillProtocol.profile(profile);require(skill.addressable);return element("api/skills/hub/scan",tokens.access,profile=profile,query=mapOf("identifier" to skill.canonicalId),slow=true).jsonObject}
+    suspend fun installHubSkill(tokens:ManagementTokens,profile:String,request:HubInstallRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/hub/install",tokens.access,request.body(profile),profile)}
     suspend fun gateway(tokens:ManagementTokens):GatewayRpcSession {
         val response=json("api/auth/ws-ticket",tokens.access,JsonObject(emptyMap()))
         val ticket=response["ticket"] as? JsonPrimitive

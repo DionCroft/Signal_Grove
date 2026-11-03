@@ -55,3 +55,6 @@ SDK installation retries are restricted to recognized transient transport failur
 
 
 Skill Hub extends the same pinned stable baseline to 32 used management routes, 224 handler/constant fingerprints and 54 typed fields. The watch includes profile/source resolution, ClawHub qualification, official metadata, quarantine, core install-policy/verdict constants, optional scanner timeout and secret-class constants. Its offline regression deliberately removes a hub route and changes policy, timeout, secret classes and identifier type. The parser never imports or executes upstream source. Exact reviewed handler variants remain intact; the baseline is still the reviewed v0.22.6 commit, not an automatic acceptance of main.
+
+
+Reviewed Hub installation extends the active watch to 33 used management routes, 241 handler/constant fingerprints and 56 typed fields. It adds install request fields, profile argv, spawn acknowledgement/environment, bundled-restore prefixes, CLI policy/prompt order and installation path checks. The negative regression changes the bundled-restore prefix and installer identifier/profile fields. Source inspection and fixture tests do not certify a live registry, scanner or installer.
