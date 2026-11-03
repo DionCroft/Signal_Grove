@@ -57,6 +57,12 @@ def sources():
         'model_inventory':'',
         'model_catalog':'',
         'model_auxiliary':'',
+        'model_aux_runtime':'',
+        'model_custom_runtime':'',
+        'model_reasoning':'',
+        'model_defaults':'',
+        'model_aux_defaults':'',
+
         'model_switch':'',
         'model_guards':'',
         'model_cost':'',
@@ -98,6 +104,19 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_auxiliary_reset_reasoning_registered_slots_defaults_and_runtime_routes_require_review(self):
+        initial=sources()
+        initial['model_config']="def _apply_aux_assignment_sync(cfg,provider,model,task,reasoning_effort=UNSET):\n    if task=='__reset__':\n        clear_model_endpoint_credentials(cfg)\n    if reasoning_effort is None:clear_reasoning(cfg)\n    return save_config(cfg)\ndef _aux_task_slots():\n    return BUILTINS+plugins()\n"
+        initial['model_reasoning']="VALID_REASONING_EFFORTS=('low','high')\ndef parse_reasoning_effort(value):\n    return value if value in VALID_REASONING_EFFORTS else None\n"
+        initial['model_defaults']="from hermes_cli.config_defaults_auxiliary import _aux\nDEFAULT_CONFIG={'auxiliary':{'voice_chat':{'reasoning_effort':'none'}},'display':{}}\n"
+        initial['model_aux_runtime']="from agent.auxiliary_task_config import _get_auxiliary_task_config\ndef _resolve_task_provider_model(task):\n    return task_config(task)\n"
+        initial['model_custom_runtime']="def _get_named_custom_provider(name):\n    return scoped_config(name)\n"
+        initial['env_config']="def clear_model_endpoint_credentials(cfg):\n    cfg.pop('key_env',None)\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['model_config:_apply_aux_assignment_sync','model_config:_aux_task_slots','model_reasoning:VALID_REASONING_EFFORTS','model_reasoning:parse_reasoning_effort','model_defaults:auxiliary','model_defaults:import:_aux','model_aux_runtime:import:_get_auxiliary_task_config','model_aux_runtime:_resolve_task_provider_model','model_custom_runtime:_get_named_custom_provider','env_config:clear_model_endpoint_credentials']
+        for module,before,after in [('model_config',"'__reset__'","'other'"),('model_config','reasoning_effort is None','reasoning_effort is UNSET'),('model_config','BUILTINS+plugins()','BUILTINS'),('model_reasoning',"('low','high')","('low',)"),('model_reasoning','else None','else value'),('model_defaults',"'reasoning_effort':'none'","'reasoning_effort':'high'"),('model_defaults','hermes_cli.config_defaults_auxiliary','other.defaults'),('model_aux_runtime','agent.auxiliary_task_config','other.task_config'),('model_aux_runtime','task_config(task)','main_config()'),('model_custom_runtime','scoped_config(name)','default_config(name)'),('env_config',"'key_env'","'other'")]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+        unrelated=dict(initial);unrelated['model_defaults']=unrelated['model_defaults'].replace("'display':{}","'display':{'theme':'changed'}");self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(unrelated)})['mobile_review_required'])
+
     def test_main_model_scope_known_warning_policy_normalized_ack_and_revision_fields_require_review(self):
         initial=sources();initial['model_routes']="@router.post('/api/model/set')\nasync def set_model_assignment(body,profile=None):\n    if not body.confirm_expensive_model:\n        return warning_before_assignment(body)\n    with _profile_scope(body.profile or profile):\n        return apply_main(body)\n"
         initial['models']+="class ModelAssignment:\n    scope:str\n    provider:str\n    model:str\n    confirm_expensive_model:bool=False\n    profile:str|None=None\n"

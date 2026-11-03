@@ -58,6 +58,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun setAuxModel(tokens:ManagementTokens,profile:String,request:HostAuxModelRequest):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/model/set",tokens.access,request.body(profile),profile,slow=true).jsonObject}
     suspend fun setMainModel(tokens:ManagementTokens,profile:String,request:HostMainModelRequest):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/model/set",tokens.access,request.body(profile),profile,slow=true).jsonObject}
     suspend fun modelAuxiliary(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return json("api/model/auxiliary",tokens.access,profile=profile)}
     suspend fun modelOptions(tokens:ManagementTokens,profile:String,refresh:Boolean=false):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/model/options",tokens.access,profile=profile,query=mapOf("refresh" to refresh.toString(),"include_unconfigured" to "true","explicit_only" to "false"),slow=true).jsonObject}

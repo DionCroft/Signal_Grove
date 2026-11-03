@@ -12,6 +12,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 
 @Composable fun HostModelsDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    var auxReview by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<ReviewedHostAuxModel?>(null)}
+    var auxTask by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<String?>(null)}
     var review by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<ReviewedHostMainModel?>(null)}
     val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
     var read by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedHostModelsRead?>(null)}
@@ -25,12 +27,21 @@ import org.hermesmobile.app.data.*
         s.notice?.let {item {Text(label(it))}}
         s.hostMainModel.notice?.let {item {Text(label(Words.HostMainHostNotice));Text(it,Modifier.testTag("host-main-host-notice"))}}
         s.hostMainModel.warning?.let {warning->item {Text(label(Words.HostMainWarningRequired));TextButton({review=vm.prepareHostMainModel(warning.request.provider,warning.request.model,warning)},enabled=!s.busy && !pending,modifier=Modifier.testTag("host-main-warning-review")) {Text(label(Words.HostMainWarningTitle))}}}
+        s.hostAuxModel.warning?.let {warning->item {Text(label(Words.HostMainWarningRequired));TextButton({auxReview=vm.prepareHostAuxModel(warning.request,warning)},enabled=!s.busy && !pending,modifier=Modifier.testTag("host-aux-warning-review")) {Text(label(Words.HostMainWarningTitle))}}}
         if(pending) item {Text(label(Words.ManagementOutcomePending))}
         s.hostModels?.let {inventory->
             item {Text(label(Words.HostModelsMain),style=MaterialTheme.typography.titleMedium);ModelRoute(inventory.main);Text(label(Words.HostModelsSnapshot));TextButton({read=vm.prepareHostModelsRead(true)},enabled=!s.busy,modifier=Modifier.testTag("host-models-refresh")) {Text(label(Words.HostModelsRefresh))};OutlinedTextField(filter,{if(it.length<=256) filter=it},Modifier.fillMaxWidth().testTag("host-models-filter"),label={Text(label(Words.HostModelsFilter))},singleLine=true)}
             item {Text(label(Words.HostModelsAuxiliary),style=MaterialTheme.typography.titleMedium)}
+            item {
+                val reset=runCatching {HostAuxModelRequest.reset(inventory)}.getOrNull()
+                TextButton({auxTask=""},enabled=!s.busy && !pending && reset!=null,modifier=Modifier.testTag("host-aux-all")) {Text(label(Words.HostAuxAll))}
+                TextButton({reset?.let {auxReview=vm.prepareHostAuxModel(it)}},enabled=!s.busy && !pending && reset!=null,modifier=Modifier.testTag("host-aux-reset")) {Text(label(Words.HostAuxReset))}
+                if(reset==null) Text(label(Words.ManagementInvalid))
+            }
+
             items(inventory.auxiliary.filter {filter.isBlank() || listOf(it.task,it.label,it.plugin,it.route.provider,it.route.model).any {v->v.contains(filter,true)}},key={"task:${it.task}"}) {row->Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
                 Text(row.label.ifBlank {row.task},style=MaterialTheme.typography.titleSmall);Text(row.task);ModelRoute(row.route)
+                TextButton({auxTask=row.task},enabled=!s.busy && !pending && HostAuxModelRequest.validTask(row.task),modifier=Modifier.testTag("host-aux-edit-${row.task}")) {Text(label(Words.HostAuxEdit))};if(!HostAuxModelRequest.validTask(row.task)) Text(label(Words.ManagementInvalid))
                 if(row.plugin.isNotBlank()) Text(row.plugin)
                 if(row.hint.isNotBlank()) Text(row.hint)
                 Text(label(Words.HostModelsReasoning)+" · "+(row.reasoning ?: label(Words.HostModelsInherited)))
@@ -56,6 +67,8 @@ import org.hermesmobile.app.data.*
         }}
         if(row.models.isEmpty()) item {Text(label(Words.EmptyInventory))}
     }},confirmButton={TextButton({provider=null},Modifier.testTag("host-models-catalog-close")) {Text(label(Words.Close))}})}
+    auxTask?.let {task->s.hostModels?.let {inventory->HostAuxModelEditor(inventory,task,{auxTask=null}) {request->auxReview=vm.prepareHostAuxModel(request);if(auxReview!=null) auxTask=null}}}
+    auxReview?.let {frozen->HostAuxModelReview(frozen,!s.busy,{auxReview=null;if(frozen.request.warning!=null) vm.dismissHostAuxModelWarning()}) {auxReview=null;vm.changeHostAuxModel(frozen)}}
     review?.let {frozen->HostMainModelReview(frozen,!s.busy,{review=null;if(frozen.request.warning!=null) vm.dismissHostMainModelWarning()}) {review=null;vm.changeHostMainModel(frozen)}}
 }
 @Composable private fun ModelRoute(route:HostModelRoute) {Text(route.provider.ifBlank {label(Words.HostModelsUnspecified)});Text(route.model.ifBlank {label(Words.HostModelsUnspecified)})}

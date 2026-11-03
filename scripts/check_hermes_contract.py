@@ -99,6 +99,12 @@ EXTRA_SOURCES = {
     'model_inventory': 'hermes_cli/inventory.py',
     'model_catalog': 'hermes_cli/model_switch_providers.py',
     'model_auxiliary': 'agent/auxiliary_task_config.py',
+    'model_aux_runtime': 'agent/auxiliary_client.py',
+    'model_custom_runtime': 'hermes_cli/runtime_provider_custom.py',
+    'model_reasoning': 'hermes_constants.py',
+    'model_defaults': 'hermes_cli/config_defaults.py',
+    'model_aux_defaults': 'hermes_cli/config_defaults_auxiliary.py',
+
     'model_switch': 'hermes_cli/model_switch.py',
     'model_guards': 'hermes_cli/model_selection_guards.py',
     'model_cost': 'hermes_cli/model_cost_guard.py',
@@ -182,6 +188,19 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and isinstance(node,ast.ImportFrom) and source in ('model_defaults','model_aux_runtime'):
+                selected={'model_defaults':{'_aux'},'model_aux_runtime':{'_get_auxiliary_task_config'}}[source]
+                for alias in node.names:
+                    binding=alias.asname or alias.name
+                    if binding in selected:handlers[f'{source}:import:{binding}']=fingerprint(node)
+            elif not prefix and source in ('model_reasoning','model_defaults') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if not isinstance(target,ast.Name):continue
+                    if source=='model_reasoning' and target.id=='VALID_REASONING_EFFORTS':handlers[f'{source}:{target.id}']=fingerprint(node)
+                    if source=='model_defaults' and target.id=='DEFAULT_CONFIG' and isinstance(node.value,ast.Dict):
+                        for key,value in zip(node.value.keys,node.value.values):
+                            if isinstance(key,ast.Constant) and key.value=='auxiliary':handlers[f'{source}:auxiliary']=fingerprint(value)
             elif source == 'plugin_legacy' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'LEFT_CORE':
                 handlers[f'{source}:{node.target.id}'] = fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':
