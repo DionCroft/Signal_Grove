@@ -6,6 +6,38 @@ root=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('source_transport',root/'scripts/check_hermes_contract.py');checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 class SourceTransportTest(unittest.TestCase):
+    def setUp(self):
+        self.pacing=patch.object(checker,'_REQUEST_INTERVAL',0.0);self.pacing.start();self.addCleanup(self.pacing.stop)
+    def test_queued_downloads_stop_after_the_original_rate_refusal_without_losing_its_context(self):
+        class EagerQueue:
+            def __init__(self,**kwargs):pass
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def map(self,fn,items):
+                results=[]
+                for item in items:
+                    try:results.append((True,fn(item)))
+                    except Exception as error:results.append((False,error))
+                def output():
+                    for ok,value in results:
+                        if not ok:raise value
+                        yield value
+                return output()
+        with patch.object(checker,'resolve',return_value=('main',self.pin)),patch.object(checker,'SOURCES',{'first':'cron/first.py','second':'cron/second.py','third':'cron/third.py'}),patch.object(checker,'EXTRA_SOURCES',{}),patch.object(checker.concurrent.futures,'ThreadPoolExecutor',EagerQueue),patch.object(checker,'github_source',side_effect=checker.GitHubReadError(429)) as read:
+            with self.assertRaises(checker.SourceReadError) as caught:checker.snapshot('main')
+            self.assertEqual('first',caught.exception.module);self.assertEqual(429,caught.exception.status);self.assertEqual(1,read.call_count)
+
+    def test_request_spacing_covers_json_directory_and_verified_raw_representations(self):
+        data=b'def fixture():\n    pass\n'
+        with patch.object(checker,'_REQUEST_INTERVAL',1.0),patch.object(checker,'_LAST_REQUEST_START',None),patch.object(checker.time,'monotonic',side_effect=[0,0.1,1,1.1,2]),patch.object(checker.time,'sleep') as sleep,patch.object(checker.subprocess,'run',side_effect=[self.response(status=500),self.listing(data),self.response(data)]) as run:
+            self.assertEqual(data.decode(),checker.github_source(self.path,self.pin));self.assertEqual(3,run.call_count)
+            self.assertEqual(2,sleep.call_count)
+            for call in sleep.call_args_list:self.assertAlmostEqual(0.9,call.args[0])
+    def test_nonfinite_negative_or_unbounded_request_delays_are_refused_before_source_reads(self):
+        for value in ('nan','inf','-1','6'):
+            with self.subTest(value=value),patch.object(sys,'argv',['checker','--request-interval',value]),patch.object(sys,'stderr',io.StringIO()),patch.object(checker,'snapshot') as read:
+                with self.assertRaises(SystemExit) as error:checker.main()
+                self.assertEqual(2,error.exception.code);read.assert_not_called()
     path='cron/fixture.py';pin='a'*40
     def response(self,data=b'',status=None):
         return subprocess.CompletedProcess([],1 if status else 0,data,(f'gh: Error (HTTP {status})'.encode() if status else b''))

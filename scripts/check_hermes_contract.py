@@ -18,6 +18,9 @@ import re
 import sys
 import base64
 import subprocess
+import math
+import threading
+import time
 
 REPO = 'NousResearch/hermes-agent'
 SOURCES = {
@@ -190,13 +193,32 @@ class GitHubReadError(ValueError):
         super().__init__('GitHub API unavailable; inspect the HTTP status and provider limits')
 
 
+_REQUEST_INTERVAL = 0.0  # CLI defaults to paced reads; library callers may configure it explicitly.
+_LAST_REQUEST_START = None
+_REQUEST_LOCK = threading.Lock()
+
+
+def github_request(argv: list[str]):
+    """Space request starts across all download workers; never retry an HTTP refusal."""
+    global _LAST_REQUEST_START
+    if _REQUEST_INTERVAL:
+        with _REQUEST_LOCK:
+            now=time.monotonic()
+            delay=0 if _LAST_REQUEST_START is None else _LAST_REQUEST_START+_REQUEST_INTERVAL-now
+            if delay>0:
+                time.sleep(delay)
+                now=time.monotonic()
+            _LAST_REQUEST_START=now
+    return subprocess.run(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30)
+
+
 def github(path: str, selector: str | None = None) -> dict:
     # Use the supported API and the owner's existing gh authentication/rate budget.
     # Never scrape raw pages, collect a new token or print credentials.
     argv = ['gh', 'api', path]
     if selector:
         argv += ['--jq', selector]
-    response = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+    response = github_request(argv)
     if response.returncode:
         status = re.search(r'HTTP (\d{3})', response.stderr.decode('utf-8', errors='replace'))
         raise GitHubReadError(int(status.group(1)) if status else None)
@@ -300,8 +322,7 @@ def github_source(path: str, sha: str) -> str:
         matches = [row for row in listing if isinstance(row, dict) and row.get('path') == path and row.get('type') == 'file']
         if len(matches) != 1 or not re.fullmatch(r'[a-f0-9]{40}', str(matches[0].get('sha', ''))):
             raise ValueError('Upstream file identity unavailable')
-        response = subprocess.run(['gh', 'api', endpoint, '-H', 'Accept: application/vnd.github.raw+json'],
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+        response = github_request(['gh', 'api', endpoint, '-H', 'Accept: application/vnd.github.raw+json'])
         if response.returncode or len(response.stdout) > 2_000_000:
             raise ValueError('Upstream raw file unavailable or oversized')
         data = response.stdout
@@ -322,12 +343,19 @@ def github_source(path: str, sha: str) -> str:
 
 def snapshot(ref: str) -> dict:
     resolved, sha = resolve(ref)
+    failure=[]
+    failure_lock=threading.Lock()
     def download(item):
         name, path = item
+        with failure_lock:
+            if failure:raise failure[0]  # Queued work must not keep hitting an already-refusing provider.
         try:
             return name, github_source(path, sha)
         except (ValueError, KeyError, OSError, subprocess.TimeoutExpired) as exc:
-            raise SourceReadError(name, getattr(exc, 'status', None)) from exc
+            with failure_lock:
+                if not failure:failure.append(SourceReadError(name,getattr(exc,'status',None)))
+                original=failure[0]
+            raise original from exc
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         sources = dict(pool.map(download, (SOURCES | EXTRA_SOURCES).items()))
     return {'requested_ref': ref, 'resolved_ref': resolved, 'commit': sha, 'contract': extract(sources)}
@@ -366,7 +394,13 @@ def main() -> int:
     parser.add_argument('--baseline', type=Path, default=Path(__file__).resolve().parents[1]/'docs/contracts/hermes-baseline.json')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--snapshot-only', action='store_true')
+    parser.add_argument('--request-interval',type=float,default=1.0,help='Minimum seconds between GitHub request starts (0–5; default 1).')
     args = parser.parse_args()
+    if not math.isfinite(args.request_interval) or not 0<=args.request_interval<=5:
+        parser.error('--request-interval must be finite and between 0 and 5 seconds')
+    global _REQUEST_INTERVAL, _LAST_REQUEST_START
+    _REQUEST_INTERVAL=args.request_interval
+    _LAST_REQUEST_START=None
     try:
         current = snapshot(args.ref)
         result = current if args.snapshot_only else compare(json.loads(args.baseline.read_text(encoding='utf-8')), current)

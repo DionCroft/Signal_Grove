@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 10
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         ref: [latest, main]
     steps:
@@ -35,7 +36,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           UPSTREAM_REF: ${{ matrix.ref }}
-        run: python3 -B scripts/check_hermes_contract.py --ref "$UPSTREAM_REF" --output "$RUNNER_TEMP/hermes-contract.json"
+        run: python3 -B scripts/check_hermes_contract.py --request-interval 1 --ref "$UPSTREAM_REF" --output "$RUNNER_TEMP/hermes-contract.json"
       - name: Summarize compatibility result
         if: always()
         run: |
