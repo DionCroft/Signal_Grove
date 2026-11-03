@@ -67,3 +67,5 @@ Plugin inventory extends the existing gateway source watch to 263 handlers/const
 
 
 Plugin source reads extend the gateway watch to 293 handlers/constants and 109 typed fields (35 management routes remain). It covers lookup registration/profile binding, withdrawal-aware catalog loading, featured manifest/liveness reads, inspection caching/component detection and Git checkout/tag peeling. The new offline case changes the lookup method, inspection cache duration/body, status enum and pin type. Source text is parsed without import/execution. A cache/pin/schema change requires review; metadata equality and returned commit are not a security attestation.
+
+The task CRUD fixture waits for dialog disposal and observable checkbox visibility before one real completion click. This avoids relying on inferred pre-30 IME insets or the timing of the Room title update. Bounded visibility failure retains a fixture screenshot/state; mutation and persistence assertions remain required. Display-size diagnostics use a cold-started owned AVD and restore its original configuration.

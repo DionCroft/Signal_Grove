@@ -35,6 +35,17 @@ class NavigationTest {
         val file=File(compose.activity.getExternalFilesDir(null),"qa/$name.png");file.parentFile!!.mkdirs()
         file.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
+    private fun awaitTaskCompletionCheckbox() {
+        val checkbox=hasContentDescription(Words.CompleteTask.localized(AppPreferences()))
+        try {
+            compose.waitUntil(5000) {compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}
+            compose.onNodeWithTag("task-list").performScrollToNode(checkbox)
+            compose.waitUntil(5000) {runCatching {compose.onNode(checkbox).performScrollTo().assertIsDisplayed()}.isSuccess}
+        } catch(e:Throwable) {
+            runCatching {screenshot("task-completion-transition-failure")}
+            throw AssertionError("Task editor closed=${compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}, edited row present=${vm.tasks.value.any {it.title=="QA edited"}}",e)
+        }
+    }
     @Test fun demoConversationStreamsAndEveryDestinationOpens() {
         compose.onNodeWithText("New conversation",useUnmergedTree=true).performScrollTo().performClick()
         compose.onNode(hasSetTextAction()).performTextInput("A test question")
@@ -80,8 +91,8 @@ class NavigationTest {
         }
         if(android.os.Build.VERSION.SDK_INT>=30) compose.waitUntil(5000) {(androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: 0)==0}
         compose.waitForIdle()
-        compose.onNodeWithTag("task-list").performScrollToNode(hasText("QA edited"))
-        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).performScrollTo().assertIsDisplayed().assertIsOff().performClick()
+        awaitTaskCompletionCheckbox()
+        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).assertIsDisplayed().assertIsOff().performClick()
         compose.waitUntil(10000) {vm.tasks.value.singleOrNull {it.title=="QA edited"}?.completed==true}
         compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).assertIsOn()
         assertTrue(runBlocking {app.database.dao().tasks().first().first {it.title=="QA edited"}.completed})
