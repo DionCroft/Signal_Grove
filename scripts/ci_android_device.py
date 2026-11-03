@@ -12,6 +12,33 @@ import sys
 import time
 
 
+def install_sdk_packages(argv: list[str], env: dict, log_path: Path, timeout: int = 900) -> None:
+    """Retry only transient package transport failures inside the original setup deadline.
+
+    This never retries APK installation or instrumentation and never skips SDK checks.
+    """
+    deadline=time.monotonic()+timeout
+    log_path.write_text('',encoding='utf-8')
+    for attempt in range(1,4):
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise subprocess.TimeoutExpired(argv,timeout)
+        print(f'SDK package setup attempt {attempt}/3.',flush=True)
+        with log_path.open('a',encoding='utf-8') as log:
+            log.write(f'\n--- SDK package setup attempt {attempt}/3 ---\n');log.flush()
+            result=subprocess.run(argv,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=remaining,check=False)
+        if result.returncode==0:return
+        # Inspect only this attempt's bounded output; preserve every attempt in the artifact.
+        with log_path.open('rb') as log:
+            log.seek(max(0,log_path.stat().st_size-65536));tail=log.read().decode('utf-8',errors='replace')
+        tail=tail.rsplit(f'--- SDK package setup attempt {attempt}/3 ---',1)[-1]
+        transient=bool(re.search(r'failed to download package archive[^\n]*(?:closed|timed out|reset)|connection reset|HTTP (?:502|503|504)',tail,re.I))
+        if not transient or attempt==3:raise subprocess.CalledProcessError(result.returncode,argv)
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise subprocess.TimeoutExpired(argv,timeout)
+        print('SDK transport failed; retrying the same packages within the setup deadline.',flush=True)
+        time.sleep(min(2**attempt,remaining))
+
+
 def main() -> int:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--api',type=int,choices=(26,37),required=True)
@@ -32,8 +59,7 @@ def main() -> int:
         return subprocess.run([str(x) for x in argv],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=timeout,check=check)
     image=f'system-images;android-{"37.0" if args.api==37 else "26"};google_apis;x86_64'
     print(f'Installing the API {args.api} system image in the isolated runner.',flush=True)
-    with (work/'sdk.log').open('w') as log:
-        subprocess.run(['sdkmanager','emulator','platform-tools',image],env=env,stdout=log,stderr=subprocess.STDOUT,timeout=900,check=True)
+    install_sdk_packages(['sdkmanager','emulator','platform-tools',image],env,work/'sdk.log')
     print('System image ready; creating the owned emulator.',flush=True)
     name=f'HermesCI{args.api}'
     subprocess.run(['avdmanager','create','avd','--force','--name',name,'--package',image,'--device','pixel_2'],input='no\n',env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=90,check=True)

@@ -29,6 +29,19 @@ class GatewayCronFlowTest {
     private val management get()=ViewModelProvider(compose.activity)[ManagementViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
     private fun json(s:String)=MockResponse().setHeader("Content-Type","application/json").setBody(s)
+    private fun openGatewaySection() {
+        try {
+            compose.waitUntil(5000) {!management.state.value.busy && management.state.value.identity!=null && management.state.value.profile.isNotBlank()}
+            compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("gateway-cron-open"))
+            compose.waitForIdle()
+            compose.waitUntil(5000) {compose.onAllNodesWithTag("gateway-cron-open").fetchSemanticsNodes().size==1}
+            compose.onNodeWithTag("gateway-cron-open").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+        } catch(e:Throwable) {
+            runCatching {val shot=File(compose.activity.getExternalFilesDir(null),"qa/gateway-entry-failure.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
+            val state=management.state.value
+            throw AssertionError("Gateway entry: busy=${state.busy}, signedIn=${state.signedIn}, identity=${state.identity!=null}, profile=${state.profile}, loaded=${state.loaded}",e)
+        }
+    }
     @Test fun gatewayReadRequiresConnectionEffectReviewAndRejectsUnprovenProfile() {
         val tickets=AtomicInteger();val reads=AtomicInteger();var proof="other"
         MockWebServer().use {server ->
@@ -57,7 +70,7 @@ class GatewayCronFlowTest {
             val scope=api.profileScope.value;app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("management-gateway-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
             compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
             compose.runOnUiThread {compose.activity.setContent {val preferences by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(preferences) {ManagementEntry(api,management)}}}
-            compose.onNodeWithTag("management-open").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("gateway-cron-open"));compose.onNodeWithTag("gateway-cron-open").performClick();assertEquals(0,tickets.get())
+            compose.onNodeWithTag("management-open").performClick();openGatewaySection();assertEquals(0,tickets.get())
             compose.onNodeWithTag("gateway-cron-list").performScrollToNode(hasTestTag("gateway-cron-load"));compose.onNodeWithTag("gateway-cron-load").performClick();assertEquals(0,tickets.get())
             compose.onNodeWithTag("gateway-cron-review").performScrollToNode(hasText(Words.GatewayConnectionEffect.en));compose.onNodeWithTag("gateway-cron-confirm").performClick()
             compose.waitUntil(10000) {!management.state.value.busy && management.state.value.error!=null};assertNull(management.state.value.gateway.inventory);assertEquals(Words.GatewayScopeUnsupported,management.state.value.error);assertEquals(1,reads.get())
@@ -67,7 +80,7 @@ class GatewayCronFlowTest {
             val shot=File(compose.activity.getExternalFilesDir(null),"qa/gateway-cron-read.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             compose.onNodeWithTag("gateway-cron-close").performClick()
             compose.runOnUiThread {management.chooseProfile("hermes")};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.profile=="hermes"}
-            compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("gateway-cron-open"));compose.onNodeWithTag("gateway-cron-open").performClick()
+            openGatewaySection()
             compose.onNodeWithTag("gateway-cron-list").performScrollToNode(hasTestTag("gateway-cron-load"));compose.onNodeWithTag("gateway-cron-load").assertIsNotEnabled();assertEquals(2,tickets.get())
             compose.onNodeWithTag("gateway-cron-close").performClick();compose.runOnUiThread {management.bind("unconfigured")};assertNull(management.state.value.gateway.inventory);assertEquals(2,reads.get())
         }
