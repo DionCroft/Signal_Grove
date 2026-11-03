@@ -62,7 +62,7 @@ import org.hermesmobile.app.data.*
                 item {Text(frozen.target.url);Text(frozen.target.profile);Text(frozen.target.actor)}
                 frozen.request.source?.let {source ->item {Text(source.display(query));if(source.display(true)!=source.display(false)) TextButton({query=!query}) {Text(label(if(query) Words.McpHideQuery else Words.McpShowQuery))}}}
                 frozen.request.expected?.let {entry ->item {Text(entry.sha);Text(entry.subdir)}}
-                item {Text(label(Words.GatewayConnectionEffect))}
+                item {Text(label(Words.PluginConnectionEffect))}
                 item {Text(label(if(frozen.request.action==PluginSourceReadAction.Inspect) Words.PluginInspectionEffect else Words.PluginCatalogBoundary))}
             }
         },confirmButton={TextButton({review=null;vm.readPluginSource(frozen)},enabled=enabled,modifier=Modifier.testTag("plugin-source-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})

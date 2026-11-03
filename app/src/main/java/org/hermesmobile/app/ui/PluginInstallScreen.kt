@@ -35,16 +35,16 @@ import org.hermesmobile.app.data.*
             item {Text(review.target.url);Text(review.target.profile);Text(review.target.actor);Text(request.name);Text(request.inspection.source.display(query));if(request.inspection.source.display(true)!=request.inspection.source.display(false)) TextButton({query=!query}) {Text(label(if(query) Words.McpHideQuery else Words.McpShowQuery))}}
             item {Text(label(Words.PluginApprovedCommit));Text(request.inspection.sha);Text(label(if(request.enable) Words.PluginEnableRequested else Words.PluginEnableNotRequested))}
             request.catalog?.let {entry->item {Text(entry.name);Text(entry.displayRepo(query));Text(entry.subdir);Text(entry.sha)}}
-            item {Text(label(Words.GatewayConnectionEffect));Text(label(Words.PluginInstallEffect))}
+            item {Text(label(Words.PluginConnectionEffect));Text(label(Words.PluginInstallEffect))}
             if(request.enable) item {Text(label(Words.PluginInstallEnableEffect))}
             item {Text(label(Words.PluginInstallGuardEffect))}
         }
     },confirmButton={TextButton(confirm,enabled=enabled,modifier=Modifier.testTag("plugin-install-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton(close,Modifier.testTag("plugin-install-review-cancel")) {Text(label(Words.Cancel))}})
 }
 @Composable private fun reported(value:Boolean?)=label(when(value) {true->Words.PluginReportedYes;false->Words.PluginReportedNo;null->Words.Unknown})
-@Composable fun PluginActivationView(report:PluginInstallReport) {
+@Composable fun PluginActivationView(report:PluginInstallReport,title:Words=Words.PluginInstallReported) {
     Column(Modifier.testTag("plugin-activation-report"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        Text(label(Words.PluginInstallReported),style=MaterialTheme.typography.titleSmall);Text(report.name)
+        Text(label(title),style=MaterialTheme.typography.titleSmall);Text(report.name)
         Text(label(Words.PluginRestartRequired)+": "+reported(report.restartRequired));Text(label(Words.PluginGatewayReloaded)+": "+reported(report.gatewayReloaded))
         Text(label(Words.PluginPythonDependencyCount)+": "+(report.dependencyCount?.toString() ?: label(Words.Unknown)))
         if(report.missingEnv.isNotEmpty()) {Text(label(Words.PluginMissingEnv));Text(report.missingEnv.joinToString("\n"))}

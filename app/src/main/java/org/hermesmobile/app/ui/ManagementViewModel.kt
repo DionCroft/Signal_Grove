@@ -11,11 +11,13 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null)
+data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null,val toggleReport:PluginInstallReport?=null)
 
 data class ReviewedPluginSource(val target:ManagementTarget,val request:PluginSourceRead,val generation:Long)
 
 data class ReviewedPluginInstall(val target:ManagementTarget,val request:PluginInstallRequest,val generation:Long)
+
+data class ReviewedPluginToggle(val target:ManagementTarget,val request:PluginToggleRequest,val generation:Long)
 
 data class ReviewedPluginRead(val target:ManagementTarget,val generation:Long)
 
@@ -51,6 +53,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val pluginToggles=PluginToggleRepository(app.database.dao(),app.managementReady)
     private val pluginInstalls=PluginInstallRepository(app.database.dao(),app.managementReady)
     private val hubMaintenance=HubMaintenanceRepository(app.database.dao(),app.managementReady)
     private val hubInstalls=HubInstallRepository(app.database.dao(),app.managementReady)
@@ -68,6 +71,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is PluginToggleChanged->Words.ManagementReviewChanged
+        is PluginToggleOutcomeUncertain->Words.ManagementOutcomePending
+        is PluginToggleReadbackPending->Words.ManagementReadbackPending
         is PluginSourceChanged->Words.ManagementReviewChanged
         is GatewayPluginInvalid->Words.PluginInventoryInvalid
         is SkillHubChanged->Words.ManagementReviewChanged
@@ -122,7 +128,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
@@ -143,7 +149,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -183,6 +189,20 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id==generation) state.value=state.value.copy(plugins=PluginInventoryState(result))
         }
     }
+    fun preparePluginToggle(row:ManagedPlugin):ReviewedPluginToggle? {
+        val saved=state.value;val inventory=saved.plugins.inventory ?: return null
+        if(saved.busy || receipts.value.any {it.state in setOf("sending","unknown")} || inventory.plugins.none {it===row} || PluginToggleRequest.collision(row,inventory)) return null
+        val request=runCatching {PluginToggleRequest(row,row.status!="enabled")}.getOrNull() ?: return null
+        return target()?.let {ReviewedPluginToggle(it,request,generation)}
+    }
+    fun togglePlugin(review:ReviewedPluginToggle) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in first.")
+            val result=pluginToggles.execute(review.target,review.request,client(state.value),current)
+            if(id==generation) state.value=state.value.copy(plugins=PluginInventoryState(inventory=result.inventory,toggleReport=result.report),notice=if(result.report==null) Words.PluginToggleDetailsUnavailable else Words.PluginToggleReported)
+        }
+    }
     fun preparePluginInstall(enable:Boolean):ReviewedPluginInstall? {
         val saved=state.value;val inspected=saved.plugins.inspection ?: return null
         if(saved.busy || receipts.value.any {it.state in setOf("sending","unknown")}) return null
@@ -198,7 +218,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id==generation) state.value=state.value.copy(plugins=state.value.plugins.copy(inventory=null,lookup=null,inspection=null,installReport=result.report),notice=if(result.sourceChanged) Words.PluginInstallSourceChanged else if(result.report==null) Words.PluginInstallDetailsUnavailable else Words.PluginInstallReported)
         }
     }
-    fun clearPluginSourceResults() {state.value=state.value.copy(plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null))}
+    fun clearPluginSourceResults() {state.value=state.value.copy(plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null))}
     fun preparePluginSource(request:PluginSourceRead):ReviewedPluginSource?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedPluginSource(it,request,generation)}
     fun readPluginSource(review:ReviewedPluginSource) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}

@@ -22,6 +22,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 class PluginInventoryFlowTest {
     @get:Rule(order=0) val credentials=CredentialFixtureRule()
@@ -31,21 +32,26 @@ class PluginInventoryFlowTest {
     private val app get()=compose.activity.application as HermesApplication
     private fun json(s:String)=MockResponse().setHeader("Content-Type","application/json").setBody(s)
     private val inventory="""{"plugins":[{"name":"Fixture plugin","key":"tools/fixture","version":"1.2.3","description":"Public plugin description","source":"user","status":"not enabled","portable":true,"has_desktop_half":false,"install_dir":"/private-plugin-home","settings_schema":[{"value":"private-plugin-setting"}],"servers":[{"name":"fixture-server","state":"missing_env","sentence":"Missing FIXTURE_KEY"}],"tools":["fixture_tool"]}],"user_count":1,"bundled_count":0}"""
-    private fun exercise(hold:Boolean) {
-        val tickets=AtomicInteger();val calls=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
+    private fun exercise(hold:Boolean,toggleFlow:Boolean=false) {
+        val writes=AtomicInteger();val mcpReads=AtomicInteger();val status=AtomicReference("not enabled");val tickets=AtomicInteger();val calls=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
         MockWebServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse=when {
                 q.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                 q.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")
                 q.path=="/dashboard/api/auth/me"->json("""{"provider":"password","user_id":"fixture-user","display_name":"Plugin fixture"}""")
                 q.path=="/dashboard/api/profiles"->json("""{"profiles":[{"name":"worker"},{"name":"hermes"}]}""")
-                q.path in setOf("/dashboard/api/mcp/servers?profile=worker","/dashboard/api/mcp/servers?profile=hermes")->json("""{"servers":[]}""")
+                q.path in setOf("/dashboard/api/mcp/servers?profile=worker","/dashboard/api/mcp/servers?profile=hermes")->{mcpReads.incrementAndGet();json("""{"servers":[]}""")}
                 q.path=="/dashboard/api/auth/ws-ticket"->{assertEquals("Bearer plugin-management-fixture",q.getHeader("Authorization"));tickets.incrementAndGet();json("""{"ticket":"${"p".repeat(43)}","ttl_seconds":30}""")}
                 q.path=="/dashboard/api/ws"->{assertNull(q.getHeader("Authorization"));assertNull(q.getHeader("Cookie"));MockResponse().withWebSocketUpgrade(object:WebSocketListener() {
                     override fun onOpen(socket:WebSocket,response:Response) {socket.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{}}}""")}
                     override fun onMessage(socket:WebSocket,text:String) {
-                        val request=Json.parseToJsonElement(text).jsonObject;assertEquals("plugins.manage",request.text("method"));assertEquals(buildJsonObject {put("profile","worker");put("action","list")},request["params"]);calls.incrementAndGet();entered.countDown();if(hold) release.await(10,TimeUnit.SECONDS)
-                        socket.send(buildJsonObject {put("jsonrpc","2.0");put("id",request["id"]!!);put("result",Json.parseToJsonElement(inventory))}.toString());returned.countDown()
+                        val request=Json.parseToJsonElement(text).jsonObject;assertEquals("plugins.manage",request.text("method"));val params=request["params"]!!.jsonObject;assertEquals("worker",params.text("profile"));calls.incrementAndGet();entered.countDown();if(hold) release.await(10,TimeUnit.SECONDS)
+                        val result=when(params.text("action")) {
+                            "list"->{assertEquals(buildJsonObject {put("profile","worker");put("action","list")},params);Json.parseToJsonElement(inventory.replace("\"status\":\"not enabled\"","\"status\":\"${status.get()}\""))}
+                            "toggle"->{assertTrue(toggleFlow);assertEquals(setOf("profile","action","key","enable"),params.keys);assertEquals("tools/fixture",params.text("key"));val enabled=params["enable"]!!.jsonPrimitive.boolean;status.set(if(enabled) "enabled" else "disabled");writes.incrementAndGet();buildJsonObject {put("ok",true);put("name","tools/fixture");put("restart_required",!enabled);put("activation",PluginInstallFixture.acknowledgement()["activation"]!!)}}
+                            else->error("Unexpected plugin action")
+                        }
+                        socket.send(buildJsonObject {put("jsonrpc","2.0");put("id",request["id"]!!);put("result",result)}.toString());returned.countDown()
                     }
                 }).setHeader("Sec-WebSocket-Protocol","hermes-gateway-v1")}
                 else->json("{}").setResponseCode(404)
@@ -56,10 +62,27 @@ class PluginInventoryFlowTest {
             compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
             compose.runOnUiThread {compose.activity.setContent {val preferences by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(preferences) {ManagementEntry(api,management)}}}
             compose.onNodeWithTag("management-open").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("plugins-open"));compose.onNodeWithTag("plugins-open").performClick();assertEquals(0,tickets.get())
-            compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugins-read"));compose.onNodeWithTag("plugins-read").performClick();assertEquals(0,tickets.get());compose.onNodeWithTag("plugins-connection-review").performScrollToNode(hasText(Words.GatewayConnectionEffect.en));compose.onNodeWithTag("plugins-read-confirm").performClick()
+            compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugins-read"));compose.onNodeWithTag("plugins-read").performClick();assertEquals(0,tickets.get());compose.onNodeWithTag("plugins-connection-review").performScrollToNode(hasText(Words.PluginConnectionEffect.en));compose.onNodeWithTag("plugins-read-confirm").performClick()
             try {
                 if(hold) {
                     compose.waitUntil(10000) {entered.count==0L};compose.runOnUiThread {management.bind("unconfigured")};release.countDown();compose.waitUntil(5000) {returned.count==0L};compose.waitForIdle();assertNull(management.state.value.plugins.inventory);assertEquals("unconfigured",management.state.value.apiScope)
+                } else if(toggleFlow) {
+                    compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.inventory!=null}
+                    fun openToggle() {
+                        compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugin-details-0"));compose.onNodeWithTag("plugin-details-0").performClick()
+                        compose.onNodeWithTag("plugin-detail-view").performScrollToNode(hasTestTag("plugin-toggle-tools/fixture"));compose.onNodeWithTag("plugin-toggle-tools/fixture").performClick()
+                    }
+                    openToggle();compose.onNodeWithTag("plugin-toggle-review").assertExists();assertEquals(0,writes.get());compose.onNodeWithTag("plugin-toggle-cancel").performClick();assertEquals(0,writes.get())
+                    compose.onNodeWithTag("plugin-toggle-tools/fixture").performClick();compose.onNodeWithTag("plugin-toggle-review").performScrollToNode(hasText(Words.PluginEnableEffect.en));compose.onNodeWithTag("plugin-toggle-confirm").performClick()
+                    compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.action=="PluginEnable" && it.state=="confirmed"}}
+                    assertEquals("enabled",management.state.value.plugins.inventory!!.plugins.single().status);assertEquals(1,writes.get());assertNotNull(management.state.value.plugins.toggleReport)
+                    openToggle();compose.onNodeWithTag("plugin-toggle-review").performScrollToNode(hasText(Words.PluginDisableEffect.en));compose.onNodeWithText(Words.PluginDisableEffect.en).assertExists();assertEquals(1,writes.get())
+                    val shot=File(compose.activity.getExternalFilesDir(null),"qa/plugin-disable-review.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+                    compose.onNodeWithTag("plugin-toggle-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.action=="PluginDisable" && it.state=="confirmed"}}
+                    assertEquals("disabled",management.state.value.plugins.inventory!!.plugins.single().status);assertEquals(2,writes.get());val receipt=management.receipts.value.single {it.action=="PluginDisable"};assertFalse(receipt.toString().contains("private-plugin"));assertEquals(3,tickets.get());assertEquals(7,calls.get())
+                    compose.onNodeWithTag("plugins-close").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("management-observe-${receipt.key}"));compose.onNodeWithTag("management-observe-${receipt.key}").performClick();assertEquals(3,tickets.get())
+                    compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugins-read"));compose.onNodeWithTag("plugins-read").performClick();assertEquals(3,tickets.get());compose.onNodeWithTag("plugins-read-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.inventory!=null}
+                    assertEquals(2,writes.get());assertEquals(4,tickets.get());assertEquals(8,calls.get());assertEquals(1,mcpReads.get())
                 } else {
                     compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.inventory!=null};compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugin-details-0"));compose.onNodeWithTag("plugin-details-0").performClick()
                     compose.onNodeWithTag("plugin-detail-view").performScrollToNode(hasText("fixture_tool"));compose.onNodeWithText("fixture_tool").assertExists();compose.onNodeWithText("private-plugin-home",substring=true).assertDoesNotExist();compose.onNodeWithText("private-plugin-setting",substring=true).assertDoesNotExist()
@@ -67,10 +90,11 @@ class PluginInventoryFlowTest {
                     compose.onNodeWithTag("plugin-detail-close").performClick();compose.onNodeWithTag("plugins-close").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("management-profile"));compose.onNodeWithTag("management-profile").performClick();compose.onNodeWithText("hermes").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.profile=="hermes"};assertNull(management.state.value.plugins.inventory)
                     compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("plugins-open"));compose.onNodeWithTag("plugins-open").performClick();compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugins-read"));compose.onNodeWithTag("plugins-read").assertIsNotEnabled();assertEquals(1,tickets.get())
                 }
-                assertEquals(1,calls.get())
+                if(!toggleFlow) assertEquals(1,calls.get())
             } finally {release.countDown()}
         }
     }
+    @Test fun enableAndDisableRequireSeparateReviewsAndObservePluginsWithoutReplayingChanges()=exercise(false,true)
     @Test fun explicitConnectionReviewReadsOnlyScopedPluginReportsAndRejectsAliasProfiles()=exercise(false)
     @Test fun aDelayedPluginReportCannotCrossConnections()=exercise(true)
 }

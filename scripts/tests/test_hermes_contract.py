@@ -40,6 +40,9 @@ def sources():
         'plugin_install':'',
         'plugin_activation':'',
         'plugin_transaction':'',
+        'plugin_admission':'',
+        'plugin_legacy':'',
+        'pm_client':'',
         'hub_cli':'',
         'hub_search':'',
         'hub_claw':'',
@@ -69,6 +72,14 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_plugin_toggle_and_legacy_redirect_table_changes_require_review(self):
+        initial=sources();initial['plugin_legacy']="LEFT_CORE:tuple=('observability/langfuse',)\ndef legacy_plugin_alias(name):\n    return name in LEFT_CORE\n"
+        initial['gateway_rpc']="def _plugins_toggle(params):\n    return params['key']\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['plugin_legacy:LEFT_CORE','plugin_legacy:legacy_plugin_alias','gateway_rpc:_plugins_toggle']
+        for source,before,after in [('plugin_legacy','observability/langfuse','other/redirect'),('plugin_legacy','name in LEFT_CORE','True'),('gateway_rpc',"params['key']","params['name']")]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_plugin_inspected_guard_optional_activation_and_restart_targets_require_review(self):
         initial=sources();initial['plugin_install']="def _place_tree(ref,inspected_sha):\n    return None if ref else inspected_sha\n"
         initial['gateway_plugin_models']="class PluginsManageParams:\n    inspected_sha:str|None=None\nclass PluginActivation:\n    deferred:dict={}\nclass PluginRestartTarget:\n    backend='backend'\n"

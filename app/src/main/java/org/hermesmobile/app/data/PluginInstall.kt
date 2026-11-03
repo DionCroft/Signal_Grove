@@ -40,10 +40,10 @@ class PluginInstallReport(val name:String,val restartRequired:Boolean?,val gatew
         }
         private fun opaqueCount(j:JsonObject,k:String):Int? {val v=j[k];if(v==null || v is JsonNull) return null;require(v is JsonArray && v.size<=256 && v.all {it is JsonPrimitive && it.isString && it.content.length<=8192});return v.size}
         private fun groups(j:JsonObject,k:String):Map<String,List<String>> {val v=j[k];if(v==null || v is JsonNull) return emptyMap();require(v is JsonObject && v.size<=32);return Collections.unmodifiableMap(v.mapValues {(key,_)->require(key.matches(Regex("[A-Za-z0-9_.-]{1,128}")));names(v,key)})}
-        fun parse(j:JsonObject,name:String):PluginInstallReport {
+        fun parse(j:JsonObject,name:String,requireInstallDetails:Boolean=true):PluginInstallReport {
             val activation=j["activation"]?.takeUnless {it is JsonNull}?.jsonObject ?: JsonObject(emptyMap())
             val live=activation["live_now"]?.takeUnless {it is JsonNull}?.jsonObject ?: JsonObject(emptyMap())
-            require(j["missing_env"] is JsonArray && j["python_dependencies"] is JsonArray)
+            if(requireInstallDetails) require(j["missing_env"] is JsonArray && j["python_dependencies"] is JsonArray)
             val env=names(j,"missing_env",128).also {require(it.all {key->key.matches(Regex("[A-Za-z_][A-Za-z0-9_]{0,127}"))})}
             require(live["mcp_servers"]==null || live["mcp_servers"] is JsonArray);require(live["skills"]==null || live["skills"] is JsonArray)
             val rows=live["mcp_servers"] as? JsonArray ?: JsonArray(emptyList());require(rows.size<=128)

@@ -58,6 +58,7 @@ class GatewayRpcSession private constructor():Closeable {
             }
         } catch(e:Exception) {fail(if(e is GatewayProtocolException) e else GatewayProtocolException())}
     }
+    suspend fun togglePlugin(profile:String,request:org.hermesmobile.app.data.PluginToggleRequest)=call("plugins.manage",request.params(profile),600000)
     suspend fun installPlugin(profile:String,request:org.hermesmobile.app.data.PluginInstallRequest)=call("plugins.manage",request.params(profile),600000)
     suspend fun featuredPlugins(profile:String):JsonObject {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
