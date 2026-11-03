@@ -18,6 +18,27 @@ class SourceCacheTest(unittest.TestCase):
         return {'sha':'b'*40,'truncated':False,'tree':[row]}
     def scope(self):
         return patch.multiple(c,SOURCES={'fixture':self.path},EXTRA_SOURCES={})
+    def test_verified_partial_blobs_remain_publishable_while_inspection_still_fails(self):
+        second=b'other_source=True\n';oid,size=self.identity(second);tree=self.tree();tree['tree'].append({'path':'agent/second.py','type':'blob','mode':'100644','sha':oid,'size':size})
+        def download(path,commit):
+            if path==self.path:return self.data.decode()
+            raise c.GitHubReadError(429)
+        with patch.multiple(c,SOURCES={'first':self.path,'second':'agent/second.py'},EXTRA_SOURCES={}),patch.object(c,'resolve',return_value=('main',self.pin)),patch.object(c,'github',return_value=tree),patch.object(c,'github_source',side_effect=download),patch.object(c,'extract') as parse:
+            with self.assertRaises(c.SourceReadError):c.snapshot('main',self.cache)
+            parse.assert_not_called();self.assertTrue(c.source_cache_publishable(self.cache));self.assertFalse((self.cache/oid).exists())
+    def test_publication_refuses_empty_corrupt_unexpected_and_nonfile_entries(self):
+        self.assertFalse(c.source_cache_publishable(self.cache));self.cache.mkdir();self.assertFalse(c.source_cache_publishable(self.cache))
+        oid,size=self.identity();target=self.cache/oid;target.write_bytes(self.data);self.assertTrue(c.source_cache_publishable(self.cache));target.write_bytes(b'x'*size);self.assertFalse(c.source_cache_publishable(self.cache));target.write_bytes(self.data)
+        extra=self.cache/'partial.tmp';extra.write_bytes(b'partial');self.assertFalse(c.source_cache_publishable(self.cache));extra.unlink();(self.cache/('c'*40)).mkdir();self.assertFalse(c.source_cache_publishable(self.cache))
+    def test_publication_refuses_symlink_and_oversized_data_before_read(self):
+        self.cache.mkdir();oid,size=self.identity();target=self.cache/oid;target.write_bytes(self.data)
+        with patch.object(Path,'is_symlink',lambda path:path==target):self.assertFalse(c.source_cache_publishable(self.cache))
+        target.write_bytes(b'x'*2_000_001)
+        with patch.object(Path,'open',side_effect=AssertionError('Oversized cache must not be read')):self.assertFalse(c.source_cache_publishable(self.cache))
+    def test_publication_file_count_is_bounded_before_data_reads(self):
+        self.cache.mkdir()
+        with patch.object(Path,'iterdir',return_value=iter([self.cache/('a'*40)]*513)),patch.object(Path,'open',side_effect=AssertionError('Overfull cache must not be read')):self.assertFalse(c.source_cache_publishable(self.cache))
+
     def test_cold_and_warm_snapshots_recheck_tree_and_every_blob_without_executing_source(self):
         with self.scope(),patch.object(c,'resolve',return_value=('main',self.pin)),patch.object(c,'github',return_value=self.tree()) as tree,patch.object(c,'github_source',return_value=self.data.decode()) as download,patch.object(c,'extract',side_effect=lambda rows:{'statements':len(ast.parse(rows['fixture']).body)}):
             cold=c.snapshot('main',self.cache);warm=c.snapshot('main',self.cache)

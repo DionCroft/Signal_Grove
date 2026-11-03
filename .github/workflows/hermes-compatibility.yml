@@ -25,49 +25,71 @@ jobs:
     needs: parser-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        ref: [latest, main]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Restore public upstream source blobs
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/hermes-public-source-cache
-          key: hermes-public-source-v1-${{ matrix.ref }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            hermes-public-source-v1-${{ matrix.ref }}-
-            hermes-public-source-v1-
-      - name: Inspect pinned upstream source without executing it
+          key: hermes-public-source-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: hermes-public-source-v1-
+      - name: Inspect latest stable source without executing it
         env:
           GH_TOKEN: ${{ github.token }}
-          UPSTREAM_REF: ${{ matrix.ref }}
-        run: python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref "$UPSTREAM_REF" --output "$RUNNER_TEMP/hermes-contract.json"
-      - name: Summarize compatibility result
+        run: python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref latest --output "$RUNNER_TEMP/hermes-contract-latest.json"
+      - name: Inspect main source without executing it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref main --output "$RUNNER_TEMP/hermes-contract-main.json"
+      - name: Check public blobs for safe retention
+        if: always()
+        id: cache-publication
+        run: |
+          python3 -B - <<'PY'
+          import importlib.util, os
+          from pathlib import Path
+          spec=importlib.util.spec_from_file_location('checker',Path('scripts/check_hermes_contract.py'))
+          checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
+          ready=checker.source_cache_publishable(Path(os.environ['RUNNER_TEMP'])/'hermes-public-source-cache')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:output.write('ready='+str(ready).lower()+'\n')
+          PY
+      - name: Retain only validated public source blobs
+        if: always() && steps.cache-publication.outputs.ready == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/hermes-public-source-cache
+          key: hermes-public-source-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Summarize compatibility results
         if: always()
         run: |
           python3 - <<'PY'
           import json, os
           from pathlib import Path
-          source=Path(os.environ['RUNNER_TEMP'])/'hermes-contract.json'
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as summary:
-              if not source.exists():
-                  summary.write('Upstream inspection incomplete. Review job logs; no compatibility success is claimed.\n')
-              else:
-                  result=json.loads(source.read_text())
+              for ref in ('latest','main'):
+                  source=Path(os.environ['RUNNER_TEMP'])/('hermes-contract-'+ref+'.json')
+                  summary.write('### '+ref+'\n\n')
+                  if not source.exists():
+                      summary.write('Inspection incomplete or not run after an earlier failure; no compatibility success is claimed.\n\n')
+                      continue
+                  result=json.loads(source.read_text());cache=result['current'].get('source_cache',{})
                   summary.write('Upstream commit: '+result['current']['commit']+'\n\n')
                   summary.write('Used-contract review required: '+str(result['mobile_review_required'])+'\n\n')
-                  cache=result['current'].get('source_cache',{})
                   summary.write('Verified source cache hits/downloads: '+str(cache.get('verified_hits','unknown'))+'/'+str(cache.get('verified_downloads','unknown'))+'\n\n')
                   summary.write('Changed source modules: '+str(len(result['changed_source_modules']))+'\n\n')
-                  summary.write('New API routes: '+str(len(result['added_routes']))+'; new management routes: '+str(len(result['added_management_routes']))+'. See the artifact for details.\n')
+                  summary.write('New API routes: '+str(len(result['added_routes']))+'; new management routes: '+str(len(result['added_management_routes']))+'. See the artifact for details.\n\n')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: hermes-contract-${{ matrix.ref }}
-          path: ${{ runner.temp }}/hermes-contract.json
+          name: hermes-contract-latest
+          path: ${{ runner.temp }}/hermes-contract-latest.json
+          if-no-files-found: warn
+          retention-days: 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: hermes-contract-main
+          path: ${{ runner.temp }}/hermes-contract-main.json
           if-no-files-found: warn
           retention-days: 30

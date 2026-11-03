@@ -405,6 +405,24 @@ def cached_github_source(cache: Path,path: str,commit: str,identity: tuple) -> t
     return text,hit
 
 
+def source_cache_publishable(cache: Path) -> bool:
+    """A failed inspection may retain verified blobs, but never its compatibility verdict."""
+    try:
+        if cache.is_symlink() or not cache.is_dir():return False
+        paths=list(cache.iterdir())
+        if not paths or len(paths)>512:return False
+        total=0
+        for path in paths:
+            if not re.fullmatch(r'[a-f0-9]{40}',path.name) or path.is_symlink() or not path.is_file():return False
+            size=path.stat().st_size;total+=size
+            if size>2_000_000 or total>128_000_000:return False
+            with path.open('rb') as stream:data=stream.read(2_000_001)
+            if len(data)!=size or hashlib.sha1(b'blob '+str(size).encode()+b'\0'+data).hexdigest()!=path.name:return False
+            data.decode('utf-8')
+        return True
+    except (OSError,UnicodeDecodeError):return False
+
+
 def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     resolved, sha = resolve(ref)
     try:identities=source_identities(sha) if source_cache is not None else None
