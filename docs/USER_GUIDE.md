@@ -170,3 +170,10 @@ Choose **Edit setting**, enter the declared type, then **Review setting change**
 In **Hermes management → Host keys and environment**, choose **Read key metadata** and confirm the target profile. Filter by variable/provider, then choose **Save or replace value**, **Add a key**, or **Remove credential references**. A declared plugin secret can open the same inspector with its variable selected. Existing values and masked previews are never shown or prefilled.
 
 Enter a complete printable ASCII replacement; the current host writer strips other characters, so the app refuses them. Review the shared consumers and effects, show the new value and approve one save. Removal has a separate review and can clean references even when environment presence is absent. Saves/removals can affect configuration mirrors and environment-backed credential pools; other credential types can remain, and removal is not provider-side revocation. Results are host acknowledgements with separate presence observation, never exact-value or runtime verification. A lost reply is never repeated automatically. Closing clears the metadata/draft; receipt observation requires a new read review. See [contracts and limits](MANAGEMENT.md#host-keys-and-environment).
+
+
+### Store an empty environment value
+
+Open a variable's editor or add a custom key, then select **Explicitly store an empty string and keep this environment key**. This clears the replacement draft. Open the review, show the empty-string intent and approve one save. Cancelling and reopening requires selecting and approving it again.
+
+An empty save keeps the key. Hermes can retain old credential mirrors/pool entries and lift environment-source suppression, so this does not mean credentials were removed or revoked. The receipt stays acknowledged after reported unset-key observation; presence cannot verify the exact stored value. Use the separately reviewed removal action when you intend reference cleanup. See [empty-value effects](MANAGEMENT.md#explicit-empty-environment-values).

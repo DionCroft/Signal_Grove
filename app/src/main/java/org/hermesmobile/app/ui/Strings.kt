@@ -5,6 +5,10 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    HostEnvEmpty("Save an empty value","保存空值","Bǎocún kōng zhí"),
+    HostEnvEmptyIntent("Explicitly store an empty string and keep this environment key","明确存储空字符串并保留此环境键","Míngquè cúnchǔ kōng zìfúchuàn bìng bǎoliú cǐ huánjìng jiàn"),
+    HostEnvEmptyValue("Empty string: \"\"","空字符串：\"\"","Kōng zìfúchuàn: \"\""),
+    HostEnvEmptyEffect("Stores an empty string in this profile environment and keeps the key. This route does not clear old value-matched credential mirrors for an empty replacement; existing pool credentials can remain, and environment-source suppression can be lifted. This is not credential removal or provider-side revocation. Reported absence cannot verify the exact empty value or runtime behavior.","在此配置环境中存储空字符串并保留键。空值替换时，此接口不会清除匹配旧值的凭据副本；现有凭据池条目可能保留，并可能解除环境来源的禁用。这不是凭据移除或提供方撤销。报告不存在无法验证确切空值或运行时行为。","Zài cǐ pèizhì huánjìng zhōng cúnchǔ kōng zìfúchuàn bìng bǎoliú jiàn. Kōng zhí tìhuàn shí, cǐ jiēkǒu bú huì qīngchú pǐpèi jiù zhí de píngjù fùběn; xiànyǒu píngjù chí tiáomù kěnéng bǎoliú, bìng kěnéng jiěchú huánjìng láiyuán de jìnyòng. Zhè bú shì píngjù yíchú huò tígōng fāng chèxiāo. Bàogào bù cúnzài wúfǎ yànzhèng quèqiè kōng zhí huò yùnxíng shí xíngwéi."),
     HostEnvironment("Host keys and environment","主机密钥与环境","Zhǔjī mìyuè yǔ huánjìng"),
     HostEnvRead("Read key metadata","读取密钥元数据","Dúqǔ mìyuè yuán shùjù"),
     HostEnvPrivacy("Reads variable names, reported presence and provider/tool metadata for this profile. Existing values and masked previews are discarded; no secret reveal or provider probe is requested. Typed replacements are temporary and never saved in receipts.","读取此配置的变量名、报告的存在状态及提供方和工具元数据。现有值与掩码预览会被丢弃，不请求密钥显示或提供方探测。输入的替换值仅临时保存，绝不写入回执。","Dúqǔ cǐ pèizhì de biànliàng míng, bàogào de cúnzài zhuàngtài jí tígōng fāng hé gōngjù yuán shùjù. Xiànyǒu zhí yǔ yǎnmǎ yùlǎn huì bèi diūqì, bù qǐngqiú mìyuè xiǎnshì huò tígōng fāng tàncè. Shūrù de tìhuàn zhí jǐn línshí bǎocún, jué bù xiěrù huízhí."),

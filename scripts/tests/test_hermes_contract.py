@@ -86,6 +86,14 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_empty_environment_mirror_pool_and_retained_key_semantics_require_review(self):
+        initial=sources();initial['env_lifecycle']="def save_provider_env_credential(key,value):\n    if value and old_value:\n        scrub_mirrors(old_value,value)\n    unsuppress(key)\n    return {'ok':True,'key':key}\n"
+        initial['env_routes']="def _get_env_vars_sync(profile):\n    return {key:{'is_set':bool(value)} for key,value in env_on_disk.items()}\n"
+        initial['env_config']="def _quote_env_value(value):\n    if value=='':\n        return value\n    return quote(value)\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['env_lifecycle:save_provider_env_credential','env_routes:_get_env_vars_sync','env_config:_quote_env_value']
+        for module,before,after in [('env_lifecycle','if value and old_value:','if old_value:'),('env_lifecycle','unsuppress(key)','suppress(key)'),('env_routes','in env_on_disk.items()}','in env_on_disk.items() if value}'),('env_config',"return value\n    return quote(value)","return None\n    return quote(value)")]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+
     def test_environment_routes_scope_mirrors_masks_policy_and_added_revision_guards_require_review(self):
         initial=sources();initial['env_routes']="@router.delete('/api/env')\nasync def remove_env_var(body,profile=None):\n    return scoped_to_thread(body.profile or profile,remove)\n"
         initial['env_lifecycle']="def save_provider_env_credential(key,value):\n    return scrub_mirrors(key,value)\n"

@@ -7,7 +7,7 @@ class HostEnvUnavailable:Exception()
 class HostEnvChanged:Exception()
 class HostEnvUncertain:Exception()
 class HostEnvReadbackPending:Exception()
-enum class HostEnvAction { Save, Remove }
+enum class HostEnvAction { Save, Empty, Remove }
 data class HostEnvProvider(val id:String,val label:String)
 class HostEnvRow(val key:String,val isSet:Boolean,val description:String,val category:String,val password:Boolean?,val channel:Boolean?,val custom:Boolean?,val primary:Boolean?,providers:List<HostEnvProvider>,tools:List<String>) {
     val providers:List<HostEnvProvider> = Collections.unmodifiableList(providers.toList())
@@ -46,9 +46,9 @@ object HostEnvPolicy {
 }
 class HostEnvRequest(val expected:HostEnvInventory,val key:String,val action:HostEnvAction,val value:String="") {
     val previous=expected.rows.singleOrNull {it.key==key}
-    init {require(HostEnvPolicy.key(key));require(if(action==HostEnvAction.Save) HostEnvPolicy.writable(key) && HostEnvPolicy.value(value) else previous!=null && value.isEmpty())}
-    val receiptAction get()=if(action==HostEnvAction.Save) "EnvSave" else "EnvRemove"
-    fun body(profile:String)=buildJsonObject {GatewayCronInventory.requireProfile(profile);require(profile==expected.owner.profile);put("profile",profile);put("key",key);if(action==HostEnvAction.Save) {put("value",value);put("provider_setup",false)}}
+    init {require(HostEnvPolicy.key(key));require(when(action) {HostEnvAction.Save->HostEnvPolicy.writable(key) && HostEnvPolicy.value(value);HostEnvAction.Empty->HostEnvPolicy.writable(key) && value.isEmpty();HostEnvAction.Remove->previous!=null && value.isEmpty()})}
+    val receiptAction get()=when(action) {HostEnvAction.Save->"EnvSave";HostEnvAction.Empty->"EnvEmpty";HostEnvAction.Remove->"EnvRemove"}
+    fun body(profile:String)=buildJsonObject {GatewayCronInventory.requireProfile(profile);require(profile==expected.owner.profile);put("profile",profile);put("key",key);if(action!=HostEnvAction.Remove) {put("value",value);put("provider_setup",false)}}
     fun same(current:HostEnvInventory)=expected.owner==current.owner && expected.homeId==current.homeId && current.rows.singleOrNull {it.key==key}.let {now->if(previous==null) now==null else now?.let(previous::same)==true}
     fun summary()=buildJsonObject {put("env_key",key);put("operation",action.name);put("previous_presence",previous?.isSet?.let(::JsonPrimitive) ?: JsonNull);put("custom",previous?.custom?.let(::JsonPrimitive) ?: JsonNull)}
     fun acknowledge(raw:JsonObject):JsonObject {
@@ -57,6 +57,6 @@ class HostEnvRequest(val expected:HostEnvInventory,val key:String,val action:Hos
         fun count(name:String):Int?=runCatching {val values=raw[name] as? JsonArray ?: return@runCatching null;require(values.size<=1024 && values.all {it is JsonPrimitive && it.isString && it.content.length<=2048});values.size}.getOrNull()
         return buildJsonObject {summary().forEach {(k,v)->put(k,v)};if(action==HostEnvAction.Remove) put("env_entry_removed",raw["removed"]!!);for(name in listOf("config_updates","config_scrubbed","pool_pruned","providers")) count(name)?.let {put(name+"_count",it)}}
     }
-    fun presenceMatches(after:HostEnvInventory)=if(action==HostEnvAction.Save) after.rows.singleOrNull {it.key==key}?.isSet==true else after.rows.none {it.key==key && it.isSet}
+    fun presenceMatches(after:HostEnvInventory)=when(action) {HostEnvAction.Save->after.rows.singleOrNull {it.key==key}?.isSet==true;HostEnvAction.Empty->after.rows.singleOrNull {it.key==key}?.isSet==false;HostEnvAction.Remove->after.rows.none {it.key==key && it.isSet}}
     override fun toString()="HostEnvRequest(redacted)"
 }

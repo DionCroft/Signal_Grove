@@ -10,6 +10,17 @@ class HostEnvironmentTest {
     private val home=PluginHome.project(JsonPrimitive("/fixture-env"))
     private fun raw(present:Boolean=true)=buildJsonObject {put("FIXTURE_API_KEY",buildJsonObject {put("is_set",present);put("is_password",true);put("custom",false);put("description","Shared credential");put("category","provider");put("channel_managed",false);put("provider","first");put("provider_label","First provider");put("provider_profiles",buildJsonArray {for(id in listOf("first","second")) add(buildJsonObject {put("provider",id);put("provider_label",id);put("url","https://private.example/?secret=private-url")})});put("value","private-raw-value");put("redacted_value","private-mask-preview");put("url","private-host-url");put("tools",buildJsonArray {add("fixture_tool")})})}
     private fun inventory(present:Boolean=true)=HostEnvInventory.parse(raw(present),owner,home)
+    @Test fun explicitEmptyIntentUsesALiteralPutValueAndDistinctReceiptWithoutRemovalFields() {
+        val state=inventory();val request=HostEnvRequest(state,"FIXTURE_API_KEY",HostEnvAction.Empty);val body=request.body("worker")
+        assertEquals(setOf("profile","key","value","provider_setup"),body.keys);assertEquals(JsonPrimitive(""),body["value"]);assertEquals(JsonPrimitive(false),body["provider_setup"]);assertEquals("EnvEmpty",request.receiptAction);assertEquals(JsonPrimitive("Empty"),request.summary()["operation"]);assertFalse(request.summary().containsKey("value"))
+        request.acknowledge(buildJsonObject {put("ok",true);put("key",request.key);put("config_updates",JsonArray(emptyList()))})
+        assertTrue(runCatching {HostEnvRequest(state,request.key,HostEnvAction.Empty,"nonempty")}.isFailure);assertTrue(runCatching {HostEnvRequest(state,request.key,HostEnvAction.Save,"")}.isFailure)
+        assertTrue(runCatching {HostEnvRequest(state,"PATH",HostEnvAction.Empty)}.isFailure);assertNotNull(HostEnvRequest(state,"NEW_KEY",HostEnvAction.Empty))
+    }
+    @Test fun emptyObservationRequiresTheKeyAndReportedUnsetRatherThanTreatingDeletionAsEquivalent() {
+        val request=HostEnvRequest(inventory(),"FIXTURE_API_KEY",HostEnvAction.Empty);assertTrue(request.presenceMatches(inventory(false)));assertFalse(request.presenceMatches(inventory()))
+        val absent=HostEnvInventory(owner,home!!.identity(),emptyList());assertFalse(request.presenceMatches(absent));assertTrue(HostEnvRequest(inventory(),request.key,HostEnvAction.Remove).presenceMatches(absent))
+    }
     @Test fun metadataOmitsAllValuesPreviewsAndUrlsButKeepsSharedProviderIdentity() {
         val row=inventory().rows.single();assertTrue(row.isSet);assertEquals(listOf("first","second"),row.providers.map {it.id});assertEquals(listOf("fixture_tool"),row.tools);assertFalse(row.toString().contains("private"));assertFalse(inventory().toString().contains("private"))
     }
