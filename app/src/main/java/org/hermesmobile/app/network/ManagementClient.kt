@@ -58,6 +58,8 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun fallbackConfig(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/config",tokens.access,profile=profile,query=mapOf("include_defaults" to "false")).jsonObject}
+    suspend fun changeFallbackConfig(tokens:ManagementTokens,profile:String,request:HostFallbackRequest):JsonObject {GatewayCronInventory.requireProfile(profile);require(profile==request.expected.owner.profile);return element("api/config",tokens.access,request.body(),profile,method="PUT").jsonObject}
     suspend fun credentialPool(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/credentials/pool",tokens.access,profile=profile,slow=true).jsonObject}
     suspend fun changeCredentialPool(tokens:ManagementTokens,profile:String,request:CredentialPoolRequest):JsonObject {
         GatewayCronInventory.requireProfile(profile);require(CredentialPoolProtocol.provider(request.provider))

@@ -57,6 +57,8 @@ def sources():
         'moa_config':'',
         'oauth_routes':'','oauth_helpers':'','provider_auth':'',
         'pool_routes':'','credential_pool':'','pool_admin':'','pool_sources':'','pool_persistence':'','auth_middleware':'',
+        'fallback_config':'','config_backend':'','config_worker_save':'','provider_identity':'',
+        'fallback_wire':'','fallback_binding':'',
         'model_config':'',
         'model_inventory':'',
         'model_catalog':'',
@@ -108,6 +110,23 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_fallback_transport_alias_and_runtime_credential_binding_require_review(self):
+        initial=sources();initial['fallback_wire']="def _fallback_api_mode_hint(entry,provider,url):\n    return parse(entry.get('api_mode') or entry.get('transport'))\n";initial['fallback_binding']="def bind_route_entry(agent,entry,provider,model):\n    return resolve(provider,model,explicit_base_url=entry.get('base_url'),explicit_api_key=resolve_entry_api_key(entry))\n"
+        tracked=baseline(checker.extract(initial));tracked['mobile_used_handlers']+=['fallback_wire:_fallback_api_mode_hint','fallback_binding:bind_route_entry']
+        for module,before,after in [('fallback_wire',"entry.get('api_mode') or entry.get('transport')","entry.get('api_mode')"),('fallback_binding',"entry.get('base_url')","None"),('fallback_binding','resolve_entry_api_key(entry)','global_key()')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],(module,before))
+
+    def test_fallback_partial_config_merge_scopes_and_secret_preservation_require_review(self):
+        initial=sources();initial['env_routes']="from config_helpers import _deep_merge,read_raw_config\n_profile_scope=late('_profile_scope')\n_CONFIG_MUTATION_LOCK=LateState('_CONFIG_MUTATION_LOCK')\n@config_router.get('/api/config')\ndef get_config(profile=None,include_defaults=True):\n    return scoped(profile,read_raw_config())\n@router.put('/api/config')\ndef update_config(body,profile=None):\n    with _profile_scope(body.profile or profile):\n        return save_config(_deep_merge(existing,body.config))\n"
+        initial['models']+="class ConfigUpdate:\n    config:dict\n    profile:str|None=None\n"
+        initial['fallback_config']="def get_fallback_chain(config):\n    return merge(config['fallback_providers'],config['fallback_model'])\ndef resolve_entry_api_key(entry):\n    return entry.get('api_key') or scoped_secret(entry.get('key_env'))\n"
+        initial['env_config']="def _deep_merge(base,override):\n    return replace_arrays_and_merge_dicts(base,override)\ndef _preserve_env_ref_templates(new,old,expanded):\n    return preserve_templates(new,old,expanded)\n"
+        initial['config_worker_save']="_SAME_AS_BASE=object()\ndef rebase_for_save(config,raw,merge_existing):\n    return preserve_live_edits(config,raw)\n"
+        initial['provider_identity']="ALIASES={'zen':'opencode'}\ndef normalize_provider(name):\n    return ALIASES.get(name,name)\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['env_routes:import:_deep_merge','env_routes:_profile_scope','env_routes:_CONFIG_MUTATION_LOCK','env_routes:get_config','env_routes:update_config','models:schema:ConfigUpdate','fallback_config:get_fallback_chain','fallback_config:resolve_entry_api_key','env_config:_deep_merge','env_config:_preserve_env_ref_templates','config_worker_save:rebase_for_save','config_worker_save:_SAME_AS_BASE','provider_identity:ALIASES'];tracked['mobile_used_request_fields']+=['models:ConfigUpdate.config','models:ConfigUpdate.profile'];tracked['mobile_used_management_routes']+=['GET /api/config','PUT /api/config']
+        for module,before,after in [('env_routes','from config_helpers','from unsafe_helpers'),('env_routes',"late('_profile_scope')","late('_other_scope')"),('env_routes',"LateState('_CONFIG_MUTATION_LOCK')","LateState('_OTHER_LOCK')"),('env_routes','include_defaults=True','include_defaults=False'),('env_routes','body.profile or profile','None'),('env_routes',"'/api/config'","'/api/config/all'"),('models','config:dict','config:list'),('models','profile:str|None=None','profile:str|None=None\n    revision:int=0'),('fallback_config',"config['fallback_providers'],config['fallback_model']","config['fallback_model'],config['fallback_providers']"),('fallback_config','scoped_secret','global_secret'),('env_config','replace_arrays_and_merge_dicts','merge_arrays'),('env_config','preserve_templates','expand_templates'),('config_worker_save','preserve_live_edits','replace_live'),('config_worker_save','object()','None'),('provider_identity',"'opencode'","'different'")]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],(module,before))
+
     def test_credential_pool_order_scope_cleanup_merge_and_request_changes_require_review(self):
         initial=sources();initial['pool_routes']="from scope_helpers import config_scoped_to_thread,destructive_profile\n@router.delete('/api/credentials/pool/{provider}/{index}')\ndef remove_credential_pool_entry(provider,index,profile=None):\n    removed=pool.remove_index(index)\n    cleanup(removed.source)\n    return config_scoped_to_thread(destructive_profile(profile),result)\n"
         initial['models']+="class CredentialPoolAdd:\n    provider:str\n    api_key:str\n    label:str|None=None\n"
