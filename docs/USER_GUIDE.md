@@ -142,3 +142,10 @@ Read the result's activated, live, deferred and restart reports separately. Thes
 ### Review a host plugin's enable state
 
 In **Hermes management → Host plugins**, read the profile's plugins, open details and choose **Review plugin enable** or **Review plugin disable**. Review the canonical key, shared dependency environment and saved platform toolset effects before confirming. Disable leaves already loaded handlers running until restart; it is not a stop, credential revocation or uninstall. The app separately reads configuration after the host acknowledgement. Live/activation reports remain distinct. Unknown states and redirected/ambiguous keys stay unavailable. A lost reply is never automatically repeated; inspect the durable receipt and host state before reviewing uncertainty. See [control behavior](MANAGEMENT.md#reviewed-agent-plugin-enable-and-disable).
+
+
+### Remove a host agent-plugin directory
+
+In **Hermes management → Host plugins**, read the selected profile, open details and choose **Review plugin removal**. Review the installed directory identifier, which can differ from the plugin's name/key. Confirming removes that directory and local edits and asks Hermes to clean related configuration and local grants; it can reset the selected memory provider. Bundled and entry-point packages remain unavailable here. Missing profile/directory proof requires refreshing management/inventory or inspecting the host.
+
+The app separately checks reported configuration after acknowledgement. A bundled fallback may appear afterward. Running handlers, separate desktop copies, dependency packages, external credentials and locked files can remain; inventory absence does not prove file erasure or stopped work. Lost replies are uncertain and never automatically repeated. Read configuration from the receipt through a new review. See [removal behavior and concurrency limits](MANAGEMENT.md#reviewed-host-plugin-directory-removal).

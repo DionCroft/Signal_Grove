@@ -83,6 +83,10 @@ EXTRA_SOURCES = {
     'plugin_catalog_loader': 'hermes_cli/plugin_catalog.py',
     'plugin_git': 'hermes_cli/plugins_cmd_git.py',
     'plugin_install': 'hermes_cli/plugins_cmd_install.py',
+    'plugin_remove': 'hermes_cli/plugins_cmd_remove.py',
+    'plugin_oauth': 'hermes_cli/plugin_oauth.py',
+    'plugin_grant_roots': 'hermes_cli/plugin_provider_requests.py',
+
     'plugin_admission': 'hermes_cli/plugins_admission.py',
     'plugin_legacy': 'hermes_cli/left_core_migration.py',
     'pm_client': 'pm/client.py',
@@ -124,8 +128,8 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
-            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc','plugin_inspect','plugin_presence'):
-                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'},'plugin_inspect':{'_RESULT_TTL_SECONDS'},'plugin_presence':{'_TIMEOUT','_MAX_BYTES'}}[source]
+            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc','plugin_inspect','plugin_presence','plugin_remove'):
+                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'},'plugin_inspect':{'_RESULT_TTL_SECONDS'},'plugin_presence':{'_TIMEOUT','_MAX_BYTES'},'plugin_remove':{'_PENDING_DELETE_DIR'}}[source]
                 for target in node.targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'plugin_legacy' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'LEFT_CORE':

@@ -24,7 +24,7 @@ class ManagementTokens(val access:String,val refresh:String,val provider:String,
     }
 }
 data class ManagementIdentity(val userId:String,val displayName:String,val provider:String)
-data class ManagedProfile(val name:String,val displayName:String)
+data class ManagedProfile(val name:String,val displayName:String,val pluginHome:org.hermesmobile.app.data.PluginHome?=null)
 
 /** Dashboard listener and native session credentials are independent of the inference API. */
 class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,localNetworkAllowed:()->Boolean={true}) {
@@ -93,7 +93,8 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     suspend fun profiles(tokens:ManagementTokens):List<ManagedProfile> {
         val j=json("api/profiles",tokens.access);require(j["profiles"] is JsonArray)
         val rows=j.items("profiles");require(rows.size<=500)
-        return rows.map {row ->val name=row.text("name");require(name.isNotBlank() && name.length<=128 && name.none(Char::isISOControl));ManagedProfile(name,row.text("display_name").take(160))}.distinctBy {it.name}
+        val duplicates=rows.groupingBy {it.text("name")}.eachCount().filterValues {it>1}.keys
+        return rows.map {row ->val name=row.text("name");require(name.isNotBlank() && name.length<=128 && name.none(Char::isISOControl));ManagedProfile(name,row.text("display_name").take(160),if(name in duplicates) null else org.hermesmobile.app.data.PluginHome.project(row["path"]))}.distinctBy {it.name}
     }
     suspend fun startMcpOAuth(tokens:ManagementTokens,profile:String,name:String)=json("api/mcp/servers",tokens.access,JsonObject(emptyMap()),profile,tail=listOf(name,"auth"))
     suspend fun mcpOAuthFlow(tokens:ManagementTokens,id:String):JsonObject {require(McpOAuthSnapshot.validId(id));return json("api/mcp/oauth/flows",tokens.access,tail=listOf(id))}

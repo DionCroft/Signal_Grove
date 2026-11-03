@@ -43,6 +43,9 @@ def sources():
         'plugin_admission':'',
         'plugin_legacy':'',
         'pm_client':'',
+        'plugin_remove':'',
+        'plugin_oauth':'',
+        'plugin_grant_roots':'',
         'hub_cli':'',
         'hub_search':'',
         'hub_claw':'',
@@ -72,6 +75,16 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_plugin_removal_target_pending_delete_grants_and_profile_path_require_review(self):
+        initial=sources();initial['plugin_remove']="_PENDING_DELETE_DIR='plugin-pending-delete'\ndef _remove_user_plugin(name):\n    return name\n"
+        initial['plugin_oauth']="def forget_plugin_grants(plugin):\n    return plugin\n"
+        initial['profiles']="def _profile_to_dict(info):\n    return {'path':info.path}\n"
+        initial['gateway_plugin_models']="class PluginsManageResult:\n    cleared_memory_provider:bool|None=None\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['plugin_remove:_PENDING_DELETE_DIR','plugin_remove:_remove_user_plugin','plugin_oauth:forget_plugin_grants','profiles:_profile_to_dict'];tracked['mobile_used_request_fields']+=['gateway_plugin_models:PluginsManageResult.cleared_memory_provider']
+        for source,before,after in [('plugin_remove','plugin-pending-delete','other'),('plugin_remove','return name','return None'),('plugin_oauth','return plugin','return None'),('profiles','info.path','info.name'),('gateway_plugin_models','cleared_memory_provider:bool','cleared_memory_provider:str')]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_plugin_toggle_and_legacy_redirect_table_changes_require_review(self):
         initial=sources();initial['plugin_legacy']="LEFT_CORE:tuple=('observability/langfuse',)\ndef legacy_plugin_alias(name):\n    return name in LEFT_CORE\n"
         initial['gateway_rpc']="def _plugins_toggle(params):\n    return params['key']\n"
