@@ -14,24 +14,29 @@ import org.hermesmobile.app.data.*
 @Composable fun PluginInventoryDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     var catalog by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var review by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedPluginRead?>(null)}
+    var update by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedPluginUpdate?>(null)}
     var removal by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedPluginRemoval?>(null)}
     var toggle by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedPluginToggle?>(null)}
     var details by remember(s.plugins.inventory) {mutableStateOf<ManagedPlugin?>(null)}
     val supported=GatewayCronInventory.supportedProfile(s.profile)
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostPlugins))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("plugins-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            item {Text(s.url);Text(s.profile);Text(label(Words.PluginInventoryBoundary));TextButton({review=vm.preparePluginRead()},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("plugins-read")) {Text(label(Words.PluginRead))};if(!supported) Text(label(Words.PluginProfileUnsupported))}
-            item {TextButton({catalog=true},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("plugin-catalog-open")) {Text(label(Words.PluginCatalog))}}
-            if(s.busy) item {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}
+            item(key=1001) {Text(s.url);Text(s.profile);Text(label(Words.PluginInventoryBoundary));TextButton({review=vm.preparePluginRead()},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("plugins-read")) {Text(label(Words.PluginRead))};if(!supported) Text(label(Words.PluginProfileUnsupported))}
+            item(key=1002) {TextButton({catalog=true},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("plugin-catalog-open")) {Text(label(Words.PluginCatalog))}}
+            if(s.busy) item(key=1003) {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}
             s.plugins.inventory?.let {inventory ->
-                item {Text(label(Words.PluginUserCount)+" "+inventory.userCount);Text(label(Words.PluginBundledCount)+" "+inventory.bundledCount);if(inventory.plugins.isEmpty()) Text(label(Words.EmptyInventory))}
-                itemsIndexed(inventory.plugins,key={_,row->row.key}) {index,row ->Column {Text(row.name,style=MaterialTheme.typography.titleMedium);Text(row.version+" · "+row.source);Text(row.status);TextButton({details=row},modifier=Modifier.testTag("plugin-details-$index")) {Text(label(Words.PluginDetails))}}}
+                item(key=1004) {Text(label(Words.PluginUserCount)+" "+inventory.userCount);Text(label(Words.PluginBundledCount)+" "+inventory.bundledCount);if(inventory.plugins.isEmpty()) Text(label(Words.EmptyInventory))}
+                itemsIndexed(inventory.plugins,key={_,row->"plugin:${row.key}"}) {index,row ->Column {Text(row.name,style=MaterialTheme.typography.titleMedium);Text(row.version+" · "+row.source);Text(row.status);TextButton({details=row},modifier=Modifier.testTag("plugin-details-$index")) {Text(label(Words.PluginDetails))}}}
             }
-            s.plugins.toggleReport?.let {item {PluginActivationView(it,Words.PluginToggleReported)}}
-            s.notice?.let {item {Text(label(it))}}
-            s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
+            s.plugins.toggleReport?.let {item(key=1005) {PluginActivationView(it,Words.PluginToggleReported)}}
+            s.plugins.updateResult?.let {item(key=1006) {PluginUpdateReceipt(it)}}
+            s.plugins.updateDecision?.let {d->item(key=1007) {PluginUpdateDecisionView(vm,s,d) {update=it}}}
+            s.plugins.updateReport?.let {item(key=1008) {PluginActivationView(it,Words.PluginUpdateResult)}}
+            s.notice?.let {item(key=1009) {Text(label(it))}}
+            s.error?.let {item(key=1010) {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(close,Modifier.testTag("plugins-close")) {Text(label(Words.Close))}})
+    update?.let {frozen->PluginUpdateReview(frozen,!s.busy,{update=null}) {update=null;vm.updatePlugin(frozen)}}
     removal?.let {frozen->PluginRemovalReview(frozen,!s.busy,{removal=null}) {removal=null;vm.removePlugin(frozen)}}
     toggle?.let {frozen->PluginToggleReview(frozen,!s.busy,{toggle=null}) {toggle=null;vm.togglePlugin(frozen)}}
     if(catalog) PluginCatalogDialog(vm,s) {vm.cancel();catalog=false}
@@ -43,6 +48,7 @@ import org.hermesmobile.app.data.*
             if(row.updateAvailable!=null) item {Text(label(if(row.updateAvailable) Words.PluginUpdateReported else Words.PluginNoUpdateReported))}
             item {PluginToggleControl(vm,s,row) {toggle=it}}
             item {PluginRemovalControl(vm,s,row) {removal=it}}
+            item {PluginUpdateControl(vm,s,row) {update=it}}
             item {Text(label(Words.PluginServers))};items(row.servers,key={it.name}) {server->Column {Text(server.name+" · "+server.state);Text(server.sentence)}}
             item {Text(label(Words.PluginTools))};items(row.tools) {Text(it)}
         }

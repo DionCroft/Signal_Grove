@@ -83,6 +83,9 @@ EXTRA_SOURCES = {
     'plugin_catalog_loader': 'hermes_cli/plugin_catalog.py',
     'plugin_git': 'hermes_cli/plugins_cmd_git.py',
     'plugin_install': 'hermes_cli/plugins_cmd_install.py',
+    'plugin_update': 'hermes_cli/plugins_cmd_update.py',
+    'plugin_guard': 'tools/plugin_guard.py',
+
     'plugin_remove': 'hermes_cli/plugins_cmd_remove.py',
     'plugin_oauth': 'hermes_cli/plugin_oauth.py',
     'plugin_grant_roots': 'hermes_cli/plugin_provider_requests.py',
@@ -124,12 +127,13 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
         for node in nodes:
             if isinstance(node, ast.ClassDef):
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
+                if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
-            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc','plugin_inspect','plugin_presence','plugin_remove'):
-                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'},'plugin_inspect':{'_RESULT_TTL_SECONDS'},'plugin_presence':{'_TIMEOUT','_MAX_BYTES'},'plugin_remove':{'_PENDING_DELETE_DIR'}}[source]
+            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc','plugin_inspect','plugin_presence','plugin_remove','plugin_catalog_gate'):
+                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'},'plugin_inspect':{'_RESULT_TTL_SECONDS'},'plugin_presence':{'_TIMEOUT','_MAX_BYTES'},'plugin_remove':{'_PENDING_DELETE_DIR'},'plugin_catalog_gate':{'_SURFACE_LABELS'}}[source]
                 for target in node.targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'plugin_legacy' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'LEFT_CORE':
@@ -154,6 +158,18 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     visit(tree.body)
     return handlers, fields
 
+class SourceReadError(ValueError):
+    def __init__(self, module: str, status: int | None):
+        self.module, self.status = module, status
+        super().__init__('Pinned upstream module unavailable')
+
+
+class GitHubReadError(ValueError):
+    def __init__(self, status: int | None):
+        self.status = status
+        super().__init__('GitHub API unavailable; inspect the HTTP status and provider limits')
+
+
 def github(path: str, selector: str | None = None) -> dict:
     # Use the supported API and the owner's existing gh authentication/rate budget.
     # Never scrape raw pages, collect a new token or print credentials.
@@ -162,7 +178,8 @@ def github(path: str, selector: str | None = None) -> dict:
         argv += ['--jq', selector]
     response = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
     if response.returncode:
-        raise ValueError('GitHub API unavailable or rate limited; retry only after the provider permits it')
+        status = re.search(r'HTTP (\d{3})', response.stderr.decode('utf-8', errors='replace'))
+        raise GitHubReadError(int(status.group(1)) if status else None)
     if len(response.stdout) > 3_000_000:
         raise ValueError('Upstream response exceeds the audit limit')
     return json.loads(response.stdout)
@@ -248,14 +265,49 @@ def extract(source: dict[str, str]) -> dict:
             'static_features': flags, 'job_constraints': constraints, 'job_update_fields': update_fields}
 
 
+def github_source(path: str, sha: str) -> str:
+    """One pinned file; on a Contents 5xx, verify the official raw representation by Git blob ID."""
+    endpoint = f'repos/{REPO}/contents/{path}?ref={sha}'
+    try:
+        payload = github(endpoint)
+    except GitHubReadError as exc:
+        if exc.status not in (500, 502, 503, 504):
+            raise  # Never retry permissions, missing files or provider rate limits.
+        parent = path.rsplit('/', 1)[0]
+        listing = github(f'repos/{REPO}/contents/{parent}?ref={sha}')
+        if not isinstance(listing, list):
+            raise ValueError('Unsupported upstream directory response')
+        matches = [row for row in listing if isinstance(row, dict) and row.get('path') == path and row.get('type') == 'file']
+        if len(matches) != 1 or not re.fullmatch(r'[a-f0-9]{40}', str(matches[0].get('sha', ''))):
+            raise ValueError('Upstream file identity unavailable')
+        response = subprocess.run(['gh', 'api', endpoint, '-H', 'Accept: application/vnd.github.raw+json'],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+        if response.returncode or len(response.stdout) > 2_000_000:
+            raise ValueError('Upstream raw file unavailable or oversized')
+        data = response.stdout
+        blob = hashlib.sha1(b'blob '+str(len(data)).encode('ascii')+b'\0'+data).hexdigest()
+        if blob != matches[0]['sha']:
+            raise ValueError('Upstream raw file identity mismatch')
+    else:
+        if not isinstance(payload, dict) or payload.get('encoding') != 'base64' or payload.get('size', 2_000_001) > 2_000_000:
+            raise ValueError('Unsupported upstream content response')
+        data = base64.b64decode(payload['content'])
+        if len(data) > 2_000_000:
+            raise ValueError('Upstream file oversized')
+    try:
+        return data.decode('utf-8')
+    except UnicodeDecodeError as exc:
+        raise ValueError('Upstream file is not UTF-8') from exc
+
+
 def snapshot(ref: str) -> dict:
     resolved, sha = resolve(ref)
     def download(item):
         name, path = item
-        payload = github(f'repos/{REPO}/contents/{path}?ref={sha}')
-        if payload.get('encoding') != 'base64' or payload.get('size', 2_000_001) > 2_000_000:
-            raise ValueError('Unsupported upstream content response')
-        return name, base64.b64decode(payload['content']).decode('utf-8')
+        try:
+            return name, github_source(path, sha)
+        except (ValueError, KeyError, OSError, subprocess.TimeoutExpired) as exc:
+            raise SourceReadError(name, getattr(exc, 'status', None)) from exc
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         sources = dict(pool.map(download, (SOURCES | EXTRA_SOURCES).items()))
     return {'requested_ref': ref, 'resolved_ref': resolved, 'commit': sha, 'contract': extract(sources)}
@@ -306,7 +358,8 @@ def main() -> int:
             print(text, end='')
         return 2 if result.get('mobile_review_required') else 0
     except (ValueError, KeyError, SyntaxError, OSError, subprocess.TimeoutExpired) as exc:
-        print(f'Contract check incomplete: {type(exc).__name__}. Inspect upstream/network manually.', file=sys.stderr)
+        context = f' Source module {exc.module}'+(f', HTTP {exc.status}' if exc.status is not None else '')+'.' if isinstance(exc, SourceReadError) else ''
+        print(f'Contract check incomplete: {type(exc).__name__}.{context} Inspect upstream/network manually.', file=sys.stderr)
         return 3
 
 if __name__ == '__main__':

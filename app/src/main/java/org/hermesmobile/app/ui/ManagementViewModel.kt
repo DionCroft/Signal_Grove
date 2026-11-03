@@ -11,11 +11,13 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null,val toggleReport:PluginInstallReport?=null)
+data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null,val toggleReport:PluginInstallReport?=null,val updateDecision:PluginUpdateDecision?=null,val updateReport:PluginInstallReport?=null,val updateResult:JsonObject?=null)
 
 data class ReviewedPluginSource(val target:ManagementTarget,val request:PluginSourceRead,val generation:Long)
 
 data class ReviewedPluginInstall(val target:ManagementTarget,val request:PluginInstallRequest,val generation:Long)
+
+data class ReviewedPluginUpdate(val target:ManagementTarget,val request:PluginUpdateRequest,val generation:Long)
 
 data class ReviewedPluginRemoval(val target:ManagementTarget,val request:PluginRemovalRequest,val generation:Long)
 
@@ -55,6 +57,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val pluginUpdates=PluginUpdateRepository(app.database.dao(),app.managementReady)
     private val pluginRemovals=PluginRemovalRepository(app.database.dao(),app.managementReady)
     private val pluginToggles=PluginToggleRepository(app.database.dao(),app.managementReady)
     private val pluginInstalls=PluginInstallRepository(app.database.dao(),app.managementReady)
@@ -74,6 +77,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is PluginUpdateChanged->Words.ManagementReviewChanged
+        is PluginUpdateUncertain->Words.ManagementOutcomePending
+        is PluginUpdateReadbackPending->Words.ManagementReadbackPending
         is PluginRemovalChanged->Words.ManagementReviewChanged
         is PluginRemovalUncertain->Words.ManagementOutcomePending
         is PluginRemovalReadbackPending->Words.ManagementReadbackPending
@@ -134,7 +140,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
@@ -155,7 +161,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -194,6 +200,24 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             val profiles=api.profiles(current);val profile=profiles.singleOrNull {it.name==review.target.profile} ?: error("Refresh the management profile.")
             val result=api.gateway(current).use {GatewayPluginInventory.parse(it.plugins(review.target.profile),review.target.profile,profile.pluginHome)}
             if(id==generation) state.value=state.value.copy(profiles=profiles,plugins=PluginInventoryState(result))
+        }
+    }
+    fun preparePluginUpdate(row:ManagedPlugin,decision:PluginUpdateDecision?=null):ReviewedPluginUpdate? {
+        val saved=state.value;val inventory=saved.plugins.inventory ?: return null
+        val currentTarget=target() ?: return null
+        if(decision!=null && (!decision.eligible() || decision!==saved.plugins.updateDecision || decision.owner!=currentTarget)) {state.value=saved.copy(error=Words.PluginUpdateDecisionUnavailable);return null}
+        if(saved.busy || receipts.value.any {it.state in setOf("sending","unknown")} || inventory.plugins.none {it===row} || PluginRemovalRequest.collision(row,inventory)) return null
+        val request=runCatching {PluginUpdateRequest(row,decision)}.getOrNull() ?: return null
+        return ReviewedPluginUpdate(currentTarget,request,generation)
+    }
+    fun updatePlugin(review:ReviewedPluginUpdate) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        if(review.request.decision?.eligible()==false) {state.value=state.value.copy(error=Words.PluginUpdateDecisionUnavailable);return}
+        state.value=state.value.copy(plugins=PluginInventoryState())
+        operation {id ->
+            val current=tokens ?: error("Sign in first.")
+            val result=pluginUpdates.execute(review.target,review.request,client(state.value),current)
+            if(id==generation) state.value=state.value.copy(plugins=PluginInventoryState(inventory=result.inventory,updateDecision=result.decision,updateReport=result.report,updateResult=Json.parseToJsonElement(result.receipt.resultSummary).jsonObject),notice=when(result.kind) {PluginUpdateKind.Capabilities->Words.PluginUpdateCapabilities;PluginUpdateKind.Scan->Words.PluginUpdateScan;else->if(review.request.expected.catalog.isBlank()) Words.PluginUpdateGitReported else Words.PluginUpdateResult})
         }
     }
     fun preparePluginRemoval(row:ManagedPlugin):ReviewedPluginRemoval? {
@@ -240,7 +264,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id==generation) state.value=state.value.copy(plugins=state.value.plugins.copy(inventory=null,lookup=null,inspection=null,installReport=result.report),notice=if(result.sourceChanged) Words.PluginInstallSourceChanged else if(result.report==null) Words.PluginInstallDetailsUnavailable else Words.PluginInstallReported)
         }
     }
-    fun clearPluginSourceResults() {state.value=state.value.copy(plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null))}
+    fun clearPluginSourceResults() {state.value=state.value.copy(plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null))}
     fun preparePluginSource(request:PluginSourceRead):ReviewedPluginSource?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedPluginSource(it,request,generation)}
     fun readPluginSource(review:ReviewedPluginSource) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}

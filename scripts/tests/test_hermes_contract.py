@@ -46,6 +46,8 @@ def sources():
         'plugin_remove':'',
         'plugin_oauth':'',
         'plugin_grant_roots':'',
+        'plugin_update':'',
+        'plugin_guard':'',
         'hub_cli':'',
         'hub_search':'',
         'hub_claw':'',
@@ -75,6 +77,17 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_plugin_update_grants_scan_policy_surfaces_and_new_revision_guards_require_review(self):
+        initial=sources();initial['plugin_update']="def dashboard_update_user_plugin(name,accept_capabilities=False,force=False):\n    return name\n"
+        initial['plugin_guard']="def should_allow_plugin_install(verdict,force=False):\n    return verdict!='dangerous'\n"
+        initial['plugin_core']="def _scan_plugin_tree(reviewed_pin=False):\n    return reviewed_pin\n"
+        initial['plugin_catalog_gate']="_SURFACE_LABELS={'tools':'tools'}\n"
+        initial['gateway_plugin_models']="class PluginsManageParams:\n    accept_capabilities:bool|None=None\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['plugin_update:dashboard_update_user_plugin','plugin_guard:should_allow_plugin_install','plugin_core:_scan_plugin_tree','plugin_catalog_gate:_SURFACE_LABELS','gateway_plugin_models:schema:PluginsManageParams']
+        for source,before,after in [('plugin_update','accept_capabilities=False','accept_capabilities=True'),('plugin_guard',"verdict!='dangerous'",'True'),('plugin_core','return reviewed_pin','return True'),('plugin_catalog_gate',"'tools':'tools'","'oauth':'oauth'"),('gateway_plugin_models','accept_capabilities:bool|None=None','accept_capabilities:bool|None=None\n    expected_revision:str|None=None')]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_plugin_removal_target_pending_delete_grants_and_profile_path_require_review(self):
         initial=sources();initial['plugin_remove']="_PENDING_DELETE_DIR='plugin-pending-delete'\ndef _remove_user_plugin(name):\n    return name\n"
         initial['plugin_oauth']="def forget_plugin_grants(plugin):\n    return plugin\n"
