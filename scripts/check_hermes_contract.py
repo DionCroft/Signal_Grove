@@ -84,6 +84,10 @@ EXTRA_SOURCES = {
     'plugin_git': 'hermes_cli/plugins_cmd_git.py',
     'plugin_install': 'hermes_cli/plugins_cmd_install.py',
     'plugin_update': 'hermes_cli/plugins_cmd_update.py',
+    'plugin_settings': 'hermes_cli/plugins_settings.py',
+    'plugin_state': 'hermes_cli/plugins_state.py',
+    'mcp_discovery': 'tools/mcp_tool_discovery.py',
+
     'plugin_guard': 'tools/plugin_guard.py',
 
     'plugin_remove': 'hermes_cli/plugins_cmd_remove.py',
@@ -126,7 +130,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
-                if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
+                if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
@@ -135,6 +139,11 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc','plugin_inspect','plugin_presence','plugin_remove','plugin_catalog_gate'):
                 selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'},'plugin_inspect':{'_RESULT_TTL_SECONDS'},'plugin_presence':{'_TIMEOUT','_MAX_BYTES'},'plugin_remove':{'_PENDING_DELETE_DIR'},'plugin_catalog_gate':{'_SURFACE_LABELS'}}[source]
                 for target in node.targets:
+                    if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('plugin_settings','plugin_state') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                selected={'plugin_settings':{'_FIELD_TYPES','_VALUE_TYPES','_ENV_NAME_CLEAN_RE'},'plugin_state':{'_PLUGIN_SETTING_SEGMENT_RE','_PLUGIN_SETTING_RESERVED_ROOTS'}}[source]
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'plugin_legacy' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'LEFT_CORE':
                 handlers[f'{source}:{node.target.id}'] = fingerprint(node)

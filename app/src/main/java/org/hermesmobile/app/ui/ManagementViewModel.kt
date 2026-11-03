@@ -11,11 +11,14 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null,val toggleReport:PluginInstallReport?=null,val updateDecision:PluginUpdateDecision?=null,val updateReport:PluginInstallReport?=null,val updateResult:JsonObject?=null)
+data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null,val toggleReport:PluginInstallReport?=null,val updateDecision:PluginUpdateDecision?=null,val updateReport:PluginInstallReport?=null,val updateResult:JsonObject?=null,val settings:PluginSettingsSnapshot?=null)
 
 data class ReviewedPluginSource(val target:ManagementTarget,val request:PluginSourceRead,val generation:Long)
 
 data class ReviewedPluginInstall(val target:ManagementTarget,val request:PluginInstallRequest,val generation:Long)
+
+data class ReviewedPluginSettingsRead(val target:ManagementTarget,val row:ManagedPlugin,val generation:Long)
+data class ReviewedPluginSettings(val target:ManagementTarget,val request:PluginSettingsRequest,val generation:Long)
 
 data class ReviewedPluginUpdate(val target:ManagementTarget,val request:PluginUpdateRequest,val generation:Long)
 
@@ -57,6 +60,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val pluginSettings=PluginSettingsRepository(app.database.dao(),app.managementReady)
     private val pluginUpdates=PluginUpdateRepository(app.database.dao(),app.managementReady)
     private val pluginRemovals=PluginRemovalRepository(app.database.dao(),app.managementReady)
     private val pluginToggles=PluginToggleRepository(app.database.dao(),app.managementReady)
@@ -77,6 +81,10 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is PluginSettingsChanged->Words.ManagementReviewChanged
+        is PluginSettingsUnavailable->Words.PluginSettingsUnavailable
+        is PluginSettingsUncertain->Words.ManagementOutcomePending
+        is PluginSettingsReadbackPending->Words.ManagementReadbackPending
         is PluginUpdateChanged->Words.ManagementReviewChanged
         is PluginUpdateUncertain->Words.ManagementOutcomePending
         is PluginUpdateReadbackPending->Words.ManagementReadbackPending
@@ -161,7 +169,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -201,6 +209,26 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             val result=api.gateway(current).use {GatewayPluginInventory.parse(it.plugins(review.target.profile),review.target.profile,profile.pluginHome)}
             if(id==generation) state.value=state.value.copy(profiles=profiles,plugins=PluginInventoryState(result))
         }
+    }
+    fun preparePluginSettingsRead(row:ManagedPlugin):ReviewedPluginSettingsRead? {
+        val s=state.value;val inventory=s.plugins.inventory ?: return null
+        if(s.busy || inventory.plugins.none {it===row} || !PluginToggleRequest.supported(row) || PluginToggleRequest.collision(row,inventory)) return null
+        return target()?.let {ReviewedPluginSettingsRead(it,row,generation)}
+    }
+    fun loadPluginSettings(review:ReviewedPluginSettingsRead) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        state.value=state.value.copy(plugins=state.value.plugins.copy(settings=null))
+        operation {id->val result=pluginSettings.read(review.target,review.row,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(plugins=state.value.plugins.copy(settings=result))}
+    }
+    fun clearPluginSettings() {state.value=state.value.copy(plugins=state.value.plugins.copy(settings=null))}
+    fun preparePluginSetting(snapshot:PluginSettingsSnapshot,field:PluginSettingField,value:JsonElement):ReviewedPluginSettings? {
+        if(state.value.busy || state.value.plugins.settings!==snapshot || snapshot.owner!=target() || receipts.value.any {it.state in setOf("sending","unknown")}) return null
+        return runCatching {ReviewedPluginSettings(snapshot.owner,PluginSettingsRequest(snapshot,field,value),generation)}.getOrNull()
+    }
+    fun savePluginSetting(review:ReviewedPluginSettings) {
+        if(review.generation!=generation || target()!=review.target || state.value.plugins.settings!==review.request.expected) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        state.value=state.value.copy(plugins=state.value.plugins.copy(settings=null))
+        operation {id->val result=pluginSettings.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(plugins=state.value.plugins.copy(settings=result.snapshot),notice=Words.PluginSettingsSaved)}
     }
     fun preparePluginUpdate(row:ManagedPlugin,decision:PluginUpdateDecision?=null):ReviewedPluginUpdate? {
         val saved=state.value;val inventory=saved.plugins.inventory ?: return null

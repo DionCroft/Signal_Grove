@@ -156,3 +156,10 @@ The app separately checks reported configuration after acknowledgement. A bundle
 In **Hermes management → Host plugins**, read the selected profile, open plugin details and choose **Review plugin update**. Confirm after reviewing the directory, catalog pin and host effects. If Hermes asks for capability consent or reports a caution scan, open the separate decision review, reveal any hidden declared details and explicitly approve one next attempt. The server can resolve a changed source between review and execution; the review explains this limit. Dangerous findings and unsupported targets stay unavailable.
 
 Read acknowledgement, observed metadata and activation reports separately. Git update responses do not identify a commit; catalog metadata checks do not certify file contents or code safety. A refusal can follow host cloning or backup work. Cancelling the phone wait does not stop the host, and lost replies are never automatically repeated. Use the receipt's separately reviewed configuration read before assessing uncertainty. See [update policy and limits](MANAGEMENT.md#reviewed-host-plugin-updates).
+
+
+### Read and edit a plugin setting
+
+In **Hermes management → Host plugins**, read the selected profile, open details and choose **Read plugin settings**. Confirm the separate private-data read. Details stay hidden until shown. Declared secret fields show presence only and require credential setup on the host.
+
+Choose **Edit setting**, enter the declared type, then **Review setting change**. Show the new value and approve one save before confirming. Cancelling a review discards that approval. The app checks fresh metadata and reported values, but the host has no revision guard against concurrent edits. Saving may notify plugins and reconnect affected MCP processes. Acknowledgement, reported configuration and runtime adoption remain separate. Dotted settings can be saved, but the current host listing cannot reliably verify them; inspect the host when needed. Closing clears the private settings view. See [contract and privacy limits](MANAGEMENT.md#reviewed-plugin-settings).

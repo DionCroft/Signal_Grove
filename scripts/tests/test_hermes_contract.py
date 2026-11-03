@@ -47,6 +47,10 @@ def sources():
         'plugin_oauth':'',
         'plugin_grant_roots':'',
         'plugin_update':'',
+        'plugin_settings':'',
+        'plugin_state':'',
+        'mcp_discovery':'',
+
         'plugin_guard':'',
         'hub_cli':'',
         'hub_search':'',
@@ -77,6 +81,15 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_plugin_settings_types_namespaced_writer_and_restart_effects_are_review_gated(self):
+        initial=sources();initial['plugin_settings']="_FIELD_TYPES:dict={'secret':'secret'}\n_VALUE_TYPES:dict={'number':(int,float)}\ndef plugin_settings_fields(current,key):\n    return current.get(key)\n"
+        initial['plugin_state']="_PLUGIN_SETTING_RESERVED_ROOTS=frozenset({'security'})\ndef save_plugin_setting(plugin_id,segments,value):\n    return plugin_id,segments,value\n"
+        initial['gateway_rpc']="def _plugins_settings(rid,params):\n    return params['key']\n";initial['mcp_discovery']="def restart_mcp_servers_with_new_inputs(names):\n    return names\n"
+        initial['gateway_plugin_models']="class PluginSettingFieldType:\n    secret='secret'\nclass PluginSettingField:\n    value:object=None\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['plugin_settings:_FIELD_TYPES','plugin_settings:_VALUE_TYPES','plugin_settings:plugin_settings_fields','plugin_state:_PLUGIN_SETTING_RESERVED_ROOTS','plugin_state:save_plugin_setting','gateway_rpc:_plugins_settings','mcp_discovery:restart_mcp_servers_with_new_inputs','gateway_plugin_models:enum:PluginSettingFieldType'];tracked['mobile_used_request_fields'].append('gateway_plugin_models:PluginSettingField.value')
+        for module,before,after in [('plugin_settings',"'secret':'secret'","'secret':'string'"),('plugin_settings','(int,float)','(int,float,bool)'),('plugin_settings','current.get(key)','current.get(key,default)'),('plugin_state',"{'security'}",'set()'),('plugin_state','return plugin_id,segments,value','return value'),('gateway_rpc',"params['key']","params['name']"),('mcp_discovery','return names','return []'),('gateway_plugin_models',"secret='secret'","secret='string'"),('gateway_plugin_models','value:object','value:str')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+
     def test_plugin_update_grants_scan_policy_surfaces_and_new_revision_guards_require_review(self):
         initial=sources();initial['plugin_update']="def dashboard_update_user_plugin(name,accept_capabilities=False,force=False):\n    return name\n"
         initial['plugin_guard']="def should_allow_plugin_install(verdict,force=False):\n    return verdict!='dangerous'\n"
