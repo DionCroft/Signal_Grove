@@ -10,6 +10,15 @@ device_ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(device_c
 
 
 class DeviceSdkSetupTest(unittest.TestCase):
+    def test_owned_ci_data_partition_replaces_all_template_defaults_without_touching_other_properties(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);owned=root/'HermesCI26.avd';owned.mkdir();config=owned/'config.ini'
+            config.write_text('disk.dataPartition.size=12G\nhw.ramSize=3072\n disk.dataPartition.size =12288M\n',encoding='utf-8')
+            device_ci.configure_owned_avd(root,'HermesCI26');text=config.read_text(encoding='utf-8')
+            self.assertEqual(1,text.count('disk.dataPartition.size'));self.assertIn('disk.dataPartition.size=2048M',text);self.assertIn('hw.ramSize=3072',text)
+            with self.assertRaises(ValueError):device_ci.configure_owned_avd(root,'developer-personal-avd')
+            self.assertFalse((root/'developer-personal-avd.avd').exists())
+
     def call(self,outputs):
         calls=[]
         def run(argv,**kwargs):

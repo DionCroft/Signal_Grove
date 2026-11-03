@@ -39,6 +39,19 @@ def install_sdk_packages(argv: list[str], env: dict, log_path: Path, timeout: in
         time.sleep(min(2**attempt,remaining))
 
 
+def configure_owned_avd(avd_home: Path, name: str) -> None:
+    """Bound fresh CI userdata instead of inheriting a device template's 12 GiB default."""
+    if name not in ('HermesCI26','HermesCI37'):
+        raise ValueError("Only this helper's owned CI AVDs can be configured.")
+    root=avd_home.resolve(strict=True)
+    config=(root/(name+'.avd')/'config.ini').resolve(strict=True)
+    if config.parent.parent!=root or config.name!='config.ini':
+        raise ValueError('Owned AVD configuration escaped its isolated directory.')
+    lines=config.read_text(encoding='utf-8').splitlines()
+    lines=[line for line in lines if line.split('=',1)[0].strip()!='disk.dataPartition.size']
+    config.write_text('\n'.join(lines+['disk.dataPartition.size=2048M'])+'\n',encoding='utf-8')
+
+
 def main() -> int:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--api',type=int,choices=(26,37),required=True)
@@ -63,6 +76,7 @@ def main() -> int:
     print('System image ready; creating the owned emulator.',flush=True)
     name=f'HermesCI{args.api}'
     subprocess.run(['avdmanager','create','avd','--force','--name',name,'--package',image,'--device','pixel_2'],input='no\n',env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=90,check=True)
+    configure_owned_avd(Path(env['ANDROID_AVD_HOME']),name)
     app=args.artifacts/'outputs/apk/debug/app-debug.apk'
     tests=args.artifacts/'outputs/apk/androidTest/debug/app-debug-androidTest.apk'
     if not app.is_file() or not tests.is_file():
