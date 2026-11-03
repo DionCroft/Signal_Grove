@@ -8,9 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 
 @Composable fun HostModelsDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    var review by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<ReviewedHostMainModel?>(null)}
+    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
     var read by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedHostModelsRead?>(null)}
     var provider by remember(s.hostModels) {mutableStateOf<HostModelProvider?>(null)}
     var filter by remember(s.apiScope,s.url,s.profile) {mutableStateOf("")}
@@ -19,6 +22,10 @@ import org.hermesmobile.app.data.*
         item {Text(s.url);Text(s.profile);Text(label(Words.HostModelsBoundary));TextButton({read=vm.prepareHostModelsRead()},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("host-models-read")) {Text(label(Words.HostModelsRead))};if(!supported) Text(label(Words.PluginProfileUnsupported))}
         if(s.busy) item {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}
         s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
+        s.notice?.let {item {Text(label(it))}}
+        s.hostMainModel.notice?.let {item {Text(label(Words.HostMainHostNotice));Text(it,Modifier.testTag("host-main-host-notice"))}}
+        s.hostMainModel.warning?.let {warning->item {Text(label(Words.HostMainWarningRequired));TextButton({review=vm.prepareHostMainModel(warning.request.provider,warning.request.model,warning)},enabled=!s.busy && !pending,modifier=Modifier.testTag("host-main-warning-review")) {Text(label(Words.HostMainWarningTitle))}}}
+        if(pending) item {Text(label(Words.ManagementOutcomePending))}
         s.hostModels?.let {inventory->
             item {Text(label(Words.HostModelsMain),style=MaterialTheme.typography.titleMedium);ModelRoute(inventory.main);Text(label(Words.HostModelsSnapshot));TextButton({read=vm.prepareHostModelsRead(true)},enabled=!s.busy,modifier=Modifier.testTag("host-models-refresh")) {Text(label(Words.HostModelsRefresh))};OutlinedTextField(filter,{if(it.length<=256) filter=it},Modifier.fillMaxWidth().testTag("host-models-filter"),label={Text(label(Words.HostModelsFilter))},singleLine=true)}
             item {Text(label(Words.HostModelsAuxiliary),style=MaterialTheme.typography.titleMedium)}
@@ -42,8 +49,13 @@ import org.hermesmobile.app.data.*
     read?.let {frozen->AlertDialog(onDismissRequest={read=null},title={Text(label(if(frozen.refresh) Words.HostModelsRefresh else Words.HostModelsRead))},text={LazyColumn(Modifier.heightIn(max=480.dp).testTag("host-models-read-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {item {Text(frozen.target.url);Text(frozen.target.profile);Text(frozen.target.actor);Text(label(Words.HostModelsReadEffect));if(frozen.refresh) Text(label(Words.HostModelsRefreshEffect))}}},confirmButton={TextButton({read=null;vm.loadHostModels(frozen)},enabled=!s.busy,modifier=Modifier.testTag("host-models-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({read=null},Modifier.testTag("host-models-read-cancel")) {Text(label(Words.Cancel))}})}
     provider?.let {row->var query by remember(row) {mutableStateOf("")};AlertDialog(onDismissRequest={provider=null},title={Text(row.name.ifBlank {row.slug})},text={LazyColumn(Modifier.heightIn(max=480.dp).testTag("host-models-catalog"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         item {Text(row.slug);if(row.source.isNotBlank()) Text(row.source);Text(label(Words.HostModelsSnapshot));OutlinedTextField(query,{if(it.length<=256) query=it},Modifier.fillMaxWidth().testTag("host-models-catalog-filter"),label={Text(label(Words.HostModelsFilter))},singleLine=true)}
-        items(row.models.filter {query.isBlank() || it.contains(query,true)},key={it}) {Text(it)}
+        items(row.models.filter {query.isBlank() || it.contains(query,true)},key={it}) {model->Column {
+            Text(model)
+            TextButton({review=vm.prepareHostMainModel(row.slug,model);if(review!=null) provider=null},enabled=!s.busy && !pending && HostMainModelRequest.eligible(row,model),modifier=Modifier.testTag("host-main-pick-${row.slug}-$model")) {Text(label(Words.HostMainSet))}
+            if(model in row.unavailableModels || row.entitlementPending==true) Text(label(Words.ModelUnavailable)) else if(row.authenticated!=true) Text(label(Words.HostMainProviderUnready)) else if(!HostMainModelRequest.eligible(row,model)) Text(label(Words.ManagementInvalid))
+        }}
         if(row.models.isEmpty()) item {Text(label(Words.EmptyInventory))}
     }},confirmButton={TextButton({provider=null},Modifier.testTag("host-models-catalog-close")) {Text(label(Words.Close))}})}
+    review?.let {frozen->HostMainModelReview(frozen,!s.busy,{review=null;if(frozen.request.warning!=null) vm.dismissHostMainModelWarning()}) {review=null;vm.changeHostMainModel(frozen)}}
 }
 @Composable private fun ModelRoute(route:HostModelRoute) {Text(route.provider.ifBlank {label(Words.HostModelsUnspecified)});Text(route.model.ifBlank {label(Words.HostModelsUnspecified)})}

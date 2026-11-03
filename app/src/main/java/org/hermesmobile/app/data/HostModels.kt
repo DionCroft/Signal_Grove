@@ -7,8 +7,9 @@ class HostModelsUnavailable:Exception()
 class HostModelsChanged:Exception()
 data class HostModelRoute(val provider:String,val model:String)
 data class HostAuxModel(val task:String,val route:HostModelRoute,val endpointPresent:Boolean,val localEndpoint:Boolean?,val reasoning:String?,val label:String,val hint:String,val plugin:String,val inheritFrom:String?,val effective:HostModelRoute?,val effectiveEndpointPresent:Boolean?)
-class HostModelProvider(val slug:String,val name:String,val source:String,val authenticated:Boolean?,val current:Boolean?,val userDefined:Boolean?,val totalModels:Int?,val warningPresent:Boolean,models:List<String>) {
+class HostModelProvider(val slug:String,val name:String,val source:String,val authenticated:Boolean?,val current:Boolean?,val userDefined:Boolean?,val totalModels:Int?,val warningPresent:Boolean,models:List<String>,unavailable:Set<String> = emptySet(),val entitlementPending:Boolean?=null) {
     val models:List<String> = Collections.unmodifiableList(models.toList())
+    val unavailableModels:Set<String> = Collections.unmodifiableSet(unavailable.toSet())
     override fun toString()="HostModelProvider(redacted)"
 }
 class HostModelInventory(val owner:ManagementTarget,val homeId:String,val main:HostModelRoute,auxiliary:List<HostAuxModel>,providers:List<HostModelProvider>,val refreshed:Boolean) {
@@ -36,9 +37,11 @@ class HostModelInventory(val owner:ManagementTarget,val homeId:String,val main:H
             val providers=array(catalog,"providers",500).map {v->val j=v.jsonObject
                 val models=array(j,"models",20000).map {m->require(m is JsonPrimitive && m.isString && m.content.isNotBlank() && m.content.length<=1024 && m.content.none(Char::isISOControl));m.content}
                 total+=models.size;require(total<=40000 && models.distinct().size==models.size)
+                val blocked=j["unavailable_models"];require(blocked==null || blocked is JsonNull || blocked is JsonArray && blocked.size<=20000)
+                val unavailable=(blocked as? JsonArray).orEmpty().map {m->require(m is JsonPrimitive && m.isString && m.content.isNotBlank() && m.content.length<=1024 && m.content.none(Char::isISOControl));m.content};require(unavailable.distinct().size==unavailable.size)
                 val count=j["total_models"];require(count==null || count is JsonNull || count is JsonPrimitive && !count.isString && count.intOrNull?.let {it>=models.size && it<=1000000}==true)
                 val warning=j["warning"];require(warning==null || warning is JsonNull || warning is JsonPrimitive && warning.isString)
-                HostModelProvider(text(j,"slug",256,true),text(j,"name",512),text(j,"source",128),flag(j,"authenticated"),flag(j,"is_current"),flag(j,"is_user_defined"),(count as? JsonPrimitive)?.intOrNull,(warning as? JsonPrimitive)?.contentOrNull?.isNotBlank()==true,models)
+                HostModelProvider(text(j,"slug",256,true),text(j,"name",512),text(j,"source",128),flag(j,"authenticated"),flag(j,"is_current"),flag(j,"is_user_defined"),(count as? JsonPrimitive)?.intOrNull,(warning as? JsonPrimitive)?.contentOrNull?.isNotBlank()==true,models,unavailable.toSet(),flag(j,"free_tier_pending"))
             };require(providers.map {it.slug}.distinct().size==providers.size)
             HostModelInventory(owner,home?.identity() ?: error("Profile home unavailable"),main,tasks,providers,refreshed)
         } catch(e:Exception) {throw HostModelsUnavailable()}

@@ -99,6 +99,12 @@ EXTRA_SOURCES = {
     'model_inventory': 'hermes_cli/inventory.py',
     'model_catalog': 'hermes_cli/model_switch_providers.py',
     'model_auxiliary': 'agent/auxiliary_task_config.py',
+    'model_switch': 'hermes_cli/model_switch.py',
+    'model_guards': 'hermes_cli/model_selection_guards.py',
+    'model_cost': 'hermes_cli/model_cost_guard.py',
+    'model_data': 'hermes_cli/model_data_policy_guard.py',
+    'model_route_identity': 'hermes_cli/route_identity.py',
+
 
 
     'plugin_state': 'hermes_cli/plugins_state.py',
@@ -148,7 +154,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
-                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
@@ -170,7 +176,12 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             elif not prefix and source in ('model_config','model_auxiliary') and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
-                    if isinstance(target,ast.Name) and target.id in {'model_config':{'_AUX_TASK_SLOTS'},'model_auxiliary':{'_AUX_ROUTE_KEYS','_SESSION_AUXILIARY'}}[source]:handlers[f'{source}:{target.id}']=fingerprint(node)
+                    if isinstance(target,ast.Name) and target.id in {'model_config':{'_AUX_TASK_SLOTS','_BARE_CUSTOM_SELECTORS','_UNSET'},'model_auxiliary':{'_AUX_ROUTE_KEYS','_SESSION_AUXILIARY'}}[source]:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('model_guards','model_cost','model_data','model_switch') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                selected={'model_guards':{'_GUARDS'},'model_cost':{'INPUT_COST_WARNING_THRESHOLD','OUTPUT_COST_WARNING_THRESHOLD','GPT55_PRO_OPENROUTER_ID','GPT55_SUGGESTION'},'model_data':{'_RULES','_META_CONTRIBUTOR_MESSAGE'},'model_switch':{'_MISSING'}}[source]
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'plugin_legacy' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'LEFT_CORE':
                 handlers[f'{source}:{node.target.id}'] = fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':

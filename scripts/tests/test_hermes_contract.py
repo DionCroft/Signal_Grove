@@ -57,6 +57,12 @@ def sources():
         'model_inventory':'',
         'model_catalog':'',
         'model_auxiliary':'',
+        'model_switch':'',
+        'model_guards':'',
+        'model_cost':'',
+        'model_data':'',
+        'model_route_identity':'',
+
 
 
         'plugin_state':'',
@@ -92,6 +98,20 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_main_model_scope_known_warning_policy_normalized_ack_and_revision_fields_require_review(self):
+        initial=sources();initial['model_routes']="@router.post('/api/model/set')\nasync def set_model_assignment(body,profile=None):\n    if not body.confirm_expensive_model:\n        return warning_before_assignment(body)\n    with _profile_scope(body.profile or profile):\n        return apply_main(body)\n"
+        initial['models']+="class ModelAssignment:\n    scope:str\n    provider:str\n    model:str\n    confirm_expensive_model:bool=False\n    profile:str|None=None\n"
+        initial['model_config']="def _apply_main_assignment_sync(cfg,provider,model):\n    return {'ok':True,'provider':result.target_provider,'model':result.new_model}\n"
+        initial['model_inventory']="def _apply_pricing(rows):\n    rows[0]['unavailable_models']=restricted_models()\n"
+        initial['model_guards']="_GUARDS=(_cost_guard,_data_policy_guard)\ndef combined_selection_warning(model):\n    return all_guards(model)\n"
+        initial['model_cost']="INPUT_COST_WARNING_THRESHOLD=Decimal(20)\n"
+        initial['model_data']="_RULES=((contributor,'Data terms'),)\n"
+        initial['model_switch']="def model_selection_config_updates(result,cfg):\n    return clear_stale_credentials(result,cfg)\n"
+        initial['model_route_identity']="def should_clear_context_pin(before,after):\n    return before!=after\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_management_routes'].append('POST /api/model/set');tracked['mobile_used_handlers']+=['model_routes:set_model_assignment','models:schema:ModelAssignment','model_config:_apply_main_assignment_sync','model_inventory:_apply_pricing','model_guards:_GUARDS','model_guards:combined_selection_warning','model_cost:INPUT_COST_WARNING_THRESHOLD','model_data:_RULES','model_switch:model_selection_config_updates','model_route_identity:should_clear_context_pin'];tracked['mobile_used_request_fields'].append('models:ModelAssignment.confirm_expensive_model')
+        for module,before,after in [('model_routes','/api/model/set','/api/model/other'),('model_routes','body.profile or profile','None'),('model_routes','return warning_before_assignment(body)','apply_main(body); return warning_before_assignment(body)'),('models','confirm_expensive_model:bool=False','confirm_expensive_model:str=\"\"'),('models','scope:str','scope:str\n    expected_revision:str|None=None'),('model_config','result.target_provider','provider'),('model_inventory',"restricted_models()",'[]'),('model_guards','(_cost_guard,_data_policy_guard)','(_cost_guard,)'),('model_guards','all_guards(model)','None'),('model_cost','Decimal(20)','Decimal(200)'),('model_data','Data terms','Different terms'),('model_switch','clear_stale_credentials(result,cfg)','{}'),('model_route_identity','before!=after','False')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+
     def test_model_catalog_and_auxiliary_scope_refresh_inheritance_and_slot_changes_require_review(self):
         initial=sources();initial['model_routes']="@router.get('/api/model/options')\nasync def get_model_options(profile=None,refresh=False):\n    with _config_profile_scope(profile):\n        return build_model_options_payload(refresh=refresh)\n@router.get('/api/model/auxiliary')\ndef get_auxiliary_models(profile=None):\n    with _profile_scope(profile):\n        return inherited_tasks(profile)\n"
         initial['model_config']="_AUX_TASK_SLOTS:tuple=('vision',)\ndef _plugin_aux_tasks():\n    return current_profile_plugins()\n"
