@@ -74,6 +74,7 @@ EXTRA_SOURCES = {
     'hub_install': 'tools/skills_hub_install.py',
     'hub_models': 'tools/skills_hub_models.py',
     'web_common': 'hermes_cli/web_routers/_common.py',
+    'web_deps': 'hermes_cli/web_deps.py',
     'host_actions': 'hermes_cli/web_server_gateway.py',
     'bundled_ops': 'tools/skills_sync_bundled_ops.py',
     'gateway_plugin_models': 'tui_gateway/contracts/tools_mcp_plugins.py',
@@ -95,6 +96,7 @@ EXTRA_SOURCES = {
     'env_config': 'hermes_cli/config.py',
     'env_external': 'hermes_cli/auth_external_process.py',
     'model_routes': 'hermes_cli/web_routers/models.py',
+    'moa_config': 'hermes_cli/moa_config.py',
     'model_config': 'hermes_cli/web_server_config.py',
     'model_inventory': 'hermes_cli/inventory.py',
     'model_catalog': 'hermes_cli/model_switch_providers.py',
@@ -160,7 +162,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
-                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
@@ -175,7 +177,20 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif not prefix and source in ('env_config','env_routes','web_common') and isinstance(node,(ast.Assign,ast.AnnAssign)):
-                selected={'env_config':{'_ENV_VAR_NAME_RE','_ENV_VAR_NAME_DENYLIST','_ENV_VAR_NAME_DENY_PREFIXES'},'env_routes':{'_AUTH_TYPE_ENV_VARS'},'web_common':{'_LEGACY_MASK_RE','REDACTED_CREDENTIAL_WRITE_DETAIL'}}[source]
+                selected={'env_config':{'_ENV_VAR_NAME_RE','_ENV_VAR_NAME_DENYLIST','_ENV_VAR_NAME_DENY_PREFIXES'},'env_routes':{'_AUTH_TYPE_ENV_VARS'},'web_common':{'_LEGACY_MASK_RE','REDACTED_CREDENTIAL_WRITE_DETAIL','_profile_scope','_CONFIG_MUTATION_LOCK'}}[source]
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and isinstance(node,ast.ImportFrom) and source=='web_common':
+                for alias in node.names:
+                    binding=alias.asname or alias.name
+                    if binding in {'late','LateState'}:handlers[f'{source}:import:{binding}']=fingerprint(node)
+            elif not prefix and source in ('web_deps','web_bootstrap') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name) and target.id in {'web_deps':{'WEB_SERVER'},'web_bootstrap':{'_CONFIG_MUTATION_LOCK'}}[source]:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('model_routes','moa_config') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                selected={'model_routes':{'_MOA_PRESET_FIELDS'},'moa_config':{'DEFAULT_MOA_PRESET_NAME','DEFAULT_MOA_REFERENCE_MODELS','DEFAULT_MOA_AGGREGATOR','DEFAULT_MOA_REFERENCE_TIMEOUT','_FLAT_PRESET_KEYS'}}[source]
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)

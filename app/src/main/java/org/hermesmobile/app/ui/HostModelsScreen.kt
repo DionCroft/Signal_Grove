@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 
 @Composable fun HostModelsDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    var moa by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var auxReview by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<ReviewedHostAuxModel?>(null)}
     var auxTask by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<String?>(null)}
     var review by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<ReviewedHostMainModel?>(null)}
@@ -22,6 +23,7 @@ import org.hermesmobile.app.data.*
     val supported=GatewayCronInventory.supportedProfile(s.profile)
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostModels))},text={LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-models-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {Text(s.url);Text(s.profile);Text(label(Words.HostModelsBoundary));TextButton({read=vm.prepareHostModelsRead()},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("host-models-read")) {Text(label(Words.HostModelsRead))};if(!supported) Text(label(Words.PluginProfileUnsupported))}
+        item {TextButton({moa=true},enabled=!s.busy && s.identity!=null && supported,modifier=Modifier.testTag("host-moa-open")) {Text(label(Words.HostMoa))}}
         if(s.busy) item {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}
         s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         s.notice?.let {item {Text(label(it))}}
@@ -67,6 +69,7 @@ import org.hermesmobile.app.data.*
         }}
         if(row.models.isEmpty()) item {Text(label(Words.EmptyInventory))}
     }},confirmButton={TextButton({provider=null},Modifier.testTag("host-models-catalog-close")) {Text(label(Words.Close))}})}
+    if(moa) HostMoaDialog(vm,s) {vm.closeHostMoa();moa=false}
     auxTask?.let {task->s.hostModels?.let {inventory->HostAuxModelEditor(inventory,task,{auxTask=null}) {request->auxReview=vm.prepareHostAuxModel(request);if(auxReview!=null) auxTask=null}}}
     auxReview?.let {frozen->HostAuxModelReview(frozen,!s.busy,{auxReview=null;if(frozen.request.warning!=null) vm.dismissHostAuxModelWarning()}) {auxReview=null;vm.changeHostAuxModel(frozen)}}
     review?.let {frozen->HostMainModelReview(frozen,!s.busy,{review=null;if(frozen.request.warning!=null) vm.dismissHostMainModelWarning()}) {review=null;vm.changeHostMainModel(frozen)}}

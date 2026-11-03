@@ -24,6 +24,7 @@ def sources():
         'skills':"@router.get('/api/skills')\ndef get_skills():\n    return []\n",
         'profile_helpers':'',
         'web_common':'',
+        'web_deps':'',
         'host_actions':'',
         'bundled_ops':'',
         'gateway_plugin_models':'',
@@ -53,6 +54,7 @@ def sources():
         'env_config':'',
         'env_external':'',
         'model_routes':'',
+        'moa_config':'',
         'model_config':'',
         'model_inventory':'',
         'model_catalog':'',
@@ -104,6 +106,25 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_live_profile_and_config_lock_bindings_cannot_redirect_silently(self):
+        initial=sources();initial['web_common']="from hermes_cli.web_deps import LateState,late\n_profile_scope=late('_profile_scope','hermes_cli.web_server_profiles')\n_CONFIG_MUTATION_LOCK=LateState('_CONFIG_MUTATION_LOCK')\ndef config_write_scope(profile):\n    with _profile_scope(profile),_CONFIG_MUTATION_LOCK:yield\n"
+        initial['profile_helpers']="def _profile_scope(profile):\n    with _config_profile_scope(profile):yield\n"
+        initial['web_deps']="WEB_SERVER='hermes_cli.web_server'\ndef late(name,module=WEB_SERVER):\n    return getattr(server(module),name)\nclass LateState:\n    def _target(self):return getattr(server(),self._name)\n    def __enter__(self):return self._target().__enter__()\n"
+        initial['web_bootstrap']+="\n_CONFIG_MUTATION_LOCK=threading.RLock()\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['web_common:import:late','web_common:import:LateState','web_common:_profile_scope','web_common:_CONFIG_MUTATION_LOCK','web_common:config_write_scope','profile_helpers:_profile_scope','web_deps:WEB_SERVER','web_deps:late','web_deps:LateState._target','web_deps:LateState.__enter__','web_bootstrap:_CONFIG_MUTATION_LOCK']
+        for module,before,after in [('web_common','hermes_cli.web_deps','other.deps'),('web_common',"'hermes_cli.web_server_profiles'","'other.profiles'"),('web_common',"LateState('_CONFIG_MUTATION_LOCK')","LateState('_OTHER_LOCK')"),('web_common','_profile_scope(profile),','_profile_scope(None),'),('profile_helpers','_config_profile_scope(profile)','_config_profile_scope(None)'),('web_deps',"'hermes_cli.web_server'","'other.server'"),('web_deps','getattr(server(module),name)','getattr(server(module),wrong_name)'),('web_deps','self._name',"'wrong_lock'"),('web_deps','self._target().__enter__()','None'),('web_bootstrap','threading.RLock()','threading.Lock()')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+
+    def test_moa_full_map_profile_privacy_validation_merge_and_schema_changes_require_review(self):
+        initial=sources()
+        initial['model_routes']="_MOA_PRESET_FIELDS=('fanout','enabled')\n@router.get('/api/model/moa')\ndef get_moa_models(profile=None):\n    with _profile_scope(profile):return normalize_moa_config(load_config())\n@router.put('/api/model/moa')\ndef set_moa_models(body,profile=None):\n    with config_write_scope(body.profile or profile):\n        validate_moa_payload(body.presets)\n        raw['privacy_filter']=existing['privacy_filter']\n        updated=_merge_partial_save(raw,body.presets)\n        return {k:v for k,v in updated.items() if k in body.presets}\n"
+        initial['models']+="class MoaModelSlot:\n    provider:str\n    model:str\n    reasoning_effort:str|None=None\n    enabled:bool=True\nclass _MoaReferenceControls:\n    reference_timeout:float|None=None\nclass MoaPresetPayload(_MoaReferenceControls):\n    fanout:str|None=None\nclass MoaConfigPayload(_MoaReferenceControls):\n    presets:dict={}\n    profile:str|None=None\n"
+        initial['moa_config']="DEFAULT_MOA_REFERENCE_TIMEOUT=None\ndef _slot_problem(slot):\n    return slot['provider']=='moa'\ndef _coerce_fanout(value):\n    return 'user_turn' if value=='every_n:0' else value\ndef coerce_privacy_filter(value):\n    return value if value in ('display','full') else ''\ndef validate_moa_payload(raw):\n    return reject_incomplete(raw)\n"
+        initial['env_config']="def _merge_partial_save(raw,override):\n    return _deep_merge(raw,override)\ndef _deep_merge(raw,override):\n    return preserve_omitted_keys(raw,override)\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_management_routes']+=['GET /api/model/moa','PUT /api/model/moa'];tracked['mobile_used_handlers']+=['model_routes:_MOA_PRESET_FIELDS','model_routes:get_moa_models','model_routes:set_moa_models','models:schema:MoaModelSlot','models:schema:_MoaReferenceControls','models:schema:MoaPresetPayload','models:schema:MoaConfigPayload','moa_config:DEFAULT_MOA_REFERENCE_TIMEOUT','moa_config:_slot_problem','moa_config:_coerce_fanout','moa_config:coerce_privacy_filter','moa_config:validate_moa_payload','env_config:_merge_partial_save','env_config:_deep_merge'];tracked['mobile_used_request_fields']+=['models:MoaModelSlot.reasoning_effort','models:_MoaReferenceControls.reference_timeout','models:MoaConfigPayload.profile']
+        for module,before,after in [('model_routes','/api/model/moa','/api/model/new'),('model_routes',"('fanout','enabled')","('fanout',)"),('model_routes','body.profile or profile','None'),('model_routes','validate_moa_payload(body.presets)','normalize_moa_config(body.presets)'),('model_routes',"raw['privacy_filter']=existing['privacy_filter']","raw['privacy_filter']=''"),('model_routes','if k in body.presets','if True'),('models','reasoning_effort:str|None=None','reasoning_effort:dict|None=None'),('models','reference_timeout:float|None=None','reference_timeout:float=30'),('models','presets:dict={}','presets:dict={}\n    expected_revision:str|None=None'),('moa_config','DEFAULT_MOA_REFERENCE_TIMEOUT=None','DEFAULT_MOA_REFERENCE_TIMEOUT=30'),('moa_config',"slot['provider']=='moa'",'False'),('moa_config',"'user_turn'","'per_iteration'"),('moa_config',"('display','full')","('full',)"),('moa_config','reject_incomplete(raw)','[]'),('env_config','preserve_omitted_keys(raw,override)','replace_all_keys(override)')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+
     def test_auxiliary_reset_reasoning_registered_slots_defaults_and_runtime_routes_require_review(self):
         initial=sources()
         initial['model_config']="def _apply_aux_assignment_sync(cfg,provider,model,task,reasoning_effort=UNSET):\n    if task=='__reset__':\n        clear_model_endpoint_credentials(cfg)\n    if reasoning_effort is None:clear_reasoning(cfg)\n    return save_config(cfg)\ndef _aux_task_slots():\n    return BUILTINS+plugins()\n"
