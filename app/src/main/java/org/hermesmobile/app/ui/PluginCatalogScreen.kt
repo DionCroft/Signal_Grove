@@ -13,6 +13,7 @@ import org.hermesmobile.app.data.*
 @Composable fun PluginCatalogDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     var name by remember(s.apiScope,s.url,s.profile) {mutableStateOf("")}
     var repository by remember(s.apiScope,s.url,s.profile) {mutableStateOf("")}
+    var install by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedPluginInstall?>(null)}
     var reveal by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var review by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedPluginSource?>(null)}
     val enabled=!s.busy && s.identity!=null && GatewayCronInventory.supportedProfile(s.profile)
@@ -48,7 +49,9 @@ import org.hermesmobile.app.data.*
                 else {Text(label(Words.PluginInspectionPin));Text(result.sha,Modifier.testTag("plugin-inspection-sha"));Text(label(if(result.agent==true) Words.PluginAgentComponent else Words.PluginNoAgentComponent));Text(result.agentName);Text(label(if(result.desktop==true) Words.PluginDesktopComponent else Words.PluginNoDesktopComponent));Text(result.desktopName)}
                 if(result.insecure==true) Text(label(Words.PluginSourceInsecure))
                 result.warnings.forEach {Text(it)}
-            }}
+            };item {PluginInstallControls(vm,s,result) {install=it}}}
+            s.plugins.installReport?.let {report->item {PluginActivationView(report)}}
+            s.notice?.let {item {Text(label(it))}}
             s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(close,Modifier.testTag("plugin-catalog-close")) {Text(label(Words.Close))}})
@@ -64,4 +67,5 @@ import org.hermesmobile.app.data.*
             }
         },confirmButton={TextButton({review=null;vm.readPluginSource(frozen)},enabled=enabled,modifier=Modifier.testTag("plugin-source-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})
     }
+    install?.let {frozen ->PluginInstallReview(frozen,enabled,{install=null}) {install=null;vm.installPlugin(frozen)}}
 }

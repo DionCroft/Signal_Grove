@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class GatewayProtocolException:Exception("Unsupported gateway response.")
 class GatewayUnavailable:Exception("Gateway connection unavailable.")
-class GatewayRpcException(val code:Int):Exception("Gateway request refused ($code).")
+class GatewayRpcException(val code:Int,val sourceMoved:Boolean=false):Exception("Gateway request refused ($code).")
 
 /** One explicitly opened operator connection. No reconnect, mutation replay, server-request opt-in or transcript subscription. */
 class GatewayRpcSession private constructor():Closeable {
@@ -50,7 +50,7 @@ class GatewayRpcSession private constructor():Closeable {
                 val error=j["error"] as? JsonObject
                 val code=(error?.get("code") as? JsonPrimitive)?.takeIf {!it.isString}?.intOrNull
                 if(code==null) {waiter.completeExceptionally(GatewayProtocolException());throw GatewayProtocolException()}
-                waiter.completeExceptionally(GatewayRpcException(code))
+                waiter.completeExceptionally(GatewayRpcException(code,(error?.get("data") as? JsonObject)?.get("reason")==JsonPrimitive("source_moved")))
             } else {
                 val result=j["result"] as? JsonObject
                 if(result==null) {waiter.completeExceptionally(GatewayProtocolException());throw GatewayProtocolException()}
@@ -58,6 +58,7 @@ class GatewayRpcSession private constructor():Closeable {
             }
         } catch(e:Exception) {fail(if(e is GatewayProtocolException) e else GatewayProtocolException())}
     }
+    suspend fun installPlugin(profile:String,request:org.hermesmobile.app.data.PluginInstallRequest)=call("plugins.manage",request.params(profile),600000)
     suspend fun featuredPlugins(profile:String):JsonObject {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("plugins.manage",buildJsonObject {put("profile",profile);put("action","onboarding")},90000)

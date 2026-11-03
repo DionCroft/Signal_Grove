@@ -82,6 +82,10 @@ EXTRA_SOURCES = {
     'plugin_catalog_gate': 'hermes_cli/plugins_cmd_catalog.py',
     'plugin_catalog_loader': 'hermes_cli/plugin_catalog.py',
     'plugin_git': 'hermes_cli/plugins_cmd_git.py',
+    'plugin_install': 'hermes_cli/plugins_cmd_install.py',
+    'plugin_activation': 'hermes_cli/plugins_activation.py',
+    'plugin_transaction': 'hermes_cli/plugins_transaction.py',
+
 
 
 
@@ -111,7 +115,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
-                if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
+                if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):

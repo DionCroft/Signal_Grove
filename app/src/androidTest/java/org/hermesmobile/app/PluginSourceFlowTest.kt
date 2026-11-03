@@ -33,15 +33,15 @@ class PluginSourceFlowTest {
     private val pin="a".repeat(40)
     private val inspected="b".repeat(40)
     private fun json(s:String)=MockResponse().setHeader("Content-Type","application/json").setBody(s)
-    private fun exercise(hold:Boolean,changed:Boolean=false) {
-        val tickets=AtomicInteger();val calls=AtomicInteger();val lookups=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
+    private fun exercise(hold:Boolean,changed:Boolean=false,install:Boolean=false) {
+        val tickets=AtomicInteger();val calls=AtomicInteger();val lookups=AtomicInteger();val writes=AtomicInteger();val mcpReads=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
         MockWebServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse=when {
                 q.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                 q.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")
                 q.path=="/dashboard/api/auth/me"->json("""{"provider":"password","user_id":"fixture-user","display_name":"Source fixture"}""")
                 q.path=="/dashboard/api/profiles"->json("""{"profiles":[{"name":"worker"}]}""")
-                q.path=="/dashboard/api/mcp/servers?profile=worker"->json("""{"servers":[]}""")
+                q.path=="/dashboard/api/mcp/servers?profile=worker"->{mcpReads.incrementAndGet();json("""{"servers":[]}""")}
                 q.path=="/dashboard/api/auth/ws-ticket"->{assertEquals("Bearer source-management-fixture",q.getHeader("Authorization"));tickets.incrementAndGet();json("""{"ticket":"${"s".repeat(43)}","ttl_seconds":30}""")}
                 q.path=="/dashboard/api/ws"->{assertNull(q.getHeader("Authorization"));assertNull(q.getHeader("Cookie"));MockResponse().withWebSocketUpgrade(object:WebSocketListener() {
                     override fun onOpen(s:WebSocket,r:Response) {s.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{}}}""")}
@@ -51,7 +51,9 @@ class PluginSourceFlowTest {
                         else {assertEquals("plugins.manage",j.text("method"));when(p.text("action")) {
                             "onboarding"->{assertEquals(setOf("profile","action"),p.keys);Json.parseToJsonElement("""{"onboarding":[{"name":"fixture-plugin","title":"Featured fixture","description":"Host selection fixture","tier":"community","platforms":["linux"],"app_state":"present","sentence":"Host fixture availability"}]}""")}
                             "inspect"->{if(hold) {assertEquals("https://git.example/fixture?key=private-source-ui",p.text("identifier"));assertFalse(p.containsKey("catalog_name"));entered.countDown();release.await(10,TimeUnit.SECONDS)} else {assertEquals("fixture-plugin",p.text("catalog_name"));assertFalse(p.containsKey("identifier"))};Json.parseToJsonElement("""{"ok":true,"agent":true,"desktop":true,"agent_name":"fixture-agent","desktop_name":"fixture-desktop","sha":"$inspected","warnings":["Host inspection fixture warning"],"insecure":false}""")}
-                            else->error("A source read attempted a mutation")
+                            "list"->PluginInstallFixture.inventory(writes.get()>0)
+                            "install"->{assertTrue(install);assertEquals(setOf("profile","action","force","enable","inspected_sha","catalog_name"),p.keys);assertEquals(JsonPrimitive(false),p["force"]);assertEquals(JsonPrimitive(true),p["enable"]);assertEquals(inspected,p.text("inspected_sha"));assertFalse(p.containsKey("ref"));writes.incrementAndGet();PluginInstallFixture.acknowledgement()}
+                            else->error("Unexpected plugin operation")
                         }}
                         s.send(buildJsonObject {put("jsonrpc","2.0");put("id",j["id"]!!);put("result",result)}.toString());returned.countDown()
                     }
@@ -80,7 +82,20 @@ class PluginSourceFlowTest {
                     compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.inspection?.ok==true}
                     compose.onNodeWithTag("plugin-catalog-list").performScrollToNode(hasTestTag("plugin-inspection-sha"));compose.onNodeWithTag("plugin-inspection-sha").assertTextEquals(inspected);assertEquals("fixture-agent",management.state.value.plugins.inspection!!.agentName)
                     val shot=File(compose.activity.getExternalFilesDir(null),"qa/plugin-source-inspection.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
-                    assertEquals(5,calls.get());assertEquals(3,tickets.get());compose.onNodeWithTag("plugin-catalog-close").performClick();assertNull(management.state.value.plugins.inspection);assertNull(management.state.value.plugins.lookup)
+                    assertEquals(5,calls.get());assertEquals(3,tickets.get());assertEquals(0,writes.get())
+                    if(install) {
+                        compose.onNodeWithTag("plugin-catalog-list").performScrollToNode(hasTestTag("plugin-install-enable"));compose.onNodeWithTag("plugin-install-enable").assertIsOff().performClick();compose.onNodeWithTag("plugin-catalog-list").performScrollToNode(hasTestTag("plugin-install-review"));compose.onNodeWithTag("plugin-install-review").performClick();assertEquals(3,tickets.get());assertEquals(0,writes.get())
+                        compose.onNodeWithTag("plugin-install-confirmation").performScrollToNode(hasText(Words.PluginInstallEnableEffect.en));compose.onNodeWithText(Words.PluginInstallEnableEffect.en).assertExists();compose.onNodeWithTag("plugin-install-confirm").assertIsDisplayed()
+                        val reviewShot=File(compose.activity.getExternalFilesDir(null),"qa/plugin-install-review.png");reviewShot.parentFile!!.mkdirs();reviewShot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+                        compose.onNodeWithTag("plugin-install-confirm").performClick();compose.waitUntil(15000) {!management.state.value.busy && management.receipts.value.any {it.action=="PluginInstall" && it.state=="acknowledged"}}
+                        assertEquals(1,writes.get());assertEquals(4,tickets.get());assertEquals(10,calls.get());assertNull(management.state.value.plugins.inspection)
+                        val report=management.state.value.plugins.installReport!!;assertEquals(listOf("fixture_deferred_tool"),report.deferred["tools"]);assertEquals(listOf("fixture_hook"),report.activated["hooks"]);assertEquals(false,report.servers.single().connected);assertEquals(true,report.restartRequired)
+                        compose.onNodeWithTag("plugin-catalog-list").performScrollToNode(hasText("fixture_deferred_tool"));compose.onNodeWithText("fixture_deferred_tool").assertExists();compose.onNodeWithText("private-install-error",substring=true).assertDoesNotExist();compose.onNodeWithText("private-install-dependency",substring=true).assertDoesNotExist();compose.onNodeWithText("private-install-home",substring=true).assertDoesNotExist()
+                        val receipt=management.receipts.value.single {it.action=="PluginInstall"};assertEquals(inspected,Json.parseToJsonElement(receipt.requestSummary).jsonObject.text("approved_commit"));assertFalse(receipt.toString().contains("private-install-dependency"))
+                        compose.onNodeWithTag("plugin-catalog-close").performClick();compose.onNodeWithTag("plugins-close").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("management-observe-${receipt.key}"));compose.onNodeWithTag("management-observe-${receipt.key}").performClick();assertEquals(4,tickets.get())
+                        compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugins-read"));compose.onNodeWithTag("plugins-read").performClick();compose.onNodeWithTag("plugins-read-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.inventory!=null}
+                        assertEquals(1,writes.get());assertEquals(5,tickets.get());assertEquals(11,calls.get());assertEquals(1,mcpReads.get());assertEquals("acknowledged",management.receipts.value.single {it.key==receipt.key}.state)
+                    } else {compose.onNodeWithTag("plugin-catalog-close").performClick();assertNull(management.state.value.plugins.inspection);assertNull(management.state.value.plugins.lookup)}
                 }
             } finally {release.countDown()}
         }
@@ -88,4 +103,5 @@ class PluginSourceFlowTest {
     @Test fun featuredLookupAndInspectionEachRequireReviewAndNeverInstallAnything()=exercise(false)
     @Test fun aHeldRepositoryInspectionIsDiscardedAfterTheConnectionChanges()=exercise(true)
     @Test fun changedCatalogMetadataRefusesBeforeSourceInspection()=exercise(false,true)
+    @Test fun installationRequiresItsOwnReviewAndKeepsActivationStagesSeparate()=exercise(false,install=true)
 }

@@ -37,6 +37,9 @@ def sources():
         'plugin_catalog_gate':'',
         'plugin_catalog_loader':'',
         'plugin_git':'',
+        'plugin_install':'',
+        'plugin_activation':'',
+        'plugin_transaction':'',
         'hub_cli':'',
         'hub_search':'',
         'hub_claw':'',
@@ -66,6 +69,16 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_plugin_inspected_guard_optional_activation_and_restart_targets_require_review(self):
+        initial=sources();initial['plugin_install']="def _place_tree(ref,inspected_sha):\n    return None if ref else inspected_sha\n"
+        initial['gateway_plugin_models']="class PluginsManageParams:\n    inspected_sha:str|None=None\nclass PluginActivation:\n    deferred:dict={}\nclass PluginRestartTarget:\n    backend='backend'\n"
+        old=checker.extract(initial);tracked=baseline(old)
+        tracked['mobile_used_handlers']+=['plugin_install:_place_tree','gateway_plugin_models:enum:PluginRestartTarget']
+        tracked['mobile_used_request_fields']+=['gateway_plugin_models:PluginsManageParams.inspected_sha','gateway_plugin_models:PluginActivation.deferred']
+        for source,before,after in [('plugin_install','None if ref else inspected_sha','None'),('gateway_plugin_models','inspected_sha:str','inspected_sha:int'),('gateway_plugin_models','deferred:dict','deferred:list'),('gateway_plugin_models',"backend='backend'","backend='other'")]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_plugin_catalog_lookup_registration_and_inspection_cache_are_watched(self):
         initial=sources();initial['gateway_lookup']="@method('plugins.catalog.lookup')\ndef _(rid,params):\n    return params\n"
         initial['plugin_inspect']="_RESULT_TTL_SECONDS=600\ndef inspect_plugin_source(identifier):\n    return identifier\n"

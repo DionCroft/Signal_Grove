@@ -11,9 +11,11 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null)
+data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null)
 
 data class ReviewedPluginSource(val target:ManagementTarget,val request:PluginSourceRead,val generation:Long)
+
+data class ReviewedPluginInstall(val target:ManagementTarget,val request:PluginInstallRequest,val generation:Long)
 
 data class ReviewedPluginRead(val target:ManagementTarget,val generation:Long)
 
@@ -49,6 +51,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val pluginInstalls=PluginInstallRepository(app.database.dao(),app.managementReady)
     private val hubMaintenance=HubMaintenanceRepository(app.database.dao(),app.managementReady)
     private val hubInstalls=HubInstallRepository(app.database.dao(),app.managementReady)
     private val gatewayOperations=GatewayCronRepository(app.database.dao(),app.managementReady)
@@ -140,7 +143,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,oauth=emptyMap(),plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -180,7 +183,22 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id==generation) state.value=state.value.copy(plugins=PluginInventoryState(result))
         }
     }
-    fun clearPluginSourceResults() {state.value=state.value.copy(plugins=state.value.plugins.copy(lookup=null,inspection=null))}
+    fun preparePluginInstall(enable:Boolean):ReviewedPluginInstall? {
+        val saved=state.value;val inspected=saved.plugins.inspection ?: return null
+        if(saved.busy || receipts.value.any {it.state in setOf("sending","unknown")}) return null
+        val catalog=if(inspected.source.kind==PluginSourceKind.Catalog) saved.plugins.lookup?.entry else null
+        val request=runCatching {PluginInstallRequest(inspected,catalog,enable)}.getOrNull() ?: return null
+        return target()?.let {ReviewedPluginInstall(it,request,generation)}
+    }
+    fun installPlugin(review:ReviewedPluginInstall) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in first.")
+            val result=pluginInstalls.install(review.target,review.request,client(state.value),current)
+            if(id==generation) state.value=state.value.copy(plugins=state.value.plugins.copy(inventory=null,lookup=null,inspection=null,installReport=result.report),notice=if(result.sourceChanged) Words.PluginInstallSourceChanged else if(result.report==null) Words.PluginInstallDetailsUnavailable else Words.PluginInstallReported)
+        }
+    }
+    fun clearPluginSourceResults() {state.value=state.value.copy(plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null))}
     fun preparePluginSource(request:PluginSourceRead):ReviewedPluginSource?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedPluginSource(it,request,generation)}
     fun readPluginSource(review:ReviewedPluginSource) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
