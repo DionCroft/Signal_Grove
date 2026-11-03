@@ -21,6 +21,8 @@ import subprocess
 import math
 import threading
 import time
+import os
+import tempfile
 
 REPO = 'NousResearch/hermes-agent'
 SOURCES = {
@@ -351,8 +353,63 @@ def github_source(path: str, sha: str) -> str:
         raise ValueError('Upstream file is not UTF-8') from exc
 
 
-def snapshot(ref: str) -> dict:
+def source_identities(commit: str) -> dict:
+    """Fetch fresh identities for this exact commit; cached source is never its own authority."""
+    require_sha = lambda value: isinstance(value,str) and re.fullmatch(r'[a-f0-9]{40}',value)
+    if not require_sha(commit):raise ValueError('Invalid upstream commit')
+    wanted=set((SOURCES|EXTRA_SOURCES).values())
+    selector='{sha,truncated,tree:[.tree[] | select(.path as $p | '+json.dumps(sorted(wanted))+' | index($p)) | {path,mode,type,sha,size}]}'
+    tree=github(f'repos/{REPO}/git/trees/{commit}?recursive=1',selector)
+    if (not isinstance(tree,dict) or tree.get('truncated') is not False or not require_sha(tree.get('sha'))
+            or not isinstance(tree.get('tree'),list) or len(tree['tree'])>100_000):
+        raise ValueError('Upstream source tree unavailable or incomplete')
+    found={}
+    for row in tree['tree']:
+        if not isinstance(row,dict) or not isinstance(row.get('path'),str) or row['path'] not in wanted:continue
+        path=row['path']
+        if (path in found or row.get('type')!='blob' or row.get('mode') not in ('100644','100755')
+                or not require_sha(row.get('sha')) or type(row.get('size')) is not int or not 0<=row['size']<=2_000_000):
+            raise ValueError('Invalid upstream source identity')
+        found[path]=(row['sha'],row['size'])
+    if set(found)!=wanted:raise ValueError('Upstream source identity missing')
+    return found
+
+
+def cached_github_source(cache: Path,path: str,commit: str,identity: tuple) -> tuple[str,bool]:
+    """Only bounded UTF-8 bytes matching a fresh Git tree blob may enter or leave this cache."""
+    oid,size=identity
+    if not isinstance(oid,str) or not re.fullmatch(r'[a-f0-9]{40}',oid) or type(size) is not int or not 0<=size<=2_000_000:
+        raise ValueError('Invalid cached source identity')
+    cache.mkdir(parents=True,exist_ok=True)
+    if cache.is_symlink():raise ValueError('Source cache must be an owned directory')
+    target=cache/oid
+    if target.is_symlink():raise ValueError('Cached source cannot be a symlink')
+    hit=target.exists()
+    if hit:
+        if not target.is_file() or target.stat().st_size!=size:raise ValueError('Cached source size mismatch')
+        with target.open('rb') as stream:data=stream.read(2_000_001)
+    else:
+        data=github_source(path,commit).encode('utf-8')
+    if len(data)!=size or hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()!=oid:
+        raise ValueError('Cached source identity mismatch')
+    try:text=data.decode('utf-8')
+    except UnicodeDecodeError as exc:raise ValueError('Cached source is not UTF-8') from exc
+    if not hit:
+        pending=None
+        try:
+            with tempfile.NamedTemporaryFile(prefix='.hermes-source-',dir=cache,delete=False) as stream:
+                pending=Path(stream.name);stream.write(data)
+            os.replace(pending,target)
+        finally:
+            if pending is not None:pending.unlink(missing_ok=True)
+    return text,hit
+
+
+def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     resolved, sha = resolve(ref)
+    try:identities=source_identities(sha) if source_cache is not None else None
+    except (ValueError,KeyError,OSError,subprocess.TimeoutExpired) as exc:raise SourceReadError('source_tree',getattr(exc,'status',None)) from exc
+    cache_counts={'verified_hits':0,'verified_downloads':0}
     failure=[]
     failure_lock=threading.Lock()
     def download(item):
@@ -360,7 +417,10 @@ def snapshot(ref: str) -> dict:
         with failure_lock:
             if failure:raise failure[0]  # Queued work must not keep hitting an already-refusing provider.
         try:
-            return name, github_source(path, sha)
+            if source_cache is None:return name,github_source(path,sha)
+            value,hit=cached_github_source(source_cache,path,sha,identities[path])
+            with failure_lock:cache_counts['verified_hits' if hit else 'verified_downloads']+=1
+            return name,value
         except (ValueError, KeyError, OSError, subprocess.TimeoutExpired) as exc:
             with failure_lock:
                 if not failure:failure.append(SourceReadError(name,getattr(exc,'status',None)))
@@ -368,7 +428,9 @@ def snapshot(ref: str) -> dict:
             raise original from exc
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         sources = dict(pool.map(download, (SOURCES | EXTRA_SOURCES).items()))
-    return {'requested_ref': ref, 'resolved_ref': resolved, 'commit': sha, 'contract': extract(sources)}
+    result={'requested_ref':ref,'resolved_ref':resolved,'commit':sha,'contract':extract(sources)}
+    if source_cache is not None:result['source_cache']=cache_counts
+    return result
 
 def compare(baseline: dict, current: dict) -> dict:
     old, new = baseline['upstream']['contract'], current['contract']
@@ -404,6 +466,7 @@ def main() -> int:
     parser.add_argument('--baseline', type=Path, default=Path(__file__).resolve().parents[1]/'docs/contracts/hermes-baseline.json')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--snapshot-only', action='store_true')
+    parser.add_argument('--source-cache',type=Path,help='Optional public-source blob cache; fresh commit/tree identities and all cached bytes are verified on every run.')
     parser.add_argument('--request-interval',type=float,default=1.0,help='Minimum seconds between GitHub request starts (0–5; default 1).')
     args = parser.parse_args()
     if not math.isfinite(args.request_interval) or not 0<=args.request_interval<=5:
@@ -412,7 +475,7 @@ def main() -> int:
     _REQUEST_INTERVAL=args.request_interval
     _LAST_REQUEST_START=None
     try:
-        current = snapshot(args.ref)
+        current = snapshot(args.ref,args.source_cache)
         result = current if args.snapshot_only else compare(json.loads(args.baseline.read_text(encoding='utf-8')), current)
         text = json.dumps(result, indent=2, ensure_ascii=False)+'\n'
         if args.output:
