@@ -124,3 +124,6 @@ Reviewed host main assignment extends the pinned watch to **536 handler/constant
 
 
 Hosted retention/reuse follow-up: [compatibility run 41678172702](https://github.com/DionCroft/hermes-agent-android/actions/runs/41678172702), commit `595c96c`, passed both sequential refs and saved the validated cache. Digest-checked artifacts report stable 0 hits/82 downloads and main `fd267bb` 73 hits/nine downloads; the saved cache archive is 972033 bytes. Earlier 429 runs remain incomplete failures. A later run must still fetch fresh identities and pass its own contract comparisons; a stored cache does not certify future refs.
+
+
+Task completion fixture follow-up: the earlier one-frame visibility helper returned before hosted NavigationTest's next checkbox assertion failed. The current fixture scrolls once, then requires displayed/enabled control bounds inside the native visible frame and stable control/window geometry for 200 ms within its original five-second deadline. It captures the post-helper pointer failure too. It retains one real click and UI/Room persistence/deletion checks. Three cold CI-viewport API 26 first-attempt cases and final 274/274/275 local suites passed. The old artifact does not prove the whole timing cause; the original hosted failure remains recorded in VALIDATION.md.

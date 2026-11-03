@@ -1,6 +1,7 @@
 package org.hermesmobile.app
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -35,15 +36,33 @@ class NavigationTest {
         val file=File(compose.activity.getExternalFilesDir(null),"qa/$name.png");file.parentFile!!.mkdirs()
         file.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
+    private var taskCompletionGeometry="unobserved"
+    private fun taskCompletionState()="editorClosed=${compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}, editedRow=${vm.tasks.value.any {it.title=="QA edited"}}, $taskCompletionGeometry"
     private fun awaitTaskCompletionCheckbox() {
         val checkbox=hasContentDescription(Words.CompleteTask.localized(AppPreferences()))
+        var previous:String?=null;var stableSince=0L
         try {
             compose.waitUntil(5000) {compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}
+            androidx.test.espresso.Espresso.closeSoftKeyboard();compose.waitForIdle()
             compose.onNodeWithTag("task-list").performScrollToNode(checkbox)
-            compose.waitUntil(5000) {runCatching {compose.onNode(checkbox).performScrollTo().assertIsDisplayed()}.isSuccess}
+            compose.onNode(checkbox).performScrollTo()
+            // Poll without issuing more scrolls. One visible frame can precede an IME/list relayout.
+            compose.waitUntil(5000) {
+                val frame=runCatching {
+                    val target=compose.onNode(checkbox).assertIsDisplayed().assertIsEnabled()
+                    val bounds=target.fetchSemanticsNode().boundsInWindow
+                    val visible=Rect();val origin=IntArray(2)
+                    compose.runOnUiThread {val view=compose.activity.window.decorView;view.getWindowVisibleDisplayFrame(visible);view.getLocationOnScreen(origin)}
+                    val control=Rect(kotlin.math.floor(bounds.left).toInt()+origin[0],kotlin.math.floor(bounds.top).toInt()+origin[1],kotlin.math.ceil(bounds.right).toInt()+origin[0],kotlin.math.ceil(bounds.bottom).toInt()+origin[1])
+                    taskCompletionGeometry="visible=${visible.toShortString()}, checkbox=${control.toShortString()}"
+                    if(control.isEmpty || !visible.contains(control) || compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()) null else taskCompletionGeometry
+                }.getOrNull()
+                val now=android.os.SystemClock.uptimeMillis()
+                if(frame==null || frame!=previous) {previous=frame;stableSince=now;false} else now-stableSince>=200
+            }
         } catch(e:Throwable) {
             runCatching {screenshot("task-completion-transition-failure")}
-            throw AssertionError("Task editor closed=${compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}, edited row present=${vm.tasks.value.any {it.title=="QA edited"}}",e)
+            throw AssertionError("Task completion control was not visible/stable: ${taskCompletionState()}",e)
         }
     }
     @Test fun demoConversationStreamsAndEveryDestinationOpens() {
@@ -92,7 +111,8 @@ class NavigationTest {
         if(android.os.Build.VERSION.SDK_INT>=30) compose.waitUntil(5000) {(androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: 0)==0}
         compose.waitForIdle()
         awaitTaskCompletionCheckbox()
-        compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).assertIsDisplayed().assertIsOff().performClick()
+        try {compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).assertIsDisplayed().assertIsEnabled().assertIsOff().performClick()}
+        catch(e:Throwable) {runCatching {screenshot("task-completion-pointer-failure")};throw AssertionError("Task completion pointer step: ${taskCompletionState()}",e)}
         compose.waitUntil(10000) {vm.tasks.value.singleOrNull {it.title=="QA edited"}?.completed==true}
         compose.onNodeWithContentDescription(Words.CompleteTask.localized(AppPreferences())).assertIsOn()
         assertTrue(runBlocking {app.database.dao().tasks().first().first {it.title=="QA edited"}.completed})
