@@ -58,3 +58,6 @@ Skill Hub extends the same pinned stable baseline to 32 used management routes, 
 
 
 Reviewed Hub installation extends the active watch to 33 used management routes, 241 handler/constant fingerprints and 56 typed fields. It adds install request fields, profile argv, spawn acknowledgement/environment, bundled-restore prefixes, CLI policy/prompt order and installation path checks. The negative regression changes the bundled-restore prefix and installer identifier/profile fields. Source inspection and fixture tests do not certify a live registry, scanner or installer.
+
+
+Hub maintenance adds the two real removal/profile-wide update routes, request models, local-edit check, source matching, update detection and contained deletion to the same pinned baseline: 35 used management routes, 251 handler/constant fingerprints and 59 typed fields. An additional offline regression removes either route and changes uninstall/update body fields. Bulk semantics and force-policy behavior must be re-reviewed if those handlers change; an added endpoint is not automatically accepted as a per-skill update contract.

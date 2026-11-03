@@ -11,6 +11,8 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
+data class ReviewedHubMaintenance(val target:ManagementTarget,val request:HubMaintenanceRequest,val generation:Long)
+
 data class ReviewedHubInstall(val target:ManagementTarget,val request:HubInstallRequest,val generation:Long)
 
 data class SkillHubState(val loaded:Boolean=false,val sources:HubSources?=null,val official:List<HubSkill>?=null,val search:HubSearch?=null,val preview:HubPreview?=null,val scan:HubScan?=null)
@@ -41,6 +43,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val hubMaintenance=HubMaintenanceRepository(app.database.dao(),app.managementReady)
     private val hubInstalls=HubInstallRepository(app.database.dao(),app.managementReady)
     private val gatewayOperations=GatewayCronRepository(app.database.dao(),app.managementReady)
     private val skillOperations=SkillOperationsRepository(app.database.dao(),app.managementReady)
@@ -184,6 +187,20 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val api=client(state.value);api.identity(current);val result=SkillHubProtocol.scan(api.hubScan(current,target.profile,preview.skill),preview.skill)
         if(id==generation) state.value=state.value.copy(hub=state.value.hub.copy(scan=result))
     }
+    fun prepareHubMaintenance(action:HubMaintenanceAction,name:String=""):ReviewedHubMaintenance? {
+        val saved=state.value;val sources=saved.hub.sources ?: return null
+        if(saved.busy || receipts.value.any {it.state in setOf("sending","unknown")}) return null
+        val request=runCatching {HubMaintenanceRequest(action,HubInstalledInventory.from(sources),name)}.getOrNull() ?: return null
+        return target()?.let {ReviewedHubMaintenance(it,request,generation)}
+    }
+    fun maintainHubSkills(review:ReviewedHubMaintenance) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id ->
+            val current=tokens ?: error("Sign in first.")
+            hubMaintenance.execute(review.target,review.request,client(state.value),current)
+            if(id==generation) state.value=state.value.copy(hub=SkillHubState(),notice=Words.SkillHubMaintenanceAccepted)
+        }
+    }
     fun prepareHubInstall():ReviewedHubInstall? {
         val saved=state.value;val preview=saved.hub.preview ?: return null;val scan=saved.hub.scan ?: return null
         if(saved.busy || receipts.value.any {it.state in setOf("sending","unknown")}) return null
@@ -201,7 +218,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun observeHubReceipt(key:String)=operation {id ->
         val target=target() ?: error("Verify management profile first.")
         val record=app.database.dao().managementOperation(key) ?: error("Missing receipt.")
-        require(record.resourceScope==target.resourceScope && record.action=="HubInstall")
+        require(record.resourceScope==target.resourceScope && record.action in setOf("HubInstall","HubRemove","HubUpdateAll"))
         val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
         val rows=SkillProtocol.inventory(api.skills(current,target.profile))
         if(id==generation) state.value=state.value.copy(skills=HostSkillState(rows,true),notice=Words.ManagementObservationOnly)

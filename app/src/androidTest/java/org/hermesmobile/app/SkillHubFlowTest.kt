@@ -128,4 +128,38 @@ class SkillHubFlowTest {
             compose.onNodeWithTag("host-skills-close").performClick()
         }
     }
+
+    @Test fun maintenanceReviewsRemovalAndAllProfileUpdatesAndObservesSkillsWithoutReplay() {
+        val writes=AtomicInteger();val removed=AtomicBoolean();val skillReads=AtomicInteger()
+        MockWebServer().use {server ->
+            server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
+                basic(q)?.let {return it}
+                assertEquals("worker",q.requestUrl!!.queryParameter("profile"));assertEquals("Bearer management-hub-fixture",q.getHeader("Authorization"))
+                return when(q.requestUrl!!.encodedPath) {
+                    "/dashboard/api/skills/hub/sources"->json(JsonObject(SkillHubFixture.sources()+mapOf("installed" to buildJsonObject {
+                        if(!removed.get()) put("clawhub/fixture-slug",buildJsonObject {put("name","fixture-slug");put("trust_level","community");put("scan_verdict","safe")})
+                        put("https://skills.example/second?key=private-maintenance-ui",buildJsonObject {put("name","second-fixture");put("trust_level","trusted");put("scan_verdict","safe")})
+                    })))
+                    "/dashboard/api/skills/hub/official"->json(buildJsonObject {put("skills",buildJsonArray {add(SkillHubFixture.entry())})})
+                    "/dashboard/api/skills/hub/uninstall"->{assertEquals(buildJsonObject {put("profile","worker");put("name","fixture-slug")},Json.parseToJsonElement(q.body.readUtf8()));writes.incrementAndGet();removed.set(true);json(buildJsonObject {put("ok",true);put("pid",123);put("name",HubInstallRequest.actionName("fixture-slug","uninstall"))})}
+                    "/dashboard/api/skills/hub/update"->{assertEquals(buildJsonObject {put("profile","worker")},Json.parseToJsonElement(q.body.readUtf8()));writes.incrementAndGet();json(buildJsonObject {put("ok",true);put("pid",124);put("name","skills-update")})}
+                    "/dashboard/api/skills"->{skillReads.incrementAndGet();MockResponse().setHeader("Content-Type","application/json").setBody("[]")}
+                    else->json(JsonObject(emptyMap())).setResponseCode(404)
+                }
+            }}
+            open(server);compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("hub-maintenance-open"));compose.onNodeWithTag("hub-maintenance-open").performClick()
+            compose.onNodeWithTag("hub-maintenance-list").performScrollToNode(hasTestTag("hub-remove-fixture-slug"));compose.onNodeWithTag("hub-remove-fixture-slug").performClick();assertEquals(0,writes.get())
+            compose.onNodeWithTag("hub-maintenance-review").performScrollToNode(hasText(Words.SkillHubRemoveEffect.en));compose.onNodeWithText(Words.SkillHubRemoveEffect.en).assertExists();compose.onNodeWithTag("hub-maintenance-confirm").assertIsDisplayed()
+            compose.onNodeWithTag("hub-maintenance-review-cancel").performClick();assertEquals(0,writes.get());compose.onNodeWithTag("hub-remove-fixture-slug").performClick();compose.onNodeWithTag("hub-maintenance-confirm").performClick()
+            compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.action=="HubRemove" && it.state=="acknowledged"}};assertEquals(1,writes.get())
+            compose.onNodeWithTag("hub-maintenance-list").performScrollToNode(hasTestTag("hub-maintenance-refresh"));compose.onNodeWithTag("hub-maintenance-refresh").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.hub.loaded}
+            compose.onNodeWithTag("hub-maintenance-list").performScrollToNode(hasTestTag("hub-update-all-review"));compose.onNodeWithTag("hub-update-all-review").performClick();assertEquals(1,writes.get())
+            compose.onNodeWithTag("hub-maintenance-review").performScrollToNode(hasText(Words.SkillHubUpdatePolicy.en));compose.onNodeWithText(Words.SkillHubUpdatePolicy.en).assertExists();compose.onNodeWithTag("hub-maintenance-confirm").assertIsDisplayed();compose.onNodeWithText("private-maintenance-ui",substring=true).assertDoesNotExist()
+            val shot=File(compose.activity.getExternalFilesDir(null),"qa/skill-hub-update-review.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+            compose.onNodeWithTag("hub-maintenance-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.action=="HubUpdateAll" && it.state=="acknowledged"}};assertEquals(2,writes.get())
+            val receipt=management.receipts.value.single {it.action=="HubUpdateAll"};assertFalse(receipt.toString().contains("private-maintenance-ui"))
+            compose.onNodeWithTag("hub-maintenance-close").performClick();compose.onNodeWithTag("skill-hub-close").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("management-observe-${receipt.key}"));compose.onNodeWithTag("management-observe-${receipt.key}").performClick()
+            compose.waitUntil(10000) {!management.state.value.busy && management.state.value.skills.loaded};assertEquals(1,skillReads.get());assertEquals(2,writes.get());assertEquals("acknowledged",management.receipts.value.single {it.key==receipt.key}.state);compose.onNodeWithTag("host-skills-close").performClick()
+        }
+    }
 }

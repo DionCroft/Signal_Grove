@@ -25,10 +25,11 @@ class HubInstallRequest(val preview:HubPreview,val scan:HubScan) {
                 lower.startsWith("skills-sh/nousresearch/hermes-agent/").not() && p.content.isNotBlank() && p.files.isNotEmpty() &&
                 s.identifier==identifier && s.policy=="allow" && SkillProtocol.name(s.name)
         }
-        fun actionName(identifier:String):String {
+        fun actionName(identifier:String,verb:String="install"):String {
+            require(verb in setOf("install","uninstall"))
             val slug=identifier.lowercase().replace(Regex("[^a-z0-9]+"),"-").trim('-').take(48).ifBlank {"skill"}
             val digest=MessageDigest.getInstance("SHA-1").digest(identifier.toByteArray(Charsets.UTF_8)).joinToString("") {"%02x".format(it)}.take(8)
-            return "skills-install-$slug-$digest"
+            return "skills-$verb-$slug-$digest"
         }
         private fun review(p:HubPreview,s:HubScan)=buildJsonObject {
             val k=p.skill

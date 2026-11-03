@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 
 @Composable fun SkillHubDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    var maintenance by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var query by remember(s.apiScope,s.url,s.profile) {mutableStateOf("")}
     var source by remember(s.apiScope,s.url,s.profile) {mutableStateOf("all")}
     var picker by remember {mutableStateOf(false)}
@@ -32,6 +33,7 @@ import org.hermesmobile.app.data.*
     AlertDialog(onDismissRequest=close,title={Text(label(Words.SkillHub))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("skill-hub-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(s.url);Text(s.profile);Text(label(Words.SkillHubBoundary));TextButton(vm::loadSkillHub,enabled=canRead,modifier=Modifier.testTag("skill-hub-refresh")) {Text(label(Words.Refresh))}}
+            item {TextButton({maintenance=true},enabled=canRead,modifier=Modifier.testTag("hub-maintenance-open")) {Text(label(Words.SkillHubInstalledManagement))}}
             if(s.identity==null) item {Text(label(Words.ManagementVerify))}
             if(s.busy) item {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}
             item {Row {TextButton({mode="official"},enabled=canRead && s.hub.official!=null,modifier=Modifier.testTag("skill-hub-official")) {Text(label(Words.SkillHubOfficial))};TextButton({mode="featured"},enabled=canRead && s.hub.sources!=null,modifier=Modifier.testTag("skill-hub-featured")) {Text(label(Words.SkillHubFeatured))};TextButton({mode="search"},enabled=canRead,modifier=Modifier.testTag("skill-hub-search-tab")) {Text(label(Words.Search))}}}
@@ -65,6 +67,7 @@ import org.hermesmobile.app.data.*
             }}
         }
     },confirmButton={TextButton({picker=false}) {Text(label(Words.Close))}})
+    if(maintenance) HubMaintenanceDialog(vm,s) {maintenance=false}
     s.hub.preview?.let {preview ->SkillHubPreviewDialog(vm,s,preview)}
     s.hub.scan?.let {scan ->SkillHubScanDialog(vm,s,scan)}
 }
