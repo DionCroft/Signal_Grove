@@ -55,6 +55,7 @@ def sources():
         'env_external':'',
         'model_routes':'',
         'moa_config':'',
+        'oauth_routes':'','oauth_helpers':'','provider_auth':'',
         'model_config':'',
         'model_inventory':'',
         'model_catalog':'',
@@ -106,6 +107,23 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_native_route_local_auth_guard_changes_require_review(self):
+        initial=sources();initial['web_bootstrap']+="\ndef _has_valid_session_token(request):\n    return hmac.compare_digest(request.headers.get('authorization',''),f'Bearer {SESSION_TOKEN}')\ndef _require_token(request):\n    if getattr(request.state,'native_http_principal',None):return\n    if request.app.state.auth_required:\n        ok=request.state.session is not None\n    else:ok=_has_valid_session_token(request)\n    if not ok:raise Unauthorized()\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['web_bootstrap:_require_token','web_bootstrap:_has_valid_session_token']
+        for before,after in [("getattr(request.state,'native_http_principal',None)",'True'),('request.state.session is not None','True'),('hmac.compare_digest','unsafe_prefix_compare'),('if not ok:raise Unauthorized()','pass')]:
+            changed=dict(initial);changed['web_bootstrap']=changed['web_bootstrap'].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],before)
+
+    def test_provider_oauth_profile_provider_cancel_save_and_catalog_changes_require_review(self):
+        initial=sources()
+        initial['oauth_routes']="from hermes_cli.web_routers._common import scoped_to_thread\n_profile_scope=late('_profile_scope','profiles')\n_OAUTH_SESSION_TTL_SECONDS=900\n@router.post('/api/providers/oauth/{provider_id}/start')\ndef start_oauth_login(provider_id,profile=None):\n    _require_token()\n    return _start_device_code_flow(provider_id,profile)\n@router.get('/api/providers/oauth/{provider_id}/poll/{session_id}')\ndef poll_oauth_session(provider_id,session_id,profile=None):\n    assert session.provider==provider_id and session.profile==profile\n    return session.status\n@router.delete('/api/providers/oauth/sessions/{session_id}')\ndef cancel_oauth_session(session_id,profile=None):\n    assert session.profile==profile\n    session.cancelled=True\n"
+        initial['oauth_helpers']="_OAUTH_PROVIDER_CATALOG=('device_code','external')\ndef _oauth_profile_name(profile):\n    return profile\ndef _profile_device_poller(session):\n    with lock:\n        if not session.cancelled:save_device_login(session.profile)\n"
+        initial['provider_auth']="def clear_provider_auth(provider):\n    for section in ('providers','credential_pool'):clear(section,provider)\n"
+        old=checker.extract(initial);tracked=baseline(old)
+        tracked['mobile_used_handlers']+=['oauth_routes:import:hermes_cli.web_routers._common','oauth_routes:_profile_scope','oauth_routes:_OAUTH_SESSION_TTL_SECONDS','oauth_routes:start_oauth_login','oauth_routes:poll_oauth_session','oauth_routes:cancel_oauth_session','oauth_helpers:_OAUTH_PROVIDER_CATALOG','oauth_helpers:_oauth_profile_name','oauth_helpers:_profile_device_poller','provider_auth:clear_provider_auth']
+        tracked['mobile_used_management_routes']+=['POST /api/providers/oauth/{provider_id}/start','GET /api/providers/oauth/{provider_id}/poll/{session_id}','DELETE /api/providers/oauth/sessions/{session_id}']
+        for module,before,after in [('oauth_routes','scoped_to_thread','unscoped_thread'),('oauth_routes',"late('_profile_scope','profiles')","late('_profile_scope','other')"),('oauth_routes','_OAUTH_SESSION_TTL_SECONDS=900','_OAUTH_SESSION_TTL_SECONDS=3600'),('oauth_routes','_require_token()','pass'),('oauth_routes','session.provider==provider_id and session.profile==profile','True'),('oauth_routes','assert session.profile==profile','pass'),('oauth_routes','/api/providers/oauth/sessions/{session_id}','/api/oauth/sessions/{session_id}'),('oauth_helpers',"('device_code','external')","('device_code',)"),('oauth_helpers','return profile','return None'),('oauth_helpers','if not session.cancelled','if True'),('provider_auth',"('providers','credential_pool')","('providers',)")]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],(module,before))
+
     def test_live_profile_and_config_lock_bindings_cannot_redirect_silently(self):
         initial=sources();initial['web_common']="from hermes_cli.web_deps import LateState,late\n_profile_scope=late('_profile_scope','hermes_cli.web_server_profiles')\n_CONFIG_MUTATION_LOCK=LateState('_CONFIG_MUTATION_LOCK')\ndef config_write_scope(profile):\n    with _profile_scope(profile),_CONFIG_MUTATION_LOCK:yield\n"
         initial['profile_helpers']="def _profile_scope(profile):\n    with _config_profile_scope(profile):yield\n"

@@ -84,3 +84,5 @@ See [connection details](docs/HERMES_CONNECTION.md) and the [official API refere
 ## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md), [theme guide](docs/THEMING.md), [security policy](SECURITY.md), [roadmap](ROADMAP.md) and [changelog](CHANGELOG.md). Bugs and feature requests have issue templates. Original code is MIT; third-party notices are in [NOTICE](NOTICE.md) and in Settings.
+
+Provider accounts now include reviewed device-code sign-in for Hermes' curated and plugin-added providers, encrypted expiring code recovery, separate browser review/status refresh, owned-session cancellation and stored-credential disconnect. External CLI flows explain where setup belongs. These use the independent management listener and preserve durable uncertainty; see [management behavior](docs/MANAGEMENT.md#provider-device-code-accounts). Pool/fallback administration and live provider interoperability remain in the active audit follow-up.

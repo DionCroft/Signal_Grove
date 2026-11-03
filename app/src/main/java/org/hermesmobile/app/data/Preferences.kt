@@ -114,6 +114,7 @@ class SecureCredentialStore(context: Context) {
     fun forget(id:String)=synchronized(monitor) {
         val old=rows();val entry=old[id] ?: return@synchronized
         val editor=prefs.edit().putString("profiles_v1",encryptedRows(old+mapOf(id to JsonObject(entry.filterKeys {it!="token"}))))
+        clearProviderCodes(id)
         val management=managementRows().filterKeys {it!=id}
         editor.putString("management_v1",encrypt(JsonObject(management).toString()))
         if(active()?.scope==id) editor.remove("connection_v2").remove("token")
@@ -137,11 +138,34 @@ class SecureCredentialStore(context: Context) {
     fun saveManagement(scope:String,value:JsonObject?)=synchronized(monitor) {
         require(scope.matches(Regex("[a-f0-9]{64}")))
         if(value!=null) require(rows()[scope]?.containsKey("token")==true) {"The API connection credential was removed."}
+        if(value==null) clearProviderCodes(scope)
         val previous=managementRows().filterKeys {it!=scope}
         val next=if(value==null) previous else previous+mapOf(scope to value)
         require(next.size<=32) {"Remove an unused management sign-in first."}
         check(prefs.edit().putString("management_v1",encrypt(JsonObject(next).toString())).commit()) {"Credential storage unavailable"}
     }
+    private fun providerCodeRows()=prefs.getString("provider_codes_v1",null)?.let {Json.parseToJsonElement(decrypt(it)).jsonObject} ?: JsonObject(emptyMap())
+    private fun liveProviderCodes(now:Long)=providerCodeRows().filterValues {row->(row as? JsonObject)?.get("expires_at")?.jsonPrimitive?.longOrNull?.let {it>now && it-now<=900_000}==true}
+    private fun codeOwner(b:ProviderOAuthBinding)=buildJsonObject {put("api_scope",b.receipt.apiScope);put("url",b.receipt.url);put("profile",b.receipt.profile);put("actor",b.receipt.actor);put("provider",b.provider);put("home_id",b.homeId);put("session_id",b.sessionId)}
+    val providerCodes:ProviderCodeStore get()=object:ProviderCodeStore {
+        override fun save(binding:ProviderOAuthBinding,value:ProviderDeviceCode)=synchronized(monitor) {
+            require(rows()[binding.receipt.apiScope]?.containsKey("token")==true && managementRows()[binding.receipt.apiScope]!=null)
+            val live=liveProviderCodes(System.currentTimeMillis()).filterKeys {it!=binding.receipt.key}.entries.toList().takeLast(31).associate {it.key to it.value}
+            val row=buildJsonObject {put("owner",codeOwner(binding));put("user_code",value.code);put("verification_url",value.url);put("expires_at",value.expiresAt)}
+            check(prefs.edit().putString("provider_codes_v1",encrypt(JsonObject(live+mapOf(binding.receipt.key to row)).toString())).commit())
+        }
+        override fun read(binding:ProviderOAuthBinding,now:Long):ProviderDeviceCode?=synchronized(monitor) {
+            val live=liveProviderCodes(now);check(prefs.edit().putString("provider_codes_v1",encrypt(JsonObject(live).toString())).commit())
+            val row=live[binding.receipt.key] as? JsonObject ?: return@synchronized null
+            if(row["owner"]!=codeOwner(binding) || rows()[binding.receipt.apiScope]?.containsKey("token")!=true || managementRows()[binding.receipt.apiScope]==null) return@synchronized null
+            val expires=row["expires_at"]!!.jsonPrimitive.long
+            ProviderDeviceCode.parse(JsonObject(row+mapOf("expires_in" to JsonPrimitive(maxOf(1,(expires-now)/1000)))),now).let {ProviderDeviceCode(it.code,it.url,expires)}
+        }
+        override fun remove(binding:ProviderOAuthBinding)=synchronized(monitor) {
+            check(prefs.edit().putString("provider_codes_v1",encrypt(JsonObject(liveProviderCodes(System.currentTimeMillis()).filterKeys {it!=binding.receipt.key}).toString())).commit())
+        }
+    }
+    private fun clearProviderCodes(scope:String)=check(prefs.edit().putString("provider_codes_v1",encrypt(JsonObject(providerCodeRows().filterValues {(it as? JsonObject)?.get("owner")?.jsonObject?.text("api_scope")!=scope}).toString())).commit())
     fun clear()=synchronized(monitor) {check(prefs.edit().clear().commit())}
     companion object {private val locks=java.util.concurrent.ConcurrentHashMap<String,Any>()}
 }

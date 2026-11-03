@@ -97,6 +97,9 @@ EXTRA_SOURCES = {
     'env_external': 'hermes_cli/auth_external_process.py',
     'model_routes': 'hermes_cli/web_routers/models.py',
     'moa_config': 'hermes_cli/moa_config.py',
+    'oauth_routes': 'hermes_cli/web_routers/oauth.py',
+    'oauth_helpers': 'hermes_cli/web_server_oauth.py',
+    'provider_auth': 'hermes_cli/auth.py',
     'model_config': 'hermes_cli/web_server_config.py',
     'model_inventory': 'hermes_cli/inventory.py',
     'model_catalog': 'hermes_cli/model_switch_providers.py',
@@ -136,7 +139,7 @@ EXTRA_SOURCES = {
 
 
 }
-MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes'}
+MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes'}
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -189,6 +192,12 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in {'web_deps':{'WEB_SERVER'},'web_bootstrap':{'_CONFIG_MUTATION_LOCK'}}[source]:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('oauth_routes','oauth_helpers') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name):handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('oauth_routes','oauth_helpers') and isinstance(node,ast.ImportFrom):
+                handlers[f'{source}:import:{node.module}']=fingerprint(node)
             elif not prefix and source in ('model_routes','moa_config') and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 selected={'model_routes':{'_MOA_PRESET_FIELDS'},'moa_config':{'DEFAULT_MOA_PRESET_NAME','DEFAULT_MOA_REFERENCE_MODELS','DEFAULT_MOA_AGGREGATOR','DEFAULT_MOA_REFERENCE_TIMEOUT','_FLAT_PRESET_KEYS'}}[source]
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]

@@ -22,13 +22,17 @@ import org.hermesmobile.app.data.*
     LaunchedEffect(scope) {vm.bind(scope)}
     var show by remember {mutableStateOf(false)}
     TextButton({show=true},Modifier.testTag("management-open")) {Text(label(Words.Management))}
-    if(show) ManagementDialog(vm,s,apiPreferences.url,scope=="demo" || scope=="unconfigured") {vm.cancel();show=false}
+    if(show) {
+        ManagementDialog(vm,s,apiPreferences.url,scope=="demo" || scope=="unconfigured") {vm.cancel();show=false}
+        ProviderOAuthInspector(vm,s)
+    }
 }
 @Composable private fun ManagementDialog(vm:ManagementViewModel,s:ManagementState,apiUrl:String,unconfigured:Boolean,close:()->Unit) {
     val context=LocalContext.current.applicationContext
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    var providerAccounts by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var hostModels by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var environment by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var plugins by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
@@ -66,6 +70,7 @@ import org.hermesmobile.app.data.*
                     if(s.profile.isNotBlank()) item(key=1006) {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
                     if(s.profile.isNotBlank()) item(key=1007) {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
                     if(s.profile.isNotBlank()) item(key=1008) {TextButton({catalog=true;vm.loadCatalog()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("mcp-catalog-open")) {Text(label(Words.McpCatalog))}}
+                    if(s.profile.isNotBlank()) item(key=1022) {TextButton({providerAccounts=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("provider-accounts-open")) {Text(label(Words.ProviderAccounts))}}
                     if(s.profile.isNotBlank()) item(key=1021) {TextButton({hostModels=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-models-open")) {Text(label(Words.HostModels))}}
                     if(s.profile.isNotBlank()) item(key=1020) {TextButton({environment=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-env-open")) {Text(label(Words.HostEnvironment))}}
                     if(s.profile.isNotBlank()) item(key=1009) {TextButton({plugins=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("plugins-open")) {Text(label(Words.HostPlugins))}}
@@ -102,6 +107,7 @@ import org.hermesmobile.app.data.*
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    if(providerAccounts) ProviderAccountsDialog(vm,s) {vm.closeProviderAccounts();providerAccounts=false}
     if(hostModels) HostModelsDialog(vm,s) {vm.closeHostModels();hostModels=false}
     if(environment) HostEnvironmentDialog(vm,s) {vm.closeHostEnvironment();environment=false}
     if(plugins) PluginInventoryDialog(vm,s) {vm.cancel();plugins=false}
