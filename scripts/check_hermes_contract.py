@@ -92,6 +92,12 @@ EXTRA_SOURCES = {
     'env_lifecycle': 'hermes_cli/credential_lifecycle.py',
     'env_config': 'hermes_cli/config.py',
     'env_external': 'hermes_cli/auth_external_process.py',
+    'model_routes': 'hermes_cli/web_routers/models.py',
+    'model_config': 'hermes_cli/web_server_config.py',
+    'model_inventory': 'hermes_cli/inventory.py',
+    'model_catalog': 'hermes_cli/model_switch_providers.py',
+    'model_auxiliary': 'agent/auxiliary_task_config.py',
+
 
     'plugin_state': 'hermes_cli/plugins_state.py',
     'mcp_discovery': 'tools/mcp_tool_discovery.py',
@@ -114,7 +120,7 @@ EXTRA_SOURCES = {
 
 
 }
-MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes'}
+MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes'}
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -159,6 +165,10 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('model_config','model_auxiliary') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name) and target.id in {'model_config':{'_AUX_TASK_SLOTS'},'model_auxiliary':{'_AUX_ROUTE_KEYS','_SESSION_AUXILIARY'}}[source]:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'plugin_legacy' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'LEFT_CORE':
                 handlers[f'{source}:{node.target.id}'] = fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':

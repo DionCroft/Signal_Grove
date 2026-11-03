@@ -52,6 +52,12 @@ def sources():
         'env_lifecycle':'',
         'env_config':'',
         'env_external':'',
+        'model_routes':'',
+        'model_config':'',
+        'model_inventory':'',
+        'model_catalog':'',
+        'model_auxiliary':'',
+
 
         'plugin_state':'',
         'mcp_discovery':'',
@@ -86,6 +92,16 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_model_catalog_and_auxiliary_scope_refresh_inheritance_and_slot_changes_require_review(self):
+        initial=sources();initial['model_routes']="@router.get('/api/model/options')\nasync def get_model_options(profile=None,refresh=False):\n    with _config_profile_scope(profile):\n        return build_model_options_payload(refresh=refresh)\n@router.get('/api/model/auxiliary')\ndef get_auxiliary_models(profile=None):\n    with _profile_scope(profile):\n        return inherited_tasks(profile)\n"
+        initial['model_config']="_AUX_TASK_SLOTS:tuple=('vision',)\ndef _plugin_aux_tasks():\n    return current_profile_plugins()\n"
+        initial['model_inventory']="def build_model_options_payload(ctx,refresh=False):\n    return build_models_payload(ctx,probe_custom_providers=refresh)\n"
+        initial['model_catalog']="def _save_discovered_models_to_config(url,models):\n    save_config(models)\n"
+        initial['model_auxiliary']="def _get_auxiliary_task_config(task):\n    return inherited(task)\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_management_routes']+=['GET /api/model/options','GET /api/model/auxiliary'];tracked['mobile_used_handlers']+=['model_routes:get_model_options','model_routes:get_auxiliary_models','model_config:_AUX_TASK_SLOTS','model_config:_plugin_aux_tasks','model_inventory:build_model_options_payload','model_catalog:_save_discovered_models_to_config','model_auxiliary:_get_auxiliary_task_config']
+        for module,before,after in [('model_routes','/api/model/options','/api/other'),('model_routes','_config_profile_scope(profile)','_config_profile_scope(None)'),('model_routes','inherited_tasks(profile)','inherited_tasks(None)'),('model_config',"('vision',)","('vision','new')"),('model_config','current_profile_plugins()','global_plugins()'),('model_inventory','probe_custom_providers=refresh','probe_custom_providers=True'),('model_catalog','save_config(models)','save_global_config(models)'),('model_auxiliary','inherited(task)','default_profile(task)')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+
     def test_empty_environment_mirror_pool_and_retained_key_semantics_require_review(self):
         initial=sources();initial['env_lifecycle']="def save_provider_env_credential(key,value):\n    if value and old_value:\n        scrub_mirrors(old_value,value)\n    unsuppress(key)\n    return {'ok':True,'key':key}\n"
         initial['env_routes']="def _get_env_vars_sync(profile):\n    return {key:{'is_set':bool(value)} for key,value in env_on_disk.items()}\n"

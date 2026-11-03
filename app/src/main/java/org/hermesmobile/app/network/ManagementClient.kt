@@ -58,6 +58,8 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun modelAuxiliary(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return json("api/model/auxiliary",tokens.access,profile=profile)}
+    suspend fun modelOptions(tokens:ManagementTokens,profile:String,refresh:Boolean=false):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/model/options",tokens.access,profile=profile,query=mapOf("refresh" to refresh.toString(),"include_unconfigured" to "true","explicit_only" to "false"),slow=true).jsonObject}
     suspend fun environment(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return json("api/env",tokens.access,profile=profile)}
     suspend fun environmentControl(tokens:ManagementTokens,profile:String,request:HostEnvRequest):JsonObject {GatewayCronInventory.requireProfile(profile);return json("api/env",tokens.access,request.body(profile),profile,method=if(request.action==HostEnvAction.Remove) "DELETE" else "PUT")}
     suspend fun hubSources(tokens:ManagementTokens,profile:String):JsonObject {SkillProtocol.profile(profile);return element("api/skills/hub/sources",tokens.access,profile=profile,slow=true).jsonObject}
