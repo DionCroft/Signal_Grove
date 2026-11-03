@@ -26,6 +26,10 @@ def sources():
         'web_common':'',
         'host_actions':'',
         'bundled_ops':'',
+        'gateway_plugin_models':'',
+        'gateway_common':'',
+        'plugin_core':'',
+        'plugin_servers':'',
         'hub_cli':'',
         'hub_search':'',
         'hub_claw':'',
@@ -55,6 +59,17 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_scoped_plugin_dispatch_mapping_action_enum_and_profile_are_watched(self):
+        initial=sources();initial['gateway_rpc']+="_PLUGINS_ACTIONS={'list':_plugins_list}\n@_scoped_rpc('plugins.manage')\ndef _(rid,params):\n    return params\n"
+        initial['gateway_plugin_models']="class PluginsAction:\n    list='list'\nclass AgentPluginRow:\n    key:str\n"
+        initial['gateway_common']="class ProfileParams:\n    profile:str|None=None\n"
+        old=checker.extract(initial);tracked=baseline(old)
+        tracked['mobile_used_handlers']+=['gateway_rpc:rpc:plugins.manage','gateway_rpc:_PLUGINS_ACTIONS','gateway_plugin_models:enum:PluginsAction']
+        tracked['mobile_used_request_fields']+=['gateway_common:ProfileParams.profile','gateway_plugin_models:AgentPluginRow.key']
+        for source,before,after in [('gateway_rpc',"'list':_plugins_list","'list':different_handler"),('gateway_rpc','plugins.manage','plugins.renamed'),('gateway_plugin_models',"list='list'","list='other'"),('gateway_plugin_models','key:str','key:int'),('gateway_common','profile:str','profile:int')]:
+            changed=dict(initial);changed[source]=changed[source].replace(before,after)
+            self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_maintenance_routes_and_profile_only_update_contract_require_review(self):
         initial=sources();initial['skills']+="@hub_router.post('/api/skills/hub/uninstall')\ndef uninstall_skill_hub():\n    return {}\n@hub_router.post('/api/skills/hub/update')\ndef update_skills_hub():\n    return {}\n"
         initial['models']+="class SkillUninstallRequest:\n    name:str\n    profile:str|None=None\nclass SkillsUpdateRequest:\n    profile:str|None=None\n"

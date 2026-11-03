@@ -61,3 +61,6 @@ Reviewed Hub installation extends the active watch to 33 used management routes,
 
 
 Hub maintenance adds the two real removal/profile-wide update routes, request models, local-edit check, source matching, update detection and contained deletion to the same pinned baseline: 35 used management routes, 251 handler/constant fingerprints and 59 typed fields. An additional offline regression removes either route and changes uninstall/update body fields. Bulk semantics and force-policy behavior must be re-reviewed if those handlers change; an added endpoint is not automatically accepted as a per-skill update contract.
+
+
+Plugin inventory extends the existing gateway source watch to 263 handlers/constants and 83 typed fields, including `plugins.manage`, its action dispatch/enum, scoped profile decorator, profile-derived discovery/config and server/tool projection. The transport still uses the existing WebSocket route (35 used management routes total). The new offline regression changes the action mapping, RPC method name, enum value, canonical key type and shared profile field. Public status strings remain host reports; source checks cannot establish a live plugin's behavior.

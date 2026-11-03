@@ -58,6 +58,10 @@ class GatewayRpcSession private constructor():Closeable {
             }
         } catch(e:Exception) {fail(if(e is GatewayProtocolException) e else GatewayProtocolException())}
     }
+    suspend fun plugins(profile:String):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
+        return call("plugins.manage",buildJsonObject {put("profile",profile);put("action","list")})
+    }
     suspend fun cronList(profile:String):JsonObject {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("cron.manage",buildJsonObject {put("profile",profile);put("action","list");put("include_disabled",true)})

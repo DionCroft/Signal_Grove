@@ -71,6 +71,11 @@ EXTRA_SOURCES = {
     'web_common': 'hermes_cli/web_routers/_common.py',
     'host_actions': 'hermes_cli/web_server_gateway.py',
     'bundled_ops': 'tools/skills_sync_bundled_ops.py',
+    'gateway_plugin_models': 'tui_gateway/contracts/tools_mcp_plugins.py',
+    'gateway_common': 'tui_gateway/contracts/common.py',
+    'plugin_core': 'hermes_cli/plugins_cmd.py',
+    'plugin_servers': 'tui_gateway/methods_tools_plugin_servers.py',
+
 
 
 }
@@ -98,13 +103,13 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
-                if source=='gateway_models' and node.name=='CronAction':handlers[f'{source}:enum:CronAction']=fingerprint(node)
+                if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name=='PluginsAction'):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
-            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops'):
-                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'}}[source]
+            elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc'):
+                selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'}}[source]
                 for target in node.targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif source == 'skill_utils' and not prefix and isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == 'ESSENTIAL_SKILLS':
