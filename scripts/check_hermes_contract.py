@@ -85,6 +85,11 @@ EXTRA_SOURCES = {
     'plugin_install': 'hermes_cli/plugins_cmd_install.py',
     'plugin_update': 'hermes_cli/plugins_cmd_update.py',
     'plugin_settings': 'hermes_cli/plugins_settings.py',
+    'env_routes': 'hermes_cli/web_routers/config_env.py',
+    'env_lifecycle': 'hermes_cli/credential_lifecycle.py',
+    'env_config': 'hermes_cli/config.py',
+    'env_external': 'hermes_cli/auth_external_process.py',
+
     'plugin_state': 'hermes_cli/plugins_state.py',
     'mcp_discovery': 'tools/mcp_tool_discovery.py',
 
@@ -106,7 +111,7 @@ EXTRA_SOURCES = {
 
 
 }
-MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws'}
+MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes'}
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -132,6 +137,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
@@ -142,6 +148,11 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif not prefix and source in ('plugin_settings','plugin_state') and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 selected={'plugin_settings':{'_FIELD_TYPES','_VALUE_TYPES','_ENV_NAME_CLEAN_RE'},'plugin_state':{'_PLUGIN_SETTING_SEGMENT_RE','_PLUGIN_SETTING_RESERVED_ROOTS'}}[source]
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source in ('env_config','env_routes','web_common') and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                selected={'env_config':{'_ENV_VAR_NAME_RE','_ENV_VAR_NAME_DENYLIST','_ENV_VAR_NAME_DENY_PREFIXES'},'env_routes':{'_AUTH_TYPE_ENV_VARS'},'web_common':{'_LEGACY_MASK_RE','REDACTED_CREDENTIAL_WRITE_DETAIL'}}[source]
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)

@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
-fun mcpActionWord(action:String)=when(action) {"PluginSettings"->Words.PluginSettingsEdit;"PluginUpdate"->Words.PluginUpdate;"PluginRemove"->Words.PluginRemove;"PluginEnable"->Words.PluginEnable;"PluginDisable"->Words.PluginDisable;"PluginInstall"->Words.PluginInstall;"HubRemove"->Words.SkillHubRemove;"HubUpdateAll"->Words.SkillHubUpdateAll;"HubInstall"->Words.SkillHubInstall;"GatewayCronPause"->Words.GatewayCronPause;"GatewayCronResume"->Words.GatewayCronResume;"GatewayCronDelete"->Words.GatewayCronDelete;"SkillToggle"->Words.SkillToggle;"SkillLock"->Words.SkillLockControl;"CronCreate"->Words.HostCronCreate;"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
+fun mcpActionWord(action:String)=when(action) {"EnvSave"->Words.HostEnvSave;"EnvRemove"->Words.HostEnvRemove;"PluginSettings"->Words.PluginSettingsEdit;"PluginUpdate"->Words.PluginUpdate;"PluginRemove"->Words.PluginRemove;"PluginEnable"->Words.PluginEnable;"PluginDisable"->Words.PluginDisable;"PluginInstall"->Words.PluginInstall;"HubRemove"->Words.SkillHubRemove;"HubUpdateAll"->Words.SkillHubUpdateAll;"HubInstall"->Words.SkillHubInstall;"GatewayCronPause"->Words.GatewayCronPause;"GatewayCronResume"->Words.GatewayCronResume;"GatewayCronDelete"->Words.GatewayCronDelete;"SkillToggle"->Words.SkillToggle;"SkillLock"->Words.SkillLockControl;"CronCreate"->Words.HostCronCreate;"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
 fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSending;"unknown"->Words.ManagementUncertain;"acknowledged"->Words.ManagementAcknowledged;"confirmed"->Words.ManagementVerified;"reviewed"->Words.ManagementReviewed;else->Words.Management}
 
 @Composable fun McpActionReview(review:ReviewedMcpAction,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
@@ -25,6 +25,7 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
 }
 
 @Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null) {
+    var environment by remember(receipt.key) {mutableStateOf(false)}
     var plugins by remember(receipt.key) {mutableStateOf(false)}
     var gateway by remember(receipt.key) {mutableStateOf(false)}
     var skills by remember(receipt.key) {mutableStateOf(false)}
@@ -40,10 +41,11 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
         else if(receipt.resultSummary.isNotBlank()) TextButton({result=true},Modifier.testTag("management-result-${receipt.key}")) {Text(label(Words.ManagementResult))}
         if(vm!=null && s!=null) {
             val enabled=!s.busy && s.identity!=null && vm.reviewTarget()!=null
-            TextButton({if(receipt.action in setOf("PluginInstall","PluginEnable","PluginDisable","PluginRemove","PluginUpdate","PluginSettings")) {plugins=true} else if(receipt.action in setOf("GatewayCronPause","GatewayCronResume","GatewayCronDelete")) {gateway=true} else if(receipt.action in setOf("HubInstall","HubRemove","HubUpdateAll")) {skills=true;vm.observeHubReceipt(receipt.key)} else if(receipt.action in setOf("SkillToggle","SkillLock")) {skills=true;vm.observeSkillReceipt(receipt.key)} else if(receipt.action=="CronCreate") {cron=true;vm.observeCronReceipt(receipt.key)} else vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
+            TextButton({if(receipt.action in setOf("EnvSave","EnvRemove")) {environment=true} else if(receipt.action in setOf("PluginInstall","PluginEnable","PluginDisable","PluginRemove","PluginUpdate","PluginSettings")) {plugins=true} else if(receipt.action in setOf("GatewayCronPause","GatewayCronResume","GatewayCronDelete")) {gateway=true} else if(receipt.action in setOf("HubInstall","HubRemove","HubUpdateAll")) {skills=true;vm.observeHubReceipt(receipt.key)} else if(receipt.action in setOf("SkillToggle","SkillLock")) {skills=true;vm.observeSkillReceipt(receipt.key)} else if(receipt.action=="CronCreate") {cron=true;vm.observeCronReceipt(receipt.key)} else vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
             if(receipt.state=="unknown") TextButton({review=vm.reviewTarget()},enabled=enabled,modifier=Modifier.testTag("management-review-${receipt.key}")) {Text(label(Words.ManagementReview))}
         }
     }
+    if(environment && vm!=null && s!=null) HostEnvironmentDialog(vm,s,receipt.target) {vm.closeHostEnvironment();environment=false}
     if(plugins && vm!=null && s!=null) PluginInventoryDialog(vm,s) {vm.cancel();plugins=false}
     if(gateway && vm!=null && s!=null) GatewayAutomationDialog(vm,s) {vm.cancel();gateway=false}
     if(skills && vm!=null && s!=null) HostSkillsDialog(vm,s) {vm.cancel();skills=false}
@@ -55,7 +57,8 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
         val parsed=remember(receipt.resultSummary) {runCatching {Json.parseToJsonElement(receipt.resultSummary).jsonObject}.getOrDefault(JsonObject(emptyMap()))}
         LazyColumn(Modifier.heightIn(max=440.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             item {Text(label(if(receipt.state=="acknowledged" && receipt.action in setOf("HubRemove","HubUpdateAll")) Words.SkillHubMaintenanceAccepted else if(receipt.action=="HubInstall" && receipt.state=="acknowledged") Words.SkillHubInstallAccepted else managementStateWord(receipt.state)))}
-            if(receipt.action=="PluginSettings") item {Text(label(Words.PluginSettingsSaved));Text(parsed.text("setting_key"));Text(parsed.text("setting_type"));Text(label(Words.PluginSettingsObservation));if(parsed["nested_readback_unavailable"]==JsonPrimitive(true)) Text(label(Words.PluginSettingsNested))}
+            if(receipt.action in setOf("EnvSave","EnvRemove")) item {Text(label(Words.HostEnvAcknowledged));Text(parsed.text("env_key"));Text(label(Words.HostEnvReceipt))}
+            else if(receipt.action=="PluginSettings") item {Text(label(Words.PluginSettingsSaved));Text(parsed.text("setting_key"));Text(parsed.text("setting_type"));Text(label(Words.PluginSettingsObservation));if(parsed["nested_readback_unavailable"]==JsonPrimitive(true)) Text(label(Words.PluginSettingsNested))}
             else if(receipt.action=="PluginUpdate") item {PluginUpdateReceipt(parsed)}
             else if(receipt.action=="PluginRemove") item {PluginRemovalReceipt(parsed)}
             else if(receipt.action in setOf("PluginEnable","PluginDisable")) item {Text(label(Words.PluginToggleReported));Text(label(if(parsed["requested_enable"]==JsonPrimitive(true)) Words.PluginEnable else Words.PluginDisable));Text(label(Words.PluginToggleObservation));Text(label(if(parsed["requested_enable"]==JsonPrimitive(true)) Words.PluginEnableEffect else Words.PluginDisableEffect))}

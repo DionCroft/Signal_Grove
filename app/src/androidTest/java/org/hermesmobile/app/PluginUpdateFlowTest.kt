@@ -68,8 +68,20 @@ class PluginUpdateFlowTest {
                 compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
                 compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(p) {ManagementEntry(api,management)}}}
                 compose.onNodeWithTag("management-open").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("plugins-open"));compose.onNodeWithTag("plugins-open").performClick();assertEquals(0,tickets.get());compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugins-read"));compose.onNodeWithTag("plugins-read").performClick();compose.onNodeWithTag("plugins-read-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.inventory!=null}
-                compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugin-details-0"));compose.onNodeWithTag("plugin-details-0").performClick();compose.onNodeWithTag("plugin-detail-view").performScrollToNode(hasTestTag("plugin-update-manifest-key"));compose.onNodeWithTag("plugin-update-manifest-key").performClick();compose.onNodeWithTag("plugin-update-review").assertExists();assertEquals(0,sends.get())
-                if(!hold) {compose.onNodeWithTag("plugin-update-cancel").performClick();assertEquals(0,sends.get());compose.onNodeWithTag("plugin-update-manifest-key").performClick()}
+                fun openUpdateReview() {
+                    val tag="plugin-update-manifest-key"
+                    try {
+                        compose.waitUntil(10000) {compose.onAllNodesWithTag(tag).fetchSemanticsNodes().singleOrNull()?.let {isEnabled().matches(it)}==true && management.receipts.value.none {it.state in setOf("sending","unknown")}}
+                        compose.onNodeWithTag(tag).assertIsEnabled().performClick()
+                        compose.waitUntil(10000) {compose.onAllNodesWithTag("plugin-update-review").fetchSemanticsNodes().size==1}
+                    } catch(e:Exception) {
+                        runCatching {val shot=File(compose.activity.getExternalFilesDir(null),"qa/plugin-update-review-failure.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
+                        val state=management.state.value;val node=compose.onAllNodesWithTag(tag).fetchSemanticsNodes().singleOrNull()
+                        throw AssertionError("Plugin review missing: busy=${state.busy}, error=${state.error?.name}, receipts=${management.receipts.value.map {it.action+":"+it.state}}, inventory=${state.plugins.inventory?.plugins?.map {it.key}}, enabled=${node?.let {isEnabled().matches(it)}}, bounds=${node?.boundsInRoot}",e)
+                    }
+                }
+                compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugin-details-0"));compose.onNodeWithTag("plugin-details-0").performClick();compose.onNodeWithTag("plugin-detail-view").performScrollToNode(hasTestTag("plugin-update-manifest-key"));openUpdateReview();compose.onNodeWithTag("plugin-update-review").assertExists();assertEquals(0,sends.get())
+                if(!hold) {compose.onNodeWithTag("plugin-update-cancel").performClick();assertEquals(0,sends.get());openUpdateReview()}
                 compose.onNodeWithTag("plugin-update-confirm").performClick()
                 if(hold) {
                     compose.waitUntil(10000) {entered.count==0L};assertNull(management.state.value.plugins.inventory);compose.runOnUiThread {management.bind("unconfigured")};compose.waitUntil(10000) {runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state=="unknown"}};release.countDown();compose.waitUntil(5000) {returned.count==0L};compose.waitForIdle();assertEquals("unconfigured",management.state.value.apiScope);assertNull(management.state.value.plugins.updateDecision);assertNull(management.state.value.plugins.updateReport);assertEquals(1,sends.get());assertEquals(2,tickets.get());return@use

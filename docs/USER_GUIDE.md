@@ -160,6 +160,13 @@ Read acknowledgement, observed metadata and activation reports separately. Git u
 
 ### Read and edit a plugin setting
 
-In **Hermes management → Host plugins**, read the selected profile, open details and choose **Read plugin settings**. Confirm the separate private-data read. Details stay hidden until shown. Declared secret fields show presence only and require credential setup on the host.
+In **Hermes management → Host plugins**, read the selected profile, open details and choose **Read plugin settings**. Confirm the separate private-data read. Details stay hidden until shown. Declared secret fields show presence only; their **Host keys and environment** action opens the separate credential workflow for that variable.
 
 Choose **Edit setting**, enter the declared type, then **Review setting change**. Show the new value and approve one save before confirming. Cancelling a review discards that approval. The app checks fresh metadata and reported values, but the host has no revision guard against concurrent edits. Saving may notify plugins and reconnect affected MCP processes. Acknowledgement, reported configuration and runtime adoption remain separate. Dotted settings can be saved, but the current host listing cannot reliably verify them; inspect the host when needed. Closing clears the private settings view. See [contract and privacy limits](MANAGEMENT.md#reviewed-plugin-settings).
+
+
+### Host credentials and environment variables
+
+In **Hermes management → Host keys and environment**, choose **Read key metadata** and confirm the target profile. Filter by variable/provider, then choose **Save or replace value**, **Add a key**, or **Remove credential references**. A declared plugin secret can open the same inspector with its variable selected. Existing values and masked previews are never shown or prefilled.
+
+Enter a complete printable ASCII replacement; the current host writer strips other characters, so the app refuses them. Review the shared consumers and effects, show the new value and approve one save. Removal has a separate review and can clean references even when environment presence is absent. Saves/removals can affect configuration mirrors and environment-backed credential pools; other credential types can remain, and removal is not provider-side revocation. Results are host acknowledgements with separate presence observation, never exact-value or runtime verification. A lost reply is never repeated automatically. Closing clears the metadata/draft; receipt observation requires a new read review. See [contracts and limits](MANAGEMENT.md#host-keys-and-environment).

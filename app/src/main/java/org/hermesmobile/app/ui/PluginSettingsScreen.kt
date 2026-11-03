@@ -15,6 +15,7 @@ import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
 @Composable fun PluginSettingsDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    var environmentKey by remember(s.apiScope,s.url,s.profile) {mutableStateOf<String?>(null)}
     val snapshot=s.plugins.settings
     var revealed by remember(snapshot) {mutableStateOf(false)}
     var field by remember(snapshot) {mutableStateOf<PluginSettingField?>(null)}
@@ -31,7 +32,7 @@ import org.hermesmobile.app.data.*
                 items(snap.fields,key={it.key}) {f->Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {
                     Text(f.label,style=MaterialTheme.typography.titleMedium);Text(f.key+" · "+f.type)
                     if(revealed) {Text(f.description);if(f.type=="secret") {Text(f.env);Text(label(when(f.hasValue) {true->Words.PluginReportedYes;false->Words.PluginReportedNo;else->Words.Unknown}))} else {Text(label(Words.PluginSettingsReported));Text(f.value.toString());if(f.default !is JsonNull) {Text(label(Words.PluginSettingsDefault));Text(f.default.toString())}}}
-                    if(f.type=="secret") Text(label(Words.PluginSettingsSecret)) else {
+                    if(f.type=="secret") {Text(label(Words.PluginSettingsSecret));TextButton({environmentKey=f.env},enabled=!s.busy,modifier=Modifier.testTag("plugin-secret-${f.key}")) {Text(label(Words.HostEnvironment))}} else {
                         if(f.key.contains('.')) Text(label(Words.PluginSettingsNested))
                         TextButton({field=f},enabled=!s.busy && !pending,modifier=Modifier.testTag("plugin-setting-edit-${f.key}")) {Text(label(Words.PluginSettingsEdit))}
                     }
@@ -40,6 +41,7 @@ import org.hermesmobile.app.data.*
             }
         }
     },confirmButton={TextButton(close,Modifier.testTag("plugin-settings-close")) {Text(label(Words.Close))}})
+    environmentKey?.let {key->HostEnvironmentDialog(vm,s,key) {vm.closeHostEnvironment();environmentKey=null}}
     if(snapshot!=null) field?.let {f->PluginSettingEditor(f,!s.busy,{field=null}) {v->review=vm.preparePluginSetting(snapshot,f,v);if(review!=null) field=null}}
     review?.let {frozen->PluginSettingReview(frozen,!s.busy,{review=null}) {review=null;vm.savePluginSetting(frozen)}}
 }

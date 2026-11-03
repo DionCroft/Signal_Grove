@@ -1,0 +1,77 @@
+package org.hermesmobile.app
+
+import android.graphics.Bitmap
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.*
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.*
+import okhttp3.*
+import okhttp3.mockwebserver.*
+import okhttp3.mockwebserver.Dispatcher
+import org.hermesmobile.app.data.*
+import org.hermesmobile.app.network.ManagementTokens
+import org.hermesmobile.app.ui.*
+import org.junit.Assert.*
+import org.junit.Rule
+import org.junit.Test
+import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+
+class HostEnvironmentFlowTest {
+    @get:Rule(order=0) val credentials=CredentialFixtureRule()
+    @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()
+    private val api get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
+    private val management get()=ViewModelProvider(compose.activity)[ManagementViewModel::class.java]
+    private val app get()=compose.activity.application as HermesApplication
+    private fun exercise(mode:String="normal") {
+        val reads=AtomicInteger();val writes=AtomicInteger();val removes=AtomicInteger();val tickets=AtomicInteger();val mcp=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
+        MockWebServer().use {server->
+            fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
+            server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse=when {
+                q.path=="/inference/v1/capabilities"->json(buildJsonObject {put("features",JsonObject(emptyMap()));put("endpoints",JsonObject(emptyMap()))})
+                q.path.orEmpty().contains("/inference/api/jobs?")->json(buildJsonObject {put("jobs",JsonArray(emptyList()))})
+                q.path=="/dashboard/api/auth/me"->json(buildJsonObject {put("provider","password");put("user_id","fixture-user")})
+                q.path=="/dashboard/api/profiles"->json(PluginUpdateFixture.profiles())
+                q.path=="/dashboard/api/mcp/servers?profile=worker"->{mcp.incrementAndGet();json(buildJsonObject {put("servers",JsonArray(emptyList()))})}
+                q.path=="/dashboard/api/env?profile=worker"->{assertEquals("Bearer env-ui-fixture",q.getHeader("Authorization"));if(q.method=="GET") {reads.incrementAndGet();if(mode=="held") {entered.countDown();release.await(10,TimeUnit.SECONDS);returned.countDown()};json(HostEnvironmentFixture.inventory(removes.get()==0))} else {val body=Json.parseToJsonElement(q.body.readUtf8()).jsonObject;assertEquals(JsonPrimitive("worker"),body["profile"]);assertEquals(JsonPrimitive(HostEnvironmentFixture.key),body["key"]);val remove=q.method=="DELETE";assertEquals(if(remove) "DELETE" else "PUT",q.method);if(remove) {assertEquals(setOf("profile","key"),body.keys);removes.incrementAndGet()} else {assertEquals(setOf("profile","key","value","provider_setup"),body.keys);assertEquals(JsonPrimitive(HostEnvironmentFixture.secret),body["value"]);writes.incrementAndGet()};json(HostEnvironmentFixture.accepted(HostEnvironmentFixture.key,remove))}}
+                q.path=="/dashboard/api/auth/ws-ticket"->{tickets.incrementAndGet();json(buildJsonObject {put("ticket","e".repeat(43));put("ttl_seconds",30)})}
+                q.path=="/dashboard/api/ws"->MockResponse().withWebSocketUpgrade(object:WebSocketListener() {
+                    override fun onOpen(s:WebSocket,r:Response) {s.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{}}}""")}
+                    override fun onMessage(s:WebSocket,text:String) {val j=Json.parseToJsonElement(text).jsonObject;assertEquals("plugins.manage",j.text("method"));assertEquals("list",j["params"]!!.jsonObject.text("action"));s.send(buildJsonObject {put("jsonrpc","2.0");put("id",j["id"]!!);put("result",PluginSettingsFixture.inventory())}.toString())}
+                }).setHeader("Sec-WebSocket-Protocol","hermes-gateway-v1")
+                else->MockResponse().setResponseCode(404)
+            }}
+            try {
+                val inference=server.url("inference/").toString();val dashboard=server.url("dashboard/").toString()
+                compose.waitUntil(10000) {!api.connecting.value};compose.runOnUiThread {api.configure(inference,"env-inference-fixture",true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))};compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese}
+                val scope=api.profileScope.value;app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("env-ui-fixture","refresh-fixture","password","fixture-user",4102444800).json())});compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
+                compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(p) {ManagementEntry(api,management)}}};compose.onNodeWithTag("management-open").performClick()
+                if(mode=="plugin") {
+                    compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("plugins-open"));compose.onNodeWithTag("plugins-open").performClick();compose.onNodeWithTag("plugins-read").performClick();compose.onNodeWithTag("plugins-read-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.inventory!=null};compose.onNodeWithTag("plugins-list").performScrollToNode(hasTestTag("plugin-details-0"));compose.onNodeWithTag("plugin-details-0").performClick();compose.onNodeWithTag("plugin-detail-view").performScrollToNode(hasTestTag("plugin-settings-open"));compose.onNodeWithTag("plugin-settings-open").performClick();compose.onNodeWithTag("plugin-settings-read-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.plugins.settings!=null};compose.onNodeWithTag("plugin-settings-list").performScrollToNode(hasTestTag("plugin-secret-api_key"));compose.onNodeWithTag("plugin-secret-api_key").performClick();assertEquals(0,reads.get())
+                } else {compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("host-env-open"));compose.onNodeWithTag("host-env-open").performClick();assertEquals(0,reads.get())}
+                compose.onNodeWithTag("host-env-list").performScrollToNode(hasTestTag("host-env-read"));compose.onNodeWithTag("host-env-read").performClick();compose.onNodeWithTag("host-env-read-cancel").performClick();assertEquals(0,reads.get());compose.onNodeWithTag("host-env-read").performClick();compose.onNodeWithTag("host-env-read-confirm").performClick()
+                if(mode=="held") {compose.waitUntil(10000) {entered.count==0L};compose.runOnUiThread {management.bind("unconfigured")};release.countDown();compose.waitUntil(10000) {returned.count==0L};compose.waitForIdle();assertEquals("unconfigured",management.state.value.apiScope);assertNull(management.state.value.environment);assertEquals(0,writes.get());return@use}
+                compose.waitUntil(10000) {!management.state.value.busy && management.state.value.environment!=null};compose.onNodeWithText(HostEnvironmentFixture.mask,substring=true).assertDoesNotExist();assertEquals(0,writes.get())
+                if(mode=="plugin") {compose.onNodeWithTag("host-env-list").performScrollToNode(hasTestTag("host-env-add"));compose.onNodeWithTag("host-env-add").performClick();compose.onNodeWithTag("host-env-key").assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText,AnnotatedString("FIXTURE_PLUGIN_SECRET")));compose.onNodeWithTag("host-env-value").assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText,AnnotatedString("")));compose.onNodeWithTag("host-env-review").assertIsNotEnabled();assertEquals(2,tickets.get());assertEquals(0,writes.get());return@use}
+                fun startEdit() {compose.onNodeWithTag("host-env-list").performScrollToNode(hasTestTag("host-env-edit-${HostEnvironmentFixture.key}"));compose.onNodeWithTag("host-env-edit-${HostEnvironmentFixture.key}").performClick();compose.onNodeWithTag("host-env-value").assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText,AnnotatedString("")))}
+                startEdit();compose.onNodeWithTag("host-env-value").performTextReplacement("***");compose.onNodeWithTag("host-env-review").assertIsNotEnabled();compose.onNodeWithTag("host-env-value").performTextReplacement(HostEnvironmentFixture.secret);androidx.test.espresso.Espresso.closeSoftKeyboard();compose.onNodeWithTag("host-env-review").performClick();compose.onNodeWithTag("host-env-confirm").assertIsNotEnabled();compose.onNodeWithTag("host-env-confirm-review").performScrollToNode(hasTestTag("host-env-approve"));compose.onNodeWithTag("host-env-approve").performClick();compose.onNodeWithTag("host-env-confirm").assertIsNotEnabled();compose.onNodeWithTag("host-env-confirm-review").performScrollToNode(hasTestTag("host-env-review-show"));compose.onNodeWithTag("host-env-review-show").performClick();compose.onNodeWithTag("host-env-confirm").assertIsEnabled();compose.onNodeWithTag("host-env-cancel").performClick();assertEquals(0,writes.get())
+                startEdit();compose.onNodeWithTag("host-env-value").performTextReplacement(HostEnvironmentFixture.secret);androidx.test.espresso.Espresso.closeSoftKeyboard();compose.onNodeWithTag("host-env-review").performClick();compose.onNodeWithTag("host-env-confirm").assertIsNotEnabled();compose.onNodeWithTag("host-env-confirm-review").performScrollToNode(hasTestTag("host-env-review-show"));compose.onNodeWithTag("host-env-review-show").performClick();compose.onNodeWithTag("host-env-confirm-review").performScrollToNode(hasTestTag("host-env-approve"));compose.onNodeWithTag("host-env-approve").performClick();val shot=File(compose.activity.getExternalFilesDir(null),"qa/host-environment-save-review.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)};compose.onNodeWithTag("host-env-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.environment!=null && management.receipts.value.any {it.action=="EnvSave" && it.state=="acknowledged"}};assertEquals(1,writes.get());assertEquals(3,reads.get())
+                val receipt=management.receipts.value.single {it.action=="EnvSave"};val mcpBefore=mcp.get();compose.onNodeWithTag("host-env-close").performClick();assertNull(management.state.value.environment);compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("management-observe-${receipt.key}"));compose.onNodeWithTag("management-observe-${receipt.key}").performClick();assertEquals(3,reads.get());compose.onNodeWithTag("host-env-read").performClick();compose.onNodeWithTag("host-env-read-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.environment!=null};assertEquals(4,reads.get());assertEquals(mcpBefore,mcp.get());assertEquals(1,writes.get())
+                compose.onNodeWithTag("host-env-list").performScrollToNode(hasTestTag("host-env-remove-${HostEnvironmentFixture.key}"));compose.onNodeWithTag("host-env-remove-${HostEnvironmentFixture.key}").performClick();compose.onNodeWithTag("host-env-confirm").assertIsNotEnabled();compose.onNodeWithTag("host-env-confirm-review").performScrollToNode(hasTestTag("host-env-approve"));compose.onNodeWithTag("host-env-approve").performClick();compose.onNodeWithTag("host-env-confirm").performClick();compose.waitUntil(10000) {!management.state.value.busy && management.state.value.environment?.rows?.singleOrNull()?.isSet==false && management.receipts.value.any {it.action=="EnvRemove" && it.state=="acknowledged"}};assertEquals(1,removes.get());assertEquals(1,writes.get());assertEquals(0,tickets.get());val saved=runBlocking {app.database.dao().managementOperations(scope).first()};assertTrue(saved.all {it.state=="acknowledged"});assertTrue(saved.none {it.toString().contains(HostEnvironmentFixture.secret) || it.toString().contains(HostEnvironmentFixture.mask)})
+            } finally {release.countDown();compose.runOnUiThread {management.cancel()}}
+        }
+    }
+    @Test fun separateReadFreshSaveRemovalAndReceiptObservationNeverRevealOrReplay()=exercise()
+    @Test fun declaredPluginSecretHandsOffItsExactVariableWithoutWritingPluginSettings()=exercise("plugin")
+    @Test fun delayedMetadataCannotRepopulateAnotherConnection()=exercise("held")
+}

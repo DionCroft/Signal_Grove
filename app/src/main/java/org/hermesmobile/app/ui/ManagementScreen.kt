@@ -29,6 +29,7 @@ import org.hermesmobile.app.data.*
     var url by remember(s.url) {mutableStateOf(s.url)}
     var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
     var profiles by remember {mutableStateOf(false)}
+    var environment by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var plugins by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var hub by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var gateway by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
@@ -64,6 +65,7 @@ import org.hermesmobile.app.data.*
                     if(s.profile.isNotBlank()) item(key=1006) {Text(s.profile,style=MaterialTheme.typography.titleMedium);Text(label(Words.ManagementReadOnly),style=MaterialTheme.typography.bodySmall)}
                     if(s.profile.isNotBlank()) item(key=1007) {TextButton({create=true},enabled=!s.busy && !pending && s.identity!=null && s.loaded,modifier=Modifier.testTag("mcp-add")) {Text(label(Words.McpAdd))}}
                     if(s.profile.isNotBlank()) item(key=1008) {TextButton({catalog=true;vm.loadCatalog()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("mcp-catalog-open")) {Text(label(Words.McpCatalog))}}
+                    if(s.profile.isNotBlank()) item(key=1020) {TextButton({environment=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-env-open")) {Text(label(Words.HostEnvironment))}}
                     if(s.profile.isNotBlank()) item(key=1009) {TextButton({plugins=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("plugins-open")) {Text(label(Words.HostPlugins))}}
                     if(s.profile.isNotBlank()) item(key=1010) {TextButton({hub=true;vm.loadSkillHub()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("skill-hub-open")) {Text(label(Words.SkillHub))}}
                     if(s.profile.isNotBlank()) item(key=1011) {TextButton({gateway=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("gateway-cron-open")) {Text(label(Words.GatewayAutomation))}}
@@ -98,6 +100,7 @@ import org.hermesmobile.app.data.*
             }
         }
     },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    if(environment) HostEnvironmentDialog(vm,s) {vm.closeHostEnvironment();environment=false}
     if(plugins) PluginInventoryDialog(vm,s) {vm.cancel();plugins=false}
     if(hub) SkillHubDialog(vm,s) {vm.cancel();hub=false}
     if(gateway) GatewayAutomationDialog(vm,s) {vm.cancel();gateway=false}

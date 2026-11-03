@@ -48,6 +48,11 @@ def sources():
         'plugin_grant_roots':'',
         'plugin_update':'',
         'plugin_settings':'',
+        'env_routes':'',
+        'env_lifecycle':'',
+        'env_config':'',
+        'env_external':'',
+
         'plugin_state':'',
         'mcp_discovery':'',
 
@@ -81,6 +86,16 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_environment_routes_scope_mirrors_masks_policy_and_added_revision_guards_require_review(self):
+        initial=sources();initial['env_routes']="@router.delete('/api/env')\nasync def remove_env_var(body,profile=None):\n    return scoped_to_thread(body.profile or profile,remove)\n"
+        initial['env_lifecycle']="def save_provider_env_credential(key,value):\n    return scrub_mirrors(key,value)\n"
+        initial['env_config']="_ENV_VAR_NAME_DENY_PREFIXES:tuple=('LD_',)\ndef validate_env_var_name_for_write(key):\n    return key not in denied\n"
+        initial['web_common']="_LEGACY_MASK_RE=regex('mask')\ndef is_redacted_credential_preview(value):\n    return value.startswith('redacted')\n"
+        initial['models']+="class EnvVarUpdate:\n    key:str\n    value:str\n    provider_setup:bool=False\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_management_routes'].append('DELETE /api/env');tracked['mobile_used_handlers']+=['env_routes:remove_env_var','env_lifecycle:save_provider_env_credential','env_config:_ENV_VAR_NAME_DENY_PREFIXES','env_config:validate_env_var_name_for_write','web_common:_LEGACY_MASK_RE','web_common:is_redacted_credential_preview','models:schema:EnvVarUpdate'];tracked['mobile_used_request_fields'].append('models:EnvVarUpdate.provider_setup')
+        for module,before,after in [('env_routes',"/api/env","/api/other"),('env_routes','body.profile or profile','None'),('env_lifecycle','scrub_mirrors(key,value)','None'),('env_config',"('LD_',)",'()'),('env_config','key not in denied','True'),('web_common',"regex('mask')","regex('other')"),('web_common',"value.startswith('redacted')",'False'),('models','provider_setup:bool=False','provider_setup:str=""'),('models','value:str','value:str\n    expected_revision:str|None=None')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],module)
+
     def test_plugin_settings_types_namespaced_writer_and_restart_effects_are_review_gated(self):
         initial=sources();initial['plugin_settings']="_FIELD_TYPES:dict={'secret':'secret'}\n_VALUE_TYPES:dict={'number':(int,float)}\ndef plugin_settings_fields(current,key):\n    return current.get(key)\n"
         initial['plugin_state']="_PLUGIN_SETTING_RESERVED_ROOTS=frozenset({'security'})\ndef save_plugin_setting(plugin_id,segments,value):\n    return plugin_id,segments,value\n"
