@@ -3,13 +3,55 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch,Mock
 
 spec=importlib.util.spec_from_file_location('device_ci',Path(__file__).resolve().parents[1]/'ci_android_device.py')
 device_ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(device_ci)
 
 
 class DeviceSdkSetupTest(unittest.TestCase):
+    def fixture_disk(self,directory):
+        temp=Path(directory);work=temp/'hermes-device-qa';work.mkdir();sdk=temp/'android'/'sdk';sdk.mkdir(parents=True);(sdk/'ndk').mkdir();(sdk/'platform-tools').mkdir()
+        return sdk,work,{'GITHUB_ACTIONS':'true','RUNNER_TEMP':str(temp),'ANDROID_HOME':str(sdk)}
+
+    def test_sufficient_space_never_deletes_tools(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(device_ci.sys,'platform','linux'),patch.object(device_ci.shutil,'disk_usage',return_value=Mock(free=9*1024**3)),patch.object(device_ci.subprocess,'run') as run:
+            sdk,work,env=self.fixture_disk(directory);device_ci.ensure_device_disk_space(sdk,work,env);run.assert_not_called();self.assertTrue((sdk/'ndk').is_dir())
+
+    def test_low_space_reclaims_only_ndk_then_requires_capacity(self):
+        for after,success in [(9*1024**3,True),(7*1024**3,False)]:
+            with tempfile.TemporaryDirectory() as directory,patch.object(device_ci.sys,'platform','linux'),patch.object(device_ci.shutil,'disk_usage',side_effect=[Mock(free=7*1024**3),Mock(free=after)]),patch.object(device_ci.subprocess,'run') as run:
+                sdk,work,env=self.fixture_disk(directory)
+                if success:device_ci.ensure_device_disk_space(sdk,work,env)
+                else:
+                    with self.assertRaises(ValueError):device_ci.ensure_device_disk_space(sdk,work,env)
+                self.assertEqual(['sudo','-n','rm','-rf','--',str(sdk.resolve()/'ndk')],run.call_args.args[0]);self.assertTrue(run.call_args.kwargs['check']);self.assertTrue((sdk/'platform-tools').is_dir())
+
+    def test_disk_cleanup_refuses_developer_missing_ndk_and_unexpected_work_root(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(device_ci.sys,'platform','linux'),patch.object(device_ci.shutil,'disk_usage',return_value=Mock(free=7*1024**3)),patch.object(device_ci.subprocess,'run') as run:
+            sdk,work,env=self.fixture_disk(directory)
+            with self.assertRaises(ValueError):device_ci.ensure_device_disk_space(sdk,work,dict(env,GITHUB_ACTIONS='false'))
+            other=work.parent/'unrelated';other.mkdir()
+            with self.assertRaises(ValueError):device_ci.ensure_device_disk_space(sdk,other,env)
+            (sdk/'ndk').rmdir()
+            with self.assertRaises(ValueError):device_ci.ensure_device_disk_space(sdk,work,env)
+            run.assert_not_called()
+
+    def test_dead_emulator_fails_before_blocking_adb_and_live_process_uses_original_deadline(self):
+        process=Mock();process.poll.return_value=1;probe=Mock()
+        with self.assertRaisesRegex(RuntimeError,'exited before ADB'):device_ci.wait_for_owned_device(process,probe)
+        probe.assert_not_called()
+        process.poll.return_value=None;probe.return_value=subprocess.CompletedProcess([],0,'device\n')
+        device_ci.wait_for_owned_device(process,probe,3);self.assertEqual('get-state',probe.call_args.args[0]);self.assertLessEqual(probe.call_args.kwargs['timeout'],3)
+        probe.return_value=subprocess.CompletedProcess([],1,'offline')
+        with patch.object(device_ci.time,'monotonic',side_effect=[0,0,1,4]),patch.object(device_ci.time,'sleep'):
+            with self.assertRaises(TimeoutError):device_ci.wait_for_owned_device(process,probe,3)
+
+    def test_transient_adb_probe_timeout_observes_same_live_process_without_restart(self):
+        process=Mock();process.poll.return_value=None;probe=Mock(side_effect=[subprocess.TimeoutExpired(['adb','get-state'],3),subprocess.CompletedProcess([],0,'device\n')])
+        with patch.object(device_ci.time,'sleep'):device_ci.wait_for_owned_device(process,probe,3)
+        self.assertEqual(2,probe.call_count);self.assertEqual(2,process.poll.call_count)
+
     def test_owned_ci_data_partition_replaces_all_template_defaults_without_touching_other_properties(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);owned=root/'HermesCI26.avd';owned.mkdir();config=owned/'config.ini'

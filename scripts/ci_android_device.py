@@ -7,6 +7,7 @@ import argparse
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -39,8 +40,45 @@ def install_sdk_packages(argv: list[str], env: dict, log_path: Path, timeout: in
         time.sleep(min(2**attempt,remaining))
 
 
+def ensure_device_disk_space(sdk: Path, work: Path, env: dict, minimum_bytes: int = 8 * 1024**3) -> None:
+    """Reserve first-boot headroom; newer emulators enforce at least 6 GiB userdata.
+
+    Device jobs consume prebuilt APKs, so only their unused SDK NDK tree may be
+    reclaimed. Never clean workspaces, other toolchains, or a developer machine.
+    """
+    if sys.platform!='linux' or env.get('GITHUB_ACTIONS')!='true':
+        raise ValueError('Disk preparation is restricted to isolated GitHub Linux runners.')
+    temp=Path(env['RUNNER_TEMP']).resolve(strict=True);work=work.resolve(strict=True);sdk=sdk.resolve(strict=True)
+    if work.parent!=temp or work.name!='hermes-device-qa' or sdk!=Path(env['ANDROID_HOME']).resolve(strict=True) or sdk==Path(sdk.anchor):
+        raise ValueError('Unexpected device-job storage scope.')
+    free=shutil.disk_usage(work).free
+    print(f'Emulator disk preflight: {free} bytes free; {minimum_bytes} required.',flush=True)
+    if free>=minimum_bytes:return
+    ndk=sdk/'ndk'
+    if ndk.is_symlink() or not ndk.is_dir() or ndk.resolve(strict=True).parent!=sdk:
+        raise ValueError('Insufficient emulator space; no safely reclaimable SDK NDK tree.')
+    print('Reclaiming unused NDK installations in this isolated prebuilt-APK device job.',flush=True)
+    subprocess.run(['sudo','-n','rm','-rf','--',str(ndk)],env=env,check=True,timeout=180)
+    free=shutil.disk_usage(work).free
+    print(f'Emulator disk preflight after NDK cleanup: {free} bytes free.',flush=True)
+    if free<minimum_bytes:raise ValueError('Insufficient emulator disk space after bounded NDK cleanup.')
+
+
+def wait_for_owned_device(process, probe, timeout: float = 180) -> None:
+    """Observe this process and serial together; a dead emulator is not an ADB wait."""
+    deadline=time.monotonic()+timeout
+    while True:
+        if process.poll() is not None:raise RuntimeError('Owned emulator exited before ADB became ready; inspect emulator.log.')
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise TimeoutError('Owned emulator did not become ready for ADB.')
+        try:result=probe('get-state',timeout=min(10,remaining),check=False)
+        except subprocess.TimeoutExpired:result=None
+        if result is not None and result.returncode==0 and result.stdout.strip()=='device':return
+        time.sleep(min(2,max(0,deadline-time.monotonic())))
+
+
 def configure_owned_avd(avd_home: Path, name: str) -> None:
-    """Bound fresh CI userdata instead of inheriting a device template's 12 GiB default."""
+    """Prefer bounded userdata; emulator first-boot minimums may override this setting."""
     if name not in ('HermesCI26','HermesCI37'):
         raise ValueError("Only this helper's owned CI AVDs can be configured.")
     root=avd_home.resolve(strict=True)
@@ -73,6 +111,7 @@ def main() -> int:
     image=f'system-images;android-{"37.0" if args.api==37 else "26"};google_apis;x86_64'
     print(f'Installing the API {args.api} system image in the isolated runner.',flush=True)
     install_sdk_packages(['sdkmanager','emulator','platform-tools',image],env,work/'sdk.log')
+    ensure_device_disk_space(sdk,work,env)
     print('System image ready; creating the owned emulator.',flush=True)
     name=f'HermesCI{args.api}'
     subprocess.run(['avdmanager','create','avd','--force','--name',name,'--package',image,'--device','pixel_2'],input='no\n',env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=90,check=True)
@@ -88,7 +127,7 @@ def main() -> int:
         try:
             print('Waiting for the owned emulator to boot.',flush=True)
             run([adb,'start-server'])
-            device('wait-for-device',timeout=180)
+            wait_for_owned_device(process,device)
             deadline=time.monotonic()+240
             while True:
                 if process.poll() is not None:raise RuntimeError('Owned emulator exited before boot.')
