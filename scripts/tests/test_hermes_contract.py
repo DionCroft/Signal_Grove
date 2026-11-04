@@ -115,6 +115,17 @@ def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'cont
 
 class ContractWatchTest(unittest.TestCase):
 
+    def test_relay_link_mint_guards_original_code_state_and_optional_metadata_require_review(self):
+        initial=sources()
+        initial['relay_routes']="@router.post('/api/messaging/relay/{platform}/link')\nasync def request_relay_link(platform):\n    return await _call({'action':'request','platform':platform})\n@router.get('/api/messaging/relay/link/{code}')\nasync def get_relay_link_state(code):\n    return await _call({'action':'state','code':code})\n"
+        initial['channel_relay_links']="def request_link(platform):\n    if platform not in relay_fronted_platforms():raise RelayLinkError('platform_not_fronted','refused')\n    if managed_by()=='portal':raise RelayLinkError('managed_by_portal','refused',409)\n    payload=_post('/manage/link',{'platform':platform})\n    code=str(payload.get('code') or '').strip()\n    return {'platform':platform,'code':code,'command':f'/link {code}','expires_at':payload.get('expiresAt'),'bot_url':shared_bot_url(platform,code)}\ndef link_code_state(code):\n    payload=_post('/manage/link/state',{'code':code})\n    return {'state':payload.get('state') or 'inactive','reason':payload.get('reason')}\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_handlers']+=['relay_routes:request_relay_link','relay_routes:get_relay_link_state','channel_relay_links:request_link','channel_relay_links:link_code_state'];tracked['mobile_used_management_routes']+=['POST /api/messaging/relay/{platform}/link','GET /api/messaging/relay/link/{code}']
+        mutations=[('relay_routes',"'/api/messaging/relay/{platform}/link'","'/api/other'"),('relay_routes',"'action':'request'","'action':'unlink'"),('relay_routes',"'platform':platform","'platform':other"),('relay_routes',"'action':'state'","'action':'request'"),('relay_routes',"'code':code","'code':other"),('relay_routes','request_relay_link(platform):','request_relay_link(platform,profile=None):'),('channel_relay_links','platform not in relay_fronted_platforms()','False'),('channel_relay_links',"managed_by()=='portal'","False"),('channel_relay_links',"'managed_by_portal'","'connector_refused'"),('channel_relay_links',"'/manage/link'","'/manage/other'"),('channel_relay_links',"f'/link {code}'","f'/unsafe {code}'"),('channel_relay_links',"payload.get('expiresAt')","payload.get('other')"),('channel_relay_links','shared_bot_url(platform,code)','other_bot(code)'),('channel_relay_links',"'/manage/link/state'","'/manage/link'"),('channel_relay_links',"or 'inactive'","or 'linked'"),('channel_relay_links',"'reason':payload.get('reason')","'reason':payload")]
+        for module,before,after in mutations:
+            with self.subTest(module=module,before=before):
+                changed=copy.deepcopy(initial);self.assertIn(before,changed[module]);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
+
     def test_relay_unlink_route_exact_target_forwarding_and_acknowledgement_require_review(self):
         initial=sources()
         initial['relay_routes']="@router.delete('/api/messaging/relay/{platform}/accounts/{platform_user_id}')\nasync def unlink_relay_account(platform,platform_user_id):\n    return await _call({'action':'unlink','platform':platform,'platform_user_id':platform_user_id})\n"

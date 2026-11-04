@@ -37,6 +37,8 @@ data class ReviewedHostMainModel(val target:ManagementTarget,val request:HostMai
 
 data class ReviewedHostModelsRead(val target:ManagementTarget,val refresh:Boolean,val generation:Long)
 
+data class ReviewedRelayLink(val target:ManagementTarget,val request:HostRelayLinkRequest,val generation:Long)
+data class ReviewedRelayCodesClear(val target:ManagementTarget,val generation:Long)
 data class ReviewedRelayUnlink(val target:ManagementTarget,val request:HostRelayUnlinkRequest,val generation:Long)
 data class ReviewedRelayClear(val target:ManagementTarget,val generation:Long)
 data class ReviewedRelayRead(val target:ManagementTarget,val generation:Long)
@@ -89,7 +91,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
     val customEndpoints:CustomEndpointSnapshot?=null,val customEndpointProbe:CustomEndpointProbeReport?=null,
     val fallback:HostFallbackSnapshot?=null,
-    val poolCleanup:PoolCleanupReport?=null,val credentialPool:CredentialPoolInventory?=null,val providerFlowKey:String?=null,val providerAccounts:ProviderOAuthInventory?=null,val providerFlows:Map<String,ProviderOAuthObservation> = emptyMap(),val moa:HostMoaSnapshot?=null,val hostAuxModel:HostAuxModelState=HostAuxModelState(),val hostMainModel:HostMainModelState=HostMainModelState(),val hostModels:HostModelInventory?=null,val environment:HostEnvInventory?=null,val relayTarget:HostRelayLocalTarget?=null,val relay:HostRelayInventory?=null,val channels:HostChannelInventory?=null,val channelPosture:HostChannelPosture?=null,val plugins:PluginInventoryState=PluginInventoryState(),val hub:SkillHubState=SkillHubState(),val gateway:GatewayAutomationState=GatewayAutomationState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
+    val poolCleanup:PoolCleanupReport?=null,val credentialPool:CredentialPoolInventory?=null,val providerFlowKey:String?=null,val providerAccounts:ProviderOAuthInventory?=null,val providerFlows:Map<String,ProviderOAuthObservation> = emptyMap(),val moa:HostMoaSnapshot?=null,val hostAuxModel:HostAuxModelState=HostAuxModelState(),val hostMainModel:HostMainModelState=HostMainModelState(),val hostModels:HostModelInventory?=null,val environment:HostEnvInventory?=null,val relayLink:HostRelayLinkObservation?=null,val relayTarget:HostRelayLocalTarget?=null,val relay:HostRelayInventory?=null,val channels:HostChannelInventory?=null,val channelPosture:HostChannelPosture?=null,val plugins:PluginInventoryState=PluginInventoryState(),val hub:SkillHubState=SkillHubState(),val gateway:GatewayAutomationState=GatewayAutomationState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
@@ -108,6 +110,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private val mainModel=HostMainModelRepository(app.database.dao(),app.managementReady)
     private val hostChannels=HostChannelsRepository(app.database.dao(),app.managementReady)
     private val hostRelay=HostRelayRepository(hostChannels)
+    private val relayLinks=HostRelayLinkRepository(app.database.dao(),app.managementReady,hostRelay,app.credentials.relayCodes)
     private val relayUnlink=HostRelayUnlinkRepository(app.database.dao(),app.managementReady,hostRelay,app.credentials.relayTargets)
     private val hostEnvironment=HostEnvironmentRepository(app.database.dao(),app.managementReady)
     private val pluginSettings=PluginSettingsRepository(app.database.dao(),app.managementReady)
@@ -163,6 +166,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         is HostMainModelReadbackPending->Words.ManagementReadbackPending
         is HostModelsChanged->Words.ManagementReviewChanged
         is HostModelsUnavailable->Words.HostModelsUnavailable
+        is HostRelayLinkUncertain->Words.RelayCodeUnknown
+        is HostRelayLinkReadbackPending->Words.ManagementReadbackPending
+        is HostRelayCodeUnavailable->Words.RelayCodeUnavailable
+        is HostRelayCodeFull->Words.RelayCodeFull
+        is HostRelayNotForeground->Words.RelayCodeForeground
         is HostRelayUnlinkUncertain->Words.ManagementOutcomePending
         is HostRelayUnlinkReadbackPending->Words.ManagementReadbackPending
         is HostRelayPrivateUnavailable->Words.RelayPrivateUnavailable
@@ -245,11 +253,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
-        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         val api=client(current)
         val pending=withContext(Dispatchers.IO) {NativeLogin()};login=pending
         try {
@@ -266,7 +274,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -276,14 +284,14 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val identity=api.identity(current);val profiles=api.profiles(current)
         if(id!=generation) return@operation
         val profile=saved.profile.takeIf {name->profiles.any {it.name==name}}.orEmpty()
-        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         if(profile.isNotBlank()) loadServers(id,api,current,profile)
     }
     fun chooseProfile(profile:String)=operation {id ->
         val saved=state.value;require(saved.identity!=null && saved.profiles.any {it.name==profile}) {"Refresh verified management profiles first."}
         val current=tokens ?: error("Sign in to management first.")
         require(current.expiresAt>System.currentTimeMillis()/1000) {"Management sign-in expired. Renew it or sign in again."}
-        val selected=saved.copy(profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val selected=saved.copy(profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         save(selected,current)
         if(id!=generation) return@operation
         state.value=selected;loadServers(id,client(selected),current,profile)
@@ -482,6 +490,41 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         state.value=state.value.copy(moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
         operation {id->val result=hostModels.read(review.target,client(state.value),tokens ?: error("Sign in first."),review.refresh);if(id==generation) state.value=state.value.copy(hostModels=result)}
     }
+    fun prepareRelayLink(inventory:HostRelayInventory,platform:String):ReviewedRelayLink? {
+        val s=state.value;if(s.busy || s.relay!==inventory || inventory.owner!=target() || visibleReceipts(s,receipts.value).any {it.state in setOf("sending","unknown")}) return null
+        return runCatching {ReviewedRelayLink(inventory.owner,HostRelayLinkRequest(inventory,platform),generation)}.getOrNull()
+    }
+    fun createRelayLink(review:ReviewedRelayLink) {
+        if(review.generation!=generation || target()!=review.target || state.value.relay!==review.request.expected) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        state.value=state.value.copy(relay=null,relayTarget=null,relayLink=null)
+        operation {id->val out=relayLinks.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation && target()==review.target) state.value=state.value.copy(relayLink=out)}
+    }
+    fun refreshRelayCode(shown:HostRelayLinkObservation) {
+        val owner=target() ?: return;if(state.value.busy || state.value.relayLink!==shown) return
+        state.value=state.value.copy(relayLink=HostRelayLinkObservation(shown.binding,null,shown.available,false))
+        operation {id->val out=relayLinks.poll(owner,shown.binding.receipt.key,client(state.value),tokens ?: error("Sign in first."));if(id==generation && target()==owner) state.value=state.value.copy(relayLink=out)}
+    }
+    fun shareRelayCode(shown:HostRelayLinkObservation,browser:Boolean,foreground:()->Boolean,act:(String)->Unit) {
+        val owner=target() ?: return;val original=shown.code ?: return
+        if(state.value.busy || state.value.relayLink!==shown || !shown.scopeVerified || shown.binding.status !in setOf("unverified","pending") || original.expiresAt<=System.currentTimeMillis()) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        state.value=state.value.copy(relayLink=HostRelayLinkObservation(shown.binding,null,shown.available,false))
+        operation {id->
+            val current=relayLinks.poll(owner,shown.binding.receipt.key,client(state.value),tokens ?: error("Sign in first."))
+            if(id!=generation || target()!=owner) return@operation
+            state.value=state.value.copy(relayLink=current)
+            val code=current.code ?: throw HostRelayCodeUnavailable()
+            if(current.binding.status!="pending" || !code.same(original) || code.expiresAt<=System.currentTimeMillis()) throw HostRelayChanged()
+            if(!foreground()) throw HostRelayNotForeground()
+            try {act(if(browser) code.botUrl ?: throw HostRelayCodeUnavailable() else code.command)} catch(e:CancellationException) {throw e} catch(e:Exception) {state.value=state.value.copy(error=if(browser) Words.RelayCodeBrowserFailed else Words.RelayCodeClipboardFailed)}
+        }
+    }
+    fun expireRelayCode(key:String) {val shown=state.value.relayLink ?: return;if(shown.binding.receipt.key==key && shown.code?.expiresAt?.let {it<=System.currentTimeMillis()}==true) state.value=state.value.copy(relayLink=HostRelayLinkObservation(shown.binding,null,false,false))}
+    fun closeRelayCode() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(relayLink=null)}}
+    fun prepareRelayCodesClear():ReviewedRelayCodesClear?=if(state.value.busy) null else target()?.let {ReviewedRelayCodesClear(it,generation)}
+    fun clearRelayCodes(review:ReviewedRelayCodesClear) {
+        if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        operation {id->withContext(Dispatchers.IO) {try {app.credentials.relayCodes.clear(review.target)} catch(e:CancellationException) {throw e} catch(e:Exception) {throw HostRelayCodeUnavailable()}};if(id==generation && target()==review.target) state.value=state.value.copy(relayLink=null,notice=Words.RelayCodesCleared)}
+    }
     fun prepareRelayUnlink(inventory:HostRelayInventory,platform:String,account:HostRelayAccount):ReviewedRelayUnlink? {
         val s=state.value
         if(s.busy || s.relay!==inventory || inventory.owner!=target() || visibleReceipts(s,receipts.value).any {it.state in setOf("sending","unknown")}) return null
@@ -489,22 +532,28 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun unlinkRelay(review:ReviewedRelayUnlink) {
         if(review.generation!=generation || target()!=review.target || state.value.relay!==review.request.expected) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(relay=null,relayTarget=null)
+        state.value=state.value.copy(relay=null,relayTarget=null,relayLink=null)
         operation {id->val out=relayUnlink.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation && target()==review.target) state.value=state.value.copy(relay=out.inventory,notice=when(out.absent) {true->Words.RelayUnlinkAbsent;false->Words.RelayUnlinkStillListed;null->Words.RelayUnlinkContextChanged})}
     }
     fun loadRelayTarget(key:String) {
-        val expected=target() ?: return;state.value=state.value.copy(relayTarget=null)
-        operation {id->val out=relayUnlink.local(expected,key);if(id==generation && target()==expected) state.value=state.value.copy(relayTarget=out)}
+        val expected=target() ?: return;state.value=state.value.copy(relayTarget=null,relayLink=null)
+        operation {id->
+            val row=app.database.dao().managementOperation(key) ?: throw HostRelayCodeUnavailable()
+            if(row.action=="RelayLinkStart") {
+                if(row.state!="acknowledged") throw HostRelayLinkUncertain()
+                val out=relayLinks.local(expected,key);if(id==generation && target()==expected) state.value=state.value.copy(relayLink=out)
+            } else {val out=relayUnlink.local(expected,key);if(id==generation && target()==expected) state.value=state.value.copy(relayTarget=out)}
+        }
     }
     fun prepareRelayClear():ReviewedRelayClear?=if(state.value.busy) null else target()?.let {ReviewedRelayClear(it,generation)}
     fun clearRelayTargets(review:ReviewedRelayClear) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        operation {id->withContext(Dispatchers.IO) {try {app.credentials.relayTargets.clear(review.target)} catch(e:CancellationException) {throw e} catch(e:Exception) {throw HostRelayPrivateUnavailable()}};if(id==generation && target()==review.target) state.value=state.value.copy(relay=null,relayTarget=null,notice=Words.RelayPrivateCleared)}
+        operation {id->withContext(Dispatchers.IO) {try {app.credentials.relayTargets.clear(review.target)} catch(e:CancellationException) {throw e} catch(e:Exception) {throw HostRelayPrivateUnavailable()}};if(id==generation && target()==review.target) state.value=state.value.copy(relay=null,relayTarget=null,relayLink=null,notice=Words.RelayPrivateCleared)}
     }
     fun prepareRelayRead():ReviewedRelayRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedRelayRead(it,generation)}
     fun loadHostRelay(review:ReviewedRelayRead) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(relay=null,relayTarget=null)
+        state.value=state.value.copy(relay=null,relayTarget=null,relayLink=null)
         operation {id->val result=hostRelay.read(review.target,client(state.value),tokens ?: error("Sign in first."));if(id==generation && target()==review.target) state.value=state.value.copy(relay=result)}
     }
     fun prepareRelayPortal(inventory:HostRelayInventory):ReviewedRelayPortal? {
@@ -513,7 +562,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun openRelayPortal(review:ReviewedRelayPortal,open:(String)->Unit) {
         if(review.generation!=generation || target()!=review.target || state.value.relay!==review.inventory) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(relay=null,relayTarget=null)
+        state.value=state.value.copy(relay=null,relayTarget=null,relayLink=null)
         operation {id->
             val current=hostRelay.portal(review.target,review.inventory,client(state.value),tokens ?: error("Sign in first."))
             if(id!=generation || target()!=review.target) return@operation
@@ -521,12 +570,12 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             try {open(current.portalUrl)} catch(e:Exception) {state.value=state.value.copy(error=Words.RelayBrowserFailed)}
         }
     }
-    fun closeHostRelay() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(relay=null,relayTarget=null)}}
-    fun closeHostChannels() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(channels=null,channelPosture=null,relay=null,relayTarget=null)}}
+    fun closeHostRelay() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(relay=null,relayTarget=null,relayLink=null)}}
+    fun closeHostChannels() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null)}}
     fun prepareChannelsRead():ReviewedChannelsRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedChannelsRead(it,generation)}
     fun loadHostChannels(review:ReviewedChannelsRead) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(channels=null,channelPosture=null,relay=null,relayTarget=null)
+        state.value=state.value.copy(channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null)
         operation {id->val result=hostChannels.read(review.target,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(channels=result)}
     }
     fun prepareHostChannel(inventory:HostChannelInventory,id:String,draft:HostChannelDraft?=null):ReviewedChannel? {
@@ -537,14 +586,14 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun changeHostChannel(review:ReviewedChannel) {
         if(review.generation!=generation || target()!=review.target || review.request.expected!==state.value.channels) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
         state.value=state.value.copy(channelPosture=null)
-        if(review.request.draft!=null) state.value=state.value.copy(environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),credentialPool=null,poolCleanup=null,providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null)
+        if(review.request.draft!=null) state.value=state.value.copy(environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),credentialPool=null,poolCleanup=null,providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null)
         operation {id->val out=hostChannels.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(channels=out.inventory,channelPosture=out.posture,notice=if(out.posture!=null) Words.ChannelsReported else if(out.different) Words.ChannelsDifferent else if(out.hotServed==true) Words.ChannelsHotServed else Words.ChannelsAcknowledged)}
     }
-    fun closeHostEnvironment() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null)}}
+    fun closeHostEnvironment() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null)}}
     fun prepareHostEnvRead():ReviewedHostEnvRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedHostEnvRead(it,generation)}
     fun loadHostEnvironment(review:ReviewedHostEnvRead) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null)
+        state.value=state.value.copy(moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null)
         operation {id->val result=hostEnvironment.read(review.target,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(environment=result)}
     }
     fun prepareHostEnv(key:String,action:HostEnvAction,value:String=""):ReviewedHostEnv? {
@@ -554,7 +603,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun changeHostEnvironment(review:ReviewedHostEnv) {
         if(review.generation!=generation || target()!=review.target || review.request.expected!==state.value.environment) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null)
+        state.value=state.value.copy(moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null)
         operation {id->val out=hostEnvironment.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(environment=out.inventory,notice=Words.HostEnvAcknowledged)}
     }
     fun preparePluginRead():ReviewedPluginRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedPluginRead(it,generation)}

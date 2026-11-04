@@ -33,7 +33,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(45,TimeUnit.SECONDS)
         .writeTimeout(30,TimeUnit.SECONDS).callTimeout(60,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
     private val hubHttp=http.newBuilder().readTimeout(180,TimeUnit.SECONDS).callTimeout(210,TimeUnit.SECONDS).build()
-    private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList(),query:Map<String,String> = emptyMap(),slow:Boolean=false):JsonElement=suspendCancellableCoroutine {continuation ->
+    private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList(),query:Map<String,String> = emptyMap(),slow:Boolean=false,relayMint:Boolean=false):JsonElement=suspendCancellableCoroutine {continuation ->
         dns.checkHost(base.host)
         val endpoint=base.newBuilder().addPathSegments(path).apply {tail.forEach {addPathSegment(it)};query.forEach {(key,value)->addQueryParameter(key,value)};profile?.let {require(it.isNotBlank() && it.length<=128);addQueryParameter("profile",it)}}.build()
         val request=Request.Builder().url(endpoint).header("Accept","application/json").apply {
@@ -45,7 +45,15 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
             override fun onFailure(call:Call,e:IOException) {if(continuation.isActive) continuation.resumeWith(Result.failure(e))}
             override fun onResponse(call:Call,response:Response) {
                 val result=runCatching {response.use {
-                    if(!it.isSuccessful) throw HermesHttpException.from(it)
+                    if(!it.isSuccessful) {
+                        // Only these exact typed 409 guards precede connector minting in this route.
+                        if(relayMint && it.code==409 && it.header("Content-Type").orEmpty().substringBefore(';').trim().equals("application/json",true)) {
+                            val detail=runCatching {Json.parseToJsonElement(it.peekBody(16_384).string()).jsonObject["detail"] as? JsonObject}.getOrNull()
+                            val code=(detail?.get("code") as? JsonPrimitive)?.takeIf {v->v.isString}?.content
+                            if(code in setOf("platform_not_fronted","managed_by_portal")) throw HostRelayLinkRefused(code=="managed_by_portal")
+                        }
+                        throw HermesHttpException.from(it)
+                    }
                     require(it.header("Content-Type").orEmpty().substringBefore(';').trim().equals("application/json",ignoreCase=true)) {"Management server returned a non-JSON response."}
                     if(it.body.contentLength()>2_000_000) throw HermesResponseTooLargeException()
                     val source=it.body.source();val buffer=okio.Buffer()
@@ -58,6 +66,8 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun startHostRelayLink(tokens:ManagementTokens,platform:String):JsonObject {require(HostChannelPolicy.id(platform));return element("api/messaging/relay",tokens.access,JsonObject(emptyMap()),tail=listOf(platform,"link"),relayMint=true).jsonObject}
+    suspend fun hostRelayLinkState(tokens:ManagementTokens,code:String):JsonObject {require(HostRelayLinkPolicy.code(code));return json("api/messaging/relay/link",tokens.access,tail=listOf(code))}
     suspend fun unlinkHostRelay(tokens:ManagementTokens,request:HostRelayUnlinkRequest):JsonObject=json("api/messaging/relay",tokens.access,method="DELETE",tail=listOf(request.platform,"accounts",request.account.id))
     suspend fun hostRelayAccounts(tokens:ManagementTokens):JsonObject=json("api/messaging/relay",tokens.access)
     suspend fun probeCustomEndpoint(tokens:ManagementTokens,request:CustomEndpointProbeRequest):JsonObject = element("api/providers/custom-endpoints/validate",tokens.access,request.body(),slow=true).jsonObject

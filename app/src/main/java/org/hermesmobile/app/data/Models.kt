@@ -117,6 +117,14 @@ object RunStates {
     @Query("UPDATE management_operations SET state='unknown' WHERE state='sending'") suspend fun recoverManagementOperations()
     @Query("UPDATE management_operations SET state=:state,resultSummary=:result WHERE `key`=:key AND state IN ('sending','unknown')") suspend fun finishManagementOperation(key:String,state:String,result:String)
     @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='OAuthStart' AND state='acknowledged'") suspend fun updateMcpOAuthObservation(key:String,result:String)
+    @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='RelayLinkStart' AND state='acknowledged'") suspend fun updateRelayCodeSummary(key:String,result:String)
+    @Transaction suspend fun observeRelayCodeState(key:String,status:String) {
+        require(status in setOf("pending","inactive","refused"))
+        val row=managementOperation(key) ?: return
+        if(row.action!="RelayLinkStart" || row.state!="acknowledged") return
+        val original=kotlinx.serialization.json.Json.parseToJsonElement(row.resultSummary).jsonObject
+        if(original["code_issued"]==kotlinx.serialization.json.JsonPrimitive(true) && original["status"] in setOf(kotlinx.serialization.json.JsonPrimitive("unverified"),kotlinx.serialization.json.JsonPrimitive("pending"))) updateRelayCodeSummary(key,kotlinx.serialization.json.JsonObject(original+mapOf("status" to kotlinx.serialization.json.JsonPrimitive(status))).toString())
+    }
     @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='ProviderOAuthStart' AND state='acknowledged'") suspend fun updateProviderOAuthObservation(key:String,result:String)
     @Query("UPDATE management_operations SET state='confirmed',resultSummary=:result WHERE `key`=:key AND state='acknowledged'") suspend fun confirmManagementOperation(key:String,result:String)
     @Query("UPDATE management_operations SET state='reviewed' WHERE `key`=:key AND resourceScope=:scope AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String)

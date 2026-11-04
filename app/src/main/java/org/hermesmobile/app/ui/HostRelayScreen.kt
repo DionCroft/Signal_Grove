@@ -11,8 +11,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 
-@Composable fun HostRelayDialog(vm:ManagementViewModel,s:ManagementState,openPortal:((String)->Unit)?=null,receiptKey:String?=null,close:()->Unit) {
+@Composable fun HostRelayDialog(vm:ManagementViewModel,s:ManagementState,openPortal:((String)->Unit)?=null,receiptKey:String?=null,openCodeBot:((String)->Unit)?=null,close:()->Unit) {
     LaunchedEffect(receiptKey,s.apiScope,s.url,s.profile,s.identity) {if(receiptKey!=null) vm.loadRelayTarget(receiptKey)}
+    var create by remember(s.relay) {mutableStateOf<ReviewedRelayLink?>(null)}
+    var clearCodes by remember(s.apiScope,s.url,s.profile,s.identity) {mutableStateOf<ReviewedRelayCodesClear?>(null)}
     var unlink by remember(s.relay) {mutableStateOf<ReviewedRelayUnlink?>(null)}
     var clear by remember(s.apiScope,s.url,s.profile,s.identity) {mutableStateOf<ReviewedRelayClear?>(null)}
     var localReveal by remember(s.relayTarget) {mutableStateOf(false)}
@@ -40,6 +42,7 @@ import org.hermesmobile.app.data.*
             }
         }
         item {TextButton({clear=vm.prepareRelayClear()},enabled=!s.busy && vm.reviewTarget()!=null,modifier=Modifier.testTag("relay-clear-private")) {Text(label(Words.RelayClearPrivate))}}
+        item {TextButton({clearCodes=vm.prepareRelayCodesClear()},enabled=!s.busy && vm.reviewTarget()!=null,modifier=Modifier.testTag("relay-clear-codes")) {Text(label(Words.RelayCodesClear))}}
         inventory?.let {current->
             item {Text(label(when(current.manager) {HostRelayManager.Portal->Words.RelayPortalManaged;HostRelayManager.Connector->Words.RelayConnectorManaged;HostRelayManager.Unknown->Words.RelayUnknownManaged}));Text(label(Words.RelayAccountCount)+": "+current.accountCount)}
             item {Text(label(Words.RelayReported))}
@@ -47,6 +50,7 @@ import org.hermesmobile.app.data.*
             if(reveal) {
                 for((index,platform) in current.platforms.withIndex()) {
                     item(key="platform:"+index) {Text(platform.id,style=MaterialTheme.typography.titleMedium);if(platform.accounts.isEmpty()) Text(label(Words.EmptyInventory))}
+                    if(current.manager==HostRelayManager.Connector) item(key="create:$index") {TextButton({create=vm.prepareRelayLink(current,platform.id)},enabled=!s.busy && !pending && HostChannelPolicy.id(platform.id),modifier=Modifier.testTag("relay-code-create-$index")) {Text(label(Words.RelayCodeCreate))};if(!HostChannelPolicy.id(platform.id)) Text(label(Words.RelayUnlinkUnsupported))}
                     for((accountIndex,account) in platform.accounts.withIndex()) {
                         item(key="account:$index:$accountIndex") {Text(label(Words.RelayAccountId)+": "+account.id);if(account.name.isNotEmpty()) Text(label(Words.RelayAccountName)+": "+account.name);if(account.handle.isNotEmpty()) Text(label(Words.RelayAccountHandle)+": "+account.handle)}
                         if(current.manager==HostRelayManager.Connector) item(key="unlink:$index:$accountIndex") {TextButton({unlink=vm.prepareRelayUnlink(current,platform.id,account)},enabled=!s.busy && !pending && HostChannelPolicy.id(platform.id) && HostRelayUnlinkRequest.addressable(account.id),modifier=Modifier.testTag("relay-unlink-$index-$accountIndex")) {Text(label(Words.RelayUnlink))};if(!HostChannelPolicy.id(platform.id) || !HostRelayUnlinkRequest.addressable(account.id)) Text(label(Words.RelayUnlinkUnsupported))}
@@ -61,6 +65,9 @@ import org.hermesmobile.app.data.*
         }
     }},confirmButton={TextButton(close,Modifier.testTag("relay-close")) {Text(label(Words.Close))}})
     read?.let {frozen->AlertDialog(onDismissRequest={read=null},title={Text(label(Words.RelayRead))},text={LazyColumn(Modifier.heightIn(max=480.dp).testTag("relay-read-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {item {Text(frozen.target.url);Text(frozen.target.profile);Text(frozen.target.actor)};item {Text(label(Words.RelayPrivacy))}}},confirmButton={TextButton({read=null;vm.loadHostRelay(frozen)},enabled=!s.busy,modifier=Modifier.testTag("relay-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({read=null},Modifier.testTag("relay-read-cancel")) {Text(label(Words.Cancel))}})}
+    create?.let {frozen->RelayCodeCreateReview(frozen,!s.busy,{create=null}) {create=null;vm.createRelayLink(frozen)}}
+    s.relayLink?.let {RelayCodeDialog(vm,s,it,openCodeBot)}
+    clearCodes?.let {frozen->RelayCodesClearReview(frozen,!s.busy,{clearCodes=null}) {clearCodes=null;vm.clearRelayCodes(frozen)}}
     unlink?.let {frozen->RelayUnlinkReview(frozen,!s.busy,{unlink=null}) {unlink=null;vm.unlinkRelay(frozen)}}
     clear?.let {frozen->
         var grant by remember(frozen) {mutableStateOf(false)}

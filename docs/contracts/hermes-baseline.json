@@ -2940,6 +2940,7 @@
     "GET /api/mcp/servers",
     "GET /api/messaging/platforms",
     "GET /api/messaging/relay",
+    "GET /api/messaging/relay/link/{code}",
     "GET /api/model/auxiliary",
     "GET /api/model/moa",
     "GET /api/model/options",
@@ -2964,6 +2965,7 @@
     "POST /api/mcp/servers/{name}/auth",
     "POST /api/mcp/servers/{name}/test",
     "POST /api/messaging/platforms/{platform_id}/test",
+    "POST /api/messaging/relay/{platform}/link",
     "POST /api/model/set",
     "POST /api/providers/custom-endpoints",
     "POST /api/providers/custom-endpoints/validate",
@@ -3431,11 +3433,13 @@
     "channel_relay_links:import:os",
     "channel_relay_links:import:urllib.error",
     "channel_relay_links:import:urllib.request",
+    "channel_relay_links:link_code_state",
     "channel_relay_links:link_status",
     "channel_relay_links:managed_by",
     "channel_relay_links:portal_agents_url",
     "channel_relay_links:relay_channel_view",
     "channel_relay_links:relay_link_verb",
+    "channel_relay_links:request_link",
     "channel_relay_links:shared_bot_url",
     "channel_relay_links:unlink",
     "channel_served:import:Any",
@@ -4639,11 +4643,13 @@
     "relay_routes:_call",
     "relay_routes:binding:_NOT_READY",
     "relay_routes:binding:router",
+    "relay_routes:get_relay_link_state",
     "relay_routes:get_relay_links",
     "relay_routes:import:APIRouter",
     "relay_routes:import:Any",
     "relay_routes:import:HTTPException",
     "relay_routes:import:asyncio",
+    "relay_routes:request_relay_link",
     "relay_routes:unlink_relay_account",
     "runs:_handle_run_approval",
     "runs:_handle_run_clarify",
@@ -5417,6 +5423,34 @@
         "sha256": "eef40b5476e1860436e5e9727e33b7ea075afa685948b8648ea091728a5397ff",
         "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
         "reason": "The gateway POSTs /manage/unlink with exact platform/platformUserId, then returns only unlinked:true. It does not echo an account ID, perform a second manager check or prove revocation/delivery. The phone captures the strict boolean ACK before a separate account-list read, preserving unknown outcomes and stated race limits. See docs/contracts/2026-11-04-relay-unlink-review.md."
+      }
+    ],
+    "relay_routes:request_relay_link": [
+      {
+        "sha256": "da6845ddd34557c40568fb0bdc56844d2d5ff4dad56f1377483e117126acc007",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "POST forwards only action=request and exact platform through the watched process-home control path. It declares no profile or body; the client uses an empty object and its own explicit review/pending claim. See docs/contracts/2026-11-04-relay-code-review.md."
+      }
+    ],
+    "relay_routes:get_relay_link_state": [
+      {
+        "sha256": "050fb92ffbd60fe4c6d9a201cb5ecc3a8d73f91ca58072712633b4cd97f71124",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "GET forwards only action=state and the exact original code, without profile parameters. The private code is sent only after current instance proof and is never replaced by pasted input. See docs/contracts/2026-11-04-relay-code-review.md."
+      }
+    ],
+    "channel_relay_links:request_link": [
+      {
+        "sha256": "b0ed00ac39d2cd09aedc4187b5ed2bfae6a3f23fd4a33b78bb8eead61f4a5fc7",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Fronted-platform and managed-by-Portal guards precede /manage/link. Only their typed 409 slugs are definitive pre-mint refusals. The returned platform/code/exact /link command are mandatory; expiry and bot URL are optional. A reply without a usable mandatory code can follow minting and remains uncertain. See docs/contracts/2026-11-04-relay-code-review.md."
+      }
+    ],
+    "channel_relay_links:link_code_state": [
+      {
+        "sha256": "8ce4b3d08300c34afa9f27aa5aa025caf0a82150bf11d72c144b0c6dff1c6646",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The connector state request carries the original code; the wrapper returns state or inactive and optional reason. Inactive means used OR expired, not linked. The client records state observations only, never account ownership/delivery, and does not infer pending from the creation response. See docs/contracts/2026-11-04-relay-code-review.md."
       }
     ]
   },

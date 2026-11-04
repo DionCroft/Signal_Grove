@@ -2,9 +2,11 @@
 
 ## Unreleased
 
+- Approved Team Gateway link-code creation and original-code recovery: encrypted local copies, explicit status checks, honest unchecked/used-or-expired states, private reveal, sensitive clipboard copying and separately reviewed bot handoff with fresh scope/status checks. Unknown requests never auto-mint replacements.
+
 - Reviewed connector-managed Team Gateway account unlinking: fresh private target approval, one durable send, acknowledgement separated from account-list observations, encrypted original-target recovery and separately approved local cache clearing. Interrupted requests retain uncertainty and are never automatically repeated.
 
-- Private Team Gateway account review, verified against the instance launch profile, with hidden account details, read-only unknown authority, and a separately approved Portal handoff that rechecks its destination before opening. Link-code creation remains separate work; connector-managed account removal has a separate review.
+- Private Team Gateway account review, verified against the instance launch profile, with hidden account details, read-only unknown authority, and a separately approved Portal handoff that rechecks its destination before opening. Code creation, status and connector-managed account removal each have separate reviewed controls.
 
 - Reviewed, profile-scoped channel setup: dynamic platform catalogs, private allowlist/routing inspection, separate enable/keep/replace/clear drafts, exact save approval, and host-reported connection/access posture. Durable uncertainty and ACK/readback separation preserve privacy across connection changes. Team Gateway linking and onboarding remain separate work.
 
