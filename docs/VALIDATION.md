@@ -1,5 +1,9 @@
 # Current development validation — audit follow-up
 
+## 2026-11-04 — explicit hosted validation trigger
+
+Navigation correction e8e8c4b was pushed and its remote main ref verified, but no workflow run or check suite appeared during inspection. Android CI was active and repository Actions were enabled; the commit contained no skip directive. The unchanged strict verification/API 26/API 37 pipeline now also accepts manual workflow dispatch, allowing maintainers to request the same checks explicitly. This CI-only addition changes no app code, permissions, matrix, timeout, assertion or automatic push trigger. Its exact-commit hosted result remains pending invocation and completion; the earlier failed matrix is not called green.
+
 ## 2026-11-04 — stable task scrolling after editing
 
 The isolated navigation-fixture correction passed the required strict unit/lint/debug/instrumentation build: **335 JVM tests**, zero failures/errors/skips, all **86 offline checks**, strict **495-component / 1071-artifact** dependency verification and **409 tracked-file** secret review. All four NavigationTest cases passed on API 36 and 37. The task create/edit/complete/delete case passed three independent first-attempt runs on a cold-started API 26 emulator at CI geometry: physical **1080×1920**, density **420**, font **1.3**. The complete unfiltered API 26 suite then passed **508 cases**, with no ignored or assumption-failed cases.
