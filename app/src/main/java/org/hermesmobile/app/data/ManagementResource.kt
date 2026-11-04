@@ -11,16 +11,18 @@ fun managementResourceScope(url:String,profile:String):String=MessageDigest.getI
 object ManagementReceiptVisibility {
     const val SharedPending="SharedPending"
     const val SharedInstancePending="SharedInstancePending"
+    const val SharedProjectPending="SharedProjectPending"
     fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe")
-    fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String=""):List<ManagementOperation> {
+    fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String="",projectHome:String=""):List<ManagementOperation> {
         if(resourceScope.isBlank()) return emptyList()
         return rows.mapNotNull {row ->
             val pending=row.state in setOf("sending","unknown")
             val sameResource=row.resourceScope==resourceScope
             val instance=dashboardUrl.isNotBlank() && row.url==dashboardUrl && pending && (instanceAction(row.action) || row.action==SharedInstancePending)
-            if(!sameResource && !instance) null
+            val sameStore=dashboardUrl.isNotBlank() && row.url==dashboardUrl && pending && projectHome.isNotBlank() && row.projectHome==projectHome
+            if(!sameResource && !instance && !sameStore) null
             else if(sameResource && row.apiScope==apiScope) row
-            else if(pending) row.copy(resourceScope=if(instance) "" else row.resourceScope,apiScope="",profile=if(instance) "" else row.profile,actor="",action=if(instance) SharedInstancePending else SharedPending,target="",requestSummary="",resultSummary="",createdAt=0)
+            else if(pending) row.copy(resourceScope=if(instance || sameStore) "" else row.resourceScope,apiScope="",profile=if(instance || sameStore) "" else row.profile,actor="",action=if(instance) SharedInstancePending else if(sameStore) SharedProjectPending else SharedPending,target="",requestSummary="",resultSummary="",createdAt=0)
             else null
         }
     }

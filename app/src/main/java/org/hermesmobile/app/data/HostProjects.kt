@@ -62,6 +62,10 @@ object HostProjectProtocol {
         // A deleted/archived project's metadata pointer is not automatically cleared upstream.
         HostProjectSnapshot(owner,homeId,Collections.unmodifiableList(projects),active,observedAt)
     }
+    fun resultProject(j:JsonObject):HostProjectInfo?=decode {
+        require(j.containsKey("project"))
+        if(j["project"] is JsonNull) null else project(j["project"] as JsonObject)
+    }
     fun detail(j:JsonObject,owner:ManagementTarget,homeId:String,id:String,observedAt:Long=System.currentTimeMillis()):HostProjectDetail=decode {
         GatewayCronInventory.requireProfile(owner.profile);require(homeId.matches(Regex("[a-f0-9]{64}")) && validId(id))
         val p=project(j["project"] as JsonObject);require(p.id==id) // get_project can fall back from ID to slug.

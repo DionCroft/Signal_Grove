@@ -77,6 +77,7 @@ class GatewayRpcSession private constructor():Closeable {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("plugins.manage",buildJsonObject {put("profile",profile);put("action","list")})
     }
+    suspend fun changeProject(profile:String,request:org.hermesmobile.app.data.HostProjectChange):JsonObject=call(request.action.rpc,request.params(profile))
     suspend fun projects(profile:String):JsonObject {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("projects.list",buildJsonObject {put("profile",profile)})

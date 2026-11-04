@@ -690,4 +690,62 @@ class HandlerRegistry:
             changed=copy.deepcopy(initial);del changed[key]
             with self.assertRaises(ValueError):checker.extract(changed)
 
+    def mutation_fixture(self):
+        data=self.fixture()
+        data['project_contract']+="""
+class ProjectsCreateParams(ProfileParams):
+    name:str
+    use:bool=False
+class ProjectsUpdateParams(ProjectIdParams):
+    description:str|None=None
+class OptionalProjectResult(Result):
+    project:ProjectInfo|None=None
+class ActiveIdResult(Result):
+    active_id:str|None=None
+method('projects.create',params=ProjectsCreateParams,result=OptionalProjectResult)
+method('projects.update',params=ProjectsUpdateParams,result=ProjectResult)
+"""
+        data['project_methods']+="""
+def _register_project_mutator(suffix,fn_name,takes_path,kwargs_of):
+    return require_project_then_call(fn_name,takes_path,kwargs_of)
+_register_project_mutator('set_primary','set_primary',True,lambda p:{})
+@_projects_method('projects.create')
+def _(rid,params):
+    pid=pdb.create_project(name=params['name'])
+    record_feature_used('projects')
+    return {'project':pdb.get_project(pid)}
+"""
+        data['project_db']+="""
+def _normalize_path(path):
+    return host_norm(path)
+def set_primary(conn,id,path):
+    if not attached(conn,id,path):
+        return False
+    return set_primary_locked(conn,id,path)
+def delete_project(conn,id):
+    return metadata_delete(conn,id)
+"""
+        return data
+
+    def test_project_mutation_null_keep_clear_and_optional_creation_contracts_request_review(self):
+        self.check_mutations(self.mutation_fixture(),['project_contract:schema:ProjectsUpdateParams','project_contract:method:projects.create'],['project_contract:ProjectsCreateParams.use','project_contract:ProjectsUpdateParams.description','project_contract:OptionalProjectResult.project'],[
+            ('project_contract','use:bool=False','use:bool=True'),
+            ('project_contract','description:str|None=None',"description:str=''") ,
+            ('project_contract','project:ProjectInfo|None=None','project:ProjectInfo'),
+            ('project_contract','ProjectsUpdateParams(ProjectIdParams)','ProjectsUpdateParams(ProfileParams)'),
+            ('project_contract','result=OptionalProjectResult','result=OtherResult')])
+
+    def test_project_dynamic_mutator_mapping_and_host_path_primary_effects_request_review(self):
+        self.check_mutations(self.mutation_fixture(),['project_methods:_register_project_mutator','project_methods:mutator:set_primary','project_db:_normalize_path','project_db:set_primary'],[],[
+            ('project_methods',"'set_primary','set_primary',True","'set_primary','set_primary',False"),
+            ('project_methods','require_project_then_call','call_without_canonical_target'),
+            ('project_db','host_norm(path)','android_norm(path)'),
+            ('project_db','return False','return True')])
+
+    def test_project_postwrite_creation_and_metadata_only_deletion_cannot_change_unnoticed(self):
+        self.check_mutations(self.mutation_fixture(),['project_methods:rpc:projects.create','project_db:delete_project'],[],[
+            ('project_methods',"record_feature_used('projects')","raise ValueError('after-write')"),
+            ('project_methods',"pdb.create_project(name=params['name'])","pdb.create_and_activate(name=params['name'])"),
+            ('project_db','metadata_delete(conn,id)','remove_files(conn,id)')])
+
 if __name__=='__main__':unittest.main()
