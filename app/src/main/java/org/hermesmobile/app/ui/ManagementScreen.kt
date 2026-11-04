@@ -38,6 +38,7 @@ import org.hermesmobile.app.data.*
     var providerAccounts by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var hostModels by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var environment by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
+    var relayReceipt by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf<String?>(null)}
     var relay by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
     var channels by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var plugins by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
@@ -81,7 +82,7 @@ import org.hermesmobile.app.data.*
                     if(s.profile.isNotBlank()) item(key=1023) {TextButton({credentialPool=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("credential-pool-open")) {Text(label(Words.CredentialPool))}}
                     if(s.profile.isNotBlank()) item(key=1022) {TextButton({providerAccounts=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("provider-accounts-open")) {Text(label(Words.ProviderAccounts))}}
                     if(s.profile.isNotBlank()) item(key=1021) {TextButton({hostModels=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-models-open")) {Text(label(Words.HostModels))}}
-                    if(s.profile.isNotBlank()) item(key="host-relay") {TextButton({relay=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-relay-open")) {Text(label(Words.RelayAccounts))}}
+                    if(s.profile.isNotBlank()) item(key="host-relay") {TextButton({relayReceipt=null;relay=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-relay-open")) {Text(label(Words.RelayAccounts))}}
                     if(s.profile.isNotBlank()) item(key="host-channels") {TextButton({channels=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-channels-open")) {Text(label(Words.Channels))}}
                     if(s.profile.isNotBlank()) item(key=1020) {TextButton({environment=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-env-open")) {Text(label(Words.HostEnvironment))}}
                     if(s.profile.isNotBlank()) item(key=1009) {TextButton({plugins=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("plugins-open")) {Text(label(Words.HostPlugins))}}
@@ -113,7 +114,7 @@ import org.hermesmobile.app.data.*
                     }}
                 }
                 if(receipts.isNotEmpty()) item(key=1018) {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
-                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s,openCredentialPool={credentialPool=true},openFallback={fallback=true},openCustomEndpoints={endpoints=true},openChannels={channels=true},reviewShared={key,target->sharedReview=ReviewedManagementUncertainty(key,target)})}
+                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s,openCredentialPool={credentialPool=true},openFallback={fallback=true},openCustomEndpoints={endpoints=true},openChannels={channels=true},openRelay={key->relayReceipt=key;relay=true},reviewShared={key,target->sharedReview=ReviewedManagementUncertainty(key,target)})}
                 s.error?.let {message->item(key=1019) {Text(label(message),color=MaterialTheme.colorScheme.error)}}
             }
         }
@@ -123,7 +124,7 @@ import org.hermesmobile.app.data.*
     if(credentialPool) CredentialPoolDialog(vm,s) {vm.closeCredentialPool();credentialPool=false}
     if(providerAccounts) ProviderAccountsDialog(vm,s) {vm.closeProviderAccounts();providerAccounts=false}
     if(hostModels) HostModelsDialog(vm,s) {vm.closeHostModels();hostModels=false}
-    if(relay) HostRelayDialog(vm,s) {vm.closeHostRelay();relay=false}
+    if(relay) HostRelayDialog(vm,s,receiptKey=relayReceipt) {vm.closeHostRelay();relay=false;relayReceipt=null}
     if(channels) HostChannelsDialog(vm,s) {vm.closeHostChannels();channels=false}
     if(environment) HostEnvironmentDialog(vm,s) {vm.closeHostEnvironment();environment=false}
     if(plugins) PluginInventoryDialog(vm,s) {vm.cancel();plugins=false}

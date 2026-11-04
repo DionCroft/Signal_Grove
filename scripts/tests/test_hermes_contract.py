@@ -115,6 +115,17 @@ def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'cont
 
 class ContractWatchTest(unittest.TestCase):
 
+    def test_relay_unlink_route_exact_target_forwarding_and_acknowledgement_require_review(self):
+        initial=sources()
+        initial['relay_routes']="@router.delete('/api/messaging/relay/{platform}/accounts/{platform_user_id}')\nasync def unlink_relay_account(platform,platform_user_id):\n    return await _call({'action':'unlink','platform':platform,'platform_user_id':platform_user_id})\n"
+        initial['channel_relay_links']="_ACTIONS={'unlink':lambda p:unlink(p['platform'],p['platform_user_id'])}\ndef unlink(platform,platform_user_id):\n    _post('/manage/unlink',{'platform':platform,'platformUserId':platform_user_id})\n    return {'unlinked':True}\n"
+        old=checker.extract(initial);tracked=baseline(old);tracked['mobile_used_management_routes'].append('DELETE /api/messaging/relay/{platform}/accounts/{platform_user_id}');tracked['mobile_used_handlers']+=['relay_routes:unlink_relay_account','channel_relay_links:unlink','channel_relay_links:binding:_ACTIONS']
+        mutations=[('relay_routes',"'/api/messaging/relay/{platform}/accounts/{platform_user_id}'","'/api/other'"),('relay_routes',"'action':'unlink'","'action':'status'"),('relay_routes',"'platform_user_id':platform_user_id","'platform_user_id':other_account"),('relay_routes','platform,platform_user_id):','platform,platform_user_id,profile=None):'),('channel_relay_links',"'/manage/unlink'","'/manage/link'"),('channel_relay_links',"'platformUserId':platform_user_id","'platform_user_id':platform_user_id"),('channel_relay_links',"'unlinked':True","'unlinked':False"),('channel_relay_links',"lambda p:unlink(p['platform'],p['platform_user_id'])","lambda p:unlink('other',p['platform_user_id'])")]
+        for module,before,after in mutations:
+            with self.subTest(module=module,before=before):
+                changed=copy.deepcopy(initial);self.assertIn(before,changed[module]);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
+
     def test_relay_account_route_process_scope_authority_and_private_dependencies_require_review(self):
         initial=sources()
         initial['relay_routes']="import asyncio\n_NOT_READY=frozenset({'gateway_not_answering'})\n@router.get('/api/messaging/relay')\nasync def get_relay_links():\n    return await _call({'action':'status'})\nasync def _call(params):\n    return await asyncio.to_thread(_ask_gateway,params)\ndef _ask_gateway(params):\n    return query_gateway_control(get_process_hermes_home(),'relay-link',params=params,timeout=15)\n"

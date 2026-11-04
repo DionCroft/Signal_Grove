@@ -2923,6 +2923,7 @@
     "DELETE /api/env",
     "DELETE /api/mcp/oauth/flows/{flow_id}",
     "DELETE /api/mcp/servers/{name}",
+    "DELETE /api/messaging/relay/{platform}/accounts/{platform_user_id}",
     "DELETE /api/providers/custom-endpoints/{endpoint_id}",
     "DELETE /api/providers/oauth/sessions/{session_id}",
     "DELETE /api/providers/oauth/{provider_id}",
@@ -3436,6 +3437,7 @@
     "channel_relay_links:relay_channel_view",
     "channel_relay_links:relay_link_verb",
     "channel_relay_links:shared_bot_url",
+    "channel_relay_links:unlink",
     "channel_served:import:Any",
     "channel_served:import:Optional",
     "channel_served:import:Path",
@@ -4642,6 +4644,7 @@
     "relay_routes:import:Any",
     "relay_routes:import:HTTPException",
     "relay_routes:import:asyncio",
+    "relay_routes:unlink_relay_account",
     "runs:_handle_run_approval",
     "runs:_handle_run_clarify",
     "runs:_handle_run_events",
@@ -5400,6 +5403,20 @@
         "sha256": "de5d9eb06824fdca1c35d6d9c32fffebead60f9ed7792b48c4032d59bc1303d2",
         "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
         "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:unlink_relay_account": [
+      {
+        "sha256": "98bd12aafb227aa2adb95ee5550c86389513c29f8aa339467739b41e32986d14",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "DELETE forwards the exact platform and platform_user_id in action=unlink through the already watched process-home control path. The HTTP route declares no profile or body. The mobile app gates connector authority and fresh original-account/scope checks before one durable claim and send. See docs/contracts/2026-11-04-relay-unlink-review.md."
+      }
+    ],
+    "channel_relay_links:unlink": [
+      {
+        "sha256": "eef40b5476e1860436e5e9727e33b7ea075afa685948b8648ea091728a5397ff",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The gateway POSTs /manage/unlink with exact platform/platformUserId, then returns only unlinked:true. It does not echo an account ID, perform a second manager check or prove revocation/delivery. The phone captures the strict boolean ACK before a separate account-list read, preserving unknown outcomes and stated race limits. See docs/contracts/2026-11-04-relay-unlink-review.md."
       }
     ]
   },

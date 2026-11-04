@@ -58,6 +58,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun unlinkHostRelay(tokens:ManagementTokens,request:HostRelayUnlinkRequest):JsonObject=json("api/messaging/relay",tokens.access,method="DELETE",tail=listOf(request.platform,"accounts",request.account.id))
     suspend fun hostRelayAccounts(tokens:ManagementTokens):JsonObject=json("api/messaging/relay",tokens.access)
     suspend fun probeCustomEndpoint(tokens:ManagementTokens,request:CustomEndpointProbeRequest):JsonObject = element("api/providers/custom-endpoints/validate",tokens.access,request.body(),slow=true).jsonObject
     suspend fun customEndpointConfig(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/config",tokens.access,profile=profile,query=mapOf("include_defaults" to "false"),slow=true).jsonObject}

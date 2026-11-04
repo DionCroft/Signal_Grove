@@ -1,6 +1,7 @@
 package org.hermesmobile.app.data
 
 import android.content.Context
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -115,6 +116,7 @@ class SecureCredentialStore(context: Context) {
         val old=rows();val entry=old[id] ?: return@synchronized
         val editor=prefs.edit().putString("profiles_v1",encryptedRows(old+mapOf(id to JsonObject(entry.filterKeys {it!="token"}))))
         clearProviderCodes(id)
+        clearRelayTargets(id)
         val management=managementRows().filterKeys {it!=id}
         editor.putString("management_v1",encrypt(JsonObject(management).toString()))
         if(active()?.scope==id) editor.remove("connection_v2").remove("token")
@@ -138,7 +140,7 @@ class SecureCredentialStore(context: Context) {
     fun saveManagement(scope:String,value:JsonObject?)=synchronized(monitor) {
         require(scope.matches(Regex("[a-f0-9]{64}")))
         if(value!=null) require(rows()[scope]?.containsKey("token")==true) {"The API connection credential was removed."}
-        if(value==null) clearProviderCodes(scope)
+        if(value==null) {clearProviderCodes(scope);clearRelayTargets(scope)}
         val previous=managementRows().filterKeys {it!=scope}
         val next=if(value==null) previous else previous+mapOf(scope to value)
         require(next.size<=32) {"Remove an unused management sign-in first."}
@@ -166,6 +168,49 @@ class SecureCredentialStore(context: Context) {
         }
     }
     private fun clearProviderCodes(scope:String)=check(prefs.edit().putString("provider_codes_v1",encrypt(JsonObject(providerCodeRows().filterValues {(it as? JsonObject)?.get("owner")?.jsonObject?.text("api_scope")!=scope}).toString())).commit())
+    private fun relayTargetRows():JsonObject {
+        val raw=prefs.getString("relay_targets_v1",null) ?: return JsonObject(emptyMap())
+        return Json.parseToJsonElement(decrypt(raw)).jsonObject.also {require(it.size<=128)}
+    }
+    private fun relayOwner(row:JsonElement)=row.jsonObject["owner"]!!.jsonObject
+    private fun relayCredentials(binding:HostRelayUnlinkBinding):Boolean {
+        val b=binding.receipt;val saved=managementRows()[b.apiScope] as? JsonObject ?: return false
+        val token=saved["tokens"] as? JsonObject ?: return false
+        return rows()[b.apiScope]?.containsKey("token")==true && saved.text("url").trim().trimEnd('/').plus("/").toHttpUrlOrNull()?.toString()==b.url && saved.text("profile")==b.profile && token.text("provider")+" · "+token.text("user_id")==b.actor
+    }
+    val relayTargets:HostRelayTargetStore get()=object:HostRelayTargetStore {
+        override fun save(binding:HostRelayUnlinkBinding,account:HostRelayAccount)=synchronized(monitor) {
+            require(relayCredentials(binding) && HostRelayUnlinkRequest.addressable(account.id) && account.name.length<=512 && account.handle.length<=512 && (account.name+account.handle).none(Char::isISOControl))
+            val old=relayTargetRows();val owner=binding.owner();val current=old.filterKeys {it!=binding.receipt.key}
+            if(current.size>=128 || current.values.count {val r=relayOwner(it);r["api_scope"]==owner["api_scope"] && r["url"]==owner["url"] && r["profile"]==owner["profile"] && r["actor"]==owner["actor"]}>=32) throw HostRelayPrivateFull()
+            if(old[binding.receipt.key]!=null) {
+                val previous=old[binding.receipt.key]!!.jsonObject
+                require(relayOwner(previous)==owner && previous["account_id"]==JsonPrimitive(account.id) && previous["display_name"]==JsonPrimitive(account.name) && previous["handle"]==JsonPrimitive(account.handle))
+            }
+            val row=buildJsonObject {put("owner",owner);put("account_id",account.id);put("display_name",account.name);put("handle",account.handle)}
+            check(prefs.edit().putString("relay_targets_v1",encrypt(JsonObject(current+mapOf(binding.receipt.key to row)).toString())).commit())
+        }
+        override fun read(binding:HostRelayUnlinkBinding):HostRelayAccount?=synchronized(monitor) {
+            if(!relayCredentials(binding)) return@synchronized null
+            val row=relayTargetRows()[binding.receipt.key] as? JsonObject ?: return@synchronized null
+            if(row["owner"]!=binding.owner()) return@synchronized null
+            fun text(key:String,max:Int):String {val v=row[key] as? JsonPrimitive ?: error("Invalid private target");require(v.isString && v.content.length<=max && v.content.none(Char::isISOControl));return v.content}
+            HostRelayAccount(text("account_id",512),text("display_name",512),text("handle",512)).also {require(HostRelayUnlinkRequest.addressable(it.id))}
+        }
+        override fun remove(binding:HostRelayUnlinkBinding)=synchronized(monitor) {
+            val old=relayTargetRows();if(old[binding.receipt.key]?.let(::relayOwner)!=binding.owner()) return@synchronized
+            check(prefs.edit().putString("relay_targets_v1",encrypt(JsonObject(old.filterKeys {it!=binding.receipt.key}).toString())).commit())
+        }
+        override fun clear(target:ManagementTarget)=synchronized(monitor) {
+            val next=relayTargetRows().filterValues {val o=relayOwner(it);!(o.text("api_scope")==target.apiScope && o.text("url")==target.url && o.text("profile")==target.profile && o.text("actor")==target.actor)}
+            check(prefs.edit().putString("relay_targets_v1",encrypt(JsonObject(next).toString())).commit())
+        }
+    }
+    private fun clearRelayTargets(scope:String) {
+        val next=runCatching {relayTargetRows().filterValues {relayOwner(it).text("api_scope")!=scope}}.getOrNull()
+        val editor=prefs.edit();if(next==null) editor.remove("relay_targets_v1") else editor.putString("relay_targets_v1",encrypt(JsonObject(next).toString()))
+        check(editor.commit())
+    }
     fun clear()=synchronized(monitor) {check(prefs.edit().clear().commit())}
     companion object {private val locks=java.util.concurrent.ConcurrentHashMap<String,Any>()}
 }
