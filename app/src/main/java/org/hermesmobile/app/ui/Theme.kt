@@ -69,7 +69,7 @@ val LocalReducedMotion=staticCompositionLocalOf { false }
     }
 }
 @Composable fun QuietProgress() {
-    if(LocalReducedMotion.current) Text(label(Words.Loading)) else LinearProgressIndicator(Modifier.fillMaxWidth())
+    if(LocalReducedMotion.current) Text(label(Words.Loading)) else PixelProgress()
 }
 @Preview(showBackground=true) @Composable fun LavenderPreview() { PreviewTheme(HermesTheme.LAVENDER) }
 @Preview(showBackground=true) @Composable fun JadePreview() { PreviewTheme(HermesTheme.JADE) }

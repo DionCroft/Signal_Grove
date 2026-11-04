@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## 2026-11-04 — physical-pixel motion and accessible progress
+
+Required strict `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed in **6m 58s**, with **405 JVM tests**, zero failures/errors/skips. All **91 offline checks**, **495-component / 1071-artifact** dependency policy, **448 tracked-file** sensitive-file review and diff checks pass.
+
+Each owned API **26 / 36 / 37** emulator passed **19 focused native cases** on the first run: five new rendered-frame/lifecycle/accessibility cases, two existing full-app pixel navigation/reduced-motion flows, four approval/cancellation/checksum/invalid-APK update flows and eight update storage/package/version/FileProvider cases. No ignored or assumption-failed cases appear. The three immutable E: pairs match final N: outputs:
+
+- Debug app SHA-256: 8a087ea09bc70e83ca779d4390a77e93dac2c95368e1208ddf14e02ca795db12
+- Instrumentation APK SHA-256: 8f6b77f912a83a295f7f9534a9919394aa7c74b3c921dfa9366d42d9a08f7f7c
+
+The new tests control the frame clock and compare actual canvas pixels: art and loading blocks change in the foreground, stay identical with reduced motion or a STARTED-only owner, and restart on RESUMED. Determinate progress stays visually still and exposes the exact 42% native accessibility value; loading retains indeterminate semantics. The existing app test exercises its own reduced-motion setting and Android's live animation-disable setting while navigating the real destinations. The API 26 home/update review captures were inspected at physical **720×1280**, density **320**, font **1.3**.
+
+The ambient clock is read only in the draw phase and updates visible state at eight frames per second. Physical-pixel edge snapping keeps fractional-width artwork crisp. The infinite clock uses Compose's documented infinite-animation policy so ordinary idle-based UI tests can settle. Stepped progress bars share this motion policy and expose native progress semantics. No updater transport, release selection, integrity/signature/version verification, approval, active-work guard or installer behavior changed in this chunk.
+
+The existing public **v1.1.0-beta.1** preview and both APK asset digests were rechecked. It already contains the original Starhaven pixel interface and approved GitHub updater; these additional motion/progress refinements remain **unreleased source**, still code **102** / **1.1.0-beta.1**. Prior real approved APK replacement/data-retention evidence remains in its historical release entry; it is not represented as a new replacement test. No current local unfiltered suite, new release, physical/OEM test, battery benchmark or measured frame-time improvement is claimed. Full exact-head hosted CI follows the source push and is reported separately. The broader Hermes audit goal remains active.
+
 ## 2026-11-04 — reviewed Team Gateway code creation and private handoff
 
 Strict `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed in **8m 48s**, then **2m 27s** after an API-26-only test-fixture correction. The **405 JVM tests** have zero failures/errors/skips. All **91 offline checks**, strict **495-component / 1071-artifact** dependency policy, **446 tracked-file** sensitive-file review and diff checks pass.

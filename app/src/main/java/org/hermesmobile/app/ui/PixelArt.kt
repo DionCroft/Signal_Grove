@@ -55,14 +55,16 @@ fun Modifier.pixelPaper(ink:Color)=drawBehind {
 @Composable fun PixelHomestead(modifier:Modifier=Modifier) {
     val lifecycle by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
     val animate=!LocalReducedMotion.current && lifecycle.isAtLeast(Lifecycle.State.RESUMED)
-    val phase=if(animate) {
-        val transition=rememberInfiniteTransition(label="homestead-ambient")
-        transition.animateFloat(0f,1f,infiniteRepeatable(tween(16000,easing=LinearEasing)),label="homestead-orbit").value
-    } else 0f
+    // Read the clock only while drawing: ambient motion does not recompose the scene.
+    val frame=rememberPixelFrame(animate)
     Canvas(modifier.fillMaxWidth().aspectRatio(3.6f).clipToBounds().clearAndSetSemantics {}) {
-        // Quantised coordinates keep the art crisp; no smooth scaling of bitmap assets.
+        val phase=frame.value/128f
+        // Snap each edge to physical pixels, including widths that do not divide by 240.
         val unit=size.width/240f
-        fun rect(x:Float,y:Float,w:Float,h:Float,color:Color)=drawRect(color,Offset(floor(x)*unit,floor(y)*unit),Size(ceil(w)*unit,ceil(h)*unit))
+        fun rect(x:Float,y:Float,w:Float,h:Float,color:Color) {
+            val left=floor(x*unit);val top=floor(y*unit)
+            drawRect(color,Offset(left,top),Size(floor((x+w)*unit)-left,floor((y+h)*unit)-top))
+        }
         val sky=Color(0xFF223D45);val gold=Color(0xFFF4C67A);val mint=Color(0xFFB8D5AC);val forest=Color(0xFF3E6658);val earth=Color(0xFF73553E)
         drawRect(sky)
         for(i in 0..30) {val x=((i*67+13)%240).toFloat();val y=((i*17+5)%38).toFloat();val blink=((floor(phase*12)+i.toInt())%7).toInt()!=0;rect(x,y,1f,1f,if(blink) Color(0xFFD8E8CE) else sky)}
@@ -80,5 +82,14 @@ fun Modifier.pixelPaper(ink:Color)=drawBehind {
         rect(63f,20f,2f,10f,Color(0xFF9CB8A0));rect(59f,19f,10f,2f,mint);rect(61f,16f,6f,2f,gold)
         for(i in 0..6) {val x=99f+i*13;rect(x,61f,8f,2f,Color(0xFF4E3F35));rect(x+3,55f,2f,6f,mint);rect(x,55f,3f,2f,Color(0xFF92B980));rect(x+5,53f,3f,2f,Color(0xFF92B980))}
         for(i in 0..4) {val x=10f+i*55;rect(x,50f,2f,2f,gold.copy(alpha=if(animate && (floor(phase*8)+i)%3==0f) .25f else .8f))}
+    }
+}
+
+/** Eight visual frames per second; lifecycle/reduced-motion callers stop the clock entirely. */
+@Composable internal fun rememberPixelFrame(active:Boolean,frames:Int=128):State<Int> = produceState(0,active,frames) {
+    value=0
+    if(active) {
+        val origin=withInfiniteAnimationFrameNanos {it}
+        while(true) withInfiniteAnimationFrameNanos {now->value=(((now-origin)/125_000_000L)%frames).toInt()}
     }
 }

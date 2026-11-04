@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Sharper physical-pixel scenery and a draw-only eight-frame ambient clock, paused in the background or with reduced motion. Accessible stepped progress bars now match the pixel interface, including verified update downloads.
+
 - Approved Team Gateway link-code creation and original-code recovery: encrypted local copies, explicit status checks, honest unchecked/used-or-expired states, private reveal, sensitive clipboard copying and separately reviewed bot handoff with fresh scope/status checks. Unknown requests never auto-mint replacements.
 
 - Reviewed connector-managed Team Gateway account unlinking: fresh private target approval, one durable send, acknowledgement separated from account-list observations, encrypted original-target recovery and separately approved local cache clearing. Interrupted requests retain uncertainty and are never automatically repeated.

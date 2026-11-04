@@ -59,7 +59,7 @@ private fun sizeText(bytes:Long)=when {bytes<1024->"$bytes B";bytes<1024*1024->S
         if(s.checked>0) Text(label(Words.UpdateLastChecked)+" "+DateTimeFormatter.ofPattern("MMM d, HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(s.checked)),style=MaterialTheme.typography.labelSmall)
         if(s.phase==UpdatePhase.Initializing || s.phase==UpdatePhase.Checking) QuietProgress()
         else if(s.phase==UpdatePhase.Downloading) {
-            LinearProgressIndicator(progress={s.progress},modifier=Modifier.fillMaxWidth())
+            PixelProgress(progress=s.progress,modifier=Modifier.testTag("update-download-progress"))
             Text(label(Words.UpdateDownloading)+" "+(s.progress*100).toInt()+"%")
         }
         if(s.phase in setOf(UpdatePhase.Checking,UpdatePhase.Downloading)) TextButton(vm::cancel,Modifier.testTag("update-cancel")) {Text(label(Words.Cancel))}
