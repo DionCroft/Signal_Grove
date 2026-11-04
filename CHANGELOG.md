@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Private Team Gateway account review, verified against the instance launch profile, with hidden account details, read-only unknown authority, and a separately approved Portal handoff that rechecks its destination before opening. Link-code creation and account removal remain separate work.
+
 - Reviewed, profile-scoped channel setup: dynamic platform catalogs, private allowlist/routing inspection, separate enable/keep/replace/clear drafts, exact save approval, and host-reported connection/access posture. Durable uncertainty and ACK/readback separation preserve privacy across connection changes. Team Gateway linking and onboarding remain separate work.
 
 - Stage discovered endpoint addresses, API modes, model catalogs and selected model aliases into a local draft. Saving requires a separate review; changing a returned address clears a newly entered key. Alias saves disclose canonical routing and any shared reasoning overwrite, preserve private details and distinguish accepted saves from configuration observations.

@@ -114,6 +114,27 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+
+    def test_relay_account_route_process_scope_authority_and_private_dependencies_require_review(self):
+        initial=sources()
+        initial['relay_routes']="import asyncio\n_NOT_READY=frozenset({'gateway_not_answering'})\n@router.get('/api/messaging/relay')\nasync def get_relay_links():\n    return await _call({'action':'status'})\nasync def _call(params):\n    return await asyncio.to_thread(_ask_gateway,params)\ndef _ask_gateway(params):\n    return query_gateway_control(get_process_hermes_home(),'relay-link',params=params,timeout=15)\n"
+        initial['channel_relay_links']="import urllib.request\n_ACTIONS={'status':lambda p:link_status()}\ndef link_status():\n    return {'managed_by':managed_by(),'platforms':fronted_accounts()}\ndef managed_by():\n    return 'portal'\ndef portal_agents_url():\n    return portal_base()+'/agents'\n"
+        initial['relay_control']="CONTROL_PROTOCOL_VERSION=1\ndef query_gateway_control(home,verb):\n    return send_to_home(home,verb)\n"
+        initial['relay_auth']="def make_upgrade_token(id,secret):\n    return sign(id,secret)\n"
+        initial['relay_media']="def media_base_url(url):\n    return url.removesuffix('/relay')\n"
+        initial['relay_portal']="def _nous_portal_base_url(state):\n    return trusted_operator_override_or_allowed_host(state)\n"
+        initial['relay_diagnostics']="_BODY_READ_LIMIT=4096\ndef read_error_body(error):\n    return error.read(_BODY_READ_LIMIT)\n"
+        old=checker.extract(initial);tracked=baseline(old)
+        keys=['relay_routes:get_relay_links','relay_routes:_call','relay_routes:_ask_gateway','relay_routes:import:asyncio','relay_routes:binding:_NOT_READY','channel_relay_links:binding:_ACTIONS','channel_relay_links:link_status','channel_relay_links:managed_by','channel_relay_links:portal_agents_url','relay_control:query_gateway_control','relay_control:binding:CONTROL_PROTOCOL_VERSION','relay_auth:make_upgrade_token','relay_media:media_base_url','relay_portal:_nous_portal_base_url','relay_diagnostics:read_error_body','relay_diagnostics:binding:_BODY_READ_LIMIT']
+        tracked['mobile_used_handlers']+=keys;tracked['mobile_used_management_routes'].append('GET /api/messaging/relay')
+        mutations=[('relay_routes',"'/api/messaging/relay'","'/api/changed'"),('relay_routes',"'action':'status'","'action':'unlink'"),('relay_routes','get_process_hermes_home()','selected_request_home()'),('relay_routes','timeout=15','timeout=1'),('relay_routes','import asyncio','import malicious as asyncio'),('relay_routes',"{'gateway_not_answering'}","{'other'}"),('channel_relay_links',"'status':lambda p:link_status()","'status':lambda p:unlink_everything()"),('channel_relay_links',"'portal'","'connector'"),('channel_relay_links',"'/agents'","'/unsafe'"),('relay_control','send_to_home(home,verb)','send_to_home(other,verb)'),('relay_control','VERSION=1','VERSION=2'),('relay_auth','sign(id,secret)','send_secret(id,secret)'),('relay_media',"'/relay'","'/other'"),('relay_portal','trusted_operator_override_or_allowed_host(state)','untrusted_network_value(state)'),('relay_diagnostics','error.read(_BODY_READ_LIMIT)','error.read()'),('relay_diagnostics','LIMIT=4096','LIMIT=999999')]
+        for module,before,after in mutations:
+            with self.subTest(module=module,before=before):
+                changed=copy.deepcopy(initial);self.assertIn(before,changed[module]);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+        introduced=copy.deepcopy(initial);introduced['relay_routes']='';original=checker.extract(introduced);accepted=baseline(original);accepted['mobile_used_handlers'].append('relay_routes:_ask_gateway');accepted['reviewed_handler_variants']={'relay_routes:_ask_gateway':[{'sha256':old['handlers']['relay_routes:_ask_gateway'],'commit':'c'*40,'reason':'Synthetic exact introduced process-scope fixture'}]}
+        self.assertFalse(checker.compare(accepted,{'commit':'b'*40,'contract':old})['mobile_review_required'])
+        initial['relay_routes']=initial['relay_routes'].replace('get_process_hermes_home()','other_home()');self.assertTrue(checker.compare(accepted,{'commit':'b'*40,'contract':checker.extract(initial)})['mobile_review_required'])
+
     def test_channel_profile_private_metadata_and_exact_introduced_helper_contracts_require_review(self):
         initial=sources()
         initial['models']+="class MessagingPlatformUpdate:\n    enabled:bool|None=None\n    env:dict[str,str]={}\n    clear_env:list[str]=[]\n    profile:str|None=None\n"

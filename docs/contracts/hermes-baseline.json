@@ -326,7 +326,13 @@
         "channel_gate": "9c615a6cee35504c622612702854ffd8b4525d758b1ba7e1ba971b6ffb94880f",
         "channel_status": "56a9c945d1c73a9419353fb3d063ec44584ea84fbcf618236e8fb9926053bf23",
         "channel_relay_config": "eb4f777134e041db7cf2d523e4a8859184e7c4cbbcf5f9e24a684bc640dbf1f0",
-        "channel_relay_links": null
+        "channel_relay_links": null,
+        "relay_routes": null,
+        "relay_control": "5216bac6e8f763285c1f6d5776e3764fb1e6a07f6980f4aa869b993faed199b6",
+        "relay_auth": "d8bceddd4d0b724546e7e05b9b28c1fc205dde61944269df63d721d70b19e222",
+        "relay_media": "396780f45c6ccf267affbe66f76740ea71de8b995d0c1315da48de491788ebdc",
+        "relay_diagnostics": null,
+        "relay_portal": "d8bf8b86ca0ee3302681f0498dd53b630d3429b773c54a8fffb142c0560c002f"
       },
       "handlers": {
         "api:APIServerAdapter._handle_capabilities": "fded591edab150c17cb5d89a1a531952c438c862a8cec884efaf1e18f8c44b50",
@@ -2216,7 +2222,256 @@
         "channel_relay_config:self_provision_relay": "db811bfe6aca73db4a4a3c3ea092b84a8ad4fab7db0e79a49570ea42f3ad3ead",
         "channel_relay_config:_post_policy": "10ca25da98bd38d73815830c22927e919a6902d3cb3bb762f9f80ab3a5bddacd",
         "channel_relay_config:send_relay_policy": "c76bf60c0f6bfd1a0889239a87b9613bd6236346503c8312c57376fed370c4d2",
-        "channel_relay_config:register_relay_adapter": "561ac460e21d2d25921a42c6f1acd370cc4a865c982b6377fd64841dfbed2e94"
+        "channel_relay_config:register_relay_adapter": "561ac460e21d2d25921a42c6f1acd370cc4a865c982b6377fd64841dfbed2e94",
+        "relay_control:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "relay_control:import:asyncio": "de5d9eb06824fdca1c35d6d9c32fffebead60f9ed7792b48c4032d59bc1303d2",
+        "relay_control:import:contextlib": "b0636d9856b070f7af47d762cedefe60162348c09ea4409ff9f0a7d1443271d2",
+        "relay_control:import:errno": "2dfefcdec1b67848abb4085c92c5e604cf1583273ad00bb5e301e3d06ae83d32",
+        "relay_control:import:hashlib": "b4d4ec43cca3e106bbf3ec29fbe6a1ebbf552e79a6fa3343a7142a0961fa4c55",
+        "relay_control:import:inspect": "7201525ee596089fe1857f2aefb8de3ea211f822859be035a103bf2dbd0a84e8",
+        "relay_control:import:json": "0b277aec8e85c7f72798c1df4bf16d992c50b529886b87a6cc4b64ae3f1f40ae",
+        "relay_control:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "relay_control:import:os": "e5d63dea7341d8d72a71ea6795606e7f7cf20f0fb74106441895e6e2de031ea4",
+        "relay_control:import:socket": "060ed69393b10bba63f0bef948b52541d86ccec9be0e3f1ac8ca45ba72557134",
+        "relay_control:import:stat": "676dd77e3c82f6908d22bc74734e97a470d24a3fd654eb53453462e5c8dd67d8",
+        "relay_control:import:sys": "1947f6c361a4c14f35d9226aa71b6a657f31cb02298118a273d8f89b6cfc5097",
+        "relay_control:import:tempfile": "01de1829cdaabbb3da2332b5c1c15dfd5c764547cc6b72c5fa1ec3f0c0b40d4a",
+        "relay_control:import:time": "04d9814b9c2452f99b40b98327f13e9f4b3512373efb7163e26630a5af486008",
+        "relay_control:import:Path": "ad18b0a18742d95c2121009f6a1aecf6a3459fc1e9e15fa44f164698401e1c40",
+        "relay_control:import:Any": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "relay_control:import:Callable": "77708af745ea43336978257d3e6e3059cc23716394f7225d5b7cb27c25c3ca05",
+        "relay_control:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "relay_control:binding:logger": "926de74b187a57516dcaae9884660ea00f58a35aceffc5e3d68e6f5445749838",
+        "relay_control:binding:CONTROL_PROTOCOL_VERSION": "9d64d653d3ff2481de5fc41d2b5cbabbc7b7dc336eae9a69e97f79ab25733a8c",
+        "relay_control:binding:_SOCKET_FILENAME": "a3c48757ae5c9814ebb0268bb6abe646ddfedbded7158628051f000c08bfec0f",
+        "relay_control:binding:_POINTER_FILENAME": "9204c4c0f73986877528349e691728bf84ac619f0d2a36d902c6366eb9ee1324",
+        "relay_control:binding:_IS_WINDOWS": "ace03ba0d5d8311d187509a6f77e084b46445be2fe2ab9e0e7a1fdf5b70fd3d7",
+        "relay_control:binding:_MAX_UNIX_PATH": "e2db9fe0f33c719c8b2c4fb78ebdf2c14213721e0550b661a4af06bde1fd2563",
+        "relay_control:binding:_MAX_REQUEST_BYTES": "35699d6a9ff0ed330e030aceefa312207e0cf88c4c07c3cb6f5ebe23644facbf",
+        "relay_control:binding:_MAX_RESPONSE_BYTES": "676de7c327984fd0f66678db9078dade5658779bbaf1241b486857d99cdbef87",
+        "relay_control:binding:_DEFAULT_CLIENT_TIMEOUT": "704cdfbb428661bcd86fdffdfda3e08e20fc1b7e4394b509702f7fa0d7bca7de",
+        "relay_control:binding:_SOCKET_UNSUPPORTED_ERRNOS": "64ab2f9415c0d6fef2b4379cd9558dd1035a8d1e99e71eac53629730270c23c6",
+        "relay_control:_home_hash": "b9d312690a7a16a174141ad82494fd84f25f97dad2ac74b8861467ebdc3c453b",
+        "relay_control:windows_pipe_name": "5cd0f6d857421a856a063d49f18a4708c5b81bc4505e8913b267c9f6df9f5e84",
+        "relay_control:_fits_sun_path": "4cdcd5c251e3efe94704c64c10cd09f0d3d2db7928a33548fe7ca4ab1f525d11",
+        "relay_control:_private_runtime_dir": "0bf2927f18f3c5e0e33de62fdb2cd7987d67a8434abe9b0f62c1c19898edb228",
+        "relay_control:_fallback_socket_path": "421a20a7ca30b7f6ffa238a13ab75d1a9e3867322076e0931fc31640bf9b9645",
+        "relay_control:_private_directory": "89219883552df6a9ea6295e10d87649da6d7ea25bab62ebb8edcd3152595d353",
+        "relay_control:_squat_proof_fallback": "a0b7de4bafb6cf677c0f21d5498a63083ae96577521f6fac8d74837ce3c2c414",
+        "relay_control:_publish_pointer": "a4f0b953fe158a12a79d69567cb2a948c05a1d8ac6f54392abb9f6f5614aebe2",
+        "relay_control:resolve_server_socket_path": "2cc41d7c6431d908c8e2696b3c44fb9f041660ae5eb5431485c2379683fec49e",
+        "relay_control:resolve_client_socket_path": "f688b8a19c7fb6688825698261d0fb1237142f9a0d96db041b6dba4b5111e514",
+        "relay_control:_detect_supervisor": "5c73481a953adb5ea32dae497f106d7ffac101fe82531df160f2d851866a2f2d",
+        "relay_control:_structured_login_subject": "01658b480f1e50d87696469b666412ea8161b7a1620e676fe1016d8289f11c5f",
+        "relay_control:launch_supervisor": "48c0a34d22dc5c58df5a62b3711201bed2fb48cfba12ee17d681e161d21161b2",
+        "relay_control:build_identify_payload": "f365b2c13fb671c5667d9f6cf1289c2776c30b7bad70c67e218c45f800244217",
+        "relay_control:build_status_payload": "828dcd4b40866ef3ffa41cb885203f783218ec290042ef580b2aa88835f9b36b",
+        "relay_control:GatewayControlServer.__init__": "57dbc0c0274455869440bd11614611f9dccee97c5cd0a2957771cbd1baf44f98",
+        "relay_control:GatewayControlServer.start": "2958243f43ec6e4403549f6a41674b2b9dd97acc70eafbbab39b0eb492339170",
+        "relay_control:GatewayControlServer._start_posix": "c3e34acfa6be6a436a0de858f21ffb5cc3304ab0668173c568872adba43b4b70",
+        "relay_control:GatewayControlServer._bind_posix": "eb2d390f451b1676bb84b525404820aac90fb9c63f8df2d16d9941103e1a9126",
+        "relay_control:GatewayControlServer._start_windows": "5c42a4c518f6afe76402087a145b8377b67d937008c9346bd3ae0da91524815e",
+        "relay_control:GatewayControlServer.stop": "6103d9aba1e5fdd937e007eccb794fa8752d22863b9bb2753582b19d8f0fecaf",
+        "relay_control:GatewayControlServer.cleanup_files": "0a39aad125143856769ac5c1ed47d8e47ec290b2e6829a486225a85ba45272e3",
+        "relay_control:GatewayControlServer.handle_request_line": "5ea2ec8a2fadfce5b16d53641d1c2159173c960940c345d3b98ee3c469c846ea",
+        "relay_control:GatewayControlServer._session_ticket": "5d84ea2b65c6084955d88d85ecf680fa80e7a791b79912fe66241a921031e5cc",
+        "relay_control:GatewayControlServer._posix_peer_subject": "ea02362f18539a579613aa21f5ed6e2a36a5672423a7aa239bcc4293944a458a",
+        "relay_control:GatewayControlServer._handle_connection": "9cb076964da75d87451a8b7cb14957ecfa71f731bca836e04141b48b78474a68",
+        "relay_control:_PipeControlProtocol.__init__": "4d9019ed2f35b3396ed965e662c3b567fcfca5a9c82f1b7be32747c1182717e0",
+        "relay_control:_PipeControlProtocol.connection_made": "54d269e1493c742c92ba8ef3c681599eb11ae28408a4a93639f66b2b3f8b53f1",
+        "relay_control:_PipeControlProtocol.data_received": "e2bb4862ab53e5fc09344b238114434cc1b005ee0e97b8b1e7fbfdb68906b491",
+        "relay_control:query_gateway_control": "0d979f695735bdbdd0d496b51818510cc1d87fd415a4213357c338f1b92d2a7b",
+        "relay_control:_read_response_line": "61c68a8e747354073280477c8421e5a3eb0a2186f18561b47a24f7075bcba4b5",
+        "relay_control:_query_unix_socket": "964d0b21d8001f57b2b30ed03a620e6ca0d06b752d7e7fadf53c702ce455450d",
+        "relay_control:_query_windows_pipe": "ea8c74f6c76e9d462f036e4841893fe28d3944d3bbef38c037808929aaaa0901",
+        "relay_control:_windows_pipe_exchange": "0e18c33f26a6f562794cdeef9669c4dd375998ba61361017dc1d5e500b7f9bc8",
+        "relay_control:identify_gateway": "f60190ebafb9231bcb25111903dbd4a7a99b2da5f3ef8fb24634eec578749667",
+        "relay_control:pause_gateway_for_update": "07835e77ebcf06430378a6c6bbb358fe48ba74b043bc6dfa647e8b187702a94a",
+        "relay_control:rescan_gateway_profiles": "400cd6d326e710833788008f0cf4ca07af98d1d301580e468afbba80f5a237a0",
+        "relay_control:request_unserve_profile": "0a43c23814debf0da023dd6104557d9d9e460ea4bfec0b41507a3c9e74aa263a",
+        "relay_control:request_serve_profile_hot": "4daca778858ec53e4578917b7083da603b8e7d124a9e87ed85d6d7c731a3e2fc",
+        "relay_control:migrate_gateway_profile_identity": "64c18e27b1bff711fc213334df0cd485c6500dd362fdade0cfc2c8115496d0b5",
+        "relay_control:purge_gateway_profile_identity": "a65f3c2f814e259328dbf10444dea2f3a1b54f5ddf27a8298b6f3f3740bba19e",
+        "relay_control:reload_gateway_plugins": "36a7af666feaa58098636b3168890478807fe47657b8eb6d1f89885104762922",
+        "relay_auth:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "relay_auth:import:base64": "b24f56e689c38c016d36c89cee679795646201979106da761bf580e488b9527a",
+        "relay_auth:import:hashlib": "b4d4ec43cca3e106bbf3ec29fbe6a1ebbf552e79a6fa3343a7142a0961fa4c55",
+        "relay_auth:import:hmac": "44788dcff9a4df1095cce7e3d16d55fb657d12d9acd38f657f83236d1a25d0e2",
+        "relay_auth:import:time": "04d9814b9c2452f99b40b98327f13e9f4b3512373efb7163e26630a5af486008",
+        "relay_auth:binding:_DEFAULT_UPGRADE_TTL_SECONDS": "5291745609f81f285c6fc57e8f5b184c47b37e51f770c8d002ffdf44ebac92d8",
+        "relay_auth:sign": "37d03c6484accd6a88085804ead522d245d7b62dafa2de7b5280520e46e247f7",
+        "relay_auth:make_token": "9357c13e06142967da9a25d7eb89b73b1ddeb78862739ffc1afe27a0c445c5f1",
+        "relay_auth:make_upgrade_token": "22d8bc8d7414573fe273b4aadb47971393f6e370c84314452a4dc36f1a8f5421",
+        "relay_media:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "relay_media:import:asyncio": "de5d9eb06824fdca1c35d6d9c32fffebead60f9ed7792b48c4032d59bc1303d2",
+        "relay_media:import:email.message": "51b09ece713d33ec43f0a28d5dcf1d7e6e59ef763b6ef467bef4382ac3320239",
+        "relay_media:import:email.utils": "b790fc76a8a443a463086b7e563bd3546eca874deb28063c52620f4130c20506",
+        "relay_media:import:json": "0b277aec8e85c7f72798c1df4bf16d992c50b529886b87a6cc4b64ae3f1f40ae",
+        "relay_media:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "relay_media:import:mimetypes": "325b4f2ba5799b0257290917a2650b3ff558785c2033da19b6b488d8c5e425d2",
+        "relay_media:import:os": "e5d63dea7341d8d72a71ea6795606e7f7cf20f0fb74106441895e6e2de031ea4",
+        "relay_media:import:tempfile": "01de1829cdaabbb3da2332b5c1c15dfd5c764547cc6b72c5fa1ec3f0c0b40d4a",
+        "relay_media:import:urllib.error": "345d9e8611aedc27b77a9edcc0a8ad5b7a805b80f2ff0e79365efaeb5f620376",
+        "relay_media:import:urllib.request": "efed3c14575b288e69b1a6e14be42a1f7898798b65efc09f7376fa72a863a9af",
+        "relay_media:import:Path": "ad18b0a18742d95c2121009f6a1aecf6a3459fc1e9e15fa44f164698401e1c40",
+        "relay_media:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "relay_media:import:clean_attachment_filename": "4eb93c280e731e83af84d60d7ea4baefae877d1392ed33b7a401de0e13d346e8",
+        "relay_media:import:make_upgrade_token": "b589ecfb4b4aa164f698d571d7557d3938f6b10ee7f421e616a51d9c91ac070d",
+        "relay_media:binding:logger": "926de74b187a57516dcaae9884660ea00f58a35aceffc5e3d68e6f5445749838",
+        "relay_media:binding:MEDIA_MAX_BYTES": "86700c0d47449505d6e4fd399738e682045223c3b8cbc95f95a27d7592dc38ad",
+        "relay_media:binding:_REQUEST_TIMEOUT_S": "b974a5cdb8e33c343a6f817d1fb889f603a5cba9a1b81ad3126031a2b309d556",
+        "relay_media:binding:_MEDIA_USER_AGENT": "1f9be60682d868b43457a6da940417cbb48eeb160bbba2b806aa7c21a2a233d1",
+        "relay_media:media_base_url": "105cb77c193b7f28a8d945520477fa3bded91c74fea96b77242a2645a71075b6",
+        "relay_media:RelayMediaClient.__init__": "990560ff3856a2fd6c5f4aa0b5d717284a43940419fa4e1d00ada3ec3bcd0f50",
+        "relay_media:RelayMediaClient.enabled": "394945b7ed57d3c9c5bc490d8c88e62c7211ab2f62e69d2dc917f6ea3420499c",
+        "relay_media:RelayMediaClient._bearer": "152677935980194c7a44064fb3b7f83592500ea748a15f213ae5e81d9cd78ac6",
+        "relay_media:RelayMediaClient.is_relay_media_url": "2870508ceac4e5b0d914f6cc27279bd653d1ea7e77b830451008c31dd3385566",
+        "relay_media:RelayMediaClient.upload": "f2aa260698662ca6a6fab32362e28c005174a28f95a9efb5ee8315fb5fd22fa5",
+        "relay_media:RelayMediaClient.download": "55c5162cc89a0cf30e4098f5138fa8b038716f4685dec54cc0eaa118e119a1d4",
+        "relay_media:RelayMediaClient.download_with_name": "1063c80df392225bd11106e702057582f34adb431d772fc92e9585fec3bc3431",
+        "relay_media:_content_disposition_filename": "eaa5b685df3a8cd8525235010d5a17aad07892761204e9fdbb1852c045fa88f5",
+        "relay_media:binding:__all__": "97e246cd36bf966017101e4c5c24af3651ee75a8d694f7018e8255886363cc90",
+        "relay_portal:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "relay_portal:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "relay_portal:import:hashlib": "b4d4ec43cca3e106bbf3ec29fbe6a1ebbf552e79a6fa3343a7142a0961fa4c55",
+        "relay_portal:import:json": "0b277aec8e85c7f72798c1df4bf16d992c50b529886b87a6cc4b64ae3f1f40ae",
+        "relay_portal:import:os": "e5d63dea7341d8d72a71ea6795606e7f7cf20f0fb74106441895e6e2de031ea4",
+        "relay_portal:import:threading": "8899f139ad63f719e39adc3d600b7909288913546c1d231e5e1164dc8d3f6946",
+        "relay_portal:import:time": "04d9814b9c2452f99b40b98327f13e9f4b3512373efb7163e26630a5af486008",
+        "relay_portal:import:uuid": "baaa77adb6626996e272330aa648454414002603a18b0302950bece7c6513e92",
+        "relay_portal:import:contextmanager": "022c01ad69e990a3747ecdf5cecd2cf8ebbb8e20fb39f3f01418ea39a5bcc2be",
+        "relay_portal:import:suppress": "8c470b4d3bf4977d2f579701327a3593cb578a79d0663a65646f5c7135cfd397",
+        "relay_portal:import:datetime": "5130aac674f9a1b81de6d218d9849b19d3cb9528933da1e0d710365c32c1b60e",
+        "relay_portal:import:timezone": "899ffa7432832ec5a9f400a18e2dcc31749cc3f9e9ab5bd95c3cc4f1bf65c84d",
+        "relay_portal:import:UTC": "53ab84464d5d05a1f9db5dd04adab46fcb0e6a753eb3465c64bfe043e9586dd4",
+        "relay_portal:import:Path": "ad18b0a18742d95c2121009f6a1aecf6a3459fc1e9e15fa44f164698401e1c40",
+        "relay_portal:import:TYPE_CHECKING": "471682b9f481798b71ab14fb11109749f721ef82b5821a05e58f3a0d4f7ec27a",
+        "relay_portal:import:Any": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "relay_portal:import:Callable": "77708af745ea43336978257d3e6e3059cc23716394f7225d5b7cb27c25c3ca05",
+        "relay_portal:import:Dict": "e432a7c99d48a8626fff1a7797c5f775505ea59b2245b21d4a4fcca4d1921da2",
+        "relay_portal:import:FrozenSet": "3860e53d97417b2a734f4ccd9c9ec36ca415d795f0c6ab241dd8106c853a7528",
+        "relay_portal:import:List": "fabbd3beb3e32ef48a8fd409c624107ef93f5f1ba3a68cdd5909f7a32436e348",
+        "relay_portal:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "relay_portal:import:urlparse": "5e6ed46f0751a585e2be6540db786813b1030243ca236da08f66d0a401cb8e20",
+        "relay_portal:import:_pool_entries": "1f14b294966a42a0297e52e4a83fa0ec0b7a4ad2e0bb23c671f749fad97ef7bb",
+        "relay_portal:import:_decode_jwt_claims": "2b8c533d1d1bfc2c2582049aea4f11b06ac58ba9896ad9cfb7eb645ec92654ea",
+        "relay_portal:import:AUTH_LOCK_TIMEOUT_SECONDS": "5015a7336324f4c1eb8b23a78dbd6d6a48f66955fb07e16a0c4b34c3bd90f364",
+        "relay_portal:import:AuthError": "a5563f3b1b00375631e8689c0fc44ee93c03cc02ccf44642721895caf389380e",
+        "relay_portal:import:DEFAULT_NOUS_CLIENT_ID": "bd67f9454d0d0b62b66157dc99dfd1da20e440db2ebec8efb4ac2a09985890f6",
+        "relay_portal:import:DEFAULT_NOUS_INFERENCE_URL": "bd6f6b46fb74eea83ee3438d029d8ff1457433ebfcef8541a226b145fad8f7dd",
+        "relay_portal:import:DEFAULT_NOUS_PORTAL_URL": "5058e88c1ff6f62dc14a68979dd7c25ecc1778681f78fed1f7d56d44d6cdf947",
+        "relay_portal:import:DEFAULT_NOUS_SCOPE": "a7eb0cc2c7eb26819e033570cfa0826cdb6d6969a2ad12dd670c6eb1d93bf674",
+        "relay_portal:import:DEFAULT_NOUS_WELCOME_URL": "dada3f83ffc7f36f11dcb466cdfc105d049a89581215d6de9648fb3795d08627",
+        "relay_portal:import:DEVICE_AUTH_POLL_INTERVAL_CAP_SECONDS": "9c5fb5f65585afac9aae2e4a707eb96b0023a5db60ef5c7473734b17f51487e8",
+        "relay_portal:import:NOUS_AUTH_PATH_INVOKE_JWT": "b0da3ca3806e830d0860cab6be5c4eb28a0fcd1f2d28dfa1f19d710a19a0b1e8",
+        "relay_portal:import:NOUS_BILLING_MANAGE_SCOPE": "d2ccffd4a19a65c6248d4991bce18ae33ba28acf31f8464640df696cc2ce3be0",
+        "relay_portal:import:NOUS_DEVICE_CODE_SOURCE": "268642aadc0c31e576e3bbe64da06bff31c294e72010dffc8380f8244631c00e",
+        "relay_portal:import:NOUS_INFERENCE_INVOKE_SCOPE": "6dfa585f2ac35aa008fd9be1e0c8235c59721452c8e91ee9ccec3c084250a58c",
+        "relay_portal:import:NOUS_INVOKE_JWT_MIN_TTL_SECONDS": "e25e46e34e8ce41a074fd9bee049ab76cf8eefe26b09b8a51eb4b742021f4238",
+        "relay_portal:import:WELCOME_CLAIM_FLAG": "f4a3264bc921b33e5874cedfc5c907d7978c8ccb8deefdd9f28f35a718ab3615",
+        "relay_portal:import:_nous_err": "dc830a7394946e20e4dc6eb3860fbc218dd85f6c1fe9025008b9323e88184b4b",
+        "relay_portal:import:httpx": "aa58e5286bedeea4736bba4f5589761ea4a954f32d8a58fbdcd02b77051db5c3",
+        "relay_portal:import:drain": "0c0e0f9411f3b7c806222fa6f5d3d167fe292415c7adaaa9377d1f1ccb946ea1",
+        "relay_portal:import:note_replacement": "9f403d19fd6f04775faccd8ec9c64036fbd8e29fe776324aa7733d8f14e8f75a",
+        "relay_portal:import:result_lines": "08475d4ce03efc519503e59d4148231d1ed8f5bea2511aecd17a213a3916c915",
+        "relay_portal:binding:logger": "55d47784f786427c8855e1fb535226049d1861c1e1499d115d71bb8372e86a9d",
+        "relay_portal:binding:_UNUSABLE_JWT_RELOGIN": "22227dad3045240b78a929f60c705b58e18a94a8cefc8de91f65015a01a3c218",
+        "relay_portal:_unusable_invoke_jwt_error": "0300e70d9e3b1b6c22937a86d4c85da39cdf749a461bb4a17c3c9fcaa9ddcabd",
+        "relay_portal:_token_fingerprint": "4a457c61a72f218ff17a2b2ab3a7808c43d7afbf171ac89bb77ab784a474e4c7",
+        "relay_portal:_oauth_trace": "bf031f6d42048628d0fac53267cd6e1cc8e748555d025acb358d9bd1e0921d31",
+        "relay_portal:_iso_after": "969436e36fe12a987f113ef897c9a658c9d8217a6c4fef5bde2b9d47fc78d2ea",
+        "relay_portal:binding:_NOUS_EMPTY_AGENT_KEY_FIELDS": "7363d82e84910f966906458218ef39136e721bb1ef0381ad15b7e99670a19d4c",
+        "relay_portal:binding:_NOUS_STALE_PORTAL_HOSTS": "b7dd957b34a236517bd3ca4c387121d3c872b826fe594598862a62c820dcdb1a",
+        "relay_portal:_portal_entitlement_message": "8e0c40385c0911667d4118fd91e7e633c6d951eb4ad0c7244094a3a6ab266dc8",
+        "relay_portal:_format_nous_entitlement_auth_error": "b8eb54ae658792227809071a152fa3574ed770bcc27bf8e52b4aeef63cddf9f6",
+        "relay_portal:_migrate_stale_nous_portal_url": "c69e9e44f78e3f7733b8e240c33b827d2acfde80f6187689c10ccd9a937573af",
+        "relay_portal:binding:_ALLOWED_NOUS_INFERENCE_HOSTS": "0db7df2f0e932eed99c578fdf71e0245dedca1855fa2bbca9332f1cb740b179d",
+        "relay_portal:_nous_inference_host_allowed": "06696d92fdb12d10bef4ef236cd06ab40dcdb1e96a4842dda1da13154d0f823f",
+        "relay_portal:_validate_nous_inference_url_from_network": "96312f21cfabcd7844c826af6da5860135a1e2cbabb216d75cccc3ae6c89f243",
+        "relay_portal:_scoped_operator_override": "20497a9fac1359a38e0a598b81807fbf30e3c427d85a2857941d0684be402b2f",
+        "relay_portal:_nous_inference_env_override": "1842fe744a55571fd33813a5ba76a57afbc46e0c0821ba9dec5eac2b4bb46950",
+        "relay_portal:_nous_portal_env_override": "46f4c475bc8ed9bc435efdb127333eb3b27a2a84ced81d2008bafe67defdd0f2",
+        "relay_portal:_nous_portal_base_url": "9dae4aa4d1e22ec96f5badef0c671af98ec85276e4341669bcc66572bd3de410",
+        "relay_portal:_scope_values": "142814a6372c6c3b6e7352d0479e2a8ae96dd6c3fa5de6be26929e6a68f67fb9",
+        "relay_portal:_nous_invoke_jwt_status": "51738e1456ada707d4a59e6cf6fabef2cbb62f5675dfc9634e50d11c1f74b4ec",
+        "relay_portal:_nous_invoke_jwt_is_usable": "c79b58b52f617fa4df2cdf6682d5b51c44652fa73e308349aa487acb0ea62cc7",
+        "relay_portal:_state_invoke_jwt_status": "601adba146e4e506166071323abedd53d4a9247bfb1f4216b6f73702699cd41c",
+        "relay_portal:_assert_nous_inference_jwt_usable": "8c2fd11a83906ea97031c2695e4c2b405ca6436c54a1153149297a885b63a6e0",
+        "relay_portal:_remaining_ttl": "7417323f5c5e2ea314749d4408ace4c3631f1dc7ca89b29b7bfc62e67a956faf",
+        "relay_portal:_nous_jwt_expires_at": "916d9e6ec7c92f7717dd4089e317617960d095d3d681111fc52fd9658ace1899",
+        "relay_portal:_set_nous_agent_key_from_invoke_jwt": "2b7b1cd86d5eab82f1c495deeeee7ace1f6c1bdd8d11852f542a14f2a1372c04",
+        "relay_portal:_select_nous_invoke_jwt": "1c438618b2d45401887c0ebd7a0cb895f84e11ae2885a715bdc5bb8ef2b2f917",
+        "relay_portal:binding:_NOUS_EFFECTIVE_STATE_IGNORED_KEYS": "c0ea85cca5aad2ad58dd0e3961266c0e477aaa0673d114fc13e26e1924d03720",
+        "relay_portal:_nous_effective_provider_state": "bbe89462c6b8fb9f3f5eaae83e34a697f222c066ee26b0becdf8ab2053553f13",
+        "relay_portal:binding:NOUS_SHARED_STORE_FILENAME": "cb86137397c805206609f424dc3e6c661b7531b54ceb0e22027e67b95efe479a",
+        "relay_portal:binding:_nous_shared_lock_holder": "dd52c2a6f469339522c7da666dae747b3d748507e32147530ab56080e7d7c269",
+        "relay_portal:_nous_shared_auth_dir": "d3c5011bfcfaf34a8ff175275c4ff98a0d930e8c7c2e66f85dc81604df222c6a",
+        "relay_portal:_nous_shared_store_path": "c97dc11d6bb8209545141eaf7713dc4eaa7c0c726906837f4dc44b9ee041dc46",
+        "relay_portal:_nous_shared_store_lock": "486fa35801e824985eecf5f48d1f6121ea0e400b451edde1465a7a978e43160f",
+        "relay_portal:_shared_lock_timeout": "9c60fc91263bb26d7da289e668041af32b6f1973d444a5bfadf2953b75ebbf7e",
+        "relay_portal:binding:_NOUS_SHARED_STATE_KEYS": "c4721ea5af0f62ee574619fb25b6bb1a767054237a5f247a6153e9c485c32ec3",
+        "relay_portal:binding:_SHARED_RENEWAL_KEY": "f4cac6b677a37fdbed902e3dc317ce9cec4d4c16003b5b5f5c0e05cb81a32d71",
+        "relay_portal:_nous_state_order": "604bd106dbe04669bd8243239c4a714732c78a8435b2335f5cc022408b668ec0",
+        "relay_portal:_same_known_nous_identity": "9f423df500f862be99884c30d8fd0ab71ee89785cbd0f0bd5df83a9172ff4c88",
+        "relay_portal:_merge_shared_nous_oauth_state": "31d54d69c476f431760b179361318683c3119009b4ad3ce40ea0bfa24e6faa60",
+        "relay_portal:_nous_shared_shape": "19035f9a3dc44f9eaf2eb05e4f28d59dee113ab537c2ef85ee3f2800f6776fd4",
+        "relay_portal:_nous_identity": "cab8a5b81ac4a35df7a22f804806e11504ea7c58bb84d31e186b728d26a77085",
+        "relay_portal:_shared_copy_is_newer": "99226e2f5c83946252c9569eef72ae63a92397bddd0cfefd4c108e9204cc5af6",
+        "relay_portal:_write_shared_nous_state": "90ab21b1600b125006f6cfe7384d574b887d1520bf8ef80655d02b95a37f9f16",
+        "relay_portal:_read_shared_nous_state": "07014f9c1174770758c658c72070ef3f0b6d92f1500c17e05b51aabb93f97165",
+        "relay_portal:_clear_shared_nous_state": "ab3c4787969fbcd77b5f207ef9ee8175d38cac9e3767634085e6448ea929a8b2",
+        "relay_portal:_quarantine_forensics": "b1ac3ef8ad6d1b98920948fac55943a432df63cf1ee115303f7b6106828a79e0",
+        "relay_portal:_quarantine_nous_oauth_state": "40d1d0ee7b5c643cef9ee783410c3aa2a8166188ec199afee426eff16b9b9836",
+        "relay_portal:_quarantine_nous_pool_entries": "d7efbd5166e292c0bc140cb6fe8849b27db42c249765c399898b2147d7186341",
+        "relay_portal:_try_import_shared_nous_state": "6c9c7ad27798c1b88110ffa6776245e7f7c5a1dc1ecf4a852ae5c9f39fe5165d",
+        "relay_portal:_refresh_access_token": "50109d7881aba9c424de2af5cafeae2e535e31d49f4625a5e98e82b35ef6f657",
+        "relay_portal:_refresh_nous_or_quarantine": "3559233e4bc90b2adb0055fe6a1a2587bfd796e1f3a6ee3b09854675195c9573",
+        "relay_portal:_apply_nous_refreshed_tokens": "d5be1e262706092378c5d025ce91c6c0fab7b650ba5a1afabb2a641994005d1b",
+        "relay_portal:_healed_nous_inference_url": "d67405329433e174f2d509cf648ea0cf55d7719f5ed9482ffc75f764c2cdf28e",
+        "relay_portal:_nous_http_client": "a64784f3f73d213e6ae54b5629f5c8997b9f46ddef8b0a21193aaa55c27d3fd2",
+        "relay_portal:_model_priority": "561ac58908efbbae371573598ddb2a7edc0ac99dddfb1cda5467b599c62f359b",
+        "relay_portal:fetch_nous_models": "99747e4e0772358561f5787600202b374f4f4210735ae163de46514f8334ca44",
+        "relay_portal:_agent_key_is_usable": "3a9346aa499d770a20ad2b73fbdad55b3bee82376809b6832db1d6b5b8c70489",
+        "relay_portal:refresh_nous_oauth_pure": "8306c23d5a2bd2cf41a6e88f22369e5b354a33c4f2f32842150fb3ddb930003c",
+        "relay_portal:refresh_nous_oauth_from_state": "f4d252ccc012db346b613dc0790a9af2adbe66e32e0530358aca7977d14c35f3",
+        "relay_portal:persist_nous_credentials": "4a7818842879a63fc2c79d79e1aa1a1ac020d7e44c3ac4ae756972e166af4fdf",
+        "relay_portal:_sync_nous_pool_from_auth_store": "79506a4323c31b827e6442d950d1894fb275c4b213ad10d1392b8b822d9121eb",
+        "relay_portal:_nous_effective_routing": "c0ad8653438190ce3777c2d904980e15e0f8dc3d34631c691dbef1e3d4f7b887",
+        "relay_portal:_NousRuntimeResolve.__init__": "6eb4b8767461114d76989e12e4cff5044b1be8f8097c6f06b7ca5bae90881669",
+        "relay_portal:_NousRuntimeResolve._reload_routing": "bc7900058175f6be07a915287ca830e95cf425844b8434fc4181df3ead319307",
+        "relay_portal:_NousRuntimeResolve.persist": "d2ab7fcfb6738db80be0041430263cc7332263c0838d0120b0a86114458f7c58",
+        "relay_portal:_NousRuntimeResolve.shared_lock": "8b3f26b0d36bcbebe5d2d8c843de985df49c4e145f792521f89ae44a5d2f29d9",
+        "relay_portal:_NousRuntimeResolve.has_access_token": "789bb1805767fc6d7b3ba0bd3e8a6211090086cb21cd10b0ff99e450db774829",
+        "relay_portal:_NousRuntimeResolve.invoke_jwt_status": "7cf0f266ef809324017e56437013f0656480f3ebd1b6e7fdaafbc74c8e73277d",
+        "relay_portal:_NousRuntimeResolve.merge_shared": "e4c7d152c9c026aa83ae7333be7f524f5ffc94e087a0634ad76fde6378a5e450",
+        "relay_portal:_NousRuntimeResolve.skip_refresh_if_peer_rotated": "3e6b8288ab1ac026d2d97fff80a59375594f6a836fee1445cb72c89513c73837",
+        "relay_portal:_NousRuntimeResolve.refresh": "ae6a0e55c2f04cadb3d19aa102be7d517524083b57222c0c41742b3302355153",
+        "relay_portal:_NousRuntimeResolve.ensure_usable_access_token": "fa5b73c463df0e090b769d113db5fe128b0f6510e97764a2e0db668a77b5ff6e",
+        "relay_portal:resolve_nous_runtime_credentials": "d5b4b43acf152f768d90d3df4993ec3937db3dc1e841921062353b621b67ebc0",
+        "relay_portal:_resolve_nous_runtime_credentials": "eee74848695d4a093c7acde6f15eac7cd2a42c44a8a5419d095a27b574c2c5d9",
+        "relay_portal:_empty_nous_auth_status": "2b0a9e5490ae6ea9d0b396a81f1ba623c17c927b5a99c6c82b0ae4ba86e0c700",
+        "relay_portal:_snapshot_nous_pool_status": "86fd904895948a1877130f6ae7db8014b409ba8ff8f4b425a3a0415ab8a6c43a",
+        "relay_portal:_nous_status_from_state": "f4a4da88d401cc675ecc71549155e314f7678f4f03dbadbfe5db9f5619cc192d",
+        "relay_portal:_compute_nous_auth_status": "27e656177074946c780db941fec98f22f92c969a131a18205dfec7c8e6f8f0a9",
+        "relay_portal:_terminal_quarantine_marker": "12d95a6535acd7d508ab2accda91ea623d2243d07b612c31af1c4de9fb69e520",
+        "relay_portal:get_nous_auth_status_local": "0b22b1646127e1a3ae1f7673cc0b404648968889654fb666427a88fd07b27df9",
+        "relay_portal:binding:NOUS_SESSION_VALID": "89b21a25bf8c17d655168d5a544d982a58bb63a9a19411f5487c896c03758b08",
+        "relay_portal:binding:NOUS_SESSION_TERMINAL": "ef19e6692b6862e0ac311ad7310e191e62202fe7f0428fd20d923730b872dbd9",
+        "relay_portal:binding:NOUS_SESSION_UNKNOWN": "2799c1825498db96b09d11f49d6e7a44d64638475ee758fc53b77f7c3a6cb86f",
+        "relay_portal:get_nous_session_validity": "065b1488dfc5c6d8cb81b2e883890a1bbf80694358e1cb9329743d636c84dad3",
+        "relay_portal:_pool_first_oauth_status": "701c8bf13c3b651f825df09d42df070d8236b9d12f28371eb91699899fafb079",
+        "relay_portal:_nous_device_code_login": "ec5156f0b67750d2e74cf30e78fc9a23a85e08bd1b42e7b3cdf2f07423859d83",
+        "relay_portal:_mirror_nous_state_best_effort": "06be3097864c9aa138644089d4441d00cda6e5988aa8ebdf7d0e0699d7930fe4",
+        "relay_portal:step_up_nous_billing_scope": "1d55039d06f6c55b7e26954836b329ebcdbe39a9d03caa224499391de818861a",
+        "relay_portal:_pick_nous_model_after_login": "4fa9518137660e5e95c83752e68514f29b6f1d0e25892f9a93da5817101f8e02",
+        "relay_portal:_offer_shared_nous_import": "7eeb41a69e6b8a523a8be379956cfe61b666d6e662db59e1e28507ab6ef3d37f",
+        "relay_portal:_restore_active_provider": "7aea1b572ebbd81b7b486eaf23c80d4da8ed98813032db89f5f5b07dd69e4d94",
+        "relay_portal:_login_nous": "aef86b7601d2f3e81e845a2ff6a320f2ed0beb88ebb53763a5394f7280335d50",
+        "relay_portal:_portal_host": "d495ce2ea6e9ae9d7ae950b73115821130c056f9c092e0d257806baf0c57dd6e",
+        "model_reasoning:get_process_hermes_home": "5167d8f84bdab2260040a2d193fb809b7e8c25d3fd65b5226f49e18b531bc8e3",
+        "model_reasoning:_expand_hermes_home": "c48f29910bf69e07d285341b70d0ad17278b79927ea4c437a8bd7330d14c8138",
+        "model_reasoning:_get_platform_default_hermes_home": "b6445f89dcf3278a7ec7f09a7fcefe71b0faabc9b7de44d47e4b8fb099fc68f0",
+        "provider_auth:get_provider_auth_state": "7ac1aa88148873f2eff08376277f3caf92b43cae954d109d275ad2d11c98ee49"
       },
       "request_fields": {
         "auth:_NativeRefreshBody.provider": "6f26da4d3397a0ad1e091e80f548edef3c9ec86067192a65272fb7d0def308d9",
@@ -2683,6 +2938,7 @@
     "GET /api/mcp/oauth/flows/{flow_id}",
     "GET /api/mcp/servers",
     "GET /api/messaging/platforms",
+    "GET /api/messaging/relay",
     "GET /api/model/auxiliary",
     "GET /api/model/moa",
     "GET /api/model/options",
@@ -3127,11 +3383,14 @@
     "channel_registry:import:sys",
     "channel_registry:import:threading",
     "channel_registry:schema:PlatformEntry",
+    "channel_relay_config:_connector_url",
     "channel_relay_config:_env_or_cfg",
     "channel_relay_config:_env_or_cfg_url",
     "channel_relay_config:_gateway_cfg",
+    "channel_relay_config:_json_post",
     "channel_relay_config:_launch_profile_scope",
     "channel_relay_config:_load_cfg",
+    "channel_relay_config:_relay_bot_ids_map",
     "channel_relay_config:binding:_AMBIENT_TOKEN_SHAPE",
     "channel_relay_config:binding:_HTTP_TIMEOUT_S",
     "channel_relay_config:binding:_IDP_KEYS",
@@ -3147,12 +3406,36 @@
     "channel_relay_config:import:urllib.error",
     "channel_relay_config:import:urllib.parse",
     "channel_relay_config:import:urllib.request",
+    "channel_relay_config:relay_connection_auth",
     "channel_relay_config:relay_explicitly_disabled",
     "channel_relay_config:relay_fronted_platforms",
     "channel_relay_config:relay_platform_identities",
     "channel_relay_config:relay_url",
+    "channel_relay_links:RelayLinkError.__init__",
+    "channel_relay_links:_bearer_and_base",
+    "channel_relay_links:_bot_entry",
+    "channel_relay_links:_get",
+    "channel_relay_links:_http_error",
+    "channel_relay_links:_managed_by_for_listing",
+    "channel_relay_links:_post",
+    "channel_relay_links:binding:CONTROL_TIMEOUT_S",
+    "channel_relay_links:binding:_ACTIONS",
+    "channel_relay_links:binding:_HTTP_REFUSALS",
+    "channel_relay_links:binding:_HTTP_TIMEOUT_S",
+    "channel_relay_links:import:Any",
+    "channel_relay_links:import:Callable",
+    "channel_relay_links:import:Optional",
+    "channel_relay_links:import:annotations",
+    "channel_relay_links:import:json",
     "channel_relay_links:import:os",
+    "channel_relay_links:import:urllib.error",
+    "channel_relay_links:import:urllib.request",
+    "channel_relay_links:link_status",
+    "channel_relay_links:managed_by",
+    "channel_relay_links:portal_agents_url",
     "channel_relay_links:relay_channel_view",
+    "channel_relay_links:relay_link_verb",
+    "channel_relay_links:shared_bot_url",
     "channel_served:import:Any",
     "channel_served:import:Optional",
     "channel_served:import:Path",
@@ -3865,6 +4148,9 @@
     "model_inventory:build_models_payload",
     "model_inventory:load_picker_context",
     "model_reasoning:VALID_REASONING_EFFORTS",
+    "model_reasoning:_expand_hermes_home",
+    "model_reasoning:_get_platform_default_hermes_home",
+    "model_reasoning:get_process_hermes_home",
     "model_reasoning:parse_reasoning_effort",
     "model_route_identity:normalize_route_base_url",
     "model_route_identity:should_clear_context_pin",
@@ -4192,6 +4478,7 @@
     "provider_auth:_suppressed_source_list",
     "provider_auth:_token_pairs_by_id",
     "provider_auth:clear_provider_auth",
+    "provider_auth:get_provider_auth_state",
     "provider_auth:is_source_suppressed",
     "provider_auth:mark_provider_active_if_unset",
     "provider_auth:read_credential_pool",
@@ -4205,6 +4492,156 @@
     "provider_identity:_overlay_profiles",
     "provider_identity:_profile_overlay_key",
     "provider_identity:normalize_provider",
+    "relay_auth:binding:_DEFAULT_UPGRADE_TTL_SECONDS",
+    "relay_auth:import:annotations",
+    "relay_auth:import:base64",
+    "relay_auth:import:hashlib",
+    "relay_auth:import:hmac",
+    "relay_auth:import:time",
+    "relay_auth:make_token",
+    "relay_auth:make_upgrade_token",
+    "relay_auth:sign",
+    "relay_control:_home_hash",
+    "relay_control:_private_directory",
+    "relay_control:_query_unix_socket",
+    "relay_control:_query_windows_pipe",
+    "relay_control:_read_response_line",
+    "relay_control:_windows_pipe_exchange",
+    "relay_control:binding:CONTROL_PROTOCOL_VERSION",
+    "relay_control:binding:_DEFAULT_CLIENT_TIMEOUT",
+    "relay_control:binding:_IS_WINDOWS",
+    "relay_control:binding:_MAX_REQUEST_BYTES",
+    "relay_control:binding:_MAX_RESPONSE_BYTES",
+    "relay_control:binding:_MAX_UNIX_PATH",
+    "relay_control:binding:_POINTER_FILENAME",
+    "relay_control:binding:_SOCKET_FILENAME",
+    "relay_control:binding:_SOCKET_UNSUPPORTED_ERRNOS",
+    "relay_control:binding:logger",
+    "relay_control:import:Any",
+    "relay_control:import:Callable",
+    "relay_control:import:Optional",
+    "relay_control:import:Path",
+    "relay_control:import:annotations",
+    "relay_control:import:asyncio",
+    "relay_control:import:contextlib",
+    "relay_control:import:errno",
+    "relay_control:import:hashlib",
+    "relay_control:import:inspect",
+    "relay_control:import:json",
+    "relay_control:import:logging",
+    "relay_control:import:os",
+    "relay_control:import:socket",
+    "relay_control:import:stat",
+    "relay_control:import:sys",
+    "relay_control:import:tempfile",
+    "relay_control:import:time",
+    "relay_control:query_gateway_control",
+    "relay_control:resolve_client_socket_path",
+    "relay_control:windows_pipe_name",
+    "relay_diagnostics:_scrub",
+    "relay_diagnostics:binding:BODY_EXCERPT_CHARS",
+    "relay_diagnostics:binding:_BODY_READ_LIMIT",
+    "relay_diagnostics:binding:_ORIGIN_HEADERS",
+    "relay_diagnostics:binding:_PROXY_ONLY_HEADERS",
+    "relay_diagnostics:binding:_PROXY_SERVER_NAMES",
+    "relay_diagnostics:binding:__all__",
+    "relay_diagnostics:connector_reason",
+    "relay_diagnostics:import:Iterable",
+    "relay_diagnostics:import:annotations",
+    "relay_diagnostics:import:http.client",
+    "relay_diagnostics:import:json",
+    "relay_diagnostics:import:redact_sensitive_text",
+    "relay_diagnostics:import:urllib.error",
+    "relay_diagnostics:read_error_body",
+    "relay_diagnostics:redact_excerpt",
+    "relay_media:binding:MEDIA_MAX_BYTES",
+    "relay_media:binding:_MEDIA_USER_AGENT",
+    "relay_media:binding:_REQUEST_TIMEOUT_S",
+    "relay_media:binding:__all__",
+    "relay_media:binding:logger",
+    "relay_media:import:Optional",
+    "relay_media:import:Path",
+    "relay_media:import:annotations",
+    "relay_media:import:asyncio",
+    "relay_media:import:clean_attachment_filename",
+    "relay_media:import:email.message",
+    "relay_media:import:email.utils",
+    "relay_media:import:json",
+    "relay_media:import:logging",
+    "relay_media:import:make_upgrade_token",
+    "relay_media:import:mimetypes",
+    "relay_media:import:os",
+    "relay_media:import:tempfile",
+    "relay_media:import:urllib.error",
+    "relay_media:import:urllib.request",
+    "relay_media:media_base_url",
+    "relay_portal:_nous_portal_base_url",
+    "relay_portal:_nous_portal_env_override",
+    "relay_portal:binding:NOUS_SESSION_TERMINAL",
+    "relay_portal:binding:NOUS_SESSION_UNKNOWN",
+    "relay_portal:binding:NOUS_SESSION_VALID",
+    "relay_portal:binding:NOUS_SHARED_STORE_FILENAME",
+    "relay_portal:binding:_ALLOWED_NOUS_INFERENCE_HOSTS",
+    "relay_portal:binding:_NOUS_EFFECTIVE_STATE_IGNORED_KEYS",
+    "relay_portal:binding:_NOUS_EMPTY_AGENT_KEY_FIELDS",
+    "relay_portal:binding:_NOUS_SHARED_STATE_KEYS",
+    "relay_portal:binding:_NOUS_STALE_PORTAL_HOSTS",
+    "relay_portal:binding:_SHARED_RENEWAL_KEY",
+    "relay_portal:binding:_UNUSABLE_JWT_RELOGIN",
+    "relay_portal:binding:_nous_shared_lock_holder",
+    "relay_portal:binding:logger",
+    "relay_portal:import:AUTH_LOCK_TIMEOUT_SECONDS",
+    "relay_portal:import:Any",
+    "relay_portal:import:AuthError",
+    "relay_portal:import:Callable",
+    "relay_portal:import:DEFAULT_NOUS_CLIENT_ID",
+    "relay_portal:import:DEFAULT_NOUS_INFERENCE_URL",
+    "relay_portal:import:DEFAULT_NOUS_PORTAL_URL",
+    "relay_portal:import:DEFAULT_NOUS_SCOPE",
+    "relay_portal:import:DEFAULT_NOUS_WELCOME_URL",
+    "relay_portal:import:DEVICE_AUTH_POLL_INTERVAL_CAP_SECONDS",
+    "relay_portal:import:Dict",
+    "relay_portal:import:FrozenSet",
+    "relay_portal:import:List",
+    "relay_portal:import:NOUS_AUTH_PATH_INVOKE_JWT",
+    "relay_portal:import:NOUS_BILLING_MANAGE_SCOPE",
+    "relay_portal:import:NOUS_DEVICE_CODE_SOURCE",
+    "relay_portal:import:NOUS_INFERENCE_INVOKE_SCOPE",
+    "relay_portal:import:NOUS_INVOKE_JWT_MIN_TTL_SECONDS",
+    "relay_portal:import:Optional",
+    "relay_portal:import:Path",
+    "relay_portal:import:TYPE_CHECKING",
+    "relay_portal:import:UTC",
+    "relay_portal:import:WELCOME_CLAIM_FLAG",
+    "relay_portal:import:_decode_jwt_claims",
+    "relay_portal:import:_nous_err",
+    "relay_portal:import:_pool_entries",
+    "relay_portal:import:annotations",
+    "relay_portal:import:contextmanager",
+    "relay_portal:import:datetime",
+    "relay_portal:import:drain",
+    "relay_portal:import:hashlib",
+    "relay_portal:import:httpx",
+    "relay_portal:import:json",
+    "relay_portal:import:logging",
+    "relay_portal:import:note_replacement",
+    "relay_portal:import:os",
+    "relay_portal:import:result_lines",
+    "relay_portal:import:suppress",
+    "relay_portal:import:threading",
+    "relay_portal:import:time",
+    "relay_portal:import:timezone",
+    "relay_portal:import:urlparse",
+    "relay_portal:import:uuid",
+    "relay_routes:_ask_gateway",
+    "relay_routes:_call",
+    "relay_routes:binding:_NOT_READY",
+    "relay_routes:binding:router",
+    "relay_routes:get_relay_links",
+    "relay_routes:import:APIRouter",
+    "relay_routes:import:Any",
+    "relay_routes:import:HTTPException",
+    "relay_routes:import:asyncio",
     "runs:_handle_run_approval",
     "runs:_handle_run_clarify",
     "runs:_handle_run_events",
@@ -4628,6 +5065,342 @@
         "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
         "reason": "The new metadata-only helper reads effective relay URL, fronted identities and the two process environment flags for exclusive/direct mode. Its gateway.relay dependency helpers match the original source. It performs no connector request or account-link mutation; those routes are outside this chunk. See docs/contracts/2026-11-04-channel-relay-review.md."
       }
+    ],
+    "channel_relay_links:RelayLinkError.__init__": [
+      {
+        "sha256": "aa15098d50f76e1b9da68f76469af5d577716f84712e8babb9b864127c5c19e4",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:_bearer_and_base": [
+      {
+        "sha256": "d612394c73be72eda87bdfe37d44c1f0e76064c27bdcfdbd73fd7f0d6e928e27",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:_bot_entry": [
+      {
+        "sha256": "8b4fa7e0843d40bae407eda8333a11da9a0ba65812bbad3ae847dc5c33ec7a46",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:_get": [
+      {
+        "sha256": "5b2f76041c141bf2cd424185ba353302049584ae52e3f0e7e022e9725069425a",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:_http_error": [
+      {
+        "sha256": "c42df6976b6367ff139190bba9d430a1f4d02d1635d0cf9f39751c5e497d06c6",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:_managed_by_for_listing": [
+      {
+        "sha256": "9eaff8e4fca06593b0e891ccaf4a57e8b3a99fd661d07192fd5000d2c4005258",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:_post": [
+      {
+        "sha256": "54cbc064a241987eaf42a992e0e98e79a2bfb1dfe85ec3e46068b386a46ef59b",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:binding:CONTROL_TIMEOUT_S": [
+      {
+        "sha256": "3e44ee8ba2b09346f7cc218e625059f64078d61f71039a56c4e00bd9665b4056",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:binding:_ACTIONS": [
+      {
+        "sha256": "1b3bec74a3d4718dc4bcb34fafc9f41fda7e9069ecaa16cd737939feef41cd50",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:binding:_HTTP_REFUSALS": [
+      {
+        "sha256": "8d392bf932a58731e3a8840c043aae5a1dcbf77b3ee9010972541f672447540f",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:binding:_HTTP_TIMEOUT_S": [
+      {
+        "sha256": "7a0d9a968c60a85d3e5c58af8d0c4a57fa680df5cff538443b600d577fd95e49",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:import:Any": [
+      {
+        "sha256": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:import:Callable": [
+      {
+        "sha256": "77708af745ea43336978257d3e6e3059cc23716394f7225d5b7cb27c25c3ca05",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:import:Optional": [
+      {
+        "sha256": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:import:annotations": [
+      {
+        "sha256": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:import:json": [
+      {
+        "sha256": "0b277aec8e85c7f72798c1df4bf16d992c50b529886b87a6cc4b64ae3f1f40ae",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:import:urllib.error": [
+      {
+        "sha256": "345d9e8611aedc27b77a9edcc0a8ad5b7a805b80f2ff0e79365efaeb5f620376",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:import:urllib.request": [
+      {
+        "sha256": "efed3c14575b288e69b1a6e14be42a1f7898798b65efc09f7376fa72a863a9af",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:link_status": [
+      {
+        "sha256": "dd9ec63194ccf4a4ebdc725aeb1d488f56bd582eee1ee3169389ca16c5734d24",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:managed_by": [
+      {
+        "sha256": "8a7dd03e9ef67362d486ba676ea402aa2171e84f03ef405b1439da4c7eea710b",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:portal_agents_url": [
+      {
+        "sha256": "3d1dacddc592e6c4fb7e8721c130b92fdfb1d7a6bbfc1fc4cc8c4589ec944649",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:relay_link_verb": [
+      {
+        "sha256": "9a32ef3ed5d42c136a70f875263725dd2649b8b22eaa7583026ba64212361ce1",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "channel_relay_links:shared_bot_url": [
+      {
+        "sha256": "4f995e36f36ea7340b87da18ec25a10be32d817b0f678b5a46c9861ba1b65a0e",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New gateway-owned account report path: status selects only the status action, keeps upgrade credentials server-side, returns linked-account metadata plus an explicit portal/connector/unknown manager, and derives the operator/stored Portal destination. HTTP errors retain typed readiness/refusal semantics. The mobile chunk only invokes status; request/state/unlink remain separate work. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:_scrub": [
+      {
+        "sha256": "efb5d5d2c76381b9c642f79b9fcd042da3a76764f53e874262c3d3de3f3b6bff",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:binding:BODY_EXCERPT_CHARS": [
+      {
+        "sha256": "5f4f3ac0a9850a02362e92a9b1e2d5a0ef637e885740aa3f62c8f4f0b6383a43",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:binding:_BODY_READ_LIMIT": [
+      {
+        "sha256": "70275fab9c4eaf92ac5eb985f7315aa5e7a77d0a3c375058d29c20caffd7a971",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:binding:_ORIGIN_HEADERS": [
+      {
+        "sha256": "12c4ed5c779e72982451eb563aa39e74faec62f490d9fc9f85c3d893e495e8f3",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:binding:_PROXY_ONLY_HEADERS": [
+      {
+        "sha256": "6069fbec4b786707c394991ad9ddcdb8081f5382d5cdd88d3306bf746e0fa224",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:binding:_PROXY_SERVER_NAMES": [
+      {
+        "sha256": "c38da89bfed86c9a2149d60f7e8cca8af617fb00c69314124a39b10a69fa8a38",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:binding:__all__": [
+      {
+        "sha256": "4bf1b6d72f42220dfd222c730b8def18f7b15c115207d8b92b31cc747a4bc4ff",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:connector_reason": [
+      {
+        "sha256": "1f7422e4025576892412092236a8bd629a48dca049b21008c348b3b2a7e9fafb",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:import:Iterable": [
+      {
+        "sha256": "1430d817603e71412694b88c3ab6beb69835bbee9054f96f3c14a41c85c2a3ae",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:import:annotations": [
+      {
+        "sha256": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:import:http.client": [
+      {
+        "sha256": "593ddee7facf458986bd3b6e3ca0ec3acfd063f8391451247f6ed0a0b8cd24a7",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:import:json": [
+      {
+        "sha256": "0b277aec8e85c7f72798c1df4bf16d992c50b529886b87a6cc4b64ae3f1f40ae",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:import:redact_sensitive_text": [
+      {
+        "sha256": "4df84e9471203d8ec9b080ea22b0cab99f4b9a2c56ec0411ee361c4936bf0262",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:import:urllib.error": [
+      {
+        "sha256": "345d9e8611aedc27b77a9edcc0a8ad5b7a805b80f2ff0e79365efaeb5f620376",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:read_error_body": [
+      {
+        "sha256": "471bc31ac21d1546c10c7b6f1d199b7339834ee0f0657684b65a5a00b146465a",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_diagnostics:redact_excerpt": [
+      {
+        "sha256": "ac158faabc4557c10903c43c8100e249df9714ff2d7380f1eb8b0b3292c88d03",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New connector HTTP diagnostic dependency reads bounded error bodies, extracts a string reason and scrubs exact gateway credentials before generic redaction. Selected imports/constants match those reviewed functions; raw errors are not displayed or persisted by the phone. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:_ask_gateway": [
+      {
+        "sha256": "55add9cac039a2d0724528a7f3d6bdaa36dcd33c8f2df8061176bbee433304de",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:_call": [
+      {
+        "sha256": "6dea19ea823e100ca356495e7d650c43d03bb60ab9b7539f24674daf4744ac1a",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:binding:_NOT_READY": [
+      {
+        "sha256": "a95fe3ccdc41f59b3622217e8732a94b734e883b1abd40092e2bea297be8e72f",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:binding:router": [
+      {
+        "sha256": "b88baaa2d1dec54ddb4a187b5afe305d0b422eab5d56d869233aeb05663ed69d",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:get_relay_links": [
+      {
+        "sha256": "7a52ff9f4c2ca035c5df6c30e29fc05327e91423343bab1f094b30309bd80b90",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:import:APIRouter": [
+      {
+        "sha256": "78aef53585b825a5c4128bbff22ab749b2e9c548f5dd501a52f9c66c98290687",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:import:Any": [
+      {
+        "sha256": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:import:HTTPException": [
+      {
+        "sha256": "e30af62162493a6161400a9f3091c8bca467c4c6cd13082a652579eb65e82ca8",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
+    ],
+    "relay_routes:import:asyncio": [
+      {
+        "sha256": "de5d9eb06824fdca1c35d6d9c32fffebead60f9ed7792b48c4032d59bc1303d2",
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "New GET report route delegates action=status to the process Hermes home through the local control socket, not a selected-profile argument. Missing gateway answers are typed 503; success strips the internal ok wrapper. The phone requires positive launch-home metadata before and after this unscoped route. See docs/contracts/2026-11-04-relay-account-review.md."
+      }
     ]
   },
   "reviewed_source_introductions": {
@@ -4635,7 +5408,19 @@
       "path": "gateway/relay/link.py",
       "absent_at": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
       "reviewed_commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
-      "evidence": "Official GitHub contents API returned 404 for the original commit. Only metadata relay_channel_view and its os import are selected; account-linking mutations remain separate work."
+      "evidence": "Official GitHub contents API returned 404 for the original commit. The original channel chunk selected metadata relay_channel_view and its os import. The subsequent account-review chunk additionally selects status/authority helpers with exact reviewed B200 variants; link-code creation/state and account removal remain separate work."
+    },
+    "relay_routes": {
+      "path": "hermes_cli/web_routers/messaging_relay.py",
+      "absent_at": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "reviewed_commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+      "evidence": "Official GitHub contents API returned 404 at original F0; adjacent original sources were readable. Current source must still be fetched; no empty original module is fabricated."
+    },
+    "relay_diagnostics": {
+      "path": "gateway/relay/http_diagnostics.py",
+      "absent_at": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "reviewed_commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+      "evidence": "Official GitHub contents API returned 404 at original F0; adjacent original sources were readable. Current source must still be fetched; no empty original module is fabricated."
     }
   }
 }

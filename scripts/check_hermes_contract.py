@@ -156,10 +156,11 @@ EXTRA_SOURCES = {
 }
 CHANNEL_CONTRACT_SOURCES = {'channels': 'hermes_cli/web_routers/messaging.py', 'channel_catalog': 'hermes_cli/web_server_messaging.py', 'channel_registry': 'gateway/platform_registry.py', 'channel_profiles': 'hermes_cli/profile_channels.py', 'channel_status': 'gateway/status.py', 'channel_served': 'gateway/status_served.py', 'channel_pairing': 'gateway/pairing.py', 'channel_config_env': 'gateway/config_env.py', 'channel_multiplex': 'hermes_cli/gateway_multiplex_mode.py', 'channel_env_loader': 'hermes_cli/env_loader.py', 'channel_gate': 'gateway/platforms/_shared.py', 'channel_hidden': 'hermes_cli/setup_hidden_env.py', 'channel_config': 'gateway/config.py'}
 CHANNEL_CONTRACT_SOURCES.update({'channel_relay_config':'gateway/relay/__init__.py','channel_relay_links':'gateway/relay/link.py'})
+CHANNEL_CONTRACT_SOURCES.update({'relay_routes': 'hermes_cli/web_routers/messaging_relay.py', 'relay_control': 'gateway/control_socket.py', 'relay_auth': 'gateway/relay/auth.py', 'relay_media': 'gateway/relay/media.py', 'relay_diagnostics': 'gateway/relay/http_diagnostics.py', 'relay_portal': 'hermes_cli/auth_nous.py'})
 EXTRA_SOURCES.update(CHANNEL_CONTRACT_SOURCES)
 
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes', 'pool_routes'}
-MANAGEMENT_SOURCES.add("channels")
+MANAGEMENT_SOURCES.update(("channels","relay_routes"))
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.

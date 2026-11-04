@@ -5,6 +5,27 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    RelayBrowserFailed("No browser could open the reviewed Portal destination.","没有浏览器能够打开已审阅的 Portal 目标。","Méiyǒu liúlǎnqì nénggòu dǎkāi yǐ shěnyuè de Portal mùbiāo."),
+    RelayAccounts("Team Gateway accounts","团队网关账户","Tuánduì wǎngguān zhànghù"),
+    RelayRead("Read linked accounts","读取已关联账户","Dúqǔ yǐ guānlián zhànghù"),
+    RelayPrivacy("This reads private account identifiers, names, handles and bot links. Hermes must first confirm that the selected profile is the running instance’s launch profile. No code is created and no account or message is changed.","这会读取私密账户标识、名称、用户名及机器人链接。Hermes 必须先确认所选配置是正在运行实例的启动配置。不会创建代码，也不会更改账户或消息。","Zhè huì dúqǔ sīmì zhànghù biāozhì, míngchēng, yònghùmíng jí jīqìrén liànjiē. Hermes bìxū xiān quèrèn suǒ xuǎn pèizhì shì zhèngzài yùnxíng shílì de qǐdòng pèizhì. Bù huì chuàngjiàn dàimǎ, yě bù huì gēnggǎi zhànghù huò xiāoxi."),
+    RelayScopeUnavailable("Hermes did not confirm this profile as a relay-fronted launch home. Account reads are unavailable here. Select the instance’s launch profile or check its Team Gateway setup.","Hermes 未确认此配置为通过中继连接的启动目录。此处无法读取账户。请选择实例的启动配置，或检查团队网关设置。","Hermes wèi quèrèn cǐ pèizhì wéi tōngguò zhōngjì liánjiē de qǐdòng mùlù. Cǐ chù wúfǎ dúqǔ zhànghù. Qǐng xuǎnzé shílì de qǐdòng pèizhì, huò jiǎnchá tuánduì wǎngguān shèzhì."),
+    RelayUnavailable("The account report was incomplete or did not match the verified instance platforms. No account details were retained.","账户报告不完整，或与已验证的实例平台不匹配。未保留账户详情。","Zhànghù bàogào bù wánzhěng, huò yǔ yǐ yànzhèng de shílì píngtái bù pǐpèi. Wèi bǎoliú zhànghù xiángqíng."),
+    RelayPortalManaged("Accounts are managed in Nous Portal.","账户由 Nous Portal 管理。","Zhànghù yóu Nous Portal guǎnlǐ."),
+    RelayConnectorManaged("Accounts are managed by the Team Gateway connector.","账户由团队网关连接器管理。","Zhànghù yóu tuánduì wǎngguān liánjiēqì guǎnlǐ."),
+    RelayUnknownManaged("The account management authority is unknown.","账户管理权限来源未知。","Zhànghù guǎnlǐ quánxiàn láiyuán wèizhī."),
+    RelayAccountCount("Reported accounts","报告的账户数","Bàogào de zhànghù shù"),
+    RelayReported("This is a host-reported snapshot. It does not prove ownership, delivery or current access. Private details stay in this screen’s memory and are cleared when it closes or the connection changes.","这是主机报告的快照，不能证明所有权、消息送达或当前访问权限。私密详情仅保留在此屏幕的内存中，关闭屏幕或更改连接时会清除。","Zhè shì zhǔjī bàogào de kuàizhào, bù néng zhèngmíng suǒyǒuquán, xiāoxi sòngdá huò dāngqián fǎngwèn quánxiàn. Sīmì xiángqíng jǐn bǎoliú zài cǐ píngmù de nèicún zhōng, guānbì píngmù huò gēnggǎi liánjiē shí huì qīngchú."),
+    RelayAccountId("Platform account ID","平台账户标识","Píngtái zhànghù biāozhì"),
+    RelayAccountName("Display name","显示名称","Xiǎnshì míngchēng"),
+    RelayAccountHandle("Handle","用户名","Yònghùmíng"),
+    RelayBotUrl("Reported bot link","报告的机器人链接","Bàogào de jīqìrén liànjiē"),
+    RelayPortalReview("Review Portal handoff","审阅 Portal 跳转","Shěnyuè Portal tiàozhuǎn"),
+    RelayPortalEffect("Review the destination before opening your browser. The app rechecks this instance’s profile, management authority and Portal URL first. Your browser uses its own Portal sign-in; the app does not send its Hermes bearer. Linking and access changes happen there.","打开浏览器前请审阅目标地址。应用会先重新检查此实例的配置、管理权限来源及 Portal 地址。浏览器使用自己的 Portal 登录；应用不会发送 Hermes 令牌。关联及访问权限更改在 Portal 中进行。","Dǎkāi liúlǎnqì qián qǐng shěnyuè mùbiāo dìzhǐ. Yìngyòng huì xiān chóngxīn jiǎnchá cǐ shílì de pèizhì, guǎnlǐ quánxiàn láiyuán jí Portal dìzhǐ. Liúlǎnqì shǐyòng zìjǐ de Portal dēnglù; yìngyòng bù huì fāsòng Hermes lìngpái. Guānlián jí fǎngwèn quánxiàn gēnggǎi zài Portal zhōng jìnxíng."),
+    RelayPortalGrant("I approve opening this reviewed Portal destination.","我同意打开此已审阅的 Portal 目标。","Wǒ tóngyì dǎkāi cǐ yǐ shěnyuè de Portal mùbiāo."),
+    RelayPortalUnavailable("A safe HTTPS Portal destination is unavailable. Check the host’s Portal configuration.","没有安全的 HTTPS Portal 目标。请检查主机的 Portal 配置。","Méiyǒu ānquán de HTTPS Portal mùbiāo. Qǐng jiǎnchá zhǔjī de Portal pèizhì."),
+    RelayLocalControlsPending("Link-code creation and account removal are unavailable here. Use the instance’s supported setup surface.","此处不支持创建关联代码或移除账户。请使用实例支持的设置界面。","Cǐ chù bù zhīchí chuàngjiàn guānlián dàimǎ huò yíchú zhànghù. Qǐng shǐyòng shílì zhīchí de shèzhì jièmiàn."),
+
     AppUpdates("App updates","应用更新","Yìngyòng gēngxīn"),
     UpdateInstalled("Installed","已安装","Yǐ ānzhuāng"),
     UpdateSource("Updates come from the public Hermes Mobile GitHub releases. Checks do not send your Hermes credentials.","更新来自 Hermes Mobile 的公开 GitHub 发布，检查不会发送 Hermes 凭据。","Gēngxīn láizì Hermes Mobile de gōngkāi GitHub fābù, jiǎnchá bù huì fāsòng Hermes píngjù."),
