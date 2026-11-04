@@ -9,8 +9,8 @@ class ManagementInstanceTest {
     private val other=owner.copy(profile="worker",apiScope="b".repeat(64))
     private fun receipt(action:String="RelayLinkStart",state:String="unknown")=ManagementOperation("opaque-key",owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,action,"private-target","private-request",state,"private-result",123456789)
     private fun project(row:ManagementOperation,target:ManagementTarget=other)=ManagementReceiptVisibility.project(listOf(row),target.apiScope,target.resourceScope,target.url)
-    @Test fun crossProfileRelayPendingIsVisibleForBothActionsAndStatesWithoutPrivateMetadata() {
-        for(action in listOf("RelayLinkStart","RelayUnlink")) for(state in listOf("sending","unknown")) {
+    @Test fun crossProfileInstanceWorkIsVisibleWithoutPrivateMetadata() {
+        for(action in listOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe")) for(state in listOf("sending","unknown")) {
             val row=project(receipt(action,state)).single()
             assertEquals(ManagementReceiptVisibility.SharedInstancePending,row.action);assertEquals(state,row.state);assertEquals("opaque-key",row.key)
             assertEquals(owner.url,row.url);assertEquals("",row.profile);assertEquals("",row.resourceScope);assertEquals("",row.apiScope);assertEquals(0L,row.createdAt)

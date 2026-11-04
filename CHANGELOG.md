@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep uncertain listener-scoped endpoint probes blocked across profiles at the same dashboard, including claims arriving during preflight. Reuse private exact-request local review, with clearer shared-work wording and a shorter fresh approval label. Ordinary profile-scoped MCP probes remain separate.
+
 - Keep uncertain Team Gateway requests blocked across profiles at the same dashboard address. Hide another profile’s original receipt details and require a fresh explicit grant for local uncertainty review, including when the original profile or connection was removed. Sending requests remain protected.
 
 - Sharper physical-pixel scenery and a draw-only eight-frame ambient clock, paused in the background or with reduced motion. Accessible stepped progress bars now match the pixel interface, including verified update downloads.

@@ -1,5 +1,26 @@
 # Current development validation — audit follow-up
 
+## 2026-11-04 — listener-scoped endpoint-probe ordering
+
+Required strict `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed on the first build in **7m 24s**, with **413 JVM tests**, zero failures/errors/skips. The existing instance-domain JVM cases now include endpoint probes in their action vectors. All **92 offline checks**, strict **495-component / 1071-artifact** dependency policy, **453 tracked-file** sensitive-file review and diff checks pass.
+
+Each owned API **26 / 36 / 37** emulator passed **39 current domain/probe cases** on the first run, followed by **82 related cases** on each API: **121 focused cases per API**, with no ignored or assumption-failed cases. The six immutable E: APK pairs match final N: outputs:
+
+- Debug app SHA-256: 1a2f26bf2e4879092a291ba98820c77420df550e1bff06f1f07e0503f8b8ece9
+- Instrumentation APK SHA-256: 3fcb08221c762532fdaff503f0b7310036ddd2377b34d9b34c6ba6e3c9a63591
+
+Four native methods were added: two real endpoint-probe repository guards and two shared-review Compose flows. A foreign profile’s unknown probe refuses before **any network or fresh-key exposure**. A foreign pending claim inserted during the second profile read refuses at the final atomic claim before the probe POST; a second explicit attempt also makes no request. Generic Room/privacy cases now exercise all three instance actions and a three-way claim-race matrix. Compose verifies a hidden original profile/actor, exact local unknown-only review with a fresh grant after cancel, preserved original receipt data, no network during review and no clear action for sending probes.
+
+The 39 cases comprise 14 instance Room/repository cases, nine real shared-review flows and 16 endpoint-probe repository cases. The 82 related cases cover existing shared-resource migration/history/privacy, all relay link/unlink repositories and Compose flows, plus six existing direct endpoint-probe UI flows for fresh consent, private keys/reports, known negatives, optional details, lost replies and stale connection results. No assertion removal, click retry or ignored failure was used.
+
+API 26 retained physical **720×1280**, density **320**, font **1.3**. The bilingual/pinyin review screenshot was inspected: the complete shorter grant is readable in all three languages, the checkbox is checked, and Cancel/Confirm remain reachable while the full scoped effect scrolls above. API 37 uses focused suites here; no current local unfiltered 675-case result or new permission-reset run is claimed. The preceding **89c19ba** source was separately validated with a complete local **671-case API 37** run; that is an older APK pair and is not relabeled as this build’s full suite.
+
+CustomEndpointProbe now joins RelayLinkStart/RelayUnlink in preflight/final-claim, visible pending history, private projection and exact unknown-only local review at the same canonical dashboard address. Existing input profile/home checks remain; ordinary profile-scoped MCP probes and original OAuth flow-ID bindings remain distinct. No wire route/payload, private capability cache, schema/version, dependency, CI budget or release version changed. No positive live provider, Android-to-Hermes, TLS or physical/OEM certification is claimed. See [the listener-scope review](contracts/2026-11-04-listener-probe-scope.md).
+
+Fresh stable **B200** and main **27cbcb1** watches pass with **133 verified cache hits / zero source downloads** each and no used-contract drift. Coverage remains **1,739 selected fingerprints / 237 fields / 65 routes / 133 modules**, preserving the original baseline and every exact reviewed variant. The four relay additions relative to the original baseline remain explicitly triaged and implemented.
+
+The exact parent **89c19ba** compatibility run **41878953203** is green. Its Android run **41878953288** was still executing at the recorded inspection; no full hosted parent success is claimed here. Current-chunk hosted CI follows this source push and is reported separately. The prior documented 35-minute API 37 timeout remains a failed/incomplete result; the committed finite 50-minute suite/75-minute device-job budgets and one-shot failure gates are unchanged. Code **102**, **1.1.0-beta.1** and public APK release remain unchanged. The full audit goal remains active for remaining integration/automation/configuration and live/hardware requirements.
+
 ## 2026-11-04 — instance-wide Team Gateway pending guard
 
 Required strict `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed in **2m 11s**, with **413 JVM tests**, zero failures/errors/skips. All **92 offline checks**, strict **495-component / 1071-artifact** dependency policy, **452 tracked-file** sensitive-file review and diff checks pass. Only CI Python/workflow and documentation changed after the last Android build; APK sources stayed fixed.

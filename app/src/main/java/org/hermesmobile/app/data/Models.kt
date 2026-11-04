@@ -105,9 +105,9 @@ object RunStates {
     @Query("SELECT * FROM management_operations WHERE apiScope=:apiScope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementOperations(apiScope:String):Flow<List<ManagementOperation>>
     @Query("SELECT * FROM management_operations WHERE resourceScope=:scope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementResourceOperations(scope:String):Flow<List<ManagementOperation>>
     // Filter foreign settled history BEFORE paging; foreign pending work still shares the barrier.
-    @Query("SELECT * FROM management_operations WHERE (resourceScope=:scope AND (apiScope=:apiScope OR state IN ('sending','unknown'))) OR (url=:url AND action IN ('RelayLinkStart','RelayUnlink') AND state IN ('sending','unknown')) ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementVisibleResourceOperations(scope:String,apiScope:String,url:String=""):Flow<List<ManagementOperation>>
-    // Relay mutations use the process home, so their pending barrier spans profiles at this exact canonical URL.
-    @Query("SELECT * FROM management_operations WHERE (resourceScope=:scope OR (url=:url AND action IN ('RelayLinkStart','RelayUnlink'))) AND state IN ('sending','unknown')") suspend fun unresolvedManagementOperations(scope:String,url:String=""):List<ManagementOperation>
+    @Query("SELECT * FROM management_operations WHERE (resourceScope=:scope AND (apiScope=:apiScope OR state IN ('sending','unknown'))) OR (url=:url AND action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe') AND state IN ('sending','unknown')) ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementVisibleResourceOperations(scope:String,apiScope:String,url:String=""):Flow<List<ManagementOperation>>
+    // These control/listener requests ignore selected profiles, so pending work spans this exact canonical URL.
+    @Query("SELECT * FROM management_operations WHERE (resourceScope=:scope OR (url=:url AND action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe'))) AND state IN ('sending','unknown')") suspend fun unresolvedManagementOperations(scope:String,url:String=""):List<ManagementOperation>
     @Query("SELECT * FROM management_operations WHERE `key`=:key") suspend fun managementOperation(key:String):ManagementOperation?
     @Insert suspend fun insertManagementOperation(receipt:ManagementOperation)
     @Transaction suspend fun claimManagementOperation(receipt:ManagementOperation) {
@@ -128,7 +128,7 @@ object RunStates {
     }
     @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='ProviderOAuthStart' AND state='acknowledged'") suspend fun updateProviderOAuthObservation(key:String,result:String)
     @Query("UPDATE management_operations SET state='confirmed',resultSummary=:result WHERE `key`=:key AND state='acknowledged'") suspend fun confirmManagementOperation(key:String,result:String)
-    @Query("UPDATE management_operations SET state='reviewed' WHERE `key`=:key AND (resourceScope=:scope OR (url=:url AND action IN ('RelayLinkStart','RelayUnlink'))) AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String,url:String="")
+    @Query("UPDATE management_operations SET state='reviewed' WHERE `key`=:key AND (resourceScope=:scope OR (url=:url AND action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe'))) AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String,url:String="")
 
     @Query("SELECT * FROM run_reports WHERE sessionKey=:key ORDER BY updatedAt DESC LIMIT 100") fun reports(key:String):Flow<List<RunReport>>
     @Query("SELECT * FROM run_reports WHERE `key`=:key") suspend fun report(key:String):RunReport?

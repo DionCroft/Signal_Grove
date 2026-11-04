@@ -102,7 +102,7 @@ Settings → Hermes management links the separate dashboard HTTPS URL to a saved
 
 After management sign-in and explicit profile selection, review a server action before confirming. Test connects to the configured host MCP process and lists tools. Enable/disable and Remove affect that profile’s configuration; existing sessions or processes may continue. Plugin-owned settings cannot be changed here.
 
-An uncertain outcome stays in Management action history and blocks further changes to that same resource. Read current configuration to inspect it, then explicitly Review uncertainty when ready. Neither reading nor reviewing repeats the operation. Acknowledged actions whose readback failed remain labelled acknowledged. Chat-cache clearing keeps management receipts, and the saved-connection cache viewer shows them read only. See [management safety and contracts](MANAGEMENT.md).
+An uncertain outcome stays in Management action history and blocks further changes to that same resource. Relay code/unlink requests and endpoint probes share that block across profiles on the same dashboard. Their local uncertainty review needs a fresh approval and clears only that request’s block; sending requests cannot be cleared. Read current configuration to inspect it, then explicitly Review uncertainty when ready. Neither reading nor reviewing repeats the operation. Acknowledged actions whose readback failed remain labelled acknowledged. Chat-cache clearing keeps management receipts, and the saved-connection cache viewer shows them read only. See [management safety and contracts](MANAGEMENT.md).
 
 ## Adding MCP connections
 

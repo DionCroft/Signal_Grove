@@ -18,15 +18,22 @@ class CustomEndpointProbeStorageTest {
     private val tokens=ManagementTokens("endpoint-probe-management-fixture","refresh-fixture","password","fixture",4102444800)
     private fun exercise(mode:String)=runBlocking {
         val db=Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getInstrumentation().targetContext,HermesDatabase::class.java).build()
-        val sends=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val other=AtomicInteger()
+        val sends=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val other=AtomicInteger();val profileReads=AtomicInteger()
         MockWebServer().use {server->
             lateinit var target:ManagementTarget;lateinit var request:CustomEndpointProbeRequest
+            fun foreign(state:String):ManagementOperation {
+                val owner=target.copy(apiScope="b".repeat(64),profile="private-other-profile",actor="password · private-other-actor")
+                return ManagementOperation("foreign-instance-probe",owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,"CustomEndpointProbe","custom-endpoints",buildJsonObject {put("listener_network_scope",true)}.toString(),state,"",1)
+            }
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 assertEquals("Bearer endpoint-probe-management-fixture",q.getHeader("Authorization"));assertNull(q.getHeader("Cookie"));assertNull(q.getHeader("Origin"));val u=q.requestUrl!!
                 return when(u.encodedPath) {
                     "/prefix/api/auth/me"->json(buildJsonObject {put("provider","password");put("user_id",if(mode=="identity") "other" else "fixture")})
-                    "/prefix/api/profiles"->json(if(mode=="home") buildJsonObject {put("profiles",buildJsonArray {add(buildJsonObject {put("name","worker");put("path","/other/home")})})} else PluginUpdateFixture.profiles())
+                    "/prefix/api/profiles"->{
+                        if(mode=="profile-race" && profileReads.incrementAndGet()==2) runBlocking {db.dao().claimManagementOperation(foreign("sending"))}
+                        json(if(mode=="home") buildJsonObject {put("profiles",buildJsonArray {add(buildJsonObject {put("name","worker");put("path","/other/home")})})} else PluginUpdateFixture.profiles())
+                    }
                     "/prefix/api/config"->{assertEquals("worker",u.queryParameter("profile"));assertEquals("false",u.queryParameter("include_defaults"));json(CustomEndpointFixture.config(change=if(mode=="stale") "private" else ""))}
                     "/prefix/api/providers/custom-endpoints"->{assertEquals("GET",q.method);assertEquals("worker",u.queryParameter("profile"));json(CustomEndpointFixture.metadata())}
                     "/prefix/api/providers/custom-endpoints/validate"->{
@@ -47,11 +54,21 @@ class CustomEndpointProbeStorageTest {
             try {
                 val api=ManagementClient(server.url("prefix/").toString(),true,true);target=ManagementTarget("a".repeat(64),api.base.toString(),"worker","password · fixture")
                 val expected=CustomEndpointSnapshot.parse(CustomEndpointFixture.metadata(),CustomEndpointFixture.config(),target,PluginHome.project(JsonPrimitive(PluginUpdateFixture.home))!!.identity())
-                val row=expected.rows.single();val draft=CustomEndpointDraft(row.id,row.name,row.baseUrl,row.model,if(mode=="fresh") CustomEndpointKey.Fresh else CustomEndpointKey.Keep,if(mode=="fresh") CustomEndpointFixture.fresh else "")
+                val row=expected.rows.single();val draft=CustomEndpointDraft(row.id,row.name,row.baseUrl,row.model,if(mode in setOf("fresh","pending-profile","profile-race")) CustomEndpointKey.Fresh else CustomEndpointKey.Keep,if(mode in setOf("fresh","pending-profile","profile-race")) CustomEndpointFixture.fresh else "")
                 request=CustomEndpointProbeRequest(expected,draft);val repo=CustomEndpointRepository(db.dao(),CompletableDeferred(Unit))
+                if(mode=="pending-profile") db.dao().insertManagementOperation(foreign("unknown"))
                 if(mode=="cancel") {val job=launch {runCatching {repo.probe(target,request,api,tokens)}};withContext(Dispatchers.IO) {assertTrue(entered.await(10,TimeUnit.SECONDS))};job.cancelAndJoin();release.countDown()}
                 else {
                     val result=runCatching {repo.probe(target,request,api,tokens)}
+                    if(mode in setOf("pending-profile","profile-race")) {
+                        assertTrue(result.exceptionOrNull() is ManagementOutcomePending);assertEquals(0,sends.get());assertEquals(0,other.get())
+                        assertEquals(mode=="profile-race",server.requestCount>0)
+                        assertTrue(db.dao().managementOperations(target.apiScope).first().isEmpty())
+                        assertEquals(if(mode=="profile-race") "sending" else "unknown",db.dao().managementOperation("foreign-instance-probe")!!.state)
+                        val count=server.requestCount
+                        assertTrue(runCatching {repo.probe(target,request,api,tokens)}.exceptionOrNull() is ManagementOutcomePending)
+                        assertEquals(count,server.requestCount);return@use
+                    }
                     if(mode in setOf("identity","home","stale")) {assertTrue(result.isFailure);assertEquals(0,sends.get());assertTrue(db.dao().managementOperations(target.apiScope).first().isEmpty());return@use}
                     if(mode in setOf("lost","redirect","http","badack","missing")) assertTrue(result.exceptionOrNull() is CustomEndpointUncertain)
                     else {val report=result.getOrThrow();assertEquals(mode!="negative",report.ack.ok);assertEquals(mode!="unreachable",report.ack.reachable);assertEquals(mode=="optional",report.details==null);if(mode!="optional") assertEquals("private-canonical",report.details!!.details.single().canonicalModel)}
@@ -62,6 +79,8 @@ class CustomEndpointProbeStorageTest {
             } finally {release.countDown();db.close()}
         }
     }
+    @Test fun anotherProfilesUnknownProbeBlocksBeforeAnyNetworkOrFreshKeyExposure()=exercise("pending-profile")
+    @Test fun anotherProfilesClaimDuringPreflightPreventsTheProbePost()=exercise("profile-race")
     @Test fun probeUsesListenerRouteWithoutInventingProfileAndKeepsStoredKeyPrivate()=exercise("keep")
     @Test fun onlyFreshReviewedKeyIsSentExactlyOnceAfterClaim()=exercise("fresh")
     @Test fun typedNegativeIsAnAcknowledgedReport()=exercise("negative")

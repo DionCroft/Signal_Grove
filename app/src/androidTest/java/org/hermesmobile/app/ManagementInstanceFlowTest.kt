@@ -30,7 +30,7 @@ class ManagementInstanceFlowTest {
     private val vm get()=ViewModelProvider(compose.activity)[ManagementViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
     private fun exercise(mode:String) {
-        val writes=AtomicInteger();val sending=mode=="sending";val ordinary=mode=="ordinary";val same=mode in setOf("same","raw");val bilingual=mode=="bilingual"
+        val writes=AtomicInteger();val sending=mode in setOf("sending","probe-sending");val ordinary=mode=="ordinary";val same=mode in setOf("same","raw");val bilingual=mode=="bilingual"
         credentials.managementServer().use {server->
             fun json(body:String)=MockResponse().setHeader("Content-Type","application/json").setBody(body)
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
@@ -51,7 +51,7 @@ class ManagementInstanceFlowTest {
             val scope=api.profileScope.value;val removed=ServerConfig(inference,credentials.uniqueToken("removed-instance-inference"),true).scope
             assertNull(app.credentials.profile(removed))
             val owner=ManagementTarget(if(same) scope else removed,dashboard,"private-deleted-profile","password · private-other-actor")
-            val row=ManagementOperation(UUID.randomUUID().toString(),owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,if(ordinary) "Probe" else if(same) "RelayUnlink" else "RelayLinkStart","private-other-target","private-other-request",if(sending) "sending" else "unknown","private-other-result",123456789)
+            val row=ManagementOperation(UUID.randomUUID().toString(),owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,if(ordinary) "Probe" else if(mode in setOf("probe","probe-sending")) "CustomEndpointProbe" else if(same) "RelayUnlink" else "RelayLinkStart","private-other-target","private-other-request",if(sending) "sending" else "unknown","private-other-result",123456789)
             runBlocking {app.managementReady.await();app.database.dao().insertManagementOperation(row)}
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard.trimEnd('/'));put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("instance-ui-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
             compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(5000) {vm.state.value.signedIn}
@@ -99,6 +99,8 @@ class ManagementInstanceFlowTest {
             } finally {compose.runOnUiThread {vm.cancel()};assertEquals(0,writes.get())}
         }
     }
+    @Test fun anotherProfilesUnknownEndpointProbeHasPrivateCancelableFreshLocalReview()=exercise("probe")
+    @Test fun anotherProfilesSendingEndpointProbeHasNoLocalClear()=exercise("probe-sending")
     @Test fun removedCredentialAndDeletedProfilesRelayUnknownRequiresFreshLocalGrant()=exercise("foreign")
     @Test fun anotherProfileUnderSameCredentialKeepsPrivateRelayDetailsHidden()=exercise("same")
     @Test fun sendingOnAnotherProfileHasNoClearAction()=exercise("sending")

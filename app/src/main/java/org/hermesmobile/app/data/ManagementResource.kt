@@ -11,7 +11,7 @@ fun managementResourceScope(url:String,profile:String):String=MessageDigest.getI
 object ManagementReceiptVisibility {
     const val SharedPending="SharedPending"
     const val SharedInstancePending="SharedInstancePending"
-    fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink")
+    fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe")
     fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String=""):List<ManagementOperation> {
         if(resourceScope.isBlank()) return emptyList()
         return rows.mapNotNull {row ->

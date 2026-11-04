@@ -20,10 +20,10 @@ class ManagementInstanceStorageTest {
     private val second=first.copy(apiScope="b".repeat(64),profile="worker",actor="password · fixture")
     private fun row(target:ManagementTarget,key:String,action:String="RelayLinkStart",state:String="unknown")=ManagementOperation(key,target.resourceScope,target.apiScope,target.url,target.profile,target.actor,action,"private-target","private-request",state,"private-result",1)
     private suspend fun database(block:suspend (HermesDatabase)->Unit) {val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build();try {block(db)} finally {db.close()}}
-    @Test fun foreignProfileRelayBlocksBothRelayActionsAndOrdinaryClaims()=runBlocking {
-        for(action in listOf("RelayLinkStart","RelayUnlink")) for(state in listOf("sending","unknown")) database {db->
+    @Test fun foreignProfileInstanceWorkBlocksNewClaimsAcrossProfiles()=runBlocking {
+        for(action in listOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe")) for(state in listOf("sending","unknown")) database {db->
             db.dao().insertManagementOperation(row(first,"prior",action,state))
-            for(next in listOf("RelayLinkStart","RelayUnlink","Probe")) assertTrue(runCatching {db.dao().claimManagementOperation(row(second,"next",next,"sending"))}.exceptionOrNull() is ManagementOutcomePending)
+            for(next in listOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe","Probe")) assertTrue(runCatching {db.dao().claimManagementOperation(row(second,"next",next,"sending"))}.exceptionOrNull() is ManagementOutcomePending)
             assertEquals("prior",db.dao().unresolvedManagementOperations(second.resourceScope,second.url).single().key)
         }
     }
@@ -36,11 +36,11 @@ class ManagementInstanceStorageTest {
         assertEquals("sending",db.dao().managementOperation("prior")!!.state)
         assertTrue(runCatching {db.dao().claimManagementOperation(row(second,"next",state="sending"))}.exceptionOrNull() is ManagementOutcomePending)
     }}
-    @Test fun simultaneousRelayClaimsAcrossProfilesAndCredentialsHaveOneWinner()=runBlocking {
+    @Test fun simultaneousInstanceClaimsAcrossProfilesAndCredentialsHaveOneWinner()=runBlocking {
         repeat(12) {index->database {db->
             val start=CompletableDeferred<Unit>()
             val outcomes=coroutineScope {
-                val jobs=listOf(first,second).mapIndexed {i,target->async(Dispatchers.IO) {start.await();runCatching {db.dao().claimManagementOperation(row(target,"$i",if((index+i)%2==0) "RelayLinkStart" else "RelayUnlink","sending"))}}}
+                val jobs=listOf(first,second).mapIndexed {i,target->async(Dispatchers.IO) {start.await();runCatching {db.dao().claimManagementOperation(row(target,"$i",listOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe")[(index+i)%3],"sending"))}}}
                 start.complete(Unit);jobs.awaitAll()
             }
             assertEquals(1,outcomes.count {it.isSuccess});assertTrue(outcomes.single {it.isFailure}.exceptionOrNull() is ManagementOutcomePending)
@@ -53,7 +53,7 @@ class ManagementInstanceStorageTest {
         assertEquals(1,db.dao().unresolvedManagementOperations(second.resourceScope,second.url).size)
     }}
     @Test fun ordinaryOtherProfileUncertaintyStillAllowsIndependentWork()=runBlocking {
-        for(action in listOf("Probe","RelayLinkStart")) database {db->
+        for(action in listOf("Probe","RelayLinkStart","CustomEndpointProbe")) database {db->
             db.dao().insertManagementOperation(row(first,"prior","Probe"));db.dao().claimManagementOperation(row(second,"next",action,"sending"))
             assertEquals("sending",db.dao().managementOperation("next")!!.state)
         }

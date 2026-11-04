@@ -139,3 +139,7 @@ The watch now covers **1,739 selected fingerprints / 237 fields / 65 management 
 ### Team Gateway pending work across selected profiles
 
 The verified relay routes use the process home and accept no profile query. Their unknown/sending local receipts therefore block new management claims across selected profiles at the same canonical dashboard address, independently of inference/native credentials. Ordinary other-profile uncertainty remains separate. Cross-profile receipt rendering is generic even for the same inference credential; explicit local review of a specific unknown relay receipt requires a fresh grant and current frozen review target, and never clears a sending record. No network payload, server contract, baseline fingerprint or schema changed for this local ordering fix. URL/proxy/DNS aliases and external clients remain outside the exact-address guard.
+
+### Listener-scoped endpoint validation
+
+CustomEndpointProbe joins RelayLinkStart and RelayUnlink in the exact-dashboard pending domain. Its verified HTTP handler accepts explicit probe values without a profile argument; no invented profile query/body field is added. Before-network and final-claim guards, cross-profile privacy, fresh local review and original history retention therefore span selected profiles at that same URL. Ordinary MCP probes still use their real profile scope; original OAuth flow-ID bindings remain unchanged. No server fingerprint, request field, route, private capability format, dependency or database schema changed for this local ordering fix.
