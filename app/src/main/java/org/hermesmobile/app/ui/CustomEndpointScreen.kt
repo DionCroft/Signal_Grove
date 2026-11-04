@@ -45,10 +45,10 @@ private class EndpointEdit(val row:CustomEndpointRow?)
                 else if(!CustomEndpointPolicy.route(row.baseUrl,row.model)) Text(label(Words.CustomEndpointsInputInvalid))
             }}
         }
-        items(receipts.filter {it.action.startsWith("CustomEndpoint")},key={"receipt:"+it.key}) {receipt->Column(Modifier.testTag("endpoint-receipt-${receipt.key}"),verticalArrangement=Arrangement.spacedBy(6.dp)) {Text(label(mcpActionWord(receipt.action)));Text(label(managementStateWord(receipt.state)));if(receipt.resultSummary.isNotEmpty()) CustomEndpointReceipt()}}
+        items(receipts.filter {it.action.startsWith("CustomEndpoint")},key={"receipt:"+it.key}) {receipt->Column(Modifier.testTag("endpoint-receipt-${receipt.key}"),verticalArrangement=Arrangement.spacedBy(6.dp)) {Text(label(mcpActionWord(receipt.action)));Text(label(managementStateWord(receipt.state)));if(receipt.resultSummary.isNotEmpty()) {if(receipt.action=="CustomEndpointProbe") EndpointProbeReceipt(receipt) else CustomEndpointReceipt()}}}
     }},confirmButton={TextButton(close,Modifier.testTag("endpoint-close")) {Text(label(Words.Close))}})
     read?.let {frozen->AlertDialog(onDismissRequest={read=null},title={Text(label(Words.CustomEndpointsRead))},text={LazyColumn(Modifier.heightIn(max=460.dp)) {item {Text(frozen.target.url);Text(frozen.target.profile);Text(frozen.target.actor)};item {Text(label(Words.CustomEndpointsReadEffect))}}},confirmButton={TextButton({read=null;vm.loadCustomEndpoints(frozen)},enabled=!s.busy,modifier=Modifier.testTag("endpoint-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({read=null},Modifier.testTag("endpoint-read-cancel")) {Text(label(Words.Cancel))}})}
-    edit?.let {e->s.customEndpoints?.let {inventory->EndpointEditor(inventory,e.row,!s.busy,{edit=null}) {draft->review=vm.prepareCustomEndpoint(CustomEndpointAction.Save,e.row,draft);if(review!=null) edit=null}}}
+    edit?.let {e->s.customEndpoints?.let {inventory->EndpointEditor(inventory,e.row,vm,s,!s.busy,{if(s.busy) vm.cancel() else vm.clearCustomEndpointProbe();edit=null}) {draft->review=vm.prepareCustomEndpoint(CustomEndpointAction.Save,e.row,draft);if(review!=null) edit=null}}}
     details?.let {row->EndpointDetails(row) {details=null}}
     review?.let {frozen->EndpointReview(frozen,!s.busy,{review=null}) {review=null;vm.changeCustomEndpoint(frozen)}}
 }
@@ -63,12 +63,16 @@ private class EndpointEdit(val row:CustomEndpointRow?)
         }
     }},confirmButton={TextButton(close,Modifier.testTag("endpoint-details-close")) {Text(label(Words.Close))}})
 }
-@Composable private fun EndpointEditor(inventory:CustomEndpointSnapshot,row:CustomEndpointRow?,enabled:Boolean,close:()->Unit,save:(CustomEndpointDraft)->Unit) {
+@Composable private fun EndpointEditor(inventory:CustomEndpointSnapshot,row:CustomEndpointRow?,vm:ManagementViewModel,s:ManagementState,enabled:Boolean,close:()->Unit,save:(CustomEndpointDraft)->Unit) {
     var show by remember(row) {mutableStateOf(false)};var id by remember(row) {mutableStateOf(row?.id.orEmpty())};var name by remember(row) {mutableStateOf(row?.name.orEmpty())};var url by remember(row) {mutableStateOf(row?.baseUrl.orEmpty())};var model by remember(row) {mutableStateOf(row?.model.orEmpty())}
     var key by remember(row) {mutableStateOf(CustomEndpointKey.Keep)};var secret by remember(row,key) {mutableStateOf("")};var mode by remember(row) {mutableStateOf<String?>(if(row==null) "" else null)};var setContext by remember(row) {mutableStateOf(false)};var context by remember(row) {mutableStateOf("")};var models by remember(row) {mutableStateOf("")};var discover by remember(row) {mutableStateOf(row?.discoverModels ?: true)};var main by remember(row) {mutableStateOf(false)}
     val candidate=remember(id,name,url,model,key,secret,mode,setContext,context,models,discover,main) {runCatching {val limit=if(setContext) context.toLongOrNull() ?: error("Invalid limit") else null;CustomEndpointDraft(if(row==null && id.isBlank()) CustomEndpointPolicy.slug(name) else id,name,url,model,key,if(key==CustomEndpointKey.Fresh) secret else "",mode,limit,discover,main,models.lines().map {it.trim()}.filter {it.isNotEmpty()}.distinct())}.getOrNull()}
     val duplicate=row==null && candidate!=null && !inventory.freshId(candidate.id)
     val valid=candidate!=null && !duplicate && (row!=null || CustomEndpointPolicy.newId(candidate.id))
+    var probeReview by remember(row) {mutableStateOf<ReviewedCustomEndpointProbe?>(null)}
+    var probeReport by remember(row) {mutableStateOf(false)}
+    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val report=s.customEndpointProbe?.takeIf {candidate!=null && it.request.expected===inventory && it.request.same(candidate)}
     val keyboard=LocalSoftwareKeyboardController.current
     AlertDialog(onDismissRequest=close,title={Text(label(if(row==null) Words.CustomEndpointsNew else Words.CustomEndpointsSave))},text={LazyColumn(Modifier.heightIn(max=480.dp).testTag("endpoint-editor"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {Text(label(Words.CustomEndpointsPrivate));TextButton({show=!show},Modifier.testTag("endpoint-editor-reveal")) {Text(label(if(show) Words.PluginUpdateHideDetails else Words.PluginUpdateShowDetails))}}
@@ -84,9 +88,12 @@ private class EndpointEdit(val row:CustomEndpointRow?)
             item {Row {Checkbox(setContext,{setContext=it},modifier=Modifier.testTag("endpoint-context-set"));Text(label(Words.CustomEndpointsSetContext),Modifier.weight(1f))};if(setContext) OutlinedTextField(context,{if(it.length<=10) context=it},Modifier.fillMaxWidth().testTag("endpoint-context"),label={Text(label(Words.CustomEndpointsContext))},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number))}
             item {OutlinedTextField(models,{if(it.length<=131072) models=it},Modifier.fillMaxWidth().testTag("endpoint-models"),label={Text(label(Words.CustomEndpointsAdditionalModels))},minLines=2,maxLines=5)}
             item {Row {Checkbox(discover,{discover=it},modifier=Modifier.testTag("endpoint-discover"));Text(label(Words.CustomEndpointsDiscovery),Modifier.weight(1f))};Row {Checkbox(main,{main=it},modifier=Modifier.testTag("endpoint-main"));Text(label(Words.CustomEndpointsMakeDefault),Modifier.weight(1f))}}
+            item {Text(label(Words.EndpointProbeEffect));TextButton({candidate?.let {probeReview=vm.prepareCustomEndpointProbe(it)}},enabled=enabled && !pending && candidate!=null,modifier=Modifier.testTag("endpoint-probe-open")) {Text(label(Words.EndpointProbe))};if(report!=null) TextButton({probeReport=true},enabled=enabled,modifier=Modifier.testTag("endpoint-probe-report-open")) {Text(label(Words.EndpointProbeReport))};if(pending) Text(label(Words.ManagementOutcomePending));if(s.busy) {QuietProgress();TextButton(vm::cancel,Modifier.testTag("endpoint-probe-cancel-work")) {Text(label(Words.Cancel))}};s.error?.let {Text(label(it))}}
             item {Text(label(Words.CustomEndpointsLimits));if(duplicate) Text(label(Words.CustomEndpointsDuplicate));else if(!valid) Text(label(Words.CustomEndpointsInputInvalid))}
         }
-    }},confirmButton={TextButton({keyboard?.hide();candidate?.let(save)},enabled=enabled && show && valid,modifier=Modifier.testTag("endpoint-review-open")) {Text(label(Words.HostEnvReview))}},dismissButton={TextButton(close,Modifier.testTag("endpoint-editor-cancel")) {Text(label(Words.Cancel))}})
+    }},confirmButton={TextButton({keyboard?.hide();candidate?.let(save)},enabled=enabled && !pending && show && valid,modifier=Modifier.testTag("endpoint-review-open")) {Text(label(Words.HostEnvReview))}},dismissButton={TextButton(close,Modifier.testTag("endpoint-editor-cancel")) {Text(label(Words.Cancel))}})
+    probeReview?.let {frozen->EndpointProbeReview(frozen,enabled,{probeReview=null}) {probeReview=null;vm.probeCustomEndpoint(frozen)}}
+    if(probeReport && report!=null) EndpointProbeReport(report) {probeReport=false}
 }
 @Composable private fun EndpointReview(review:ReviewedCustomEndpoint,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
     val request=review.request;val draft=request.draft;val row=request.row;var show by remember(review) {mutableStateOf(false)};var approved by remember(review) {mutableStateOf(false)}

@@ -20,6 +20,25 @@ class CustomEndpointRepository(private val dao:HermesDao,private val ready:Defer
         home(target,api,tokens,id)
         return snapshot
     }
+    suspend fun probe(target:ManagementTarget,request:CustomEndpointProbeRequest,api:ManagementClient,tokens:ManagementTokens):CustomEndpointProbeReport {
+        ready.await();scope(target,api,tokens);require(target==request.expected.owner)
+        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(!request.expected.same(read(target,api,tokens,request.expected.homeId))) throw CustomEndpointChanged()
+        val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,"CustomEndpointProbe","custom-endpoints",request.summary().toString(),"sending","",System.currentTimeMillis())
+        try {
+            dao.claimManagementOperation(record);currentCoroutineContext().ensureActive()
+            // The official validate route has no profile argument. It uses listener/process networking.
+            val response=api.probeCustomEndpoint(tokens,request);val ack=request.acknowledge(response)
+            withContext(NonCancellable) {dao.finishManagementOperation(record.key,"acknowledged",ack.summary(request).toString())}
+            return CustomEndpointProbeReport(request,ack,CustomEndpointProbeDetails.parse(response),dao.managementOperation(record.key)!!)
+        } catch(e:Exception) {
+            val state=withContext(NonCancellable) {dao.finishManagementOperation(record.key,"unknown","");dao.managementOperation(record.key)?.state}
+            if(e is CancellationException) throw e
+            if(state=="unknown") throw CustomEndpointUncertain()
+            if(state=="acknowledged") throw CustomEndpointReadbackPending()
+            throw e
+        }
+    }
     suspend fun execute(target:ManagementTarget,request:CustomEndpointRequest,api:ManagementClient,tokens:ManagementTokens):CustomEndpointOutcome {
         ready.await();scope(target,api,tokens);require(target==request.expected.owner)
         if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()

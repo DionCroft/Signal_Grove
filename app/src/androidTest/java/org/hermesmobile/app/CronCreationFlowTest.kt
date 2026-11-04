@@ -92,7 +92,7 @@ class CronCreationFlowTest {
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-name"));compose.onNodeWithTag("cron-create-name").performTextReplacement("Created paused fixture")
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-schedule"));compose.onNodeWithTag("cron-create-schedule").performTextReplacement("0 9 * * *")
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-prompt"));compose.onNodeWithTag("cron-create-prompt").performTextReplacement("private-prompt-fixture")
-            androidx.test.espresso.Espresso.closeSoftKeyboard();compose.waitForIdle()
+            closeDialogKeyboard();compose.waitForIdle()
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-delivery-slack"));compose.onNodeWithTag("cron-create-delivery-slack").assertIsNotEnabled()
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-advanced"));compose.onNodeWithTag("cron-create-advanced").performClick()
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-restrict-tools"));compose.onNodeWithTag("cron-create-restrict-tools").performClick()

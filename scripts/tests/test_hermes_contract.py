@@ -51,6 +51,8 @@ def sources():
         'plugin_settings':'',
         'env_routes':'',
         'custom_provider_config':'',
+        'probe_metadata':'',
+        'probe_route_resolver':'',
         'env_lifecycle':'',
         'env_config':'',
         'env_external':'',
@@ -111,6 +113,15 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_endpoint_outbound_profile_quota_proxy_and_alias_contract_changes_require_review(self):
+        initial=sources();initial['env_routes']="from profile_helpers import _parse_model_entries\n_TRANSPORT_ROUTES={'chat_completions':'/chat/completions'}\n_TRANSPORT_LABELS={'chat_completions':'Chat Completions'}\n@router.post('/api/providers/custom-endpoints/validate')\nasync def validate_custom_endpoint(body):\n    return await listener_probe(body)\nasync def _probe_transport_route(client,url,mode,model,headers):\n    return await client.post(url,json={'max_tokens':1})\ndef _endpoint_probe_client(url,timeout):\n    return Client(trust_env=not is_local_endpoint(url))\n"
+        initial['probe_metadata']="_LOCAL_HOSTS={'localhost'}\n_CONTAINER_LOCAL_SUFFIXES=('.internal',)\n_TAILSCALE_CGNAT='100.64.0.0/10'\ndef is_local_endpoint(url):\n    return local_or_tailscale(url)\n"
+        initial['probe_route_resolver']="_HOST_MANDATED_API_MODES={'api.anthropic.com':'anthropic_messages'}\ndef _detect_api_mode_for_url(url):\n    return exact_host(url)\n"
+        initial['profile_helpers']="_MODEL_ENTRY_METADATA=('canonical_model','reasoning_effort')\ndef _parse_model_entries(response):\n    return aliases(response)\n"
+        tracked=baseline(checker.extract(initial));tracked['mobile_used_handlers']+=['env_routes:import:_parse_model_entries','env_routes:_TRANSPORT_ROUTES','env_routes:_TRANSPORT_LABELS','env_routes:validate_custom_endpoint','env_routes:_probe_transport_route','env_routes:_endpoint_probe_client','probe_metadata:_LOCAL_HOSTS','probe_metadata:_CONTAINER_LOCAL_SUFFIXES','probe_metadata:_TAILSCALE_CGNAT','probe_metadata:is_local_endpoint','probe_route_resolver:_HOST_MANDATED_API_MODES','probe_route_resolver:_detect_api_mode_for_url','profile_helpers:_MODEL_ENTRY_METADATA','profile_helpers:_parse_model_entries'];tracked['mobile_used_management_routes']+=['POST /api/providers/custom-endpoints/validate']
+        for module,before,after in [('env_routes','validate_custom_endpoint(body)','validate_custom_endpoint(body,profile=None)'),('env_routes','listener_probe(body)','profile_probe(body)'),('env_routes',"'max_tokens':1","'max_tokens':1000"),('env_routes','trust_env=not is_local_endpoint(url)','trust_env=True'),('env_routes',"'/chat/completions'","'/other'"),('env_routes','from profile_helpers','from unsafe_helpers'),('probe_metadata','local_or_tailscale','loopback_only'),('probe_metadata',"{'localhost'}","{'other'}"),('probe_metadata',"'100.64.0.0/10'","'127.0.0.0/8'"),('probe_route_resolver','exact_host','substring'),('probe_route_resolver',"'anthropic_messages'","'chat_completions'"),('profile_helpers',"'canonical_model',",''),('profile_helpers','aliases(response)','ids_only(response)')]:
+            changed=dict(initial);changed[module]=changed[module].replace(before,after);self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'],(module,before))
+
     def test_custom_endpoint_profile_key_choice_unknown_fields_and_main_detach_require_review(self):
         initial=sources();initial['env_routes']="from config_helpers import find_provider_entry,custom_endpoint_key_env\n_ROUTE_SECTIONS=('model','providers','custom_providers')\n_DESKTOP_API_MODES={'chat_completions','codex_responses','anthropic_messages'}\nsave_env_value=late('save_env_value')\ndef _write_custom_endpoint(cfg,body):\n    entry=dict(existing)\n    if body.api_mode is not None:entry.pop('transport',None)\n    if body.api_key is not None:write_key(custom_endpoint_key_env(body.id),body.api_key)\n    return entry\n@router.post('/api/providers/custom-endpoints')\ndef upsert_custom_endpoint(body,profile=None):\n    with _config_profile_scope(profile),_CONFIG_MUTATION_LOCK:return _write_custom_endpoint(cfg,body)\n@router.delete('/api/providers/custom-endpoints/{endpoint_id}')\ndef delete_custom_endpoint(endpoint_id,profile=None):\n    detach_main(endpoint_id)\n    remove_generated_key(endpoint_id)\n    return {'ok':True}\n"
         initial['models']+="class CustomEndpointUpdate:\n    id:str=''\n    api_key:str|None=None\n    api_mode:str|None=None\n"

@@ -13,6 +13,8 @@ import org.hermesmobile.app.network.*
 
 data class PluginInventoryState(val inventory:GatewayPluginInventory?=null,val featured:List<FeaturedPlugin>?=null,val lookup:PluginLookup?=null,val inspection:PluginInspection?=null,val installReport:PluginInstallReport?=null,val toggleReport:PluginInstallReport?=null,val updateDecision:PluginUpdateDecision?=null,val updateReport:PluginInstallReport?=null,val updateResult:JsonObject?=null,val settings:PluginSettingsSnapshot?=null)
 
+data class ReviewedCustomEndpointProbe(val target:ManagementTarget,val request:CustomEndpointProbeRequest,val generation:Long)
+
 data class ReviewedCustomEndpointRead(val target:ManagementTarget,val generation:Long)
 data class ReviewedCustomEndpoint(val target:ManagementTarget,val request:CustomEndpointRequest,val generation:Long)
 
@@ -79,7 +81,7 @@ data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:
 
 data class ManagementState(val apiScope:String="",val url:String="",val debugHttp:Boolean=false,val signedIn:Boolean=false,
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
-    val customEndpoints:CustomEndpointSnapshot?=null,
+    val customEndpoints:CustomEndpointSnapshot?=null,val customEndpointProbe:CustomEndpointProbeReport?=null,
     val fallback:HostFallbackSnapshot?=null,
     val poolCleanup:PoolCleanupReport?=null,val credentialPool:CredentialPoolInventory?=null,val providerFlowKey:String?=null,val providerAccounts:ProviderOAuthInventory?=null,val providerFlows:Map<String,ProviderOAuthObservation> = emptyMap(),val moa:HostMoaSnapshot?=null,val hostAuxModel:HostAuxModelState=HostAuxModelState(),val hostMainModel:HostMainModelState=HostMainModelState(),val hostModels:HostModelInventory?=null,val environment:HostEnvInventory?=null,val plugins:PluginInventoryState=PluginInventoryState(),val hub:SkillHubState=SkillHubState(),val gateway:GatewayAutomationState=GatewayAutomationState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
 
@@ -217,11 +219,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
-        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         val api=client(current)
         val pending=withContext(Dispatchers.IO) {NativeLogin()};login=pending
         try {
@@ -238,7 +240,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -248,14 +250,14 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val identity=api.identity(current);val profiles=api.profiles(current)
         if(id!=generation) return@operation
         val profile=saved.profile.takeIf {name->profiles.any {it.name==name}}.orEmpty()
-        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         if(profile.isNotBlank()) loadServers(id,api,current,profile)
     }
     fun chooseProfile(profile:String)=operation {id ->
         val saved=state.value;require(saved.identity!=null && saved.profiles.any {it.name==profile}) {"Refresh verified management profiles first."}
         val current=tokens ?: error("Sign in to management first.")
         require(current.expiresAt>System.currentTimeMillis()/1000) {"Management sign-in expired. Renew it or sign in again."}
-        val selected=saved.copy(profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val selected=saved.copy(profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         save(selected,current)
         if(id!=generation) return@operation
         state.value=selected;loadServers(id,client(selected),current,profile)
@@ -274,7 +276,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun prepareCustomEndpointRead():ReviewedCustomEndpointRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedCustomEndpointRead(it,generation)}
     fun loadCustomEndpoints(review:ReviewedCustomEndpointRead) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(customEndpoints=null)
+        state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null)
         operation {id->val snapshot=endpoints.read(review.target,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(customEndpoints=snapshot)}
     }
     fun prepareCustomEndpoint(action:CustomEndpointAction,row:CustomEndpointRow?=null,draft:CustomEndpointDraft?=null):ReviewedCustomEndpoint? {
@@ -284,15 +286,26 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun changeCustomEndpoint(review:ReviewedCustomEndpoint) {
         if(review.generation!=generation || target()!=review.target || review.request.expected!==state.value.customEndpoints) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
+        state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
         operation {id->val out=endpoints.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(customEndpoints=out.snapshot,notice=if(out.different) Words.CustomEndpointsDifferent else Words.CustomEndpointsAcknowledged)}
     }
-    fun closeCustomEndpoints() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(customEndpoints=null)}}
+    fun prepareCustomEndpointProbe(draft:CustomEndpointDraft):ReviewedCustomEndpointProbe? {
+        val inventory=state.value.customEndpoints ?: return null
+        if(state.value.busy || inventory.owner!=target() || receipts.value.any {it.state in setOf("sending","unknown")}) return null
+        return ReviewedCustomEndpointProbe(inventory.owner,CustomEndpointProbeRequest(inventory,draft),generation)
+    }
+    fun probeCustomEndpoint(review:ReviewedCustomEndpointProbe) {
+        if(review.generation!=generation || target()!=review.target || review.request.expected!==state.value.customEndpoints) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        state.value=state.value.copy(customEndpointProbe=null)
+        operation {id->val out=endpoints.probe(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation && target()==review.target) state.value=state.value.copy(customEndpointProbe=out,notice=Words.EndpointProbeReported)}
+    }
+    fun clearCustomEndpointProbe() {state.value=state.value.copy(customEndpointProbe=null)}
+    fun closeCustomEndpoints() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null)}}
 
     fun prepareHostFallbackRead():ReviewedHostFallbackRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedHostFallbackRead(it,generation)}
     fun loadHostFallback(review:ReviewedHostFallbackRead) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(customEndpoints=null,fallback=null)
+        state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null,fallback=null)
         operation {id->val snapshot=fallbacks.read(review.target,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(fallback=snapshot)}
     }
     fun prepareHostFallback(draft:HostFallbackDraft):ReviewedHostFallback? {
@@ -301,15 +314,15 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun changeHostFallback(review:ReviewedHostFallback) {
         if(review.generation!=generation || target()!=review.target || review.request.expected!==state.value.fallback) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(customEndpoints=null,fallback=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
+        state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null,fallback=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
         operation {id->val out=fallbacks.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(fallback=out.snapshot,notice=if(out.matches) Words.HostFallbackAcknowledged else Words.HostFallbackDifferent)}
     }
-    fun closeHostFallback() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(customEndpoints=null,fallback=null)}}
+    fun closeHostFallback() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null,fallback=null)}}
 
     fun prepareCredentialPoolRead():ReviewedCredentialPoolRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedCredentialPoolRead(it,generation)}
     fun loadCredentialPool(review:ReviewedCredentialPoolRead) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null)
+        state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null)
         operation {id->val inventory=credentialPools.read(review.target,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(credentialPool=inventory)}
     }
     fun prepareCredentialPool(provider:String,value:String="",label:String="",entry:PoolCredential?=null):ReviewedCredentialPool? {
@@ -319,15 +332,15 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun changeCredentialPool(review:ReviewedCredentialPool) {
         if(review.generation!=generation || target()!=review.target || review.request.expected!==state.value.credentialPool) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerAccounts=null,providerFlows=emptyMap(),providerFlowKey=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
+        state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerAccounts=null,providerFlows=emptyMap(),providerFlowKey=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
         operation {id->val out=credentialPools.execute(review.target,review.request,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(credentialPool=out.inventory,poolCleanup=out.report,notice=if(out.reviewedIdPresent==true) Words.CredentialPoolIdStillReported else Words.CredentialPoolAcknowledged)}
     }
-    fun closeCredentialPool() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null)}}
+    fun closeCredentialPool() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null)}}
 
     fun prepareProviderOAuthRead():ReviewedProviderOAuthRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedProviderOAuthRead(it,generation)}
     fun loadProviderAccounts(review:ReviewedProviderOAuthRead) {
         if(review.generation!=generation || target()!=review.target) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null)
+        state.value=state.value.copy(providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null)
         operation {id->val inventory=providerAccounts.read(review.target,client(state.value),tokens ?: error("Sign in first."));if(id==generation) state.value=state.value.copy(providerAccounts=inventory)}
     }
     fun prepareProviderOAuth(provider:OAuthProvider,action:ProviderOAuthAction):ReviewedProviderOAuth? {
@@ -337,7 +350,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun changeProviderOAuth(review:ReviewedProviderOAuth) {
         if(review.generation!=generation || target()!=review.target || review.request.expected!==state.value.providerAccounts) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        state.value=state.value.copy(providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
+        state.value=state.value.copy(providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,hostModels=null,moa=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState())
         operation {id->
             val t=tokens ?: error("Sign in first.");val api=client(state.value)
             val receipt=providerAccounts.execute(review.target,review.request,api,t)
@@ -385,7 +398,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             open(code.url)
         }
     }
-    fun closeProviderAccounts() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(providerAccounts=null,customEndpoints=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null)}}
+    fun closeProviderAccounts() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null)}}
 
     fun prepareHostMoaRead():ReviewedHostMoaRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedHostMoaRead(it,generation)}
     fun loadHostMoa(review:ReviewedHostMoaRead) {

@@ -58,6 +58,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun probeCustomEndpoint(tokens:ManagementTokens,request:CustomEndpointProbeRequest):JsonObject = element("api/providers/custom-endpoints/validate",tokens.access,request.body(),slow=true).jsonObject
     suspend fun customEndpointConfig(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/config",tokens.access,profile=profile,query=mapOf("include_defaults" to "false"),slow=true).jsonObject}
     suspend fun customEndpoints(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/providers/custom-endpoints",tokens.access,profile=profile,slow=true).jsonObject}
     suspend fun changeCustomEndpoint(tokens:ManagementTokens,profile:String,request:CustomEndpointRequest):JsonObject {
