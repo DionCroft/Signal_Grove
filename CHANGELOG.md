@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.0-beta.2 — 2026-11-04
+
+Second preview: physical-pixel motion/progress refinements and the reviewed management follow-up below. The broader Hermes parity audit remains active.
+
 - Keep uncertain listener-scoped endpoint probes blocked across profiles at the same dashboard, including claims arriving during preflight. Reuse private exact-request local review, with clearer shared-work wording and a shorter fresh approval label. Ordinary profile-scoped MCP probes remain separate.
 
 - Keep uncertain Team Gateway requests blocked across profiles at the same dashboard address. Hide another profile’s original receipt details and require a fresh explicit grant for local uncertainty review, including when the original profile or connection was removed. Sending requests remain protected.

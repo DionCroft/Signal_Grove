@@ -4,7 +4,7 @@ An unofficial, open-source native Android client for [Hermes Agent](https://gith
 
 **Stable 1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
 
-Development preview is `1.1.0-beta.1`: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
+Development preview is `1.1.0-beta.2`: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
 
 Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.
 
@@ -20,12 +20,12 @@ Five interchangeable palettes, persistent conversations, English / Simplified Ch
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Try the [1.1.0-beta.1 preview](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.1.0-beta.1) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
+Try the [1.1.0-beta.2 preview](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.1.0-beta.2) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
 
 ## Features
 
 - Native Compose UI with phone navigation and a navigation rail on larger displays. Edge-to-edge layout, selectable Markdown/code blocks, copy, timestamps, conversation switching.
-- Starhaven Grove (new default), Lavender Original, Jade Terminal, Solar Archive and Mint Circuit. Original animated orbital-garden pixel art, stepped panels and icons, responsive navigation and button feedback. Saved palettes remain selected; app/system reduced motion and system font scaling are respected. Native readable text, no bundled fonts or copied game assets.
+- Starhaven Grove (new default), Lavender Original, Jade Terminal, Solar Archive and Mint Circuit. Original animated orbital-garden pixel art, physically aligned pixel edges, stepped panels/icons/progress, responsive navigation and button feedback. Ambient motion pauses in the background. Saved palettes remain selected; app/system reduced motion and system font scaling are respected. Native readable text, no bundled fonts or copied game assets.
 - Approved [in-app GitHub updates](docs/APP_UPDATES.md): daily checks on app open/resume, optional previews, release review, private verified download and Android install confirmation. APK checksum, package, version and current signer must match. Installation waits for active Hermes work to finish.
 - Independent English, Chinese and pinyin strings. Pinyin can be hidden without hiding Chinese. Agent responses are never translated automatically.
 - Trusted HTTPS with bearer authentication. AES-GCM token encryption backed by Android Keystore; no certificate bypass, redirects or HTTP request logging. Path prefixes such as `/p/work/` are preserved.

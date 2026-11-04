@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## 2026-11-04 — beta.2 release candidate
+
+Defaults are now **103 / 1.1.0-beta.2**. Only release metadata and documentation changed from **e03199c**; Android source, schemas, dependency policy, source-watch baseline and contracts remain unchanged. The original pixel interface/updater was published in beta.1; this candidate includes the later physical-pixel clock/progress refinements and intervening reviewed management work.
+
+Strict required debug build/lint passed in **8m 27s**: **413 JVM tests**, zero failures/errors/skips. Signed production assembly and release lint also pass. **92 offline checks** and the **495-component / 1071-artifact** checksum policy pass.
+
+The actual release debug APK passed approved download/verification/Android package replacement on owned API **26 / 36 / 37** emulators, each independently verified at **code 103 with retained private marker data**. Wrong signer rejection, separate release review/download approval and active-work installation delay were exercised. Existing source permission was already granted; a new permission-grant flow is not claimed. Target replacement terminates the initial instrumentation process; its expected crash message is not a JUnit pass. A separate verification runner and PackageManager prove the replacement and retention.
+
+Each API passed **28 focused native cases**, followed by **two additional tablet cases** on API 36. These cover rendered pixel motion/background pausing/reduced motion/progress semantics, real-app navigation, updater approvals/cancellation/integrity/package/version/FileProvider controls, historical storage migration and shared management-receipt migration/privacy. No ignored/assumption-failed case, retry or weakened assertion. Current phone, **720×1280 / density 320 / font 1.3** and **1920×1200 / density 240** tablet captures were inspected; tablet overrides were restored.
+
+The final **signed production beta.1 (102) → beta.2 (103)** PackageManager upgrade on owned API 37 retains the original saved task as an actual visible TextView. The first post-install hierarchy probe could not get a ready hierarchy, and the first nonzero-bounds check also accepted a title clipped by navigation. The final after-only check requires the actual task TextView fully above navigation, outside the search editor and at least 24 physical pixels high; the inspected capture shows the complete task title. It verifies the existing installation without reinstalling or downgrading. The external probe failures remain separate from the ordinary native passes. This production check uses `adb install -r`; it is distinct from the three approved in-app debug updates. No uninstall, clear-data or new signer was used. No current local unfiltered suite is claimed; the complete hosted suites remain the exact-commit publication gate. Historical failure/timeout records remain in validation.
+
+Final debug app SHA-256: `471f0adcb0d8dedfbe200f1e05b2a6343c0dd1389b76a683289237b9757d1c2a`. Instrumentation: `f6e78e96a14834767dd16cccab4729e954884f8617809b164feef19f0a8a7324`. The initial immutable pair and all four focused/wide pairs match final N: outputs. Production SHA-256: `91e533ca562a61d55460569e5adbd5676eef83a5d3954ca84db19760ebfeec5c`. Public certificate remains `ddc553d7d4accfffae563d3258011ae6d79dffb5c239b6d9976256b7ad93794f`. The three actual self-updates used the final debug release asset, with the preceding code-102 instrumentation runner; ordinary 28/28/28 and two-wide tests use the new code-103 pair.
+
+Exact release-commit Android and compatibility CI must pass before public publication. They are not claimed complete here; actual terminal results and full-suite counts are added to public release notes. The broader audit goal remains active.
+
 ## 2026-11-04 — listener-scoped endpoint-probe ordering
 
 Required strict `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed on the first build in **7m 24s**, with **413 JVM tests**, zero failures/errors/skips. The existing instance-domain JVM cases now include endpoint probes in their action vectors. All **92 offline checks**, strict **495-component / 1071-artifact** dependency policy, **453 tracked-file** sensitive-file review and diff checks pass.
