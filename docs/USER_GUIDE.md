@@ -227,3 +227,12 @@ The host’s acknowledgement means a code was issued, not that an account linked
 The original copy is encrypted locally for at most 15 minutes according to the device clock, shortened by an earlier valid reported expiry. Closing the screen keeps the saved copy, so its receipt can reopen a local inspector without network traffic. A resumed copy stays hidden until an explicit fresh status/scope check. Expired, cleared or unsaved copies cannot be replaced automatically. Clearing **saved link codes** has a separate owner/profile review and grant; it removes local copies only. Remote codes, clipboard copies, receipts and uncertainty remain. Signing out or forgetting the inference credential also removes saved local copies. A new code does not cancel older codes.
 
 Only exact documented pre-issuance refusals are recorded as no code issued. A lost, malformed or other failed creation response remains uncertain; the host may have issued a code. Do not assume a new code is safe to create from that state. A failed optional cache write or readback keeps the known acknowledgement and explains that the original copy is unavailable or needs verification. Local storage is bounded to 32 live copies per exact sign-in/profile and 128 total, with expiry cleanup and no silent eviction of live codes.
+
+
+### Host projects (unreleased source)
+
+These controls are in development source after the published 1.1.0-beta.3 preview. Open **Hermes management → Host projects**, then **Read stored projects**. Review the dashboard address, actor, profile and read effects before confirming. A verified supported profile with a reported host location is required. Opening or cancelling the review does not contact the project gateway.
+
+The list includes archived projects and reports an unmatched active-project pointer explicitly. Select **Refresh project details** for a fresh canonical-ID read. Folder paths and other metadata are selectable text; the phone does not open those host paths. Closing, cancelling or changing management scope clears the private project view. A remapped profile or unsupported result requires a fresh read.
+
+Project changes, Kanban controls and selecting a conversation's host working directory remain pending. Reading this inventory does not change an active project or existing conversation. [Scope and limits](MANAGEMENT.md#stored-host-projects-unreleased-source).

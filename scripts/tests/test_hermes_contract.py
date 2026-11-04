@@ -10,7 +10,7 @@ checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 def sources():
     route="def _http_routes():\n    return [('POST','/v1/runs',handler)]\n"
-    return {**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},
+    return {**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},
         'api':"_STATIC_FEATURE_FLAGS={'enabled':True}\n_MAX_NAME_LENGTH=160\n_MAX_PROMPT_LENGTH=5000\n_UPDATE_ALLOWED_FIELDS={'enabled'}\ndef _http_route_table():\n    return [('GET','/v1/kept',handler)]\n",
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",
@@ -563,5 +563,131 @@ class ContractWatchTest(unittest.TestCase):
         with self.assertRaises(ValueError):checker.extract(changed)
         changed['api']=changed['api'].replace('unknown()','{}');result=compare(old,checker.extract(changed))
         self.assertTrue(result['mobile_review_required']);self.assertEqual(['enabled'],result['mobile_relevant_changes']['removed_used_job_update_fields'])
+
+
+class ProjectContractWatchTest(unittest.TestCase):
+    def fixture(self):
+        data=sources()
+        data['project_contract']="""raise RuntimeError('Never execute project source')
+class ProjectFolder(Result):
+    path:str
+    is_primary:bool=False
+class ProjectInfo(Result):
+    id:str
+    created_at:int
+    folders:list[ProjectFolder]
+class ProjectsPayload(Result):
+    projects:list[ProjectInfo]
+    active_id:str|None=None
+class ProjectResult(Result):
+    project:ProjectInfo
+class ProjectIdParams(ProfileParams):
+    id:str
+method('projects.list',params=ProfileParams,result=ProjectsPayload,doc='stored list')
+method('projects.get',params=ProjectIdParams,result=ProjectResult,doc='stored detail')
+"""
+        data['project_methods']="""raise RuntimeError('Never execute project handlers')
+_registry=HandlerRegistry()
+method=_registry.method
+def _projects_method(name):
+    def decorate(fn):
+        return _registry.profile_scoped(fn)
+    return decorate
+@_projects_method('projects.list')
+def _(rid,params):
+    return {'projects':list_projects(profile=params['profile']),'active_id':active()}
+@_projects_method('projects.get')
+def _(rid,params):
+    return {'project':lookup(params['id'])}
+def register(server):
+    bind_module(globals(),server,skip=('_',))
+"""
+        data['project_db']="""raise RuntimeError('Never execute project DB code')
+from hermes_constants import get_hermes_home
+_ACTIVE_META_KEY='active_id'
+def projects_db_path():
+    return get_hermes_home() / 'projects.db'
+def get_project(conn,selector):
+    return by_id(selector) or by_slug(selector.lower())
+def get_active_id(conn):
+    return meta(conn,'active_id')
+def _now():
+    return int(time.time())
+"""
+        data['gateway_runtime']+="""
+from . import methods_projects as _methods_projects, methods_tools as _methods_tools
+for _m in (_methods_tools,_methods_projects):
+    _m.register(sys.modules[__name__])
+"""
+        data['gateway_method_ctx']="""def rebind(fn,g):
+    return copy_function(fn,g)
+class HandlerRegistry:
+    def profile_scoped(self,fn):
+        fn._hermes_profile_scoped=True
+        return fn
+    def install(self,server):
+        fn=server._profile_scoped(fn)
+        return fn
+"""
+        return data
+
+    def check_mutations(self,initial,handlers,fields,mutations):
+        tracked=baseline(checker.extract(initial));tracked['mobile_used_handlers']+=handlers;tracked['mobile_used_request_fields']+=fields
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(initial)})['mobile_review_required'])
+        for source,before,after in mutations:
+            with self.subTest(source=source,before=before):
+                changed=copy.deepcopy(initial);self.assertIn(before,changed[source]);changed[source]=changed[source].replace(before,after)
+                self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
+    def test_project_list_keeps_its_identity_when_later_get_reuses_underscore(self):
+        initial=self.fixture();old=checker.extract(initial)
+        keys=['project_methods:rpc:projects.list','project_methods:rpc:projects.get']
+        for key in keys:self.assertIn(key,old['handlers'])
+        tracked=baseline(old);tracked['mobile_used_handlers']+=keys
+        changed=copy.deepcopy(initial);changed['project_methods']=changed['project_methods'].replace("profile=params['profile']","profile='default'")
+        report=checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})
+        self.assertEqual({'project_methods:rpc:projects.list'},set(report['mobile_relevant_changes']['changed_used_handlers']))
+
+    def test_project_profile_binding_and_deferred_registry_scope_are_watched(self):
+        self.check_mutations(self.fixture(),['project_methods:_projects_method','gateway_method_ctx:rebind','gateway_method_ctx:HandlerRegistry.profile_scoped','gateway_method_ctx:HandlerRegistry.install'],[],[
+            ('project_methods','return _registry.profile_scoped(fn)','return fn'),
+            ('gateway_method_ctx','return copy_function(fn,g)','return fn'),
+            ('gateway_method_ctx','fn._hermes_profile_scoped=True','fn._hermes_profile_scoped=False'),
+            ('gateway_method_ctx','fn=server._profile_scoped(fn)','fn=fn')])
+
+    def test_project_wire_fields_and_registered_result_types_are_watched(self):
+        self.check_mutations(self.fixture(),['project_contract:method:projects.list'],['project_contract:ProjectInfo.created_at','project_contract:ProjectInfo.folders','project_contract:ProjectFolder.is_primary','project_contract:ProjectsPayload.active_id'],[
+            ('project_contract','created_at:int','created_at:str'),
+            ('project_contract','folders:list[ProjectFolder]','folders:list[str]'),
+            ('project_contract','is_primary:bool=False','is_primary:str=False'),
+            ('project_contract','active_id:str|None=None','active_id:int|None=None'),
+            ('project_contract','result=ProjectsPayload','result=OtherPayload')])
+
+    def test_project_id_slug_lookup_home_and_seconds_changes_request_review(self):
+        self.check_mutations(self.fixture(),['project_db:get_project','project_db:projects_db_path','project_db:get_active_id','project_db:_now'],[],[
+            ('project_db','by_id(selector) or by_slug(selector.lower())','by_slug(selector.lower())'),
+            ('project_db',"get_hermes_home() / 'projects.db'","launch_home / 'projects.db'"),
+            ('project_db',"meta(conn,'active_id')","meta(conn,'cwd')"),
+            ('project_db','int(time.time())','int(time.time()*1000)')])
+
+    def test_project_import_and_selected_module_registration_cannot_disappear(self):
+        self.check_mutations(self.fixture(),['gateway_runtime:projects_registration_import','gateway_runtime:projects_registration_loop'],[],[
+            ('gateway_runtime','from . import methods_projects','from other import methods_projects'),
+            ('gateway_runtime','(_methods_tools,_methods_projects)','(_methods_tools,)'),
+            ('gateway_runtime','_m.register(sys.modules[__name__])','_m.other(sys.modules[__name__])')])
+
+    def test_project_registry_fingerprints_are_bound_to_the_actual_server_source(self):
+        tracked=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        keys=[key for key in tracked['mobile_used_handlers'] if key.endswith((':projects_registration_import',':projects_registration_loop'))]
+        self.assertEqual(2,len(keys))
+        for key in keys:
+            self.assertEqual('tui_gateway/server.py',checker.EXTRA_SOURCES[key.split(':',1)[0]])
+
+    def test_project_source_is_parsed_without_execution_and_cannot_be_missing(self):
+        initial=self.fixture();result=checker.extract(initial)
+        self.assertIn('project_contract:ProjectInfo.created_at',result['request_fields'])
+        for key in checker.PROJECT_CONTRACT_SOURCES:
+            changed=copy.deepcopy(initial);del changed[key]
+            with self.assertRaises(ValueError):checker.extract(changed)
 
 if __name__=='__main__':unittest.main()

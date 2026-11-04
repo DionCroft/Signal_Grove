@@ -77,6 +77,15 @@ class GatewayRpcSession private constructor():Closeable {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("plugins.manage",buildJsonObject {put("profile",profile);put("action","list")})
     }
+    suspend fun projects(profile:String):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
+        return call("projects.list",buildJsonObject {put("profile",profile)})
+    }
+    suspend fun project(profile:String,id:String):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
+        require(org.hermesmobile.app.data.HostProjectProtocol.validId(id))
+        return call("projects.get",buildJsonObject {put("profile",profile);put("id",id)})
+    }
     suspend fun cronList(profile:String):JsonObject {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("cron.manage",buildJsonObject {put("profile",profile);put("action","list");put("include_disabled",true)})

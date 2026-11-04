@@ -154,6 +154,9 @@ EXTRA_SOURCES = {
 
 
 }
+PROJECT_CONTRACT_SOURCES = {'project_contract':'tui_gateway/contracts/projects_pets.py','project_methods':'tui_gateway/methods_projects.py','project_db':'hermes_cli/projects_db.py'}
+EXTRA_SOURCES.update(PROJECT_CONTRACT_SOURCES)
+
 CHANNEL_CONTRACT_SOURCES = {'channels': 'hermes_cli/web_routers/messaging.py', 'channel_catalog': 'hermes_cli/web_server_messaging.py', 'channel_registry': 'gateway/platform_registry.py', 'channel_profiles': 'hermes_cli/profile_channels.py', 'channel_status': 'gateway/status.py', 'channel_served': 'gateway/status_served.py', 'channel_pairing': 'gateway/pairing.py', 'channel_config_env': 'gateway/config_env.py', 'channel_multiplex': 'hermes_cli/gateway_multiplex_mode.py', 'channel_env_loader': 'hermes_cli/env_loader.py', 'channel_gate': 'gateway/platforms/_shared.py', 'channel_hidden': 'hermes_cli/setup_hidden_env.py', 'channel_config': 'gateway/config.py'}
 CHANNEL_CONTRACT_SOURCES.update({'channel_relay_config':'gateway/relay/__init__.py','channel_relay_links':'gateway/relay/link.py'})
 CHANNEL_CONTRACT_SOURCES.update({'relay_routes': 'hermes_cli/web_routers/messaging_relay.py', 'relay_control': 'gateway/control_socket.py', 'relay_auth': 'gateway/relay/auth.py', 'relay_media': 'gateway/relay/media.py', 'relay_diagnostics': 'gateway/relay/http_diagnostics.py', 'relay_portal': 'hermes_cli/auth_nous.py'})
@@ -184,6 +187,8 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
+                project_classes={'project_contract':{'ProjectFolder','ProjectInfo','ProjectsPayload','ProjectResult','ProjectIdParams'},'project_db':{'Project','ProjectFolder'},'project_methods':{'_NoProject'}}
+                if not prefix and node.name in project_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 channel_classes={'channel_registry':{'PlatformEntry'},'channel_config':{'Platform','HomeChannel'},'channel_status':{'GatewayLiveness'}}
                 if not prefix and node.name in channel_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
@@ -193,6 +198,30 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
+            elif not prefix and source=='gateway_runtime' and isinstance(node,ast.ImportFrom) and any(alias.name=='methods_projects' for alias in node.names):
+                isolated=ast.ImportFrom(module=node.module,names=[alias for alias in node.names if alias.name=='methods_projects'],level=node.level)
+                handlers['gateway_runtime:projects_registration_import']=fingerprint(isolated)
+            elif not prefix and source=='gateway_runtime' and isinstance(node,ast.For) and isinstance(node.iter,(ast.Tuple,ast.List)) and any(isinstance(item,ast.Name) and item.id=='_methods_projects' for item in node.iter.elts):
+                selected=copy.deepcopy(node)
+                selected.iter.elts=[item for item in selected.iter.elts if isinstance(item,ast.Name) and item.id=='_methods_projects']
+                handlers['gateway_runtime:projects_registration_loop']=fingerprint(selected)
+            elif not prefix and source in PROJECT_CONTRACT_SOURCES and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    for binding in ast.walk(target):
+                        if isinstance(binding,ast.Name):handlers[f'{source}:binding:{binding.id}']=fingerprint(node)
+            elif not prefix and source in PROJECT_CONTRACT_SOURCES and isinstance(node,(ast.Import,ast.ImportFrom)):
+                for alias in node.names:
+                    binding=alias.asname or alias.name
+                    isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])
+                    handlers[f'{source}:import:{binding}']=fingerprint(isolated)
+            elif not prefix and source in PROJECT_CONTRACT_SOURCES and isinstance(node,ast.Expr) and isinstance(node.value,ast.Call) and isinstance(node.value.func,ast.Name) and node.value.args and isinstance(node.value.args[0],ast.Constant) and isinstance(node.value.args[0].value,str):
+                call=node.value;name=call.args[0].value
+                if source=='project_contract' and call.func.id=='method' and name.startswith('projects.'):
+                    normalized=copy.deepcopy(node);normalized.value.keywords=[keyword for keyword in normalized.value.keywords if keyword.arg!='doc']
+                    handlers[f'{source}:method:{name}']=fingerprint(normalized)
+                elif source=='project_methods' and call.func.id=='_register_project_mutator':
+                    handlers[f'{source}:mutator:{name}']=fingerprint(node)
             elif not prefix and source in CHANNEL_CONTRACT_SOURCES and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
@@ -304,10 +333,10 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                     normalized.body = normalized.body[1:]
                 handlers[f'{source}:{prefix}{node.name}'] = fingerprint(normalized)
                 # RPC modules intentionally name many handlers `_`; preserve their public method identity.
-                if source in ('gateway_rpc','gateway_lookup') and not prefix:
+                if source in ('gateway_rpc','gateway_lookup','project_methods') and not prefix:
                     for decorator in node.decorator_list:
                         if (isinstance(decorator,ast.Call) and isinstance(decorator.func,ast.Name)
-                                and decorator.func.id in ('_scoped_rpc','_rpc','method') and decorator.args
+                                and decorator.func.id in ('_scoped_rpc','_rpc','method','_projects_method') and decorator.args
                                 and isinstance(decorator.args[0],ast.Constant) and isinstance(decorator.args[0].value,str)):
                             handlers[f'{source}:rpc:{decorator.args[0].value}'] = fingerprint(normalized)
     visit(tree.body)
