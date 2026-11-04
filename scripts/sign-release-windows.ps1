@@ -20,7 +20,7 @@ try {
         $secure=ConvertTo-SecureString $passwordText -AsPlainText -Force
         $secure | ConvertFrom-SecureString | Set-Content -LiteralPath $passwordPath -NoNewline
         $env:HERMES_RELEASE_STORE_PASSWORD=$passwordText
-        & $keytool -genkeypair -keystore $keyPath -storetype JKS -storepass:env HERMES_RELEASE_STORE_PASSWORD -keypass:env HERMES_RELEASE_STORE_PASSWORD -alias hermesmobile -dname 'CN=Hermes Agent Mobile Community,O=Hermes Mobile Community' -keyalg RSA -keysize 4096 -validity 10000
+        & $keytool -genkeypair -keystore $keyPath -storetype JKS -storepass:env HERMES_RELEASE_STORE_PASSWORD -keypass:env HERMES_RELEASE_STORE_PASSWORD -alias hermesmobile -dname 'CN=Signal Grove Community,O=Signal Grove Community' -keyalg RSA -keysize 4096 -validity 10000
         if($LASTEXITCODE){throw 'Production key generation failed. Inspect the signing files before retrying.'}
         $passwordText=$null
     } else {

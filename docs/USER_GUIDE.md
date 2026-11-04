@@ -1,6 +1,6 @@
-# Using Hermes Agent Mobile
+# Using Signal Grove
 
-The latest published stable release is 1.0.0. Current development builds are marked `1.1.0-dev`; development-only additions are identified below.
+The latest published stable release is 1.0.0. The current Signal Grove preview is `1.1.0-beta.3`; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for the retained package and update-feed identities.
 
 ## Install and migrate
 

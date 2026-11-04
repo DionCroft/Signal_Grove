@@ -46,7 +46,7 @@ class NativeLogin:Closeable {
                     code=callback(first[1],state)
                 }
                 runCatching {
-                    val body=if(code!=null) "Sign-in received. You may return to Hermes Agent Mobile." else "Invalid sign-in callback. Return to the sign-in page or cancel in the app."
+                    val body=if(code!=null) "Sign-in received. You may return to Signal Grove." else "Invalid sign-in callback. Return to the sign-in page or cancel in the app."
                     val status=if(code!=null) "200 OK" else "400 Bad Request"
                     val response="HTTP/1.1 $status\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: ${body.toByteArray().size}\r\nCache-Control: no-store\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'\r\nConnection: close\r\n\r\n$body"
                     client.getOutputStream().write(response.toByteArray(Charsets.UTF_8))

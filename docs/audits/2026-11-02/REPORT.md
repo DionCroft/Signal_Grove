@@ -1,4 +1,6 @@
-# Hermes Agent Mobile audit — 2 November 2026
+# Signal Grove audit — 2 November 2026
+
+Historical audit created before the Signal Grove rebrand. Captured evidence and protocol identifiers retain their original values.
 
 The app needs a **1.0.1 correctness release before expanding integrations**. Four diagnostic probes reproduced defects in connection isolation, compatibility conversation history, durable decisions and cron validation. The feature audit also found substantial supported-API functionality that the native UI does not expose. A completed milestone checklist and passing smoke tests did not cover these interleavings and wire-history cases.
 

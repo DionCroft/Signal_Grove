@@ -57,7 +57,7 @@ class ReminderWorker(context: Context,params: WorkerParameters):CoroutineWorker(
             if(!enabled(config)) return
             if(dao.claimNotification(NotificationReceipt(key,System.currentTimeMillis()))==-1L) return
             val open=PendingIntent.getActivity(app,route.hashCode(),Intent(app,MainActivity::class.java).putExtra("destination",route).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val public=NotificationCompat.Builder(app,BackgroundChecks.CHANNEL).setSmallIcon(R.drawable.ic_notification).setContentTitle("Hermes Agent Mobile").setContentText(Words.UpdatesAvailable.localized(p)).build()
+            val public=NotificationCompat.Builder(app,BackgroundChecks.CHANNEL).setSmallIcon(R.drawable.ic_notification).setContentTitle(app.getString(R.string.app_name)).setContentText(Words.UpdatesAvailable.localized(p)).build()
             val notification=NotificationCompat.Builder(app,BackgroundChecks.CHANNEL).setSmallIcon(R.drawable.ic_notification).setContentTitle(title).setContentText(text).setStyle(NotificationCompat.BigTextStyle().bigText(text)).setContentIntent(open).setAutoCancel(true).setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(public).build()
             try {NotificationManagerCompat.from(app).notify(key.hashCode(),notification)} catch(_:SecurityException) { }
         }

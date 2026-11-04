@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.1.0-beta.3 — Signal Grove
+
+- Rebrand the Android client as Signal Grove across the launcher, app header, notifications, widgets, sign-in callback, updates and documentation. The longer header wraps on narrow/large-text screens.
+- Preserve Android package/data identities, signing keys, task-backup format and the existing GitHub update feed so installed versions can upgrade normally. See docs/BRANDING.md.
+
 ## 1.1.0-beta.2 — 2026-11-04
 
 Second preview: physical-pixel motion/progress refinements and the reviewed management follow-up below. The broader Hermes parity audit remains active.

@@ -40,7 +40,7 @@ import java.io.ByteArrayOutputStream
         Word(Words.TaskFiles);Text(label(Words.TaskFilesInfo))
         TextButton({scope.launch {
             working=true;result=null
-            try {pendingExport=withContext(Dispatchers.IO) {vm.taskBackup()};export.launch("hermes-tasks.json")}
+            try {pendingExport=withContext(Dispatchers.IO) {vm.taskBackup()};export.launch("signal-grove-tasks.json")}
             catch(e:CancellationException) {throw e} catch(_:Exception) {result=Words.TaskFileError} finally {working=false}
         }},enabled=!working) {Text(label(Words.ExportTasks))}
         TextButton({import.launch(arrayOf("application/json","text/plain"))},enabled=!working) {Text(label(Words.ImportTasks))}

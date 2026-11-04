@@ -1,5 +1,19 @@
 # Current development validation — audit follow-up
 
+## 2026-11-04 — Signal Grove rebrand
+
+Defaults are **104 / 1.1.0-beta.3**. The launcher/widget label, responsive app header and compact SG rail mark, notification title/icons, sign-in success text, About text, update-source approval and task entry text now use **Signal Grove**. English, Chinese and pinyin retain the proper brand name. Task export suggests `signal-grove-tasks.json`; the backup format marker is unchanged. Current documentation, design preview, screenshots and public repository description use the new brand. Historical screenshots/releases and compatibility identifiers retain their actual identities; see [branding](BRANDING.md).
+
+Required debug build and lint passed in **7m 20s** with **413 JVM tests**, zero failures/errors/skips. Signed production assembly and release lint pass with the original signer. **92 offline checks** and strict **495-component / 1071-artifact** checksum policy pass.
+
+The same immutable debug/test APK pair passed **28 focused native cases on each owned API 26 / 36 / 37 emulator**, plus **two API-36 tablet cases**. Extended real-app navigation assertions verify the full brand and version remain displayed, within the root width and non-overlapping before and after navigation. Pixel motion/reduced motion, updater review/download/integrity/storage controls, historical database migration and management-receipt privacy remain covered. No native case was ignored, assumption-failed, retried or weakened. Phone **1080×2400 / density 420**, narrow **720×1280 / density 320 / font 1.3** and wide **1920×1200 / density 240** captures were inspected; wide overrides were restored. Four additional palette screenshots were captured from the actual labelled Demo app, without image edits. Older evidence images remain historical.
+
+The **signed production beta.2 (103) → Signal Grove beta.3 (104)** in-place PackageManager upgrade on the owned API-37 emulator preserves the original `PixelRelease102Retention` task as an actual visible TextView above navigation, outside the search editor, at least 24 physical pixels high. The new header is also verified. No uninstall, clear-data or replacement signing key was used. This is an `adb install -r` production upgrade; the preceding beta.2 three-platform approved in-app replacement evidence remains historical. No new physical/OEM or live-Hermes certification is claimed.
+
+Final debug SHA-256: `87e78f396c4626fe856b1bd6e29ed61114f45d2a19bb72d9ddd7b61a763910d4`. Instrumentation: `0eb69a5840a0de0f89bc8f32a7779695654e15ae2736498cbcdec04064ecee0b`. Production: `2a88bc29759cbca77c7b7f304fda8a0b1be116bc1fd115dd3fe27f530bd7635b`. All four native immutable APK pairs match final N: outputs. Public certificate file SHA-256 remains `ddc553d7d4accfffae563d3258011ae6d79dffb5c239b6d9976256b7ad93794f`; production and development signing identities are unchanged.
+
+Exact release-commit Android and compatibility CI remain publication gates; their terminal results and any later real public-update proof are recorded in the release notes. No current local unfiltered full-suite pass is inferred from focused tests. The broader integration/automation audit goal remains active.
+
 ## 2026-11-04 — beta.2 release candidate
 
 Defaults are now **103 / 1.1.0-beta.2**. Only release metadata and documentation changed from **e03199c**; Android source, schemas, dependency policy, source-watch baseline and contracts remain unchanged. The original pixel interface/updater was published in beta.1; this candidate includes the later physical-pixel clock/progress refinements and intervening reviewed management work.

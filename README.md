@@ -1,10 +1,12 @@
-# Hermes Agent Mobile
+# Signal Grove
 
 An unofficial, open-source native Android client for [Hermes Agent](https://github.com/NousResearch/hermes-agent). Your agent runs on your infrastructure; the phone is its companion.
 
 **Stable 1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
 
-Development preview is `1.1.0-beta.2`: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
+Development preview is `1.1.0-beta.3`: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
+
+[Brand and upgrade compatibility](docs/BRANDING.md).
 
 Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.
 
@@ -16,11 +18,11 @@ Five interchangeable palettes, persistent conversations, English / Simplified Ch
 
 | Lavender Original | Jade Terminal | Solar Archive | Mint Circuit |
 | --- | --- | --- | --- |
-| ![Lavender](docs/screenshots/home-lavender.png) | ![Jade](docs/screenshots/home-jade.png) | ![Solar](docs/screenshots/home-solar.png) | ![Mint](docs/screenshots/home-mint.png) |
+| ![Lavender](docs/screenshots/signal-grove-lavender.png) | ![Jade](docs/screenshots/signal-grove-jade.png) | ![Solar](docs/screenshots/signal-grove-solar.png) | ![Mint](docs/screenshots/signal-grove-mint.png) |
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Try the [1.1.0-beta.2 preview](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.1.0-beta.2) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
+Try the [1.1.0-beta.3 preview](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.1.0-beta.3) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
 
 ## Features
 

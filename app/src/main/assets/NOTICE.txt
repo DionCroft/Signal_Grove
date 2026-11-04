@@ -1,6 +1,6 @@
-Hermes Agent Mobile — Third-party notices
+Signal Grove — Third-party notices
 
-Original application code: MIT, Copyright (c) 2026 Hermes Agent Mobile contributors.
+Original application code: MIT, Copyright (c) 2026 Signal Grove contributors (formerly Hermes Agent Mobile contributors).
 Hermes Agent: separate MIT project by NousResearch and contributors. No upstream code, logos or fonts are bundled.
 
 AndroidX (Compose, Activity, Core, Navigation, Lifecycle, Room, DataStore): Apache-2.0; Copyright The Android Open Source Project.
