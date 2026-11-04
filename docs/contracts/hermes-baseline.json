@@ -1560,7 +1560,8 @@
         "models:CustomEndpointUpdate.models": "f4887fbcb000fbf345ecb1ae47ad4961a3dd9ec5f8e5b42d22bf7470aa5b4364",
         "models:CustomEndpointModelDetail.id": "7e737bce6ed98b2dda40da86eb6d56b5f43f9bf9003541910e7c725988aa9c3d",
         "models:CustomEndpointModelDetail.canonical_model": "e9301171245c2d7c703d4c967b20ec5a893b9aeefdec58823825dce0eb75d620",
-        "models:CustomEndpointModelDetail.reasoning_effort": "654654784abd033e6dee96b6512a09c09964b4b1f8d8e0288b61b8a4cbe62820"
+        "models:CustomEndpointModelDetail.reasoning_effort": "654654784abd033e6dee96b6512a09c09964b4b1f8d8e0288b61b8a4cbe62820",
+        "models:CustomEndpointUpdate.model_details": "cb48b8a9dbce64300c15cff343b4f2588a5e349a9cd4f47997fd8a8ac005870c"
       },
       "static_features": {
         "run_status": true,
@@ -2890,6 +2891,7 @@
     "models:CustomEndpointUpdate.id",
     "models:CustomEndpointUpdate.make_default",
     "models:CustomEndpointUpdate.model",
+    "models:CustomEndpointUpdate.model_details",
     "models:CustomEndpointUpdate.models",
     "models:CustomEndpointUpdate.name",
     "models:EnvVarDelete.key",

@@ -2,7 +2,7 @@ package org.hermesmobile.app.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,7 +21,7 @@ import org.hermesmobile.app.data.*
         item {Row {Checkbox(approved,{approved=it},modifier=Modifier.testTag("endpoint-probe-approve"));Text(label(Words.EndpointProbeApprove),Modifier.weight(1f))}}
     }},confirmButton={TextButton(confirm,enabled=enabled && show && approved,modifier=Modifier.testTag("endpoint-probe-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton(close,Modifier.testTag("endpoint-probe-review-cancel")) {Text(label(Words.Cancel))}})
 }
-@Composable fun EndpointProbeReport(report:CustomEndpointProbeReport,close:()->Unit) {
+@Composable fun EndpointProbeReport(report:CustomEndpointProbeReport,plan:((CustomEndpointProbeAdoptionKind,String?)->CustomEndpointProbeAdoption?)?=null,stage:((CustomEndpointProbeAdoption)->Unit)?=null,enabled:Boolean=true,close:()->Unit) {
     var show by remember(report) {mutableStateOf(false)}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.EndpointProbeReport))},text={LazyColumn(Modifier.heightIn(max=480.dp).testTag("endpoint-probe-report"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {EndpointProbeReceipt(report.receipt);Text(label(Words.EndpointProbeMeaning));Text(label(Words.EndpointProbeNoSave))}
@@ -30,9 +30,27 @@ import org.hermesmobile.app.data.*
             item {Text(report.request.baseUrl);Text(report.request.model)}
             val details=report.details
             if(details==null) item {Text(label(Words.EndpointProbeDetailsUnavailable))}
-            else {item {if(details.message.isNotEmpty()) Text(details.message);details.resolvedBaseUrl?.let {Text(label(Words.EndpointProbeResolved));Text(it)};details.transport?.let {Text(label(Words.HostFallbackMode));Text(it)}};items(details.models) {Text(it)};items(details.details) {Text(it.id);it.canonicalModel?.let {v->Text(v)};it.reasoningEffort?.let {v->Text(v)}}}
+            else {
+                if(details.message.isNotEmpty()) item {Text(details.message)}
+                if(plan!=null) item {Text(label(Words.EndpointStageOnly));if(!enabled) Text(label(Words.ManagementOutcomePending))}
+                details.resolvedBaseUrl?.let {value->
+                    item {Text(label(Words.EndpointProbeResolved));Text(value)}
+                    if(plan!=null) item {EndpointStageButton(Words.EndpointStageUrl,"endpoint-probe-stage-url",plan(CustomEndpointProbeAdoptionKind.Url,null),enabled,stage)}
+                }
+                details.transport?.let {value->
+                    item {Text(label(Words.HostFallbackMode));Text(value)}
+                    if(plan!=null) item {EndpointStageButton(Words.EndpointStageMode,"endpoint-probe-stage-mode",plan(CustomEndpointProbeAdoptionKind.Mode,null),enabled,stage)}
+                }
+                if(plan!=null) item {EndpointStageButton(Words.EndpointStageCatalog,"endpoint-probe-stage-catalog",plan(CustomEndpointProbeAdoptionKind.Catalog,null),enabled,stage)}
+                itemsIndexed(details.models) {index,id->Column {Text(id);if(plan!=null) EndpointStageButton(Words.EndpointStageModel,"endpoint-probe-stage-model-"+index,plan(CustomEndpointProbeAdoptionKind.Model,id),enabled,stage)}}
+                itemsIndexed(details.details) {index,detail->Column {Text(detail.id);detail.canonicalModel?.let {Text(it)};detail.reasoningEffort?.let {Text(it)};if(plan!=null) EndpointStageButton(Words.EndpointStageModel,"endpoint-probe-stage-detail-"+index,plan(CustomEndpointProbeAdoptionKind.Model,detail.id),enabled,stage)}}
+            }
         }
     }},confirmButton={TextButton(close,Modifier.testTag("endpoint-probe-report-close")) {Text(label(Words.Close))}})
+}
+@Composable private fun EndpointStageButton(word:Words,tag:String,plan:CustomEndpointProbeAdoption?,enabled:Boolean,stage:((CustomEndpointProbeAdoption)->Unit)?) {
+    TextButton({plan?.let {stage?.invoke(it)}},enabled=enabled && plan?.changes==true && stage!=null,modifier=Modifier.testTag(tag)) {Text(label(word))}
+    if(plan==null) Text(label(Words.EndpointStageUnavailable)) else if(!plan.changes) Text(label(Words.EndpointStageAlready))
 }
 @Composable fun EndpointProbeReceipt(receipt:ManagementOperation) {
     val summary=runCatching {Json.parseToJsonElement(receipt.resultSummary).jsonObject}.getOrNull()

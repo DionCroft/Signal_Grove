@@ -43,7 +43,7 @@ class CustomEndpointRepository(private val dao:HermesDao,private val ready:Defer
         ready.await();scope(target,api,tokens);require(target==request.expected.owner)
         if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
         val before=read(target,api,tokens,request.expected.homeId)
-        if(!request.expected.same(before)) throw CustomEndpointChanged()
+        if(!request.expected.same(before,includeReasoning=request.draft?.aliasEffect?.globalEffort!=null)) throw CustomEndpointChanged()
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,request.action.receiptAction,"custom-endpoints",request.summary().toString(),"sending","",System.currentTimeMillis())
         try {
             dao.claimManagementOperation(record);currentCoroutineContext().ensureActive()
@@ -55,7 +55,7 @@ class CustomEndpointRepository(private val dao:HermesDao,private val ready:Defer
             val different=when(request.action) {
                 CustomEndpointAction.Save->{
                     val row=after.rows.singleOrNull {it.id==ack.id};val draft=request.draft!!
-                    ack.id!=request.id || row==null || row.name!=draft.name || row.baseUrl!=draft.baseUrl || row.model!=draft.model || row.discoverModels!=draft.discoverModels || draft.apiMode?.let {it!=row.apiMode}==true || draft.contextLength?.let {it!=row.contextLength}==true || !row.models.containsAll(draft.models) || draft.key==CustomEndpointKey.Fresh && !row.hasKey || draft.key==CustomEndpointKey.Clear && row.hasKey || draft.makeDefault && !row.current
+                    ack.id!=request.id || row==null || row.name!=draft.name || row.baseUrl!=draft.baseUrl || row.model!=draft.aliasEffect.effectiveModel || !after.metadataObserved(draft) || row.discoverModels!=draft.discoverModels || draft.apiMode?.let {it!=row.apiMode}==true || draft.contextLength?.let {it!=row.contextLength}==true || !row.models.containsAll(draft.models) || draft.key==CustomEndpointKey.Fresh && !row.hasKey || draft.key==CustomEndpointKey.Clear && row.hasKey || draft.makeDefault && !row.current
                 }
                 CustomEndpointAction.Activate->ack.provider!=request.id || ack.model!=request.row?.model || after.current.provider!=ack.provider || after.current.model!=ack.model
                 CustomEndpointAction.Remove->after.rows.any {it.id==request.id}

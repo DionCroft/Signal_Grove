@@ -114,6 +114,23 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_imported_endpoint_alias_fields_reasoning_and_lossless_merge_changes_require_review(self):
+        initial=sources()
+        initial['models']+="class CustomEndpointModelDetail:\n    id:str\n    canonical_model:str|None=None\n    reasoning_effort:str|None=None\nclass CustomEndpointUpdate:\n    model_details:list[CustomEndpointModelDetail]|None=None\n"
+        initial['env_routes']="def _write_custom_endpoint(cfg,body):\n    if alias!=canonical:cfg.agent.reasoning_overrides[canonical]=parse_reasoning_effort(effort)\n    preserve_model_metadata(cfg)\n"
+        initial['model_reasoning']="VALID_REASONING_EFFORTS=('low','high')\ndef parse_reasoning_effort(value):\n    if value in ('none','false','disabled'):return {'enabled':False}\n    return value if value in VALID_REASONING_EFFORTS else None\n"
+        initial['custom_provider_config']="def _normalize_provider_models(models):\n    return lossless_list_and_map(models)\ndef _custom_provider_entry_to_provider_config(entry,provider_key):\n    return preserve_unknown_fields(entry,provider_key)\n"
+        initial['config_backend']="def refusing_locked_omissions(cfg):\n    return managed_policy(cfg)\n"
+        tracked=baseline(checker.extract(initial))
+        tracked['mobile_used_handlers']+=['models:schema:CustomEndpointModelDetail','models:schema:CustomEndpointUpdate','env_routes:_write_custom_endpoint','model_reasoning:VALID_REASONING_EFFORTS','model_reasoning:parse_reasoning_effort','custom_provider_config:_normalize_provider_models','custom_provider_config:_custom_provider_entry_to_provider_config','config_backend:refusing_locked_omissions']
+        tracked['mobile_used_request_fields']+=['models:CustomEndpointUpdate.model_details','models:CustomEndpointModelDetail.id','models:CustomEndpointModelDetail.canonical_model','models:CustomEndpointModelDetail.reasoning_effort']
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(initial)})['mobile_review_required'])
+        changes=[('models','id:str','id:int'),('models','canonical_model:str|None=None','canonical_model:str'),('models','reasoning_effort:str|None=None','reasoning_effort:dict|None=None'),('models','model_details:list[CustomEndpointModelDetail]|None=None','model_details:list[CustomEndpointModelDetail]=[]'),('env_routes','alias!=canonical','True'),('env_routes','cfg.agent.reasoning_overrides[canonical]','cfg.agent.reasoning_overrides[alias]'),('env_routes','preserve_model_metadata(cfg)','replace_model_metadata(cfg)'),('model_reasoning',"('low','high')","('low','high','new')"),('model_reasoning',"'none','false','disabled'","'none'"),('model_reasoning','else None','else value'),('custom_provider_config','lossless_list_and_map','drop_list_metadata'),('custom_provider_config','preserve_unknown_fields','replace_unknown_fields'),('config_backend','managed_policy(cfg)','silently_drop_agent(cfg)')]
+        for module,before,after in changes:
+            with self.subTest(module=module,change=before):
+                self.assertIn(before,initial[module]);changed=dict(initial);changed[module]=changed[module].replace(before,after)
+                self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_endpoint_outbound_profile_quota_proxy_and_alias_contract_changes_require_review(self):
         initial=sources();initial['env_routes']="from profile_helpers import _parse_model_entries\n_TRANSPORT_ROUTES={'chat_completions':'/chat/completions'}\n_TRANSPORT_LABELS={'chat_completions':'Chat Completions'}\n@router.post('/api/providers/custom-endpoints/validate')\nasync def validate_custom_endpoint(body):\n    return await listener_probe(body)\nasync def _probe_transport_route(client,url,mode,model,headers):\n    return await client.post(url,json={'max_tokens':1})\ndef _endpoint_probe_client(url,timeout):\n    return Client(trust_env=not is_local_endpoint(url))\n"
         initial['probe_metadata']="_LOCAL_HOSTS={'localhost'}\n_CONTAINER_LOCAL_SUFFIXES=('.internal',)\n_TAILSCALE_CGNAT='100.64.0.0/10'\ndef is_local_endpoint(url):\n    return local_or_tailscale(url)\n"

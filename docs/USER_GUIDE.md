@@ -179,3 +179,9 @@ Enter a complete printable ASCII replacement; the current host writer strips oth
 Open a variable's editor or add a custom key, then select **Explicitly store an empty string and keep this environment key**. This clears the replacement draft. Open the review, show the empty-string intent and approve one save. Cancelling and reopening requires selecting and approving it again.
 
 An empty save keeps the key. Hermes can retain old credential mirrors/pool entries and lift environment-source suppression, so this does not mean credentials were removed or revoked. The receipt stays acknowledged after reported unset-key observation; presence cannot verify the exact stored value. Use the separately reviewed removal action when you intend reference cleanup. See [empty-value effects](MANAGEMENT.md#explicit-empty-environment-values).
+
+### Stage discovered endpoint settings
+
+In **Hermes management → Host models and providers → Custom endpoints**, read the selected profile and open an endpoint editor. A probe has its own destination/key review and may make a small real inference request. Reveal its private report to stage a returned address, API mode, model catalog or individual model into the editor. Each action changes only your draft. A changed returned address clears a newly entered key; review the new destination and enter a key again if needed.
+
+Choose **Review** separately to save. Imported aliases can redirect to a canonical model and overwrite the profile-wide reasoning preference used by other routes. Reveal the original/effective model and prior/new preference before approving. An unsupported import explains why save is unavailable; clearing the staged metadata restores ordinary editing without deleting host metadata. A save acknowledgement and the later configuration observation are shown separately. Neither confirms provider health or adoption by a running conversation.
