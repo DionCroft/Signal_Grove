@@ -38,7 +38,6 @@ class SkillHubFlowTest {
         else->null
     }
     private fun open(server:MockWebServer) {
-        server.start()
         compose.waitUntil(10000) {!api.connecting.value};compose.runOnUiThread {api.configure(server.url("inference/").toString(),"inference-hub-fixture",true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))}
         compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese}
         val scope=api.profileScope.value;app.credentials.saveManagement(scope,buildJsonObject {put("url",server.url("dashboard/").toString());put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("management-hub-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
@@ -48,7 +47,7 @@ class SkillHubFlowTest {
     }
     @Test fun catalogPreviewSearchAndScanRemainReadsWithReportedIncompleteAndMaskedEvidence() {
         val writes=AtomicInteger();val changed=AtomicBoolean(true);val previews=AtomicInteger();val scans=AtomicInteger();val searches=AtomicInteger()
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse {
                 if(request.method!="GET") writes.incrementAndGet()
                 basic(request)?.let {return it}
@@ -83,7 +82,7 @@ class SkillHubFlowTest {
     }
     @Test fun unavailableOfficialCatalogLeavesFeaturedBrowseAndLatePreviewCannotCrossConnections() {
         val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse {
                 basic(request)?.let {return it}
                 return when(request.requestUrl!!.encodedPath) {
@@ -101,7 +100,7 @@ class SkillHubFlowTest {
 
     @Test fun installationNeedsSeparateReviewThenRecordsOnlyStartupAndObservesSkillsWithoutReplay() {
         val writes=AtomicInteger();val previews=AtomicInteger();val scans=AtomicInteger();val installedReads=AtomicInteger()
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse {
                 basic(request)?.let {return it}
                 assertEquals("Bearer management-hub-fixture",request.getHeader("Authorization"));assertEquals("worker",request.requestUrl!!.queryParameter("profile"))
@@ -131,7 +130,7 @@ class SkillHubFlowTest {
 
     @Test fun maintenanceReviewsRemovalAndAllProfileUpdatesAndObservesSkillsWithoutReplay() {
         val writes=AtomicInteger();val removed=AtomicBoolean();val skillReads=AtomicInteger()
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 basic(q)?.let {return it}
                 assertEquals("worker",q.requestUrl!!.queryParameter("profile"));assertEquals("Bearer management-hub-fixture",q.getHeader("Authorization"))

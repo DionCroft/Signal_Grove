@@ -26,7 +26,13 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
 
 @Composable private fun managementReceiptTarget(receipt:ManagementOperation):String=if(receipt.action=="MoaConfig") label(Words.HostMoa) else if(receipt.action=="AuxModel") label(if(receipt.target=="__reset__") Words.HostAuxReset else if(receipt.target.isEmpty()) Words.HostAuxAll else Words.HostAuxEdit)+(if(receipt.target.isNotEmpty() && receipt.target!="__reset__") " · "+receipt.target else "") else receipt.target
 
-@Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null,openCredentialPool:(()->Unit)?=null,openFallback:(()->Unit)?=null,openCustomEndpoints:(()->Unit)?=null) {
+data class ReviewedManagementUncertainty(val key:String,val target:ManagementTarget)
+
+@Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null,openCredentialPool:(()->Unit)?=null,openFallback:(()->Unit)?=null,openCustomEndpoints:(()->Unit)?=null,reviewShared:((String,ManagementTarget)->Unit)?=null) {
+    if(s!=null && receipt.apiScope!=s.apiScope) {
+        if(vm!=null && receipt.resourceScope==vm.resourceScope(s) && receipt.state in setOf("sending","unknown")) SharedManagementPendingCard(receipt,vm,s,reviewShared)
+        return
+    }
     var providers by remember(receipt.key) {mutableStateOf(false)}
     var moa by remember(receipt.key) {mutableStateOf(false)}
     var hostModels by remember(receipt.key) {mutableStateOf(false)}
@@ -91,4 +97,28 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
             else if(parsed.containsKey("enabled")) item {Text(label(if(parsed["enabled"]?.jsonPrimitive?.booleanOrNull==true) Words.Enabled else Words.Disabled))}
         }
     },confirmButton={TextButton({result=false},Modifier.testTag("management-result-close")) {Text(label(Words.Close))}})
+}
+
+/** Only generic state is rendered here. Confirmation is hosted above the disposable lazy row. */
+@Composable private fun SharedManagementPendingCard(receipt:ManagementOperation,vm:ManagementViewModel,s:ManagementState,reviewShared:((String,ManagementTarget)->Unit)?) {
+    Column(Modifier.fillMaxWidth().testTag("management-shared-"+receipt.key),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+        Text(label(Words.ManagementSharedPending),style=MaterialTheme.typography.titleSmall)
+        Text(label(managementStateWord(receipt.state)))
+        Text(label(Words.ManagementSharedPrivate),style=MaterialTheme.typography.bodySmall)
+        if(receipt.state=="unknown") TextButton({vm.reviewTarget()?.let {reviewShared?.invoke(receipt.key,it)}},
+            enabled=!s.busy && vm.reviewTarget()!=null && reviewShared!=null,
+            modifier=Modifier.testTag("management-shared-review-"+receipt.key)) {Text(label(Words.ManagementReview))}
+    }
+}
+
+@Composable fun SharedManagementUncertaintyReview(review:ReviewedManagementUncertainty,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
+    AlertDialog(onDismissRequest=close,title={Text(label(Words.ManagementReview))},text={
+        LazyColumn(Modifier.heightIn(max=440.dp).testTag("management-shared-review"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            item {Text(review.target.url)}
+            item {Text(review.target.profile)}
+            item {Text(review.target.actor)}
+            item {Text(label(Words.ManagementSharedReviewEffect))}
+        }
+    },confirmButton={TextButton(confirm,enabled=enabled,modifier=Modifier.testTag("management-shared-review-confirm")) {Text(label(Words.Confirm))}},
+        dismissButton={TextButton(close) {Text(label(Words.Cancel))}})
 }

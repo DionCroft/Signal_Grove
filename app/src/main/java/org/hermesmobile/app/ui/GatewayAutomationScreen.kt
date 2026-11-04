@@ -13,7 +13,7 @@ import org.hermesmobile.app.data.*
 @Composable fun GatewayAutomationDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     var review by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedGatewayRead?>(null)}
     var actionReview by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedGatewayCron?>(null)}
-    val receipts by vm.receipts.collectAsState()
+    val receiptRows by vm.receipts.collectAsState();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.resourceScope==vm.resourceScope(s) && it.state in setOf("sending","unknown")}
     val supported=GatewayCronInventory.supportedProfile(s.profile)
     AlertDialog(onDismissRequest=close,title={Text(label(Words.GatewayAutomation))},text={

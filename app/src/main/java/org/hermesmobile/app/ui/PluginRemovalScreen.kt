@@ -12,7 +12,7 @@ import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
 @Composable fun PluginRemovalControl(vm:ManagementViewModel,s:ManagementState,row:ManagedPlugin,review:(ReviewedPluginRemoval)->Unit) {
-    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.state in setOf("sending","unknown")}
     val supported=PluginRemovalRequest.supported(row) && s.plugins.inventory?.let {!PluginRemovalRequest.collision(row,it)}==true
     TextButton({vm.preparePluginRemoval(row)?.let(review)},enabled=supported && !s.busy && !pending && s.identity!=null && vm.reviewTarget()!=null,modifier=Modifier.testTag("plugin-remove-${row.key}")) {Text(label(Words.PluginRemove))}

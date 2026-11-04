@@ -33,7 +33,7 @@ class Milestone02Test {
     }
     private fun sendState()="busy=${vm.busy.value}, controlling=${vm.controlBusy.value}, status=${vm.runStatus.value}, connection=${vm.connectionStatus.value}, connecting=${vm.connecting.value}, draftLength=${vm.draft.value.length}, error=${vm.error.value}"
     private fun awaitVisibleStableSend() {
-        androidx.test.espresso.Espresso.closeSoftKeyboard();compose.waitForIdle()
+        closeFocusedKeyboard();compose.waitForIdle()
         var previous:String?=null;var stableSince=0L;var lastFrame="unobserved"
         try {
             compose.waitUntil(5000) {

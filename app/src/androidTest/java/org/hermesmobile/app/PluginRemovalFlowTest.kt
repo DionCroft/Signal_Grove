@@ -34,7 +34,7 @@ class PluginRemovalFlowTest {
     private val app get()=compose.activity.application as HermesApplication
     private fun exercise(hold:Boolean) {
         val tickets=AtomicInteger();val calls=AtomicInteger();val writes=AtomicInteger();val mcpReads=AtomicInteger();val removed=AtomicBoolean();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             fun inventory():JsonObject {
                 val base=PluginRemovalFixture.inventory(if(removed.get()) "fallback" else "before");val bundled=buildJsonObject {put("name","Bundled fixture");put("key","bundled-key");put("source","bundled");put("version","1");put("status","enabled");put("servers",JsonArray(emptyList()))}

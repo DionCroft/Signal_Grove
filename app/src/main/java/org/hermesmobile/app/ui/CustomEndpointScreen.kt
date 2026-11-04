@@ -23,7 +23,7 @@ private class EndpointEdit(val row:CustomEndpointRow?)
     var edit by remember(s.customEndpoints) {mutableStateOf<EndpointEdit?>(null)}
     var details by remember(s.customEndpoints) {mutableStateOf<CustomEndpointRow?>(null)}
     var review by remember(s.customEndpoints) {mutableStateOf<ReviewedCustomEndpoint?>(null)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.CustomEndpoints))},text={LazyColumn(Modifier.heightIn(max=520.dp).testTag("endpoint-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {Text(s.url);Text(s.profile)}
         item {Text(label(Words.CustomEndpointsReadEffect))}
@@ -71,7 +71,7 @@ private class EndpointEdit(val row:CustomEndpointRow?)
     val valid=candidate!=null && !duplicate && (row!=null || CustomEndpointPolicy.newId(candidate.id))
     var probeReview by remember(row) {mutableStateOf<ReviewedCustomEndpointProbe?>(null)}
     var probeReport by remember(row) {mutableStateOf(false)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     val report=s.customEndpointProbe?.takeIf {candidate!=null && it.request.expected===inventory && it.request.same(candidate)}
     val keyboard=LocalSoftwareKeyboardController.current
     AlertDialog(onDismissRequest=close,title={Text(label(if(row==null) Words.CustomEndpointsNew else Words.CustomEndpointsSave))},text={LazyColumn(Modifier.heightIn(max=480.dp).testTag("endpoint-editor"),verticalArrangement=Arrangement.spacedBy(12.dp)) {

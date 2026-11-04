@@ -49,7 +49,7 @@ class McpProtocolTest {
         val original=ManagementTarget(scope,"https://fixture.example/dashboard/","worker","password · first")
         assertEquals(original.resourceScope,original.copy(actor="password · second").resourceScope)
         assertNotEquals(original.resourceScope,original.copy(profile="default").resourceScope)
-        assertNotEquals(original.resourceScope,original.copy(apiScope="b".repeat(64)).resourceScope)
+        assertEquals(original.resourceScope,original.copy(apiScope="b".repeat(64)).resourceScope)
         assertNotEquals(original.resourceScope,original.copy(url="https://other.example/").resourceScope)
         val row=ManagedServer("fixture","http","oauth",false,"config",emptyList())
         assertTrue(McpProtocol.observed(McpRequest(McpAction.Toggle,"fixture",true,"config",false),listOf(row)))

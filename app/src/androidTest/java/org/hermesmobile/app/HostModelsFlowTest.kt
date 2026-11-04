@@ -28,7 +28,7 @@ class HostModelsFlowTest {
     private val app get()=compose.activity.application as HermesApplication
     private fun exercise(mode:String="normal") {
         val reads=AtomicInteger();val refreshes=AtomicInteger();val mutations=AtomicInteger();val other=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server->
+        credentials.managementServer().use {server->
             fun json(s:String)=MockResponse().setHeader("Content-Type","application/json").setBody(s)
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 if(q.method!="GET") mutations.incrementAndGet()

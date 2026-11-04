@@ -32,7 +32,7 @@ class HostMainModelFlowTest {
     private fun exercise(mode:String="normal") {
         val inferenceToken=credentials.uniqueToken("main-inference-fixture")
         val sends=AtomicInteger();val reads=AtomicInteger();val options=AtomicInteger();val mcp=AtomicInteger();val other=AtomicInteger();val model=AtomicReference(HostMainModelFixture.old);val provider=AtomicReference(HostMainModelFixture.provider);val expectedModel=if(mode=="normalized") "normalized-model" else HostMainModelFixture.next;val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server->
+        credentials.managementServer().use {server->
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 val url=q.requestUrl!!

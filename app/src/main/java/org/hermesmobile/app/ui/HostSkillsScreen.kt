@@ -12,7 +12,7 @@ import org.hermesmobile.app.data.*
 
 @Composable fun HostSkillsDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     var review by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedSkillAction?>(null)}
-    val receipts by vm.receipts.collectAsState()
+    val receiptRows by vm.receipts.collectAsState();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.resourceScope==vm.resourceScope(s) && it.state in setOf("sending","unknown")}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostSkills))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-skills-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {

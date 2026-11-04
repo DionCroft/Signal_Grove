@@ -29,7 +29,7 @@ class McpOAuthFlowTest {
     @Test fun authorizationRequiresReviewAndRefreshesTheOriginalFlowWithoutAnotherStart() {
         val writes=AtomicInteger();val cancels=AtomicInteger();var reported="authorization_required"
         val flowId="unique_ui_flow_fixture_12345678"
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
                     request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")

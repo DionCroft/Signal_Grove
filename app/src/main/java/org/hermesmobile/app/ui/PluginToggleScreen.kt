@@ -11,7 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 
 @Composable fun PluginToggleControl(vm:ManagementViewModel,s:ManagementState,row:ManagedPlugin,review:(ReviewedPluginToggle)->Unit) {
-    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.state in setOf("sending","unknown")}
     val supported=PluginToggleRequest.supported(row) && s.plugins.inventory?.let {!PluginToggleRequest.collision(row,it)}==true
     TextButton({vm.preparePluginToggle(row)?.let(review)},enabled=supported && !pending && !s.busy && s.identity!=null && vm.reviewTarget()!=null,modifier=Modifier.testTag("plugin-toggle-${row.key}")) {Text(label(if(row.status=="enabled") Words.PluginDisable else Words.PluginEnable))}

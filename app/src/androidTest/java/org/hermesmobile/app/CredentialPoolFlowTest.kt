@@ -34,7 +34,7 @@ class CredentialPoolFlowTest {
     private fun exercise(mode:String) {
         val provider=if(mode=="custom") "custom:fixture-endpoint" else CredentialPoolFixture.provider
         val current=AtomicReference(CredentialPoolFixture.inventory(provider));val adds=AtomicInteger();val removes=AtomicInteger();val reads=AtomicInteger();val mcp=AtomicInteger();val other=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server->
+        credentials.managementServer().use {server->
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 val u=q.requestUrl!!

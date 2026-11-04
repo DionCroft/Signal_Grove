@@ -74,12 +74,13 @@ class ManagementOperationsTest {
     @Test fun claimsSerializePerResourceAndInterruptedReceiptsSurviveChatCleanup()=runBlocking {
         val db=db()
         try {
-            val first=ManagementOperation("one","resource","api","https://fixture.example/","worker","fixture","Probe","server","{}","sending","",1)
+            val owner=ManagementTarget("a".repeat(64),"https://fixture.example/","worker","fixture")
+            val first=ManagementOperation("one",owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,"Probe","server","{}","sending","",1)
             val results=coroutineScope {(0..1).map {i->async(Dispatchers.IO) {runCatching {db.dao().claimManagementOperation(first.copy(key=i.toString()))}}}.awaitAll()}
             assertEquals(1,results.count {it.isSuccess})
-            db.dao().claimManagementOperation(first.copy(key="other",resourceScope="other"))
-            db.dao().recoverManagementOperations();assertEquals("unknown",db.dao().unresolvedManagementOperations("resource").single().state)
-            db.dao().clearChats();assertEquals(2,db.dao().managementOperations("api").first().size)
+            db.dao().claimManagementOperation(first.copy(key="other",url="https://other.example/",resourceScope=owner.copy(url="https://other.example/").resourceScope))
+            db.dao().recoverManagementOperations();assertEquals("unknown",db.dao().unresolvedManagementOperations(owner.resourceScope).single().state)
+            db.dao().clearChats();assertEquals(2,db.dao().managementOperations(owner.apiScope).first().size)
         } finally {db.close()}
     }
     @Test fun schemaEightPreservesImagesAccountingAndNativeUncertainty()=runBlocking {

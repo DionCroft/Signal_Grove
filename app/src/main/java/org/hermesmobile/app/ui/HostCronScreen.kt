@@ -21,7 +21,7 @@ private fun hostCronField(key:String)=when(key) {
 
 @Composable fun HostCronDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     var creating by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
-    val receipts by vm.receipts.collectAsState()
+    val receiptRows by vm.receipts.collectAsState();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.resourceScope==vm.resourceScope(s) && it.state in setOf("sending","unknown")}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostCron))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-cron-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {

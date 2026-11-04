@@ -21,7 +21,7 @@ private class FallbackEdit(val section:FallbackSection,val index:Int?,val row:Fa
     var draft by remember(s.fallback) {mutableStateOf(s.fallback?.let(HostFallbackDraft::from))}
     var edit by remember(s.fallback) {mutableStateOf<FallbackEdit?>(null)}
     var review by remember(s.fallback) {mutableStateOf<ReviewedHostFallback?>(null)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostFallback))},text={LazyColumn(Modifier.heightIn(max=520.dp).testTag("fallback-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {Text(s.url);Text(s.profile);Text(label(Words.HostFallbackReadEffect));TextButton({read=vm.prepareHostFallbackRead()},enabled=!s.busy && s.identity!=null && GatewayCronInventory.supportedProfile(s.profile),modifier=Modifier.testTag("fallback-read")) {Text(label(Words.HostFallbackRead))};if(!GatewayCronInventory.supportedProfile(s.profile)) Text(label(Words.PluginProfileUnsupported))}
         if(s.busy) item {QuietProgress();TextButton(vm::cancel) {Text(label(Words.Cancel))}}

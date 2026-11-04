@@ -8,6 +8,8 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*
 import okhttp3.mockwebserver.*
 import org.hermesmobile.app.data.*
@@ -28,7 +30,7 @@ class McpCreationFlowTest {
     private fun json(text:String)=MockResponse().setHeader("Content-Type","application/json").setBody(text)
     @Test fun creatingAnHttpServerRequiresReviewAndDoesNotPersistProvisioningSecrets() {
         val writes=AtomicInteger();var configured:JsonObject?=null
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
                     request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
@@ -48,9 +50,16 @@ class McpCreationFlowTest {
             }
             val inference=server.url("inference/").toString();val dashboard=server.url("dashboard/").toString()
             compose.waitUntil(10000) {!api.connecting.value}
-            compose.runOnUiThread {api.configure(inference,"inference-create-fixture",true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))}
+            compose.runOnUiThread {api.configure(inference,credentials.uniqueToken("inference-create-fixture"),true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))}
             compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese}
             val scope=api.profileScope.value
+            // Real clients retain earlier actions; seed one to make that case deterministic.
+            val owner=ManagementTarget(scope,dashboard,"worker","password · fixture-user")
+            val previousReceipt=ManagementOperation(java.util.UUID.randomUUID().toString(),owner.resourceScope,scope,dashboard,"worker",owner.actor,"Create","previous-fixture","{}","confirmed","",System.currentTimeMillis()-1)
+            val beforeKeys=runBlocking {
+                app.managementReady.await();app.database.dao().insertManagementOperation(previousReceipt)
+                app.database.dao().managementOperations(scope).first().map {it.key}.toSet()
+            }
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("management-create-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
             compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn}
             compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
@@ -61,7 +70,7 @@ class McpCreationFlowTest {
             compose.onNodeWithTag("mcp-create-form").performScrollToNode(hasTestTag("mcp-create-url"));compose.onNodeWithTag("mcp-create-url").performTextReplacement("https://tool.example/mcp?token=hidden-query-fixture")
             compose.onNodeWithTag("mcp-create-form").performScrollToNode(hasTestTag("mcp-auth-Header"));compose.onNodeWithTag("mcp-auth-Header").performClick()
             compose.onNodeWithTag("mcp-create-form").performScrollToNode(hasTestTag("mcp-create-token"));compose.onNodeWithTag("mcp-create-token").performTextReplacement("host-create-secret-fixture")
-            androidx.test.espresso.Espresso.closeSoftKeyboard();compose.waitForIdle()
+            closeFocusedKeyboard();compose.waitForIdle()
             compose.onNodeWithTag("mcp-create-review").performClick();compose.onNodeWithTag("mcp-create-confirmation").assertExists();assertEquals(0,writes.get())
             compose.onNode(hasText("https://tool.example/mcp") and hasAnyAncestor(hasTestTag("mcp-create-confirmation"))).assertExists()
             compose.onNode(hasText("hidden-query-fixture",substring=true) and hasAnyAncestor(hasTestTag("mcp-create-confirmation"))).assertDoesNotExist()
@@ -69,10 +78,12 @@ class McpCreationFlowTest {
             val shot=File(compose.activity.getExternalFilesDir(null),"qa/mcp-create-review.png");shot.parentFile!!.mkdirs()
             shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             compose.onNodeWithTag("mcp-create-confirm").performClick()
-            compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.action=="Create" && it.state=="confirmed"}}
+            compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.key !in beforeKeys && it.action=="Create" && it.state=="confirmed"}}
             assertEquals(1,writes.get());assertEquals("created-fixture",management.state.value.servers.single().name)
-            val receipt=management.receipts.value.single {it.action=="Create"}
+            val receipt=management.receipts.value.single {it.key !in beforeKeys && it.action=="Create"}
             assertFalse(receipt.toString().contains("host-create-secret-fixture"));assertFalse(receipt.toString().contains("hidden-query-fixture"))
+            assertEquals("confirmed",receipt.state)
+            assertEquals(previousReceipt,runBlocking {app.database.dao().managementOperation(previousReceipt.key)})
         }
     }
 }

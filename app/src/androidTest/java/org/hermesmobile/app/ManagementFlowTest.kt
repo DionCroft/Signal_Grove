@@ -37,7 +37,7 @@ class ManagementFlowTest {
     @Test fun verifiedLoginExplicitProfileAndScopedMcpInventoryUseIndependentEncryptedCredentials() {
         val authorize=AtomicReference<String>();val exchanges=AtomicInteger();val wrongCredentials=AtomicInteger()
         val enabled=AtomicBoolean(true);val present=AtomicBoolean(true);val mutations=AtomicInteger()
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse {
                     val path=request.path.orEmpty()
@@ -122,7 +122,7 @@ class ManagementFlowTest {
     }
     @Test fun uncertainControlsStayWithTheirProfileAndRequireAnExplicitLocalReview() {
         val writes=AtomicInteger();val enabled=AtomicBoolean(true)
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
                     request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")

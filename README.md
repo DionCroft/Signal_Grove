@@ -81,7 +81,7 @@ See [connection details](docs/HERMES_CONNECTION.md) and the [official API refere
 - Legacy OpenAI-compatible chat has local history only and no authoritative run outcome. It does not advertise cancellation unless a usable run ID/control exists.
 - The conversation browser searches loaded local records and loads additional server pages explicitly. Selecting/refreshing settled API sessions synchronizes saved history atomically; active/unknown turns retain their receipts. A history beyond 100,000 server rows produces an explicit limit error and keeps the cache. Server compression continuation IDs are retained.
 - Conversations/tasks use Android app-private Room storage, **not database encryption**. Backups/transfer are excluded. The connection URL/token/transport policy are Keystore encrypted together. Job prompts remain in the app-private cache. Clear local cache does not delete server history or tasks.
-- Only system-provided fonts are used. Theme typography/outlines differ, with restrained gradients and no ornamental animations. Actual UI labels and pinyin wrap; compact navigation retains English labels and multilingual accessibility descriptions.
+- Only system-provided fonts are used. Pixel scenery, stepped panels and interaction feedback respect the app and system reduced-motion settings. Actual UI labels and pinyin wrap; compact navigation retains English labels and multilingual accessibility descriptions.
 - Speech recognition availability and accuracy depend on the Android service. On-device-only mode fails closed when no local recognizer is available; system recognition may use the network when that mode is explicitly disabled.
 
 ## Contributing

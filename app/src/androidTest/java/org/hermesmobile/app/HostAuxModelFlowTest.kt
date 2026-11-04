@@ -39,7 +39,7 @@ class HostAuxModelFlowTest {
                 else->raw
             }
         }
-        MockWebServer().use {server->
+        credentials.managementServer().use {server->
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 val url=q.requestUrl!!

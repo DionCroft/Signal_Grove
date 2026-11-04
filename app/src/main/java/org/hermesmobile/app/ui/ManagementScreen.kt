@@ -47,9 +47,10 @@ import org.hermesmobile.app.data.*
     var catalog by remember {mutableStateOf(false)}
     var create by remember {mutableStateOf(false)}
     val allReceipts by vm.receipts.collectAsStateWithLifecycle()
-    val receipts=allReceipts.filter {it.resourceScope==vm.resourceScope(s)}
+    val receipts=vm.visibleReceipts(s,allReceipts)
     val pending=receipts.any {it.state in setOf("sending","unknown")}
     var review by remember {mutableStateOf<ReviewedMcpAction?>(null)}
+    var sharedReview by remember(s.apiScope,s.url,s.profile,s.identity) {mutableStateOf<ReviewedManagementUncertainty?>(null)}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.Management),style=MaterialTheme.typography.titleMedium)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("management-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item(key=1001) {Text(label(Words.ManagementBoundary),style=MaterialTheme.typography.bodySmall);Text(apiUrl,style=MaterialTheme.typography.labelSmall)}
@@ -108,7 +109,7 @@ import org.hermesmobile.app.data.*
                     }}
                 }
                 if(receipts.isNotEmpty()) item(key=1018) {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
-                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s,openCredentialPool={credentialPool=true},openFallback={fallback=true},openCustomEndpoints={endpoints=true})}
+                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s,openCredentialPool={credentialPool=true},openFallback={fallback=true},openCustomEndpoints={endpoints=true},reviewShared={key,target->sharedReview=ReviewedManagementUncertainty(key,target)})}
                 s.error?.let {message->item(key=1019) {Text(label(message),color=MaterialTheme.colorScheme.error)}}
             }
         }
@@ -128,6 +129,9 @@ import org.hermesmobile.app.data.*
     if(catalog) McpCatalogDialog(vm,s,pending) {catalog=false}
     if(create) McpCreationForm(vm,!s.busy) {create=false}
     review?.let {frozen ->McpActionReview(frozen,!s.busy,{review=null}) {vm.performMcp(frozen);review=null}}
+    sharedReview?.let {frozen ->SharedManagementUncertaintyReview(frozen,!s.busy && vm.reviewTarget()==frozen.target,{sharedReview=null}) {
+        vm.reviewReceipt(frozen.key,frozen.target);sharedReview=null
+    }}
     if(profiles) AlertDialog(onDismissRequest={profiles=false},title={Text(label(Words.ManagementProfile))},text={
         LazyColumn(Modifier.heightIn(max=400.dp)) {items(s.profiles,key={it.name}) {row ->TextButton({vm.chooseProfile(row.name);profiles=false},enabled=!s.busy) {Text(row.displayName.takeIf {it.isNotBlank()}?.let {"$it\n${row.name}"} ?: row.name)}}}
     },confirmButton={TextButton({profiles=false}) {Text(label(Words.Cancel))}})

@@ -16,7 +16,7 @@ import org.hermesmobile.app.data.*
     var auxReview by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<ReviewedHostAuxModel?>(null)}
     var auxTask by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<String?>(null)}
     var review by remember(s.apiScope,s.url,s.profile,s.hostModels) {mutableStateOf<ReviewedHostMainModel?>(null)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     var read by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedHostModelsRead?>(null)}
     var provider by remember(s.hostModels) {mutableStateOf<HostModelProvider?>(null)}
     var filter by remember(s.apiScope,s.url,s.profile) {mutableStateOf("")}

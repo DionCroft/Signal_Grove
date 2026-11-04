@@ -43,7 +43,7 @@ class NavigationTest {
         var previous:String?=null;var stableSince=0L
         try {
             compose.waitUntil(5000) {compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}
-            androidx.test.espresso.Espresso.closeSoftKeyboard();compose.waitForIdle()
+            closeFocusedKeyboard();compose.waitForIdle()
             compose.onNodeWithTag("task-list").performScrollToNode(checkbox)
             compose.onNode(checkbox).performScrollTo()
             // Poll without issuing more scrolls. One visible frame can precede an IME/list relayout.

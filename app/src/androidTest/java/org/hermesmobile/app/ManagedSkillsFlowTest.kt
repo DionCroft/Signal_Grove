@@ -28,7 +28,7 @@ class ManagedSkillsFlowTest {
     private fun json(text:String)=MockResponse().setHeader("Content-Type","application/json").setBody(text)
     @Test fun profileSkillControlsRequireReviewShowTextAndObserveTheirOwnInventory() {
         val writes=AtomicInteger();val mcpReads=AtomicInteger();var enabled=true;var locked=false
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse=when {
                 request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                 request.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")

@@ -35,7 +35,7 @@ class PluginSourceFlowTest {
     private fun json(s:String)=MockResponse().setHeader("Content-Type","application/json").setBody(s)
     private fun exercise(hold:Boolean,changed:Boolean=false,install:Boolean=false) {
         val tickets=AtomicInteger();val calls=AtomicInteger();val lookups=AtomicInteger();val writes=AtomicInteger();val mcpReads=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse=when {
                 q.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                 q.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")

@@ -8,6 +8,8 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*
 import okhttp3.mockwebserver.*
 import org.hermesmobile.app.data.*
@@ -28,7 +30,7 @@ class McpCatalogFlowTest {
     private fun json(text:String)=MockResponse().setHeader("Content-Type","application/json").setBody(text)
     @Test fun catalogInstallRequiresPublicManifestReviewAndMasksSuppliedValues() {
         val writes=AtomicInteger();var configured:JsonObject?=null
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
                     request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
@@ -48,9 +50,15 @@ class McpCatalogFlowTest {
             }
             val inference=server.url("inference/").toString();val dashboard=server.url("dashboard/").toString()
             compose.waitUntil(10000) {!api.connecting.value}
-            compose.runOnUiThread {api.configure(inference,"inference-create-fixture",true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))}
+            compose.runOnUiThread {api.configure(inference,credentials.uniqueToken("inference-catalog-fixture"),true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))}
             compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese}
             val scope=api.profileScope.value
+            val owner=ManagementTarget(scope,dashboard,"worker","password · fixture-user")
+            val previousReceipt=ManagementOperation(java.util.UUID.randomUUID().toString(),owner.resourceScope,scope,dashboard,"worker",owner.actor,"CatalogInstall","previous-catalog-fixture","{}","acknowledged","",System.currentTimeMillis()-1)
+            val beforeKeys=runBlocking {
+                app.managementReady.await();app.database.dao().insertManagementOperation(previousReceipt)
+                app.database.dao().managementOperations(scope).first().map {it.key}.toSet()
+            }
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("management-create-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
             compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn}
             compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
@@ -58,9 +66,17 @@ class McpCatalogFlowTest {
             compose.onNodeWithTag("management-open").performClick()
             compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("mcp-catalog-open"));compose.onNodeWithTag("mcp-catalog-open").performClick()
             compose.waitUntil(10000) {!management.state.value.busy && management.state.value.catalogLoaded}
-            compose.onNodeWithTag("mcp-catalog-list").performScrollToNode(hasTestTag("mcp-catalog-select-catalog-fixture"));compose.onNodeWithTag("mcp-catalog-select-catalog-fixture").performClick()
+            val pending=management.receipts.value.count {it.state in setOf("sending","unknown")}
+            assertEquals("Catalog fixture encountered retained pending management work",0,pending)
+            compose.onNodeWithTag("mcp-catalog-list").performScrollToNode(hasTestTag("mcp-catalog-select-catalog-fixture"))
+            val before=File(compose.activity.getExternalFilesDir(null),"qa/mcp-catalog-before-select.png");before.parentFile!!.mkdirs()
+            before.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+            compose.onNodeWithTag("mcp-catalog-select-catalog-fixture").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+            val after=File(compose.activity.getExternalFilesDir(null),"qa/mcp-catalog-after-select.png")
+            after.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+            compose.onNodeWithTag("mcp-catalog-form").assertExists()
             compose.onNodeWithTag("mcp-catalog-form").performScrollToNode(hasTestTag("mcp-catalog-env-FIXTURE_KEY"));compose.onNodeWithTag("mcp-catalog-env-FIXTURE_KEY").performTextReplacement("catalog-secret-fixture")
-            androidx.test.espresso.Espresso.closeSoftKeyboard();compose.waitForIdle()
+            closeFocusedKeyboard();compose.waitForIdle()
             compose.onNodeWithTag("mcp-catalog-review").performClick();compose.onNodeWithTag("mcp-catalog-confirmation").assertExists();assertEquals(0,writes.get())
             compose.onNode(hasText("catalog-secret-fixture",substring=true) and hasAnyAncestor(hasTestTag("mcp-catalog-confirmation"))).assertDoesNotExist()
             compose.onNodeWithTag("mcp-catalog-confirmation").performScrollToNode(hasText("https://source.example/public",substring=true))
@@ -68,8 +84,9 @@ class McpCatalogFlowTest {
             val shot=File(compose.activity.getExternalFilesDir(null),"qa/mcp-catalog-review.png");shot.parentFile!!.mkdirs()
             shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             compose.onNodeWithTag("mcp-catalog-confirm").performClick()
-            compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.action=="CatalogInstall" && it.state=="acknowledged"}}
-            assertEquals(1,writes.get());val receipt=management.receipts.value.single {it.action=="CatalogInstall"};assertFalse(receipt.toString().contains("catalog-secret-fixture"));assertFalse(management.state.value.catalogLoaded)
+            compose.waitUntil(10000) {!management.state.value.busy && management.receipts.value.any {it.key !in beforeKeys && it.action=="CatalogInstall" && it.state=="acknowledged"}}
+            assertEquals(1,writes.get());val receipt=management.receipts.value.single {it.key !in beforeKeys && it.action=="CatalogInstall"};assertFalse(receipt.toString().contains("catalog-secret-fixture"));assertFalse(management.state.value.catalogLoaded)
+            assertEquals(previousReceipt,runBlocking {app.database.dao().managementOperation(previousReceipt.key)})
         }
     }
 }

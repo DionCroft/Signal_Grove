@@ -18,7 +18,7 @@ import org.hermesmobile.app.data.*
     var draft by remember(s.moa) {mutableStateOf(s.moa?.config)}
     var selected by remember(s.moa) {mutableStateOf(s.moa?.config?.defaultPreset.orEmpty())}
     var newName by remember(s.moa) {mutableStateOf("")};var editing by remember(s.moa) {mutableStateOf(false)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     val editable=!s.busy && !pending && s.moa?.config?.writable==true
     val candidate=remember(s.moa,draft) {s.moa?.let {snapshot->draft?.let {runCatching {HostMoaRequest(snapshot,it)}.getOrNull()}}}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostMoa))},text={LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-moa-list"),verticalArrangement=Arrangement.spacedBy(10.dp)) {

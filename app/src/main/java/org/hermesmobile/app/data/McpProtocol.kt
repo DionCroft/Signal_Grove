@@ -1,13 +1,12 @@
 package org.hermesmobile.app.data
 
 import kotlinx.serialization.json.*
-import java.security.MessageDigest
 
 data class ManagedServer(val name:String,val transport:String,val auth:String,val enabled:Boolean,val source:String,val tools:List<String>)
 enum class McpAction {Toggle,Delete,Probe}
 data class ManagementTarget(val apiScope:String,val url:String,val profile:String,val actor:String) {
     init {require(apiScope.matches(Regex("[a-f0-9]{64}")));require(profile.isNotBlank() && profile.length<=128 && profile.none(Char::isISOControl));require(actor.isNotBlank() && actor.length<=1024)}
-    val resourceScope:String get()=MessageDigest.getInstance("SHA-256").digest((apiScope+"\u0000"+url+"\u0000"+profile).toByteArray(Charsets.UTF_8)).joinToString("") {"%02x".format(it)}
+    val resourceScope:String get()=managementResourceScope(url,profile)
 }
 data class McpRequest(val action:McpAction,val name:String,val expectedEnabled:Boolean,val expectedSource:String,val enabled:Boolean?=null) {
     init {

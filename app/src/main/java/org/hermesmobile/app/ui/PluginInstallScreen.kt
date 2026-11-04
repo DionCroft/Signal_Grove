@@ -14,7 +14,7 @@ import org.hermesmobile.app.data.*
 
 @Composable fun PluginInstallControls(vm:ManagementViewModel,s:ManagementState,result:PluginInspection,review:(ReviewedPluginInstall)->Unit) {
     var enable by remember(result) {mutableStateOf(false)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.state in setOf("sending","unknown")}
     val catalog=if(result.source.kind==PluginSourceKind.Catalog) s.plugins.lookup?.entry else null
     val supported=PluginInstallRequest.supported(result,catalog)

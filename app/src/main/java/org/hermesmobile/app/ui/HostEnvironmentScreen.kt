@@ -20,7 +20,7 @@ import org.hermesmobile.app.data.*
     var edit by remember(s.environment) {mutableStateOf<String?>(null)}
     var review by remember(s.environment) {mutableStateOf<ReviewedHostEnv?>(null)}
     var filter by remember(s.apiScope,s.url,s.profile,initialKey) {mutableStateOf(initialKey)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostEnvironment))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-env-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(s.url);Text(s.profile);Text(label(Words.HostEnvPrivacy));TextButton({read=vm.prepareHostEnvRead()},enabled=!s.busy && s.identity!=null && GatewayCronInventory.supportedProfile(s.profile),modifier=Modifier.testTag("host-env-read")) {Text(label(Words.HostEnvRead))};if(!GatewayCronInventory.supportedProfile(s.profile)) Text(label(Words.PluginProfileUnsupported))}

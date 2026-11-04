@@ -15,7 +15,7 @@ import org.hermesmobile.app.data.*
     var review by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedHubMaintenance?>(null)}
     var query by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     val inventory=s.hub.sources?.let {runCatching {HubInstalledInventory.from(it)}.getOrNull()}
-    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.state in setOf("sending","unknown")}
     val enabled=!s.busy && !pending && s.identity!=null && vm.reviewTarget()!=null
     AlertDialog(onDismissRequest={vm.cancel();close()},title={Text(label(Words.SkillHubInstalledManagement))},text={

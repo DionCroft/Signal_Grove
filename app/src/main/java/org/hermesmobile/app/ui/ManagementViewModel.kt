@@ -116,7 +116,10 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private val creations=McpCreationRepository(app.database.dao(),app.managementReady)
     private val operations=ManagementOperationsRepository(app.database.dao(),app.managementReady)
     fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,baseUrl(s).toString(),s.profile,"scope").resourceScope}.getOrDefault("")
-    val receipts=state.map(::resourceScope).distinctUntilChanged().flatMapLatest {scope->if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementResourceOperations(scope)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
+    fun visibleReceipts(s:ManagementState,rows:List<ManagementOperation>)=ManagementReceiptVisibility.project(rows,s.apiScope,resourceScope(s))
+    val receipts=state.map {resourceScope(it) to it.apiScope}.distinctUntilChanged().flatMapLatest {(scope,apiScope)->
+        if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementVisibleResourceOperations(scope,apiScope).map {ManagementReceiptVisibility.project(it,apiScope,scope)}
+    }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     private var generation=0L
     private var work:Job?=null
     private var login:NativeLogin?=null
@@ -644,7 +647,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun observeHubReceipt(key:String)=operation {id ->
         val target=target() ?: error("Verify management profile first.")
         val record=app.database.dao().managementOperation(key) ?: error("Missing receipt.")
-        require(record.resourceScope==target.resourceScope && record.action in setOf("HubInstall","HubRemove","HubUpdateAll"))
+        require(record.resourceScope==target.resourceScope && record.apiScope==target.apiScope && record.action in setOf("HubInstall","HubRemove","HubUpdateAll"))
         val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
         val rows=SkillProtocol.inventory(api.skills(current,target.profile))
         if(id==generation) state.value=state.value.copy(skills=HostSkillState(rows,true),notice=Words.ManagementObservationOnly)
@@ -709,7 +712,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun observeSkillReceipt(key:String)=operation {id ->
         val target=target() ?: error("Verify management profile first.")
         val record=app.database.dao().managementOperation(key) ?: error("Missing receipt.")
-        require(record.resourceScope==target.resourceScope && record.action in setOf("SkillToggle","SkillLock"))
+        require(record.resourceScope==target.resourceScope && record.apiScope==target.apiScope && record.action in setOf("SkillToggle","SkillLock"))
         val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
         val rows=SkillProtocol.inventory(api.skills(current,target.profile))
         if(id==generation) state.value=state.value.copy(skills=HostSkillState(rows,true),notice=Words.ManagementObservationOnly)
@@ -737,7 +740,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun observeCronReceipt(key:String)=operation {id ->
         val target=target() ?: error("Verify management profile first.")
         val record=app.database.dao().managementOperation(key) ?: error("Missing receipt.")
-        require(record.resourceScope==target.resourceScope && record.action=="CronCreate")
+        require(record.resourceScope==target.resourceScope && record.apiScope==target.apiScope && record.action=="CronCreate")
         val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
         val rows=ManagedCronJob.inventory(api.cronJobs(current,target.profile),target.profile)
         if(id==generation) state.value=state.value.copy(cron=HostCronState(jobs=rows,loaded=true),notice=Words.ManagementObservationOnly)
@@ -832,7 +835,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun observeReceipt(key:String)=operation {id ->
         val target=target() ?: error("Verify management identity first.")
-        val receipt=app.database.dao().managementOperation(key)?.takeIf {it.resourceScope==target.resourceScope} ?: error("Management receipt no longer exists.")
+        val receipt=app.database.dao().managementOperation(key)?.takeIf {it.resourceScope==target.resourceScope && it.apiScope==target.apiScope} ?: error("Management receipt no longer exists.")
         val current=tokens ?: error("Sign in to management first.")
         val api=client(state.value);api.identity(current)
         val servers=McpProtocol.inventory(api.mcp(current,target.profile));val row=servers.singleOrNull {it.name==receipt.target}

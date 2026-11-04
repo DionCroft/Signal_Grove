@@ -104,10 +104,13 @@ object RunStates {
 @Dao interface HermesDao {
     @Query("SELECT * FROM management_operations WHERE apiScope=:apiScope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementOperations(apiScope:String):Flow<List<ManagementOperation>>
     @Query("SELECT * FROM management_operations WHERE resourceScope=:scope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementResourceOperations(scope:String):Flow<List<ManagementOperation>>
+    // Filter foreign settled history BEFORE paging; foreign pending work still shares the barrier.
+    @Query("SELECT * FROM management_operations WHERE resourceScope=:scope AND (apiScope=:apiScope OR state IN ('sending','unknown')) ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementVisibleResourceOperations(scope:String,apiScope:String):Flow<List<ManagementOperation>>
     @Query("SELECT * FROM management_operations WHERE resourceScope=:scope AND state IN ('sending','unknown')") suspend fun unresolvedManagementOperations(scope:String):List<ManagementOperation>
     @Query("SELECT * FROM management_operations WHERE `key`=:key") suspend fun managementOperation(key:String):ManagementOperation?
     @Insert suspend fun insertManagementOperation(receipt:ManagementOperation)
     @Transaction suspend fun claimManagementOperation(receipt:ManagementOperation) {
+        require(receipt.resourceScope==managementResourceScope(receipt.url,receipt.profile)) {"Invalid management resource identity."}
         if(unresolvedManagementOperations(receipt.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
         insertManagementOperation(receipt)
     }
@@ -285,5 +288,5 @@ object RunStates {
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
     @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearReports(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class,ManagementOperation::class], version = 9, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class,ManagementOperation::class], version = 10, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() { abstract fun dao(): HermesDao }

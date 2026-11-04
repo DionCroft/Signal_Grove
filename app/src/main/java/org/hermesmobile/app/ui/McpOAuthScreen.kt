@@ -34,10 +34,10 @@ fun mcpOAuthStatusWord(status:String)=when(status) {"starting"->Words.McpOAuthSt
     Text(label(Words.McpOAuthLifecycle),style=MaterialTheme.typography.bodySmall)
     if(snapshot?.toolCount!=null) {Text(label(Words.McpToolCount)+" "+snapshot.toolCount);snapshot.tools.forEach {Text(it)}}
     if(vm!=null && s!=null) {
-        val target=vm.reviewTarget();val valid=!s.busy && target!=null && target.resourceScope==receipt.resourceScope && target.actor==receipt.actor && receipt.state=="acknowledged"
+        val target=vm.reviewTarget();val valid=!s.busy && target!=null && target.resourceScope==receipt.resourceScope && target.apiScope==receipt.apiScope && target.actor==receipt.actor && receipt.state=="acknowledged"
         TextButton({vm.readOAuth(receipt.key)},enabled=valid,modifier=Modifier.testTag("mcp-oauth-read-${receipt.key}")) {Text(label(Words.McpOAuthRead))}
         if(snapshot?.authorizationUrl!=null && snapshot.status=="authorization_required") TextButton({open=true},enabled=valid,modifier=Modifier.testTag("mcp-oauth-open-${receipt.key}")) {Text(label(Words.McpOAuthOpen))}
-        val pending by vm.receipts.collectAsState()
+        val receiptRows by vm.receipts.collectAsState();val pending=vm.visibleReceipts(s,receiptRows)
         val cancelled=pending.any {it.action=="OAuthCancel" && it.state=="acknowledged" && runCatching {Json.parseToJsonElement(it.requestSummary).jsonObject.text("start_key")==receipt.key}.getOrDefault(false)}
         if(cancelled) Text(label(Words.McpOAuthCancelled))
         TextButton({cancel=target},enabled=valid && !cancelled && pending.none {it.state in setOf("sending","unknown")},modifier=Modifier.testTag("mcp-oauth-cancel-${receipt.key}")) {Text(label(Words.McpOAuthCancel))}
@@ -46,9 +46,9 @@ fun mcpOAuthStatusWord(status:String)=when(status) {"starting"->Words.McpOAuthSt
         LazyColumn(Modifier.heightIn(max=440.dp)) {item {Text(receipt.url);Text(receipt.profile);Text(receipt.target);Text(snapshot.destination().orEmpty());Text(label(Words.McpOAuthBrowser))}}
     },confirmButton={TextButton({
         val target=vm?.reviewTarget()
-        if(target?.resourceScope==receipt.resourceScope && target.actor==receipt.actor && vm.state.value.oauth[receipt.key]===snapshot) context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(snapshot.authorizationUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        if(target?.resourceScope==receipt.resourceScope && target.apiScope==receipt.apiScope && target.actor==receipt.actor && vm.state.value.oauth[receipt.key]===snapshot) context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(snapshot.authorizationUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         open=false
-    },enabled=s?.busy==false && vm?.reviewTarget()?.let {it.resourceScope==receipt.resourceScope && it.actor==receipt.actor}==true && s.oauth[receipt.key]===snapshot,modifier=Modifier.testTag("mcp-oauth-browser-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({open=false}) {Text(label(Words.Cancel))}})
+    },enabled=s?.busy==false && vm?.reviewTarget()?.let {it.resourceScope==receipt.resourceScope && it.apiScope==receipt.apiScope && it.actor==receipt.actor}==true && s.oauth[receipt.key]===snapshot,modifier=Modifier.testTag("mcp-oauth-browser-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({open=false}) {Text(label(Words.Cancel))}})
     cancel?.let {target ->AlertDialog(onDismissRequest={cancel=null},title={Text(label(Words.McpOAuthCancel))},text={
         LazyColumn(Modifier.heightIn(max=440.dp)) {item {Text(receipt.url);Text(receipt.profile);Text(receipt.actor);Text(receipt.target);Text(label(Words.McpOAuthCancelEffect))}}
     },confirmButton={TextButton({vm!!.cancelOAuth(receipt.key,target);cancel=null},enabled=s?.busy==false,modifier=Modifier.testTag("mcp-oauth-cancel-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({cancel=null}) {Text(label(Words.Cancel))}})}

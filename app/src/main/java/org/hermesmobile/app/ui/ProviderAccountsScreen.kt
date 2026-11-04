@@ -18,7 +18,7 @@ import org.hermesmobile.app.data.*
 @Composable fun ProviderAccountsDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     var read by remember(s.apiScope,s.url,s.profile) {mutableStateOf<ReviewedProviderOAuthRead?>(null)}
     var review by remember(s.providerAccounts) {mutableStateOf<ReviewedProviderOAuth?>(null)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.ProviderAccounts))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("provider-accounts-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(s.url);Text(s.profile);Text(label(Words.ProviderOAuthPrivacy));TextButton({read=vm.prepareProviderOAuthRead()},enabled=!s.busy && s.identity!=null && GatewayCronInventory.supportedProfile(s.profile),modifier=Modifier.testTag("provider-accounts-read")) {Text(label(Words.ProviderAccountsRead))};if(!GatewayCronInventory.supportedProfile(s.profile)) Text(label(Words.PluginProfileUnsupported))}
@@ -59,7 +59,7 @@ import org.hermesmobile.app.data.*
 /** Kept above lazy receipt rows, so a new cancellation receipt cannot dispose the inspector. */
 @Composable fun ProviderOAuthInspector(vm:ManagementViewModel,s:ManagementState) {
     val key=s.providerFlowKey ?: return
-    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows)
     val receipt=receipts.singleOrNull {it.key==key} ?: return
     ProviderOAuthFlowDialog(receipt,vm,s,vm::closeProviderFlow)
 }
@@ -71,7 +71,7 @@ private fun providerStatusWord(status:String)=when(status) {"pending"->Words.Pro
     var cancel by remember(receipt.key) {mutableStateOf<ReviewedProviderOAuthCancel?>(null)}
     var now by remember {mutableLongStateOf(System.currentTimeMillis())}
     LaunchedEffect(snapshot) {while(true) {now=System.currentTimeMillis();kotlinx.coroutines.delay(1000)}}
-    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows)
     val settled=receipts.filter {it.action=="ProviderOAuthCancel" && it.state=="acknowledged" && runCatching {Json.parseToJsonElement(it.requestSummary).jsonObject.text("start_key")==receipt.key}.getOrDefault(false)}
     val cancelled=settled.any {runCatching {Json.parseToJsonElement(it.resultSummary).jsonObject["cancel_acknowledged"]==JsonPrimitive(true)}.getOrDefault(false)}
     val valid=!s.busy && runCatching {ProviderOAuthBinding.parse(receipt,vm.reviewTarget() ?: error("No verified owner."))}.isSuccess

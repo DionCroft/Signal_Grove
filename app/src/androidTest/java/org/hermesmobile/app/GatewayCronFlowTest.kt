@@ -44,7 +44,7 @@ class GatewayCronFlowTest {
     }
     @Test fun gatewayReadRequiresConnectionEffectReviewAndRejectsUnprovenProfile() {
         val tickets=AtomicInteger();val reads=AtomicInteger();var proof="other"
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse=when {
                 request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                 request.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")

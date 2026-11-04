@@ -17,7 +17,7 @@ private fun sensitiveUpdateText(s:String)=s.contains("://") || s.contains('\\') 
 private fun sensitiveFinding(f:PluginUpdateFinding)=f.category.contains("credential",true) || sensitiveUpdateText(f.file) || sensitiveUpdateText(f.description)
 private fun hiddenUpdateDetails(d:PluginUpdateDecision)=d.delta.values.flatten().any(::sensitiveUpdateText) || d.findings.any(::sensitiveFinding)
 @Composable fun PluginUpdateControl(vm:ManagementViewModel,s:ManagementState,row:ManagedPlugin,review:(ReviewedPluginUpdate)->Unit) {
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     val supported=PluginUpdateRequest.supported(row) && s.plugins.inventory?.let {!PluginRemovalRequest.collision(row,it)}==true
     TextButton({vm.preparePluginUpdate(row)?.let(review)},enabled=supported && !s.busy && !pending && s.identity!=null && vm.reviewTarget()!=null,modifier=Modifier.testTag("plugin-update-${row.key}")) {Text(label(Words.PluginUpdate))}
     if(!supported) Text(label(Words.PluginUpdateUnsupported))
@@ -30,7 +30,7 @@ private fun LazyListScope.updateDecisionItems(d:PluginUpdateDecision,show:Boolea
     items(d.findings) {f->Text(listOf(f.pattern,f.severity,f.category).joinToString(" · "));if(!show && sensitiveFinding(f)) Text(label(Words.PluginUpdateHiddenDetails)) else {if(f.file.isNotBlank()) Text(f.file+(f.line?.let {":$it"}.orEmpty()));Text(f.description)}}
 }
 @Composable fun PluginUpdateDecisionView(vm:ManagementViewModel,s:ManagementState,d:PluginUpdateDecision,review:(ReviewedPluginUpdate)->Unit) {
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     Column(Modifier.testTag("plugin-update-decision"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Text(label(if(d.kind==PluginUpdateKind.Capabilities) Words.PluginUpdateCapabilities else Words.PluginUpdateScan))
         if(d.pin.isNotBlank()) Text(d.pin)

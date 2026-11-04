@@ -93,7 +93,7 @@ import org.hermesmobile.app.data.*
 
 @Composable private fun SkillHubScanDialog(vm:ManagementViewModel,s:ManagementState,scan:HubScan) {
     var review by remember(scan) {mutableStateOf<ReviewedHubInstall?>(null)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.state in setOf("sending","unknown")}
     val allowed=s.hub.preview?.let {HubInstallRequest.supported(it,scan)}==true
     val enabled=!s.busy && !pending && s.identity!=null && vm.reviewTarget()!=null

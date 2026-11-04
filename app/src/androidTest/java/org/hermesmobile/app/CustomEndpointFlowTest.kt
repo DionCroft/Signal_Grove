@@ -36,7 +36,7 @@ class CustomEndpointFlowTest {
         val kind=when(mode) {"legacy"->"legacy";"direct"->"direct";else->"provider"};val rowId=when(kind) {"legacy"->"legacy-endpoint";"direct"->"custom";else->if(mode=="body-id") "Team/Model?%entry" else CustomEndpointFixture.id}
         val current=AtomicReference(CustomEndpointFixture.metadata(kind));val config=AtomicReference(CustomEndpointFixture.config(kind));val saves=AtomicInteger();val removes=AtomicInteger();val activates=AtomicInteger();val reads=AtomicInteger();val rawReads=AtomicInteger();val mcp=AtomicInteger();val other=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
         if(mode=="body-id") {current.set(buildJsonObject {put("endpoints",JsonArray(listOf(CustomEndpointFixture.row(rowId))));put("current",CustomEndpointFixture.route())});config.set(buildJsonObject {put("providers",buildJsonObject {put(rowId,CustomEndpointFixture.provider())});put("custom_providers",JsonArray(emptyList()))})}
-        MockWebServer().use {server->
+        credentials.managementServer().use {server->
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 val u=q.requestUrl!!
@@ -91,7 +91,11 @@ class CustomEndpointFlowTest {
                 fun approve(fresh:Boolean=false) {
                     compose.onNodeWithTag("endpoint-confirm").assertIsNotEnabled();compose.onNodeWithTag("endpoint-review").performScrollToNode(hasTestTag("endpoint-approve"));compose.onNodeWithTag("endpoint-approve").assertIsOff().performClick();compose.onNodeWithTag("endpoint-confirm").assertIsNotEnabled();compose.onNodeWithTag("endpoint-review").performScrollToNode(hasTestTag("endpoint-review-reveal"));compose.onNodeWithTag("endpoint-review-reveal").performClick();compose.onNodeWithText(CustomEndpointFixture.inline,substring=true).assertDoesNotExist();if(fresh) {compose.onNodeWithTag("endpoint-review").performScrollToNode(hasTestTag("endpoint-reviewed-secret"));compose.onNodeWithTag("endpoint-reviewed-secret").assert(editable(CustomEndpointFixture.fresh))};compose.onNodeWithTag("endpoint-review").performScrollToNode(hasTestTag("endpoint-approve"));compose.onNodeWithTag("endpoint-confirm").assertIsEnabled()
                 }
-                if(mode in setOf("activate","remove")) {val tag="endpoint-$mode-$rowId";scroll(tag);compose.onNodeWithTag(tag).performClick()} else editor(mode in setOf("create","cancel"))
+                if(mode in setOf("activate","remove")) {
+                    assertEquals("Endpoint fixture encountered retained pending management work",0,management.receipts.value.count {it.state in setOf("sending","unknown")})
+                    val tag="endpoint-$mode-$rowId";scroll(tag)
+                    compose.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                } else editor(mode in setOf("create","cancel"))
                 approve(mode in setOf("create","cancel"))
                 if(mode=="cancel") {compose.onNodeWithTag("endpoint-review-cancel").performClick();assertEquals(0,saves.get());editor(true);approve(true);compose.onNodeWithTag("endpoint-review-cancel").performClick();compose.onNodeWithTag("endpoint-close").performClick();assertNull(management.state.value.customEndpoints);compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("endpoint-open"));compose.onNodeWithTag("endpoint-open").performClick();compose.onNodeWithTag("endpoint-create").assertDoesNotExist();assertEquals(1,rawReads.get());return@use}
                 val shot=File(compose.activity.getExternalFilesDir(null),"qa/endpoint-$mode-review.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}

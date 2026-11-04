@@ -65,7 +65,7 @@ import org.hermesmobile.app.data.*
             else items(messages,key={it.id}) {MessageCard(it,current)}
             if(current==null && operations.isNotEmpty()) {
                 item {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
-                items(operations,key={it.key}) {ManagementReceiptCard(it)}
+                items(operations.filter {it.apiScope==profile.id},key={it.key}) {ManagementReceiptCard(it)}
             }
         }
     },confirmButton={TextButton(close,Modifier.testTag("close-connection-cache")) {Text(label(Words.Close))}},dismissButton={if(current!=null) TextButton({selected=null}) {Text(label(Words.History))}})

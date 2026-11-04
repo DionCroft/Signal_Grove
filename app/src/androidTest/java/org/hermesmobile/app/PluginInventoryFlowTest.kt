@@ -34,7 +34,7 @@ class PluginInventoryFlowTest {
     private val inventory="""{"plugins":[{"name":"Fixture plugin","key":"tools/fixture","version":"1.2.3","description":"Public plugin description","source":"user","status":"not enabled","portable":true,"has_desktop_half":false,"install_dir":"/private-plugin-home","settings_schema":[{"value":"private-plugin-setting"}],"servers":[{"name":"fixture-server","state":"missing_env","sentence":"Missing FIXTURE_KEY"}],"tools":["fixture_tool"]}],"user_count":1,"bundled_count":0}"""
     private fun exercise(hold:Boolean,toggleFlow:Boolean=false) {
         val writes=AtomicInteger();val mcpReads=AtomicInteger();val status=AtomicReference("not enabled");val tickets=AtomicInteger();val calls=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse=when {
                 q.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                 q.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")

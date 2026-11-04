@@ -4,6 +4,17 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_9_TO_10=object:Migration(9,10) {
+        override fun migrate(db:SupportSQLiteDatabase) {
+            // Re-key every historical receipt, including unknown/sending rows and removed connections.
+            // Room runs this migration transactionally; request identity, state and payloads stay intact.
+            db.query("SELECT `key`,url,profile FROM management_operations").use {rows ->
+                while(rows.moveToNext()) db.execSQL("UPDATE management_operations SET resourceScope=? WHERE `key`=?",
+                    arrayOf(managementResourceScope(rows.getString(1),rows.getString(2)),rows.getString(0)))
+            }
+        }
+    }
+
     val FROM_8_TO_9=object:Migration(8,9) {
         override fun migrate(db:SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS management_operations (`key` TEXT NOT NULL,resourceScope TEXT NOT NULL,apiScope TEXT NOT NULL,url TEXT NOT NULL,profile TEXT NOT NULL,actor TEXT NOT NULL,action TEXT NOT NULL,target TEXT NOT NULL,requestSummary TEXT NOT NULL,state TEXT NOT NULL,resultSummary TEXT NOT NULL,createdAt INTEGER NOT NULL,PRIMARY KEY(`key`))")
@@ -76,4 +87,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9,DatabaseMigrations.FROM_9_TO_10)

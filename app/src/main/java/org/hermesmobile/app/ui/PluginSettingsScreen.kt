@@ -20,7 +20,7 @@ import org.hermesmobile.app.data.*
     var revealed by remember(snapshot) {mutableStateOf(false)}
     var field by remember(snapshot) {mutableStateOf<PluginSettingField?>(null)}
     var review by remember(snapshot) {mutableStateOf<ReviewedPluginSettings?>(null)}
-    val receipts by vm.receipts.collectAsStateWithLifecycle();val pending=receipts.any {it.state in setOf("sending","unknown")}
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle();val receipts=vm.visibleReceipts(s,receiptRows);val pending=receipts.any {it.state in setOf("sending","unknown")}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.PluginSettings))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("plugin-settings-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(s.url);Text(s.profile);Text(label(Words.PluginSettingsPrivacy))}

@@ -33,7 +33,7 @@ class PluginUpdateFlowTest {
     private val app get()=compose.activity.application as HermesApplication
     private fun exercise(mode:String) {
         val catalog=mode in setOf("caps","catalog-scan");val hold=mode=="held";val tickets=AtomicInteger();val calls=AtomicInteger();val sends=AtomicInteger();val publications=AtomicInteger();val mcpReads=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse=when {
                 q.path=="/inference/v1/capabilities"->json(buildJsonObject {put("features",JsonObject(emptyMap()));put("endpoints",JsonObject(emptyMap()))})

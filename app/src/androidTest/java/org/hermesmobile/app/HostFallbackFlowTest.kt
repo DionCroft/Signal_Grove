@@ -31,7 +31,7 @@ class HostFallbackFlowTest {
     private fun exercise(mode:String) {
         val current=AtomicReference(HostFallbackFixture.config());val sends=AtomicInteger();val reads=AtomicInteger();val mcp=AtomicInteger();val other=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
         if(mode=="automatic") {val config=current.get();val rows=config["fallback_providers"]!!.jsonArray;current.set(JsonObject(config+mapOf("fallback_providers" to JsonArray(listOf(JsonObject(rows.first().jsonObject+mapOf("api_mode" to JsonPrimitive(""),"transport" to JsonPrimitive("anthropic"))))+rows.drop(1)))))}
-        MockWebServer().use {server->
+        credentials.managementServer().use {server->
             fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
                 val u=q.requestUrl!!
@@ -78,9 +78,9 @@ class HostFallbackFlowTest {
                             if(mode=="fresh") {compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-provider"));compose.onNodeWithTag("fallback-provider").performTextReplacement("plugin-provider")}
                             compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-model"));compose.onNodeWithTag("fallback-model").performTextReplacement(if(mode=="fresh") "new-fallback-model" else "edited-model")
                             if(mode=="fresh") {compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-url"));compose.onNodeWithTag("fallback-url").performTextReplacement(HostFallbackFixture.endpoint)}
-                            androidx.test.espresso.Espresso.closeSoftKeyboard()
+                            closeFocusedKeyboard()
                             if(mode=="automatic") {compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-mode-"));compose.onNodeWithTag("fallback-mode-").performClick()}
-                            else {compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-auth-${if(mode=="fresh") "Fresh" else "Environment"}"));compose.onNodeWithTag("fallback-auth-${if(mode=="fresh") "Fresh" else "Environment"}").performClick();compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-credential"));compose.onNodeWithTag("fallback-credential").performTextReplacement(if(mode=="fresh") HostFallbackFixture.fresh else "NEW_FALLBACK_ENV");androidx.test.espresso.Espresso.closeSoftKeyboard()}
+                            else {compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-auth-${if(mode=="fresh") "Fresh" else "Environment"}"));compose.onNodeWithTag("fallback-auth-${if(mode=="fresh") "Fresh" else "Environment"}").performClick();compose.onNodeWithTag("fallback-editor").performScrollToNode(hasTestTag("fallback-credential"));compose.onNodeWithTag("fallback-credential").performTextReplacement(if(mode=="fresh") HostFallbackFixture.fresh else "NEW_FALLBACK_ENV");closeFocusedKeyboard()}
                             compose.onNodeWithTag("fallback-stage-row").performClick()
                         }
                         else->{scroll("fallback-up-Primary-2");compose.onNodeWithTag("fallback-up-Primary-2").performClick()}

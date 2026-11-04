@@ -32,7 +32,7 @@ class GatewayCronControlsFlowTest {
     @Test fun pauseResumeAndRemovalEachNeedTheirOwnReviewAndReceiptObservationNeverMutates() {
         val writes=AtomicInteger();val tickets=AtomicInteger();val reads=AtomicInteger();val mcpReads=AtomicInteger()
         val rows=java.util.concurrent.atomic.AtomicReference(listOf(GatewayCronFixture.job(),GatewayCronFixture.job(id="other-job",name="GATEWAY-CONTROL-FIXTURE")))
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse=when {
                 request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
                 request.path.orEmpty().contains("/inference/api/jobs?")->json("""{"jobs":[]}""")

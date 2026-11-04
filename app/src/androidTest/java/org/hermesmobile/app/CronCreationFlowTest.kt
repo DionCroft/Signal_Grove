@@ -41,7 +41,7 @@ class CronCreationFlowTest {
     }
     @Test fun pausedCreationRequiresDeclaredSupportAndASeparateReviewThenObservesCronInsteadOfMcp() {
         val writes=AtomicInteger();val mcpReads=AtomicInteger();val identities=AtomicInteger();val refreshStarted=CountDownLatch(1);val releaseRefresh=CountDownLatch(1);var configured:JsonObject?=null;var declared=false
-        MockWebServer().use {server ->
+        credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
                     request.path=="/inference/v1/capabilities"->json("""{"features":{},"endpoints":{}}""")
