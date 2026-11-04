@@ -89,6 +89,9 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
     private val app=application as HermesApplication
     val state=MutableStateFlow(ManagementState())
+    private val updateWorkOwner=Any()
+    init {viewModelScope.launch {state.map {it.busy}.distinctUntilChanged().onCompletion {app.updateWorkGuard.set(updateWorkOwner,false)}.collect {app.updateWorkGuard.set(updateWorkOwner,it)}}}
+
     private val endpoints=CustomEndpointRepository(app.database.dao(),app.managementReady)
     private val fallbacks=HostFallbackRepository(app.database.dao(),app.managementReady)
     private val credentialPools=CredentialPoolRepository(app.database.dao(),app.managementReady)

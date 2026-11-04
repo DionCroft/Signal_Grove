@@ -94,7 +94,7 @@ class SkillHubFlowTest {
                 }
             }}
             open(server);assertNull(management.state.value.hub.official);compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-official"));compose.onNodeWithTag("skill-hub-official").assertIsNotEnabled()
-            compose.onNodeWithTag("skill-hub-featured").performClick();compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-preview-0"));compose.onNodeWithTag("skill-hub-preview-0").performClick();compose.waitUntil(5000) {entered.count==0L}
+            compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-featured"));compose.onNodeWithTag("skill-hub-featured").performClick();compose.onNodeWithTag("skill-hub-list").performScrollToNode(hasTestTag("skill-hub-preview-0"));compose.onNodeWithTag("skill-hub-preview-0").performClick();compose.waitUntil(5000) {entered.count==0L}
             compose.runOnUiThread {management.bind("unconfigured")};release.countDown();compose.waitUntil(5000) {returned.count==0L};compose.waitForIdle();assertEquals("unconfigured",management.state.value.apiScope);assertNull(management.state.value.hub.preview);assertNull(management.state.value.hub.scan);assertFalse(management.state.value.hub.loaded)
         }
     }

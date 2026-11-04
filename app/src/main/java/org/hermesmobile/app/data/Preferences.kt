@@ -15,7 +15,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 private val Context.dataStore by preferencesDataStore("preferences")
-data class AppPreferences(val theme: String = "LAVENDER", val chinese: Boolean = true, val pinyin: Boolean = true, val reducedMotion: Boolean = false, val demo: Boolean = true, val url: String = "", val debugHttp: Boolean = false, val onDeviceSpeechOnly: Boolean = true, val allowNetworkSpeech: Boolean = false, val speechRate: Float = 1f, val notifications: Boolean = false, val monitorRuns: Boolean = false, val automationScope: String = "",val runtimeChoices: String="{}")
+data class AppPreferences(val theme: String = "STARHAVEN", val chinese: Boolean = true, val pinyin: Boolean = true, val reducedMotion: Boolean = false, val demo: Boolean = true, val url: String = "", val debugHttp: Boolean = false, val onDeviceSpeechOnly: Boolean = true, val allowNetworkSpeech: Boolean = false, val speechRate: Float = 1f, val notifications: Boolean = false, val monitorRuns: Boolean = false, val automationScope: String = "",val runtimeChoices: String="{}")
 class PreferenceStore(context: Context) {
     private val store = context.dataStore
     private val theme = stringPreferencesKey("theme")
@@ -32,7 +32,7 @@ class PreferenceStore(context: Context) {
     private val monitor=booleanPreferencesKey("monitor_runs")
     private val automation=stringPreferencesKey("automation_scope")
     private val runtimes=stringPreferencesKey("runtime_choices")
-    val flow = store.data.map { p -> AppPreferences(p[theme] ?: "LAVENDER", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f),p[notify] ?: false,p[monitor] ?: false,p[automation].orEmpty(),p[runtimes] ?: "{}") }
+    val flow = store.data.map { p -> AppPreferences(p[theme] ?: "STARHAVEN", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f),p[notify] ?: false,p[monitor] ?: false,p[automation].orEmpty(),p[runtimes] ?: "{}") }
     suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp;it[localSpeech]=p.onDeviceSpeechOnly;it[networkSpeech]=p.allowNetworkSpeech;it[rate]=p.speechRate.coerceIn(.75f,1.25f);it[notify]=p.notifications;it[monitor]=p.monitorRuns;it[automation]=p.automationScope } }
     suspend fun patchUserSettings(next: AppPreferences,base: AppPreferences) {store.edit {p ->
         if(next.theme!=base.theme) p[theme]=next.theme

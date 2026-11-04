@@ -34,6 +34,7 @@ import org.hermesmobile.app.BuildConfig
     val context=LocalContext.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
         Word(Words.Settings,heading=true)
+        AppUpdateSettings(busy || connecting)
         HermesCard {
             Word(Words.Server)
             Toggle(Words.Demo,p.demo,!busy && !connecting) {vm.setDemo(it)}
@@ -56,7 +57,7 @@ import org.hermesmobile.app.BuildConfig
         BackgroundSettings(vm)
         Word(Words.Appearance)
         HermesTheme.entries.forEach { t ->
-            Surface(Modifier.fillMaxWidth().clickable {vm.updatePreferences(p.copy(theme=t.name),p)},color=t.background,shape=RoundedCornerShape(t.radius.dp),border=BorderStroke(if(p.theme==t.name) 2.dp else 1.dp,t.button)) {
+            Surface(Modifier.fillMaxWidth().clickable {vm.updatePreferences(p.copy(theme=t.name),p)},color=t.background,shape=PixelPanelShape,border=BorderStroke(if(p.theme==t.name) 2.dp else 1.dp,t.button)) {
                 Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     Text(t.title,color=t.ink,style=MaterialTheme.typography.titleLarge)
                     Text(label(Words.Preview),color=t.ink,style=MaterialTheme.typography.labelMedium)

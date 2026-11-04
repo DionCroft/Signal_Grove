@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.1.0-dev — audit follow-up
+## 1.1.0-beta.1 — pixel interface and approved updates
+
+- Original orbital-garden pixel scenery, Starhaven Grove palette, stepped panels and navigation icons, tactile buttons and gentle screen transitions. Readable native typography, saved-theme preservation, large-text support and app/system reduced motion.
+- Public GitHub release checks on opening/resuming the app, stable/preview selection and explicit release review before download. Private downloads verify SHA-256, size, package, increasing version and the installed signing certificate before Android’s approved installer opens. Active Hermes work delays installation; cancel and restart never silently install.
+- The audit follow-up below remains in progress. This preview is not a claim of complete Hermes feature parity.
+
+### Audit follow-up included so far
 
 - Reviewed gateway schedule pause/resume/removal, known selector-collision refusal, durable single-send receipts, exact acknowledgements and separate configuration/run outcomes.
 

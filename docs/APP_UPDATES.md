@@ -1,0 +1,17 @@
+# App updates
+
+Starting with 1.1.0-beta.1, Settings → App updates checks the public [GitHub releases](https://github.com/DionCroft/hermes-agent-android/releases). Automatic checks run at most once per day when you open or resume the app. You can disable them or check manually. The home screen shows a dismissible notice when a newer release is available; it does not download the APK.
+
+Stable releases are selected initially. Enable **Include preview releases** to hear about beta versions. A preview installation can still receive a later stable version with the preview switch off. No app account, GitHub sign-in or Hermes credential is sent to GitHub. These public requests reveal the usual network metadata to GitHub and are independent of Demo mode.
+
+Choose **Review update** to inspect the version, download size, repository and release notes. **Download & update** authorizes that release’s download and installer handoff. You can cancel a check or download. A failed or interrupted transfer cannot become an installable APK; a later attempt is explicit. Downloaded APKs stay in app-private storage. After a process restart, the app verifies a retained APK again and requires you to choose installation again.
+
+The app checks the GitHub SHA-256 and byte count, Android package ID, exact version name, strictly increasing version code, supported Android level and the currently installed signing certificate. Production also refuses a debuggable APK. Stable public HTTPS and approved GitHub asset redirect hosts are required. Missing checksums/assets and mismatched signatures leave an explanation instead of an install action. A production APK cannot update the separate debug package. A strict current-signer match means signing-key rotation needs a separately designed migration.
+
+After verification, installation waits while Hermes runs, connection operations, scheduled-job actions or management actions are active. The app hands the APK to Android only while visible. On first use, Android asks you to allow updates from Hermes; return to the app after granting it. Android then asks you to confirm the update. Denying or canceling leaves the installed version unchanged. The app cannot silently bypass those Android decisions. Installation restarts the app, so finish your work first. You can retry the verified installer action after cancellation.
+
+Initial installation of this preview still uses the release APK from GitHub. Older 1.0.0 installations have no updater. Install the matching package over your existing installation with the original signer to preserve its private data. Never uninstall to work around a signing error; the original signer is required for a normal update.
+
+This is an on-open check, not a background polling or Play Store update service. It needs a network connection and GitHub availability. Release checks do not contact or update the Hermes host, its tools or integrations.
+
+Implementation references: [GitHub release assets and digests](https://docs.github.com/en/rest/releases/assets), [Android installer intents](https://developer.android.com/reference/android/content/Intent#ACTION_INSTALL_PACKAGE) and [scoped FileProvider sharing](https://developer.android.com/reference/androidx/core/content/FileProvider).

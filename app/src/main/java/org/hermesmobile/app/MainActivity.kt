@@ -45,7 +45,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             val vm: HermesViewModel=viewModel()
             val p by vm.preferences.collectAsStateWithLifecycle()
-            HermesAppTheme(p) { HermesApp(vm,destination.value,handled={destination.value=null},sharedImages=sharedImages.value,shareHandled={shareConsumed=true;sharedImages.value=null}) }
+            val updates:org.hermesmobile.app.updates.AppUpdateViewModel=viewModel()
+            val connecting by vm.connecting.collectAsStateWithLifecycle()
+            val activeRun by vm.busy.collectAsStateWithLifecycle()
+            val activeControl by vm.controlBusy.collectAsStateWithLifecycle()
+            val activeJob by vm.jobBusy.collectAsStateWithLifecycle()
+            HermesAppTheme(p) { AppUpdateHost(updates,activeRun || activeControl || activeJob || connecting) { HermesApp(vm,destination.value,handled={destination.value=null},sharedImages=sharedImages.value,shareHandled={shareConsumed=true;sharedImages.value=null}) } }
         }
     }
 }

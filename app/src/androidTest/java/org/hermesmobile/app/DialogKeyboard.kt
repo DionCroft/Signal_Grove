@@ -1,9 +1,18 @@
 package org.hermesmobile.app
 
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Root
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
+import org.hamcrest.Description
+import org.hamcrest.TypeSafeMatcher
 
-/** Text editors in these flows live in a dialog, not the background activity window. */
-fun closeDialogKeyboard() {onView(isRoot()).inRoot(isDialog()).perform(closeSoftKeyboard())}
+/** Nested reviews can leave an editor dialog behind the foreground dialog. Match actual focus. */
+fun closeDialogKeyboard() {
+    val focusedDialog=object:TypeSafeMatcher<Root>() {
+        override fun describeTo(description:Description) {description.appendText("a dialog with window focus")}
+        override fun matchesSafely(root:Root)=isDialog().matches(root) && root.decorView.hasWindowFocus()
+    }
+    onView(isRoot()).inRoot(focusedDialog).perform(closeSoftKeyboard())
+}
