@@ -1,10 +1,23 @@
 # Current development validation — audit follow-up
 
+## 2026-11-04 — stable task scrolling after editing
+
+The isolated navigation-fixture correction passed the required strict unit/lint/debug/instrumentation build: **335 JVM tests**, zero failures/errors/skips, all **86 offline checks**, strict **495-component / 1071-artifact** dependency verification and **409 tracked-file** secret review. All four NavigationTest cases passed on API 36 and 37. The task create/edit/complete/delete case passed three independent first-attempt runs on a cold-started API 26 emulator at CI geometry: physical **1080×1920**, density **420**, font **1.3**. The complete unfiltered API 26 suite then passed **508 cases**, with no ignored or assumption-failed cases.
+
+All six new runs use the same immutable APK pair, matching the current build outputs:
+
+- Debug app SHA-256: a5a61aacaadab3237dac7eae08f23e615a93cbd2d99d383d740da408bdd3c041
+- Instrumentation APK SHA-256: 020cc410bf73a98ac0987d18b737031fe1f8931a68a45b496576e4e3ba30d15a
+
+Production app bytes are unchanged from the shared-management checkpoint. This correction waits for the requested language/theme and final focused list viewport, scrolls once using the task's existing stable LazyColumn key, then retains the visible/enabled stable-checkbox check, one real pointer click, Off/On assertions and Room persistence assertion. It adds no click retry, hidden-control semantics click or repeated scroll. Failure capture records target geometry before its visibility assertion and preserves the actual IME state. The completed-task capture at CI geometry was inspected: task text, checkbox and edit/delete actions are readable and reachable. After the run, the original AVD configuration was restored byte-for-byte; physical **720×1280**, density **320**, font **1.3** were verified with no display-size override. These are owned emulators, not physical-device certification.
+
+The parent fb5c207 hosted [Android run 41803473359](https://github.com/DionCroft/hermes-agent-android/actions/runs/41803473359) passed strict verification and API 37 but failed API 26: 508 cases, one NavigationTest task-completion visibility timeout after the edited row had reached storage and the editor had closed. The retained screenshot, taken after the old failure helper hid the IME, shows the task row below the viewport. The exact original transition is not fully proven; the fixture now establishes the final viewport before locating the stable row. The original failure log and artifact remain separate, and that parent matrix is not called green. Exact-commit hosted verification of this correction follows its push. Machine-local proof is task-row-key-validation-evidence.json. Endpoint-alias work remains a separate unfinished chunk.
+
 ## 2026-11-04 — owner-aware management history pagination
 
 The final strict unit/lint/debug/instrumentation build passed with **335 JVM tests**, zero failures/errors/skips. All **86 offline checks**, the strict **495-component / 1071-artifact** checksum policy and **409 tracked-file** secret review passed. Final focused cross-connection storage/UI, retained-history, MCP, MoA, environment/fallback/plugin settings and conversation/navigation coverage passed **46 cases each on API 26, 36 and 37**. Complete unfiltered suites passed **508 API 26 / 508 API 36 / 509 API 37**, with no ignored or assumption-failed cases.
 
-All six final focused/full runs use the same immutable APK pair, matching current build outputs. Production app bytes are also identical to the earlier 41-case focused and first pagination full runs; the final intervening changes affect test keyboard-root selection only:
+The six focused/full runs for this management checkpoint used the same immutable APK pair, matching its build outputs. Production app bytes are also identical to the earlier 41-case focused and first pagination full runs; the final intervening changes affect test keyboard-root selection only:
 
 - Debug app SHA-256: a5a61aacaadab3237dac7eae08f23e615a93cbd2d99d383d740da408bdd3c041
 - Instrumentation APK SHA-256: e7a0c38b31b009865bf0787a5228147d53a8418d6bbf5accb5010c2899fe89c8

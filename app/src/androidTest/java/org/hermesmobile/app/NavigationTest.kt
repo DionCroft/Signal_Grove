@@ -23,15 +23,16 @@ class NavigationTest {
         runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats();app.database.dao().tasks().first().forEach {app.database.dao().delete(it)}}
         compose.waitUntil(10000) {!vm.connecting.value}
         compose.runOnUiThread {vm.setDemo(true)}
-        compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="demo" && vm.preferences.value.demo && vm.tasks.value.isEmpty()}
+        val defaults=AppPreferences()
+        compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="demo" && vm.preferences.value.demo && vm.tasks.value.isEmpty() && vm.preferences.value.chinese==defaults.chinese && vm.preferences.value.pinyin==defaults.pinyin && vm.preferences.value.theme==defaults.theme}
         compose.waitForIdle()
     }
     private fun go(word: Words) {
         compose.waitUntil(5000) {compose.onAllNodesWithContentDescription(word.localized(AppPreferences()),useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithContentDescription(word.localized(AppPreferences()),useUnmergedTree=true).performClick()
     }
-    private fun screenshot(name: String) {
-        compose.runOnUiThread { androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime()) }
+    private fun screenshot(name: String,hideKeyboard:Boolean=true) {
+        if(hideKeyboard) compose.runOnUiThread { androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime()) }
         compose.waitForIdle()
         val file=File(compose.activity.getExternalFilesDir(null),"qa/$name.png");file.parentFile!!.mkdirs()
         file.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
@@ -44,24 +45,39 @@ class NavigationTest {
         try {
             compose.waitUntil(5000) {compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isEmpty()}
             closeFocusedKeyboard();compose.waitForIdle()
-            compose.onNodeWithTag("task-list").performScrollToNode(checkbox)
-            compose.onNode(checkbox).performScrollTo()
-            // Poll without issuing more scrolls. One visible frame can precede an IME/list relayout.
+            // A leaving dialog/IME can resize the list after its descendant was located.
+            // Establish the viewport first, then use the row's existing stable LazyColumn key.
             compose.waitUntil(5000) {
                 val frame=runCatching {
-                    val target=compose.onNode(checkbox).assertIsDisplayed().assertIsEnabled()
+                    val bounds=compose.onNodeWithTag("task-list").assertIsDisplayed().fetchSemanticsNode().boundsInWindow
+                    val visible=Rect();var focused=false
+                    compose.runOnUiThread {val view=compose.activity.window.decorView;view.getWindowVisibleDisplayFrame(visible);focused=view.hasWindowFocus()}
+                    taskCompletionGeometry="viewport="+visible.toShortString()+", list="+bounds+", focused="+focused
+                    if(bounds.isEmpty || visible.isEmpty || !focused) null else taskCompletionGeometry
+                }.getOrElse {taskCompletionGeometry="viewport lookup: "+it.javaClass.simpleName;null}
+                val now=android.os.SystemClock.uptimeMillis()
+                if(frame==null || frame!=previous) {previous=frame;stableSince=now;false} else now-stableSince>=500
+            }
+            val taskId=vm.tasks.value.single {it.title=="QA edited"}.id
+            compose.onNodeWithTag("task-list").performScrollToKey(taskId)
+            previous=null;stableSince=0L
+            // One scroll, then observe the same visible/enabled checkbox before one real click.
+            compose.waitUntil(5000) {
+                val frame=runCatching {
+                    val target=compose.onNode(checkbox)
                     val bounds=target.fetchSemanticsNode().boundsInWindow
                     val visible=Rect();val origin=IntArray(2)
                     compose.runOnUiThread {val view=compose.activity.window.decorView;view.getWindowVisibleDisplayFrame(visible);view.getLocationOnScreen(origin)}
                     val control=Rect(kotlin.math.floor(bounds.left).toInt()+origin[0],kotlin.math.floor(bounds.top).toInt()+origin[1],kotlin.math.ceil(bounds.right).toInt()+origin[0],kotlin.math.ceil(bounds.bottom).toInt()+origin[1])
                     taskCompletionGeometry="visible=${visible.toShortString()}, checkbox=${control.toShortString()}"
+                    target.assertIsDisplayed().assertIsEnabled()
                     if(control.isEmpty || !visible.contains(control) || compose.onAllNodes(isDialog(),useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()) null else taskCompletionGeometry
                 }.getOrNull()
                 val now=android.os.SystemClock.uptimeMillis()
                 if(frame==null || frame!=previous) {previous=frame;stableSince=now;false} else now-stableSince>=200
             }
         } catch(e:Throwable) {
-            runCatching {screenshot("task-completion-transition-failure")}
+            runCatching {screenshot("task-completion-transition-failure",hideKeyboard=false)}
             throw AssertionError("Task completion control was not visible/stable: ${taskCompletionState()}",e)
         }
     }
