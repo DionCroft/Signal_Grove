@@ -5452,6 +5452,13 @@
         "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
         "reason": "The connector state request carries the original code; the wrapper returns state or inactive and optional reason. Inactive means used OR expired, not linked. The client records state observations only, never account ownership/delivery, and does not infer pending from the creation response. See docs/contracts/2026-11-04-relay-code-review.md."
       }
+    ],
+    "auth_middleware:gated_auth_middleware": [
+      {
+        "sha256": "70ab55dc6e48c8e06dcddd0bf3d4886b9b460cc7d7eff97d39250bad73471940",
+        "commit": "0073fa98cfcf61c066a919df4b336924720f8463",
+        "reason": "Reviewed browser Sec-Fetch-Site cookie-write hardening. Already-authenticated/native-principal bypass and native bearer validation/return path are unchanged; mobile uses bearer requests without a cookie jar or browser Fetch Metadata. No Android wire change. Exact source/limits: docs/contracts/2026-11-04-browser-cookie-write-review.md."
+      }
     ]
   },
   "reviewed_source_introductions": {
