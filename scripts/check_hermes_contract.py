@@ -154,7 +154,12 @@ EXTRA_SOURCES = {
 
 
 }
+CHANNEL_CONTRACT_SOURCES = {'channels': 'hermes_cli/web_routers/messaging.py', 'channel_catalog': 'hermes_cli/web_server_messaging.py', 'channel_registry': 'gateway/platform_registry.py', 'channel_profiles': 'hermes_cli/profile_channels.py', 'channel_status': 'gateway/status.py', 'channel_served': 'gateway/status_served.py', 'channel_pairing': 'gateway/pairing.py', 'channel_config_env': 'gateway/config_env.py', 'channel_multiplex': 'hermes_cli/gateway_multiplex_mode.py', 'channel_env_loader': 'hermes_cli/env_loader.py', 'channel_gate': 'gateway/platforms/_shared.py', 'channel_hidden': 'hermes_cli/setup_hidden_env.py', 'channel_config': 'gateway/config.py'}
+CHANNEL_CONTRACT_SOURCES.update({'channel_relay_config':'gateway/relay/__init__.py','channel_relay_links':'gateway/relay/link.py'})
+EXTRA_SOURCES.update(CHANNEL_CONTRACT_SOURCES)
+
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes', 'pool_routes'}
+MANAGEMENT_SOURCES.add("channels")
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -178,13 +183,24 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
+                channel_classes={'channel_registry':{'PlatformEntry'},'channel_config':{'Platform','HomeChannel'},'channel_status':{'GatewayLiveness'}}
+                if not prefix and node.name in channel_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
-                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload','CredentialPoolAdd','ConfigUpdate','CustomEndpointUpdate','CustomEndpointModelDetail'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload','CredentialPoolAdd','ConfigUpdate','CustomEndpointUpdate','CustomEndpointModelDetail','MessagingPlatformUpdate'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
+            elif not prefix and source in CHANNEL_CONTRACT_SOURCES and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name):handlers[f'{source}:binding:{target.id}']=fingerprint(node)
+            elif not prefix and source in CHANNEL_CONTRACT_SOURCES and isinstance(node,(ast.Import,ast.ImportFrom)):
+                for alias in node.names:
+                    binding=alias.asname or alias.name
+                    isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])
+                    handlers[f'{source}:import:{binding}']=fingerprint(isolated)
             elif not prefix and isinstance(node,ast.Assign) and source in ('ws_boundary','ws_tickets','cron_tool','cron_format','hub_guard','hub_tier1','bundled_ops','gateway_rpc','plugin_inspect','plugin_presence','plugin_remove','plugin_catalog_gate'):
                 selected={'ws_boundary':{'_GATEWAY_WS_PROTOCOL','_GATEWAY_WS_TICKET_PROTOCOL_PREFIX'},'ws_tickets':{'TTL_SECONDS'},'cron_tool':{'_JOB_ACTIONS','_JOBLESS_ACTIONS'},'cron_format':{'_FORMAT_JOB_OPTIONAL_KEYS'},'hub_guard':{'INSTALL_POLICY','VERDICT_INDEX'},'hub_tier1':{'SCAN_TIMEOUT_SECONDS','SECRETS_CLASS_CHECKS'},'bundled_ops':{'_OWN_REPO_PREFIXES'},'gateway_rpc':{'_PLUGINS_ACTIONS'},'plugin_inspect':{'_RESULT_TTL_SECONDS'},'plugin_presence':{'_TIMEOUT','_MAX_BYTES'},'plugin_remove':{'_PENDING_DELETE_DIR'},'plugin_catalog_gate':{'_SURFACE_LABELS'}}[source]
                 for target in node.targets:

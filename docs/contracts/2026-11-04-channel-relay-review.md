@@ -1,0 +1,27 @@
+# Channel relay metadata source review
+
+Reviewed on 2026-11-04. The original contract remains **f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab**. Exact reviewed variants below target stable **b200f5bc60e31588ba2cb60e288029c4a54ba5fa**; existing handler/field fingerprints and existing variant entries are retained.
+
+The channel watch includes the selected profile-scoped inventory, narrow PUT and posture POST, plus catalog/registry, profile/env, gateway liveness, authorization posture and relay metadata dependencies. It does not certify runtime plugin code, secret-manager policy, a deployed gateway, provider access or delivery.
+
+`gateway/relay/link.py` is absent at the original commit: the official GitHub contents API returned 404 while the adjacent original relay module was readable. The baseline records the absent module with a null source hash and explicit introduction evidence. The original `gateway/relay/__init__.py` blob is **81e97dfd20a2936e3b1981b89559a0446f971213**; its exact bytes were verified. Source inspection of a historical ref that lacks a currently required module remains an incomplete/manual-review result. Current stable/main inspection must still fetch and verify the actual new module.
+
+The new account-link module contributes only its metadata helper and standard `os` binding to the used set. The phone’s configuration requests keep matching explicit query/body profiles, and its posture request sends an empty object to the existing read/report route. Instance-scoped linking, onboarding, messages and gateway restart are separate work.
+
+| Selected fingerprint | Review |
+| --- | --- |
+| `channel_config_env:_relay` | The existing relay-exclusive branch still disables the same direct adapter. It additionally marks disabled_by_relay=true for metadata. The client displays this as a host advisory and makes no activation/health claim. |
+| `channels:_messaging_platform_payload` | Adds optional relay_disabled/relay_view inputs and three boolean advisory fields. Existing profile-home, credential-source, liveness and private-field behavior is unchanged. The client strictly parses these optional booleans, shows their scope warning and never treats them as account-link authorization. |
+| `channels:_platform_payloads` | Factors the existing scoped boolean without changing secret-source/profile-home selection, then derives relay metadata from the selected own_home and forwards it. The native client retains explicit profile and home preflight; it does not call relay account mutations. |
+| `channels:_relay_channel_view` | New metadata helper returns no relay view unless the requested home resolves exactly to get_process_hermes_home. Only then it calls the reviewed relay_channel_view. This is a launch-profile boundary, not a new selected-profile linking route. |
+| `channels:_relay_disabled_platform_ids` | New advisory helper returns empty for scoped reads; unscoped reads project disabled_by_relay flags from existing gateway configuration, with unavailable metadata remaining empty. The client does not infer a successful connection or change another profile. |
+| `channel_relay_links:import:os` | The metadata helper module is absent at the original F0 commit (verified contents-API404). Its selected os binding is the standard library import used for process environment reads, with no alias redirect. Only this binding and relay_channel_view are used. |
+| `channel_relay_links:relay_channel_view` | The new metadata-only helper reads effective relay URL, fronted identities and the two process environment flags for exclusive/direct mode. Its gateway.relay dependency helpers match the original source. It performs no connector request or account-link mutation; those routes are outside this chunk. |
+
+Each accepted entry names one complete AST SHA-256 and the exact reviewed commit; an executable change to any selected body, schema, import or late binding still requires review. The original fingerprints remain the before values, including absence for newly introduced helpers. No server revision/CAS, credential identity or live-health guarantee is inferred.
+
+The implemented client keeps these advisory fields optional for older catalog responses, verifies their types when present, compares relevant metadata before a save, and shows shared-bot/direct-mode effects. Save acknowledgement and later reported configuration remain separate; a negative posture report is still an acknowledged report.
+
+Evidence: 16 synthetic official-CLI native-auth/channel HTTP checks, 16 new client JVM cases, scoped repository and real Compose cases; exact device/build results are recorded in [VALIDATION.md](../VALIDATION.md). The HTTP proof uses the default synthetic profile, with no Android-to-server, vendor, TLS or physical-device certification.
+
+Primary reviewed sources: [messaging metadata and scoped routes](https://github.com/NousResearch/hermes-agent/blob/b200f5bc60e31588ba2cb60e288029c4a54ba5fa/hermes_cli/web_routers/messaging.py), [relay enablement marker](https://github.com/NousResearch/hermes-agent/blob/b200f5bc60e31588ba2cb60e288029c4a54ba5fa/gateway/config_env.py), [new metadata helper](https://github.com/NousResearch/hermes-agent/blob/b200f5bc60e31588ba2cb60e288029c4a54ba5fa/gateway/relay/link.py), [relay configuration semantics](https://github.com/NousResearch/hermes-agent/blob/b200f5bc60e31588ba2cb60e288029c4a54ba5fa/gateway/relay/__init__.py).

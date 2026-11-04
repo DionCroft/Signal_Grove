@@ -10,7 +10,7 @@ checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 def sources():
     route="def _http_routes():\n    return [('POST','/v1/runs',handler)]\n"
-    return {
+    return {**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},
         'api':"_STATIC_FEATURE_FLAGS={'enabled':True}\n_MAX_NAME_LENGTH=160\n_MAX_PROMPT_LENGTH=5000\n_UPDATE_ALLOWED_FIELDS={'enabled'}\ndef _http_route_table():\n    return [('GET','/v1/kept',handler)]\n",
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",
@@ -114,6 +114,35 @@ def baseline(contract):
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
+    def test_channel_profile_private_metadata_and_exact_introduced_helper_contracts_require_review(self):
+        initial=sources()
+        initial['models']+="class MessagingPlatformUpdate:\n    enabled:bool|None=None\n    env:dict[str,str]={}\n    clear_env:list[str]=[]\n    profile:str|None=None\n"
+        initial['channels']="from hooks import late\n_profile_scope=late('_profile_scope','profile_helpers')\n@router.get('/api/messaging/platforms')\nasync def get_messaging_platforms(profile=None):\n    return _profile_scope(profile)\n@router.put('/api/messaging/platforms/{platform_id}')\nasync def update_messaging_platform(platform_id,body,profile=None):\n    target=body.profile or profile\n    validate_whole_request(body)\n    write_selected_fields(body,target)\n    return {'ok':True,'platform':platform_id,'hot_served':False}\n@router.post('/api/messaging/platforms/{platform_id}/test')\nasync def test_messaging_platform(platform_id,profile=None):\n    return posture(platform_id,profile)\ndef _messaging_platform_payload(entry):\n    return {'value':entry.value if entry.is_list and not entry.is_password else None}\ndef _relay_channel_view(home):\n    if home!=process_home():return set(),False\n    return relay_channel_view()\n"
+        initial['channel_catalog']="_PLATFORM_OVERRIDES={'webhook':{'env_vars':('WEBHOOK_SECRET',)}}\ndef _write_platform_enabled(platform,enabled):\n    return narrow_field_write(platform,'enabled',enabled)\n"
+        initial['channel_registry']="class PlatformEntry:\n    dashboard_env_vars:tuple=()\n    env_value_rules:dict={}\n"
+        initial['channel_status']="def resolve_gateway_liveness(profile_dir=None):\n    return read_scoped_runtime(profile_dir)\n"
+        initial['channel_gate']="def platform_gate_env(name):\n    return profile_secret(name)\n"
+        initial['channel_relay_config']="def relay_explicitly_disabled():\n    return launch_profile_disable()\n"
+        initial['channel_relay_links']="import os\ndef relay_channel_view():\n    return fronted_ids(), bool(os.environ.get('RELAY_EXCLUSIVE'))\n"
+        tracked=baseline(checker.extract(initial))
+        tracked['mobile_used_handlers']+=['models:schema:MessagingPlatformUpdate','channels:import:late','channels:binding:_profile_scope','channels:get_messaging_platforms','channels:update_messaging_platform','channels:test_messaging_platform','channels:_messaging_platform_payload','channels:_relay_channel_view','channel_catalog:binding:_PLATFORM_OVERRIDES','channel_catalog:_write_platform_enabled','channel_registry:schema:PlatformEntry','channel_status:resolve_gateway_liveness','channel_gate:platform_gate_env','channel_relay_config:relay_explicitly_disabled','channel_relay_links:import:os','channel_relay_links:relay_channel_view']
+        tracked['mobile_used_request_fields']+=['models:MessagingPlatformUpdate.'+key for key in ('enabled','env','clear_env','profile')]
+        tracked['mobile_used_management_routes']+=['GET /api/messaging/platforms','PUT /api/messaging/platforms/{platform_id}','POST /api/messaging/platforms/{platform_id}/test']
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(initial)})['mobile_review_required'])
+        mutations=[('channels','from hooks','from unsafe_hooks'),('channels',"'profile_helpers'","'root_helpers'"),('channels','_profile_scope(profile)','_profile_scope(None)'),('channels','target=body.profile or profile','target=None'),('channels','validate_whole_request(body)','pass'),('channels','write_selected_fields(body,target)','replace_all_fields(body,target)'),('channels',"'hot_served':False","'hot_served':'unknown'"),('channels','posture(platform_id,profile)','posture(platform_id,None)'),('channels','entry.is_list and not entry.is_password','True'),('channels','home!=process_home()','False'),('channel_catalog',"('WEBHOOK_SECRET',)","('WEBHOOK_SECRET','PATH')"),('channel_catalog','narrow_field_write','replace_platform'),('channel_registry','dashboard_env_vars:tuple=()','dashboard_env_vars:list=[]'),('channel_status','read_scoped_runtime(profile_dir)','read_process_runtime()'),('channel_gate','profile_secret(name)','process_secret(name)'),('channel_relay_config','launch_profile_disable()','False'),('models','enabled:bool|None=None','enabled:str|None=None'),('models','env:dict[str,str]={}','env:dict[str,str]={}\n    expected_revision:str|None=None'),('models','clear_env:list[str]=[]','clear_env:str=""'),('models','profile:str|None=None','profile:str="current"'),('channel_relay_links','import os','import unsafe_os as os')]
+        for module,before,after in mutations:
+            with self.subTest(module=module,change=before):
+                self.assertIn(before,initial[module]);changed=dict(initial);changed[module]=changed[module].replace(before,after)
+                self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+        # A genuinely absent original module is explicit, rather than a replacement original hash.
+        for key in ('channel_relay_links:import:os','channel_relay_links:relay_channel_view'):
+            current_hash=tracked['upstream']['contract']['handlers'].pop(key)
+            tracked.setdefault('reviewed_handler_variants',{})[key]=[{'sha256':current_hash,'commit':'b'*40,'reason':'Reviewed new metadata helper and exact standard-library binding, not account linking.'}]
+        tracked['upstream']['contract']['source_hashes']['channel_relay_links']=None
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(initial)})['mobile_review_required'])
+        changed=dict(initial);changed['channel_relay_links']=changed['channel_relay_links'].replace('fronted_ids()','all_ids()')
+        self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
     def test_imported_endpoint_alias_fields_reasoning_and_lossless_merge_changes_require_review(self):
         initial=sources()
         initial['models']+="class CustomEndpointModelDetail:\n    id:str\n    canonical_model:str|None=None\n    reasoning_effort:str|None=None\nclass CustomEndpointUpdate:\n    model_details:list[CustomEndpointModelDetail]|None=None\n"

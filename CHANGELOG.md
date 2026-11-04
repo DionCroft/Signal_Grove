@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reviewed, profile-scoped channel setup: dynamic platform catalogs, private allowlist/routing inspection, separate enable/keep/replace/clear drafts, exact save approval, and host-reported connection/access posture. Durable uncertainty and ACK/readback separation preserve privacy across connection changes. Team Gateway linking and onboarding remain separate work.
+
 - Stage discovered endpoint addresses, API modes, model catalogs and selected model aliases into a local draft. Saving requires a separate review; changing a returned address clears a newly entered key. Alias saves disclose canonical routing and any shared reasoning overwrite, preserve private details and distinguish accepted saves from configuration observations.
 
 - Fix management pending-operation guards across inference connections pointing to the same dashboard/profile. Schema 10 retains and re-keys historical receipts, keeps other connections’ details private, and allows explicit local review after an original credential is removed. Sending requests cannot be cleared; no request is replayed. OAuth ownership and chat/inference scopes remain separate.
