@@ -12,7 +12,7 @@ class HostAuxModelRepository(private val dao:HermesDao,private val ready:Deferre
     private val inventory=HostModelsRepository()
     suspend fun execute(target:ManagementTarget,request:HostAuxModelRequest,api:ManagementClient,tokens:ManagementTokens):HostAuxModelOutcome {
         ready.await();require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=inventory.read(target,api,tokens,expectedHome=request.expected.homeId)
         if(!request.same(before)) throw HostAuxModelChanged(before)
         val receipt=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,"AuxModel",request.task,request.summary().toString(),"sending","",System.currentTimeMillis())

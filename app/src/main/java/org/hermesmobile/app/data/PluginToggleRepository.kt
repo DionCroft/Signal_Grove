@@ -9,7 +9,7 @@ data class PluginToggleOutcome(val inventory:GatewayPluginInventory,val receipt:
 class PluginToggleRepository(private val dao:HermesDao,private val ready:Deferred<Unit>) {
     suspend fun execute(target:ManagementTarget,request:PluginToggleRequest,api:ManagementClient,tokens:ManagementTokens,home:PluginHome?=null):PluginToggleOutcome {
         ready.await();GatewayCronInventory.requireProfile(target.profile)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         require(target.url==api.base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
         api.identity(tokens)
         return api.gateway(tokens).use {socket ->

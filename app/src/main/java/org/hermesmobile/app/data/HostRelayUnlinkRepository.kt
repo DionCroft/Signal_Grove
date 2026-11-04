@@ -8,7 +8,7 @@ import java.util.UUID
 class HostRelayUnlinkRepository(private val dao:HermesDao,private val ready:Deferred<Unit>,private val relay:HostRelayRepository,private val targets:HostRelayTargetStore) {
     suspend fun execute(target:ManagementTarget,request:HostRelayUnlinkRequest,api:ManagementClient,tokens:ManagementTokens):HostRelayUnlinkOutcome {
         ready.await();require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=relay.read(target,api,tokens,request.expected.scope.homeId)
         if(!request.same(before)) throw HostRelayChanged()
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,"RelayUnlink",request.platform,request.summary().toString(),"sending","",System.currentTimeMillis())

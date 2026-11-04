@@ -22,7 +22,7 @@ class CustomEndpointRepository(private val dao:HermesDao,private val ready:Defer
     }
     suspend fun probe(target:ManagementTarget,request:CustomEndpointProbeRequest,api:ManagementClient,tokens:ManagementTokens):CustomEndpointProbeReport {
         ready.await();scope(target,api,tokens);require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         if(!request.expected.same(read(target,api,tokens,request.expected.homeId))) throw CustomEndpointChanged()
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,"CustomEndpointProbe","custom-endpoints",request.summary().toString(),"sending","",System.currentTimeMillis())
         try {
@@ -41,7 +41,7 @@ class CustomEndpointRepository(private val dao:HermesDao,private val ready:Defer
     }
     suspend fun execute(target:ManagementTarget,request:CustomEndpointRequest,api:ManagementClient,tokens:ManagementTokens):CustomEndpointOutcome {
         ready.await();scope(target,api,tokens);require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=read(target,api,tokens,request.expected.homeId)
         if(!request.expected.same(before,includeReasoning=request.draft?.aliasEffect?.globalEffort!=null)) throw CustomEndpointChanged()
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,request.action.receiptAction,"custom-endpoints",request.summary().toString(),"sending","",System.currentTimeMillis())

@@ -10,10 +10,18 @@ fun managementResourceScope(url:String,profile:String):String=MessageDigest.getI
 /** Foreign receipt details stay private even while a collector is catching up with a connection switch. */
 object ManagementReceiptVisibility {
     const val SharedPending="SharedPending"
-    fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String):List<ManagementOperation> =
-        rows.filter {resourceScope.isNotBlank() && it.resourceScope==resourceScope}.mapNotNull {row ->
-            if(row.apiScope==apiScope) row
-            else if(row.state in setOf("sending","unknown")) row.copy(apiScope="",actor="",action=SharedPending,target="",requestSummary="",resultSummary="",createdAt=0)
+    const val SharedInstancePending="SharedInstancePending"
+    fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink")
+    fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String=""):List<ManagementOperation> {
+        if(resourceScope.isBlank()) return emptyList()
+        return rows.mapNotNull {row ->
+            val pending=row.state in setOf("sending","unknown")
+            val sameResource=row.resourceScope==resourceScope
+            val instance=dashboardUrl.isNotBlank() && row.url==dashboardUrl && pending && (instanceAction(row.action) || row.action==SharedInstancePending)
+            if(!sameResource && !instance) null
+            else if(sameResource && row.apiScope==apiScope) row
+            else if(pending) row.copy(resourceScope=if(instance) "" else row.resourceScope,apiScope="",profile=if(instance) "" else row.profile,actor="",action=if(instance) SharedInstancePending else SharedPending,target="",requestSummary="",resultSummary="",createdAt=0)
             else null
         }
+    }
 }

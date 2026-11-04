@@ -9,7 +9,7 @@ data class CronCreationOutcome(val receipt:ManagementOperation,val job:ManagedCr
 class CronCreationRepository(private val dao:HermesDao,private val ready:Deferred<Unit>) {
     suspend fun create(target:ManagementTarget,request:CronCreation,contract:CronCreateContract,api:ManagementClient,tokens:ManagementTokens):CronCreationOutcome {
         ready.await()
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         require(target.url==api.base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
         api.identity(tokens)
         val fresh=CronCreateContract.parse(api.cronSchema(tokens));if(fresh.signature!=contract.signature || !fresh.accepts(request)) throw CronCreationChanged()

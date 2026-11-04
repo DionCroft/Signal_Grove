@@ -26,13 +26,17 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
 
 @Composable private fun managementReceiptTarget(receipt:ManagementOperation):String=if(receipt.action=="MoaConfig") label(Words.HostMoa) else if(receipt.action=="AuxModel") label(if(receipt.target=="__reset__") Words.HostAuxReset else if(receipt.target.isEmpty()) Words.HostAuxAll else Words.HostAuxEdit)+(if(receipt.target.isNotEmpty() && receipt.target!="__reset__") " · "+receipt.target else "") else receipt.target
 
-data class ReviewedManagementUncertainty(val key:String,val target:ManagementTarget)
+data class ReviewedManagementUncertainty(val key:String,val target:ManagementTarget,val instance:Boolean=false)
 
 @Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null,openCredentialPool:(()->Unit)?=null,openFallback:(()->Unit)?=null,openCustomEndpoints:(()->Unit)?=null,openChannels:(()->Unit)?=null,openRelay:((String)->Unit)?=null,reviewShared:((String,ManagementTarget)->Unit)?=null) {
-    if(s!=null && receipt.apiScope!=s.apiScope) {
-        if(vm!=null && receipt.resourceScope==vm.resourceScope(s) && receipt.state in setOf("sending","unknown")) SharedManagementPendingCard(receipt,vm,s,reviewShared)
-        return
-    }
+    if(vm!=null && s!=null) {
+        // Re-project even a stale raw row: sharing an inference credential does not share profile details.
+        val visible=vm.visibleReceipts(s,listOf(receipt)).singleOrNull() ?: return
+        if(visible.apiScope!=s.apiScope) {
+            SharedManagementPendingCard(visible,vm,s,reviewShared)
+            return
+        }
+    } else if(s!=null && receipt.apiScope!=s.apiScope) return
     var providers by remember(receipt.key) {mutableStateOf(false)}
     var moa by remember(receipt.key) {mutableStateOf(false)}
     var hostModels by remember(receipt.key) {mutableStateOf(false)}
@@ -65,9 +69,16 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
     if(gateway && vm!=null && s!=null) GatewayAutomationDialog(vm,s) {vm.cancel();gateway=false}
     if(skills && vm!=null && s!=null) HostSkillsDialog(vm,s) {vm.cancel();skills=false}
     if(cron && vm!=null && s!=null) HostCronDialog(vm,s) {vm.cancel();cron=false}
-    review?.let {target ->AlertDialog(onDismissRequest={review=null},title={Text(label(Words.ManagementReview))},text={
-        LazyColumn(Modifier.heightIn(max=440.dp)) {item {Text(receipt.url);Text(receipt.profile);Text(managementReceiptTarget(receipt));Text(label(Words.ManagementReviewEffect))}}
-    },confirmButton={TextButton({vm!!.reviewReceipt(receipt.key,target);review=null},enabled=s?.busy!=true,modifier=Modifier.testTag("management-review-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})}
+    review?.let {target ->
+        val instance=ManagementReceiptVisibility.instanceAction(receipt.action)
+        var approved by remember(receipt.key,target) {mutableStateOf(false)}
+        AlertDialog(onDismissRequest={review=null},title={Text(label(Words.ManagementReview))},text={
+            LazyColumn(Modifier.heightIn(max=440.dp)) {
+                item {Text(receipt.url);Text(receipt.profile);Text(managementReceiptTarget(receipt));Text(label(if(instance) Words.ManagementInstanceReviewEffect else Words.ManagementReviewEffect))}
+                if(instance) item {Row {Checkbox(approved,{approved=it},Modifier.testTag("management-instance-approve"));Text(label(Words.ManagementInstanceGrant),Modifier.weight(1f))}}
+            }
+        },confirmButton={TextButton({vm!!.reviewReceipt(receipt.key,target);review=null},enabled=s?.busy!=true && (!instance || approved) && vm?.reviewTarget()==target,modifier=Modifier.testTag("management-review-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})
+    }
     if(result) AlertDialog(onDismissRequest={result=false},title={Text(managementReceiptTarget(receipt))},text={
         val parsed=remember(receipt.resultSummary) {runCatching {Json.parseToJsonElement(receipt.resultSummary).jsonObject}.getOrDefault(JsonObject(emptyMap()))}
         LazyColumn(Modifier.heightIn(max=440.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -105,9 +116,10 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
 /** Only generic state is rendered here. Confirmation is hosted above the disposable lazy row. */
 @Composable private fun SharedManagementPendingCard(receipt:ManagementOperation,vm:ManagementViewModel,s:ManagementState,reviewShared:((String,ManagementTarget)->Unit)?) {
     Column(Modifier.fillMaxWidth().testTag("management-shared-"+receipt.key),verticalArrangement=Arrangement.spacedBy(6.dp)) {
-        Text(label(Words.ManagementSharedPending),style=MaterialTheme.typography.titleSmall)
+        val instance=receipt.action==ManagementReceiptVisibility.SharedInstancePending
+        Text(label(if(instance) Words.ManagementInstancePending else Words.ManagementSharedPending),style=MaterialTheme.typography.titleSmall)
         Text(label(managementStateWord(receipt.state)))
-        Text(label(Words.ManagementSharedPrivate),style=MaterialTheme.typography.bodySmall)
+        Text(label(if(instance) Words.ManagementInstancePrivate else Words.ManagementSharedPrivate),style=MaterialTheme.typography.bodySmall)
         if(receipt.state=="unknown") TextButton({vm.reviewTarget()?.let {reviewShared?.invoke(receipt.key,it)}},
             enabled=!s.busy && vm.reviewTarget()!=null && reviewShared!=null,
             modifier=Modifier.testTag("management-shared-review-"+receipt.key)) {Text(label(Words.ManagementReview))}
@@ -115,13 +127,15 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
 }
 
 @Composable fun SharedManagementUncertaintyReview(review:ReviewedManagementUncertainty,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
+    var approved by remember(review) {mutableStateOf(false)}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.ManagementReview))},text={
         LazyColumn(Modifier.heightIn(max=440.dp).testTag("management-shared-review"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             item {Text(review.target.url)}
             item {Text(review.target.profile)}
             item {Text(review.target.actor)}
-            item {Text(label(Words.ManagementSharedReviewEffect))}
+            item {Text(label(if(review.instance) Words.ManagementInstanceReviewEffect else Words.ManagementSharedReviewEffect))}
+            if(review.instance) item {Row {Checkbox(approved,{approved=it},Modifier.testTag("management-instance-approve"));Text(label(Words.ManagementInstanceGrant),Modifier.weight(1f))}}
         }
-    },confirmButton={TextButton(confirm,enabled=enabled,modifier=Modifier.testTag("management-shared-review-confirm")) {Text(label(Words.Confirm))}},
+    },confirmButton={TextButton(confirm,enabled=enabled && (!review.instance || approved),modifier=Modifier.testTag("management-shared-review-confirm")) {Text(label(Words.Confirm))}},
         dismissButton={TextButton(close) {Text(label(Words.Cancel))}})
 }

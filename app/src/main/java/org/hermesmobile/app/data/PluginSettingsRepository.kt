@@ -13,7 +13,7 @@ class PluginSettingsRepository(private val dao:HermesDao,private val ready:Defer
     }
     suspend fun execute(target:ManagementTarget,request:PluginSettingsRequest,api:ManagementClient,tokens:ManagementTokens):PluginSettingsOutcome {
         ready.await();scope(target,api,tokens);require(request.expected.owner==target)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         api.identity(tokens);val home=api.profiles(tokens).singleOrNull {it.name==target.profile}?.pluginHome
         if(home?.identity()!=request.expected.homeId) throw PluginSettingsChanged()
         return api.gateway(tokens).use {socket->

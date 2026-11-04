@@ -7,7 +7,7 @@ import java.util.UUID
 class HubInstallRepository(private val dao:HermesDao,private val ready:Deferred<Unit>) {
     suspend fun install(target:ManagementTarget,request:HubInstallRequest,api:ManagementClient,tokens:ManagementTokens):ManagementOperation {
         ready.await();SkillProtocol.profile(target.profile)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         require(target.url==api.base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
         api.identity(tokens)
         val sources=SkillHubProtocol.sources(api.hubSources(tokens,target.profile))

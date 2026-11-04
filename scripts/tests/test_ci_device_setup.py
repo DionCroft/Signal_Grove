@@ -13,7 +13,16 @@ class DeviceSdkSetupTest(unittest.TestCase):
     def test_complete_instrumentation_runs_once_and_requires_positive_summary(self):
         with tempfile.TemporaryDirectory() as directory:
             log=Path(directory)/'instrumentation.log';device=Mock(return_value=Mock(returncode=0,stdout='OK (485 tests)\nINSTRUMENTATION_CODE: -1\n'))
-            self.assertEqual(485,device_ci.run_instrumentation(device,log));self.assertEqual(device.return_value.stdout,log.read_text(encoding='utf-8'));device.assert_called_once();self.assertEqual(2100,device.call_args.kwargs['timeout']);self.assertFalse(device.call_args.kwargs['check'])
+            self.assertEqual(485,device_ci.run_instrumentation(device,log));self.assertEqual(device.return_value.stdout,log.read_text(encoding='utf-8'));device.assert_called_once();self.assertEqual(3000,device.call_args.kwargs['timeout']);self.assertFalse(device.call_args.kwargs['check'])
+
+    def test_explicit_suite_deadline_is_forwarded_once_and_never_reset_after_timeout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log=Path(directory)/'instrumentation.log'
+            failure=subprocess.TimeoutExpired(['owned-adb'],12,output='548 cases completed; next case still running\n')
+            device=Mock(side_effect=failure)
+            with self.assertRaises(subprocess.TimeoutExpired) as caught:device_ci.run_instrumentation(device,log,timeout=12)
+            self.assertIs(failure,caught.exception);device.assert_called_once()
+            self.assertEqual(12,device.call_args.kwargs['timeout']);self.assertEqual(failure.output,log.read_text(encoding='utf-8'))
 
     def test_instrumentation_failure_or_missing_positive_summary_never_passes(self):
         for code,output in [(1,'OK (485 tests)'),(0,'FAILURES!!!\nOK (485 tests)'),(0,'INSTRUMENTATION_FAILED'),(0,'shortMsg=Process crashed'),(0,'Process crashed'),(0,''),(0,'OK (0 tests)')]:

@@ -21,7 +21,7 @@ class CredentialPoolRepository(private val dao:HermesDao,private val ready:Defer
     }
     suspend fun execute(target:ManagementTarget,request:CredentialPoolRequest,api:ManagementClient,tokens:ManagementTokens):CredentialPoolOutcome {
         ready.await();scope(target,api,tokens);require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=read(target,api,tokens,request.expected.homeId)
         if(!request.expected.sameProvider(before,request.provider)) throw CredentialPoolChanged()
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,request.action.receiptAction,request.provider,request.summary().toString(),"sending","",System.currentTimeMillis())

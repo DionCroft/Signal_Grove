@@ -8,7 +8,7 @@ import java.util.UUID
 class McpCreationRepository(private val dao:HermesDao,private val ready:Deferred<Unit>) {
     suspend fun create(target:ManagementTarget,creation:McpCreation,api:ManagementClient,tokens:ManagementTokens):McpOutcome {
         ready.await()
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         require(target.url==api.base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
         api.identity(tokens)
         val before=McpProtocol.inventory(api.mcp(tokens,target.profile))

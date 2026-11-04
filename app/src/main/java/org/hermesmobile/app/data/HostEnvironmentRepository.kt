@@ -14,7 +14,7 @@ class HostEnvironmentRepository(private val dao:HermesDao,private val ready:Defe
     }
     suspend fun execute(target:ManagementTarget,request:HostEnvRequest,api:ManagementClient,tokens:ManagementTokens):HostEnvOutcome {
         ready.await();scope(target,api,tokens);require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         api.identity(tokens);val beforeHome=api.profiles(tokens).singleOrNull {it.name==target.profile}?.pluginHome
         if(beforeHome?.identity()!=request.expected.homeId) throw HostEnvChanged()
         val before=HostEnvInventory.parse(api.environment(tokens,target.profile),target,beforeHome);if(!request.same(before)) throw HostEnvChanged()

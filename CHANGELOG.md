@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep uncertain Team Gateway requests blocked across profiles at the same dashboard address. Hide another profile’s original receipt details and require a fresh explicit grant for local uncertainty review, including when the original profile or connection was removed. Sending requests remain protected.
+
 - Sharper physical-pixel scenery and a draw-only eight-frame ambient clock, paused in the background or with reduced motion. Accessible stepped progress bars now match the pixel interface, including verified update downloads.
 
 - Approved Team Gateway link-code creation and original-code recovery: encrypted local copies, explicit status checks, honest unchecked/used-or-expired states, private reveal, sensitive clipboard copying and separately reviewed bot handoff with fresh scope/status checks. Unknown requests never auto-mint replacements.

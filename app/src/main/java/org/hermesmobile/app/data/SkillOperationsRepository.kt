@@ -11,7 +11,7 @@ data class SkillOutcome(val rows:List<ManagedSkill>,val receipt:ManagementOperat
 class SkillOperationsRepository(private val dao:HermesDao,private val ready:Deferred<Unit>) {
     suspend fun execute(target:ManagementTarget,request:SkillRequest,api:ManagementClient,tokens:ManagementTokens):SkillOutcome {
         ready.await();SkillProtocol.profile(target.profile)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         require(target.url==api.base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
         api.identity(tokens)
         val before=SkillProtocol.inventory(api.skills(tokens,target.profile))

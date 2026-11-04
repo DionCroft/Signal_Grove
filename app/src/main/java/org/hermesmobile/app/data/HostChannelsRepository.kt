@@ -18,7 +18,7 @@ class HostChannelsRepository(private val dao:HermesDao,private val ready:Deferre
     }
     suspend fun execute(target:ManagementTarget,request:HostChannelRequest,api:ManagementClient,tokens:ManagementTokens):HostChannelOutcome {
         ready.await();require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=read(target,api,tokens,request.expected.homeId);if(!request.same(before)) throw HostChannelsChanged()
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,request.action,request.id,request.summary().toString(),"sending","",System.currentTimeMillis())
         try {

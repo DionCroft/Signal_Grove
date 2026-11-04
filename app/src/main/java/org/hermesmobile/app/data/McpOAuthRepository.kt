@@ -13,7 +13,7 @@ class McpOAuthRepository(private val dao:HermesDao,private val ready:Deferred<Un
     private suspend fun unknown(key:String)=withContext(NonCancellable) {dao.managementOperation(key)?.let {dao.finishManagementOperation(it.key,"unknown","")}}
     suspend fun start(target:ManagementTarget,server:ManagedServer,api:ManagementClient,tokens:ManagementTokens,allowHttp:Boolean=false):Pair<ManagementOperation,McpOAuthSnapshot> {
         ready.await();check(target,api,tokens);require(McpOAuthSnapshot.eligible(server))
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         api.identity(tokens)
         val fresh=McpProtocol.inventory(api.mcp(tokens,target.profile))
         if(fresh.singleOrNull {it.name==server.name}!=server) throw McpReviewChanged(fresh)
@@ -42,7 +42,7 @@ class McpOAuthRepository(private val dao:HermesDao,private val ready:Deferred<Un
     }
     suspend fun cancel(target:ManagementTarget,key:String,api:ManagementClient,tokens:ManagementTokens):ManagementOperation {
         check(target,api,tokens);val (original,id)=original(target,key)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         api.identity(tokens)
         val record=receipt(target,"OAuthCancel",original.target,buildJsonObject {put("start_key",key)}.toString())
         try {

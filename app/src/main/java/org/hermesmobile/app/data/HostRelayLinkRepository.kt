@@ -9,7 +9,7 @@ class HostRelayLinkRepository(private val dao:HermesDao,private val ready:Deferr
     private suspend fun original(target:ManagementTarget,key:String):HostRelayLinkBinding {ready.await();return HostRelayLinkBinding.parse(dao.managementOperation(key) ?: throw HostRelayCodeUnavailable(),target)}
     suspend fun execute(target:ManagementTarget,request:HostRelayLinkRequest,api:ManagementClient,tokens:ManagementTokens):HostRelayLinkObservation {
         ready.await();require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=relay.read(target,api,tokens,request.expected.scope.homeId);if(!request.same(before)) throw HostRelayChanged()
         try {codes.beforeStart(target,System.currentTimeMillis())} catch(e:CancellationException) {throw e} catch(e:HostRelayCodeFull) {throw e} catch(e:Exception) {throw HostRelayCodeUnavailable()}
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,"RelayLinkStart",request.platform,request.summary().toString(),"sending","",System.currentTimeMillis())

@@ -9,7 +9,7 @@ data class PluginUpdateOutcome(val inventory:GatewayPluginInventory,val receipt:
 class PluginUpdateRepository(private val dao:HermesDao,private val ready:Deferred<Unit>) {
     suspend fun execute(target:ManagementTarget,request:PluginUpdateRequest,api:ManagementClient,tokens:ManagementTokens):PluginUpdateOutcome {
         ready.await();GatewayCronInventory.requireProfile(target.profile)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         require(target.url==api.base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
         request.decision?.let {require(it.owner==target && it.eligible())}
         api.identity(tokens)

@@ -12,7 +12,7 @@ data class McpOutcome(val receipt:ManagementOperation?,val servers:List<ManagedS
 class ManagementOperationsRepository(private val dao:HermesDao,private val ready:Deferred<Unit>) {
     suspend fun execute(target:ManagementTarget,request:McpRequest,api:ManagementClient,tokens:ManagementTokens):McpOutcome {
         ready.await()
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         require(target.url==api.base.toString() && target.actor==tokens.provider+" · "+tokens.userId) {"The management target changed."}
         api.identity(tokens)
         val before=McpProtocol.inventory(api.mcp(tokens,target.profile))
@@ -42,6 +42,6 @@ class ManagementOperationsRepository(private val dao:HermesDao,private val ready
     }
     suspend fun review(target:ManagementTarget,key:String) {
         ready.await()
-        dao.reviewManagementOperation(key,target.resourceScope)
+        dao.reviewManagementOperation(key,target.resourceScope,target.url)
     }
 }

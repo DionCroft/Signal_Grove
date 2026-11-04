@@ -16,7 +16,7 @@ class HostMoaRepository(private val dao:HermesDao,private val ready:Deferred<Uni
     }
     suspend fun execute(target:ManagementTarget,request:HostMoaRequest,api:ManagementClient,tokens:ManagementTokens):HostMoaOutcome {
         ready.await();require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=read(target,api,tokens,request.expected.homeId)
         if(!request.same(before)) throw HostMoaChanged(before)
         request.body(target.profile) // Enforce the request bound before the durable claim.

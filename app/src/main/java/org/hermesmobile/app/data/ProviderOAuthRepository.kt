@@ -29,7 +29,7 @@ class ProviderOAuthRepository(private val dao:HermesDao,private val ready:Deferr
     }
     suspend fun execute(target:ManagementTarget,request:ProviderOAuthRequest,api:ManagementClient,tokens:ManagementTokens):ManagementOperation {
         ready.await();require(target==request.expected.owner);scope(target,api,tokens)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=read(target,api,tokens,request.expected.homeId)
         if(before.rows.singleOrNull {it.id==request.provider.id}!=request.provider) throw ProviderOAuthChanged()
         val receipt=record(target,request.action,request.provider.id,request.summary())
@@ -69,7 +69,7 @@ class ProviderOAuthRepository(private val dao:HermesDao,private val ready:Deferr
     }
     suspend fun cancel(target:ManagementTarget,key:String,api:ManagementClient,tokens:ManagementTokens):ManagementOperation {
         val binding=original(target,key)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         // The DELETE route only checks profile; first verify the provider on its scoped poll route.
         poll(target,key,api,tokens)
         val receipt=record(target,ProviderOAuthAction.Cancel,binding.provider,buildJsonObject {put("start_key",key);put("session_id",binding.sessionId);put("home_id",binding.homeId)})

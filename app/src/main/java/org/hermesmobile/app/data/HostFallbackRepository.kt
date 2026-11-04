@@ -21,7 +21,7 @@ class HostFallbackRepository(private val dao:HermesDao,private val ready:Deferre
     }
     suspend fun execute(target:ManagementTarget,request:HostFallbackRequest,api:ManagementClient,tokens:ManagementTokens):HostFallbackOutcome {
         ready.await();scope(target,api,tokens);require(target==request.expected.owner)
-        if(dao.unresolvedManagementOperations(target.resourceScope).isNotEmpty()) throw ManagementOutcomePending()
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url).isNotEmpty()) throw ManagementOutcomePending()
         val before=read(target,api,tokens,request.expected.homeId)
         if(!request.expected.sameConfig(before)) throw HostFallbackChanged()
         val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,"FallbackConfig","fallback",request.summary().toString(),"sending","",System.currentTimeMillis())

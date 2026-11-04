@@ -128,9 +128,10 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private val creations=McpCreationRepository(app.database.dao(),app.managementReady)
     private val operations=ManagementOperationsRepository(app.database.dao(),app.managementReady)
     fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,baseUrl(s).toString(),s.profile,"scope").resourceScope}.getOrDefault("")
-    fun visibleReceipts(s:ManagementState,rows:List<ManagementOperation>)=ManagementReceiptVisibility.project(rows,s.apiScope,resourceScope(s))
-    val receipts=state.map {resourceScope(it) to it.apiScope}.distinctUntilChanged().flatMapLatest {(scope,apiScope)->
-        if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementVisibleResourceOperations(scope,apiScope).map {ManagementReceiptVisibility.project(it,apiScope,scope)}
+    private fun dashboardUrl(s:ManagementState)=runCatching {baseUrl(s).toString()}.getOrDefault("")
+    fun visibleReceipts(s:ManagementState,rows:List<ManagementOperation>)=ManagementReceiptVisibility.project(rows,s.apiScope,resourceScope(s),dashboardUrl(s))
+    val receipts=state.map {Triple(resourceScope(it),it.apiScope,dashboardUrl(it))}.distinctUntilChanged().flatMapLatest {(scope,apiScope,url)->
+        if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementVisibleResourceOperations(scope,apiScope,url).map {ManagementReceiptVisibility.project(it,apiScope,scope,url)}
     }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     private var generation=0L
     private var work:Job?=null
