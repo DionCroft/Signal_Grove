@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "reviewed_on": "2026-11-03",
+  "reviewed_on": "2026-11-04",
   "upstream": {
     "requested_ref": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
     "resolved_ref": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
@@ -2996,6 +2996,27 @@
         "sha256": "e4868d8232d0e267f95ca3c55cd3e73693fc25e9b8b17e27946ded9a0f7208e2",
         "commit": "c314285f077e91937c995d419b9fa40af9eb4981",
         "reason": "Reviewed pm/client.py sync_venv and pm/install.py plus worker routing at this exact revision. Main adds optional automatic/carried extra lists defaulting to None and forwards them. The watched plugin admission calls explicit=True with Selection and no extras, automatic or carried lists. Expected-config guard, Selection encoding, explicit/repair/eviction values and worker target remain unchanged for this caller. This is a source compatibility review, not live dependency-environment certification."
+      }
+    ],
+    "authority:respond_run": [
+      {
+        "sha256": "4184a34230ffc7f0f80535fe18363db7d5b282a49f22046f1ecd5984c0bc3ca2",
+        "commit": "07274ac65438a0b62bb9fd64bf284e58b2fd8fc6",
+        "reason": "Reviewed API control actor rename Principal to SessionActor at this exact revision. The entire API control module and frozen actor/Protocol module reproduce their prior ASTs after substituting only that identifier. Actor subject/profile/capabilities/transport ID, ownership/generation/prompt checks, request and acknowledgement shapes remain unchanged. Settlement/delivery/media ownership changes were reviewed separately; this exact entrypoint fingerprint is not live runtime certification. See docs/contracts/2026-11-04-session-actor-review.md."
+      }
+    ],
+    "authority:stop_run": [
+      {
+        "sha256": "96dd2e811391dc13582abe7de6386e772b55fd44d98ccf7ee73e437c616ca860",
+        "commit": "07274ac65438a0b62bb9fd64bf284e58b2fd8fc6",
+        "reason": "Reviewed API control actor rename Principal to SessionActor at this exact revision. The entire API control module and frozen actor/Protocol module reproduce their prior ASTs after substituting only that identifier. Actor subject/profile/capabilities/transport ID, ownership/generation/prompt checks, request and acknowledgement shapes remain unchanged. Settlement/delivery/media ownership changes were reviewed separately; this exact entrypoint fingerprint is not live runtime certification. See docs/contracts/2026-11-04-session-actor-review.md."
+      }
+    ],
+    "authority:resolve_unknown_run": [
+      {
+        "sha256": "f944fb77ca52397d51ec4f0d65d1dd6f3d79b550df3b46305abbe9d730e44c5d",
+        "commit": "07274ac65438a0b62bb9fd64bf284e58b2fd8fc6",
+        "reason": "Reviewed API control actor rename Principal to SessionActor at this exact revision. The entire API control module and frozen actor/Protocol module reproduce their prior ASTs after substituting only that identifier. Actor subject/profile/capabilities/transport ID, ownership/generation/prompt checks, request and acknowledgement shapes remain unchanged. Settlement/delivery/media ownership changes were reviewed separately; this exact entrypoint fingerprint is not live runtime certification. See docs/contracts/2026-11-04-session-actor-review.md."
       }
     ]
   }

@@ -1,5 +1,6 @@
 import ast
 import copy
+import json
 import importlib.util
 from pathlib import Path
 import unittest
@@ -374,6 +375,25 @@ class ContractWatchTest(unittest.TestCase):
         for source,before,after in [('gateway_models',"pause='pause'","pause='other'"),('gateway_models','profile:str|None=None','profile:int|None=None'),('cron_tool',"'pause':handler","'pause':different_handler"),('cron_format',"('script',)","('script','new_field')")]:
             changed=sources();changed[source]=changed[source].replace(before,after)
             self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+
+    def test_recorded_api_actor_variants_preserve_baseline_and_reject_future_changes(self):
+        tracked=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',tracked['upstream']['commit'])
+        expected={'authority:respond_run': ['91ececa57860c5b4034976ce516f3521308ffb264d0d1a93f6ead1ceda6e151f', '4184a34230ffc7f0f80535fe18363db7d5b282a49f22046f1ecd5984c0bc3ca2'], 'authority:stop_run': ['71c001841698b9ef34ecfeb350a2d4382d508241f240430dddd476f7cab1645b', '96dd2e811391dc13582abe7de6386e772b55fd44d98ccf7ee73e437c616ca860'], 'authority:resolve_unknown_run': ['8fe7edb15f8bbb5bc55f1f3953d3ef91e94354939b35c8605570e010bfe6e045', 'f944fb77ca52397d51ec4f0d65d1dd6f3d79b550df3b46305abbe9d730e44c5d']}
+        current={'commit':'07274ac65438a0b62bb9fd64bf284e58b2fd8fc6','contract':copy.deepcopy(tracked['upstream']['contract'])}
+        for key,(before,after) in expected.items():
+            self.assertEqual(before,tracked['upstream']['contract']['handlers'][key])
+            evidence=tracked['reviewed_handler_variants'][key]
+            self.assertEqual([after],[entry['sha256'] for entry in evidence])
+            self.assertEqual(['07274ac65438a0b62bb9fd64bf284e58b2fd8fc6'],[entry['commit'] for entry in evidence])
+            self.assertTrue(all(entry['reason'].strip() for entry in evidence))
+            current['contract']['handlers'][key]=after
+        self.assertFalse(checker.compare(tracked,current)['mobile_review_required'])
+        for key in expected:
+            changed=copy.deepcopy(current);changed['contract']['handlers'][key]='0'*64
+            report=checker.compare(tracked,changed)
+            self.assertTrue(report['mobile_review_required'])
+            self.assertEqual({key},set(report['mobile_relevant_changes']['changed_used_handlers']))
 
     def test_reviewed_handler_variant_is_exact_and_requires_pinned_evidence(self):
         old=checker.extract(sources());changed=sources();changed['mcp']=changed['mcp'].replace("return {'ok':True}","return {'ok':False}");new=checker.extract(changed)
