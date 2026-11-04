@@ -10,6 +10,9 @@ class CredentialFixtureRule:ExternalResource() {
     private val app get()=InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as HermesApplication
     private var values:Map<String,String> = emptyMap()
     private var previous:org.hermesmobile.app.data.AppPreferences?=null
+    private val connectionNamespace=java.util.UUID.randomUUID().toString()
+    /** Keep durable fixture receipts isolated even when the OS reuses a mock-server port. */
+    fun uniqueToken(prefix:String)=prefix+"-"+connectionNamespace
     override fun before() {
         val prefs=app.getSharedPreferences("credentials",0)
         values=prefs.all.mapValues {(_,value)->require(value is String);value}

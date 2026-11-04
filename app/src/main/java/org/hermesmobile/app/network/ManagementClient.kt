@@ -58,6 +58,15 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         })
     }
     private suspend fun json(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList()):JsonObject=element(path,token,body,profile,method,tail).jsonObject
+    suspend fun customEndpointConfig(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/config",tokens.access,profile=profile,query=mapOf("include_defaults" to "false"),slow=true).jsonObject}
+    suspend fun customEndpoints(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/providers/custom-endpoints",tokens.access,profile=profile,slow=true).jsonObject}
+    suspend fun changeCustomEndpoint(tokens:ManagementTokens,profile:String,request:CustomEndpointRequest):JsonObject {
+        GatewayCronInventory.requireProfile(profile);require(profile==request.expected.owner.profile)
+        val tail=when(request.action) {CustomEndpointAction.Save->emptyList();CustomEndpointAction.Activate->listOf(request.id,"activate");CustomEndpointAction.Remove->listOf(request.id)}
+        val method=if(request.action==CustomEndpointAction.Remove) "DELETE" else "POST"
+        val body=when(request.action) {CustomEndpointAction.Save->request.draft!!.body();CustomEndpointAction.Activate->JsonObject(emptyMap());CustomEndpointAction.Remove->null}
+        return element("api/providers/custom-endpoints",tokens.access,body,profile,method,tail,slow=true).jsonObject
+    }
     suspend fun fallbackConfig(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/config",tokens.access,profile=profile,query=mapOf("include_defaults" to "false")).jsonObject}
     suspend fun changeFallbackConfig(tokens:ManagementTokens,profile:String,request:HostFallbackRequest):JsonObject {GatewayCronInventory.requireProfile(profile);require(profile==request.expected.owner.profile);return element("api/config",tokens.access,request.body(),profile,method="PUT").jsonObject}
     suspend fun credentialPool(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/credentials/pool",tokens.access,profile=profile,slow=true).jsonObject}

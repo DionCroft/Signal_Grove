@@ -92,6 +92,7 @@ EXTRA_SOURCES = {
     'plugin_update': 'hermes_cli/plugins_cmd_update.py',
     'plugin_settings': 'hermes_cli/plugins_settings.py',
     'env_routes': 'hermes_cli/web_routers/config_env.py',
+    'custom_provider_config': 'hermes_cli/config_providers.py',
     'env_lifecycle': 'hermes_cli/credential_lifecycle.py',
     'env_config': 'hermes_cli/config.py',
     'env_external': 'hermes_cli/auth_external_process.py',
@@ -177,7 +178,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
-                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload','CredentialPoolAdd','ConfigUpdate'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload','CredentialPoolAdd','ConfigUpdate','CustomEndpointUpdate'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
@@ -192,7 +193,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif not prefix and source in ('env_config','env_routes','web_common') and isinstance(node,(ast.Assign,ast.AnnAssign)):
-                selected={'env_config':{'_ENV_VAR_NAME_RE','_ENV_VAR_NAME_DENYLIST','_ENV_VAR_NAME_DENY_PREFIXES'},'env_routes':{'_AUTH_TYPE_ENV_VARS','_profile_scope','_config_profile_scope','load_config','save_config','_CONFIG_MUTATION_LOCK'},'web_common':{'_LEGACY_MASK_RE','REDACTED_CREDENTIAL_WRITE_DETAIL','_profile_scope','_config_profile_scope','_CONFIG_MUTATION_LOCK'}}[source]
+                selected={'env_config':{'_ENV_VAR_NAME_RE','_ENV_VAR_NAME_DENYLIST','_ENV_VAR_NAME_DENY_PREFIXES'},'env_routes':{'_AUTH_TYPE_ENV_VARS','_profile_scope','_config_profile_scope','load_config','save_config','save_env_value','remove_env_value','_CONFIG_MUTATION_LOCK','_DESKTOP_API_MODES','_ROUTE_SECTIONS'},'web_common':{'_LEGACY_MASK_RE','REDACTED_CREDENTIAL_WRITE_DETAIL','_profile_scope','_config_profile_scope','_CONFIG_MUTATION_LOCK'}}[source]
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
@@ -219,10 +220,19 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)
+            elif not prefix and source=='env_config' and isinstance(node,ast.ImportFrom):
+                for alias in node.names:
+                    binding=alias.asname or alias.name
+                    if binding in {'coerce_provider_id','find_provider_entry','get_compatible_custom_providers'}:
+                        handlers[f'{source}:import:{binding}']=fingerprint(ast.ImportFrom(module=node.module,names=[alias],level=node.level))
+            elif not prefix and source=='custom_provider_config' and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name) and target.id in {'_CAMEL_ALIASES','_KNOWN_PROVIDER_KEYS'}:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif not prefix and source=='env_routes' and isinstance(node,ast.ImportFrom):
                 for alias in node.names:
                     binding=alias.asname or alias.name
-                    if binding in {'_denormalize_config_from_web','_normalize_config_for_web','read_raw_config','require_readable_config_before_write','_deep_merge','ConfigUpdate','late','LateState','scoped_to_thread'}:
+                    if binding in {'_denormalize_config_from_web','_normalize_config_for_web','read_raw_config','require_readable_config_before_write','_deep_merge','ConfigUpdate','CustomEndpointUpdate','late','LateState','scoped_to_thread','_validated_main_model_selection','_apply_main_model_assignment','drop_model_key','custom_endpoint_key_env','coerce_provider_id','find_provider_entry','get_compatible_custom_providers','_canonical_api_mode','_custom_provider_entry_to_provider_config','refusing_locked_omissions','_ENV_REF_RE'}:
                         handlers[f'{source}:import:{binding}']=fingerprint(ast.ImportFrom(module=node.module,names=[alias],level=node.level))
             elif not prefix and source in ('oauth_routes','oauth_helpers') and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
