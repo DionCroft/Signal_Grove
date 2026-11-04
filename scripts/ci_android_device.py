@@ -13,6 +13,23 @@ import sys
 import time
 
 
+def run_instrumentation(device, log_path: Path, timeout: int = 2100) -> int:
+    """Run every case once within a finite deadline and retain even timed-out output."""
+    try:
+        result=device('shell','am','instrument','-w','-r','org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner',timeout=timeout,check=False)
+    except subprocess.TimeoutExpired as exc:
+        output=exc.stdout
+        if isinstance(output,bytes):output=output.decode('utf-8',errors='replace')
+        log_path.write_text(output or '',encoding='utf-8')
+        raise
+    log_path.write_text(result.stdout,encoding='utf-8')
+    passed=re.search(r'^OK \(([1-9][0-9]*) tests?\)',result.stdout,re.M)
+    failed=re.search(r'FAILURES!!!|INSTRUMENTATION_FAILED|shortMsg=|Process crashed',result.stdout)
+    if result.returncode or not passed or failed:
+        raise RuntimeError('Instrumentation failed; inspect the retained log and screenshots.')
+    return int(passed.group(1))
+
+
 def install_sdk_packages(argv: list[str], env: dict, log_path: Path, timeout: int = 900) -> None:
     """Retry only transient package transport failures inside the original setup deadline.
 
@@ -150,13 +167,7 @@ def main() -> int:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')
             print('Running the complete instrumentation suite.',flush=True)
-            result=device('shell','am','instrument','-w','-r','org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner',timeout=1500,check=False)
-            (work/'instrumentation.log').write_text(result.stdout,encoding='utf-8')
-            passed=re.search(r'^OK \(([1-9][0-9]*) tests?\)',result.stdout,re.M)
-            failed=re.search(r'FAILURES!!!|INSTRUMENTATION_FAILED|shortMsg=|Process crashed',result.stdout)
-            if result.returncode or not passed or failed:
-                raise RuntimeError('Instrumentation failed; inspect the retained log and screenshots.')
-            count=int(passed.group(1))
+            count=run_instrumentation(device,work/'instrumentation.log')
             summary=f'API {args.api}: full instrumentation suite passed ({count} cases).'
             print(summary)
             with Path(env['GITHUB_STEP_SUMMARY']).open('a',encoding='utf-8') as report:report.write(summary+'\n')

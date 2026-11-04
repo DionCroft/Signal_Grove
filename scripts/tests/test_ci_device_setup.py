@@ -10,6 +10,25 @@ device_ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(device_c
 
 
 class DeviceSdkSetupTest(unittest.TestCase):
+    def test_complete_instrumentation_runs_once_and_requires_positive_summary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log=Path(directory)/'instrumentation.log';device=Mock(return_value=Mock(returncode=0,stdout='OK (485 tests)\nINSTRUMENTATION_CODE: -1\n'))
+            self.assertEqual(485,device_ci.run_instrumentation(device,log));self.assertEqual(device.return_value.stdout,log.read_text(encoding='utf-8'));device.assert_called_once();self.assertEqual(2100,device.call_args.kwargs['timeout']);self.assertFalse(device.call_args.kwargs['check'])
+
+    def test_instrumentation_failure_or_missing_positive_summary_never_passes(self):
+        for code,output in [(1,'OK (485 tests)'),(0,'FAILURES!!!\nOK (485 tests)'),(0,'INSTRUMENTATION_FAILED'),(0,'shortMsg=Process crashed'),(0,'Process crashed'),(0,''),(0,'OK (0 tests)')]:
+            with self.subTest(code=code,output=output),tempfile.TemporaryDirectory() as directory:
+                log=Path(directory)/'instrumentation.log';device=Mock(return_value=Mock(returncode=code,stdout=output))
+                with self.assertRaisesRegex(RuntimeError,'Instrumentation failed'):device_ci.run_instrumentation(device,log)
+                self.assertEqual(output,log.read_text(encoding='utf-8'));device.assert_called_once()
+
+    def test_instrumentation_timeout_retains_partial_output_without_retry_or_false_pass(self):
+        for output in ['progress\n',b'progress\xff',None,'OK (485 tests)\n']:
+            with self.subTest(output=output),tempfile.TemporaryDirectory() as directory:
+                log=Path(directory)/'instrumentation.log';error=subprocess.TimeoutExpired(['owned-adb'],2100,output=output);device=Mock(side_effect=error)
+                with self.assertRaises(subprocess.TimeoutExpired) as caught:device_ci.run_instrumentation(device,log)
+                self.assertIs(error,caught.exception);self.assertEqual(output.decode('utf-8',errors='replace') if isinstance(output,bytes) else output or '',log.read_text(encoding='utf-8'));device.assert_called_once()
+
     def fixture_disk(self,directory):
         temp=Path(directory);work=temp/'hermes-device-qa';work.mkdir();sdk=temp/'android'/'sdk';sdk.mkdir(parents=True);(sdk/'ndk').mkdir();(sdk/'platform-tools').mkdir()
         return sdk,work,{'GITHUB_ACTIONS':'true','RUNNER_TEMP':str(temp),'ANDROID_HOME':str(sdk)}
