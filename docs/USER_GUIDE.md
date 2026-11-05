@@ -235,7 +235,7 @@ These read-only controls are included in the published 1.1.0-beta.4 preview. Ope
 
 The list includes archived projects and reports an unmatched active-project pointer explicitly. Select **Refresh project details** for a fresh canonical-ID read. Folder paths and other metadata are selectable text; the phone does not open those host paths. Closing, cancelling or changing management scope clears the private project view. A remapped profile or unsupported result requires a fresh read.
 
-The published beta.4 screen is read-only. Reviewed project changes are available in development beta.5 below; Kanban and selecting a conversation's host working directory remain pending. Reading this inventory does not change an active project or existing conversation. [Scope and limits](MANAGEMENT.md#stored-host-projects).
+The published beta.4 screen is read-only. Reviewed project changes are available in development beta.5 below; Kanban changes and selecting a conversation's host working directory remain pending; host board inspection is described below. Reading this inventory does not change an active project or existing conversation. [Scope and limits](MANAGEMENT.md#stored-host-projects).
 
 
 ### Project receipts (development source after beta.4)
@@ -260,3 +260,16 @@ Archive/restore changes the archive flag. Delete removes project/folder records.
 Every write opens a separate exact-value review with server, profile, actor and canonical target. Check the effects and concurrent-change limit, then grant approval. The host has no atomic check-and-write token; another client can change metadata or ID resolution between checking and writing. Drafts and grants are discarded on cancel/close/scope changes. One approval sends at most one mutation. A lost reply is never retried automatically; fresh reads remain available while writes are guarded. Return to management receipts for a separately approved, home-verified local uncertainty review.
 
 Reports distinguish acknowledgement, reported requested effect and a separate matching configuration observation. A successful primary RPC can be a no-op. A nullable create reply can supply no project; neither is presented as confirmed creation/change. Acknowledgement remains inspectable when subsequent readback fails. Normalized path mapping is explicitly unverified. These development controls are not part of the immutable published beta.4 APK. See [the source boundary](contracts/2026-11-05-project-management-ui.md).
+
+
+### Host Kanban boards (development beta.5)
+
+Open **Management → Host Kanban boards** after verifying management access and choosing a supported profile with a reported location. Opening the dialog makes no Kanban request. **Read board inventory**, **Read this board** and **Refresh task details** each open a frozen read review. Cancelling sends no read. The review explains that Hermes can load the plugin and initialize, migrate or repair its board storage during GETs; names, descriptions, comments, summaries and paths may be private.
+
+Kanban is shared host storage. The selected management profile controls access routing and related project metadata; it does not create a private per-profile Kanban queue. These are independent of the phone’s **Tasks** database. The host’s current-board pointer is displayed separately. Choosing a board here uses its explicit slug without moving that pointer or dispatching work.
+
+Archived board metadata is listed, with its open control disabled and explained. Live board reads include archived task cards. Search matches ID, title, assignee or tenant locally; column choices also stay local and send no request. A future status remains its actual reported text even if the host puts it in a fallback column. Counts and task details are separate observations and can differ as workers act.
+
+Task details show description/result/full summary, first task start and current attempt start separately, recorded attempts and reported outcomes/heartbeats, comments, event kinds/times, dependencies and child handoffs, and attachment metadata. A missing linked task keeps its ID; requesting it can fail explicitly. Dependency navigation retains the exact board. Task/run status or a heartbeat is not a live worker-health check. Files remain on the host; event payloads, arbitrary run metadata, claim locks and idempotency keys are omitted from the projection. Text and paths are selectable plain text.
+
+Closing, cancelling or changing access clears private views and invalidates reviews. Every board/task read checks the selected profile’s reported location and the board’s reported database path around the read. Those strings do not prove filesystem/symlink identity or eliminate a concurrent host change. There is no background polling or automatic request replay. Larger or unsupported replies fail as a whole. Board/task mutations and file transfer are subsequent audit work. The published beta.4 APK does not include this development interface.

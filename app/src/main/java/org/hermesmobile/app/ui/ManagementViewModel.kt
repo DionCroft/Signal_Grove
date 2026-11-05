@@ -11,6 +11,8 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
+data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:HostKanbanSnapshot?=null,val detail:HostKanbanDetail?=null)
+data class ReviewedHostKanbanRead(val owner:ManagementTarget,val profileHomeId:String,val generation:Long,val board:HostKanbanBoard?=null,val taskId:String?=null) {override fun toString()="ReviewedHostKanbanRead(redacted)"}
 data class HostProjectsState(val inventory:HostProjectSnapshot?=null,val detail:HostProjectDetail?=null,val report:HostProjectChangeReport?=null)
 data class HostProjectChangeReport(val owner:ManagementTarget,val homeId:String,val receipt:ManagementOperation) {override fun toString()="HostProjectChangeReport(redacted)"}
 data class ReviewedHostProjectEditor(val expected:HostProjectSnapshot,val action:HostProjectAction,val id:String?,val generation:Long) {override fun toString()="ReviewedHostProjectEditor(redacted)"}
@@ -105,7 +107,7 @@ data class ManagementState(val apiScope:String="",val url:String="",val debugHtt
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
     val customEndpoints:CustomEndpointSnapshot?=null,val customEndpointProbe:CustomEndpointProbeReport?=null,
     val fallback:HostFallbackSnapshot?=null,
-    val poolCleanup:PoolCleanupReport?=null,val credentialPool:CredentialPoolInventory?=null,val providerFlowKey:String?=null,val providerAccounts:ProviderOAuthInventory?=null,val providerFlows:Map<String,ProviderOAuthObservation> = emptyMap(),val moa:HostMoaSnapshot?=null,val hostAuxModel:HostAuxModelState=HostAuxModelState(),val hostMainModel:HostMainModelState=HostMainModelState(),val hostModels:HostModelInventory?=null,val environment:HostEnvInventory?=null,val relayLink:HostRelayLinkObservation?=null,val relayTarget:HostRelayLocalTarget?=null,val relay:HostRelayInventory?=null,val channels:HostChannelInventory?=null,val channelPosture:HostChannelPosture?=null,val plugins:PluginInventoryState=PluginInventoryState(),val hub:SkillHubState=SkillHubState(),val gateway:GatewayAutomationState=GatewayAutomationState(),val projects:HostProjectsState=HostProjectsState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
+    val poolCleanup:PoolCleanupReport?=null,val credentialPool:CredentialPoolInventory?=null,val providerFlowKey:String?=null,val providerAccounts:ProviderOAuthInventory?=null,val providerFlows:Map<String,ProviderOAuthObservation> = emptyMap(),val moa:HostMoaSnapshot?=null,val hostAuxModel:HostAuxModelState=HostAuxModelState(),val hostMainModel:HostMainModelState=HostMainModelState(),val hostModels:HostModelInventory?=null,val environment:HostEnvInventory?=null,val relayLink:HostRelayLinkObservation?=null,val relayTarget:HostRelayLocalTarget?=null,val relay:HostRelayInventory?=null,val channels:HostChannelInventory?=null,val channelPosture:HostChannelPosture?=null,val plugins:PluginInventoryState=PluginInventoryState(),val hub:SkillHubState=SkillHubState(),val gateway:GatewayAutomationState=GatewayAutomationState(),val projects:HostProjectsState=HostProjectsState(),val kanban:HostKanbanState=HostKanbanState(),val skills:HostSkillState=HostSkillState(),val cron:HostCronState=HostCronState(),val oauth:Map<String,McpOAuthSnapshot> = emptyMap(),val catalog:List<McpCatalogEntry> = emptyList(),val catalogLoaded:Boolean=false,val servers:List<ManagedServer> = emptyList(),val loaded:Boolean=false,val busy:Boolean=false,val error:Words?=null,val notice:Words?=null,val observation:ManagementObservation?=null)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ManagementViewModel(application:Application):AndroidViewModel(application) {
@@ -154,6 +156,8 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is HostKanbanUnsupported->Words.KanbanUnsupported
+        is HostKanbanScopeChanged->Words.KanbanScopeChanged
         is HostProjectChangeInvalid->Words.ProjectDraftInvalid
         is HostProjectChangeUncertain->Words.ProjectChangeUnknown
         is HostProjectChangeReadbackPending->Words.ManagementReadbackPending
@@ -277,11 +281,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is HostKanbanScopeChanged) state.value.copy(kanban=HostKanbanState(),error=Words.KanbanScopeChanged) else if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),kanban=HostKanbanState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
-        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val current=state.value.copy(url=url.trim(),debugHttp=debugHttp,identity=null,profiles=emptyList(),profile="",moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),kanban=HostKanbanState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         val api=client(current)
         val pending=withContext(Dispatchers.IO) {NativeLogin()};login=pending
         try {
@@ -298,7 +302,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,projects=HostProjectsState(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,projects=HostProjectsState(),kanban=HostKanbanState(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -308,14 +312,14 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val identity=api.identity(current);val profiles=api.profiles(current)
         if(id!=generation) return@operation
         val profile=saved.profile.takeIf {name->profiles.any {it.name==name}}.orEmpty()
-        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        state.value=state.value.copy(identity=identity,profiles=profiles,profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),kanban=HostKanbanState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         if(profile.isNotBlank()) loadServers(id,api,current,profile)
     }
     fun chooseProfile(profile:String)=operation {id ->
         val saved=state.value;require(saved.identity!=null && saved.profiles.any {it.name==profile}) {"Refresh verified management profiles first."}
         val current=tokens ?: error("Sign in to management first.")
         require(current.expiresAt>System.currentTimeMillis()/1000) {"Management sign-in expired. Renew it or sign in again."}
-        val selected=saved.copy(profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
+        val selected=saved.copy(profile=profile,moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),kanban=HostKanbanState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false)
         save(selected,current)
         if(id!=generation) return@operation
         state.value=selected;loadServers(id,client(selected),current,profile)
@@ -824,6 +828,40 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             }
         }
     }
+    private val kanbanReads=HostKanbanRepository()
+    fun visibleHostKanban(s:ManagementState):HostKanbanState {
+        val context=projectContext() ?: return HostKanbanState()
+        if(s.apiScope!=context.first.apiScope || s.profile!=context.first.profile || s.url!=state.value.url || s.identity!=state.value.identity) return HostKanbanState()
+        return HostKanbanState(s.kanban.inventory?.takeIf {it===state.value.kanban.inventory && it.owner==context.first && it.profileHomeId==context.second},s.kanban.board?.takeIf {it===state.value.kanban.board && it.owner==context.first && it.profileHomeId==context.second},s.kanban.detail?.takeIf {it===state.value.kanban.detail && it.owner==context.first && it.profileHomeId==context.second})
+    }
+    fun prepareHostKanbanRead(board:HostKanbanBoard?=null,taskId:String?=null):ReviewedHostKanbanRead? {
+        if(state.value.busy) return null
+        val context=projectContext() ?: return null
+        val visible=visibleHostKanban(state.value)
+        if(board!=null && (board.archived || visible.inventory?.boards?.none {it===board}!=false && visible.board?.board!==board && visible.detail?.board!==board)) return null
+        if(taskId!=null) {
+            if(board==null || !HostKanbanProtocol.id(taskId)) return null
+            val inBoard=visible.board?.takeIf {it.board.sameMapping(board)}?.columns?.any {c->c.tasks.any {it.id==taskId}}==true
+            val inDetail=visible.detail?.takeIf {it.board.sameMapping(board)}?.let {taskId==it.task.id || taskId in it.parents || taskId in it.children}==true
+            if(!inBoard && !inDetail) return null
+        }
+        return ReviewedHostKanbanRead(context.first,context.second,generation,board,taskId)
+    }
+    fun hostKanbanReadCurrent(review:ReviewedHostKanbanRead)=review.generation==generation && projectContext()==(review.owner to review.profileHomeId) && prepareHostKanbanRead(review.board,review.taskId)!=null
+    fun loadHostKanban(review:ReviewedHostKanbanRead) {
+        if(!hostKanbanReadCurrent(review)) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+        val previous=visibleHostKanban(state.value)
+        state.value=state.value.copy(kanban=if(review.board==null) HostKanbanState() else HostKanbanState(previous.inventory,if(review.taskId!=null) previous.board else null))
+        operation {id->
+            val api=client(state.value);val current=tokens ?: error("Sign in first.")
+            val result=if(review.board==null) HostKanbanState(inventory=kanbanReads.inventory(review.owner,review.profileHomeId,api,current))
+                else if(review.taskId==null) HostKanbanState(previous.inventory,kanbanReads.board(review.owner,review.profileHomeId,review.board,api,current))
+                else HostKanbanState(previous.inventory,previous.board,kanbanReads.detail(review.owner,review.profileHomeId,review.board,review.taskId,api,current))
+            if(id==generation && projectContext()==(review.owner to review.profileHomeId)) state.value=state.value.copy(kanban=result)
+        }
+    }
+    fun closeHostKanbanDetail() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(detail=null))}}
+    fun closeHostKanban() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=HostKanbanState())}}
     private val projectReads=HostProjectsRepository()
     private val projectChanges=HostProjectOperationsRepository(app.database.dao(),app.managementReady)
     private fun projectContext():Pair<ManagementTarget,String>? {

@@ -154,6 +154,11 @@ EXTRA_SOURCES = {
 
 
 }
+KANBAN_CONTRACT_SOURCES = {'kanban_api':'plugins/kanban/dashboard/plugin_api.py','kanban_db':'hermes_cli/kanban_db.py','kanban_boards':'hermes_cli/kanban_db_boards.py','kanban_connect':'hermes_cli/kanban_db_connect.py','kanban_workflow':'hermes_cli/kanban_workflow.py','kanban_plugin_profiles':'hermes_cli/web_server_plugin_profiles.py','kanban_plugin_mount':'hermes_cli/web_server_dashboard.py','kanban_read_coalescing':'hermes_cli/web_read_coalescing.py'}
+KANBAN_CONTRACT_SOURCES.update({'kanban_scope_runtime':'hermes_cli/web_server.py','kanban_roots':'hermes_constants.py'})
+EXTRA_SOURCES.update(KANBAN_CONTRACT_SOURCES)
+MANAGEMENT_ROUTE_PREFIXES = {'kanban_api':'/api/plugins/kanban'}
+
 PROJECT_CONTRACT_SOURCES = {'project_contract':'tui_gateway/contracts/projects_pets.py','project_methods':'tui_gateway/methods_projects.py','project_db':'hermes_cli/projects_db.py'}
 EXTRA_SOURCES.update(PROJECT_CONTRACT_SOURCES)
 
@@ -163,7 +168,7 @@ CHANNEL_CONTRACT_SOURCES.update({'relay_routes': 'hermes_cli/web_routers/messagi
 EXTRA_SOURCES.update(CHANNEL_CONTRACT_SOURCES)
 
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes', 'pool_routes'}
-MANAGEMENT_SOURCES.update(("channels","relay_routes"))
+MANAGEMENT_SOURCES.update(("channels","relay_routes","kanban_api"))
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -189,6 +194,8 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 project_classes={'project_contract':{'ProjectFolder','ProjectInfo','ProjectsPayload','ProjectResult','ProjectIdParams','OptionalProjectResult','ProjectsCreateParams','ProjectsUpdateParams','ProjectsAddFolderParams','ProjectFolderParams','ProjectsArchiveParams','ProjectsSetActiveParams','ActiveIdResult'},'project_db':{'Project','ProjectFolder'},'project_methods':{'_NoProject'}}
                 if not prefix and node.name in project_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                kanban_classes={'kanban_db':{'Task','Run','Comment','Event','Attachment'},'kanban_workflow':{'Column','Workflow'}}
+                if not prefix and node.name in kanban_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 channel_classes={'channel_registry':{'PlatformEntry'},'channel_config':{'Platform','HomeChannel'},'channel_status':{'GatewayLiveness'}}
                 if not prefix and node.name in channel_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
@@ -205,12 +212,12 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 selected=copy.deepcopy(node)
                 selected.iter.elts=[item for item in selected.iter.elts if isinstance(item,ast.Name) and item.id=='_methods_projects']
                 handlers['gateway_runtime:projects_registration_loop']=fingerprint(selected)
-            elif not prefix and source in PROJECT_CONTRACT_SOURCES and isinstance(node,(ast.Assign,ast.AnnAssign)):
+            elif not prefix and source in (PROJECT_CONTRACT_SOURCES.keys() | KANBAN_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     for binding in ast.walk(target):
                         if isinstance(binding,ast.Name):handlers[f'{source}:binding:{binding.id}']=fingerprint(node)
-            elif not prefix and source in PROJECT_CONTRACT_SOURCES and isinstance(node,(ast.Import,ast.ImportFrom)):
+            elif not prefix and source in (PROJECT_CONTRACT_SOURCES.keys() | KANBAN_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
                 for alias in node.names:
                     binding=alias.asname or alias.name
                     isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])
@@ -442,7 +449,7 @@ def extract(source: dict[str, str]) -> dict:
                         continue
                     method, path = decorator.func.attr.upper(), decorator.args[0]
                     if method in ('GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'WEBSOCKET') and isinstance(path, ast.Constant) and isinstance(path.value, str) and path.value.startswith('/'):
-                        management_routes.add(f'{method} {path.value}')
+                        management_routes.add(f'{method} {MANAGEMENT_ROUTE_PREFIXES.get(name, "")}{path.value}')
     # FastAPI supplies this route implicitly; detect only a reviewed literal/default.
     applications=[node for node in ast.walk(trees['web_bootstrap']) if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=='FastAPI']
     if len(applications)!=1:raise ValueError('Cannot identify the management OpenAPI route')

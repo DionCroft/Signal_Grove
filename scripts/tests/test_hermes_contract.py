@@ -10,7 +10,7 @@ checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 def sources():
     route="def _http_routes():\n    return [('POST','/v1/runs',handler)]\n"
-    return {**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},
+    return {**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
         'api':"_STATIC_FEATURE_FLAGS={'enabled':True}\n_MAX_NAME_LENGTH=160\n_MAX_PROMPT_LENGTH=5000\n_UPDATE_ALLOWED_FIELDS={'enabled'}\ndef _http_route_table():\n    return [('GET','/v1/kept',handler)]\n",
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",
@@ -749,3 +749,41 @@ def delete_project(conn,id):
             ('project_db','metadata_delete(conn,id)','remove_files(conn,id)')])
 
 if __name__=='__main__':unittest.main()
+
+
+class KanbanContractWatchTests(unittest.TestCase):
+    def fixture(self):
+        data=sources()
+        data['kanban_api']="raise RuntimeError('Do not execute plugin code')\nrouter=APIRouter()\nBOARD_COLUMNS=list(DEFAULT_WORKFLOW.keys())\n_read_board=coalesced_read(get_board)\n@router.get('/boards')\ndef list_boards(include_archived=False):\n    return shared_boards(include_archived)\n@router.get('/board')\nasync def get_board_endpoint(board=None):\n    return await _read_board(board=board or get_current_board())\n@router.get('/tasks/{task_id}')\ndef get_task(task_id,board=None):\n    return owned_detail(board,task_id)\n"
+        data['kanban_db']="import os\ndef kanban_home():\n    return os.environ.get('HERMES_KANBAN_HOME') or get_default_hermes_root()\nclass Task:\n    id:str\n    body:str|None=None\nclass Run:\n    task_id:str\n    ended_at:int|None=None\n"
+        data['kanban_boards']="def read_board_metadata(board):\n    return {'slug':board,'db_path':kanban_db_path(board)}\n"
+        data['kanban_connect']="def connect(board=None):\n    guard_existing_db();migrate(board)\n    return open_db(board)\n"
+        data['kanban_plugin_mount']="def _mount_one_plugin_api(app,plugin):\n    app.include_router(plugin.router,prefix='/api/plugins/'+plugin.name,dependencies=[Depends(_plugin_route_secret_scope)])\n"
+        data['kanban_plugin_profiles']="def plugin_request_scope(scope):\n    return profile_scope(scope.query['profile'])\n"
+        data['kanban_read_coalescing']="def coalesced_read(fn):\n    return keyed_by_home_and_arguments(fn)\n"
+        data['kanban_workflow']="DEFAULT_WORKFLOW=Workflow(columns=('scheduled','running'))\n"
+        return data
+    def tracked(self):
+        old=checker.extract(self.fixture());value=baseline(old)
+        value['mobile_used_management_routes']+=['GET /api/plugins/kanban/boards','GET /api/plugins/kanban/board','GET /api/plugins/kanban/tasks/{task_id}']
+        value['mobile_used_handlers']+=['kanban_api:list_boards','kanban_api:get_board_endpoint','kanban_api:get_task','kanban_api:binding:router','kanban_api:binding:BOARD_COLUMNS','kanban_api:binding:_read_board','kanban_db:kanban_home','kanban_db:schema:Task','kanban_db:schema:Run','kanban_boards:read_board_metadata','kanban_connect:connect','kanban_plugin_mount:_mount_one_plugin_api','kanban_plugin_profiles:plugin_request_scope','kanban_read_coalescing:coalesced_read','kanban_workflow:binding:DEFAULT_WORKFLOW']
+        return value
+    def test_plugin_routes_use_the_verified_mount_prefix_without_colliding_with_core_routes(self):
+        old=checker.extract(self.fixture());self.assertIn('GET /api/plugins/kanban/boards',old['management_routes']);self.assertNotIn('GET /boards',old['management_routes'])
+        data=self.fixture();data['kanban_api']=data['kanban_api'].replace("'/board'","'/renamed'")
+        result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+        self.assertEqual(['GET /api/plugins/kanban/board'],result['mobile_relevant_changes']['removed_used_management_routes'])
+    def test_access_root_storage_coalescing_and_mount_changes_require_review(self):
+        for module,before,after in [('kanban_api','owned_detail(board,task_id)','owned_detail(None,task_id)'),('kanban_api','board=board or get_current_board()','board=get_current_board()'),('kanban_api','APIRouter()','APIRouter(prefix="/new")'),('kanban_db',"HERMES_KANBAN_HOME","HERMES_HOME"),('kanban_boards',"'db_path':kanban_db_path(board)","'db_path':other_db()"),('kanban_connect','guard_existing_db();migrate(board)','dispatch_work();migrate(board)'),('kanban_plugin_mount','dependencies=[Depends(_plugin_route_secret_scope)]','dependencies=[]'),('kanban_plugin_profiles',"scope.query['profile']","None"),('kanban_read_coalescing','keyed_by_home_and_arguments(fn)','globally_cached(fn)'),('kanban_workflow',"'scheduled','running'","'scheduled','ready','running'")]:
+            data=self.fixture();self.assertIn(before,data[module]);data[module]=data[module].replace(before,after)
+            self.assertTrue(checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})['mobile_review_required'],module)
+    def test_task_and_attempt_schema_changes_and_missing_sources_fail_closed(self):
+        data=self.fixture();data['kanban_db']=data['kanban_db'].replace('ended_at:int|None=None','ended_at:str|None=None')
+        result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+        self.assertIn('kanban_db:schema:Run',result['mobile_relevant_changes']['changed_used_handlers'])
+        data=self.fixture();data.pop('kanban_read_coalescing')
+        with self.assertRaises(ValueError):checker.extract(data)
+    def test_unknown_new_plugin_route_is_triage_information_without_silencing_used_changes(self):
+        data=self.fixture();data['kanban_api']+="\n@router.get('/new-feature')\ndef new_feature():\n    return {}\n"
+        result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+        self.assertFalse(result['mobile_review_required']);self.assertIn('GET /api/plugins/kanban/new-feature',result['added_management_routes'])
