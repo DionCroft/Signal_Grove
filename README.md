@@ -100,3 +100,5 @@ Credential pools now support reviewed reads, fresh credential addition, index-ba
 Fallback chains now support staged add/edit/order/remove/clear operations for primary and legacy saved rows. The reviewed save sends only changed fallback arrays, retains unknown fields and private credential references, and records value-free durable acknowledgment/uncertainty. See [fallback-chain management](docs/MANAGEMENT.md#reviewed-fallback-chains).
 
 Custom endpoint management now provides reviewed catalog/private-detail reads, named-provider creation/editing, main-route activation and removal. It preserves literal stored IDs and omitted credentials/modes, guards hidden provider collisions, discloses shared environment/main-model effects and keeps private endpoint values out of durable receipts. See [custom endpoint administration](docs/MANAGEMENT.md#reviewed-custom-endpoint-administration). Explicit outbound probes now have their own destination/credential consent and private typed report. Model-alias import remains active audit work.
+
+For guided connection setup, open **Settings → Server → Set up Hermes**, or read [the setup guide](docs/SETUP_GUIDE.md).

@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalUriHandler
@@ -30,6 +31,7 @@ import org.hermesmobile.app.BuildConfig
     var http by remember(p.debugHttp) {mutableStateOf(p.debugHttp)}
     var clear by remember {mutableStateOf(false)}
     var licences by remember {mutableStateOf(false)}
+    var setupGuide by androidx.compose.runtime.saveable.rememberSaveable {mutableStateOf(false)}
     val uri=LocalUriHandler.current
     val context=LocalContext.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
@@ -37,6 +39,7 @@ import org.hermesmobile.app.BuildConfig
         AppUpdateSettings(busy || connecting)
         HermesCard {
             Word(Words.Server)
+            TextButton({setupGuide=true},Modifier.testTag("setup-guide-open")) {Text(label(Words.SetupGuide))}
             Toggle(Words.Demo,p.demo,!busy && !connecting) {vm.setDemo(it)}
             OutlinedTextField(url,{url=it},Modifier.fillMaxWidth(),label={Text(label(Words.ServerUrl))},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Uri),enabled=!busy && !connecting)
             OutlinedTextField(token,{token=it},Modifier.fillMaxWidth(),label={Text(label(Words.Token))},singleLine=true,visualTransformation=PasswordVisualTransformation(),keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),enabled=!busy && !connecting)
@@ -80,6 +83,7 @@ import org.hermesmobile.app.BuildConfig
             TextButton({clear=true},enabled=!busy) {Text(label(Words.ClearChats))}
         }
     }
+    if(setupGuide) SetupGuide {setupGuide=false}
     if(clear) AlertDialog(onDismissRequest={clear=false},title={Text(label(Words.ClearChats))},text={Text(label(Words.ClearConfirm))},confirmButton={TextButton({vm.clearLocalChats();clear=false}) {Text(label(Words.Delete))}},dismissButton={TextButton({clear=false}) {Text(label(Words.Cancel))}})
     if(licences) AlertDialog(onDismissRequest={licences=false},title={Text(label(Words.Licences))},text={Text(remember {context.assets.open("NOTICE.txt").bufferedReader().use {it.readText()}},Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),style=MaterialTheme.typography.bodySmall)},confirmButton={TextButton({licences=false}) {Text(label(Words.Close))}})
 }

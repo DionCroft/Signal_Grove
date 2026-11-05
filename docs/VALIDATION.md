@@ -989,3 +989,36 @@ The creation methods exercise all transmitted fields, normalized skill deduplica
 Six final settled physical-display form/review/result captures on APIs 26 and 36 were actually inspected and hashed. Labels and values are readable and Cancel/Review, Cancel/Confirm and Close remain reachable. These keyboard-dismissed static views do not certify every IME/OEM. Original display size/density/font settings match before/after, including API 26 at 130%; original debug signer, **106 / 1.1.0-beta.5**, minimum API 26, Signal Grove name, Room 11, dependencies/permissions and installation identities remain. Fresh production API 37 readback is still **105 / 1.1.0-beta.4**. No reset, uninstall, clear-data, downgrade, reseed, production upgrade or new permission-reset proof is claimed.
 
 This creation chunk still needs its own exact-head full Android and compatibility runs after publication before merging. No beta.5 APK/tag/release is published here. Dependency editing, status/override/worker/dispatch/event/file/pinning/transfer controls, the remaining integration/configuration/automation scope, live Hermes and physical-device/security/release verification remain active audit work.
+
+## Offline Hermes setup guide — 5 November 2026
+
+Added Settings → Server → Set up Hermes: six offline steps with English,
+Simplified Chinese and pinyin; host/model setup, authenticated API, private HTTPS,
+phone connection, separate management login, readiness and troubleshooting.
+Reading the guide performs no connection/configuration write or command execution.
+Commands/hosts are administrator examples; source contains no owner endpoint/key.
+
+Required strict dependency-verification build passed in 9m59s:
+`testDebugUnitTest lint assembleDebug assembleDebugAndroidTest`; 499 JVM tests,
+zero failures/errors/skips. Original debug signer and development package/version
+were verified. Frozen 403 app/test/config/schema files matched throughout validation.
+New guide tests (2 per device) and existing navigation/settings/task/theme tests
+(4 per device) passed on API26,36,37: 18 native passes, zero skips. Tests cover
+navigation, back/close, example paths, activity recreation retaining the page,
+Chinese/pinyin and unchanged connection preferences/scope. Device geometry/font
+settings and the separate production beta.4 installation were preserved.
+
+Seven usable physical captures on API26 (font1.3) and36 were viewed: commands,
+URLs and fixed navigation remain readable in English/Chinese/pinyin. One API26
+English-phone capture showed the preceding rendered frame and was excluded from
+visual acceptance; the native phone-page assertions and Chinese capture passed.
+Physical ARM64/OEM acceptance remains separate. These checks used the current
+development checkout, including the pre-existing uncommitted task-dependency work;
+they do not certify a signed release or an exact clean release commit.
+
+Private Pi commissioning separately verifies trusted tailnet HTTPS, API auth,
+dashboard auth, Secure/HttpOnly native-login initiation and existing desktop access.
+A real synthetic chat reached the configured model path but failed to produce a
+verified response because that inference listener was unavailable. No request was
+replayed, model switched or cloud fallback enabled. Full phone login and real
+model/tool acceptance are still required; transport health is not inference proof.
