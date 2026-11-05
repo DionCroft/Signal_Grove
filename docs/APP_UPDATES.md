@@ -1,6 +1,8 @@
 # App updates
 
-Starting with 1.1.0-beta.1, Settings → App updates checks the public [GitHub releases](https://github.com/DionCroft/hermes-agent-android/releases). Automatic checks run at most once per day when you open or resume the app. You can disable them or check manually. The home screen shows a dismissible notice when a newer release is available; it does not download the APK.
+Starting with 1.1.0-beta.1, Settings → App updates checks the public [GitHub releases](https://github.com/DionCroft/Signal_Grove/releases). Automatic checks run at most once per day when you open or resume the app. You can disable them or check manually. The home screen shows a dismissible notice when a newer release is available; it does not download the APK.
+
+**Repository migration:** unreleased `1.1.0-beta.4` source uses `DionCroft/Signal_Grove`. Published previews through beta.3 contain the former fixed feed, whose metadata now redirects. They need one matching signed APK upgrade when beta.4 or later is published; the old binary cannot adopt this feed change through a redirect. Install over the same package with the original signer, preserving private data. Later updates use the usual approved flow below. [Identity and migration details](BRANDING.md).
 
 Stable releases are selected initially. Enable **Include preview releases** to hear about beta versions. A preview installation can still receive a later stable version with the preview switch off. No app account, GitHub sign-in or Hermes credential is sent to GitHub. These public requests reveal the usual network metadata to GitHub and are independent of Demo mode.
 

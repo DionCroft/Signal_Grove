@@ -2,7 +2,7 @@
 
 The latest 1.x community release is maintained. Earlier development releases are superseded. This client can reach a powerful agent; it is not a sandbox for server tools.
 
-Report vulnerabilities privately through [GitHub private reporting](https://github.com/DionCroft/hermes-agent-android/security/advisories/new), which is enabled for this repository. Never disclose tokens, private hosts/transcripts or exploit details in a public issue. If GitHub reporting is unavailable, open a minimal request for a private contact channel without sensitive details.
+Report vulnerabilities privately through [GitHub private reporting](https://github.com/DionCroft/Signal_Grove/security/advisories/new), which is enabled for this repository. Never disclose tokens, private hosts/transcripts or exploit details in a public issue. If GitHub reporting is unavailable, open a minimal request for a private contact channel without sensitive details.
 
 Production traffic requires trusted HTTPS. Debug-only HTTP requires explicit opt-in. TLS validation is never bypassed, redirects and automatic transport retries are disabled, and path identifiers cannot escape the configured profile prefix. URL, token and debug policy are stored together in an atomically replaced AES-GCM payload backed by Android Keystore. Workers never combine separately read URL/token stores. Tokens never enter DataStore, Room, saved instance state or application logs. Room data and task exports are not additionally encrypted. Device backups and transfer are excluded.
 

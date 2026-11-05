@@ -1,6 +1,6 @@
 # Browser cookie-write authentication review — 4 November 2026
 
-The Signal Grove rebrand's first compatibility gate ([41908359893](https://github.com/DionCroft/hermes-agent-android/actions/runs/41908359893), upstream job **126849057286**) passed stable inspection but failed main inspection. The retained report requests review of exactly one used handler: `auth_middleware:gated_auth_middleware`. This is a real source-drift failure; it is not treated as a transient error or retried without review.
+The Signal Grove rebrand's first compatibility gate ([41908359893](https://github.com/DionCroft/Signal_Grove/actions/runs/41908359893), upstream job **126849057286**) passed stable inspection but failed main inspection. The retained report requests review of exactly one used handler: `auth_middleware:gated_auth_middleware`. This is a real source-drift failure; it is not treated as a transient error or retried without review.
 
 Reviewed pinned upstream source: [`hermes_cli/dashboard_auth/middleware.py` at 0073fa9](https://github.com/NousResearch/hermes-agent/blob/0073fa98cfcf61c066a919df4b336924720f8463/hermes_cli/dashboard_auth/middleware.py), compared with the original baseline **f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab**. Both UTF-8 files were verified against their fresh official GitHub file/blob identities and inspected as source/AST only; no upstream code was imported or executed.
 

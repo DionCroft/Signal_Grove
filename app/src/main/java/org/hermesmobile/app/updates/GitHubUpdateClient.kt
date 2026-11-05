@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 /** Public GitHub only. No Hermes/GitHub credentials, cookies or backend HTTP client are used. */
 class GitHubUpdateClient(private val policy:UpdateEndpointPolicy=OfficialUpdateEndpoints,private val http:OkHttpClient=OkHttpClient.Builder().connectTimeout(15,TimeUnit.SECONDS).readTimeout(30,TimeUnit.SECONDS).callTimeout(300,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).cookieJar(CookieJar.NO_COOKIES).build()) {
     private suspend fun response(url:HttpUrl,accept:String):Pair<Call,Response> {
-        val request=Request.Builder().url(url).header("Accept",accept).header("User-Agent","Hermes-Agent-Mobile-Updater").apply {if(url.host=="api.github.com") header("X-GitHub-Api-Version","2026-03-10")}.build()
+        val request=Request.Builder().url(url).header("Accept",accept).header("User-Agent","Signal-Grove-Updater").apply {if(url.host=="api.github.com") header("X-GitHub-Api-Version","2026-03-10")}.build()
         val call=http.newCall(request)
         return suspendCancellableCoroutine {continuation->
             continuation.invokeOnCancellation {call.cancel()}

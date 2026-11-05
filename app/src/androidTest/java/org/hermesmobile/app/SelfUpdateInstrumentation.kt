@@ -33,7 +33,7 @@ class SelfUpdateInstrumentation:Instrumentation() {
     private fun candidate(file:File,version:String):AppRelease {
         val digest=MessageDigest.getInstance("SHA-256");file.inputStream().use {input->val b=ByteArray(32768);while(true) {val n=input.read(b);if(n<0) break;digest.update(b,0,n)}}
         val sha=digest.digest().joinToString("") {"%02x".format(it)};val name="hermes-agent-mobile-$version-debug.apk"
-        return AppRelease(900,"v$version",AppVersion.parse(version)!!,"Owned emulator upgrade fixture",name,"https://github.com/DionCroft/hermes-agent-android/releases/download/v$version/$name".toHttpUrl(),file.length(),sha,true)
+        return AppRelease(900,"v$version",AppVersion.parse(version)!!,"Owned emulator upgrade fixture",name,"https://github.com/DionCroft/Signal_Grove/releases/download/v$version/$name".toHttpUrl(),file.length(),sha,true)
     }
     private fun textNode(text:String):AccessibilityNodeInfo? {
         // Compose virtual nodes need a tree walk; platform find-by-text is optional on virtual providers.

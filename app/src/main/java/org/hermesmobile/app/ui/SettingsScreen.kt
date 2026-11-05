@@ -75,7 +75,7 @@ import org.hermesmobile.app.BuildConfig
             Word(Words.About)
             Text(label(Words.AboutBody).replace("{version}",BuildConfig.VERSION_NAME),style=MaterialTheme.typography.bodySmall)
             Text(label(Words.Security),style=MaterialTheme.typography.bodySmall)
-            TextButton({uri.openUri("https://github.com/DionCroft/hermes-agent-android")}) {Text(label(Words.Github))}
+            TextButton({uri.openUri("https://github.com/DionCroft/Signal_Grove")}) {Text(label(Words.Github))}
             TextButton({licences=true}) {Text(label(Words.Licences))}
             TextButton({clear=true},enabled=!busy) {Text(label(Words.ClearChats))}
         }

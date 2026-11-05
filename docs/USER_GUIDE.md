@@ -1,12 +1,12 @@
 # Using Signal Grove
 
-The latest published stable release is 1.0.0. The current Signal Grove preview is `1.1.0-beta.3`; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for the retained package and update-feed identities.
+The latest published stable release is 1.0.0. The current Signal Grove preview is `1.1.0-beta.3`; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Unreleased source builds are `1.1.0-beta.4` (code 105).
 
 ## Install and migrate
 
-The `1.1.0-beta.1` preview adds the pixel interface and approved in-app updates. Install that preview once from its GitHub release to get the updater; 1.0.0 cannot check for updates itself. For later versions, open **Settings → App updates**, review the release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
+The `1.1.0-beta.1` preview adds the pixel interface and approved in-app updates. Install that preview once from its GitHub release to get the updater; 1.0.0 cannot check for updates itself. After the repository rename, previews through beta.3 need one matching signed APK upgrade when beta.4 or later is published. Install over the existing package with the original signer; do not uninstall. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
 
-Get `hermes-agent-mobile-1.0.0.apk` from the [community release](https://github.com/DionCroft/hermes-agent-android/releases/tag/v1.0.0). Verify its SHA-256 and signer against the release record before installing. Android may ask you to allow installation from your browser/file manager. This is a GitHub-distributed APK, not a Play Store listing.
+Get `hermes-agent-mobile-1.0.0.apk` from the [community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). Verify its SHA-256 and signer against the release record before installing. Android may ask you to allow installation from your browser/file manager. This is a GitHub-distributed APK, not a Play Store listing.
 
 The production package is `org.hermesmobile.app`. Earlier development APKs use `org.hermesmobile.app.debug`; both may coexist. To retain the development app's data, install the separately supplied `1.0.0-debug` upgrade. To move local tasks to production, first update the debug app to 1.0.0, then Settings → Export tasks, install/open production, and Settings → Import tasks. Review the count and confirm. Matching task IDs are replaced; unlisted tasks remain. Reimporting the same file does not duplicate IDs.
 
@@ -86,7 +86,7 @@ On Android 17, Settings includes **Allow local network access** for LAN or priva
 
 Settings offers Starhaven Grove, Lavender, Jade, Solar and Mint independently of connectivity, Chinese and accented pinyin switches, reduced motion and system font scaling. New installations start in Starhaven Grove; your saved palette remains selected after upgrading. Pixel scenery uses physical-pixel edges and a gentle eight-frame-per-second clock, read only while drawing. Scenery and decorative loading motion pause while the app is backgrounded; both app reduced motion and Android’s disabled-animations setting suppress decorative motion. Stepped progress bars retain native accessibility values, including exact download progress. Wide displays use a navigation rail. No bundled fonts, telemetry, advertisements or analytics are included. App-private Room storage and image/request files are not database/file encryption; backups/transfer are disabled. Explicit clipboard, speech services and exported task files leave that private storage boundary.
 
-For bugs, use the issue templates with app/Android/Hermes versions and a synthetic reproduction. Never attach credentials or private transcripts. For security issues use [private reporting](https://github.com/DionCroft/hermes-agent-android/security/advisories/new). See [validation](VALIDATION.md) for exactly what was tested and what requires your hardware/server.
+For bugs, use the issue templates with app/Android/Hermes versions and a synthetic reproduction. Never attach credentials or private transcripts. For security issues use [private reporting](https://github.com/DionCroft/Signal_Grove/security/advisories/new). See [validation](VALIDATION.md) for exactly what was tested and what requires your hardware/server.
 
 ## Saved connections and token rotation
 

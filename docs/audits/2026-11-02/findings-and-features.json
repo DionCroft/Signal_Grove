@@ -372,7 +372,7 @@
       "required_work": "No push/device registration contract here. Add exact conversation/profile routing and job/goal events through a deliberate authenticated bridge; test background/reboot/OEM behavior.",
       "priority": "1.2",
       "source_path": "app/src/main/java/org/hermesmobile/app/background/BackgroundChecks.kt",
-      "source_url": "https://github.com/DionCroft/hermes-agent-android/blob/50030c00034d2c496a2c4b57c821e4f1b0de1d7b/app/src/main/java/org/hermesmobile/app/background/BackgroundChecks.kt"
+      "source_url": "https://github.com/DionCroft/Signal_Grove/blob/50030c00034d2c496a2c4b57c821e4f1b0de1d7b/app/src/main/java/org/hermesmobile/app/background/BackgroundChecks.kt"
     },
     {
       "feature": "Named connections and token rotation UX",
@@ -381,7 +381,7 @@
       "required_work": "Atomic vault pairing exists. Add encrypted named profiles, explicit routing and tested rotation/cache policies after fixing context isolation.",
       "priority": "1.1/1.2",
       "source_path": "app/src/main/java/org/hermesmobile/app/data/Preferences.kt",
-      "source_url": "https://github.com/DionCroft/hermes-agent-android/blob/50030c00034d2c496a2c4b57c821e4f1b0de1d7b/app/src/main/java/org/hermesmobile/app/data/Preferences.kt"
+      "source_url": "https://github.com/DionCroft/Signal_Grove/blob/50030c00034d2c496a2c4b57c821e4f1b0de1d7b/app/src/main/java/org/hermesmobile/app/data/Preferences.kt"
     },
     {
       "feature": "Plugins/catalog and provider extensions",

@@ -38,9 +38,9 @@ interface UpdateEndpointPolicy {
     fun redirect(url:HttpUrl):Boolean
 }
 object OfficialUpdateEndpoints:UpdateEndpointPolicy {
-    const val REPO="DionCroft/hermes-agent-android"
+    const val REPO="DionCroft/Signal_Grove"
     override fun metadata(previews:Boolean)=("https://api.github.com/repos/$REPO/releases"+if(previews) "?per_page=20" else "/latest").toHttpUrl()
-    override fun asset(url:HttpUrl,tag:String,name:String)=url.scheme=="https" && url.host=="github.com" && url.port==443 && url.username.isEmpty() && url.password.isEmpty() && url.query==null && url.fragment==null && url.pathSegments==listOf("DionCroft","hermes-agent-android","releases","download",tag,name)
+    override fun asset(url:HttpUrl,tag:String,name:String)=url.scheme=="https" && url.host=="github.com" && url.port==443 && url.username.isEmpty() && url.password.isEmpty() && url.query==null && url.fragment==null && url.pathSegments==listOf("DionCroft","Signal_Grove","releases","download",tag,name)
     override fun redirect(url:HttpUrl)=url.scheme=="https" && url.port==443 && url.username.isEmpty() && url.password.isEmpty() && url.fragment==null && url.host in setOf("github.com","release-assets.githubusercontent.com","objects.githubusercontent.com","github-releases.githubusercontent.com")
 }
 class AppRelease(val id:Long,val tag:String,val version:AppVersion,val notes:String,val assetName:String?,val assetUrl:HttpUrl?,val bytes:Long?,val sha256:String?,val previews:Boolean) {

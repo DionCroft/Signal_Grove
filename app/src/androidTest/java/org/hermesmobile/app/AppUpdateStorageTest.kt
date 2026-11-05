@@ -18,7 +18,7 @@ class AppUpdateStorageTest {
     private fun candidate(file:File,name:String=BuildConfig.VERSION_NAME):AppRelease {
         val sha=file.inputStream().use {input->val digest=MessageDigest.getInstance("SHA-256");val b=ByteArray(32768);while(true) {val n=input.read(b);if(n<0) break;digest.update(b,0,n)};digest.digest().joinToString("") {"%02x".format(it)}}
         val asset="hermes-agent-mobile-$name-debug.apk"
-        return AppRelease(111,"v$name",AppVersion.parse(name)!!,"fixture",asset,"https://github.com/DionCroft/hermes-agent-android/releases/download/v$name/$asset".toHttpUrl(),file.length(),sha,true)
+        return AppRelease(111,"v$name",AppVersion.parse(name)!!,"fixture",asset,"https://github.com/DionCroft/Signal_Grove/releases/download/v$name/$asset".toHttpUrl(),file.length(),sha,true)
     }
     private fun ownApk()=File(context.applicationInfo.sourceDir).copyTo(File(fixture.folder,"fixture.apk"))
     @Test fun availableNoticeSurvivesRepositoryRestartButNotChannelChangeOrInstalledVersion() {

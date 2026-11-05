@@ -31,9 +31,9 @@ class AppUpdateFlowTest {
         MockWebServer().use {server->
             val downloads=AtomicInteger();val metadata=AtomicInteger();val entered=CountDownLatch(1);val release=CountDownLatch(1)
             val apk="invalid-APK-fixture".toByteArray();val digest=java.security.MessageDigest.getInstance("SHA-256").digest(apk).joinToString("") {"%02x".format(it)}
-            val payload=buildJsonObject {put("id",500);put("tag_name","v1.2.0");put("draft",false);put("prerelease",false);put("body","Fixture release notes");put("assets",buildJsonArray {add(buildJsonObject {put("name","hermes-agent-mobile-1.2.0-debug.apk");put("state","uploaded");put("size",apk.size);put("digest",if(mode=="missing") JsonNull else JsonPrimitive("sha256:$digest"));put("browser_download_url","https://github.com/DionCroft/hermes-agent-android/releases/download/v1.2.0/hermes-agent-mobile-1.2.0-debug.apk")})})}
+            val payload=buildJsonObject {put("id",500);put("tag_name","v1.2.0");put("draft",false);put("prerelease",false);put("body","Fixture release notes");put("assets",buildJsonArray {add(buildJsonObject {put("name","hermes-agent-mobile-1.2.0-debug.apk");put("state","uploaded");put("size",apk.size);put("digest",if(mode=="missing") JsonNull else JsonPrimitive("sha256:$digest"));put("browser_download_url","https://github.com/DionCroft/Signal_Grove/releases/download/v1.2.0/hermes-agent-mobile-1.2.0-debug.apk")})})}
             server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {
-                assertNull(q.getHeader("Authorization"));assertNull(q.getHeader("Cookie"));assertNull(q.getHeader("Origin"))
+                assertNull(q.getHeader("Authorization"));assertNull(q.getHeader("Cookie"));assertNull(q.getHeader("Origin"));assertEquals("Signal-Grove-Updater",q.getHeader("User-Agent"))
                 return if(q.path.orEmpty().startsWith("/repos/")) {metadata.incrementAndGet();MockResponse().setHeader("Content-Type","application/json").setBody(payload.toString())}
                 else {downloads.incrementAndGet();if(mode=="cancel") {entered.countDown();release.await(10,TimeUnit.SECONDS)};MockResponse().setBody(okio.Buffer().write(if(mode=="integrity") "changed-APK-fixture".toByteArray() else apk))}
             }}
@@ -48,6 +48,7 @@ class AppUpdateFlowTest {
                 compose.waitUntil(5000) {vm.state.value.phase==UpdatePhase.Idle};assertEquals(0,downloads.get());compose.onNodeWithTag("update-check").performScrollTo().performClick();compose.waitUntil(10000) {vm.state.value.phase==UpdatePhase.Available};assertEquals(1,metadata.get());assertEquals(0,downloads.get())
                 if(mode=="missing") {compose.onNodeWithTag("update-review-open").performScrollTo().assertIsNotEnabled();return@use}
                 compose.onNodeWithTag("update-review-open").performScrollTo().performClick();compose.onNodeWithTag("update-review-cancel").performClick();assertEquals(0,downloads.get());compose.onNodeWithTag("update-review-open").performScrollTo().performClick()
+                compose.onNodeWithText("DionCroft/Signal_Grove").performScrollTo().assertIsDisplayed()
                 val shot=File(compose.activity.getExternalFilesDir(null),"qa/app-update-$mode-review.png");shot.parentFile!!.mkdirs();shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
                 compose.onNodeWithTag("update-download-confirm").performClick()
                 if(mode=="cancel") {compose.waitUntil(10000) {entered.count==0L};compose.onNodeWithTag("update-cancel").performScrollTo().performClick();release.countDown();compose.waitUntil(10000) {vm.state.value.phase==UpdatePhase.Available};assertNull(vm.state.value.ready);assertFalse(vm.state.value.installRequested);return@use}

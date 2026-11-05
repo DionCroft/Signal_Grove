@@ -18,7 +18,7 @@ class AppUpdateTest {
     private val sha=MessageDigest.getInstance("SHA-256").digest(body).joinToString("") {"%02x".format(it)}
     private fun asset(debug:Boolean=false,change:Map<String,JsonElement> = emptyMap()):JsonObject {
         val name="hermes-agent-mobile-1.2.0"+(if(debug) "-debug" else "")+".apk"
-        return JsonObject(buildJsonObject {put("name",name);put("state","uploaded");put("size",body.size);put("digest","sha256:$sha");put("browser_download_url","https://github.com/DionCroft/hermes-agent-android/releases/download/v1.2.0/$name")}+change)
+        return JsonObject(buildJsonObject {put("name",name);put("state","uploaded");put("size",body.size);put("digest","sha256:$sha");put("browser_download_url","https://github.com/DionCroft/Signal_Grove/releases/download/v1.2.0/$name")}+change)
     }
     private fun release(assets:List<JsonObject> = listOf(asset()),tag:String="v1.2.0",preview:Boolean=false,draft:Boolean=false)=buildJsonObject {put("id",200);put("tag_name",tag);put("draft",draft);put("prerelease",preview);put("body","Fixture notes");put("assets",JsonArray(assets))}
     private fun candidate(j:JsonElement=release(),debug:Boolean=false,preview:Boolean=false)=AppRelease.select(j,version("1.1.0-beta.1"),debug,preview)
@@ -29,18 +29,49 @@ class AppUpdateTest {
     @Test fun previewChannelNeedsExplicitSelectionIncludingMislabelledPreviewTags() {assertNull(candidate(release(tag="v1.3.0-beta.1",preview=true)));assertNull(candidate(release(tag="v1.3.0-beta.1",preview=false)));assertNotNull(candidate(release(tag="v1.3.0-beta.1",preview=true),preview=true))}
     @Test fun productionAndDebugAssetsNeverCrossVariants() {val j=release(listOf(asset(),asset(true)));assertEquals("hermes-agent-mobile-1.2.0.apk",candidate(j)!!.assetName);assertEquals("hermes-agent-mobile-1.2.0-debug.apk",candidate(j,true)!!.assetName);assertFalse(candidate(release(listOf(asset(true))))!!.downloadable)}
     @Test fun missingInvalidDigestOrSizeCannotEnableDownload() {for(change in listOf(mapOf("digest" to JsonNull),mapOf("digest" to JsonPrimitive("sha256:bad")),mapOf("size" to JsonPrimitive(0)),mapOf("size" to JsonPrimitive(AppRelease.MAX_APK_BYTES+1)),mapOf("size" to JsonPrimitive("42")),mapOf("state" to JsonPrimitive("new")))) assertFalse(candidate(release(listOf(asset(change=change))))!!.downloadable)}
-    @Test fun duplicatesAndUntrustedAssetDestinationsAreUnavailableWithoutDowngradingReport() {for(url in listOf("http://github.com/DionCroft/hermes-agent-android/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk","https://github.com.evil.test/DionCroft/hermes-agent-android/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk","https://github.com/other/repo/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk","https://github.com/DionCroft/hermes-agent-android/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk?token=x")) {val c=candidate(release(listOf(asset(change=mapOf("browser_download_url" to JsonPrimitive(url))))))!!;assertEquals("1.2.0",c.version.text);assertFalse(c.downloadable)};assertFalse(candidate(release(listOf(asset(),asset())))!!.downloadable)}
+    @Test fun duplicatesAndUntrustedAssetDestinationsAreUnavailableWithoutDowngradingReport() {for(url in listOf("http://github.com/DionCroft/Signal_Grove/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk","https://github.com.evil.test/DionCroft/Signal_Grove/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk","https://github.com/other/repo/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk","https://github.com/DionCroft/Signal_Grove/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk?token=x")) {val c=candidate(release(listOf(asset(change=mapOf("browser_download_url" to JsonPrimitive(url))))))!!;assertEquals("1.2.0",c.version.text);assertFalse(c.downloadable)};assertFalse(candidate(release(listOf(asset(),asset())))!!.downloadable)}
     @Test fun highestVersionWinsInsteadOfArrayOrderAndMissingAssetsDoNotHideARelease() {val newest=release(emptyList(),tag="v1.4.0");val c=candidate(JsonArray(listOf(newest,release())))!!;assertEquals("1.4.0",c.version.text);assertFalse(c.downloadable)}
     @Test fun frozenPublicMetadataRestoresOnlyTheExpectedVariantAndRepository() {val original=candidate()!!;val restored=AppRelease.restore(original.json(),false);assertEquals(original.key,restored.key);assertTrue(restored.downloadable);assertTrue(runCatching {AppRelease.restore(original.json(),true)}.isFailure);assertTrue(runCatching {AppRelease.restore(JsonObject(original.json()+mapOf("asset_url" to JsonPrimitive("https://evil.test/update.apk"))),false)}.isFailure)}
     @Test fun unavailableAssetMetadataRetainsANoticeWithoutBecomingDownloadable() {val release=candidate(release(emptyList()))!!;val restored=AppRelease.restore(release.json(),false);assertEquals(release.key,restored.key);assertFalse(restored.downloadable);assertTrue(runCatching {AppRelease.restore(JsonObject(release.json()+mapOf("sha256" to JsonPrimitive(sha))),false)}.isFailure)}
     @Test fun strictRedirectsRejectPlaintextCredentialsLookalikesAndFragments() {for(url in listOf("http://release-assets.githubusercontent.com/a","https://release-assets.githubusercontent.com.evil.test/a","https://user:pass@github.com/a","https://github.com/a#fragment","https://example.com/a")) assertFalse(url,OfficialUpdateEndpoints.redirect(url.toHttpUrl()));assertTrue(OfficialUpdateEndpoints.redirect("https://release-assets.githubusercontent.com/a?signature=fixture".toHttpUrl()))}
     @Test fun workGuardKeepsOtherOwnersBusyAndNeverUnderflows() {val guard=UpdateWorkGuard();val a=Any();val b=Any();guard.set(a,true);guard.set(b,true);guard.set(a,false);assertTrue(guard.active.value);guard.set(a,false);assertTrue(guard.active.value);guard.set(b,false);assertFalse(guard.active.value)}
+    @Test fun canonicalFeedKeepsLegacyAssetNamesAndExactReleaseDestinations() {
+        assertEquals("DionCroft/Signal_Grove",OfficialUpdateEndpoints.REPO)
+        assertEquals("https://api.github.com/repos/DionCroft/Signal_Grove/releases/latest",OfficialUpdateEndpoints.metadata(false).toString())
+        assertEquals("https://api.github.com/repos/DionCroft/Signal_Grove/releases?per_page=20",OfficialUpdateEndpoints.metadata(true).toString())
+        val release=candidate()!!;assertTrue(release.downloadable)
+        assertEquals("hermes-agent-mobile-1.2.0.apk",release.assetName)
+        assertEquals("https://github.com/DionCroft/Signal_Grove/releases/tag/v1.2.0",release.page)
+    }
+    @Test fun formerRepositoryAssetsAndCachedMetadataCannotSilentlyCrossTheNewFeedBoundary() {
+        val old="https://github.com/DionCroft/hermes-agent-android/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk"
+        assertFalse(OfficialUpdateEndpoints.asset(old.toHttpUrl(),"v1.2.0","hermes-agent-mobile-1.2.0.apk"))
+        val notice=candidate(release(listOf(asset(change=mapOf("browser_download_url" to JsonPrimitive(old))))))!!
+        assertEquals("1.2.0",notice.version.text);assertFalse(notice.downloadable)
+        val saved=candidate()!!.json()
+        assertTrue(runCatching {AppRelease.restore(JsonObject(saved+mapOf("asset_url" to JsonPrimitive(old))),false)}.isFailure)
+    }
+    @Test fun canonicalApiAddressAndSignalGroveBrandAreUsedBeforeFixtureMapping()=runBlocking {
+        MockWebServer().use {server->
+            server.enqueue(MockResponse().setHeader("Content-Type","application/json").setBody(release().toString()))
+            val captured=java.util.concurrent.atomic.AtomicReference<Request>()
+            val http=OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).addInterceptor {chain->
+                val request=chain.request();captured.set(request)
+                chain.proceed(request.newBuilder().url(server.url("/fixture-feed")).build())
+            }.build()
+            val result=GitHubUpdateClient(http=http).check(version("1.1.0-beta.4"),false,false)
+            assertTrue(result!!.downloadable);assertEquals(1,server.requestCount)
+            val request=captured.get();assertEquals("https://api.github.com/repos/DionCroft/Signal_Grove/releases/latest",request.url.toString())
+            assertEquals("Signal-Grove-Updater",request.header("User-Agent"));assertEquals("2026-03-10",request.header("X-GitHub-Api-Version"))
+            assertNull(request.header("Authorization"));assertNull(request.header("Cookie"));assertNull(request.header("Origin"))
+        }
+    }
     private fun exercise(mode:String)=runBlocking {
         MockWebServer().use {server->
             val requests=AtomicInteger()
             server.dispatcher=object:okhttp3.mockwebserver.Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse {
-                requests.incrementAndGet();assertNull(request.getHeader("Authorization"));assertNull(request.getHeader("Cookie"));assertNull(request.getHeader("Origin"));assertEquals("GET",request.method)
-                if(request.path=="/repos/DionCroft/hermes-agent-android/releases/latest") return when(mode) {"rate"->MockResponse().setResponseCode(403);"html"->MockResponse().setBody("not-json");"metadata-redirect"->MockResponse().setResponseCode(302).setHeader("Location","https://evil.test");else->MockResponse().setHeader("Content-Type","application/json").setBody(release().toString())}
+                requests.incrementAndGet();assertNull(request.getHeader("Authorization"));assertNull(request.getHeader("Cookie"));assertNull(request.getHeader("Origin"));assertEquals("GET",request.method);assertEquals("Signal-Grove-Updater",request.getHeader("User-Agent"))
+                if(request.path=="/repos/DionCroft/Signal_Grove/releases/latest") return when(mode) {"rate"->MockResponse().setResponseCode(403);"html"->MockResponse().setBody("not-json");"metadata-redirect"->MockResponse().setResponseCode(302).setHeader("Location","https://evil.test");else->MockResponse().setHeader("Content-Type","application/json").setBody(release().toString())}
                 if(request.path.orEmpty().startsWith("/DionCroft/")) return when(mode) {"bad-redirect"->MockResponse().setResponseCode(302).setHeader("Location","https://evil.test/update.apk");"plain-redirect"->MockResponse().setResponseCode(302).setHeader("Location","http://github.com/update.apk");"loop"->MockResponse().setResponseCode(302).setHeader("Location","https://github.com"+request.path);"redirect"->MockResponse().setResponseCode(302).setHeader("Location","https://release-assets.githubusercontent.com/fixture");"wrong"->MockResponse().setBody("changed-apk-content");"short"->MockResponse().setBody("x");"http"->MockResponse().setResponseCode(500);else->MockResponse().setBody(okio.Buffer().write(body))}
                 if(request.path=="/fixture") return MockResponse().setBody(okio.Buffer().write(body))
                 return MockResponse().setResponseCode(404)
@@ -63,7 +94,7 @@ class AppUpdateTest {
             val bytes=ByteArray(64*1024) {7};val digest=MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {"%02x".format(it)}
             server.enqueue(MockResponse().setBody(okio.Buffer().write(bytes)).throttleBody(1024,10,java.util.concurrent.TimeUnit.SECONDS))
             val http=OkHttpClient.Builder().addInterceptor {chain->chain.proceed(chain.request().newBuilder().url(server.url("/fixture.apk")).build())}.build()
-            val release=AppRelease(1,"v1.2.0",version("1.2.0"),"fixture","hermes-agent-mobile-1.2.0.apk","https://github.com/DionCroft/hermes-agent-android/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk".toHttpUrl(),bytes.size.toLong(),digest,false)
+            val release=AppRelease(1,"v1.2.0",version("1.2.0"),"fixture","hermes-agent-mobile-1.2.0.apk","https://github.com/DionCroft/Signal_Grove/releases/download/v1.2.0/hermes-agent-mobile-1.2.0.apk".toHttpUrl(),bytes.size.toLong(),digest,false)
             val file=File.createTempFile("hermes-update-cancel-",".apk");val entered=java.util.concurrent.CountDownLatch(1)
             val job=launch {runCatching {GitHubUpdateClient(http=http).download(release,file) {_,_->entered.countDown()}}}
             withContext(Dispatchers.IO) {assertTrue(entered.await(5,java.util.concurrent.TimeUnit.SECONDS))}

@@ -6,17 +6,20 @@ Use **Signal Grove** in app labels, headings, notifications, help, screenshots a
 
 ## Existing installations and update compatibility
 
-The product rename preserves the following technical identities so existing data, logins, widgets, backups and approved updates continue to work:
+Signal Grove retains its installation identities. The source and update-feed address follows the renamed repository:
 
-| Identity | Compatibility value |
+| Identity | Current value |
 | --- | --- |
 | Production Android package | `org.hermesmobile.app` |
 | Development Android package | `org.hermesmobile.app.debug` |
-| Source and update-feed address | `DionCroft/hermes-agent-android` |
+| Source and update-feed address | `DionCroft/Signal_Grove` |
 | Public APK asset names | `hermes-agent-mobile-VERSION.apk` and `hermes-agent-mobile-VERSION-debug.apk` |
 | Task-backup format marker | `hermes-mobile-tasks`, version 1 |
 | Private database, keys and durable request scopes | Existing names and values |
 
-The older updater verifies the exact repository path and APK asset names. Renaming that feed immediately would prevent those installed clients from discovering a normal upgrade. Repository links therefore use the existing compatibility address while their displayed product name is Signal Grove. No new Android package or replacement signing key is created.
+The repository is now **DionCroft/Signal_Grove**, retaining GitHub repository ID **1442319827**. New development builds (`1.1.0-beta.4`, code 105) check that canonical feed and accept assets only from its exact release paths. Public APK filenames remain unchanged. No new Android package or replacement signing key is created.
+
+Published previews through `1.1.0-beta.3` contain the former `DionCroft/hermes-agent-android` feed and require HTTP 200 metadata plus the former exact asset path. GitHub now redirects that address. A repository rename cannot replace code inside those installed APKs: they need one matching signed APK upgrade when `1.1.0-beta.4` or later is published. Install over the existing app with the original signer; private data and Keystore credentials stay with the same package. Later in-app checks use the canonical feed. GitHub's existing repository redirects remain in place.
+
 
 Historical releases, source snapshots, signing-certificate subjects, protocol strings and upstream Hermes references retain their actual identities. The original contributor attribution remains an explicit former-name alias. These identifiers are compatibility/evidence records, not the current display brand.
