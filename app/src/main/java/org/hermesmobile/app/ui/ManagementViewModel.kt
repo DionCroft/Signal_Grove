@@ -137,15 +137,18 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private val operations=ManagementOperationsRepository(app.database.dao(),app.managementReady)
     fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,baseUrl(s).toString(),s.profile,"scope").resourceScope}.getOrDefault("")
     private fun dashboardUrl(s:ManagementState)=runCatching {baseUrl(s).toString()}.getOrDefault("")
-    fun visibleReceipts(s:ManagementState,rows:List<ManagementOperation>)=ManagementReceiptVisibility.project(rows,s.apiScope,resourceScope(s),dashboardUrl(s))
-    val receipts=state.map {Triple(resourceScope(it),it.apiScope,dashboardUrl(it))}.distinctUntilChanged().flatMapLatest {(scope,apiScope,url)->
-        if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementVisibleResourceOperations(scope,apiScope,url).map {ManagementReceiptVisibility.project(it,apiScope,scope,url)}
+    fun projectReceiptHome(s:ManagementState):String=if(s.identity==null || !GatewayCronInventory.supportedProfile(s.profile)) "" else s.profiles.singleOrNull {it.name==s.profile}?.pluginHome?.identity().orEmpty()
+    fun visibleReceipts(s:ManagementState,rows:List<ManagementOperation>)=ManagementReceiptVisibility.project(rows,s.apiScope,resourceScope(s),dashboardUrl(s),projectReceiptHome(s))
+    private data class ReceiptScope(val resource:String,val api:String,val url:String,val projectHome:String)
+    val receipts=state.map {ReceiptScope(resourceScope(it),it.apiScope,dashboardUrl(it),projectReceiptHome(it))}.distinctUntilChanged().flatMapLatest {(scope,apiScope,url,home)->
+        if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementVisibleResourceOperations(scope,apiScope,url,home).map {ManagementReceiptVisibility.project(it,apiScope,scope,url,home)}
     }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     private var generation=0L
     private var work:Job?=null
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is HostProjectChangeChanged->Words.ManagementReviewChanged
         is HostProjectsScopeChanged->Words.HostProjectsScopeChanged
         is HostProjectsUnsupported->Words.HostProjectsUnsupported
         is CustomEndpointChanged->Words.ManagementReviewChanged
@@ -812,6 +815,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         }
     }
     private val projectReads=HostProjectsRepository()
+    private val projectChanges=HostProjectOperationsRepository(app.database.dao(),app.managementReady)
     private fun projectContext():Pair<ManagementTarget,String>? {
         val owner=runCatching {target()}.getOrNull() ?: return null
         if(!GatewayCronInventory.supportedProfile(owner.profile)) return null
@@ -1025,9 +1029,26 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val servers=McpProtocol.inventory(api.mcp(current,target.profile));val row=servers.singleOrNull {it.name==receipt.target}
         if(id==generation) state.value=state.value.copy(servers=servers,loaded=true,observation=ManagementObservation(key,receipt.target,row!=null,row?.enabled))
     }
-    fun reviewReceipt(key:String,expected:ManagementTarget) {
+    fun projectReceipt(key:String):ManagementOperation?=visibleReceipts(state.value,receipts.value).singleOrNull {it.key==key && it.apiScope==state.value.apiScope && HostProjectAction.receipt(it.action)}
+    fun prepareManagementUncertainty(key:String):ReviewedManagementUncertainty? {
+        val s=state.value
+        if(s.busy) return null
+        val owner=target() ?: return null
+        val row=visibleReceipts(s,receipts.value).singleOrNull {it.key==key && it.state=="unknown"} ?: return null
+        val project=row.projectHome.isNotBlank() || row.action==ManagementReceiptVisibility.SharedProjectPending || HostProjectAction.receipt(row.action)
+        val home=if(project) projectReceiptHome(s).takeIf {it.isNotBlank() && it==row.projectHome} ?: return null else ""
+        return ReviewedManagementUncertainty(key,owner,ManagementReceiptVisibility.instanceAction(row.action) || row.action==ManagementReceiptVisibility.SharedInstancePending,home)
+    }
+    fun managementUncertaintyCurrent(review:ReviewedManagementUncertainty)=prepareManagementUncertainty(review.key)==review
+    fun reviewReceipt(key:String,expected:ManagementTarget,expectedProjectHome:String="") {
         if(target()!=expected) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-        operation {operations.review(expected,key)}
+        val row=visibleReceipts(state.value,receipts.value).singleOrNull {it.key==key}
+        val project=row?.let {it.projectHome.isNotBlank() || it.action==ManagementReceiptVisibility.SharedProjectPending || HostProjectAction.receipt(it.action)}==true
+        if(project || expectedProjectHome.isNotBlank()) {
+            val frozen=ReviewedManagementUncertainty(key,expected,projectHome=expectedProjectHome)
+            if(!project || !managementUncertaintyCurrent(frozen)) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
+            operation {projectChanges.review(expected,expectedProjectHome,key,client(state.value),tokens ?: error("Sign in first."))}
+        } else operation {operations.review(expected,key)}
     }
     fun reviewTarget():ManagementTarget?=target()
     fun disconnect()=operation {id ->

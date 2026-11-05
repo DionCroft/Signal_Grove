@@ -229,10 +229,19 @@ The original copy is encrypted locally for at most 15 minutes according to the d
 Only exact documented pre-issuance refusals are recorded as no code issued. A lost, malformed or other failed creation response remains uncertain; the host may have issued a code. Do not assume a new code is safe to create from that state. A failed optional cache write or readback keeps the known acknowledgement and explains that the original copy is unavailable or needs verification. Local storage is bounded to 32 live copies per exact sign-in/profile and 128 total, with expiry cleanup and no silent eviction of live codes.
 
 
-### Host projects (unreleased source)
+### Host projects
 
 These read-only controls are included in the published 1.1.0-beta.4 preview. Open **Hermes management → Host projects**, then **Read stored projects**. Review the dashboard address, actor, profile and read effects before confirming. A verified supported profile with a reported host location is required. Opening or cancelling the review does not contact the project gateway.
 
 The list includes archived projects and reports an unmatched active-project pointer explicitly. Select **Refresh project details** for a fresh canonical-ID read. Folder paths and other metadata are selectable text; the phone does not open those host paths. Closing, cancelling or changing management scope clears the private project view. A remapped profile or unsupported result requires a fresh read.
 
-Project changes, Kanban controls and selecting a conversation's host working directory remain pending. Reading this inventory does not change an active project or existing conversation. [Scope and limits](MANAGEMENT.md#stored-host-projects-unreleased-source).
+Project changes, Kanban controls and selecting a conversation's host working directory remain pending. Reading this inventory does not change an active project or existing conversation. [Scope and limits](MANAGEMENT.md#stored-host-projects).
+
+
+### Project receipts (development source after beta.4)
+
+Project receipts in **Hermes management** show readable action names and distinguish a host acknowledgement, its reported effect and a separate matching configuration observation. Original names, descriptions and host paths are not saved in the receipt. **Read current configuration** opens the current profile's project screen; approve **Read stored projects** separately to contact the host. It never repeats the original change.
+
+An uncertain project change also guards other connections/profiles using the same reported project store at the same dashboard address. Their original private details stay hidden. **Review uncertainty** requires a fresh unchecked grant. Confirmation checks the selected sign-in and reported store location before marking only that local unknown receipt reviewed. It does not cancel, repeat or verify the host change. Inspect current projects before approving another change. Sending records and receipts from a different reported store cannot be released this way; changing the profile, actor, address or store invalidates the displayed confirmation. [Scope and limits](contracts/2026-11-05-project-receipt-review.md).
+
+This development receipt UI is subsequent to the published beta.4 APK. Project write forms and action approvals remain pending.

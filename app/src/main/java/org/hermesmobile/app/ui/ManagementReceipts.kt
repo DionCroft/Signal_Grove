@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
-fun mcpActionWord(action:String)=when(action) {"RelayLinkStart"->Words.RelayCodeCreate;"RelayUnlink"->Words.RelayUnlink;"ChannelSave"->Words.ChannelsSave;"ChannelPosture"->Words.ChannelsPosture;"CustomEndpointProbe"->Words.EndpointProbe;"CustomEndpointSave"->Words.CustomEndpointsSave;"CustomEndpointActivate"->Words.CustomEndpointsActivate;"CustomEndpointRemove"->Words.CustomEndpointsRemove;"FallbackConfig"->Words.HostFallback;"CredentialPoolAdd"->Words.CredentialPoolAdd;"CredentialPoolRemove"->Words.CredentialPoolRemove;"ProviderOAuthStart"->Words.ProviderOAuthStart;"ProviderOAuthCancel"->Words.ProviderOAuthCancel;"ProviderDisconnect"->Words.ProviderDisconnect;"MoaConfig"->Words.HostMoa;"AuxModel"->Words.HostAuxEdit;"MainModel"->Words.HostMainSet;"EnvEmpty"->Words.HostEnvEmpty;"EnvSave"->Words.HostEnvSave;"EnvRemove"->Words.HostEnvRemove;"PluginSettings"->Words.PluginSettingsEdit;"PluginUpdate"->Words.PluginUpdate;"PluginRemove"->Words.PluginRemove;"PluginEnable"->Words.PluginEnable;"PluginDisable"->Words.PluginDisable;"PluginInstall"->Words.PluginInstall;"HubRemove"->Words.SkillHubRemove;"HubUpdateAll"->Words.SkillHubUpdateAll;"HubInstall"->Words.SkillHubInstall;"GatewayCronPause"->Words.GatewayCronPause;"GatewayCronResume"->Words.GatewayCronResume;"GatewayCronDelete"->Words.GatewayCronDelete;"SkillToggle"->Words.SkillToggle;"SkillLock"->Words.SkillLockControl;"CronCreate"->Words.HostCronCreate;"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
+fun mcpActionWord(action:String)=when(action) {"ProjectCreate"->Words.ProjectCreate;"ProjectUpdate"->Words.ProjectUpdate;"ProjectAddFolder"->Words.ProjectAddFolder;"ProjectRemoveFolder"->Words.ProjectRemoveFolder;"ProjectSetPrimary"->Words.ProjectSetPrimary;"ProjectArchive"->Words.ProjectArchive;"ProjectRestore"->Words.ProjectRestore;"ProjectDelete"->Words.ProjectDelete;"ProjectSetActive"->Words.ProjectSetActive;"ProjectClearActive"->Words.ProjectClearActive;"RelayLinkStart"->Words.RelayCodeCreate;"RelayUnlink"->Words.RelayUnlink;"ChannelSave"->Words.ChannelsSave;"ChannelPosture"->Words.ChannelsPosture;"CustomEndpointProbe"->Words.EndpointProbe;"CustomEndpointSave"->Words.CustomEndpointsSave;"CustomEndpointActivate"->Words.CustomEndpointsActivate;"CustomEndpointRemove"->Words.CustomEndpointsRemove;"FallbackConfig"->Words.HostFallback;"CredentialPoolAdd"->Words.CredentialPoolAdd;"CredentialPoolRemove"->Words.CredentialPoolRemove;"ProviderOAuthStart"->Words.ProviderOAuthStart;"ProviderOAuthCancel"->Words.ProviderOAuthCancel;"ProviderDisconnect"->Words.ProviderDisconnect;"MoaConfig"->Words.HostMoa;"AuxModel"->Words.HostAuxEdit;"MainModel"->Words.HostMainSet;"EnvEmpty"->Words.HostEnvEmpty;"EnvSave"->Words.HostEnvSave;"EnvRemove"->Words.HostEnvRemove;"PluginSettings"->Words.PluginSettingsEdit;"PluginUpdate"->Words.PluginUpdate;"PluginRemove"->Words.PluginRemove;"PluginEnable"->Words.PluginEnable;"PluginDisable"->Words.PluginDisable;"PluginInstall"->Words.PluginInstall;"HubRemove"->Words.SkillHubRemove;"HubUpdateAll"->Words.SkillHubUpdateAll;"HubInstall"->Words.SkillHubInstall;"GatewayCronPause"->Words.GatewayCronPause;"GatewayCronResume"->Words.GatewayCronResume;"GatewayCronDelete"->Words.GatewayCronDelete;"SkillToggle"->Words.SkillToggle;"SkillLock"->Words.SkillLockControl;"CronCreate"->Words.HostCronCreate;"OAuthStart"->Words.McpOAuthStart;"OAuthCancel"->Words.McpOAuthCancel;"CatalogInstall"->Words.McpCatalogInstall;"Create"->Words.McpAdd;"Toggle"->Words.McpToggle;"Delete"->Words.McpRemove;"Probe"->Words.McpProbe;else->Words.Management}
 fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSending;"unknown"->Words.ManagementUncertain;"acknowledged"->Words.ManagementAcknowledged;"confirmed"->Words.ManagementVerified;"reviewed"->Words.ManagementReviewed;else->Words.Management}
 
 @Composable fun McpActionReview(review:ReviewedMcpAction,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
@@ -24,11 +24,11 @@ fun managementStateWord(state:String)=when(state) {"sending"->Words.ManagementSe
     },confirmButton={TextButton(confirm,enabled=enabled,modifier=Modifier.testTag("mcp-action-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton(close) {Text(label(Words.Cancel))}})
 }
 
-@Composable private fun managementReceiptTarget(receipt:ManagementOperation):String=if(receipt.action=="MoaConfig") label(Words.HostMoa) else if(receipt.action=="AuxModel") label(if(receipt.target=="__reset__") Words.HostAuxReset else if(receipt.target.isEmpty()) Words.HostAuxAll else Words.HostAuxEdit)+(if(receipt.target.isNotEmpty() && receipt.target!="__reset__") " · "+receipt.target else "") else receipt.target
+@Composable private fun managementReceiptTarget(receipt:ManagementOperation):String=if(HostProjectAction.receipt(receipt.action)) label(Words.HostProjects) else if(receipt.action=="MoaConfig") label(Words.HostMoa) else if(receipt.action=="AuxModel") label(if(receipt.target=="__reset__") Words.HostAuxReset else if(receipt.target.isEmpty()) Words.HostAuxAll else Words.HostAuxEdit)+(if(receipt.target.isNotEmpty() && receipt.target!="__reset__") " · "+receipt.target else "") else receipt.target
 
-data class ReviewedManagementUncertainty(val key:String,val target:ManagementTarget,val instance:Boolean=false)
+data class ReviewedManagementUncertainty(val key:String,val target:ManagementTarget,val instance:Boolean=false,val projectHome:String="")
 
-@Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null,openCredentialPool:(()->Unit)?=null,openFallback:(()->Unit)?=null,openCustomEndpoints:(()->Unit)?=null,openChannels:(()->Unit)?=null,openRelay:((String)->Unit)?=null,reviewShared:((String,ManagementTarget)->Unit)?=null) {
+@Composable fun ManagementReceiptCard(receipt:ManagementOperation,vm:ManagementViewModel?=null,s:ManagementState?=null,openCredentialPool:(()->Unit)?=null,openFallback:(()->Unit)?=null,openCustomEndpoints:(()->Unit)?=null,openChannels:(()->Unit)?=null,openRelay:((String)->Unit)?=null,reviewShared:((String,ManagementTarget)->Unit)?=null,openProjects:(()->Unit)?=null,inspectProject:((String)->Unit)?=null) {
     if(vm!=null && s!=null) {
         // Re-project even a stale raw row: sharing an inference credential does not share profile details.
         val visible=vm.visibleReceipts(s,listOf(receipt)).singleOrNull() ?: return
@@ -37,6 +37,7 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
             return
         }
     } else if(s!=null && receipt.apiScope!=s.apiScope) return
+    var projects by remember(receipt.key) {mutableStateOf(false)}
     var providers by remember(receipt.key) {mutableStateOf(false)}
     var moa by remember(receipt.key) {mutableStateOf(false)}
     var hostModels by remember(receipt.key) {mutableStateOf(false)}
@@ -46,7 +47,7 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
     var skills by remember(receipt.key) {mutableStateOf(false)}
     var cron by remember(receipt.key) {mutableStateOf(false)}
     var result by remember(receipt.key) {mutableStateOf(false)}
-    var review by remember(receipt.key) {mutableStateOf<ManagementTarget?>(null)}
+    var review by remember(receipt.key,s?.apiScope,s?.url,s?.profile,s?.identity,s?.let {vm?.projectReceiptHome(it)}) {mutableStateOf<ReviewedManagementUncertainty?>(null)}
     Column(Modifier.fillMaxWidth().testTag("management-receipt-${receipt.key}"),verticalArrangement=Arrangement.spacedBy(6.dp)) {
         Text(if(receipt.action in setOf("AuxModel","MoaConfig")) managementReceiptTarget(receipt) else label(mcpActionWord(receipt.action))+" · "+managementReceiptTarget(receipt),style=MaterialTheme.typography.titleSmall)
         Text(label(if(receipt.state=="acknowledged" && receipt.action=="PluginInstall") {if(runCatching {Json.parseToJsonElement(receipt.resultSummary).jsonObject["source_changed"]==JsonPrimitive(true)}.getOrDefault(false)) Words.PluginInstallSourceChanged else Words.PluginInstallReported} else if(receipt.state=="acknowledged" && receipt.action in setOf("HubRemove","HubUpdateAll")) Words.SkillHubMaintenanceAccepted else if(receipt.action=="HubInstall" && receipt.state=="acknowledged") Words.SkillHubInstallAccepted else managementStateWord(receipt.state)))
@@ -54,13 +55,15 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
         Text(label(Words.ManagementRequestedAt)+" "+java.time.Instant.ofEpochMilli(receipt.createdAt).toString(),style=MaterialTheme.typography.bodySmall)
         if(receipt.action in setOf("ProviderOAuthStart","ProviderOAuthCancel","ProviderDisconnect") && receipt.resultSummary.isNotBlank()) ProviderOAuthReceipt(receipt,vm,s)
         else if(receipt.action in setOf("OAuthStart","OAuthCancel") && receipt.resultSummary.isNotBlank()) McpOAuthReceipt(receipt,vm,s)
-        else if(receipt.resultSummary.isNotBlank()) TextButton({result=true},Modifier.testTag("management-result-${receipt.key}")) {Text(label(Words.ManagementResult))}
+        else if(receipt.resultSummary.isNotBlank()) TextButton({if(HostProjectAction.receipt(receipt.action) && inspectProject!=null) inspectProject(receipt.key) else result=true},Modifier.testTag("management-result-${receipt.key}")) {Text(label(Words.ManagementResult))}
         if(vm!=null && s!=null) {
             val enabled=!s.busy && s.identity!=null && vm.reviewTarget()!=null
-            if((receipt.action !in setOf("CredentialPoolAdd","CredentialPoolRemove") || openCredentialPool!=null) && (receipt.action!="FallbackConfig" || openFallback!=null) && (!receipt.action.startsWith("CustomEndpoint") || openCustomEndpoints!=null) && (!receipt.action.startsWith("Channel") || openChannels!=null) && (receipt.action !in setOf("RelayUnlink","RelayLinkStart") || openRelay!=null)) TextButton({if(receipt.action in setOf("RelayUnlink","RelayLinkStart")) {openRelay?.invoke(receipt.key)} else if(receipt.action.startsWith("Channel")) {openChannels?.invoke()} else if(receipt.action.startsWith("CustomEndpoint")) {openCustomEndpoints?.invoke()} else if(receipt.action=="FallbackConfig") {openFallback?.invoke()} else if(receipt.action in setOf("CredentialPoolAdd","CredentialPoolRemove")) {openCredentialPool?.invoke()} else if(receipt.action in setOf("ProviderOAuthStart","ProviderOAuthCancel","ProviderDisconnect")) {providers=true} else if(receipt.action=="MoaConfig") {moa=true} else if(receipt.action in setOf("MainModel","AuxModel")) {hostModels=true} else if(receipt.action in setOf("EnvSave","EnvEmpty","EnvRemove")) {environment=true} else if(receipt.action in setOf("PluginInstall","PluginEnable","PluginDisable","PluginRemove","PluginUpdate","PluginSettings")) {plugins=true} else if(receipt.action in setOf("GatewayCronPause","GatewayCronResume","GatewayCronDelete")) {gateway=true} else if(receipt.action in setOf("HubInstall","HubRemove","HubUpdateAll")) {skills=true;vm.observeHubReceipt(receipt.key)} else if(receipt.action in setOf("SkillToggle","SkillLock")) {skills=true;vm.observeSkillReceipt(receipt.key)} else if(receipt.action=="CronCreate") {cron=true;vm.observeCronReceipt(receipt.key)} else vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
-            if(receipt.state=="unknown") TextButton({review=vm.reviewTarget()},enabled=enabled,modifier=Modifier.testTag("management-review-${receipt.key}")) {Text(label(Words.ManagementReview))}
+            if((receipt.action !in setOf("CredentialPoolAdd","CredentialPoolRemove") || openCredentialPool!=null) && (receipt.action!="FallbackConfig" || openFallback!=null) && (!receipt.action.startsWith("CustomEndpoint") || openCustomEndpoints!=null) && (!receipt.action.startsWith("Channel") || openChannels!=null) && (receipt.action !in setOf("RelayUnlink","RelayLinkStart") || openRelay!=null)) TextButton({if(HostProjectAction.receipt(receipt.action)) {if(openProjects!=null) openProjects() else projects=true} else if(receipt.action in setOf("RelayUnlink","RelayLinkStart")) {openRelay?.invoke(receipt.key)} else if(receipt.action.startsWith("Channel")) {openChannels?.invoke()} else if(receipt.action.startsWith("CustomEndpoint")) {openCustomEndpoints?.invoke()} else if(receipt.action=="FallbackConfig") {openFallback?.invoke()} else if(receipt.action in setOf("CredentialPoolAdd","CredentialPoolRemove")) {openCredentialPool?.invoke()} else if(receipt.action in setOf("ProviderOAuthStart","ProviderOAuthCancel","ProviderDisconnect")) {providers=true} else if(receipt.action=="MoaConfig") {moa=true} else if(receipt.action in setOf("MainModel","AuxModel")) {hostModels=true} else if(receipt.action in setOf("EnvSave","EnvEmpty","EnvRemove")) {environment=true} else if(receipt.action in setOf("PluginInstall","PluginEnable","PluginDisable","PluginRemove","PluginUpdate","PluginSettings")) {plugins=true} else if(receipt.action in setOf("GatewayCronPause","GatewayCronResume","GatewayCronDelete")) {gateway=true} else if(receipt.action in setOf("HubInstall","HubRemove","HubUpdateAll")) {skills=true;vm.observeHubReceipt(receipt.key)} else if(receipt.action in setOf("SkillToggle","SkillLock")) {skills=true;vm.observeSkillReceipt(receipt.key)} else if(receipt.action=="CronCreate") {cron=true;vm.observeCronReceipt(receipt.key)} else vm.observeReceipt(receipt.key)},enabled=enabled,modifier=Modifier.testTag("management-observe-${receipt.key}")) {Text(label(Words.ManagementReadCurrent))}
+            if(receipt.state=="unknown" && HostProjectAction.receipt(receipt.action) && receipt.projectHome!=vm.projectReceiptHome(s)) Text(label(Words.ProjectReceiptLocationChanged))
+            if(receipt.state=="unknown") TextButton({vm.prepareManagementUncertainty(receipt.key)?.let {frozen->if(frozen.projectHome.isNotBlank() && reviewShared!=null) reviewShared(receipt.key,frozen.target) else review=frozen}},enabled=enabled && vm.prepareManagementUncertainty(receipt.key)!=null,modifier=Modifier.testTag("management-review-${receipt.key}")) {Text(label(Words.ManagementReview))}
         }
     }
+    if(projects && vm!=null && s!=null) HostProjectsDialog(vm,s) {vm.closeHostProjects();projects=false}
     if(providers && vm!=null && s!=null) ProviderAccountsDialog(vm,s) {vm.closeProviderAccounts();providers=false}
     if(moa && vm!=null && s!=null) HostMoaDialog(vm,s) {vm.closeHostMoa();moa=false}
     if(hostModels && vm!=null && s!=null) HostModelsDialog(vm,s) {vm.closeHostModels();hostModels=false}
@@ -69,21 +72,22 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
     if(gateway && vm!=null && s!=null) GatewayAutomationDialog(vm,s) {vm.cancel();gateway=false}
     if(skills && vm!=null && s!=null) HostSkillsDialog(vm,s) {vm.cancel();skills=false}
     if(cron && vm!=null && s!=null) HostCronDialog(vm,s) {vm.cancel();cron=false}
-    review?.let {target ->
-        val instance=ManagementReceiptVisibility.instanceAction(receipt.action)
-        var approved by remember(receipt.key,target) {mutableStateOf(false)}
+    review?.let {frozen ->
+        val project=frozen.projectHome.isNotBlank()
+        var approved by remember(receipt.key,frozen) {mutableStateOf(false)}
         AlertDialog(onDismissRequest={review=null},title={Text(label(Words.ManagementReview))},text={
-            LazyColumn(Modifier.heightIn(max=440.dp)) {
-                item {Text(receipt.url);Text(receipt.profile);Text(managementReceiptTarget(receipt));Text(label(if(instance) Words.ManagementInstanceReviewEffect else Words.ManagementReviewEffect))}
-                if(instance) item {Row {Checkbox(approved,{approved=it},Modifier.testTag("management-instance-approve"));Text(label(Words.ManagementInstanceGrant),Modifier.weight(1f))}}
+            LazyColumn(Modifier.heightIn(max=440.dp).testTag("management-own-review"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                item {Text(frozen.target.url);Text(frozen.target.profile);Text(managementReceiptTarget(receipt));Text(label(if(project) Words.ProjectReviewEffect else if(frozen.instance) Words.ManagementInstanceReviewEffect else Words.ManagementReviewEffect))}
+                if(frozen.instance || project) item {Row {Checkbox(approved,{approved=it},Modifier.testTag(if(project) "management-project-approve" else "management-instance-approve"));Text(label(if(project) Words.ProjectReviewGrant else Words.ManagementInstanceGrant),Modifier.weight(1f))}}
             }
-        },confirmButton={TextButton({vm!!.reviewReceipt(receipt.key,target);review=null},enabled=s?.busy!=true && (!instance || approved) && vm?.reviewTarget()==target,modifier=Modifier.testTag("management-review-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null}) {Text(label(Words.Cancel))}})
+        },confirmButton={TextButton({vm!!.reviewReceipt(receipt.key,frozen.target,frozen.projectHome);review=null},enabled=s?.busy!=true && (!(frozen.instance || project) || approved) && vm?.managementUncertaintyCurrent(frozen)==true,modifier=Modifier.heightIn(min=48.dp).testTag("management-review-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null},Modifier.heightIn(min=48.dp)) {Text(label(Words.Cancel))}})
     }
     if(result) AlertDialog(onDismissRequest={result=false},title={Text(managementReceiptTarget(receipt))},text={
         val parsed=remember(receipt.resultSummary) {runCatching {Json.parseToJsonElement(receipt.resultSummary).jsonObject}.getOrDefault(JsonObject(emptyMap()))}
-        LazyColumn(Modifier.heightIn(max=440.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        LazyColumn(Modifier.heightIn(max=440.dp).testTag("management-result-list"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             item {Text(label(if(receipt.state=="acknowledged" && receipt.action in setOf("HubRemove","HubUpdateAll")) Words.SkillHubMaintenanceAccepted else if(receipt.action=="HubInstall" && receipt.state=="acknowledged") Words.SkillHubInstallAccepted else managementStateWord(receipt.state)))}
-            if(receipt.action=="RelayLinkStart") item {Text(label(if(parsed["code_issued"]==JsonPrimitive(false)) Words.RelayCodeNotIssued else Words.RelayCodeIssued));Text(label(relayCodeStatusWord(parsed.text("status"))));Text(label(Words.RelayCodeReceipt))}
+            if(HostProjectAction.receipt(receipt.action)) item {ProjectReceiptSummary(parsed)}
+            else if(receipt.action=="RelayLinkStart") item {Text(label(if(parsed["code_issued"]==JsonPrimitive(false)) Words.RelayCodeNotIssued else Words.RelayCodeIssued));Text(label(relayCodeStatusWord(parsed.text("status"))));Text(label(Words.RelayCodeReceipt))}
             else if(receipt.action=="RelayUnlink") item {Text(label(Words.RelayUnlinkAcknowledged));Text(label(Words.RelayUnlinkReceipt))}
             else if(receipt.action.startsWith("Channel")) item {HostChannelReceipt(receipt)}
             else if(receipt.action.startsWith("CustomEndpoint")) item {if(receipt.action=="CustomEndpointProbe") EndpointProbeReceipt(receipt) else CustomEndpointReceipt()}
@@ -117,25 +121,48 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
 @Composable private fun SharedManagementPendingCard(receipt:ManagementOperation,vm:ManagementViewModel,s:ManagementState,reviewShared:((String,ManagementTarget)->Unit)?) {
     Column(Modifier.fillMaxWidth().testTag("management-shared-"+receipt.key),verticalArrangement=Arrangement.spacedBy(6.dp)) {
         val instance=receipt.action==ManagementReceiptVisibility.SharedInstancePending
-        Text(label(if(instance) Words.ManagementInstancePending else Words.ManagementSharedPending),style=MaterialTheme.typography.titleSmall)
+        val project=receipt.projectHome.isNotBlank() || receipt.action==ManagementReceiptVisibility.SharedProjectPending
+        Text(label(if(project) Words.ProjectSharedPending else if(instance) Words.ManagementInstancePending else Words.ManagementSharedPending),style=MaterialTheme.typography.titleSmall)
         Text(label(managementStateWord(receipt.state)))
-        Text(label(if(instance) Words.ManagementInstancePrivate else Words.ManagementSharedPrivate),style=MaterialTheme.typography.bodySmall)
+        Text(label(if(project && receipt.projectHome!=vm.projectReceiptHome(s)) Words.ProjectReceiptLocationChanged else if(project) Words.ProjectSharedPrivate else if(instance) Words.ManagementInstancePrivate else Words.ManagementSharedPrivate),style=MaterialTheme.typography.bodySmall)
         if(receipt.state=="unknown") TextButton({vm.reviewTarget()?.let {reviewShared?.invoke(receipt.key,it)}},
-            enabled=!s.busy && vm.reviewTarget()!=null && reviewShared!=null,
+            enabled=!s.busy && vm.prepareManagementUncertainty(receipt.key)!=null && reviewShared!=null,
             modifier=Modifier.testTag("management-shared-review-"+receipt.key)) {Text(label(Words.ManagementReview))}
     }
 }
 
 @Composable fun SharedManagementUncertaintyReview(review:ReviewedManagementUncertainty,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
     var approved by remember(review) {mutableStateOf(false)}
+    val project=review.projectHome.isNotBlank()
     AlertDialog(onDismissRequest=close,title={Text(label(Words.ManagementReview))},text={
         LazyColumn(Modifier.heightIn(max=440.dp).testTag("management-shared-review"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             item {Text(review.target.url)}
             item {Text(review.target.profile)}
             item {Text(review.target.actor)}
-            item {Text(label(if(review.instance) Words.ManagementInstanceReviewEffect else Words.ManagementSharedReviewEffect))}
-            if(review.instance) item {Row {Checkbox(approved,{approved=it},Modifier.testTag("management-instance-approve"));Text(label(Words.ManagementInstanceGrant),Modifier.weight(1f))}}
+            item {Text(label(if(project) Words.ProjectReviewEffect else if(review.instance) Words.ManagementInstanceReviewEffect else Words.ManagementSharedReviewEffect))}
+            if(review.instance || project) item {Row {Checkbox(approved,{approved=it},Modifier.testTag(if(project) "management-project-approve" else "management-instance-approve"));Text(label(if(project) Words.ProjectReviewGrant else Words.ManagementInstanceGrant),Modifier.weight(1f))}}
         }
-    },confirmButton={TextButton(confirm,enabled=enabled && (!review.instance || approved),modifier=Modifier.testTag("management-shared-review-confirm")) {Text(label(Words.Confirm))}},
+    },confirmButton={TextButton(confirm,enabled=enabled && (!(review.instance || project) || approved),modifier=Modifier.testTag("management-shared-review-confirm")) {Text(label(Words.Confirm))}},
         dismissButton={TextButton(close) {Text(label(Words.Cancel))}})
+}
+
+/** Durable project receipts contain no original names, paths, descriptions or replay arguments. */
+@Composable private fun ProjectReceiptSummary(summary:JsonObject) {
+    Text(label(Words.ProjectReceiptPrivate))
+    if(summary["host_acknowledged"]==JsonPrimitive(true)) {
+        Text(label(Words.ProjectAcknowledged))
+        Text(label(if(summary["requested_effect_reported"]==JsonPrimitive(true)) Words.ProjectEffectReported else Words.ProjectEffectUnreported))
+        Text(label(if(summary["configuration_observed"]==JsonPrimitive(true)) Words.ProjectConfigurationObserved else Words.ProjectConfigurationUnchecked))
+        if(summary["path_mapping_unverified"]==JsonPrimitive(true)) Text(label(Words.ProjectPathMapping))
+    }
+}
+
+/** Hosted above the lazy receipt row so Android window resizing cannot discard its state. */
+@Composable fun ProjectReceiptDetailsDialog(receipt:ManagementOperation,close:()->Unit) {
+    val parsed=remember(receipt.resultSummary) {runCatching {Json.parseToJsonElement(receipt.resultSummary).jsonObject}.getOrDefault(JsonObject(emptyMap()))}
+    AlertDialog(onDismissRequest=close,title={Text(label(mcpActionWord(receipt.action)))},text={
+        LazyColumn(Modifier.heightIn(max=440.dp).testTag("management-result-list"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            item {Text(receipt.url);Text(receipt.profile);Text(label(managementStateWord(receipt.state)));ProjectReceiptSummary(parsed)}
+        }
+    },confirmButton={TextButton(close,Modifier.heightIn(min=48.dp).testTag("management-result-close")) {Text(label(Words.Close))}})
 }
