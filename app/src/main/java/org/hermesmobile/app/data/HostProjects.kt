@@ -63,8 +63,7 @@ object HostProjectProtocol {
         HostProjectSnapshot(owner,homeId,Collections.unmodifiableList(projects),active,observedAt)
     }
     fun resultProject(j:JsonObject):HostProjectInfo?=decode {
-        require(j.containsKey("project"))
-        if(j["project"] is JsonNull) null else project(j["project"] as JsonObject)
+        if(j["project"]==null || j["project"] is JsonNull) null else project(j["project"] as JsonObject)
     }
     fun detail(j:JsonObject,owner:ManagementTarget,homeId:String,id:String,observedAt:Long=System.currentTimeMillis()):HostProjectDetail=decode {
         GatewayCronInventory.requireProfile(owner.profile);require(homeId.matches(Regex("[a-f0-9]{64}")) && validId(id))

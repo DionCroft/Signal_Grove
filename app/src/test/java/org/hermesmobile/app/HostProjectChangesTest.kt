@@ -137,4 +137,18 @@ class HostProjectChangesTest {
         val create=HostProjectChange.create(snapshot(),HostProjectCreateDraft("New"))
         assertThrows(IllegalArgumentException::class.java) {create.acknowledge(result(row()))}
     }
+    @Test fun omittedOptionalProjectResultAcknowledgesWithoutInventingCreation() {
+        val request=HostProjectChange.create(snapshot(),HostProjectCreateDraft("New"))
+        val ack=request.acknowledge(JsonObject(emptyMap()))
+        assertNull(ack.project);assertFalse(ack.effectReported);assertFalse(request.observed(ack,snapshot()))
+        assertEquals(JsonPrimitive(true),request.acknowledgementSummary(ack)["host_acknowledged"])
+    }
+    @Test fun omittedOptionalActiveIdUsesTheDocumentedNullDefaultButNeedsReadback() {
+        val clear=HostProjectChange.action(snapshot(),null,HostProjectAction.ClearActive)
+        val ack=clear.acknowledge(JsonObject(emptyMap()))
+        assertTrue(ack.effectReported);assertNull(ack.activeId)
+        assertTrue(clear.observed(ack,snapshot(active=null)));assertFalse(clear.observed(ack,snapshot()))
+        val activate=HostProjectChange.action(snapshot(active=null),"p_00000001",HostProjectAction.SetActive)
+        assertFalse(activate.acknowledge(JsonObject(emptyMap())).effectReported)
+    }
 }

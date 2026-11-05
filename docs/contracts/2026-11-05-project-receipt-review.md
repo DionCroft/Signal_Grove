@@ -2,6 +2,8 @@
 
 This describes development source after the published beta.4 release. It exposes receipt inspection and local uncertainty review for the existing [typed project core](2026-11-04-project-mutation-core.md). Mutation forms/action approvals remain pending; the published beta.4 project screen is read-only. No new gateway mutation or backend contract was introduced.
 
+This is the historical receipt-only checkpoint; the later [beta.5 project-management interface](2026-11-05-project-management-ui.md) adds the write forms and approvals.
+
 The receipt collector is keyed by resource, inference scope, exact canonical dashboard URL and the selected supported profile's verified reported home identity. Home changes rebind its Room query. Render-time projection suppresses stale raw rows and hides foreign private metadata. The durable project-home marker remains authoritative for classification even when another credential's action was redacted to a generic pending notice. An old-home record cannot fall through to generic review.
 
 Review freezes the receipt key, selected target and reported home. Only a currently visible unknown record can prepare confirmation. Cancel disposes the grant; scope/home changes invalidate it. After a fresh explicit checkbox grant, the existing core verifies authenticated identity and profile home with GETs before changing only the exact local unknown state. Sending records remain sending, and a failed/remapped verification leaves unknown unchanged. No gateway ticket/socket, project mutation, private-argument reconstruction, retry or invented remote outcome occurs.

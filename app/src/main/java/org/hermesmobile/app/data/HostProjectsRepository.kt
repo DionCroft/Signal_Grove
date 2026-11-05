@@ -1,5 +1,7 @@
 package org.hermesmobile.app.data
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import org.hermesmobile.app.network.ManagementClient
@@ -19,13 +21,13 @@ class HostProjectsRepository {
     }
     suspend fun read(target:ManagementTarget,homeId:String,api:ManagementClient,tokens:ManagementTokens):HostProjectSnapshot {
         scope(target,homeId,api,tokens);api.identity(tokens);home(target,homeId,api,tokens)
-        val result=api.gateway(tokens).use {HostProjectProtocol.inventory(it.projects(target.profile),target,homeId)}
+        val result=api.gateway(tokens).use {socket->withContext(Dispatchers.Default) {HostProjectProtocol.inventory(socket.projects(target.profile),target,homeId)}}
         home(target,homeId,api,tokens)
         return result
     }
     suspend fun detail(target:ManagementTarget,homeId:String,id:String,api:ManagementClient,tokens:ManagementTokens):HostProjectDetail {
         scope(target,homeId,api,tokens);require(HostProjectProtocol.validId(id));api.identity(tokens);home(target,homeId,api,tokens)
-        val result=api.gateway(tokens).use {HostProjectProtocol.detail(it.project(target.profile,id),target,homeId,id)}
+        val result=api.gateway(tokens).use {socket->withContext(Dispatchers.Default) {HostProjectProtocol.detail(socket.project(target.profile,id),target,homeId,id)}}
         home(target,homeId,api,tokens)
         return result
     }

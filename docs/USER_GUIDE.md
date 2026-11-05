@@ -235,7 +235,7 @@ These read-only controls are included in the published 1.1.0-beta.4 preview. Ope
 
 The list includes archived projects and reports an unmatched active-project pointer explicitly. Select **Refresh project details** for a fresh canonical-ID read. Folder paths and other metadata are selectable text; the phone does not open those host paths. Closing, cancelling or changing management scope clears the private project view. A remapped profile or unsupported result requires a fresh read.
 
-Project changes, Kanban controls and selecting a conversation's host working directory remain pending. Reading this inventory does not change an active project or existing conversation. [Scope and limits](MANAGEMENT.md#stored-host-projects).
+The published beta.4 screen is read-only. Reviewed project changes are available in development beta.5 below; Kanban and selecting a conversation's host working directory remain pending. Reading this inventory does not change an active project or existing conversation. [Scope and limits](MANAGEMENT.md#stored-host-projects).
 
 
 ### Project receipts (development source after beta.4)
@@ -244,4 +244,19 @@ Project receipts in **Hermes management** show readable action names and disting
 
 An uncertain project change also guards other connections/profiles using the same reported project store at the same dashboard address. Their original private details stay hidden. **Review uncertainty** requires a fresh unchecked grant. Confirmation checks the selected sign-in and reported store location before marking only that local unknown receipt reviewed. It does not cancel, repeat or verify the host change. Inspect current projects before approving another change. Sending records and receipts from a different reported store cannot be released this way; changing the profile, actor, address or store invalidates the displayed confirmation. [Scope and limits](contracts/2026-11-05-project-receipt-review.md).
 
-This development receipt UI is subsequent to the published beta.4 APK. Project write forms and action approvals remain pending.
+This receipt UI is subsequent to the published beta.4 APK and is used by the reviewed beta.5 development controls below.
+
+
+### Reviewed project changes (development beta.5)
+
+Read the complete inventory first. **Create project** stages a name and optional display values, board reference, host paths (one per line, without blank lines) and primary path. A blank slug lets the host choose one; it may suffix duplicates. Creation does not activate the project. Host paths are passed literally and normalized on the host; the phone cannot verify their mapping or contents. A board reference does not create or verify a board.
+
+Open **Refresh project details** before changing an existing project. If fresh details differ from the inventory, close them and read the full inventory again. Known ID/other-slug collisions disable writes until the identities are unambiguous. **Edit project** changes only checked fields: an empty description is a saved empty string; empty icon/color/board clears that value. Unchecked fields stay unchanged. IDs and existing slugs are not edited.
+
+**Add host folder** can also reattach an existing path to update its label. An unchecked label option keeps an existing label; checking it and leaving the input empty saves an empty label. The primary option is explicit, but if no folder is marked primary the host can choose this one even when it is off. **Set primary folder** and **Detach host folder** act on the exact selected attached path. Detaching primary chooses the oldest remaining folder or clears it. Files are not created, moved or deleted by these metadata controls.
+
+Archive/restore changes the archive flag. Delete removes project/folder records. Neither implicitly clears a dangling active pointer; **Clear host active project** is a separate review, including for a missing target. Activation changes the host's stored pointer and does not send conversation or working-directory arguments or a runtime stop/restart request.
+
+Every write opens a separate exact-value review with server, profile, actor and canonical target. Check the effects and concurrent-change limit, then grant approval. The host has no atomic check-and-write token; another client can change metadata or ID resolution between checking and writing. Drafts and grants are discarded on cancel/close/scope changes. One approval sends at most one mutation. A lost reply is never retried automatically; fresh reads remain available while writes are guarded. Return to management receipts for a separately approved, home-verified local uncertainty review.
+
+Reports distinguish acknowledgement, reported requested effect and a separate matching configuration observation. A successful primary RPC can be a no-op. A nullable create reply can supply no project; neither is presented as confirmed creation/change. Acknowledgement remains inspectable when subsequent readback fails. Normalized path mapping is explicitly unverified. These development controls are not part of the immutable published beta.4 APK. See [the source boundary](contracts/2026-11-05-project-management-ui.md).

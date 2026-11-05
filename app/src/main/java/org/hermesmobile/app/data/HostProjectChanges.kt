@@ -15,8 +15,8 @@ enum class HostProjectAction(val rpc:String) {
 
 class HostProjectChangeInvalid:Exception("Invalid project change.")
 class HostProjectChangeChanged:Exception("Reviewed project metadata changed.")
-class HostProjectChangeUncertain:Exception("Project change outcome is unknown.")
-class HostProjectChangeReadbackPending:Exception("Project configuration needs another read.")
+class HostProjectChangeUncertain(val receipt:ManagementOperation?=null):Exception("Project change outcome is unknown.")
+class HostProjectChangeReadbackPending(val receipt:ManagementOperation?=null):Exception("Project configuration needs another read.")
 
 private fun projectHash(value:String)=MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8)).joinToString("") {"%02x".format(it)}
 
@@ -64,9 +64,8 @@ class HostProjectChange private constructor(val expected:HostProjectSnapshot,val
                 HostProjectAcknowledgement(null,inventory,null,reported)
             }
             HostProjectAction.SetActive,HostProjectAction.ClearActive->{
-                require(result.containsKey("active_id"))
                 val value=result["active_id"]
-                val active=if(value is JsonNull) null else (value as JsonPrimitive).also {require(it.isString && HostProjectProtocol.validId(it.content))}.content
+                val active=if(value==null || value is JsonNull) null else (value as JsonPrimitive).also {require(it.isString && HostProjectProtocol.validId(it.content))}.content
                 HostProjectAcknowledgement(null,null,active,active==id)
             }
             else->{

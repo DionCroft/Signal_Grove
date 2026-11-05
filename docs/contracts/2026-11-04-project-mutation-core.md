@@ -2,6 +2,8 @@
 
 This is internal development infrastructure after the reviewed project-read chunk. The app's project screen remains read-only until the forms, frozen approvals, shared-home receipt projection and explicit uncertainty review are wired in a subsequent chunk. No new project write button or public APK release is claimed here.
 
+This is the historical core-only checkpoint. The subsequent [beta.5 user-facing forms and approvals](2026-11-05-project-management-ui.md) are implemented and validated separately.
+
 ## Verified primary source
 
 The official [mutation handlers](https://github.com/NousResearch/hermes-agent/blob/b200f5bc60e31588ba2cb60e288029c4a54ba5fa/tui_gateway/methods_projects.py), [typed parameters/results](https://github.com/NousResearch/hermes-agent/blob/b200f5bc60e31588ba2cb60e288029c4a54ba5fa/tui_gateway/contracts/projects_pets.py) and [project store](https://github.com/NousResearch/hermes-agent/blob/b200f5bc60e31588ba2cb60e288029c4a54ba5fa/hermes_cli/projects_db.py) were re-read as source. Their verified original-baseline source is unchanged for these contracts. Native authentication continues through `POST api/auth/ws-ticket` and a one-use gateway-purpose subprotocol ticket, preserving configured URL prefixes and the separate management bearer. Every typed call explicitly includes its reviewed profile. There is no arbitrary-RPC API, server-request opt-in, repository discovery, reconnect or mutation replay.

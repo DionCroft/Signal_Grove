@@ -76,7 +76,7 @@ class HostProjectChangesStorageTest {
             try {HostProjectChangeFixture(mode).use {f->
                 val failure=withTimeout(8000) {runCatching {repo(db).execute(f.target,update(snapshot(f)),f.api,f.tokens)}.exceptionOrNull()}
                 assertTrue(mode,failure is HostProjectChangeUncertain);assertEquals(1,f.writes.get())
-                val prior=db.dao().unresolvedManagementOperations(f.target.resourceScope,f.target.url,f.home).single();assertEquals("unknown",prior.state)
+                val prior=db.dao().unresolvedManagementOperations(f.target.resourceScope,f.target.url,f.home).single();assertEquals("unknown",prior.state);assertEquals(prior,(failure as HostProjectChangeUncertain).receipt)
                 val alias=f.target.copy(profile="mirror",apiScope="c".repeat(64));val before=f.requests.size
                 val blocked=runCatching {repo(db).execute(alias,update(snapshot(f).copy(owner=alias)),f.api,f.tokens)}.exceptionOrNull()
                 assertTrue(blocked is ManagementOutcomePending);assertEquals(before,f.requests.size);assertEquals(1,f.writes.get())
@@ -101,7 +101,7 @@ class HostProjectChangesStorageTest {
         try {HostProjectChangeFixture("after-home").use {f->
             val failure=withTimeout(8000) {runCatching {repo(db).execute(f.target,update(snapshot(f)),f.api,f.tokens)}.exceptionOrNull()}
             assertTrue(failure is HostProjectChangeReadbackPending);assertEquals(1,f.writes.get());assertEquals(1,f.lists.get())
-            val row=db.dao().managementOperations(f.target.apiScope).first().single();assertEquals("acknowledged",row.state)
+            val row=db.dao().managementOperations(f.target.apiScope).first().single();assertEquals("acknowledged",row.state);assertEquals(row,(failure as HostProjectChangeReadbackPending).receipt)
             assertEquals(JsonPrimitive(true),Json.parseToJsonElement(row.resultSummary).jsonObject["host_acknowledged"])
         }} finally {db.close()}
     }

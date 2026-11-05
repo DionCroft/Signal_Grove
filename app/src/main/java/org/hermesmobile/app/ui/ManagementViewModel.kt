@@ -11,7 +11,13 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class HostProjectsState(val inventory:HostProjectSnapshot?=null,val detail:HostProjectDetail?=null)
+data class HostProjectsState(val inventory:HostProjectSnapshot?=null,val detail:HostProjectDetail?=null,val report:HostProjectChangeReport?=null)
+data class HostProjectChangeReport(val owner:ManagementTarget,val homeId:String,val receipt:ManagementOperation) {override fun toString()="HostProjectChangeReport(redacted)"}
+data class ReviewedHostProjectEditor(val expected:HostProjectSnapshot,val action:HostProjectAction,val id:String?,val generation:Long) {override fun toString()="ReviewedHostProjectEditor(redacted)"}
+data class ReviewedHostProjectChange(val request:HostProjectChange,val generation:Long) {
+    val target get()=request.expected.owner
+    override fun toString()="ReviewedHostProjectChange(redacted)"
+}
 data class ReviewedHostProjectsRead(val target:ManagementTarget,val homeId:String,val generation:Long) {
     override fun toString()="ReviewedHostProjectsRead(redacted)"
 }
@@ -148,6 +154,10 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is HostProjectChangeInvalid->Words.ProjectDraftInvalid
+        is HostProjectChangeUncertain->Words.ProjectChangeUnknown
+        is HostProjectChangeReadbackPending->Words.ManagementReadbackPending
+        is HostProjectChangeRefused->Words.ProjectChangeRefused
         is HostProjectChangeChanged->Words.ManagementReviewChanged
         is HostProjectsScopeChanged->Words.HostProjectsScopeChanged
         is HostProjectsUnsupported->Words.HostProjectsUnsupported
@@ -830,7 +840,51 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun visibleHostProjects(s:ManagementState):HostProjectsState {
         val context=projectContext() ?: return HostProjectsState()
         if(s.apiScope!=context.first.apiScope || s.profile!=context.first.profile || s.url!=state.value.url || s.identity!=state.value.identity) return HostProjectsState()
-        return HostProjectsState(s.projects.inventory?.takeIf {it===state.value.projects.inventory && it.owner==context.first && it.homeId==context.second},s.projects.detail?.takeIf {it===state.value.projects.detail && it.owner==context.first && it.homeId==context.second})
+        return HostProjectsState(s.projects.inventory?.takeIf {it===state.value.projects.inventory && it.owner==context.first && it.homeId==context.second},s.projects.detail?.takeIf {it===state.value.projects.detail && it.owner==context.first && it.homeId==context.second},s.projects.report?.takeIf {it===state.value.projects.report && it.owner==context.first && it.homeId==context.second})
+    }
+    fun hostProjectReviewGeneration()=generation
+    fun hostProjectPending(s:ManagementState)=visibleReceipts(s,receipts.value).any {it.state in setOf("sending","unknown")}
+    fun hostProjectBlockReason(s:ManagementState,row:HostProjectInfo?=null):Words? {
+        if(s.busy) return Words.Loading
+        if(hostProjectPending(s)) return Words.ManagementOutcomePending
+        val inventory=visibleHostProjects(s).inventory ?: return Words.ProjectReadFirst
+        if(row!=null) {
+            if(HostProjectChange.collision(inventory,row.id)) return Words.ProjectCollision
+            if(inventory.projects.singleOrNull {it.id==row.id}!=row) return Words.ProjectReloadInventory
+        }
+        return null
+    }
+    private fun projectRequestCurrent(request:HostProjectChange):Boolean {
+        val s=state.value;val expected=request.expected
+        if(s.busy || projectContext()!=(expected.owner to expected.homeId) || visibleHostProjects(s).inventory!==expected || hostProjectPending(s)) return false
+        val row=request.selected
+        return row==null || !HostProjectChange.collision(expected,row.id) && visibleHostProjects(s).detail?.project==row
+    }
+    fun prepareHostProjectEditor(action:HostProjectAction,id:String?=null):ReviewedHostProjectEditor? {
+        val inventory=visibleHostProjects(state.value).inventory ?: return null
+        if(action !in setOf(HostProjectAction.Create,HostProjectAction.Update,HostProjectAction.AddFolder) || hostProjectBlockReason(state.value)!=null) return null
+        if(action!=HostProjectAction.Create && (id==null || inventory.projects.singleOrNull {it.id==id}?.let {hostProjectBlockReason(state.value,it)==null && visibleHostProjects(state.value).detail?.project==it}!=true)) return null
+        return ReviewedHostProjectEditor(inventory,action,id,generation)
+    }
+    fun hostProjectEditorCurrent(editor:ReviewedHostProjectEditor)=editor.generation==generation && prepareHostProjectEditor(editor.action,editor.id)?.expected===editor.expected
+    fun prepareHostProjectChange(request:HostProjectChange)=if(projectRequestCurrent(request)) ReviewedHostProjectChange(request,generation) else null
+    fun hostProjectChangeCurrent(review:ReviewedHostProjectChange)=review.generation==generation && projectRequestCurrent(review.request)
+    fun hostProjectReviewChanged() {state.value=state.value.copy(error=Words.ManagementReviewChanged)}
+    private fun projectReport(owner:ManagementTarget,home:String,receipt:ManagementOperation?):HostProjectChangeReport?=receipt?.takeIf {it.apiScope==owner.apiScope && it.resourceScope==owner.resourceScope && it.url==owner.url && it.profile==owner.profile && it.actor==owner.actor && it.projectHome==home && HostProjectAction.receipt(it.action)}?.let {HostProjectChangeReport(owner,home,it)}
+    fun performHostProjectChange(review:ReviewedHostProjectChange) {
+        if(!hostProjectChangeCurrent(review)) {hostProjectReviewChanged();return}
+        val owner=review.target;val home=review.request.expected.homeId
+        state.value=state.value.copy(projects=HostProjectsState())
+        operation {id->
+            try {
+                val result=projectChanges.execute(owner,review.request,client(state.value),tokens ?: error("Sign in first."))
+                if(id==generation && projectContext()==(owner to home)) state.value=state.value.copy(projects=HostProjectsState(result.inventory,report=projectReport(owner,home,result.receipt)))
+            } catch(e:Exception) {
+                val receipt=when(e) {is HostProjectChangeUncertain->e.receipt;is HostProjectChangeReadbackPending->e.receipt;is HostProjectChangeRefused->e.receipt;else->null}
+                if(e !is CancellationException && id==generation && projectContext()==(owner to home)) state.value=state.value.copy(projects=HostProjectsState(report=projectReport(owner,home,receipt)))
+                throw e
+            }
+        }
     }
     fun prepareHostProjectsRead():ReviewedHostProjectsRead? {
         if(state.value.busy) return null

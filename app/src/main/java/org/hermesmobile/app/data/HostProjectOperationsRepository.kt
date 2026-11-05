@@ -5,7 +5,7 @@ import kotlinx.serialization.json.*
 import org.hermesmobile.app.network.*
 import java.util.UUID
 
-class HostProjectChangeRefused:Exception("Project change was not sent or the target was missing.")
+class HostProjectChangeRefused(val receipt:ManagementOperation?=null):Exception("Project change was not sent or the target was missing.")
 data class HostProjectChangeOutcome(val inventory:HostProjectSnapshot,val acknowledgement:HostProjectAcknowledgement,val receipt:ManagementOperation) {
     override fun toString()="HostProjectChangeOutcome(redacted)"
 }
@@ -26,7 +26,7 @@ class HostProjectOperationsRepository(private val dao:HermesDao,private val read
         if(dao.unresolvedManagementOperations(target.resourceScope,target.url,expected.homeId).isNotEmpty()) throw ManagementOutcomePending()
         api.identity(tokens);home(target,expected.homeId,api,tokens)
         return api.gateway(tokens).use {socket->
-            val before=HostProjectProtocol.inventory(socket.projects(target.profile),target,expected.homeId)
+            val before=withContext(Dispatchers.Default) {HostProjectProtocol.inventory(socket.projects(target.profile),target,expected.homeId)}
             if(!request.same(before)) throw HostProjectChangeChanged()
             home(target,expected.homeId,api,tokens)
             val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,target.apiScope,target.url,target.profile,target.actor,
@@ -39,7 +39,7 @@ class HostProjectOperationsRepository(private val dao:HermesDao,private val read
                 val summary=request.acknowledgementSummary(ack)
                 withContext(NonCancellable) {dao.finishManagementOperation(record.key,"acknowledged",summary.toString())}
                 home(target,expected.homeId,api,tokens)
-                val after=HostProjectProtocol.inventory(socket.projects(target.profile),target,expected.homeId)
+                val after=withContext(Dispatchers.Default) {HostProjectProtocol.inventory(socket.projects(target.profile),target,expected.homeId)}
                 home(target,expected.homeId,api,tokens)
                 if(request.observed(ack,after)) withContext(NonCancellable) {
                     dao.confirmManagementOperation(record.key,JsonObject(summary+mapOf("configuration_observed" to JsonPrimitive(true))).toString())
@@ -53,13 +53,13 @@ class HostProjectOperationsRepository(private val dao:HermesDao,private val read
                         if(!sent || missing) dao.finishManagementOperation(record.key,"refused",buildJsonObject {put("reason",if(missing) "missing_project" else "local_not_sent")}.toString())
                         else dao.finishManagementOperation(record.key,"unknown","")
                     }
-                    dao.managementOperation(record.key)?.state
+                    dao.managementOperation(record.key)
                 }
                 if(e is CancellationException) throw e
-                when(retained) {
-                    "unknown"->throw HostProjectChangeUncertain()
-                    "acknowledged","confirmed"->throw HostProjectChangeReadbackPending()
-                    "refused"->throw HostProjectChangeRefused()
+                when(retained?.state) {
+                    "unknown"->throw HostProjectChangeUncertain(retained)
+                    "acknowledged","confirmed"->throw HostProjectChangeReadbackPending(retained)
+                    "refused"->throw HostProjectChangeRefused(retained)
                     else->throw e
                 }
             }

@@ -11,9 +11,11 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 /** Literal before/ack/after fixtures; does not implement the host project store. */
-class HostProjectChangeFixture(val mode:String="normal",val before:JsonObject=listing(),val ack:JsonObject=answer(changed()),val after:JsonObject=listing(listOf(changed()))):Closeable {
+class HostProjectChangeFixture(val mode:String="normal",val before:JsonObject=listing(),val ack:JsonObject=answer(changed()),val after:JsonObject=listing(listOf(changed())),val beforeReads:Int=1,val detail:JsonObject=answer(row()),val prefix:String="prefix/"):Closeable {
+    val reportedHome=AtomicReference("/srv/project-worker")
     val server=MockWebServer()
     val writes=AtomicInteger();val lists=AtomicInteger();val homes=AtomicInteger();val tickets=AtomicInteger()
     val requests=CopyOnWriteArrayList<RecordedRequest>();val calls=CopyOnWriteArrayList<JsonObject>()
@@ -27,15 +29,15 @@ class HostProjectChangeFixture(val mode:String="normal",val before:JsonObject=li
             override fun dispatch(q:RecordedRequest):MockResponse {
                 requests.add(q)
                 return when(q.path) {
-                    "/prefix/api/auth/me"->{check(q.getHeader("Authorization")=="Bearer project-change-fixture");json(buildJsonObject {put("provider","password");put("user_id","fixture")})}
-                    "/prefix/api/profiles"->{val n=homes.incrementAndGet();val mapped=if(mode=="before-home" && n>=2 || mode=="after-home" && n>=3) "/srv/remapped" else "/srv/project-worker";json(buildJsonObject {put("profiles",buildJsonArray {for(name in listOf("worker","mirror")) add(buildJsonObject {put("name",name);put("path",mapped)})})})}
-                    "/prefix/api/auth/ws-ticket"->{check(q.method=="POST");check(q.getHeader("Authorization")=="Bearer project-change-fixture");tickets.incrementAndGet();json(buildJsonObject {put("ticket","p".repeat(43));put("ttl_seconds",30)})}
-                    "/prefix/api/ws"->MockResponse().withWebSocketUpgrade(object:WebSocketListener() {
+                    "/${prefix}api/auth/me"->{check(q.getHeader("Authorization")=="Bearer project-change-fixture");json(buildJsonObject {put("provider","password");put("user_id","fixture")})}
+                    "/${prefix}api/profiles"->{val n=homes.incrementAndGet();val mapped=if(mode=="before-home" && n>=2 || mode=="after-home" && n>=3) "/srv/remapped" else if(mode=="ui-after-home" && writes.get()>0) "/srv/remapped" else reportedHome.get();json(buildJsonObject {put("profiles",buildJsonArray {for(name in listOf("worker","mirror")) add(buildJsonObject {put("name",name);put("path",mapped)})})})}
+                    "/${prefix}api/auth/ws-ticket"->{check(q.method=="POST");check(q.getHeader("Authorization")=="Bearer project-change-fixture");tickets.incrementAndGet();json(buildJsonObject {put("ticket","p".repeat(43));put("ttl_seconds",30)})}
+                    "/${prefix}api/ws"->MockResponse().withWebSocketUpgrade(object:WebSocketListener() {
                         override fun onOpen(socket:WebSocket,response:Response) {socket.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready"}}""")}
                         override fun onMessage(socket:WebSocket,text:String) {
                             val j=Json.parseToJsonElement(text).jsonObject;calls.add(j)
                             val method=j["method"]!!.jsonPrimitive.content
-                            val result=if(method=="projects.list") {if(lists.incrementAndGet()==1) before else after} else {
+                            val result=if(method=="projects.list") {if(lists.incrementAndGet()<=beforeReads) before else after} else if(method=="projects.get") {detail} else {
                                 writes.incrementAndGet();entered.countDown()
                                 if(mode=="held") check(release.await(15,TimeUnit.SECONDS))
                                 if(mode=="disconnect") {socket.close(1011,"private-result-lost");return}
@@ -49,7 +51,7 @@ class HostProjectChangeFixture(val mode:String="normal",val before:JsonObject=li
                 }
             }
         }
-        api=ManagementClient(server.url("prefix/").toString(),true,true)
+        api=ManagementClient(server.url(prefix).toString(),true,true)
         target=ManagementTarget("a".repeat(64),api.base.toString(),"worker","password · fixture")
     }
     fun expected(owner:ManagementTarget=target)=HostProjectProtocol.inventory(listing(),owner,home,100)

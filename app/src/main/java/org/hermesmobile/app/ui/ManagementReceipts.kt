@@ -147,7 +147,7 @@ data class ReviewedManagementUncertainty(val key:String,val target:ManagementTar
 }
 
 /** Durable project receipts contain no original names, paths, descriptions or replay arguments. */
-@Composable private fun ProjectReceiptSummary(summary:JsonObject) {
+@Composable internal fun ProjectReceiptSummary(summary:JsonObject) {
     Text(label(Words.ProjectReceiptPrivate))
     if(summary["host_acknowledged"]==JsonPrimitive(true)) {
         Text(label(Words.ProjectAcknowledged))
