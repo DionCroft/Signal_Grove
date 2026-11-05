@@ -1173,3 +1173,78 @@ no selected mobile review and no known open findings: stableB200, and main
 failure. The cumulative correction requires new exact-head full Android and
 compatibility gates before main can advance. Earlier failed heads remain failed;
 no merge or beta.5 release is inferred from local acceptance.
+
+
+## Cumulative hosted confirmation and main reconciliation (5 November 2026)
+
+Exact commit `4f0b2d997f786a4ecdc4918774a9a15c58270716` passed
+[Android 42095133814](https://github.com/DionCroft/Signal_Grove/actions/runs/42095133814):
+verify127483065642, API26job127485938756 and API37job127485938814 all succeeded.
+Digest-verified complete logs prove **893 / 894 positive and terminal-OK cases**,
+no failures or skips. API26artifact13451007021 ZIP SHA-256
+`91e31899ea1428ff896b9602b2f296db81041ac607be8a7082ce2d32188e794b`;
+API37artifact13451473575 `c4f64bb8841e19afc0c0c9245def99dd991917adc132e313f348ba0cebec92b5`.
+The same head passed [compatibility 42095149806](https://github.com/DionCroft/Signal_Grove/actions/runs/42095149806).
+Both compatibility ZIP digests were verified: latest
+`7b8d5cddacb4d39e0729af6693d439716b6b57ea2a988d7be02c2bf1f6a5c19d`, main
+`10765f270471750d39f99b17348a56b30d26914d79af5ff53ed99000fe719636`.
+StableB200/mainA321 reports request no selected mobile review and retain no known
+open findings. `main` advanced by non-force fast-forward from f2dc9de to this
+tested cumulative head. Earlier failed setup/dependency heads remain failed;
+their correction is validated at this new head. No beta.5 release/tag is published.
+
+## Bounded device diagnostics and first ARM64 observations (5 November 2026)
+
+Added the opt-in test-only listener and APK-bound read-only exporter described in
+[DEVICE_DIAGNOSTICS](DEVICE_DIAGNOSTICS.md). It records bounded static stack/case
+metadata and clocks, omitting thread names, local values and request contents.
+The optional120s CPU lease defaults off and releases its own resource; it changes
+no global power setting or product permission. Existing app code, assertions,
+20-second fixture deadlines and default full CI invocation are unchanged.
+
+Strict required build passed in **2m55s**, **511 JVM tests / zero failures, errors
+or skips**. **141 Python checks** pass, including eight new exporter privacy/path
+boundary regressions. On owned API26/36/37, two existing task methods passed with
+the listener: **six focused native cases**, with 3/4/4 actual stack snapshots
+exported and privacy-checked. One additional case on API26 and37 verifies the
+explicit CPU lease is acquired and released: **eight emulator passes total**.
+Application `8f0e4bef63102b54fe161ccc02821281ec4eb9a94571d50ef123efee92fd9c97` is byte-identical to the accepted foundation/guide app;
+new test APK `fe2a007f6cad63e96baba195baf572f3d1089b02413711a8f45e7e1e9b3434ca` adds diagnostics only. Frozen407 source hashes match.
+
+An owner-connected Redmi Android17/API37 ARM64 device initially had no app
+installation. Two known USB installation refusals were retained; the owner then
+approved normal APK installation. Pulled installed APKs matched their recorded
+hashes and original CAB signer, appcode106/beta.5. The original geometry remains
+1200×2608, density480, font0.9. Normal owner launch and the Home screen were
+inspected; this is bounded visual acceptance, not full physical/OEM certification.
+
+The initial32-case UI/data run never completed its first activity launch: Android
+logged start result102, the launcher stayed foreground, and zero cases completed.
+After12minutes the exact verified stalled debug process was stopped and its
+operator-interrupted result retained. Normal user launch worked. A separate
+headless29-case run on test6187 finished naturally in766.354s with28 positive
+cases and one20s timeout in `readbackOmissionCannotBecomeProofOfClearing`.
+The stop guard found its process already exited, so no stop command was issued.
+
+With diagnostic testfe2a, the isolated method passed. Repeating the original29
+sequence retained one timeout (433.033s); foregrounding that same live process
+was followed by progress. Its case clock deltas showed no deep-sleep gap; Android
+had also reported not-cached/not-frozen. The exact background cause is unresolved.
+The controlled comparison starts the app normally in foreground at the first
+case, with original deadlines and default CPU policy: **all29 cases passed in
+51.594s**, no skips. Together with the isolated method these are **30 focused
+physical passes on the new pair**, separate from both retained failed runs.
+They certify the stated foreground scope, not default background behavior.
+
+The checked-in exporter successfully reconciled79 metadata files from that
+foreground run against installed APK hashes and29/0/0 listener counts. Native
+positive records and terminal OK were checked independently. Original emulator
+geometry/fonts and the separate API37 production code105/beta.4 install remain.
+No phone application-store-reset fixture was run. The phone exposes no Android
+on-device recognizer; its disabled microphone explanation was inspected. The
+owner explicitly keeps on-device-only recognition. Offline microphone, TTS,
+Bluetooth, idle/background, notification and matching-update acceptance remain
+open. A reported recognition error is not a successful read-aloud test.
+
+This diagnostic source still requires its own exact-head hosted gates after
+publication. Native override forms/status and the wider audit remain open.

@@ -319,3 +319,19 @@ These are development-source controls and remain outside the published beta.4 AP
 Changing access, closing, cancelling or shared pending work discards the private approval. A fresh pair read is required to build another review. These controls have local development-source acceptance recorded in VALIDATION.md and remain outside the published beta.4 APK.
 
 For guided connection setup, open **Settings → Server → Set up Hermes**, or read [the setup guide](SETUP_GUIDE.md).
+
+
+### Voice service availability
+
+On-device-only dictation requires Android to expose an on-device recognition
+service. Some firmware, including the tested Redmi/API37 configuration, does not
+provide it. The microphone then stays disabled with an explanation. Microphone
+permission alone does not supply a recognizer. Keep the on-device-only setting
+when that is your privacy choice; keyboard input remains available.
+
+Read-aloud is a separate function. Open a conversation containing an assistant
+reply, then Voice → **Read latest reply aloud** farther down the page. It needs
+an installed voice for the selected language and privacy setting; network voices
+require their separate opt-in. A dictation error does not report a TTS result.
+Leaving Voice stops playback. Physical speech/provider, Bluetooth and background
+acceptance is tracked separately in [VALIDATION](VALIDATION.md).

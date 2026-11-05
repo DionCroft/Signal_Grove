@@ -23,9 +23,9 @@ independent work. Exact-head full Android and compatibility gates precede merges
 
 | Package | Current state | Required acceptance / next step |
 | --- | --- | --- |
-| 1. Branch/release closure | Creation b678 has full hosted853/854 and compatibility pass. Setup2c78 and dependencies9ecd are pushed with retained one-case guide failures. The cumulative guide correction has strict511 JVM/21 focused native acceptance; override foundation152bf47 has compatibility success. | Publish the guide correction and obtain new exact-head full Android/compatibility acceptance before merging cumulative source. Beta.5 remains unreleased. |
-| 2. Real Hermes matrix | Source/fixture coverage exists; private owner transport/auth/native-login start is commissioned. Successful model turn/full phone login not certified. | Isolated real stable and prior-supported installations with deterministic provider/tool adapter and synthetic data; native login/refresh/profile isolation, approvals/recovery, images and representative MCP/skill/plugin/provider/project/Kanban flows. Main remains separate canary. |
-| 3. Physical Android | Owned API26/36/37 emulator evidence; no claimed physical/OEM certification. | ARM64 phone microphone/TTS/Bluetooth/offline service, process death, LAN permission, IME/large text, notifications/reboot/battery and approved matching-signer update preserving data. |
+| 1. Branch/release closure | Cumulative4f0b2d9 passed full hosted893/894 and compatibility with verified artifacts; main fast-forwarded to it. Earlier failed heads remain retained. | Keep exact-head gates for subsequent chunks; beta.5 release/security acceptance remains open. |
+| 2. Real Hermes matrix | Official stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers; full clean-install/native/tool matrix and successful owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
+| 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
 | 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. No override forms or status controls yet. | Add private override forms and typed status with exact effects/approval/preflight/receipts; preserve next-dispatch versus current-runtime semantics and close own full gates. |
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
@@ -35,7 +35,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 6b. Configuration/workspaces | Narrow config slices and stored-project administration exist. | Typed memory/persona/context/config/reset and explicit chat-workspace adoption, repository/folder discovery and tree/file hydration. Active-project metadata alone is not cwd adoption. |
 | 7a. Notification routing | Best-effort active-connection polling and generic routes. | Exact connection/conversation/run targeting, deliberate multi-connection/job/goal policy and lifecycle evidence. Push only with a real authenticated bridge/registration contract. |
 | 7b. Rendering/voice/UX | Core Markdown, Android voice, pixel motion/theme and updater exist. | Assess safe Mermaid/math fallbacks/rendering, applicable UX/accessibility/performance; physical voice evidence; use only actually supported Hermes audio transport. |
-| 7c. Maintainability | Management/Words concentrated; owner validation helpers partly external. | Split controllers/state where justified without weakening scope/receipt guards; checked-in contributor artifact-aware validation and concise support/state matrix. |
+| 7c. Maintainability | Added opt-in bounded thread/clock diagnostics, private APK-bound exporter and contributor instructions; production app and normal full gate unchanged. | Finish justified controller/Words decomposition, remaining artifact-aware contributor workflows and concise support/state matrix. |
 | 8. Security/release/community | Strict verification and compatibility gates exist; fresh full advisory/release review remains. | Review actual resolved production/tool/native graph, recurring advisories and deliberate SBOM/provenance; signed exact-source assets/checksums, retention/migration, support/community docs and release verification. |
 
 The four original defect regressions and implemented core bearer API features stay
@@ -62,7 +62,7 @@ commissioning reports stay out of this public repository.
 
 ## Next bounded stage
 
-Inspect the corrected head’s full hosted gates and progress physical Android
-acceptance on the newly connected device. Deliver native override forms, then typed
-status, from verified contracts while progressing isolated real-Hermes acceptance. Update this ledger at each
+Publish the validated diagnostic chunk with its own hosted gates, then deliver
+native override forms and typed status from verified contracts. Continue physical
+background/audio acceptance and the isolated real-Hermes matrix independently. Update this ledger at each
 meaningful commit/merge/release, preserving remaining requirements.
