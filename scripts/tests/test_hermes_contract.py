@@ -10,7 +10,7 @@ checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 def sources():
     route="def _http_routes():\n    return [('POST','/v1/runs',handler)]\n"
-    return {**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
+    return {**{key:'' for key in checker.PLUGIN_UPDATE_CONTRACT_SOURCES},**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
         'api':"_STATIC_FEATURE_FLAGS={'enabled':True}\n_MAX_NAME_LENGTH=160\n_MAX_PROMPT_LENGTH=5000\n_UPDATE_ALLOWED_FIELDS={'enabled'}\ndef _http_route_table():\n    return [('GET','/v1/kept',handler)]\n",
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",
@@ -469,7 +469,11 @@ class ContractWatchTest(unittest.TestCase):
         tracked=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',tracked['upstream']['commit'])
         expected={'authority:respond_run': ['91ececa57860c5b4034976ce516f3521308ffb264d0d1a93f6ead1ceda6e151f', '4184a34230ffc7f0f80535fe18363db7d5b282a49f22046f1ecd5984c0bc3ca2'], 'authority:stop_run': ['71c001841698b9ef34ecfeb350a2d4382d508241f240430dddd476f7cab1645b', '96dd2e811391dc13582abe7de6386e772b55fd44d98ccf7ee73e437c616ca860'], 'authority:resolve_unknown_run': ['8fe7edb15f8bbb5bc55f1f3953d3ef91e94354939b35c8605570e010bfe6e045', 'f944fb77ca52397d51ec4f0d65d1dd6f3d79b550df3b46305abbe9d730e44c5d']}
-        current={'commit':'07274ac65438a0b62bb9fd64bf284e58b2fd8fc6','contract':copy.deepcopy(tracked['upstream']['contract'])}
+        current={'commit':'e'*40,'contract':copy.deepcopy(tracked['upstream']['contract'])}
+        # A complete synthetic current contract must include unrelated later introductions;
+        # this test still isolates the three actor variants and preserves every original assertion.
+        for key,entries in tracked['reviewed_handler_variants'].items():
+            if tracked['upstream']['contract']['handlers'].get(key) is None:current['contract']['handlers'][key]=entries[-1]['sha256']
         for key,(before,after) in expected.items():
             self.assertEqual(before,tracked['upstream']['contract']['handlers'][key])
             evidence=tracked['reviewed_handler_variants'][key]
@@ -823,3 +827,52 @@ class KanbanBoardWriteWatchTests(unittest.TestCase):
         data=self.fixture();data['kanban_api']+="\n@router.post('/unused')\ndef unused():\n    return {}\n"
         result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
         self.assertFalse(result['mobile_review_required']);self.assertIn('POST /api/plugins/kanban/unused',result['added_management_routes'])
+
+
+class PluginUpdateLockWatchTests(unittest.TestCase):
+    def fixture(self):
+        data=sources()
+        data['plugin_auto_update']="raise RuntimeError('Never execute upstream dependency')\nimport threading\nfrom pathlib import Path\n_LOCK_WAIT_SECONDS=1.0\n_lock_holders={}\n_lock_holders_guard=threading.Lock()\ndef _holder(key):\n    return _lock_holders.setdefault(key,threading.local())\ndef plugin_update_lock(target):\n    return bounded_lock(target,_LOCK_WAIT_SECONDS)\n"
+        data['provider_auth']="try:\n    import fcntl\nexcept ImportError:\n    fcntl=None\ndef _file_lock(path,holder,timeout,message):\n    return kernel_lock(path,timeout)\n"
+        data['plugin_update']="def _dashboard_update_locked(name,force=False,accept_capabilities=False):\n    if needs_consent(name) and not accept_capabilities:\n        return refuse()\n    if dangerous(name):\n        return blocked()\n    return publish(name,force=force)\n"
+        return data
+    def tracked(self):
+        value=baseline(checker.extract(self.fixture()));value['mobile_used_handlers']+=['plugin_auto_update:binding:_LOCK_WAIT_SECONDS','plugin_auto_update:binding:_lock_holders_guard','plugin_auto_update:import:threading','plugin_auto_update:plugin_update_lock','provider_auth:_file_lock','provider_auth:lock_platform:fcntl','plugin_update:_dashboard_update_locked'];return value
+    def test_lock_timeout_import_owner_backend_and_platform_changes_require_review(self):
+        for module,before,after,key in [('plugin_auto_update','_LOCK_WAIT_SECONDS=1.0','_LOCK_WAIT_SECONDS=20.0','plugin_auto_update:binding:_LOCK_WAIT_SECONDS'),('plugin_auto_update','threading.Lock()','fake_lock()','plugin_auto_update:binding:_lock_holders_guard'),('plugin_auto_update','import threading','import other as threading','plugin_auto_update:import:threading'),('plugin_auto_update','bounded_lock(target,_LOCK_WAIT_SECONDS)','unbounded_lock(target)','plugin_auto_update:plugin_update_lock'),('provider_auth','kernel_lock(path,timeout)','open_without_lock(path)','provider_auth:_file_lock'),('provider_auth','fcntl=None','fcntl=unsafe_backend()','provider_auth:lock_platform:fcntl')]:
+            data=self.fixture();self.assertIn(before,data[module]);data[module]=data[module].replace(before,after);result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+            self.assertTrue(result['mobile_review_required']);self.assertIn(key,result['mobile_relevant_changes']['changed_used_handlers'])
+    def test_extracted_manual_body_cannot_bypass_consent_scan_or_force_choice(self):
+        for before,after in [('not accept_capabilities','False'),('return blocked()','return publish(name,force=True)'),('publish(name,force=force)','publish(name,force=True)')]:
+            data=self.fixture();data['plugin_update']=data['plugin_update'].replace(before,after);result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+            self.assertIn('plugin_update:_dashboard_update_locked',result['mobile_relevant_changes']['changed_used_handlers'])
+        data=self.fixture();data.pop('plugin_auto_update')
+        with self.assertRaises(ValueError):checker.extract(data)
+    def introduced(self):
+        data=self.fixture();current=checker.extract(data);old_data=dict(data);old_data['plugin_auto_update']='';value=baseline(checker.extract(old_data));key='plugin_auto_update:plugin_update_lock'
+        value['mobile_used_handlers'].append(key);value['reviewed_handler_variants']={key:[{'sha256':current['handlers'][key],'commit':'c'*40,'reason':'Synthetic source introduction'}]}
+        value['reviewed_handler_absences']={key:[{'commit':'d'*40,'reason':'Synthetic exact older stable source lacks the introduced helper'}]}
+        return value,current,key
+    def test_introduced_handler_removal_is_not_silently_accepted_as_the_original_absence(self):
+        value,current,key=self.introduced();self.assertFalse(checker.compare(value,{'commit':'e'*40,'contract':current})['mobile_review_required']);missing={**current,'handlers':{k:v for k,v in current['handlers'].items() if k!=key}}
+        report=checker.compare(value,{'commit':'e'*40,'contract':missing});self.assertTrue(report['mobile_review_required']);self.assertTrue(report['mobile_relevant_changes']['changed_used_handlers'][key]['required_introduced_handler_missing'])
+        self.assertFalse(checker.compare(value,{'commit':'d'*40,'contract':missing})['mobile_review_required'])
+        self.assertFalse(checker.compare(value,{'commit':value['upstream']['commit'],'contract':missing})['mobile_review_required'])
+        self.assertTrue(checker.compare(value,{'commit':'f'*40,'contract':missing})['mobile_review_required'])
+    def test_absence_exceptions_require_selected_introduced_handlers_and_exact_pinned_evidence(self):
+        value,current,key=self.introduced()
+        for replacement in [[],[{'commit':'main','reason':'review'}],[{'commit':'d'*40,'reason':''}],[{'commit':value['upstream']['commit'],'reason':'redundant baseline'}],['not evidence']]:
+            bad=copy.deepcopy(value);bad['reviewed_handler_absences'][key]=replacement
+            with self.assertRaises(ValueError):checker.compare(bad,{'commit':'e'*40,'contract':current})
+        bad=copy.deepcopy(value);bad['reviewed_handler_absences']['unknown:handler']=bad['reviewed_handler_absences'].pop(key)
+        with self.assertRaises(ValueError):checker.compare(bad,{'commit':'e'*40,'contract':current})
+    def test_every_recorded_introduced_relay_or_lock_handler_requires_future_presence(self):
+        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'));current=copy.deepcopy(value['upstream']['contract'])
+        introduced=[k for k in value['reviewed_handler_variants'] if current['handlers'].get(k) is None]
+        self.assertGreaterEqual(len(introduced),70)
+        for key in introduced:current['handlers'][key]=value['reviewed_handler_variants'][key][-1]['sha256']
+        self.assertFalse(checker.compare(value,{'commit':'e'*40,'contract':current})['mobile_review_required'])
+        for key in introduced:
+            missing={**current,'handlers':{k:v for k,v in current['handlers'].items() if k!=key}}
+            report=checker.compare(value,{'commit':'e'*40,'contract':missing})
+            self.assertEqual({key},set(report['mobile_relevant_changes']['changed_used_handlers']));self.assertTrue(report['mobile_relevant_changes']['changed_used_handlers'][key]['required_introduced_handler_missing'])

@@ -103,4 +103,63 @@ class SourceCacheTest(unittest.TestCase):
             with self.assertRaises(ValueError):c.cached_github_source(self.cache,self.path,self.pin,self.identity())
             download.assert_not_called()
 
+
+class ReviewedSourceAbsenceTest(unittest.TestCase):
+    alias='plugin_auto_update';path='hermes_cli/plugins_auto_update.py'
+    pin='b200f5bc60e31588ba2cb60e288029c4a54ba5fa'
+    ordinary='agent/fixture.py';data=b"raise RuntimeError('Never execute upstream source')\n"
+    def setUp(self):
+        self.folder=tempfile.TemporaryDirectory();self.addCleanup(self.folder.cleanup);self.cache=Path(self.folder.name)/'cache'
+    def identity(self,data):return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest(),len(data)
+    def row(self,path,data):
+        oid,size=self.identity(data);return {'path':path,'type':'blob','mode':'100644','sha':oid,'size':size}
+    def tree(self,extra=None):return {'sha':'c'*40,'truncated':False,'tree':[self.row(self.ordinary,self.data)]+(extra or [])}
+    def scope(self,alias=None,path=None):return patch.multiple(c,SOURCES={'fixture':self.ordinary},EXTRA_SOURCES={alias or self.alias:path or self.path})
+    def test_known_cached_absence_requires_a_fresh_complete_tree_and_never_caches_empty_text(self):
+        with self.scope(),patch.object(c,'resolve',return_value=('latest',self.pin)),patch.object(c,'github',return_value=self.tree()) as tree,patch.object(c,'github_source',return_value=self.data.decode()) as download,patch.object(c,'extract',side_effect=lambda rows: {'statements':len(ast.parse(rows['fixture']).body),'absent':rows[self.alias]}):
+            cold=c.snapshot('latest',self.cache);warm=c.snapshot('latest',self.cache)
+        self.assertEqual(2,tree.call_count);download.assert_called_once_with(self.ordinary,self.pin)
+        self.assertEqual({'statements':1,'absent':''},cold['contract']);self.assertEqual(cold['contract'],warm['contract'])
+        expected=[{'source':self.alias,'path':self.path,'commit':self.pin}]
+        self.assertEqual(expected,cold['reviewed_source_absences']);self.assertEqual(expected,warm['reviewed_source_absences'])
+        self.assertEqual([self.identity(self.data)[0]],list(p.name for p in self.cache.iterdir()))
+        self.assertEqual({'verified_hits':1,'verified_downloads':0},warm['source_cache'])
+    def test_known_absence_never_hides_a_present_file_or_bypasses_blob_validation(self):
+        other=b"raise RuntimeError('Never execute new dependency')\n";tree=self.tree([self.row(self.path,other)])
+        def read(path,commit):return (other if path==self.path else self.data).decode()
+        with self.scope(),patch.object(c,'resolve',return_value=('latest',self.pin)),patch.object(c,'github',return_value=tree),patch.object(c,'github_source',side_effect=read) as download,patch.object(c,'extract',side_effect=lambda rows: {'nodes':sum(len(ast.parse(v).body) for v in rows.values())}):
+            result=c.snapshot('latest',self.cache)
+        self.assertEqual(2,result['contract']['nodes']);self.assertEqual([],result['reviewed_source_absences']);self.assertEqual(2,download.call_count)
+        oid,size=self.identity(other);(self.cache/oid).write_bytes(b'x'*size)
+        with self.scope(),patch.object(c,'resolve',return_value=('latest',self.pin)),patch.object(c,'github',return_value=tree),patch.object(c,'github_source') as download,patch.object(c,'extract') as parse:
+            with self.assertRaises(c.SourceReadError):c.snapshot('latest',self.cache)
+            parse.assert_not_called();download.assert_not_called()
+    def test_unknown_commit_alias_path_other_missing_source_and_truncated_tree_fail_closed(self):
+        cases=[('d'*40,self.alias,self.path,self.tree()),(self.pin,'other_alias',self.path,self.tree()),(self.pin,self.alias,'hermes_cli/other.py',self.tree()),(self.pin,self.alias,self.path,{'sha':'c'*40,'truncated':False,'tree':[]}),(self.pin,self.alias,self.path,{**self.tree(),'truncated':True})]
+        for pin,alias,path,tree in cases:
+            with self.subTest(pin=pin,alias=alias,path=path),self.scope(alias,path),patch.object(c,'resolve',return_value=('main',pin)),patch.object(c,'github',return_value=tree),patch.object(c,'github_source') as read,patch.object(c,'extract') as parse:
+                with self.assertRaises(c.SourceReadError):c.snapshot('main',self.cache)
+                read.assert_not_called();parse.assert_not_called()
+    def test_no_cache_requires_the_actual_known_404_and_does_not_swallow_other_statuses(self):
+        for status in [404,401,403,429,500,None]:
+            def read(path,commit):
+                if path==self.path:raise c.GitHubReadError(status)
+                return self.data.decode()
+            with self.subTest(status=status),self.scope(),patch.object(c,'resolve',return_value=('latest',self.pin)),patch.object(c,'github_source',side_effect=read),patch.object(c,'extract',side_effect=lambda rows: {'blank':rows[self.alias]}) as parse:
+                if status==404:
+                    result=c.snapshot('latest');self.assertEqual({'blank':''},result['contract']);self.assertEqual([{'source':self.alias,'path':self.path,'commit':self.pin}],result['reviewed_source_absences'])
+                else:
+                    with self.assertRaises(c.SourceReadError) as failure:c.snapshot('latest')
+                    self.assertEqual(self.alias,failure.exception.module);self.assertEqual(status,failure.exception.status);parse.assert_not_called()
+    def test_no_cache_unknown_commit_or_renamed_alias_cannot_treat_a_404_as_success(self):
+        for pin,alias,path in [('d'*40,self.alias,self.path),(self.pin,'other_alias',self.path),(self.pin,self.alias,'hermes_cli/other.py')]:
+            with self.subTest(pin=pin,alias=alias,path=path),self.scope(alias,path),patch.object(c,'resolve',return_value=('main',pin)),patch.object(c,'github_source',side_effect=c.GitHubReadError(404)),patch.object(c,'extract') as parse:
+                with self.assertRaises(c.SourceReadError):c.snapshot('main')
+                parse.assert_not_called()
+    def test_reviewed_absence_does_not_satisfy_a_tree_permission_or_rate_failure(self):
+        for status in [403,429]:
+            with self.subTest(status=status),self.scope(),patch.object(c,'resolve',return_value=('latest',self.pin)),patch.object(c,'github',side_effect=c.GitHubReadError(status)),patch.object(c,'github_source') as read,patch.object(c,'extract') as parse:
+                with self.assertRaises(c.SourceReadError) as failure:c.snapshot('latest',self.cache)
+                self.assertEqual('source_tree',failure.exception.module);self.assertEqual(status,failure.exception.status);read.assert_not_called();parse.assert_not_called()
+
 if __name__=='__main__':unittest.main()

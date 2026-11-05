@@ -154,6 +154,21 @@ EXTRA_SOURCES = {
 
 
 }
+PLUGIN_UPDATE_CONTRACT_SOURCES = {'plugin_auto_update': 'hermes_cli/plugins_auto_update.py'}
+EXTRA_SOURCES.update(PLUGIN_UPDATE_CONTRACT_SOURCES)
+# Official complete trees and Contents 404s prove this dependency is absent at ONLY these pins.
+# A missing dependency at any other commit is an incomplete inspection, never empty success.
+REVIEWED_SOURCE_ABSENCES = {
+    'plugin_auto_update': ('hermes_cli/plugins_auto_update.py', frozenset({
+        'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',
+        'b200f5bc60e31588ba2cb60e288029c4a54ba5fa',
+    })),
+}
+
+def reviewed_source_absence(name: str, path: str, commit: str) -> bool:
+    entry = REVIEWED_SOURCE_ABSENCES.get(name)
+    return bool(entry and EXTRA_SOURCES.get(name) == path == entry[0] and commit in entry[1])
+
 KANBAN_CONTRACT_SOURCES = {'kanban_api':'plugins/kanban/dashboard/plugin_api.py','kanban_db':'hermes_cli/kanban_db.py','kanban_boards':'hermes_cli/kanban_db_boards.py','kanban_connect':'hermes_cli/kanban_db_connect.py','kanban_workflow':'hermes_cli/kanban_workflow.py','kanban_plugin_profiles':'hermes_cli/web_server_plugin_profiles.py','kanban_plugin_mount':'hermes_cli/web_server_dashboard.py','kanban_read_coalescing':'hermes_cli/web_read_coalescing.py'}
 KANBAN_CONTRACT_SOURCES.update({'kanban_scope_runtime':'hermes_cli/web_server.py','kanban_roots':'hermes_constants.py'})
 EXTRA_SOURCES.update(KANBAN_CONTRACT_SOURCES)
@@ -200,11 +215,15 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 if not prefix and node.name in channel_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 if (source=='gateway_models' and node.name=='CronAction') or (source=='gateway_plugin_models' and node.name in ('PluginsAction','PluginCatalogLookupStatus','PluginRestartTarget','PluginSettingFieldType')):handlers[f'{source}:enum:{node.name}']=fingerprint(node)
                 if source=='gateway_plugin_models' and node.name=='PluginsManageParams':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
+                if source=='plugin_auto_update' and node.name=='HeldWithRef':handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 if source=='models' and node.name in ('EnvVarUpdate','EnvVarDelete','ModelAssignment','MoaModelSlot','_MoaReferenceControls','MoaPresetPayload','MoaConfigPayload','CredentialPoolAdd','ConfigUpdate','CustomEndpointUpdate','CustomEndpointModelDetail','MessagingPlatformUpdate'):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 visit(node.body, prefix+node.name+'.')
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
+            elif not prefix and source=='provider_auth' and isinstance(node,ast.Try):
+                platforms={alias.name for child in ast.walk(node) if isinstance(child,ast.Import) for alias in child.names} & {'fcntl','msvcrt'}
+                for platform in sorted(platforms):handlers[f'{source}:lock_platform:{platform}']=fingerprint(node)
             elif not prefix and source=='gateway_runtime' and isinstance(node,ast.ImportFrom) and any(alias.name=='methods_projects' for alias in node.names):
                 isolated=ast.ImportFrom(module=node.module,names=[alias for alias in node.names if alias.name=='methods_projects'],level=node.level)
                 handlers['gateway_runtime:projects_registration_import']=fingerprint(isolated)
@@ -212,12 +231,12 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 selected=copy.deepcopy(node)
                 selected.iter.elts=[item for item in selected.iter.elts if isinstance(item,ast.Name) and item.id=='_methods_projects']
                 handlers['gateway_runtime:projects_registration_loop']=fingerprint(selected)
-            elif not prefix and source in (PROJECT_CONTRACT_SOURCES.keys() | KANBAN_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
+            elif not prefix and source in (PROJECT_CONTRACT_SOURCES.keys() | KANBAN_CONTRACT_SOURCES.keys() | PLUGIN_UPDATE_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     for binding in ast.walk(target):
                         if isinstance(binding,ast.Name):handlers[f'{source}:binding:{binding.id}']=fingerprint(node)
-            elif not prefix and source in (PROJECT_CONTRACT_SOURCES.keys() | KANBAN_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
+            elif not prefix and source in (PROJECT_CONTRACT_SOURCES.keys() | KANBAN_CONTRACT_SOURCES.keys() | PLUGIN_UPDATE_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
                 for alias in node.names:
                     binding=alias.asname or alias.name
                     isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])
@@ -527,7 +546,8 @@ def source_identities(commit: str) -> dict:
                 or not require_sha(row.get('sha')) or type(row.get('size')) is not int or not 0<=row['size']<=2_000_000):
             raise ValueError('Invalid upstream source identity')
         found[path]=(row['sha'],row['size'])
-    if set(found)!=wanted:raise ValueError('Upstream source identity missing')
+    allowed={path for name,path in (SOURCES|EXTRA_SOURCES).items() if reviewed_source_absence(name,path,commit)}
+    if wanted-set(found)-allowed:raise ValueError('Upstream source identity missing')
     return found
 
 
@@ -585,13 +605,24 @@ def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     except (ValueError,KeyError,OSError,subprocess.TimeoutExpired) as exc:raise SourceReadError('source_tree',getattr(exc,'status',None)) from exc
     cache_counts={'verified_hits':0,'verified_downloads':0}
     failure=[]
+    absences=[]
     failure_lock=threading.Lock()
+    def absent(name,path):
+        with failure_lock:absences.append({'source':name,'path':path,'commit':sha})
+        return name,''
     def download(item):
         name, path = item
         with failure_lock:
             if failure:raise failure[0]  # Queued work must not keep hitting an already-refusing provider.
         try:
-            if source_cache is None:return name,github_source(path,sha)
+            if source_cache is None:
+                try:return name,github_source(path,sha)
+                except GitHubReadError as exc:
+                    if exc.status==404 and reviewed_source_absence(name,path,sha):return absent(name,path)
+                    raise
+            if path not in identities:
+                if reviewed_source_absence(name,path,sha):return absent(name,path)
+                raise ValueError('Upstream source identity missing')
             value,hit=cached_github_source(source_cache,path,sha,identities[path])
             with failure_lock:cache_counts['verified_hits' if hit else 'verified_downloads']+=1
             return name,value
@@ -602,7 +633,7 @@ def snapshot(ref: str, source_cache: Path | None = None) -> dict:
             raise original from exc
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         sources = dict(pool.map(download, (SOURCES | EXTRA_SOURCES).items()))
-    result={'requested_ref':ref,'resolved_ref':resolved,'commit':sha,'contract':extract(sources)}
+    result={'requested_ref':ref,'resolved_ref':resolved,'commit':sha,'contract':extract(sources),'reviewed_source_absences':sorted(absences,key=lambda entry:entry['source'])}
     if source_cache is not None:result['source_cache']=cache_counts
     return result
 
@@ -628,8 +659,26 @@ def compare(baseline: dict, current: dict) -> dict:
                     or not isinstance(entry.get('reason'),str) or not entry['reason'].strip()):
                 raise ValueError('Incomplete reviewed handler variant evidence')
             accepted[key].add(entry['sha256'])
+    introduced_absences=baseline.get('reviewed_handler_absences',{})
+    if not isinstance(introduced_absences,dict):raise ValueError('Invalid reviewed handler absences')
+    allowed_absences={}
+    for key,entries in introduced_absences.items():
+        if key not in accepted or old.get('handlers',{}).get(key) is not None or not isinstance(entries,list) or not entries:
+            raise ValueError('Invalid introduced handler absence target')
+        allowed_absences[key]=set()
+        for entry in entries:
+            if (not isinstance(entry,dict) or not isinstance(entry.get('commit'),str) or not re.fullmatch(r'[a-f0-9]{40}',entry['commit'])
+                    or entry['commit']==baseline['upstream']['commit'] or not isinstance(entry.get('reason'),str) or not entry['reason'].strip()):
+                raise ValueError('Incomplete introduced handler absence evidence')
+            allowed_absences[key].add(entry['commit'])
     relevant['changed_used_handlers'] = {key: {'before': old.get('handlers', {}).get(key), 'after': new.get('handlers', {}).get(key)}
         for key in baseline.get('mobile_used_handlers', []) if old.get('handlers', {}).get(key) != new.get('handlers', {}).get(key) and new.get('handlers', {}).get(key) not in accepted.get(key,set())}
+    # An introduced handler disappearing is not a return to the historical baseline. Only the
+    # original pin or explicitly reviewed older pins can legitimately lack that selected handler.
+    for key in accepted:
+        if (old.get('handlers',{}).get(key) is None and new.get('handlers',{}).get(key) is None
+                and current.get('commit')!=baseline['upstream']['commit'] and current.get('commit') not in allowed_absences.get(key,set())):
+            relevant['changed_used_handlers'][key]={'before':None,'after':None,'required_introduced_handler_missing':True}
     relevant['changed_used_request_fields'] = {key: {'before': old.get('request_fields', {}).get(key), 'after': new.get('request_fields', {}).get(key)}
         for key in baseline.get('mobile_used_request_fields', []) if old.get('request_fields', {}).get(key) != new.get('request_fields', {}).get(key)}
     return {'baseline_commit': baseline['upstream']['commit'], 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs only; transitive helper changes, runtime feature gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}

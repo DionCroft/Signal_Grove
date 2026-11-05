@@ -76,6 +76,7 @@ jobs:
                   summary.write('Upstream commit: '+result['current']['commit']+'\n\n')
                   summary.write('Used-contract review required: '+str(result['mobile_review_required'])+'\n\n')
                   summary.write('Verified source cache hits/downloads: '+str(cache.get('verified_hits','unknown'))+'/'+str(cache.get('verified_downloads','unknown'))+'\n\n')
+                  summary.write('Explicit pinned source absences: '+str(len(result['current'].get('reviewed_source_absences',[])))+'\n\n')
                   summary.write('Changed source modules: '+str(len(result['changed_source_modules']))+'\n\n')
                   summary.write('New API routes: '+str(len(result['added_routes']))+'; new management routes: '+str(len(result['added_management_routes']))+'. See the artifact for details.\n\n')
           PY

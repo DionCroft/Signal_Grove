@@ -393,7 +393,8 @@
         "kanban_plugin_mount": "eadc5590b4f10f5d7dfb8f1075a8bc46b59f0ac34fd5943f628af6a1a31e3069",
         "kanban_read_coalescing": "989c9753e67e6d6bfdebc5200e6136847405bbe19927ae3c8899691784c94058",
         "kanban_scope_runtime": "ac7dbb8d06cd9579f699bf712586d1f414b22818f801d0b461e939eb2c78c5dc",
-        "kanban_roots": "74d849629c176703d48f9aa43a245fd8819545ac908c805e347db7d691976510"
+        "kanban_roots": "74d849629c176703d48f9aa43a245fd8819545ac908c805e347db7d691976510",
+        "plugin_auto_update": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       "handlers": {
         "api:APIServerAdapter._handle_capabilities": "fded591edab150c17cb5d89a1a531952c438c862a8cec884efaf1e18f8c44b50",
@@ -3672,7 +3673,15 @@
         "kanban_roots:emit_partial_update_hint": "e49bc0d66762f19fc3f4010fa0fff06e6b4e97def444bb6bbc7e45f6fb5e2e7a",
         "kanban_roots:normalize_scope": "000e1d00eee54d5ee3f95f7ae231d01013c468a56c0e9ccb61809dca5e6afeec",
         "kanban_api:schema:CreateBoardBody": "40c49160f24b101e743d010109886f711a00d96f2221006eae44852a106b86a7",
-        "kanban_api:schema:RenameBoardBody": "7c15885d3da08dac7a7763b2e003f0cbb8ab8135e75d2b658696f101a3c5ecf1"
+        "kanban_api:schema:RenameBoardBody": "7c15885d3da08dac7a7763b2e003f0cbb8ab8135e75d2b658696f101a3c5ecf1",
+        "provider_auth:_file_lock": "bbe58fa421fcbcd0b49931b794cd6f6522fcb879b911b2067192c299e357da91",
+        "provider_auth:_kernel_lock": "db809ccb7e1d20d8ba51a7b66f096a5b32496e01be5af7d86c1ee8780ef2dc4a",
+        "provider_auth:_is_lock_contention": "553d5f294b96f933a1f7964e1988fb306b101d35c80f329816be2a597c12b9c0",
+        "provider_auth:_lock_holder_hint": "c7ec9e5ae52dda8707ceaab4240baf0543e031cb8265c560a78c8688deff39d0",
+        "provider_auth:_stamp_lock_holder_pid": "4736b5b737ade8093bae53c90e38c951831c0bbb190c5fa0fe24988ce8dfe0df",
+        "provider_auth:_clear_stamped_lock_holder_pid": "b3af1a3e5981c3322bbdc7ba905f39bc4c4e6ecbdacc6ebbbd2282ec8d7dac1f",
+        "provider_auth:lock_platform:fcntl": "77997386410ed02aa6199f183d664e2eccc92c0d5eeafe4283daf022fe231d19",
+        "provider_auth:lock_platform:msvcrt": "6017328a054cf76cc5a41234735b6d10e1caee911baac0d1009ceb09761a57b4"
       },
       "request_fields": {
         "auth:_NativeRefreshBody.provider": "6f26da4d3397a0ad1e091e80f548edef3c9ec86067192a65272fb7d0def308d9",
@@ -5862,6 +5871,7 @@
     "kanban_roots:_get_platform_default_hermes_home",
     "kanban_roots:_hermes_root_of",
     "kanban_roots:get_default_hermes_root",
+    "kanban_roots:get_hermes_home",
     "kanban_scope_runtime:_dashboard_auth_gate",
     "kanban_scope_runtime:_plugin_api_runtime_gate",
     "kanban_scope_runtime:auth_middleware",
@@ -6155,6 +6165,17 @@
     "plugin_activation:load_and_go_live",
     "plugin_activation:plugin_activation_summary",
     "plugin_admission:admit_plugin_set_change",
+    "plugin_auto_update:_holder",
+    "plugin_auto_update:_pc",
+    "plugin_auto_update:binding:_LOCK_WAIT_SECONDS",
+    "plugin_auto_update:binding:_lock_holders",
+    "plugin_auto_update:binding:_lock_holders_guard",
+    "plugin_auto_update:import:ExitStack",
+    "plugin_auto_update:import:Path",
+    "plugin_auto_update:import:contextmanager",
+    "plugin_auto_update:import:threading",
+    "plugin_auto_update:plugin_update_lock",
+    "plugin_auto_update:schema:HeldWithRef",
     "plugin_catalog_gate:_SURFACE_LABELS",
     "plugin_catalog_gate:_added",
     "plugin_catalog_gate:_carry_user_files",
@@ -6271,6 +6292,7 @@
     "plugin_transaction:publish_plugin",
     "plugin_transaction:update_plugin",
     "plugin_update:_clear_plugin_bytecode",
+    "plugin_update:_dashboard_update_locked",
     "plugin_update:_post_pull_housekeeping",
     "plugin_update:_pull_plugin_update",
     "plugin_update:_reclone_plugin_update",
@@ -6435,19 +6457,27 @@
     "project_methods:rpc:projects.set_active",
     "project_methods:schema:_NoProject",
     "provider_auth:_auth_store_lock",
+    "provider_auth:_clear_stamped_lock_holder_pid",
     "provider_auth:_credential_token_pair",
     "provider_auth:_entry_ids",
+    "provider_auth:_file_lock",
+    "provider_auth:_is_lock_contention",
     "provider_auth:_is_same_auth_store",
+    "provider_auth:_kernel_lock",
     "provider_auth:_load_auth_store",
     "provider_auth:_load_global_auth_store",
+    "provider_auth:_lock_holder_hint",
     "provider_auth:_merge_pool_row_generation",
     "provider_auth:_save_auth_store",
+    "provider_auth:_stamp_lock_holder_pid",
     "provider_auth:_store_section",
     "provider_auth:_suppressed_source_list",
     "provider_auth:_token_pairs_by_id",
     "provider_auth:clear_provider_auth",
     "provider_auth:get_provider_auth_state",
     "provider_auth:is_source_suppressed",
+    "provider_auth:lock_platform:fcntl",
+    "provider_auth:lock_platform:msvcrt",
     "provider_auth:mark_provider_active_if_unset",
     "provider_auth:read_credential_pool",
     "provider_auth:suppress_credential_source",
@@ -7008,7 +7038,8 @@
     "No server credentials, source execution or automatic baseline updates.",
     "Stored project mutation schemas, single-send handlers and path/primary/slug/active-pointer database effects are watched from the verified original baseline source. Existing hashes and reviewed variants are preserved; this extends coverage without a main-source rebaseline.",
     "2026-11-05: Added scoped Kanban inventory/board/task GETs, private response schemas, shared-root/board resolution, initialization/migration, plugin access/mount and in-flight read-coalescing watches. All ten source modules existed at the original F0 baseline; the 287 new selected keys are identical at stable B200. Existing handler hashes/variants and baseline commit remain intact. Profile-home routing is distinct from shared Kanban storage; reads do not establish worker health or physical path identity. See contracts/2026-11-05-kanban-inspection.md.",
-    "2026-11-05: Reviewed board create/update/archive/delete/current-pointer writes add four used routes, CreateBoardBody/RenameBoardBody whole schemas and fields, exact mutation/display/path/project helpers and delegated-child guard. All newly selected definitions match original F0 and stable B200; previous hashes, variants and baseline commit are retained. Raced creation can reuse/overwrite metadata; archive/delete have partial pointer/filesystem effects; source review is not runtime/physical-erasure proof. See contracts/2026-11-05-kanban-board-controls.md."
+    "2026-11-05: Reviewed board create/update/archive/delete/current-pointer writes add four used routes, CreateBoardBody/RenameBoardBody whole schemas and fields, exact mutation/display/path/project helpers and delegated-child guard. All newly selected definitions match original F0 and stable B200; previous hashes, variants and baseline commit are retained. Raced creation can reuse/overwrite metadata; archive/delete have partial pointer/filesystem effects; source review is not runtime/physical-erasure proof. See contracts/2026-11-05-kanban-board-controls.md.",
+    "2026-11-05: Reviewed eight exact D8 plugin contract/install/update changes, added per-plugin lock/dependency/manual-helper and unchanged advisory-lock/home watches, and exact F0/B200 source-absence handling. Existing fields/defaults/dispatch, consent/caution/danger gates and all original fingerprints/variants remain; new bulk/host-auto actions are not yet Android controls."
   ],
   "reviewed_handler_variants": {
     "ws_boundary:ws_host_origin_reason": [
@@ -7498,6 +7529,146 @@
         "commit": "2e8a1578d92a3a674aa76a5e751403475bb5d5d9",
         "reason": "Adds the group_router auxiliary default (_aux(20)) alongside the already reviewed skills_hub retirement. All common task defaults are unchanged. Advertised slots/discovery/assignment retain the already reviewed Skill Hub retirement; group_router is not an advertised built-in dashboard slot. Neither changed key is advertised by this pinned main dashboard API, so the client does not invent an unsupported task control. Native tasks are discovered dynamically and fresh inventory changes invalidate reviews. Existing retirement/plugin regressions pass. See docs/contracts/2026-11-05-group-router-default-review.md."
       }
+    ],
+    "gateway_plugin_models:enum:PluginsAction": [
+      {
+        "sha256": "a72712a86701cf47dc2dd35d2c0f2cb5c204123d8e4c95ec9748727bbb6847ba",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "gateway_plugin_models:schema:PluginsManageParams": [
+      {
+        "sha256": "fe15f8f4617443e4aa276162daf08b090f4b3931053b8f2b74f9d89125e15495",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "gateway_rpc:_PLUGINS_ACTIONS": [
+      {
+        "sha256": "23f4d4993295605ce47a957922e702656af1adf5ebd8ae41d2ec8d07c75575f6",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:_holder": [
+      {
+        "sha256": "619b5bb6f9fa8a07b34d1e81075fc0b37890a836b29a78dbf96533b194ae3eb4",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:_pc": [
+      {
+        "sha256": "d7b349986a2c91f3f98a4b5ddda9321c181b5c635c884c7fe573ea27612e884a",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:binding:_LOCK_WAIT_SECONDS": [
+      {
+        "sha256": "969cdaca8ca8afdd267dde4ce69bce1bf03cddb3a5e1971e09cdbf3ff2286d3d",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:binding:_lock_holders": [
+      {
+        "sha256": "d11f99a846b22dc078bdec07688479c7f2971655ae23874bc905e42819c10918",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:binding:_lock_holders_guard": [
+      {
+        "sha256": "ff89e71c7397379d4c0f4c47e678954171d528d3048de577291ee6201657f8bc",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:ExitStack": [
+      {
+        "sha256": "d8894bbe03c62ace35b6306220aa5b531c37bb6bebec23ac981f0f893a4ffbc7",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:Path": [
+      {
+        "sha256": "ad18b0a18742d95c2121009f6a1aecf6a3459fc1e9e15fa44f164698401e1c40",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:contextmanager": [
+      {
+        "sha256": "022c01ad69e990a3747ecdf5cecd2cf8ebbb8e20fb39f3f01418ea39a5bcc2be",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:threading": [
+      {
+        "sha256": "8899f139ad63f719e39adc3d600b7909288913546c1d231e5e1164dc8d3f6946",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:plugin_update_lock": [
+      {
+        "sha256": "656a66ae90c424f73da3b3a37183d9bc2155959f53b0905b207ebec6036127db",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:schema:HeldWithRef": [
+      {
+        "sha256": "4e65055153372fdac25117d36fb3dda77042b86a730549b13cb7b4a99591a1f6",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_install:_install_plugin_core": [
+      {
+        "sha256": "f3fb4bdae0b6942ec71cbd0f3f346c98c82adb1d80491bf39b64c1af2584f20c",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_transaction:update_plugin": [
+      {
+        "sha256": "69156e9f775b656fe4be50fd774520fa5ba20810fde0f8e7495638c62c49897d",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_update:_dashboard_update_locked": [
+      {
+        "sha256": "217666ebb17299e4a178c6fc81f894f656557eca3a89a3a8cf46b11029e4ac7d",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_update:_pull_plugin_update": [
+      {
+        "sha256": "71f605fa7acb729428de782f1137ead326524e0225c9808c0129d40d1b3a2718",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_update:_reclone_plugin_update": [
+      {
+        "sha256": "e2aef2c3466bd13c4366b4fca4fcffe0a3d4e9af0410a7bb61a58f6418ef2618",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_update:dashboard_update_user_plugin": [
+      {
+        "sha256": "8a26e026e6d23f22d80074b49ca2f07a672df14c5b7b753193169b5cdc5c6a62",
+        "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+        "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
     ]
   },
   "reviewed_source_introductions": {
@@ -7518,6 +7689,89 @@
       "absent_at": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
       "reviewed_commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
       "evidence": "Official GitHub contents API returned 404 at original F0; adjacent original sources were readable. Current source must still be fetched; no empty original module is fabricated."
+    },
+    "plugin_auto_update": {
+      "path": "hermes_cli/plugins_auto_update.py",
+      "absent_at": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "additional_absent_at": [
+        "b200f5bc60e31588ba2cb60e288029c4a54ba5fa"
+      ],
+      "reviewed_commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
+      "evidence": "Official Contents 404 and complete non-truncated official Git trees prove absence at both exact pins; current D8 Git blob identity is verified. Only these commits can produce the explicit reviewed-source-absence report; unknown/missing/rate/permission failures remain errors. Lock constants/imports/functions, existing file-lock backend and moved manual helper are tracked. See contracts/2026-11-05-plugin-update-lock-review.md."
     }
+  },
+  "reviewed_handler_absences": {
+    "plugin_auto_update:_holder": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:_pc": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:binding:_LOCK_WAIT_SECONDS": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:binding:_lock_holders": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:binding:_lock_holders_guard": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:ExitStack": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:Path": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:contextmanager": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:import:threading": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:plugin_update_lock": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_auto_update:schema:HeldWithRef": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "plugin_update:_dashboard_update_locked": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ]
   }
 }
