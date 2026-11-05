@@ -11,8 +11,11 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:HostKanbanSnapshot?=null,val detail:HostKanbanDetail?=null,val projects:HostProjectSnapshot?=null,val report:HostKanbanBoardReport?=null)
+data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:HostKanbanSnapshot?=null,val detail:HostKanbanDetail?=null,val projects:HostProjectSnapshot?=null,val report:HostKanbanBoardReport?=null,val taskReport:HostKanbanTaskReport?=null)
 data class HostKanbanBoardReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val archivePath:String?=null) {override fun toString()="HostKanbanBoardReport(redacted)"}
+data class HostKanbanTaskReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val warning:String?=null) {override fun toString()="HostKanbanTaskReport(redacted)"}
+data class ReviewedKanbanTaskEditor(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val subject:HostKanbanDetail,val action:HostKanbanTaskAction,val generation:Long) {override fun toString()="ReviewedKanbanTaskEditor(redacted)"}
+data class ReviewedKanbanTaskChange(val request:HostKanbanTaskChange,val generation:Long) {override fun toString()="ReviewedKanbanTaskChange(redacted)"}
 data class ReviewedKanbanProjects(val inventory:HostKanbanInventory,val generation:Long) {override fun toString()="ReviewedKanbanProjects(redacted)"}
 data class ReviewedKanbanBoardEditor(val expected:HostKanbanInventory,val projects:HostProjectSnapshot?,val action:HostKanbanBoardAction,val slug:String?,val generation:Long) {override fun toString()="ReviewedKanbanBoardEditor(redacted)"}
 data class ReviewedKanbanBoardChange(val request:HostKanbanBoardChange,val generation:Long) {override fun toString()="ReviewedKanbanBoardChange(redacted)"}
@@ -160,6 +163,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is HostKanbanTaskInvalid->Words.KanbanTaskInvalid
+        is HostKanbanTaskChanged->Words.ManagementReviewChanged
+        is HostKanbanTaskUncertain->Words.KanbanTaskUnknown
+        is HostKanbanTaskReadbackPending->Words.KanbanBoardReadbackPending
+        is HostKanbanTaskRefused->Words.ProjectChangeRefused
         is HostKanbanBoardInvalid->Words.KanbanBoardInvalid
         is HostKanbanBoardChanged->Words.ManagementReviewChanged
         is HostKanbanBoardUncertain->Words.KanbanBoardUnknown
@@ -887,11 +895,50 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             }
         }
     }
+    private val kanbanTaskChanges=HostKanbanTaskRepository(app.database.dao(),app.managementReady)
+    fun kanbanTaskBlock(s:ManagementState):Words? {
+        kanbanBoardBlock(s)?.let {return it}
+        val visible=visibleHostKanban(s);val board=visible.board ?: return Words.KanbanTaskReadFirst
+        val detail=visible.detail ?: return Words.KanbanTaskReadFirst
+        if(board.board.definition()!=detail.board.definition() || board.board.archived) return Words.KanbanTaskReadFirst
+        return null
+    }
+    fun prepareKanbanTaskEditor(action:HostKanbanTaskAction):ReviewedKanbanTaskEditor? {
+        if(action !in kanbanTaskEditActions || kanbanTaskBlock(state.value)!=null) return null
+        val visible=visibleHostKanban(state.value)
+        return ReviewedKanbanTaskEditor(visible.inventory!!,visible.board!!,visible.detail!!,action,generation)
+    }
+    fun kanbanTaskEditorCurrent(editor:ReviewedKanbanTaskEditor):Boolean {
+        val visible=visibleHostKanban(state.value)
+        return editor.generation==generation && kanbanTaskBlock(state.value)==null && visible.inventory===editor.inventory && visible.board===editor.snapshot && visible.detail===editor.subject
+    }
+    private fun kanbanTaskRequestCurrent(request:HostKanbanTaskChange):Boolean {
+        val visible=visibleHostKanban(state.value)
+        return request.action in kanbanTaskEditActions && kanbanTaskBlock(state.value)==null && visible.inventory===request.inventory && visible.board===request.snapshot && visible.detail===request.subject && projectContext()==(request.owner to request.home)
+    }
+    fun prepareKanbanTaskChange(request:HostKanbanTaskChange)=if(kanbanTaskRequestCurrent(request)) ReviewedKanbanTaskChange(request,generation) else null
+    fun kanbanTaskChangeCurrent(review:ReviewedKanbanTaskChange)=review.generation==generation && kanbanTaskRequestCurrent(review.request)
+    private fun kanbanTaskReport(owner:ManagementTarget,home:String,receipt:ManagementOperation?,warning:String?=null)=receipt?.takeIf {it.apiScope==owner.apiScope && it.resourceScope==owner.resourceScope && it.url==owner.url && it.profile==owner.profile && it.actor==owner.actor && it.projectHome.isEmpty() && HostKanbanTaskAction.receipt(it.action)}?.let {HostKanbanTaskReport(owner,home,it,warning)}
+    fun performKanbanTaskChange(review:ReviewedKanbanTaskChange) {
+        if(!kanbanTaskChangeCurrent(review)) {hostProjectReviewChanged();return}
+        val request=review.request;val owner=request.owner;val home=request.home
+        state.value=state.value.copy(kanban=HostKanbanState())
+        operation {id->
+            try {
+                val result=kanbanTaskChanges.execute(owner,request,client(state.value),tokens ?: error("Sign in first."))
+                if(id==generation && projectContext()==(owner to home)) state.value=state.value.copy(kanban=HostKanbanState(detail=result.detail,board=result.board,taskReport=kanbanTaskReport(owner,home,result.receipt,result.acknowledgement.warning)))
+            } catch(e:Exception) {
+                val receipt=when(e) {is HostKanbanTaskUncertain->e.receipt;is HostKanbanTaskReadbackPending->e.receipt;is HostKanbanTaskRefused->e.receipt;else->null}
+                if(e !is CancellationException && id==generation && projectContext()==(owner to home)) state.value=state.value.copy(kanban=HostKanbanState(taskReport=kanbanTaskReport(owner,home,receipt)))
+                throw e
+            }
+        }
+    }
     private val kanbanReads=HostKanbanRepository()
     fun visibleHostKanban(s:ManagementState):HostKanbanState {
         val context=projectContext() ?: return HostKanbanState()
         if(s.apiScope!=context.first.apiScope || s.profile!=context.first.profile || s.url!=state.value.url || s.identity!=state.value.identity) return HostKanbanState()
-        return HostKanbanState(s.kanban.inventory?.takeIf {it===state.value.kanban.inventory && it.owner==context.first && it.profileHomeId==context.second},s.kanban.board?.takeIf {it===state.value.kanban.board && it.owner==context.first && it.profileHomeId==context.second},s.kanban.detail?.takeIf {it===state.value.kanban.detail && it.owner==context.first && it.profileHomeId==context.second},s.kanban.projects?.takeIf {it===state.value.kanban.projects && it.owner==context.first && it.homeId==context.second},s.kanban.report?.takeIf {it===state.value.kanban.report && it.owner==context.first && it.home==context.second})
+        return HostKanbanState(s.kanban.inventory?.takeIf {it===state.value.kanban.inventory && it.owner==context.first && it.profileHomeId==context.second},s.kanban.board?.takeIf {it===state.value.kanban.board && it.owner==context.first && it.profileHomeId==context.second},s.kanban.detail?.takeIf {it===state.value.kanban.detail && it.owner==context.first && it.profileHomeId==context.second},s.kanban.projects?.takeIf {it===state.value.kanban.projects && it.owner==context.first && it.homeId==context.second},s.kanban.report?.takeIf {it===state.value.kanban.report && it.owner==context.first && it.home==context.second},s.kanban.taskReport?.takeIf {it===state.value.kanban.taskReport && it.owner==context.first && it.home==context.second})
     }
     fun prepareHostKanbanRead(board:HostKanbanBoard?=null,taskId:String?=null):ReviewedHostKanbanRead? {
         if(state.value.busy) return null

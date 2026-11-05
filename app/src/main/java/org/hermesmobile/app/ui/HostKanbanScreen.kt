@@ -34,13 +34,16 @@ private fun kanbanField(key:String)=when(key) {
     var editor by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.projects,pending) {mutableStateOf<ReviewedKanbanBoardEditor?>(null)}
     var change by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.projects,pending) {mutableStateOf<ReviewedKanbanBoardChange?>(null)}
     var controls by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,pending) {mutableStateOf<HostKanbanBoard?>(null)}
+    var taskEditor by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.board,visible.detail,pending) {mutableStateOf<ReviewedKanbanTaskEditor?>(null)}
+    var taskChange by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.board,visible.detail,pending) {mutableStateOf<ReviewedKanbanTaskChange?>(null)}
+    fun offerTaskChange(request:HostKanbanTaskChange) {val next=vm.prepareKanbanTaskChange(request);if(next==null) vm.hostProjectReviewChanged() else {taskEditor=null;taskChange=next}}
     fun offerChange(request:HostKanbanBoardChange) {val next=vm.prepareKanbanBoardChange(request);if(next==null) vm.hostProjectReviewChanged() else {editor=null;change=next}}
 
     var review by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation) {mutableStateOf<ReviewedHostKanbanRead?>(null)}
     var query by remember(visible.board) {mutableStateOf("")}
     var column by remember(visible.board) {mutableStateOf<String?>(null)}
     fun offer(board:HostKanbanBoard?=null,id:String?=null) {review=vm.prepareHostKanbanRead(board,id)}
-    fun dismiss() {review=null;projectsReview=null;editor=null;change=null;controls=null;close()}
+    fun dismiss() {taskEditor=null;taskChange=null;review=null;projectsReview=null;editor=null;change=null;controls=null;close()}
     val read=vm.prepareHostKanbanRead()
     AlertDialog(onDismissRequest=::dismiss,title={Text(label(Words.HostKanban))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-kanban-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -53,8 +56,9 @@ private fun kanbanField(key:String)=when(key) {
                 val projectRead=vm.prepareKanbanProjects()
                 TextButton({projectsReview=projectRead},enabled=projectRead!=null,modifier=Modifier.heightIn(min=48.dp).testTag("board-read-projects")) {Text(label(Words.KanbanBoardReadProjects))}
             }
-            if(pending) item {Text(label(Words.KanbanBoardUnknown));TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("board-return-receipts")) {Text(label(Words.KanbanBoardReturnReceipts))}}
+            if(pending) item {Text(label(Words.ManagementOutcomePending));TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("board-return-receipts")) {Text(label(Words.KanbanBoardReturnReceipts))}}
             visible.report?.let {report->item {KanbanBoardReport(report)}}
+            visible.taskReport?.let {report->item {KanbanTaskReport(report)}}
             if(s.busy) item {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel,Modifier.heightIn(min=48.dp).testTag("kanban-cancel-work")) {Text(label(Words.Cancel))}}
             visible.inventory?.let {inventory->
                 item {Text(label(Words.HostProjectsSnapshot).replace("{time}",DateFormat.getDateTimeInstance().format(Date(inventory.observedAt))));KanbanValue(Words.KanbanCurrent,inventory.current);if(inventory.boards.isEmpty()) Text(label(Words.EmptyInventory))}
@@ -90,7 +94,9 @@ private fun kanbanField(key:String)=when(key) {
             s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("kanban-close")) {Text(label(Words.Close))}})
-    visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm::closeHostKanbanDetail) {id->offer(detail.board,id)}}
+    visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm.kanbanTaskBlock(s),vm::closeHostKanbanDetail,{id->offer(detail.board,id)},{action->taskEditor=vm.prepareKanbanTaskEditor(action)})}
+    taskEditor?.takeIf(vm::kanbanTaskEditorCurrent)?.let {draft->KanbanTaskForm(draft,{taskEditor=null},::offerTaskChange)}
+    taskChange?.takeIf(vm::kanbanTaskChangeCurrent)?.let {frozen->KanbanTaskChangeReview(frozen,!s.busy,{taskChange=null}) {taskChange=null;vm.performKanbanTaskChange(frozen)}}
     controls?.takeIf {b->visible.inventory?.boards?.any {it===b}==true}?.let {board->KanbanBoardControls(board,s.url,s.profile,vm.kanbanBoardBlock(s),{controls=null},edit={editor=vm.prepareKanbanBoardEditor(HostKanbanBoardAction.Update,board.slug)},action={action->visible.inventory?.let {offerChange(HostKanbanBoardChange.action(it,board.slug,action))}})}
     editor?.takeIf(vm::kanbanBoardEditorCurrent)?.let {draft->KanbanBoardForm(draft,{editor=null},::offerChange)}
     change?.takeIf(vm::kanbanBoardChangeCurrent)?.let {frozen->KanbanBoardChangeReview(frozen,!s.busy,{change=null}) {change=null;vm.performKanbanBoardChange(frozen)}}
@@ -107,11 +113,13 @@ private fun kanbanField(key:String)=when(key) {
     },confirmButton={TextButton({review=null;vm.loadHostKanban(frozen)},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("kanban-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null},Modifier.heightIn(min=48.dp).testTag("kanban-read-cancel")) {Text(label(Words.Cancel))}})}
 }
 
-@Composable private fun HostKanbanDetails(detail:HostKanbanDetail,busy:Boolean,close:()->Unit,read:(String)->Unit) {
+@Composable private fun HostKanbanDetails(detail:HostKanbanDetail,busy:Boolean,blocked:Words?,close:()->Unit,read:(String)->Unit,edit:(HostKanbanTaskAction)->Unit) {
     val task=detail.task
     AlertDialog(onDismissRequest=close,title={Text(task.title)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("kanban-task-detail"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(detail.owner.url);Text(detail.owner.profile);Text(detail.board.slug);Text(label(Words.KanbanObservation));KanbanValue(Words.KanbanTaskId,task.id);KanbanStatus(task.status)}
+            item {blocked?.let {Text(label(it))}}
+            items(kanbanTaskEditActions,key={"action:"+it.name}) {action->TextButton({edit(action)},enabled=blocked==null,modifier=Modifier.heightIn(min=48.dp).testTag("task-edit-"+action.name)) {Text(label(kanbanTaskActionWord(action)))}}
             item {task.assignee?.let {KanbanValue(Words.KanbanAssignee,it)};task.tenant?.let {KanbanValue(Words.KanbanTenant,it)};KanbanValue(Words.KanbanPriority,task.priority.toString());KanbanStamp(Words.HostProjectCreated,task.createdAt);KanbanStamp(Words.KanbanTaskStarted,task.startedAt);KanbanStamp(Words.KanbanEnded,task.completedAt);KanbanStamp(Words.KanbanHeartbeat,task.heartbeat);task.currentRunId?.let {KanbanValue(Words.KanbanRunId,it.toString())}}
             task.body?.let {item {KanbanValue(Words.KanbanBody,it)}};task.summary?.let {item {KanbanValue(Words.KanbanSummary,it)}};task.result?.let {item {KanbanValue(Words.KanbanResult,it)}}
             items(task.fields.entries.toList(),key={"field:"+it.key}) {(key,value)->
