@@ -990,6 +990,21 @@ Six final settled physical-display form/review/result captures on APIs 26 and 36
 
 This creation chunk still needs its own exact-head full Android and compatibility runs after publication before merging. No beta.5 APK/tag/release is published here. Dependency editing, status/override/worker/dispatch/event/file/pinning/transfer controls, the remaining integration/configuration/automation scope, live Hermes and physical-device/security/release verification remain active audit work.
 
+
+## Reviewed host-task dependencies (2026-11-05, beta.5 development — local acceptance complete)
+
+Dependency add/remove controls now use separate explicitly approved reads of both endpoints followed by a private exact-value mutation review and fresh grant. Addition selects approved board cards excluding self/existing parents and is disabled for a running child; removal retains current parent IDs outside the columns. Reviews identify dependent child versus parent, exact body/query fields and gating/subscription/readiness effects. Stable stored request identity survives actual preference recomposition. Scope/generation changes, close, cancellation and shared pending work discard approval; clearing a pending receipt does not revive it. Existing complete endpoint/catalog/home preflight, shared atomic claim, one attempted send, durable ACK before independent readback and no automatic replay are reused. No new network route, schema, dependency, permission, signer, package or Room change is introduced.
+
+The first required build failed after **10m 55s** on a duplicate native test-cleanup argument. The failure log/source snapshot is retained. Only after the Gradle handle became terminal was that argument corrected; explicit recomposition and preference-restore waits were also strengthened. No assertion or failure gate was removed. A preliminary source-snapshot helper also refused its incorrect src-only file count before launching Gradle; the corrected snapshot includes the existing module/config/schema files. Automatic review rejected preparing a source-editing helper while Gradle was active; no file changed from that rejected command, and the correction proceeded after terminal state.
+
+Corrected required `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest` passed in **2m 55s** with **499 JVM tests / zero failures, errors or skips**. Original CAB debug signer, package identities, **106 / 1.1.0-beta.5**, minimum API 26, Signal Grove label and Room 11 are verified. Frozen **401 app/test/config/schema** source hashes match. Application SHA-256 is `f5bb29c488acf5e640cab48d7937fab3ad7b9973ae16e4d83c8aef6dd2cc69a8`; instrumentation is `aef42c0579e08b66faf1ca3a0ea18cc19faa93ab4f3e55f341665ed75493810d`.
+
+The new **27-method dependency suite passed on every owned API 26 / 36 / 37: 81 native passes, no skips**. Literal fixtures assert explicit prefixes/profile/board, isolated bearer/cookie/origin, exact POST body or DELETE query/no-body and one send. Cases cover separate read cancellation with zero new reads, mutation cancellation/frozen-call invalidation, exact direction, hidden parents, running/no-candidate/self/already-linked choices, changed edge/parent/child/board/home, held pair reads and writes, foreign/shared-home pending races and cleared-pending invalidation, old raw views, lost replies/no replay, an injected attempted HTTP 409 error remaining uncertain, unlink no-effect ACK and retained ACK after readback failure. Local phone tasks remain unchanged.
+
+All **eight** actual settled physical-display bilingual picker/pair-read/mutation-review/result captures on APIs 26 and 36 were inspected and hashed. External search labels are separated from fields; private review text and fixed action footers are readable. Scrolled views do not display every field at once; keyboard-dismissed screenshots do not certify every IME/OEM. Original geometry/fonts remain unchanged for the accepted new runs, including API 26 at 130%. The final fresh production API37 readback after all six runs remains code105/beta4; original geometry/font settings match on all three devices.
+
+**Local acceptance is complete:** all 155 related task/creation/board/repository/receipt/credential/address methods passed on every API26/36/37. Together with the new 27 per API, all six runs prove **182 per device / 546 focused native passes**, zero skips, on the f5bb/aef4 pair above. Exact source/artifact hashes, eight inspected captures and final fresh device/production readback were reconciled before source changes. Exact-head full hosted Android and compatibility CI remain the subsequent merge gate. No beta.5 APK/tag/release, live Hermes, physical/OEM or wider-audit completion is claimed. Status/override/worker/dispatch/events/files/pinning/transfer and the remaining integration/configuration/automation/security/release scope remain active.
+
 ## Offline Hermes setup guide — 5 November 2026
 
 Added Settings → Server → Set up Hermes: six offline steps with English,
@@ -1022,3 +1037,41 @@ A real synthetic chat reached the configured model path but failed to produce a
 verified response because that inference listener was unavailable. No request was
 replayed, model switched or cloud fallback enabled. Full phone login and real
 model/tool acceptance are still required; transport health is not inference proof.
+
+## Resume reconciliation and task-creation hosted confirmation (5 November 2026)
+
+The paused audit is a historical snapshot. The user explicitly resumed its work;
+the current acceptance ledger is [AUDIT_EXECUTION_PLAN.md](AUDIT_EXECUTION_PLAN.md).
+Both previously running dependency suites finished successfully, and all local
+build/native processes were terminal before the standalone setup-guide edits.
+
+Exact creation commit `b678e8b9a679d280ce04f41a377c08a7f70ed50c` passed
+[Android 42035583067](https://github.com/DionCroft/Signal_Grove/actions/runs/42035583067):
+verify job 127272754951, API26 127277236531 and API37 127277236467 all succeeded.
+Digest-verified full logs contain **853 positive/terminal-OK cases on API26 and
+854 on API37**, no failure/skip codes. Artifact 13421589789 SHA-256
+`6d0e242b25b76ddeddf9e839c34e47edf3dd1690181e91c966fee559920a6cf2` and artifact
+13425628019 `c166dfdb8b6dd63a2239b5fc88d590a1d7fc190fec0c6244ac76bbbcfd1e020c`
+retain instrumentation/TestRunner evidence. The same commit's
+[compatibility run 42035588795](https://github.com/DionCroft/Signal_Grove/actions/runs/42035588795)
+passed. This proves that source checkpoint, not a later commit.
+
+Setup guide commit `2c78b09b79db36a920a85086a13bd5caf207491f` was subsequently
+committed independently, preserving uncommitted dependency work. Its local build
+used the combined 403-file development tree: 499 JVM tests/strict required build
+and 18 new-guide/navigation native passes on application
+`f29953f5f80c16ce04a424a1e5141cabd40da4941178771e685794b6c3466f33` / instrumentation
+`9709c7963939f96ebb2bfa5ab9b300e95ebd23ecfe6edbc4bf5365f061261c38`.
+Only SettingsScreen and the appended setup Words differ from the old 401-file
+dependency source snapshot; all 399 other files, including dependency runtime and
+tests, match exactly. The new guide and its test are the two additional files.
+These are **two different APK pairs**: the 546 dependency passes are not relabeled
+as f299/9709 results and cannot be added to 18 as one same-artifact device run.
+
+The setup-guide source is now published on `feat/hermes-setup-guide`, with its own
+[full Android run 42075869754](https://github.com/DionCroft/Signal_Grove/actions/runs/42075869754)
+and [compatibility run 42075874341](https://github.com/DionCroft/Signal_Grove/actions/runs/42075874341)
+dispatched. The combined dependency commit will also receive its own exact-head
+full Android/compatibility gates. Neither is merged or released by this record.
+
+All 128 checked-in Python policy/contract tests passed again during resume reconciliation (2.041s); no source-watch baseline or failure gate was weakened.

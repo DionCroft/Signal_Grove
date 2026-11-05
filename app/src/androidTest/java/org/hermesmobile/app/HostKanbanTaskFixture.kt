@@ -26,6 +26,7 @@ class HostKanbanTaskFixture(val server:MockWebServer,val mode:String="normal") {
     fun api()=delegate.api()
     var method="PATCH";var tail="/t_child";var body:JsonObject?=buildJsonObject {put("title","Reviewed title")}
     var query:Map<String,String> = emptyMap();var link=false
+    var boardCards:List<JsonObject>?=null
     fun inventory()=delegate.expected()
     fun snapshot()=HostKanbanProtocol.snapshot(boardJson(),owner,home,inventory().boards.single {it.slug=="garden"})
     fun detail(id:String="t_child"):HostKanbanDetail {val j=if(id=="t_child") beforeDetail.get() else parentDetail.get();return HostKanbanProtocol.detail(j,owner,home,snapshot().board,id)}
@@ -44,11 +45,11 @@ class HostKanbanTaskFixture(val server:MockWebServer,val mode:String="normal") {
                     writes.incrementAndGet();delegate.phase.set(1)
                     if(mode=="held") {entered.countDown();release.await(10,TimeUnit.SECONDS)}
                     if(mode=="home-after") delegate.home.set("/other/home")
-                    when(mode) {"http400"->MockResponse().setResponseCode(400).setBody("private-host-error");"lost"->MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST);else->json(ack.get())}
+                    when(mode) {"http409"->MockResponse().setResponseCode(409).setBody("private-cycle-race");"http400"->MockResponse().setResponseCode(400).setBody("private-host-error");"lost"->MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST);else->json(ack.get())}
                 } else {
                     reads.incrementAndGet()
-                    if(path=="/prefix/dashboard/api/plugins/kanban/board") json(boardJson(if(writes.get()>0 && method=="DELETE" && !link) listOf(card("t_parent",status="done")) else listOf(card(),card("t_parent",status="done"))))
-                    else if(path==taskPath+"/t_parent") json(parentDetail.get())
+                    if(path=="/prefix/dashboard/api/plugins/kanban/board") json(boardJson(if(writes.get()>0 && method=="DELETE" && !link) listOf(card("t_parent",status="done")) else boardCards ?: listOf(card(),card("t_parent",status="done"))))
+                    else if(path==taskPath+"/t_parent") {if(writes.get()==0 && mode=="held-pair") {entered.countDown();release.await(15,TimeUnit.SECONDS)};json(parentDetail.get())}
                     else if(path in setOf(taskPath+"/t_child",taskPath+"/t_new")) {
                         if(writes.get()>0 && mode=="readback-fail") MockResponse().setResponseCode(500)
                         else {if(writes.get()>0 && mode=="held-readback") {entered.countDown();release.await(10,TimeUnit.SECONDS)};json(if(writes.get()>0) afterDetail.get() else beforeDetail.get())}

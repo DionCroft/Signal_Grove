@@ -11,11 +11,13 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:HostKanbanSnapshot?=null,val detail:HostKanbanDetail?=null,val projects:HostProjectSnapshot?=null,val report:HostKanbanBoardReport?=null,val taskReport:HostKanbanTaskReport?=null)
+data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:HostKanbanSnapshot?=null,val detail:HostKanbanDetail?=null,val projects:HostProjectSnapshot?=null,val report:HostKanbanBoardReport?=null,val taskReport:HostKanbanTaskReport?=null,val dependencyReview:ReviewedKanbanTaskChange?=null)
 data class HostKanbanBoardReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val archivePath:String?=null) {override fun toString()="HostKanbanBoardReport(redacted)"}
 data class HostKanbanTaskReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val warning:String?=null) {override fun toString()="HostKanbanTaskReport(redacted)"}
 data class ReviewedKanbanTaskEditor(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val subject:HostKanbanDetail,val action:HostKanbanTaskAction,val generation:Long) {override fun toString()="ReviewedKanbanTaskEditor(redacted)"}
 data class ReviewedKanbanTaskCreate(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val projects:HostProjectSnapshot?,val generation:Long) {override fun toString()="ReviewedKanbanTaskCreate(redacted)"}
+data class ReviewedKanbanDependencyPicker(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val subject:HostKanbanDetail,val remove:Boolean,val generation:Long) {override fun toString()="ReviewedKanbanDependencyPicker(redacted)"}
+data class ReviewedKanbanDependencyRead(val picker:ReviewedKanbanDependencyPicker,val parentId:String) {override fun toString()="ReviewedKanbanDependencyRead(redacted)"}
 data class ReviewedKanbanTaskChange(val request:HostKanbanTaskChange,val generation:Long) {override fun toString()="ReviewedKanbanTaskChange(redacted)"}
 data class ReviewedKanbanProjects(val inventory:HostKanbanInventory,val generation:Long) {override fun toString()="ReviewedKanbanProjects(redacted)"}
 data class ReviewedKanbanBoardEditor(val expected:HostKanbanInventory,val projects:HostProjectSnapshot?,val action:HostKanbanBoardAction,val slug:String?,val generation:Long) {override fun toString()="ReviewedKanbanBoardEditor(redacted)"}
@@ -861,7 +863,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun kanbanProjectsCurrent(review:ReviewedKanbanProjects)=!state.value.busy && review.generation==generation && visibleHostKanban(state.value).inventory===review.inventory && projectContext()==(review.inventory.owner to review.inventory.profileHomeId)
     fun loadKanbanProjects(review:ReviewedKanbanProjects) {
         if(!kanbanProjectsCurrent(review)) {hostProjectReviewChanged();return}
-        val before=visibleHostKanban(state.value);state.value=state.value.copy(kanban=before.copy(projects=null))
+        val before=visibleHostKanban(state.value).copy(dependencyReview=null);state.value=state.value.copy(kanban=before.copy(projects=null))
         operation {id->
             val result=projectReads.read(review.inventory.owner,review.inventory.profileHomeId,client(state.value),tokens ?: error("Sign in first."))
             if(id==generation && projectContext()==(review.inventory.owner to review.inventory.profileHomeId)) state.value=state.value.copy(kanban=before.copy(projects=result))
@@ -928,13 +930,61 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val visible=visibleHostKanban(state.value)
         return editor.generation==generation && kanbanTaskBlock(state.value)==null && visible.inventory===editor.inventory && visible.board===editor.snapshot && visible.detail===editor.subject
     }
+    fun kanbanDependencyBlock(s:ManagementState,remove:Boolean):Words? {
+        kanbanTaskBlock(s)?.let {return it}
+        kanbanTaskCreateBlock(s)?.let {return it}
+        val visible=visibleHostKanban(s);val child=visible.detail!!
+        if(remove && child.parents.isEmpty()) return Words.KanbanDependencyNone
+        if(!remove && child.task.status=="running") return Words.KanbanDependencyRunning
+        if(!remove && visible.board!!.columns.flatMap {it.tasks}.none {it.id!=child.task.id && it.id !in child.parents}) return Words.KanbanDependencyNoCandidates
+        return null
+    }
+    fun prepareKanbanDependencyPicker(remove:Boolean):ReviewedKanbanDependencyPicker? {
+        if(kanbanDependencyBlock(state.value,remove)!=null) return null
+        val visible=visibleHostKanban(state.value)
+        return ReviewedKanbanDependencyPicker(visible.inventory!!,visible.board!!,visible.detail!!,remove,generation)
+    }
+    fun kanbanDependencyPickerCurrent(picker:ReviewedKanbanDependencyPicker):Boolean {
+        val visible=visibleHostKanban(state.value)
+        return picker.generation==generation && kanbanDependencyBlock(state.value,picker.remove)==null && visible.inventory===picker.inventory && visible.board===picker.snapshot && visible.detail===picker.subject
+    }
+    fun prepareKanbanDependencyRead(picker:ReviewedKanbanDependencyPicker,parentId:String):ReviewedKanbanDependencyRead? {
+        if(!kanbanDependencyPickerCurrent(picker) || !HostKanbanProtocol.id(parentId) || parentId==picker.subject.task.id) return null
+        if(picker.remove) {if(parentId !in picker.subject.parents) return null}
+        else if(parentId in picker.subject.parents || picker.snapshot.columns.none {c->c.tasks.any {it.id==parentId}}) return null
+        return ReviewedKanbanDependencyRead(picker,parentId)
+    }
+    fun kanbanDependencyReadCurrent(review:ReviewedKanbanDependencyRead)=prepareKanbanDependencyRead(review.picker,review.parentId)!=null
+    fun loadKanbanDependency(review:ReviewedKanbanDependencyRead) {
+        if(!kanbanDependencyReadCurrent(review)) {hostProjectReviewChanged();return}
+        val picker=review.picker;val owner=picker.inventory.owner;val home=picker.inventory.profileHomeId
+        val before=visibleHostKanban(state.value).copy(detail=null,dependencyReview=null)
+        state.value=state.value.copy(kanban=before)
+        operation {id->
+            val api=client(state.value);val current=tokens ?: error("Sign in first.")
+            val child=kanbanReads.detail(owner,home,picker.snapshot.board,picker.subject.task.id,api,current)
+            val parent=kanbanReads.detail(owner,home,picker.snapshot.board,review.parentId,api,current)
+            if(id==generation && projectContext()==(owner to home)) {
+                if(hostProjectPending(state.value)) state.value=state.value.copy(kanban=before.copy(detail=child),error=Words.ManagementOutcomePending)
+                else {
+                    val request=try {HostKanbanTaskChange.dependency(picker.inventory,picker.snapshot,child,parent,picker.remove)} catch(_:HostKanbanTaskInvalid) {throw HostKanbanTaskChanged()}
+                    state.value=state.value.copy(kanban=before.copy(detail=child,dependencyReview=ReviewedKanbanTaskChange(request,id)))
+                }
+            }
+        }
+    }
+    fun closeKanbanDependencyReview() {
+        if(state.value.kanban.dependencyReview==null) return
+        if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(dependencyReview=null))}
+    }
     private fun kanbanTaskRequestCurrent(request:HostKanbanTaskChange):Boolean {
         val visible=visibleHostKanban(state.value)
         if(visible.inventory!==request.inventory || visible.board!==request.snapshot || projectContext()!=(request.owner to request.home)) return false
         if(request.action==HostKanbanTaskAction.Create) return kanbanTaskCreateBlock(state.value)==null && request.subject==null && (request.project==null || visible.projects?.let(request::projectCurrent)==true)
+        if(request.action in setOf(HostKanbanTaskAction.Link,HostKanbanTaskAction.Unlink)) return kanbanTaskBlock(state.value)==null && visible.detail===request.subject && visible.dependencyReview?.let {it.generation==generation && it.request===request}==true
         return request.action in kanbanTaskEditActions && kanbanTaskBlock(state.value)==null && visible.detail===request.subject
     }
-    fun prepareKanbanTaskChange(request:HostKanbanTaskChange)=if(kanbanTaskRequestCurrent(request)) ReviewedKanbanTaskChange(request,generation) else null
+    fun prepareKanbanTaskChange(request:HostKanbanTaskChange)=if(!kanbanTaskRequestCurrent(request)) null else if(request.action in setOf(HostKanbanTaskAction.Link,HostKanbanTaskAction.Unlink)) visibleHostKanban(state.value).dependencyReview else ReviewedKanbanTaskChange(request,generation)
     fun kanbanTaskChangeCurrent(review:ReviewedKanbanTaskChange)=review.generation==generation && kanbanTaskRequestCurrent(review.request)
     private fun kanbanTaskReport(owner:ManagementTarget,home:String,receipt:ManagementOperation?,warning:String?=null)=receipt?.takeIf {it.apiScope==owner.apiScope && it.resourceScope==owner.resourceScope && it.url==owner.url && it.profile==owner.profile && it.actor==owner.actor && it.projectHome.isEmpty() && HostKanbanTaskAction.receipt(it.action)}?.let {HostKanbanTaskReport(owner,home,it,warning)}
     fun performKanbanTaskChange(review:ReviewedKanbanTaskChange) {
@@ -956,7 +1006,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun visibleHostKanban(s:ManagementState):HostKanbanState {
         val context=projectContext() ?: return HostKanbanState()
         if(s.apiScope!=context.first.apiScope || s.profile!=context.first.profile || s.url!=state.value.url || s.identity!=state.value.identity) return HostKanbanState()
-        return HostKanbanState(s.kanban.inventory?.takeIf {it===state.value.kanban.inventory && it.owner==context.first && it.profileHomeId==context.second},s.kanban.board?.takeIf {it===state.value.kanban.board && it.owner==context.first && it.profileHomeId==context.second},s.kanban.detail?.takeIf {it===state.value.kanban.detail && it.owner==context.first && it.profileHomeId==context.second},s.kanban.projects?.takeIf {it===state.value.kanban.projects && it.owner==context.first && it.homeId==context.second},s.kanban.report?.takeIf {it===state.value.kanban.report && it.owner==context.first && it.home==context.second},s.kanban.taskReport?.takeIf {it===state.value.kanban.taskReport && it.owner==context.first && it.home==context.second})
+        return HostKanbanState(s.kanban.inventory?.takeIf {it===state.value.kanban.inventory && it.owner==context.first && it.profileHomeId==context.second},s.kanban.board?.takeIf {it===state.value.kanban.board && it.owner==context.first && it.profileHomeId==context.second},s.kanban.detail?.takeIf {it===state.value.kanban.detail && it.owner==context.first && it.profileHomeId==context.second},s.kanban.projects?.takeIf {it===state.value.kanban.projects && it.owner==context.first && it.homeId==context.second},s.kanban.report?.takeIf {it===state.value.kanban.report && it.owner==context.first && it.home==context.second},s.kanban.taskReport?.takeIf {it===state.value.kanban.taskReport && it.owner==context.first && it.home==context.second},s.kanban.dependencyReview?.takeIf {it===state.value.kanban.dependencyReview && it.generation==generation && it.request.owner==context.first && it.request.home==context.second && it.request.inventory===state.value.kanban.inventory && it.request.snapshot===state.value.kanban.board && it.request.subject===state.value.kanban.detail && !hostProjectPending(s)})
     }
     fun prepareHostKanbanRead(board:HostKanbanBoard?=null,taskId:String?=null):ReviewedHostKanbanRead? {
         if(state.value.busy) return null
@@ -984,7 +1034,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id==generation && projectContext()==(review.owner to review.profileHomeId)) state.value=state.value.copy(kanban=result)
         }
     }
-    fun closeHostKanbanDetail() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(detail=null))}}
+    fun closeHostKanbanDetail() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(detail=null,dependencyReview=null))}}
     fun closeHostKanban() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=HostKanbanState())}}
     private val projectReads=HostProjectsRepository()
     private val projectChanges=HostProjectOperationsRepository(app.database.dao(),app.managementReady)

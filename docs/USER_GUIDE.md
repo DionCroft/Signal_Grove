@@ -272,7 +272,7 @@ Archived board metadata is listed, with its open control disabled and explained.
 
 Task details show description/result/full summary, first task start and current attempt start separately, recorded attempts and reported outcomes/heartbeats, comments, event kinds/times, dependencies and child handoffs, and attachment metadata. A missing linked task keeps its ID; requesting it can fail explicitly. Dependency navigation retains the exact board. Task/run status or a heartbeat is not a live worker-health check. Files remain on the host; event payloads, arbitrary run metadata, claim locks and idempotency keys are omitted from the projection. Text and paths are selectable plain text.
 
-Closing, cancelling or changing access clears private views and invalidates reviews. Every board/task read checks the selected profile’s reported location and the board’s reported database path around the read. Those strings do not prove filesystem/symlink identity or eliminate a concurrent host change. There is no background polling or automatic request replay. Larger or unsupported replies fail as a whole. Reviewed board controls are described next. Development task editing and creation are described below; dependency editing and file transfer remain subsequent audit work. The published beta.4 APK does not include this development interface.
+Closing, cancelling or changing access clears private views and invalidates reviews. Every board/task read checks the selected profile’s reported location and the board’s reported database path around the read. Those strings do not prove filesystem/symlink identity or eliminate a concurrent host change. There is no background polling or automatic request replay. Larger or unsupported replies fail as a whole. Reviewed board controls are described next. Development task editing and creation are described below; dependency controls are described below; file transfer remains subsequent audit work. The published beta.4 APK does not include this development interface.
 
 
 ### Reviewed board changes (development beta.5)
@@ -305,6 +305,17 @@ For a canonical project binding, close the form and separately approve **Read pr
 
 Review the exact host/profile/actor, board mapping, selected values, dependencies and any project context. Ready work may be assigned or started by a running dispatcher immediately. Parent tasks can supply tenant/delivery subscriptions. Triage defers dispatch without proving future inactivity. A fresh grant and confirmation attempt creation once. The returned task ID or matching configuration does not establish exclusive creation by that request. If the returned triage state differs from your choice, its valid acknowledgement is retained without matching-effect confirmation. This does not establish the earlier state or exclusive creation. If a reply is lost, inspect the host and separately review the uncertain receipt; creation is never automatically repeated.
 
-These are development-source controls and remain outside the published beta.4 APK. Current acceptance and its limits are tracked in VALIDATION.md. Dependency editing, status/worker/dispatcher controls and the wider audit remain separate work.
+These are development-source controls and remain outside the published beta.4 APK. Current acceptance and its limits are tracked in VALIDATION.md. Dependency editing is described below; status/worker/dispatcher controls and the wider audit remain separate work.
+
+
+## Review a host task dependency (beta.5 development)
+
+1. In **Host Kanban**, approve inventory, board and task-detail reads.
+2. Choose **Add task dependency** or **Remove task dependency**. The child is the dependent task; the parent is the task it depends on. Search is local. Running tasks cannot receive an added dependency. Removal includes current parents absent from the board columns.
+3. Select the parent, then review the host/profile/actor, board/path and both IDs. Confirming this stage reads both tasks; it does not change the dependency.
+4. Review the fresh child and parent, exact fields and effects. Adding can gate ready work and inherit parent notification subscriptions. Removing can release waiting work to an active dispatcher. Grant and confirm this exact request separately, or cancel without a write.
+5. Read the receipt. Acknowledgement, reported effect and observed stored configuration are distinct. `ok=false` removal is acknowledged without a confirmed effect. An unknown result blocks another mutation until you inspect the host and explicitly review its receipt; the app never automatically repeats it. Neither action proves worker shutdown.
+
+Changing access, closing, cancelling or shared pending work discards the private approval. A fresh pair read is required to build another review. These controls have local development-source acceptance recorded in VALIDATION.md and remain outside the published beta.4 APK.
 
 For guided connection setup, open **Settings → Server → Set up Hermes**, or read [the setup guide](SETUP_GUIDE.md).
