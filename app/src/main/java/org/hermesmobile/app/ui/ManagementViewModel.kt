@@ -15,6 +15,7 @@ data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:Hos
 data class HostKanbanBoardReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val archivePath:String?=null) {override fun toString()="HostKanbanBoardReport(redacted)"}
 data class HostKanbanTaskReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val warning:String?=null) {override fun toString()="HostKanbanTaskReport(redacted)"}
 data class ReviewedKanbanTaskEditor(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val subject:HostKanbanDetail,val action:HostKanbanTaskAction,val generation:Long) {override fun toString()="ReviewedKanbanTaskEditor(redacted)"}
+data class ReviewedKanbanTaskCreate(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val projects:HostProjectSnapshot?,val generation:Long) {override fun toString()="ReviewedKanbanTaskCreate(redacted)"}
 data class ReviewedKanbanTaskChange(val request:HostKanbanTaskChange,val generation:Long) {override fun toString()="ReviewedKanbanTaskChange(redacted)"}
 data class ReviewedKanbanProjects(val inventory:HostKanbanInventory,val generation:Long) {override fun toString()="ReviewedKanbanProjects(redacted)"}
 data class ReviewedKanbanBoardEditor(val expected:HostKanbanInventory,val projects:HostProjectSnapshot?,val action:HostKanbanBoardAction,val slug:String?,val generation:Long) {override fun toString()="ReviewedKanbanBoardEditor(redacted)"}
@@ -896,6 +897,21 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         }
     }
     private val kanbanTaskChanges=HostKanbanTaskRepository(app.database.dao(),app.managementReady)
+    fun kanbanTaskCreateBlock(s:ManagementState):Words? {
+        kanbanBoardBlock(s)?.let {return it}
+        val visible=visibleHostKanban(s);val snapshot=visible.board ?: return Words.KanbanTaskCreateReadFirst
+        if(snapshot.board.archived || visible.inventory?.boards?.singleOrNull {it.slug==snapshot.board.slug}?.definition()!=snapshot.board.definition()) return Words.KanbanTaskCreateReadFirst
+        return null
+    }
+    fun prepareKanbanTaskCreate():ReviewedKanbanTaskCreate? {
+        if(kanbanTaskCreateBlock(state.value)!=null) return null
+        val visible=visibleHostKanban(state.value)
+        return ReviewedKanbanTaskCreate(visible.inventory!!,visible.board!!,visible.projects,generation)
+    }
+    fun kanbanTaskCreateCurrent(editor:ReviewedKanbanTaskCreate):Boolean {
+        val visible=visibleHostKanban(state.value)
+        return editor.generation==generation && kanbanTaskCreateBlock(state.value)==null && visible.inventory===editor.inventory && visible.board===editor.snapshot && visible.projects===editor.projects
+    }
     fun kanbanTaskBlock(s:ManagementState):Words? {
         kanbanBoardBlock(s)?.let {return it}
         val visible=visibleHostKanban(s);val board=visible.board ?: return Words.KanbanTaskReadFirst
@@ -914,7 +930,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     private fun kanbanTaskRequestCurrent(request:HostKanbanTaskChange):Boolean {
         val visible=visibleHostKanban(state.value)
-        return request.action in kanbanTaskEditActions && kanbanTaskBlock(state.value)==null && visible.inventory===request.inventory && visible.board===request.snapshot && visible.detail===request.subject && projectContext()==(request.owner to request.home)
+        if(visible.inventory!==request.inventory || visible.board!==request.snapshot || projectContext()!=(request.owner to request.home)) return false
+        if(request.action==HostKanbanTaskAction.Create) return kanbanTaskCreateBlock(state.value)==null && request.subject==null && (request.project==null || visible.projects?.let(request::projectCurrent)==true)
+        return request.action in kanbanTaskEditActions && kanbanTaskBlock(state.value)==null && visible.detail===request.subject
     }
     fun prepareKanbanTaskChange(request:HostKanbanTaskChange)=if(kanbanTaskRequestCurrent(request)) ReviewedKanbanTaskChange(request,generation) else null
     fun kanbanTaskChangeCurrent(review:ReviewedKanbanTaskChange)=review.generation==generation && kanbanTaskRequestCurrent(review.request)

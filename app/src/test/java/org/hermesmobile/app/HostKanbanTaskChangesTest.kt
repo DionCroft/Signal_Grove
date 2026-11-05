@@ -28,6 +28,18 @@ class HostKanbanTaskChangesTest {
         assertEquals(JsonPrimitive("New task"),request.values["title"]);assertEquals(JsonPrimitive("worker"),request.values["assignee"]);assertEquals(JsonPrimitive("high"),request.values["reasoning_effort"]);assertEquals(JsonArray(listOf(JsonPrimitive("review"))),request.values["skills"])
         assertFalse(request.values.containsKey("completion_contract"));assertFalse(request.values.containsKey("initial_status"));assertNotEquals(request.values["idempotency_key"],create().values["idempotency_key"])
     }
+    @Test fun createAcknowledgementDoesNotConfirmIgnoredTriage() {
+        val held=create(HostKanbanTaskDraft("Private new task",triage=true))
+        val ready=card("t_new","Private new task",status="ready")
+        val ignored=held.acknowledge(ack(ready))
+        assertFalse("Ready is not a reported triage hold",ignored.effectReported)
+        assertFalse(held.observed(ignored,detail(ready),null))
+        val parked=card("t_new","Private new task",status="triage")
+        val matching=held.acknowledge(ack(parked));assertTrue(matching.effectReported)
+        assertTrue(held.observed(matching,detail(parked),null))
+        assertEquals(JsonPrimitive(false),held.acknowledgedSummary(matching)["created_identity_verified"])
+        assertFalse("A returned triage state also differs from the default non-triage request",create().acknowledge(ack(parked)).effectReported)
+    }
     @Test fun minimalCreatePreservesOmittedFieldsAndNeverPromisesCreationIdentity() {
         val r=create();assertEquals(setOf("title","priority","parents","triage","idempotency_key","goal_mode"),r.values.keys)
         val a=r.acknowledge(ack(fields(card("t_new","Private new task"),"body" to JsonNull)));assertTrue(a.effectReported)

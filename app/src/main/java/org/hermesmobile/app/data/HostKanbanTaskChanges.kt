@@ -48,6 +48,8 @@ class HostKanbanTaskChange private constructor(
         put("parent_count",parents.size);put("project_binding",project!=null);put("path_supplied",values.containsKey("workspace_path"));put("phase",action.name)
     }
     private fun createMatches(task:HostKanbanTask):Boolean {
+        // A different reported triage choice remains an ACK, not a matching requested hold.
+        if((task.status=="triage")!=values.getValue("triage").jsonPrimitive.boolean) return false
         if(task.title!=values.getValue("title").jsonPrimitive.content || task.priority!=values.getValue("priority").jsonPrimitive.long) return false
         for(key in listOf("body","assignee","tenant")) if(values.containsKey(key)) {
             val actual=when(key) {"body"->task.body;"assignee"->task.assignee;else->task.tenant}

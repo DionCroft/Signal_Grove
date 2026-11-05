@@ -26,12 +26,12 @@ fun kanbanTaskActionWord(action:HostKanbanTaskAction)=when(action) {
     HostKanbanTaskAction.Delete->Words.KanbanTaskDelete
 }
 fun kanbanTaskStateWord(state:String)=when(state) {"acknowledged"->Words.KanbanTaskAcknowledged;"confirmed"->Words.KanbanTaskObserved;else->managementStateWord(state)}
-private fun taskFieldWord(key:String)=when(key) {"title"->Words.KanbanTaskTitle;"body"->Words.KanbanBody;"priority"->Words.KanbanPriority;"assignee"->Words.KanbanAssignee;"author"->Words.KanbanTaskAuthor;else->null}
-@Composable private fun TaskChoice(key:String,word:Words,value:Boolean,changed:(Boolean)->Unit) {
+internal fun taskFieldWord(key:String)=when(key) {"title"->Words.KanbanTaskTitle;"body"->Words.KanbanBody;"priority"->Words.KanbanPriority;"assignee"->Words.KanbanAssignee;"author"->Words.KanbanTaskAuthor;"tenant"->Words.KanbanTenant;"workspace_kind"->Words.KanbanTaskWorkspace;"workspace_path"->Words.KanbanTaskPath;"parents"->Words.KanbanParents;"triage"->Words.KanbanTriage;"max_runtime_seconds"->Words.KanbanRuntime;"skills"->Words.KanbanSkills;"goal_mode"->Words.KanbanGoal;"goal_max_turns"->Words.KanbanGoalTurns;"model_override"->Words.KanbanModel;"provider_override"->Words.KanbanProvider;"reasoning_effort"->Words.KanbanReasoning;"project_id"->Words.HostProjectId;else->null}
+@Composable internal fun TaskChoice(key:String,word:Words,value:Boolean,changed:(Boolean)->Unit) {
     val text=label(word)
     Row(Modifier.fillMaxWidth()) {Checkbox(value,changed,Modifier.heightIn(min=48.dp).testTag("task-set-"+key).semantics {contentDescription=text});Text(text,Modifier.weight(1f))}
 }
-@Composable private fun TaskInput(key:String,word:Words,value:String,changed:(String)->Unit,multiline:Boolean=false) {
+@Composable internal fun TaskInput(key:String,word:Words,value:String,changed:(String)->Unit,multiline:Boolean=false) {
     val text=label(word)
     Column(Modifier.fillMaxWidth().testTag("task-input-"+key),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Text(text,Modifier.testTag("task-label-"+key),style=MaterialTheme.typography.labelMedium)
@@ -78,6 +78,14 @@ private fun taskFieldWord(key:String)=when(key) {"title"->Words.KanbanTaskTitle;
     },confirmButton={TextButton({request?.let(review)},enabled=request!=null,modifier=Modifier.heightIn(min=48.dp).testTag("task-form-review")) {Text(label(Words.Review))}},dismissButton={TextButton(close,Modifier.heightIn(min=48.dp).testTag("task-form-cancel")) {Text(label(Words.Cancel))}})
 }
 
+@Composable private fun TaskReviewedValue(value:JsonElement) {
+    when(value) {
+        is JsonArray->SelectionContainer {Text(if(value.isEmpty()) label(Words.EmptyInventory) else value.joinToString("\n") {it.jsonPrimitive.content})}
+        is JsonPrimitive->if(!value.isString && value.booleanOrNull!=null) Text(label(if(value.boolean) Words.Yes else Words.No)) else SelectionContainer {Text(value.content.ifEmpty {label(Words.ProjectEmptyValue)})}
+        else->Unit
+    }
+}
+
 @Composable fun KanbanTaskChangeReview(review:ReviewedKanbanTaskChange,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
     val request=review.request
     var granted by remember(review) {mutableStateOf(false)}
@@ -86,7 +94,12 @@ private fun taskFieldWord(key:String)=when(key) {"title"->Words.KanbanTaskTitle;
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("task-change-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(request.owner.url);Text(request.owner.profile);Text(request.owner.actor);Text(request.board.slug);Text(label(Words.KanbanDbPath));SelectionContainer {Text(request.board.dbPath)}}
             request.subject?.let {detail->item {Text(label(Words.KanbanTaskId));SelectionContainer {Column {Text(detail.task.id);Text(detail.task.title)}}}}
-            items(request.values.entries.toList(),key={it.key}) {(key,value)->taskFieldWord(key)?.let {word->Column {Text(label(if(key=="body" && request.action==HostKanbanTaskAction.Comment) Words.KanbanTaskCommentBody else word));SelectionContainer {Text(value.jsonPrimitive.content.ifEmpty {label(Words.ProjectEmptyValue)})}}}}
+            items(request.values.entries.filter {it.key!="idempotency_key"}.toList(),key={it.key}) {(key,value)->taskFieldWord(key)?.let {word->Column(Modifier.testTag("task-reviewed-"+key)) {Text(label(if(key=="body" && request.action==HostKanbanTaskAction.Comment) Words.KanbanTaskCommentBody else word));TaskReviewedValue(value)}}}
+            if(request.action==HostKanbanTaskAction.Create) {
+                items(request.parents,key={"parent:"+it.id}) {parent->SelectionContainer {Column {Text(parent.id);Text(parent.title);KanbanStatus(parent.status)}}}
+                request.project?.let {project->item {Text(label(Words.KanbanProject));SelectionContainer {Column {Text(project.id);Text(project.name);project.primaryPath?.let {Text(it)}}}}}
+                item {Text(label(Words.KanbanTaskCreateEffect));Text(label(Words.KanbanTaskProjectEffect));Text(label(Words.KanbanReadEffect))}
+            }
             item {
                 Text(label(Words.KanbanTaskEditEffect))
                 when(request.action) {HostKanbanTaskAction.Assignee->Text(label(Words.KanbanTaskAssignEffect));HostKanbanTaskAction.Comment->Text(label(Words.KanbanTaskCommentEffect));HostKanbanTaskAction.Delete->Text(label(Words.KanbanTaskDeleteEffect));else->Unit}
