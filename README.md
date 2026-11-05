@@ -4,9 +4,9 @@ An unofficial, open-source native Android client for [Hermes Agent](https://gith
 
 **Stable 1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
 
-Published preview is `1.1.0-beta.3`; unreleased source builds are `1.1.0-beta.4`. The preview includes: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
+Published preview is [`1.1.0-beta.4`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4), code 105. Later development changes are tracked in the audit follow-up. The preview includes: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
 
-[Brand and upgrade compatibility](docs/BRANDING.md). The GitHub repository is now `DionCroft/Signal_Grove`. Older previews need one signed APK upgrade when beta.4 or later is published so their fixed update feed can migrate; package and signing identities are retained.
+[Brand and upgrade compatibility](docs/BRANDING.md). The GitHub repository is now `DionCroft/Signal_Grove`. Older previews need one matching signed beta.4 APK upgrade so their fixed update feed can migrate; package and signing identities are retained.
 
 Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.
 
@@ -22,14 +22,14 @@ Five interchangeable palettes, persistent conversations, English / Simplified Ch
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Try the [1.1.0-beta.3 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.3) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
+Try the [1.1.0-beta.4 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
 
 ## Features
 
 - Native Compose UI with phone navigation and a navigation rail on larger displays. Edge-to-edge layout, selectable Markdown/code blocks, copy, timestamps, conversation switching.
 - Starhaven Grove (new default), Lavender Original, Jade Terminal, Solar Archive and Mint Circuit. Original animated orbital-garden pixel art, physically aligned pixel edges, stepped panels/icons/progress, responsive navigation and button feedback. Ambient motion pauses in the background. Saved palettes remain selected; app/system reduced motion and system font scaling are respected. Native readable text, no bundled fonts or copied game assets.
 - Approved [in-app GitHub updates](docs/APP_UPDATES.md): daily checks on app open/resume, optional previews, release review, private verified download and Android install confirmation. APK checksum, package, version and current signer must match. Installation waits for active Hermes work to finish.
-- **Unreleased source:** reviewed, profile-scoped host project inventory and fresh canonical-ID details, including archived entries and folder metadata. Project mutations and chat workspace adoption remain pending; this is not included in the published beta.3 APK.
+- **Preview (beta.4):** reviewed, profile-scoped host project inventory and fresh canonical-ID details, including archived entries and folder metadata. Project write forms and chat workspace adoption remain pending.
 - Independent English, Chinese and pinyin strings. Pinyin can be hidden without hiding Chinese. Agent responses are never translated automatically.
 - Trusted HTTPS with bearer authentication. AES-GCM token encryption backed by Android Keystore; no certificate bypass, redirects or HTTP request logging. Path prefixes such as `/p/work/` are preserved.
 - Capability discovery. Native server sessions where supported; Runs API for resumable streams and explicit status; native session streams on older installs; OpenAI-compatible completion fallback.

@@ -1,10 +1,10 @@
 # Using Signal Grove
 
-The latest published stable release is 1.0.0. The current Signal Grove preview is `1.1.0-beta.3`; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Unreleased source builds are `1.1.0-beta.4` (code 105).
+The latest published stable release is 1.0.0. The current Signal Grove preview is [`1.1.0-beta.4`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4), code 105; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
 
 ## Install and migrate
 
-The `1.1.0-beta.1` preview adds the pixel interface and approved in-app updates. Install that preview once from its GitHub release to get the updater; 1.0.0 cannot check for updates itself. After the repository rename, previews through beta.3 need one matching signed APK upgrade when beta.4 or later is published. Install over the existing package with the original signer; do not uninstall. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
+The `1.1.0-beta.1` preview introduced the pixel interface and approved in-app updates. Install the [current beta.4 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4) once to get the current updater; 1.0.0 cannot check for updates itself. After the repository rename, previews through beta.3 need one matching signed beta.4 APK upgrade from its [release page](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4). Install over the existing package with the original signer; do not uninstall. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
 
 Get `hermes-agent-mobile-1.0.0.apk` from the [community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). Verify its SHA-256 and signer against the release record before installing. Android may ask you to allow installation from your browser/file manager. This is a GitHub-distributed APK, not a Play Store listing.
 
@@ -231,7 +231,7 @@ Only exact documented pre-issuance refusals are recorded as no code issued. A lo
 
 ### Host projects (unreleased source)
 
-These controls are in development source after the published 1.1.0-beta.3 preview. Open **Hermes management → Host projects**, then **Read stored projects**. Review the dashboard address, actor, profile and read effects before confirming. A verified supported profile with a reported host location is required. Opening or cancelling the review does not contact the project gateway.
+These read-only controls are included in the published 1.1.0-beta.4 preview. Open **Hermes management → Host projects**, then **Read stored projects**. Review the dashboard address, actor, profile and read effects before confirming. A verified supported profile with a reported host location is required. Opening or cancelling the review does not contact the project gateway.
 
 The list includes archived projects and reports an unmatched active-project pointer explicitly. Select **Refresh project details** for a fresh canonical-ID read. Folder paths and other metadata are selectable text; the phone does not open those host paths. Closing, cancelling or changing management scope clears the private project view. A remapped profile or unsupported result requires a fresh read.
 
