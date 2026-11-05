@@ -1248,3 +1248,54 @@ open. A reported recognition error is not a successful read-aloud test.
 
 This diagnostic source still requires its own exact-head hosted gates after
 publication. Native override forms/status and the wider audit remain open.
+
+
+## Voice clarity and recognition lifecycle (5 November 2026)
+
+The owner's “speech was not recognised” report concerned dictation, not a
+successful read-aloud check. The on-device recognizer remained unavailable and
+the owner explicitly kept the offline-only policy. This chunk separates the
+sections, refreshes service availability/engine resources on resume or explicit
+refresh, adds precise error/disabled reasons and invalidates old recognition and
+permission callbacks. It preserves both privacy defaults, package/signing identity,
+code106/beta.5, Room11 and the existing network/backend contracts.
+
+Required strict Gradle tasks passed in **9m 27s**, with **520 JVM
+tests, zero failures/errors/skips**, lint and both APK assemblies. The retained
+first build failed on two Compose modifier argument positions; those were fixed
+after its terminal result. The localization helper also detected an existing
+Chinese label and reused it rather than adding a duplicate. These are corrected
+build/authoring failures, not successful first attempts.
+
+All **411** frozen application/test/build source identities reconcile. App APK
+SHA-256 `904f874b5cfd8573dbba0c1d65efbb59e94e4d8b1784045aaf58cc72fa913a5c`; test APK `4c67a09013fc7b27bdc871c54a4a6a8dc102a7068db05db76c2758b1c15e2cda`. Both retain the original CAB debug
+signer. **Seven isolated VoiceControls tests passed once on each owned API26,
+API36 and API37 emulator: 21 focused native passes**, unchanged geometry/font
+settings, no skips. These fixtures replace presentation only: they do not clear
+the owner's stores, request microphone access, invoke a recognizer or synthesize
+audio. They establish control separation, cancellation/reasons and large bilingual
+text reachability, not actual hardware audio. The earlier 511-JVM/physical data
+evidence and background timeouts remain attached to their original artifact pairs.
+
+The owner installed both new APKs through the normal installer. Installed bytes
+match the exact app/test pair above. All **seven physical ARM64/API37 UI cases**
+passed on that pair, for **28 focused native UI passes** including the emulators.
+The same phone run waited on Xiaomi's visible “Chain start” prompt for the exact
+debug test companion; the owner chose **Allow once**. It also required **four
+normal foreground launches** after returning to the launcher, preserving the
+same test process/run. No force-stop, test retry, assertion/deadline change,
+automatic security approval or global device-setting change occurred. The full
+native terminal log reports seven OK/positive cases and 506.975 seconds including
+manual waits; this is controlled foreground evidence, not a performance result or
+unattended lifecycle acceptance. APK-aware export reconciled the completed
+listener metadata. Earlier background data timeouts retain their own unknown
+cause; the visible UI prompt does not retroactively explain them.
+
+Actual API26 app navigation and bilingual Voice sections were visually inspected.
+The small/large-font layout still has awkward language-chip wrapping and lengthy
+read-aloud instructions before the primary action; further polish remains open.
+Phone shell-navigation observations did not establish a Read aloud selection;
+the owner is checking that section manually after the terminal UI run. Actual
+offline playback/stop, microphone/Bluetooth/OEM behavior and complete before/after
+data-retention acceptance remain open. Exact-head full hosted Android and
+compatibility gates are still required before this chunk merges or releases.

@@ -1,0 +1,92 @@
+package org.hermesmobile.app
+
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.unit.Density
+import org.hermesmobile.app.data.AppPreferences
+import org.hermesmobile.app.ui.*
+import org.hermesmobile.app.voice.*
+import org.junit.Assert.*
+import org.junit.Rule
+import org.junit.Test
+
+/** Isolated presentation fixture: no microphone, speech engine, store reset or real network calls. */
+class VoiceControlsTest {
+    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    private val prefs=AppPreferences(chinese=false,pinyin=false,reducedMotion=true)
+    private var reads=0;private var microphones=0;private var cancels=0;private var refreshes=0
+    private var localOnly=true;private var networkVoices=false
+    private fun render(
+        state:DictationSession=DictationSession(),block:Words?=null,error:Words?=null,
+        speaking:Boolean=false,busy:Boolean=false,bilingual:Boolean=false,largeText:Boolean=false
+    ) {
+        val p=if(bilingual) prefs.copy(chinese=true,pinyin=true) else prefs
+        compose.runOnUiThread {compose.activity.setContent {
+            HermesAppTheme(p) {
+                val density=LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides if(largeText) Density(density.density,1.8f) else density) {
+                    var reading by remember {mutableStateOf(false)}
+                    var session by remember {mutableStateOf(state)}
+                    VoiceControls(p,reading,{reading=it;session=session.cancel(clearFailure=true)},session,"Typed message",{},
+                        state.mode!=RecognitionMode.UNAVAILABLE,busy,speaking,block,error,
+                        {session=session.configure(session.mode,it)},{localOnly=it},{networkVoices=it},{},
+                        {microphones++},{cancels++},{},{reads++},{refreshes++},{})
+                }
+            }
+        }}
+        compose.waitForIdle()
+    }
+    @Test fun readAloudRemainsReachableWhenOfflineDictationIsUnavailable() {
+        render(DictationSession(failure=RecognitionFailure.CLIENT))
+        compose.onNodeWithTag("voice-microphone").assertIsNotEnabled()
+        compose.onNodeWithTag("voice-recognition-unavailable").assertExists()
+        compose.onNodeWithTag("voice-read-tab").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("voice-dictation-error").assertDoesNotExist()
+        compose.onNodeWithTag("voice-read-reply").assertIsDisplayed().assertIsEnabled().performClick()
+        assertEquals(1,reads);assertEquals(0,microphones);assertTrue(localOnly);assertFalse(networkVoices)
+    }
+    @Test fun absentReplyHasAnExplicitReadAloudReason() {
+        render(block=Words.SpeechReplyRequired)
+        compose.onNodeWithTag("voice-read-tab").performClick()
+        compose.onNodeWithTag("voice-read-reply").assertIsNotEnabled()
+        compose.onNodeWithText(Words.SpeechReplyRequired.en).assertExists()
+        assertEquals(0,reads)
+    }
+    @Test fun missingOfflineVoiceDoesNotEnableOnlineVoices() {
+        render(block=Words.SpeechVoiceUnavailable)
+        compose.onNodeWithTag("voice-read-tab").performClick()
+        compose.onNodeWithTag("voice-read-reply").assertIsNotEnabled()
+        compose.onNodeWithTag("voice-network-voices").performScrollTo().assertIsOff()
+        compose.onNodeWithTag("voice-read-reason").assertExists();assertFalse(networkVoices)
+    }
+    @Test fun stopRemainsAvailableWhileTheConversationIsBusy() {
+        render(speaking=true,busy=true,block=Words.SpeechChatBusy)
+        compose.onNodeWithTag("voice-read-tab").performClick()
+        compose.onNodeWithTag("voice-read-reply").assertIsEnabled().performClick()
+        compose.onNodeWithText(Words.StopSpeech.en).assertExists();assertEquals(1,reads)
+    }
+    @Test fun processingDisablesMicrophoneButKeepsCancelAvailable() {
+        render(DictationSession(RecognitionMode.ON_DEVICE).begin().let {it.processing(it.generation)})
+        compose.onNodeWithTag("voice-microphone").assertIsNotEnabled()
+        compose.onNodeWithTag("voice-cancel").performScrollTo().assertIsEnabled().performClick()
+        assertEquals(1,cancels);assertEquals(0,microphones)
+    }
+    @Test fun audioFailureDoesNotTellTheOwnerToGrantPermission() {
+        render(DictationSession(RecognitionMode.ON_DEVICE,failure=RecognitionFailure.AUDIO))
+        compose.onNodeWithTag("voice-dictation-error").performScrollTo().assertTextEquals(Words.SpeechAudioError.en)
+        compose.onNodeWithText(Words.SpeechPermission.en).assertDoesNotExist()
+        compose.onNodeWithTag("voice-refresh").performScrollTo().performClick();assertEquals(1,refreshes)
+    }
+    @Test fun bilingualLargeTextKeepsBothSectionsAndTheReadActionReachable() {
+        render(bilingual=true,largeText=true)
+        compose.onNodeWithTag("voice-read-tab").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("voice-read-reply").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+        compose.onNodeWithText(Words.ReadAloudInfo.zh,substring=true).assertExists()
+        compose.onNodeWithTag("voice-dictation-tab").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("voice-local-only").performScrollTo().assertIsOn()
+        assertEquals(1,reads);assertTrue(localOnly);assertFalse(networkVoices)
+    }
+}

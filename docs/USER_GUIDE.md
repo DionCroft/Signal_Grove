@@ -335,3 +335,16 @@ an installed voice for the selected language and privacy setting; network voices
 require their separate opt-in. A dictation error does not report a TTS result.
 Leaving Voice stops playback. Physical speech/provider, Bluetooth and background
 acceptance is tracked separately in [VALIDATION](VALIDATION.md).
+
+
+### Independent Dictation and Read aloud
+
+Voice now has **Dictation** and **Read aloud** selectors at the top. To check
+playback, send a typed message in Chat, wait for the reply, choose Voice →
+Read aloud → **Read latest reply aloud**. A recognition error belongs to
+Dictation and does not test playback. Keep the on-device-only switch enabled
+if you want offline dictation only; missing support never enables system
+recognition. Missing offline read-aloud voices never enable online voices.
+The disabled playback control now explains its missing prerequisite. Use
+**Refresh speech services** after changing Android speech services or language
+data. See the [voice guide](VOICE.md) for errors, privacy and lifecycle behavior.

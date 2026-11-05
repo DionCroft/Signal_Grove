@@ -77,3 +77,15 @@ same run's positive native case records, terminal OK, no failures/skips, frozen
 source/APK reconciliation and appropriate device readback. A snapshot, foreground
 launch, connection reset or interrupted process is not a passing test. Diagnostic
 files stay in local evidence storage; review them before sharing.
+
+
+## Device launch prompts
+
+A physical API37/Xiaomi run displayed a **Chain start** confirmation for Signal
+Grove opening its exact debug test companion. Inspect the visible prompt and
+record the waiting native run before recovery. The owner may choose **Allow
+once** for that exact target; keep unrelated security settings and apps outside
+the test scope. Record manual approvals and any normal foreground interventions
+as test preconditions. They do not establish unattended/background behavior or
+explain an earlier unrelated timeout. Preserve the original run and distinguish
+operator interruption, observed test failure and terminal success.

@@ -9,17 +9,9 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MicNone
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -27,116 +19,160 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.voice.*
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
-@Composable fun VoiceScreen(vm: HermesViewModel,goChat: ()->Unit) {
+@Composable fun VoiceScreen(vm:HermesViewModel,goChat:()->Unit) {
     val context=LocalContext.current;val owner=LocalLifecycleOwner.current
     val p by vm.preferences.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val messages by vm.messages.collectAsStateWithLifecycle()
-    val systemAvailable=remember {SpeechRecognizer.isRecognitionAvailable(context)}
-    val localAvailable=remember {Build.VERSION.SDK_INT>=31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)}
-    val mode=SpeechPolicy.recognition(p.onDeviceSpeechOnly,Build.VERSION.SDK_INT,localAvailable,systemAvailable)
-    val recognizer=remember(mode) {
-        runCatching {when(mode) {RecognitionMode.ON_DEVICE->if(Build.VERSION.SDK_INT>=31) SpeechRecognizer.createOnDeviceSpeechRecognizer(context) else null
-            RecognitionMode.SYSTEM->SpeechRecognizer.createSpeechRecognizer(context);else->null}}.getOrNull()
-    }
+    fun availability()=Pair(
+        runCatching {Build.VERSION.SDK_INT>=31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)}.getOrDefault(false),
+        runCatching {SpeechRecognizer.isRecognitionAvailable(context)}.getOrDefault(false)
+    )
+    var available by remember {mutableStateOf(availability())}
+    var refreshGeneration by remember {mutableIntStateOf(0)}
+    val mode=SpeechPolicy.recognition(p.onDeviceSpeechOnly,Build.VERSION.SDK_INT,available.first,available.second)
     var language by rememberSaveable {mutableStateOf("en-GB")}
     var transcript by rememberSaveable {mutableStateOf("")}
-    var state by remember {mutableStateOf("idle")}
-    var failure by remember {mutableStateOf<Words?>(null)}
+    var readAloud by rememberSaveable {mutableStateOf(false)}
+    var session by remember {mutableStateOf(DictationSession(mode,language))}
+    var recognizer by remember {mutableStateOf<SpeechRecognizer?>(null)}
+    var permissionRequest by remember {mutableStateOf<DictationSession?>(null)}
     val main=remember {Handler(Looper.getMainLooper())}
-    var ttsReady by remember {mutableStateOf(false)}
+    val alive=remember(refreshGeneration) {AtomicBoolean(true)}
+    var ttsStatus by remember(refreshGeneration) {mutableIntStateOf(0)} // 0 initializing, 1 ready, -1 unavailable
     var speaking by remember {mutableStateOf(false)}
-    var speechError by remember {mutableStateOf(false)}
+    var speechError by remember {mutableStateOf<Words?>(null)}
     var utterancePrefix by remember {mutableStateOf("")}
     var lastUtterance by remember {mutableStateOf("")}
-    val tts=remember {TextToSpeech(context) {result -> main.post {ttsReady=result==TextToSpeech.SUCCESS}}}
+    val tts=remember(refreshGeneration) {TextToSpeech(context) {result->main.post {if(alive.get()) ttsStatus=if(result==TextToSpeech.SUCCESS) 1 else -1}}}
     val reply=messages.lastOrNull {it.role=="assistant" && it.content.isNotBlank()}?.content.orEmpty()
     val plainReply=remember(reply) {SpeechPolicy.plainText(reply)}
-    fun cancelListening() {state="idle";recognizer?.cancel()}
+    val voice=remember(ttsStatus,refreshGeneration,language,p.allowNetworkSpeech) {
+        if(ttsStatus!=1) null else runCatching {
+            val locale=Locale.forLanguageTag(language)
+            tts.voices.orEmpty().filter {
+                it.locale.language==locale.language && (p.allowNetworkSpeech || !it.isNetworkConnectionRequired) &&
+                    TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED !in it.features.orEmpty()
+            }.sortedWith(compareBy({it.isNetworkConnectionRequired},{it.name})).firstOrNull()
+        }.getOrNull()
+    }
+    fun release(target:SpeechRecognizer?) {
+        if(recognizer===target) recognizer=null
+        target?.let {runCatching {it.cancel()};runCatching {it.destroy()}}
+    }
+    fun cancelListening(clearFailure:Boolean=false) {
+        session=session.cancel(clearFailure);permissionRequest=null;release(recognizer)
+    }
+    fun stopSpeaking() {utterancePrefix="";lastUtterance="";speaking=false;runCatching {tts.stop()}}
+    fun refresh(clearFailure:Boolean) {
+        val next=availability()
+        if(clearFailure || next!=available) cancelListening(clearFailure=true)
+        available=next;refreshGeneration++;speechError=null
+    }
     fun start() {
-        if(recognizer==null || speaking || !owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
-        failure=null;state="listening"
-        try {recognizer.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE,language);putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true)
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE,p.onDeviceSpeechOnly)
-        })} catch(_:Exception) {state="idle";failure=Words.VoiceError}
+        if(mode==RecognitionMode.UNAVAILABLE || speaking || readAloud || !owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+        session=session.configure(mode,language)
+        if(session.phase!=DictationPhase.IDLE) return
+        release(recognizer)
+        session=session.begin();val token=session.generation
+        try {
+            val created=when(mode) {
+                RecognitionMode.ON_DEVICE->if(Build.VERSION.SDK_INT>=31) SpeechRecognizer.createOnDeviceSpeechRecognizer(context) else error("On-device service unavailable")
+                RecognitionMode.SYSTEM->SpeechRecognizer.createSpeechRecognizer(context)
+                RecognitionMode.UNAVAILABLE->return
+            }
+            recognizer=created
+            created.setRecognitionListener(object:RecognitionListener {
+                override fun onReadyForSpeech(params:Bundle?) {}
+                override fun onBeginningOfSpeech() {}
+                override fun onRmsChanged(rmsdB:Float) {}
+                override fun onBufferReceived(buffer:ByteArray?) {}
+                override fun onEndOfSpeech() {session=session.processing(token)}
+                override fun onError(error:Int) {
+                    if(session.accepts(token)) {session=session.fail(token,RecognitionFailure.fromAndroid(error));release(created)}
+                }
+                override fun onResults(results:Bundle?) {
+                    if(session.accepts(token)) {
+                        val text=results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
+                        if(text.isBlank()) session=session.fail(token,RecognitionFailure.NO_MATCH)
+                        else {transcript=text;session=session.finish(token)}
+                        release(created)
+                    }
+                }
+                override fun onPartialResults(results:Bundle?) {if(session.accepts(token)) results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.let {transcript=it}}
+                override fun onEvent(eventType:Int,params:Bundle?) {}
+            })
+            created.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE,language);putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true)
+                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE,p.onDeviceSpeechOnly)
+            })
+        } catch(error:Exception) {
+            val reason=when(error) {is SecurityException->RecognitionFailure.PERMISSION;is UnsupportedOperationException->RecognitionFailure.SERVICE;else->RecognitionFailure.CLIENT}
+            session=session.fail(token,reason);release(recognizer)
+        }
     }
-    val permission=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {granted ->
-        if(!granted) {state="idle";failure=Words.SpeechPermission} else if(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) start()
+    val permission=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {granted->
+        val requested=permissionRequest;permissionRequest=null
+        if(requested!=null && requested==session && requested.mode==mode && requested.language==language && !readAloud && owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            if(granted) start() else session=session.copy(failure=RecognitionFailure.PERMISSION)
+        }
     }
-    DisposableEffect(recognizer,owner) {
-        var active=true
-        recognizer?.setRecognitionListener(object:RecognitionListener {
-            override fun onReadyForSpeech(params:Bundle?) {if(active) state="listening"}
-            override fun onBeginningOfSpeech() {}
-            override fun onRmsChanged(rmsdB:Float) {}
-            override fun onBufferReceived(buffer:ByteArray?) {}
-            override fun onEndOfSpeech() {if(active && state!="idle") state="processing"}
-            override fun onError(error:Int) {if(active && state!="idle") {state="idle";failure=when(error) {
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS->Words.SpeechPermission
-                SpeechRecognizer.ERROR_NETWORK,SpeechRecognizer.ERROR_NETWORK_TIMEOUT,SpeechRecognizer.ERROR_SERVER->Words.SpeechNetwork
-                SpeechRecognizer.ERROR_NO_MATCH,SpeechRecognizer.ERROR_SPEECH_TIMEOUT->Words.SpeechNoMatch
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY->Words.SpeechBusy
-                else->Words.VoiceError
-            }}}
-            override fun onResults(results:Bundle?) {if(active && state!="idle") {transcript=results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty();state="idle"}}
-            override fun onPartialResults(results:Bundle?) {if(active && state!="idle") results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.let {transcript=it}}
-            override fun onEvent(eventType:Int,params:Bundle?) {}
-        })
-        val observer=LifecycleEventObserver {_,event -> if(event==Lifecycle.Event.ON_STOP) {cancelListening();utterancePrefix="stopped";tts.stop();speaking=false}}
+    LaunchedEffect(mode,language) {
+        cancelListening(clearFailure=true);session=session.configure(mode,language);speechError=null
+    }
+    val resume by rememberUpdatedState({refresh(false)})
+    val stop by rememberUpdatedState({cancelListening();stopSpeaking()})
+    DisposableEffect(owner) {
+        val observer=LifecycleEventObserver {_,event->when(event) {Lifecycle.Event.ON_RESUME->resume();Lifecycle.Event.ON_STOP->stop();else->Unit}}
         owner.lifecycle.addObserver(observer)
-        onDispose {active=false;owner.lifecycle.removeObserver(observer);recognizer?.cancel();recognizer?.destroy()}
+        onDispose {owner.lifecycle.removeObserver(observer);stop()}
     }
     DisposableEffect(tts) {
         tts.setOnUtteranceProgressListener(object:UtteranceProgressListener() {
-            override fun onStart(id:String?) {main.post {if(id?.startsWith(utterancePrefix)==true) speaking=true}}
-            override fun onDone(id:String?) {main.post {if(id==lastUtterance) speaking=false}}
-            @Deprecated("Android callback") override fun onError(id:String?) {main.post {if(id?.startsWith(utterancePrefix)==true) {tts.stop();speaking=false;speechError=true}}}
+            override fun onStart(id:String?) {main.post {if(alive.get() && utterancePrefix.isNotEmpty() && id?.startsWith("$utterancePrefix-")==true) speaking=true}}
+            override fun onDone(id:String?) {main.post {if(alive.get() && id==lastUtterance) speaking=false}}
+            @Deprecated("Android callback") override fun onError(id:String?) {main.post {
+                if(alive.get() && utterancePrefix.isNotEmpty() && id?.startsWith("$utterancePrefix-")==true) {stopSpeaking();speechError=Words.SpeechPlaybackError}
+            }}
         })
-        onDispose {utterancePrefix="disposed";tts.stop();tts.shutdown()}
+        onDispose {alive.set(false);stopSpeaking();tts.shutdown()}
     }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp),horizontalAlignment=Alignment.CenterHorizontally) {
-        Word(Words.Voice,Modifier.fillMaxWidth(),heading=true);Text(label(Words.VoiceInfo))
-        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            Text(label(Words.LocalSpeech),Modifier.weight(1f));Switch(p.onDeviceSpeechOnly,{vm.updatePreferences(p.copy(onDeviceSpeechOnly=it),p)},enabled=state=="idle" && !speaking)
-        }
-        if(recognizer==null) Text(label(if(p.onDeviceSpeechOnly) Words.LocalSpeechUnavailable else Words.VoiceUnavailable))
-        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            FilterChip(language=="en-GB",{language="en-GB"},enabled=state=="idle" && !speaking,label={Text(label(Words.SpeechEnglish))})
-            FilterChip(language=="zh-CN",{language="zh-CN"},enabled=state=="idle" && !speaking,label={Text("中文 · Zhōngwén")})
-        }
-        FilledTonalIconButton({if(state=="listening") {recognizer?.stopListening();state="processing"} else if(ContextCompat.checkSelfPermission(context,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED) start() else permission.launch(Manifest.permission.RECORD_AUDIO)},
-            enabled=recognizer!=null && state!="processing" && !speaking,modifier=Modifier.size(96.dp)) {Icon(Icons.Outlined.MicNone,label(Words.TapSpeak),Modifier.size(42.dp))}
-        Text(label(when(state) {"listening"->Words.Listening;"processing"->Words.Processing;else->Words.TapSpeak}))
-        if(state!="idle") TextButton(::cancelListening) {Text(label(Words.Cancel))}
-        failure?.let {Text(label(it),color=MaterialTheme.colorScheme.error)}
-        if(failure==Words.SpeechPermission) TextButton({context.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:${context.packageName}")))}) {Text(label(Words.AppPermissions))}
-        OutlinedTextField(transcript,{transcript=it},Modifier.fillMaxWidth(),label={Text(label(Words.Transcript))},minLines=2,maxLines=6)
-        Button({cancelListening();vm.draft.value=transcript;goChat()},enabled=transcript.isNotBlank() && state=="idle" && !busy) {Text(label(Words.Chat))}
-        if(!p.onDeviceSpeechOnly) Text(label(Words.VoiceDisclosure),style=MaterialTheme.typography.bodySmall)
-        HorizontalDivider()
-        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            Text(label(Words.NetworkSpeech),Modifier.weight(1f));Switch(p.allowNetworkSpeech,{vm.updatePreferences(p.copy(allowNetworkSpeech=it),p)},enabled=!speaking)
-        }
-        Text(label(Words.SpeechRate)+" · "+"%.2f×".format(p.speechRate))
-        Slider(p.speechRate,{vm.updatePreferences(p.copy(speechRate=it),p)},valueRange=.75f..1.25f,enabled=!speaking)
-        Button({
-            if(speaking) {utterancePrefix="stopped";tts.stop();speaking=false}
-            else try {
-                val locale=Locale.forLanguageTag(language)
-                val voice=tts.voices.orEmpty().filter {it.locale.language==locale.language && (p.allowNetworkSpeech || !it.isNetworkConnectionRequired)}.sortedWith(compareBy({it.isNetworkConnectionRequired},{it.name})).firstOrNull()
-                if(voice==null) {speechError=true} else {
-                    speechError=false;tts.voice=voice;tts.setSpeechRate(p.speechRate)
-                    val chunks=SpeechPolicy.chunks(plainReply,TextToSpeech.getMaxSpeechInputLength())
-                    require(chunks.isNotEmpty());utterancePrefix=UUID.randomUUID().toString();lastUtterance="$utterancePrefix-${chunks.lastIndex}";speaking=true
-                    chunks.forEachIndexed {index,text -> check(tts.speak(text,if(index==0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD,null,"$utterancePrefix-$index")==TextToSpeech.SUCCESS)}
-                }
-            } catch(_:Exception) {tts.stop();speaking=false;speechError=true}
-        },enabled=speaking || (ttsReady && plainReply.isNotBlank() && state=="idle" && !busy)) {Text(label(if(speaking) Words.StopSpeech else Words.ReadReply))}
-        if(reply.isNotBlank() && plainReply.isBlank()) Text(label(Words.NoReadText),style=MaterialTheme.typography.bodySmall)
-        if(speechError || !ttsReady) Text(label(Words.SpeechVoiceUnavailable),style=MaterialTheme.typography.bodySmall)
-        Text(label(Words.SpeechDisclosure),style=MaterialTheme.typography.bodySmall)
+    val readBlock=when {
+        speaking->null
+        reply.isBlank()->Words.SpeechReplyRequired
+        plainReply.isBlank()->Words.NoReadText
+        busy->Words.SpeechChatBusy
+        session.phase!=DictationPhase.IDLE->Words.SpeechListeningBusy
+        ttsStatus==0->Words.SpeechStarting
+        ttsStatus<0->Words.SpeechEngineUnavailable
+        voice==null->Words.SpeechVoiceUnavailable
+        else->null
     }
+    VoiceControls(
+        preferences=p,readAloud=readAloud,onSection={selected->cancelListening(clearFailure=true);stopSpeaking();speechError=null;readAloud=selected},
+        session=session,transcript=transcript,onTranscript={transcript=it},recognitionAvailable=mode!=RecognitionMode.UNAVAILABLE,
+        busy=busy,speaking=speaking,readBlock=readBlock,readError=speechError,
+        onLanguage={cancelListening(clearFailure=true);language=it},onLocalOnly={cancelListening(clearFailure=true);vm.updatePreferences(p.copy(onDeviceSpeechOnly=it),p)},
+        onNetworkVoices={speechError=null;vm.updatePreferences(p.copy(allowNetworkSpeech=it),p)},onRate={vm.updatePreferences(p.copy(speechRate=it),p)},
+        onMicrophone={
+            if(session.phase==DictationPhase.LISTENING) {session=session.processing(session.generation);runCatching {recognizer?.stopListening()}.onFailure {session=session.fail(session.generation,RecognitionFailure.CLIENT);release(recognizer)}}
+            else if(ContextCompat.checkSelfPermission(context,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED) start()
+            else {session=session.configure(mode,language).cancel(clearFailure=true);permissionRequest=session;permission.launch(Manifest.permission.RECORD_AUDIO)}
+        },
+        onCancel={cancelListening()},onChat={cancelListening();vm.draft.value=transcript;goChat()},
+        onRead={
+            if(speaking) stopSpeaking()
+            else if(readBlock==null && owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) try {
+                check(voice!=null);check(tts.setVoice(voice)==TextToSpeech.SUCCESS);check(tts.setSpeechRate(p.speechRate)==TextToSpeech.SUCCESS)
+                speechError=null
+                val chunks=SpeechPolicy.chunks(plainReply,TextToSpeech.getMaxSpeechInputLength());require(chunks.isNotEmpty())
+                utterancePrefix=UUID.randomUUID().toString();lastUtterance="$utterancePrefix-${chunks.lastIndex}";speaking=true
+                chunks.forEachIndexed {index,text->check(tts.speak(text,if(index==0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD,null,"$utterancePrefix-$index")==TextToSpeech.SUCCESS)}
+            } catch(_:Exception) {stopSpeaking();speechError=Words.SpeechPlaybackError}
+        },
+        onRefresh={refresh(true)},onPermissions={runCatching {context.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:${context.packageName}")))}}
+    )
 }
