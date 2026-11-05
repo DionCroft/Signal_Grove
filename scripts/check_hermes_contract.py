@@ -171,6 +171,8 @@ def reviewed_source_absence(name: str, path: str, commit: str) -> bool:
 
 KANBAN_CONTRACT_SOURCES = {'kanban_api':'plugins/kanban/dashboard/plugin_api.py','kanban_db':'hermes_cli/kanban_db.py','kanban_boards':'hermes_cli/kanban_db_boards.py','kanban_connect':'hermes_cli/kanban_db_connect.py','kanban_workflow':'hermes_cli/kanban_workflow.py','kanban_plugin_profiles':'hermes_cli/web_server_plugin_profiles.py','kanban_plugin_mount':'hermes_cli/web_server_dashboard.py','kanban_read_coalescing':'hermes_cli/web_read_coalescing.py'}
 KANBAN_CONTRACT_SOURCES.update({'kanban_scope_runtime':'hermes_cli/web_server.py','kanban_roots':'hermes_constants.py'})
+KANBAN_CONTRACT_SOURCES['kanban_graph']='hermes_cli/kanban_db_graph.py'
+KANBAN_CONTRACT_SOURCES['kanban_profiles']='hermes_cli/profiles.py'
 EXTRA_SOURCES.update(KANBAN_CONTRACT_SOURCES)
 MANAGEMENT_ROUTE_PREFIXES = {'kanban_api':'/api/plugins/kanban'}
 
@@ -209,7 +211,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 project_classes={'project_contract':{'ProjectFolder','ProjectInfo','ProjectsPayload','ProjectResult','ProjectIdParams','OptionalProjectResult','ProjectsCreateParams','ProjectsUpdateParams','ProjectsAddFolderParams','ProjectFolderParams','ProjectsArchiveParams','ProjectsSetActiveParams','ActiveIdResult'},'project_db':{'Project','ProjectFolder'},'project_methods':{'_NoProject'}}
                 if not prefix and node.name in project_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
-                kanban_classes={'kanban_api':{'CreateBoardBody','RenameBoardBody'},'kanban_db':{'Task','Run','Comment','Event','Attachment'},'kanban_workflow':{'Column','Workflow'}}
+                kanban_classes={'kanban_api':{'CreateBoardBody','RenameBoardBody','CreateTaskBody','UpdateTaskBody','CommentBody','LinkBody'},'kanban_db':{'Task','Run','Comment','Event','Attachment'},'kanban_workflow':{'Column','Workflow'}}
                 if not prefix and node.name in kanban_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 channel_classes={'channel_registry':{'PlatformEntry'},'channel_config':{'Platform','HomeChannel'},'channel_status':{'GatewayLiveness'}}
                 if not prefix and node.name in channel_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)

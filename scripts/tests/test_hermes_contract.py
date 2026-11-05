@@ -876,3 +876,38 @@ class PluginUpdateLockWatchTests(unittest.TestCase):
             missing={**current,'handlers':{k:v for k,v in current['handlers'].items() if k!=key}}
             report=checker.compare(value,{'commit':'e'*40,'contract':missing})
             self.assertEqual({key},set(report['mobile_relevant_changes']['changed_used_handlers']));self.assertTrue(report['mobile_relevant_changes']['changed_used_handlers'][key]['required_introduced_handler_missing'])
+
+
+class KanbanTaskWriteWatchTests(unittest.TestCase):
+    def fixture(self):
+        data=KanbanBoardWriteWatchTests().fixture()
+        data['kanban_api']+="\nclass CreateTaskBody(BaseModel):\n    title:str\n    parents:list[str]=Field(default_factory=list)\n    triage:bool=False\n    idempotency_key:str|None=None\nclass UpdateTaskBody(BaseModel):\n    title:str|None=None\n    priority:int|None=None\nclass CommentBody(BaseModel):\n    body:str\n    author:str='dashboard'\nclass LinkBody(BaseModel):\n    parent_id:str\n    child_id:str\n_value_error_400=partial(_map_errors,400,ValueError)\n_OVERRIDE_OPS=()\n@router.post('/tasks')\ndef create_task(payload:CreateTaskBody):\n    return db.create_task(**payload.model_dump())\n@router.patch('/tasks/{task_id}')\ndef update_task(task_id,payload:UpdateTaskBody):\n    assign(payload)\n    status(payload)\n    priority(payload)\n    title_body(payload)\n@router.delete('/tasks/{task_id}')\ndef delete_task(task_id):\n    return db.delete_task(task_id)\n@router.post('/tasks/{task_id}/comments')\ndef add_comment(task_id,payload:CommentBody):\n    db.add_comment(task_id,payload.body)\n    return {'ok':True}\n@router.post('/links')\ndef add_link(payload:LinkBody):\n    return {'ok':True,'gated':db.link_tasks(payload.parent_id,payload.child_id)}\n@router.delete('/links')\ndef delete_link(parent_id,child_id):\n    return {'ok':db.unlink_tasks(parent_id,child_id)}\n"
+        data['kanban_db']+="\ndef delete_task(conn,task_id):\n    delete_relations(conn,task_id)\n    return recompute_ready(conn)\ndef link_tasks(conn,parent,child):\n    require_no_cycle(parent,child)\n    return gate_child(parent,child)\ndef unlink_tasks(conn,parent,child):\n    remove_link(parent,child)\n    recompute_ready(conn)\n"
+        data['kanban_graph']="def initial_task_state(conn,parents,initial_status,triage,tenant):\n    require_parents_exist(parents)\n    return 'triage' if triage else ready_or_todo(parents)\n"
+        data['kanban_profiles']="def normalize_profile_name(name):\n    return name.strip().lower()\n"
+        return data
+    def tracked(self):
+        contract=checker.extract(self.fixture())
+        value=baseline(contract)
+        value['upstream']['commit']='a'*40
+        value['mobile_used_management_routes']=[r for r in contract['management_routes'] if '/tasks' in r or '/links' in r]
+        value['mobile_used_handlers']=[k for k in contract['handlers'] if k.startswith(('kanban_api:','kanban_db:','kanban_graph:','kanban_profiles:'))]
+        value['mobile_used_request_fields']=[k for k in contract['request_fields'] if k.startswith('kanban_api:')]
+        return value
+    def compare(self,data):return checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+    def test_every_literal_task_write_route_is_required(self):
+        for route in ["@router.post('/tasks')","@router.patch('/tasks/{task_id}')","@router.delete('/tasks/{task_id}')","@router.post('/tasks/{task_id}/comments')","@router.post('/links')","@router.delete('/links')"]:
+            data=self.fixture();data['kanban_api']=data['kanban_api'].replace(route,'');self.assertTrue(self.compare(data)['mobile_review_required'])
+    def test_task_schema_types_defaults_and_create_nonce_are_guarded(self):
+        for before,after in [('triage:bool=False','triage:bool=True'),('idempotency_key:str|None=None','idempotency_key:int|None=None'),('author:str=\'dashboard\'','author:str=\'worker\''),('parent_id:str','parent_id:int')]:
+            data=self.fixture();self.assertIn(before,data['kanban_api']);data['kanban_api']=data['kanban_api'].replace(before,after);self.assertTrue(self.compare(data)['mobile_review_required'])
+    def test_phase_order_and_error_alias_cannot_silently_change(self):
+        for before,after in [('assign(payload)\n    status(payload)','status(payload)\n    assign(payload)'),('partial(_map_errors,400,ValueError)','partial(_map_errors,200,ValueError)'),('_OVERRIDE_OPS=()','_OVERRIDE_OPS=(always_write,)')]:
+            data=self.fixture();self.assertIn(before,data['kanban_api']);data['kanban_api']=data['kanban_api'].replace(before,after);self.assertTrue(self.compare(data)['mobile_review_required'])
+    def test_dependency_deletion_and_initial_state_effects_are_required(self):
+        for alias,before,after in [('kanban_db','require_no_cycle(parent,child)','pass'),('kanban_db','recompute_ready(conn)','ignore_ready(conn)'),('kanban_graph','require_parents_exist(parents)','pass')]:
+            data=self.fixture();data[alias]=data[alias].replace(before,after);self.assertTrue(self.compare(data)['mobile_review_required'])
+    def test_assignee_normalization_dependency_is_watched(self):
+        data=self.fixture();data['kanban_profiles']=data['kanban_profiles'].replace('name.strip().lower()','name');self.assertIn('kanban_profiles:normalize_profile_name',self.compare(data)['mobile_relevant_changes']['changed_used_handlers'])
+    def test_unrelated_task_route_is_triaged_without_a_wildcard(self):
+        data=self.fixture();data['kanban_api']+="\n@router.post('/unused-task-effect')\ndef unused_task_effect():\n    return {}\n";v=self.compare(data);self.assertFalse(v['mobile_review_required']);self.assertIn('POST /api/plugins/kanban/unused-task-effect',v['added_management_routes'])

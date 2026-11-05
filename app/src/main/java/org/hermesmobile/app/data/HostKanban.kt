@@ -78,6 +78,7 @@ object HostKanbanProtocol {
         j["skills"]?.takeUnless {it is JsonNull}?.let {fields["skills"]=strings(j,"skills",256,512).joinToString("\n")}
         return HostKanbanTask(id,text(j,"title",4096,multiline=true)!!,status,text(j,"assignee",256,true),text(j,"tenant",512,true),number(j,"priority",false,Int.MIN_VALUE.toLong(),Int.MAX_VALUE.toLong())!!,text(j,"body",262144,true,true),text(j,"result",262144,true,true),text(j,"latest_summary",262144,true,true),time(j,"created_at"),time(j,"started_at"),time(j,"completed_at"),number(j,"current_run_id",true,1),time(j,"last_heartbeat_at"),frozen(fields))
     }
+    fun taskAcknowledgement(j:JsonObject):HostKanbanTask=decode {task(j["task"] as JsonObject)}
     fun snapshot(j:JsonObject,owner:ManagementTarget,home:String,board:HostKanbanBoard,observedAt:Long=System.currentTimeMillis()):HostKanbanSnapshot=decode {
         context(owner,home);require(slug(board.slug) && !board.archived)
         val columns=rows(j,"columns",64).map {c->HostKanbanColumn(text(c,"name",128)!!.also {require(HostKanbanProtocol.id(it))},frozen(rows(c,"tasks",2000).map(::task)))}

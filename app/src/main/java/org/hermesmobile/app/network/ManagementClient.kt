@@ -77,6 +77,14 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         return element("api/plugins/kanban/boards",tokens.access,body,profile,request.action.method,tail,query).jsonObject
     }
     suspend fun kanbanBoards(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/plugins/kanban/boards",tokens.access,profile=profile,query=mapOf("include_archived" to "true")).jsonObject}
+    suspend fun changeKanbanTask(tokens:ManagementTokens,profile:String,request:HostKanbanTaskChange):JsonObject {
+        GatewayCronInventory.requireProfile(profile);require(profile==request.owner.profile)
+        val dependency=request.action in setOf(HostKanbanTaskAction.Link,HostKanbanTaskAction.Unlink)
+        val path=if(dependency) "api/plugins/kanban/links" else "api/plugins/kanban/tasks"
+        val tail=if(dependency || request.action==HostKanbanTaskAction.Create) emptyList() else listOfNotNull(request.id)+(if(request.action==HostKanbanTaskAction.Comment) listOf("comments") else emptyList())
+        val query=mapOf("board" to request.board.slug)+(if(request.action==HostKanbanTaskAction.Unlink) mapOf("parent_id" to request.related!!.task.id,"child_id" to request.id!!) else emptyMap())
+        return element(path,tokens.access,if(request.action.method=="DELETE") null else request.body(),profile=profile,tail=tail,query=query,method=request.action.method,slow=true).jsonObject
+    }
     suspend fun kanbanBoard(tokens:ManagementTokens,profile:String,board:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(HostKanbanProtocol.slug(board));return element("api/plugins/kanban/board",tokens.access,profile=profile,query=mapOf("board" to board,"include_archived" to "true")).jsonObject}
     suspend fun kanbanTask(tokens:ManagementTokens,profile:String,board:String,id:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(HostKanbanProtocol.slug(board) && HostKanbanProtocol.id(id));return element("api/plugins/kanban/tasks",tokens.access,profile=profile,tail=listOf(id),query=mapOf("board" to board)).jsonObject}
     suspend fun hostRelayAccounts(tokens:ManagementTokens):JsonObject=json("api/messaging/relay",tokens.access)
