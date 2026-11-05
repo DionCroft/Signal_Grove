@@ -971,7 +971,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     DemoApproval("Try a Demo approval","体验演示批准流程","Tǐyàn yǎnshì pīzhǔn liúchéng"),
     DemoClarification("Try a Demo question","体验演示提问","Tǐyàn yǎnshì tíwèn"),
     LocalSpeech("On-device speech recognition only","仅在设备上识别语音","Jǐn zài shèbèi shàng shíbié yǔyīn"),
-    LocalSpeechUnavailable("On-device recognition is unavailable. Disable the on-device-only switch to explicitly use the system service; it may process audio online.","本机识别不可用。关闭仅本机识别选项可明确使用系统服务，该服务可能在线处理音频。","Běnjī shíbié bù kěyòng. Guānbì jǐn běnjī shíbié xuǎnxiàng kě míngquè shǐyòng xìtǒng fúwù, gāi fúwù kěnéng zàixiàn chǔlǐ yīnpín."),
+    LocalSpeechUnavailable("On-device dictation is unavailable. You can keep this switch on and type or use Read aloud. Refresh after changing Android speech services.","本机听写不可用。你可以保持此开关开启，输入文字或使用朗读。更改 Android 语音服务后请刷新。","Běnjī tīngxiě bù kěyòng. Nǐ kěyǐ bǎochí cǐ kāiguān kāiqǐ, shūrù wénzì huò shǐyòng lǎngdú. Gēnggǎi Android yǔyīn fúwù hòu qǐng shuāxīn."),
     ReadReply("Read latest reply aloud","朗读最新回复","Lǎngdú zuìxīn huífù"), StopSpeech("Stop speaking","停止朗读","Tíngzhǐ lǎngdú"),
     NetworkSpeech("Allow online read-aloud voices","允许在线朗读声音","Yǔnxǔ zàixiàn lǎngdú shēngyīn"),
     SpeechDisclosure("Read-aloud uses Android's speech engine. Online voices may send response text to that service. Code blocks are skipped; responses are not translated.","朗读使用 Android 语音引擎。在线声音可能将回复文字发送至该服务。代码块会跳过，回复不会翻译。","Lǎngdú shǐyòng Android yǔyīn yǐnqíng. Zàixiàn shēngyīn kěnéng jiāng huífù wénzì fāsòng zhì gāi fúwù. Dàimǎkuài huì tiàoguò, huífù bú huì fānyì."),

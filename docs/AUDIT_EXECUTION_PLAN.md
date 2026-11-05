@@ -34,7 +34,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 6a. Integrations | Dynamic MCP/skill/plugin/provider and channel foundations exist. | Plugin bulk/automatic-update policy/bundles, channel/webhook/pairing-specific setup; preserve credential handoffs and host revision/CAS limits; real accounts only for their scoped tests. |
 | 6b. Configuration/workspaces | Narrow config slices and stored-project administration exist. | Typed memory/persona/context/config/reset and explicit chat-workspace adoption, repository/folder discovery and tree/file hydration. Active-project metadata alone is not cwd adoption. |
 | 7a. Notification routing | Best-effort active-connection polling and generic routes. | Exact connection/conversation/run targeting, deliberate multi-connection/job/goal policy and lifecycle evidence. Push only with a real authenticated bridge/registration contract. |
-| 7b. Rendering/voice/UX | Core Markdown, pixel motion/theme/updater and separate Dictation/Read aloud controls exist. Voice lifecycle/reason regressions: 520 JVM and 28 focused native passes, including seven controlled physical UI cases; physical audio still open. Small/large-font language wrapping and read-action placement need further polish. | Assess safe Mermaid/math fallbacks/rendering, applicable UX/accessibility/performance; physical voice evidence; use only actually supported Hermes audio transport. |
+| 7b. Rendering/voice/UX | Core Markdown, pixel motion/theme/updater and separate Dictation/Read aloud controls exist. Voice lifecycle/reason regressions: 520 JVM and 28 focused native passes, including seven controlled physical UI cases; physical audio still open. Separate layout follow-up puts the read action first, wraps language choices and verifies its initial viewport with app bars/large bilingual text: 24 focused emulator passes. Its phone/layout acceptance remains separate. | Assess safe Mermaid/math fallbacks/rendering, applicable UX/accessibility/performance; physical voice evidence; use only actually supported Hermes audio transport. |
 | 7c. Maintainability | Added opt-in bounded thread/clock diagnostics, private APK-bound exporter and contributor instructions; production app and normal full gate unchanged. | Finish justified controller/Words decomposition, remaining artifact-aware contributor workflows and concise support/state matrix. |
 | 8. Security/release/community | Strict verification and compatibility gates exist; fresh full advisory/release review remains. | Review actual resolved production/tool/native graph, recurring advisories and deliberate SBOM/provenance; signed exact-source assets/checksums, retention/migration, support/community docs and release verification. |
 
@@ -62,7 +62,7 @@ commissioning reports stay out of this public repository.
 
 ## Next bounded stage
 
-Close the published diagnostic and Voice chunks through their own hosted gates,
+Close the published diagnostic and Voice chunks, including the small-screen follow-up, through their own hosted gates,
 verify the approved phone update/audio without enabling network speech, then deliver
 native override forms and typed status from verified contracts. Continue physical
 background/audio acceptance and the isolated real-Hermes matrix independently. Update this ledger at each

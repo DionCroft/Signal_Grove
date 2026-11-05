@@ -1299,3 +1299,40 @@ the owner is checking that section manually after the terminal UI run. Actual
 offline playback/stop, microphone/Bluetooth/OEM behavior and complete before/after
 data-retention acceptance remain open. Exact-head full hosted Android and
 compatibility gates are still required before this chunk merges or releases.
+
+
+## Voice small-screen follow-up (5 November 2026)
+
+The separate follow-up moves the read action/reason before lengthy instructions,
+wraps language choices as whole controls and retains the accessible Voice pane
+title while removing the duplicate large heading. The unavailable-dictation copy
+explicitly supports keeping the offline-only switch enabled and using typing or
+Read aloud. Recognition/playback controllers, privacy flags and networking are
+byte-identical to the preceding Voice-fix source.
+
+Required strict Gradle tasks passed in **9m 51s**: **520 JVM tests,
+zero failures/errors/skips**, lint and both APK assemblies. All **411** frozen
+application/test/build source identities reconcile. The initial attempt used a
+temporary local generated-output override; KSP rejected generated source and
+project paths on different Windows roots. That failed attempt is retained. The
+same application source passed using the established project output layout,
+with tools/caches/temp/logs on E: and no C: staging. No checks were disabled.
+
+App APK SHA-256 `12d95d4b3a827cb08443209e8b409807a2947654877530e2e55694043e252cf4`; test APK `8e77476b83cebfd3295fd66133e91ba4f4538d18592b8adc664f6224d944b9df`. Original CAB debug signer,
+package identities, code106/beta.5, min26 and Room11 remain unchanged. All **eight
+VoiceControls cases passed once on each API26/36/37 emulator: 24 focused native
+passes**, unchanged display geometry/font settings and no skips. The new case
+includes surrounding app bars, bilingual text at composition font1.8 and an
+unclipped-bounds check that the entire enabled read action fits the initial
+scroll viewport before one real click. It also verifies the accessible pane title.
+This is an action-reachability regression, not a test that repeats a layout constant.
+
+Actual API26 normal-app captures at its retained font1.3 were inspected. The read
+action occupied `[59,472,662,666]` within viewport `[40,472,680,1120]` without
+scrolling. It was correctly disabled with the missing-chat-reply explanation;
+no microphone or playback was invoked. Language choices no longer split the
+English label across a narrow leftover row width. The previously approved phone
+keeps its earlier Voice-fix APK pair; that pair's seven controlled physical UI
+passes and manual audio question remain separate. This layout pair has no
+physical-device/audio certification or published release. Own exact-head full
+hosted Android and compatibility gates remain required before merge.

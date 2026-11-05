@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import org.hermesmobile.app.data.AppPreferences
 import org.hermesmobile.app.voice.*
@@ -26,6 +27,7 @@ internal fun RecognitionFailure.word()=when(this) {
 }
 
 /** Presentation only: reading text never requires the microphone or an available recognizer. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun VoiceControls(
     preferences:AppPreferences,readAloud:Boolean,onSection:(Boolean)->Unit,
     session:DictationSession,transcript:String,onTranscript:(String)->Unit,
@@ -34,16 +36,21 @@ internal fun RecognitionFailure.word()=when(this) {
     onMicrophone:()->Unit,onCancel:()->Unit,onChat:()->Unit,onRead:()->Unit,onRefresh:()->Unit,onPermissions:()->Unit
 ) {
     val idle=session.phase==DictationPhase.IDLE
-    Column(Modifier.fillMaxSize().padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        Word(Words.Voice,Modifier.fillMaxWidth(),heading=true)
+    val voiceTitle=label(Words.Voice)
+    Column(Modifier.fillMaxSize().padding(horizontal=20.dp).testTag("voice-screen").semantics {paneTitle=voiceTitle},verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             FilterChip(!readAloud,{onSection(false)},modifier=Modifier.weight(1f).testTag("voice-dictation-tab"),label={Text(label(Words.Dictation))})
             FilterChip(readAloud,{onSection(true)},modifier=Modifier.weight(1f).testTag("voice-read-tab"),label={Text(label(Words.ReadAloud))})
         }
         key(readAloud) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("voice-controls").padding(bottom=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp),horizontalAlignment=Alignment.CenterHorizontally) {
+                if(readAloud) {
+                    Button(onRead,Modifier.testTag("voice-read-reply"),enabled=speaking || readBlock==null) {Text(label(if(speaking) Words.StopSpeech else Words.ReadReply))}
+                    readBlock?.let {Text(label(it),Modifier.testTag("voice-read-reason"))}
+                    readError?.let {Text(label(it),Modifier.testTag("voice-read-error"),color=MaterialTheme.colorScheme.error)}
+                }
                 Text(label(if(readAloud) Words.ReadAloudInfo else Words.VoiceInfo))
-                Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     FilterChip(session.language=="en-GB",{onLanguage("en-GB")},enabled=idle && !speaking,label={Text(label(Words.SpeechEnglish))})
                     FilterChip(session.language=="zh-CN",{onLanguage("zh-CN")},enabled=idle && !speaking,label={Text(label(Words.SpeechChinese))})
                 }
@@ -65,9 +72,7 @@ internal fun RecognitionFailure.word()=when(this) {
                     if(busy) Text(label(Words.SpeechChatBusy))
                     if(!preferences.onDeviceSpeechOnly) Text(label(Words.VoiceDisclosure),style=MaterialTheme.typography.bodySmall)
                 } else {
-                    Button(onRead,Modifier.testTag("voice-read-reply"),enabled=speaking || readBlock==null) {Text(label(if(speaking) Words.StopSpeech else Words.ReadReply))}
-                    readBlock?.let {Text(label(it),Modifier.testTag("voice-read-reason"))}
-                    readError?.let {Text(label(it),Modifier.testTag("voice-read-error"),color=MaterialTheme.colorScheme.error)}
+
                     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                         Text(label(Words.NetworkSpeech),Modifier.weight(1f))
                         Switch(preferences.allowNetworkSpeech,onNetworkVoices,Modifier.testTag("voice-network-voices"),enabled=!speaking)

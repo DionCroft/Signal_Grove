@@ -55,3 +55,13 @@ evidence; see [VALIDATION](VALIDATION.md) for each tested artifact and scope.
 Implementation follows Android's [SpeechRecognizer](https://developer.android.com/reference/android/speech/SpeechRecognizer)
 and [TextToSpeech](https://developer.android.com/reference/android/speech/tts/TextToSpeech)
 contracts. A successful enqueue is not proof that the user heard audio.
+
+
+## Small screens and large text
+
+The Read aloud action and any disabled reason appear directly below the section
+selectors, ahead of the longer instructions. Language choices wrap as whole
+controls. The screen retains its accessible Voice title without a duplicate
+large visual heading. These arrangements keep the primary action within the
+initial viewport with app bars and enlarged bilingual text. Other settings remain
+scrollable; the privacy switches and explicit playback behavior are unchanged.

@@ -2,6 +2,11 @@ package org.hermesmobile.app
 
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -21,7 +26,7 @@ class VoiceControlsTest {
     private var localOnly=true;private var networkVoices=false
     private fun render(
         state:DictationSession=DictationSession(),block:Words?=null,error:Words?=null,
-        speaking:Boolean=false,busy:Boolean=false,bilingual:Boolean=false,largeText:Boolean=false
+        speaking:Boolean=false,busy:Boolean=false,bilingual:Boolean=false,largeText:Boolean=false,appChrome:Boolean=false
     ) {
         val p=if(bilingual) prefs.copy(chinese=true,pinyin=true) else prefs
         compose.runOnUiThread {compose.activity.setContent {
@@ -30,10 +35,16 @@ class VoiceControlsTest {
                 CompositionLocalProvider(LocalDensity provides if(largeText) Density(density.density,1.8f) else density) {
                     var reading by remember {mutableStateOf(false)}
                     var session by remember {mutableStateOf(state)}
-                    VoiceControls(p,reading,{reading=it;session=session.cancel(clearFailure=true)},session,"Typed message",{},
-                        state.mode!=RecognitionMode.UNAVAILABLE,busy,speaking,block,error,
-                        {session=session.configure(session.mode,it)},{localOnly=it},{networkVoices=it},{},
-                        {microphones++},{cancels++},{},{reads++},{refreshes++},{})
+                    val controls: @Composable ()->Unit = {
+                        VoiceControls(p,reading,{reading=it;session=session.cancel(clearFailure=true)},session,"Typed message",{},
+                            state.mode!=RecognitionMode.UNAVAILABLE,busy,speaking,block,error,
+                            {session=session.configure(session.mode,it)},{localOnly=it},{networkVoices=it},{},
+                            {microphones++},{cancels++},{},{reads++},{refreshes++},{})
+                    }
+                    if(appChrome) Scaffold(
+                        topBar={Column(Modifier.statusBarsPadding().padding(horizontal=20.dp,vertical=8.dp)) {Text("Signal Grove",style=MaterialTheme.typography.titleLarge);Text(Words.Demo.localized(p),style=MaterialTheme.typography.labelMedium)}},
+                        bottomBar={Box(Modifier.fillMaxWidth().navigationBarsPadding().height(80.dp))}
+                    ) {padding->Box(Modifier.fillMaxSize().padding(padding)) {controls()}} else controls()
                 }
             }
         }}
@@ -79,6 +90,16 @@ class VoiceControlsTest {
         compose.onNodeWithTag("voice-dictation-error").performScrollTo().assertTextEquals(Words.SpeechAudioError.en)
         compose.onNodeWithText(Words.SpeechPermission.en).assertDoesNotExist()
         compose.onNodeWithTag("voice-refresh").performScrollTo().performClick();assertEquals(1,refreshes)
+    }
+    @Test fun primaryReadActionFitsTheInitialViewportWithAppChromeAndLargeBilingualText() {
+        render(bilingual=true,largeText=true,appChrome=true)
+        compose.onNodeWithTag("voice-read-tab").assertIsDisplayed().performClick()
+        val action=compose.onNodeWithTag("voice-read-reply").assertIsDisplayed().assertIsEnabled()
+        val bounds=action.getUnclippedBoundsInRoot()
+        val viewport=compose.onNodeWithTag("voice-controls").getUnclippedBoundsInRoot()
+        assertTrue("The entire primary read action must fit before scrolling",bounds.top>=viewport.top && bounds.bottom<=viewport.bottom && bounds.left>=viewport.left && bounds.right<=viewport.right)
+        compose.onNodeWithTag("voice-screen").assert(SemanticsMatcher.expectValue(SemanticsProperties.PaneTitle,Words.Voice.localized(prefs.copy(chinese=true,pinyin=true))))
+        action.performClick();assertEquals(1,reads);assertEquals(0,microphones)
     }
     @Test fun bilingualLargeTextKeepsBothSectionsAndTheReadActionReachable() {
         render(bilingual=true,largeText=true)
