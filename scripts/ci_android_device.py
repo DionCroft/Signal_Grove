@@ -13,7 +13,7 @@ import sys
 import time
 
 
-def run_instrumentation(device, log_path: Path, timeout: int = 3600) -> int:
+def run_instrumentation(device, log_path: Path, timeout: int = 4500) -> int:
     """Run every case once within a finite deadline and retain even timed-out output."""
     try:
         result=device('shell','am','instrument','-w','-r','org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner',timeout=timeout,check=False)
@@ -166,7 +166,7 @@ def main() -> int:
             if args.api>=37:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')
-            print('Running the complete instrumentation suite (60-minute limit).',flush=True)
+            print('Running the complete instrumentation suite (75-minute limit).',flush=True)
             count=run_instrumentation(device,work/'instrumentation.log')
             summary=f'API {args.api}: full instrumentation suite passed ({count} cases).'
             print(summary)

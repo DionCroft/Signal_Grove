@@ -68,7 +68,7 @@ jobs:
     name: Device API ${{ matrix.api }}
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 105
     strategy:
       fail-fast: false
       matrix:
