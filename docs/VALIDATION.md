@@ -1138,3 +1138,38 @@ failed head is merged, retried blindly or described as a full-suite pass.
 This override source requires its own exact-head Android/compatibility gates.
 No beta.5 APK/tag/release is published. Native override forms, status, workers,
 dispatch, events/files/pins/transfers and the wider audit remain open.
+
+
+## Setup-guide language isolation correction (5 November 2026)
+
+The retained hosted failure above is corrected without changing application code.
+Guide headings use separate English/Chinese/pinyin text nodes; tests now assert
+each expected node and absence of disabled languages. Full English and full
+bilingual traversals explicitly establish their language precondition and restore
+the exact original preferences afterward. Both retain all original page/example,
+footer, activity-recreation, unchanged-preference and connection-scope assertions.
+Recreation waits for that same preference/scope observation before checking the
+retained page. The original shorter bilingual navigation method remains, with an
+explicit preference-restoration wait. No test is filtered, ignored or retried.
+
+The strict required four-task build passed in **2m47s**, with **511 JVM tests /
+zero failures, errors or skips**. All three guide methods and four existing
+navigation/settings/task/theme methods passed on every owned API26/36/37:
+**seven per device / 21 focused native passes**, no skips, on frozen406 source.
+Application `8f0e4bef63102b54fe161ccc02821281ec4eb9a94571d50ef123efee92fd9c97` is byte-identical to the accepted override foundation;
+instrumentation is `6187bf648b0d5de0053fbb62e0e931c46383683e0e3e75ae68570def174995cf`. The earlier 297 override passes retain their
+own test-APK identity and are not relabeled as executions of this test APK.
+Fresh original geometry/font and separate production API37 code105/beta.4
+readback passed. No APK/tag/release or physical-device acceptance is claimed here.
+
+The foundation commit `152bf47fe7b406517f4a7a968b888bd0444647ad` passed
+[compatibility 42093603715](https://github.com/DionCroft/Signal_Grove/actions/runs/42093603715):
+parser job127477769929 and upstream127477849946 succeeded. Both reports have
+no selected mobile review and no known open findings: stableB200, and main
+`a32131ea35dbd4a95ec800bcbfa6384b8e8cf537`. Verified ZIP digests are
+`12b2254f8d34e5a70d3f02fd3075b7eb39bfe9c9a486d3b03f2eee7faaa51b96`
+(latest) and `76c1e08491a7d70857e755b3fa3aa21071921e1a825e6ffdd5b02cf3a67143f4`
+(main). This source-only result does not close the retained guide/full-device
+failure. The cumulative correction requires new exact-head full Android and
+compatibility gates before main can advance. Earlier failed heads remain failed;
+no merge or beta.5 release is inferred from local acceptance.

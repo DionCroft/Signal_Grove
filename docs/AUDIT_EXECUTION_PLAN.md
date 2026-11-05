@@ -23,7 +23,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 
 | Package | Current state | Required acceptance / next step |
 | --- | --- | --- |
-| 1. Branch/release closure | Creation b678 has full hosted853/854 and compatibility pass. Setup2c78 and dependencies9ecd are pushed; their hosted suites expose one setup-guide bilingual assertion failure. | Correct the retained guide test assumption in a separate chunk, pass exact-head full gates, then merge only green source. Beta.5 remains unreleased. |
+| 1. Branch/release closure | Creation b678 has full hosted853/854 and compatibility pass. Setup2c78 and dependencies9ecd are pushed with retained one-case guide failures. The cumulative guide correction has strict511 JVM/21 focused native acceptance; override foundation152bf47 has compatibility success. | Publish the guide correction and obtain new exact-head full Android/compatibility acceptance before merging cumulative source. Beta.5 remains unreleased. |
 | 2. Real Hermes matrix | Source/fixture coverage exists; private owner transport/auth/native-login start is commissioned. Successful model turn/full phone login not certified. | Isolated real stable and prior-supported installations with deterministic provider/tool adapter and synthetic data; native login/refresh/profile isolation, approvals/recovery, images and representative MCP/skill/plugin/provider/project/Kanban flows. Main remains separate canary. |
 | 3. Physical Android | Owned API26/36/37 emulator evidence; no claimed physical/OEM certification. | ARM64 phone microphone/TTS/Bluetooth/offline service, process death, LAN permission, IME/large text, notifications/reboot/battery and approved matching-signer update preserving data. |
 | 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. No override forms or status controls yet. | Add private override forms and typed status with exact effects/approval/preflight/receipts; preserve next-dispatch versus current-runtime semantics and close own full gates. |
@@ -62,7 +62,7 @@ commissioning reports stay out of this public repository.
 
 ## Next bounded stage
 
-Correct the setup-guide bilingual test assumption and obtain new exact-head full
-gates. Deliver native override forms, then typed status, from verified contracts
-while progressing isolated real-Hermes acceptance. Update this ledger at each
+Inspect the corrected head’s full hosted gates and progress physical Android
+acceptance on the newly connected device. Deliver native override forms, then typed
+status, from verified contracts while progressing isolated real-Hermes acceptance. Update this ledger at each
 meaningful commit/merge/release, preserving remaining requirements.
