@@ -1,8 +1,13 @@
 package org.hermesmobile.app
 
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
@@ -77,7 +82,11 @@ class ManagementFlowTest {
             assertEquals("inference-access-fixture",app.credentials.readConfig()!!.token)
             val raw=app.getSharedPreferences("credentials",0).all.values.joinToString()
             listOf("management-access-fixture","management-refresh-fixture",dashboard).forEach {assertFalse(raw.contains(it))}
-            compose.runOnUiThread {compose.activity.setContent {val preferences by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(preferences) {ManagementEntry(api,management)}}}
+            val browser=object:ContextWrapper(compose.activity) {
+                override fun getApplicationContext():Context=this
+                override fun startActivity(intent:Intent) {assertEquals(Intent.ACTION_VIEW,intent.action);authorize.set(intent.dataString)}
+            }
+            compose.runOnUiThread {compose.activity.setContent {CompositionLocalProvider(LocalContext provides browser) {val preferences by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(preferences) {ManagementEntry(api,management)}}}}
             compose.onNodeWithTag("management-open").performClick()
             compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("management-profile"))
             compose.onNodeWithTag("management-profile").performClick()
@@ -109,6 +118,14 @@ class ManagementFlowTest {
             assertEquals(3,mutations.get())
             assertEquals("worker",runBlocking {app.credentials.management(api.profileScope.value)!!.text("profile")})
             assertEquals(0,wrongCredentials.get());assertEquals(1,exchanges.get())
+            // Reauthenticate through the actual editor/button at the SAME URL and actor.
+            // The browser double captures the handoff; loopback, PKCE, HTTP and encrypted storage stay real.
+            compose.onNodeWithTag("management-list").performScrollToKey(1003);compose.onNodeWithTag("management-address-edit").performClick();authorize.set(null)
+            compose.onNodeWithTag("management-sign-in").performClick();compose.waitUntil(5000) {authorize.get()!=null};compose.onNodeWithTag("management-url").assertDoesNotExist()
+            val again=authorize.get().toHttpUrl();val againCallback=again.queryParameter("redirect_uri")!!.toHttpUrl().newBuilder().addQueryParameter("state",again.queryParameter("state")).addQueryParameter("code","valid-"+"c".repeat(40)).build()
+            OkHttpClient.Builder().callTimeout(5,TimeUnit.SECONDS).build().newCall(Request.Builder().url(againCallback).build()).execute().use {assertEquals(200,it.code)}
+            compose.waitUntil(10000) {!management.state.value.busy && management.state.value.profiles.size==2};assertEquals(2,exchanges.get());assertEquals(dashboard,management.state.value.url);assertEquals("fixture-user",management.state.value.identity!!.userId)
+            compose.onNodeWithTag("management-list").performScrollToKey(1003);compose.onNodeWithTag("management-address").assert(hasText(dashboard));compose.onNodeWithTag("management-url").assertDoesNotExist();assertEquals(3,mutations.get());assertEquals(0,wrongCredentials.get())
             compose.runOnUiThread {management.disconnect()};compose.waitUntil(5000) {!management.state.value.busy && !management.state.value.signedIn}
             assertNull(app.credentials.management(api.profileScope.value));assertEquals("inference-access-fixture",app.credentials.readConfig()!!.token)
             authorize.set(null);compose.runOnUiThread {management.signIn(dashboard,true) {authorize.set(it)}}
@@ -117,7 +134,7 @@ class ManagementFlowTest {
             compose.waitUntil(5000) {!api.jobBusy.value};compose.runOnUiThread {api.setDemo(true)}
             compose.waitUntil(10000) {!api.connecting.value && management.state.value.apiScope=="demo"}
             assertTrue(runCatching {OkHttpClient.Builder().callTimeout(1,TimeUnit.SECONDS).build().newCall(Request.Builder().url(staleCallback).build()).execute().close()}.isFailure)
-            assertEquals(1,exchanges.get());assertFalse(management.state.value.signedIn)
+            assertEquals(2,exchanges.get());assertFalse(management.state.value.signedIn)
         }
     }
     @Test fun uncertainControlsStayWithTheirProfileAndRequireAnExplicitLocalReview() {

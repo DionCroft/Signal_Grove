@@ -959,6 +959,8 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     Management("Hermes management","Hermes 管理","Hermes guǎnlǐ"),
     ManagementBoundary("Connect the separate Hermes dashboard and sign in with your browser. Management is linked to this saved API connection.","连接独立的 Hermes 仪表盘并使用浏览器登录。管理关联至此已保存的 API 连接。","Liánjiē dúlì de Hermes yíbiǎopán bìng shǐyòng liúlǎnqì dēnglù. Guǎnlǐ guānlián zhì cǐ yǐ bǎocún de API liánjiē."),
     ManagementNeedsConnection("Select a saved API connection first.","请先选择已保存的 API 连接。","Qǐng xiān xuǎnzé yǐ bǎocún de API liánjiē."),
+    ManagementEditAddress("Edit sign-in address","编辑登录地址","Biānjí dēnglù dìzhǐ"),
+    ManagementAddressEditing("Sign in or cancel this address edit to manage the current host. Editing alone does not change the active connection.","请登录或取消地址编辑后再管理当前主机。仅编辑不会改变当前连接。","Qǐng dēnglù huò qǔxiāo dìzhǐ biānjí hòu zài guǎnlǐ dāngqián zhǔjī. Jǐn biānjí bú huì gǎibiàn dāngqián liánjiē."),
     ManagementUrl("Dashboard HTTPS URL","仪表盘 HTTPS 地址","Yíbiǎopán HTTPS dìzhǐ"),
     ManagementSignIn("Sign in using browser","使用浏览器登录","Shǐyòng liúlǎnqì dēnglù"),
     ManagementVerify("Saved sign-in. Refresh to verify identity and available profiles.","已保存登录。请刷新以验证身份和可用配置。","Yǐ bǎocún dēnglù. Qǐng shuāxīn yǐ yànzhèng shēnfèn hé kěyòng pèizhì."),

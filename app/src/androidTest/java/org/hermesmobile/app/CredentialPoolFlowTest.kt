@@ -59,13 +59,33 @@ class CredentialPoolFlowTest {
                 val inference=server.url("inference/").toString();val dashboard=server.url("dashboard/").toString()
                 compose.waitUntil(10000) {!api.connecting.value};compose.runOnUiThread {api.configure(inference,credentials.uniqueToken("pool-inference-fixture"),true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))};compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese}
                 val scope=api.profileScope.value;app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("pool-ui-fixture","refresh-fixture","password","fixture-user",4102444800).json())});compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
+                val preparedEntryState=management.state.value
                 compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(p) {ManagementEntry(api,management)}}};compose.onNodeWithTag("management-open").performClick()
+                try {
                 // Address the stable lazy item directly, then await its composed, enabled node.
                 // API 26 CI lost the scanned node between performScrollToNode and the click.
                 compose.onNodeWithTag("management-list").performScrollToKey(1023)
                 compose.waitUntil(10000) {compose.onAllNodesWithTag("credential-pool-open").fetchSemanticsNodes().singleOrNull()?.let {isEnabled().matches(it)}==true}
                 compose.onNodeWithTag("credential-pool-open").assertIsDisplayed().assertIsEnabled().performClick()
                 compose.onNodeWithTag("credential-pool-list").assertExists();assertEquals(0,reads.get())
+                } catch(failure:Throwable) {
+                    // Capture evidence without changing the successful navigation or retrying any action.
+                    runCatching {
+                        val directory=File(compose.activity.getExternalFilesDir(null),"qa");directory.mkdirs()
+                        fun state(value:ManagementState)=buildJsonObject {put("scope_matches",value.apiScope==scope);put("profile_matches",value.profile=="worker");put("signed_in",value.signedIn);put("identity_present",value.identity!=null);put("loaded",value.loaded);put("busy",value.busy);put("error_present",value.error!=null)}
+                        val metrics=compose.activity.resources.displayMetrics
+                        val data=buildJsonObject {
+                            put("prepared",state(preparedEntryState));put("failed",state(management.state.value));put("active_scope_matches",api.profileScope.value==scope)
+                            put("english",!api.preferences.value.chinese);put("pinyin",api.preferences.value.pinyin)
+                            put("width_pixels",metrics.widthPixels);put("height_pixels",metrics.heightPixels);put("density_dpi",metrics.densityDpi);put("font_scale",compose.activity.resources.configuration.fontScale)
+                            for(tag in listOf("management-open","management-list","management-url","management-address-edit","management-close","management-profile","credential-pool-open")) put(tag,runCatching {buildJsonArray {compose.onAllNodesWithTag(tag).fetchSemanticsNodes().forEach {node->add(buildJsonObject {put("enabled",isEnabled().matches(node));put("bounds",node.boundsInRoot.toString());node.config.getOrNull(SemanticsProperties.Focused)?.let {put("focused",it)};node.config.getOrNull(SemanticsProperties.VerticalScrollAxisRange)?.let {put("scroll",it.value());put("scroll_max",it.maxValue())}})}}}.getOrElse {JsonPrimitive("unavailable")})
+                        }
+                        File(directory,"credential-pool-entry-$mode-failure.json").writeText(data.toString())
+                        println("Credential entry diagnostics: $data")
+                        File(directory,"credential-pool-entry-$mode-failure.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+                    }
+                    throw failure
+                }
                 fun scroll(tag:String)=compose.onNodeWithTag("credential-pool-list").performScrollToNode(hasTestTag(tag))
                 fun read() {scroll("credential-pool-read");compose.onNodeWithTag("credential-pool-read").performClick();compose.onNodeWithTag("credential-pool-read-confirm").performClick()}
                 scroll("credential-pool-read");compose.onNodeWithTag("credential-pool-read").performClick();compose.onNodeWithTag("credential-pool-read-cancel").performClick();assertEquals(0,reads.get());read()

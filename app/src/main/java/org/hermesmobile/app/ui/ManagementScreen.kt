@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -29,8 +30,9 @@ import org.hermesmobile.app.data.*
 }
 @Composable private fun ManagementDialog(vm:ManagementViewModel,s:ManagementState,apiUrl:String,unconfigured:Boolean,close:()->Unit) {
     val context=LocalContext.current.applicationContext
-    var url by remember(s.url) {mutableStateOf(s.url)}
-    var http by remember(s.debugHttp) {mutableStateOf(s.debugHttp)}
+    var url by remember(s.apiScope,s.url,s.signedIn) {mutableStateOf(s.url)}
+    var http by remember(s.apiScope,s.url,s.debugHttp,s.signedIn) {mutableStateOf(s.debugHttp)}
+    var editingAddress by remember(s.apiScope,s.url,s.signedIn) {mutableStateOf(!s.signedIn)}
     var profiles by remember {mutableStateOf(false)}
     var endpoints by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
     var fallback by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
@@ -63,12 +65,22 @@ import org.hermesmobile.app.data.*
             if(unconfigured) item(key=1002) {Text(label(Words.ManagementNeedsConnection))}
             else {
                 item(key=1003) {
-                    OutlinedTextField(url,{url=it},Modifier.fillMaxWidth().testTag("management-url"),label={Text(label(Words.ManagementUrl))},singleLine=true,enabled=!s.busy)
-                    if(BuildConfig.DEBUG) Row {Checkbox(http,{http=it},enabled=!s.busy);Text(label(Words.DebugHttp))}
-                    Button({vm.signIn(url,http) {link->context.startActivity(Intent(Intent.ACTION_VIEW,android.net.Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},enabled=!s.busy && url.isNotBlank(),modifier=Modifier.testTag("management-sign-in")) {Text(label(Words.ManagementSignIn))}
+                    if(editingAddress) {
+                        OutlinedTextField(url,{url=it},Modifier.fillMaxWidth().testTag("management-url"),label={Text(label(Words.ManagementUrl))},singleLine=true,enabled=!s.busy)
+                        if(BuildConfig.DEBUG) Row {Checkbox(http,{http=it},enabled=!s.busy,modifier=Modifier.testTag("management-http"));Text(label(Words.DebugHttp))}
+                        Button({vm.signIn(url,http) {link->if(s.signedIn) editingAddress=false;context.startActivity(Intent(Intent.ACTION_VIEW,android.net.Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},enabled=!s.busy && url.isNotBlank(),modifier=Modifier.testTag("management-sign-in")) {Text(label(Words.ManagementSignIn))}
+                        if(s.signedIn) {
+                            Text(label(Words.ManagementAddressEditing))
+                        }
+                    } else {
+                        Text(label(Words.ManagementUrl),style=MaterialTheme.typography.labelMedium)
+                        SelectionContainer {Text(s.url,Modifier.testTag("management-address"))}
+                        if(BuildConfig.DEBUG && s.debugHttp) Text(label(Words.DebugHttp),style=MaterialTheme.typography.bodySmall)
+                        TextButton({editingAddress=true},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("management-address-edit")) {Text(label(Words.ManagementEditAddress))}
+                    }
                 }
                 if(s.busy) item(key=1004) {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel) {Text(label(Words.Cancel))}}
-                if(s.signedIn) {
+                if(s.signedIn && !editingAddress) {
                     item(key=1005) {
                         if(s.identity!=null && s.profiles.isEmpty() && !s.busy) Text(label(Words.EmptyInventory))
                         Text(s.identity?.let {it.displayName.ifBlank {it.userId}+" · "+it.provider} ?: label(Words.ManagementVerify))
@@ -123,7 +135,7 @@ import org.hermesmobile.app.data.*
                 s.error?.let {message->item(key=1019) {Text(label(message),color=MaterialTheme.colorScheme.error)}}
             }
         }
-    },confirmButton={TextButton(close) {Text(label(Words.Close))}})
+    },confirmButton={TextButton(close,Modifier.heightIn(min=48.dp).testTag("management-close")) {Text(label(Words.Close))}},dismissButton={if(s.signedIn && editingAddress) TextButton({url=s.url;http=s.debugHttp;editingAddress=false},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("management-address-cancel")) {Text(label(Words.Cancel))}})
     if(endpoints) CustomEndpointsDialog(vm,s) {vm.closeCustomEndpoints();endpoints=false}
     if(fallback) HostFallbackDialog(vm,s) {vm.closeHostFallback();fallback=false}
     if(credentialPool) CredentialPoolDialog(vm,s) {vm.closeCredentialPool();credentialPool=false}
