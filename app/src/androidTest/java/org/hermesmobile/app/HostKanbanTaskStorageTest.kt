@@ -22,11 +22,13 @@ class HostKanbanTaskStorageTest {
     }
     private suspend fun failure(db:HermesDatabase,f:HostKanbanTaskFixture)=runCatching {repo(db.dao()).execute(f.owner,f.request(),f.api(),f.tokens)}.exceptionOrNull()
 
-    @Test fun allEightOperationsUseLiteralScopedRoutesAndStructuralReceipts()=runBlocking {
+    @Test fun allTaskOperationsUseLiteralScopedRoutesAndStructuralReceipts()=runBlocking {
         for(action in HostKanbanTaskAction.entries) fixture(configure={f->
-            val card=HostKanbanTaskFixture.card();val after=when(action) {
+            val card=fields(HostKanbanTaskFixture.card(),"model_override" to JsonNull,"provider_override" to JsonNull,"reasoning_effort" to JsonNull);f.beforeDetail.set(HostKanbanTaskFixture.detailJson(card));val after=when(action) {
                 HostKanbanTaskAction.Create->fields(card,"id" to JsonPrimitive("t_new"),"title" to JsonPrimitive("Reviewed title"),"body" to JsonNull)
                 HostKanbanTaskAction.Metadata->fields(card,"title" to JsonPrimitive("Reviewed title"))
+                HostKanbanTaskAction.ModelOverride->fields(card,"model_override" to JsonPrimitive("private-model"),"provider_override" to JsonPrimitive("private-provider"))
+                HostKanbanTaskAction.ReasoningOverride->fields(card,"reasoning_effort" to JsonPrimitive("none"))
                 HostKanbanTaskAction.Priority->fields(card,"priority" to JsonPrimitive(-9))
                 HostKanbanTaskAction.Assignee->fields(card,"assignee" to JsonPrimitive("other"))
                 else->card
@@ -35,6 +37,8 @@ class HostKanbanTaskStorageTest {
             f.tail=when(action) {HostKanbanTaskAction.Create,HostKanbanTaskAction.Link,HostKanbanTaskAction.Unlink->"";HostKanbanTaskAction.Comment->"/t_child/comments";else->"/t_child"}
             if(action==HostKanbanTaskAction.Unlink) {f.beforeDetail.set(HostKanbanTaskFixture.detailJson(card,listOf("t_parent")));f.query=mapOf("parent_id" to "t_parent","child_id" to "t_child")}
             f.body=when(action) {
+                HostKanbanTaskAction.ModelOverride->buildJsonObject {put("model_override","private-model");put("provider_override","private-provider")}
+                HostKanbanTaskAction.ReasoningOverride->buildJsonObject {put("reasoning_effort","none")}
                 HostKanbanTaskAction.Create->HostKanbanBoardFixture.obj("""{"title":"Reviewed title","priority":0,"parents":[],"triage":false,"goal_mode":false}""")
                 HostKanbanTaskAction.Metadata->HostKanbanBoardFixture.obj("""{"title":"Reviewed title"}""")
                 HostKanbanTaskAction.Priority->HostKanbanBoardFixture.obj("""{"priority":-9}""")
@@ -52,6 +56,8 @@ class HostKanbanTaskStorageTest {
             f.afterDetail.set(HostKanbanTaskFixture.detailJson(after,if(action==HostKanbanTaskAction.Link) listOf("t_parent") else emptyList()))
         }) {db,f->
             val actionRequest=when(action) {
+                HostKanbanTaskAction.ModelOverride->HostKanbanTaskChange.modelOverride(f.inventory(),f.snapshot(),f.detail(),"private-model","private-provider")
+                HostKanbanTaskAction.ReasoningOverride->HostKanbanTaskChange.reasoningOverride(f.inventory(),f.snapshot(),f.detail(),"none")
                 HostKanbanTaskAction.Create->HostKanbanTaskChange.create(f.inventory(),f.snapshot(),HostKanbanTaskDraft("Reviewed title"))
                 HostKanbanTaskAction.Metadata->f.request()
                 HostKanbanTaskAction.Priority->HostKanbanTaskChange.priority(f.inventory(),f.snapshot(),f.detail(),-9)
@@ -64,7 +70,7 @@ class HostKanbanTaskStorageTest {
             assertEquals(action.name,if(action==HostKanbanTaskAction.Comment) "acknowledged" else "confirmed",result.receipt.state);assertEquals(1,f.writes.get());assertEquals(0,f.delegate.tickets.get());assertEquals("",result.receipt.projectHome)
             assertEquals(f.home,HostKanbanTaskChange.accessHome(result.receipt.requestSummary))
             val durable=result.receipt.target+result.receipt.requestSummary+result.receipt.resultSummary
-            for(value in listOf("garden","t_child","t_parent","t_new","Reviewed title","Private body","Private comment","/shared/","/srv/",actionRequest.values["idempotency_key"]?.jsonPrimitive?.content ?: "never-value")) assertFalse(action.name+":"+value,durable.contains(value))
+            for(value in listOf("garden","t_child","t_parent","t_new","Reviewed title","Private body","Private comment","/shared/","/srv/","private-model","private-provider",actionRequest.values["idempotency_key"]?.jsonPrimitive?.content ?: "never-value")) assertFalse(action.name+":"+value,durable.contains(value))
             val summary=Json.parseToJsonElement(result.receipt.resultSummary).jsonObject
             for(key in listOf("created_identity_verified","worker_stop_verified","file_erasure_verified","runtime_adoption_verified","path_mapping_verified","comment_identity_verified")) assertEquals(JsonPrimitive(false),summary[key])
         }
@@ -119,7 +125,7 @@ class HostKanbanTaskStorageTest {
             assertEquals("confirmed",repo(db.dao()).execute(f.owner,f.request(),f.api(),f.tokens).receipt.state);assertEquals(1,f.writes.get())}
     }
     @Test fun restartRecoveryMarksTaskSendingUnknownWithoutSending()=runBlocking {
-        fixture {db,f->for(action in HostKanbanTaskAction.entries) db.dao().insertManagementOperation(row(f.owner,action.receiptAction,action.name,f.home).copy(state="sending"));db.dao().recoverManagementOperations();val rows=db.dao().managementOperations(f.owner.apiScope).first();assertEquals(8,rows.size);assertTrue(rows.all {it.state=="unknown"});assertEquals(0,f.writes.get())}
+        fixture {db,f->for(action in HostKanbanTaskAction.entries) db.dao().insertManagementOperation(row(f.owner,action.receiptAction,action.name,f.home).copy(state="sending"));db.dao().recoverManagementOperations();val rows=db.dao().managementOperations(f.owner.apiScope).first();assertEquals(10,rows.size);assertEquals(HostKanbanTaskAction.entries.map {it.receiptAction}.toSet(),rows.map {it.action}.toSet());assertTrue(rows.all {it.state=="unknown"});assertEquals(0,f.writes.get());assertEquals(0,f.reads.get());assertEquals(0,f.delegate.catalogs.get())}
     }
     @Test fun commentContentReadbackStillCannotIdentifyTheCreatedComment()=runBlocking {
         fixture(configure={f->f.method="POST";f.tail="/t_child/comments";f.body=buildJsonObject {put("body","Private comment");put("author","dashboard")};f.ack.set(buildJsonObject {put("ok",true)});f.afterDetail.set(HostKanbanTaskFixture.detailJson(HostKanbanTaskFixture.card(),comments=buildJsonArray {add(buildJsonObject {put("id",123);put("task_id","t_child");put("author","dashboard");put("body","Private comment");put("created_at",1)})}))}) {db,f->val request=HostKanbanTaskChange.comment(f.inventory(),f.snapshot(),f.detail(),"Private comment");val result=repo(db.dao()).execute(f.owner,request,f.api(),f.tokens);assertEquals("acknowledged",result.receipt.state);assertEquals(123L,result.detail!!.comments.single().id);assertEquals(JsonPrimitive(false),Json.parseToJsonElement(result.receipt.resultSummary).jsonObject["comment_identity_verified"])}

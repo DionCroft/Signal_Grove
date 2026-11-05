@@ -7,7 +7,7 @@ import java.util.Locale
 import java.util.UUID
 
 enum class HostKanbanTaskAction(val method:String) {
-    Create("POST"),Metadata("PATCH"),Priority("PATCH"),Assignee("PATCH"),Comment("POST"),Link("POST"),Unlink("DELETE"),Delete("DELETE");
+    Create("POST"),Metadata("PATCH"),Priority("PATCH"),Assignee("PATCH"),Comment("POST"),Link("POST"),Unlink("DELETE"),Delete("DELETE"),ModelOverride("PATCH"),ReasoningOverride("PATCH");
     val receiptAction get()="KanbanTask"+name
     companion object {fun receipt(value:String)=entries.any {it.receiptAction==value}}
 }
@@ -63,14 +63,25 @@ class HostKanbanTaskChange private constructor(
         values["skills"]?.jsonArray?.let {if(task.fields["skills"]!=it.joinToString("\n") {v->v.jsonPrimitive.content}) return false}
         return true
     }
+    private fun overrideMatches(task:HostKanbanTask):Boolean {
+        val before=subject!!.task
+        if(!task.reportedOverrideFields.containsAll(overrideFields)) return false
+        val expected=when(action) {
+            HostKanbanTaskAction.ModelOverride->mapOf("model_override" to values["model_override"]?.jsonPrimitive?.content,"provider_override" to values["provider_override"]?.jsonPrimitive?.content,"reasoning_effort" to before.fields["reasoning_effort"])
+            HostKanbanTaskAction.ReasoningOverride->mapOf("model_override" to before.fields["model_override"],"provider_override" to before.fields["provider_override"],"reasoning_effort" to values["reasoning_effort"]?.jsonPrimitive?.content)
+            else->return false
+        }
+        return expected.all {(field,value)->task.fields[field]==value}
+    }
     fun acknowledge(j:JsonObject):HostKanbanTaskAck=try {
         when(action) {
-            HostKanbanTaskAction.Create,HostKanbanTaskAction.Metadata,HostKanbanTaskAction.Priority,HostKanbanTaskAction.Assignee->{
+            HostKanbanTaskAction.Create,HostKanbanTaskAction.Metadata,HostKanbanTaskAction.Priority,HostKanbanTaskAction.Assignee,HostKanbanTaskAction.ModelOverride,HostKanbanTaskAction.ReasoningOverride->{
                 val task=HostKanbanProtocol.taskAcknowledgement(j);if(action!=HostKanbanTaskAction.Create) require(task.id==id)
                 val matches=when(action) {
                     HostKanbanTaskAction.Create->createMatches(task)
                     HostKanbanTaskAction.Metadata->values.all {(key,v)->(if(key=="title") task.title else task.body)==v.jsonPrimitive.content}
                     HostKanbanTaskAction.Priority->task.priority==values.getValue("priority").jsonPrimitive.long
+                    HostKanbanTaskAction.ModelOverride,HostKanbanTaskAction.ReasoningOverride->overrideMatches(task)
                     else->task.assignee==values.getValue("assignee").jsonPrimitive.content.takeIf {it.isNotEmpty()}
                 }
                 val warning=j["warning"]?.takeUnless {it is JsonNull}?.let {require(it is JsonPrimitive && it.isString && safe(it.content,16384,true));it.content}
@@ -94,12 +105,14 @@ class HostKanbanTaskChange private constructor(
         return when(action) {
             HostKanbanTaskAction.Create->d.task==ack.task && d.parents.toSet()==parents.map {it.id}.toSet()
             HostKanbanTaskAction.Metadata,HostKanbanTaskAction.Priority,HostKanbanTaskAction.Assignee->d.task==ack.task
+            HostKanbanTaskAction.ModelOverride,HostKanbanTaskAction.ReasoningOverride->d.task.id==id && d.task==ack.task && overrideMatches(d.task)
             HostKanbanTaskAction.Link->d.task.id==id && related!!.task.id in d.parents
             HostKanbanTaskAction.Unlink->d.task.id==id && related!!.task.id !in d.parents
             else->false
         }
     }
     companion object {
+        private val overrideFields=setOf("model_override","provider_override","reasoning_effort")
         private fun safe(v:String,max:Int,multiline:Boolean=false)=v.length<=max && v.none {it.isISOControl() && !(multiline && it in "\r\n\t")} && !v.codePoints().anyMatch {it in 0xD800..0xDFFF}
         private fun text(v:String,max:Int,multiline:Boolean=false,nonblank:Boolean=false):String {require(safe(v,max,multiline) && (!nonblank || v.isNotBlank()));return v}
         private fun base(inventory:HostKanbanInventory,snapshot:HostKanbanSnapshot) {
@@ -147,6 +160,24 @@ class HostKanbanTaskChange private constructor(
             require(parent.task.id!=child.task.id && (parent.task.id in child.parents)==remove)
             if(!remove) require(child.task.status!="running")
             make(inventory,snapshot,if(remove) HostKanbanTaskAction.Unlink else HostKanbanTaskAction.Link,child,buildJsonObject {put("parent_id",parent.task.id);put("child_id",child.task.id)},parent)
+        }
+        private fun overrideSubject(subject:HostKanbanDetail) {
+            require(subject.task.status!="archived" && subject.task.reportedOverrideFields.containsAll(overrideFields))
+        }
+        fun modelOverride(inventory:HostKanbanInventory,snapshot:HostKanbanSnapshot,subject:HostKanbanDetail,model:String,provider:String?=null)=build {
+            overrideSubject(subject);val name=text(model.trim(),512,nonblank=true)
+            val backend=provider?.trim()?.takeIf {it.isNotEmpty()}?.let {text(it,256,nonblank=true)}
+            make(inventory,snapshot,HostKanbanTaskAction.ModelOverride,subject,buildJsonObject {put("model_override",name);backend?.let {put("provider_override",it)}})
+        }
+        fun clearModelOverride(inventory:HostKanbanInventory,snapshot:HostKanbanSnapshot,subject:HostKanbanDetail)=build {
+            overrideSubject(subject);make(inventory,snapshot,HostKanbanTaskAction.ModelOverride,subject,buildJsonObject {put("clear_model_override",true)})
+        }
+        fun reasoningOverride(inventory:HostKanbanInventory,snapshot:HostKanbanSnapshot,subject:HostKanbanDetail,effort:String)=build {
+            overrideSubject(subject);val value=effort.trim().lowercase(Locale.ROOT);require(value in HostMoaLimits.efforts)
+            make(inventory,snapshot,HostKanbanTaskAction.ReasoningOverride,subject,buildJsonObject {put("reasoning_effort",value)})
+        }
+        fun clearReasoningOverride(inventory:HostKanbanInventory,snapshot:HostKanbanSnapshot,subject:HostKanbanDetail)=build {
+            overrideSubject(subject);make(inventory,snapshot,HostKanbanTaskAction.ReasoningOverride,subject,buildJsonObject {put("clear_reasoning_effort",true)})
         }
         fun delete(inventory:HostKanbanInventory,snapshot:HostKanbanSnapshot,subject:HostKanbanDetail)=build {make(inventory,snapshot,HostKanbanTaskAction.Delete,subject,JsonObject(emptyMap()))}
         fun accessHome(summary:String)=HostKanbanBoardChange.accessHome(summary)

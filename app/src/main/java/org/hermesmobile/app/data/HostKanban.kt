@@ -14,7 +14,7 @@ data class HostKanbanBoardDefinition(val slug:String,val name:String,val descrip
 fun HostKanbanBoard.definition()=HostKanbanBoardDefinition(slug,name,description,icon,color,dbPath,workdir,projectId,archived,createdAt)
 
 data class HostKanbanInventory(val owner:ManagementTarget,val profileHomeId:String,val boards:List<HostKanbanBoard>,val current:String,val observedAt:Long) {override fun toString()="HostKanbanInventory(redacted)"}
-data class HostKanbanTask(val id:String,val title:String,val status:String,val assignee:String?,val tenant:String?,val priority:Long,val body:String?,val result:String?,val summary:String?,val createdAt:Long?,val startedAt:Long?,val completedAt:Long?,val currentRunId:Long?,val heartbeat:Long?,val fields:Map<String,String>) {override fun toString()="HostKanbanTask(redacted)"}
+data class HostKanbanTask(val id:String,val title:String,val status:String,val assignee:String?,val tenant:String?,val priority:Long,val body:String?,val result:String?,val summary:String?,val createdAt:Long?,val startedAt:Long?,val completedAt:Long?,val currentRunId:Long?,val heartbeat:Long?,val fields:Map<String,String>,val reportedOverrideFields:Set<String> = emptySet()) {override fun toString()="HostKanbanTask(redacted)"}
 data class HostKanbanColumn(val name:String,val tasks:List<HostKanbanTask>) {override fun toString()="HostKanbanColumn(redacted)"}
 data class HostKanbanSnapshot(val owner:ManagementTarget,val profileHomeId:String,val board:HostKanbanBoard,val columns:List<HostKanbanColumn>,val tenants:List<String>,val assignees:List<String>,val latestEventId:Long,val hostNow:Long,val observedAt:Long) {override fun toString()="HostKanbanSnapshot(redacted)"}
 data class HostKanbanComment(val id:Long,val author:String,val body:String,val createdAt:Long) {override fun toString()="HostKanbanComment(redacted)"}
@@ -76,7 +76,7 @@ object HostKanbanProtocol {
         time(j,"current_run_started_at")?.let {fields["current_run_started_at"]=it.toString()}
         j["goal_mode"]?.takeUnless {it is JsonNull}?.let {fields["goal_mode"]=bool(j,"goal_mode").toString()}
         j["skills"]?.takeUnless {it is JsonNull}?.let {fields["skills"]=strings(j,"skills",256,512).joinToString("\n")}
-        return HostKanbanTask(id,text(j,"title",4096,multiline=true)!!,status,text(j,"assignee",256,true),text(j,"tenant",512,true),number(j,"priority",false,Int.MIN_VALUE.toLong(),Int.MAX_VALUE.toLong())!!,text(j,"body",262144,true,true),text(j,"result",262144,true,true),text(j,"latest_summary",262144,true,true),time(j,"created_at"),time(j,"started_at"),time(j,"completed_at"),number(j,"current_run_id",true,1),time(j,"last_heartbeat_at"),frozen(fields))
+        return HostKanbanTask(id,text(j,"title",4096,multiline=true)!!,status,text(j,"assignee",256,true),text(j,"tenant",512,true),number(j,"priority",false,Int.MIN_VALUE.toLong(),Int.MAX_VALUE.toLong())!!,text(j,"body",262144,true,true),text(j,"result",262144,true,true),text(j,"latest_summary",262144,true,true),time(j,"created_at"),time(j,"started_at"),time(j,"completed_at"),number(j,"current_run_id",true,1),time(j,"last_heartbeat_at"),frozen(fields),java.util.Collections.unmodifiableSet(setOf("model_override","provider_override","reasoning_effort").filterTo(linkedSetOf()) {it in j}))
     }
     fun taskAcknowledgement(j:JsonObject):HostKanbanTask=decode {task(j["task"] as JsonObject)}
     fun snapshot(j:JsonObject,owner:ManagementTarget,home:String,board:HostKanbanBoard,observedAt:Long=System.currentTimeMillis()):HostKanbanSnapshot=decode {

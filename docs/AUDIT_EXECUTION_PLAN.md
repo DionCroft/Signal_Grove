@@ -23,10 +23,10 @@ independent work. Exact-head full Android and compatibility gates precede merges
 
 | Package | Current state | Required acceptance / next step |
 | --- | --- | --- |
-| 1. Branch/release closure | Creation b678 has full hosted853/854 and compatibility pass. Setup2c78 pushed with own gates running. Dependencies locally accepted, pending coherent commit and exact-head gates. | Commit/push dependency+audit reconciliation; inspect retained exact-head full logs, merge only green source; reconcile beta.5 notes and implemented/merged/released/live states. |
+| 1. Branch/release closure | Creation b678 has full hosted853/854 and compatibility pass. Setup2c78 and dependencies9ecd are pushed; their hosted suites expose one setup-guide bilingual assertion failure. | Correct the retained guide test assumption in a separate chunk, pass exact-head full gates, then merge only green source. Beta.5 remains unreleased. |
 | 2. Real Hermes matrix | Source/fixture coverage exists; private owner transport/auth/native-login start is commissioned. Successful model turn/full phone login not certified. | Isolated real stable and prior-supported installations with deterministic provider/tool adapter and synthetic data; native login/refresh/profile isolation, approvals/recovery, images and representative MCP/skill/plugin/provider/project/Kanban flows. Main remains separate canary. |
 | 3. Physical Android | Owned API26/36/37 emulator evidence; no claimed physical/OEM certification. | ARM64 phone microphone/TTS/Bluetooth/offline service, process death, LAN permission, IME/large text, notifications/reboot/battery and approved matching-signer update preserving data. |
-| 4a. Kanban status/overrides | Verified draft contract research; no status/override native controls yet. | Add watched typed status and independent model/reasoning phases, exact effects/approval/preflight/receipts; test races/unknowns and next-dispatch versus current-runtime semantics. |
+| 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. No override forms or status controls yet. | Add private override forms and typed status with exact effects/approval/preflight/receipts; preserve next-dispatch versus current-runtime semantics and close own full gates. |
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
 | 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. | Typed editing/run/results/logs and explicit outcomes, without claiming runtime completion from ACK. |
@@ -62,7 +62,7 @@ commissioning reports stay out of this public repository.
 
 ## Next bounded stage
 
-Finish dependency publication and inspect its exact-head hosted gates. Then deliver
-Kanban status and independent model/reasoning overrides from verified pinned
-contracts while progressing the isolated live-server test harness. Update this
-ledger at each meaningful commit/merge/release, preserving remaining requirements.
+Correct the setup-guide bilingual test assumption and obtain new exact-head full
+gates. Deliver native override forms, then typed status, from verified contracts
+while progressing isolated real-Hermes acceptance. Update this ledger at each
+meaningful commit/merge/release, preserving remaining requirements.

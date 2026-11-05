@@ -911,3 +911,59 @@ class KanbanTaskWriteWatchTests(unittest.TestCase):
         data=self.fixture();data['kanban_profiles']=data['kanban_profiles'].replace('name.strip().lower()','name');self.assertIn('kanban_profiles:normalize_profile_name',self.compare(data)['mobile_relevant_changes']['changed_used_handlers'])
     def test_unrelated_task_route_is_triaged_without_a_wildcard(self):
         data=self.fixture();data['kanban_api']+="\n@router.post('/unused-task-effect')\ndef unused_task_effect():\n    return {}\n";v=self.compare(data);self.assertFalse(v['mobile_review_required']);self.assertIn('POST /api/plugins/kanban/unused-task-effect',v['added_management_routes'])
+
+
+class KanbanOverrideContractTests(unittest.TestCase):
+    def fixture(self):
+        data=sources()
+        data['kanban_api']="""class UpdateTaskBody(BaseModel):
+    model_override:str|None=None
+    provider_override:str|None=None
+    clear_model_override:bool=False
+    reasoning_effort:str|None=None
+    clear_reasoning_effort:bool=False
+def _apply_model_override(conn,task_id,p):
+    return set_model(conn,task_id,None if p.clear_model_override else p.model_override,p.provider_override)
+def _apply_reasoning_effort(conn,task_id,p):
+    return set_reasoning(conn,task_id,None if p.clear_reasoning_effort else p.reasoning_effort)
+@router.patch('/tasks/{task_id}')
+def update_task(task_id,payload):
+    return independent_phase(task_id,payload)
+"""
+        data['kanban_db']="""from hermes_cli.kanban_db_connect import write_txn
+def _set_task_override(conn,task_id):
+    with write_txn(conn):
+        reject_archived(conn,task_id)
+        store_override(conn,task_id)
+    notify_task_updated(conn,task_id)
+def _task_status(conn,task_id):
+    return read_status(conn,task_id)
+def set_model_override(conn,task_id,model,provider=None):
+    return _set_task_override(conn,task_id)
+def set_reasoning_effort(conn,task_id,effort):
+    return _set_task_override(conn,task_id)
+"""
+        data['kanban_connect']="""def write_txn(conn):
+    return committed_transaction(conn)
+"""
+        return data
+    def baseline(self):
+        contract=checker.extract(self.fixture())
+        handlers=['kanban_api:_apply_model_override','kanban_api:_apply_reasoning_effort','kanban_api:update_task','kanban_db:_set_task_override','kanban_db:_task_status','kanban_db:set_model_override','kanban_db:set_reasoning_effort','kanban_db:import:write_txn','kanban_connect:write_txn']
+        return {'upstream':{'commit':'b'*40,'contract':contract},'mobile_used_routes':[],'mobile_used_static_flags':[],'mobile_used_job_update_fields':[],'mobile_used_management_routes':['PATCH /api/plugins/kanban/tasks/{task_id}'],'mobile_used_handlers':handlers,'mobile_used_request_fields':['kanban_api:UpdateTaskBody.'+name for name in ['model_override','provider_override','clear_model_override','reasoning_effort','clear_reasoning_effort']]}
+    def report(self,data):return checker.compare(self.baseline(),{'commit':'e'*40,'contract':checker.extract(data)})
+    def test_unchanged_independent_override_contract_is_accepted(self):
+        self.assertFalse(self.report(self.fixture())['mobile_review_required'])
+    def test_override_value_and_clear_field_shape_changes_require_review(self):
+        for before,after in [('model_override:str|None=None','model_override:int|None=None'),('provider_override:str|None=None','provider_override:str=None'),('clear_model_override:bool=False','clear_model_override:bool=True'),('reasoning_effort:str|None=None','reasoning_effort:int|None=None'),('clear_reasoning_effort:bool=False','clear_reasoning_effort:bool=True')]:
+            data=self.fixture();data['kanban_api']=data['kanban_api'].replace(before,after);self.assertTrue(self.report(data)['mobile_review_required'],before)
+    def test_clear_flags_cannot_be_ignored_or_model_and_reasoning_combined(self):
+        for before,after in [('None if p.clear_model_override else p.model_override','p.model_override'),('None if p.clear_reasoning_effort else p.reasoning_effort','p.reasoning_effort'),('independent_phase(task_id,payload)','mixed_phases(task_id,payload)')]:
+            data=self.fixture();data['kanban_api']=data['kanban_api'].replace(before,after);self.assertTrue(self.report(data)['mobile_review_required'],before)
+    def test_archived_guard_observer_order_and_transaction_alias_are_watched(self):
+        cases=[('kanban_db','reject_archived(conn,task_id)','allow_archived(conn,task_id)'),('kanban_db','    notify_task_updated(conn,task_id)','        notify_task_updated(conn,task_id)'),('kanban_db','hermes_cli.kanban_db_connect','other_transactions'),('kanban_connect','committed_transaction(conn)','uncommitted_transaction(conn)')]
+        for source,before,after in cases:
+            data=self.fixture();data[source]=data[source].replace(before,after);self.assertTrue(self.report(data)['mobile_review_required'],before)
+    def test_removing_used_override_helper_requires_review(self):
+        data=self.fixture();data['kanban_db']=data['kanban_db'].replace('def set_reasoning_effort(','def unused_set_reasoning_effort(')
+        self.assertTrue(self.report(data)['mobile_review_required'])

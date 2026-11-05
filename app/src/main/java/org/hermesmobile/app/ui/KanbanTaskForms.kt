@@ -16,6 +16,8 @@ import org.hermesmobile.app.data.*
 
 val kanbanTaskEditActions=listOf(HostKanbanTaskAction.Metadata,HostKanbanTaskAction.Priority,HostKanbanTaskAction.Assignee,HostKanbanTaskAction.Comment,HostKanbanTaskAction.Delete)
 fun kanbanTaskActionWord(action:HostKanbanTaskAction)=when(action) {
+    HostKanbanTaskAction.ModelOverride->Words.KanbanTaskModelOverride
+    HostKanbanTaskAction.ReasoningOverride->Words.KanbanTaskReasoningOverride
     HostKanbanTaskAction.Create->Words.KanbanTaskCreate
     HostKanbanTaskAction.Metadata->Words.KanbanTaskEdit
     HostKanbanTaskAction.Priority->Words.KanbanTaskPriority
@@ -26,7 +28,7 @@ fun kanbanTaskActionWord(action:HostKanbanTaskAction)=when(action) {
     HostKanbanTaskAction.Delete->Words.KanbanTaskDelete
 }
 fun kanbanTaskStateWord(state:String)=when(state) {"acknowledged"->Words.KanbanTaskAcknowledged;"confirmed"->Words.KanbanTaskObserved;else->managementStateWord(state)}
-internal fun taskFieldWord(key:String)=when(key) {"parent_id"->Words.KanbanDependencyParent;"child_id"->Words.KanbanDependencyChild;"title"->Words.KanbanTaskTitle;"body"->Words.KanbanBody;"priority"->Words.KanbanPriority;"assignee"->Words.KanbanAssignee;"author"->Words.KanbanTaskAuthor;"tenant"->Words.KanbanTenant;"workspace_kind"->Words.KanbanTaskWorkspace;"workspace_path"->Words.KanbanTaskPath;"parents"->Words.KanbanParents;"triage"->Words.KanbanTriage;"max_runtime_seconds"->Words.KanbanRuntime;"skills"->Words.KanbanSkills;"goal_mode"->Words.KanbanGoal;"goal_max_turns"->Words.KanbanGoalTurns;"model_override"->Words.KanbanModel;"provider_override"->Words.KanbanProvider;"reasoning_effort"->Words.KanbanReasoning;"project_id"->Words.HostProjectId;else->null}
+internal fun taskFieldWord(key:String)=when(key) {"clear_model_override"->Words.KanbanTaskClearModel;"clear_reasoning_effort"->Words.KanbanTaskClearReasoning;"parent_id"->Words.KanbanDependencyParent;"child_id"->Words.KanbanDependencyChild;"title"->Words.KanbanTaskTitle;"body"->Words.KanbanBody;"priority"->Words.KanbanPriority;"assignee"->Words.KanbanAssignee;"author"->Words.KanbanTaskAuthor;"tenant"->Words.KanbanTenant;"workspace_kind"->Words.KanbanTaskWorkspace;"workspace_path"->Words.KanbanTaskPath;"parents"->Words.KanbanParents;"triage"->Words.KanbanTriage;"max_runtime_seconds"->Words.KanbanRuntime;"skills"->Words.KanbanSkills;"goal_mode"->Words.KanbanGoal;"goal_max_turns"->Words.KanbanGoalTurns;"model_override"->Words.KanbanModel;"provider_override"->Words.KanbanProvider;"reasoning_effort"->Words.KanbanReasoning;"project_id"->Words.HostProjectId;else->null}
 @Composable internal fun TaskChoice(key:String,word:Words,value:Boolean,changed:(Boolean)->Unit) {
     val text=label(word)
     Row(Modifier.fillMaxWidth()) {Checkbox(value,changed,Modifier.heightIn(min=48.dp).testTag("task-set-"+key).semantics {contentDescription=text});Text(text,Modifier.weight(1f))}

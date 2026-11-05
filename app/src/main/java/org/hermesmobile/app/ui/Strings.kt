@@ -5,6 +5,10 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    KanbanTaskModelOverride("Change task model override","更改任务模型覆盖","Gēnggǎi rènwù móxíng fùgài"),
+    KanbanTaskReasoningOverride("Change task reasoning override","更改任务推理覆盖","Gēnggǎi rènwù tuīlǐ fùgài"),
+    KanbanTaskClearModel("Clear model and provider override","清除模型和提供商覆盖","Qīngchú móxíng hé tígōngshāng fùgài"),
+    KanbanTaskClearReasoning("Clear reasoning override (inherit)","清除推理覆盖（继承）","Qīngchú tuīlǐ fùgài (jìchéng)"),
     SetupGuide("Set up Hermes","设置 Hermes","Shèzhì Hermes"),
     SetupIntro("Connect to your own agent. This guide changes no server settings and sends no requests. Commands are examples for the server administrator.","连接您自己的智能体。本指南不会更改服务器设置或发送请求。命令是供服务器管理员参考的示例。","Liánjiē nín zìjǐ de zhìnéngtǐ. Běn zhǐnán bú huì gēnggǎi fúwùqì shèzhì huò fāsòng qǐngqiú. Mìnglìng shì gōng fúwùqì guǎnlǐyuán cānkǎo de shìlì."),
     SetupHost("1. Prepare your agent","1. 准备智能体","Yī. Zhǔnbèi zhìnéngtǐ"),

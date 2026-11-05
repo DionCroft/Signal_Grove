@@ -1075,3 +1075,66 @@ dispatched. The combined dependency commit will also receive its own exact-head
 full Android/compatibility gates. Neither is merged or released by this record.
 
 All 128 checked-in Python policy/contract tests passed again during resume reconciliation (2.041s); no source-watch baseline or failure gate was weakened.
+
+
+## Independent task override foundation (5 November 2026)
+
+Added separate typed model/provider and reasoning set/clear phases on the pinned
+existing Kanban PATCH contract. Running-task changes apply on the next dispatch;
+archived tasks refuse. No native override form is exposed by this chunk. Explicit
+NULL field presence is retained separately from omitted fields. Matching ACK and
+independent readback require all three override keys, exact requested values and
+the preserved independent phase. This proves reported stored configuration only.
+Runtime/worker/file proof flags remain false; durable summaries omit private values.
+
+Initial strict build passed, but each first nine-case device run failed the same
+foreign-profile pending override barrier. Three exact Room SQL action allowlists
+had omitted the two new uncommitted action types. After every handle was terminal,
+all three lists were corrected and a tenth regression added for redacted foreign
+notice, unchanged stored receipt, explicit local review and settled-history privacy.
+The second strict build and 30 new native passes succeeded, while each related
+89-case run found one stale recovery-test expectation: eight actions versus the
+now-correct ten recovered records. After all handles terminated, that assertion
+was corrected and strengthened with exact action identities, unknown states and
+zero reads/writes. Original logs, source and APK identities remain retained; none
+of these preliminary runs is relabeled as final acceptance.
+
+The final strict required `testDebugUnitTest lint assembleDebug
+assembleDebugAndroidTest` passed in **4m45s**, with **511 JVM tests / zero failures,
+errors or skips**; all **133 Python policy/contract checks** pass. Each owned API
+**26 / 36 / 37** passed **10 new + 89 related methods: 99 per device / 297 focused
+native passes**, no skips, on one frozen **406-file** app/test/config/contract tree.
+Application SHA-256 `8f0e4bef63102b54fe161ccc02821281ec4eb9a94571d50ef123efee92fd9c97`; instrumentation `5158311193fb68b381ae0a3f129fbc10fc8280baff8335988157aea51a76dfa6`.
+Source hashes were verified before/after all runs. After those handles terminated, a trailing blank line was removed from the Python contract test; its AST is identical, all other 405 frozen files are unchanged, and all 133 Python checks passed again. Original debug signer/package,
+code106/beta.5, min26, Room11, permissions and dependencies are preserved. Fresh
+device readback retains original size/density/font settings and the separate
+production API37 installation at code105/beta.4. No reset, uninstall, clear-data,
+downgrade, reseed or production upgrade occurred. This internal foundation adds
+no new visual-acceptance claim or physical/OEM certification.
+
+Seven additive helper fingerprints and five PATCH fields are watched without
+replacing historical hashes or reviewed variants. Verified original/stable blobs
+were read/parsed; the extended source watcher passes stable
+`b200f5bc60e31588ba2cb60e288029c4a54ba5fa` and main
+`a5f20c5c04d52dd92a55c01e58dcc004896b52c2` with no selected mobile review or open
+findings. These checks do not certify a deployed Hermes runtime.
+
+### Retained hosted setup-guide failure
+
+The setup-guide [Android run 42075869754](https://github.com/DionCroft/Signal_Grove/actions/runs/42075869754)
+at `2c78b09` failed one of 855/856 API26/37 cases. Dependency
+[run 42076975608](https://github.com/DionCroft/Signal_Grove/actions/runs/42076975608)
+at `9ecdacf` failed that same guide method on API26/37 (882/883 run).
+Verified device archive digests are API26 setup
+`482145cef374e833b5a38ce16bcea2923b2e0b8d4a9c5e7bd1c591fed5604940`, API37 setup
+`91d12d06b7962efe6e3e493fc40eebb102200ea2c61e9d8d0a5cf6807eb7084e`, and API26
+dependency `533c2aa4cf7530786cf800ef0c2fe9df93e3a8179be4ce5e2088552f5a4c6de0`, API37
+dependency `3c847992c3a53f4e8f106bb1a9141270e1e24d008931a3db27a67df2babc7739`.
+The test searched for one concatenated bilingual heading although `Word` renders
+separate English/Chinese/pinyin nodes. Focused English runs had not exposed this
+assertion assumption. The correction is a subsequent tested chunk; neither
+failed head is merged, retried blindly or described as a full-suite pass.
+
+This override source requires its own exact-head Android/compatibility gates.
+No beta.5 APK/tag/release is published. Native override forms, status, workers,
+dispatch, events/files/pins/transfers and the wider audit remain open.

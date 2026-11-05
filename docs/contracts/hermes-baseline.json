@@ -6782,7 +6782,14 @@
     "ws_boundary:ws_host_origin_reason",
     "ws_tickets:TTL_SECONDS",
     "ws_tickets:consume_ticket",
-    "ws_tickets:mint_ticket"
+    "ws_tickets:mint_ticket",
+    "kanban_api:_apply_model_override",
+    "kanban_api:_apply_reasoning_effort",
+    "kanban_db:set_model_override",
+    "kanban_db:set_reasoning_effort",
+    "kanban_db:_set_task_override",
+    "kanban_db:_task_status",
+    "kanban_connect:write_txn"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -7102,7 +7109,12 @@
     "project_contract:ProjectsUpdateParams.color",
     "project_contract:ProjectsUpdateParams.description",
     "project_contract:ProjectsUpdateParams.icon",
-    "project_contract:ProjectsUpdateParams.name"
+    "project_contract:ProjectsUpdateParams.name",
+    "kanban_api:UpdateTaskBody.model_override",
+    "kanban_api:UpdateTaskBody.provider_override",
+    "kanban_api:UpdateTaskBody.clear_model_override",
+    "kanban_api:UpdateTaskBody.reasoning_effort",
+    "kanban_api:UpdateTaskBody.clear_reasoning_effort"
   ],
   "mobile_used_static_flags": [
     "session_resources",

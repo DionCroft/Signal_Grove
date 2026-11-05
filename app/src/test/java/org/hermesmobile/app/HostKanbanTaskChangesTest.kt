@@ -129,4 +129,87 @@ class HostKanbanTaskChangesTest {
         val d=detail();assertTrue(r.sameDetail(d,d.copy(observedAt=999)));assertFalse(r.sameDetail(d,d.copy(comments=listOf(HostKanbanComment(1,"a","b",1)))))
         assertThrows(HostKanbanTaskInvalid::class.java) {HostKanbanTaskChange.metadata(i,board(),d.copy(profileHomeId="c".repeat(64)),"title")}
     }
+    private fun overrideCard(model:String?="old-model",provider:String?="old-provider",effort:String?="high",status:String="ready")=fields(card(status=status),"model_override" to (model?.let(::JsonPrimitive) ?: JsonNull),"provider_override" to (provider?.let(::JsonPrimitive) ?: JsonNull),"reasoning_effort" to (effort?.let(::JsonPrimitive) ?: JsonNull))
+    private fun modelChange(model:String="private-model",provider:String?="private-provider",task:JsonObject=overrideCard())=HostKanbanTaskChange.modelOverride(inventory(),board(),detail(task),model,provider)
+    private fun clearModel(task:JsonObject=overrideCard())=HostKanbanTaskChange.clearModelOverride(inventory(),board(),detail(task))
+    private fun reasoningChange(effort:String="none",task:JsonObject=overrideCard())=HostKanbanTaskChange.reasoningOverride(inventory(),board(),detail(task),effort)
+    private fun clearReasoning(task:JsonObject=overrideCard())=HostKanbanTaskChange.clearReasoningOverride(inventory(),board(),detail(task))
+
+    @Test fun modelOverrideUsesOneNormalizedIndependentPhase() {
+        val request=modelChange(" private-model "," private-provider ")
+        assertEquals(obj("""{"model_override":"private-model","provider_override":"private-provider"}"""),request.body())
+        assertEquals(HostKanbanTaskAction.ModelOverride,request.action);assertEquals("PATCH",request.action.method)
+        assertTrue(request.acknowledge(ack(overrideCard("private-model","private-provider"))).effectReported)
+    }
+    @Test fun omittedOrBlankProviderIsExplicitlyObservedAsClearedWithNewModel() {
+        for(provider in listOf(null," ")) {
+            val request=modelChange(provider=provider);assertEquals(setOf("model_override"),request.body().keys)
+            assertTrue(request.acknowledge(ack(overrideCard("private-model",null))).effectReported)
+            assertFalse(request.acknowledge(ack(overrideCard("private-model","old-provider"))).effectReported)
+        }
+    }
+    @Test fun clearModelUsesExplicitFlagAndPreservesReasoning() {
+        val request=clearModel();assertEquals(obj("""{"clear_model_override":true}"""),request.body())
+        assertTrue(request.acknowledge(ack(overrideCard(null,null))).effectReported)
+        assertFalse(request.acknowledge(ack(overrideCard(null,null,null))).effectReported)
+        assertFalse(request.acknowledge(ack(overrideCard("",null))).effectReported)
+    }
+    @Test fun literalNoneReasoningAndInheritedReasoningAreDifferentRequests() {
+        val off=reasoningChange(" NONE ");val inherit=clearReasoning()
+        assertEquals(obj("""{"reasoning_effort":"none"}"""),off.body())
+        assertEquals(obj("""{"clear_reasoning_effort":true}"""),inherit.body())
+        assertTrue(off.acknowledge(ack(overrideCard(effort="none"))).effectReported)
+        assertFalse(off.acknowledge(ack(overrideCard(effort=null))).effectReported)
+        assertTrue(inherit.acknowledge(ack(overrideCard(effort=null))).effectReported)
+        assertFalse(inherit.acknowledge(ack(overrideCard(effort="none"))).effectReported)
+    }
+    @Test fun invalidModelProviderAndReasoningNeverProduceARequest() {
+        for(value in listOf(" ","x".repeat(513),"bad\nmodel","\uD800")) assertThrows(HostKanbanTaskInvalid::class.java) {modelChange(value)}
+        for(value in listOf("x".repeat(257),"bad\nprovider","\uD800")) assertThrows(HostKanbanTaskInvalid::class.java) {modelChange(provider=value)}
+        for(value in listOf(" ","inherit","future","low\n"+"high","\uD800")) assertThrows(HostKanbanTaskInvalid::class.java) {reasoningChange(value)}
+    }
+    @Test fun overridePhasesAllowRunningAndRefuseArchivedTasks() {
+        assertEquals("running",modelChange(task=overrideCard(status="running")).subject!!.task.status)
+        assertEquals("running",reasoningChange(task=overrideCard(status="running")).subject!!.task.status)
+        for(build in listOf<(JsonObject)->HostKanbanTaskChange>({modelChange(task=it)},{clearModel(it)},{reasoningChange(task=it)},{clearReasoning(it)})) assertThrows(HostKanbanTaskInvalid::class.java) {build(overrideCard(status="archived"))}
+    }
+    @Test fun completeReportedOverrideShapeIsRequiredBeforeAnOverrideReview() {
+        for(key in listOf("model_override","provider_override","reasoning_effort")) {
+            val partial=JsonObject(overrideCard().filterKeys {it!=key})
+            assertThrows(HostKanbanTaskInvalid::class.java) {modelChange(task=partial)}
+            assertThrows(HostKanbanTaskInvalid::class.java) {clearReasoning(partial)}
+        }
+    }
+    @Test fun explicitNullProjectionIsDistinctFromMissingForClearEvidence() {
+        val explicit=detail(overrideCard(null,null,null)).task;val absent=detail(card()).task
+        assertEquals(explicit.fields,absent.fields)
+        assertEquals(setOf("model_override","provider_override","reasoning_effort"),explicit.reportedOverrideFields)
+        assertTrue(absent.reportedOverrideFields.isEmpty());assertNotEquals(explicit,absent)
+        val request=clearModel();val partial=JsonObject(overrideCard(null,null).filterKeys {it!="provider_override"})
+        assertFalse(request.acknowledge(ack(partial)).effectReported)
+    }
+    @Test fun overrideAcknowledgementRequiresExactTaskAndTypedFields() {
+        val request=modelChange();assertThrows(HostKanbanUnsupported::class.java) {request.acknowledge(ack(fields(overrideCard("private-model","private-provider"),"id" to JsonPrimitive("other"))))}
+        assertThrows(HostKanbanUnsupported::class.java) {request.acknowledge(ack(fields(overrideCard(),"model_override" to JsonPrimitive(true))))}
+    }
+    @Test fun independentOverrideRacesRemainAcknowledgedWithoutMatchingEffect() {
+        assertFalse(modelChange().acknowledge(ack(overrideCard("private-model","private-provider","none"))).effectReported)
+        assertFalse(reasoningChange().acknowledge(ack(overrideCard("other-model",effort="none"))).effectReported)
+        assertFalse(clearReasoning().acknowledge(ack(overrideCard(provider=null,effort=null))).effectReported)
+    }
+    @Test fun overrideReadbackNeedsExactAcknowledgementAndExplicitReportedFields() {
+        val request=clearModel();val task=overrideCard(null,null);val reply=request.acknowledge(ack(task))
+        assertTrue(request.observed(reply,detail(task),null))
+        assertFalse(request.observed(reply,detail(JsonObject(task.filterKeys {it!="model_override"})),null))
+        assertFalse(request.observed(reply,detail(overrideCard(null,null,"none")),null))
+        assertFalse(request.observed(reply,detail(task).copy(profileHomeId="c".repeat(64)),null))
+    }
+    @Test fun overrideReceiptsNeverPersistValuesOrClaimRuntimeAdoption() {
+        val request=modelChange();val ack=request.acknowledge(ack(overrideCard("private-model","private-provider")))
+        val summary=request.acknowledgedSummary(ack).toString()
+        for(value in listOf("private-model","private-provider","old-model","old-provider","Private title","/shared/")) assertFalse(summary.contains(value))
+        assertEquals(JsonPrimitive(false),request.acknowledgedSummary(ack)["runtime_adoption_verified"])
+        assertTrue(HostKanbanTaskAction.receipt(request.action.receiptAction));assertEquals("HostKanbanTaskChange(redacted)",request.toString())
+    }
+
 }
