@@ -69,6 +69,13 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     suspend fun startHostRelayLink(tokens:ManagementTokens,platform:String):JsonObject {require(HostChannelPolicy.id(platform));return element("api/messaging/relay",tokens.access,JsonObject(emptyMap()),tail=listOf(platform,"link"),relayMint=true).jsonObject}
     suspend fun hostRelayLinkState(tokens:ManagementTokens,code:String):JsonObject {require(HostRelayLinkPolicy.code(code));return json("api/messaging/relay/link",tokens.access,tail=listOf(code))}
     suspend fun unlinkHostRelay(tokens:ManagementTokens,request:HostRelayUnlinkRequest):JsonObject=json("api/messaging/relay",tokens.access,method="DELETE",tail=listOf(request.platform,"accounts",request.account.id))
+    suspend fun changeKanbanBoard(tokens:ManagementTokens,profile:String,request:HostKanbanBoardChange):JsonObject {
+        GatewayCronInventory.requireProfile(profile);require(profile==request.expected.owner.profile)
+        val tail=if(request.action==HostKanbanBoardAction.Create) emptyList() else if(request.action==HostKanbanBoardAction.Switch) listOf(request.slug,"switch") else listOf(request.slug)
+        val body=if(request.action in setOf(HostKanbanBoardAction.Archive,HostKanbanBoardAction.Delete)) null else request.body()
+        val query=if(request.action in setOf(HostKanbanBoardAction.Archive,HostKanbanBoardAction.Delete)) mapOf("delete" to (request.action==HostKanbanBoardAction.Delete).toString()) else emptyMap()
+        return element("api/plugins/kanban/boards",tokens.access,body,profile,request.action.method,tail,query).jsonObject
+    }
     suspend fun kanbanBoards(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/plugins/kanban/boards",tokens.access,profile=profile,query=mapOf("include_archived" to "true")).jsonObject}
     suspend fun kanbanBoard(tokens:ManagementTokens,profile:String,board:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(HostKanbanProtocol.slug(board));return element("api/plugins/kanban/board",tokens.access,profile=profile,query=mapOf("board" to board,"include_archived" to "true")).jsonObject}
     suspend fun kanbanTask(tokens:ManagementTokens,profile:String,board:String,id:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(HostKanbanProtocol.slug(board) && HostKanbanProtocol.id(id));return element("api/plugins/kanban/tasks",tokens.access,profile=profile,tail=listOf(id),query=mapOf("board" to board)).jsonObject}

@@ -119,7 +119,7 @@ import org.hermesmobile.app.data.*
                     }}
                 }
                 if(receipts.isNotEmpty()) item(key=1018) {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
-                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s,openCredentialPool={credentialPool=true},openFallback={fallback=true},openCustomEndpoints={endpoints=true},openChannels={channels=true},openRelay={key->relayReceipt=key;relay=true},reviewShared={key,target->sharedReview=vm.prepareManagementUncertainty(key)?.takeIf {it.target==target}},openProjects={projects=true},inspectProject={key->projectReceipt=vm.projectReceipt(key)})}
+                items(receipts,key={"receipt:${it.key}"}) {receipt ->ManagementReceiptCard(receipt,vm,s,openCredentialPool={credentialPool=true},openFallback={fallback=true},openCustomEndpoints={endpoints=true},openChannels={channels=true},openRelay={key->relayReceipt=key;relay=true},reviewShared={key,target->sharedReview=vm.prepareManagementUncertainty(key)?.takeIf {it.target==target}},openProjects={projects=true},openKanban={kanban=true},inspectProject={key->projectReceipt=vm.projectReceipt(key)})}
                 s.error?.let {message->item(key=1019) {Text(label(message),color=MaterialTheme.colorScheme.error)}}
             }
         }

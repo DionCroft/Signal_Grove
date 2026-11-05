@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
 import java.text.DateFormat
 import java.util.Date
@@ -27,16 +28,33 @@ private fun kanbanField(key:String)=when(key) {
 @Composable fun HostKanbanDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     val visible=vm.visibleHostKanban(s)
     val generation=vm.hostProjectReviewGeneration()
+    val receiptRows by vm.receipts.collectAsStateWithLifecycle()
+    val pending=vm.visibleReceipts(s,receiptRows).any {it.state in setOf("sending","unknown")}
+    var projectsReview by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation) {mutableStateOf<ReviewedKanbanProjects?>(null)}
+    var editor by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.projects,pending) {mutableStateOf<ReviewedKanbanBoardEditor?>(null)}
+    var change by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.projects,pending) {mutableStateOf<ReviewedKanbanBoardChange?>(null)}
+    var controls by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,pending) {mutableStateOf<HostKanbanBoard?>(null)}
+    fun offerChange(request:HostKanbanBoardChange) {val next=vm.prepareKanbanBoardChange(request);if(next==null) vm.hostProjectReviewChanged() else {editor=null;change=next}}
+
     var review by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation) {mutableStateOf<ReviewedHostKanbanRead?>(null)}
     var query by remember(visible.board) {mutableStateOf("")}
     var column by remember(visible.board) {mutableStateOf<String?>(null)}
     fun offer(board:HostKanbanBoard?=null,id:String?=null) {review=vm.prepareHostKanbanRead(board,id)}
-    fun dismiss() {review=null;close()}
+    fun dismiss() {review=null;projectsReview=null;editor=null;change=null;controls=null;close()}
     val read=vm.prepareHostKanbanRead()
     AlertDialog(onDismissRequest=::dismiss,title={Text(label(Words.HostKanban))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-kanban-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {if(vm.hostProjectsContextCurrent(s)) {Text(s.url);Text(s.profile)};Text(label(Words.KanbanBoundary))}
             item {TextButton({review=read},enabled=read!=null,modifier=Modifier.heightIn(min=48.dp).testTag("kanban-inventory-read")) {Text(label(Words.KanbanInventoryRead))};if(read==null && !s.busy) Text(label(Words.HostProjectsReload))}
+            item {
+                val create=vm.prepareKanbanBoardEditor(HostKanbanBoardAction.Create)
+                TextButton({editor=create},enabled=create!=null,modifier=Modifier.heightIn(min=48.dp).testTag("board-create")) {Text(label(Words.KanbanBoardCreate))}
+                vm.kanbanBoardBlock(s)?.let {Text(label(it))}
+                val projectRead=vm.prepareKanbanProjects()
+                TextButton({projectsReview=projectRead},enabled=projectRead!=null,modifier=Modifier.heightIn(min=48.dp).testTag("board-read-projects")) {Text(label(Words.KanbanBoardReadProjects))}
+            }
+            if(pending) item {Text(label(Words.KanbanBoardUnknown));TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("board-return-receipts")) {Text(label(Words.KanbanBoardReturnReceipts))}}
+            visible.report?.let {report->item {KanbanBoardReport(report)}}
             if(s.busy) item {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel,Modifier.heightIn(min=48.dp).testTag("kanban-cancel-work")) {Text(label(Words.Cancel))}}
             visible.inventory?.let {inventory->
                 item {Text(label(Words.HostProjectsSnapshot).replace("{time}",DateFormat.getDateTimeInstance().format(Date(inventory.observedAt))));KanbanValue(Words.KanbanCurrent,inventory.current);if(inventory.boards.isEmpty()) Text(label(Words.EmptyInventory))}
@@ -45,6 +63,7 @@ private fun kanbanField(key:String)=when(key) {
                     board.total?.let {Text(label(Words.KanbanTotal).replace("{count}",it.toString()))};board.projectName?.let {KanbanValue(Words.KanbanProject,it)}
                     if(board.current) Text(label(Words.KanbanCurrent))
                     if(board.archived) Text(label(Words.KanbanArchivedRead))
+                    TextButton({controls=board},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("board-controls-open-"+board.slug)) {Text(label(Words.KanbanBoardControls))}
                     TextButton({offer(board)},enabled=!s.busy && !board.archived,modifier=Modifier.heightIn(min=48.dp).testTag("kanban-board-read-"+board.slug)) {Text(label(Words.KanbanBoardRead))}
                 }}}
             }
@@ -72,6 +91,12 @@ private fun kanbanField(key:String)=when(key) {
         }
     },confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("kanban-close")) {Text(label(Words.Close))}})
     visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm::closeHostKanbanDetail) {id->offer(detail.board,id)}}
+    controls?.takeIf {b->visible.inventory?.boards?.any {it===b}==true}?.let {board->KanbanBoardControls(board,s.url,s.profile,vm.kanbanBoardBlock(s),{controls=null},edit={editor=vm.prepareKanbanBoardEditor(HostKanbanBoardAction.Update,board.slug)},action={action->visible.inventory?.let {offerChange(HostKanbanBoardChange.action(it,board.slug,action))}})}
+    editor?.takeIf(vm::kanbanBoardEditorCurrent)?.let {draft->KanbanBoardForm(draft,{editor=null},::offerChange)}
+    change?.takeIf(vm::kanbanBoardChangeCurrent)?.let {frozen->KanbanBoardChangeReview(frozen,!s.busy,{change=null}) {change=null;vm.performKanbanBoardChange(frozen)}}
+    projectsReview?.takeIf(vm::kanbanProjectsCurrent)?.let {frozen->AlertDialog(onDismissRequest={projectsReview=null},title={Text(label(Words.KanbanBoardReadProjects))},text={
+        LazyColumn(Modifier.heightIn(max=480.dp).testTag("board-projects-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {item {Text(frozen.inventory.owner.url);Text(frozen.inventory.owner.profile);Text(frozen.inventory.owner.actor);Text(label(Words.KanbanBoardProjectsEffect))}}
+    },confirmButton={TextButton({projectsReview=null;vm.loadKanbanProjects(frozen)},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("board-projects-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({projectsReview=null},Modifier.heightIn(min=48.dp).testTag("board-projects-cancel")) {Text(label(Words.Cancel))}})}
     review?.takeIf(vm::hostKanbanReadCurrent)?.let {frozen->AlertDialog(onDismissRequest={review=null},title={Text(label(if(frozen.board==null) Words.KanbanInventoryRead else if(frozen.taskId==null) Words.KanbanBoardRead else Words.KanbanTaskRead))},text={
         LazyColumn(Modifier.heightIn(max=480.dp).testTag("kanban-read-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(frozen.owner.url);Text(frozen.owner.profile);Text(frozen.owner.actor)}

@@ -194,7 +194,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
             if isinstance(node, ast.ClassDef):
                 project_classes={'project_contract':{'ProjectFolder','ProjectInfo','ProjectsPayload','ProjectResult','ProjectIdParams','OptionalProjectResult','ProjectsCreateParams','ProjectsUpdateParams','ProjectsAddFolderParams','ProjectFolderParams','ProjectsArchiveParams','ProjectsSetActiveParams','ActiveIdResult'},'project_db':{'Project','ProjectFolder'},'project_methods':{'_NoProject'}}
                 if not prefix and node.name in project_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
-                kanban_classes={'kanban_db':{'Task','Run','Comment','Event','Attachment'},'kanban_workflow':{'Column','Workflow'}}
+                kanban_classes={'kanban_api':{'CreateBoardBody','RenameBoardBody'},'kanban_db':{'Task','Run','Comment','Event','Attachment'},'kanban_workflow':{'Column','Workflow'}}
                 if not prefix and node.name in kanban_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 channel_classes={'channel_registry':{'PlatformEntry'},'channel_config':{'Platform','HomeChannel'},'channel_status':{'GatewayLiveness'}}
                 if not prefix and node.name in channel_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)

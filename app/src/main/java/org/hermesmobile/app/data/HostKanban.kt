@@ -10,6 +10,9 @@ data class HostKanbanBoard(val slug:String,val name:String,val description:Strin
     fun sameMapping(other:HostKanbanBoard)=slug==other.slug && dbPath==other.dbPath && archived==other.archived
     override fun toString()="HostKanbanBoard(redacted)"
 }
+data class HostKanbanBoardDefinition(val slug:String,val name:String,val description:String?,val icon:String?,val color:String?,val dbPath:String,val workdir:String?,val projectId:String?,val archived:Boolean,val createdAt:Long?) {override fun toString()="HostKanbanBoardDefinition(redacted)"}
+fun HostKanbanBoard.definition()=HostKanbanBoardDefinition(slug,name,description,icon,color,dbPath,workdir,projectId,archived,createdAt)
+
 data class HostKanbanInventory(val owner:ManagementTarget,val profileHomeId:String,val boards:List<HostKanbanBoard>,val current:String,val observedAt:Long) {override fun toString()="HostKanbanInventory(redacted)"}
 data class HostKanbanTask(val id:String,val title:String,val status:String,val assignee:String?,val tenant:String?,val priority:Long,val body:String?,val result:String?,val summary:String?,val createdAt:Long?,val startedAt:Long?,val completedAt:Long?,val currentRunId:Long?,val heartbeat:Long?,val fields:Map<String,String>) {override fun toString()="HostKanbanTask(redacted)"}
 data class HostKanbanColumn(val name:String,val tasks:List<HostKanbanTask>) {override fun toString()="HostKanbanColumn(redacted)"}
@@ -49,6 +52,11 @@ object HostKanbanProtocol {
         require(values.distinct().size==values.size);return frozen(values)
     }
     private fun context(owner:ManagementTarget,home:String) {GatewayCronInventory.requireProfile(owner.profile);require(home.matches(Regex("[a-f0-9]{64}")))}
+    fun metadata(j:JsonObject):HostKanbanBoardDefinition=decode {
+        require(j.keys.containsAll(setOf("slug","name","description","icon","color","db_path","default_workdir","project_id","archived","created_at")))
+        val slug=text(j,"slug",64)!!.also {require(HostKanbanProtocol.slug(it))}
+        HostKanbanBoardDefinition(slug,text(j,"name",1024,multiline=true)!!,text(j,"description",16384,true,true),text(j,"icon",512,true),text(j,"color",128,true),text(j,"db_path",4096)!!.also {require(it.isNotBlank())},text(j,"default_workdir",4096,true),text(j,"project_id",512,true),bool(j,"archived"),time(j,"created_at"))
+    }
     private fun board(j:JsonObject):HostKanbanBoard {
         val slug=text(j,"slug",64)!!.also {require(HostKanbanProtocol.slug(it))}
         val counts=j["counts"] as JsonObject;require(counts.size<=64)

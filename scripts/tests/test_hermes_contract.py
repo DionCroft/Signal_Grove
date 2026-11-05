@@ -787,3 +787,39 @@ class KanbanContractWatchTests(unittest.TestCase):
         data=self.fixture();data['kanban_api']+="\n@router.get('/new-feature')\ndef new_feature():\n    return {}\n"
         result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
         self.assertFalse(result['mobile_review_required']);self.assertIn('GET /api/plugins/kanban/new-feature',result['added_management_routes'])
+
+
+class KanbanBoardWriteWatchTests(unittest.TestCase):
+    def fixture(self):
+        data=KanbanContractWatchTests().fixture()
+        data['kanban_api']+="\nclass CreateBoardBody(BaseModel):\n    slug:str\n    project_id:str|None=None\n    switch:bool=False\nclass RenameBoardBody(BaseModel):\n    default_workdir:str|None=None\n    project_id:str|None=None\n@router.post('/boards')\ndef create_board_endpoint(payload:CreateBoardBody):\n    return create_board(payload.slug,switch=payload.switch)\n@router.patch('/boards/{slug}')\ndef rename_board(slug,payload:RenameBoardBody):\n    return write_board_metadata(slug,project=resolve(payload.project_id))\n@router.delete('/boards/{slug}')\ndef delete_board(slug,delete=False):\n    return remove_board(slug,archive=not delete)\n@router.post('/boards/{slug}/switch')\ndef switch_board(slug):\n    return set_current_board(slug)\n"
+        data['kanban_boards']+="\ndef create_board(slug,switch=False):\n    write_board_metadata(slug,archived=False)\n    return init_db(slug)\ndef write_board_metadata(slug,project=None,archived=None):\n    return persist_metadata(slug,project,archived)\ndef remove_board(slug,archive=True):\n    clear_current_board()\n    return move_or_delete(slug,archive)\n"
+        data['kanban_db']+="\ndef set_current_board(slug):\n    require_live(slug)\n    return persist_current(slug)\n"
+        return data
+    def tracked(self):
+        value=baseline(checker.extract(self.fixture()))
+        value['mobile_used_management_routes']+=['POST /api/plugins/kanban/boards','PATCH /api/plugins/kanban/boards/{slug}','DELETE /api/plugins/kanban/boards/{slug}','POST /api/plugins/kanban/boards/{slug}/switch']
+        value['mobile_used_handlers']+=['kanban_api:schema:CreateBoardBody','kanban_api:schema:RenameBoardBody','kanban_api:create_board_endpoint','kanban_api:rename_board','kanban_api:delete_board','kanban_api:switch_board','kanban_boards:create_board','kanban_boards:write_board_metadata','kanban_boards:remove_board','kanban_db:set_current_board']
+        value['mobile_used_request_fields']+=['kanban_api:CreateBoardBody.switch','kanban_api:RenameBoardBody.default_workdir']
+        return value
+    def test_each_used_write_route_removed_requires_review(self):
+        for route in ["@router.post('/boards')","@router.patch('/boards/{slug}')","@router.delete('/boards/{slug}')","@router.post('/boards/{slug}/switch')"]:
+            data=self.fixture();self.assertIn(route,data['kanban_api']);data['kanban_api']=data['kanban_api'].replace(route,route.replace('boards','renamed'))
+            result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+            self.assertTrue(result['mobile_review_required']);self.assertEqual(1,len(result['mobile_relevant_changes']['removed_used_management_routes']))
+    def test_defaults_and_new_schema_fields_cannot_escape_whole_schema_watch(self):
+        for before,after in [('switch:bool=False','switch:bool=True'),('default_workdir:str|None=None','default_workdir:str=""'),('slug:str','slug:str\n    overwrite:bool=True')]:
+            data=self.fixture();data['kanban_api']=data['kanban_api'].replace(before,after)
+            self.assertTrue(checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})['mobile_review_required'])
+    def test_partial_effect_order_and_archive_direction_changes_require_review(self):
+        for module,before,after in [('kanban_api','archive=not delete','archive=delete'),('kanban_boards','write_board_metadata(slug,archived=False)','write_board_metadata(slug,archived=True)'),('kanban_boards','clear_current_board()\n    return move_or_delete(slug,archive)','move_or_delete(slug,archive)\n    return clear_current_board()'),('kanban_db','require_live(slug)','pass')]:
+            data=self.fixture();self.assertIn(before,data[module]);data[module]=data[module].replace(before,after)
+            self.assertTrue(checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})['mobile_review_required'])
+    def test_project_binding_resolution_cannot_be_replaced_by_unscoped_write(self):
+        data=self.fixture();data['kanban_api']=data['kanban_api'].replace('project=resolve(payload.project_id)','project=payload.project_id')
+        result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+        self.assertIn('kanban_api:rename_board',result['mobile_relevant_changes']['changed_used_handlers'])
+    def test_unrelated_new_write_is_triaged_without_accepting_used_drift(self):
+        data=self.fixture();data['kanban_api']+="\n@router.post('/unused')\ndef unused():\n    return {}\n"
+        result=checker.compare(self.tracked(),{'commit':'b'*40,'contract':checker.extract(data)})
+        self.assertFalse(result['mobile_review_required']);self.assertIn('POST /api/plugins/kanban/unused',result['added_management_routes'])
