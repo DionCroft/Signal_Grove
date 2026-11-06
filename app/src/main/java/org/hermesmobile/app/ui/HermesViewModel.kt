@@ -390,7 +390,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val transport=when {c?.transport=="compat"->"compat";preferences.value.demo->"demo";capabilities.value?.sessions==true && capabilities.value?.runs==true->"runs";capabilities.value?.nativeStream==true->"session";else->"compat"}
                 if(c == null) {
                     val id="api_mobile_${UUID.randomUUID().toString().replace("-","")}"
-                    val title=text.take(60).ifBlank {Words.ImageMessage.en}
+                    val title=if(transport!="compat" && transport!="demo" && capabilities.value?.sessions==true) NewSessionTitle.create(text,id,Words.ImageMessage.en) else text.take(60).ifBlank {Words.ImageMessage.en}
                     val remote=if(transport!="compat" && capabilities.value?.sessions==true) api.createSession(id,title) else RemoteSession(id,title)
                     c=Conversation("${scope.value}:${remote.id}",scope.value,remote.id,remote.title,
                         channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "")

@@ -1,5 +1,51 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — integration checkpoint: catalog fixture correction required
+
+The frozen108/beta.7 integration passed536 JVM cases and all22 new override UI
+methods on each API26/36/37, with six captures inspected. The related34-method
+groups passed on26/36, while37 recorded33 positives and one failure: the new
+SessionTitleFlowTest fixture rejected a legitimate GETapi/model/options after
+the wider UI sequence. This is **167 focused positives and one failure**, not
+complete integration acceptance. App/test hashes remain recorded in external
+frozen evidence; no failed result is relabeled or blindly retried. All native
+and build handles are closed. The merge is checkpointed for preservation before
+correcting the advertised catalog fixture on the isolated hotfix branch.
+
+The production app behavior is unchanged by this fixture issue. Keep the strict
+unexpected-route and title/input/model assertions; explicitly implement and
+exercise the advertised authenticated catalog read. The corrected source needs
+fresh exact-head full CI before beta.6 publication, even if the earlier088 run
+finishes successfully. Existing beta.6 assets remain staged, **not published**.
+The broader audit and typed status/worker/dispatch requirements remain open.
+
+## 2026-11-06 — override forms / title-fix integration in progress
+
+Development108/beta.7 combines the previously locally accepted task override forms
+with the isolated beta.6 title hotfix. Beta.6 remains exact088f6d0 and its signed
+assets are immutable; this development branch is not part of that release.
+Integration build/native/hosted acceptance is pending and must not be inferred
+from the earlier immutable pairs documented below.
+
+Measured API37 full beta.5 instrumentation took4292.177seconds (71m32s), and the22
+new override UI cases alone took598.084seconds (9m58s). Their combined81m30s already
+exceeds the old75-minute native deadline before adding the three title cases.
+For the enlarged development suite, the finite native deadline becomes95minutes
+and device-job budget125minutes. The existing deadline regression guard is
+updated; unfiltered single execution, no-skip/unique-positive/terminal-summary
+checks, timeout-output retention and no instrumentation retries remain unchanged.
+This budget change does not modify or restart the running beta.6 hosted gate.
+
+## 2026-11-06 — beta.6 conversation-title hotfix preparation
+
+New native conversations with a repeated opening such as “Test” could receive HTTP400 `invalid_title`, because Hermes enforces unique titles. The app now supplies a single-line, Unicode-safe label with a stable 16-hex session-derived suffix. The original message and existing sessions stay unchanged; there is no automatic replay, server rename, model switch or lock clearing. The saved default and verified serving model remain distinct.
+
+The strict four-task build passed **536 JVM cases**, zero failures/errors/skips. The same original-key immutable pair passed **78 focused native cases**: three new send-path cases and 23 related session/runtime/model-status/receipt cases on each of API26/36/37. Debug SHA-256 `b4c5bedc190a93c82d16e3932e426bc9a119902404fc136d4e5858c7a4c82e17`; test APK `76db8dc8069a66edd783af5c40a745ee400050526ae29d2d6777cf21a2508c59`. All424 frozen source-input hashes and unchanged device geometry were checked. The first native attempt remains failed: the new fixture lazily started MockWebServer on the UI thread; the correction moves only fixture URL creation off that thread, preserving every assertion. The application APK is unchanged by that test-only correction.
+
+A separate actual pinned Hermes `b200f5bc60e31588ba2cb60e288029c4a54ba5fa` loopback HTTP fixture reproduced duplicate-title400, accepted two generated labels201, preserved the existing synthetic session and left no rejected new row or model lock. No provider generation or production state was used. The first controller probe remains failed because it assumed the transcript table lived in the metadata database; the passing independent fixture uses no direct database writes. Python audit hooks and isolated environment are not an OS sandbox or a claim about every deployed runtime. Read-only inspection of the deployed handler separately established its title-conflict rollback and model precedence.
+
+All144 source/policy and15 observer tests pass; strict dependency verification remains495 components/1071 artifacts. Exact-source hosted Android/compatibility gates, production signing/lint, package review, retained-data upgrade and public download checks remain publication requirements. Their terminal results and exact asset digests belong on the release page; this source entry does not pre-claim them. Physical/OEM and broader audit acceptance remain open. [Release scope](releases/1.1.0-beta.6.md).
+
 ## 2026-11-06 — native independent override forms
 
 Final refined development107/beta.6 source passed strict four-task build/lint in

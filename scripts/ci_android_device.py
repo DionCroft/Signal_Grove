@@ -13,7 +13,7 @@ import sys
 import time
 
 
-def run_instrumentation(device, log_path: Path, timeout: int = 4500) -> int:
+def run_instrumentation(device, log_path: Path, timeout: int = 5700) -> int:
     """Run every case once within a finite deadline and retain even timed-out output."""
     try:
         result=device('shell','am','instrument','-w','-r','org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner',timeout=timeout,check=False)

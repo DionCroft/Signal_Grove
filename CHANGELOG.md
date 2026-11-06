@@ -4,6 +4,12 @@
 
 - Add private native task model/provider and reasoning set/clear forms with scoped fresh reviews, next-dispatch effects and explicit unavailable states. Development branch only; status/worker controls and full hosted acceptance remain separate.
 
+## 1.1.0-beta.6 — 2026-11-06
+
+- Avoid native session title collisions when several conversations start with the same text. Generate a sanitized, Unicode-safe label with a stable session-derived suffix while preserving the complete user message and existing conversations.
+- Add actual send-path regressions for repeated opening text, multiline Unicode and explicit per-turn model selection while the saved server default differs. Do not automatically switch/load models or clear session locks.
+- Preserve original packages, signing identities and data; see [hotfix scope](docs/releases/1.1.0-beta.6.md). Broader audit and task-override form work continue separately.
+
 ## 1.1.0-beta.5 — 2026-11-06
 
 - Distinguish the verified serving model, saved Hermes default, next-request selection and last chat-reported model. Add Home/Chat access, foreground refresh and explicit cached/error states through the optional authenticated runtime observer.
