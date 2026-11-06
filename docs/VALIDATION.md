@@ -1,5 +1,42 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — beta.6 title fix published and public bytes verified
+
+[Beta.6](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6)
+is public at exact source `e2b2de79272a57c57039e8ddd7e6e3afc73badbf`, code107.
+[Android 42243156489](https://github.com/DionCroft/Signal_Grove/actions/runs/42243156489)
+passed 536 JVM and complete unfiltered **919 API26 /920 API37** unique positive
+methods with matching terminal counts, all three catalog-enabled title cases
+and no failures/ignores/assumptions/skips.
+[Compatibility 42243171982](https://github.com/DionCroft/Signal_Grove/actions/runs/42243171982)
+passed. Independently downloaded CI ZIP digests: build
+`59eb1669e2b7a6647b6cbf1fef5de4bd084c97b1a4845b31d7a9ff468517eabb`, API26
+`64b856bda784ea28b27123549b9b4a0da11731fba779b4baef9e960c6d2147b7`, API37
+`6a5a01d14bf217997505d981e8f436f15f9b5e0bc711b998dd816501462bdf6f`.
+
+Original-key production assembly and explicit release lint passed at e2b2de7.
+The selected production container embeds that exact revision and retained the
+original saved task through its separately recorded107→107 container refresh.
+The earlier actual106→107 upgrade remains separate evidence. The selected debug
+container retains its tested immutable bytes; all165 rebuilt payload entries
+match and its original signer is verified. Earlier local78 and corrected34-case
+cohorts remain distinct; failed earlier fixture runs remain retained.
+
+At16:56UTC, unauthenticated public API/download checks verified the tag's exact
+commit and all four asset byte counts/SHA256 values:
+
+| Public asset | SHA256 |
+| --- | --- |
+| Production APK | `2ac3b361d705e7dc14ee521c38b8d87c03a335d5007bcbd01ec8e53dc3ff74ab` |
+| Debug APK | `b4c5bedc190a93c82d16e3932e426bc9a119902404fc136d4e5858c7a4c82e17` |
+| SHA256SUMS | `b57b2b64e7fe1e807575cb15f12d2e97ebcc3995ef2f604d3588b3cecf343871` |
+| Public signing certificate | `ddc553d7d4accfffae563d3258011ae6d79dffb5c239b6d9976256b7ad93794f` |
+
+This is a prerelease at the passing feature commit. Stable latest remains1.0.0;
+main remains6b809e6 and was not mutated. No test APK or private signing material
+was uploaded. This does not publish the override/status development work or
+claim physical-phone/live-provider acceptance. The broader goal remains active.
+
 ## 2026-11-06 — typed task status review foundation
 
 The separate status-foundation branch adds a typed single-purpose payload and

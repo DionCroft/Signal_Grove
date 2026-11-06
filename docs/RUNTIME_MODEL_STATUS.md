@@ -13,6 +13,28 @@ read; Choose request model opens the existing picker. Selecting a model does not
 load weights or change a server default. Existing session locks retain precedence.
 English, Chinese and pinyin labels use the normal structured language layer.
 
+## When the serving model and default differ
+
+A ready model does not automatically replace Hermes's saved default. If the
+default endpoint is offline while another model is ready, review an explicit
+request selection:
+
+1. In Chat, open the model controls and choose **Enter IDs manually** if the
+   catalog picker does not expose the desired route.
+2. Copy the ready route's exact **Provider ID** and model ID from the reported
+   details into **Provider ID** and **Requested model**. The display label alone
+   is not always a provider ID.
+3. Choose **Apply to new turns**. Use a new conversation if an existing server
+   session has a conflicting lock; this selection does not clear that lock.
+
+This changes the phone's request selection. It does not load weights, change the
+saved host default, evict another model or verify a later inference result.
+
+`HTTP400 invalid_title` is a separate session-creation error, before inference:
+the title can conflict with another conversation. Beta.6 generates distinct
+automatic titles for repeated opening text. Updating to the matching APK variant
+fixes that client naming path; it does not resolve an offline model route.
+
 Readiness, model options and serving observations refresh conservatively while
 Home or the Models & connection dialog is resumed. Each resource has a 60-second attempt interval, including
 failed reads, and duplicate reads share one in-flight job. There is no background

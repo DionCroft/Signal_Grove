@@ -24,7 +24,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | Package | Current state | Required acceptance / next step |
 | --- | --- | --- |
 | Model-status QoL | Read-only observer deployed with explicit owner approval; existing Spark credential already matched and was preserved. Client distinguishes serving/default/request/last-response identity, host/receipt age and failures.528 JVM/75 focused native passes; see VALIDATION. Owner confirms the earlier phone connection works. | Included in public beta.5 at69590bb with exact-head full916/917 device gates. Matching-signer physical-phone upgrade/acceptance remains separate; no model switch or inference certification. |
-| 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. | Beta.5 is published directly at tested feature commit69590bb: exact Android/compatibility gates, original-key APKs, production retained-data upgrade and all4 public download hashes verified. This is not a main-merge claim. Keep exact-head gates for subsequent chunks. |
+| 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. Beta.6 title fix is published at e2b2de7 with536 JVM/919 API26/920 API37, compatibility, original-key release lint/retention and all4 public byte hashes verified. | Keep exact-head gates for subsequent chunks. Beta.5 and beta.6 were published from tested feature commits; neither publication advances main or closes later development/physical acceptance. |
 | 2. Real Hermes matrix | Pinned stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers. A pinned v0.22.7 native run now has poll/SSE/sequence-resume/history and durable single-admission evidence, with both diagnostic errors retained and reconciled read-only. Full clean-install/current-native/tool matrix and owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
 | 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. Native override forms have159 original-companion focused passes across3SDKs and inspected bilingual layouts. Corrected108 integration has536 JVM and34-case prior-failure-sequence passes on37; its full941/942 gates remain open. A separate typed status-review foundation has552 JVM and10 existing storage regression passes on37; it exposes no status send or user control. | Close the override forms’ own exact-head gates, then complete typed status with exact effects/approval/preflight/receipts. Resolve the unfenced current-task write contract and transitive impact scope before exposing execution. Preserve next-dispatch versus current-runtime semantics. |
@@ -63,15 +63,19 @@ commissioning reports stay out of this public repository.
 
 ## Next bounded stage
 
-Beta.5 is public at69590bb with verified528 JVM,916 API26 and917 API37
-cases, compatibility, signed release lint, retained-data production upgrade and
-public asset digests. It is published from the tested feature commit; main stays
-separate. The owner phone remains unavailable for this APK's physical acceptance.
+Beta.6 is public at e2b2de7 with verified536 JVM,919 API26 and920 API37
+cases, compatibility, signed release lint, retained-data production/container
+checks and all four unauthenticated public download hashes. Publication uses the
+tested feature commit; main stays separate. The owner's phone acceptance remains
+separate. A fresh read-only check still distinguishes a ready route from an
+offline saved default; no host model/default/lock was changed to publish the fix.
 
-Deliver independent native model/provider and reasoning set/clear forms over the
-validated override foundation, with private exact-value approvals, known-NULL
-versus missing metadata and explicit next-dispatch effects. Then implement typed
-status and the remaining worker/dispatch/event/file/pin/transfer controls. Continue
+Close the independent model/provider and reasoning forms' exact c6592a2 full
+941/942 gates. The typed status-review foundation is committed at86fb675 with552
+JVM and10 existing storage regression passes, with no status send or new control.
+Complete its contract/impact review, then implement private approval, fresh
+preflight and one-send outcome handling before exposing status execution.
+Continue the remaining worker/dispatch/event/file/pin/transfer controls and
 the isolated actual-server matrix, physical background/audio acceptance, advanced
 automation/rooms, integrations, configuration/workspaces and notification routing
 as listed above. Keep each row's original acceptance scope and evidence distinct.
