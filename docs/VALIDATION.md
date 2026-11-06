@@ -1469,7 +1469,9 @@ parameters,405 for POST and404 for a nonexistent profile. The correct key return
 default. Existing continuity discovery returned11 read-only ContextGraph tools;
 all checked paths resolved. Doctor retained its previous exit1 for optional
 unconfigured providers; no repair or cloud credential was added. The post-change
-encrypted backup is in progress and requires separate digest confirmation.
+encrypted backup completed success/0; its local encrypted size/SHA-256 match the
+private-release asset digest. This verifies a live backup, not an operational
+restore. Existing HTTPS and desktop HTTP dashboard auth checks still pass.
 
 This is bounded owner-deployment evidence, not stock-Hermes parity or a release.
 Client UI/build/device acceptance is a following chunk. The prior speech-setup
