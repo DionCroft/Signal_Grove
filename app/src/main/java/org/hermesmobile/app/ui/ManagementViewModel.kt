@@ -11,7 +11,11 @@ import org.hermesmobile.app.HermesApplication
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 
-data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:HostKanbanSnapshot?=null,val detail:HostKanbanDetail?=null,val projects:HostProjectSnapshot?=null,val report:HostKanbanBoardReport?=null,val taskReport:HostKanbanTaskReport?=null,val dependencyReview:ReviewedKanbanTaskChange?=null)
+data class HostKanbanState(val inventory:HostKanbanInventory?=null,val board:HostKanbanSnapshot?=null,val detail:HostKanbanDetail?=null,val projects:HostProjectSnapshot?=null,val report:HostKanbanBoardReport?=null,val taskReport:HostKanbanTaskReport?=null,val dependencyReview:ReviewedKanbanTaskChange?=null,val statusReview:ReviewedKanbanStatusChange?=null,val statusReport:HostKanbanStatusReport?=null)
+data class ReviewedKanbanStatusEditor(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val subject:HostKanbanDetail,val generation:Long) {override fun toString()="ReviewedKanbanStatusEditor(redacted)"}
+data class ReviewedKanbanStatusChange(val request:HostKanbanStatusChange,val generation:Long) {override fun toString()="ReviewedKanbanStatusChange(redacted)"}
+data class HostKanbanStatusReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation) {override fun toString()="HostKanbanStatusReport(redacted)"}
+
 data class HostKanbanBoardReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val archivePath:String?=null) {override fun toString()="HostKanbanBoardReport(redacted)"}
 data class HostKanbanTaskReport(val owner:ManagementTarget,val home:String,val receipt:ManagementOperation,val warning:String?=null) {override fun toString()="HostKanbanTaskReport(redacted)"}
 data class ReviewedKanbanTaskEditor(val inventory:HostKanbanInventory,val snapshot:HostKanbanSnapshot,val subject:HostKanbanDetail,val action:HostKanbanTaskAction,val generation:Long) {override fun toString()="ReviewedKanbanTaskEditor(redacted)"}
@@ -166,6 +170,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is HostKanbanStatusInvalid->Words.KanbanStatusInvalid
+        is HostKanbanStatusImpactIncomplete->Words.KanbanStatusIncomplete
+        is HostKanbanStatusApprovalUsed->Words.KanbanStatusApprovalUsed
         is HostKanbanTaskInvalid->Words.KanbanTaskInvalid
         is HostKanbanTaskChanged->Words.ManagementReviewChanged
         is HostKanbanTaskUncertain->Words.KanbanTaskUnknown
@@ -1007,11 +1014,72 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             }
         }
     }
+    private val kanbanStatusChanges=HostKanbanStatusRepository(app.database.dao(),app.managementReady)
+    fun kanbanStatusBlock(s:ManagementState):Words? {
+        kanbanTaskBlock(s)?.let {return it}
+        val task=visibleHostKanban(s).detail!!.task
+        return if(HostKanbanStatusTarget.entries.none {HostKanbanStatusPlan.supports(task.status,it)}) Words.KanbanStatusUnsupported else null
+    }
+    fun prepareKanbanStatusEditor():ReviewedKanbanStatusEditor? {
+        if(kanbanStatusBlock(state.value)!=null) return null
+        val visible=visibleHostKanban(state.value)
+        return ReviewedKanbanStatusEditor(visible.inventory!!,visible.board!!,visible.detail!!,generation)
+    }
+    fun kanbanStatusEditorCurrent(editor:ReviewedKanbanStatusEditor):Boolean {
+        val visible=visibleHostKanban(state.value)
+        return editor.generation==generation && kanbanStatusBlock(state.value)==null && visible.inventory===editor.inventory && visible.board===editor.snapshot && visible.detail===editor.subject
+    }
+    fun closeKanbanStatusEditor(editor:ReviewedKanbanStatusEditor) {
+        if(kanbanStatusEditorCurrent(editor)) generation++
+    }
+    fun loadKanbanStatusReview(editor:ReviewedKanbanStatusEditor,plan:HostKanbanStatusPlan) {
+        if(!kanbanStatusEditorCurrent(editor) || plan.subject!==editor.subject) {hostProjectReviewChanged();return}
+        val owner=editor.inventory.owner;val home=editor.inventory.profileHomeId
+        state.value=state.value.copy(kanban=visibleHostKanban(state.value).copy(statusReview=null,statusReport=null,dependencyReview=null))
+        operation {id->
+            val request=kanbanStatusChanges.prepare(editor.inventory,editor.snapshot,plan,client(state.value),tokens ?: error("Sign in first."))
+            if(id==generation && projectContext()==(owner to home)) {
+                if(hostProjectPending(state.value)) state.value=state.value.copy(error=Words.ManagementOutcomePending)
+                else state.value=state.value.copy(kanban=HostKanbanState(inventory=request.inventory,board=request.snapshot,detail=request.observations.getValue(request.id).detail,statusReview=ReviewedKanbanStatusChange(request,id)))
+            }
+        }
+    }
+    fun kanbanStatusChangeCurrent(review:ReviewedKanbanStatusChange):Boolean {
+        val visible=visibleHostKanban(state.value);val request=review.request
+        return review.generation==generation && visible.statusReview===review && kanbanStatusBlock(state.value)==null && visible.inventory===request.inventory && visible.board===request.snapshot && visible.detail===request.observations[request.id]?.detail && projectContext()==(request.owner to request.home)
+    }
+    fun discardKanbanReviewsForPending() {
+        if(state.value.busy || !hostProjectPending(state.value)) return
+        generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(statusReview=null,dependencyReview=null))
+    }
+    fun closeKanbanStatusReview(review:ReviewedKanbanStatusChange) {
+        if(state.value.kanban.statusReview!==review || review.generation!=generation) return
+        generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(statusReview=null))
+    }
+    private fun kanbanStatusReport(owner:ManagementTarget,home:String,receipt:ManagementOperation?)=receipt?.takeIf {
+        it.apiScope==owner.apiScope && it.resourceScope==owner.resourceScope && it.url==owner.url && it.profile==owner.profile && it.actor==owner.actor && it.projectHome.isEmpty() && HostKanbanStatusChange.receipt(it.action)
+    }?.let {HostKanbanStatusReport(owner,home,it)}
+    fun performKanbanStatusChange(review:ReviewedKanbanStatusChange,typedTaskId:String,acceptLatestTaskAndImpact:Boolean) {
+        if(!kanbanStatusChangeCurrent(review)) {hostProjectReviewChanged();return}
+        val request=review.request;val owner=request.owner;val home=request.home
+        val approval=runCatching {request.approve(typedTaskId,acceptLatestTaskAndImpact)}.getOrElse {state.value=state.value.copy(error=Words.KanbanStatusInvalid);return}
+        state.value=state.value.copy(kanban=HostKanbanState())
+        operation {id->
+            try {
+                val result=kanbanStatusChanges.execute(owner,approval,client(state.value),tokens ?: error("Sign in first."))
+                if(id==generation && projectContext()==(owner to home)) state.value=state.value.copy(kanban=HostKanbanState(detail=result.detail,statusReport=kanbanStatusReport(owner,home,result.receipt)))
+            } catch(e:Exception) {
+                val receipt=when(e) {is HostKanbanTaskUncertain->e.receipt;is HostKanbanTaskReadbackPending->e.receipt;is HostKanbanTaskRefused->e.receipt;else->null}
+                if(e !is CancellationException && id==generation && projectContext()==(owner to home)) state.value=state.value.copy(kanban=HostKanbanState(statusReport=kanbanStatusReport(owner,home,receipt)))
+                throw e
+            }
+        }
+    }
     private val kanbanReads=HostKanbanRepository()
     fun visibleHostKanban(s:ManagementState):HostKanbanState {
         val context=projectContext() ?: return HostKanbanState()
         if(s.apiScope!=context.first.apiScope || s.profile!=context.first.profile || s.url!=state.value.url || s.identity!=state.value.identity) return HostKanbanState()
-        return HostKanbanState(s.kanban.inventory?.takeIf {it===state.value.kanban.inventory && it.owner==context.first && it.profileHomeId==context.second},s.kanban.board?.takeIf {it===state.value.kanban.board && it.owner==context.first && it.profileHomeId==context.second},s.kanban.detail?.takeIf {it===state.value.kanban.detail && it.owner==context.first && it.profileHomeId==context.second},s.kanban.projects?.takeIf {it===state.value.kanban.projects && it.owner==context.first && it.homeId==context.second},s.kanban.report?.takeIf {it===state.value.kanban.report && it.owner==context.first && it.home==context.second},s.kanban.taskReport?.takeIf {it===state.value.kanban.taskReport && it.owner==context.first && it.home==context.second},s.kanban.dependencyReview?.takeIf {it===state.value.kanban.dependencyReview && it.generation==generation && it.request.owner==context.first && it.request.home==context.second && it.request.inventory===state.value.kanban.inventory && it.request.snapshot===state.value.kanban.board && it.request.subject===state.value.kanban.detail && !hostProjectPending(s)})
+        return HostKanbanState(s.kanban.inventory?.takeIf {it===state.value.kanban.inventory && it.owner==context.first && it.profileHomeId==context.second},s.kanban.board?.takeIf {it===state.value.kanban.board && it.owner==context.first && it.profileHomeId==context.second},s.kanban.detail?.takeIf {it===state.value.kanban.detail && it.owner==context.first && it.profileHomeId==context.second},s.kanban.projects?.takeIf {it===state.value.kanban.projects && it.owner==context.first && it.homeId==context.second},s.kanban.report?.takeIf {it===state.value.kanban.report && it.owner==context.first && it.home==context.second},s.kanban.taskReport?.takeIf {it===state.value.kanban.taskReport && it.owner==context.first && it.home==context.second},s.kanban.dependencyReview?.takeIf {it===state.value.kanban.dependencyReview && it.generation==generation && it.request.owner==context.first && it.request.home==context.second && it.request.inventory===state.value.kanban.inventory && it.request.snapshot===state.value.kanban.board && it.request.subject===state.value.kanban.detail && !hostProjectPending(s)},statusReview=s.kanban.statusReview?.takeIf {it===state.value.kanban.statusReview && it.generation==generation && it.request.owner==context.first && it.request.home==context.second && it.request.inventory===state.value.kanban.inventory && it.request.snapshot===state.value.kanban.board && it.request.observations[it.request.id]?.detail===state.value.kanban.detail && !hostProjectPending(s)},statusReport=s.kanban.statusReport?.takeIf {it===state.value.kanban.statusReport && it.owner==context.first && it.home==context.second})
     }
     fun prepareHostKanbanRead(board:HostKanbanBoard?=null,taskId:String?=null):ReviewedHostKanbanRead? {
         if(state.value.busy) return null
@@ -1039,7 +1107,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id==generation && projectContext()==(review.owner to review.profileHomeId)) state.value=state.value.copy(kanban=result)
         }
     }
-    fun closeHostKanbanDetail() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(detail=null,dependencyReview=null))}}
+    fun closeHostKanbanDetail() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=state.value.kanban.copy(detail=null,dependencyReview=null,statusReview=null))}}
     fun closeHostKanban() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(kanban=HostKanbanState())}}
     private val projectReads=HostProjectsRepository()
     private val projectChanges=HostProjectOperationsRepository(app.database.dao(),app.managementReady)
@@ -1295,6 +1363,10 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun observeReceipt(key:String)=operation {id ->
         val target=target() ?: error("Verify management identity first.")
         val receipt=app.database.dao().managementOperation(key)?.takeIf {it.resourceScope==target.resourceScope && it.apiScope==target.apiScope} ?: error("Management receipt no longer exists.")
+        if(HostKanbanStatusChange.receipt(receipt.action)) {
+            if(id==generation) state.value=state.value.copy(error=Words.KanbanStatusUnknown)
+            return@operation
+        }
         val current=tokens ?: error("Sign in to management first.")
         val api=client(state.value);api.identity(current)
         val servers=McpProtocol.inventory(api.mcp(current,target.profile));val row=servers.singleOrNull {it.name==receipt.target}

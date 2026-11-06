@@ -17,8 +17,8 @@ import java.text.DateFormat
 import java.util.Date
 
 private fun kanbanTime(seconds:Long)=DateFormat.getDateTimeInstance().format(Date(seconds*1000))
-private fun kanbanStatus(value:String):Words?=when(value) {"triage"->Words.KanbanTriage;"todo"->Words.KanbanTodo;"scheduled"->Words.KanbanScheduled;"ready"->Words.KanbanReady;"running"->Words.KanbanRunning;"blocked"->Words.KanbanBlocked;"review"->Words.KanbanReview;"done"->Words.KanbanDone;"archived"->Words.HostProjectArchived;else->null}
-@Composable internal fun KanbanStatus(value:String) {Text(kanbanStatus(value)?.let {label(it)} ?: value)}
+internal fun kanbanStatusWord(value:String):Words?=when(value) {"triage"->Words.KanbanTriage;"todo"->Words.KanbanTodo;"scheduled"->Words.KanbanScheduled;"ready"->Words.KanbanReady;"running"->Words.KanbanRunning;"blocked"->Words.KanbanBlocked;"review"->Words.KanbanReview;"done"->Words.KanbanDone;"archived"->Words.HostProjectArchived;else->null}
+@Composable internal fun KanbanStatus(value:String) {Text(kanbanStatusWord(value)?.let {label(it)} ?: value)}
 @Composable private fun KanbanValue(word:Words,value:String) {Text(label(word),style=MaterialTheme.typography.labelLarge);SelectionContainer {Text(value)}}
 @Composable private fun KanbanStamp(word:Words,time:Long?) {time?.let {Text(label(word).replace("{time}",kanbanTime(it)))}}
 private fun kanbanField(key:String)=when(key) {
@@ -30,6 +30,7 @@ private fun kanbanField(key:String)=when(key) {
     val generation=vm.hostProjectReviewGeneration()
     val receiptRows by vm.receipts.collectAsStateWithLifecycle()
     val pending=vm.visibleReceipts(s,receiptRows).any {it.state in setOf("sending","unknown")}
+    var statusEditor by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.board,visible.detail,pending) {mutableStateOf<ReviewedKanbanStatusEditor?>(null)}
     var projectsReview by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation) {mutableStateOf<ReviewedKanbanProjects?>(null)}
     var editor by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.projects,pending) {mutableStateOf<ReviewedKanbanBoardEditor?>(null)}
     var change by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.projects,pending) {mutableStateOf<ReviewedKanbanBoardChange?>(null)}
@@ -39,7 +40,7 @@ private fun kanbanField(key:String)=when(key) {
     var taskChange by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.board,visible.detail,pending) {mutableStateOf<ReviewedKanbanTaskChange?>(null)}
     var dependencyPicker by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.board,visible.detail,pending) {mutableStateOf<ReviewedKanbanDependencyPicker?>(null)}
     var dependencyRead by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.board,visible.detail,pending) {mutableStateOf<ReviewedKanbanDependencyRead?>(null)}
-    LaunchedEffect(pending) {if(pending) vm.closeKanbanDependencyReview()}
+    LaunchedEffect(pending) {if(pending) {vm.discardKanbanReviewsForPending();vm.closeKanbanDependencyReview()}}
     fun offerTaskChange(request:HostKanbanTaskChange) {val next=vm.prepareKanbanTaskChange(request);if(next==null) vm.hostProjectReviewChanged() else {taskCreate=null;taskEditor=null;taskChange=next}}
     fun offerChange(request:HostKanbanBoardChange) {val next=vm.prepareKanbanBoardChange(request);if(next==null) vm.hostProjectReviewChanged() else {editor=null;change=next}}
 
@@ -47,7 +48,7 @@ private fun kanbanField(key:String)=when(key) {
     var query by remember(visible.board) {mutableStateOf("")}
     var column by remember(visible.board) {mutableStateOf<String?>(null)}
     fun offer(board:HostKanbanBoard?=null,id:String?=null) {review=vm.prepareHostKanbanRead(board,id)}
-    fun dismiss() {dependencyPicker=null;dependencyRead=null;taskCreate=null;taskEditor=null;taskChange=null;review=null;projectsReview=null;editor=null;change=null;controls=null;close()}
+    fun dismiss() {statusEditor=null;dependencyPicker=null;dependencyRead=null;taskCreate=null;taskEditor=null;taskChange=null;review=null;projectsReview=null;editor=null;change=null;controls=null;close()}
     val read=vm.prepareHostKanbanRead()
     AlertDialog(onDismissRequest=::dismiss,title={Text(label(Words.HostKanban))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-kanban-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -64,6 +65,7 @@ private fun kanbanField(key:String)=when(key) {
             if(pending) item {Text(label(Words.ManagementOutcomePending));TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("board-return-receipts")) {Text(label(Words.KanbanBoardReturnReceipts))}}
             visible.report?.let {report->item {KanbanBoardReport(report)}}
             visible.taskReport?.let {report->item {KanbanTaskReport(report)}}
+            visible.statusReport?.let {report->item {KanbanStatusReport(report)}}
             if(s.busy) item {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel,Modifier.heightIn(min=48.dp).testTag("kanban-cancel-work")) {Text(label(Words.Cancel))}}
             visible.inventory?.let {inventory->
                 item {Text(label(Words.HostProjectsSnapshot).replace("{time}",DateFormat.getDateTimeInstance().format(Date(inventory.observedAt))));KanbanValue(Words.KanbanCurrent,inventory.current);if(inventory.boards.isEmpty()) Text(label(Words.EmptyInventory))}
@@ -99,10 +101,12 @@ private fun kanbanField(key:String)=when(key) {
             s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("kanban-close")) {Text(label(Words.Close))}})
-    visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm.kanbanTaskBlock(s),vm.kanbanTaskOverrideBlock(s),vm.kanbanDependencyBlock(s,false),vm.kanbanDependencyBlock(s,true),vm::closeHostKanbanDetail,{id->offer(detail.board,id)},{action->taskEditor=vm.prepareKanbanTaskEditor(action)},{remove->dependencyPicker=vm.prepareKanbanDependencyPicker(remove)})}
+    visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm.kanbanTaskBlock(s),vm.kanbanTaskOverrideBlock(s),vm.kanbanDependencyBlock(s,false),vm.kanbanDependencyBlock(s,true),vm.kanbanStatusBlock(s),s.error,{statusEditor=vm.prepareKanbanStatusEditor()},vm::closeHostKanbanDetail,{id->offer(detail.board,id)},{action->taskEditor=vm.prepareKanbanTaskEditor(action)},{remove->dependencyPicker=vm.prepareKanbanDependencyPicker(remove)})}
     dependencyPicker?.takeIf(vm::kanbanDependencyPickerCurrent)?.let {picker->KanbanDependencyPicker(picker,{dependencyPicker=null}) {id->dependencyRead=vm.prepareKanbanDependencyRead(picker,id);dependencyPicker=null}}
     dependencyRead?.takeIf(vm::kanbanDependencyReadCurrent)?.let {readPair->KanbanDependencyReadReview(readPair,{dependencyRead=null}) {dependencyRead=null;vm.loadKanbanDependency(readPair)}}
     visible.dependencyReview?.takeIf(vm::kanbanTaskChangeCurrent)?.let {frozen->KanbanTaskChangeReview(frozen,!s.busy,vm::closeKanbanDependencyReview) {vm.performKanbanTaskChange(frozen)}}
+    statusEditor?.takeIf(vm::kanbanStatusEditorCurrent)?.let {editor->KanbanStatusForm(editor,{statusEditor=null;vm.closeKanbanStatusEditor(editor)}) {plan->statusEditor=null;vm.loadKanbanStatusReview(editor,plan)}}
+    visible.statusReview?.takeIf(vm::kanbanStatusChangeCurrent)?.let {review->KanbanStatusReview(review,!s.busy,{vm.closeKanbanStatusReview(review)}) {typed,granted->vm.performKanbanStatusChange(review,typed,granted)}}
     taskCreate?.takeIf(vm::kanbanTaskCreateCurrent)?.let {draft->KanbanTaskCreateForm(draft,{taskCreate=null},::offerTaskChange)}
     taskEditor?.takeIf(vm::kanbanTaskEditorCurrent)?.let {draft->KanbanTaskForm(draft,{taskEditor=null},::offerTaskChange)}
     taskChange?.takeIf(vm::kanbanTaskChangeCurrent)?.let {frozen->KanbanTaskChangeReview(frozen,!s.busy,{taskChange=null}) {taskChange=null;vm.performKanbanTaskChange(frozen)}}
@@ -122,12 +126,14 @@ private fun kanbanField(key:String)=when(key) {
     },confirmButton={TextButton({review=null;vm.loadHostKanban(frozen)},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("kanban-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null},Modifier.heightIn(min=48.dp).testTag("kanban-read-cancel")) {Text(label(Words.Cancel))}})}
 }
 
-@Composable private fun HostKanbanDetails(detail:HostKanbanDetail,busy:Boolean,blocked:Words?,overrideBlocked:Words?,addBlocked:Words?,removeBlocked:Words?,close:()->Unit,read:(String)->Unit,edit:(HostKanbanTaskAction)->Unit,dependency:(Boolean)->Unit) {
+@Composable private fun HostKanbanDetails(detail:HostKanbanDetail,busy:Boolean,blocked:Words?,overrideBlocked:Words?,addBlocked:Words?,removeBlocked:Words?,statusBlocked:Words?,error:Words?,status:()->Unit,close:()->Unit,read:(String)->Unit,edit:(HostKanbanTaskAction)->Unit,dependency:(Boolean)->Unit) {
     val task=detail.task
     AlertDialog(onDismissRequest=close,title={Text(task.title)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("kanban-task-detail"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(detail.owner.url);Text(detail.owner.profile);Text(detail.board.slug);Text(label(Words.KanbanObservation));KanbanValue(Words.KanbanTaskId,task.id);KanbanStatus(task.status)}
             item {blocked?.let {Text(label(it))};overrideBlocked?.takeIf {it!=blocked}?.let {Text(label(it))}}
+            if(error!=null) item {Text(label(error),color=MaterialTheme.colorScheme.error)}
+            item {TextButton(status,enabled=statusBlocked==null,modifier=Modifier.heightIn(min=48.dp).testTag("status-open")) {Text(label(Words.KanbanStatusChange))};statusBlocked?.let {Text(label(it))}}
             items(kanbanTaskEditActions,key={"action:"+it.name}) {action->TextButton({edit(action)},enabled=blocked==null && (action !in kanbanTaskOverrideActions || overrideBlocked==null),modifier=Modifier.heightIn(min=48.dp).testTag("task-edit-"+action.name)) {Text(label(kanbanTaskActionWord(action)))}}
             for((remove,reason) in listOf(false to addBlocked,true to removeBlocked)) item {
                 TextButton({dependency(remove)},enabled=reason==null,modifier=Modifier.heightIn(min=48.dp).testTag(if(remove) "task-dependency-remove" else "task-dependency-add")) {Text(label(if(remove) Words.KanbanTaskUnlink else Words.KanbanTaskLink))}

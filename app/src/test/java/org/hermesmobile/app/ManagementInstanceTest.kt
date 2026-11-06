@@ -10,7 +10,7 @@ class ManagementInstanceTest {
     private fun receipt(action:String="RelayLinkStart",state:String="unknown")=ManagementOperation("opaque-key",owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,action,"private-target","private-request",state,"private-result",123456789)
     private fun project(row:ManagementOperation,target:ManagementTarget=other)=ManagementReceiptVisibility.project(listOf(row),target.apiScope,target.resourceScope,target.url)
     @Test fun crossProfileInstanceWorkIsVisibleWithoutPrivateMetadata() {
-        for(action in listOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe")) for(state in listOf("sending","unknown")) {
+        for(action in listOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe",HostKanbanStatusChange.ReceiptAction)) for(state in listOf("sending","unknown")) {
             val row=project(receipt(action,state)).single()
             assertEquals(ManagementReceiptVisibility.SharedInstancePending,row.action);assertEquals(state,row.state);assertEquals("opaque-key",row.key)
             assertEquals(owner.url,row.url);assertEquals("",row.profile);assertEquals("",row.resourceScope);assertEquals("",row.apiScope);assertEquals(0L,row.createdAt)
@@ -45,4 +45,22 @@ class ManagementInstanceTest {
         val row=project(receipt("Probe"),owner.copy(apiScope=other.apiScope)).single()
         assertEquals(ManagementReceiptVisibility.SharedPending,row.action);assertEquals(owner.profile,row.profile);assertEquals(owner.resourceScope,row.resourceScope)
     }
+    @Test fun pendingStatusBlocksEveryProfileOnTheSameEndpointWithoutExposingDetails() {
+        val original=receipt(HostKanbanStatusChange.ReceiptAction)
+        for(target in listOf(other,other.copy(apiScope=owner.apiScope),owner.copy(apiScope=other.apiScope))) {
+            val shared=project(original,target).single()
+            assertEquals(ManagementReceiptVisibility.SharedInstancePending,shared.action)
+            assertEquals("",shared.actor);assertEquals("",shared.profile);assertEquals("",shared.requestSummary);assertEquals("",shared.resultSummary);assertEquals("",shared.target)
+            assertFalse(shared.toString().contains("private-"));assertEquals("unknown",shared.state)
+        }
+        assertTrue(project(original,other.copy(url="https://different.example/dashboard/")).isEmpty())
+    }
+    @Test fun settledStatusHistoryBelongsToItsExactProfileAndCredentialScope() {
+        val original=receipt(HostKanbanStatusChange.ReceiptAction,"confirmed")
+        assertEquals(listOf(original),project(original,owner))
+        assertTrue(project(original).isEmpty())
+        assertTrue(project(original,owner.copy(apiScope=other.apiScope)).isEmpty())
+        assertTrue(project(original,other.copy(apiScope=owner.apiScope)).isEmpty())
+    }
+
 }

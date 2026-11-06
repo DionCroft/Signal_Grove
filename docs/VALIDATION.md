@@ -1,6 +1,70 @@
 # Current development validation — audit follow-up
 
 
+## 2026-11-06 — private task-status forms and receipt routing
+
+All four required local tasks passed on 456 frozen inputs: testDebugUnitTest,
+lint, assembleDebug and assembleDebugAndroidTest. The JVM reports contain 577
+unique cases with no failure, error or skip. Both APKs retain the original debug
+signer. App SHA-256: `d513bd43731500e794a1b8e6178c945d97efadc1cd6524e1cfaa6f0fd2719ec2`.
+Test companion SHA-256: `d22b09dd190838b7017f96eaeb7de845eda3c8eeb80406bd932fa9f3364ca11d`.
+Retained raw source-input archive SHA-256: `f77ad0c0724172a4e4d01a1d87377be2b4ba6cf4bb83486615844a98ae8483e1`.
+These are unpublished development version 108 / beta.7 artifacts, separate from beta.6.
+
+The same APK pair passed all 25 HostKanbanStatusFlowTest methods and all 22
+HostKanbanOverrideFlowTest methods on the owned API37 emulator, independently
+checked against each expected method-name set and matching terminal counts.
+No failures or skips occurred. Installed APK hashes were checked before and
+after each cohort. No app-data clear, uninstall, AVD reset or geometry change
+was used. Local Tasks remain unchanged in every flow. This is 47 focused native
+cases, not a full suite or an owner-phone result.
+
+The new cases cover eight supported target statuses, required/exact result or
+reason, optional field omission, unavailable states/Running, cancellation,
+shared pending work, stale/profile-changed approvals, changed claims, missing
+metadata, complete connected impact, one-send uncertainty, differing host status,
+readback mismatch and durable receipt routing. Generic MCP observation cannot
+resolve a task-status receipt. Two additional JVM cases and the extended
+instance-action cohort verify cross-profile/credential redaction and settled
+history isolation. Private forms/reviews/reports use scoped state; unknown work
+keeps its shared endpoint barrier until explicit local review.
+
+Three fresh UUID-bound bilingual form/review/result screenshots were separated
+from old pulled captures and inspected at 1080 × 2400, density 420 and font
+scale 1.0. Modal footer actions remain reachable, with native minimum 48 dp checks. This does not
+close whole-app, other geometry/SDK or physical-phone visual acceptance. The
+confirmed result still repeats its matching-row sentence; wider UX polish stays
+in the audit ledger.
+
+Original attempts remain retained: build2 failed lint on StateFlow.value inside
+composition; build3's 25 native methods all failed during fixture setup because
+MockWebServer first resolved its URL on the UI thread. Build4 moves that fixture
+operation to the test thread, without weakening assertions; its application APK
+is byte-identical to build3. Neither failed attempt is relabelled as acceptance.
+
+### Earlier executor full hosted gates now closed
+
+[Android run 42274455789](https://github.com/DionCroft/Signal_Grove/actions/runs/42274455789)
+passed at exact d45a3e57fab98b80b2c16fff2f25eb3e82c06cbd: 575 JVM,
+968 unique API26 and 969 unique API37 positive methods, matching terminal counts
+and no failure/skip codes. All 23 status storage, 4 polling, 22 override and 3 title
+methods are present. Independently downloaded build/API26/API37 ZIP digests are
+`a73f00894fa8927009fbbdea6deeaf3239bc6e88bade66c96c4758d9fab263bf`,
+`5744e64c0bdf2b956dface34ff6295063664264923ca37e38f433c39d9700b4b`
+and `f28c7aeea20065617c1c7c6d6f8301703a032257fcc668db4df50789a65b82f9`.
+This supersedes earlier pending-job statements below. It accepts the earlier
+executor source, not these new forms. Commit ae84e3b's separately verified compatibility
+run remains 157 policy/15 observer/eight pinned real-module cases.
+
+Still required before merge/release of these forms: full exact-head Android and
+compatibility gates; workspace/dispatch/worktree transitive guards and isolated
+actual-server transitions. No current app/fixture result verifies real worker
+identity/termination, descendant effects, filesystem cleanup, hooks or loaded
+models. No production task/model/default/session write was performed. A fresh
+read-only Pi check at 20:50 UTC still reports RVN ready and the saved stock endpoint
+offline; it changes no settings. Public beta.6 remains the title-collision fix.
+
+
 ## 2026-11-06 — guarded-registry hosted acceptance at ae84e3b
 
 [Compatibility run 42280028630](https://github.com/DionCroft/Signal_Grove/actions/runs/42280028630)

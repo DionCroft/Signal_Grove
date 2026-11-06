@@ -27,7 +27,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. Beta.6 title fix is published at e2b2de7 with536 JVM/919 API26/920 API37, compatibility, original-key release lint/retention and all4 public byte hashes verified. | Keep exact-head gates for subsequent chunks. Beta.5 and beta.6 were published from tested feature commits; neither publication advances main or closes later development/physical acceptance. |
 | 2. Real Hermes matrix | Pinned stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers. A pinned v0.22.7 native run now has poll/SSE/sequence-resume/history and durable single-admission evidence, with both diagnostic errors retained and reconciled read-only. Full clean-install/current-native/tool matrix and owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
-| 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. Override forms have159 original-companion focused passes across3SDKs and inspected layouts. Corrected108 integration has536 JVM/34-case37 passes; full941/942 gates remain open. The status foundation has552 JVM/10 existing storage passes; a later internal executor draft passes575 JVM but its first native cohort failed and had a startup ANR. It exposes no status UI. | Correct the strict board-query fixture and accept the status repository regressions; then deliver private native form/review/receipt routing and actual isolated-server transitions. Keep task-scoped latest-at-write approval distinct from atomic worker fencing, and next-dispatch settings distinct from current runtime. Full gates remain required. |
+| 4a. Kanban status/overrides | Override integration passed 536 JVM/941 API26/942 API37 at C659. Internal status executor D45 passed 575 JVM/968 API26/969 API37, with original failed attempts retained. Private native status form/review/receipt routing now has 577 JVM and 25 status plus 22 override API37 passes on one frozen APK pair; three fresh bilingual modal captures inspected. | Full exact-head gates for the new forms; finish workspace/dispatch/worktree transitive guards and actual isolated-server transitions. Keep latest-task/graph approval distinct from atomic worker fencing, and stored-row observations distinct from real worker/filesystem/runtime outcomes. |
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
 | 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. | Typed editing/run/results/logs and explicit outcomes, without claiming runtime completion from ACK. |
@@ -140,3 +140,27 @@ workspace/dispatch transitive and actual-server checks while the D45 Android
 suites finish. Continue every remaining ledger row. Keep implemented, merged,
 released and live-verified states separate; do not infer full parity from these
 source/module checks.
+
+
+## 6 November — private status UI checkpoint
+
+The eight supported status choices now have private drafts, complete bounded
+connected-impact review, exact task-ID and latest-impact grants, one-use sends
+and honest requested/reported/observed receipts. Status uncertainty is shared
+across profiles at the exact endpoint without exposing another owner's fields.
+Cancelled, closed, stale, profile-changed or pending approvals cannot revive.
+Receipts return to Kanban; generic MCP observations cannot resolve their outcome.
+
+All mandatory local tasks passed 577 JVM; the exact frozen pair passed 25 new
+status and 22 related override API37 cases, no skips/failures. The earlier
+fixture/main-thread and lint failures remain recorded. Three fresh bilingual
+modal captures have inspected reachable footers. The earlier D45 full hosted
+suite is independently accepted at 575/968/969; it is not the new UI's full gate.
+See VALIDATION.md for hashes, methods, failure history and exact scope. The
+matching-row sentence appears twice in the confirmed report; keep that minor
+copy cleanup in the wider UX follow-up.
+
+Next action: verify exact-head full Android/compatibility acceptance for this
+feature chunk, then finish the status transitive watcher and
+isolated actual-server matrix. Continue every remaining ledger row. Main and
+public beta.6 are unchanged; these forms are development source only.

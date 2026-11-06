@@ -367,3 +367,31 @@ Model and reasoning are independent requests. Missing override metadata and
 archived tasks explain unavailable controls. Cancel, close, connection/profile
 changes and shared pending work discard private drafts and old grants. These
 forms are development source, separate from beta.5's typed data foundation.
+
+
+## Review a host-task status change (development)
+
+These controls are development source and are not in public beta.6.
+
+1. In Management → Host Kanban, approve inventory, board and task-detail reads,
+   then choose **Change task status**.
+2. Select an available target. Done needs a replacement result; Blocked needs a
+   reason. Review/Scheduled can include optional text. Scheduled parks the task
+   without setting a wake time. Running is not a status choice here.
+3. Choose **Read latest linked impact**. This reads the host; it sends no status
+   change. Missing required metadata or an incomplete graph stops the review.
+4. Review the exact task, payload, connected tasks and host effects. Reopening
+   finished work can reset descendants; the host may request worker termination,
+   queue work, stage files, invoke hooks or clean managed workspaces. Fresh
+   preflight is not an atomic lock. Type the exact task ID and approve the latest
+   linked impact before Confirm, or Cancel without sending.
+5. Read the receipt. Requested and host-reported status can differ. A matching
+   later task row verifies neither worker shutdown nor filesystem/engineering
+   completion. An unknown outcome is never automatically retried. Inspect the
+   host and separately review its uncertainty receipt before another mutation.
+
+Closing, cancelling, changing profile/connection or shared pending work discards
+private values and old grants. After an attempt, explicitly reload the current
+inventory, board and task before preparing another status change. These host
+boards are separate from the phone's local Tasks database. Full acceptance and
+remaining actual-server/worker checks are in [VALIDATION](VALIDATION.md).

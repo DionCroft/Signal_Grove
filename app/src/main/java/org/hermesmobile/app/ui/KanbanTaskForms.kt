@@ -81,7 +81,7 @@ internal fun taskFieldWord(key:String)=when(key) {"clear_model_override"->Words.
     },confirmButton={TextButton({request?.let(review)},enabled=request!=null,modifier=Modifier.heightIn(min=48.dp).testTag("task-form-review")) {Text(label(Words.Review))}},dismissButton={TextButton(close,Modifier.heightIn(min=48.dp).testTag("task-form-cancel")) {Text(label(Words.Cancel))}})
 }
 
-@Composable private fun TaskReviewedValue(value:JsonElement) {
+@Composable internal fun TaskReviewedValue(value:JsonElement) {
     when(value) {
         is JsonArray->SelectionContainer {Text(if(value.isEmpty()) label(Words.EmptyInventory) else value.joinToString("\n") {it.jsonPrimitive.content})}
         is JsonPrimitive->if(!value.isString && value.booleanOrNull!=null) Text(label(if(value.boolean) Words.Yes else Words.No)) else SelectionContainer {Text(value.content.ifEmpty {label(Words.ProjectEmptyValue)})}

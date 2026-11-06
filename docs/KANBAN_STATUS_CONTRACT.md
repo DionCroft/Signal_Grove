@@ -62,8 +62,8 @@ task's latest connected graph. It requires the exact typed task ID and separate
 consent to that scope; the approval is consumed once, including after a refused
 preflight. It never labels the operation as bound to the earlier observed worker.
 The Task projection exposes a claim/run reference, but not the kernel's process
-start fingerprint. A claim hash is not verified process identity. Native controls
-and their translated explanations still need implementation before exposure.
+start fingerprint. A claim hash is not verified process identity. Private native controls and translated effects are now implemented on the
+development branch; their current acceptance scope is recorded below.
 
 Read-only preparation collects the complete connected component, with128-task,
 8MiB total and per-response/depth bounds. Missing/asymmetric/cyclic/unsupported
@@ -127,9 +127,9 @@ read-only source used for bounded inspection:
 | [worker identity/signaling](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/hermes_cli/kanban_db_dispatch.py) | `72a779c7c7a4359ce21476f86842869d39219d13` |
 | [worktree retention](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/hermes_cli/worktree_ops.py) | `bc932825b7330f6d06b5cfc1d50cbf4bc29de7fa` |
 
-Still required: finish transitive/deployment review; native private
-form/review/receipt routing; actual isolated
-server transitions; full hosted acceptance and separately authorized live checks.
+Still required: finish transitive/deployment review, actual isolated server
+transitions, full new-head hosted acceptance and separately authorized live checks.
+Private form/review/receipt routing now has the focused acceptance below.
 The first strict fixture incorrectly omitted the board GET's documented
 `include_archived=true` argument. Its16 negative methods, zero positives and
 startup ANR remain recorded; no native acceptance is claimed for that cohort.
@@ -141,4 +141,40 @@ regressions, including 23 status methods. Original failed cohorts remain recorde
 in VALIDATION.md. Twenty-two status lifecycle/helper fingerprints plus four
 request fields are watched against the preserved F0 baseline; all match reviewed
 stable 2bd378e and main b2e4ded. This does not cover every workspace/dispatch helper
-or prove deployed custom code. No native status control is exposed at this stage.
+or prove deployed custom code. That earlier internal-executor checkpoint exposed no native status control.
+
+
+## Private native review and receipts — development source
+
+Static review of the exact listed upstream blobs confirms `_task_dict` uses
+`asdict(Task)`: all seven required nullable task/claim/workspace/result/contract
+fields are exposed. The process-start fingerprint is not a Task field. This
+source check does not certify actual server transitions or worker identity.
+
+The task drawer now offers the eight supported targets; unavailable/same-state
+choices explain their restriction and Running is not offered. Done requires an
+exact replacement result; Blocked requires a reason. Review/Scheduled have an
+explicit optional text choice, and Scheduled supplies no wake time. Preparing
+impact is a separately initiated read, not a status write.
+
+The private review displays the exact host/profile/actor, board/database path,
+task and requested fields, full connected component and all applicable lifecycle
+effects. It requires the exact typed task ID plus an explicit grant for latest
+host task/graph effects after preflight. Cancel, close, profile/context changes
+and shared pending work discard old drafts/grants. No atomic worker identity or
+run lock is implied. One send retains a durable acknowledgement before optional
+readback. Requested status, host-reported status and matching later row remain
+separate; differing results never trigger a corrective replay.
+
+Status receipts route back to Kanban instead of generic MCP inspection. A lost
+reply remains unknown even after fresh reads. Cross-profile pending status work
+shows only a redacted endpoint barrier; settled private history stays scoped to
+its original actor/profile/credential context. Matching row text never proves
+worker shutdown, descendant transitions, file cleanup, hooks, loaded models or
+engineering completion.
+
+The current pair passed 577 JVM and 25 status/22 override API37 native cases;
+three fresh bilingual modal captures were inspected. The earlier executor's full
+968/969 device passes are separate. See VALIDATION.md for retained failures,
+hashes, full-gate requirements and the remaining real-server/worker boundaries.
+This source is not included in public beta.6.

@@ -12,7 +12,7 @@ object ManagementReceiptVisibility {
     const val SharedPending="SharedPending"
     const val SharedInstancePending="SharedInstancePending"
     const val SharedProjectPending="SharedProjectPending"
-    fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe") || HostKanbanBoardAction.receipt(action) || HostKanbanTaskAction.receipt(action)
+    fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe") || HostKanbanBoardAction.receipt(action) || HostKanbanTaskAction.receipt(action) || HostKanbanStatusChange.receipt(action)
     fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String="",projectHome:String=""):List<ManagementOperation> {
         if(resourceScope.isBlank()) return emptyList()
         return rows.mapNotNull {row ->

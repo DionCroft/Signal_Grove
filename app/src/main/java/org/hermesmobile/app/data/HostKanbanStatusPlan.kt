@@ -20,8 +20,8 @@ enum class HostKanbanStatusEffect {
 class HostKanbanStatusInvalid : Exception("Unsupported or incomplete task status change.")
 
 /**
- * Typed, private review foundation only; no transport or execution entry point.
- * The reviewed public PATCH has no revision/run fence. A future executor must retain
+ * Typed private status review. The reviewed public PATCH has no revision/run fence.
+ * The executor retains
  * preflight, home/board binding, exact approval and one-send uncertain-outcome receipts.
  */
 class HostKanbanStatusPlan private constructor(
@@ -37,19 +37,19 @@ class HostKanbanStatusPlan private constructor(
         private val known = HostKanbanStatusTarget.entries.map { it.wire }.toSet() + "running"
         private val direct = setOf(HostKanbanStatusTarget.Todo, HostKanbanStatusTarget.Ready, HostKanbanStatusTarget.Triage)
 
+        fun supports(before: String, target: HostKanbanStatusTarget): Boolean = before in known && before != target.wire && when (target) {
+            HostKanbanStatusTarget.Blocked, HostKanbanStatusTarget.Review -> before in setOf("running", "ready")
+            HostKanbanStatusTarget.Scheduled -> before in setOf("todo", "ready", "running", "blocked")
+            HostKanbanStatusTarget.Done -> before in setOf("running", "ready", "blocked", "review")
+            else -> true
+        }
+
         fun review(subject: HostKanbanDetail, target: HostKanbanStatusTarget, statement: String? = null): HostKanbanStatusPlan = try {
             GatewayCronInventory.requireProfile(subject.owner.profile)
             require(subject.profileHomeId.matches(Regex("[a-f0-9]{64}")))
             require(HostKanbanProtocol.slug(subject.board.slug) && !subject.board.archived && HostKanbanProtocol.id(subject.task.id))
             val before = subject.task.status
-            require(before in known && before != target.wire)
-            val allowed = when (target) {
-                HostKanbanStatusTarget.Blocked, HostKanbanStatusTarget.Review -> before in setOf("running", "ready")
-                HostKanbanStatusTarget.Scheduled -> before in setOf("todo", "ready", "running", "blocked")
-                HostKanbanStatusTarget.Done -> before in setOf("running", "ready", "blocked", "review")
-                else -> true
-            }
-            require(allowed)
+            require(supports(before, target))
             statement?.let { value ->
                 require(value.isNotBlank() && value.length <= 262144)
                 require(value.none { it.isISOControl() && it !in "\n\r\t" })
