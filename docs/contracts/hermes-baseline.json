@@ -404,7 +404,8 @@
         "session_token_provider": "349fb13221534682da8f39c8e16d2f0952e2b11e045f95d0e4d5787e1facb7cf",
         "session_token_loader": "860fc60d3c2ed276ee259e7931261b190e6ac21ef8720986d6eb9b0e7c082b3a",
         "auth_request_utils": "c1081abe0f960d274084d5c64c5a92c389cdade1c1a186239588ee4bdfb7fe88",
-        "signin_shared": "fbd1dd5eae897717abc99762ab8b7b998355a2907114790eaf4a8d7ccd33d95a"
+        "signin_shared": "fbd1dd5eae897717abc99762ab8b7b998355a2907114790eaf4a8d7ccd33d95a",
+        "signin_registry_engine": "7c39ae4f391b00039e14891bc12f621426f801198cc773453a457cd794948b98"
       },
       "handlers": {
         "api:APIServerAdapter._handle_capabilities": "fded591edab150c17cb5d89a1a531952c438c862a8cec884efaf1e18f8c44b50",
@@ -3927,7 +3928,36 @@
         "plugin_catalog_loader:find_removed": "88f11ffa664c189c81530608f51c4d56fbbaf93cafe93bfe7793d0bbc01c7457",
         "plugin_catalog_loader:live_removed_list": "c9bfd0e127d53eb3ff087379ede86110e91c96fcc918aa5e0f8e29d09cc4ad2b",
         "plugin_catalog_loader:load_removed_list": "87e03a34fa85870b6344b73443c1b311c648c6f3acaf0413d4318d371fbc1bd2",
-        "plugin_core:_catalog_installed_dir": "0594d17e63b5bf175f482af5651804a00f7584d1c228d3bbf4124c19093e83d0"
+        "plugin_core:_catalog_installed_dir": "0594d17e63b5bf175f482af5651804a00f7584d1c228d3bbf4124c19093e83d0",
+        "signin_registry_engine:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "signin_registry_engine:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "signin_registry_engine:import:threading": "8899f139ad63f719e39adc3d600b7909288913546c1d231e5e1164dc8d3f6946",
+        "signin_registry_engine:import:Any": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "signin_registry_engine:import:Callable": "77708af745ea43336978257d3e6e3059cc23716394f7225d5b7cb27c25c3ca05",
+        "signin_registry_engine:import:Dict": "e432a7c99d48a8626fff1a7797c5f775505ea59b2245b21d4a4fcca4d1921da2",
+        "signin_registry_engine:import:FrozenSet": "3860e53d97417b2a734f4ccd9c9ec36ca415d795f0c6ab241dd8106c853a7528",
+        "signin_registry_engine:import:Generic": "e5b35eb85b23ba40bcf9cf976f2e8eed42e09ee61e5fd3160ec6ba036eeba54f",
+        "signin_registry_engine:import:List": "fabbd3beb3e32ef48a8fd409c624107ef93f5f1ba3a68cdd5909f7a32436e348",
+        "signin_registry_engine:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "signin_registry_engine:import:TypeVar": "0076a2ebe4c0ad70d85bd82ed733ee48fac7f929ba6236534597c55cbed93a81",
+        "signin_registry_engine:import:hermes_home_key": "d679a2763661cbbdfb2da44993558d3c04da8bf11f0411ca04d9e0ce94685950",
+        "signin_registry_engine:import:normalize_scope": "10541eddf1995b2b5ec31efebd7f46a33cfc51a63b65065a5691efafbf3a4b79",
+        "signin_registry_engine:binding:P": "5c0a989d4276e8ac9efefc69975044f571c2a0ee9a259c138d2a9c72a0ec2099",
+        "signin_registry_engine:lower_key": "9f28a9230bb9edf0853262f53f20bd3e455d5283680298e6aacba6fb76084e2d",
+        "signin_registry_engine:ProviderRegistry.__init__": "c799942889fddcb69851f2872c30fe439b6903b337ea2bcbeab56245fc4a5b7a",
+        "signin_registry_engine:ProviderRegistry._target": "2957a7abaf1945841cefd40837f0d17a2b9d4b98f4ed010e58ac6f756b614f88",
+        "signin_registry_engine:ProviderRegistry._bump": "ed08d03f32f076b6c3de03d06082ef0729cc762072d58379a1efaa01cf740506",
+        "signin_registry_engine:ProviderRegistry.register": "236c068a5313166b3b4a58438f26a99dab5cc87e31d1558f1c0b2491e03db014",
+        "signin_registry_engine:ProviderRegistry.merged": "dd06dd5485444a653e02117e10f4e16b7c3135c62ad3aa1cd4291029808c65e9",
+        "signin_registry_engine:ProviderRegistry.list_providers": "881a63465f914692e2c5d18430a59c6889d53c5974ea700225068ee0168368fa",
+        "signin_registry_engine:ProviderRegistry.get_provider": "ca1e182c4c1e3a4c8ed466d493a94a4ef53b7d1ac36d49aa04e3faac831187b5",
+        "signin_registry_engine:ProviderRegistry.registry_generation": "d3833c3b887072919ff0d6f97316b044f3ad5900350738471cbd5cb89822479e",
+        "signin_registry_engine:ProviderRegistry.snapshot_registration": "6b8467486cb79665d7778e43c6a8645e00a1ffc566b50faa45427485cdb6f7e9",
+        "signin_registry_engine:ProviderRegistry.restore_registration": "b4dd95b047723c57d8879c5de499ef931746a86637be2a071446f9eb32c55b71",
+        "signin_registry_engine:ProviderRegistry.reset_for_tests": "e3119300652c70765c6da652c518946677bde219bd6cfc2080e1124ec15be578",
+        "signin_registry_engine:ProviderRegistry.export": "f57893f222c523105e39c2289847f2031733bfce32d68c740019bffdc795904e",
+        "signin_registry_engine:is_available_safe": "f414d485e2a55dbc90f96a0beab8e5c5f53bf532020bac1566e7d541065a5916",
+        "signin_registry_engine:configured_provider_name": "6e7ee425c99a86601c4879fc7bffb06325af6dd92e74a149aa1f9e0bc5780d88"
       },
       "request_fields": {
         "auth:_NativeRefreshBody.provider": "6f26da4d3397a0ad1e091e80f548edef3c9ec86067192a65272fb7d0def308d9",
@@ -7200,7 +7230,48 @@
     "ws_boundary:ws_host_origin_reason",
     "ws_tickets:TTL_SECONDS",
     "ws_tickets:consume_ticket",
-    "ws_tickets:mint_ticket"
+    "ws_tickets:mint_ticket",
+    "kanban_api:_apply_status",
+    "kanban_api:_patch_status",
+    "kanban_api:_drag_to",
+    "kanban_api:_set_status_direct",
+    "kanban_api:_open_parent_refusal",
+    "kanban_api:_parents_blocking_ready",
+    "kanban_db:complete_task",
+    "kanban_db:block_task",
+    "kanban_db:schedule_task",
+    "kanban_db:request_review",
+    "kanban_db:unblock_task",
+    "kanban_db:reopen_review_task",
+    "kanban_db:invalidate_descendants_for_parent_reopen",
+    "kanban_db:archive_task",
+    "kanban_db:_claim_is_live",
+    "kanban_db:_end_run",
+    "kanban_db:_end_or_synthesize_run",
+    "kanban_db:_gate_empty_completion",
+    "kanban_db:_merge_completion_prose_artifacts",
+    "kanban_db:_persist_scratch_completion_artifacts",
+    "kanban_db:_stage_completion_artifacts",
+    "kanban_db:_copy_capped",
+    "signin_registry_engine:ProviderRegistry.__init__",
+    "signin_registry_engine:ProviderRegistry._target",
+    "signin_registry_engine:ProviderRegistry._bump",
+    "signin_registry_engine:ProviderRegistry.snapshot_registration",
+    "signin_registry_engine:ProviderRegistry.restore_registration",
+    "signin_registry_engine:exact_key",
+    "signin_registry_engine:import:threading",
+    "signin_registry_engine:import:hermes_home_key",
+    "signin_registry_engine:import:normalize_scope",
+    "signin_registry:snapshot_registration",
+    "signin_registry:restore_registration",
+    "signin_registry:register_global_provider",
+    "signin_registry:unregister_global_provider",
+    "signin_registry:binding:_registry",
+    "signin_registry:binding:_target",
+    "signin_registry:binding:snapshot_registration",
+    "signin_registry:binding:restore_registration",
+    "signin_registry:import:ProviderRegistry",
+    "signin_registry:import:exact_key"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -7525,7 +7596,11 @@
     "kanban_api:UpdateTaskBody.provider_override",
     "kanban_api:UpdateTaskBody.clear_model_override",
     "kanban_api:UpdateTaskBody.reasoning_effort",
-    "kanban_api:UpdateTaskBody.clear_reasoning_effort"
+    "kanban_api:UpdateTaskBody.clear_reasoning_effort",
+    "kanban_api:UpdateTaskBody.status",
+    "kanban_api:UpdateTaskBody.result",
+    "kanban_api:UpdateTaskBody.block_reason",
+    "kanban_api:UpdateTaskBody.summary"
   ],
   "mobile_used_static_flags": [
     "session_resources",
@@ -7555,7 +7630,8 @@
     "2026-11-05: Added scoped Kanban inventory/board/task GETs, private response schemas, shared-root/board resolution, initialization/migration, plugin access/mount and in-flight read-coalescing watches. All ten source modules existed at the original F0 baseline; the 287 new selected keys are identical at stable B200. Existing handler hashes/variants and baseline commit remain intact. Profile-home routing is distinct from shared Kanban storage; reads do not establish worker health or physical path identity. See contracts/2026-11-05-kanban-inspection.md.",
     "2026-11-05: Reviewed board create/update/archive/delete/current-pointer writes add four used routes, CreateBoardBody/RenameBoardBody whole schemas and fields, exact mutation/display/path/project helpers and delegated-child guard. All newly selected definitions match original F0 and stable B200; previous hashes, variants and baseline commit are retained. Raced creation can reuse/overwrite metadata; archive/delete have partial pointer/filesystem effects; source review is not runtime/physical-erasure proof. See contracts/2026-11-05-kanban-board-controls.md.",
     "2026-11-05: Reviewed eight exact D8 plugin contract/install/update changes, added per-plugin lock/dependency/manual-helper and unchanged advisory-lock/home watches, and exact F0/B200 source-absence handling. Existing fields/defaults/dispatch, consent/caution/danger gates and all original fingerprints/variants remain; new bulk/host-auto actions are not yet Android controls.",
-    "2026-11-05: Task mutation foundation adds six literal routes and typed create/text/priority/assignment/comment/dependency/delete contracts. Watch original task schemas/fields, one-phase PATCH ordering, create parent/project/model/nonce helpers, dependency graph/notifications and delete/recompute effects. New graph module and all newly selected boundaries match original F0 and stable B200; prior baseline, fingerprints and exact variants remain. This is a tested data-layer chunk, not completion of task forms/status/worker/dispatch/files. See contracts/2026-11-05-kanban-task-authoring.md."
+    "2026-11-05: Task mutation foundation adds six literal routes and typed create/text/priority/assignment/comment/dependency/delete contracts. Watch original task schemas/fields, one-phase PATCH ordering, create parent/project/model/nonce helpers, dependency graph/notifications and delete/recompute effects. New graph module and all newly selected boundaries match original F0 and stable B200; prior baseline, fingerprints and exact variants remain. This is a tested data-layer chunk, not completion of task forms/status/worker/dispatch/files. See contracts/2026-11-05-kanban-task-authoring.md.",
+    "2026-11-06: extend original F0 source coverage with agent/provider_registry.py, verified original Git blob af6280935e1ac3921c749afb243e8c4b67312d85. E36 aliases/engine variants are separately pinned; retired local handlers require the exact replacement module source hash and watched dependencies. Original F0 fields/fingerprints are unchanged. See 2026-11-06-auth-registry-refactor-review.md."
   ],
   "reviewed_handler_variants": {
     "ws_boundary:ws_host_origin_reason": [
@@ -8378,6 +8454,90 @@
         "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
         "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
+    ],
+    "authority:run_projection": [
+      {
+        "sha256": "56aba7aec36fac3bce9b285466bc793cd72534b769b0d38028403b4d7c96a8ce",
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "2026-11-06 source review: optional progress_at/tool metadata precedes unchanged authoritative identity/status/control fields; client ignores this metadata for settlement. Four original-key API37 real HTTP/Room regressions cover running/terminal, generation/submission fences, approval state, absent status and mismatched run identity. Original baseline retained; no future hash wildcard."
+      }
+    ],
+    "signin_registry_engine:ProviderRegistry.__init__": [
+      {
+        "sha256": "1dc42d2b3db710535fab2ede7c19c3455d819bbedd9ca306878f63a93c96461d",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry_engine:exact_key": [
+      {
+        "sha256": "5d08498b36593426e18f4b26385cb8b8f3ba0091ed396fe16a7aa5937a162d7e",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:binding:_registry": [
+      {
+        "sha256": "3c2690f0b3f37fddfd433cd1f5e0d9a3125228ec07b1836e12dd8a2e25f736c0",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:binding:_target": [
+      {
+        "sha256": "e487507173b3036311e3d0ccdc7f8cc95a78995209ff995490b7514c8a7bd82c",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:binding:snapshot_registration": [
+      {
+        "sha256": "e999be984b5d3e27bb8dab952bc1c65f48e7afb5987d0412f14f60af00ba2a0d",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:binding:restore_registration": [
+      {
+        "sha256": "1a2837709d5c6633a0d46682205e735d0d834c9843831315b9ff1febac43029c",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:import:ProviderRegistry": [
+      {
+        "sha256": "c2bafa96751ab5f5d54b21000750c461517bc6e87159ae3efdf73b8d6dda460e",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:import:exact_key": [
+      {
+        "sha256": "9f263b35dc2652f7fff3a2bd311a948f0792b94b28098a4202f72c71ed88afbd",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:binding:_lock": [
+      {
+        "sha256": "0ff6f66b40a45ef9a75915de5caad1f9f0ec877e3a249bde4b910bd9bb925894",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:binding:_providers": [
+      {
+        "sha256": "66da79adaaf6bf61158cc4ae06a75b0c21c33243c2de71cfc49934c0270b118d",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "signin_registry:binding:_scoped_providers": [
+      {
+        "sha256": "646542258cf74ba60c2c67e4c72db24aabbd816090d44f0f356258ebbe6f68a7",
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
     ]
   },
   "reviewed_source_introductions": {
@@ -8570,6 +8730,163 @@
       {
         "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
         "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "signin_registry_engine:exact_key": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      }
+    ],
+    "signin_registry:binding:_registry": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      }
+    ],
+    "signin_registry:binding:_target": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      }
+    ],
+    "signin_registry:binding:snapshot_registration": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      }
+    ],
+    "signin_registry:binding:restore_registration": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      }
+    ],
+    "signin_registry:import:ProviderRegistry": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      }
+    ],
+    "signin_registry:import:exact_key": [
+      {
+        "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      },
+      {
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "Verified pre-refactor pin: auth registry matches F0 and shared engine is original Git blob af6280935e1ac3921c749afb243e8c4b67312d85; this new exact-name helper/import/binding is absent."
+      }
+    ]
+  },
+  "reviewed_handler_replacements": {
+    "signin_registry:_target": [
+      {
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "The local implementation/import is replaced by the exact reviewed auth registry module and mandatory transitive engine/alias fingerprints. Whole source identity and complete replacement mode are required; no general missing-handler allowance. Eight real-module cases pass; HTTP/deployment acceptance is separate.",
+        "source_sha256": "bdc657b049497103863c5c49c0ceb6d98789b3a699ffda22ea2509c043cfd492",
+        "replacements": {
+          "signin_registry:binding:_target": "e487507173b3036311e3d0ccdc7f8cc95a78995209ff995490b7514c8a7bd82c",
+          "signin_registry:binding:_registry": "3c2690f0b3f37fddfd433cd1f5e0d9a3125228ec07b1836e12dd8a2e25f736c0",
+          "signin_registry:import:ProviderRegistry": "c2bafa96751ab5f5d54b21000750c461517bc6e87159ae3efdf73b8d6dda460e",
+          "signin_registry_engine:ProviderRegistry._target": "2957a7abaf1945841cefd40837f0d17a2b9d4b98f4ed010e58ac6f756b614f88",
+          "signin_registry_engine:ProviderRegistry.__init__": "1dc42d2b3db710535fab2ede7c19c3455d819bbedd9ca306878f63a93c96461d",
+          "signin_registry_engine:exact_key": "5d08498b36593426e18f4b26385cb8b8f3ba0091ed396fe16a7aa5937a162d7e"
+        }
+      }
+    ],
+    "signin_registry:import:threading": [
+      {
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "The local implementation/import is replaced by the exact reviewed auth registry module and mandatory transitive engine/alias fingerprints. Whole source identity and complete replacement mode are required; no general missing-handler allowance. Eight real-module cases pass; HTTP/deployment acceptance is separate.",
+        "source_sha256": "bdc657b049497103863c5c49c0ceb6d98789b3a699ffda22ea2509c043cfd492",
+        "replacements": {
+          "signin_registry:binding:_registry": "3c2690f0b3f37fddfd433cd1f5e0d9a3125228ec07b1836e12dd8a2e25f736c0",
+          "signin_registry:binding:_lock": "0ff6f66b40a45ef9a75915de5caad1f9f0ec877e3a249bde4b910bd9bb925894",
+          "signin_registry_engine:import:threading": "8899f139ad63f719e39adc3d600b7909288913546c1d231e5e1164dc8d3f6946",
+          "signin_registry_engine:ProviderRegistry.__init__": "1dc42d2b3db710535fab2ede7c19c3455d819bbedd9ca306878f63a93c96461d"
+        }
+      }
+    ],
+    "signin_registry:snapshot_registration": [
+      {
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "The local implementation/import is replaced by the exact reviewed auth registry module and mandatory transitive engine/alias fingerprints. Whole source identity and complete replacement mode are required; no general missing-handler allowance. Eight real-module cases pass; HTTP/deployment acceptance is separate.",
+        "source_sha256": "bdc657b049497103863c5c49c0ceb6d98789b3a699ffda22ea2509c043cfd492",
+        "replacements": {
+          "signin_registry:binding:_registry": "3c2690f0b3f37fddfd433cd1f5e0d9a3125228ec07b1836e12dd8a2e25f736c0",
+          "signin_registry:binding:snapshot_registration": "e999be984b5d3e27bb8dab952bc1c65f48e7afb5987d0412f14f60af00ba2a0d",
+          "signin_registry_engine:ProviderRegistry.snapshot_registration": "6b8467486cb79665d7778e43c6a8645e00a1ffc566b50faa45427485cdb6f7e9",
+          "signin_registry_engine:ProviderRegistry._target": "2957a7abaf1945841cefd40837f0d17a2b9d4b98f4ed010e58ac6f756b614f88",
+          "signin_registry_engine:exact_key": "5d08498b36593426e18f4b26385cb8b8f3ba0091ed396fe16a7aa5937a162d7e"
+        }
+      }
+    ],
+    "signin_registry:restore_registration": [
+      {
+        "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
+        "reason": "The local implementation/import is replaced by the exact reviewed auth registry module and mandatory transitive engine/alias fingerprints. Whole source identity and complete replacement mode are required; no general missing-handler allowance. Eight real-module cases pass; HTTP/deployment acceptance is separate.",
+        "source_sha256": "bdc657b049497103863c5c49c0ceb6d98789b3a699ffda22ea2509c043cfd492",
+        "replacements": {
+          "signin_registry:binding:_registry": "3c2690f0b3f37fddfd433cd1f5e0d9a3125228ec07b1836e12dd8a2e25f736c0",
+          "signin_registry:binding:restore_registration": "1a2837709d5c6633a0d46682205e735d0d834c9843831315b9ff1febac43029c",
+          "signin_registry_engine:ProviderRegistry.restore_registration": "b4dd95b047723c57d8879c5de499ef931746a86637be2a071446f9eb32c55b71",
+          "signin_registry_engine:ProviderRegistry._target": "2957a7abaf1945841cefd40837f0d17a2b9d4b98f4ed010e58ac6f756b614f88",
+          "signin_registry_engine:ProviderRegistry._bump": "ed08d03f32f076b6c3de03d06082ef0729cc762072d58379a1efaa01cf740506",
+          "signin_registry_engine:exact_key": "5d08498b36593426e18f4b26385cb8b8f3ba0091ed396fe16a7aa5937a162d7e"
+        }
       }
     ]
   }

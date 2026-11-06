@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['scripts/check_hermes_contract.py', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
+    paths: ['scripts/check_hermes_contract.py', 'scripts/compatibility_probe_dashboard_registry.py', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
   pull_request:
-    paths: ['scripts/check_hermes_contract.py', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
+    paths: ['scripts/check_hermes_contract.py', 'scripts/compatibility_probe_dashboard_registry.py', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
 permissions:
   contents: read
 concurrency:
@@ -94,5 +94,39 @@ jobs:
         with:
           name: hermes-contract-main
           path: ${{ runner.temp }}/hermes-contract-main.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  pinned-registry-modules:
+    needs: parser-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Prepare the exact reviewed public registry modules
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -B - <<'PY'
+          import importlib.util, os
+          from pathlib import Path
+          spec=importlib.util.spec_from_file_location('checker',Path('scripts/check_hermes_contract.py'))
+          checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
+          checker._REQUEST_INTERVAL=1.0
+          root=Path(os.environ['RUNNER_TEMP'])/'registry-e36-source'
+          root.mkdir(parents=True,exist_ok=False)
+          pin='e36d4e57359074d0f9e8ccc8981bca16b893ad7f'
+          for name in ('hermes_constants.py','hermes_cli/dashboard_auth/base.py','agent/provider_registry.py','hermes_cli/dashboard_auth/registry.py'):
+              text=checker.github_source(name,pin)
+              path=root/name;path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(text,encoding='utf-8',newline='\n')
+          PY
+      - name: Execute bounded real-module registry regressions
+        run: python3 -I -B scripts/compatibility_probe_dashboard_registry.py --source-root "${{ runner.temp }}/registry-e36-source" --work-root "${{ runner.temp }}/registry-e36-result"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pinned-registry-module-results
+          path: ${{ runner.temp }}/registry-e36-result/result.json
           if-no-files-found: warn
           retention-days: 30

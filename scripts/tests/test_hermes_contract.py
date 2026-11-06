@@ -111,6 +111,18 @@ def baseline(contract):
     return {'upstream':{'commit':'a'*40,'contract':contract},'mobile_used_routes':['GET /v1/kept'],'mobile_used_static_flags':['enabled'],'mobile_used_job_update_fields':['enabled'],
         'mobile_used_management_routes':['PUT /api/mcp/servers/{name}/enabled'],'mobile_used_handlers':['mcp:set_mcp_server_enabled'],'mobile_used_request_fields':['models:MCPEnabledToggle.enabled']}
 
+def complete_replacement_fixture(value, contract):
+    """Keep synthetic mixed-baseline fixtures in one complete reviewed registry mode.
+
+    This creates test data only; it is not a source snapshot or runtime evidence.
+    """
+    for retired, entries in value.get('reviewed_handler_replacements', {}).items():
+        entry = entries[-1]
+        contract['handlers'].pop(retired, None)
+        contract['source_hashes'][retired.split(':', 1)[0]] = entry['source_sha256']
+        contract['handlers'].update(entry['replacements'])
+
+
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
@@ -474,6 +486,7 @@ class ContractWatchTest(unittest.TestCase):
         # this test still isolates the three actor variants and preserves every original assertion.
         for key,entries in tracked['reviewed_handler_variants'].items():
             if tracked['upstream']['contract']['handlers'].get(key) is None:current['contract']['handlers'][key]=entries[-1]['sha256']
+        complete_replacement_fixture(tracked,current['contract'])
         for key,(before,after) in expected.items():
             self.assertEqual(before,tracked['upstream']['contract']['handlers'][key])
             evidence=tracked['reviewed_handler_variants'][key]
@@ -871,11 +884,13 @@ class PluginUpdateLockWatchTests(unittest.TestCase):
         introduced=[k for k in value['reviewed_handler_variants'] if current['handlers'].get(k) is None]
         self.assertGreaterEqual(len(introduced),70)
         for key in introduced:current['handlers'][key]=value['reviewed_handler_variants'][key][-1]['sha256']
+        complete_replacement_fixture(value,current)
         self.assertFalse(checker.compare(value,{'commit':'e'*40,'contract':current})['mobile_review_required'])
         for key in introduced:
             missing={**current,'handlers':{k:v for k,v in current['handlers'].items() if k!=key}}
             report=checker.compare(value,{'commit':'e'*40,'contract':missing})
-            self.assertEqual({key},set(report['mobile_relevant_changes']['changed_used_handlers']));self.assertTrue(report['mobile_relevant_changes']['changed_used_handlers'][key]['required_introduced_handler_missing'])
+            dependencies={retired for retired,entries in value.get('reviewed_handler_replacements',{}).items() if key in entries[-1]['replacements']}
+            self.assertEqual({key}|dependencies,set(report['mobile_relevant_changes']['changed_used_handlers']));self.assertTrue(report['mobile_relevant_changes']['changed_used_handlers'][key]['required_introduced_handler_missing'])
 
 
 class KanbanTaskWriteWatchTests(unittest.TestCase):
@@ -967,3 +982,71 @@ def set_reasoning_effort(conn,task_id,effort):
     def test_removing_used_override_helper_requires_review(self):
         data=self.fixture();data['kanban_db']=data['kanban_db'].replace('def set_reasoning_effort(','def unused_set_reasoning_effort(')
         self.assertTrue(self.report(data)['mobile_review_required'])
+
+
+class KanbanStatusLifecycleWatchTests(unittest.TestCase):
+    keys = ('kanban_api:_apply_status', 'kanban_api:_patch_status', 'kanban_api:_drag_to', 'kanban_api:_set_status_direct', 'kanban_api:_open_parent_refusal', 'kanban_api:_parents_blocking_ready', 'kanban_db:complete_task', 'kanban_db:block_task', 'kanban_db:schedule_task', 'kanban_db:request_review', 'kanban_db:unblock_task', 'kanban_db:reopen_review_task', 'kanban_db:invalidate_descendants_for_parent_reopen', 'kanban_db:archive_task', 'kanban_db:_claim_is_live', 'kanban_db:_end_run', 'kanban_db:_end_or_synthesize_run', 'kanban_db:_gate_empty_completion', 'kanban_db:_merge_completion_prose_artifacts', 'kanban_db:_persist_scratch_completion_artifacts', 'kanban_db:_stage_completion_artifacts', 'kanban_db:_copy_capped')
+    fields = ('status', 'result', 'block_reason', 'summary')
+
+    def fixture(self):
+        data=sources()
+        data['kanban_api']='class UpdateTaskBody(BaseModel):\n'+''.join('    '+field+':str|None=None\n' for field in self.fields)
+        data['kanban_db']=''
+        for key in self.keys:
+            module,name=key.split(':',1)
+            data[module]+='\ndef '+name+'():\n    return '+repr(key)+'\n'
+        return data
+
+    def tracked(self, data):
+        value=baseline(checker.extract(data))
+        value['mobile_used_handlers']+=list(self.keys)+['kanban_api:schema:UpdateTaskBody']
+        value['mobile_used_request_fields']+=['kanban_api:UpdateTaskBody.'+field for field in self.fields]
+        return value
+
+    def test_status_lifecycle_side_effects_cannot_change_without_review(self):
+        original=self.fixture();tracked=self.tracked(original)
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(original)})['mobile_review_required'])
+        for key in self.keys:
+            with self.subTest(handler=key):
+                module,_=key.split(':',1);changed=dict(original)
+                changed[module]=changed[module].replace(repr(key),repr(key+' changed'))
+                result=checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})
+                self.assertTrue(result['mobile_review_required'])
+                self.assertEqual({key},set(result['mobile_relevant_changes']['changed_used_handlers']))
+
+    def test_status_reason_summary_and_replacement_result_fields_require_review(self):
+        original=self.fixture();tracked=self.tracked(original)
+        for field in self.fields:
+            with self.subTest(field=field):
+                changed=dict(original);changed['kanban_api']=changed['kanban_api'].replace(field+':str|None=None',field+':int')
+                result=checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})
+                self.assertTrue(result['mobile_review_required'])
+                self.assertIn('kanban_api:UpdateTaskBody.'+field,result['mobile_relevant_changes']['changed_used_request_fields'])
+
+    def test_current_baseline_tracks_all_consumed_status_lifecycle_guards(self):
+        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
+        self.assertTrue(set(self.keys)<=set(value['mobile_used_handlers']))
+        self.assertTrue({'kanban_api:UpdateTaskBody.'+field for field in self.fields}<=set(value['mobile_used_request_fields']))
+
+
+class RunProjectionProgressVariantTests(unittest.TestCase):
+    def test_only_the_exact_reviewed_poll_progress_variant_is_accepted(self):
+        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        key='authority:run_projection'
+        self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
+        self.assertEqual('a7b1081f98525a6eecd63ebbbedad430d972a7814c72e0e64c6dc44e7e35aedf',value['upstream']['contract']['handlers'][key])
+        entries=value['reviewed_handler_variants'][key]
+        self.assertEqual(['56aba7aec36fac3bce9b285466bc793cd72534b769b0d38028403b4d7c96a8ce'],[entry['sha256'] for entry in entries])
+        self.assertEqual(['b2e4ded57c795542f5d058c4e13daa5dd7aa0d77'],[entry['commit'] for entry in entries])
+        current={'commit':entries[0]['commit'],'contract':copy.deepcopy(value['upstream']['contract'])}
+        for introduced,variants in value['reviewed_handler_variants'].items():
+            if introduced not in current['contract']['handlers']:current['contract']['handlers'][introduced]=variants[-1]['sha256']
+        complete_replacement_fixture(value,current['contract'])
+        self.assertFalse(checker.compare(value,current)['mobile_review_required'])
+        current['contract']['handlers'][key]=entries[0]['sha256']
+        self.assertFalse(checker.compare(value,current)['mobile_review_required'])
+        current['contract']['handlers'][key]='0'*64
+        result=checker.compare(value,current)
+        self.assertTrue(result['mobile_review_required'])
+        self.assertEqual({key},set(result['mobile_relevant_changes']['changed_used_handlers']))

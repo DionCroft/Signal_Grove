@@ -155,7 +155,7 @@ EXTRA_SOURCES = {
 
 }
 # Direct auth/import dependencies reviewed at pinned sources; upstream is parsed only.
-RUNTIME_GUARD_CONTRACT_SOURCES = {'web_signin': 'hermes_cli/webapp_sign_in.py', 'plugin_isolation': 'hermes_cli/plugin_isolation.py', 'signin_entry': 'hermes_cli/dashboard_auth/__init__.py', 'signin_registry': 'hermes_cli/dashboard_auth/registry.py', 'session_token_provider': 'plugins/dashboard_auth/session_token/__init__.py', 'session_token_loader': 'hermes_cli/web_server_session_token.py', 'auth_request_utils': 'hermes_cli/dashboard_auth/request_utils.py', 'signin_shared': 'plugins/dashboard_auth/_shared.py'}
+RUNTIME_GUARD_CONTRACT_SOURCES = {'web_signin': 'hermes_cli/webapp_sign_in.py', 'plugin_isolation': 'hermes_cli/plugin_isolation.py', 'signin_entry': 'hermes_cli/dashboard_auth/__init__.py', 'signin_registry': 'hermes_cli/dashboard_auth/registry.py', 'session_token_provider': 'plugins/dashboard_auth/session_token/__init__.py', 'session_token_loader': 'hermes_cli/web_server_session_token.py', 'auth_request_utils': 'hermes_cli/dashboard_auth/request_utils.py', 'signin_shared': 'plugins/dashboard_auth/_shared.py', 'signin_registry_engine': 'agent/provider_registry.py'}
 EXTRA_SOURCES.update(RUNTIME_GUARD_CONTRACT_SOURCES)
 
 PLUGIN_UPDATE_CONTRACT_SOURCES = {'plugin_auto_update': 'hermes_cli/plugins_auto_update.py'}
@@ -652,6 +652,61 @@ def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     if source_cache is not None:result['source_cache']=cache_counts
     return result
 
+def reviewed_handler_replacements(baseline: dict, current: dict, accepted: dict) -> tuple[set, set]:
+    """Retired local handlers require exact replacement source bytes and watched dependencies.
+
+    Original handlers remain valid in legacy mode. New local bindings select replacement
+    mode, which must be complete; a hybrid cannot silently reuse a legacy fingerprint.
+    The review commit records provenance, while source/handler hashes bind later snapshots.
+    """
+    evidence = baseline.get('reviewed_handler_replacements', {})
+    if not isinstance(evidence, dict):
+        raise ValueError('Invalid reviewed handler replacements')
+    old, new = baseline['upstream']['contract'], current['contract']
+    watched = set(baseline.get('mobile_used_handlers', []))
+    applied, incomplete = set(), set()
+    for key, entries in evidence.items():
+        source = key.split(':', 1)[0] if isinstance(key, str) else ''
+        if (key not in watched or old.get('handlers', {}).get(key) is None
+                or source not in old.get('source_hashes', {})
+                or not isinstance(entries, list) or not entries):
+            raise ValueError('Invalid retired handler target')
+        local_markers, matched = set(), False
+        for entry in entries:
+            if (not isinstance(entry, dict)
+                    or set(entry) != {'commit', 'reason', 'source_sha256', 'replacements'}
+                    or not isinstance(entry['commit'], str)
+                    or not re.fullmatch(r'[a-f0-9]{40}', entry['commit'])
+                    or entry['commit'] == baseline['upstream']['commit']
+                    or not isinstance(entry['reason'], str) or not entry['reason'].strip()
+                    or not isinstance(entry['source_sha256'], str)
+                    or not re.fullmatch(r'[a-f0-9]{64}', entry['source_sha256'])
+                    or entry['source_sha256'] == old['source_hashes'][source]
+                    or not isinstance(entry['replacements'], dict)
+                    or not 1 <= len(entry['replacements']) <= 32):
+                raise ValueError('Incomplete retired handler replacement evidence')
+            markers = set()
+            for replacement, digest in entry['replacements'].items():
+                if (replacement not in watched or replacement == key
+                        or not isinstance(digest, str) or not re.fullmatch(r'[a-f0-9]{64}', digest)
+                        or digest not in ({old.get('handlers', {}).get(replacement)} | accepted.get(replacement, set()))):
+                    raise ValueError('Replacement dependencies must be selected and reviewed')
+                if replacement.startswith(source + ':') and old.get('handlers', {}).get(replacement) is None:
+                    markers.add(replacement)
+            if not markers:
+                raise ValueError('A retired handler needs a new binding in the same source')
+            local_markers.update(markers)
+            if (new.get('handlers', {}).get(key) is None
+                    and new.get('source_hashes', {}).get(source) == entry['source_sha256']
+                    and all(new.get('handlers', {}).get(k) == digest for k, digest in entry['replacements'].items())):
+                matched = True
+        if matched:
+            applied.add(key)
+        elif any(marker in new.get('handlers', {}) for marker in local_markers):
+            incomplete.add(key)
+    return applied, incomplete
+
+
 def compare(baseline: dict, current: dict) -> dict:
     old, new = baseline['upstream']['contract'], current['contract']
     old_routes, new_routes = set(old['routes']), set(new['routes'])
@@ -686,8 +741,11 @@ def compare(baseline: dict, current: dict) -> dict:
                     or entry['commit']==baseline['upstream']['commit'] or not isinstance(entry.get('reason'),str) or not entry['reason'].strip()):
                 raise ValueError('Incomplete introduced handler absence evidence')
             allowed_absences[key].add(entry['commit'])
+    replaced, incomplete_replacements = reviewed_handler_replacements(baseline, current, accepted)
     relevant['changed_used_handlers'] = {key: {'before': old.get('handlers', {}).get(key), 'after': new.get('handlers', {}).get(key)}
-        for key in baseline.get('mobile_used_handlers', []) if old.get('handlers', {}).get(key) != new.get('handlers', {}).get(key) and new.get('handlers', {}).get(key) not in accepted.get(key,set())}
+        for key in baseline.get('mobile_used_handlers', []) if key not in replaced and old.get('handlers', {}).get(key) != new.get('handlers', {}).get(key) and new.get('handlers', {}).get(key) not in accepted.get(key,set())}
+    for key in incomplete_replacements:
+        relevant['changed_used_handlers'][key] = {'before': old['handlers'][key], 'after': new.get('handlers', {}).get(key), 'unreviewed_replacement_mode': True}
     # An introduced handler disappearing is not a return to the historical baseline. Only the
     # original pin or explicitly reviewed older pins can legitimately lack that selected handler.
     for key in accepted:
@@ -696,7 +754,7 @@ def compare(baseline: dict, current: dict) -> dict:
             relevant['changed_used_handlers'][key]={'before':None,'after':None,'required_introduced_handler_missing':True}
     relevant['changed_used_request_fields'] = {key: {'before': old.get('request_fields', {}).get(key), 'after': new.get('request_fields', {}).get(key)}
         for key in baseline.get('mobile_used_request_fields', []) if old.get('request_fields', {}).get(key) != new.get('request_fields', {}).get(key)}
-    return {'baseline_commit': baseline['upstream']['commit'], 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs only; transitive helper changes, runtime feature gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}
+    return {'baseline_commit': baseline['upstream']['commit'], 'reviewed_handler_replacements_applied': sorted(replaced), 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs only; transitive helper changes, runtime feature gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
