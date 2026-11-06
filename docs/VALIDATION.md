@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — title regression catalog fixture correction
+
+The wider development108 integration retained167 focused positives and one
+API37 failure: the title fixture advertised model options but did not serve a
+legitimate GETapi/model/options. That result remains failed. The fixture now
+serves the authenticated stock/RVN catalog and explicitly reads/asserts it in
+each title case; prefix/Bearer/no-Cookie, unexpected-route, title/input/default
+and exact-request assertions remain intact. No application behavior changed.
+
+The corrected source passed the strict four-task build/lint and536 JVM cases,
+zero failures/errors/skips. The exact prior failure sequence passed **34 native
+cases on a fresh owned API37 emulator**:10 override-storage,21 task-flow and3
+catalog-enabled title cases, with unique positives and no failures/ignores.
+App SHA-256 `b4c5bedc190a93c82d16e3932e426bc9a119902404fc136d4e5858c7a4c82e17`;
+corrected test APK `5d2e4bb568f8c43aa5f4eceab0ed74ef556820a0169814237e76e23ca38e0aac`. The earlier unchanged app APK's78 focused
+checks across26/36/37 used the previous companion; this corrected companion is
+not claimed to have repeated those78 or all three SDKs locally. Existing108
+emulators were preserved, two gracefully stopped; no downgrade/reset/clear-data
+or reseed was used. The new37 target was created separately with E-only data.
+
+Repackaging produced a different raw rebuilt app-container digest
+`a299fd66b10236323ceecdb3d698a12b4d5f898b7262b646302d337d74dc1ec2`. The raw-equality assertion remains failed; a separate
+strict comparison verified all165 ZIP payload files byte-identical to the
+original staged app, identical package107/beta.6 and originalCAB signatures.
+The original immutable app container was deliberately selected for the corrected
+native pair; rebuilt and selected identities are recorded separately. No source
+application, resources, permissions, Room or dependency input changed.
+
+Fresh exact-corrected-head full Android/compatibility CI is required before
+publication. Older088 CI cannot satisfy that gate, regardless of its outcome.
+The old publisher is explicitly superseded and no beta.6 release is claimed.
+Production signing/lint/upgrade evidence must remain tied to the actual immutable
+asset and original build source, with explicit unchanged-input/asset continuity
+for the corrected release head. Do not repeat the completed106→107 upgrade.
+
 ## 2026-11-06 — beta.6 conversation-title hotfix preparation
 
 New native conversations with a repeated opening such as “Test” could receive HTTP400 `invalid_title`, because Hermes enforces unique titles. The app now supplies a single-line, Unicode-safe label with a stable 16-hex session-derived suffix. The original message and existing sessions stay unchanged; there is no automatic replay, server rename, model switch or lock clearing. The saved default and verified serving model remain distinct.

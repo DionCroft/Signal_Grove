@@ -31,6 +31,7 @@ class SessionTitleFlowTest {
         val creates=CopyOnWriteArrayList<JsonObject>()
         val turns=CopyOnWriteArrayList<JsonObject>()
         val unexpected=CopyOnWriteArrayList<String>()
+        val catalogReads=CopyOnWriteArrayList<String>()
         val defaultModel="Qwen3.8-27B-stock"
         init {
             server.dispatcher=object:Dispatcher() {
@@ -42,6 +43,10 @@ class SessionTitleFlowTest {
                     val path=request.requestUrl!!.encodedPath.removePrefix("/p/work/")
                     return when {
                         request.method=="GET" && path=="v1/capabilities"->json("""{"model":"$defaultModel","features":{"session_resources":true,"session_chat":true,"run_events_sse":true,"model_options":true},"endpoints":{"runs":{},"model_options":{}}}""")
+                        request.method=="GET" && path=="api/model/options"->{
+                            catalogReads+=path
+                            json("""{"model":"$defaultModel","provider":"spark-qwen","providers":[{"slug":"spark-qwen","name":"Stock fixture","authenticated":true,"models":["$defaultModel"]},{"slug":"spark-qwen-rvn","name":"RVN fixture","authenticated":true,"models":["Qwen3.8-27B-RVN-Q8_0"]}]}""")
+                        }
                         request.method=="GET" && path=="api/jobs"->json("""{"jobs":[]}""")
                         request.method=="GET" && path=="api/sessions"->json("""{"data":[{"id":"existing-test","title":"Test"}],"has_more":false}""")
                         request.method=="POST" && path=="api/sessions"->{
@@ -76,6 +81,12 @@ class SessionTitleFlowTest {
         compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="connected"}
         compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
         compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
+        // Exercise the advertised read in every case; prior UI state may also request it.
+        compose.runOnUiThread {vm.refreshDiscovery(DiscoveryResource.Models)}
+        compose.waitUntil(10000) {DiscoveryResource.Models !in vm.discovery.value.loading && vm.discovery.value.results[DiscoveryResource.Models]!=null}
+        assertTrue(f.catalogReads.isNotEmpty())
+        assertEquals(f.defaultModel,vm.discovery.value.results.getValue(DiscoveryResource.Models).text("model"))
+        assertEquals("spark-qwen",vm.discovery.value.results.getValue(DiscoveryResource.Models).text("provider"))
     }
     private fun send(f:Fixture,input:String,count:Int):Conversation {
         compose.runOnUiThread {vm.newChat();vm.send(input)}
