@@ -1,5 +1,35 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — beta.5 published at the verified feature commit
+
+Public [beta.5](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.5)
+targets **69590bb4caf239d4a9dd3cac9b9012abe9ecef26**. [Android42204448245](https://github.com/DionCroft/Signal_Grove/actions/runs/42204448245)
+passed verify127847465332 and complete unfiltered **916 API26** / **917 API37**
+methods (127851294872 /127851294842). Downloaded archive digests, positive counts,
+unique class/method identities, matching terminal summaries and absence of
+failure/ignore/assumption codes were independently checked. Both suites include
+all13 new model-status methods and the earlier Kanban cancellation case. No retry,
+omitted test or weakened assertion. The older failed run remains failed.
+[Compatibility42204452892](https://github.com/DionCroft/Signal_Grove/actions/runs/42204452892)
+also passed for that exact source. Hosted JVM report verifies528/0/0.
+
+Signed production assembly and explicit `lintRelease` pass; the aggregate lint
+task covered debug, so production lint was run explicitly rather than inferred.
+Both original signers, package/code106/min26/target37, backup/cleartext refusal and
+private update FileProvider were checked. Existing API37 production beta.4(105)
+upgraded in place to106 while retaining the original saved task as a visible
+TextView above navigation; installed APK bytes equal the release asset. No
+uninstall, clear-data, reseed or downgrade. This is PackageManager upgrade
+evidence, separate from older public approved installer tests and physical OEMs.
+
+Production SHA-256: `c5b2bf4f3be0ae521f26389bba46450cc5da8e82ca54a0407d9e6de28455bf7f`.
+Debug SHA-256: `541bcdeddade5f2c5ff3c65f4cf09eda18cff0e3784b8c89b051ca8042f8b6fb`.
+All4 public assets were downloaded without credentials and matched exact local
+sizes and hashes. Stable latest remains1.0.0. The release is directly at the
+tested feature commit, with no default-branch mutation or main-merge claim.
+The broader audit and new physical-device acceptance remain open. Subsequent
+development uses a separate branch and does not alter this tag's artifacts.
+
 ## 2026-11-06 — beta.5 release preparation
 
 Android source at **7f5550d001c0f234d0619912c5b9bc7c2d3c42ab** passed the strict four-task build, **528 JVM cases** (zero failures/errors/skips) and **75 focused native cases** on the same immutable APK pair across API26/36/37. Debug SHA-256 is `541bcdeddade5f2c5ff3c65f4cf09eda18cff0e3784b8c89b051ca8042f8b6fb`; test APK SHA-256 is `28da44a18a0dd3092d18b72c140434e4327b7dff3ba6a1eb2bcace4b095659d7`. Frozen source hashes were checked against the committed archive. Later compatibility/release-document changes do not alter Android source.

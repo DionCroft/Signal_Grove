@@ -23,8 +23,8 @@ independent work. Exact-head full Android and compatibility gates precede merges
 
 | Package | Current state | Required acceptance / next step |
 | --- | --- | --- |
-| Model-status QoL | Read-only observer deployed with explicit owner approval; existing Spark credential already matched and was preserved. Client distinguishes serving/default/request/last-response identity, host/receipt age and failures.528 JVM/75 focused native passes; see VALIDATION. Owner confirms the earlier phone connection works. | Same-signer candidate phone upgrade/acceptance and final own full hosted gates; no model switch or inference certification. |
-| 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. | Keep exact-head gates for subsequent chunks; beta.5 release/security acceptance remains open. |
+| Model-status QoL | Read-only observer deployed with explicit owner approval; existing Spark credential already matched and was preserved. Client distinguishes serving/default/request/last-response identity, host/receipt age and failures.528 JVM/75 focused native passes; see VALIDATION. Owner confirms the earlier phone connection works. | Included in public beta.5 at69590bb with exact-head full916/917 device gates. Matching-signer physical-phone upgrade/acceptance remains separate; no model switch or inference certification. |
+| 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. | Beta.5 is published directly at tested feature commit69590bb: exact Android/compatibility gates, original-key APKs, production retained-data upgrade and all4 public download hashes verified. This is not a main-merge claim. Keep exact-head gates for subsequent chunks. |
 | 2. Real Hermes matrix | Official stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers; full clean-install/native/tool matrix and successful owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
 | 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. No override forms or status controls yet. | Add private override forms and typed status with exact effects/approval/preflight/receipts; preserve next-dispatch versus current-runtime semantics and close own full gates. |
@@ -37,7 +37,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 7a. Notification routing | Best-effort active-connection polling and generic routes. | Exact connection/conversation/run targeting, deliberate multi-connection/job/goal policy and lifecycle evidence. Push only with a real authenticated bridge/registration contract. |
 | 7b. Rendering/voice/UX | Core Markdown, pixel motion/theme/updater and separate Dictation/Read aloud controls exist. Voice lifecycle/reason regressions: 520 JVM and 28 focused native passes, including seven controlled physical UI cases. Physical read-aloud/exit is accepted for the earlier904f/4c67 pair; microphone/Bluetooth/background remain open. Separate layout follow-up puts the read action first, wraps language choices and verifies its initial viewport with app bars/large bilingual text: 24 focused emulator passes. Its phone/layout acceptance remains separate. A further speech-engine setup/recovery action has520 JVM/30 focused emulator passes and an observed Android TTS destination; its own full hosted gates remain required. | Assess safe Mermaid/math fallbacks/rendering, applicable UX/accessibility/performance; physical voice evidence; use only actually supported Hermes audio transport. |
 | 7c. Maintainability | Added opt-in bounded thread/clock diagnostics, private APK-bound exporter and contributor instructions; production app and normal full gate unchanged. | Finish justified controller/Words decomposition, remaining artifact-aware contributor workflows and concise support/state matrix. |
-| 8. Security/release/community | Strict verification and compatibility gates exist; fresh full advisory/release review remains. | Review actual resolved production/tool/native graph, recurring advisories and deliberate SBOM/provenance; signed exact-source assets/checksums, retention/migration, support/community docs and release verification. |
+| 8. Security/release/community | Beta.5 exact-source signed release/public asset verification is complete; strict policy495 components/1071 artifacts and OSV review150 resolved production Maven coordinates pass (known-advisory scope only). | Review actual resolved production/tool/native graph, recurring advisories and deliberate SBOM/provenance; signed exact-source assets/checksums, retention/migration, support/community docs and release verification. |
 
 The four original defect regressions and implemented core bearer API features stay
 release gates throughout. Optional Responses transport and generic file input
@@ -63,10 +63,15 @@ commissioning reports stay out of this public repository.
 
 ## Next bounded stage
 
-The published diagnostic/Voice/layout chunks are now merged through their own gates.
-Close the cumulative speech-setup/model-status branch through its own full hosted
-gates: inspect the retained API37 Kanban failure and complete the exact pinned
-auth/plugin helper watch review. Upgrade the owner phone without resetting data;
-then deliver native override forms and typed status from verified contracts. Continue physical
-background/audio acceptance and the isolated real-Hermes matrix independently. Update this ledger at each
-meaningful commit/merge/release, preserving remaining requirements.
+Beta.5 is public at69590bb with verified528 JVM,916 API26 and917 API37
+cases, compatibility, signed release lint, retained-data production upgrade and
+public asset digests. It is published from the tested feature commit; main stays
+separate. The owner phone remains unavailable for this APK's physical acceptance.
+
+Deliver independent native model/provider and reasoning set/clear forms over the
+validated override foundation, with private exact-value approvals, known-NULL
+versus missing metadata and explicit next-dispatch effects. Then implement typed
+status and the remaining worker/dispatch/event/file/pin/transfer controls. Continue
+the isolated actual-server matrix, physical background/audio acceptance, advanced
+automation/rooms, integrations, configuration/workspaces and notification routing
+as listed above. Keep each row's original acceptance scope and evidence distinct.
