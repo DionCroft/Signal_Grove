@@ -7200,7 +7200,29 @@
     "ws_boundary:ws_host_origin_reason",
     "ws_tickets:TTL_SECONDS",
     "ws_tickets:consume_ticket",
-    "ws_tickets:mint_ticket"
+    "ws_tickets:mint_ticket",
+    "kanban_api:_apply_status",
+    "kanban_api:_patch_status",
+    "kanban_api:_drag_to",
+    "kanban_api:_set_status_direct",
+    "kanban_api:_open_parent_refusal",
+    "kanban_api:_parents_blocking_ready",
+    "kanban_db:complete_task",
+    "kanban_db:block_task",
+    "kanban_db:schedule_task",
+    "kanban_db:request_review",
+    "kanban_db:unblock_task",
+    "kanban_db:reopen_review_task",
+    "kanban_db:invalidate_descendants_for_parent_reopen",
+    "kanban_db:archive_task",
+    "kanban_db:_claim_is_live",
+    "kanban_db:_end_run",
+    "kanban_db:_end_or_synthesize_run",
+    "kanban_db:_gate_empty_completion",
+    "kanban_db:_merge_completion_prose_artifacts",
+    "kanban_db:_persist_scratch_completion_artifacts",
+    "kanban_db:_stage_completion_artifacts",
+    "kanban_db:_copy_capped"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -7525,7 +7547,11 @@
     "kanban_api:UpdateTaskBody.provider_override",
     "kanban_api:UpdateTaskBody.clear_model_override",
     "kanban_api:UpdateTaskBody.reasoning_effort",
-    "kanban_api:UpdateTaskBody.clear_reasoning_effort"
+    "kanban_api:UpdateTaskBody.clear_reasoning_effort",
+    "kanban_api:UpdateTaskBody.status",
+    "kanban_api:UpdateTaskBody.result",
+    "kanban_api:UpdateTaskBody.block_reason",
+    "kanban_api:UpdateTaskBody.summary"
   ],
   "mobile_used_static_flags": [
     "session_resources",

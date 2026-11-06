@@ -70,17 +70,18 @@ tested feature commit; main stays separate. The owner's phone acceptance remains
 separate. A fresh read-only check still distinguishes a ready route from an
 offline saved default; no host model/default/lock was changed to publish the fix.
 
-Close the independent model/provider and reasoning forms' exact c6592a2 full
-941/942 gates. The typed status-review foundation is committed at86fb675 with552
-JVM and10 existing storage regression passes, with no status send or new control.
-Its later internal executor has575 local JVM cases and one-use typed-ID/current-
-task approval, fresh bounded graph preflight and durable one-send ACK/observation.
-The first native attempt stays failed: its strict fixture omitted the board
-GET's documented include_archived argument and Android recorded a startup ANR.
-Correct/accept those native regressions, then implement private native review
-and receipt routing before exposing status execution. Review the new main
-run-projection progress metadata and register the newly consumed status-handler
-guards; the foundation canary failure is retained, not waived.
+The independent forms at c6592a2 now have verified full 536 JVM/941 API26/942
+API37 and compatibility gates. The typed foundation at d44fc14 has verified 552
+JVM/941/942 Android gates; its separate main canary failure remains retained.
+The later internal executor has 575 JVM and 67 local API37 repository passes,
+one-use typed-ID/current-task approval, fresh bounded graph preflight and durable
+one-send ACK/observation. Its earlier fixture failures and startup ANR stay failed;
+no root-cause claim follows from the corrected companion's success. Twenty-two
+consumed status-handler guards and four request fields are watched; 147 Python
+policy checks pass. Implement private native review and receipt routing before
+exposing status execution. First add polling/Room regressions for main's optional
+progress metadata before recording its exact reviewed variant. Complete the
+workspace/dispatch transitive review and actual-server transitions separately.
 Continue the remaining worker/dispatch/event/file/pin/transfer controls and
 the isolated actual-server matrix, physical background/audio acceptance, advanced
 automation/rooms, integrations, configuration/workspaces and notification routing

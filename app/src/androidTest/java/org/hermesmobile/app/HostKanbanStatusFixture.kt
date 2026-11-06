@@ -40,7 +40,9 @@ class HostKanbanStatusFixture(val server: MockWebServer, val mode: String = "nor
                 val taskPath = "/prefix/dashboard/api/plugins/kanban/tasks/"
                 if (path.startsWith(taskPath) || path == "/prefix/dashboard/api/plugins/kanban/board") {
                     assertEquals("Bearer board-fixture-access", q.getHeader("Authorization")); assertNull(q.getHeader("Cookie")); assertNull(q.getHeader("Origin")); assertNull(q.getHeader("Idempotency-Key"))
-                    assertEquals(setOf("profile", "board"), url.queryParameterNames)
+                    val boardRead = path == "/prefix/dashboard/api/plugins/kanban/board"
+                    assertEquals(if (boardRead) setOf("profile", "board", "include_archived") else setOf("profile", "board"), url.queryParameterNames)
+                    if (boardRead) assertEquals("true", url.queryParameter("include_archived"))
                     assertEquals("worker", url.queryParameter("profile")); assertEquals("garden", url.queryParameter("board"))
                     if (q.method == "PATCH") {
                         assertEquals(taskPath + "t_root", path); assertEquals(expectedBody.get(), Json.parseToJsonElement(q.body.readUtf8()))
@@ -85,7 +87,7 @@ class HostKanbanStatusFixture(val server: MockWebServer, val mode: String = "nor
         private fun boardJson(nodes: Map<String, JsonObject>) = HostKanbanTaskFixture.boardJson(nodes.toSortedMap().values.map {
             val task = it.getValue("task").jsonObject
             val summary = (task["latest_summary"] as? JsonPrimitive)?.takeIf { value -> value.isString }?.content
-            if (summary == null) task else fields(task, "latest_summary" to JsonPrimitive(summary.take(200)))
+            if (summary == null) task else fields(task, "latest_summary" to JsonPrimitive(summary.substring(0, summary.offsetByCodePoints(0, minOf(200, summary.codePointCount(0, summary.length))))))
         })
     }
 }

@@ -127,10 +127,18 @@ read-only source used for bounded inspection:
 | [worker identity/signaling](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/hermes_cli/kanban_db_dispatch.py) | `72a779c7c7a4359ce21476f86842869d39219d13` |
 | [worktree retention](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/hermes_cli/worktree_ops.py) | `bc932825b7330f6d06b5cfc1d50cbf4bc29de7fa` |
 
-Still required: finish transitive/deployment review; correct and accept the native
-repository regressions; native private form/review/receipt routing; actual isolated
+Still required: finish transitive/deployment review; native private
+form/review/receipt routing; actual isolated
 server transitions; full hosted acceptance and separately authorized live checks.
 The first strict fixture incorrectly omitted the board GET's documented
 `include_archived=true` argument. Its16 negative methods, zero positives and
 startup ANR remain recorded; no native acceptance is claimed for that cohort.
 The plan is not a substitute for any remaining check or complete feature parity.
+
+
+The corrected internal executor now has 575 JVM and 67 API37 local HTTP/Room
+regressions, including 23 status methods. Original failed cohorts remain recorded
+in VALIDATION.md. Twenty-two status lifecycle/helper fingerprints plus four
+request fields are watched against the preserved F0 baseline; all match reviewed
+stable 2bd378e and main b2e4ded. This does not cover every workspace/dispatch helper
+or prove deployed custom code. No native status control is exposed at this stage.

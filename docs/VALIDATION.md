@@ -1,5 +1,59 @@
 # Current development validation — audit follow-up
 
+
+## 2026-11-06 — status repository acceptance and lifecycle drift guards
+
+The status executor remains internal: no native status form or send control is
+exposed. The corrected companion passed **23 status storage methods plus 44
+related board/task/override methods on preserved API37**, with 67 unique positives,
+matching terminal counts and no failures or skips. The existing app was retained;
+installed app/companion bytes were verified before and after each cohort. No data
+clear, AVD reset, geometry change, owner phone fixture or real host task/model
+write occurred. This verifies local HTTP/Room behavior, not actual host lifecycle,
+worker termination, workspace cleanup or physical-device acceptance.
+
+All four required strict Gradle tasks passed with 575 unique JVM cases and zero
+failures/errors/skips. All 435 frozen inputs matched through both native cohorts.
+Retained original-CAB-signed app 108:
+`6e90f8962ad4d7ef49f6259f960b2ec1b4cbacb61dbf7a41658e9dcd9d1947c0`.
+Corrected original-CAB-signed companion:
+`dff63e45d5c87ace06208e21a7bfa22714f69c2c295eb319e2008eee6e7736a6`.
+The rebuilt app container differs, but all 165 payload entries match the retained
+installed app. The first wrapper invocation selected a new signing subdirectory;
+its incorrectly signed companion was rejected before installation and preserved.
+The original existing key was restored for the required build and accepted pair.
+No signing key, installed app or user data was replaced by the rejected artifact.
+
+Earlier failures remain failed: the initial strict fixture omitted the documented
+`include_archived=true` board query (zero positive/16 negative methods, then a
+recorded startup ANR). The next cohort had 21 positives/one failure because its
+fixture wrongly expected an unrelated URL with the same home digest to share an
+endpoint-scoped barrier. Existing project receipt isolation explicitly requires
+the same endpoint. Corrected tests preserve that scope, check same-endpoint
+profile aliases and independently prove unrelated-endpoint isolation. The ANR
+trace did not establish a root cause; later success is not an ANR-fix certificate.
+
+After both native freezes closed, 22 newly consumed lifecycle/helper fingerprints
+and four explicit status/result/block_reason/summary fields were added to the
+source watcher. They already exist in the original F0 contract and match reviewed
+stable 2bd378e and main b2e4ded; the baseline was not replaced. Three regressions
+exercise every helper's changed AST and the field contracts. All 147 Python policy
+checks pass. These watcher-only additions do not alter the accepted Android pair.
+Workspace/dispatch transitive review and actual-server acceptance remain open.
+
+The independent override forms at c6592a2 passed full hosted Android run
+[42252057613](https://github.com/DionCroft/Signal_Grove/actions/runs/42252057613):
+536 JVM, 941 API26 and 942 API37 unique positives, no failures/skips, including all 22
+override methods and all three title regressions. Compatibility42252073307 also
+passed. All three Android artifact ZIP digests were independently verified.
+The status-plan foundation at d44fc14 passed full hosted Android run
+[42257504296](https://github.com/DionCroft/Signal_Grove/actions/runs/42257504296):
+552 JVM and the same 941/942 native methods, with independently checked archives.
+Its separate compatibility42257524028 remains **failed** for the reviewed main
+`authority:run_projection` progress-metadata drift. No exact variant is accepted
+before a polling/Room regression. These hosted results belong to their exact
+sources, not this later executor chunk. Main and public beta.6 remain separate.
+
 ## 2026-11-06 — status executor draft checkpoint; native acceptance open
 
 The internal task-scoped executor now collects a complete bounded connected graph,
@@ -14,11 +68,11 @@ queries. There is no native status control exposed yet.
 Required strict build1 passed570 JVM; source review then added undisplayed-policy,
 canonical-order/depth, advancing-clock and board-summary-preview cases. Build2
 passed all four required tasks and **575 unique JVM cases**, zero failures,
-errors or skips, including23 new graph/receipt cases and the16 plan cases.
-All435 frozen inputs matched. OriginalCAB-signed debug108 pair:
+errors or skips, including 23 new graph/receipt cases and the16 plan cases.
+All 435 frozen inputs matched. OriginalCAB-signed debug108 pair:
 app `6e90f8962ad4d7ef49f6259f960b2ec1b4cbacb61dbf7a41658e9dcd9d1947c0`;
 test `ce67086e3b5feb1f25d147b4fa6906f4a109de30adab8c18509e5258162139e3`.
-The initial570-build source/APKs/results are preserved separately; they are not
+The initial 570-build source/APKs/results are preserved separately; they are not
 substituted for this pair. Source/policy144 and observer15 checks passed before
 the test-only review additions; policy/config inputs are unchanged.
 
@@ -44,7 +98,7 @@ and verified against SHA256 `bf4d54d95c65d923379097785615c09ebd1f56cf022a054ec4f
 552 JVM, zero failures/skips and its16 plan cases. The helper's first class-report
 path failure is retained; only the lookup changed to Gradle's class/index.html.
 Foundation Android native gates remain in flight. Compatibility42257524028 failed
-on main b2e4ded's newly changed `authority:run_projection`; stable2bd378ed has no
+on main b2e4ded's newly changed `authority:run_projection`; stable 2bd378ed has no
 used drift. Both artifact digests/reports and the failed result are retained.
 The canary adds generation-specific `tool`/`progress_at`; review and a polling
 regression precede accepting its exact handler variant. No canary success claim.
@@ -67,7 +121,7 @@ Original-key production assembly and explicit release lint passed at e2b2de7.
 The selected production container embeds that exact revision and retained the
 original saved task through its separately recorded107→107 container refresh.
 The earlier actual106→107 upgrade remains separate evidence. The selected debug
-container retains its tested immutable bytes; all165 rebuilt payload entries
+container retains its tested immutable bytes; all 165 rebuilt payload entries
 match and its original signer is verified. Earlier local78 and corrected34-case
 cohorts remain distinct; failed earlier fixture runs remain retained.
 
@@ -194,7 +248,7 @@ or reseed was used. The new37 target was created separately with E-only data.
 
 Repackaging produced a different raw rebuilt app-container digest
 `a299fd66b10236323ceecdb3d698a12b4d5f898b7262b646302d337d74dc1ec2`. The raw-equality assertion remains failed; a separate
-strict comparison verified all165 ZIP payload files byte-identical to the
+strict comparison verified all 165 ZIP payload files byte-identical to the
 original staged app, identical package107/beta.6 and originalCAB signatures.
 The original immutable app container was deliberately selected for the corrected
 native pair; rebuilt and selected identities are recorded separately. No source
@@ -209,7 +263,7 @@ for the corrected release head. Do not repeat the completed106→107 upgrade.
 
 ## 2026-11-06 — integration checkpoint: catalog fixture correction required
 
-The frozen108/beta.7 integration passed536 JVM cases and all22 new override UI
+The frozen108/beta.7 integration passed536 JVM cases and all 22 new override UI
 methods on each API26/36/37, with six captures inspected. The related34-method
 groups passed on26/36, while37 recorded33 positives and one failure: the new
 SessionTitleFlowTest fixture rejected a legitimate GETapi/model/options after

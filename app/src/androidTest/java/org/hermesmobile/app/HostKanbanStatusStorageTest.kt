@@ -176,11 +176,19 @@ class HostKanbanStatusStorageTest {
             assertEquals("reviewed", db.dao().managementOperation("foreign")!!.state); assertEquals(0, f.writes.get())
         }
     }
-    @Test fun existingTaskAndVerifiedProjectHomeReceiptsBlockStatusWrites() = runBlocking {
+    @Test fun existingTaskAndSameEndpointProfileHomeReceiptsBlockStatusWrites() = runBlocking {
         for (project in listOf(false, true)) fixture { db, f ->
             val foreign = f.owner.copy(profile = "other")
-            db.dao().insertManagementOperation(pending(if (project) foreign.copy(url = "https://alias.example/") else foreign, if (project) "ProjectUpdate" else "KanbanTaskMetadata", projectHome = if (project) f.home else ""))
+            db.dao().insertManagementOperation(pending(foreign, if (project) "ProjectUpdate" else "KanbanTaskMetadata", projectHome = if (project) f.home else ""))
             assertTrue(runCatching { send(db, f, prepare(db, f)) }.exceptionOrNull() is ManagementOutcomePending); assertEquals(0, f.writes.get())
+        }
+    }
+    @Test fun anotherEndpointWithTheSameHomeDigestDoesNotShareTheWriteBarrier() = runBlocking {
+        fixture { db, f ->
+            val unrelated = f.owner.copy(url = "https://unrelated.example/", profile = "other")
+            db.dao().insertManagementOperation(pending(unrelated, "ProjectUpdate", projectHome = f.home))
+            assertEquals("confirmed", send(db, f, prepare(db, f)).receipt.state)
+            assertEquals(1, f.writes.get()); assertEquals("unknown", db.dao().managementOperation("foreign")!!.state)
         }
     }
     @Test fun ownerOrTokenActorSwapFailsBeforeAnyStatusWrite() = runBlocking {
@@ -217,7 +225,7 @@ class HostKanbanStatusStorageTest {
     }
     @Test fun fullHandoffSummarySurvivesTheShortBoardPreview() = runBlocking {
         fixture { db, f ->
-            val full = "Private handoff ".repeat(40)
+            val full = "Private 🌱 handoff 任务 ".repeat(40)
             f.before["t_root"] = detail(field(card(), "latest_summary" to JsonPrimitive(full)))
             val request = prepare(db, f); assertEquals(full, request.plan.subject.task.summary)
             assertEquals("confirmed", send(db, f, request).receipt.state); assertEquals(1, f.writes.get())
