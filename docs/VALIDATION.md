@@ -1,6 +1,40 @@
 # Current development validation — audit follow-up
 
 
+## 2026-11-06 — guarded auth-registry replacements; pinned stable/main pass
+
+The watcher now follows the actual shared provider engine and nineteen additional
+consumed auth helpers/imports/bindings. Original F0 engine coverage was extended
+from verified blob af62809; every prior F0 source/handler/request fingerprint is
+unchanged. Four retired local implementations/imports require the exact reviewed
+replacement module bytes and watched engine/alias dependencies. Hybrid modes,
+missing/changed guards, unreviewed source identities and malformed evidence fail
+closed. All 157 Python policy cases pass, including nine new replacement cases.
+
+Fresh complete pinned 158-module stable 2bd378e and main E36 source inspections
+pass. Stable uses the original mode; main reports all four guarded replacements.
+[The detailed review](contracts/2026-11-06-auth-registry-refactor-review.md)
+records the actual blobs, eight earlier real-module cases, exact source-report
+digests and remaining checks. Original failed hosted 42274564644 stays failed;
+fresh hosted acceptance at the new exact commit is still required. The earlier
+real-module harness and its eight cases are unchanged, not rerun or counted again.
+
+The exact D45 hosted Android build artifact 13532928116 was independently verified:
+ZIP SHA-256 `a73f00894fa8927009fbbdea6deeaf3239bc6e88bade66c96c4758d9fab263bf`;
+575 JVM cases, zero failures/skips, including 16 plan and 23 graph/receipt cases.
+The build/lint/compile job passed. Full API26/API37 suites on run 42274455789 remain
+running; no replacement native cohort is claimed. This change affects the source
+watcher/tests/documentation. Android app/build inputs remain those of D45, and no
+new APK or main update is published. Native status forms, full server/hardware
+acceptance and all remaining audit rows remain required.
+
+The compatibility workflow now wires the pinned eight-case real-module harness
+into a separate job and includes its script in path triggers. The YAML and
+embedded Python parse, source preparation uses LF, all 157 final policy cases
+pass after this workflow change, and checksum policy passes for 495 components /
+1071 artifacts with metadata verification and no blanket artifact trust.
+Actual hosted execution of the new job remains pending.
+
 ## 2026-11-06 — new main auth-registry drift retained; eight real-module checks
 
 The exact d45a3e5 hosted Android verify job passed; full API26/API37 suites remain

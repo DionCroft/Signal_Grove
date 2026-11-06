@@ -111,6 +111,18 @@ def baseline(contract):
     return {'upstream':{'commit':'a'*40,'contract':contract},'mobile_used_routes':['GET /v1/kept'],'mobile_used_static_flags':['enabled'],'mobile_used_job_update_fields':['enabled'],
         'mobile_used_management_routes':['PUT /api/mcp/servers/{name}/enabled'],'mobile_used_handlers':['mcp:set_mcp_server_enabled'],'mobile_used_request_fields':['models:MCPEnabledToggle.enabled']}
 
+def complete_replacement_fixture(value, contract):
+    """Keep synthetic mixed-baseline fixtures in one complete reviewed registry mode.
+
+    This creates test data only; it is not a source snapshot or runtime evidence.
+    """
+    for retired, entries in value.get('reviewed_handler_replacements', {}).items():
+        entry = entries[-1]
+        contract['handlers'].pop(retired, None)
+        contract['source_hashes'][retired.split(':', 1)[0]] = entry['source_sha256']
+        contract['handlers'].update(entry['replacements'])
+
+
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):
@@ -474,6 +486,7 @@ class ContractWatchTest(unittest.TestCase):
         # this test still isolates the three actor variants and preserves every original assertion.
         for key,entries in tracked['reviewed_handler_variants'].items():
             if tracked['upstream']['contract']['handlers'].get(key) is None:current['contract']['handlers'][key]=entries[-1]['sha256']
+        complete_replacement_fixture(tracked,current['contract'])
         for key,(before,after) in expected.items():
             self.assertEqual(before,tracked['upstream']['contract']['handlers'][key])
             evidence=tracked['reviewed_handler_variants'][key]
@@ -871,11 +884,13 @@ class PluginUpdateLockWatchTests(unittest.TestCase):
         introduced=[k for k in value['reviewed_handler_variants'] if current['handlers'].get(k) is None]
         self.assertGreaterEqual(len(introduced),70)
         for key in introduced:current['handlers'][key]=value['reviewed_handler_variants'][key][-1]['sha256']
+        complete_replacement_fixture(value,current)
         self.assertFalse(checker.compare(value,{'commit':'e'*40,'contract':current})['mobile_review_required'])
         for key in introduced:
             missing={**current,'handlers':{k:v for k,v in current['handlers'].items() if k!=key}}
             report=checker.compare(value,{'commit':'e'*40,'contract':missing})
-            self.assertEqual({key},set(report['mobile_relevant_changes']['changed_used_handlers']));self.assertTrue(report['mobile_relevant_changes']['changed_used_handlers'][key]['required_introduced_handler_missing'])
+            dependencies={retired for retired,entries in value.get('reviewed_handler_replacements',{}).items() if key in entries[-1]['replacements']}
+            self.assertEqual({key}|dependencies,set(report['mobile_relevant_changes']['changed_used_handlers']));self.assertTrue(report['mobile_relevant_changes']['changed_used_handlers'][key]['required_introduced_handler_missing'])
 
 
 class KanbanTaskWriteWatchTests(unittest.TestCase):
@@ -1027,6 +1042,7 @@ class RunProjectionProgressVariantTests(unittest.TestCase):
         current={'commit':entries[0]['commit'],'contract':copy.deepcopy(value['upstream']['contract'])}
         for introduced,variants in value['reviewed_handler_variants'].items():
             if introduced not in current['contract']['handlers']:current['contract']['handlers'][introduced]=variants[-1]['sha256']
+        complete_replacement_fixture(value,current['contract'])
         self.assertFalse(checker.compare(value,current)['mobile_review_required'])
         current['contract']['handlers'][key]=entries[0]['sha256']
         self.assertFalse(checker.compare(value,current)['mobile_review_required'])
