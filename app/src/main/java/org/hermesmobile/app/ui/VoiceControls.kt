@@ -33,8 +33,10 @@ internal fun RecognitionFailure.word()=when(this) {
     session:DictationSession,transcript:String,onTranscript:(String)->Unit,
     recognitionAvailable:Boolean,busy:Boolean,speaking:Boolean,readBlock:Words?,readError:Words?,
     onLanguage:(String)->Unit,onLocalOnly:(Boolean)->Unit,onNetworkVoices:(Boolean)->Unit,onRate:(Float)->Unit,
-    onMicrophone:()->Unit,onCancel:()->Unit,onChat:()->Unit,onRead:()->Unit,onRefresh:()->Unit,onPermissions:()->Unit
+    onMicrophone:()->Unit,onCancel:()->Unit,onChat:()->Unit,onRead:()->Unit,onRefresh:()->Unit,onPermissions:()->Unit,
+    onSpeechSettings:()->Boolean
 ) {
+    var speechSettingsUnavailable by remember {mutableStateOf(false)}
     val idle=session.phase==DictationPhase.IDLE
     val voiceTitle=label(Words.Voice)
     Column(Modifier.fillMaxSize().padding(horizontal=20.dp).testTag("voice-screen").semantics {paneTitle=voiceTitle},verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -48,6 +50,9 @@ internal fun RecognitionFailure.word()=when(this) {
                     Button(onRead,Modifier.testTag("voice-read-reply"),enabled=speaking || readBlock==null) {Text(label(if(speaking) Words.StopSpeech else Words.ReadReply))}
                     readBlock?.let {Text(label(it),Modifier.testTag("voice-read-reason"))}
                     readError?.let {Text(label(it),Modifier.testTag("voice-read-error"),color=MaterialTheme.colorScheme.error)}
+                    TextButton({speechSettingsUnavailable=!onSpeechSettings()},Modifier.testTag("voice-speech-settings"),enabled=idle && !speaking) {Text(label(Words.SpeechSettings))}
+                    if(readBlock==Words.SpeechEngineUnavailable || readBlock==Words.SpeechVoiceUnavailable || speechSettingsUnavailable) Text(label(Words.SpeechSetupInfo),Modifier.testTag("voice-speech-setup-info"))
+                    if(speechSettingsUnavailable) Text(label(Words.SpeechSettingsUnavailable),Modifier.testTag("voice-speech-settings-error"),color=MaterialTheme.colorScheme.error)
                 }
                 Text(label(if(readAloud) Words.ReadAloudInfo else Words.VoiceInfo))
                 FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -81,7 +86,7 @@ internal fun RecognitionFailure.word()=when(this) {
                     Slider(preferences.speechRate,onRate,valueRange=.75f..1.25f,enabled=!speaking)
                     Text(label(Words.SpeechDisclosure),style=MaterialTheme.typography.bodySmall)
                 }
-                TextButton(onRefresh,Modifier.testTag("voice-refresh"),enabled=idle && !speaking) {Text(label(Words.RefreshSpeech))}
+                TextButton({speechSettingsUnavailable=false;onRefresh()},Modifier.testTag("voice-refresh"),enabled=idle && !speaking) {Text(label(Words.RefreshSpeech))}
             }
         }
     }

@@ -1336,3 +1336,103 @@ keeps its earlier Voice-fix APK pair; that pair's seven controlled physical UI
 passes and manual audio question remain separate. This layout pair has no
 physical-device/audio certification or published release. Own exact-head full
 hosted Android and compatibility gates remain required before merge.
+
+
+## Voice hosted closure and owner-authorized audio (5 November 2026)
+
+The diagnostic commit `7d40b96` passed its own full hosted Android suites:
+API26 **893** and API37 **894** positive cases/terminal OK, no failures or skips.
+Its compatibility archives passed digest/content verification. Main was advanced
+to this source before the later voice chunks closed.
+
+Voice runtime commit `713ced0` subsequently passed [Android 42120073229](https://github.com/DionCroft/Signal_Grove/actions/runs/42120073229):
+API26 **900** and API37 **901** positive cases/terminal OK, no failures or skips.
+The downloaded archives match advertised SHA-256 values
+`20f9327a1e0dd9d06281dfd63e10876bb366ff5eee18bd63ae84877aaeeed19e`
+and `57c607c6312d86046e3fd9864ca1eb7b3a2e8fb23a05508e0f59b6d13c38f079`.
+Its separate compatibility run **42120078373** passed; both digest-verified
+reports have no tracked mobile review findings.
+
+Layout commit `6b809e6` passed [Android 42123382322](https://github.com/DionCroft/Signal_Grove/actions/runs/42123382322):
+API26 **901** and API37 **902** positive cases/terminal OK, no failures or skips.
+Downloaded archive digests are
+`7e750f03ee98e321954001c513581ff69b351c0f6b746d9f11701d12f5a92160`
+and `8fcd6ae86fb90bdbf68f44c9fa9247a489281bd7ddda022783a3821636333191`.
+Compatibility **42123386522** passed. Its latest/main archives match
+`4988114997af74b0d872fd84d0e80109d9bf5ec036caa69cce62f5c65112197e`
+and `ae2ca372b321529e9eb528968c9c0c71a1f527beb0f3313badf05a44daa2f7ae`,
+with no tracked mobile review findings. Local/remote main were fast-forwarded to
+`6b809e6` after verifying both intermediate commits' own gates. This changed no
+active working/build source and publishes no beta.5 release.
+
+The owner explicitly authorized direct phone control for the read-aloud issue.
+The phone retained the `904f874b…` app / `4c67a090…` test pair documented above;
+the layout pair was not installed there. In Demo mode an assistant reply already
+existed: the actual blocking message was **engine unavailable**, not missing
+chat content. Android initially had no preferred TTS engine selected, despite an
+installed engine being present. The installed engine was selected through normal
+Android settings; the default was subsequently observed configured after the
+normal engine warning. Returning to the app refreshed its engine availability.
+
+The online-voices switch was observed enabled during inspection and was switched
+off before any playback action. One short-lived driver assertion retained stale
+switch state and failed; later independent hierarchy/screenshot captures verified
+the switch off and the actual clickable read button enabled. No assertion was
+weakened or failed action blindly replayed. A separate offline-guarded driver
+accepted one Read action, then navigated to Chat. Its transient UI observation
+did not establish speech progress or audible sound. The owner independently
+confirmed **hearing the reply and playback stopping when Voice was left**.
+This is physical read-aloud/exit acceptance for this phone and exact older pair,
+with online voices off. It is not a packet-level privacy audit, microphone,
+Bluetooth, background/idle or newer-APK certification. On-device recognition
+remains unavailable; the owner keeps its on-device-only policy.
+
+The temporary legacy SDK accessibility driver initially encountered SDK37's
+missing `android.test.RepetitiveTest` runtime dependency before its method ran,
+while its runner misleadingly printed OK. Four original helper verdicts were
+invalidated and retained; they establish no clicks, send, copy or inspection.
+The corrected driver loads the installed SDK test-base runtime and requires an
+actual method marker, positive case, terminal OK and no abort/exception. This
+correction concerns transient diagnostic helpers, not the modern AndroidJUnitRunner
+regression evidence above. Private captures, logs and hardware identifiers remain
+outside this repository.
+
+
+## Speech-engine setup and recovery (6 November 2026)
+
+A separate follow-up adds **Open speech settings** beside the primary Read aloud
+action. It opens the optional dedicated Android TTS page, with guarded
+Accessibility-settings fallback and a visible manual recovery when neither can
+open. Missing-engine guidance names the preferred-engine selection and installed
+offline language data. Setup is unavailable during speech. It grants no consent,
+installs no provider/data and changes neither privacy preference. Existing
+recognition/playback logic before the new settings callback is unchanged.
+
+The four required strict Gradle tasks passed in **9m 18s**:
+**520 JVM tests, zero failures/errors/skips**, lint and both assemblies. All
+**411** frozen source identities reconcile. App SHA-256 `72d51eddfc9c33fe605cfb37d9eac4f1f18708294ef00a3fcd9af0da8e236be3`;
+test APK `8f4475fd356d22dff708f77b23e3a7d76820b826144fbc4a6968ee0165e3bc82`. Original CAB signer, debug package identities,
+code106/beta.5, min26 and Room11 are retained.
+
+All **ten VoiceControls tests passed once on API26/36/37: 30 focused native
+passes**, unchanged emulator geometry/fonts and no skips. New regressions cover
+reachable bilingual/large-text engine setup while dictation is unavailable,
+no microphone/read/online opt-in from setup, visible manual recovery after a
+failed settings launch, and refresh preserving privacy. The speaking regression
+also checks that setup is disabled during playback. These fixtures synthesize
+and record no audio and reset no owner stores.
+
+The actual API26 application opened Android's **Text-to-speech settings** from
+its new button, verified through a fresh hierarchy and inspected screenshot.
+No engine, language, consent, sample-playback or system setting was changed.
+A normal MAIN return command's host wait timed out after40 seconds. It was not
+replayed. Independent later resumed-activity, hierarchy and screenshot checks
+showed the original Read aloud screen; the bounded event log showed no ANR/crash.
+The timeout is retained and return performance is not accepted from this check.
+It does not invalidate the30 native UI passes or establish a cause.
+
+The physical phone remains on the earlier904f/4c67 APK pair: its owner-confirmed
+audible read/exit and final observed on-device-only/online-voices-off settings are
+separate evidence. No physical certification or release is claimed for this new
+setup pair. Its own exact-head full hosted Android and compatibility gates remain
+required before merge; wider audit and hardware acceptance remain open.

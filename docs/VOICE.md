@@ -27,8 +27,18 @@ Voice, select **Read aloud**, then **Read latest reply aloud**. No microphone
 permission or recognizer is needed. With online voices disabled, Signal Grove
 selects a matching installed voice that Android marks as not requiring a network
 connection. Voices marked as missing data are excluded. A missing suitable voice
-does not enable online voices. Check the phone's text-to-speech engine and
-language data in Android Settings, then use **Refresh speech services**.
+does not enable online voices. Use **Open speech settings** to check Android's
+**Preferred engine**. An engine can be installed without being selected as the
+default; this can prevent read-aloud from starting. Select a trusted installed
+engine, review its normal Android prompts and check that it has an offline voice
+for the selected language. Return to Signal Grove and use **Refresh speech
+services**. Keep **Allow online read-aloud voices** off for offline-only playback.
+
+The setup action opens Android's text-to-speech page, or its Accessibility settings
+when the dedicated page is unavailable. If neither opens, the app explains how to
+find it manually. Opening settings does not select an engine, install data, grant
+consent, play a sample or change either Signal Grove privacy switch. Android and
+the selected engine own any subsequent setup/download prompts.
 
 The disabled button explains whether a reply, readable text, a finished chat
 turn, an initialized engine or a suitable voice is missing. Playback errors are
@@ -65,3 +75,11 @@ controls. The screen retains its accessible Voice title without a duplicate
 large visual heading. These arrangements keep the primary action within the
 initial viewport with app bars and enlarged bilingual text. Other settings remain
 scrollable; the privacy switches and explicit playback behavior are unchanged.
+
+
+The dedicated setup action follows the exported TTS settings action in the
+[AOSP Settings manifest](https://android.googlesource.com/platform/packages/apps/Settings/+/refs/heads/main/AndroidManifest.xml).
+Its guarded fallback uses Android's documented
+[Accessibility settings action](https://developer.android.com/reference/android/provider/Settings#ACTION_ACCESSIBILITY_SETTINGS).
+Engine selection and language-data installation remain explicit Android/provider
+flows; Signal Grove refreshes actual voice availability on return.

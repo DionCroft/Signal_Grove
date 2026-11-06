@@ -173,6 +173,12 @@ import java.util.concurrent.atomic.AtomicBoolean
                 chunks.forEachIndexed {index,text->check(tts.speak(text,if(index==0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD,null,"$utterancePrefix-$index")==TextToSpeech.SUCCESS)}
             } catch(_:Exception) {stopSpeaking();speechError=Words.SpeechPlaybackError}
         },
-        onRefresh={refresh(true)},onPermissions={runCatching {context.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:${context.packageName}")))}}
+        onRefresh={refresh(true)},onPermissions={runCatching {context.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:${context.packageName}"))) }},
+        onSpeechSettings={
+            stopSpeaking()
+            // The dedicated AOSP action is optional on OEM devices. No voice data, default or consent is changed here.
+            runCatching {context.startActivity(Intent("com.android.settings.TTS_SETTINGS"))}.isSuccess ||
+                runCatching {context.startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))}.isSuccess
+        }
     )
 }
