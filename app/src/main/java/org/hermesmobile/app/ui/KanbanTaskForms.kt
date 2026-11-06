@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 
-val kanbanTaskEditActions=listOf(HostKanbanTaskAction.Metadata,HostKanbanTaskAction.Priority,HostKanbanTaskAction.Assignee,HostKanbanTaskAction.Comment,HostKanbanTaskAction.Delete)
+val kanbanTaskEditActions=listOf(HostKanbanTaskAction.Metadata,HostKanbanTaskAction.Priority,HostKanbanTaskAction.Assignee,HostKanbanTaskAction.Comment,HostKanbanTaskAction.Delete)+kanbanTaskOverrideActions
 fun kanbanTaskActionWord(action:HostKanbanTaskAction)=when(action) {
     HostKanbanTaskAction.ModelOverride->Words.KanbanTaskModelOverride
     HostKanbanTaskAction.ReasoningOverride->Words.KanbanTaskReasoningOverride
@@ -42,6 +42,7 @@ internal fun taskFieldWord(key:String)=when(key) {"clear_model_override"->Words.
 }
 
 @Composable fun KanbanTaskForm(editor:ReviewedKanbanTaskEditor,close:()->Unit,review:(HostKanbanTaskChange)->Unit) {
+    if(editor.action in kanbanTaskOverrideActions) {KanbanOverrideForm(editor,close,review);return}
     val task=editor.subject.task
     var title by remember(editor) {mutableStateOf(task.title)}
     var body by remember(editor) {mutableStateOf(task.body.orEmpty())}
@@ -92,7 +93,7 @@ internal fun taskFieldWord(key:String)=when(key) {"clear_model_override"->Words.
     val request=review.request
     var granted by remember(review) {mutableStateOf(false)}
     var deleteId by remember(review) {mutableStateOf("")}
-    AlertDialog(onDismissRequest=close,title={Text(label(kanbanTaskActionWord(request.action)))},text={
+    AlertDialog(onDismissRequest=close,title={Text(label(if(request.action in kanbanTaskOverrideActions) kanbanOverrideTitle(request.action) else kanbanTaskActionWord(request.action)))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("task-change-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(request.owner.url);Text(request.owner.profile);Text(request.owner.actor);Text(request.board.slug);Text(label(Words.KanbanDbPath));SelectionContainer {Text(request.board.dbPath)}}
             request.subject?.let {detail->item {Text(label(if(request.related==null) Words.KanbanTaskId else Words.KanbanDependencyChild));SelectionContainer {Column {Text(detail.task.id);Text(detail.task.title);KanbanStatus(detail.task.status)}}}}
@@ -103,6 +104,7 @@ internal fun taskFieldWord(key:String)=when(key) {"clear_model_override"->Words.
                 request.project?.let {project->item {Text(label(Words.KanbanProject));SelectionContainer {Column {Text(project.id);Text(project.name);project.primaryPath?.let {Text(it)}}}}}
                 item {Text(label(Words.KanbanTaskCreateEffect));Text(label(Words.KanbanTaskProjectEffect));Text(label(Words.KanbanReadEffect))}
             }
+            if(request.action in kanbanTaskOverrideActions) item {KanbanOverrideCurrent(request.subject!!.task);KanbanOverrideEffect(request.action);if(request.action==HostKanbanTaskAction.ModelOverride && "model_override" in request.values && "provider_override" !in request.values) Text(label(Words.KanbanOverrideProviderClear))}
             item {
                 Text(label(Words.KanbanTaskEditEffect))
                 when(request.action) {HostKanbanTaskAction.Assignee->Text(label(Words.KanbanTaskAssignEffect));HostKanbanTaskAction.Comment->Text(label(Words.KanbanTaskCommentEffect));HostKanbanTaskAction.Delete->Text(label(Words.KanbanTaskDeleteEffect));else->Unit}
@@ -116,6 +118,7 @@ internal fun taskFieldWord(key:String)=when(key) {"clear_model_override"->Words.
 
 @Composable fun KanbanTaskReceiptSummary(summary:JsonObject,state:String) {
     Text(label(kanbanTaskStateWord(state)))
+    if((summary["phase"] as? JsonPrimitive)?.content in kanbanTaskOverrideActions.map {it.name}) Text(label(Words.KanbanOverrideNextDispatch))
     if(summary["host_acknowledged"]==JsonPrimitive(true) && summary["effect_reported"]!=JsonPrimitive(true)) Text(label(Words.KanbanBoardEffectNotReported))
     val fields=mutableListOf<String>()
     for(field in (summary["fields"] as? JsonArray).orEmpty()) (field as? JsonPrimitive)?.content?.let(::taskFieldWord)?.let {fields.add(label(it))}

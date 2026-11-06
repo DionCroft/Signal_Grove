@@ -1,5 +1,37 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — native independent override forms
+
+Final refined development107/beta.6 source passed strict four-task build/lint in
+8m55s with528 JVM tests, zero failures/errors/skips. The earlier layout compiled
+and passed its own four-task/528 gate in13m58s; that immutable compile-only pair
+is retained separately and has no native acceptance claim. Source review then
+shortened only override titles and placed edit choices before longer effects.
+
+The final immutable pair passed22 new real-client UI methods and31 related
+override-storage/task-edit methods on each owned API26/36/37: **159 focused
+passes**, no failures/skips, retries or weakened assertions. All423 frozen
+source hashes were checked before/after every run. App SHA-256
+`a010f4792d3b978587aaf68ecde16300b2c1c93c636e8b11cd66e89730bc5742`; test SHA-256 `2abbb08ce32bac92eda690f3d6c2a2e1789dbe630d8cd885e907396765fdec49`. Original CAB signer verified
+for both APKs. API26 remained720x1280/density320/font1.3; API36/37 remained
+1080x2400/density420/font1.0. No reset, clear-data, reseed or geometry override.
+
+New cases cover six literal set/clear shapes, nullable-field availability,
+archived tasks, input bounds, explicit none versus inheritance, distinct empty
+and NULL values, cancellation, shared pending resolve without UI resurrection,
+profile/close fences, independent preflight races, lost reply/no replay and
+missing-NULL ACK separation. Both bilingual paths assert the whole initial
+choice label and button fit an explicit viewport, with fixed footer controls.
+Six actual form/review/result captures across the three platforms were inspected.
+Local tasks and protected fixture context are preserved. No private override
+values enter durable receipts; runtime/worker/filesystem proof flags stayfalse.
+
+All144 source/policy and15 observer tests pass; networking/dependencies/Room
+schema/permissions are unchanged. Full exact-head hosted acceptance, live host
+mutation and physical/OEM evidence remain separate. The owner phone's newly
+reported title/routing issue is now the priority; no failed production request
+was replayed during its read-only diagnosis. Beta.5 artifacts remain immutable.
+
 ## 2026-11-06 — beta.5 published at the verified feature commit
 
 Public [beta.5](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.5)

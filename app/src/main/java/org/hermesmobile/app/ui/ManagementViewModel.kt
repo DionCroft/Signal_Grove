@@ -921,14 +921,19 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(board.board.definition()!=detail.board.definition() || board.board.archived) return Words.KanbanTaskReadFirst
         return null
     }
+    fun kanbanTaskOverrideBlock(s:ManagementState):Words? {
+        kanbanTaskBlock(s)?.let {return it}
+        return kanbanOverrideTaskBlock(visibleHostKanban(s).detail!!.task)
+    }
+    private fun kanbanTaskEditorBlock(s:ManagementState,action:HostKanbanTaskAction)=if(action in kanbanTaskOverrideActions) kanbanTaskOverrideBlock(s) else kanbanTaskBlock(s)
     fun prepareKanbanTaskEditor(action:HostKanbanTaskAction):ReviewedKanbanTaskEditor? {
-        if(action !in kanbanTaskEditActions || kanbanTaskBlock(state.value)!=null) return null
+        if(action !in kanbanTaskEditActions || kanbanTaskEditorBlock(state.value,action)!=null) return null
         val visible=visibleHostKanban(state.value)
         return ReviewedKanbanTaskEditor(visible.inventory!!,visible.board!!,visible.detail!!,action,generation)
     }
     fun kanbanTaskEditorCurrent(editor:ReviewedKanbanTaskEditor):Boolean {
         val visible=visibleHostKanban(state.value)
-        return editor.generation==generation && kanbanTaskBlock(state.value)==null && visible.inventory===editor.inventory && visible.board===editor.snapshot && visible.detail===editor.subject
+        return editor.action in kanbanTaskEditActions && editor.generation==generation && kanbanTaskEditorBlock(state.value,editor.action)==null && visible.inventory===editor.inventory && visible.board===editor.snapshot && visible.detail===editor.subject
     }
     fun kanbanDependencyBlock(s:ManagementState,remove:Boolean):Words? {
         kanbanTaskBlock(s)?.let {return it}
@@ -982,7 +987,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(visible.inventory!==request.inventory || visible.board!==request.snapshot || projectContext()!=(request.owner to request.home)) return false
         if(request.action==HostKanbanTaskAction.Create) return kanbanTaskCreateBlock(state.value)==null && request.subject==null && (request.project==null || visible.projects?.let(request::projectCurrent)==true)
         if(request.action in setOf(HostKanbanTaskAction.Link,HostKanbanTaskAction.Unlink)) return kanbanTaskBlock(state.value)==null && visible.detail===request.subject && visible.dependencyReview?.let {it.generation==generation && it.request===request}==true
-        return request.action in kanbanTaskEditActions && kanbanTaskBlock(state.value)==null && visible.detail===request.subject
+        return request.action in kanbanTaskEditActions && kanbanTaskEditorBlock(state.value,request.action)==null && visible.detail===request.subject
     }
     fun prepareKanbanTaskChange(request:HostKanbanTaskChange)=if(!kanbanTaskRequestCurrent(request)) null else if(request.action in setOf(HostKanbanTaskAction.Link,HostKanbanTaskAction.Unlink)) visibleHostKanban(state.value).dependencyReview else ReviewedKanbanTaskChange(request,generation)
     fun kanbanTaskChangeCurrent(review:ReviewedKanbanTaskChange)=review.generation==generation && kanbanTaskRequestCurrent(review.request)

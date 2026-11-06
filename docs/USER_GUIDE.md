@@ -348,3 +348,22 @@ recognition. Missing offline read-aloud voices never enable online voices.
 The disabled playback control now explains its missing prerequisite. Use
 **Refresh speech services** after changing Android speech services or language
 data. See the [voice guide](VOICE.md) for errors, privacy and lifecycle behavior.
+
+## Review task model and reasoning overrides (development)
+
+1. In Hermes management, open Host Kanban, explicitly read its inventory and
+   board, then read the task's complete details.
+2. Choose **Change task model override** or **Change task reasoning override**.
+3. Choose **Set** or **Clear**. Setting a model requires its ID; a blank provider
+   clears the task provider override. Model Clear clears both model/provider.
+   For reasoning, `none` explicitly pins thinking off; Clear inherits the profile.
+4. Choose Review and check the host, profile, actor, board, task, current values
+   and exact requested phase. Supply a fresh grant, then Confirm.
+5. Read the receipt. Matching stored configuration is separate from loaded model
+   weights or current worker behavior; overrides apply on the next dispatch.
+   Unknown results remain blocked for review and are never replayed automatically.
+
+Model and reasoning are independent requests. Missing override metadata and
+archived tasks explain unavailable controls. Cancel, close, connection/profile
+changes and shared pending work discard private drafts and old grants. These
+forms are development source, separate from beta.5's typed data foundation.

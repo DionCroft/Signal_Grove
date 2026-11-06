@@ -1,6 +1,6 @@
 # Independent Kanban task model/reasoning phases — 5 November 2026
 
-Validated development foundation; native user-facing forms are a subsequent chunk. Existing project, task, dependency and approval controls remain separate.
+Validated development foundation and native override forms. Existing project, task, dependency and approval controls remain separate; typed status and worker/dispatch controls remain open.
 
 ## Primary sources
 
@@ -40,3 +40,29 @@ Fresh catalog/default-anchor/task/home checks, shared pending barriers, one atom
 Seven newly selected helper/transaction fingerprints and five PATCH fields are additive. Previously watched override dispatch bindings, validators, transaction alias, observer and vocabulary remain intact. Synthetic AST drift tests cover clear/default/type changes, mixed phases, archived-guard removal, transaction redirection, post-commit observer ordering and removed helpers. Source-watch success does not certify a deployed runtime.
 
 Twelve JVM regressions and ten new literal HTTP/Room test methods cover normalization, clear/none distinction, missing/NULL shape, independent races, exact identities, readback, privacy, cancellation/unknown/no replay and foreign pending work. Existing exhaustive task-action tests also include both new phases. Required strict build/lint, 511 JVM tests and 133 Python checks pass. All ten new and 89 related native methods pass on each owned API26/36/37, 297 same-artifact focused passes with no skips. Initial failures and their corrections remain recorded in [VALIDATION.md](../VALIDATION.md). Exact-head hosted gates and user-facing forms remain separate.
+
+## Native forms — 6 November development source
+
+After separately reading inventory, board and full task details, choose **Change
+task model override** or **Change task reasoning override**. Choose Set or Clear
+explicitly; an empty input never silently becomes Clear. Model Set requires a
+nonblank model and allows an optional provider; the form and review disclose
+that blank provider clears its stored override. Reasoning Set offers the eight
+supported efforts, with `none` distinct from Clear/inherit. Current NULL, missing
+and empty-string metadata remain distinct. Missing required fields or an
+archived task disable only these override actions with a reason.
+
+The private unsaved draft and fresh unchecked review show owner/profile/actor,
+board/database path, task identity, requested values, original overrides and
+independent-phase effects. Scope/generation changes, close and shared pending
+work discard the draft/grant; resolving pending work does not restore the UI.
+Model overrides affect the next dispatch and do not prove weights loaded or a
+current worker changed. Receipts repeat that boundary and retain no values.
+
+Final refined source passes strict four-task build/lint,528 JVM tests and159
+focused native cases (22 new +31 related on each API26/36/37). All6 immutable
+pairs match the same APK hashes; no failure/skip code, retry or weakened
+assertion. Initial full-label/button-size-versus-viewport checks cover large
+bilingual text. Six actual form/review/result captures were inspected across
+the three unchanged emulator geometries. Full exact-head hosted checks and
+physical/live acceptance remain separate. This is not in published beta.5.

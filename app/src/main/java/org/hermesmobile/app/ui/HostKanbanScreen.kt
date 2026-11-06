@@ -99,7 +99,7 @@ private fun kanbanField(key:String)=when(key) {
             s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("kanban-close")) {Text(label(Words.Close))}})
-    visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm.kanbanTaskBlock(s),vm.kanbanDependencyBlock(s,false),vm.kanbanDependencyBlock(s,true),vm::closeHostKanbanDetail,{id->offer(detail.board,id)},{action->taskEditor=vm.prepareKanbanTaskEditor(action)},{remove->dependencyPicker=vm.prepareKanbanDependencyPicker(remove)})}
+    visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm.kanbanTaskBlock(s),vm.kanbanTaskOverrideBlock(s),vm.kanbanDependencyBlock(s,false),vm.kanbanDependencyBlock(s,true),vm::closeHostKanbanDetail,{id->offer(detail.board,id)},{action->taskEditor=vm.prepareKanbanTaskEditor(action)},{remove->dependencyPicker=vm.prepareKanbanDependencyPicker(remove)})}
     dependencyPicker?.takeIf(vm::kanbanDependencyPickerCurrent)?.let {picker->KanbanDependencyPicker(picker,{dependencyPicker=null}) {id->dependencyRead=vm.prepareKanbanDependencyRead(picker,id);dependencyPicker=null}}
     dependencyRead?.takeIf(vm::kanbanDependencyReadCurrent)?.let {readPair->KanbanDependencyReadReview(readPair,{dependencyRead=null}) {dependencyRead=null;vm.loadKanbanDependency(readPair)}}
     visible.dependencyReview?.takeIf(vm::kanbanTaskChangeCurrent)?.let {frozen->KanbanTaskChangeReview(frozen,!s.busy,vm::closeKanbanDependencyReview) {vm.performKanbanTaskChange(frozen)}}
@@ -122,13 +122,13 @@ private fun kanbanField(key:String)=when(key) {
     },confirmButton={TextButton({review=null;vm.loadHostKanban(frozen)},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("kanban-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({review=null},Modifier.heightIn(min=48.dp).testTag("kanban-read-cancel")) {Text(label(Words.Cancel))}})}
 }
 
-@Composable private fun HostKanbanDetails(detail:HostKanbanDetail,busy:Boolean,blocked:Words?,addBlocked:Words?,removeBlocked:Words?,close:()->Unit,read:(String)->Unit,edit:(HostKanbanTaskAction)->Unit,dependency:(Boolean)->Unit) {
+@Composable private fun HostKanbanDetails(detail:HostKanbanDetail,busy:Boolean,blocked:Words?,overrideBlocked:Words?,addBlocked:Words?,removeBlocked:Words?,close:()->Unit,read:(String)->Unit,edit:(HostKanbanTaskAction)->Unit,dependency:(Boolean)->Unit) {
     val task=detail.task
     AlertDialog(onDismissRequest=close,title={Text(task.title)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("kanban-task-detail"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(detail.owner.url);Text(detail.owner.profile);Text(detail.board.slug);Text(label(Words.KanbanObservation));KanbanValue(Words.KanbanTaskId,task.id);KanbanStatus(task.status)}
-            item {blocked?.let {Text(label(it))}}
-            items(kanbanTaskEditActions,key={"action:"+it.name}) {action->TextButton({edit(action)},enabled=blocked==null,modifier=Modifier.heightIn(min=48.dp).testTag("task-edit-"+action.name)) {Text(label(kanbanTaskActionWord(action)))}}
+            item {blocked?.let {Text(label(it))};overrideBlocked?.takeIf {it!=blocked}?.let {Text(label(it))}}
+            items(kanbanTaskEditActions,key={"action:"+it.name}) {action->TextButton({edit(action)},enabled=blocked==null && (action !in kanbanTaskOverrideActions || overrideBlocked==null),modifier=Modifier.heightIn(min=48.dp).testTag("task-edit-"+action.name)) {Text(label(kanbanTaskActionWord(action)))}}
             for((remove,reason) in listOf(false to addBlocked,true to removeBlocked)) item {
                 TextButton({dependency(remove)},enabled=reason==null,modifier=Modifier.heightIn(min=48.dp).testTag(if(remove) "task-dependency-remove" else "task-dependency-add")) {Text(label(if(remove) Words.KanbanTaskUnlink else Words.KanbanTaskLink))}
                 reason?.let {Text(label(it))}
