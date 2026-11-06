@@ -4,7 +4,7 @@ An unofficial, open-source native Android client for [Hermes Agent](https://gith
 
 **Stable 1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
 
-Preview release: [`1.1.0-beta.5`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.5), code 106. It adds serving-versus-selected model status, clearer offline voice setup, guided Hermes connection setup and reviewed project/Kanban controls. Exact release checks and asset digests are recorded on the release page; the broader audit follow-up continues. The preview includes: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
+Preview release: [`1.1.0-beta.6`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6), code 107. It fixes duplicate automatic conversation titles, retaining beta.5 model awareness, voice/setup improvements and reviewed project/Kanban controls. Exact release checks and asset digests are recorded on the release page; the broader audit follow-up continues. The preview includes: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
 
 [Brand and upgrade compatibility](docs/BRANDING.md). The GitHub repository is now `DionCroft/Signal_Grove`. Older previews need one matching signed beta.5 (or later) APK upgrade so their fixed update feed can migrate; package and signing identities are retained.
 
@@ -22,7 +22,7 @@ Five interchangeable palettes, persistent conversations, English / Simplified Ch
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Try the [1.1.0-beta.5 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.5) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
+Try the [1.1.0-beta.6 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
 
 ## Features
 

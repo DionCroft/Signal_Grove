@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — beta.6 conversation-title hotfix preparation
+
+New native conversations with a repeated opening such as “Test” could receive HTTP400 `invalid_title`, because Hermes enforces unique titles. The app now supplies a single-line, Unicode-safe label with a stable 16-hex session-derived suffix. The original message and existing sessions stay unchanged; there is no automatic replay, server rename, model switch or lock clearing. The saved default and verified serving model remain distinct.
+
+The strict four-task build passed **536 JVM cases**, zero failures/errors/skips. The same original-key immutable pair passed **78 focused native cases**: three new send-path cases and 23 related session/runtime/model-status/receipt cases on each of API26/36/37. Debug SHA-256 `b4c5bedc190a93c82d16e3932e426bc9a119902404fc136d4e5858c7a4c82e17`; test APK `76db8dc8069a66edd783af5c40a745ee400050526ae29d2d6777cf21a2508c59`. All424 frozen source-input hashes and unchanged device geometry were checked. The first native attempt remains failed: the new fixture lazily started MockWebServer on the UI thread; the correction moves only fixture URL creation off that thread, preserving every assertion. The application APK is unchanged by that test-only correction.
+
+A separate actual pinned Hermes `b200f5bc60e31588ba2cb60e288029c4a54ba5fa` loopback HTTP fixture reproduced duplicate-title400, accepted two generated labels201, preserved the existing synthetic session and left no rejected new row or model lock. No provider generation or production state was used. The first controller probe remains failed because it assumed the transcript table lived in the metadata database; the passing independent fixture uses no direct database writes. Python audit hooks and isolated environment are not an OS sandbox or a claim about every deployed runtime. Read-only inspection of the deployed handler separately established its title-conflict rollback and model precedence.
+
+All144 source/policy and15 observer tests pass; strict dependency verification remains495 components/1071 artifacts. Exact-source hosted Android/compatibility gates, production signing/lint, package review, retained-data upgrade and public download checks remain publication requirements. Their terminal results and exact asset digests belong on the release page; this source entry does not pre-claim them. Physical/OEM and broader audit acceptance remain open. [Release scope](releases/1.1.0-beta.6.md).
+
 ## 2026-11-06 — beta.5 release preparation
 
 Android source at **7f5550d001c0f234d0619912c5b9bc7c2d3c42ab** passed the strict four-task build, **528 JVM cases** (zero failures/errors/skips) and **75 focused native cases** on the same immutable APK pair across API26/36/37. Debug SHA-256 is `541bcdeddade5f2c5ff3c65f4cf09eda18cff0e3784b8c89b051ca8042f8b6fb`; test APK SHA-256 is `28da44a18a0dd3092d18b72c140434e4327b7dff3ba6a1eb2bcace4b095659d7`. Frozen source hashes were checked against the committed archive. Later compatibility/release-document changes do not alter Android source.
