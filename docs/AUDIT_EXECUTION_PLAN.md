@@ -113,3 +113,22 @@ exact-head941/942 acceptance is pending. The beta.6 title-fix release is isolate
 at e2b2de7. Verified current public task-status handlers can force live claims,
 invalidate descendants, request worker termination and clean managed workspace
 data; review those complete effects before the next typed status stage.
+
+
+## 6 November — current main registry refactor checkpoint
+
+The status executor and progress-metadata review are pushed at d45a3e5. Hosted
+Android 42274455789 passed build/lint/JVM verification; its full API26/API37 jobs
+remain running. Compatibility 42274564644 passed stable but caught five actual
+main E36 auth-registry changes. The failed run and both digest-verified reports
+are retained. Eight real-module isolation/registration/snapshot checks now pass
+through the new canonical pinned probe, but no replacement fingerprint is
+accepted yet. See [the review](contracts/2026-11-06-auth-registry-refactor-review.md).
+
+Next action: extend the watcher to cover the actual shared provider-registry
+engine and guarded retirement of the local function/import, with negative
+replacement/absence tests and exact stable/main comparison. Preserve F0 and
+reject an unguarded missing-handler waiver. Then complete the pending Android
+gates and resume private native status review/receipt routing, actual-server
+transitions and every remaining ledger row. No user credential/model/default,
+installed owner-phone app, public release or main branch was changed.

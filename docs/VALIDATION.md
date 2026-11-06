@@ -1,6 +1,26 @@
 # Current development validation — audit follow-up
 
 
+## 2026-11-06 — new main auth-registry drift retained; eight real-module checks
+
+The exact d45a3e5 hosted Android verify job passed; full API26/API37 suites remain
+running. Fresh compatibility 42274564644 passed stable 2bd but failed main E36 on
+five auth-registry function/import/binding changes, with exit 2 and independently
+verified artifact digests. The watcher has not accepted those replacements.
+[The detailed review](contracts/2026-11-06-auth-registry-refactor-review.md)
+records source identities, retained receipts and the exact next work.
+
+The new canonical pinned registry harness passed eight bounded actual-module
+cases, with no denied boundary events, authentication/network calls or owner
+credentials. It executes the verified input bytes, uses a fresh isolated home,
+refuses optimized Python and restricts writes to its fresh output directory.
+The explicit optimized-mode check failed before fixture creation as required.
+This is separate module-level evidence; it does not certify login/HTTP/full
+runtime or replace the failed source watcher. Android source/build inputs and
+existing 148 policy/15 observer sources are unchanged from d45a3e5. The app's
+575 JVM, 67 status-related native cases and four polling cases remain the earlier
+separately scoped cohorts. No new APK or main update is published by this review.
+
 ## 2026-11-06 — reviewed run-progress metadata and existing debug-key selection
 
 The four new `RunPollingProgressStorageTest` methods passed as a separate API37
