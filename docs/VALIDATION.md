@@ -1436,3 +1436,45 @@ audible read/exit and final observed on-device-only/online-voices-off settings a
 separate evidence. No physical certification or release is claimed for this new
 setup pair. Its own exact-head full hosted Android and compatibility gates remain
 required before merge; wider audit and hardware acceptance remain open.
+
+
+## Optional runtime-model observer (6 November 2026)
+
+The versioned companion extension provides a read-only, bearer-authenticated model
+observation separately from saved model options and gateway readiness. It accepts
+no parameters and uses only the selected profile's existing bounded local-inference
+allowlist. Anonymous rejection, authenticated exact model identity and health are
+required. Unknown, unsafe and ambiguous observations cannot invent a unique route.
+No generation, model loading, routing/default change, credential export or automatic
+fallback is performed. The standard Hermes API remains supported without this extension.
+
+**15 Python regressions pass**, including real loopback HTTP, auth-boundary checks,
+wrong/multiple identities, redirects, unavailable endpoints, private credentials,
+concurrent profile separation and guarded source refusal. Both hosted workflows
+now run this suite. The adapter preserves existing source newlines and permissions,
+refuses changed source/existing observer files and atomically replaces the API
+only after a second hash check. All existing function ASTs except the route table
+remain unchanged; the new handler explicitly uses the existing auth decorator.
+
+An owner-approved deployment followed a fresh encrypted backup whose local SHA-256
+matched the GitHub asset digest. The final protected-store check found the existing
+credential already present and matching, so it was preserved. Earlier standalone
+previews lacked its native credential context and are not evidence of a missing
+production credential. Only the existing idle gateway was restarted once. No model
+or saved default was changed and no model-generation request was submitted.
+
+Live trusted-HTTPS checks returned401 without/with an invalid key,400 for query
+parameters,405 for POST and404 for a nonexistent profile. The correct key returned
+200, the exact capability, verified serving identity and a distinct configured
+default. Existing continuity discovery returned11 read-only ContextGraph tools;
+all checked paths resolved. Doctor retained its previous exit1 for optional
+unconfigured providers; no repair or cloud credential was added. The post-change
+encrypted backup is in progress and requires separate digest confirmation.
+
+This is bounded owner-deployment evidence, not stock-Hermes parity or a release.
+Client UI/build/device acceptance is a following chunk. The prior speech-setup
+head remains held: its full API26 suite passed903 cases, while API37 reported one
+Kanban cancellation-control visibility failure among904 cases. Both archives were
+digest-verified and retained. Its compatibility main canary also requires review
+of ten changed used auth/plugin handlers; latest stable has no tracked findings.
+No failed gate was rerun, weakened or relabelled successful.

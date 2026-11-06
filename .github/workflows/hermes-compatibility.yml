@@ -19,7 +19,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - run: python3 -B -m unittest discover -s scripts/tests -v
+      - run: |
+          python3 -B -m unittest discover -s scripts/tests -v
+          python3 -B -m unittest discover -s server_extensions/runtime_models -v
   upstream:
     if: github.event_name != 'pull_request'
     needs: parser-tests

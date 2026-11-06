@@ -18,6 +18,7 @@ jobs:
       - name: Validate dependency verification policy
         run: |
           python3 -B -m unittest discover -s scripts/tests -v
+          python3 -B -m unittest discover -s server_extensions/runtime_models -v
           python3 -B scripts/check_verification_policy.py
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
