@@ -44,6 +44,7 @@ class HostKanbanStatusPlanTest {
         val p = plan("running", HostKanbanStatusTarget.Review, "See /workspace/report.txt")
         assertEquals(Json.parseToJsonElement("""{"status":"review","summary":"See /workspace/report.txt"}"""), p.body())
         assertTrue(HostKanbanStatusEffect.MayStageReferencedFiles in p.effects)
+        assertTrue(HostKanbanStatusEffect.MayInheritReviewer in p.effects)
         assertEquals(Json.parseToJsonElement("""{"status":"review"}"""), plan("ready", HostKanbanStatusTarget.Review).body())
     }
     @Test fun blockedReasonIsRequiredAndNotSentAsCompletionEvidence() {

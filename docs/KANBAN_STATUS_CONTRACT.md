@@ -9,9 +9,10 @@ checked through the official GitHub connector: all five complete blob identities
 in the table below still match. These are pinned observations, not a claim about
 future moving refs.
 
-The initial `HostKanbanStatusPlan` is a private typed review foundation. It has
-no transport, approval or execution entry point and adds no user control. The
-executor and native form remain required; this does not close the audit row.
+The typed plan now has an internal status executor and one-use approval value.
+It has no native form or user entry point yet. The required build passes575 JVM
+cases, but its first native fixture attempt failed and ended with a startup ANR;
+acceptance remains open. This does not close the audit row.
 
 ## One status phase
 
@@ -56,9 +57,21 @@ text; the plan does not claim otherwise.
 
 The reviewed PATCH always acts on the task current at host write time. It has no
 atomic run/revision fence. A fresh client preflight cannot eliminate the race.
-The next implementation must explicitly resolve that limitation in the approval
-contract; it must not label a force transition as bound to the earlier observed
-worker. Missing identity/impact metadata needs a specific disabled reason.
+The approval contract is explicitly **task scoped at write time**, including the
+task's latest connected graph. It requires the exact typed task ID and separate
+consent to that scope; the approval is consumed once, including after a refused
+preflight. It never labels the operation as bound to the earlier observed worker.
+The Task projection exposes a claim/run reference, but not the kernel's process
+start fingerprint. A claim hash is not verified process identity. Native controls
+and their translated explanations still need implementation before exposure.
+
+Read-only preparation collects the complete connected component, with128-task,
+8MiB total and per-response/depth bounds. Missing/asymmetric/cyclic/unsupported
+graphs are refused. Fresh preflight compares canonical wire metadata, including
+undisplayed policy fields; heartbeat/lease clocks and derived diagnostics/age
+are excluded. A board's200-character summary preview is not mistaken for the
+full drawer handoff. Required nullable run/claim/workspace metadata must actually
+be present. This is still preflight, not an atomic fence.
 
 Bind private review to authenticated actor, exact URL/prefix, selected profile,
 profile-home identity, board/database mapping, task, original state and requested
@@ -114,8 +127,10 @@ read-only source used for bounded inspection:
 | [worker identity/signaling](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/hermes_cli/kanban_db_dispatch.py) | `72a779c7c7a4359ce21476f86842869d39219d13` |
 | [worktree retention](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/hermes_cli/worktree_ops.py) | `bc932825b7330f6d06b5cfc1d50cbf4bc29de7fa` |
 
-Still required: complete transitive handoff/evidence/path helper and deployment
-contract review; status executor/receipts/native form; meaningful races and
-ACK/readback divergence tests; actual isolated-server transitions; full hosted
-acceptance and separately authorized live checks. The plan is not a substitute
-for any of those checks or a complete Hermes feature-parity claim.
+Still required: finish transitive/deployment review; correct and accept the native
+repository regressions; native private form/review/receipt routing; actual isolated
+server transitions; full hosted acceptance and separately authorized live checks.
+The first strict fixture incorrectly omitted the board GET's documented
+`include_archived=true` argument. Its16 negative methods, zero positives and
+startup ANR remain recorded; no native acceptance is claimed for that cohort.
+The plan is not a substitute for any remaining check or complete feature parity.

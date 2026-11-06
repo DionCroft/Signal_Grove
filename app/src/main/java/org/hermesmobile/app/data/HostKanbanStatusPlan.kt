@@ -12,7 +12,7 @@ enum class HostKanbanStatusTarget(val wire: String) {
 /** Material effects to explain in a future private review. None are completion guarantees. */
 enum class HostKanbanStatusEffect {
     LatestTaskAtWrite, HostMayRefuseAfterAuditWrite, MayCloseAttempt, ForceCurrentClaim,
-    MayRequestWorkerTermination, WorkerMayContinue, MayQueueWork, MayRestoreImplementer,
+    MayRequestWorkerTermination, WorkerMayContinue, MayQueueWork, MayRestoreImplementer, MayInheritReviewer,
     MayResumeReview, MayInvalidateDescendants, MayCleanManagedAndParentWorkspaces,
     MayStageReferencedFiles, ReplacesStoredResult, ParkWithoutWakeTime, MayInvokeLifecycleHook
 }
@@ -74,6 +74,7 @@ class HostKanbanStatusPlan private constructor(
             }
             if (before == "running") effects += HostKanbanStatusEffect.WorkerMayContinue
             if (target in setOf(HostKanbanStatusTarget.Done, HostKanbanStatusTarget.Review)) effects += HostKanbanStatusEffect.ForceCurrentClaim
+            if (target == HostKanbanStatusTarget.Review) effects += HostKanbanStatusEffect.MayInheritReviewer
             if (before == "running" && (target in direct || target == HostKanbanStatusTarget.Archived)) effects += HostKanbanStatusEffect.MayRequestWorkerTermination
             if (target in setOf(HostKanbanStatusTarget.Todo, HostKanbanStatusTarget.Ready, HostKanbanStatusTarget.Review, HostKanbanStatusTarget.Done, HostKanbanStatusTarget.Archived)) effects += HostKanbanStatusEffect.MayQueueWork
             if (before == "review" && target in setOf(HostKanbanStatusTarget.Ready, HostKanbanStatusTarget.Todo)) effects += HostKanbanStatusEffect.MayRestoreImplementer

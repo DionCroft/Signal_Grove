@@ -87,6 +87,10 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     }
     suspend fun kanbanBoard(tokens:ManagementTokens,profile:String,board:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(HostKanbanProtocol.slug(board));return element("api/plugins/kanban/board",tokens.access,profile=profile,query=mapOf("board" to board,"include_archived" to "true")).jsonObject}
     suspend fun kanbanTask(tokens:ManagementTokens,profile:String,board:String,id:String):JsonObject {GatewayCronInventory.requireProfile(profile);require(HostKanbanProtocol.slug(board) && HostKanbanProtocol.id(id));return element("api/plugins/kanban/tasks",tokens.access,profile=profile,tail=listOf(id),query=mapOf("board" to board)).jsonObject}
+    suspend fun changeKanbanStatus(tokens:ManagementTokens,profile:String,request:HostKanbanStatusChange):JsonObject {
+        GatewayCronInventory.requireProfile(profile);require(profile==request.owner.profile)
+        return element("api/plugins/kanban/tasks",tokens.access,request.body(),profile=profile,tail=listOf(request.id),query=mapOf("board" to request.board.slug),method="PATCH",slow=true).jsonObject
+    }
     suspend fun hostRelayAccounts(tokens:ManagementTokens):JsonObject=json("api/messaging/relay",tokens.access)
     suspend fun probeCustomEndpoint(tokens:ManagementTokens,request:CustomEndpointProbeRequest):JsonObject = element("api/providers/custom-endpoints/validate",tokens.access,request.body(),slow=true).jsonObject
     suspend fun customEndpointConfig(tokens:ManagementTokens,profile:String):JsonObject {GatewayCronInventory.requireProfile(profile);return element("api/config",tokens.access,profile=profile,query=mapOf("include_defaults" to "false"),slow=true).jsonObject}

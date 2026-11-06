@@ -1,5 +1,54 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — status executor draft checkpoint; native acceptance open
+
+The internal task-scoped executor now collects a complete bounded connected graph,
+compares fresh scoped observations, consumes explicit typed-ID/latest-task
+approval once and sends one status-only PATCH. Opaque claim/source hashes keep
+raw claim values out of durable receipts. ACK is retained before cancellable
+observation; differing requested/reported/observed statuses stay separate and
+all worker/filesystem/hook/engineering completion guarantees remain false. The
+new action participates in all three existing shared pending/visibility/review
+queries. There is no native status control exposed yet.
+
+Required strict build1 passed570 JVM; source review then added undisplayed-policy,
+canonical-order/depth, advancing-clock and board-summary-preview cases. Build2
+passed all four required tasks and **575 unique JVM cases**, zero failures,
+errors or skips, including23 new graph/receipt cases and the16 plan cases.
+All435 frozen inputs matched. OriginalCAB-signed debug108 pair:
+app `6e90f8962ad4d7ef49f6259f960b2ec1b4cbacb61dbf7a41658e9dcd9d1947c0`;
+test `ce67086e3b5feb1f25d147b4fa6906f4a109de30adab8c18509e5258162139e3`.
+The initial570-build source/APKs/results are preserved separately; they are not
+substituted for this pair. Source/policy144 and observer15 checks passed before
+the test-only review additions; policy/config inputs are unchanged.
+
+The first22-case native attempt on preserved API37 returned **zero positives,
+16 negative methods and Process crashed**, with no successful terminal summary.
+The fixture's exact board-query assertion incorrectly expected only profile/board;
+the app correctly also sends documented `include_archived=true`. The cohort stays
+failed. Android exit info separately records a bind-application startup ANR. The
+captured system trace shows the main event loop idle and instrumentation executing
+a test; it does not establish an application deadlock or a resolved root cause.
+ADB diagnostic identity was restored after the bounded trace read. No AVD reset,
+data clear, downgrade, reseed, geometry or font change.
+
+Failed instrumentation SHA256 `d0a8bf4a89a8a95c6adb7de68b88caa73071bffc2b18875e49f25118b47ab24f`.
+Retained frozen source archive SHA256
+`af3db41ba148008aff8d602685641e9bb2abc07f9a8de3b788687af4f046e84a`;
+system ANR gzip `0a94c9b649f9889282abe75f2f09aa35a16ea4865458bcb2dfedf97d898d6330`.
+Correct the fixture, rerun required checks and native cases, then implement the
+private native form and real-server acceptance. This is a draft checkpoint.
+
+Separately, foundation d44fc14's hosted build artifact13522829327 was downloaded
+and verified against SHA256 `bf4d54d95c65d923379097785615c09ebd1f56cf022a054ec4f2c0e384f00634`:
+552 JVM, zero failures/skips and its16 plan cases. The helper's first class-report
+path failure is retained; only the lookup changed to Gradle's class/index.html.
+Foundation Android native gates remain in flight. Compatibility42257524028 failed
+on main b2e4ded's newly changed `authority:run_projection`; stable2bd378ed has no
+used drift. Both artifact digests/reports and the failed result are retained.
+The canary adds generation-specific `tool`/`progress_at`; review and a polling
+regression precede accepting its exact handler variant. No canary success claim.
+
 ## 2026-11-06 — beta.6 title fix published and public bytes verified
 
 [Beta.6](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6)
