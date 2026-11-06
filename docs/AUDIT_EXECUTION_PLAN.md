@@ -27,7 +27,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. | Beta.5 is published directly at tested feature commit69590bb: exact Android/compatibility gates, original-key APKs, production retained-data upgrade and all4 public download hashes verified. This is not a main-merge claim. Keep exact-head gates for subsequent chunks. |
 | 2. Real Hermes matrix | Official stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers; full clean-install/native/tool matrix and successful owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
-| 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. Native independent override forms now have528 JVM/159 focused native passes and inspected bilingual layouts; typed status remains open. | Close the override forms’ own exact-head gates, then add typed status with exact effects/approval/preflight/receipts. Preserve next-dispatch versus current-runtime semantics. |
+| 4a. Kanban status/overrides | Independent model/reasoning set/clear foundation has 511 JVM/133 Python/297 focused native passes; nullable-field, race, shared-barrier and no-replay evidence is recorded. Native override forms have159 original-companion focused passes across3SDKs and inspected bilingual layouts. Corrected108 integration has536 JVM and34-case prior-failure-sequence passes on37, with unchanged app payload; its own full941/942 gates and typed status remain open. | Close the override forms’ own exact-head gates, then add typed status with exact effects/approval/preflight/receipts. Preserve next-dispatch versus current-runtime semantics. |
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
 | 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. | Typed editing/run/results/logs and explicit outcomes, without claiming runtime completion from ACK. |
@@ -86,3 +86,15 @@ the locally validated override UI stage, then isolate the client title/routing
 fix from the published beta.5 source. After that priority fix, resume typed
 status and all remaining ledger requirements. No production title or default
 was changed during diagnosis.
+
+## 6 November — corrected catalog integration
+
+The108 development integration carries the deterministic advertised-catalog
+fixture correction frome2b2de7, retaining all title/input/runtime/route assertions.
+It passed536 JVM and the34-case prior failure sequence on preserved API37.
+Its app bytes are unchanged; earlier159 override-specific passes remain a
+separate cohort and the old167-positive/1-failure result stays failed. Full
+exact-head941/942 acceptance is pending. The beta.6 title-fix release is isolated
+at e2b2de7. Verified current public task-status handlers can force live claims,
+invalidate descendants, request worker termination and clean managed workspace
+data; review those complete effects before the next typed status stage.

@@ -166,7 +166,7 @@ def main() -> int:
             if args.api>=37:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')
-            print('Running the complete instrumentation suite (75-minute limit).',flush=True)
+            print('Running the complete instrumentation suite (95-minute limit).',flush=True)
             count=run_instrumentation(device,work/'instrumentation.log')
             summary=f'API {args.api}: full instrumentation suite passed ({count} cases).'
             print(summary)

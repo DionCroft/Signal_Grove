@@ -1,5 +1,66 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — corrected catalog / override integration locally checked
+
+Development108/beta.7 integrates the corrected title fixture frome2b2de7. The
+strict four-task build/lint passed **536 JVM cases**, zero failures/errors/skips.
+The exact earlier failure sequence passed **34 cases on preserved API37** with
+the corrected companion:10 override-storage,21 task-flow and3 title/catalog.
+Original data and108 version are retained; no downgrade/reset/clear/reseed or
+geometry change. All428 frozen inputs and unique named positives were checked.
+App SHA-256 `d0f5218178d8cbcaca9cbe477aaee0022ebf05f649712c1813df578b6c635d80`;
+corrected test APK `667ee553b415e7c595b71ada9f373f784a79cb5fad30ff885c63c08fd6a3c288`.
+
+All production Android inputs and every165 application ZIP payload remain
+identical tob62a6c7; the originalCAB-signed application container is also exactly
+unchanged. The159 override-specific cases across26/36/37 and six inspected
+captures remain tied to the original companion. The new companion's34-case37
+sequence is separate; no168-case/all-three-SDK claim is made for it. The earlier
+167-positive/1-failure cohort remains failed, with its catalog omission retained.
+
+All144 source/policy and15 observer tests passed; strict495-component/1071-artifact
+verification is unchanged. The CI diagnostic now correctly says95minutes,
+matching the5700-second native/125-minute job limits justified below. Single
+unfiltered execution, no-ignore/unique-positive/terminal-summary/timeout-log
+checks and all assertions remain intact. Full exact-head941/942 native and
+compatibility gates are still required. This integration is not a published
+release; beta.6's independent exacte2b2de7 release gate continues separately.
+
+## 2026-11-06 — title regression catalog fixture correction
+
+The wider development108 integration retained167 focused positives and one
+API37 failure: the title fixture advertised model options but did not serve a
+legitimate GETapi/model/options. That result remains failed. The fixture now
+serves the authenticated stock/RVN catalog and explicitly reads/asserts it in
+each title case; prefix/Bearer/no-Cookie, unexpected-route, title/input/default
+and exact-request assertions remain intact. No application behavior changed.
+
+The corrected source passed the strict four-task build/lint and536 JVM cases,
+zero failures/errors/skips. The exact prior failure sequence passed **34 native
+cases on a fresh owned API37 emulator**:10 override-storage,21 task-flow and3
+catalog-enabled title cases, with unique positives and no failures/ignores.
+App SHA-256 `b4c5bedc190a93c82d16e3932e426bc9a119902404fc136d4e5858c7a4c82e17`;
+corrected test APK `5d2e4bb568f8c43aa5f4eceab0ed74ef556820a0169814237e76e23ca38e0aac`. The earlier unchanged app APK's78 focused
+checks across26/36/37 used the previous companion; this corrected companion is
+not claimed to have repeated those78 or all three SDKs locally. Existing108
+emulators were preserved, two gracefully stopped; no downgrade/reset/clear-data
+or reseed was used. The new37 target was created separately with E-only data.
+
+Repackaging produced a different raw rebuilt app-container digest
+`a299fd66b10236323ceecdb3d698a12b4d5f898b7262b646302d337d74dc1ec2`. The raw-equality assertion remains failed; a separate
+strict comparison verified all165 ZIP payload files byte-identical to the
+original staged app, identical package107/beta.6 and originalCAB signatures.
+The original immutable app container was deliberately selected for the corrected
+native pair; rebuilt and selected identities are recorded separately. No source
+application, resources, permissions, Room or dependency input changed.
+
+Fresh exact-corrected-head full Android/compatibility CI is required before
+publication. Older088 CI cannot satisfy that gate, regardless of its outcome.
+The old publisher is explicitly superseded and no beta.6 release is claimed.
+Production signing/lint/upgrade evidence must remain tied to the actual immutable
+asset and original build source, with explicit unchanged-input/asset continuity
+for the corrected release head. Do not repeat the completed106→107 upgrade.
+
 ## 2026-11-06 — integration checkpoint: catalog fixture correction required
 
 The frozen108/beta.7 integration passed536 JVM cases and all22 new override UI
