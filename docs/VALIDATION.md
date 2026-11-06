@@ -1,5 +1,65 @@
 # Current development validation — audit follow-up
 
+## 2026-11-06 — typed task status review foundation
+
+The separate status-foundation branch adds a typed single-purpose payload and
+material-effect plan, with no transport, executor, approval or new user control.
+The [pinned contract review](KANBAN_STATUS_CONTRACT.md) records force/current-task
+semantics, effective-column differences, transitive invalidation, worker survival,
+managed/deferred-parent cleanup, handoff staging and the missing atomic run fence.
+All five inspected source blobs match stable `2bd378ed` and both reviewed main
+canaries, including `26874afd`. This does not certify a custom deployed plugin.
+
+The strict required four-task build passed **552 JVM tests**, zero failures,
+errors or skips, including **16 new status-policy cases**. All **430 frozen
+inputs** match before/after validation. There is no status send-path acceptance:
+that implementation remains open. The rebuilt original-key debug108 app passed
+the existing **10 override-storage cases on preserved API37**, with unique named
+positives, matching terminal summary and no skips. These are storage regressions,
+not ten status execution tests. No uninstall, reset, clear, reseed, downgrade or
+geometry/font change. App SHA256
+`cf720d08dbc9a7ef0a28472573e8b90fcc52f3ff46df7acdd38e98bd9ccdf75f`;
+test APK `667ee553b415e7c595b71ada9f373f784a79cb5fad30ff885c63c08fd6a3c288`.
+All 144 source/policy and 15 observer checks pass; strict verification remains
+495 components /1071 artifacts. No APK publication or full hosted acceptance is
+claimed for this development chunk.
+
+### Actual pinned native gateway diagnostic
+
+An isolated actual Hermes **v0.22.7 /b200f5bc** gateway, using the existing
+Python3.14 environment and a synthetic authenticated loopback no-tool provider,
+accepted exactly one native run in the second owned fixture. Polling observed
+the same run/session reach **completed**; the SSE stream independently supplied
+`run.completed` with complete output. `Last-Event-ID` resumed only the remaining
+terminal event. Authless run GET returned401 and an unserved profile prefix404.
+History and read-only durable SQLite inspection show one admission/generation,
+one user message and one expected assistant message, no tool calls, preserved
+title and no browser model lock. The provider saw two HTTP requests within the
+one admitted turn; this is not a one-provider-request claim.
+
+Both diagnostic scripts' original errors remain retained. Probe1 incorrectly
+required a `completed:true` property on the authority GET projection, which
+reports the terminal status without that optional field. Its exact durable
+terminal receipt/history were reconciled read-only before a new independent
+synthetic fixture. Probe2 then verified poll/SSE/resume/history but incorrectly
+equated any post-turn `model_config` with a browser lock. Read-only inspection
+confirmed only `_usage_anchor` and `gateway_runtime`, the stored fixture model
+and no `browser_model_lock`. This reconciliation does not relabel either raw
+probe result as a clean pass; no run was replayed. Original receipt SHA256s:
+`45d17c8de71cc505d7346a82efcf61eff1e3e14337ab075bd219f0e429fe12a6` and
+`023da115438d450deddd89301f575ebbb2c7dde848c77546cd893a3a77142b58`.
+Terminal SSE SHA256
+`ae721323632fb991aa0c86870c020b4f34f005e2288c7907f9bed6227af65b7e`;
+resumed SSE `9e2aba4707f25e749d6c3057081e2bc717a05423e333e961b5ca2d0344b7d965`.
+
+The advertised runtime provider/model were empty and remain **unknown**, despite
+the fixture's known configuration. No current-stable, native login/refresh,
+multi-profile isolation, tool/approval/image, physical-phone or production
+inference certification follows. Production state was not used. The Python
+audit boundary refused startup subprocess/write attempts and remained unchanged;
+it is not an OS sandbox. Both exact owned process handles were terminated and
+their homes/evidence preserved. The broader actual-server matrix remains open.
+
 ## 2026-11-06 — corrected catalog / override integration locally checked
 
 Development108/beta.7 integrates the corrected title fixture frome2b2de7. The
