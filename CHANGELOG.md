@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.1.0-beta.5 — 2026-11-06
+
+- Distinguish the verified serving model, saved Hermes default, next-request selection and last chat-reported model. Add Home/Chat access, foreground refresh and explicit cached/error states through the optional authenticated runtime observer.
+- Separate Dictation and Read aloud, explain unavailable offline engines and offer Android speech/voice setup. Keep on-device recognition and offline read-aloud defaults.
+- Add an offline multilingual Hermes setup guide and reviewed host project/Kanban administration, task creation and dependency controls with durable uncertainty handling.
+- Expand upstream authentication, plugin recall/isolation and profile-status guards without replacing the original compatibility baseline. Preserve packages, signing identities and existing app data.
+- This is a preview; live/provider/hardware coverage and the remaining automation/configuration audit work are tracked separately. See docs/releases/1.1.0-beta.5.md.
+
 ## 1.1.0-beta.3 — Signal Grove
 
 - Rebrand the Android client as Signal Grove across the launcher, app header, notifications, widgets, sign-in callback, updates and documentation. The longer header wraps on narrow/large-text screens.
