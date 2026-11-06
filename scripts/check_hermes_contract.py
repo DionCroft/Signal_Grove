@@ -154,6 +154,10 @@ EXTRA_SOURCES = {
 
 
 }
+# Direct auth/import dependencies reviewed at pinned sources; upstream is parsed only.
+RUNTIME_GUARD_CONTRACT_SOURCES = {'web_signin': 'hermes_cli/webapp_sign_in.py', 'plugin_isolation': 'hermes_cli/plugin_isolation.py', 'signin_entry': 'hermes_cli/dashboard_auth/__init__.py', 'signin_registry': 'hermes_cli/dashboard_auth/registry.py', 'session_token_provider': 'plugins/dashboard_auth/session_token/__init__.py', 'session_token_loader': 'hermes_cli/web_server_session_token.py', 'auth_request_utils': 'hermes_cli/dashboard_auth/request_utils.py', 'signin_shared': 'plugins/dashboard_auth/_shared.py'}
+EXTRA_SOURCES.update(RUNTIME_GUARD_CONTRACT_SOURCES)
+
 PLUGIN_UPDATE_CONTRACT_SOURCES = {'plugin_auto_update': 'hermes_cli/plugins_auto_update.py'}
 EXTRA_SOURCES.update(PLUGIN_UPDATE_CONTRACT_SOURCES)
 # Official complete trees and Contents 404s prove this dependency is absent at ONLY these pins.
@@ -233,6 +237,15 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 selected=copy.deepcopy(node)
                 selected.iter.elts=[item for item in selected.iter.elts if isinstance(item,ast.Name) and item.id=='_methods_projects']
                 handlers['gateway_runtime:projects_registration_loop']=fingerprint(selected)
+            elif source in RUNTIME_GUARD_CONTRACT_SOURCES and isinstance(node,(ast.Assign,ast.AnnAssign)):
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target,ast.Name):handlers[f'{source}:binding:{prefix}{target.id}']=fingerprint(node)
+            elif source in RUNTIME_GUARD_CONTRACT_SOURCES and isinstance(node,(ast.Import,ast.ImportFrom)):
+                for alias in node.names:
+                    binding=alias.asname or alias.name
+                    isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])
+                    handlers[f'{source}:import:{prefix}{binding}']=fingerprint(isolated)
             elif not prefix and source in (PROJECT_CONTRACT_SOURCES.keys() | KANBAN_CONTRACT_SOURCES.keys() | PLUGIN_UPDATE_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
@@ -282,7 +295,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in {'web_deps':{'WEB_SERVER'},'web_bootstrap':{'_CONFIG_MUTATION_LOCK'}}[source]:handlers[f'{source}:{target.id}']=fingerprint(node)
             elif not prefix and source in ('credential_pool','pool_sources','auth_middleware') and isinstance(node,(ast.Assign,ast.AnnAssign)):
-                selected={'credential_pool':{'AUTH_TYPE_OAUTH','AUTH_TYPE_API_KEY','SOURCE_MANUAL','SOURCE_MANUAL_DEVICE_CODE','CUSTOM_POOL_PREFIX','STATUS_OK','STATUS_EXHAUSTED','STATUS_DEAD'},'pool_sources':{'_REGISTRY'},'auth_middleware':{'_GATE_PUBLIC_PREFIXES','_GATE_PUBLIC_ICONS','_SAFE_METHODS','_CROSS_ORIGIN_WRITE_DETAIL'}}[source]
+                selected={'credential_pool':{'AUTH_TYPE_OAUTH','AUTH_TYPE_API_KEY','SOURCE_MANUAL','SOURCE_MANUAL_DEVICE_CODE','CUSTOM_POOL_PREFIX','STATUS_OK','STATUS_EXHAUSTED','STATUS_DEAD'},'pool_sources':{'_REGISTRY'},'auth_middleware':{'_GATE_PUBLIC_PREFIXES','_GATE_PUBLIC_ICONS','_SAFE_METHODS','_CROSS_ORIGIN_WRITE_DETAIL','_OTHER_PAGE_WRITE_DETAIL','_SESSION_TOKEN_HEADER','_SESSION_TOKEN_PROVIDER'}}[source]
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name) and target.id in selected:handlers[f'{source}:{target.id}']=fingerprint(node)

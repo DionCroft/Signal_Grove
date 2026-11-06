@@ -396,7 +396,15 @@
         "kanban_roots": "74d849629c176703d48f9aa43a245fd8819545ac908c805e347db7d691976510",
         "plugin_auto_update": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "kanban_graph": "b3aada2c8ec77fa0b4bcdcd6be084e2e91b9c9d57c68f7200b872232b94360ed",
-        "kanban_profiles": "9d3879d8bba807f03249b82595e8082116613c5e205cb902c67a825bece22e46"
+        "kanban_profiles": "9d3879d8bba807f03249b82595e8082116613c5e205cb902c67a825bece22e46",
+        "web_signin": "4c6065bd2d991d9506b505330cee9c1f70b7c0da2af618e4493d002b671cc020",
+        "plugin_isolation": "6c6a7efae92fb84918f8ffc07b561eafe0cd2b76b233be60d1dae984b5ba6377",
+        "signin_entry": "533c0dc638f74d2e149743d487e0b9c664980901f7b41a0565d6fc9bce29ea08",
+        "signin_registry": "64f95fceb17febdbf34b75e7143419f9ffe2b5259a2aee8c8c23ae5fc4c73f33",
+        "session_token_provider": "349fb13221534682da8f39c8e16d2f0952e2b11e045f95d0e4d5787e1facb7cf",
+        "session_token_loader": "860fc60d3c2ed276ee259e7931261b190e6ac21ef8720986d6eb9b0e7c082b3a",
+        "auth_request_utils": "c1081abe0f960d274084d5c64c5a92c389cdade1c1a186239588ee4bdfb7fe88",
+        "signin_shared": "fbd1dd5eae897717abc99762ab8b7b998355a2907114790eaf4a8d7ccd33d95a"
       },
       "handlers": {
         "api:APIServerAdapter._handle_capabilities": "fded591edab150c17cb5d89a1a531952c438c862a8cec884efaf1e18f8c44b50",
@@ -3698,7 +3706,228 @@
         "kanban_graph:_validate_children_graph": "1a2512f9a844c33f4edb5e1f4bfd60516daeea96916232c8a846293abb8e8322",
         "kanban_graph:decompose_triage_task": "d7437a9517754f83e45ec12c9db78c35c7e81a02b5c42f6992e516ca26a46cb4",
         "kanban_graph:_insert_decomposed_child": "1d7d8c889159ee9cdbf81026297d56d43800bf953741fc7f374107841b020db9",
-        "kanban_profiles:normalize_profile_name": "03aab222473931819e1b0b63b1913eb251f60de2a1566037bf1e6fd18f0b79c7"
+        "kanban_profiles:normalize_profile_name": "03aab222473931819e1b0b63b1913eb251f60de2a1566037bf1e6fd18f0b79c7",
+        "web_signin:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "web_signin:import:hashlib": "b4d4ec43cca3e106bbf3ec29fbe6a1ebbf552e79a6fa3343a7142a0961fa4c55",
+        "web_signin:import:hmac": "44788dcff9a4df1095cce7e3d16d55fb657d12d9acd38f657f83236d1a25d0e2",
+        "web_signin:import:json": "0b277aec8e85c7f72798c1df4bf16d992c50b529886b87a6cc4b64ae3f1f40ae",
+        "web_signin:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "web_signin:import:threading": "8899f139ad63f719e39adc3d600b7909288913546c1d231e5e1164dc8d3f6946",
+        "web_signin:import:time": "04d9814b9c2452f99b40b98327f13e9f4b3512373efb7163e26630a5af486008",
+        "web_signin:import:Path": "ad18b0a18742d95c2121009f6a1aecf6a3459fc1e9e15fa44f164698401e1c40",
+        "web_signin:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "web_signin:import:Request": "0aa3aa10a3213d7337fa5e15a08e79c9fa6ac15be5e4bc754d20c9c63beb7724",
+        "web_signin:import:Response": "02a9815fad63359b024e5197d5ebe0c011b3a3639b3fb0f16803471e92bc409e",
+        "web_signin:import:browser_credential": "139c46a2940d0f7c2d10326b2807076aa5849c33b17195e0bd53631d59f2321c",
+        "web_signin:binding:_MESSAGE": "b127d5fe9bc9c5926966855781745671d0f831f5618b4d3f303fa862e218a840",
+        "web_signin:binding:_log": "87b7c67a07edcc743e6b85eb4a4ed1b697ca7ddfb86cd8b12b35a4695896d79b",
+        "web_signin:binding:RECORD_PATH": "2b8a77762770f3f75c7e92cd90274f16f62e9fe9f78d4c86f5a821a7e1cc27e4",
+        "web_signin:binding:REFRESH_TOKEN_LIFETIME": "7ed5bc7e9d063e03545bb0d1dc82bcb2b12bb299dbd649c313858a6b4592bf47",
+        "web_signin:binding:_records_lock": "62c38a202296ef6c1247207ac28ec3e33e64b7c096832848134333652fbb2faf",
+        "web_signin:binding:_records": "2571a1d1f0540260b6ab23bcb20a21c3fbda1a011412c8e6a869e2bc3b532755",
+        "web_signin:binding": "760e3f0cc6123763b559b9b5d6d42339d4e320b3f87f1e9ccb7af5bf4034a3a7",
+        "web_signin:applies": "7f179c3e003dd473898db1f62c7c54ed2c015d5e63099dda224fd6114a973e58",
+        "web_signin:check": "ac1621ae73273b75f01818626626c2b27ae8ea3abd38fbab6ba789ea316a348c",
+        "web_signin:sign_in_of": "012922f1a6e79485aecc0d1d4721f657a03d080bd4a524c459d04043d5251177",
+        "web_signin:_set": "ba7bc5f873db5aec4999fcddc73ab27046c73d2ae294e56bc377babfab376969",
+        "web_signin:bind": "3e2752c6592b2925e633e0baab9fd500ffc8932b54bb50e591884f9cc1ed1a8f",
+        "web_signin:renew": "3d428da291e625910d6bbbbe4e5f80cb1d360a7d6bbf4b3df9eb7a3c86ddd9b1",
+        "web_signin:token_works_alone": "e4dc4e9c6bcb75d2d74ddfc6905ec53613648c8b9f52d9e7370493e1cca2e139",
+        "web_signin:gave_native_app": "3256813e29d2a6aa4ba97f888b1cee933c343f389b5f21634af698f0feaca236",
+        "web_signin:_digest": "b948d876f2677804d8a7fddbabb652f7968f2b2f3b0dcbc0ad6257ceaa027083",
+        "web_signin:_home": "7db337c64a1427ba70ee0377c50e56a34939bc06e9b1c04a606c243b9e110d73",
+        "web_signin:cookie_gateway": "422f3071c81edd928cbf47bdf40f84ea56af670a9c32fc4eb6fcb834b8bdbb89",
+        "web_signin:_gateway": "4780f5fbbe8c8afa8d754a9b3c1734af74e20fb0e19d97e7d63766b39acde480",
+        "web_signin:_loaded": "ee45847921b8b199e37704a20d62c85c99288b297b5a66e7e7a875f48031dcf0",
+        "web_signin:_write": "d89e25e50b0d1aca0e53d0221b70d14a4b05a900ec2ec4a3550e1f1f47fb418c",
+        "web_signin:_reset_for_tests": "01672428a6ff3a01b97c5614f85eaa5b09c97c3bce92e585568c1f37551483d8",
+        "plugin_isolation:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "plugin_isolation:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "plugin_isolation:import:os": "e5d63dea7341d8d72a71ea6795606e7f7cf20f0fb74106441895e6e2de031ea4",
+        "plugin_isolation:import:Any": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "plugin_isolation:import:Dict": "e432a7c99d48a8626fff1a7797c5f775505ea59b2245b21d4a4fcca4d1921da2",
+        "plugin_isolation:import:FrozenSet": "3860e53d97417b2a734f4ccd9c9ec36ca415d795f0c6ab241dd8106c853a7528",
+        "plugin_isolation:import:List": "fabbd3beb3e32ef48a8fd409c624107ef93f5f1ba3a68cdd5909f7a32436e348",
+        "plugin_isolation:import:Mapping": "ff41dcdde94a1d62d1af83d778116f41be2300a9cea5a683e985bc38d01d253b",
+        "plugin_isolation:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "plugin_isolation:binding:logger": "d5b284ae6c0db2d8aacd918b1ce235c3eb3fb715806ab16d485570a1137fec20",
+        "plugin_isolation:binding:ISOLATION_IN_PROCESS": "882ab53cbc84d8d2287098cc8c834d6d8f1fb9587c13341a4621b363f4ff2619",
+        "plugin_isolation:binding:ISOLATION_HOST": "5097c8faefa03707153d5bdfb90852aa4aafe768920ce79286f85342b0602247",
+        "plugin_isolation:binding:_ISOLATION_MODES": "75ec98faf048cf1c2f627815c725ef504359827d0f1a7286350f62927a8693cb",
+        "plugin_isolation:binding:HOST_UNSUPPORTED_CTX_METHODS": "e1ab4212634e11f13e84912c3273fb76ae81fa75a4b45347ea2ebf0898869cde",
+        "plugin_isolation:binding:HOST_SKIPPED_CTX_METHODS": "1a8b56d1151e928cccaa71e62c65086bbc63150425cb841763fb355126a1c5c5",
+        "plugin_isolation:binding:HOST_REMOTE_FACADES": "59e9f840373e6b3f4e88fa3aeb56db3325d0020f68d8364b40fac212cb0233b3",
+        "plugin_isolation:binding:HOST_OBJECT_BASES": "889567fb9b9ec5cf043d41d6ea3d8eba0859dc1f99baa1af439368591ade0a62",
+        "plugin_isolation:binding:HOST_DEGRADED_HOOKS": "28d751cc98c5f5caaae763adb3a4c74faf658d4007f0bb5975740b134f164b95",
+        "plugin_isolation:_plugins_config": "7906dba790725c9a55478579f465716f609b8b50e2db60c9e884657d91b21146",
+        "plugin_isolation:binding:HOST_PROCESS_ENV": "fdcec87eb0a2f07e7d3fc11a6759b306fc07833d16808b2fb06924824732cb4f",
+        "plugin_isolation:isolation_mode": "c1bc59f6f8d973574e024b239576e9a849d811b8353a463ea4cf4c8518a2aa6d",
+        "plugin_isolation:host_launcher": "db96d9c4a7d024901a5f82e45a344b3b39dcdc3dfdaa33ed46646767db043dca",
+        "plugin_isolation:in_process_import_refusal": "4ab6ef11e89207c1cdffb9c7ed6baa1df7f691d631eb683cc14efc2f97cfe413",
+        "plugin_isolation:user_plugin_host": "ad1fccc85d5cffa5f35c350d4473e0c720f10b7a8562c6d1c4f9b899d9d7e5f6",
+        "signin_entry:import:DashboardAuthProvider": "597458311cfccb8a879aab0be458a15b473c577a8d394c38e6f6ac202dee85e2",
+        "signin_entry:import:Session": "699accd6ce0cecb5d1aecafd3bb7d3a80242c7d2bd911a3a596b32b7965acd39",
+        "signin_entry:import:TokenPrincipal": "0af731585e2c122e4747bdb95247251f995362cdef9ec1d53541eaa545dd66e4",
+        "signin_entry:import:LoginStart": "ebc6f1742390738b3c8ace2ffd3b2f7385804d088873522a98dd8da84febe532",
+        "signin_entry:import:InvalidCodeError": "3076487fa23fbca3fc0da55d8c65292ee2cfaab1db0c51ac0d2de130cbc23d66",
+        "signin_entry:import:InvalidCredentialsError": "528ab02a06de58f2b9b0472989a8025b44d1cb915de60b0b8bf2b044f335d909",
+        "signin_entry:import:ProviderError": "3f7f8fd5992b4a92f443b19a83cab80c2100ada153bfbd5d81da7c66c576c541",
+        "signin_entry:import:RefreshExpiredError": "0461a414eb3e9b6c313806bf6e8233b5ca2e56e91ddcc6c74f869b3e71f94ca2",
+        "signin_entry:import:assert_protocol_compliance": "1213123a02508efb57658e133b6c8491dd75aebb4feb5ab9c3693cb2f4e99436",
+        "signin_entry:import:classify_jwks_lookup_error": "7a507ba9ec363891c078a5a1cba4998aa37634ee72552cb2aa5eb700d90683b6",
+        "signin_entry:import:register_provider": "f8ef2eff6a628b2006c20cec2a72005a6e3dee543bd00342ae58ee917324aab6",
+        "signin_entry:import:get_provider": "9b855cc11ad3e7ceff45cbb6d8f6ecefc5e9b1d6f005065ab4e6fdd29fc609ef",
+        "signin_entry:import:list_providers": "5d256e8e52ca7e6a253ebb3ad2876a49a9ee7310723c8eab84ed479e3b358798",
+        "signin_entry:import:list_token_providers": "20ab4f288d0ee31e1ea69d1e1bc99c8e9d6bf3f2ad7932414d9547aa36f3f42b",
+        "signin_entry:import:list_session_providers": "49f2aa23ae8f4e76e497d4f4bc2876e38b85312c30639b194f425c7ef0cfa03c",
+        "signin_entry:import:list_interactive_providers": "283ed017408bf8de5227b28ef38471bede94bbd431d52e4ba3a77c7a4e441775",
+        "signin_entry:import:clear_providers": "4122eb1ab00923e52ad824b2addb1cd5620262b7a9a31937443791f2c37cbbdd",
+        "signin_entry:binding:__all__": "8119a4653c34f490cd823794a4cca13eec81bba9dd62d68ac135ed954d47586a",
+        "signin_registry:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "signin_registry:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "signin_registry:import:threading": "8899f139ad63f719e39adc3d600b7909288913546c1d231e5e1164dc8d3f6946",
+        "signin_registry:import:List": "fabbd3beb3e32ef48a8fd409c624107ef93f5f1ba3a68cdd5909f7a32436e348",
+        "signin_registry:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "signin_registry:import:hermes_home_key": "d679a2763661cbbdfb2da44993558d3c04da8bf11f0411ca04d9e0ce94685950",
+        "signin_registry:import:normalize_scope": "10541eddf1995b2b5ec31efebd7f46a33cfc51a63b65065a5691efafbf3a4b79",
+        "signin_registry:import:DashboardAuthProvider": "597458311cfccb8a879aab0be458a15b473c577a8d394c38e6f6ac202dee85e2",
+        "signin_registry:import:assert_protocol_compliance": "1213123a02508efb57658e133b6c8491dd75aebb4feb5ab9c3693cb2f4e99436",
+        "signin_registry:binding:_log": "87b7c67a07edcc743e6b85eb4a4ed1b697ca7ddfb86cd8b12b35a4695896d79b",
+        "signin_registry:binding:_lock": "fc37d3dd568c1cd1131db7b554769e12d7d856a86da10428631e0f03b65146a6",
+        "signin_registry:binding:_providers": "a676e402ceb3fec5a9d20e239cba21e0740a2f41ff27279563dcc5cd1e572982",
+        "signin_registry:binding:_scoped_providers": "a2bf40eb86765e64c8312b1cba2307a3fd94a39d05de82dd7f33b18ffb59a588",
+        "signin_registry:_merged": "c9069b26be47e9e2dcf97fed2731eec4bb7a341739430db361c2078bf51fd01b",
+        "signin_registry:_target": "4aabc410b2747dce4803718ee95e4c9c0968a9ba6469e7e633c99e431eba4709",
+        "signin_registry:_log_registered": "7879780794e2f271dd96540fc2fb950cd0bd9233c1a70ad1164b5ca0cf7da243",
+        "signin_registry:register_provider": "6c44fc02e90e4f4c0f3d3097a9e0116c7a38dc6ae20821f00bed9b8a6ce79fa5",
+        "signin_registry:get_provider": "c5996a631ad47bb7323b0550c25e73fd4350c01688a1d0625f411547c1e98b58",
+        "signin_registry:snapshot_registration": "b17a14e813278e37b3b43085f954fdf420f40c8379550a7ba1c32792051e1371",
+        "signin_registry:restore_registration": "a59fab12120c2cbc44aedad3901007f429c6d1ded3b9b96cdb3f473ee4cffae1",
+        "signin_registry:list_providers": "2d3ac03fdd9ab276a0e431382a71fd71a94bfcc7c07f47ef63b59d7a74e1b3df",
+        "signin_registry:list_token_providers": "1bba46d0551f0bcada84b4d6392b2a21ed1756bcd73d917337dc374f997fe1c2",
+        "signin_registry:list_session_providers": "cd1564b5a4f0c389f4795500545b104ec0ec06a81ea5261b2b58e410fe5bafd8",
+        "signin_registry:list_interactive_providers": "327ccfeb311f119e277721cb50d25f8758f371874f872d703735a84743867ff2",
+        "signin_registry:register_global_provider": "f7e8848967275184d07c74e29ff1ecca145461d06011993cc538d557f933dfdf",
+        "signin_registry:unregister_global_provider": "02b6ea2708e82c40121689227031a19fcff0f686f81c3dd169848a982e84edb2",
+        "signin_registry:clear_providers": "def551643297a6ae90e27945518e1fca601170a82ec3f7a3bdce09006dd6f8f8",
+        "session_token_provider:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "session_token_provider:import:hmac": "44788dcff9a4df1095cce7e3d16d55fb657d12d9acd38f657f83236d1a25d0e2",
+        "session_token_provider:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "session_token_provider:import:os": "e5d63dea7341d8d72a71ea6795606e7f7cf20f0fb74106441895e6e2de031ea4",
+        "session_token_provider:import:time": "04d9814b9c2452f99b40b98327f13e9f4b3512373efb7163e26630a5af486008",
+        "session_token_provider:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "session_token_provider:import:DashboardAuthProvider": "f791e4d76da39d83ad3c8a5df13292b726620d70c312c4f55591d6dcda4cae3a",
+        "session_token_provider:import:RefreshExpiredError": "a15a1010e6c010d648e8a7029021d71492eab87136bf49509f2f058da2f9110e",
+        "session_token_provider:import:Session": "6c990deb3501dc04ec1c63920c82827bd60ff877b12c7939b04281ffce1f3b4d",
+        "session_token_provider:import:NonInteractiveMixin": "8be4a63af6f581415f71f1f4d253c1b6979f618f81270fc8a598c771ae8bc0fc",
+        "session_token_provider:import:SkipRegistration": "bdf401070e8848ed19502a21bcf29edb16efc7cd449a22676be78ab99ff874ee",
+        "session_token_provider:import:load_config_section": "75357376314fab29d72ef4bd546d81c7adee97634bd3f27642a82670259df1c4",
+        "session_token_provider:import:register_provider": "6650a4069dee8af7978e12d8cc7ed7eb6fc59f64578dcceb7c8506e01d573e87",
+        "session_token_provider:binding:logger": "926de74b187a57516dcaae9884660ea00f58a35aceffc5e3d68e6f5445749838",
+        "session_token_provider:binding:_TAG": "5cd19d61be1629d26cde9e948d7f05938eeae8b8a71b018f079d3b31be886a94",
+        "session_token_provider:binding:_SESSION_HORIZON_SECONDS": "029f035a900a216ff1f86ead71500de2a4cec5ccdb6fc0f54152aa19fff196c5",
+        "session_token_provider:binding:LAST_SKIP_REASON": "24e3900f7670ee7f2622281b80f3db1942991177353f8397e3ff44829f47f6e6",
+        "session_token_provider:_resolve_provisioned_token": "56c7d3a872117f00f334a0c8b8806e10ee45ae56257abbaef1ce7077515f3f4f",
+        "session_token_provider:_load_session_token_auth_section": "001ceb1d4b395b898c91407d3c90c47829454e3c5e6c3759f40a213507acbdf4",
+        "session_token_provider:_opt_out": "a72cfc847bc9d2da6e861c16e2dc940535b1ebb93ead8f3d53e430f40bcba477",
+        "session_token_provider:_settings": "9a62e793d58630b0191462a38c4b3182812228231ad590c5fe982af754db13d7",
+        "session_token_provider:binding:SessionTokenProvider.name": "068b7fd162d0a11b750cceb6e5cd3165648728d4d15936d6f03c6a6c0a24b508",
+        "session_token_provider:binding:SessionTokenProvider.display_name": "73ddf87535564fd5936402f2a1a613c5b802c1a169c6f55bf968037aae6258a3",
+        "session_token_provider:binding:SessionTokenProvider.supports_password": "33e9a982306311243c9ae8042aa6f7bf4c4731d1e32b04c13ecf26d4aabbde2d",
+        "session_token_provider:binding:SessionTokenProvider.supports_session": "5dd433edda3c83bbd5f3d99b15d1d9f39d6c8d57e739e1b8e16fdb0c62cce7b3",
+        "session_token_provider:binding:SessionTokenProvider.interactive_login": "a993f572928d31ba1fd38125b6b4db6e3392085bdffead3b3a6fe671bd174a58",
+        "session_token_provider:binding:SessionTokenProvider._NOT_INTERACTIVE": "172396a105e6c2a3f584f2223875b9dc44b496b85f2c82bda793f5a47ab5f08e",
+        "session_token_provider:binding:SessionTokenProvider._NO_START_LOGIN": "22a87b00b8e25d005d66e003b5105bb33abb3ec95d9224b493353b8789dddfa4",
+        "session_token_provider:SessionTokenProvider.__init__": "ba7bb6a985b56aa7ce28942603e7d7bcc3199fcb4e1b445493117ea007451c8f",
+        "session_token_provider:SessionTokenProvider.verify_session": "3e118ae5473cb4b7cab4fd20b0d2fbaabb05c2b2841aa31e85033872a3a98379",
+        "session_token_provider:SessionTokenProvider.refresh_session": "075d9a83975b77d539b5d5f3d9440749b374cee4b2f180f0c49aa5152e71f5f9",
+        "session_token_provider:SessionTokenProvider.revoke_session": "bf6b96678611f08091d87554d84456ac5de4000e881e5ade387ceb3466e1fbad",
+        "session_token_provider:register": "0d48de0d32ccbfdc738a68e4b5d233175aa0485017830f4ce3d1ed429d5ddc8c",
+        "session_token_loader:import:os": "e5d63dea7341d8d72a71ea6795606e7f7cf20f0fb74106441895e6e2de031ea4",
+        "session_token_loader:import:secrets": "2939fba0a6a2c1e804b0e56e3ce8c2a9d5c246ce9c6c1bb522b4efd3eb7261b3",
+        "session_token_loader:import:Path": "ad18b0a18742d95c2121009f6a1aecf6a3459fc1e9e15fa44f164698401e1c40",
+        "session_token_loader:resolve_session_token": "0cf4120e9f21c80c8ba5274b68b41e96f5c07474e757f026548d419db0e8854a",
+        "auth_request_utils:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "auth_request_utils:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "auth_request_utils:import:time": "04d9814b9c2452f99b40b98327f13e9f4b3512373efb7163e26630a5af486008",
+        "auth_request_utils:import:Callable": "77708af745ea43336978257d3e6e3059cc23716394f7225d5b7cb27c25c3ca05",
+        "auth_request_utils:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "auth_request_utils:import:urlsplit": "eaf250c78812d1ae3ae04d66d42bae601043b889037c39ab4f552b647f7c50cf",
+        "auth_request_utils:import:Request": "0aa3aa10a3213d7337fa5e15a08e79c9fa6ac15be5e4bc754d20c9c63beb7724",
+        "auth_request_utils:import:JSONResponse": "f06f157fabc0fc336481a20d10620a317e76cdbecc5e76fbcb43ebaed3e3d2fb",
+        "auth_request_utils:import:list_session_providers": "05825e5580364122dfa2f5e10a3e1e3f649e8cbf7c6331490abaa60c18eda017",
+        "auth_request_utils:import:DashboardAuthProvider": "597458311cfccb8a879aab0be458a15b473c577a8d394c38e6f6ac202dee85e2",
+        "auth_request_utils:import:ProviderError": "3f7f8fd5992b4a92f443b19a83cab80c2100ada153bfbd5d81da7c66c576c541",
+        "auth_request_utils:binding:_NEXT_DENY_PREFIXES": "65b45830f79a8b3bf3f46a73d59832fa4ffcc627125d5a815bb0e60b5cca0a14",
+        "auth_request_utils:client_ip": "9150f3d8bd1c7c015748c0f605a9c8eda0e79a6d0aa168f66428bd6915c4a1fc",
+        "auth_request_utils:extract_bearer": "072d2d0c779df1d0ffe72ca35fab4307289140c5cff89ac0c6b219526a8cfc2c",
+        "auth_request_utils:_http_origin": "185a43fcf001120977a0df7b1db243f18b93a59e7c765227f3b25c02c9f0b92c",
+        "auth_request_utils:cookie_origin_is_allowed": "59c39cac706fdb01cb1470671bbfb131f5f22feea849f8a90fd336e274bf0bb0",
+        "auth_request_utils:is_safe_next_path": "b58f8a49fff21cd9360b8551bf33aa93309d1eea7334e235702797f75095fe1e",
+        "auth_request_utils:access_token_max_age": "a889818372295339a09042a86e9d048048b592923fb8b3834f8f5db815499f47",
+        "auth_request_utils:unreachable_response": "fb5ba27a5144ea07c32add3946c716e4e1b60b111fc49bed53b092ce76a0369d",
+        "auth_request_utils:scan_session_providers": "a3f962244ab8dbc0c071e25da781db9a22507f2a836d1d354603f75c3de915e1",
+        "signin_shared:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "signin_shared:import:base64": "b24f56e689c38c016d36c89cee679795646201979106da761bf580e488b9527a",
+        "signin_shared:import:hashlib": "b4d4ec43cca3e106bbf3ec29fbe6a1ebbf552e79a6fa3343a7142a0961fa4c55",
+        "signin_shared:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "signin_shared:import:math": "3c9e37b8bf92e66ea559cfe4ad70c35f6305e3dc723b54ab7a4616b8d2819886",
+        "signin_shared:import:os": "e5d63dea7341d8d72a71ea6795606e7f7cf20f0fb74106441895e6e2de031ea4",
+        "signin_shared:import:secrets": "2939fba0a6a2c1e804b0e56e3ce8c2a9d5c246ce9c6c1bb522b4efd3eb7261b3",
+        "signin_shared:import:urllib.parse": "67a4284ba51678519011b9a5c9c5bdd3fa241f5fb9b877e7294a013719058c62",
+        "signin_shared:import:Any": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "signin_shared:import:Callable": "77708af745ea43336978257d3e6e3059cc23716394f7225d5b7cb27c25c3ca05",
+        "signin_shared:import:Dict": "e432a7c99d48a8626fff1a7797c5f775505ea59b2245b21d4a4fcca4d1921da2",
+        "signin_shared:import:Optional": "0485ab364808deb47265845656bfff99097e3b6444262e72168e926f705637bb",
+        "signin_shared:import:httpx": "57a25e0f91b9c4784931c5b3bad64ba34c7091645b633ad3b0736b7b4ba92ed9",
+        "signin_shared:import:DashboardAuthProvider": "f791e4d76da39d83ad3c8a5df13292b726620d70c312c4f55591d6dcda4cae3a",
+        "signin_shared:import:InvalidCodeError": "670f0f622c00147b5a32feddb924c2791006ac8fd1136c9d46ec2cb4ee9873cb",
+        "signin_shared:import:LoginStart": "655e1f86bccfc7c83812e0fc51235d6951862e610e401b7b7bcf6df755df72fc",
+        "signin_shared:import:ProviderError": "c2fde5b664d4976dad0436522d39cb1fef491f4dd87963cd33cac9bb6f69e041",
+        "signin_shared:import:RefreshExpiredError": "a15a1010e6c010d648e8a7029021d71492eab87136bf49509f2f058da2f9110e",
+        "signin_shared:import:Session": "6c990deb3501dc04ec1c63920c82827bd60ff877b12c7939b04281ffce1f3b4d",
+        "signin_shared:import:classify_jwks_lookup_error": "f6dc7c0223c7a6e9c3729adb27ee3bcf7186c8a3da216cc169cf23a7d42b93bb",
+        "signin_shared:binding:JWKS_CACHE_SECONDS": "22d354e481121b97caead0ea183da00aa3c6ef343384fe5199575ae0f045ed0e",
+        "signin_shared:binding:TOKEN_ENDPOINT_TIMEOUT_SEC": "aa6a545362dae34adb44657bfcf2829ee4f1ae16adeb579e149a008ebceb208b",
+        "signin_shared:binding:JSON_HEADERS": "2bf6dd321a7970bc51626cef2ef86697e82e50d05c52f2ea7907c735d4c0605f",
+        "signin_shared:binding:DEFAULT_TOKEN_LEEWAY_SECONDS": "6f634adb811d79ec656dd4f99dcef3b3114589f35ed8d7e8f7152203e57bf95b",
+        "signin_shared:load_config_section": "973e96fffc64129c88d7d6e7efe91a0004ab3c4c6df11f8a7e40c25e489b2502",
+        "signin_shared:resolve_env_or_cfg": "37ceb6f71752a6257dc3d4cba8bbb53046e9ea82ec78aa0983500d956d2da4aa",
+        "signin_shared:parse_leeway": "da885f69495ee73eda8a89a57af547e10fda74a340785d9458bd1e4ed6a29d7e",
+        "signin_shared:SkipRegistration.__init__": "708d141fe8c262229044330ac5ece1d32c7dc502256b69a95f6debcedc7a5ea1",
+        "signin_shared:register_provider": "490d468cdd808680f18742b630fb07d2c25bc0636c8d26f744d3bd327f08e4b2",
+        "signin_shared:b64url_no_pad": "06cd7cd9d0dbb9b37489d91761720b6faa83c7ee52119d06aaec385f5fa7c94a",
+        "signin_shared:validate_redirect_uri": "dd19be2e87b9ba4374aa985334471533ca4ba85ef33b297bfef76ded913c72bd",
+        "signin_shared:pkce_login_start": "1ac1544add583fe3ebf9d5b7f649beadadd8c247b86356a06db18d895fca9e92",
+        "signin_shared:parse_json_body": "593cc9bc88528f0badd49a71f74586361decb66156f66d899475f75d3e8b7540",
+        "signin_shared:exchange_token": "9ac1b4f743a2bf251d73ca97fbe528abfa1b7f2f1459295c4079f40f488397e6",
+        "signin_shared:refresh_token_from": "309ff54c6710394a9eb3e97acdf8bac497716adef1cd889edcc4ace1408b1a97",
+        "signin_shared:session_from_claims": "6d8da57d2c4bc9c5fee109f2aa0a4ca1aa02b18796abd35d5778b1e4f7584c2a",
+        "signin_shared:make_jwks_client": "b8e63d6e1cd9aacc47351e3f59492f3cbf62213f1543636d8bc9de7654d1f754",
+        "signin_shared:verify_jwt": "ba75e1b7dba7b74befa039f61f6be81dcdce1a9305e3bc02cf4f6db2c1c56dd5",
+        "signin_shared:binding:NonInteractiveMixin._NOT_INTERACTIVE": "510da80c62c30056724740e498dabeb46e4a0ce9c9f3b5143094dafc9f41d81e",
+        "signin_shared:binding:NonInteractiveMixin._NO_START_LOGIN": "0142ffb21511f6b0b3f0a300c88a06cea361517107cbaccddd1c01771082d137",
+        "signin_shared:NonInteractiveMixin.start_login": "e7c46d27e24000c42cb79bc6c1740f730a618c10027781c64302de4f21fcaf1a",
+        "signin_shared:NonInteractiveMixin.complete_login": "f47f80febf85a21238d0a8b842fc63a07a24e38918c7b8c31b7715d93dc05c47",
+        "signin_shared:binding:JwtOAuthProvider._jwks_client": "cb5bba1126f4708db915cc8fa47811c76c67f6040d64947bb9c38ed49eba198a",
+        "signin_shared:binding:JwtOAuthProvider._client_id": "6107a1c2fc5e309a1735bc66fecd02888cdfc0e64fff4f99e92803ef50bdd2f6",
+        "signin_shared:JwtOAuthProvider._get_jwks_client": "4b99518dc5e36a1c25f90153602da940dda2821ee4048bbc2860e3b6c381e57c",
+        "signin_shared:JwtOAuthProvider.complete_login": "4cbffb243350daed3b147202ad718423a8bab077e4b60d57cd524df1166e6596",
+        "signin_shared:JwtOAuthProvider.refresh_session": "c1e959cce92c74df40744bbc0fcb871c1246b18f97b39622057556c848e50e40",
+        "signin_shared:JwtOAuthProvider.verify_session": "65299d3b0d081f028f3607156b4335237ab2d7c31ee5539566dd51301f1df062",
+        "plugin_catalog_gate:_install_record": "b0fa0dd501c2744184d5b6ded3a98c0865780fb5778056cec19250265871e3b0",
+        "plugin_catalog_gate:installed_plugin_removal": "09b11eb89296d1c89c5d33357169b5ede8e4322382f8212c3f04b206b02e958f",
+        "plugin_catalog_gate:raise_if_removed": "1e338bf75e00c2ebadbb65d80dd1752592b9fe0d88ce86ca4efce1d33aab560c",
+        "plugin_catalog_gate:refuse_if_installed_removed": "221b8ea1df54f3b7fb27540576ad4e7df1bf8ece4aafa5a1b53b04b4296b2d41",
+        "plugin_catalog_loader:_live_cache_path": "59bd7e6a5fd8282eda161913f9d9eb3e2ff7803daa0b792f7a9c184f4d7581db",
+        "plugin_catalog_loader:_normalize_repo": "da8d2d725b44f8024395dd50488e9feeff2e92e63977bf195261d19c0a83c532",
+        "plugin_catalog_loader:_removed_from_list": "c99b45cc7e8018a775631be4da0325d85546d731ecccea0e5179a2c2a0448c9b",
+        "plugin_catalog_loader:_stale_live_cache": "38927c4468bb9292d5697d5b709fc33a4230ab17e0871982d246005a75f15f91",
+        "plugin_catalog_loader:cached_removed_entries": "45f72aad087c50e151b036ec6fb86ed7295e8fca8878a430659e1b6fae815009",
+        "plugin_catalog_loader:find_removed": "88f11ffa664c189c81530608f51c4d56fbbaf93cafe93bfe7793d0bbc01c7457",
+        "plugin_catalog_loader:live_removed_list": "c9bfd0e127d53eb3ff087379ede86110e91c96fcc918aa5e0f8e29d09cc4ad2b",
+        "plugin_catalog_loader:load_removed_list": "87e03a34fa85870b6344b73443c1b311c648c6f3acaf0413d4318d371fbc1bd2",
+        "plugin_core:_catalog_installed_dir": "0594d17e63b5bf175f482af5651804a00f7584d1c228d3bbf4124c19093e83d0"
       },
       "request_fields": {
         "auth:_NativeRefreshBody.provider": "6f26da4d3397a0ad1e091e80f548edef3c9ec86067192a65272fb7d0def308d9",
@@ -4611,14 +4840,19 @@
     "auth_middleware:_CROSS_ORIGIN_WRITE_DETAIL",
     "auth_middleware:_GATE_PUBLIC_ICONS",
     "auth_middleware:_GATE_PUBLIC_PREFIXES",
+    "auth_middleware:_OTHER_PAGE_WRITE_DETAIL",
     "auth_middleware:_SAFE_METHODS",
+    "auth_middleware:_SESSION_TOKEN_HEADER",
+    "auth_middleware:_SESSION_TOKEN_PROVIDER",
     "auth_middleware:_attempt_refresh",
     "auth_middleware:_auto_sso_response",
+    "auth_middleware:_cookie_write_refusal",
     "auth_middleware:_own_origin_writes",
     "auth_middleware:_path_is_public",
     "auth_middleware:_safe_next_target",
     "auth_middleware:_serve_refreshed",
     "auth_middleware:_session_expired_response",
+    "auth_middleware:_session_token_header_session",
     "auth_middleware:_unauth_response",
     "auth_middleware:_verify_access_token",
     "auth_middleware:gated_auth_middleware",
@@ -4657,6 +4891,20 @@
     "auth_middleware:import:unreachable_response",
     "auth_middleware:import:webapp_sign_in",
     "auth_middleware:peek_session",
+    "auth_request_utils:_http_origin",
+    "auth_request_utils:cookie_origin_is_allowed",
+    "auth_request_utils:import:Callable",
+    "auth_request_utils:import:DashboardAuthProvider",
+    "auth_request_utils:import:JSONResponse",
+    "auth_request_utils:import:Optional",
+    "auth_request_utils:import:ProviderError",
+    "auth_request_utils:import:Request",
+    "auth_request_utils:import:annotations",
+    "auth_request_utils:import:list_session_providers",
+    "auth_request_utils:import:logging",
+    "auth_request_utils:import:time",
+    "auth_request_utils:import:urlsplit",
+    "auth_request_utils:scan_session_providers",
     "authority:resolve_unknown_run",
     "authority:respond_run",
     "authority:run_admission",
@@ -4705,6 +4953,7 @@
     "channel_config:binding:PLATFORM_TOKEN_ENV_NAMES",
     "channel_config:binding:PORT_BINDING_CONDITIONAL_MODES",
     "channel_config:binding:PORT_BINDING_PLATFORM_VALUES",
+    "channel_config:binding:SERVED_PROFILE_MIRROR_PLATFORMS",
     "channel_config:binding:SHARED_LISTENER_MIRROR_PATHS",
     "channel_config:binding:SHARED_LISTENER_MIRROR_PLATFORMS",
     "channel_config:binding:UNAUTHORIZED_DM_BEHAVIORS",
@@ -5035,6 +5284,7 @@
     "channel_served:import:Path",
     "channel_served:import:annotations",
     "channel_served:local_liveness_pid",
+    "channel_served:served_profile_mirror_platforms",
     "channel_served:served_profile_runtime",
     "channel_status:_canonical_hermes_home",
     "channel_status:_get_pid_path",
@@ -5185,6 +5435,7 @@
     "channels:import:UTC",
     "channels:import:WhatsAppOnboardingApply",
     "channels:import:WhatsAppOnboardingStart",
+    "channels:import:_LISTENER_MIRRORS",
     "channels:import:_TelegramOnboardingPairing",
     "channels:import:_WhatsAppOnboardingSession",
     "channels:import:_backup_whatsapp_session",
@@ -5605,6 +5856,8 @@
     "hub_tier1:_parse_report",
     "hub_tier1:run_tier1_scan",
     "kanban_api:_annotate_board_meta",
+    "kanban_api:_apply_model_override",
+    "kanban_api:_apply_reasoning_effort",
     "kanban_api:_attach_diagnostics",
     "kanban_api:_attachment_dict",
     "kanban_api:_board_conn",
@@ -5767,6 +6020,7 @@
     "kanban_connect:import:threading",
     "kanban_connect:import:time",
     "kanban_connect:init_db",
+    "kanban_connect:write_txn",
     "kanban_db:_assert_not_delegated_child_mutation",
     "kanban_db:_board_meta_for",
     "kanban_db:_board_path",
@@ -5785,7 +6039,9 @@
     "kanban_db:_require_slug",
     "kanban_db:_resolve_project_link",
     "kanban_db:_row_get",
+    "kanban_db:_set_task_override",
     "kanban_db:_slug_or_default",
+    "kanban_db:_task_status",
     "kanban_db:_to_epoch",
     "kanban_db:_validate_model_override",
     "kanban_db:_would_cycle",
@@ -5898,11 +6154,14 @@
     "kanban_db:schema:Run",
     "kanban_db:schema:Task",
     "kanban_db:set_current_board",
+    "kanban_db:set_model_override",
+    "kanban_db:set_reasoning_effort",
     "kanban_db:task_age",
     "kanban_db:unlink_tasks",
     "kanban_graph:inherit_creator_origin",
     "kanban_graph:initial_task_state",
     "kanban_plugin_mount:_launch_profile_scope",
+    "kanban_plugin_mount:_mount_hosted_plugin_api",
     "kanban_plugin_mount:_mount_one_plugin_api",
     "kanban_plugin_mount:_mount_plugin_api_routes",
     "kanban_plugin_mount:_plugin_api_mount_skip_reason",
@@ -5938,6 +6197,8 @@
     "kanban_roots:binding:VALID_REASONING_EFFORTS",
     "kanban_roots:get_default_hermes_root",
     "kanban_roots:get_hermes_home",
+    "kanban_roots:hermes_home_key",
+    "kanban_roots:normalize_scope",
     "kanban_scope_runtime:_dashboard_auth_gate",
     "kanban_scope_runtime:_plugin_api_runtime_gate",
     "kanban_scope_runtime:auth_middleware",
@@ -6246,24 +6507,37 @@
     "plugin_catalog_gate:_added",
     "plugin_catalog_gate:_carry_user_files",
     "plugin_catalog_gate:_desktop_surface",
+    "plugin_catalog_gate:_install_record",
     "plugin_catalog_gate:_local_changes",
     "plugin_catalog_gate:_stash_local_files",
     "plugin_catalog_gate:at_catalog_pin",
     "plugin_catalog_gate:catalog_install_record",
     "plugin_catalog_gate:catalog_row_fields",
     "plugin_catalog_gate:install_catalog_entry",
+    "plugin_catalog_gate:installed_plugin_removal",
     "plugin_catalog_gate:looks_like_catalog_name",
     "plugin_catalog_gate:plugin_surface",
+    "plugin_catalog_gate:raise_if_removed",
+    "plugin_catalog_gate:refuse_if_installed_removed",
     "plugin_catalog_gate:repin_catalog_plugin",
     "plugin_catalog_gate:surface_delta",
     "plugin_catalog_gate:surface_delta_lines",
+    "plugin_catalog_loader:_live_cache_path",
+    "plugin_catalog_loader:_normalize_repo",
+    "plugin_catalog_loader:_removed_from_list",
+    "plugin_catalog_loader:_stale_live_cache",
+    "plugin_catalog_loader:cached_removed_entries",
+    "plugin_catalog_loader:find_removed",
     "plugin_catalog_loader:get_live_catalog_entry",
+    "plugin_catalog_loader:live_removed_list",
     "plugin_catalog_loader:load_catalog_live",
+    "plugin_catalog_loader:load_removed_list",
     "plugin_catalog_loader:match_removed",
     "plugin_catalog_loader:resolved_removed_entries",
     "plugin_core:_activate_key",
     "plugin_core:_admit_and_save_plugin_sets",
     "plugin_core:_apply_activation",
+    "plugin_core:_catalog_installed_dir",
     "plugin_core:_clone_timeout_seconds",
     "plugin_core:_config_name_set",
     "plugin_core:_config_value",
@@ -6274,6 +6548,7 @@
     "plugin_core:_plugins_dir",
     "plugin_core:_preserved_files_note",
     "plugin_core:_read_manifest_info",
+    "plugin_core:_refuse_recalled_entry",
     "plugin_core:_resolve_git_url",
     "plugin_core:_resolve_plugin_key",
     "plugin_core:_resolve_plugin_key_and_source",
@@ -6315,6 +6590,26 @@
     "plugin_install:_read_manifest_for_install",
     "plugin_install:_resolve_source",
     "plugin_install:dashboard_install_plugin",
+    "plugin_isolation:_plugins_config",
+    "plugin_isolation:binding:HOST_PROCESS_ENV",
+    "plugin_isolation:binding:ISOLATION_HOST",
+    "plugin_isolation:binding:ISOLATION_IN_PROCESS",
+    "plugin_isolation:binding:_ISOLATION_MODES",
+    "plugin_isolation:import:Any",
+    "plugin_isolation:import:Dict",
+    "plugin_isolation:import:FrozenSet",
+    "plugin_isolation:import:List",
+    "plugin_isolation:import:Mapping",
+    "plugin_isolation:import:ModuleType",
+    "plugin_isolation:import:Optional",
+    "plugin_isolation:import:annotations",
+    "plugin_isolation:import:importlib.util",
+    "plugin_isolation:import:logging",
+    "plugin_isolation:import:os",
+    "plugin_isolation:import:sys",
+    "plugin_isolation:import_user_code",
+    "plugin_isolation:in_process_import_refusal",
+    "plugin_isolation:isolation_mode",
     "plugin_legacy:LEFT_CORE",
     "plugin_legacy:legacy_plugin_alias",
     "plugin_legacy:legacy_plugin_keys",
@@ -6716,6 +7011,96 @@
     "runs:_make_run_event_callback",
     "runs:_run_user_message",
     "runs:_served_runtime",
+    "session_token_loader:import:Path",
+    "session_token_loader:import:os",
+    "session_token_loader:import:secrets",
+    "session_token_loader:resolve_session_token",
+    "session_token_provider:SessionTokenProvider.__init__",
+    "session_token_provider:SessionTokenProvider.matches_token",
+    "session_token_provider:SessionTokenProvider.refresh_session",
+    "session_token_provider:SessionTokenProvider.verify_session",
+    "session_token_provider:_load_session_token_auth_section",
+    "session_token_provider:_opt_out",
+    "session_token_provider:_resolve_provisioned_token",
+    "session_token_provider:_settings",
+    "session_token_provider:binding:SessionTokenProvider.interactive_login",
+    "session_token_provider:binding:SessionTokenProvider.name",
+    "session_token_provider:binding:SessionTokenProvider.supports_session",
+    "session_token_provider:binding:_SESSION_HORIZON_SECONDS",
+    "session_token_provider:import:DashboardAuthProvider",
+    "session_token_provider:import:NonInteractiveMixin",
+    "session_token_provider:import:Optional",
+    "session_token_provider:import:RefreshExpiredError",
+    "session_token_provider:import:Session",
+    "session_token_provider:import:SkipRegistration",
+    "session_token_provider:import:annotations",
+    "session_token_provider:import:hmac",
+    "session_token_provider:import:load_config_section",
+    "session_token_provider:import:logging",
+    "session_token_provider:import:os",
+    "session_token_provider:import:register_provider",
+    "session_token_provider:import:time",
+    "session_token_provider:register",
+    "signin_entry:import:DashboardAuthProvider",
+    "signin_entry:import:InvalidCodeError",
+    "signin_entry:import:InvalidCredentialsError",
+    "signin_entry:import:LoginStart",
+    "signin_entry:import:ProviderError",
+    "signin_entry:import:RefreshExpiredError",
+    "signin_entry:import:Session",
+    "signin_entry:import:TokenPrincipal",
+    "signin_entry:import:assert_protocol_compliance",
+    "signin_entry:import:classify_jwks_lookup_error",
+    "signin_entry:import:clear_providers",
+    "signin_entry:import:get_provider",
+    "signin_entry:import:list_interactive_providers",
+    "signin_entry:import:list_providers",
+    "signin_entry:import:list_session_providers",
+    "signin_entry:import:list_token_providers",
+    "signin_entry:import:register_provider",
+    "signin_registry:_merged",
+    "signin_registry:_target",
+    "signin_registry:binding:_lock",
+    "signin_registry:binding:_providers",
+    "signin_registry:binding:_scoped_providers",
+    "signin_registry:get_provider",
+    "signin_registry:import:DashboardAuthProvider",
+    "signin_registry:import:List",
+    "signin_registry:import:Optional",
+    "signin_registry:import:annotations",
+    "signin_registry:import:assert_protocol_compliance",
+    "signin_registry:import:hermes_home_key",
+    "signin_registry:import:logging",
+    "signin_registry:import:normalize_scope",
+    "signin_registry:import:threading",
+    "signin_registry:list_interactive_providers",
+    "signin_registry:list_providers",
+    "signin_registry:list_session_providers",
+    "signin_registry:register_provider",
+    "signin_shared:NonInteractiveMixin.complete_login",
+    "signin_shared:NonInteractiveMixin.start_login",
+    "signin_shared:import:Any",
+    "signin_shared:import:Callable",
+    "signin_shared:import:DashboardAuthProvider",
+    "signin_shared:import:Dict",
+    "signin_shared:import:InvalidCodeError",
+    "signin_shared:import:LoginStart",
+    "signin_shared:import:Optional",
+    "signin_shared:import:ProviderError",
+    "signin_shared:import:RefreshExpiredError",
+    "signin_shared:import:Session",
+    "signin_shared:import:annotations",
+    "signin_shared:import:base64",
+    "signin_shared:import:classify_jwks_lookup_error",
+    "signin_shared:import:hashlib",
+    "signin_shared:import:httpx",
+    "signin_shared:import:logging",
+    "signin_shared:import:math",
+    "signin_shared:import:os",
+    "signin_shared:import:secrets",
+    "signin_shared:import:urllib.parse",
+    "signin_shared:load_config_section",
+    "signin_shared:register_provider",
     "skill_catalog:_skill_catalog",
     "skill_catalog:find_all_skills",
     "skill_manager:_find_skill",
@@ -6776,20 +7161,46 @@
     "web_deps:WEB_SERVER",
     "web_deps:_server",
     "web_deps:late",
+    "web_signin:_digest",
+    "web_signin:_gateway",
+    "web_signin:_home",
+    "web_signin:_is_deployment_token",
+    "web_signin:_loaded",
+    "web_signin:_set",
+    "web_signin:_write",
+    "web_signin:access_token_works_alone",
+    "web_signin:applies",
+    "web_signin:bind",
+    "web_signin:binding",
+    "web_signin:binding:RECORD_PATH",
+    "web_signin:binding:REFRESH_TOKEN_LIFETIME",
+    "web_signin:binding:_records",
+    "web_signin:binding:_records_lock",
+    "web_signin:check",
+    "web_signin:cookie_gateway",
+    "web_signin:gave_native_app",
+    "web_signin:import:Optional",
+    "web_signin:import:Path",
+    "web_signin:import:Request",
+    "web_signin:import:Response",
+    "web_signin:import:annotations",
+    "web_signin:import:browser_credential",
+    "web_signin:import:hashlib",
+    "web_signin:import:hmac",
+    "web_signin:import:json",
+    "web_signin:import:logging",
+    "web_signin:import:threading",
+    "web_signin:import:time",
+    "web_signin:renew",
+    "web_signin:sign_in_of",
+    "web_signin:token_works_alone",
     "ws_boundary:_GATEWAY_WS_PROTOCOL",
     "ws_boundary:_GATEWAY_WS_TICKET_PROTOCOL_PREFIX",
     "ws_boundary:_gateway_ws_ticket_from_subprotocol",
     "ws_boundary:ws_host_origin_reason",
     "ws_tickets:TTL_SECONDS",
     "ws_tickets:consume_ticket",
-    "ws_tickets:mint_ticket",
-    "kanban_api:_apply_model_override",
-    "kanban_api:_apply_reasoning_effort",
-    "kanban_db:set_model_override",
-    "kanban_db:set_reasoning_effort",
-    "kanban_db:_set_task_override",
-    "kanban_db:_task_status",
-    "kanban_connect:write_txn"
+    "ws_tickets:mint_ticket"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -7194,6 +7605,11 @@
         "sha256": "0b1d33a8714173e5766ea6d3063edc44f0b05d203f402d34423a0b11c334bc8c",
         "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
         "reason": "Adds optional relay_disabled/relay_view inputs and three boolean advisory fields. Existing profile-home, credential-source, liveness and private-field behavior is unchanged. The client strictly parses these optional booleans, shows their scope warning and never treats them as account-link authorization. See docs/contracts/2026-11-04-channel-relay-review.md."
+      },
+      {
+        "sha256": "b302b32b009f990061c5cf14ae093b2e1006e2a1acb284fd31bb3ed3d6b9c17c",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared listeners mirror only live records; Relay keeps profile enablement/opt-out and cannot borrow another profile channel state. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
     ],
     "channels:_platform_payloads": [
@@ -7614,6 +8030,11 @@
         "sha256": "70ab55dc6e48c8e06dcddd0bf3d4886b9b460cc7d7eff97d39250bad73471940",
         "commit": "0073fa98cfcf61c066a919df4b336924720f8463",
         "reason": "Reviewed browser Sec-Fetch-Site cookie-write hardening. Already-authenticated/native-principal bypass and native bearer validation/return path are unchanged; mobile uses bearer requests without a cookie jar or browser Fetch Metadata. No Android wire change. Exact source/limits: docs/contracts/2026-11-04-browser-cookie-write-review.md."
+      },
+      {
+        "sha256": "00a67c6a9723167a1da2c54ab067ce85a75d1990270aa089695435e56711ef34",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
     ],
     "model_config:_AUX_TASK_SLOTS": [
@@ -7738,6 +8159,11 @@
         "sha256": "f3fb4bdae0b6942ec71cbd0f3f346c98c82adb1d80491bf39b64c1af2584f20c",
         "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
         "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      },
+      {
+        "sha256": "0a8d8d65662c255bf20a7a9de1dc628556fa7623057bf12b24f8297a3b5dd4bf",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Plugin recall is checked before activation/dependencies; exact installed identity and only the saved literal-true exemption are preserved through reclone. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
     ],
     "plugin_transaction:update_plugin": [
@@ -7759,6 +8185,11 @@
         "sha256": "71f605fa7acb729428de782f1137ead326524e0225c9808c0129d40d1b3a2718",
         "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
         "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      },
+      {
+        "sha256": "120e2bacd7b19953ea2b0f370029f613ba47b0cb05817558343dcb99db424c89",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Plugin recall is checked before activation/dependencies; exact installed identity and only the saved literal-true exemption are preserved through reclone. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
     ],
     "plugin_update:_reclone_plugin_update": [
@@ -7766,6 +8197,11 @@
         "sha256": "e2aef2c3466bd13c4366b4fca4fcffe0a3d4e9af0410a7bb61a58f6418ef2618",
         "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
         "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      },
+      {
+        "sha256": "3b3c2cade6ea96be96868c0337bdc5238e2dd7079205552edcf72a5a9598d107",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Plugin recall is checked before activation/dependencies; exact installed identity and only the saved literal-true exemption are preserved through reclone. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
     ],
     "plugin_update:dashboard_update_user_plugin": [
@@ -7773,6 +8209,174 @@
         "sha256": "8a26e026e6d23f22d80074b49ca2f07a672df14c5b7b753193169b5cdc5c6a62",
         "commit": "d8c79e4b6b8c63e6c40167ff95ec28e7b1fee189",
         "reason": "Reviewed D8 per-plugin owner lock and manual-update body extraction. Existing manual RPC fields/defaults/dispatch remain identical; caution/consent/danger checks remain. New lock/home/backend helpers are separately watched; only F0/B200 absence is explicitly verified. Bulk/host-auto controls remain separate feature work. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "auth_middleware:_OTHER_PAGE_WRITE_DETAIL": [
+      {
+        "sha256": "13e06f8a9e819f2527c8e9b4bbc552ca046573848289daa68b81030b46b4a8d4",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "auth_middleware:_SESSION_TOKEN_HEADER": [
+      {
+        "sha256": "7222fbde134a11187ae93291cfd22b9e1fcfd13c21548a241efbe242386f34a1",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "auth_middleware:_SESSION_TOKEN_PROVIDER": [
+      {
+        "sha256": "6ff1350aae8cbcf0c878dd795a78019a6d00c14256a4f8179ca22844540bc160",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "auth_middleware:_cookie_write_refusal": [
+      {
+        "sha256": "c012a272955d4c62f09acd03afe6362aef05d215679880cead62540ed185b67a",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "auth_middleware:_session_token_header_session": [
+      {
+        "sha256": "fc1bbcb78b5a50e29d52cae99d03ec039c6c72620f77e7e5c8a2ca9153f332e6",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "auth_middleware:peek_session": [
+      {
+        "sha256": "11f01c71b8a48ceff94698b2858331fd40c98c3444df9c203535e09cab7aaf4e",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "channel_config:binding:SERVED_PROFILE_MIRROR_PLATFORMS": [
+      {
+        "sha256": "eb24f65ed1a26193115f53020afc4cee99464b34c1d73a34e4bdb26508df33ff",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared listeners mirror only live records; Relay keeps profile enablement/opt-out and cannot borrow another profile channel state. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "channel_served:served_profile_mirror_platforms": [
+      {
+        "sha256": "7d8582d109cadc3199cdde3411a2677852fc5b0e85bf20af180cd871d15ebf82",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared listeners mirror only live records; Relay keeps profile enablement/opt-out and cannot borrow another profile channel state. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "channel_status:shared_listener_mirror_platforms": [
+      {
+        "sha256": "76c18358af948afb740b76fb604aee7519c6399eee6c3fe78807156a05e3c7c8",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared listeners mirror only live records; Relay keeps profile enablement/opt-out and cannot borrow another profile channel state. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "channels:import:_LISTENER_MIRRORS": [
+      {
+        "sha256": "7cf6f8122bd582ca9012b2ce1937451b219c33405aac7a696714c8606befbe98",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared listeners mirror only live records; Relay keeps profile enablement/opt-out and cannot borrow another profile channel state. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "chat_auth:_ws_auth_reason": [
+      {
+        "sha256": "a7f627111bbd6aaa3f621dd1c1b50962fefe48e50dcce35691c8c1afe5cca129",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "kanban_plugin_mount:_mount_one_plugin_api": [
+      {
+        "sha256": "c335397c7af6de98161ab6bf63411b9581f836d194d8b9242883a7e2caa6bd98",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared import preserves sys.modules registration/exception cleanup; caller keeps trust/project refusal and host-mode routing. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_core:_refuse_recalled_entry": [
+      {
+        "sha256": "c929857e7f1f600af89ae77d80c9a07acbc28f6ac6bb2dbebb9f4dee6552c9c6",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Plugin recall is checked before activation/dependencies; exact installed identity and only the saved literal-true exemption are preserved through reclone. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_core:_set_plugin_enabled": [
+      {
+        "sha256": "24e50b6a0f797541b619eb5b2d36f8fec3d6d5e50c8f52fedae39478ac40bcbf",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Plugin recall is checked before activation/dependencies; exact installed identity and only the saved literal-true exemption are preserved through reclone. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_core:dashboard_set_agent_plugin_enabled": [
+      {
+        "sha256": "2e2f8240fc5a10eda72f5f24c123ba9d8a840dfd44bd6ca7618e48ac011f0bc1",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Plugin recall is checked before activation/dependencies; exact installed identity and only the saved literal-true exemption are preserved through reclone. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_install:_enable_placed": [
+      {
+        "sha256": "f5a2b04d44395a37df36f859c5bf590f95647bb49edb7dcfcff564bc709a6554",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Plugin recall is checked before activation/dependencies; exact installed identity and only the saved literal-true exemption are preserved through reclone. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_isolation:import:ModuleType": [
+      {
+        "sha256": "b343da3cbee5fdc20b13884c8a91391bd41328254a5e91998e459868b1b0cd1c",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared import preserves sys.modules registration/exception cleanup; caller keeps trust/project refusal and host-mode routing. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_isolation:import:importlib.util": [
+      {
+        "sha256": "6586fdc68f0fb27b16fc9a680b00a5ace1246e314af6c74c90b8186d4b024162",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared import preserves sys.modules registration/exception cleanup; caller keeps trust/project refusal and host-mode routing. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_isolation:import:sys": [
+      {
+        "sha256": "1947f6c361a4c14f35d9226aa71b6a657f31cb02298118a273d8f89b6cfc5097",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared import preserves sys.modules registration/exception cleanup; caller keeps trust/project refusal and host-mode routing. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "plugin_isolation:import_user_code": [
+      {
+        "sha256": "4966a49ce4112153c161cb155cc4daf07f9ca9a71232110854f7a6c8b10358ee",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Shared import preserves sys.modules registration/exception cleanup; caller keeps trust/project refusal and host-mode routing. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "session_token_provider:SessionTokenProvider.matches_token": [
+      {
+        "sha256": "9406fef0f3992ef4fc93f6685676ebbdd0f41f749f663dcb040edc30c8f23d05",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Extracted nonempty constant-time comparison against the startup provisioned token; no interactive login or refresh is added. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "session_token_provider:SessionTokenProvider.verify_session": [
+      {
+        "sha256": "e80dc4c731c59b3f40374e2bef346310c32010752ce3bfd4ad4babce07b58e14",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Extracted nonempty constant-time comparison against the startup provisioned token; no interactive login or refresh is added. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "web_signin:_is_deployment_token": [
+      {
+        "sha256": "8ef6245d787b80c73ecacc532c6f7cf83dc051df857591f30daf994e895fae7a",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
+      }
+    ],
+    "web_signin:access_token_works_alone": [
+      {
+        "sha256": "5ea56862e4e9a91bfa9fea18c89896d91d9a591d5e8f7283625901e0ea148030",
+        "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
+        "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
     ]
   },
@@ -7876,6 +8480,96 @@
       {
         "commit": "b200f5bc60e31588ba2cb60e288029c4a54ba5fa",
         "reason": "The exact stable B200 official complete tree/Contents response has no plugin_auto_update module, and its verified plugins_cmd_update.py has no extracted _dashboard_update_locked helper. F0 is already the original absent baseline. Future disappearance is a required review, not legacy compatibility. See docs/contracts/2026-11-05-plugin-update-lock-review.md."
+      }
+    ],
+    "auth_middleware:_SESSION_TOKEN_HEADER": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "auth_middleware:_SESSION_TOKEN_PROVIDER": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "auth_middleware:_cookie_write_refusal": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "auth_middleware:_session_token_header_session": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "channel_config:binding:SERVED_PROFILE_MIRROR_PLATFORMS": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "channel_served:served_profile_mirror_platforms": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "channels:import:_LISTENER_MIRRORS": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "plugin_core:_refuse_recalled_entry": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "plugin_isolation:import:ModuleType": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "plugin_isolation:import:importlib.util": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "plugin_isolation:import:sys": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "plugin_isolation:import_user_code": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "session_token_provider:SessionTokenProvider.matches_token": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "web_signin:_is_deployment_token": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
+      }
+    ],
+    "web_signin:access_token_works_alone": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Complete pinned module AST inspected: helper/binding predates introduction; later missing copies still fail."
       }
     ]
   }
