@@ -93,7 +93,10 @@ The API key does not replace dashboard login. API and management URLs may differ
 | Invalid Host | Exact configured DNS hostname and dashboard public URL. |
 | Certificate error | Correct HTTPS name and trusted certificate; preserve TLS checks. |
 | Unsupported capability | Deployed Hermes contract/version and enabled host features. |
-| Login works, model fails | Provider readiness and served model identity on the inference host. |
+| Login works, model fails | Check the selected provider ID and model ID separately against the catalog. A configured default can differ from the serving model; request selection does not load weights or remove session locks. |
+| Existing chats missing | Check the selected Hermes profile, refresh Conversation history and load older pages. Source/search filters cover loaded rows. Non-API histories open read-only. |
+| Projects missing | Sign in under Hermes management using the separate dashboard URL, select the intended profile, then open Host projects → Read stored projects and confirm the read. This shows project metadata; it does not adopt folders into a chat workspace. |
+| Host not found after phone restart | Open Tailscale, verify Connected, then Save & test connection again. |
 
 An unauthenticated `/v1/capabilities` normally returns 401. A protected dashboard
 must deny management reads without authentication; `/api/status` may expose

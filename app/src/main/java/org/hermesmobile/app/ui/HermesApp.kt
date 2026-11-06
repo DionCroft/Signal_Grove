@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import org.hermesmobile.app.R
 import androidx.compose.ui.Alignment
@@ -45,7 +46,7 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
         val wide=maxWidth>=840.dp
         Row(Modifier.fillMaxSize()) {
             if(wide) NavigationRail(Modifier.fillMaxHeight().width(124.dp),containerColor=MaterialTheme.colorScheme.surface,header={ Text("SG",style=MaterialTheme.typography.headlineLarge,modifier=Modifier.padding(20.dp).semantics {contentDescription=brand}) }) {
-                destinations.forEach { d -> NavigationRailItem(colors=NavigationRailItemDefaults.colors(indicatorColor=androidx.compose.ui.graphics.Color.Transparent),selected=current==d.route,onClick={go(d.route)},icon={PixelNavIcon(d.route,current==d.route)},label={Text(label(d.word))},modifier=Modifier.padding(vertical=4.dp)) }
+                destinations.forEach { d -> NavigationRailItem(colors=NavigationRailItemDefaults.colors(indicatorColor=androidx.compose.ui.graphics.Color.Transparent),selected=current==d.route,onClick={go(d.route)},icon={PixelNavIcon(d.route,current==d.route)},label={Text(label(d.word))},modifier=Modifier.padding(vertical=4.dp).testTag("nav-${d.route.lowercase()}")) }
             }
             Scaffold(modifier=Modifier.weight(1f),containerColor=androidx.compose.ui.graphics.Color.Transparent,
                 topBar={ Column(Modifier.statusBarsPadding().fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp)) {
@@ -60,7 +61,7 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
                     }
                 } },
                 bottomBar={ if(!wide && !keyboardOpen) NavigationBar(containerColor=MaterialTheme.colorScheme.surface) {
-                    destinations.forEach { d -> NavigationBarItem(colors=NavigationBarItemDefaults.colors(indicatorColor=androidx.compose.ui.graphics.Color.Transparent),selected=current==d.route,onClick={go(d.route)},icon={PixelNavIcon(d.route,current==d.route)},label={Text(d.word.en,maxLines=1,style=MaterialTheme.typography.labelSmall)},alwaysShowLabel=current==d.route) }
+                    destinations.forEach { d -> NavigationBarItem(modifier=Modifier.testTag("nav-${d.route.lowercase()}"),colors=NavigationBarItemDefaults.colors(indicatorColor=androidx.compose.ui.graphics.Color.Transparent),selected=current==d.route,onClick={go(d.route)},icon={PixelNavIcon(d.route,current==d.route)},label={Text(d.word.en,maxLines=1,style=MaterialTheme.typography.labelSmall)},alwaysShowLabel=current==d.route) }
                 } }) { padding ->
                 Column(Modifier.padding(padding).fillMaxSize()) {
                     if(error!=null) Surface(color=MaterialTheme.colorScheme.errorContainer) {

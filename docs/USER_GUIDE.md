@@ -28,7 +28,7 @@ Skills and toolsets describe what the server reports. Provider/MCP credentials a
 
 ## Conversations and decisions
 
-Chat supports a conversation browser, search over loaded records, explicit pagination, local pin/hide and supported server rename/delete. Server deletion is separately confirmed. Active/unknown turns retain their receipts and cannot be deleted through the browser. Settled sessions can refresh saved server history; interrupted imports keep the old cache.
+Chat supports a conversation browser, search/source filters over loaded records, explicit pagination, local pin/hide and supported server rename/delete. Desktop, Discord and other origins are included for the selected profile. Use Load more conversations for older chats. Non-API and unknown origins are read-only: their original interface retains reply/control ownership. Removing a read-only row removes only its phone cache. Server deletion is separately confirmed. Active/unknown turns retain their receipts and cannot be deleted through the browser. Settled sessions can refresh saved server history; interrupted imports keep the old cache.
 
 Tool activity shows visible previews, timestamps and supplied durations. Tool errors do not by themselves decide the run outcome. An approval requires a current visible request, exact identity and an explicit allow-once or deny. Questions require a reviewed answer and Submit. There are no bulk/permanent or automatic decisions. Incomplete consent disables allowing; you can deny or inspect the server.
 

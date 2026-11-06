@@ -7,6 +7,7 @@ import java.util.UUID
 
 class SessionOperationsRepository(private val dao: HermesDao) {
     suspend fun perform(api: HermesApiClient,c: Conversation,action: SessionAction,target: String,body: JsonObject): JsonObject {
+        SessionOrigin.requireWritable(c)
         SessionProtocol.validate(action,target,body)
         val receipt=ServerOperation(UUID.randomUUID().toString(),c.scope,c.key,action.name,target,body.toString(),"sending","",System.currentTimeMillis())
         dao.claimServerOperation(receipt)

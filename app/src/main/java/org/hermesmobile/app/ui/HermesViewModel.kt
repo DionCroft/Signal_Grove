@@ -216,6 +216,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun renameConversation(key: String,title: String) {if(switchingBlocked() || title.isBlank()) return;val operation=context();controlBusy.value=true;viewModelScope.launch {
         try {
             val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
+            SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
             if(c.scope!="demo" && c.transport!="compat" && capabilities.value?.sessions==true) {
                 require(capabilities.value?.endpoints?.containsKey("session_update")==true) {"This server does not advertise session renaming."}
                 operation.client.renameSession(c.remoteId,title.trim())
@@ -228,6 +229,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
             require(c.status in terminal || c.status=="idle") {"Check the pending run before deleting this conversation."}
             if(server) {
+                SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 require(c.transport!="compat") {"This compatibility conversation has no verified server session identity."}
                 require(capabilities.value?.endpoints?.containsKey("session_delete")==true) {"Server conversation deletion is unavailable."}
                 operation.client.deleteSession(c.remoteId)
@@ -258,6 +260,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 val c=dao.conversation(expected.key) ?: return@launch
+                SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 require(c.transport!="compat") {"This compatibility conversation is stored locally; its server session identity is not verified."}
                 require(c.sameSubmission(expected) && c.remoteId==expected.remoteId && c.key==selected.value) {"Select and review the current conversation first."}
                 val target=if(action==SessionAction.Steer) c.runId else c.remoteId
@@ -386,6 +389,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val pictures=imageDraft.value
                 require(pictures==null || (pictures.scope==scope.value && pictures.conversation==selected.value)) {Words.ImageContextChanged.localized(preferences.value)}
                 var c=selected.value.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
+                c?.let {SessionOrigin.requireWritable(it,Words.ReadOnlySession.localized(preferences.value))}
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }
                 val transport=when {c?.transport=="compat"->"compat";preferences.value.demo->"demo";capabilities.value?.sessions==true && capabilities.value?.runs==true->"runs";capabilities.value?.nativeStream==true->"session";else->"compat"}
                 if(c == null) {
@@ -393,7 +397,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     val title=if(transport!="compat" && transport!="demo" && capabilities.value?.sessions==true) NewSessionTitle.create(text,id,Words.ImageMessage.en) else text.take(60).ifBlank {Words.ImageMessage.en}
                     val remote=if(transport!="compat" && capabilities.value?.sessions==true) api.createSession(id,title) else RemoteSession(id,title)
                     c=Conversation("${scope.value}:${remote.id}",scope.value,remote.id,remote.title,
-                        channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "")
+                        channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "",detailsJson=SessionOrigin.retain("",remote.source))
                     dao.save(c); selected.value=c.key
                     if(pictures!=null) imageDraft.value=pictures.copy(conversation=c.key)
                 }
@@ -433,6 +437,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         var c=initial
         val operation=context();val client=operation.client
         require(initial.scope==operation.partition)
+        SessionOrigin.requireWritable(initial,Words.ReadOnlySession.localized(preferences.value))
         val assistant=dao.history(c.key).firstOrNull {it.id=="${c.pendingKey}_assistant"}
             ?: throw IllegalArgumentException("This run has no saved response receipt. Refresh its history after it settles.")
         var text=if(resuming) assistant.content else "";var terminalSeen=false
@@ -487,6 +492,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
     fun prepareRetry() {
         val c=selectedConversation.value ?: return
+        if(SessionOrigin.readOnly(c)) {error.value=Words.ReadOnlySession.localized(preferences.value);return}
         val failed=setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")
         if(runStatus.value !in failed) return
         stageImages(c.scope,c.key) {namespace ->
@@ -516,6 +522,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             val c=dao.conversation(selected.value)
             try {
                 if(c==null || c.scope!=scope.value) return@launch
+                SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 error.value=null
                 when {
                     c.runId.isNotBlank()->{
@@ -551,6 +558,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             val c=dao.conversation(control.sessionKey)
             try {
                 require(c!=null && c.key==selected.value && c.scope==scope.value) {"Select the current conversation first."}
+                SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 interactionsRepo.respond(operation.client,c,control,response)
                 activity.value="Response delivered; waiting for the server's run status."
                 runStatus.value="response_submitted"
@@ -567,6 +575,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 val c=dao.conversation(key)?.takeIf {it.scope==scope.value} ?: return@launch
+                SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 val current=reconcile(c,true,operation) ?: return@launch
                 require(current.status=="unknown" && current.admissionId.isNotBlank() && current.executionGeneration!=null) {"Refresh the unknown run identity first."}
                 operation.client.resolveUnknown(current.runId,current.admissionId,current.executionGeneration)
@@ -584,6 +593,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
+                SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 if(c.scope=="demo") { worker?.cancelAndJoin();dao.applyRunSnapshot(c,buildJsonObject {put("status","cancelled")});dao.deleteRunControls(c.key,c.runId);runStatus.value="cancelled";busy.value=false }
                 else if(c.runId.isNotBlank() && capabilities.value?.has("run_stop")==true) {operation.client.stop(c.runId);activity.value="Stop requested";reconcile(c,operation=operation)}
                 else error.value="Server cancellation is unavailable. The agent may continue running."

@@ -5,6 +5,12 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    ConversationSource("Conversation source","对话来源","Duìhuà láiyuán"),
+    ReadOnlyHistory("Read-only history","只读历史记录","Zhǐdú lìshǐ jìlù"),
+    HistoryLoadedFilter("Search and source filters apply to loaded conversations. Load more for older chats.","搜索和来源筛选仅适用于已加载的对话。加载更多以查看较早的对话。","Sōusuǒ hé láiyuán shāixuǎn jǐn shìyòng yú yǐ jiāzài de duìhuà. Jiāzài gèng duō yǐ chákàn jiào zǎo de duìhuà."),
+    AllConversationSources("All sources","所有来源","Suǒyǒu láiyuán"),
+    ReadOnlySession("Read-only history. Reply in the original client or start a new phone conversation.","只读历史记录。请在原客户端回复，或在手机上开始新对话。","Zhǐdú lìshǐ jìlù. Qǐng zài yuán kèhùduān huífù, huò zài shǒujī shàng kāishǐ xīn duìhuà."),
+    UnknownConversationSource("Unknown source","未知来源","Wèizhī láiyuán"),
     ModelDemoShort("Demo models","演示模型","Yǎnshì móxíng"),
     ModelStatus("Models & connection","模型与连接","Móxíng yǔ liánjiē"),
     ServingModels("Verified serving model","已验证的服务模型","Yǐ yànzhèng de fúwù móxíng"),

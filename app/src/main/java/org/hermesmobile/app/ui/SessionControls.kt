@@ -45,7 +45,9 @@ private data class SessionReview(val session:Conversation,val action:SessionActi
             }
             c?.let {current ->
                 val settled=current.status in (RunStates.authoritativeTerminal+"idle")
-                val allowed=!busy && !controlBusy && !jobBusy && unresolved.isEmpty() && settled
+                val readOnly=SessionOrigin.readOnly(current)
+                val allowed=!busy && !controlBusy && !jobBusy && unresolved.isEmpty() && settled && !readOnly
+                if(readOnly) item {Text(label(Words.ReadOnlySession))}
                 item {Text(current.title);Text(label(Words.SessionIdentity));Text(current.remoteId,style=MaterialTheme.typography.bodySmall)}
                 item {Text(label(Words.SessionBusyInfo),style=MaterialTheme.typography.bodySmall)}
                 val lock=operations.firstOrNull {it.sessionKey==current.key && it.action==SessionAction.Lock.name && it.state=="confirmed"}
@@ -59,8 +61,8 @@ private data class SessionReview(val session:Conversation,val action:SessionActi
                     item {TextButton({review=SessionReview(current,SessionAction.Fork,buildJsonObject {put("id","api_mobile_${UUID.randomUUID().toString().replace("-","")}");put("title",forkTitle)})},Modifier.testTag("session-fork"),enabled=allowed && forkTitle.isNotBlank() && forkTitle.length<=200) {Text(label(Words.ForkSession))}}
                 }
                 if(caps?.endpoints?.containsKey(SessionAction.Steer.endpoint)==true && caps?.has(SessionAction.Steer.endpoint)==true) {
-                    item {OutlinedTextField(guidance,{guidance=it},Modifier.testTag("steer-input"),label={Text(label(Words.Guidance))},maxLines=5,enabled=!controlBusy && unresolved.isEmpty() && current.status=="running")}
-                    item {TextButton({review=SessionReview(current,SessionAction.Steer,buildJsonObject {put("input",guidance)})},Modifier.testTag("session-steer"),enabled=!controlBusy && !jobBusy && unresolved.isEmpty() && current.status=="running" && guidance.isNotBlank() && guidance.length<=16384) {Text(label(Words.SteerRun))}}
+                    item {OutlinedTextField(guidance,{guidance=it},Modifier.testTag("steer-input"),label={Text(label(Words.Guidance))},maxLines=5,enabled=!readOnly && !controlBusy && unresolved.isEmpty() && current.status=="running")}
+                    item {TextButton({review=SessionReview(current,SessionAction.Steer,buildJsonObject {put("input",guidance)})},Modifier.testTag("session-steer"),enabled=!readOnly && !controlBusy && !jobBusy && unresolved.isEmpty() && current.status=="running" && guidance.isNotBlank() && guidance.length<=16384) {Text(label(Words.SteerRun))}}
                 }
                 item {Text(label(Words.SessionMetadata));TextButton({vm.refreshSessionDetails(current)},enabled=!loading && caps?.endpoints?.containsKey("session")==true) {Text(label(Words.Refresh))}}
                 if(loading) item {QuietProgress()}

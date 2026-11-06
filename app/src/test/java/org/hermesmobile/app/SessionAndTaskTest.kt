@@ -10,12 +10,12 @@ import java.time.LocalDate
 
 class SessionAndTaskTest {
     private fun client(server: MockWebServer)=OkHttpHermesApiClient(ServerConfig(server.url("p/work/").toString(),"fixture",true),true)
-    @Test fun sessionPaginationPreservesOffsetAndApiOwnership()=runBlocking {
+    @Test fun sessionPaginationPreservesOffsetWithoutHidingOtherOrigins()=runBlocking {
         MockWebServer().use {server ->
-            server.enqueue(MockResponse().setBody("""{"data":[{"id":"api_a","title":"Saved","last_active":123}],"has_more":true}"""))
+            server.enqueue(MockResponse().setBody("""{"data":[{"id":"api_a","title":"Saved","last_active":123,"source":"api_server"}],"has_more":true}"""))
             val p=client(server).sessionPage(50,50)
             assertEquals(100,p.nextOffset);assertTrue(p.hasMore);assertEquals(123000L,p.rows.first().updatedAt)
-            assertEquals("/p/work/api/sessions?source=api_server&limit=50&offset=50",server.takeRequest().path)
+            assertEquals("/p/work/api/sessions?limit=50&offset=50",server.takeRequest().path)
         }
     }
     @Test fun renameAndDeleteUseDocumentedMethodsAndProfilePrefix()=runBlocking {

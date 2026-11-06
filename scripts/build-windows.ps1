@@ -1,6 +1,7 @@
 param(
     [string]$WorkRoot='E:\Temp\hermes-mobile',
     [Parameter(Mandatory=$true)][string]$AndroidSdk,
+    [string]$DebugSigningHome='',
     [string[]]$Tasks=@('assembleDebug','testDebugUnitTest','lint','assembleDebugAndroidTest')
 )
 $ErrorActionPreference='Stop'
@@ -13,7 +14,13 @@ $env:GRADLE_USER_HOME=Join-Path $WorkRoot 'gradle-home'
 $env:ANDROID_HOME=$AndroidSdk
 $env:ANDROID_USER_HOME=Join-Path $WorkRoot 'android-user'
 $env:ANDROID_AVD_HOME=Join-Path $WorkRoot 'avd'
-$env:HERMES_BUILD_HOME=Join-Path $WorkRoot 'signing'
+# Reuse the historical WorkRoot key before selecting a new signing directory.
+# An explicit path supports established layouts without replacing their key.
+if (!$DebugSigningHome) {
+    $DebugSigningHome=if (Test-Path -LiteralPath (Join-Path $WorkRoot 'debug.keystore')) {$WorkRoot} else {Join-Path $WorkRoot 'signing'}
+}
+if (![IO.Path]::GetFullPath($DebugSigningHome).StartsWith('E:\',[StringComparison]::OrdinalIgnoreCase)) {throw 'Debug signing material must use E:.'}
+$env:HERMES_BUILD_HOME=$DebugSigningHome
 $env:JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$WorkRoot"
 New-Item -ItemType Directory -Force -Path $env:ANDROID_USER_HOME,$env:ANDROID_AVD_HOME,$env:HERMES_BUILD_HOME | Out-Null
 Push-Location (Split-Path -Parent $PSScriptRoot)

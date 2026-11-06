@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Include existing Desktop, Discord and other Hermes session origins in paginated conversation history. Add loaded-row source filtering and a reachable multilingual Load more footer.
+- Keep non-API and unknown histories read-only across the UI, request builder and operation repository; retain origin metadata without a Room migration. Preserve legacy API caches and existing pending work.
+- Add 12 JVM and 14 device regressions for origin parsing, partition isolation, storage, paging, actual history reads and blocked foreign writes. Three related chat regressions also pass locally. The owner phone has independently completed authenticated chat and project reads; installation of this history candidate remains a separate acceptance step.
+
 ## 1.1.0-beta.6 — 2026-11-06
 
 - Avoid native session title collisions when several conversations start with the same text. Generate a sanitized, Unicode-safe label with a stable session-derived suffix while preserving the complete user message and existing conversations.
