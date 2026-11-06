@@ -8404,6 +8404,13 @@
         "commit": "90d6b98fd86d20981ee06ddd5b7d93e4320f26a4",
         "reason": "Registered deployment-token access only; bearer/cookie precedence, provider verification and origin refusal retained; native refresh keeps listener-issued token rules. See docs/contracts/reviews/2026-11-06-auth-plugin-guards.md."
       }
+    ],
+    "authority:run_projection": [
+      {
+        "sha256": "56aba7aec36fac3bce9b285466bc793cd72534b769b0d38028403b4d7c96a8ce",
+        "commit": "b2e4ded57c795542f5d058c4e13daa5dd7aa0d77",
+        "reason": "2026-11-06 source review: optional progress_at/tool metadata precedes unchanged authoritative identity/status/control fields; client ignores this metadata for settlement. Four original-key API37 real HTTP/Room regressions cover running/terminal, generation/submission fences, approval state, absent status and mismatched run identity. Original baseline retained; no future hash wildcard."
+      }
     ]
   },
   "reviewed_source_introductions": {

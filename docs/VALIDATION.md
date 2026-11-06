@@ -1,6 +1,48 @@
 # Current development validation — audit follow-up
 
 
+## 2026-11-06 — reviewed run-progress metadata and existing debug-key selection
+
+The four new `RunPollingProgressStorageTest` methods passed as a separate API37
+cohort. Real local HTTP responses flow through the prefixed, bearer-authenticated
+client and Room. They verify that progress/tool values cannot settle running
+work, supersede submission/generation fences, remove approval state, reopen a
+terminal run, replace absent status or bypass run-ID validation. Actual terminal
+status still settles and persists the returned output. This is a local fixture
+contract check, not a deployed Hermes/native-worker acceptance claim.
+
+The existing app was retained with all 165 payload entries identical to the new
+build. Both installed APK hashes were checked before/after the four unique
+positive methods, with a matching terminal count and no skips. App:
+`6e90f8962ad4d7ef49f6259f960b2ec1b4cbacb61dbf7a41658e9dcd9d1947c0`;
+companion:
+`f25990059160f85b3b4e8ce813a823d7bddb95d1340b4d2879fc047840a02f3d`.
+All 437 frozen inputs matched through this cohort. All four required strict Gradle
+tasks passed with 575 unique JVM tests, zero failures/errors/skips. The original
+CAB certificate was checked for retained, rebuilt and companion APKs. The Windows
+wrapper now reuses a debug key already directly under its work root and supports
+an explicit E:-based `-DebugSigningHome`. Its real default-path build selected the
+original key; both existing key files retained their timestamps. No APK install
+with another signer or key replacement occurred.
+
+Only after native acceptance, the exact main `run_projection` fingerprint
+`56aba7aec36fac3bce9b285466bc793cd72534b769b0d38028403b4d7c96a8ce`
+was registered for reviewed upstream commit
+[b2e4ded](https://github.com/NousResearch/hermes-agent/blob/b2e4ded57c795542f5d058c4e13daa5dd7aa0d77/gateway/platforms/api_server_authority_runs.py).
+The optional progress fields precede unchanged authoritative identity/status and
+control fields; the client does not use them to infer settlement. The original
+F0 handler/baseline remains valid. A regression proves both exact fingerprints
+are accepted and an arbitrary future hash still requires review. All 148 Python
+policy tests and 15 model-observer tests pass. The only changes to the frozen
+Android cohort afterward are watcher metadata/policy tests and documentation.
+
+The original digest-verified stable 2bd378e and main b2e4ded artifacts were compared
+again against the reviewed watcher: no used drift remains at those exact pins.
+Original failed hosted run 42257524028 stays failed and retained; recomparison is
+separate evidence. Full combined-head Android/compatibility gates are next.
+Native status forms, private latest-graph review/receipt routing, transitive
+workspace/dispatch review and actual isolated-server transitions remain open.
+
 ## 2026-11-06 — status repository acceptance and lifecycle drift guards
 
 The status executor remains internal: no native status form or send control is

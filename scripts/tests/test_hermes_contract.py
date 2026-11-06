@@ -1013,3 +1013,24 @@ class KanbanStatusLifecycleWatchTests(unittest.TestCase):
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
         self.assertTrue(set(self.keys)<=set(value['mobile_used_handlers']))
         self.assertTrue({'kanban_api:UpdateTaskBody.'+field for field in self.fields}<=set(value['mobile_used_request_fields']))
+
+
+class RunProjectionProgressVariantTests(unittest.TestCase):
+    def test_only_the_exact_reviewed_poll_progress_variant_is_accepted(self):
+        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        key='authority:run_projection'
+        self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
+        self.assertEqual('a7b1081f98525a6eecd63ebbbedad430d972a7814c72e0e64c6dc44e7e35aedf',value['upstream']['contract']['handlers'][key])
+        entries=value['reviewed_handler_variants'][key]
+        self.assertEqual(['56aba7aec36fac3bce9b285466bc793cd72534b769b0d38028403b4d7c96a8ce'],[entry['sha256'] for entry in entries])
+        self.assertEqual(['b2e4ded57c795542f5d058c4e13daa5dd7aa0d77'],[entry['commit'] for entry in entries])
+        current={'commit':entries[0]['commit'],'contract':copy.deepcopy(value['upstream']['contract'])}
+        for introduced,variants in value['reviewed_handler_variants'].items():
+            if introduced not in current['contract']['handlers']:current['contract']['handlers'][introduced]=variants[-1]['sha256']
+        self.assertFalse(checker.compare(value,current)['mobile_review_required'])
+        current['contract']['handlers'][key]=entries[0]['sha256']
+        self.assertFalse(checker.compare(value,current)['mobile_review_required'])
+        current['contract']['handlers'][key]='0'*64
+        result=checker.compare(value,current)
+        self.assertTrue(result['mobile_review_required'])
+        self.assertEqual({key},set(result['mobile_relevant_changes']['changed_used_handlers']))

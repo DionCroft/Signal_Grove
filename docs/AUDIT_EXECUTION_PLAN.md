@@ -79,9 +79,13 @@ one-send ACK/observation. Its earlier fixture failures and startup ANR stay fail
 no root-cause claim follows from the corrected companion's success. Twenty-two
 consumed status-handler guards and four request fields are watched; 147 Python
 policy checks pass. Implement private native review and receipt routing before
-exposing status execution. First add polling/Room regressions for main's optional
-progress metadata before recording its exact reviewed variant. Complete the
-workspace/dispatch transitive review and actual-server transitions separately.
+exposing status execution. Four separate API37 real HTTP/Room progress regressions
+now pass, and only the exact reviewed main fingerprint is accepted; the original
+F0 baseline and failed canary run are retained. The pinned stable/main source
+recomparisons pass, with 148 policy and 15 observer checks. Full combined-head
+hosted gates remain required. Complete workspace/dispatch transitive review and
+actual-server transitions separately. The Windows wrapper now reuses an existing
+work-root debug key and supports an explicit E:-based signing directory.
 Continue the remaining worker/dispatch/event/file/pin/transfer controls and
 the isolated actual-server matrix, physical background/audio acceptance, advanced
 automation/rooms, integrations, configuration/workspaces and notification routing
