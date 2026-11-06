@@ -7,19 +7,22 @@ Signal Grove keeps these observations separate:
 - **Requested for this chat** is the phone's saved request selection; an empty selection inherits the server default.
 - **Last model reported by this chat** comes from that conversation's public response telemetry, with its timestamp and reported lock state. It describes a past turn.
 
-The Home status summary and compact Chat summary open full details. Refresh is a
+The Home status summary and Chat header status button open full details. Chat
+keeps its message viewport; the summary adds no permanent rows there. Refresh is a
 read; Choose request model opens the existing picker. Selecting a model does not
 load weights or change a server default. Existing session locks retain precedence.
 English, Chinese and pinyin labels use the normal structured language layer.
 
 Readiness, model options and serving observations refresh conservatively while
-Home/Chat is resumed. Each resource has a 60-second attempt interval, including
+Home or the Models & connection dialog is resumed. Each resource has a 60-second attempt interval, including
 failed reads, and duplicate reads share one in-flight job. There is no background
 model polling or automatic full-provider probing. Manual refresh remains available.
 The API client/profile identity must still match when a reply arrives. Old replies
 cannot replace another connection's observations. Errors retain the previous
 payload and label it cached; old data and clock rollback never become fresh merely
-because a request returned HTTP200.
+because a request returned HTTP200. Host-check and receipt times are shown
+separately. A host observation at least two minutes old or over30 seconds ahead
+of the device clock is labelled cached, even after a fresh HTTP200 receipt.
 
 ## Optional extension contract, version 1
 

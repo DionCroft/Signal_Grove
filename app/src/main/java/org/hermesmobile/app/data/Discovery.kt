@@ -4,6 +4,7 @@ import kotlinx.serialization.json.*
 
 enum class DiscoveryResource(val endpoint: String,val path: String) {
     Readiness("health_detailed","health/detailed"),
+    RuntimeModels("model_runtime_status","api/model/runtime-status"),
     Models("model_options","api/model/options"),
     Skills("skills","v1/skills"),
     Toolsets("toolsets","v1/toolsets")
@@ -12,7 +13,8 @@ data class DiscoveryState(
     val loading: Set<DiscoveryResource> = emptySet(),
     val results: Map<DiscoveryResource,JsonObject> = emptyMap(),
     val errors: Map<DiscoveryResource,String> = emptyMap(),
-    val fetchedAt: Map<DiscoveryResource,Long> = emptyMap()
+    val fetchedAt: Map<DiscoveryResource,Long> = emptyMap(),
+    val requestedAt: Map<DiscoveryResource,Long> = emptyMap()
 )
 data class ModelProvider(val slug: String,val name: String,val authenticated: Boolean?,val models: List<String>,
     val warning: String,val capabilities: JsonObject,val pricing: JsonObject,val unavailableModels: Set<String> = emptySet())

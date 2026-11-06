@@ -122,6 +122,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private data class ConnectionContext(val client: HermesApiClient,val partition: String)
     private fun context()=ConnectionContext(api,scope.value)
     private fun current(context: ConnectionContext)=api===context.client && scope.value==context.partition
+    private val discoveryWork=mutableMapOf<DiscoveryResource,Pair<ConnectionContext,Job>>()
     private fun switchingBlocked()=busy.value || connecting.value || jobBusy.value || controlBusy.value
     private var worker: Job?=null
     init {viewModelScope.launch {try {dao.recoverControls();dao.recoverJobOperations();dao.recoverServerOperations();activate(graph.preferences.flow.first())} finally {connecting.value=false}}}
@@ -296,17 +297,31 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     fun refreshDiscovery(resource: DiscoveryResource,force: Boolean=false,fullModelProbe: Boolean=false): Job? {
-        if(connecting.value || resource in discovery.value.loading || (!force && resource in discovery.value.results)) return null
-        if(capabilities.value?.endpoints?.containsKey(resource.endpoint)!=true) return null
+        if(connecting.value) return null
+        if(resource in discovery.value.loading) return discoveryWork[resource]?.takeIf {current(it.first)}?.second
+        if(!force && resource in discovery.value.results) return null
+        if(capabilities.value?.supportsDiscovery(resource)!=true) return null
         val operation=context()
-        discovery.value=discovery.value.copy(loading=discovery.value.loading+resource,errors=discovery.value.errors-resource)
-        return viewModelScope.launch {
+        discovery.value=discovery.value.copy(loading=discovery.value.loading+resource,errors=discovery.value.errors-resource,requestedAt=discovery.value.requestedAt+(resource to System.currentTimeMillis()))
+        val work=viewModelScope.launch(start=CoroutineStart.LAZY) {
             try {
                 val result=operation.client.discovery(resource,fullModelProbe && resource==DiscoveryResource.Models)
+                if(resource==DiscoveryResource.RuntimeModels) ModelRuntimeStatus.parse(result)
                 if(current(operation)) discovery.value=discovery.value.copy(results=discovery.value.results+(resource to result),fetchedAt=discovery.value.fetchedAt+(resource to System.currentTimeMillis()))
             } catch(e: CancellationException) {throw e}
             catch(e: Exception) {if(current(operation)) discovery.value=discovery.value.copy(errors=discovery.value.errors+(resource to connectionError(e)))}
-            finally {if(current(operation)) discovery.value=discovery.value.copy(loading=discovery.value.loading-resource)}
+            finally {
+                if(current(operation)) discovery.value=discovery.value.copy(loading=discovery.value.loading-resource)
+                if(discoveryWork[resource]?.second===coroutineContext[Job]) discoveryWork.remove(resource)
+            }
+        }
+        discoveryWork[resource]=operation to work;work.start();return work
+    }
+    /** Foreground status refresh uses conservative discovery; never full provider probing or inference. */
+    fun refreshModelStatus(force:Boolean=false,now:Long=System.currentTimeMillis()) {
+        if(connecting.value || connectionStatus.value !in setOf("connected","demo")) return
+        listOf(DiscoveryResource.Readiness,DiscoveryResource.Models,DiscoveryResource.RuntimeModels).forEach {resource->
+            if(force || modelStatusDue(discovery.value.requestedAt[resource] ?: discovery.value.fetchedAt[resource],now)) refreshDiscovery(resource,true)
         }
     }
     fun refreshJobs() {

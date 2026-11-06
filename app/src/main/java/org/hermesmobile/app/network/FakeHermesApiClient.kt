@@ -13,13 +13,14 @@ open class FakeHermesApiClient : HermesApiClient {
     private val runs=ConcurrentHashMap<String,DemoRun>()
     private val sessionMetadata=ConcurrentHashMap<String,JsonObject>()
     override suspend fun capabilities() = HermesCapabilities("Demo",buildJsonObject {
-        put("session_resources",true);put("session_chat",true);put("session_chat_streaming",true);put("run_stop",true);put("run_status",true);put("run_approval_response",true);put("session_model_lock",true);put("session_fork",true);put("run_steer",true)
+        put("session_resources",true);put("session_chat",true);put("session_chat_streaming",true);put("run_stop",true);put("run_status",true);put("run_approval_response",true);put("session_model_lock",true);put("session_fork",true);put("run_steer",true);put("model_runtime_status_v1",true)
     },buildJsonObject {
         SessionAction.entries.forEach {put(it.endpoint,buildJsonObject {put("method","POST");put("path",when(it) {SessionAction.Lock->"/api/sessions/{session_id}/model";SessionAction.Fork->"/api/sessions/{session_id}/fork";SessionAction.Steer->"/v1/runs/{run_id}/steer"})})}
         put("session",buildJsonObject {put("method","GET");put("path","/api/sessions/{session_id}")})
         DiscoveryResource.entries.forEach {put(it.endpoint,buildJsonObject {put("method","GET");put("path","/"+it.path)})}})
     override suspend fun discovery(resource: DiscoveryResource,refreshModels: Boolean): JsonObject = Json.parseToJsonElement(when(resource) {
         DiscoveryResource.Readiness -> """{"status":"ready","version":"Demo fixture","gateway_state":"simulated","active_agents":0,"readiness":{"status":"ready"}}"""
+        DiscoveryResource.RuntimeModels -> """{"object":"signalgrove.model_runtime","schema_version":1,"observed_at":${System.currentTimeMillis()},"status":"ready","models":[{"provider":"demo","model":"demo-model","state":"ready","verified":true}]}"""
         DiscoveryResource.Models -> """{"model":"demo-model","provider":"demo","providers":[{"slug":"demo","name":"Demo · local simulation","authenticated":true,"models":["demo-model"],"capabilities":{"demo-model":{"reasoning":false}},"pricing":{}}]}"""
         DiscoveryResource.Skills -> """{"data":[{"name":"demo-reflection","description":"A sample skill entry. No skill executes in Demo.","category":"Demo","disabled":false}]}"""
         DiscoveryResource.Toolsets -> """{"data":[{"name":"demo","label":"Demo tools","description":"Simulated activity only; no server tools run.","enabled":false,"configured":false,"tools":["demo_note"]}]}"""

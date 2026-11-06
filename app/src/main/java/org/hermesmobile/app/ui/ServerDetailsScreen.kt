@@ -21,7 +21,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private fun resourceWord(resource: DiscoveryResource)=when(resource) {
-    DiscoveryResource.Readiness->Words.Readiness;DiscoveryResource.Models->Words.Models
+    DiscoveryResource.Readiness->Words.Readiness;DiscoveryResource.Models->Words.Models;DiscoveryResource.RuntimeModels->Words.ServingModels
     DiscoveryResource.Skills->Words.Skills;DiscoveryResource.Toolsets->Words.Toolsets
 }
 @Composable fun ServerDetailsScreen(vm: HermesViewModel,close: ()->Unit) {
@@ -48,7 +48,7 @@ private fun resourceWord(resource: DiscoveryResource)=when(resource) {
             item {Text(capabilities?.model.orEmpty(),Modifier.testTag("capability-list"),style=MaterialTheme.typography.titleMedium)}
             capabilities?.features?.entries?.sortedBy {it.key}?.forEach {(key,value) -> item(key="feature:$key") {Text("$key: $value")} }
             capabilities?.endpoints?.entries?.sortedBy {it.key}?.forEach {(key,value) -> item(key="endpoint:$key") {HermesCard {Text(key);val endpoint=value as? JsonObject;Text(endpoint?.let {it.text("method")+" "+it.text("path")} ?: value.toString(),style=MaterialTheme.typography.bodySmall)}} }
-        } else if(capabilities?.endpoints?.containsKey(resource.endpoint)!=true) item {Text(label(Words.NotAdvertised))}
+        } else if(capabilities?.supportsDiscovery(resource)!=true) item {Text(label(Words.NotAdvertised))}
         else {
             item {Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 IconButton({vm.refreshDiscovery(resource,true)},enabled=resource !in state.loading) {Icon(Icons.Outlined.Refresh,label(Words.Refresh))}
@@ -57,13 +57,13 @@ private fun resourceWord(resource: DiscoveryResource)=when(resource) {
             if(resource in state.loading) item {QuietProgress()}
             state.errors[resource]?.let {item {Text(it,color=MaterialTheme.colorScheme.error)}}
             state.fetchedAt[resource]?.let {item {Text(label(Words.LastUpdated)+": "+DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(it)),style=MaterialTheme.typography.labelSmall)}}
-            if(payload!=null) discoveryItems(resource,payload,expandedProviders)
+            if(payload!=null) discoveryItems(resource,payload,expandedProviders,state.fetchedAt[resource],state.errors.containsKey(resource))
         }
     }
     if(info) AlertDialog(onDismissRequest={info=false},title={Text(label(Words.ServerDetails))},text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {Text(label(Words.DiscoveryInfo));Text(label(Words.ProbeModelsInfo))}},confirmButton={TextButton({info=false}) {Text(label(Words.Close))}})
 }
 @Composable private fun Flag(word: Words,value: Boolean?) {Text(label(word)+": "+label(when(value) {true->Words.Yes;false->Words.No;null->Words.Unknown}),style=MaterialTheme.typography.bodySmall)}
-private fun LazyListScope.discoveryItems(resource: DiscoveryResource,payload: JsonObject,expandedProviders: androidx.compose.runtime.snapshots.SnapshotStateMap<String,Boolean>) {
+private fun LazyListScope.discoveryItems(resource: DiscoveryResource,payload: JsonObject,expandedProviders: androidx.compose.runtime.snapshots.SnapshotStateMap<String,Boolean>,fetchedAt:Long?,failed:Boolean) {
     val inventory=ModelInventory.parse(payload)
     when(resource) {
         DiscoveryResource.Readiness -> {
@@ -73,6 +73,9 @@ private fun LazyListScope.discoveryItems(resource: DiscoveryResource,payload: Js
                 val readiness=payload["readiness"] as? JsonObject
                 readiness?.entries?.filter {it.key!="status"}?.forEach {(key,value) -> Text("$key: "+value.toString().take(4000),style=MaterialTheme.typography.bodySmall)}
             }}
+        }
+        DiscoveryResource.RuntimeModels -> {
+            item {RuntimeModelsPanel(payload,fetchedAt,failed,System.currentTimeMillis())}
         }
         DiscoveryResource.Models -> {
             item {Text(label(Words.ServerDefault)+": "+inventory.provider+" / "+inventory.model)}

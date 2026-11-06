@@ -23,6 +23,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 
 | Package | Current state | Required acceptance / next step |
 | --- | --- | --- |
+| Model-status QoL | Read-only observer deployed with explicit owner approval; existing Spark credential already matched and was preserved. Client distinguishes serving/default/request/last-response identity, host/receipt age and failures.528 JVM/75 focused native passes; see VALIDATION. Owner confirms the earlier phone connection works. | Same-signer candidate phone upgrade/acceptance and final own full hosted gates; no model switch or inference certification. |
 | 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. | Keep exact-head gates for subsequent chunks; beta.5 release/security acceptance remains open. |
 | 2. Real Hermes matrix | Official stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers; full clean-install/native/tool matrix and successful owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
@@ -63,7 +64,9 @@ commissioning reports stay out of this public repository.
 ## Next bounded stage
 
 The published diagnostic/Voice/layout chunks are now merged through their own gates.
-Close the new speech-engine setup/recovery chunk through its own full hosted gates, then deliver
-native override forms and typed status from verified contracts. Continue physical
+Close the cumulative speech-setup/model-status branch through its own full hosted
+gates: inspect the retained API37 Kanban failure and complete the exact pinned
+auth/plugin helper watch review. Upgrade the owner phone without resetting data;
+then deliver native override forms and typed status from verified contracts. Continue physical
 background/audio acceptance and the isolated real-Hermes matrix independently. Update this ledger at each
 meaningful commit/merge/release, preserving remaining requirements.

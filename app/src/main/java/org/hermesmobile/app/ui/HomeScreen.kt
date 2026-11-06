@@ -22,6 +22,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
     val jobs by vm.jobs.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val t=LocalHermesTheme.current
+    var modelPicker by remember {mutableStateOf(false)}
+    var modelOverview by remember {mutableStateOf(false)}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp).widthIn(max=1100.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
         Surface(shape=PixelPanelShape,color=t.surface,border=BorderStroke(1.5.dp,t.ink.copy(alpha=.3f))) {
             Column(verticalArrangement=Arrangement.spacedBy(0.dp)) {
@@ -37,6 +39,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
             }
             }
         }
+        HermesCard {
+            TextButton({modelOverview=true},Modifier.testTag("home-model-status")) {Text(label(Words.ModelStatus))}
+            ModelStatusOverview(vm,compact=true,onOpen={modelOverview=true},onChoose={modelPicker=true})
+        }
         BoxWithConstraints {
             if(maxWidth>=650.dp) Row(horizontalArrangement=Arrangement.spacedBy(16.dp)) {
                 HermesCard(Modifier.weight(1f)) { Word(Words.LocalTasks); Text("${tasks.count { it.completed }} / ${tasks.size}",style=MaterialTheme.typography.displaySmall); Text(label(Words.Completed)); TextButton({go("Tasks")}) { Text(label(Words.Tasks)) } }
@@ -51,6 +57,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
                 IconButton({vm.select(c.key);go("Chat")},enabled=!busy) { Icon(Icons.AutoMirrored.Outlined.ArrowForward,label(Words.Chat)) }
             }
         } }
+        if(modelOverview) AlertDialog(onDismissRequest={modelOverview=false},title={Text(label(Words.ModelStatus))},text={Box(Modifier.heightIn(max=480.dp).testTag("model-status-dialog-viewport")) {Column(Modifier.verticalScroll(rememberScrollState())) {
+            ModelStatusOverview(vm,onChoose={modelOverview=false;modelPicker=true})
+        }}},confirmButton={TextButton({modelOverview=false}) {Text(label(Words.Close))}})
+        if(modelPicker) RuntimePicker(vm) {modelPicker=false}
         AppUpdateHint {go("Settings")}
         Text(label(Words.Assistant),style=MaterialTheme.typography.labelLarge,modifier=Modifier.padding(vertical=8.dp))
     }

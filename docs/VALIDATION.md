@@ -1480,3 +1480,64 @@ Kanban cancellation-control visibility failure among904 cases. Both archives wer
 digest-verified and retained. Its compatibility main canary also requires review
 of ten changed used auth/plugin handlers; latest stable has no tracked findings.
 No failed gate was rerun, weakened or relabelled successful.
+
+
+## Serving-model client QoL (6 November 2026)
+
+Home shows requested versus verified serving models; Chat's existing header has
+a model-status action. Full details distinguish configured default, next-request
+choice and that conversation's last reported response model/lock/timestamp.
+Only the exact boolean capability and GET extension path permit observer reads.
+Unsupported servers do not substitute model catalogs or the agent alias for a
+serving identity. Foreground reads use a60-second attempt interval, duplicate
+jobs are shared, failed/malformed refreshes retain visibly cached observations,
+and exact connection/profile identity gates late replies. Host observations and
+HTTP receipt times remain separate, including clock-skew/old-source checks.
+Refresh performs no full-provider probe, generation or model/default change.
+
+The final frozen421-source candidate passes strict dependency verification and
+all four required Gradle tasks: **528 JVM tests, zero failures/errors/skips**, lint,
+debug app assembly and test assembly. **75 focused native cases pass**:13 new,
+11 discovery/runtime-selection/navigation and one unchanged Kanban cancellation
+case on each API26/36/37. All positive cases and terminal native results are
+required; no tests skipped. The original CAB debug signer, package, code106,
+beta.5, minimum26 and Room11 remain unchanged. Geometry/font settings are retained.
+
+The prior candidate's36 new native cases passed, but two related API26 assertions
+failed (reply visibility and actual reader movement). Their exact APK/source/log
+evidence remains retained. The fix moves Chat status from extra rows into its
+existing header; the original assertions, deadlines and font/geometry are
+unchanged. The final candidate repeats the affected checks and adds real bilingual
+header-entry coverage. Visual review of a later passing candidate then found a
+duplicate dialog heading hiding the serving value at initial open. The final
+modal uses one heading and a compact connection/refresh row; its real bilingual
+entry test initially accepted partial clipping. The final panel puts the model
+name/provider ahead of the long readiness explanation, avoids duplicate Ready
+labels for the single verified row, and compares the complete model bounds with
+a separately tagged scroll viewport. The whole value must fit at initial open.
+No failed result is relabelled successful.
+
+An app-only SDK inspection captured the Home entry, initial serving value and
+requested/default section on the720x1280/font1.3 emulator. Those three fresh,
+uniquely named source/APK-bound images were manually inspected. The model value
+is completely readable at initial open. No text entry, send, credentials/model
+change, data clear or geometry change was performed; a fresh app process followed
+the synthetic native fixtures.
+
+The separate SDK flow remains **FAILED** at Chat navigation: the destination
+was not observed. It is not relabelled an app-native pass or a complete SDK visual
+pass. Native Chat entry, full viewport bounds and navigation tests pass on all
+three platforms. SDK accessibility/navigation acceptance remains open. Earlier
+failed driver logs/stopped states are retained; stale remote image pulls from
+failed attempts are excluded. No owner phone fixtures/reset were used; physical
+installation/acceptance of this candidate is separate from earlier voice checks.
+Public beta.4 and main are not updated by this branch commit.
+
+The older full API37 Kanban visibility failure and upstream-main ten-handler
+auth/plugin drift remain retained. Focused cancellation success is not a full
+hosted rerun. Final exact-head full Android and compatibility gates remain
+required before merging/releasing this cumulative branch. No full Hermes parity,
+beta.5 release, audit or physical certification is claimed.
+
+Final local app SHA-256: `541bcdeddade5f2c5ff3c65f4cf09eda18cff0e3784b8c89b051ca8042f8b6fb`.
+Final test SHA-256: `28da44a18a0dd3092d18b72c140434e4327b7dff3ba6a1eb2bcace4b095659d7`.

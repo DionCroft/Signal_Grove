@@ -42,6 +42,7 @@ import java.time.format.DateTimeFormatter
     val connecting by vm.connecting.collectAsStateWithLifecycle()
     val controlling by vm.controlBusy.collectAsStateWithLifecycle()
     var runtimePicker by rememberSaveable {mutableStateOf(false)}
+    var modelOverview by rememberSaveable {mutableStateOf(false)}
     val historyLoading by vm.historyLoading.collectAsStateWithLifecycle()
     val caps by vm.capabilities.collectAsStateWithLifecycle()
     val status by vm.runStatus.collectAsStateWithLifecycle()
@@ -66,6 +67,7 @@ import java.time.format.DateTimeFormatter
     Column(Modifier.fillMaxSize().imePadding().padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Word(Words.Chat,Modifier.weight(1f))
+            IconButton({modelOverview=true},Modifier.testTag("chat-model-status-open")) {Icon(Icons.Outlined.Info,label(Words.ModelStatus))}
             IconButton({runtimePicker=true},enabled=!busy && !controlling && !connecting) {Icon(Icons.Outlined.Tune,label(Words.Models))}
             IconButton({history=true},enabled=!busy && !controlling) { Icon(Icons.Outlined.History,label(Words.History)) }
             if(current?.transport!="compat") IconButton(vm::refreshHistory,enabled=!busy && !controlling && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
@@ -101,6 +103,9 @@ import java.time.format.DateTimeFormatter
         current?.runId?.takeIf {it.isNotBlank()}?.let {Text(label(Words.RunIdentity));Text(it)}
         if(reports.isNotEmpty()) TextButton({statusDetails=false;accountingHistory=true},Modifier.testTag("accounting-history")) {Text(label(Words.RuntimeUsage)+" (${reports.size})")}
     }},confirmButton={TextButton({statusDetails=false}) {Text(label(Words.Close))}})
+    if(modelOverview) AlertDialog(onDismissRequest={modelOverview=false},title={Text(label(Words.ModelStatus))},text={Box(Modifier.heightIn(max=480.dp).testTag("model-status-dialog-viewport")) {Column(Modifier.verticalScroll(rememberScrollState())) {
+        ModelStatusOverview(vm,onChoose={modelOverview=false;runtimePicker=true})
+    }}},confirmButton={TextButton({modelOverview=false}) {Text(label(Words.Close))}})
     if(runtimePicker) RuntimePicker(vm) {runtimePicker=false}
     if(history) ConversationBrowser(vm) {history=false}
     if(resolve) AlertDialog(onDismissRequest={resolve=false},title={Text(label(Words.ResolveUnknown))},text={Text(label(Words.ResolveInfo))},confirmButton={TextButton({resolve=false;vm.acknowledgeUnknown()}) {Text(label(Words.ResolveUnknown))}},dismissButton={TextButton({resolve=false}) {Text(label(Words.Cancel))}})

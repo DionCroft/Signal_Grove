@@ -26,6 +26,8 @@ Try the [1.1.0-beta.4 preview](https://github.com/DionCroft/Signal_Grove/release
 
 ## Features
 
+- **Development model status:** Home summary and Chat model details distinguish verified serving identity, saved server default and requested/last-reported conversation models. Optional authenticated runtime observer; foreground refresh and explicit stale/error states. [Scope and setup](docs/RUNTIME_MODEL_STATUS.md). Not in the published beta.4 APK.
+
 - Native Compose UI with phone navigation and a navigation rail on larger displays. Edge-to-edge layout, selectable Markdown/code blocks, copy, timestamps, conversation switching.
 - Starhaven Grove (new default), Lavender Original, Jade Terminal, Solar Archive and Mint Circuit. Original animated orbital-garden pixel art, physically aligned pixel edges, stepped panels/icons/progress, responsive navigation and button feedback. Ambient motion pauses in the background. Saved palettes remain selected; app/system reduced motion and system font scaling are respected. Native readable text, no bundled fonts or copied game assets.
 - Approved [in-app GitHub updates](docs/APP_UPDATES.md): daily checks on app open/resume, optional previews, release review, private verified download and Android install confirmation. APK checksum, package, version and current signer must match. Installation waits for active Hermes work to finish.
