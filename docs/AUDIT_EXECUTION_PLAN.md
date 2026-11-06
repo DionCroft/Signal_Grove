@@ -130,8 +130,13 @@ only under an exact reviewed source identity and mandatory replacement guards.
 All 157 policy cases and complete pinned stable/main source checks pass. No
 existing F0 fingerprint or failed result was replaced. See [the source review](contracts/2026-11-06-auth-registry-refactor-review.md).
 
-Next action: run a fresh exact-head hosted compatibility gate, finish the D45
-Android suites, then resume private native status review/receipt routing,
-workspace/dispatch transitive coverage, actual-server transitions and every
-remaining ledger row. Keep implemented, merged, released and live-verified states
-separate; do not infer full parity from these source/module checks.
+The exact guarded source ae84e3b now passed hosted 42280028630: 157 policy,
+15 observer and eight real-module cases plus full stable/main source inspection.
+All three artifact digests, heads, eight unique methods and four source blobs
+were independently checked. The earlier failed run is not relabelled.
+
+Next action: resume private native status review/receipt routing and the required
+workspace/dispatch transitive and actual-server checks while the D45 Android
+suites finish. Continue every remaining ledger row. Keep implemented, merged,
+released and live-verified states separate; do not infer full parity from these
+source/module checks.

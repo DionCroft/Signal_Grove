@@ -1,6 +1,26 @@
 # Current development validation — audit follow-up
 
 
+## 2026-11-06 — guarded-registry hosted acceptance at ae84e3b
+
+[Compatibility run 42280028630](https://github.com/DionCroft/Signal_Grove/actions/runs/42280028630)
+passed all three jobs at exact source
+`ae84e3b5c3558c98345374d496e4e89829ea35a5`: 157 policy cases, 15 observer cases,
+complete 158-module stable/main inspections and eight bounded real-module cases.
+The source pins remain stable 2bd378e/main E36, with no newly added routes since
+review. Stable uses original F0 behavior; main meets all four exact-source and
+replacement-handler guards. The original failed run 42274564644 is retained.
+
+All three artifact ZIPs were independently downloaded and matched to their
+GitHub digests and exact source head. The real-module report has the eight
+expected unique method names, no denied events and all four expected Git blobs.
+[The review](contracts/2026-11-06-auth-registry-refactor-review.md) records the
+complete digests and scope. This closes the source-registry compatibility chunk,
+not HTTP/login/deployment, Android device or full audit acceptance. D45 Android
+API26/API37 jobs remain running; its already verified 575-JVM build artifact is
+separate evidence. No app/runtime/source-input change follows from this
+acceptance-record update.
+
 ## 2026-11-06 — guarded auth-registry replacements; pinned stable/main pass
 
 The watcher now follows the actual shared provider engine and nineteen additional

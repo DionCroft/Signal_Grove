@@ -106,8 +106,8 @@ Git tree/blob identities and checked cached bytes. The report digests are:
 - Main: `ccdf8bfb7693c2395deef53e029432155ed32881e8e721ee2e708887108ae677`.
 
 The original failed hosted run remains failed. These local inspections and the
-eight real-module cases are separate evidence; a fresh hosted compatibility gate
-is required for the accepted source commit. No HTTP/deployment acceptance follows.
+eight real-module cases are separate evidence, followed by the exact-head hosted
+gate recorded below. No HTTP/deployment acceptance follows.
 
 The compatibility workflow now includes a `pinned-registry-modules` job. It
 retrieves only the four reviewed public E36 files, then invokes the canonical
@@ -115,12 +115,30 @@ harness, which verifies their complete Git blobs before execution. The download
 step's token is not provided to the following fixture step, and the fixture
 clears its own environment before loading modules. Only the bounded result JSON
 is retained as an artifact. YAML/embedded-Python syntax and source LF bytes were
-checked locally; hosted execution is pending the fresh exact-head gate.
+checked locally. Exact source `ae84e3b5c3558c98345374d496e4e89829ea35a5`
+now passed [hosted run 42280028630](https://github.com/DionCroft/Signal_Grove/actions/runs/42280028630):
+157 policy tests, 15 observer tests, both complete stable/main source checks and
+all eight pinned real-module methods. The job/run heads and all three artifact
+ZIP digests were independently verified; no new routes were added since the
+previous source review.
+
+| Artifact | Verified ZIP SHA-256 |
+| --- | --- |
+| Stable source report | `21de67d97c92ca395324d9c828340e06c7ac79159eda4979c0a7d8cbda39a67f` |
+| Main source report | `5a83d02e0d3f0d7859b3841cb186228a2db8996dd492d1e1d2af26b6499703a5` |
+| Pinned real-module result | `6758b42bf6a3247281d4a7dfa9737d3162d1c7177186a378deb895c5c2ecf560` |
+
+The hosted eight-case result uses the same four complete Git blobs and unique
+method names as the local harness. Its raw report SHA-256 is
+`b1bce2bb6b32489a95f008801c914db3839e64218216ba74cdbc89a957364032`.
+Local and hosted cohorts remain separate; there are eight unique methods per
+platform. The original failed E36 run is retained, and no HTTP/deployment or
+owner-device claim follows from this closure.
 
 ## Remaining checks
 
-Run the fresh exact-head hosted compatibility gate and finish the outstanding
-D45 Android API26/API37 suites. Resume private native Kanban status forms/receipts,
+The exact guarded source gate is accepted. Finish the outstanding D45 Android
+API26/API37 suites. Resume private native Kanban status forms/receipts,
 workspace/dispatch transitive coverage, actual-server transitions and every other
 audit row. The public APK and main branch remain separate from this development
 review.
