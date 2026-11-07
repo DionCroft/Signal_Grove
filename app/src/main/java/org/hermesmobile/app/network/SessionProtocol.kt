@@ -35,6 +35,7 @@ object SessionProtocol {
     }
     fun sessionSnapshot(session: JsonObject,id: String): JsonObject {
         require(session.text("id")==id) {"The server returned another session."}
+        if(session.containsKey("source")) SessionOrigin.wire(session)
         val keys=setOf("id","source","model","title","parent_session_id","end_reason","message_count","tool_call_count","input_tokens","output_tokens","cache_read_tokens","cache_write_tokens","reasoning_tokens","estimated_cost_usd","actual_cost_usd","api_call_count","last_active")
         return JsonObject(session.filter {(key,value) -> key in keys && value is JsonPrimitive && value.content.length<=1000})
     }

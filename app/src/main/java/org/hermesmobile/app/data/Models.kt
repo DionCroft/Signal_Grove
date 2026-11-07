@@ -21,7 +21,7 @@ data class HermesCapabilities(val model: String = "hermes-agent", val features: 
 }
 fun JsonObject.text(key: String) = (this[key] as? JsonPrimitive)?.contentOrNull.orEmpty()
 fun JsonObject.items(key: String) = (this[key] as? JsonArray)?.mapNotNull { it as? JsonObject }.orEmpty()
-data class RemoteSession(val id: String, val title: String, val updatedAt: Long = 0)
+data class RemoteSession(val id: String, val title: String, val updatedAt: Long = 0, val source:String=SessionOrigin.Api)
 data class SessionPage(val rows: List<RemoteSession>, val nextOffset: Int, val hasMore: Boolean)
 data class MessageHistory(val sessionId: String, val rows: List<RemoteMessage>)
 data class RemoteMessage(val role: String, val content: String, val timestamp: Long, val id: String = "",val images:List<String> = emptyList())
@@ -160,7 +160,7 @@ object RunStates {
     @Transaction suspend fun saveSessionDetails(expected: Conversation,details: JsonObject) {
         val current=conversation(expected.key) ?: return
         if(current.scope!=expected.scope || current.remoteId!=expected.remoteId) return
-        save(current.copy(detailsJson=details.toString()))
+        save(current.copy(detailsJson=SessionOrigin.mergeDetails(current.detailsJson,details)))
     }
     @Query("SELECT * FROM job_operations WHERE scope=:scope AND state IN ('sending','unknown') ORDER BY createdAt DESC") fun jobOperations(scope: String): Flow<List<JobOperation>>
     @Query("SELECT * FROM job_operations WHERE scope=:scope AND state IN ('sending','unknown')") suspend fun unresolvedOperations(scope: String): List<JobOperation>
@@ -176,10 +176,13 @@ object RunStates {
     @Query("SELECT * FROM sessions WHERE scope = :scope AND remoteId = :remoteId LIMIT 1") suspend fun byRemoteId(scope: String, remoteId: String): Conversation?
     @Query("UPDATE sessions SET title = :title, updatedAt = MAX(updatedAt, :updatedAt) WHERE `key` = :key")
     suspend fun updateMetadata(key: String,title: String,updatedAt: Long)
+    @Query("UPDATE sessions SET title = :title, updatedAt = MAX(updatedAt, :updatedAt), detailsJson = :details WHERE `key` = :key")
+    suspend fun updateRemoteMetadata(key:String,title:String,updatedAt:Long,details:String)
     @Transaction suspend fun mergeRemoteSession(scope: String,remote: RemoteSession,fallbackTime: Long) {
         val current=byRemoteId(scope,remote.id)
-        if(current==null) save(Conversation("$scope:${remote.id}",scope,remote.id,remote.title,remote.updatedAt.takeIf {it>0} ?: fallbackTime))
-        else updateMetadata(current.key,remote.title.ifBlank {current.title},remote.updatedAt)
+        val details=SessionOrigin.retain(current?.detailsJson.orEmpty(),remote.source)
+        if(current==null) save(Conversation("$scope:${remote.id}",scope,remote.id,remote.title,remote.updatedAt.takeIf {it>0} ?: fallbackTime,detailsJson=details))
+        else updateRemoteMetadata(current.key,remote.title.ifBlank {current.title},remote.updatedAt,details)
     }
     @Query("DELETE FROM messages WHERE sessionKey = :key") suspend fun deleteMessages(key: String)
     @Query("DELETE FROM sessions WHERE `key` = :key") suspend fun deleteSession(key: String)

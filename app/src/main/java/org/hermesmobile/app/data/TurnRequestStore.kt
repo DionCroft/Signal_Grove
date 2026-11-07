@@ -22,6 +22,7 @@ data class TurnRequest(val transport: String,val path: String,val body: JsonObje
     }
     companion object {
         fun create(c: Conversation,history: List<ChatMessage>,model: String,runtime: RuntimeChoice=RuntimeChoice(),content:(ChatMessage)->JsonElement={JsonPrimitive(it.content)}): TurnRequest {
+            SessionOrigin.requireWritable(c)
             val path=when(c.transport) {"runs"->"v1/runs";"session","demo"->"api/sessions/${OkHttpHermesApiClient.segment(c.remoteId)}/chat/stream";else->"v1/chat/completions"}
             val input=history.lastOrNull {it.id=="${c.pendingKey}_user"}?.let(content) ?: JsonPrimitive(c.pendingInput)
             val body=buildJsonObject {

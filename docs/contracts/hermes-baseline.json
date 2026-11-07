@@ -405,7 +405,8 @@
         "session_token_loader": "860fc60d3c2ed276ee259e7931261b190e6ac21ef8720986d6eb9b0e7c082b3a",
         "auth_request_utils": "c1081abe0f960d274084d5c64c5a92c389cdade1c1a186239588ee4bdfb7fe88",
         "signin_shared": "fbd1dd5eae897717abc99762ab8b7b998355a2907114790eaf4a8d7ccd33d95a",
-        "signin_registry_engine": "7c39ae4f391b00039e14891bc12f621426f801198cc773453a457cd794948b98"
+        "signin_registry_engine": "7c39ae4f391b00039e14891bc12f621426f801198cc773453a457cd794948b98",
+        "gateway_server_requests": "10e64a801daf59efd1e60d085c548649ca998901ca1eb7c3a49cfd61f7e03f20"
       },
       "handlers": {
         "api:APIServerAdapter._handle_capabilities": "fded591edab150c17cb5d89a1a531952c438c862a8cec884efaf1e18f8c44b50",
@@ -3957,7 +3958,49 @@
         "signin_registry_engine:ProviderRegistry.reset_for_tests": "e3119300652c70765c6da652c518946677bde219bd6cfc2080e1124ec15be578",
         "signin_registry_engine:ProviderRegistry.export": "f57893f222c523105e39c2289847f2031733bfce32d68c740019bffdc795904e",
         "signin_registry_engine:is_available_safe": "f414d485e2a55dbc90f96a0beab8e5c5f53bf532020bac1566e7d541065a5916",
-        "signin_registry_engine:configured_provider_name": "6e7ee425c99a86601c4879fc7bffb06325af6dd92e74a149aa1f9e0bc5780d88"
+        "signin_registry_engine:configured_provider_name": "6e7ee425c99a86601c4879fc7bffb06325af6dd92e74a149aa1f9e0bc5780d88",
+        "gateway_server_requests:import:annotations": "a5e2abbeaa849270550f468ba167bd0029a2db853fcc9142a63d5d93b793778d",
+        "gateway_server_requests:import:json": "0b277aec8e85c7f72798c1df4bf16d992c50b529886b87a6cc4b64ae3f1f40ae",
+        "gateway_server_requests:import:logging": "43aa04ed6282a3cb1c4db3516839722ace60e9f43010565a66c353cb1f519ffb",
+        "gateway_server_requests:import:threading": "8899f139ad63f719e39adc3d600b7909288913546c1d231e5e1164dc8d3f6946",
+        "gateway_server_requests:import:time": "04d9814b9c2452f99b40b98327f13e9f4b3512373efb7163e26630a5af486008",
+        "gateway_server_requests:import:uuid": "baaa77adb6626996e272330aa648454414002603a18b0302950bece7c6513e92",
+        "gateway_server_requests:import:Any": "27fce981f063c15f024a5c50d425e52bfa5536efed47ff54808e9bbabc348922",
+        "gateway_server_requests:import:Callable": "77708af745ea43336978257d3e6e3059cc23716394f7225d5b7cb27c25c3ca05",
+        "gateway_server_requests:import:settle_batch": "a6d173da3063606a8e641c44cfd300583d43f68c35241d1f9422d30c4bfccd8d",
+        "gateway_server_requests:binding:logger": "926de74b187a57516dcaae9884660ea00f58a35aceffc5e3d68e6f5445749838",
+        "gateway_server_requests:binding:ServerRequest.__slots__": "5410f629048f6d221c4f6eaa00898491f30eabe28630be12b3e22add2af095c6",
+        "gateway_server_requests:ServerRequest.__init__": "5dac9bfbb6f7a5020a251c9d61e5003ec82cd04424faeaedd0cfc85288c62d55",
+        "gateway_server_requests:ServerRequest.frame": "6e780c39c84927d1f3d0c9a87d8509d8c6a32ced40aa9b593242975c1bf85444",
+        "gateway_server_requests:ServerRequest.snapshot": "fdfcded96b6408edf1139e1057354cd88fbc09ad36e16369ea51554eec7d8211",
+        "gateway_server_requests:binding:_lock": "fc37d3dd568c1cd1131db7b554769e12d7d856a86da10428631e0f03b65146a6",
+        "gateway_server_requests:binding:_open": "777f4bfb3b323545509a2321862677d539e7faac70574369ccecace61406bbac",
+        "gateway_server_requests:binding:_write": "135d564b6477b417f3528744525ea7940c5f8eadcc31780118e843fc541f93a4",
+        "gateway_server_requests:binding:_emit": "1e3e0e3ca4d7890966c858d9afe3b8c3e0e14472d4cdad4316e1d80b71e9ee0d",
+        "gateway_server_requests:binding:_answerable": "b6ff037fc4120dcff035695fbd515a65eb24560efd13802c07dae760663fc6b6",
+        "gateway_server_requests:binding:_clients": "9c455e1bd5af91c582de0822f2680574f8d2ca1a335222f6072bc9222627b50d",
+        "gateway_server_requests:binding:NOT_SHOWN_CODE": "9cd66ea1ccd606b88e2824625a0de0e82e13b24549a983e8b0e42aa525995366",
+        "gateway_server_requests:binding:NOT_SHOWN_MESSAGE": "7ed8d7970c92d621ca7e125e7c8d6d5009e14647370be7fc66c6ace03f8dc747",
+        "gateway_server_requests:binding:_answering_clients": "ea27b6a492bae6e01b3dccb931607341b862d6356358ae0fd9b049269778c81c",
+        "gateway_server_requests:bind_sinks": "dd48d75a887bfca5d769e550477c5e43c69f8c8824c25e1abdb0063810992538",
+        "gateway_server_requests:advertise": "99ad3a547d9586043ff6b52b13261dd6d6c38af9b6308a17a8f91429202e884e",
+        "gateway_server_requests:forget": "fe36cd836a6eb86ea97377e3b6dbbc1800bb6f297a6d75656098d31fd35e2139",
+        "gateway_server_requests:answers_requests": "16103fc45ea43437a62f17ec65c1e8f6024f66a3e815b995d4d20c7e63af37dc",
+        "gateway_server_requests:_unanswerable": "0ab9cbc1b6db7536767c799d6c56999943b51f88ed02ee5d9bd95518179bb8a3",
+        "gateway_server_requests:_emit_cancel": "32d8958bc1d9109724e94f04434e92b492000c929540ecfb2cf351e97c0c1709",
+        "gateway_server_requests:_register": "a029181760a2fa98df01e8f123df38b0f9fd721bf9beff225c7ec5407d6a99bc",
+        "gateway_server_requests:send": "4173ab27cb0b94098e463ed4f42c753f130275c77fbcd70012885a931c5915b1",
+        "gateway_server_requests:send_async": "944dd43cd2845b98953bd836412709467fc811c068f874f89241e0125ed3bedf",
+        "gateway_server_requests:_is_not_shown": "16d6eaa361b3a04904fbdd1f6e6cc413d0ca9a1a83b9107d197bcf788f3d4850",
+        "gateway_server_requests:_decline": "e65ffa10e65b767089c0e1f6ad5ddd9f79acf3abbbbaac5a6867d571c73b6149",
+        "gateway_server_requests:resolve_response": "93e7c0a41dd38f55d013940e7d7d83471e0d53d6070da52b1eaa792c28dd1e27",
+        "gateway_server_requests:lock_answer": "fa34854dbf0bd860b7b2c54f9c6c55cb3020afea0612f9b403b97a539ffb4520",
+        "gateway_server_requests:cancel": "4aff295dc02248990f10f74d3a4eb74d49646700c09549bc6a3d4d0290c526fd",
+        "gateway_server_requests:open_requests": "80340db4e8c007ee3516c07d5c61c1315d236461569792c5b41ab9bcf7a935d5",
+        "gateway_server_requests:open_request_count": "0bbba2b189d91212c780fc6d44ea5b812da14a2cd210dc4df42abe2b8ec76d31",
+        "gateway_server_requests:pending_kind": "7cfc9b5aa4be95f26dcc02303e923fb66b56a74e2652af1afb2907cc7ba8736a",
+        "gateway_server_requests:is_response_frame": "de5e5ba74bb4f1950538a0d3d942d40a7af19710abb69bc2625d5831d984ef74",
+        "gateway_server_requests:reset_for_tests": "70683f7de0dc0c5e626be0755b4e037298b00bdaed04eff413a62d93dc35cff0"
       },
       "request_fields": {
         "auth:_NativeRefreshBody.provider": "6f26da4d3397a0ad1e091e80f548edef3c9ec86067192a65272fb7d0def308d9",
@@ -8537,6 +8580,170 @@
         "sha256": "646542258cf74ba60c2c67e4c72db24aabbd816090d44f0f356258ebbe6f68a7",
         "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
         "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
+      }
+    ],
+    "channel_catalog:binding:_PLATFORM_ORDER": [
+      {
+        "sha256": "63dbf1f2276f0f75c55b39bc5dd3aa1ef313fd012d9048c4b9c1263503816196",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Yuanbao leaves the built-in channel order; the client consumes discovered channels, never a local platform table. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "63dbf1f2276f0f75c55b39bc5dd3aa1ef313fd012d9048c4b9c1263503816196",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "channel_config:schema:Platform": [
+      {
+        "sha256": "403dec3b589fa496cddb44a12f96e68e54d89adcee285ea69efad552f22cf39c",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Yuanbao leaves the core enum; plugin discovery owns its runtime registration, without client-side alias or installation inference. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "403dec3b589fa496cddb44a12f96e68e54d89adcee285ea69efad552f22cf39c",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "env_config:_worker_config_snapshot": [
+      {
+        "sha256": "3e194951f7a604bd3d9658ceb8cf00c9260c5bdedca90e3e3f2ce64a82d7e6d5",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "The root-agent import fallback remains equivalent for normal module names; unrelated missing dependencies still propagate in controlled before/after probes. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "3e194951f7a604bd3d9658ceb8cf00c9260c5bdedca90e3e3f2ce64a82d7e6d5",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "plugin_legacy:LEFT_CORE": [
+      {
+        "sha256": "55a7d0ed11c93c1957137b060a359f256be16f53c182fe34ed3a3d7845aa9bf2",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Yuanbao becomes a catalog plugin with legacy key and manifest aliases, preserved disable/toolset intent, merged config and home-bound secret lookup. No client-side migration is authorized. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "55a7d0ed11c93c1957137b060a359f256be16f53c182fe34ed3a3d7845aa9bf2",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "plugin_legacy:legacy_plugin_alias": [
+      {
+        "sha256": "f919efd87703b3bd268ff84a9231a4b123eec59c1e232087c894ed970e398240",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Both platforms/yuanbao and yuanbao-platform map to catalog yuanbao; pre-existing mappings and unknown/case/space handling remain unchanged. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "f919efd87703b3bd268ff84a9231a4b123eec59c1e232087c894ed970e398240",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "plugin_legacy:legacy_plugin_keys": [
+      {
+        "sha256": "c35bc9263c6cb04729f9761f398422c357a8d2b0347e0e5a4bb20d1d657c302e",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Inverse legacy keys include both Yuanbao aliases; installed key/name, explicit review and exact receipts remain server-owned. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "c35bc9263c6cb04729f9761f398422c357a8d2b0347e0e5a4bb20d1d657c302e",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "gateway_ws:_dispatch_request": [
+      {
+        "sha256": "aa59f2ac28285aebb7b01d7616aa0e9ab40539831e656aaef1567df9652ec8ec",
+        "commit": "aa389eba3df3c5839cf00a8d5941a83bbe3435cb",
+        "reason": "Only an exact pending sidecar response from its original socket is consumed before authority dispatch. Registry pinning, expiry, non-replayable vault scripts and client no-opt-in boundary reviewed and probed; both complete sources are required. See docs/contracts/2026-11-07-sidecar-response-review.md.",
+        "required_sources": {
+          "gateway_ws": "f1f3750accad549937a0d34d3c4b0eafdffbb04fc3ea46022415bfbe5f361e2a",
+          "gateway_server_requests": "47f1bac23ec50e36ebb09f9e7d9365fe703e11aca88f658c37d7a29413df6473"
+        }
+      },
+      {
+        "sha256": "aa59f2ac28285aebb7b01d7616aa0e9ab40539831e656aaef1567df9652ec8ec",
+        "commit": "e826a14a467fa74a718b0010487a8eb12421f879",
+        "reason": "Same socket-pinned dispatch AST, with refusal logging moved outside the registry lock and limited to code/message. AA11/E82613 bounded probes, expected pre-change lock failure and exact vectors reviewed in docs/contracts/2026-11-07-response-error-logging-review.md.",
+        "required_sources": {
+          "gateway_ws": "f1f3750accad549937a0d34d3c4b0eafdffbb04fc3ea46022415bfbe5f361e2a",
+          "gateway_server_requests": "04b0fc8f1302ec1efcd36027f155f64dd8654bda5576ce4c37667a7e47eccadd"
+        }
       }
     ]
   },

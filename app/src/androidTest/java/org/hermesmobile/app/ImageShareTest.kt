@@ -26,6 +26,11 @@ class ImageShareTest {
     private fun uri(name:String)=Uri.parse("content://org.hermesmobile.app.test.images/$name")
     private fun share(uri:Uri)=Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM,uri)
     private fun launch(intent:Intent) {compose.activity.startActivity(intent.setClass(compose.activity,MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION))}
+    private fun awaitShareReview() {
+        // An activity handoff may briefly have no Compose root. Keep polling within the same bound.
+        compose.waitUntil(5000) {compose.onAllNodesWithTag("share-image-review").fetchSemanticsNodes(atLeastOneRootRequired=false).isNotEmpty()}
+        compose.onNodeWithTag("share-image-review").assertIsDisplayed()
+    }
     @Before fun ready() {
         compose.waitUntil(10000) {!vm.connecting.value};compose.runOnUiThread {vm.setDemo(true)}
         compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="demo"}
@@ -35,7 +40,7 @@ class ImageShareTest {
     @Test fun shareIsReviewedForTheCurrentTargetAndNeverSubmitsAutomatically() {
         val existing=vm;val before=runBlocking {app.database.dao().conversations("demo").first().size}
         compose.runOnUiThread {vm.draft.value="Local text";launch(share(uri("red")).putExtra(Intent.EXTRA_TEXT,"Shared note"))}
-        compose.waitUntil(5000) {compose.onAllNodesWithTag("share-image-review").fetchSemanticsNodes().isNotEmpty()}
+        awaitShareReview()
         assertSame(existing,vm);assertNull(vm.imageDraft.value);assertEquals("Local text",vm.draft.value)
         val screenshot=File(compose.activity.getExternalFilesDir(null),"qa/image-share-review.png");screenshot.parentFile!!.mkdirs()
         screenshot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
@@ -51,11 +56,11 @@ class ImageShareTest {
     }
     @Test fun cancelAndInvalidFileSharesLeaveTheDraftUnchanged() {
         compose.runOnUiThread {vm.draft.value="Keep this text";launch(share(uri("blue")))}
-        compose.waitUntil(5000) {compose.onAllNodesWithTag("share-image-review").fetchSemanticsNodes().isNotEmpty()}
+        awaitShareReview()
         compose.onNodeWithText(Words.Cancel.localized(vm.preferences.value)).performClick()
         assertNull(vm.imageDraft.value);assertEquals("Keep this text",vm.draft.value)
         compose.runOnUiThread {launch(share(Uri.parse("file:///unavailable.jpg")))}
-        compose.waitUntil(5000) {compose.onAllNodesWithTag("share-image-review").fetchSemanticsNodes().isNotEmpty()}
+        awaitShareReview()
         compose.onNodeWithTag("use-shared-images").assertDoesNotExist()
         compose.onNodeWithText(Words.Cancel.localized(vm.preferences.value)).performClick()
         assertNull(vm.imageDraft.value);assertEquals("Keep this text",vm.draft.value)

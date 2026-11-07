@@ -27,7 +27,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. Beta.6 title fix is published at e2b2de7 with536 JVM/919 API26/920 API37, compatibility, original-key release lint/retention and all4 public byte hashes verified. | Keep exact-head gates for subsequent chunks. Beta.5 and beta.6 were published from tested feature commits; neither publication advances main or closes later development/physical acceptance. |
 | 2. Real Hermes matrix | Pinned stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers. A pinned v0.22.7 native run now has poll/SSE/sequence-resume/history and durable single-admission evidence, with both diagnostic errors retained and reconciled read-only. Full clean-install/current-native/tool matrix and owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
-| 4a. Kanban status/overrides | Override integration passed 536 JVM/941 API26/942 API37 at C659. Internal status executor D45 passed 575 JVM/968 API26/969 API37, with original failed attempts retained. Private native status form/review/receipt routing now has 577 JVM and 25 status plus 22 override API37 passes on one frozen APK pair; three fresh bilingual modal captures inspected. The observable-generation repair now has 577 JVM, 53 API26 and 96 API37 focused passes on a separate exact QA pair, including all status/override forms, generation/lost-reply cases and related projects. | Full exact-head gates for the new forms; finish workspace/dispatch/worktree transitive guards and actual isolated-server transitions. Keep latest-task/graph approval distinct from atomic worker fencing, and stored-row observations distinct from real worker/filesystem/runtime outcomes. |
+| 4a. Kanban status/overrides | Private model/provider/reasoning forms and typed status with linked-impact review, explicit approval, scoped receipts and no-replay guards exist on the feature branch. Earlier local cohorts and caption failures remain recorded. | Validate the reconciled history/status source, then close its own complete hosted gates and isolated real-server transitions; runtime adoption and worker/filesystem effects remain separate. |
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
 | 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. | Typed editing/run/results/logs and explicit outcomes, without claiming runtime completion from ACK. |
@@ -174,3 +174,108 @@ The unpublished status forms now observe review identity independently of visibl
 The status-caption/safe-drawing correction passed577 JVM and two affected bilingual/native-keyboard cases per API26/API37; ten fresh captures were reviewed. Earlier full focused52/54 and95/97 cohorts remain failed with their exact width-predicate diagnostics retained. Final whole-feature hosted gates and history/model hotfix reconciliation remain required. Tooling f122a65 keeps the compiler daemon under the mandated temporary root.
 
 The separate existing-history b02 release stays held: full API26 passed936, while API37 completed820 positive cases and one image-share wait failure before its75-minute deadline, leaving116 unfinished. No beta7 tag/assets were published. Carry the already-reviewed95-minute CI budget and correct only the finite image-share predicate's no-root transition, retain every assertion and failed report, then gate a new exact release source. The remaining worker/workspace/automation/room/integration/notification/voice/security ledger above stays required.
+
+The published diagnostic/Voice/layout chunks are now merged through their own gates.
+Close the cumulative speech-setup/model-status branch through its own full hosted
+gates: inspect the retained API37 Kanban failure and complete the exact pinned
+auth/plugin helper watch review. Upgrade the owner phone without resetting data;
+then deliver native override forms and typed status from verified contracts. Continue physical
+background/audio acceptance and the isolated real-Hermes matrix independently. Update this ledger at each
+meaningful commit/merge/release, preserving remaining requirements.
+
+## 7 November — priority release validation correction
+
+The b02 full API37 run remains failed:820 positive, one image-share no-root wait exception and116 unfinished at75 minutes; API26 passed936. The correction now has a clean required build/548 JVM,14 CI-runner and24 focused native passes per API, without changing production inputs. Carry the already-reviewed95-minute budget and retain finite waits, one invocation and all failures. Gate the new exact source before final signed publication. The independent status-dialog checkpoint39e7538 has577 JVM/four affected native UI passes/ten reviewed captures, but needs hotfix reconciliation and final full feature gates. The complete remaining audit ledger stays required.
+
+## 7 November — upstream plugin compatibility checkpoint
+
+Ef5 Android42345795933 passed build/lint/JVM; both complete device suites are
+running. Compatibility42345791438 failed on genuine main981 Yuanbao/migration
+drift. A reviewed tooling correction now binds all six variants to four full
+modules;166 parser/15 runtime tests,39 controlled-function checks and eight
+saved-report source counterfactuals pass. The failed run is retained, F0 remains
+intact, no app/Pi behavior changed, and the new source still needs its own gates.
+See contracts/UPSTREAM_981791D_REVIEW.md. Prior owner production110 retained-data,
+actual API chat, read-only foreign transcripts and project metadata checks remain
+bounded acceptance, not general worker/workspace/shared-chat certification.
+The independent status feature39e7538 remains unshipped. Every broader ledger
+row remains required; final signed candidate assets/publication are pending.
+
+## 7 November — installation-root/profile follow-up
+
+Main d4 advanced during the992 canary. The failed result is retained;166 parser/15 runtime/8 pinned cases passed. A separate exact source vector now has167 local parser/15 runtime passes and16 source-identity counterfactuals, preserving981/F0. No Android behavior changed. The signed992 predecessor passed its checks but remains unshipped. Final-source hosted gates, signed artifacts/publication and every remaining audit row stay required. See contracts/2026-11-07-install-root-profile-review.md.
+
+## 7 November — validated response boundary and CI interruption
+
+AA review adds a two-source fence and recurring11-case probe, preserving F0/all prior fields.170 parser/15 runtime/552 JVM and27 current-pair native cases per owned API26/37 pass. The full ef5 cohort remains failed: API37 passed937; API26 stopped after912 positives with24 unfinished, no assertion/final verdict. Retain the result, add bounded command/device diagnostics before a new full cohort, and finish exact-source gates/publication. See contracts/2026-11-07-sidecar-response-review.md. All broader audit rows remain required.
+
+## 7 November — bounded CI outcome diagnostics
+
+23 runner/179 policy/15 runtime cases pass for explicit command/timeout/negative-verdict metadata and original owned-device pre-cleanup state, preserving one invocation and95 minutes. The prior API26 command outcome/root cause remains unknown; waiting-for-device belongs to cleanup logcat, not the truncated instrument stream. This is observability, not a proven fix or new native pass. See audits/2026-11-07/CI_DEVICE_OUTCOMES.md. Review E826, then close integrated-source gates/publication; all broader rows remain required.
+
+## 7 November — E826 response-error logging review
+
+The separately pinned E826 mode preserves the AA/F0 review and binds the unchanged
+dispatch AST to both complete modules. The complete registry diff moves logging
+outside its lock and excludes error.data from that statement, while code/message
+remain logged. Canonical AA 11/E826 13 focused cases, 179 policy/15 runtime tests,
+eight saved-report source counterfactuals and four compiled workflow snippets
+pass. The expected old-AA lock assertion failure is retained. See
+[the source review](contracts/2026-11-07-response-error-logging-review.md).
+No app/test/build input changed; earlier 552 JVM/27 native-per-API evidence stays
+its earlier cohort. Final-source hosted gates and signed/publication acceptance
+remain pending, as do every broader required audit row and the independent status
+feature. No Pi, model/default, owner-phone or signing change is included.
+
+## 7 November — status/history integration stage
+
+Reconcile status/override39e7538 with pinned history releasee5d9c6f, preserving
+both feature and hotfix regressions, all previous source-bound contracts and
+the new one-shot CI verdict/device-state diagnostics. Development defaults are
+111 /1.1.0-beta.8; beta.7 stays separately pinned and unpublished while its
+complete device suites run. Existing tests and historical evidence are retained.
+Conflict resolution alone is not a build/native/full-gate pass. Require fresh
+merged-source validation before commit and exact-head hosted acceptance afterward.
+
+## 7 November — reconciled task controls and history checkpoint
+
+The private status/override branch is reconciled with the pinned e5 history and
+connection fixes. Defaults are111 /1.1.0-beta.8, unpublished. Both forms, profile/
+store barriers, approval invalidation, progress polling and durable no-replay
+receipts remain; so do origin-aware/read-only histories, title/image regressions,
+the159-source guard and CI command/device evidence. The original F0 and all
+previous source-bound reviews are preserved.
+
+All four required Gradle tasks passed with593 JVM cases, zero failures/errors/
+skips and zero debug/release lint errors.179 policy and15 runtime cases pass.
+The original CAB-signed debug/test pair passed129 exact unique affected methods
+on each owned API26/API37 emulator. All580 inputs, installed APK hashes,
+AVD configuration, geometry/density/font and original key were checked. No
+uninstall, device reset/resize/data clear or owner credential fixture was used.
+The debug app SHA-256 is3fbc33c52f1a205f7679c92a988e8bca537af8007649d10fe24c42fed2825a5a;
+the companion isb9e36165ed977109aee3c44ff1a0c4b6733143702631eeec0a5eeab4f6f5e656.
+The raw frozen-source ZIP SHA-256 is2fa10dca422b0521ce67d30a9f575eccfe2f37791d2e5771dc1f0a77939ebb81.
+
+Ten fresh status form/review/result/IME captures and two small-screen history
+captures were inspected. Status actions/read captions remain readable; the
+keyboard-open history capture exposes a floating Search label overlapping the
+pinyin heading. More/Close still work and read-only chat remains readable. This
+known visual defect needs a label/heading separation regression and correction;
+semantic/native passes are not a clean visual-audit verdict.
+
+Three private inventory preflights failed before any build/freeze: an old
+API-only pagination test name was intentionally replaced by the release's
+broader-origin regression; a text comparison mixed universal-newline and decoded
+CRLF representations despite identical raw bytes/Git blob; and unchanged setup
+cases were absent from a changed-class selection. The final preflight requires
+the exact incoming test bytes/blob and includes the entire retained27-case cohort.
+No app/test assertion was removed to clear those preflights. All earlier failed
+application/device/CI cohorts remain retained with their original verdicts.
+
+Both local native runs are terminal and the580-input freeze is closed. This is
+local integration acceptance, not full merged-head hosted or isolated real-Hermes
+status-transition/worker/filesystem certification. Commit/push this checkpoint,
+fix the observed history label issue, then gate the final source. The pinned
+beta7 source remains separate: its API26 CI job is green, API37 is still running,
+and its final phone-history and public-upload/download checks remain pending.
+Every remaining required audit row stays active; main and stable1.0 are unchanged.

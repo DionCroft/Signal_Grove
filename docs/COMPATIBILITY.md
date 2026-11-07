@@ -4,7 +4,7 @@ Android 8.0/API 26 minimum; compile/target API 37. Foreground local-only speech 
 
 The app follows the [official Hermes API server reference](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/) and the upstream gateway/pending-control contracts reviewed during these milestones. No minimum Hermes version string can establish all feature support across changing/forked installs: authenticated capability discovery chooses native sessions/Runs, session streaming or OpenAI-compatible fallback. Unsupported routes remain explicit. Exact unknown-run acknowledgement is exposed only when advertised. Jobs use documented bearer-protected routes after per-connection opt-in; no invented `jobs_admin` capability is assumed.
 
-API-owned sessions are supported; imported CLI/Desktop shared ownership is outside scope. Compatibility completion responses do not prove tool/run completion. Native Runs support persisted request keys and sequence-based manual resume; expired receipts/event buffers require server review. Jobs preserve unedited fields. MCP OAuth and dashboard native sign-in use the separate reviewed management bridge. Generic file input, a remote agent backend, automatic approvals and a server-push service are not included. Structured image history and native image picking are available on the development branch; the reviewed share target is implemented.
+API-owned sessions support replies and advertised controls. Session inventory/history reads also include Desktop, Discord and other origins in the selected profile; their write controls remain disabled. Shared write ownership is outside scope. Compatibility completion responses do not prove tool/run completion. Native Runs support persisted request keys and sequence-based manual resume; expired receipts/event buffers require server review. Jobs preserve unedited fields. MCP OAuth and dashboard native sign-in use the separate reviewed management bridge. Generic file input, a remote agent backend, automatic approvals and a server-push service are not included. Structured image history and native image picking are available on the development branch; the reviewed share target is implemented.
 
 The shipped Demo is a local simulator. Fixture tests validate request/response and lifecycle behavior without a production agent. The owner's live endpoint/credentials and physical microphone/speaker hardware were not supplied. See the release validation record for device matrix, exact counts and any remaining manual checks.
 
@@ -143,3 +143,18 @@ The verified relay routes use the process home and accept no profile query. Thei
 ### Listener-scoped endpoint validation
 
 CustomEndpointProbe joins RelayLinkStart and RelayUnlink in the exact-dashboard pending domain. Its verified HTTP handler accepts explicit probe values without a profile argument; no invented profile query/body field is added. Before-network and final-claim guards, cross-profile privacy, fresh local review and original history retention therefore span selected profiles at that same URL. Ordinary MCP probes still use their real profile scope; original OAuth flow-ID bindings remain unchanged. No server fingerprint, request field, route, private capability format, dependency or database schema changed for this local ordering fix.
+
+### 7 November — Yuanbao plugin source review
+
+Main981 moves Yuanbao out of the core channel enum/order into a catalog plugin
+with two legacy aliases. The mobile client continues using server-discovered
+IDs and explicit scoped reviews. Six exact AST variants now also require four
+complete source-module identities; future helper/byte drift reopens review.
+The original F0 contract and prior review evidence are preserved. See the
+[pinned review](contracts/UPSTREAM_981791D_REVIEW.md) for hashes, controlled checks
+and live-migration limits. This adds no mobile migration, installation or Pi
+update. The original failed canary remains failed; new hosted gates are required.
+
+The later main d4 installation-root/profile cleanup is reviewed in [its own record](contracts/2026-11-07-install-root-profile-review.md). It adds a separate exact byte vector, preserving981 and the original baseline. No native profile import/rename or project-workspace authority is implied. Complete final-source gates remain required.
+
+The [AA sidecar response review](contracts/2026-11-07-sidecar-response-review.md) binds dispatcher/registry bytes and keeps the management socket outside server-request opt-in. Its11-case recurring probe is bounded, with synthetic contract/authority/thread components; it does not certify live authentication, native vault filling or desktop integration.552 JVM/27 local native per API pass; the interrupted API26 full cohort and final-source gates remain unresolved.

@@ -27,6 +27,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.noties.markwon.Markwon
 import org.hermesmobile.app.data.ChatMessage
+import org.hermesmobile.app.data.SessionOrigin
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -48,6 +49,8 @@ import java.time.format.DateTimeFormatter
     val status by vm.runStatus.collectAsStateWithLifecycle()
     val activity by vm.activity.collectAsStateWithLifecycle()
     val current by vm.selectedConversation.collectAsStateWithLifecycle()
+    val readOnly=current?.let(SessionOrigin::readOnly)==true
+    var readOnlyInfo by remember(current?.key,readOnly) {mutableStateOf(false)}
     var statusDetails by rememberSaveable {mutableStateOf(false)}
     var resolve by rememberSaveable {mutableStateOf(false)}
     var history by rememberSaveable { mutableStateOf(false) }
@@ -92,11 +95,19 @@ import java.time.format.DateTimeFormatter
         }
         if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy && !controlling) {Text(label(Words.ResolveUnknown))}
         DraftImageStrip(vm)
-        OutlinedTextField(draft,{vm.draft.value=it},Modifier.fillMaxWidth(),placeholder={Text(label(Words.Message))},maxLines=5,
-            leadingIcon={ImagePickerButton(vm)},
-            trailingIcon={IconButton({vm.send()},enabled=(draft.isNotBlank() || pictureDraft?.refs?.isNotEmpty()==true) && !busy && !controlling && !connecting) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
+        if(readOnly) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+            TextButton({readOnlyInfo=true},Modifier.weight(1f).heightIn(min=48.dp).testTag("chat-read-only")) {
+                Icon(Icons.Outlined.Info,null);Spacer(Modifier.width(8.dp));Text(label(Words.ReadOnlyHistory),Modifier.weight(1f))
+            }
+            IconButton({},enabled=false,modifier=Modifier.testTag("chat-read-only-send")) {Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send))}
+        } else OutlinedTextField(draft,{vm.draft.value=it},Modifier.fillMaxWidth(),enabled=!readOnly,placeholder={Text(label(Words.Message))},maxLines=5,
+            leadingIcon={if(!readOnly) ImagePickerButton(vm)},
+            trailingIcon={IconButton({vm.send()},enabled=(draft.isNotBlank() || pictureDraft?.refs?.isNotEmpty()==true) && !busy && !controlling && !connecting && !readOnly) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
         Spacer(Modifier.height(4.dp))
     }
+    if(readOnly && readOnlyInfo) AlertDialog(onDismissRequest={readOnlyInfo=false},title={Text(label(Words.ReadOnlyHistory))},text={
+        Column(Modifier.heightIn(max=440.dp).verticalScroll(rememberScrollState()).testTag("chat-read-only-reason")) {Text(label(Words.ReadOnlySession))}
+    },confirmButton={TextButton({readOnlyInfo=false},Modifier.heightIn(min=48.dp).testTag("chat-read-only-close")) {Text(label(Words.Close))}})
     if(accountingHistory) AccountingHistoryDialog(reports) {accountingHistory=false}
     if(statusDetails) AlertDialog(onDismissRequest={statusDetails=false},title={Text(label(Words.RunStatus))},text={Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Text(label(statusWord(status)))

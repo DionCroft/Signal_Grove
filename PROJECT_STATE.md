@@ -1,19 +1,48 @@
-# Signal Grove project state
+# Signal Grove project state — reconciled task controls
 
-Continue the full long-horizon audit in `docs/AUDIT_EXECUTION_PLAN.md`. Preserve data, original signing/package identity, main, TLS/profile isolation, exact private approvals and no replay of unknown work. Source stays in the verified project; temporary/tools/evidence use the mandated temporary storage.
+Continue every required row of docs/AUDIT_EXECUTION_PLAN.md. Preserve original
+keys/data/main, TLS/profile isolation, exact approvals and no unknown-work replay.
+Use the verified source root and mandated temporary storage.
 
-## Completed local checkpoint
+## Current checkpoint
 
-The unpublished status forms now have a short accessible multilingual read caption, full-width actions, scrollable headings and safe-drawing/IME insets. The real clipped-glyph regression, retained paragraph-width diagnostic and earlier failed build/native cohorts are preserved. Final local validation is four required Gradle tasks/577 JVM plus two affected bilingual/native-keyboard cases per API26/API37 and ten inspected captures. This is not a clean final54/97 cohort or full hosted acceptance. Original keys, source inputs, device geometry/configuration and retained fixture data were verified. QA code111/beta.8-qa is never a public asset; committed development default remains108. Tooling f122a65 separately fixes the compiler daemon temporary directory.
+Status/override39e7538 and pinned history/connection e5d9c6f are reconciled.
+Development defaults111 /1.1.0-beta.8 remain unpublished. The four required
+Gradle tasks/593 JVM/179 policy/15 runtime and129 exact focused native cases
+on each owned API26/API37 pass. Original keys/APKs,580 frozen inputs, retained
+data and unchanged AVD configuration/geometry/font were verified. Both local
+native processes are terminal; the source freeze is closed.
+
+Ten fresh status captures are readable. Two additional history captures reveal
+one open small-screen visual defect: Search's three-line floating label overlaps
+the pinyin heading with the keyboard open. More/Close remain usable. Native
+semantic success is not a clean visual verdict. Earlier failures and all
+preflight diagnostics remain retained. See the latest VALIDATION checkpoint.
 
 ## Exact next action
 
-Return to clean `fix/existing-session-visibility` at b02 and apply the prepared image-share finite-wait correction plus the already-reviewed95-minute CI budget. Run required build/native checks, commit/push, then dispatch the new exact source through complete Android/compatibility gates once. Preserve the old reports and require a complete positive suite. No blind retry or publication of b02.
+Commit/push this tested integration on the feature branch, preserving main.
+Add a real history label/heading separation regression and fix the common field.
+Review the same implementation for the held beta7 candidate. Then run the
+required focused checks and final exact-head hosted gates, preserving old runs.
+Isolated real-Hermes status transitions and worker/filesystem effects remain
+separate acceptance work.
 
-## Release hold
+## Independent beta7 release
 
-B02 full Android run42336563273 passed API26/936 but API37 has820 positive and one image-share no-root wait failure, then timed out after75 minutes with116 unfinished. The runner was still making progress; this does not prove a hung test or product root cause. Original-key code110 assets and owner-phone retained connection/history acceptance remain useful bounded comparison evidence, not publication permission for a failed source. Every old publisher entrypoint is blocked. Stable1.0 and main6b809e6 remain unchanged; no beta7 tag/release has been created.
+Source e5 remains pinned on fix/existing-session-visibility. Its compatibility
+42355527599 passed with verified artifacts. Original-key110/beta.7 builds passed
+552 JVM/lint/provenance and are staged privately. Full Android42355744788 has
+a green API26 job; API37 is running. Verify terminal artifacts independently,
+without cancellation/redispatch. The exact final production APK is installed
+on the owner phone and its connection is visible; physical Chat navigation/
+history confirmation is pending. No data reset, owner credential fixture or
+extra agent turn was used. No beta7 tag/draft/release has been created.
 
 ## Remaining full audit
 
-Reconcile the corrected history/model/release branch into the larger forms branch before final feature gates/versioning. Worker/dispatch/events/files/pins/transfers, explicit workspace adoption, advanced automation/rooms/grants, remaining integrations/configuration, notification routing, rendering/voice/OEM and security/community closure remain required. Stored project metadata is not worker/filesystem execution or shared Bot Chat write authority. Keep the full audit goal active.
+Main6b809e6 and stable1.0 remain unchanged. Workers/dispatch/events/files/pins/
+transfers, explicit workspace adoption, automation/rooms/grants, integrations/
+configuration, notifications, rendering/voice/OEM and security/community closure
+remain required. Project metadata is not worker/filesystem execution or shared
+Bot Chat authority. Keep the full goal active.

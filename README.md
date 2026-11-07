@@ -73,7 +73,7 @@ See [development](docs/DEVELOPMENT.md) for the toolchain, tests, emulator and di
 2. Make it reachable through a private VPN and a trusted HTTPS reverse proxy. Do not expose its raw port publicly.
 3. In Settings enter the server root, e.g. `https://agent.example.net/p/work/`, and its bearer token. The app appends API paths while retaining your prefix.
 4. Tap **Save & test connection**. The settings become active only after an authenticated discovery request succeeds. Empty token retains the saved credential only for the same URL.
-5. Start Chat. Imported sessions are restricted to `api_server` ownership. CLI/Desktop conversations need upstream shared-session protocols and are outside this release's supported ownership scope.
+5. Start Chat and open **Conversation history**. The selected profile's session inventory includes Desktop, Discord and other origins. Search/source filters apply to loaded rows; use **Load more conversations** for older chats. API-owned sessions support replies. Other origins are read-only because Hermes keeps their write ownership with the original interface.
 
 `127.0.0.1` on Android is the **phone**, not your computer. Cleartext testing requires both the debug build and an explicit Settings toggle. Release builds always require HTTPS. A token can grant terminal/tool access: protect it as a powerful credential.
 

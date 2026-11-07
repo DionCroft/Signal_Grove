@@ -1,0 +1,37 @@
+# Existing history layout — 7 November 2026
+
+The history dialog previously placed a large multilingual search/filter header outside a weighted chat list. On small screens the header could consume the list viewport. Filters, help and rows now share a single bounded scrollable body, with pagination and Close kept outside it. The paging fixture reaches an older Discord row, imports its actual messages and confirms zero writes.
+
+A separate controlled API26 check showed that the long fixed read-only explanation plus disabled composer left too little chat space with Chinese, pinyin and 130% font enabled. A compact read-only bar now opens the full scrollable explanation; Send remains disabled. Existing VM/request/repository origin guards, source retention, profile isolation, draft data and Room schema are unchanged.
+
+All four required Gradle tasks and 548 JVM cases passed. The same 17 origin/storage/history/title methods passed on API26 and API37, with original debug signer and installed APK/source checks. Strong UI checks require a readable message viewport before the deliberate write rejection and after explicit banner dismissal; they await the controls dialog and an observed metadata GET, then verify lock/fork stay disabled. The controlled pre-fix failure and the earlier incomplete/failed full hosted runs remain retained.
+
+Five fresh small-screen screenshots were reviewed. The compact chat, full reason, older-history row and disabled controls are readable. The initial history screenshot also revealed an unresolved keyboard/footer overlap: Search can acquire focus automatically, and semantic visibility alone did not prove a real tap could reach the footer. Initial focus, IME-aware layout and an actual Android-input pagination regression are the exact next correction. This checkpoint is not a release verdict.
+
+The API37 emulator stopped before compact-suite installation/test preflight. Its existing configuration and userdata were preserved on normal restart; the separate resumed 17-case run passed. No device reset, reseed, resize, owner-phone fixture, production server change or foreign-history write was performed. Private screenshots, transcripts, IDs, endpoints, source archives and receipts remain outside Git.
+
+## Keyboard and Android-input follow-up — 7 November 2026
+
+The history title, search, filters and rows now share the scrollable body. The short localized More footer retains the full Load more accessibility description. The dialog respects keyboard insets, initially focuses an explicitly eligible Close button after its window gains focus, and dismisses the keyboard when selecting a conversation or completing search.
+
+All four required Gradle tasks passed with 548 JVM cases. All 18 origin/storage/history/title cases passed on each owned API26 and API37 emulator, including a new case that checks initial focus, observes the actual keyboard, and uses real Android input to page and close while it is open. The same original-key APK pair was verified installed with unchanged source inputs, display, density, font scale and AVD configuration. Fresh normal and keyboard-open screenshots were reviewed. Earlier focus/layout failures remain retained; no reset, resize, data clear, skipped case or owner-phone credential fixture was used.
+
+These focused checks do not replace full exact-source hosted CI, production assembly/signature/manifest checks or retained-data phone upgrade acceptance. The broader audit and native worker project-file execution remain open.
+
+## 7 November 2026 — legacy history navigation regression
+
+The complete API26 run at `9711672` executed 936 methods: 935 passed and the Milestone02 search/pin/rename/local-delete case failed because Pin was absent from the current lazy viewport. The exact missing-node reason, complete log and digest-verified artifact are retained. It was not an Android input-permission rejection. API37 also completed its full 937-method run with 936 positives and the same sole legacy Pin failure. Both original cohorts remain failed and retained. No blind repeat or premature publication was performed.
+
+The legacy test now dismisses its dialog keyboard, scrolls the actual history container to each requested row control, asserts displayed/enabled actions and keeps the original pin, exact renamed title and empty-after-delete database assertions. A fresh actual-device screenshot captures the reachable row. Application code, networking, origin/approval guards, version defaults and Room schema are unchanged.
+
+The four required Gradle tasks and all 548 JVM cases passed. On both owned API26 and API37 emulators, all 21 origin/storage/history/title/Milestone02 cases passed on the same original-key QA pair, with exact installed APK and frozen source checks, unchanged configuration/display/density/font scale and no uninstall/reset/data clear. Fresh screenshots on both were inspected. The explicit local debug versionCode111 override preserves existing emulator installations; it is not a release APK or owner-phone update.
+
+The accepted original-key production110 phone installation remains separately recorded. New exact-source full hosted gates and final signed-artifact provenance are still required before beta.7 publication; the old-source publisher is blocked. The independent status-form repair at `310ccc7` has its own 577 JVM and 53/96 focused evidence plus an open clipped form-caption defect; it is not part of this hotfix. Private logs, screenshots, IDs and source archives remain outside Git.
+
+## 7 November 2026 — image-share wait and complete-suite budget
+
+The b02 full run42336563273 passed API26 with936 unique methods. API37 recorded820 positives and one ImageShareTest failure: its finite wait predicate threw because no Compose root was registered immediately after requesting the activity handoff. The run later hit the75-minute instrumentation deadline while progressing at case822/937, leaving116 unfinished. Its digest-verified archive, full failure and partial output remain retained; no hung-test or application root-cause conclusion follows. No beta7 assets were published, and prior publishers were blocked.
+
+The image-share predicate now allows zero roots only during its original5000ms bounded poll, then requires a displayed actual review. All VM identity, draft text, no-auto-send, import and recreation assertions remain. The95-minute complete-suite budget is copied exactly from the reviewed development runner; one invocation, finite timeout, partial-output retention and failure validation are unchanged. The reviewed Windows daemon fix keeps compiler rendezvous files in the configured temporary root. Application inputs, networking, version defaults and Room schema are unchanged.
+
+A clean build with task-output reuse disabled passed all four required Gradle tasks and548 JVM cases;14 CI-runner checks passed. The same original-key QA pair passed all24 existing-history/title/Milestone02/image-share cases on each owned API26/API37 emulator, with exact source/APK/configuration/display/density/font checks and no reset, resize, uninstall or data clear. Production input hashes for199 files match b02. Source snapshots and reports stay private. Local code111/beta.8-qa is an explicit emulator-upgrade override, not a public or phone-update artifact. New exact-source complete Android and compatibility gates, final original-key public artifacts and publication verification are still required. Main and the stable release remain unchanged.

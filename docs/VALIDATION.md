@@ -406,6 +406,94 @@ checks and all assertions remain intact. Full exact-head941/942 native and
 compatibility gates are still required. This integration is not a published
 release; beta.6's independent exacte2b2de7 release gate continues separately.
 
+## 2026-11-07 — bounded command/device diagnostics
+
+All23 CI-runner,179 policy and15 runtime cases pass. Nine new cases preserve
+one instrumentation invocation/95-minute deadline, reject partial or negative
+verdicts, retain exit/timeout facts, and observe the same owned process/serial
+before cleanup without restarting it. Both JSON reports are always uploaded.
+Missing evidence cannot turn a nominal successful command into a pass.
+
+The saved ef5 API26 stream replays to912 unique positives/913 starts of936 and
+an unknown command outcome; no missing exit code/duration is guessed. Exact-file
+inspection corrects the earlier attribution: instrumentation stops at case913
+start, while waiting-for-device appears in cleanup logcat. The initial replay
+assumption failed and remains retained; the parser was not changed to hide it.
+This is not a new native run or a proven disconnection fix. See the
+[outcome review](audits/2026-11-07/CI_DEVICE_OUTCOMES.md).
+
+App/test/build inputs remain identical to f793's tested source; its552 JVM/27
+native per API scope stays with that cohort. Final integrated-source compatibility
+and complete Android gates remain required, followed by signed/public checks.
+
+## 2026-11-07 — sidecar response review and interrupted API26 full run
+
+See [the primary-source review](contracts/2026-11-07-sidecar-response-review.md).
+The new two-module guard preserves all old baseline fields and adds the verified
+F0 registry source.170 parser/15 runtime/11 bounded canonical probe cases pass;
+the initial170/1 inventory-count failure is retained. The strict four-task build
+passed552 JVM, including four new WebSocket boundary cases, and zero debug lint
+errors.90 tasks completed (32 executed,58 up-to-date);564 inputs stayed frozen.
+The current original-key private QA pair passed27 unique focused cases per API26
+and37. The companion's raw container changed while all ZIP payloads/signer match;
+its own new pair was tested separately. Earlier six-case diagnostics remain a
+separate cohort. No owner-phone/production backend/model/default changes.
+
+Ef5 full Android run42345795933 is terminal overall failed: API37 passed937
+unique methods with no failures/skips; API26 has912 positives/913 starts of936,
+no failed assertion and no final verdict, ending waiting for device.24 cases
+remain unverified. Both artifact digests and exact reports are retained. The
+last-started guide passes locally, but that does not certify long-run stability
+or prove the interruption's cause. Add bounded return-code/device-state evidence
+before a fresh full cohort. Exact final-source hosted gates, signed assets and
+public release checks remain pending; no beta7 publication has occurred.
+
+## 2026-11-07 — separate d4 installation-root/profile source vector
+
+The992 hosted canary remains failed for new main d4 bytes; its166 parser/15
+runtime/8 pinned cases passed, with all three ZIP digests checked independently.
+The complete changed consumed-source diff and unchanged canonical root helper
+were reviewed. The [follow-up](contracts/2026-11-07-install-root-profile-review.md)
+retains the981 vector and adds a separate exact d4 vector, plus mixed-source
+rejection coverage.167 local parser/15 runtime cases and16 saved-snapshot source
+counterfactuals pass. The original F0/all previous entries are preserved.
+
+The signed992 predecessor passed its required build,548 JVM/zero failures,
+release/debug lint, original production/debug signers and default110/beta.7
+manifest checks. All559 frozen source inputs match the committed archive with
+explicit text-only CRLF equivalence;150 production dependencies match published
+beta6. Both APK runtime payloads match accepted b02 bytes; only VCS metadata
+differs. These are unshipped predecessor artifacts, not signed assets for this
+new commit. Final-source full hosted gates and publication remain pending.
+
+Two initial artifact-verifier attempts remain failed and retained: an obsolete
+VCS-record path, then an incorrect assumption that debug embeds that record.
+The corrected check requires production's actual embedded commit and uses frozen
+source/build evidence for debug. Production differs only in VCS metadata; the
+debug APK is byte-identical to the prior original-key default110 container.
+
+## 2026-11-07 — source-bound Yuanbao compatibility review
+
+The ef5 compatibility run42345791438 remains failed for real main981 drift,
+while its157 parser/15 runtime/8 pinned-module cases passed. All three artifact
+ZIP digests were independently verified. See the [review](contracts/UPSTREAM_981791D_REVIEW.md)
+for primary sources, hashes, client scope and limitations.
+
+The correction adds six variants bound to four complete source modules, strict
+guard validation and nine counterfactual policy regressions. Local166 parser
+and15 runtime cases pass. Digest-verified saved stable/main reports recompare
+cleanly, and eight source-identity counterfactuals re-open all six findings.
+Separate controlled39 checks used verified AST functions with fake imports and
+environments; no full upstream module or live migration/account was executed.
+F0/all prior evidence remain intact. Android production/test/build inputs are
+unchanged from ef5; its retained548 JVM/24 focused native per API evidence is
+not relabeled as a fresh full gate for this tooling commit.
+
+The ef5 Android run42345795933 passed build/lint/JVM and is running both full
+device suites. Do not cancel a healthy suite merely for observation time.
+Fresh exact-source complete hosted gates, signed110/beta.7 assets and public
+download verification remain required. No beta7 release has been created.
+
 ## 2026-11-06 — title regression catalog fixture correction
 
 The wider development108 integration retained167 focused positives and one
@@ -2118,3 +2206,120 @@ The first corrected-layout build failed on a new test-only assertion chain; that
 The final safe-area source passed all four required Gradle tasks,577 JVM cases and the two affected bilingual/keyboard cases on each owned API26/API37 emulator. Real Android input reached Read with the IME open and Cancel after typing the exact task ID without granting a write; reading and cancelling sent no status change. The normal reviewed path retained its exact body, explicit grant, one write and receipt assertions. Ten fresh whole-device form/review/result/IME captures were inspected. Original signing keys, installed hashes,564 source inputs and original AVD geometry/configuration were checked; no owner-phone fixture, uninstall, data reset, reseed or resize was used. These code111/beta.8-qa APKs are local acceptance artifacts only. Full final feature-head hosted gates and hotfix reconciliation remain open.
 
 Independent tooling commit f122a65 directs Kotlin daemon rendezvous files to the E work root and quotes paths with spaces. An actual new daemon path and explicit-JDK quoted-path probe passed; older default-directory use was discovered and is not retrospectively claimed to have been confined.
+
+## 7 November 2026 — observable project review identity
+
+The release-based history branch's code-110 development candidate passed `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest`: 548 JVM cases, zero failures/errors/skips. Two new native cases first failed against the retained pre-fix code-109 application, demonstrating that a changed review counter with identical ManagementState did not invalidate/rebuild Compose reviews. Exposing that counter as StateFlow fixes both dialogs without changing request/receipt fences. On the owned API37 emulator, all six targeted generation/lost-reply cases passed. The 43-case related project/receipt run completed with 42 passes and one detail-read timeout before a delete action; that unchanged case passed in isolation. The original run remains failed, its cause is unresolved, and a replacement full-suite pass is required. Unique methods, no skips, exact original-key APK verification, 555 unchanged source inputs and unchanged display/density/font scale were checked. Three fresh controlled bilingual project screenshots were visually reviewed. Private red/green logs, source archives and receipts remain on authorized temporary storage outside Git.
+
+This is focused acceptance, not a full release verdict. The earlier exact history source's hosted API26/API37 runs failed on multilingual history filtering/layout and did not finish the full suite. The retained GitHub artifact digests were independently verified. A separate owned API26 case reproduced the layout failure at its existing 720x1280 / 320-density / 130%-font geometry. The owner phone retains its separately accepted code-109 production installation; native worker handoff/file access and replacement full hosted release gates remain open. See [connection acceptance](audits/2026-11-06/SESSION_ACCESS_CHECK.md).
+
+## 7 November 2026 — responsive existing-history checkpoint
+
+The scrollable history body and compact read-only chat candidate passed `testDebugUnitTest lint assembleDebug assembleDebugAndroidTest`, all 548 JVM cases, and all 17 history/origin/title methods on each owned API26/API37 emulator. The small API26 target retained 720x1280 / 320 density / 130% font; API37 retained 1080x2400 / 420 density / 100% font. Original debug signer, exact installed APKs, 555 frozen inputs and unchanged AVD configuration/geometry were verified. The bilingual readability case failed before the compact bar and passed afterward; no foreign write guard or assertion was removed.
+
+Tests now check readable chat before a deliberate blocked write, the full reason dialog, UI error dismissal/recovery, actual controls-dialog visibility and an observed metadata read. Five fresh API26 screenshots were inspected. A remaining keyboard/footer overlap is explicitly open: initial Search focus can summon the keyboard over the footer despite semantic visibility. A real Android-input pagination check and IME/focus correction are required next. API37's first attempt was a preflight-only failure; its existing AVD was restarted unchanged, then the separate 17-case resume passed. Original failures remain retained. See [layout audit](audits/2026-11-07/HISTORY_LAYOUT.md). Full hosted gates, production code-110 acceptance and publication are not asserted.
+
+## Keyboard and Android-input follow-up — 7 November 2026
+
+The history title, search, filters and rows now share the scrollable body. The short localized More footer retains the full Load more accessibility description. The dialog respects keyboard insets, initially focuses an explicitly eligible Close button after its window gains focus, and dismisses the keyboard when selecting a conversation or completing search.
+
+All four required Gradle tasks passed with 548 JVM cases. All 18 origin/storage/history/title cases passed on each owned API26 and API37 emulator, including a new case that checks initial focus, observes the actual keyboard, and uses real Android input to page and close while it is open. The same original-key APK pair was verified installed with unchanged source inputs, display, density, font scale and AVD configuration. Fresh normal and keyboard-open screenshots were reviewed. Earlier focus/layout failures remain retained; no reset, resize, data clear, skipped case or owner-phone credential fixture was used.
+
+These focused checks do not replace full exact-source hosted CI, production assembly/signature/manifest checks or retained-data phone upgrade acceptance. The broader audit and native worker project-file execution remain open.
+
+## Code 110 physical acceptance — 7 November 2026
+
+The exact keyboard-fix application at `9711672` was built and linted as original-key production code 110, then installed over the accepted code 109 on the owner phone. Installed APK bytes and original signing identity were verified; no uninstall, data clear or credential fixture was used. The private API connection, reviewed RVN provider/model choice and browser sign-in remained available. Management identity refreshed successfully under the same profile. On cold launch the app opened Home; the existing API conversation was reopened explicitly from retained history.
+
+A single diagnostic turn completed in that existing conversation. Its new reply and the earlier upgrade reply remained after an explicit host-history refresh. The phone was left on Completed with an empty draft. Fresh model-status observation showed RVN ready, the saved stock default, and RVN requested for the conversation. The per-turn record supplies the requested pair and route source; it does not independently attest served provider/model identity.
+
+Actual Desktop and Discord transcripts opened read-only on code 110, with disabled Send and no editor. The full explanation opened and closed normally. Project inventory and canonical-ID details were read under the retained default management profile; the engineering entry continued to describe the Windows/NAS owner. No project metadata/folder action or engineering-file operation was performed. This does not establish phone-to-worker project execution or canonical shared Bot Chat admission.
+
+The fresh related project run passed all 43 cases, including the earlier detail-read timeout case. All six targeted generation/lost-reply cases also passed on API26. Earlier failed runs remain retained. Production manifest, package, original signer, lint, source inputs and all 150 runtime Maven dependencies were checked; the dependency export equals the prior release and a fresh known-version advisory query returned no findings. This bounded query is not a security certification.
+
+Exact-source [Hermes compatibility CI](https://github.com/DionCroft/Signal_Grove/actions/runs/42330470232) passed; downloaded report digests and parser logs were independently checked. The [Android build/unit/lint/source-scan job](https://github.com/DionCroft/Signal_Grove/actions/runs/42330424943) passed with 548 JVM cases. Both complete hosted device suites are still running at this checkpoint. No APK publication or full device-suite pass is asserted. Release artifacts remain bound to `97116728ec9f272c73525e2962707e82a2611af9`; this follow-up changes documentation only. Private endpoints, project IDs, screenshots, transcripts, credentials and raw receipts remain outside Git.
+
+## 7 November 2026 — legacy history navigation regression
+
+The complete API26 run at `9711672` executed 936 methods: 935 passed and the Milestone02 search/pin/rename/local-delete case failed because Pin was absent from the current lazy viewport. The exact missing-node reason, complete log and digest-verified artifact are retained. It was not an Android input-permission rejection. API37 also completed its full 937-method run with 936 positives and the same sole legacy Pin failure. Both original cohorts remain failed and retained. No blind repeat or premature publication was performed.
+
+The legacy test now dismisses its dialog keyboard, scrolls the actual history container to each requested row control, asserts displayed/enabled actions and keeps the original pin, exact renamed title and empty-after-delete database assertions. A fresh actual-device screenshot captures the reachable row. Application code, networking, origin/approval guards, version defaults and Room schema are unchanged.
+
+The four required Gradle tasks and all 548 JVM cases passed. On both owned API26 and API37 emulators, all 21 origin/storage/history/title/Milestone02 cases passed on the same original-key QA pair, with exact installed APK and frozen source checks, unchanged configuration/display/density/font scale and no uninstall/reset/data clear. Fresh screenshots on both were inspected. The explicit local debug versionCode111 override preserves existing emulator installations; it is not a release APK or owner-phone update.
+
+The accepted original-key production110 phone installation remains separately recorded. New exact-source full hosted gates and final signed-artifact provenance are still required before beta.7 publication; the old-source publisher is blocked. The independent status-form repair at `310ccc7` has its own 577 JVM and 53/96 focused evidence plus an open clipped form-caption defect; it is not part of this hotfix. Private logs, screenshots, IDs and source archives remain outside Git.
+
+## 7 November 2026 — image-share wait and complete-suite budget
+
+The b02 full run42336563273 passed API26 with936 unique methods. API37 recorded820 positives and one ImageShareTest failure: its finite wait predicate threw because no Compose root was registered immediately after requesting the activity handoff. The run later hit the75-minute instrumentation deadline while progressing at case822/937, leaving116 unfinished. Its digest-verified archive, full failure and partial output remain retained; no hung-test or application root-cause conclusion follows. No beta7 assets were published, and prior publishers were blocked.
+
+The image-share predicate now allows zero roots only during its original5000ms bounded poll, then requires a displayed actual review. All VM identity, draft text, no-auto-send, import and recreation assertions remain. The95-minute complete-suite budget is copied exactly from the reviewed development runner; one invocation, finite timeout, partial-output retention and failure validation are unchanged. The reviewed Windows daemon fix keeps compiler rendezvous files in the configured temporary root. Application inputs, networking, version defaults and Room schema are unchanged.
+
+A clean build with task-output reuse disabled passed all four required Gradle tasks and548 JVM cases;14 CI-runner checks passed. The same original-key QA pair passed all24 existing-history/title/Milestone02/image-share cases on each owned API26/API37 emulator, with exact source/APK/configuration/display/density/font checks and no reset, resize, uninstall or data clear. Production input hashes for199 files match b02. Source snapshots and reports stay private. Local code111/beta.8-qa is an explicit emulator-upgrade override, not a public or phone-update artifact. New exact-source complete Android and compatibility gates, final original-key public artifacts and publication verification are still required. Main and the stable release remain unchanged.
+
+## 7 November — E826 response-error logging review
+
+The separately pinned E826 mode preserves the AA/F0 review and binds the unchanged
+dispatch AST to both complete modules. The complete registry diff moves logging
+outside its lock and excludes error.data from that statement, while code/message
+remain logged. Canonical AA 11/E826 13 focused cases, 179 policy/15 runtime tests,
+eight saved-report source counterfactuals and four compiled workflow snippets
+pass. The expected old-AA lock assertion failure is retained. See
+[the source review](contracts/2026-11-07-response-error-logging-review.md).
+No app/test/build input changed; earlier 552 JVM/27 native-per-API evidence stays
+its earlier cohort. Final-source hosted gates and signed/publication acceptance
+remain pending, as do every broader required audit row and the independent status
+feature. No Pi, model/default, owner-phone or signing change is included.
+
+## 7 November — status/history integration stage
+
+Reconcile status/override39e7538 with pinned history releasee5d9c6f, preserving
+both feature and hotfix regressions, all previous source-bound contracts and
+the new one-shot CI verdict/device-state diagnostics. Development defaults are
+111 /1.1.0-beta.8; beta.7 stays separately pinned and unpublished while its
+complete device suites run. Existing tests and historical evidence are retained.
+Conflict resolution alone is not a build/native/full-gate pass. Require fresh
+merged-source validation before commit and exact-head hosted acceptance afterward.
+
+## 7 November — reconciled task controls and history checkpoint
+
+The private status/override branch is reconciled with the pinned e5 history and
+connection fixes. Defaults are111 /1.1.0-beta.8, unpublished. Both forms, profile/
+store barriers, approval invalidation, progress polling and durable no-replay
+receipts remain; so do origin-aware/read-only histories, title/image regressions,
+the159-source guard and CI command/device evidence. The original F0 and all
+previous source-bound reviews are preserved.
+
+All four required Gradle tasks passed with593 JVM cases, zero failures/errors/
+skips and zero debug/release lint errors.179 policy and15 runtime cases pass.
+The original CAB-signed debug/test pair passed129 exact unique affected methods
+on each owned API26/API37 emulator. All580 inputs, installed APK hashes,
+AVD configuration, geometry/density/font and original key were checked. No
+uninstall, device reset/resize/data clear or owner credential fixture was used.
+The debug app SHA-256 is3fbc33c52f1a205f7679c92a988e8bca537af8007649d10fe24c42fed2825a5a;
+the companion isb9e36165ed977109aee3c44ff1a0c4b6733143702631eeec0a5eeab4f6f5e656.
+The raw frozen-source ZIP SHA-256 is2fa10dca422b0521ce67d30a9f575eccfe2f37791d2e5771dc1f0a77939ebb81.
+
+Ten fresh status form/review/result/IME captures and two small-screen history
+captures were inspected. Status actions/read captions remain readable; the
+keyboard-open history capture exposes a floating Search label overlapping the
+pinyin heading. More/Close still work and read-only chat remains readable. This
+known visual defect needs a label/heading separation regression and correction;
+semantic/native passes are not a clean visual-audit verdict.
+
+Three private inventory preflights failed before any build/freeze: an old
+API-only pagination test name was intentionally replaced by the release's
+broader-origin regression; a text comparison mixed universal-newline and decoded
+CRLF representations despite identical raw bytes/Git blob; and unchanged setup
+cases were absent from a changed-class selection. The final preflight requires
+the exact incoming test bytes/blob and includes the entire retained27-case cohort.
+No app/test assertion was removed to clear those preflights. All earlier failed
+application/device/CI cohorts remain retained with their original verdicts.
+
+Both local native runs are terminal and the580-input freeze is closed. This is
+local integration acceptance, not full merged-head hosted or isolated real-Hermes
+status-transition/worker/filesystem certification. Commit/push this checkpoint,
+fix the observed history label issue, then gate the final source. The pinned
+beta7 source remains separate: its API26 CI job is green, API37 is still running,
+and its final phone-history and public-upload/download checks remain pending.
+Every remaining required audit row stays active; main and stable1.0 are unchanged.

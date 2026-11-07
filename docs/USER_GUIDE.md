@@ -1,6 +1,13 @@
 # Using Signal Grove
 
-The latest published stable release is 1.0.0. The current Signal Grove preview is [`1.1.0-beta.4`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4), code 105; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
+The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.6`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6), code 107; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
+
+
+### Existing Hermes chats and projects (beta.7 candidate)
+
+Open **Chat → Conversation history**. Scroll the history body to the source filter; API, Desktop, Discord, CLI and other origins come from the server. Search/source filters apply to loaded rows; **More** fetches older pages. Foreign and unknown histories open read-only, with the full reason behind **Read-only history**. Continue those conversations in their original client or open an API conversation for phone replies. After a cold launch, reopen the desired conversation from history.
+
+For project metadata, open **Settings → Hermes management**, refresh your retained sign-in, then choose **Host projects → Read stored projects**. Review the address/profile/read effects and confirm. Use **Refresh project details** on the intended row to inspect its canonical record. Stored folders and the host active-project pointer do not select a phone chat workspace or prove Windows/NAS worker access. Keep engineering operations on their verified owner. [Beta.7 scope and release gates](releases/1.1.0-beta.7.md).
 
 ## Install and migrate
 
@@ -28,7 +35,7 @@ Skills and toolsets describe what the server reports. Provider/MCP credentials a
 
 ## Conversations and decisions
 
-Chat supports a conversation browser, search over loaded records, explicit pagination, local pin/hide and supported server rename/delete. Server deletion is separately confirmed. Active/unknown turns retain their receipts and cannot be deleted through the browser. Settled sessions can refresh saved server history; interrupted imports keep the old cache.
+Chat supports a conversation browser, search/source filters over loaded records, explicit pagination, local pin/hide and supported server rename/delete. Desktop, Discord and other origins are included for the selected profile. Use Load more conversations for older chats. Non-API and unknown origins are read-only: their original interface retains reply/control ownership. Removing a read-only row removes only its phone cache. Server deletion is separately confirmed. Active/unknown turns retain their receipts and cannot be deleted through the browser. Settled sessions can refresh saved server history; interrupted imports keep the old cache.
 
 Tool activity shows visible previews, timestamps and supplied durations. Tool errors do not by themselves decide the run outcome. An approval requires a current visible request, exact identity and an explicit allow-once or deny. Questions require a reviewed answer and Submit. There are no bulk/permanent or automatic decisions. Incomplete consent disables allowing; you can deny or inspect the server.
 

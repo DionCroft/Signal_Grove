@@ -11,6 +11,14 @@
 
 - Add private native task model/provider and reasoning set/clear forms with scoped fresh reviews, next-dispatch effects and explicit unavailable states. Development branch only; status/worker controls and full hosted acceptance remain separate.
 
+- Refresh Kanban/project review identity even when visible management state is unchanged, keeping stale confirmations closed and fresh read reviews available without changing request/receipt safeguards.
+
+- Keep multilingual history filters and rows in one scrollable body. Use a compact read-only chat bar with a scrollable full explanation so large text leaves room for messages and controls. Keyboard-aware layout, intentional initial focus and a real Android-input paging/Close regression now pass on API26 and API37; full release gates remain open.
+
+- Include existing Desktop, Discord and other Hermes session origins in paginated conversation history. Add loaded-row source filtering and a reachable multilingual Load more footer.
+- Keep non-API and unknown histories read-only across the UI, request builder and operation repository; retain origin metadata without a Room migration. Preserve legacy API caches and existing pending work.
+- Add 12 JVM and 14 device regressions for origin parsing, partition isolation, storage, paging, actual history reads and blocked foreign writes. Three related chat regressions also pass locally. The original-key production candidate was installed on the owner phone without a data reset; existing Desktop/Discord histories, a post-upgrade reply in the same API chat, retained sign-in and project metadata reads were verified. Hosted device and release gates remain separate.
+
 ## 1.1.0-beta.6 — 2026-11-06
 
 - Avoid native session title collisions when several conversations start with the same text. Generate a sanitized, Unicode-safe label with a stable session-derived suffix while preserving the complete user message and existing conversations.

@@ -48,7 +48,7 @@ class SessionTitleFlowTest {
                             json("""{"model":"$defaultModel","provider":"spark-qwen","providers":[{"slug":"spark-qwen","name":"Stock fixture","authenticated":true,"models":["$defaultModel"]},{"slug":"spark-qwen-rvn","name":"RVN fixture","authenticated":true,"models":["Qwen3.8-27B-RVN-Q8_0"]}]}""")
                         }
                         request.method=="GET" && path=="api/jobs"->json("""{"jobs":[]}""")
-                        request.method=="GET" && path=="api/sessions"->json("""{"data":[{"id":"existing-test","title":"Test"}],"has_more":false}""")
+                        request.method=="GET" && path=="api/sessions"->json("""{"data":[{"id":"existing-test","title":"Test","source":"api_server"}],"has_more":false}""")
                         request.method=="POST" && path=="api/sessions"->{
                             val body=Json.parseToJsonElement(request.body.readUtf8()).jsonObject;creates+=body
                             val id=body.text("id");val title=body.text("title")

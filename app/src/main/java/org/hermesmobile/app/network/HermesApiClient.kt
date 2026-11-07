@@ -132,8 +132,8 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
             val models = json("v1/models"); HermesCapabilities(model = models.items("data").firstOrNull()?.text("id").orEmpty().ifBlank { "hermes-agent" }) }
     override suspend fun sessionPage(offset: Int,limit: Int): SessionPage {
         require(offset>=0 && limit in 1..200)
-        val page=json("api/sessions?source=api_server&limit=$limit&offset=$offset")
-        val rows=page.items("data").map { RemoteSession(it.text("id"),it.text("title"),((it["last_active"] as? JsonPrimitive)?.doubleOrNull?.times(1000))?.toLong() ?: 0) }
+        val page=json("api/sessions?limit=$limit&offset=$offset")
+        val rows=page.items("data").map { RemoteSession(it.text("id"),it.text("title"),((it["last_active"] as? JsonPrimitive)?.doubleOrNull?.times(1000))?.toLong() ?: 0,SessionOrigin.wire(it)) }
         return SessionPage(rows,offset+limit,page["has_more"]?.jsonPrimitive?.booleanOrNull==true && rows.isNotEmpty())
     }
     override suspend fun sessions(): List<RemoteSession> {
@@ -158,7 +158,9 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
     override suspend fun createSession(id: String, title: String): RemoteSession {
         val j = json("api/sessions", buildJsonObject { put("id",id); put("title",title); put("source","api_server") })
         val s = j["session"] as? JsonObject ?: j
-        return RemoteSession(s.text("id").ifBlank { id }, s.text("title").ifBlank { title })
+        require(s.text("id").ifBlank {id}==id) {"The server returned another created session."}
+        if(s.containsKey("source")) require(SessionOrigin.wire(s)==SessionOrigin.Api) {"The created session is not API-owned."}
+        return RemoteSession(id, s.text("title").ifBlank { title },source=SessionOrigin.Api)
     }
     override suspend fun messages(id: String) = history(id).rows
     override suspend fun history(id: String): MessageHistory {

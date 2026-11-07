@@ -142,3 +142,9 @@ API26/API37 suites. Resume private native Kanban status forms/receipts,
 workspace/dispatch transitive coverage, actual-server transitions and every other
 audit row. The public APK and main branch remain separate from this development
 review.
+
+## Release-branch guard backport
+
+The eight-file authentication-registry guard and pinned-module CI change is also applied to the existing-session visibility hotfix branch. The original upstream commit and every existing baseline field remain unchanged; the original pin gains the reviewed registry-engine source hash and 29 AST entries. Reviewed replacement rules and regression coverage protect the newer registry form. This changes compatibility tooling and evidence only; it does not add the separate Kanban status UI or change the production APK tested at `2e7c123`. Independent audit-branch compatibility artifacts for `a87a1a1` verified stable `2bd378e` and main `6b21d05` without mobile-relevant drift; release-branch checks are run separately.
+
+Release-branch local checks passed 157 policy/parser cases and eight canonical real-module cases with no denied audit events. Fresh stable `2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19` and main `6b21d0564de0492e2ebd0d8f63fca86c03b5c892` each covered 158 complete source modules and reported no mobile-relevant drift. All 30 added original-pin engine fields were separately verified from original F0 Git blob `af6280935e1ac3921c749afb243e8c4b67312d85`, including 29 exact AST fingerprints. A full historical snapshot attempt remained incomplete because later relay sources (`gateway/relay/http_diagnostics.py`, `gateway/relay/link.py`, `hermes_cli/web_routers/messaging_relay.py`) are absent at F0; that failure was retained, no new absence allowances were added, and it is not counted as a full historical pass. Hosted release-branch checks remain separate.

@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -127,6 +128,103 @@ class DeviceSdkSetupTest(unittest.TestCase):
             with self.assertRaises(subprocess.TimeoutExpired):device_ci.install_sdk_packages(['sdkmanager','fixture'],{},Path(directory)/'sdk.log',timeout=10)
         self.assertEqual(1,len(calls))
 
+
+
+
+class DeviceOutcomeDiagnosticsTest(unittest.TestCase):
+    def metadata(self, log):
+        return json.loads(log.with_name('instrumentation-result.json').read_text(encoding='utf-8'))
+
+    def test_incomplete_stream_preserves_exit_status_and_last_started_case(self):
+        output = ('INSTRUMENTATION_STATUS: numtests=2\nINSTRUMENTATION_STATUS: class=Fixture\n'
+                  'INSTRUMENTATION_STATUS: test=first\nINSTRUMENTATION_STATUS_CODE: 1\n'
+                  'INSTRUMENTATION_STATUS: class=Fixture\nINSTRUMENTATION_STATUS: test=first\nINSTRUMENTATION_STATUS_CODE: 0\n'
+                  'INSTRUMENTATION_STATUS: class=Fixture\nINSTRUMENTATION_STATUS: test=second\nINSTRUMENTATION_STATUS_CODE: 1\n- waiting for device -\n')
+        for code in (0, 1, 255):
+            with self.subTest(code=code), tempfile.TemporaryDirectory() as directory:
+                log=Path(directory)/'instrumentation.log';device=Mock(return_value=subprocess.CompletedProcess([],code,output))
+                with self.assertRaisesRegex(RuntimeError,'Instrumentation failed'):device_ci.run_instrumentation(device,log)
+                record=self.metadata(log);self.assertEqual(code,record['command_returncode'])
+                self.assertEqual(2,record['started_status_events']);self.assertEqual(1,record['positive_status_events']);self.assertEqual(1,record['unique_named_positive_methods'])
+                self.assertEqual(2,record['declared_tests']);self.assertEqual({'class':'Fixture','test':'second'},record['last_started'])
+                self.assertTrue(record['waiting_for_device_message']);self.assertFalse(record['success_criteria_met']);self.assertIsNone(record['ok_summary_tests'])
+                self.assertEqual({},record['negative_status_codes']);device.assert_called_once()
+
+    def test_timeout_metadata_never_accepts_even_a_positive_summary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log=Path(directory)/'instrumentation.log';failure=subprocess.TimeoutExpired(['owned-adb'],12,output=b'OK (2 tests)\npartial\xff')
+            device=Mock(side_effect=failure)
+            with self.assertRaises(subprocess.TimeoutExpired) as caught:device_ci.run_instrumentation(device,log,timeout=12)
+            self.assertIs(failure,caught.exception);record=self.metadata(log)
+            self.assertEqual('timed_out',record['status']);self.assertTrue(record['timed_out']);self.assertIsNone(record['command_returncode'])
+            self.assertEqual(2,record['ok_summary_tests']);self.assertFalse(record['success_criteria_met']);self.assertIn('partial',log.read_text());device.assert_called_once()
+
+    def test_negative_method_verdict_cannot_hide_behind_positive_summary(self):
+        for code in (-1,-2,-3,-4,-99):
+            with self.subTest(code=code),tempfile.TemporaryDirectory() as directory:
+                log=Path(directory)/'instrumentation.log';output=f'INSTRUMENTATION_STATUS_CODE: {code}\nOK (1 test)\n'
+                device=Mock(return_value=subprocess.CompletedProcess([],0,output))
+                with self.assertRaisesRegex(RuntimeError,'Instrumentation failed'):device_ci.run_instrumentation(device,log)
+                record=self.metadata(log);self.assertEqual({str(code) if code in (-1,-2,-3,-4) else 'other_negative':1},record['negative_status_codes'])
+                self.assertFalse(record['success_criteria_met']);device.assert_called_once()
+
+    def test_command_exception_is_recorded_without_retry_or_replacement(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log=Path(directory)/'instrumentation.log';failure=OSError('fixture-command-error');device=Mock(side_effect=failure)
+            with self.assertRaises(OSError) as caught:device_ci.run_instrumentation(device,log)
+            self.assertIs(failure,caught.exception);record=self.metadata(log)
+            self.assertEqual('command_error',record['status']);self.assertEqual('OSError',record['command_error_type']);self.assertIsNone(record['command_returncode']);device.assert_called_once()
+
+    def test_evidence_write_failure_never_passes_or_replaces_a_timeout(self):
+        for timeout in (False,True):
+            with self.subTest(timeout=timeout),tempfile.TemporaryDirectory() as directory,patch.object(device_ci.Path,'write_text',side_effect=OSError('fixture-storage-error')):
+                log=Path(directory)/'instrumentation.log';failure=subprocess.TimeoutExpired(['owned-adb'],12,output='partial')
+                device=Mock(side_effect=failure) if timeout else Mock(return_value=subprocess.CompletedProcess([],0,'OK (1 test)'))
+                if timeout:
+                    with self.assertRaises(subprocess.TimeoutExpired) as caught:device_ci.run_instrumentation(device,log)
+                    self.assertIs(failure,caught.exception)
+                else:
+                    with self.assertRaisesRegex(RuntimeError,'evidence could not be retained'):device_ci.run_instrumentation(device,log)
+                device.assert_called_once()
+
+    def test_owned_state_observes_original_process_once_and_bounds_adb_output(self):
+        for output,state in [('device\n','device'),('unbounded-private-fixture-output','other')]:
+            with self.subTest(state=state),tempfile.TemporaryDirectory() as directory:
+                process=Mock();process.poll.return_value=None;device=Mock(return_value=subprocess.CompletedProcess([],0,output));path=Path(directory)/'device-state.json'
+                self.assertTrue(device_ci.retain_owned_device_state(process,device,path));record=json.loads(path.read_text())
+                self.assertTrue(record['before_cleanup']);self.assertTrue(record['emulator_alive']);self.assertIsNone(record['emulator_returncode'])
+                self.assertEqual(state,record['adb_get_state']['state']);self.assertNotIn('private-fixture',path.read_text())
+                process.poll.assert_called_once();device.assert_called_once_with('get-state',timeout=10,check=False)
+                process.kill.assert_not_called();process.terminate.assert_not_called();process.wait.assert_not_called()
+
+    def test_dead_or_timed_out_owned_device_is_not_restarted_or_retried(self):
+        for exited in (False,True):
+            with self.subTest(exited=exited),tempfile.TemporaryDirectory() as directory:
+                process=Mock();process.poll.return_value=7 if exited else None;device=Mock(side_effect=subprocess.TimeoutExpired(['get-state'],10));path=Path(directory)/'device-state.json'
+                self.assertTrue(device_ci.retain_owned_device_state(process,device,path));record=json.loads(path.read_text())
+                if exited:
+                    self.assertEqual(7,record['emulator_returncode']);self.assertEqual({'skipped':'owned_emulator_exited'},record['adb_get_state']);device.assert_not_called()
+                else:
+                    self.assertEqual({'error_type':'TimeoutExpired'},record['adb_get_state']);device.assert_called_once()
+                process.kill.assert_not_called();process.terminate.assert_not_called()
+
+    def test_cleanup_follows_missing_diagnostics_without_masking_original_failure(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(device_ci,'retain_owned_device_state',return_value=False):
+            process=Mock();process.wait.return_value=0;device=Mock(return_value=subprocess.CompletedProcess([],0,'fixture-log'))
+            failure=RuntimeError('original-instrumentation-failure')
+            with self.assertRaises(RuntimeError) as caught:
+                try:raise failure
+                finally:retained=device_ci.finish_owned_device(process,device,Path(directory))
+            self.assertIs(failure,caught.exception);self.assertFalse(retained)
+            self.assertEqual(['logcat','pull','emu'],[call.args[0] for call in device.call_args_list]);process.wait.assert_called_once_with(timeout=15);process.kill.assert_not_called()
+
+    def test_cleanup_timeouts_still_reap_only_the_owned_process(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(device_ci,'retain_owned_device_state',return_value=True):
+            process=Mock();process.wait.side_effect=[subprocess.TimeoutExpired(['owned-emulator'],15),0]
+            device=Mock(side_effect=[subprocess.TimeoutExpired(['logcat'],15),OSError('fixture-pull-error'),subprocess.CompletedProcess([],0,'')])
+            self.assertTrue(device_ci.finish_owned_device(process,device,Path(directory)))
+            self.assertEqual(['logcat','pull','emu'],[call.args[0] for call in device.call_args_list]);process.kill.assert_called_once_with();process.terminate.assert_not_called()
+            self.assertEqual([15,10],[call.kwargs['timeout'] for call in process.wait.call_args_list])
 
 
 if __name__=='__main__':unittest.main()

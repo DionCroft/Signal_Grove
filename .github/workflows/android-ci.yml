@@ -101,6 +101,8 @@ jobs:
           name: android-device-${{ matrix.api }}
           path: |
             ${{ runner.temp }}/hermes-device-qa/instrumentation.log
+            ${{ runner.temp }}/hermes-device-qa/instrumentation-result.json
+            ${{ runner.temp }}/hermes-device-qa/device-state.json
             ${{ runner.temp }}/hermes-device-qa/test-runner.log
             ${{ runner.temp }}/hermes-device-qa/emulator.log
             ${{ runner.temp }}/hermes-device-qa/sdk.log

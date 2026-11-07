@@ -57,7 +57,7 @@ class ImageHistoryTest {
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse=when {
                 request.path=="/v1/capabilities"->json("""{"features":{"session_resources":true,"session_chat":true},"endpoints":{}}""")
                 request.path.orEmpty().contains("/api/jobs?")->json("""{"jobs":[]}""")
-                request.path.orEmpty().startsWith("/api/sessions?")->json("""{"data":[{"id":"api_image","title":"Image fixture"}],"has_more":false}""")
+                request.path.orEmpty().startsWith("/api/sessions?")->json("""{"data":[{"id":"api_image","title":"Image fixture","source":"api_server"}],"has_more":false}""")
                 request.path.orEmpty().startsWith("/api/sessions/api_image/messages?")->json(buildJsonObject {
                     put("session_id","api_image");put("data",buildJsonArray {add(buildJsonObject {put("id","image-message");put("role","user");put("content",buildJsonArray {
                         add(buildJsonObject {put("type","text");put("text","Synthetic image history")})
