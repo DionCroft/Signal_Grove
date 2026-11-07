@@ -1017,6 +1017,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     SpeechNetwork("The speech service could not connect. Review your network or use on-device recognition.","语音服务无法连接，请检查网络或使用本机识别。","Yǔyīn fúwù wúfǎ liánjiē, qǐng jiǎnchá wǎngluò huò shǐyòng běnjī shíbié."),
     SpeechNoMatch("No speech was recognised. Tap to try again.","未识别到语音，请点击重试。","Wèi shíbié dào yǔyīn, qǐng diǎnjī chóngshì."),
     SpeechBusy("The speech service is busy. Wait a moment and try again.","语音服务正忙，请稍后重试。","Yǔyīn fúwù zhèng máng, qǐng shāo hòu chóngshì."),
+    MoreHistory("More","更多","Gèng duō"),
     Search("Search","搜索","Sōusuǒ"), LoadMore("Load more conversations","加载更多对话","Jiāzài gèng duō duìhuà"),
     Rename("Rename","重命名","Chóng mìngmíng"), Pin("Pin / unpin locally","本地置顶或取消置顶","Běndì zhìdǐng huò qǔxiāo zhìdǐng"),
     Hide("Hide / show locally","本地隐藏或显示","Běndì yǐncáng huò xiǎnshì"), ShowHidden("Include hidden conversations","包括隐藏的对话","Bāokuò yǐncáng de duìhuà"),

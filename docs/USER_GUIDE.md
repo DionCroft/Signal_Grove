@@ -1,6 +1,6 @@
 # Using Signal Grove
 
-The latest published stable release is 1.0.0. The current Signal Grove preview is [`1.1.0-beta.4`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4), code 105; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
+The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.6`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6), code 107; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
 
 ## Install and migrate
 

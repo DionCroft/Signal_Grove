@@ -14,6 +14,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.Conversation
 import org.hermesmobile.app.data.SessionOrigin
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 
 @Composable fun ConversationBrowser(vm: HermesViewModel,dismiss: ()->Unit) {
     val conversations by vm.conversations.collectAsStateWithLifecycle()
@@ -31,10 +43,14 @@ import androidx.compose.ui.platform.testTag
     fun origin(c:Conversation)=SessionOrigin.source(c).ifBlank {SessionOrigin.Api}
     val sources=conversations.map(::origin).distinct().sorted()
     val rows=conversations.filter {(!it.hidden || hidden) && it.title.contains(search,true) && (source.isBlank() || origin(it)==source)}
-    AlertDialog(onDismissRequest=dismiss,title={Text(label(Words.History))},text={
+    AlertDialog(onDismissRequest=dismiss,modifier=Modifier.imePadding(),properties=DialogProperties(decorFitsSystemWindows=false),text={
+        val focus=LocalFocusManager.current
+        val keyboard=LocalSoftwareKeyboardController.current
         // Filters and rows share one viewport so large multilingual controls cannot hide the list.
         LazyColumn(Modifier.heightIn(max=350.dp).testTag("conversation-browser"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-            item(key="history-search") {OutlinedTextField(search,{search=it},Modifier.fillMaxWidth(),label={Text(label(Words.Search))},singleLine=true)}
+            item(key="history-heading") {Text(label(Words.History),style=MaterialTheme.typography.headlineSmall,color=MaterialTheme.colorScheme.onSurface)}
+            item(key="history-search") {OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().testTag("history-search-input"),label={Text(label(Words.Search))},singleLine=true,
+                keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={focus.clearFocus();keyboard?.hide()}))}
             item(key="history-hidden") {Row(verticalAlignment=Alignment.CenterVertically) {Checkbox(hidden,{hidden=it});Text(label(Words.ShowHidden),Modifier.weight(1f),style=MaterialTheme.typography.labelSmall)}}
             if(!p.demo) item(key="history-refresh") {TextButton({vm.refreshSessions()},enabled=!loading && caps?.sessions==true) {Text(label(Words.Refresh))}}
             item(key="history-source") {Box {
@@ -48,7 +64,7 @@ import androidx.compose.ui.platform.testTag
             if(loading) item(key="history-loading") {QuietProgress()}
             items(rows,key={"conversation:"+it.key}) {c ->
                 Column {
-                    TextButton({vm.select(c.key);dismiss()},Modifier.fillMaxWidth().testTag("history-open-"+c.remoteId)) {Text((if(c.pinned) "★ " else "")+c.title.ifBlank {Words.NewChat.en},Modifier.fillMaxWidth())}
+                    TextButton({focus.clearFocus();keyboard?.hide();vm.select(c.key);dismiss()},Modifier.fillMaxWidth().testTag("history-open-"+c.remoteId)) {Text((if(c.pinned) "★ " else "")+c.title.ifBlank {Words.NewChat.en},Modifier.fillMaxWidth())}
                     Text(label(Words.ConversationSource)+": "+if(origin(c)==SessionOrigin.Unknown) label(Words.UnknownConversationSource) else origin(c),style=MaterialTheme.typography.bodySmall)
                     if(SessionOrigin.readOnly(c)) Text(label(Words.ReadOnlyHistory),style=MaterialTheme.typography.bodySmall)
                     Row {
@@ -62,7 +78,18 @@ import androidx.compose.ui.platform.testTag
             }
             if(rows.isEmpty()) item(key="history-empty") {Text(label(Words.NoMatches))}
         }
-    },confirmButton={TextButton(dismiss,Modifier.heightIn(min=48.dp).testTag("history-close")) {Text(label(Words.Close))}},dismissButton={if(hasMore) TextButton({vm.refreshSessions(more=true)},enabled=!loading,modifier=Modifier.heightIn(min=48.dp).testTag("history-load-more")) {Text(label(Words.LoadMore))}})
+    },confirmButton={
+        val focus=LocalFocusManager.current
+        val keyboard=LocalSoftwareKeyboardController.current
+        val initialFocus=remember {FocusRequester()}
+        var initialFocusSet by remember {mutableStateOf(false)}
+        val windowFocused=LocalWindowInfo.current.isWindowFocused
+        TextButton({focus.clearFocus();keyboard?.hide();dismiss()},Modifier.heightIn(min=48.dp).focusRequester(initialFocus).focusProperties {canFocus=true}.testTag("history-close")) {Text(label(Words.Close))}
+        LaunchedEffect(windowFocused) {if(windowFocused && !initialFocusSet) {initialFocusSet=initialFocus.requestFocus();keyboard?.hide()}}
+    },dismissButton={if(hasMore) {
+        val description=label(Words.LoadMore)
+        TextButton({vm.refreshSessions(more=true)},enabled=!loading,modifier=Modifier.heightIn(min=48.dp).testTag("history-load-more").semantics {contentDescription=description}) {Text(label(Words.MoreHistory))}
+    }})
     renaming?.let {c ->
         var title by remember(c.key) {mutableStateOf(c.title)}
         AlertDialog(onDismissRequest={renaming=null},title={Text(label(Words.Rename))},text={OutlinedTextField(title,{title=it},label={Text(label(Words.ConversationTitle))})},

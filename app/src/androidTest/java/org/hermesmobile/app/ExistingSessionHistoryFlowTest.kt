@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
@@ -134,6 +136,21 @@ class ExistingSessionHistoryFlowTest {
             compose.onNodeWithTag("history-load-more").performClick();compose.waitUntil(10000) {!vm.sessionsLoading.value && f.pages.size==2 && vm.conversations.value.any {it.remoteId=="disc_old"}};assertEquals(listOf(0,50),f.pages.toList())
             source("discord");reveal("disc_old");shot("bilingual-older-result");compose.onNodeWithTag("history-load-more").assertDoesNotExist();compose.onNodeWithTag("history-close").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             compose.onNodeWithTag("history-open-disc_old").performClick();compose.waitUntil(10000) {vm.selectedConversation.value?.remoteId=="disc_old" && vm.messages.value.any {it.content=="Existing reply disc_old"}};compose.onNodeWithTag("chat-read-only").assertIsDisplayed();assertEquals(listOf("disc_old"),f.history.toList())
+            assertEquals(0,f.writes.get());assertTrue(f.unexpected.toString(),f.unexpected.isEmpty())
+        }
+    }
+    @Test fun keyboardOpenStillAllowsNativePagination() {
+        Fixture(credentials.uniqueToken("origin-keyboard"),"pagination").use {f->
+            connect(f,true);browser();compose.waitUntil(5000) {compose.onAllNodesWithTag("history-close").fetchSemanticsNodes().singleOrNull()?.config?.getOrNull(SemanticsProperties.Focused)==true};compose.onNodeWithTag("history-close").assertIsFocused()
+            compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
+            source("desktop");compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-search-input"))
+            compose.onNodeWithTag("history-search-input").performClick().assertIsFocused();compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+            shot("bilingual-keyboard-footer")
+            val more=compose.onNodeWithTag("history-load-more").assertIsDisplayed().assertHeightIsAtLeast(48.dp).fetchSemanticsNode().boundsInWindow.center
+            tapFocusedDialogWindowPoint(more.x,more.y)
+            compose.waitUntil(10000) {!vm.sessionsLoading.value && f.pages.toList()==listOf(0,50) && vm.conversations.value.any {it.remoteId=="disc_old"}}
+            val close=compose.onNodeWithTag("history-close").assertIsDisplayed().fetchSemanticsNode().boundsInWindow.center
+            tapFocusedDialogWindowPoint(close.x,close.y);compose.waitUntil(5000) {compose.onAllNodesWithTag("conversation-browser").fetchSemanticsNodes().isEmpty()}
             assertEquals(0,f.writes.get());assertTrue(f.unexpected.toString(),f.unexpected.isEmpty())
         }
     }

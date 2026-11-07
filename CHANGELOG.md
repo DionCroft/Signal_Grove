@@ -4,7 +4,7 @@
 
 - Refresh Kanban/project review identity even when visible management state is unchanged, keeping stale confirmations closed and fresh read reviews available without changing request/receipt safeguards.
 
-- Keep multilingual history filters and rows in one scrollable body. Use a compact read-only chat bar with a scrollable full explanation so large text leaves room for messages and controls. Keyboard/footer polish and full release gates remain open.
+- Keep multilingual history filters and rows in one scrollable body. Use a compact read-only chat bar with a scrollable full explanation so large text leaves room for messages and controls. Keyboard-aware layout, intentional initial focus and a real Android-input paging/Close regression now pass on API26 and API37; full release gates remain open.
 
 - Include existing Desktop, Discord and other Hermes session origins in paginated conversation history. Add loaded-row source filtering and a reachable multilingual Load more footer.
 - Keep non-API and unknown histories read-only across the UI, request builder and operation repository; retain origin metadata without a Room migration. Preserve legacy API caches and existing pending work.

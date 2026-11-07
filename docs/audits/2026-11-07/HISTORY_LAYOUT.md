@@ -9,3 +9,11 @@ All four required Gradle tasks and 548 JVM cases passed. The same 17 origin/stor
 Five fresh small-screen screenshots were reviewed. The compact chat, full reason, older-history row and disabled controls are readable. The initial history screenshot also revealed an unresolved keyboard/footer overlap: Search can acquire focus automatically, and semantic visibility alone did not prove a real tap could reach the footer. Initial focus, IME-aware layout and an actual Android-input pagination regression are the exact next correction. This checkpoint is not a release verdict.
 
 The API37 emulator stopped before compact-suite installation/test preflight. Its existing configuration and userdata were preserved on normal restart; the separate resumed 17-case run passed. No device reset, reseed, resize, owner-phone fixture, production server change or foreign-history write was performed. Private screenshots, transcripts, IDs, endpoints, source archives and receipts remain outside Git.
+
+## Keyboard and Android-input follow-up — 7 November 2026
+
+The history title, search, filters and rows now share the scrollable body. The short localized More footer retains the full Load more accessibility description. The dialog respects keyboard insets, initially focuses an explicitly eligible Close button after its window gains focus, and dismisses the keyboard when selecting a conversation or completing search.
+
+All four required Gradle tasks passed with 548 JVM cases. All 18 origin/storage/history/title cases passed on each owned API26 and API37 emulator, including a new case that checks initial focus, observes the actual keyboard, and uses real Android input to page and close while it is open. The same original-key APK pair was verified installed with unchanged source inputs, display, density, font scale and AVD configuration. Fresh normal and keyboard-open screenshots were reviewed. Earlier focus/layout failures remain retained; no reset, resize, data clear, skipped case or owner-phone credential fixture was used.
+
+These focused checks do not replace full exact-source hosted CI, production assembly/signature/manifest checks or retained-data phone upgrade acceptance. The broader audit and native worker project-file execution remain open.

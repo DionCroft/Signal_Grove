@@ -25,3 +25,11 @@ Both device jobs in the original hosted run failed; independently digest-verifie
 The phone's bounded routing diagnostic produced actual read/discovery events, then was stopped once and confirmed cancelled by the native status endpoint. No owner task was submitted. Pi-to-Windows authenticated capabilities/health/models succeeded, with disk readiness degraded. A separate SSH-only stat of the registered NAS root returned access denied; maintained guidance explicitly distinguishes this session from the native worker's storage credentials. No permission repair, engineering-file read, project mutation or blind request replay was performed. Native worker project execution remains unverified.
 
 The next [history-layout checkpoint](../2026-11-07/HISTORY_LAYOUT.md) records 548 JVM and 17 focused native passes per API26/API37 for scrollable history and compact read-only explanation controls. Visual review keeps keyboard/footer overlap open; final production/hosted/publication gates remain separate. The physical phone retains its accepted code-109 installation.
+
+## Keyboard and Android-input follow-up — 7 November 2026
+
+The history title, search, filters and rows now share the scrollable body. The short localized More footer retains the full Load more accessibility description. The dialog respects keyboard insets, initially focuses an explicitly eligible Close button after its window gains focus, and dismisses the keyboard when selecting a conversation or completing search.
+
+All four required Gradle tasks passed with 548 JVM cases. All 18 origin/storage/history/title cases passed on each owned API26 and API37 emulator, including a new case that checks initial focus, observes the actual keyboard, and uses real Android input to page and close while it is open. The same original-key APK pair was verified installed with unchanged source inputs, display, density, font scale and AVD configuration. Fresh normal and keyboard-open screenshots were reviewed. Earlier focus/layout failures remain retained; no reset, resize, data clear, skipped case or owner-phone credential fixture was used.
+
+These focused checks do not replace full exact-source hosted CI, production assembly/signature/manifest checks or retained-data phone upgrade acceptance. The broader audit and native worker project-file execution remain open.
