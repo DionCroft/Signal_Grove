@@ -21,7 +21,10 @@ if (!$DebugSigningHome) {
 }
 if (![IO.Path]::GetFullPath($DebugSigningHome).StartsWith('E:\',[StringComparison]::OrdinalIgnoreCase)) {throw 'Debug signing material must use E:.'}
 $env:HERMES_BUILD_HOME=$DebugSigningHome
-$env:JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$WorkRoot"
+# Kotlin's daemon rendezvous files otherwise default to LocalAppData on Windows.
+$kotlinDaemonRoot=Join-Path $WorkRoot 'kotlin-daemon'
+New-Item -ItemType Directory -Force -Path $kotlinDaemonRoot | Out-Null
+$env:JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=`"$WorkRoot`" -Dkotlin.daemon.options=`"runFilesPath=$kotlinDaemonRoot`""
 New-Item -ItemType Directory -Force -Path $env:ANDROID_USER_HOME,$env:ANDROID_AVD_HOME,$env:HERMES_BUILD_HOME | Out-Null
 Push-Location (Split-Path -Parent $PSScriptRoot)
 try { & .\gradlew.bat --no-daemon --console=plain --dependency-verification strict @Tasks; if($LASTEXITCODE) {throw "Gradle failed with exit code $LASTEXITCODE"} }
