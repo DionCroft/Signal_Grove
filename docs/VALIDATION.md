@@ -2709,8 +2709,15 @@ once on both sources and keeps the existing unknown admission/transcript intact.
 Initial synchronous fanout assumptions failed; bounded actual-delivery observation
 fixes the fixture without changing production code or expected contents.
 
-Required Android tasks and policy/preflight verification for this Python/docs-only
-chunk are pending. Android/dependency/workflow source is unchanged; preserve the
-prior fresh599/both-lint proof and byte-identical original-key0e71/e297 APK pair.
+Required Android tasks plus explicit release lint pass incrementally. The unit
+and APK tasks are UP-TO-DATE; all70 prior raw reports (68 JVM XML plus two lint)
+and the original-key0e71/e297 APKs are byte-identical to the earlier fresh599/
+both-lint0 proof. No fresh Android/native run is claimed.585 frozen source inputs
+match;179 policy tests and four preflight refusals pass. Existing fixture reuse,
+-O, unsupported prior/full flow and wrong revision/source are refused before
+upstream execution; existing results stay unchanged and invalid roots stay absent.
+The original stable behavior/wire function bodies and46 case names are preserved.
+Freeze is closed; only evidence documents changed afterward.
+
 The full release207c552/936/937 and feature360599/1011/1012 cohorts stay separately
 accepted. This matrix is not full deployed or authenticated network acceptance.

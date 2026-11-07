@@ -20,9 +20,11 @@ claim is made. The shared flow and future client ordering requirement are descri
 in docs/contracts/2026-11-07-canonical-authority-component.md. This adds no app
 transcript subscription, auth grant, live view, worker or deployed change.
 
-Only the Python probe/docs change. Required Android tasks and policy/preflight
-checks are next; retain the prior fresh599/lint0 reports and original-key
-0e71/e297 APK bytes. No source freeze or native run is active yet.
+Only the Python probe/docs change. Required Android tasks/both lint variants
+passed incrementally; all70 reports and original-key0e71/e297 APK bytes match
+the prior fresh599/lint0 proof.585 inputs match,179 policy cases and four CLI
+preflight refusals pass. Stable46 function bodies and case names are preserved.
+Freeze is closed. No fresh Android/native run, device install or deployment claim.
 
 ## Release and remaining scope
 
@@ -34,9 +36,10 @@ emulators. Main6b, release207c and feature360 refs stay unchanged.
 
 ## Exact next action
 
-Validate and commit/push this matrix chunk. Then implement missing scheduled-job
-controls through the reviewed authenticated web contracts, beginning with typed
-run/outcome reads. Continue actual native login/profile isolation and restore/
+Implement missing scheduled-job controls through the reviewed authenticated web
+contracts, beginning with bounded typed run-history/outcome reads. The verified
+GET job-runs response combines conversations and script-output records; do not
+infer tool completion or worker liveness from timestamps/activity flags. Continue actual native login/profile isolation and restore/
 adoption, exact handles/replay, worker/files/workspace ownership and approval/
 unknown-outcome validation. Rooms/grants, integrations/config, notifications,
 physical voice/OEM, maintainability and security/community all remain required.
