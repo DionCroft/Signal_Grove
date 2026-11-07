@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Current priority - compact keyboard and release hold
+
+The host-activity viewport correction has599 JVM,both fresh lint0 and30 unchanged
+focused native cases on each API26/large37/compact37 profile. Keep prior failed
+cohorts. Release2e and featureffd full gates remain failed; API26 Demo send/input
+needs investigation. Backport this correction, build fresh original-key release
+assets and complete exact-head gates and physical retention before publication.
+No remaining audit row is closed by this bounded UI acceptance. See VALIDATION
+and PROJECT_STATE for exact artifacts, profiles and next action.
+
 Requested 5 November 2026, continuing the requirements in the
 [paused review](audits/2026-11-05/PAUSED_REVIEW.md). This is the durable project
 objective and acceptance ledger. Implement the full remaining companion scope in

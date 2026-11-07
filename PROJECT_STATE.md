@@ -1,52 +1,50 @@
 # Signal Grove project state
 
-The full audit goal stays active. Continue every required row in
-docs/AUDIT_EXECUTION_PLAN.md in tested, regularly pushed chunks. Preserve
-data/signers/main, scoped TLS/credentials, exact approvals and no unknown replay.
+The full audit goal remains active. Continue every required row in
+[the execution plan](docs/AUDIT_EXECUTION_PLAN.md) in tested, regularly pushed
+chunks. Preserve data, original signers, main, TLS/profile isolation, explicit
+approvals and durable no-replay handling.
 
 ## Current bounded implementation
 
-Gateway readiness now records a per-connection canonical-session advertisement:
-strict true, unadvertised and malformed/unknown states. The first ready snapshot
-cannot be promoted by a later frame, and failure/close makes it unknown. It is
-protocol metadata, not an actor grant, session handle or workspace permission.
-No new RPC, transcript subscription, server-request opt-in or writer was added.
+Conversation history now measures the hosting activity's visible viewport on
+Android31+ and limits the entire dialog, leaving its weighted list scrollable
+and footer above the keyboard. Older Android retains its existing inset path.
+The compact1920px profile reproduces the original failure and passes the same
+unchanged native paging/Close test after the correction. The first dialog-local
+measurement attempt failed on compact37 and remains retained.
 
-Local acceptance passes 599 unique JVM tests (six new WebSocket fixture methods),
-fresh debug/release lint with zero errors and all seven HostProjectsFlowTest
-cases on each owned API26/API37 emulator. All 583 frozen inputs and original CAB
-signers are verified; the freeze is closed. No AVD reset/geometry change or owner
-fixture was used. The unchanged F0 watch rejects a real ready-AST boolean-to-string
-counterfactual. Existing179 policy cases pass. CI/contributor configuration now
-matches the release's explicit release lint and raw report retention.
+Local acceptance:599 distinct JVM cases, fresh debug/release lint0, original CAB
+signers and30 unchanged history/image/title/setup native methods on each preserved
+API26, largeAPI37 and compactAPI37 profile.583 source inputs were frozen through
+build/native acceptance; only these documents change after freeze closure.
+Feature defaults remain111/beta.8 and unpublished. This is bounded local
+acceptance; complete new-head hosted and physical upgrade gates remain open.
 
-Commit/push this chunk, then run each full exact-head hosted workflow once and
-inspect terminal artifacts. Local fixture passes do not certify deployed
-canonical authority, actor rights or full feature-branch acceptance. Feature
-defaults stay111/beta.8 and include unpublished status/override forms.
+## Retained hosted results
 
-## Release slice
+Foundation ffd6607:599 JVM and both fresh lint pass. Full native run42376822956
+fails API26 at1010/1011 (Demo send test) and API37 at1011/1012 (compact history
+keyboard clipping), with no skips or unfinished methods. Both original artifacts
+were independently digest checked. No full feature acceptance is claimed.
+Compatibility42376830167 passes179 policy,15 observer,eight registry cases and
+source inspections; this does not certify deployed canonical session authority.
 
-Release branch stays at2e10173,110/beta.7, excluding feature forms/readiness.
-Its original-key production/debug assets,552 JVM/both fresh lint,566 inputs,
-source/manifest/class inventory and four compatibility jobs/artifact hashes pass.
-The full hosted native suites and final owner upgrade/readback remain pending.
-The phone is disconnected; reconnection was requested. Prior e5 chat retention
-is predecessor evidence only. Four new public assets and a guarded publisher
-are prepared, unexecuted. Stable1.0/main6b809e6 and the held e5 publisher remain.
-The native payload inventory maps all eight packaged libraries to checksum-
-verified AndroidX AAR bytes. It is origin evidence, not a native security audit.
+Release2e10173 remains held at110/beta.7. Its API26 full936 methods pass; API37
+fails936/937 at the compact keyboard case. The original-key signed assets are
+explicitly held and must not be published or reused as corrected-source assets.
+Stable1.0/main6b809e6 and public beta.6 remain unchanged.
 
 ## Exact next action
 
-Finish the same release CI handles and owner update when reconnected, then
-publish its verified exact-source assets and check public downloads. Continue
-canonical attachment/adoption and exact-handle workspace review from
-docs/contracts/2026-11-07-canonical-workspace-authority.md. Worker routing/files,
-automation/rooms/grants, integrations/config, notifications, voice/OEM and
-security/community closure stay required. Project metadata is not execution.
+Investigate the retained API26 Demo send/input failure without relaxing its
+outcome assertions. Backport the byte-identical compact-history correction to
+the release branch, build fresh original-key assets and complete exact-head
+hosted gates. The owner phone is disconnected; prior installed chat/history
+retention and read-aloud evidence do not accept a new APK. Complete approved
+matching-signer upgrade/readback when reconnected, then publish verified assets.
 
-Feature a7's earlier593 JVM/30 native-per-API/fresh debug lint stay valid; its
-cached release XML did not establish fresh feature release lint. This new
-599-case source has explicit fresh reports for both variants. Preserve earlier
-failed cohorts and that scope correction.
+Continue canonical attachment/adoption, exact session handles, worker routing,
+files, automation/rooms/grants, integrations/config, notifications, voice/OEM and
+security/community closure. Project metadata is not workspace adoption or
+execution. See docs/contracts/2026-11-07-canonical-workspace-authority.md.

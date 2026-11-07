@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## 2026-11-07 - compact history keyboard correction
+
+On the stock1080x1920 API37 profile, the original history dialog placed its
+multilingual More/Close footer under the keyboard. The hosting activity's
+visible frame now bounds the whole dialog on API31+, retaining Material3's
+weighted scrolling body and the older Android inset path. No native assertion,
+click/input helper, source test or emulator geometry was changed.
+
+Clean required tasks and explicit lintRelease pass599 unique JVM methods with
+zero failures/errors/skips and fresh debug/release lint0. The frozen original-key
+111/beta.8 pair passes all30 selected history/image/title/setup methods on each
+of API26(720x1280,density320,font1.3),largeAPI37(1080x2400,density420,font1.0)
+and compactAPI37(1080x1920,density420,font1.0). Exact distinct method sets, APK
+hashes, all583 inputs and AVD configurations were verified. No uninstall/reset,
+font/geometry change or owner-phone fixture was used. App:`0e71ef130d9169272ec09a870491d6ff70ae5a35da15abdf24417d4994686f84`;
+companion:`09f7c3c0884634b6df511e950a574c2cd974f22e73ded74c7263cf3c9d6f3c49`. This is local focused acceptance, not a full or physical gate.
+
+The original release2e CI run42372350924 remains failed:API26 passes936 unique
+methods; API37 passes936/937 with the compact keyboard assertion. The exact
+failure reproduced locally before correction. First correction attempt retained
+30/30 on API26/large37 and29/30 on compact37 with identical clipping; its freeze
+was closed as failed. A separate one-case host-viewport prototype passed before
+this full local cohort. Its evidence collector initially stopped on the six
+accumulated capture names; evidence-only follow-up selected the two fresh
+captures by timestamp without replaying instrumentation or altering assertions.
+
+Foundation ffd6607's original Android42376822956 also remains failed:1010/1011
+API26 (NavigationTest.demoConversationStreamsAndEveryDestinationOpens; draft
+unchanged after the send click) and1011/1012 API37 (same compact keyboard case),
+no skips/unfinished cases. Its build artifact verifies599 JVM/both lint0.
+Independently downloaded native ZIP SHA-256 values:
+`c898511edf58b4a0d763b3dd0c00cdfb36b8a574f0af595565b0a511017df0e4`
+and`b4ca27a4a727806cdedea8db6950036d17ad08179ed8d4df9b043867292ae113`.
+Compatibility42376830167 independently passes179 policy,15 observer,eight scoped
+registry methods and source watches. These results are source-specific and do
+not certify this correction or actual deployed canonical authority.
+
+Release2e/e5 assets remain explicitly held. Corrected-source original-key assets,
+new exact-head full gates, investigation of the API26 input failure and final
+physical upgrade/readback remain required. Main and public releases are unchanged.
 
 ## 2026-11-06 — private task-status forms and receipt routing
 
