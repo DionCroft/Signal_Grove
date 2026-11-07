@@ -32,36 +32,35 @@ import androidx.compose.ui.platform.testTag
     val sources=conversations.map(::origin).distinct().sorted()
     val rows=conversations.filter {(!it.hidden || hidden) && it.title.contains(search,true) && (source.isBlank() || origin(it)==source)}
     AlertDialog(onDismissRequest=dismiss,title={Text(label(Words.History))},text={
-        Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(search,{search=it},Modifier.fillMaxWidth(),label={Text(label(Words.Search))},singleLine=true)
-            Row(verticalAlignment=Alignment.CenterVertically) {Checkbox(hidden,{hidden=it});Text(label(Words.ShowHidden),Modifier.weight(1f),style=MaterialTheme.typography.labelSmall)}
-            if(!p.demo) TextButton({vm.refreshSessions()},enabled=!loading && caps?.sessions==true) {Text(label(Words.Refresh))}
-            Box {
+        // Filters and rows share one viewport so large multilingual controls cannot hide the list.
+        LazyColumn(Modifier.heightIn(max=350.dp).testTag("conversation-browser"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            item(key="history-search") {OutlinedTextField(search,{search=it},Modifier.fillMaxWidth(),label={Text(label(Words.Search))},singleLine=true)}
+            item(key="history-hidden") {Row(verticalAlignment=Alignment.CenterVertically) {Checkbox(hidden,{hidden=it});Text(label(Words.ShowHidden),Modifier.weight(1f),style=MaterialTheme.typography.labelSmall)}}
+            if(!p.demo) item(key="history-refresh") {TextButton({vm.refreshSessions()},enabled=!loading && caps?.sessions==true) {Text(label(Words.Refresh))}}
+            item(key="history-source") {Box {
                 OutlinedButton({sourceMenu=true},Modifier.testTag("history-source-filter")) {Text(if(source.isBlank()) label(Words.AllConversationSources) else source)}
                 DropdownMenu(sourceMenu,{sourceMenu=false}) {
                     DropdownMenuItem(text={Text(label(Words.AllConversationSources))},onClick={source="";sourceMenu=false})
                     sources.forEach {value->DropdownMenuItem(text={Text(if(value==SessionOrigin.Unknown) label(Words.UnknownConversationSource) else value)},onClick={source=value;sourceMenu=false},modifier=Modifier.testTag("history-source-"+value))}
                 }
-            }
-            Text(label(Words.HistoryLoadedFilter),style=MaterialTheme.typography.bodySmall)
-            if(loading) QuietProgress()
-            LazyColumn(Modifier.weight(1f,fill=false).heightIn(max=350.dp).testTag("conversation-browser"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                items(rows,key={it.key}) {c ->
-                    Column {
-                        TextButton({vm.select(c.key);dismiss()},Modifier.fillMaxWidth().testTag("history-open-"+c.remoteId)) {Text((if(c.pinned) "★ " else "")+c.title.ifBlank {Words.NewChat.en},Modifier.fillMaxWidth())}
-                        Text(label(Words.ConversationSource)+": "+if(origin(c)==SessionOrigin.Unknown) label(Words.UnknownConversationSource) else origin(c),style=MaterialTheme.typography.bodySmall)
-                        if(SessionOrigin.readOnly(c)) Text(label(Words.ReadOnlyHistory),style=MaterialTheme.typography.bodySmall)
-                        Row {
-                            IconButton({vm.pinConversation(c.key)}) {Icon(Icons.Outlined.PushPin,label(Words.Pin))}
-                            IconButton({vm.hideConversation(c.key)}) {Icon(Icons.Outlined.VisibilityOff,label(Words.Hide))}
-                            IconButton({renaming=c},enabled=!loading && !SessionOrigin.readOnly(c) && (p.demo || c.transport=="compat" || caps?.sessions!=true || caps?.endpoints?.containsKey("session_update")==true)) {Icon(Icons.Outlined.Edit,label(Words.Rename))}
-                            IconButton({deleting=c},enabled=!loading) {Icon(Icons.Outlined.DeleteOutline,label(Words.Delete))}
-                        }
-                        HorizontalDivider()
+            }}
+            item(key="history-filter-note") {Text(label(Words.HistoryLoadedFilter),style=MaterialTheme.typography.bodySmall)}
+            if(loading) item(key="history-loading") {QuietProgress()}
+            items(rows,key={"conversation:"+it.key}) {c ->
+                Column {
+                    TextButton({vm.select(c.key);dismiss()},Modifier.fillMaxWidth().testTag("history-open-"+c.remoteId)) {Text((if(c.pinned) "★ " else "")+c.title.ifBlank {Words.NewChat.en},Modifier.fillMaxWidth())}
+                    Text(label(Words.ConversationSource)+": "+if(origin(c)==SessionOrigin.Unknown) label(Words.UnknownConversationSource) else origin(c),style=MaterialTheme.typography.bodySmall)
+                    if(SessionOrigin.readOnly(c)) Text(label(Words.ReadOnlyHistory),style=MaterialTheme.typography.bodySmall)
+                    Row {
+                        IconButton({vm.pinConversation(c.key)}) {Icon(Icons.Outlined.PushPin,label(Words.Pin))}
+                        IconButton({vm.hideConversation(c.key)}) {Icon(Icons.Outlined.VisibilityOff,label(Words.Hide))}
+                        IconButton({renaming=c},enabled=!loading && !SessionOrigin.readOnly(c) && (p.demo || c.transport=="compat" || caps?.sessions!=true || caps?.endpoints?.containsKey("session_update")==true)) {Icon(Icons.Outlined.Edit,label(Words.Rename))}
+                        IconButton({deleting=c},enabled=!loading) {Icon(Icons.Outlined.DeleteOutline,label(Words.Delete))}
                     }
+                    HorizontalDivider()
                 }
-                if(rows.isEmpty()) item {Text(label(Words.NoMatches))}
             }
+            if(rows.isEmpty()) item(key="history-empty") {Text(label(Words.NoMatches))}
         }
     },confirmButton={TextButton(dismiss,Modifier.heightIn(min=48.dp).testTag("history-close")) {Text(label(Words.Close))}},dismissButton={if(hasMore) TextButton({vm.refreshSessions(more=true)},enabled=!loading,modifier=Modifier.heightIn(min=48.dp).testTag("history-load-more")) {Text(label(Words.LoadMore))}})
     renaming?.let {c ->

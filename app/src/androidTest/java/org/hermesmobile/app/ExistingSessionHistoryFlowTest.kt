@@ -38,7 +38,7 @@ class ExistingSessionHistoryFlowTest {
         val image=checkNotNull(automation.takeScreenshot());val f=File(compose.activity.getExternalFilesDir(null),"qa/origin-"+name+"-"+UUID.randomUUID()+".png");f.parentFile!!.mkdirs();f.outputStream().use {assertTrue(image.compress(Bitmap.CompressFormat.PNG,100,it))};image.recycle()
     }
     private class Fixture(val token:String,val mode:String="normal"):AutoCloseable {
-        val server=MockWebServer();val writes=AtomicInteger();val pages=CopyOnWriteArrayList<Int>();val history=CopyOnWriteArrayList<String>();val unexpected=CopyOnWriteArrayList<String>();val turns=CopyOnWriteArrayList<JsonObject>()
+        val server=MockWebServer();val metadata=CopyOnWriteArrayList<String>();val writes=AtomicInteger();val pages=CopyOnWriteArrayList<Int>();val history=CopyOnWriteArrayList<String>();val unexpected=CopyOnWriteArrayList<String>();val turns=CopyOnWriteArrayList<JsonObject>()
         private fun row(id:String,title:String,source:String?,time:Int)=buildJsonObject {put("id",id);put("title",title);source?.let {put("source",it)};put("last_active",time)}
         private fun source(id:String)=if(mode=="second") "api_server" else when {id=="api_saved"->"api_server";id.startsWith("desk")->"desktop";id.startsWith("disc")->"discord";else->null}
         init {
@@ -66,7 +66,7 @@ class ExistingSessionHistoryFlowTest {
                             assertEquals("GET",q.method);val id=path.removePrefix("api/sessions/").removeSuffix("/messages");history+=id
                             json(buildJsonObject {put("session_id",id);put("data",buildJsonArray {add(buildJsonObject {put("id","u");put("role","user");put("content","Existing user "+id);put("timestamp",1)});add(buildJsonObject {put("id","a");put("role","assistant");put("content","Existing reply "+id);put("timestamp",2)})})})
                         }
-                        path.startsWith("api/sessions/") && q.method=="GET"->{val id=path.removePrefix("api/sessions/");json(buildJsonObject {put("session",row(id,"Metadata",source(id),1))})}
+                        path.startsWith("api/sessions/") && q.method=="GET"->{val id=path.removePrefix("api/sessions/");metadata+=id;json(buildJsonObject {put("session",row(id,"Metadata",source(id),1))})}
                         path=="v1/runs" && q.method=="POST"->{writes.incrementAndGet();turns+=Json.parseToJsonElement(q.body.readUtf8()).jsonObject;json(buildJsonObject {put("run_id","origin-run")})}
                         path=="v1/runs/origin-run/events"->MockResponse().setHeader("Content-Type","text/event-stream").setBody("data: {\"event\":\"run.completed\",\"run_id\":\"origin-run\",\"seq\":0,\"output\":\"Verified existing API reply\"}\n\n")
                         else->{if(q.method!="GET") writes.incrementAndGet();unexpected+=q.method+" "+path;MockResponse().setResponseCode(500).setBody("unexpected origin fixture request")}
@@ -86,13 +86,29 @@ class ExistingSessionHistoryFlowTest {
         compose.waitUntil(5000) {compose.onAllNodesWithTag("chat-model-status-open").fetchSemanticsNodes().size==1}
     }
     private fun browser()=compose.onNodeWithContentDescription(text(Words.History)).performClick()
-    private fun open(id:String) {browser();compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-open-"+id));compose.onNodeWithTag("history-open-"+id).performClick();compose.waitUntil(10000) {vm.selectedConversation.value?.remoteId==id && vm.messages.value.any {it.role=="assistant"}}}
+    private fun reveal(id:String) {compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-open-"+id));compose.onNodeWithTag("history-open-"+id).assertIsDisplayed()}
+    private fun source(value:String) {compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-source-filter"));compose.onNodeWithTag("history-source-filter").performClick();compose.onNodeWithTag("history-source-"+value).performClick()}
+    private fun open(id:String) {browser();reveal(id);compose.onNodeWithTag("history-open-"+id).performClick();compose.waitUntil(10000) {vm.selectedConversation.value?.remoteId==id && vm.messages.value.any {it.role=="assistant"}}}
+    private fun readableChat() {
+        val minimum=48f*compose.activity.resources.displayMetrics.density
+        compose.waitUntil(5000) {compose.onAllNodesWithTag("chat-messages").fetchSemanticsNodes().singleOrNull()?.boundsInRoot?.height?.let {it>=minimum}==true}
+        compose.onNodeWithTag("chat-messages").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+    }
     private fun foreign(id:String,bilingual:Boolean=false) {
         Fixture(credentials.uniqueToken("origin")).use {f->
             connect(f,bilingual);open(id);compose.onNodeWithTag("chat-read-only").assertIsDisplayed();compose.onNodeWithContentDescription(text(Words.Send)).assertIsNotEnabled()
-            val c=vm.selectedConversation.value!!;assertTrue(SessionOrigin.readOnly(c));assertEquals(listOf("Existing user "+id,"Existing reply "+id),vm.messages.value.map {it.content})
+            val c=vm.selectedConversation.value!!;assertTrue(SessionOrigin.readOnly(c));assertEquals(listOf("Existing user "+id,"Existing reply "+id),vm.messages.value.map {it.content});readableChat()
+            if(bilingual) shot("bilingual-readable-chat")
+            compose.onNodeWithTag("chat-read-only").assertHeightIsAtLeast(48.dp).performClick()
+            compose.onNodeWithTag("chat-read-only-reason").assertIsDisplayed();compose.onNodeWithText(text(Words.ReadOnlySession)).assertIsDisplayed()
+            if(bilingual) shot("bilingual-read-only-reason")
+            compose.onNodeWithTag("chat-read-only-close").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick();readableChat()
             compose.runOnUiThread {vm.send("Do not admit this foreign turn")};compose.waitUntil(5000) {!vm.busy.value};assertEquals(text(Words.ReadOnlySession),vm.error.value)
-            compose.onNodeWithContentDescription(text(Words.SessionControls)).performClick();compose.waitUntil(5000) {!vm.sessionDetailsLoading.value}
+            // Verify the expected rejection, then dismiss its banner before using another control.
+            compose.onNodeWithContentDescription(text(Words.Dismiss)).assertIsDisplayed().assertIsEnabled().performClick();compose.waitUntil(5000) {vm.error.value==null};readableChat()
+            compose.onNodeWithContentDescription(text(Words.SessionControls)).assertIsDisplayed().performClick()
+            compose.waitUntil(5000) {compose.onAllNodesWithTag("session-control-list").fetchSemanticsNodes().size==1}
+            compose.waitUntil(5000) {!vm.sessionDetailsLoading.value && id in f.metadata}
             compose.onNodeWithTag("session-control-list").performScrollToNode(hasTestTag("session-lock"));compose.onNodeWithTag("session-lock").assertIsNotEnabled()
             compose.onNodeWithTag("session-control-list").performScrollToNode(hasTestTag("session-fork"));compose.onNodeWithTag("session-fork").assertIsNotEnabled()
             assertTrue(SessionOrigin.readOnly(runBlocking {app.database.dao().conversation(c.key)}!!));assertEquals(0,f.writes.get());assertTrue(f.unexpected.toString(),f.unexpected.isEmpty())
@@ -114,16 +130,17 @@ class ExistingSessionHistoryFlowTest {
     @Test fun sourceFilteringIsLocalAndPaginationFooterIsReachableWithThreeLanguages() {
         Fixture(credentials.uniqueToken("origin-pages"),"pagination").use {f->
             connect(f,true);browser();compose.onNodeWithTag("history-load-more").assertIsDisplayed().assertHeightIsAtLeast(48.dp);shot("bilingual-pages")
-            compose.onNodeWithTag("history-source-filter").performClick();compose.onNodeWithTag("history-source-desktop").performClick();compose.onNodeWithTag("history-open-api_saved").assertDoesNotExist();assertEquals(listOf(0),f.pages.toList())
-            compose.onNodeWithTag("history-load-more").performClick();compose.waitUntil(10000) {!vm.sessionsLoading.value && f.pages.size==2};assertEquals(listOf(0,50),f.pages.toList())
-            compose.onNodeWithTag("history-source-filter").performClick();compose.onNodeWithTag("history-source-discord").performClick();compose.onNodeWithTag("history-open-disc_old").assertIsDisplayed();compose.onNodeWithTag("history-load-more").assertDoesNotExist();compose.onNodeWithTag("history-close").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            source("desktop");compose.onNodeWithTag("history-open-api_saved").assertDoesNotExist();assertEquals(listOf(0),f.pages.toList())
+            compose.onNodeWithTag("history-load-more").performClick();compose.waitUntil(10000) {!vm.sessionsLoading.value && f.pages.size==2 && vm.conversations.value.any {it.remoteId=="disc_old"}};assertEquals(listOf(0,50),f.pages.toList())
+            source("discord");reveal("disc_old");shot("bilingual-older-result");compose.onNodeWithTag("history-load-more").assertDoesNotExist();compose.onNodeWithTag("history-close").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            compose.onNodeWithTag("history-open-disc_old").performClick();compose.waitUntil(10000) {vm.selectedConversation.value?.remoteId=="disc_old" && vm.messages.value.any {it.content=="Existing reply disc_old"}};compose.onNodeWithTag("chat-read-only").assertIsDisplayed();assertEquals(listOf("disc_old"),f.history.toList())
             assertEquals(0,f.writes.get());assertTrue(f.unexpected.toString(),f.unexpected.isEmpty())
         }
     }
     @Test fun switchingConnectionDropsTheOldSourceFilterAndPrivateRows() {
         Fixture(credentials.uniqueToken("origin-first")).use {first->Fixture(credentials.uniqueToken("origin-second"),"second").use {second->
-            connect(first);browser();compose.onNodeWithTag("history-source-filter").performClick();compose.onNodeWithTag("history-source-desktop").performClick();compose.onNodeWithTag("history-close").performClick();val oldScope=vm.profileScope.value
-            connect(second);browser();assertNotEquals(oldScope,vm.profileScope.value);compose.onNodeWithTag("history-open-desk_saved").assertIsDisplayed();compose.onNodeWithText("Desktop saved",substring=true).assertDoesNotExist();assertFalse(SessionOrigin.readOnly(vm.conversations.value.single()))
+            connect(first);browser();source("desktop");compose.onNodeWithTag("history-close").performClick();val oldScope=vm.profileScope.value
+            connect(second);browser();assertNotEquals(oldScope,vm.profileScope.value);reveal("desk_saved");compose.onNodeWithText("Desktop saved",substring=true).assertDoesNotExist();assertFalse(SessionOrigin.readOnly(vm.conversations.value.single()))
             assertEquals(0,first.writes.get());assertEquals(0,second.writes.get());assertTrue(first.unexpected.toString(),first.unexpected.isEmpty());assertTrue(second.unexpected.toString(),second.unexpected.isEmpty())
         }}
     }
