@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased — scoped scheduled-job history
+## Unreleased — native management conformance and scoped job history
+
+- Added native client TCP/loopback conformance coverage with separate local and
+  pinned real-Hermes fixture modes; validation and deployment scope stay explicit.
 
 - Added a pinned real-dashboard native-auth/profile-history regression matrix;
   Android/browser, deployment and real identity providers remain separate checks.

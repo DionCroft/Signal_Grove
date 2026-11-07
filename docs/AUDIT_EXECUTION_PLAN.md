@@ -22,6 +22,23 @@ Every remaining row below stays required; unavailable hardware blocks its own
 acceptance, not independent implementation.
 
 
+## Current checkpoint — real Android sign-in conformance
+
+The native TCP chunk now has nine targeted invocations of one method: local mock
+plus actual stable/prior Hermes, each on three preserved emulator profiles.
+Each executes13 semantic checks; independent server traces verify bearer-only
+reads, explicit profile, refresh/refusals and unchanged history. All owned
+listeners stop and reverse bindings are restored.595 frozen inputs, required
+incremental Android tasks,608 retained JVM cases/both lint0,180 policy and six
+CLI refusals pass. Earlier fixture/controller failures remain retained.
+See VALIDATION and the native-management TCP contract for exact scope/hashes.
+External-browser/TLS/Pi and canonical restore/adoption remain open.
+
+Cronfac15fd's complete API26 cohort is independently accepted at1014 distinct
+methods with exact source/artifact/command/device evidence; API37 remains running.
+Full exact-head gates for this new native method remain required. Main6b and
+held release207c are unchanged; all remaining ledger rows stay required.
+
 ## Historical checkpoint — native send readiness
 
 A diagnostic-only original13-case run exposed keyboard/frame movement after the

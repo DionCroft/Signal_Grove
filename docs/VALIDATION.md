@@ -2803,3 +2803,56 @@ Freeze is closed; only evidence documents changed afterward.
 
 The full release207c552/936/937 and feature360599/1011/1012 cohorts stay separately
 accepted. This matrix is not full deployed or authenticated network acceptance.
+
+
+## 7 November — real Android native-management TCP conformance
+
+The595-input test/native-management-tcp-contract chunk passes nine targeted
+invocations of one JUnit method, with13 semantic checks per invocation:
+local-mock, pinned stable2bd378ed and priorbf0203a, each on preserved API26
+720x1280/density320/font1.3, large37 1080x2400/density420/font1.0 and compact37
+1080x1920/density420/font1.0. No emulator reset, uninstall, data clear, geometry
+change or owner-phone fixture occurred.
+
+The production NativeLogin listener and ManagementClient execute S256/prefix
+authorization, bounded synthetic browser redirects, wrong-state rejection,
+real Android callback, code exchange, verified actor/profiles, explicit worker
+MCP inventory, refresh, used-code replay400 and invalid bearer/refresh401.
+The encrypted saved-credential preferences match before/after. Each actual
+Hermes server independently records11 expected requests; protected reads have
+bearer/no Cookie and the scoped inventory names worker. Seeded history remains
+unchanged. All928 stable/866 prior imported module hashes were independently
+rechecked. Six owned servers exited0, all exact ADB reverse bindings were
+restored,13 reviewed metadata probes per server remained blocked and0 unexpected
+audit denials occurred. Python audit hooks are defense in depth, not OS isolation.
+
+Required testDebugUnitTest/lint/lintRelease/assembleDebug/assembleDebugAndroidTest
+incremental tasks pass.608 retained JVM cases and all71 prior raw reports are
+byte-identical; these are not claimed as fresh execution. Both lint reports have
+0 errors,180 policy checks and six CLI refusals pass. Production debug app remains
+a879c78b17ab38ef52da8f2f936dbe0e44aed123fc16bdc0399b1e11cea3aeaf
+(27,673,781bytes); new companion
+7514fbc080d16c25b4e6439a32efb19907ec4c522db7c9f271f7c92e9fefee6c
+(4,369,485bytes). Both preserve the original CAB signer.
+
+Retained failures: the first three mock runs failed their explicit127 host guard
+before client authentication; MockWebServer supplied localhost. Only fixture
+base/callback URLs were normalized; strict checks remain. A later stable/API26
+controller attempt observed a partially written readiness file. Its owned server
+exited0 before any request. A bounded JSON-read wait, fresh roots and the same
+PID/source/listener/native assertions passed; no unknown operation was repeated.
+The earlier host launcher-PID mismatch also remains retained.
+
+Scope: HTTP loopback with a synthetic IdP and in-memory HTTP browser driver.
+No TLS, external-browser/password-form, real-IdP, deployed-Pi, canonical adoption,
+worker or project-file acceptance follows. Exact-head hosted full gates remain
+required before merge/release. See contracts/2026-11-07-native-management-tcp.md.
+
+Separately, cron headfac15fd's hosted API26 artifact13589467634 digest
+b179aaefddbc6804cf2b6b4559117ea7b0e389cd6b6c468d22247577c166e1ed
+passes1014 distinct methods exactly matching committed source, with no failures,
+skips or unfinished methods. Original command/device and Send-readiness receipts
+were independently checked. Original job logs bind downloaded build artifact
+13587652110/digest5993f9...; the workflow publishes no guest APK hash readbacks,
+so that stronger claim is unavailable. API37 remains live and whole-cohort
+acceptance stays pending. No public APK or main/release ref was advanced.
