@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add authenticated project inventory/detail conformance through the Android
+  repository and pinned real Hermes WebSocket dispatch, including profile/actor
+  isolation and ticket refusal checks. File/workspace adoption remains separate.
+
 - Extend authentication drift guards through the private-grant producer and
   saved-gateway callback dependencies, with isolated main-source regressions.
 

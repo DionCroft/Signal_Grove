@@ -28,7 +28,7 @@ never the owner's phone. Android uses an explicitly reviewed ADB reverse for the
 exact fixture port; remove that exact binding after its command finishes.
 
 scripts/compatibility_fixture_native_auth_tcp.py runs only on Windows using an
-existing interpreter with -I -S -B.27 source Git blobs per stable2bd/priorbf pin
+existing interpreter with -I -S -B.43 source Git blobs per stable2bd/priorbf pin
 are verified, along with clean HEAD. It uses sterile E homes, upstream synthetic
 HMAC IdP and fixture SessionDBs. The ephemeral listener binds127.0.0.1:0 and stops
 within10..600 seconds or an owned stop marker. It is a test fixture, never an

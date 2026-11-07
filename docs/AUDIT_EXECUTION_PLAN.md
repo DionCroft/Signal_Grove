@@ -1,5 +1,23 @@
 # Signal Grove audit execution plan
 
+## Current checkpoint — authenticated project client
+
+The project-client chunk passes two targeted native methods in nine invocations
+across three preserved emulator profiles and local/stable/prior fixtures.
+Each invocation executes24 semantic checks; source-bound actual traces verify
+actor/profile/home isolation, stored project/folder metadata and typed refusals.
+History, project rows, credentials and AVD geometry are unchanged.186 policy,
+seven CLI refusals, required incremental Android tasks and retained608/both lint0
+pass against599 inputs. This closes only local stored-project read conformance;
+canonical attachment/adoption, workers and file access remain required.
+
+The earlier0c36 full Android42412670080 is independently accepted at1015/1016
+native methods with exact committed source sets, original receipts and artifact
+binding. Corrected compatibilitydc1/42416470770 is also accepted. Earlier failed
+cohorts remain failed. Dispatch and accept both full exact-head gates for this
+new chunk before merge/release. Main6b and held release207c remain unchanged.
+
+
 ## Current priority — real interoperability and exact phone retention
 
 Both source cohorts are now fully accepted: release207c Android42388552581
@@ -22,7 +40,7 @@ Every remaining row below stays required; unavailable hardware blocks its own
 acceptance, not independent implementation.
 
 
-## Current checkpoint — real Android sign-in conformance
+## Historical checkpoint — real Android sign-in conformance
 
 The native TCP chunk now has nine targeted invocations of one method: local mock
 plus actual stable/prior Hermes, each on three preserved emulator profiles.
@@ -35,11 +53,11 @@ See VALIDATION and the native-management TCP contract for exact scope/hashes.
 External-browser/TLS/Pi and canonical restore/adoption remain open.
 
 Cronfac15fd's complete API26 cohort is independently accepted at1014 distinct
-methods with exact source/artifact/command/device evidence; API37 remains running.
+methods with exact source/artifact/command/device evidence; API37 later timed out; retain the failed cohort and the separately accepted descendant0c36 full suite.
 Full exact-head gates for this new native method remain required. Main6b and
 held release207c are unchanged; all remaining ledger rows stay required.
 
-## Current checkpoint — guarded main auth boundary
+## Historical checkpoint — guarded main auth boundary
 
 The new auth-seam chunk passes186 policy/four CLI refusals,17 real-source
 counterfactuals and166-alias Git-verified stable/main source comparisons.

@@ -1,5 +1,77 @@
 # Current development validation — audit follow-up
 
+## 7 November 2026 — authenticated Android project reads
+
+On test/project-gateway-client-contract afterdc1fcea, the production project
+repository now has one new native method. Together with the existing native-auth
+method, two distinct methods passed nine targeted invocations: local mock,
+actual stable2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19 and actual
+priorbf0203a794a07aac3ff764972ab9087baa4e4f4e on preserved API26/large37/compact37.
+That is18 method invocations; each invocation executes24 semantic checks.
+
+Actual native login, cookieless bearer ticket requests and ticket-subprotocol
+WebSocket upgrades pass. Verified actor/profile/home fences, same-ID project and
+folder isolation, active metadata, exact-ID detail, foreign5062/missing4064 and
+before-transport actor/profile refusals pass. Saved credentials are unchanged.
+All six actual traces match49 reviewed requests and six project RPCs.950 stable
+and888 prior imported module hashes were independently rechecked;13 expected
+metadata subprocess attempts per fixture remain blocked,0 unexpected denials
+occur and stored fixture history/project rows remain unchanged. All owned
+listeners exit0 and exact ADB reverse bindings are restored. No owner phone
+fixtures, uninstall/reset or AVD geometry changes occurred.
+
+Separate public repository fixtures pass19 host project checks per revision,
+including ticket reuse/missing-ticket refusals and profile restoration. The
+unchanged default native-auth surface passes8 host checks per revision.43
+explicit Git blobs per revision, clean HEAD and imported module hashes are
+verified. Seven CLI refusals preserve existing fixture data. All186 policy
+tests pass. Preparatory private pilots remain separate evidence.
+
+Required testDebugUnitTest/lint/lintRelease/assembleDebug/assembleDebugAndroidTest
+tasks passed after the599-input source freeze.608 retained JVM cases and all71
+prior raw reports are byte-identical; no fresh608 claim. Both lint reports have0
+errors. Original CAB-signed debug app remains
+a879c78b17ab38ef52da8f2f936dbe0e44aed123fc16bdc0399b1e11cea3aeaf;
+new companion is
+b1e2ca9c2b4074647c82f4ede43305914b5d788f474656c1ecb06d615fcbed71.
+The local freeze closed after independent evidence checks. Full exact-head
+hosted gates remain required before merge or release.
+
+See [the project client contract](contracts/2026-11-07-project-gateway-client.md).
+This accepts stored project metadata reads. Canonical attachment, workspace/file
+adoption, worker execution, external-browser/TLS, deployed Pi and owner-phone
+retention remain separate required acceptance.
+
+## 7 November 2026 — completed prior hosted cohorts
+
+Android [42412670080](https://github.com/DionCroft/Signal_Grove/actions/runs/42412670080)
+at0c36c9928076cc61c91f3749e4131bb006c17b34 is independently accepted:608 unique
+JVM cases,69 raw JVM XML reports, both lint0,1015 distinct native API26 methods
+and1016 API37 methods. Raw positive method sets exactly match committed source;
+API26 excludes the API37-only local-network class. Original command receipts
+regenerate exactly with exit0/no timeout/skips, and owned devices were online
+before cleanup. Original action logs bind the608 build artifact download
+digest to both native jobs and their uploaded result digests.
+
+Build artifact13590007543 digest872dd098ff996bbf14d0b1f868ed46d65595dcb5ab168978b88eee325305ce40;
+API26 artifact13591349988 digest567e70cc1679750cfa43a3dc73db43322a50880409ea4b837ad8166f6282241f;
+API37 artifact13593075178 digestb4e6c002b2d1bb9f9771a913e5a3b717be4800f182e16ce8ab6319f37ba2b022.
+Hosted QA app71210259/testa6945516 retain ephemeral hosted keys. Guest APK byte
+readback is not included in those artifacts; no direct guest hash is invented.
+
+The original0c36 compatibility42412679981 remains failed. Corrected auth-source
+[42416470770](https://github.com/DionCroft/Signal_Grove/actions/runs/42416470770)
+atdc1fceade29028773a48676f7d7df3f4959825d7 independently passes all four jobs:
+186 policy,15 runtime,8 registry and sidecar11/13 cases;166 guarded source aliases
+compare stable2bd/current-main63f6852. Actual component runtime remains pinned
+main071; static main63 comparison does not certify its whole runtime.
+
+Cronfac15fd API37 remains failed at its95-minute deadline, with755 captured
+positive methods and260 unfinished. Continued log progress establishes no
+single hanging-test cause. Keep that failed cohort and its separately accepted
+API26 cohort; the descendant0c36 success does not rewrite either.
+
+
 ## 7 November 2026 — actual dashboard native auth and profile history
 
 On test/native-auth-history-matrix afterfac15fd, the repository probe executes

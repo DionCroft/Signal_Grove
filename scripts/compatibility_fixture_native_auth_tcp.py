@@ -1,9 +1,11 @@
-"""Serve a bounded pinned Hermes TCP fixture for native client conformance.
+"""Serve a bounded pinned Hermes TCP fixture for native auth/project client conformance.
 
 Windows only: existing interpreter, -I -S -B, fresh E fixture, synthetic upstream
 IdP. This temporary test listener is not an application backend or deployment.
 It binds only an owned ephemeral loopback socket and stops within10..600 seconds.
-See docs/contracts/2026-11-07-native-management-tcp.md for controls and limits.
+See docs/contracts/2026-11-07-native-management-tcp.md and
+docs/contracts/2026-11-07-project-gateway-client.md for controls and limits.
+The projects surface adds authenticated legacy project reads, never agent turns.
 """
 from pathlib import Path
 import argparse
@@ -44,7 +46,23 @@ REVISIONS = {'stable-2bd378e': {'commit': '2bd378ed1b8d6bf2192cb26e0a55ff3091e6b
                               'hermes_cli/web_routers/mcp.py': 'fefae2dc77afbd4373a68f6fbbe81b746222a21a',
                               'hermes_cli/web_server_mcp.py': 'be974e229bb00c929f04c1f281d2df05f3ce1984',
                               'hermes_cli/mcp_config.py': '3bb246863c39569492b5718c8f65a1a0cce07c05',
-                              'tui_gateway/mcp_rpc_helpers.py': '162973eb3d3e74153eeec65585bb1003e2db2066'}},
+                              'tui_gateway/mcp_rpc_helpers.py': '162973eb3d3e74153eeec65585bb1003e2db2066',
+                              'hermes_cli/projects_db.py': '39bfc043e85ce96ee74a27370d03daf5914424c6',
+                              'hermes_cli/sqlite_util.py': '952a49b9a72420157e0e97223da510c0068d0ca3',
+                              'hermes_cli/web_routers/chat_ws.py': 'fc1bf403f7f75eed7e1bb47e0fdf313817bd410d',
+                              'hermes_cli/web_server_chat.py': '12a34123035b703191de02045972070f534904dd',
+                              'hermes_cli/web_server_boundary.py': 'd4aeb4e044f148e9d873309220059956c020cc86',
+                              'hermes_cli/dashboard_auth/ws_tickets.py': 'e7b1098c7308d431aa03309c071700dcdd9cd3b2',
+                              'tui_gateway/ws.py': 'b928d8a158180fc546da3ae5281e96080e70e79c',
+                              'tui_gateway/server.py': '0a8b9ba486d00a84a071290b87b83f3092b33eab',
+                              'tui_gateway/rpc_dispatch.py': '4197945a90eb61d94a62fd693d3c6810046312e8',
+                              'tui_gateway/method_ctx.py': '593b5e3ed83e06af03ac93a42777776bcf59fb7c',
+                              'tui_gateway/methods_projects.py': 'ca073cfeab027f41fe7d81cba503d9b18c1767dd',
+                              'tui_gateway/contracts/projects_pets.py': '3b4283b4d41df49430bc50fbbdc087f531568a8b',
+                              'tui_gateway/session_reaper.py': 'c4caa6035fd39e672f3e72f3b52e84303db51a99',
+                              'tui_gateway/change_watcher.py': '26b0be489ab0700c884897bca965b584e4d0e5be',
+                              'tui_gateway/methods_display_watch.py': '4a17a39d79f612e23516fa0f71a96e062ec32e13',
+                              'tui_gateway/launch_profile_policy.py': '1127824ac984e8e65895871a9355f5d2f9261cec'}},
  'prior-bf0203a': {'commit': 'bf0203a794a07aac3ff764972ab9087baa4e4f4e',
                    'blobs': {'hermes_cli/web_server.py': '59700ba32c525efcc2b4039401f1b031b6c675c6',
                              'hermes_cli/dashboard_auth/__init__.py': '05941a68bdd3bcdcca49a0fe0eeee9e0018cb840',
@@ -72,7 +90,23 @@ REVISIONS = {'stable-2bd378e': {'commit': '2bd378ed1b8d6bf2192cb26e0a55ff3091e6b
                              'hermes_cli/web_routers/mcp.py': 'dfbcb32f5949c64a29ab7bcc988edeedf42d8ac3',
                              'hermes_cli/web_server_mcp.py': 'be974e229bb00c929f04c1f281d2df05f3ce1984',
                              'hermes_cli/mcp_config.py': '3bb246863c39569492b5718c8f65a1a0cce07c05',
-                             'tui_gateway/mcp_rpc_helpers.py': '162973eb3d3e74153eeec65585bb1003e2db2066'}}}
+                             'tui_gateway/mcp_rpc_helpers.py': '162973eb3d3e74153eeec65585bb1003e2db2066',
+                             'hermes_cli/projects_db.py': '39bfc043e85ce96ee74a27370d03daf5914424c6',
+                             'hermes_cli/sqlite_util.py': '952a49b9a72420157e0e97223da510c0068d0ca3',
+                             'hermes_cli/web_routers/chat_ws.py': '966754b47a3bd365c8332d7a64fa2515a65738ab',
+                             'hermes_cli/web_server_chat.py': 'b614133ae756086c615096b6d71953e29f2ca4c5',
+                             'hermes_cli/web_server_boundary.py': '80a1eea39e4639fe9506823e2fbffb781fb13bb0',
+                             'hermes_cli/dashboard_auth/ws_tickets.py': 'e7b1098c7308d431aa03309c071700dcdd9cd3b2',
+                             'tui_gateway/ws.py': '7d7cb5a0ff1de0d0b43c05d5160e17b9dff8dd5e',
+                             'tui_gateway/server.py': 'b9ab08d4b480137f1194aa37831f51e4dfc915f8',
+                             'tui_gateway/rpc_dispatch.py': 'b2a2587c42dab0b09a24b66e842910f36abfb539',
+                             'tui_gateway/method_ctx.py': '593b5e3ed83e06af03ac93a42777776bcf59fb7c',
+                             'tui_gateway/methods_projects.py': 'ca073cfeab027f41fe7d81cba503d9b18c1767dd',
+                             'tui_gateway/contracts/projects_pets.py': '2f17d6b9cdc6fae78875454a9971f64f2f50ad67',
+                             'tui_gateway/session_reaper.py': 'e156a3f111f16fcd3080117a69fb0cf73ca5b0c7',
+                             'tui_gateway/change_watcher.py': '26b0be489ab0700c884897bca965b584e4d0e5be',
+                             'tui_gateway/methods_display_watch.py': '4a17a39d79f612e23516fa0f71a96e062ec32e13',
+                             'tui_gateway/launch_profile_policy.py': '1127824ac984e8e65895871a9355f5d2f9261cec'}}}
 if not __debug__ or not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode):
     raise SystemExit('Use -I -S -B without -O; assertions and isolated imports are required.')
 if os.name != 'nt':
@@ -83,6 +117,7 @@ parser.add_argument('--work-root', type=Path, required=True)
 parser.add_argument('--dependency-site', type=Path, required=True)
 parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
 parser.add_argument('--lifetime-seconds',type=int,default=180)
+parser.add_argument('--surface',choices=('native-auth','projects'),default='native-auth')
 a = parser.parse_args()
 if not 10<=a.lifetime_seconds<=600:parser.error('Lifetime must be10..600 seconds.')
 SOURCE_COMMIT = REVISIONS[a.revision]['commit']
@@ -294,6 +329,30 @@ try:
             finally:db.close()
         finally:hc.reset_hermes_home_override(scope_token)
 
+
+    if a.surface=='projects':
+        # Seed real schema only; project RPCs in this fixture are reads.
+        from hermes_cli import projects_db as pdb
+        project_original={}
+        def project_rows(conn):
+            return {table:[tuple(row) for row in conn.execute('SELECT * FROM '+table+' ORDER BY '+order)] for table,order in [('projects','id'),('project_folders','project_id,path'),('project_meta','key'),('discovered_repos','root')]}
+        for profile,home in homes.items():
+            (home/'config.yaml').write_text(json.dumps({'dashboard':{'startup_orphan_sweep':False}}),encoding='utf-8')
+            scope_token=hc.set_hermes_home_override(str(home))
+            try:
+                with pdb.connect_closing() as conn:
+                    for identity,slug,title,part in [('fixture-shared-project','shared-fixture',profile.title()+' fixture project','shared'),(profile+'-only-project',profile+'-only',profile.title()+' only project','only')]:
+                        folder=root/'project-files'/(profile+'-project-root')/part
+                        primary=folder/'primary';primary.mkdir(parents=True)
+                        conn.execute('INSERT INTO projects(id,slug,name,description,primary_path,created_at,archived) VALUES (?,?,?,?,?,?,?)',(identity,slug,title,profile+' synthetic description',str(primary),1700000000,0))
+                        conn.execute('INSERT INTO project_folders(project_id,path,label,is_primary,added_at) VALUES (?,?,?,?,?)',(identity,str(primary),profile.title()+' primary folder',1,1700000000))
+                        if part=='shared':
+                            secondary=folder/'secondary';secondary.mkdir()
+                            conn.execute('INSERT INTO project_folders(project_id,path,label,is_primary,added_at) VALUES (?,?,?,?,?)',(identity,str(secondary),profile.title()+' secondary folder',0,1700000001))
+                    conn.execute('INSERT INTO project_meta(key,value) VALUES (?,?)',('active_id','fixture-shared-project'));conn.commit()
+                    project_original[profile]=project_rows(conn)
+            finally:hc.reset_hermes_home_override(scope_token)
+
     from hermes_cli import web_server
     from hermes_cli.dashboard_auth import clear_providers,register_provider,native_flow
     from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
@@ -301,9 +360,47 @@ try:
     import asyncio,socket,uvicorn
     clear_providers();register_provider(StubAuthProvider());native_flow._reset_for_tests()
     web_server.app.state.bound_host='127.0.0.1';web_server.app.state.auth_required=True
+    if a.surface=='projects':
+        from tui_gateway import server as actual_project_server
     requests=[]
     allowed={('GET','/auth/native/authorize'),('GET','/auth/callback'),('POST','/auth/native/token'),('POST','/auth/native/refresh'),('GET','/api/auth/me'),('GET','/api/profiles'),('GET','/api/mcp/servers')}
+    if a.surface=='projects':allowed.add(('POST','/api/auth/ws-ticket'))
     async def proxy(scope,receive,send):
+        if scope['type']=='websocket':
+            path=scope['path'];headers=list(scope['headers'])
+            if a.surface!='projects' or path!='/dashboard/api/ws' or scope.get('query_string') or len(requests)>=128:
+                requests.append(dict(method='WS',path='unreviewed',status=404));await send(dict(type='websocket.close',code=1008));return
+            entry=dict(method='WS',path='/api/ws',bearer=any(k.lower()==b'authorization' for k,v in headers),cookie=any(k.lower()==b'cookie' for k,v in headers),origin=any(k.lower()==b'origin' for k,v in headers),ticketPresented=any(k.lower()==b'sec-websocket-protocol' and b'hermes-gateway-ticket.' in v for k,v in headers))
+            requests.append(entry)
+            forwarded=dict(scope,path='/api/ws',raw_path=b'/api/ws',root_path='',headers=[(k,v) for k,v in headers if k.lower()!=b'x-forwarded-prefix']+[(b'x-forwarded-prefix',b'/dashboard')])
+            rpc_count=0
+            async def bounded_receive():
+                nonlocal rpc_count
+                message=await receive()
+                if message['type']=='websocket.receive':
+                    try:
+                        raw=message.get('text');assert isinstance(raw,str) and len(raw.encode('utf-8'))<=8192 and message.get('bytes') is None and rpc_count<32 and len(requests)<128
+                        def unique(pairs):
+                            result={}
+                            for key,value in pairs:
+                                assert key not in result;result[key]=value
+                            return result
+                        frame=json.loads(raw,object_pairs_hook=unique)
+                        assert isinstance(frame,dict) and set(frame)=={'jsonrpc','id','method','params'} and frame['jsonrpc']=='2.0' and isinstance(frame['id'],str) and 0<len(frame['id'])<=64
+                        method=frame['method'];params=frame['params'];assert method in ('projects.list','projects.get') and isinstance(params,dict)
+                        assert set(params)==({'profile'} if method=='projects.list' else {'profile','id'}) and params['profile'] in ('default','worker','missing-fixture')
+                        if method=='projects.get':assert params['id'] in ('fixture-shared-project','default-only-project','worker-only-project')
+                        rpc_count+=1;requests.append(dict(method='RPC',path=method,profile=[params['profile']],projectId=params.get('id')))
+                    except Exception:
+                        requests.append(dict(method='RPC',path='unreviewed',status=400));await send(dict(type='websocket.close',code=1008))
+                        from starlette.websockets import WebSocketDisconnect
+                        raise WebSocketDisconnect(code=1008)
+                return message
+            async def observed_ws(message):
+                if message['type']=='websocket.accept':entry['accepted']=True;entry['subprotocol']=message.get('subprotocol')
+                elif message['type']=='websocket.close':entry['closeCode']=message.get('code')
+                await send(message)
+            await web_server.app(forwarded,bounded_receive,observed_ws);return
         if scope['type']!='http':
             await web_server.app(scope,receive,send);return
         path=scope['path'];method=scope['method'];headers=list(scope['headers'])
@@ -326,12 +423,14 @@ try:
         listener=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         listener.bind(('127.0.0.1',0));listener.listen(64)
         port=listener.getsockname()[1];web_server.app.state.bound_port=port
-        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='none',lifespan='on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
+        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets' if a.surface=='projects' else 'none',lifespan='on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
         server=uvicorn.Server(config);task=asyncio.create_task(server.serve(sockets=[listener]))
         deadline=time.monotonic()+15
         while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
         assert server.started and not task.done(),'Actual dashboard listener did not start'
-        (root/'ready.json').write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name))+'\n',encoding='utf-8')
+        pending=root/'ready.pending'
+        pending.write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name,surface=a.surface))+'\n',encoding='utf-8')
+        pending.replace(root/'ready.json')
         deadline=time.monotonic()+a.lifetime_seconds
         try:
             while not (root/'stop').exists() and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
@@ -349,6 +448,14 @@ try:
             finally:db.close()
         finally:hc.reset_hermes_home_override(scope_token)
         assert after==original[profile]
+    if a.surface=='projects':
+        for profile,home in homes.items():
+            scope_token=hc.set_hermes_home_override(str(home))
+            try:
+                with pdb.connect_closing() as conn:assert project_rows(conn)==project_original[profile]
+            finally:hc.reset_hermes_home_override(scope_token)
+        assert not (root/'hermes-home/profiles/missing-fixture').exists()
+        report['seededProjectsUnchanged']=True
     assert not denied,denied
     report.update(state='STOPPED_REAL_TCP_FIXTURE_REVIEW_CONSUMER',seededHistoryUnchanged=True)
 except BaseException as error:
