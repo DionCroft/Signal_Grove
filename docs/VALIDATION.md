@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## 2026-11-07 — sidecar response review and interrupted API26 full run
+
+See [the primary-source review](contracts/2026-11-07-sidecar-response-review.md).
+The new two-module guard preserves all old baseline fields and adds the verified
+F0 registry source.170 parser/15 runtime/11 bounded canonical probe cases pass;
+the initial170/1 inventory-count failure is retained. The strict four-task build
+passed552 JVM, including four new WebSocket boundary cases, and zero debug lint
+errors.90 tasks completed (32 executed,58 up-to-date);564 inputs stayed frozen.
+The current original-key private QA pair passed27 unique focused cases per API26
+and37. The companion's raw container changed while all ZIP payloads/signer match;
+its own new pair was tested separately. Earlier six-case diagnostics remain a
+separate cohort. No owner-phone/production backend/model/default changes.
+
+Ef5 full Android run42345795933 is terminal overall failed: API37 passed937
+unique methods with no failures/skips; API26 has912 positives/913 starts of936,
+no failed assertion and no final verdict, ending waiting for device.24 cases
+remain unverified. Both artifact digests and exact reports are retained. The
+last-started guide passes locally, but that does not certify long-run stability
+or prove the interruption's cause. Add bounded return-code/device-state evidence
+before a fresh full cohort. Exact final-source hosted gates, signed assets and
+public release checks remain pending; no beta7 publication has occurred.
+
 ## 2026-11-07 — separate d4 installation-root/profile source vector
 
 The992 hosted canary remains failed for new main d4 bytes; its166 parser/15

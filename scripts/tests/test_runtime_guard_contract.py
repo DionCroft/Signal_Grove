@@ -111,7 +111,8 @@ class RuntimeGuardContractTest(unittest.TestCase):
                     'plugin_catalog_loader:cached_removed_entries','plugin_catalog_loader:_stale_live_cache',
                     'kanban_plugin_mount:_mount_hosted_plugin_api','kanban_roots:normalize_scope'):
             self.assertIn(key,real['mobile_used_handlers'])
-        self.assertEqual(len(checker.RUNTIME_GUARD_CONTRACT_SOURCES),9)
+        self.assertEqual(len(checker.RUNTIME_GUARD_CONTRACT_SOURCES),10)
+        self.assertEqual(checker.RUNTIME_GUARD_CONTRACT_SOURCES['gateway_server_requests'],'tui_gateway/server_requests.py')
         self.assertEqual(checker.RUNTIME_GUARD_CONTRACT_SOURCES['signin_registry_engine'],'agent/provider_registry.py')
         self.assertEqual(real['upstream']['commit'],'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab')
 

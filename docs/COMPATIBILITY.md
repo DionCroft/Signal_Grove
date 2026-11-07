@@ -156,3 +156,5 @@ and live-migration limits. This adds no mobile migration, installation or Pi
 update. The original failed canary remains failed; new hosted gates are required.
 
 The later main d4 installation-root/profile cleanup is reviewed in [its own record](contracts/2026-11-07-install-root-profile-review.md). It adds a separate exact byte vector, preserving981 and the original baseline. No native profile import/rename or project-workspace authority is implied. Complete final-source gates remain required.
+
+The [AA sidecar response review](contracts/2026-11-07-sidecar-response-review.md) binds dispatcher/registry bytes and keeps the management socket outside server-request opt-in. Its11-case recurring probe is bounded, with synthetic contract/authority/thread components; it does not certify live authentication, native vault filling or desktop integration.552 JVM/27 local native per API pass; the interrupted API26 full cohort and final-source gates remain unresolved.

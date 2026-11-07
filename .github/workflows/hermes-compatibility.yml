@@ -130,3 +130,37 @@ jobs:
           path: ${{ runner.temp }}/registry-e36-result/result.json
           if-no-files-found: warn
           retention-days: 30
+
+  pinned-sidecar-responses:
+    needs: parser-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Prepare exact reviewed public response-routing sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -B - <<'PY'
+          import importlib.util, os
+          from pathlib import Path
+          spec=importlib.util.spec_from_file_location('checker',Path('scripts/check_hermes_contract.py'))
+          checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
+          checker._REQUEST_INTERVAL=1.0
+          root=Path(os.environ['RUNNER_TEMP'])/'sidecar-aa-source'
+          root.mkdir(parents=True,exist_ok=False)
+          pin='aa389eba3df3c5839cf00a8d5941a83bbe3435cb'
+          for name in ('tui_gateway/ws.py','tui_gateway/server_requests.py'):
+              text=checker.github_source(name,pin)
+              path=root/name;path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(text,encoding='utf-8',newline='\n')
+          PY
+      - name: Check pinned-response ownership, expiry and replay boundaries
+        run: python3 -I -B scripts/compatibility_probe_sidecar_responses.py --source-root "${{ runner.temp }}/sidecar-aa-source" --work-root "${{ runner.temp }}/sidecar-aa-result"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pinned-sidecar-response-results
+          path: ${{ runner.temp }}/sidecar-aa-result/result.json
+          if-no-files-found: warn
+          retention-days: 30

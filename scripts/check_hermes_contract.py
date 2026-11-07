@@ -155,7 +155,7 @@ EXTRA_SOURCES = {
 
 }
 # Direct auth/import dependencies reviewed at pinned sources; upstream is parsed only.
-RUNTIME_GUARD_CONTRACT_SOURCES = {'web_signin': 'hermes_cli/webapp_sign_in.py', 'plugin_isolation': 'hermes_cli/plugin_isolation.py', 'signin_entry': 'hermes_cli/dashboard_auth/__init__.py', 'signin_registry': 'hermes_cli/dashboard_auth/registry.py', 'session_token_provider': 'plugins/dashboard_auth/session_token/__init__.py', 'session_token_loader': 'hermes_cli/web_server_session_token.py', 'auth_request_utils': 'hermes_cli/dashboard_auth/request_utils.py', 'signin_shared': 'plugins/dashboard_auth/_shared.py', 'signin_registry_engine': 'agent/provider_registry.py'}
+RUNTIME_GUARD_CONTRACT_SOURCES = {'web_signin': 'hermes_cli/webapp_sign_in.py', 'plugin_isolation': 'hermes_cli/plugin_isolation.py', 'signin_entry': 'hermes_cli/dashboard_auth/__init__.py', 'signin_registry': 'hermes_cli/dashboard_auth/registry.py', 'session_token_provider': 'plugins/dashboard_auth/session_token/__init__.py', 'session_token_loader': 'hermes_cli/web_server_session_token.py', 'auth_request_utils': 'hermes_cli/dashboard_auth/request_utils.py', 'signin_shared': 'plugins/dashboard_auth/_shared.py', 'signin_registry_engine': 'agent/provider_registry.py', 'gateway_server_requests': 'tui_gateway/server_requests.py'}
 EXTRA_SOURCES.update(RUNTIME_GUARD_CONTRACT_SOURCES)
 
 PLUGIN_UPDATE_CONTRACT_SOURCES = {'plugin_auto_update': 'hermes_cli/plugins_auto_update.py'}

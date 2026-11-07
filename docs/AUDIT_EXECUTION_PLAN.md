@@ -92,3 +92,7 @@ row remains required; final signed candidate assets/publication are pending.
 ## 7 November — installation-root/profile follow-up
 
 Main d4 advanced during the992 canary. The failed result is retained;166 parser/15 runtime/8 pinned cases passed. A separate exact source vector now has167 local parser/15 runtime passes and16 source-identity counterfactuals, preserving981/F0. No Android behavior changed. The signed992 predecessor passed its checks but remains unshipped. Final-source hosted gates, signed artifacts/publication and every remaining audit row stay required. See contracts/2026-11-07-install-root-profile-review.md.
+
+## 7 November — validated response boundary and CI interruption
+
+AA review adds a two-source fence and recurring11-case probe, preserving F0/all prior fields.170 parser/15 runtime/552 JVM and27 current-pair native cases per owned API26/37 pass. The full ef5 cohort remains failed: API37 passed937; API26 stopped after912 positives with24 unfinished, no assertion/final verdict. Retain the result, add bounded command/device diagnostics before a new full cohort, and finish exact-source gates/publication. See contracts/2026-11-07-sidecar-response-review.md. All broader audit rows remain required.
