@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Keep multilingual status-form and review actions readable above the keyboard and system bars, with short accessible read captions, scrollable headings and unchanged explicit approval guards.
+- Keep Windows Kotlin daemon files in the configured temporary work root, including paths with spaces.
+
 - Make review generation observable in unpublished task status/override and project dialogs, retaining existing scope, approval and durable no-replay guards. Add two generation-only native regressions and verify the forms/related flows on both owned emulator versions.
 
 - Add private reviewed host-task status forms, complete connected-impact review, exact task-ID/latest-impact approval, scoped receipts and separate requested/reported/observed outcomes. Pending work drops old approvals across profiles; uncertain requests never replay. Development only; actual-server and full new-head gates remain required.

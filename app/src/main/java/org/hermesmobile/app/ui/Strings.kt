@@ -12,6 +12,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     KanbanStatusUnavailable("Unavailable from the current state.","当前状态不支持此更改。","Dāngqián zhuàngtài bù zhīchí cǐ gēnggǎi."),
     KanbanStatusIncomplete("Required claim/workspace metadata is missing, or linked impact exceeds supported limits. No status request was sent.","缺少必需的认领或工作区元数据，或关联影响超出支持范围。未发送状态请求。","Quēshǎo bìxū de rènlǐng huò gōngzuòqū yuán shùjù, huò guānlián yǐngxiǎng chāochū zhīchí fànwéi. Wèi fāsòng zhuàngtài qǐngqiú."),
     KanbanStatusApprovalUsed("This approval was already used. Read and review the task again.","此批准已使用。请重新读取并审阅任务。","Cǐ pīzhǔn yǐ shǐyòng. Qǐng chóngxīn dúqǔ bìng shěnyuè rènwù."),
+    KanbanStatusReadShort("Read impact","读取影响","Dúqǔ yǐngxiǎng"),
     KanbanStatusPrepare("Read latest linked impact","读取最新关联影响","Dúqǔ zuìxīn guānlián yǐngxiǎng"),
     KanbanStatusReadEffect("Read the board, task and connected parents/children before review. The limit is 128 tasks and 8 MiB. This step sends no status change.","审阅前读取看板、任务及相连的父子任务。上限为128个任务和8 MiB。此步骤不发送状态更改。","Shěnyuè qián dúqǔ kànbǎn, rènwù jí xiānglián de fùzǐ rènwù. Shàngxiàn wéi yì bǎi èr shí bā gè rènwù hé bā MiB. Cǐ bùzhòu bù fāsòng zhuàngtài gēnggǎi."),
     KanbanStatusReason("Reason","原因","Yuányīn"),

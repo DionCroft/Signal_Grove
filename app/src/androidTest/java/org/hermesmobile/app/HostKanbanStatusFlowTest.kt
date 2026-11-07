@@ -61,7 +61,7 @@ class HostKanbanStatusFlowTest {
                 f.before["t_child"]=HostKanbanStatusFixture.detail(child,parents=listOf("t_root"))
                 f.after["t_child"]=HostKanbanStatusFixture.detail(HostKanbanStatusFixture.fields(child,"status" to JsonPrimitive("todo")),parents=listOf("t_root"))
             }
-            f.start();val inferenceUrl=server.url("prefix/inference/").toString();val original=api.preferences.value;val local=runBlocking {app.database.dao().tasks().first()};val bilingual=mode=="bilingual"
+            f.start();val inferenceUrl=server.url("prefix/inference/").toString();val original=api.preferences.value;val local=runBlocking {app.database.dao().tasks().first()};val bilingual=mode in setOf("bilingual","keyboard")
             try {
                 compose.waitUntil(10000) {!api.connecting.value}
                 compose.runOnUiThread {api.configure(inferenceUrl,credentials.uniqueToken("status-inference"),true);api.updatePreferences(api.preferences.value.copy(theme="STARHAVEN",chinese=bilingual,pinyin=bilingual))}
@@ -86,7 +86,29 @@ class HostKanbanStatusFlowTest {
                     input("status-form","task-field-status-statement",text)
                 }
                 compose.onNodeWithTag("status-read-impact").assertIsEnabled().assertHeightIsAtLeast(48.dp)
-                if(bilingual) {compose.onNodeWithTag("status-form-cancel").assertIsDisplayed().assertHeightIsAtLeast(48.dp);shot("bilingual-form")}
+                if(bilingual) {compose.onNodeWithTag("status-form-cancel").assertIsDisplayed().assertHeightIsAtLeast(48.dp);shot("bilingual-form");compose.assertDialogActionCaptionVisible("status-read-impact")}
+                if(mode=="keyboard") {
+                    compose.onNodeWithTag("status-form").performScrollToNode(hasTestTag("task-field-status-statement"))
+                    compose.onNodeWithTag("task-field-status-statement").performClick().assertIsFocused()
+                    compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+                    for(tag in listOf("status-read-impact","status-form-cancel")) compose.assertDialogActionCaptionVisible(tag)
+                    shot("bilingual-keyboard-form")
+                    val read=compose.onNodeWithTag("status-read-impact").assertIsEnabled().fetchSemanticsNode().boundsInWindow.center
+                    tapFocusedDialogWindowPoint(read.x,read.y);await()
+                    val review=checkNotNull(vm.visibleHostKanban(vm.state.value).statusReview)
+                    assertEquals(f.expectedBody.get(),review.request.body());assertEquals(0,f.writes.get())
+                    compose.onNodeWithTag("status-review").performScrollToNode(hasTestTag("task-field-status-confirm-id"))
+                    compose.onNodeWithTag("task-field-status-confirm-id").performClick().performTextReplacement("t_root")
+                    compose.onNodeWithTag("task-field-status-confirm-id").assertIsFocused()
+                    compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+                    compose.onNodeWithTag("status-confirm").assertIsNotEnabled()
+                    for(tag in listOf("status-confirm","status-review-cancel")) compose.assertDialogActionCaptionVisible(tag)
+                    shot("bilingual-keyboard-review")
+                    val cancel=compose.onNodeWithTag("status-review-cancel").fetchSemanticsNode().boundsInWindow.center
+                    tapFocusedDialogWindowPoint(cancel.x,cancel.y)
+                    compose.waitUntil(5000) {vm.visibleHostKanban(vm.state.value).statusReview==null}
+                    compose.onNodeWithTag("status-review").assertDoesNotExist();assertFalse(vm.kanbanStatusChangeCurrent(review));assertEquals(0,f.writes.get());return@use
+                }
                 if(mode=="cancel-form") {
                     compose.onNodeWithTag("status-form-cancel").performClick();assertFalse(vm.kanbanStatusEditorCurrent(editor));tap("kanban-task-detail","status-open")
                     compose.onNodeWithTag("status-read-impact").assertIsNotEnabled();compose.onNodeWithTag("task-field-status-statement").assertDoesNotExist();assertEquals(0,f.writes.get());return@use
@@ -129,7 +151,7 @@ class HostKanbanStatusFlowTest {
                 }
                 if(mode=="changed") f.before["t_root"]=HostKanbanStatusFixture.detail(HostKanbanStatusFixture.fields(before,"claim_lock" to JsonPrimitive("changed-private-claim")))
                 compose.onNodeWithTag("status-confirm").assertIsDisplayed().assertIsEnabled()
-                if(bilingual) {compose.onNodeWithTag("status-review-cancel").assertIsDisplayed().assertHeightIsAtLeast(48.dp);shot("bilingual-review")}
+                if(bilingual) {compose.onNodeWithTag("status-review-cancel").assertIsDisplayed().assertHeightIsAtLeast(48.dp);for(tag in listOf("status-confirm","status-review-cancel")) compose.assertDialogActionCaptionVisible(tag);shot("bilingual-review")}
                 compose.onNodeWithTag("status-confirm").performClick();await()
                 if(mode=="changed") {assertEquals(0,f.writes.get());assertEquals(Words.ManagementReviewChanged,vm.state.value.error);return@use}
                 assertEquals(1,f.writes.get());val report=checkNotNull(vm.visibleHostKanban(vm.state.value).statusReport)
@@ -181,5 +203,6 @@ class HostKanbanStatusFlowTest {
     @Test fun missingClaimMetadataStopsAtTheReadOnlyStage()=exercise(mode="missing")
     @Test fun connectedImpactAndDescendantResetEffectsAreFullyReviewable()=exercise(mode="graph")
     @Test fun durableStatusReceiptLinksReturnToKanbanInsteadOfMcpObservation()=exercise(mode="receipt-route")
+    @Test fun bilingualKeyboardLeavesReadAndCancelReachableWithoutGrantingStatusWrite()=exercise(HostKanbanStatusTarget.Done,"keyboard")
     @Test fun bilingualPrivateReviewAndReportKeepFooterActionsReachable()=exercise(HostKanbanStatusTarget.Done,"bilingual")
 }

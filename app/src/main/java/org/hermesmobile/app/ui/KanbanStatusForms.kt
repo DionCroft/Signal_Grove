@@ -8,6 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
@@ -43,8 +48,13 @@ internal fun kanbanStatusEffectWord(effect:HostKanbanStatusEffect)=when(effect) 
     val required=target in setOf(HostKanbanStatusTarget.Done,HostKanbanStatusTarget.Blocked)
     val optional=target in setOf(HostKanbanStatusTarget.Review,HostKanbanStatusTarget.Scheduled)
     val plan=target?.let {runCatching {HostKanbanStatusPlan.review(editor.subject,it,if(required || optional && include) statement else null)}.getOrNull()}
-    AlertDialog(onDismissRequest=close,title={Text(label(Words.KanbanStatusChange))},text={
+    val focus=LocalFocusManager.current
+    val keyboard=LocalSoftwareKeyboardController.current
+    val dismiss={focus.clearFocus();keyboard?.hide();close()}
+    val fullCaption=label(Words.KanbanStatusPrepare)
+    AlertDialog(onDismissRequest=dismiss,modifier=Modifier.safeDrawingPadding(),properties=DialogProperties(decorFitsSystemWindows=false),text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("status-form"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            item {Text(label(Words.KanbanStatusChange),style=MaterialTheme.typography.headlineSmall)}
             item {Text(editor.inventory.owner.url);Text(editor.inventory.owner.profile);Text(editor.subject.task.id);Text(editor.subject.task.title);KanbanStatus(editor.subject.task.status)}
             item {Text(label(Words.KanbanStatusTarget),style=MaterialTheme.typography.titleMedium)}
             items(HostKanbanStatusTarget.entries,key={it.name}) {choice->
@@ -59,15 +69,24 @@ internal fun kanbanStatusEffectWord(effect:HostKanbanStatusEffect)=when(effect) 
             if(plan==null) item {Text(label(Words.KanbanStatusInvalid))}
             item {Text(label(Words.KanbanStatusReadEffect))}
         }
-    },confirmButton={TextButton({plan?.let(read)},enabled=plan!=null,modifier=Modifier.heightIn(min=48.dp).testTag("status-read-impact")) {Text(label(Words.KanbanStatusPrepare))}},dismissButton={TextButton(close,Modifier.heightIn(min=48.dp).testTag("status-form-cancel")) {Text(label(Words.Cancel))}})
+    },confirmButton={
+        Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            TextButton({plan?.let {focus.clearFocus();keyboard?.hide();read(it)}},enabled=plan!=null,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("status-read-impact").semantics {contentDescription=fullCaption}) {Text(label(Words.KanbanStatusReadShort))}
+            TextButton(dismiss,Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("status-form-cancel")) {Text(label(Words.Cancel))}
+        }
+    })
 }
 
 @Composable fun KanbanStatusReview(review:ReviewedKanbanStatusChange,enabled:Boolean,close:()->Unit,confirm:(String,Boolean)->Unit) {
     val request=review.request
     var typed by remember(review) {mutableStateOf("")}
     var granted by remember(review) {mutableStateOf(false)}
-    AlertDialog(onDismissRequest=close,title={Text(label(Words.KanbanStatusReview))},text={
+    val focus=LocalFocusManager.current
+    val keyboard=LocalSoftwareKeyboardController.current
+    val dismiss={focus.clearFocus();keyboard?.hide();close()}
+    AlertDialog(onDismissRequest=dismiss,modifier=Modifier.safeDrawingPadding(),properties=DialogProperties(decorFitsSystemWindows=false),text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("status-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            item {Text(label(Words.KanbanStatusReview),style=MaterialTheme.typography.headlineSmall)}
             item {Text(request.owner.url);Text(request.owner.profile);Text(request.owner.actor);Text(request.board.slug);SelectionContainer {Text(request.board.dbPath)};Text(request.id);Text(request.plan.subject.task.title);KanbanStatus(request.plan.subject.task.status);Text(label(Words.KanbanStatusTarget));KanbanStatus(request.plan.target.wire)}
             if(request.plan.target==HostKanbanStatusTarget.Done) item {Text(label(Words.KanbanStatusStoredResult));TaskReviewedValue(request.plan.subject.task.result?.let(::JsonPrimitive) ?: JsonNull)}
             items(request.body().entries.filter {it.key!="status"}.toList(),key={"field:"+it.key}) {(key,value)->
@@ -88,7 +107,12 @@ internal fun kanbanStatusEffectWord(effect:HostKanbanStatusEffect)=when(effect) 
             item {TaskInput("status-confirm-id",Words.KanbanStatusTypeId,typed,{typed=it})}
             item {TaskChoice("status-grant",Words.KanbanStatusGrant,granted,{granted=it});Text(label(Words.KanbanStatusReceiptBoundary))}
         }
-    },confirmButton={TextButton({confirm(typed,granted)},enabled=enabled && granted && typed==request.id,modifier=Modifier.heightIn(min=48.dp).testTag("status-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton(close,Modifier.heightIn(min=48.dp).testTag("status-review-cancel")) {Text(label(Words.Cancel))}})
+    },confirmButton={
+        Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            TextButton({focus.clearFocus();keyboard?.hide();confirm(typed,granted)},enabled=enabled && granted && typed==request.id,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("status-confirm")) {Text(label(Words.Confirm))}
+            TextButton(dismiss,Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("status-review-cancel")) {Text(label(Words.Cancel))}
+        }
+    })
 }
 
 @Composable fun KanbanStatusReceiptSummary(receipt:ManagementOperation) {

@@ -1,21 +1,19 @@
-# Signal Grove project state — unpublished status forms
+# Signal Grove project state
 
-Continue the existing Signal Grove long-horizon Hermes audit on `feat/kanban-status-forms`. Keep source in its verified repository and tools/caches/private evidence on authorized temporary storage. Preserve original package/signing identities, app data, main, explicit approvals, profile isolation and durable one-send/no-replay guards.
+Continue the full long-horizon audit in `docs/AUDIT_EXECUTION_PLAN.md`. Preserve data, original signing/package identity, main, TLS/profile isolation, exact private approvals and no replay of unknown work. Source stays in the verified project; temporary/tools/evidence use the mandated temporary storage.
 
-## Current stage
+## Completed local checkpoint
 
-Apply the independently verified observable review-generation correction to the unpublished status/override forms. The original `a87a1a1` full hosted device run failed on missing read confirmations in lost-reply cases. A plain counter could change while visible ManagementState remained identical. StateFlow now exposes that identity to Kanban/project dialogs; two generation-only native regressions accompany the correction. Request, preflight and receipt fences remain unchanged. The initial patch preflight refused changed Kanban context before mutation; three clean file patches and the exact single Kanban collector line were then applied.
+The unpublished status forms now have a short accessible multilingual read caption, full-width actions, scrollable headings and safe-drawing/IME insets. The real clipped-glyph regression, retained paragraph-width diagnostic and earlier failed build/native cohorts are preserved. Final local validation is four required Gradle tasks/577 JVM plus two affected bilingual/native-keyboard cases per API26/API37 and ten inspected captures. This is not a clean final54/97 cohort or full hosted acceptance. Original keys, source inputs, device geometry/configuration and retained fixture data were verified. QA code111/beta.8-qa is never a public asset; committed development default remains108. Tooling f122a65 separately fixes the compiler daemon temporary directory.
 
-## Next action and acceptance
+## Exact next action
 
-The required Gradle tasks and 577 JVM cases passed. Exact-source QA code111/beta.8-qa passed 53 API26 and 96 API37 native cases, including all status/override forms, generation/lost-reply behavior and related projects; Fresh controlled screenshots exposed a clipped long form-action caption on API26; layout acceptance stays open. Original debug signer, unchanged device geometry/configuration, 563 source inputs and installed APK hashes were verified. The source default remains development code108; QA artifacts are never release assets. Earlier failures remain retained.
+Return to clean `fix/existing-session-visibility` at b02 and apply the prepared image-share finite-wait correction plus the already-reviewed95-minute CI budget. Run required build/native checks, commit/push, then dispatch the new exact source through complete Android/compatibility gates once. Preserve the old reports and require a complete positive suite. No blind retry or publication of b02.
 
-Exact next action: correct the open API26 form-footer caption clipping and add stronger clipping/native-input regression coverage, then dispatch the final feature head through full Android/compatibility gates. Preserve every earlier failed cohort. Reconcile independently gated history/model hotfixes before a larger feature release. Local source freeze is closed after these terminal checks; return to the release branch to finish its already-running release checks and publish retained code110 only after its own gates pass.
+## Release hold
 
-## Parallel release
+B02 full Android run42336563273 passed API26/936 but API37 has820 positive and one image-share no-root wait failure, then timed out after75 minutes with116 unfinished. The runner was still making progress; this does not prove a hung test or product root cause. Original-key code110 assets and owner-phone retained connection/history acceptance remain useful bounded comparison evidence, not publication permission for a failed source. Every old publisher entrypoint is blocked. Stable1.0 and main6b809e6 remain unchanged; no beta7 tag/release has been created.
 
-The existing-history release stays at `97116728ec9f272c73525e2962707e82a2611af9`; documentation follow-up `c07fbdefa2e40653a56f22e2db78c865f4182ceb` stays on `fix/existing-session-visibility`. Original-key production code 110 is already installed and physically accepted on the owner phone. Its existing full device CI is running; do not dispatch it again. Return to that branch after the local source freeze closes to verify/publish the retained artifacts. No release rebuild, owner reinstall or backend change is needed.
+## Remaining full audit
 
-## Full audit preserved
-
-Workers/dispatch, events/files/pins/transfers, advanced automation, rooms/grants/delivery, remaining integrations/configuration/workspaces, notification routing, rendering/voice/OEM acceptance and security/community closure remain required. Reconcile the history/model hotfixes into this larger feature branch before shipping. Native project metadata does not prove Windows/NAS execution or canonical shared-chat authority. Do not mark the audit goal complete from this focused repair.
+Reconcile the corrected history/model/release branch into the larger forms branch before final feature gates/versioning. Worker/dispatch/events/files/pins/transfers, explicit workspace adoption, advanced automation/rooms/grants, remaining integrations/configuration, notification routing, rendering/voice/OEM and security/community closure remain required. Stored project metadata is not worker/filesystem execution or shared Bot Chat write authority. Keep the full audit goal active.

@@ -168,3 +168,9 @@ public beta.6 are unchanged; these forms are development source only.
 ## Review-generation repair checkpoint — 7 November 2026
 
 The unpublished status forms now observe review identity independently of visible state. Focused acceptance is 577 JVM plus 53 API26/96 API37 native cases, with exact QA artifacts and retained earlier failures. Correct the open API26 form-footer caption clipping with stronger regression coverage, then dispatch the final feature head through its own hosted gates and reconcile the separately gated existing-history/model hotfix before any larger feature release. The private QA version override is not a release version. The complete remaining ledger above remains required; no full parity, worker/runtime or filesystem certification is implied.
+
+## 7 November — status dialog and release checkpoints
+
+The status-caption/safe-drawing correction passed577 JVM and two affected bilingual/native-keyboard cases per API26/API37; ten fresh captures were reviewed. Earlier full focused52/54 and95/97 cohorts remain failed with their exact width-predicate diagnostics retained. Final whole-feature hosted gates and history/model hotfix reconciliation remain required. Tooling f122a65 keeps the compiler daemon under the mandated temporary root.
+
+The separate existing-history b02 release stays held: full API26 passed936, while API37 completed820 positive cases and one image-share wait failure before its75-minute deadline, leaving116 unfinished. No beta7 tag/assets were published. Carry the already-reviewed95-minute CI budget and correct only the finite image-share predicate's no-root transition, retain every assertion and failed report, then gate a new exact release source. The remaining worker/workspace/automation/room/integration/notification/voice/security ledger above stays required.
