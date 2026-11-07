@@ -43,14 +43,22 @@ import androidx.compose.ui.semantics.contentDescription
     fun origin(c:Conversation)=SessionOrigin.source(c).ifBlank {SessionOrigin.Api}
     val sources=conversations.map(::origin).distinct().sorted()
     val rows=conversations.filter {(!it.hidden || hidden) && it.title.contains(search,true) && (source.isBlank() || origin(it)==source)}
-    AlertDialog(onDismissRequest=dismiss,modifier=Modifier.imePadding(),properties=DialogProperties(decorFitsSystemWindows=false),text={
+    // API31+ opts into platform fitting; older dialogs retain their resize/inset path.
+    val platformFits=android.os.Build.VERSION.SDK_INT>=android.os.Build.VERSION_CODES.S
+    AlertDialog(onDismissRequest=dismiss,modifier=if(platformFits) Modifier else Modifier.imePadding(),properties=DialogProperties(decorFitsSystemWindows=platformFits),text={
         val focus=LocalFocusManager.current
         val keyboard=LocalSoftwareKeyboardController.current
         // Filters and rows share one viewport so large multilingual controls cannot hide the list.
         LazyColumn(Modifier.heightIn(max=350.dp).testTag("conversation-browser"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             item(key="history-heading") {Text(label(Words.History),style=MaterialTheme.typography.headlineSmall,color=MaterialTheme.colorScheme.onSurface)}
-            item(key="history-search") {OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().testTag("history-search-input"),label={Text(label(Words.Search))},singleLine=true,
-                keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={focus.clearFocus();keyboard?.hide()}))}
+            item(key="history-search") {
+                val caption=label(Words.Search)
+                Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                    Text(caption,style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                    OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().testTag("history-search-input").semantics {contentDescription=caption},singleLine=true,
+                        keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={focus.clearFocus();keyboard?.hide()}))
+                }
+            }
             item(key="history-hidden") {Row(verticalAlignment=Alignment.CenterVertically) {Checkbox(hidden,{hidden=it});Text(label(Words.ShowHidden),Modifier.weight(1f),style=MaterialTheme.typography.labelSmall)}}
             if(!p.demo) item(key="history-refresh") {TextButton({vm.refreshSessions()},enabled=!loading && caps?.sessions==true) {Text(label(Words.Refresh))}}
             item(key="history-source") {Box {

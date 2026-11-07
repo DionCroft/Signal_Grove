@@ -82,7 +82,7 @@ class Milestone02Test {
         catch(e:androidx.compose.ui.test.ComposeTimeoutException) {runCatching {sendScreenshot("demo-send-not-completed")};fail("Demo session send: ${sendState()}")}
         compose.onNodeWithContentDescription(Words.Completed.localized(AppPreferences())).assertExists()
         go(Words.History)
-        compose.onNode(hasSetTextAction() and hasText(Words.Search.localized(AppPreferences()))).performTextInput("sample")
+        compose.onNodeWithTag("history-search-input").assertIsDisplayed().assertIsEnabled().assert(hasSetTextAction()).performTextInput("sample")
         closeDialogKeyboard()
         compose.onNodeWithTag("conversation-browser").performScrollToNode(hasContentDescription(Words.Pin.localized(AppPreferences())))
         compose.onNodeWithContentDescription(Words.Pin.localized(AppPreferences()),useUnmergedTree=true).assertIsDisplayed().assertIsEnabled()
