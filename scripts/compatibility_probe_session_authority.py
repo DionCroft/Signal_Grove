@@ -1,0 +1,348 @@
+"""Exercise the pinned real Hermes authority against a fresh disposable SQLite fixture.
+
+Windows component probe; run with an existing Hermes interpreter using -I -S -B.
+No dependency installation, site hooks, gateway startup, inference or owner data.
+Python audit hooks bound this probe but do not constitute an OS security sandbox.
+See docs/contracts/2026-11-07-canonical-authority-component.md for scope and invocation.
+"""
+from pathlib import Path
+import argparse
+import hashlib
+import ipaddress
+import json
+import os
+import subprocess
+import sys
+import traceback
+import urllib.parse
+import weakref
+
+SOURCE_COMMIT = '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'
+PINNED_BLOBS = {
+    'gateway/session_authority.py': '052252b70edc38b71b6a8679f91660d6009893aa',
+    'gateway/owner_identity.py': 'bffdf405527e53f3bd1b608c88d609b1dab34803',
+    'gateway/session_local_migration.py': '82a647465420180829beeb081a6271bcdc48272f',
+    'gateway/session_worker_reservation.py': '421bb89109330bd5eaf8f7ac29d77dcda1ce5554',
+    'tests/gateway/test_local_authority_transitions.py': '8e0e58485a882c7ee90bb204e7eded9ee81f6da8',
+    'tests/gateway/test_canonical_wire_contracts.py': '78364e99862de463129325a67c8ae6e0880a0a62',
+}
+if not __debug__ or not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode):
+    raise SystemExit('Use -I -S -B without -O; assertions and isolated imports are required.')
+if os.name != 'nt':
+    raise SystemExit('This bounded probe currently supports Windows only; no cross-host acceptance is claimed.')
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--source-root', type=Path, required=True)
+parser.add_argument('--work-root', type=Path, required=True)
+parser.add_argument('--dependency-site', type=Path, required=True)
+a = parser.parse_args()
+source, root, site = a.source_root.resolve(), a.work_root.resolve(), a.dependency_site.resolve()
+assert source.is_dir() and site.is_dir() and not root.exists(), 'Use existing dependencies and a fresh output root.'
+assert source.drive.upper() == root.drive.upper() == 'E:', 'Source and temporary output must stay on E:.'
+assert not source.is_relative_to(root) and not root.is_relative_to(source)
+assert not root.is_relative_to(site) and not site.is_relative_to(root)
+for name, expected in PINNED_BLOBS.items():
+    path = source / name
+    assert not path.is_symlink() and path.resolve().is_relative_to(source)
+    raw = path.read_bytes()
+    actual = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+    assert actual == expected, 'Pinned module differs: ' + name
+root.mkdir(parents=True, exist_ok=False)
+user, temp = root / 'account', root / 'temp'
+for path in (user, user / 'AppData/Local', user / 'AppData/Roaming', temp, root / 'hermes-home', root / 'runtime'):
+    path.mkdir(parents=True, exist_ok=True)
+# Retain only OS loader variables and Git's executable search path for two local
+# read-only identity checks. No production Hermes environment or credentials.
+git_env = {k: v for k, v in os.environ.items() if k.upper() in ('SYSTEMROOT', 'WINDIR', 'PATH', 'PATHEXT')}
+git_env.update(TEMP=str(temp), TMP=str(temp), HOME=str(user), USERPROFILE=str(user),
+               GIT_OPTIONAL_LOCKS='0', GIT_NO_LAZY_FETCH='1', GIT_CONFIG_NOSYSTEM='1',
+               GIT_CONFIG_GLOBAL=os.devnull, GIT_TERMINAL_PROMPT='0')
+def git_read(*args):
+    result = subprocess.run(['git', '--no-optional-locks', '-c', 'core.fsmonitor=false',
+                             '-C', str(source), *args], env=git_env, capture_output=True,
+                            text=True, check=True, timeout=30)
+    return result.stdout.strip()
+assert git_read('rev-parse', 'HEAD') == SOURCE_COMMIT, 'Wrong source commit.'
+assert not git_read('status', '--porcelain', '--untracked-files=all'), 'Source must be clean.'
+system = {k: v for k, v in os.environ.items() if k.upper() in ('SYSTEMROOT', 'WINDIR')}
+os.environ.clear()
+os.environ.update(system)
+os.environ.update(TEMP=str(temp), TMP=str(temp), TMPDIR=str(temp), HOME=str(user), USERPROFILE=str(user),
+                  APPDATA=str(user / 'AppData/Roaming'), LOCALAPPDATA=str(user / 'AppData/Local'),
+                  HERMES_HOME=str(root / 'hermes-home'), HERMES_RUNTIME_DIR=str(root / 'runtime'),
+                  HERMES_DISABLE_LAZY_INSTALLS='1', PYTHONDONTWRITEBYTECODE='1', NO_PROXY='127.0.0.1,localhost')
+os.chdir(root)
+sys.dont_write_bytecode = True
+sys.path[:0] = [str(source), str(site)]
+read_roots = [root, source, site, Path(sys.base_prefix).resolve(), Path(__file__).resolve()]
+denied, denial_details, loaded, report = [], [], [], {}
+
+def inside(path, roots):
+    return any((path.is_relative_to(x) for x in roots))
+
+def filepath(value):
+    return Path(os.fsdecode(value)).resolve() if isinstance(value, (str, bytes, os.PathLike)) else None
+
+def refuse(event, target=None):
+    denied.append(event)
+    frames = []
+    frame = sys._getframe(1)
+    for _ in range(12):
+        if frame is None:
+            break
+        file = Path(frame.f_code.co_filename)
+        frames.append(dict(module=frame.f_globals.get('__name__', 'unknown'), function=frame.f_code.co_name, line=frame.f_lineno, file=file.relative_to(source).as_posix() if file.is_absolute() and file.is_relative_to(source) else file.name))
+        frame = frame.f_back
+    if len(denial_details) < 64:
+        denial_details.append(dict(event=event, targetName=target.name if target is not None else None, targetPathSha256=hashlib.sha256(str(target).encode()).hexdigest() if target is not None else None, frames=frames))
+    raise PermissionError('Canonical fixture boundary: ' + event)
+
+def audit(event, args):
+    if event in ('subprocess.Popen', 'os.system', 'os.kill', 'os.killpg', 'os.exec', 'os.posix_spawn', 'sqlite3.enable_load_extension', 'sqlite3.load_extension', 'socket.sendto', 'socket.sendmsg', 'socket.gethostbyname', 'socket.gethostbyaddr'):
+        refuse(event)
+    if event == 'socket.getaddrinfo':
+        try:
+            allowed = ipaddress.ip_address(args[0]).is_loopback
+        except ValueError:
+            allowed = args[0] == 'localhost'
+        if not allowed:
+            refuse('nonloopback-resolution')
+    if event in ('socket.bind', 'socket.connect'):
+        address = args[1]
+        if not isinstance(address, tuple) or len(address) < 2:
+            refuse('unowned-socket-address')
+        try:
+            loopback = ipaddress.ip_address(address[0]).is_loopback
+        except ValueError:
+            loopback = False
+        if not loopback:
+            refuse('nonloopback-socket')
+        if event == 'socket.bind':
+            if address[1] != 0:
+                refuse('fixed-port-bind')
+            bound_sockets.add(args[0])
+        else:
+            ports = []
+            for sock in tuple(bound_sockets):
+                try:
+                    ports.append(sock.getsockname()[1])
+                except OSError:
+                    pass
+            if address[1] not in ports or address[1] == 0:
+                refuse('connect-to-unowned-local-port')
+        owned_socket_events.append(event)
+    if event == 'open':
+        path = filepath(args[0])
+        mode = args[1] or ''
+        flags = args[2] or 0
+        writing = any((x in mode for x in 'wax+')) or bool(flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND))
+        if not writing and str(args[0]) in missing_os_probes:
+            expected = missing_os_probes[str(args[0])]
+            if path == expected and path.resolve() == expected and (not path.exists()):
+                if len(missing_os_probe_reads) < 128:
+                    missing_os_probe_reads.append(str(args[0]))
+                return
+        if path and str(args[0]).lower() != os.devnull.lower() and (not inside(path, [root] if writing else read_roots)):
+            refuse('file-write' if writing else 'file-read', path)
+    if event == 'os.chdir' and (not Path(args[0]).resolve().is_relative_to(root)):
+        refuse('chdir-outside-fixture')
+    if event in ('os.mkdir', 'os.remove', 'os.rmdir', 'os.rename', 'os.symlink', 'os.link'):
+        values = args[:2] if event in ('os.rename', 'os.symlink', 'os.link') else args[:1]
+        if any(((path := filepath(v)) is not None and (not path.is_relative_to(root)) for v in values)):
+            refuse(event)
+    if event == 'sqlite3.connect' and str(args[0]) != ':memory:':
+        value = str(args[0])
+        if value.startswith('file:'):
+            uri = urllib.parse.urlsplit(value)
+            if uri.netloc not in ('', 'localhost'):
+                refuse('sqlite-uri-authority')
+            value = urllib.parse.unquote(uri.path)
+            if value.startswith('/') and len(value) > 2 and (value[2] == ':'):
+                value = value[1:]
+        if not Path(value).resolve().is_relative_to(root):
+            refuse('sqlite-outside-fixture')
+missing_os_probes = {}
+assert os.name == 'nt'
+for name in ('/proc/1/cgroup', '/proc/self/mountinfo', '/proc/version'):
+    target = Path(root.drive + name.replace('/', '\\'))
+    assert target.resolve() == target and (not target.exists())
+    missing_os_probes[name] = target
+missing_manifest = source.parent / 'manifest.json'
+assert missing_manifest.resolve() == missing_manifest and (not missing_manifest.exists())
+missing_os_probes[str(missing_manifest)] = missing_manifest
+missing_os_probe_reads = []
+bound_sockets = weakref.WeakSet()
+owned_socket_events = []
+cases = []
+sys.addaudithook(audit)
+try:
+    import hermes_constants as hc
+    assert hc.get_hermes_home().resolve() == root / 'hermes-home' and hc.get_default_hermes_root().resolve() == root / 'hermes-home'
+    from hermes_state import SessionDB
+    from hermes_state_runtime import begin_runtime_epoch, RuntimeStoreError
+    from gateway.session_authority import SessionAuthority, LiveSession
+    from gateway.session_controls import AuthorityConnection
+    from gateway.session_contract import SessionActor, SessionRef
+    from gateway.config import Platform
+    from hermes_state_runtime import admit_session_input, claim_session_input, recover_session_inputs, get_session_admission
+    from types import SimpleNamespace
+    import asyncio
+
+    class Sink:
+
+        def __init__(self):
+            self.frames = []
+
+        def write(self, frame):
+            self.frames.append(frame)
+            return True
+
+        def close(self):
+            pass
+
+    def passed(name):
+        assert name not in cases
+        cases.append(name)
+
+    def refused_call(function, reason):
+        try:
+            function()
+        except RuntimeStoreError as error:
+            assert error.reason == reason, (error.reason, reason)
+            return error
+        raise AssertionError('Expected refusal: ' + reason)
+
+    async def refused_await(coroutine, reason):
+        try:
+            await coroutine
+        except RuntimeStoreError as error:
+            assert error.reason == reason, (error.reason, reason)
+            return
+        raise AssertionError('Expected refusal: ' + reason)
+
+    async def behavior():
+        db = SessionDB(db_path=root / 'hermes-home/authority.sqlite')
+        connections = []
+        try:
+            db.create_session('s', source='test')
+            db.append_message('s', 'user', 'fixture user')
+            db.append_message('s', 'assistant', 'fixture assistant')
+            history = lambda: [(row['role'], row['content']) for row in db.get_messages('s')]
+            assert history() == [('user', 'fixture user'), ('assistant', 'fixture assistant')]
+            passed('real_sqlite_transcript_preserved')
+            epoch = begin_runtime_epoch(db, instance_id='fixture-instance')
+            runner = SimpleNamespace(_draining=False, _cached_agent_for=lambda route: None, adapters={})
+            authority = SessionAuthority(runner, profile_id='fixture', instance_id='fixture-instance', db=db, epoch=epoch)
+            authority.sessions['s'] = LiveSession(None, 'fixture-route')
+            actor = SessionActor('fixture-owner', 'fixture', frozenset({'session:read', 'session:submit'}), 'viewer-one')
+            ref = SessionRef('fixture', 's')
+            handle = await authority.resolve(actor, ref)
+            assert handle.ref == ref and handle.instance_id == 'fixture-instance' and (handle.authority_epoch == epoch) and (handle.revision == 0) and (handle.execution_generation == 0) and (handle.execution_state == 'idle')
+            passed('read_handle_binds_instance_profile_epoch_revision_generation')
+            await refused_await(authority.resolve(SessionActor(actor.subject, 'other', actor.capabilities, 'other'), ref), 'profile_mismatch')
+            passed('foreign_actor_profile_refused')
+            await refused_await(authority.resolve(actor, SessionRef('other', 's')), 'profile_mismatch')
+            passed('foreign_reference_profile_refused')
+            await refused_await(authority.resolve(SessionActor(actor.subject, 'fixture', frozenset(), 'no-cap'), ref), 'permission_denied')
+            passed('missing_read_capability_refused')
+            await refused_await(authority.resolve(actor, SessionRef('fixture', 'missing')), 'not_found')
+            assert db.get_session('missing') is None
+            passed('unknown_session_does_not_create_a_row')
+            db.create_session('private', source='test')
+            authority.sessions['private'] = LiveSession(SimpleNamespace(platform=Platform.LOCAL, user_id='other-owner'), 'fixture-private')
+            await refused_await(authority.resolve(actor, SessionRef('fixture', 'private')), 'permission_denied')
+            passed('foreign_local_owner_refused')
+            own = SessionActor('other-owner', 'fixture', actor.capabilities, 'owner-viewer')
+            assert (await authority.resolve(own, SessionRef('fixture', 'private'))).ref.session_id == 'private'
+            passed('matching_local_owner_can_read')
+            identity = {'provider': 'local', 'user_id': 'fixture-native', 'capabilities': ['session:read', 'session:operator']}
+            unverified = AuthorityConnection(authority, Sink(), identity)
+            connections.append(unverified)
+            assert 'session:operator' not in unverified.actor.capabilities
+            await refused_await(authority.resolve(unverified.actor, SessionRef('fixture', 'private')), 'permission_denied')
+            passed('identity_data_cannot_grant_operator')
+            verified = AuthorityConnection(authority, Sink(), identity, operator=True)
+            connections.append(verified)
+            assert 'session:operator' in verified.actor.capabilities and (await authority.resolve(verified.actor, SessionRef('fixture', 'private'))).ref.session_id == 'private'
+            passed('explicit_trusted_constructor_operator_can_read')
+            authority.retired = True
+            try:
+                await refused_await(authority.resolve(actor, ref), 'runtime_retired')
+            finally:
+                authority.retired = False
+            passed('retired_authority_refused')
+            sink1 = Sink()
+            sink2 = Sink()
+            authority.events[actor.transport_id] = sink1
+            authority.pending_closes['s'] = 'fixture pending close'
+            timer = asyncio.get_running_loop().call_later(3600, lambda: None)
+            authority.orphan_closes['s'] = timer
+            first = await authority.attach(actor, ref)
+            assert [(row['role'], row['content']) for row in first.history] == history() and timer.cancelled() and ('s' not in authority.pending_closes) and ('s' not in authority.orphan_closes)
+            passed('attach_preserves_history_and_cancels_pending_close')
+            again = await authority.attach(actor, ref)
+            assert again.subscription_id == first.subscription_id and len(authority.sessions['s'].subscribers) == 1
+            passed('repeated_attach_reuses_own_subscription')
+            actor2 = SessionActor(actor.subject, 'fixture', actor.capabilities, 'viewer-two')
+            authority.events[actor2.transport_id] = sink2
+            second = await authority.attach(actor2, ref)
+            assert second.subscription_id != first.subscription_id and len(authority.sessions['s'].subscribers) == 2
+            passed('another_transport_gets_distinct_subscription')
+            await refused_await(authority.detach(actor2, first.subscription_id), 'permission_denied')
+            assert len(authority.sessions['s'].subscribers) == 2
+            passed('foreign_subscription_detach_refused')
+            await authority.detach(actor, first.subscription_id)
+            assert len(authority.sessions['s'].subscribers) == 1 and authority.sessions['s'].event_stream.fanout.contains(sink2) and (not authority.sessions['s'].event_stream.fanout.contains(sink1))
+            passed('own_detach_preserves_other_viewer')
+            await authority.detach(actor2, second.subscription_id)
+            assert not authority.sessions['s'].subscribers and (not authority.sessions['s'].event_stream.fanout.contains(sink2))
+            passed('last_plain_detach_removes_own_fanout')
+            authority.authorize(actor, ref, 'session:submit')
+            one = admit_session_input(db, epoch=epoch, principal_id=actor.subject, session_id='s', request_id='fixture-request', payload={'text': 'fixture admission only'})
+            two = admit_session_input(db, epoch=epoch, principal_id=actor.subject, session_id='s', request_id='fixture-request', payload={'text': 'fixture admission only'})
+            assert one['admission_id'] == two['admission_id'] and one['status'] == two['status'] == 'queued'
+            passed('exact_queued_replay_reuses_receipt')
+            error = refused_call(lambda: admit_session_input(db, epoch=epoch, principal_id=actor.subject, session_id='s', request_id='fixture-request', payload={'text': 'changed'}), 'admission_conflict')
+            assert error.field == 'request_id'
+            passed('changed_payload_under_same_key_refused')
+            claimed = claim_session_input(db, epoch=epoch, session_id='s')
+            assert claimed['admission_id'] == one['admission_id'] and claimed['status'] == 'started'
+            authority.retired = True
+            next_epoch = begin_runtime_epoch(db, instance_id='replacement-instance')
+            assert recover_session_inputs(db, epoch=next_epoch) == 1
+            recovered = get_session_admission(db, admission_id=one['admission_id'])
+            assert recovered['status'] == 'unknown' and recovered['generation'] == claimed['generation']
+            passed('claimed_work_recovers_unknown_without_replay')
+            refused_call(lambda: admit_session_input(db, epoch=epoch, principal_id=actor.subject, session_id='s', request_id='stale', payload={'text': 'never admitted'}), 'stale_epoch')
+            passed('stale_epoch_cannot_admit')
+            replacement = SessionAuthority(runner, profile_id='fixture', instance_id='replacement-instance', db=db, epoch=next_epoch)
+            replacement.sessions['s'] = LiveSession(None, 'fixture-route')
+            new_handle = await replacement.resolve(actor, ref)
+            assert new_handle.execution_state == 'unknown' and new_handle.authority_epoch == next_epoch and (new_handle.execution_generation == claimed['generation'])
+            passed('replacement_handle_exposes_unknown_generation')
+            refused_call(lambda: claim_session_input(db, epoch=next_epoch, session_id='s'), 'unknown_execution')
+            assert get_session_admission(db, admission_id=one['admission_id'])['status'] == 'unknown' and history() == [('user', 'fixture user'), ('assistant', 'fixture assistant')]
+            passed('unknown_execution_blocks_another_claim')
+            for connection in connections:
+                await connection.close()
+            assert all((connection.actor.transport_id not in authority.events for connection in connections))
+            passed('connection_close_releases_transport_registration')
+        finally:
+            db.close()
+    asyncio.run(behavior())
+    assert len(cases) == len(set(cases)) == 24, cases
+    for name, module in sorted(sys.modules.items()):
+        file = getattr(module, '__file__', None)
+        if file:
+            path = Path(file).resolve()
+            if path.is_relative_to(source) and path.is_file():
+                loaded.append(dict(module=name, path=path.relative_to(source).as_posix(), sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    for name in ('hermes_state', 'gateway.session_authority', 'gateway.session_controls'):
+        assert Path(sys.modules[name].__file__).resolve().is_relative_to(source)
+    assert not denied
+    report = dict(state='PASS_BOUNDED_REAL_AUTHORITY_COMPONENT_BEHAVIOR', source=str(source), sourceCommit=SOURCE_COMMIT, python=sys.version.split()[0], projectModules=loaded, deniedEvents=denied, expectedMissingProbes=missing_os_probe_reads, codeLoadedFromPinnedCheckout=True, sessionOperationsExecuted=True, cases=cases, ownedSocketEvents=owned_socket_events, scope='Isolated dependency-site reuse and Python audit hooks; not an OS sandbox, server, inference or deployed acceptance.')
+except BaseException:
+    report = dict(state='BEHAVIOR_FAILED_PRESERVED', source=str(source), deniedEvents=denied, denialDetails=denial_details, traceback=traceback.format_exc(), passedBeforeFailure=cases, projectModules=loaded)
+    raise
+finally:
+    (root / 'result.json').write_text(json.dumps(report, indent=2) + '\n')
+print(json.dumps(dict(state=report['state'], python=report['python'], modules=len(loaded), denied=denied, sessionOperations=True, cases=len(cases))))

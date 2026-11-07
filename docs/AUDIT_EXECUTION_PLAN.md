@@ -486,3 +486,12 @@ gates before dependent merges. Continue separately scoped canonical attachment,
 handle/replay identity, exact cwd approval, worker routing and file hydration.
 Final release2e retains its independent native/owner/publication gates; main and
 stable stay pinned. All broader audit rows remain required.
+
+
+Canonical component checkpoint: the new isolated Windows probe executes actual
+pinned2bd authority/SQLite modules, passing24 ownership, attach/detach and
+unknown-work cases with426 module hashes and no denied operation. It preserves
+F0, uses existing dependencies and adds no application RPC. See
+[scope and remaining acceptance](contracts/2026-11-07-canonical-authority-component.md).
+Restore/adoption, authenticated transport, canonical conversation UI and exact
+worker/files/workspace routing remain required alongside every open ledger row.

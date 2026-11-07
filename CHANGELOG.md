@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a repeatable Windows component probe against pinned real Hermes authority modules for owner/profile gates, subscription cleanup and durable unknown-work recovery. Existing dependencies and fresh isolated SQLite fixtures only; deployed transport and workspace/worker acceptance remain separate.
+
 - Synchronize Demo navigation tests against the actual keyboard and stable Send control, retaining the original single tap/completion assertions and bounded native failure diagnostics.
 
 - Keep the conversation-history footer above the keyboard on compact Android31+ screens by measuring the hosting activity viewport; retain scrollable multilingual filters and the older Android inset path.

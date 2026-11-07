@@ -2611,3 +2611,37 @@ checksums were checked against that release's source policy. This is bounded
 payload-origin evidence; ELF machine/loader/hardening, native advisories, tooling,
 OS/OEM and deliberate SBOM/provenance closure remain separate. The release stays
 unpublished pending its own full native and exact owner-upgrade checks.
+
+
+## Real canonical authority component — 7 November 2026
+
+The repository's isolated Windows probe passed24 distinct cases against clean
+official2bd378e/v0.23.0 source using an existing Python3.14.9 dependency site.
+426 actual project modules were imported and hashed; no install/site hook,
+production home, inference, worker or gateway startup was used. The actual SQLite
+claim/recovery path held interrupted work unknown and refused another claim.
+The original diagnostic failure/database remain retained. See
+[precise scope and invocation](contracts/2026-11-07-canonical-authority-component.md).
+
+Clean mandatory Android tasks plus explicit release lint pass599 unique JVM
+cases in68 fresh raw XML reports, zero failures/errors/skips and fresh debug/
+release lint0. All585 frozen source inputs match;179 existing policy regressions
+pass. Preflight checks refuse existing fixture reuse and disabled assertions
+without changing the earlier result. Original CAB signers are verified.
+
+Application/dependency/workflow source remains byte-identical to feature360247e.
+Both APKs are byte-identical to the previously accepted development pair:
+app `0e71ef130d9169272ec09a870491d6ff70ae5a35da15abdf24417d4994686f84`,
+test `e297b737f360ed70e475bba6fc39e2f74e5a01e115ddb422f0668c557426b06f`.
+No new device install, native run, owner fixture or deployed-authority acceptance
+is claimed. The source freeze is closed; only these evidence documents changed
+after it. Feature111/beta.8 stays unpublished.
+
+Separately, exact-head hosted API26 artifacts now pass936 release207c and1011
+feature360 methods. Artifact SHA-256, complete committed method sets, original
+command/device receipts and bounded Send readiness traces were independently
+verified; no skips, failures or unfinished cases. Their API37 jobs remain live;
+these API26-only results are not full-cohort acceptance. Release207c has a fresh
+150-coordinate Maven OSV query with no listed findings at query time and newly
+staged exact APKs/certificate/checksums. Its publication hold and owner physical
+upgrade/connection/history/project-retention requirements remain.

@@ -2,53 +2,47 @@
 
 The full audit goal remains active. Continue every required row in
 [the execution plan](docs/AUDIT_EXECUTION_PLAN.md) in tested, regularly pushed
-chunks. Preserve original signers/data/main, TLS/profile isolation, explicit
-approvals and durable no-replay handling.
+chunks. Preserve main6b809e6, original signers/data, TLS/profile isolation,
+explicit approvals and durable no-replay handling.
 
 ## Current bounded implementation
 
-The Demo navigation test now closes the focused native keyboard and waits for
-its real activity viewport to return to the system-bar boundary, with the whole
-Send control visible, enabled and stable for200ms. It then makes the same single
-pointer click and retains the original15-second completed reply and destination
-assertions. Bounded geometry/guard metadata and native failure captures support
-full-run diagnosis; the existing isolated CI QA export retains these files.
-Application and dependency source are unchanged in this chunk.
+The isolated Windows authority probe checks a clean pinned Hermes2bd378e source
+checkout and executes real authority/SQLite modules with an existing dependency
+site. All24 ownership, subscription and unknown-work recovery cases pass;
+426 imported project modules are hashed and no boundary denial remains. The
+initial19-case diagnostic failure and committed unknown receipt are preserved.
+See docs/contracts/2026-11-07-canonical-authority-component.md for exact limits.
 
-The first diagnostic sequence passed13 methods but exposed a real transition:
-after a hide request, IME inset changed0->498 and visible bottom1280->782;
-Send moved38px during the tap interval. Guards were clear. This is evidence of
-insufficient test readiness, not reproduction of the original CI send failure.
-The original failure remains retained.
-
-Local synchronized-source acceptance:599 distinct JVM cases,both fresh lint
-variants0 errors and13 model/navigation methods on each preserved API26,
-largeAPI37 and compactAPI37 profile. All583 source inputs and original CAB keys
-are verified. No owner fixture, reset, font or geometry change was used.
-Feature111/beta.8 stays unpublished; full new-head gates remain required.
+No application/dependency/protocol/workflow source changes in this chunk. Clean
+required Android tasks and both fresh lint variants pass599 unique JVM cases,
+0 errors/failures/skips and179 existing policy cases. All585 inputs are verified;
+two preflight refusals preserve existing results. Original-key app/test APK bytes
+match the previously accepted0e71/e297 development pair. No new install/native
+run, owner credential fixture or deployed authority is claimed. Freeze closed.
 
 ## Release and remaining scope
 
-The preceding4de65ab compact-history correction has its independent599 JVM,
-both lint and90 focused native acceptance. Foundation ffd's original full gate
-42376822956 remains failed at1010/1011 API26 and1011/1012 API37; compatibility
-42376830167 separately passes179 policy,15 observer,eight registry and source
-inspections. Neither local cohort is a full gate or deployed authority proof.
+Release207c6b4 separately backports byte-identical compact-history/navigation
+fixes, has fresh original-key110/beta.7 assets,552 JVM/both lint and verified
+packaging/source/class/native-origin evidence. Its exact full Android run
+42388552581 has independently verified936 API26 methods; API37 remains live,
+expected937. Compatibility
+42388559751 passed independently verified policy/observer/registry/source gates.
+Feature360 Android42387904773 has independently verified1011 API26 methods;
+API37 remains live, expected1012. Its compatibility42387911863 passed. Retain all original2e/ffd failures.
 
-Release2e10173 remains held at110/beta.7:936 API26 pass and936/937 API37 with
-compact keyboard clipping. Old2e/e5 assets must not be published as corrected
-assets. Main6b809e6,stable1.0 and public beta.6 remain unchanged. The owner phone
-is disconnected; its earlier history/read-aloud evidence accepts prior APKs only.
+The new production APK remains unpublished. Main6b809e6 and feature360247e stay
+unchanged. Owner phone reconnection and the exact matching-signer upgrade,
+saved connection/history/project retention, final artifact/advisory/publication
+checks remain required. Prior owner evidence applies only to prior APKs.
 
 ## Exact next action
 
-Commit/push this tested chunk; register each new exact-head hosted workflow once
-and inspect terminal artifacts. Backport byte-identical ConversationBrowser and
-NavigationTest changes onto the release branch, build fresh original-key assets
-and complete its own552 JVM/full936/937 and physical matching-signer retention
-gates before publication. Preserve failures; never replay uncertain work.
-
-Continue canonical attachment/adoption and exact handles, worker routing/files,
-automation/rooms/grants, integrations/config, notifications, voice/OEM and
-security/community acceptance. Project metadata is not workspace adoption or
-execution. See docs/contracts/2026-11-07-canonical-workspace-authority.md.
+Inspect the same API37 hosted handles/artifacts without replaying runs. Finish
+exact-source release gates and the owner's physical retention check when USB
+returns; verified public assets remain locally staged under the publication hold. Continue actual
+canonical transport/restore/adoption, exact handles/replay, worker/files/workspace
+ownership and native approval/unknown-outcome validation. Automation/rooms/grants,
+integrations/config, notifications, physical voice/OEM, security and community
+closure all stay in scope. Project metadata is not workspace adoption or execution.
