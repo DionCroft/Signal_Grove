@@ -165,7 +165,12 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     val receipts=state.map {ReceiptScope(resourceScope(it),it.apiScope,dashboardUrl(it),projectReceiptHome(it))}.distinctUntilChanged().flatMapLatest {(scope,apiScope,url,home)->
         if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementVisibleResourceOperations(scope,apiScope,url,home).map {ManagementReceiptVisibility.project(it,apiScope,scope,url,home)}
     }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
-    private var generation=0L
+    // Review identity can change while ManagementState stays equal; dialogs must observe both.
+    private val reviewGenerationState=MutableStateFlow(0L)
+    val reviewGeneration=reviewGenerationState.asStateFlow()
+    private var generation:Long
+        get()=reviewGenerationState.value
+        set(value) {reviewGenerationState.value=value}
     private var work:Job?=null
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null

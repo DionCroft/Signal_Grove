@@ -82,7 +82,18 @@ class HostKanbanBoardFlowTest {
                 compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(10000) {vm.state.value.signedIn};compose.runOnUiThread {vm.refresh()};await();assertTrue(vm.state.value.loaded)
                 compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(p) {ManagementEntry(api,vm)}}}
                 compose.onNodeWithTag("management-open").performClick();tap("management-list","host-kanban-open")
-                compose.onNodeWithTag("host-kanban-list").performScrollToNode(hasTestTag("board-create"));compose.onNodeWithTag("board-create").assertIsNotEnabled();assertEquals(0,f.writes.get());read()
+                compose.onNodeWithTag("host-kanban-list").performScrollToNode(hasTestTag("board-create"));compose.onNodeWithTag("board-create").assertIsNotEnabled();assertEquals(0,f.writes.get())
+                if(mode in setOf("read-generation","review-generation")) {
+                    if(mode=="review-generation") {tap("host-kanban-list","kanban-inventory-read");compose.onNodeWithTag("kanban-read-confirm").assertIsDisplayed()}
+                    val visibleState=vm.state.value;val previousGeneration=vm.hostProjectReviewGeneration()
+                    // Clearing an already-empty detail advances review identity without changing visible state.
+                    compose.runOnUiThread {vm.closeHostKanbanDetail()}
+                    assertSame(visibleState,vm.state.value);assertTrue(vm.hostProjectReviewGeneration()>previousGeneration)
+                    if(mode=="review-generation") compose.waitUntil(5000) {compose.onAllNodesWithTag("kanban-read-confirm").fetchSemanticsNodes().isEmpty()}
+                    assertNull(vm.state.value.kanban.inventory);assertEquals(0,f.writes.get())
+                    read();assertNotNull(vm.state.value.kanban.inventory);assertEquals(0,f.writes.get());return@use
+                }
+                read()
                 if(mode=="no-anchor") {compose.onNodeWithTag("host-kanban-list").performScrollToNode(hasTestTag("board-create"));compose.onNodeWithTag("board-create").assertIsNotEnabled();assertEquals(Words.KanbanAnchorRequired,vm.kanbanBoardBlock(vm.state.value));return@use}
                 if(mode=="protected") {
                     for(target in listOf("default","archive")) {tap("host-kanban-list","board-controls-open-$target");compose.onNodeWithTag("board-controls").performScrollToNode(hasTestTag("board-action-$target-Archive"));compose.onNodeWithTag("board-action-$target-Archive").assertIsNotEnabled();compose.onNodeWithTag("board-controls").performScrollToNode(hasTestTag("board-action-$target-"+if(target=="default") "Delete" else "Switch"));compose.onNodeWithTag("board-action-$target-"+if(target=="default") "Delete" else "Switch").assertIsNotEnabled();compose.onNodeWithTag("board-controls-close").performClick()}
@@ -173,4 +184,7 @@ class HostKanbanBoardFlowTest {
     @Test fun postWriteAccessChangeRetainsAcknowledgementWithoutPrivateReadback()=exercise("home-after")
     @Test fun lostReplyRemainsBlockedAfterReadAndRequiresExplicitLocalReview()=exercise("lost")
     @Test fun cancellationDropsLateReplyAndRetainsUnknownBarrier()=exercise("held")
+    @Test fun inventoryReadApprovalRefreshesAfterGenerationOnlyChange()=exercise("read-generation")
+    @Test fun inventoryReadApprovalClosesWhenGenerationChangesWithoutVisibleStateChange()=exercise("review-generation")
+
 }

@@ -9,8 +9,8 @@ checked through the official GitHub connector: all five complete blob identities
 in the table below still match. These are pinned observations, not a claim about
 future moving refs.
 
-The typed plan now has an internal status executor and one-use approval value.
-It has no native form or user entry point yet. The required build passes575 JVM
+The original typed-plan checkpoint had an internal status executor and one-use approval value.
+That checkpoint exposed no native form; current controls are described below. Its required build passed575 JVM
 cases, but its first native fixture attempt failed and ended with a startup ANR;
 acceptance remains open. This does not close the audit row.
 
@@ -178,3 +178,11 @@ three fresh bilingual modal captures were inspected. The earlier executor's full
 968/969 device passes are separate. See VALIDATION.md for retained failures,
 hashes, full-gate requirements and the remaining real-server/worker boundaries.
 This source is not included in public beta.6.
+
+## 7 November 2026 — status/override review-generation repair
+
+The unpublished status-forms branch inherited the plain private review counter. Observable StateFlow generation is now collected by both Kanban and project dialogs, so reviews can invalidate/rebuild even when visible ManagementState remains identical. Two explicit generation-only native cases accompany the correction. Existing request/preflight/profile/receipt fences are unchanged. Patch preflight initially refused the changed Kanban context before mutation; the clean file patches and exact collector line were then applied. The earlier failed full hosted source remains failed and retained.
+
+All four required Gradle tasks passed with 577 JVM cases and zero failures/errors/skips. The same original-key QA app/test pair passed 53 forms/generation/lost-reply cases on API26 and 96 including related project/receipt cases on API37. Every expected unique method, installed APK hash, 563 frozen inputs, source archive, AVD configuration and original display/density/font scale was checked. Fresh controlled bilingual screenshots were reviewed and exposed a clipped long read-impact caption on API26. This remains an open visual defect; the existing semantic tests do not prove full caption visibility. Both existing AVDs upgraded in place without reset, reseed, resize, uninstall or data clear. No owner-phone credential fixture or production backend operation was used.
+
+These local APKs deliberately use code 111 / `1.1.0-beta.8-qa` through explicit build overrides for owned-emulator upgrades; committed source still defaults to development code 108. They are not release assets and must never replace the retained original-key beta.7 code-110 artifacts. Correct the open footer defect and add stronger layout/native-input checks before dispatching the final feature head through full hosted Android/compatibility acceptance. Live worker identity, filesystem effects and actual isolated-server status transitions remain separate open audit work. Private source archives, logs and receipts stay outside Git.

@@ -27,7 +27,7 @@ private fun kanbanField(key:String)=when(key) {
 
 @Composable fun HostKanbanDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     val visible=vm.visibleHostKanban(s)
-    val generation=vm.hostProjectReviewGeneration()
+    val generation by vm.reviewGeneration.collectAsStateWithLifecycle()
     val receiptRows by vm.receipts.collectAsStateWithLifecycle()
     val pending=vm.visibleReceipts(s,receiptRows).any {it.state in setOf("sending","unknown")}
     var statusEditor by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s),generation,visible.inventory,visible.board,visible.detail,pending) {mutableStateOf<ReviewedKanbanStatusEditor?>(null)}
