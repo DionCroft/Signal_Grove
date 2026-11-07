@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## Current priority - native send readiness and exact-head gates
+
+A diagnostic-only original13-case run exposed keyboard/frame movement after the
+old asynchronous hide request. The test now uses actual native viewport/control
+stability before its same single tap, with bounded evidence and unchanged15s
+completion assertions.599 JVM,both fresh lint0 and39 focused native methods on
+three preserved profiles pass locally. This does not reproduce or relabel the
+original ffd full failure. Complete new exact-head full gates, then corrected-
+source release backports/assets/physical retention. The compact-history fix has
+its independent90-case acceptance; all broader ledger rows remain required.
+
 ## Current priority - compact keyboard and release hold
 
 The host-activity viewport correction has599 JVM,both fresh lint0 and30 unchanged

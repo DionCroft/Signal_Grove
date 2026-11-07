@@ -81,10 +81,90 @@ class NavigationTest {
             throw AssertionError("Task completion control was not visible/stable: ${taskCompletionState()}",e)
         }
     }
+    private val demoSendRun=java.util.UUID.randomUUID().toString()
+    private val demoSendTrace=mutableListOf<kotlinx.serialization.json.JsonObject>()
+    private val demoSendViewportFrames=mutableListOf<String>()
+    // Diagnostic reads only: no sleep, retry, forced send or changed success condition.
+    private fun observeDemoSend(stage:String) {
+        check(stage in setOf("before-ime-dismiss","before-pointer","after-pointer","timeout"))
+        val native=Rect();val screen=IntArray(2);val window=IntArray(2)
+        var focused=false;var imeBottom=-1;var width=0;var height=0
+        compose.runOnUiThread {
+            val view=compose.activity.window.decorView
+            view.getWindowVisibleDisplayFrame(native);view.getLocationOnScreen(screen);view.getLocationInWindow(window)
+            focused=view.hasWindowFocus();width=view.width;height=view.height
+            imeBottom=androidx.core.view.ViewCompat.getRootWindowInsets(view)?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: -1
+        }
+        var bounds="unobserved";var lookup="ok"
+        try {bounds=compose.onNodeWithContentDescription(Words.Send.localized(AppPreferences())).fetchSemanticsNode().boundsInWindow.toString()}
+        catch(error:Exception) {lookup=error.javaClass.simpleName}
+        val observation=kotlinx.serialization.json.buildJsonObject {
+            put("stage",kotlinx.serialization.json.JsonPrimitive(stage));put("uptimeMs",kotlinx.serialization.json.JsonPrimitive(android.os.SystemClock.uptimeMillis()))
+            put("visibleFrame",kotlinx.serialization.json.JsonPrimitive(native.toShortString()));put("sendBoundsInWindow",kotlinx.serialization.json.JsonPrimitive(bounds))
+            put("screenOffsetX",kotlinx.serialization.json.JsonPrimitive(screen[0]-window[0]));put("screenOffsetY",kotlinx.serialization.json.JsonPrimitive(screen[1]-window[1]))
+            put("decorWidth",kotlinx.serialization.json.JsonPrimitive(width));put("decorHeight",kotlinx.serialization.json.JsonPrimitive(height));put("imeBottom",kotlinx.serialization.json.JsonPrimitive(imeBottom))
+            put("windowFocused",kotlinx.serialization.json.JsonPrimitive(focused));put("lookup",kotlinx.serialization.json.JsonPrimitive(lookup))
+            put("busy",kotlinx.serialization.json.JsonPrimitive(vm.busy.value));put("controlBusy",kotlinx.serialization.json.JsonPrimitive(vm.controlBusy.value));put("connecting",kotlinx.serialization.json.JsonPrimitive(vm.connecting.value))
+            put("scopeIsDemo",kotlinx.serialization.json.JsonPrimitive(vm.profileScope.value=="demo"));put("draftLength",kotlinx.serialization.json.JsonPrimitive(vm.draft.value.length))
+            put("viewportFrames",kotlinx.serialization.json.JsonArray(demoSendViewportFrames.map {kotlinx.serialization.json.JsonPrimitive(it)}))
+        }
+        check(demoSendTrace.size<4);demoSendTrace+=observation
+        val report=kotlinx.serialization.json.JsonArray(demoSendTrace).toString();check(report.toByteArray().size<=16384)
+        val directory=File(compose.activity.getExternalFilesDir(null),"qa");check(directory.isDirectory || directory.mkdirs())
+        File(directory,"navigation-demo-send-$demoSendRun.json").writeText(report)
+    }
+    private fun awaitDemoSendControl() {
+        var previous:String?=null;var stableSince=0L
+        try {
+            compose.waitUntil(5000) {
+                var ready=false
+                val geometry=try {
+                    val target=compose.onNodeWithContentDescription(Words.Send.localized(AppPreferences()))
+                    val bounds=target.assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInWindow
+                    val visible=Rect();val screen=IntArray(2);val window=IntArray(2)
+                    var focused=false;var expectedBottom=0;var imeBottom=-1
+                    compose.runOnUiThread {
+                        val view=compose.activity.window.decorView
+                        view.getWindowVisibleDisplayFrame(visible);view.getLocationOnScreen(screen);view.getLocationInWindow(window)
+                        focused=view.hasWindowFocus()
+                        val insets=androidx.core.view.ViewCompat.getRootWindowInsets(view)
+                        val metrics=android.util.DisplayMetrics()
+                        @Suppress("DEPRECATION")
+                        view.display.getRealMetrics(metrics)
+                        expectedBottom=metrics.heightPixels-(insets?.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())?.bottom ?: 0)
+                        imeBottom=insets?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: -1
+                    }
+                    val control=Rect(kotlin.math.floor(bounds.left).toInt()+screen[0]-window[0],kotlin.math.floor(bounds.top).toInt()+screen[1]-window[1],kotlin.math.ceil(bounds.right).toInt()+screen[0]-window[0],kotlin.math.ceil(bounds.bottom).toInt()+screen[1]-window[1])
+                    // Pre-30 inferred IME insets can remain stale; the real visible frame must
+                    // return to the system-bar boundary, and contain the entire stable control.
+                    val imeSettled=android.os.Build.VERSION.SDK_INT<30 || imeBottom==0
+                    ready=focused && imeSettled && !control.isEmpty && visible.contains(control) && expectedBottom>0 && visible.bottom>=expectedBottom && !vm.busy.value && !vm.controlBusy.value && !vm.connecting.value && vm.draft.value=="A test question"
+                    "visible=${visible.toShortString()}, expectedBottom=$expectedBottom, control=${control.toShortString()}, focused=$focused, imeBottom=$imeBottom, ready=$ready"
+                } catch(error:Throwable) {"lookup="+error.javaClass.simpleName}
+                if(demoSendViewportFrames.lastOrNull()!=geometry) {
+                    if(demoSendViewportFrames.size==8) demoSendViewportFrames.removeAt(0)
+                    demoSendViewportFrames+=geometry
+                }
+                val now=android.os.SystemClock.uptimeMillis()
+                if(!ready || geometry!=previous) {previous=geometry;stableSince=now;false} else now-stableSince>=200
+            }
+        } catch(error:Throwable) {
+            runCatching {captureDemoSendFailure()}
+            throw AssertionError("Demo send control was not visible/stable: $demoSendViewportFrames",error)
+        }
+    }
+    private fun captureDemoSendFailure() {
+        val bitmap=checkNotNull(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+        try {
+            val directory=File(compose.activity.getExternalFilesDir(null),"qa");check(directory.isDirectory || directory.mkdirs())
+            File(directory,"navigation-demo-send-failure-$demoSendRun.png").outputStream().use {check(bitmap.compress(Bitmap.CompressFormat.PNG,100,it))}
+        } finally {bitmap.recycle()}
+    }
     @Test fun demoConversationStreamsAndEveryDestinationOpens() {
         compose.onNodeWithText("New conversation",useUnmergedTree=true).performScrollTo().performClick()
         compose.onNode(hasSetTextAction()).performTextInput("A test question")
         compose.waitUntil(5000) {vm.draft.value=="A test question" && !vm.connecting.value}
+        observeDemoSend("before-ime-dismiss")
         compose.runOnUiThread {
             compose.activity.currentFocus?.clearFocus()
             androidx.core.view.WindowInsetsControllerCompat(compose.activity.window,compose.activity.window.decorView).hide(androidx.core.view.WindowInsetsCompat.Type.ime())
@@ -92,9 +172,15 @@ class NavigationTest {
         // Pre-30 IME insets are inferred and can retain a stale height after dismissal.
         if(android.os.Build.VERSION.SDK_INT>=30) compose.waitUntil(5000) {(androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: 0)==0}
         compose.waitForIdle()
+        closeFocusedKeyboard();awaitDemoSendControl()
+        observeDemoSend("before-pointer")
         compose.onNodeWithContentDescription(Words.Send.localized(AppPreferences())).assertIsEnabled().performClick()
+        observeDemoSend("after-pointer")
         try {compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}}
-        catch(e:androidx.compose.ui.test.ComposeTimeoutException) {fail("Demo send: busy=${vm.busy.value}, status=${vm.runStatus.value}, connection=${vm.connectionStatus.value}, connecting=${vm.connecting.value}, draftLength=${vm.draft.value.length}, error=${vm.error.value}")}
+        catch(e:androidx.compose.ui.test.ComposeTimeoutException) {
+            runCatching {observeDemoSend("timeout")};runCatching {captureDemoSendFailure()}
+            fail("Demo send: busy=${vm.busy.value}, status=${vm.runStatus.value}, connection=${vm.connectionStatus.value}, connecting=${vm.connecting.value}, controlBusy=${vm.controlBusy.value}, draftLength=${vm.draft.value.length}, error=${vm.error.value}; geometry=$demoSendTrace")
+        }
         compose.onNodeWithContentDescription(Words.Completed.localized(AppPreferences())).assertExists()
         screenshot("chat-demo")
         go(Words.Tasks);compose.onNodeWithText("Personal tasks stay on this device.",substring=true).assertExists()

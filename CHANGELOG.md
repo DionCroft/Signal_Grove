@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Synchronize Demo navigation tests against the actual keyboard and stable Send control, retaining the original single tap/completion assertions and bounded native failure diagnostics.
+
 - Keep the conversation-history footer above the keyboard on compact Android31+ screens by measuring the hosting activity viewport; retain scrollable multilingual filters and the older Android inset path.
 
 - Keep multilingual status-form and review actions readable above the keyboard and system bars, with short accessible read captions, scrollable headings and unchanged explicit approval guards.

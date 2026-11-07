@@ -2,49 +2,53 @@
 
 The full audit goal remains active. Continue every required row in
 [the execution plan](docs/AUDIT_EXECUTION_PLAN.md) in tested, regularly pushed
-chunks. Preserve data, original signers, main, TLS/profile isolation, explicit
+chunks. Preserve original signers/data/main, TLS/profile isolation, explicit
 approvals and durable no-replay handling.
 
 ## Current bounded implementation
 
-Conversation history now measures the hosting activity's visible viewport on
-Android31+ and limits the entire dialog, leaving its weighted list scrollable
-and footer above the keyboard. Older Android retains its existing inset path.
-The compact1920px profile reproduces the original failure and passes the same
-unchanged native paging/Close test after the correction. The first dialog-local
-measurement attempt failed on compact37 and remains retained.
+The Demo navigation test now closes the focused native keyboard and waits for
+its real activity viewport to return to the system-bar boundary, with the whole
+Send control visible, enabled and stable for200ms. It then makes the same single
+pointer click and retains the original15-second completed reply and destination
+assertions. Bounded geometry/guard metadata and native failure captures support
+full-run diagnosis; the existing isolated CI QA export retains these files.
+Application and dependency source are unchanged in this chunk.
 
-Local acceptance:599 distinct JVM cases, fresh debug/release lint0, original CAB
-signers and30 unchanged history/image/title/setup native methods on each preserved
-API26, largeAPI37 and compactAPI37 profile.583 source inputs were frozen through
-build/native acceptance; only these documents change after freeze closure.
-Feature defaults remain111/beta.8 and unpublished. This is bounded local
-acceptance; complete new-head hosted and physical upgrade gates remain open.
+The first diagnostic sequence passed13 methods but exposed a real transition:
+after a hide request, IME inset changed0->498 and visible bottom1280->782;
+Send moved38px during the tap interval. Guards were clear. This is evidence of
+insufficient test readiness, not reproduction of the original CI send failure.
+The original failure remains retained.
 
-## Retained hosted results
+Local synchronized-source acceptance:599 distinct JVM cases,both fresh lint
+variants0 errors and13 model/navigation methods on each preserved API26,
+largeAPI37 and compactAPI37 profile. All583 source inputs and original CAB keys
+are verified. No owner fixture, reset, font or geometry change was used.
+Feature111/beta.8 stays unpublished; full new-head gates remain required.
 
-Foundation ffd6607:599 JVM and both fresh lint pass. Full native run42376822956
-fails API26 at1010/1011 (Demo send test) and API37 at1011/1012 (compact history
-keyboard clipping), with no skips or unfinished methods. Both original artifacts
-were independently digest checked. No full feature acceptance is claimed.
-Compatibility42376830167 passes179 policy,15 observer,eight registry cases and
-source inspections; this does not certify deployed canonical session authority.
+## Release and remaining scope
 
-Release2e10173 remains held at110/beta.7. Its API26 full936 methods pass; API37
-fails936/937 at the compact keyboard case. The original-key signed assets are
-explicitly held and must not be published or reused as corrected-source assets.
-Stable1.0/main6b809e6 and public beta.6 remain unchanged.
+The preceding4de65ab compact-history correction has its independent599 JVM,
+both lint and90 focused native acceptance. Foundation ffd's original full gate
+42376822956 remains failed at1010/1011 API26 and1011/1012 API37; compatibility
+42376830167 separately passes179 policy,15 observer,eight registry and source
+inspections. Neither local cohort is a full gate or deployed authority proof.
+
+Release2e10173 remains held at110/beta.7:936 API26 pass and936/937 API37 with
+compact keyboard clipping. Old2e/e5 assets must not be published as corrected
+assets. Main6b809e6,stable1.0 and public beta.6 remain unchanged. The owner phone
+is disconnected; its earlier history/read-aloud evidence accepts prior APKs only.
 
 ## Exact next action
 
-Investigate the retained API26 Demo send/input failure without relaxing its
-outcome assertions. Backport the byte-identical compact-history correction to
-the release branch, build fresh original-key assets and complete exact-head
-hosted gates. The owner phone is disconnected; prior installed chat/history
-retention and read-aloud evidence do not accept a new APK. Complete approved
-matching-signer upgrade/readback when reconnected, then publish verified assets.
+Commit/push this tested chunk; register each new exact-head hosted workflow once
+and inspect terminal artifacts. Backport byte-identical ConversationBrowser and
+NavigationTest changes onto the release branch, build fresh original-key assets
+and complete its own552 JVM/full936/937 and physical matching-signer retention
+gates before publication. Preserve failures; never replay uncertain work.
 
-Continue canonical attachment/adoption, exact session handles, worker routing,
-files, automation/rooms/grants, integrations/config, notifications, voice/OEM and
-security/community closure. Project metadata is not workspace adoption or
+Continue canonical attachment/adoption and exact handles, worker routing/files,
+automation/rooms/grants, integrations/config, notifications, voice/OEM and
+security/community acceptance. Project metadata is not workspace adoption or
 execution. See docs/contracts/2026-11-07-canonical-workspace-authority.md.

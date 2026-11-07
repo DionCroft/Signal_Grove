@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## 2026-11-07 - native Demo-send readiness and retained diagnostics
+
+The original13-case model/navigation diagnostic sequence passed on API26 with
+unchanged application0e71 and companion604158. Its metadata records the real
+keyboard appearing after an asynchronous hide request: inset0->498, native
+visible bottom1280->782 and Send moving38px during the pointer interval. Busy,
+control and connecting guards were clear. This does not reproduce or relabel the
+original full-run failure, but disproves the old test's assumed settled viewport.
+
+NavigationTest now closes the actual focused keyboard, requires a full native
+visible frame to the system-bar boundary, checks the entire displayed/enabled
+Send target and clear send guards, then waits for200ms of unchanged geometry.
+Pre30 inferred IME height alone is not used as readiness. The single original
+pointer and15-second completed-reply/destination assertions remain. There is no
+forced VM send, retry, timeout increase or application/dependency change.
+At most four observations retain geometry/booleans/lengths, not prompt or
+credential values; failure adds a native emulator screenshot. The existing CI
+QA-directory export already retains these JSON/PNG files; no collector change.
+
+Clean required tasks and explicit lintRelease pass599 unique JVM cases with
+zero failures/errors/skips and both fresh lint variants0 errors. All13 model/
+navigation methods pass on each preserved API26(720x1280,density320,font1.3),
+largeAPI37(1080x2400,density420,font1.0) and compactAPI37(1080x1920,density420,
+font1.0). Exact method sets,39 terminal positives, full readiness traces,583
+source hashes, AVD configs and original CAB signers are verified. No uninstall,
+reset, downgrade, geometry/font change or owner fixture occurred.
+App:`0e71ef130d9169272ec09a870491d6ff70ae5a35da15abdf24417d4994686f84`; companion:`e297b737f360ed70e475bba6fc39e2f74e5a01e115ddb422f0668c557426b06f`.
+This is focused local acceptance; original ffd full CI failures remain failed.
+The earlier4de compact-history90-case cohort remains a separate acceptance.
+
+New exact-commit complete Android and compatibility gates are required before
+merge. Release2e/e5 holds remain; fresh corrected-source signed assets, release
+full gates and matching-signer physical retention precede publication. Broader
+project/workspace/worker/integration and hardware acceptance remain open.
+
 ## 2026-11-07 - compact history keyboard correction
 
 On the stock1080x1920 API37 profile, the original history dialog placed its
