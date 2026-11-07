@@ -27,6 +27,16 @@ class Milestone02Test {
         compose.waitForIdle()
     }
     private fun go(w:Words)=compose.onNodeWithContentDescription(w.localized(AppPreferences()),useUnmergedTree=true).performClick()
+    private fun historyAction(word:Words) {
+        val description=word.localized(AppPreferences())
+        compose.onNodeWithTag("conversation-browser").performScrollToNode(hasContentDescription(description))
+        compose.onNodeWithContentDescription(description,useUnmergedTree=true).assertIsDisplayed().assertIsEnabled().performClick()
+    }
+    private fun historyScreenshot() {
+        compose.waitForIdle();val ui=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation;ui.waitForIdle(250,5000)
+        val image=checkNotNull(ui.takeScreenshot());val file=File(compose.activity.getExternalFilesDir(null),"qa/legacy-history-row-"+java.util.UUID.randomUUID()+".png");file.parentFile!!.mkdirs()
+        file.outputStream().use {assertTrue(image.compress(Bitmap.CompressFormat.PNG,100,it))};image.recycle()
+    }
     private fun sendScreenshot(name:String) {
         val shot=File(compose.activity.getExternalFilesDir(null),"qa/$name.png");shot.parentFile!!.mkdirs()
         shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
@@ -73,13 +83,19 @@ class Milestone02Test {
         compose.onNodeWithContentDescription(Words.Completed.localized(AppPreferences())).assertExists()
         go(Words.History)
         compose.onNode(hasSetTextAction() and hasText(Words.Search.localized(AppPreferences()))).performTextInput("sample")
-        go(Words.Pin);go(Words.Rename)
+        closeDialogKeyboard()
+        compose.onNodeWithTag("conversation-browser").performScrollToNode(hasContentDescription(Words.Pin.localized(AppPreferences())))
+        compose.onNodeWithContentDescription(Words.Pin.localized(AppPreferences()),useUnmergedTree=true).assertIsDisplayed().assertIsEnabled()
+        historyScreenshot()
+        historyAction(Words.Pin);historyAction(Words.Rename)
         compose.onNode(hasSetTextAction() and hasText(Words.ConversationTitle.localized(AppPreferences()))).performTextReplacement("Renamed sample")
-        compose.onNodeWithText(Words.Save.localized(AppPreferences())).performClick()
+        closeDialogKeyboard()
+        compose.onNodeWithText(Words.Save.localized(AppPreferences())).assertIsDisplayed().assertIsEnabled().performClick()
         compose.waitUntil(5000) {runBlocking {app.database.dao().conversations("demo").first().singleOrNull()?.title=="Renamed sample"}}
         assertTrue(runBlocking {app.database.dao().conversations("demo").first().single().pinned})
-        go(Words.Delete)
-        compose.onNode(hasText(Words.Delete.localized(AppPreferences())) and hasClickAction()).performClick()
+        closeDialogKeyboard()
+        historyAction(Words.Delete)
+        compose.onNode(hasText(Words.Delete.localized(AppPreferences())) and hasClickAction()).assertIsDisplayed().assertIsEnabled().performClick()
         compose.waitUntil(5000) {runBlocking {app.database.dao().conversations("demo").first().isEmpty()}}
     }
     @Test fun notesAreSavedAndCanBeSearched() {
