@@ -2,6 +2,13 @@
 
 The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.6`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6), code 107; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
 
+
+### Existing Hermes chats and projects (beta.7 candidate)
+
+Open **Chat → Conversation history**. Scroll the history body to the source filter; API, Desktop, Discord, CLI and other origins come from the server. Search/source filters apply to loaded rows; **More** fetches older pages. Foreign and unknown histories open read-only, with the full reason behind **Read-only history**. Continue those conversations in their original client or open an API conversation for phone replies. After a cold launch, reopen the desired conversation from history.
+
+For project metadata, open **Settings → Hermes management**, refresh your retained sign-in, then choose **Host projects → Read stored projects**. Review the address/profile/read effects and confirm. Use **Refresh project details** on the intended row to inspect its canonical record. Stored folders and the host active-project pointer do not select a phone chat workspace or prove Windows/NAS worker access. Keep engineering operations on their verified owner. [Beta.7 scope and release gates](releases/1.1.0-beta.7.md).
+
 ## Install and migrate
 
 The `1.1.0-beta.1` preview introduced the pixel interface and approved in-app updates. Install the [current beta.4 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4) once to get the current updater; 1.0.0 cannot check for updates itself. After the repository rename, previews through beta.3 need one matching signed beta.4 APK upgrade from its [release page](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.4). Install over the existing package with the original signer; do not uninstall. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
