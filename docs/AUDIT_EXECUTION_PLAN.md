@@ -70,3 +70,7 @@ auth/plugin helper watch review. Upgrade the owner phone without resetting data;
 then deliver native override forms and typed status from verified contracts. Continue physical
 background/audio acceptance and the isolated real-Hermes matrix independently. Update this ledger at each
 meaningful commit/merge/release, preserving remaining requirements.
+
+## 7 November — priority release validation correction
+
+The b02 full API37 run remains failed:820 positive, one image-share no-root wait exception and116 unfinished at75 minutes; API26 passed936. The correction now has a clean required build/548 JVM,14 CI-runner and24 focused native passes per API, without changing production inputs. Carry the already-reviewed95-minute budget and retain finite waits, one invocation and all failures. Gate the new exact source before final signed publication. The independent status-dialog checkpoint39e7538 has577 JVM/four affected native UI passes/ten reviewed captures, but needs hotfix reconciliation and final full feature gates. The complete remaining audit ledger stays required.
