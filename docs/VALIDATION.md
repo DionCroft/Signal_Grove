@@ -1815,3 +1815,21 @@ Read-only owner-Pi API/health and model-observer checks also returned200, with
 credentials kept on the Pi and no model/default/service/agent-work changes.
 Neither observation certifies the phone's current request choice or worker
 project execution. The566-input local source freeze is now closed.
+
+## 7 November — explicit CI release-variant checks and raw reports
+
+The backport is committed/pushed at cceaeb0 with552 unique JVM cases, fresh
+debug and separately requested release lint, original debug signing and566
+frozen inputs. The four actual common Git objects equal the tested feature
+bytes exactly. An export-only CRLF archive difference was checked explicitly;
+the same commit was pushed without changing source or recreating the commit.
+
+Android CI now explicitly requests lintRelease, requires both variant XML files,
+and retains raw lint/JVM XML in its existing build artifact. Action pins,
+permissions, concurrency, deadlines and the entire native-device job are
+unchanged. Contributor instructions distinguish default debug lint from release
+validation and require artifact/source identity. This corrects the cached-report
+verification gap; the earlier scope qualification remains in this record.
+Full final-head CI and final signed release/upgrade/download checks remain
+pending. No APK, runtime server, model/default, key or app data changes are part
+of this configuration-only follow-up.

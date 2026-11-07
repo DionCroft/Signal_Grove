@@ -52,3 +52,13 @@ fresh release check; preserve that distinction. Fresh official mainaf5 source
 watch passes against the unchanged F0 baseline; stablev0.23.0 remains2bd.
 Owner-Pi authenticated API/health/observer reads returned200 with no state/model
 changes. These do not close canonical authority or project-worker execution.
+
+## CI report follow-up
+
+The common UI backport is committed/pushed at cceaeb0. The current separate
+configuration change explicitly requests release lint in Android CI, requires
+both lint XML reports and retains raw JVM/lint XML. Contributor instructions
+record variant/artifact scope. Native jobs, budgets, pins and permissions stay
+unchanged. Validate the existing policy checks, commit/push this bounded change,
+then dispatch full Android and compatibility once at the final exact head.
+No signed/public release assets are ready from this configuration change alone.
