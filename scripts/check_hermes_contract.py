@@ -707,6 +707,46 @@ def reviewed_handler_replacements(baseline: dict, current: dict, accepted: dict)
     return applied, incomplete
 
 
+
+def reviewed_handler_variants(baseline: dict, current: dict) -> tuple[dict, set]:
+    """Accept reviewed AST variants, optionally bound to complete source dependencies.
+
+    A guarded entry cannot authorize an unchanged AST inside changed module bytes.
+    Existing unguarded evidence retains its historical behavior. Guarded reviews
+    record exact whole-module identities, not a moving branch or a commit waiver.
+    """
+    variants = baseline.get('reviewed_handler_variants', {})
+    if not isinstance(variants, dict):
+        raise ValueError('Invalid reviewed handler variants')
+    old, new = baseline['upstream']['contract'], current['contract']
+    known_sources = old.get('source_hashes', {})
+    accepted, applied = {}, set()
+    for key, entries in variants.items():
+        if key not in baseline.get('mobile_used_handlers', []) or not isinstance(entries, list):
+            raise ValueError('Invalid reviewed handler variant target')
+        accepted[key] = set()
+        for entry in entries:
+            if (not isinstance(entry, dict)
+                    or set(entry) not in ({'sha256', 'commit', 'reason'}, {'sha256', 'commit', 'reason', 'required_sources'})
+                    or not isinstance(entry.get('sha256'), str) or not re.fullmatch(r'[a-f0-9]{64}', entry['sha256'])
+                    or not isinstance(entry.get('commit'), str) or not re.fullmatch(r'[a-f0-9]{40}', entry['commit'])
+                    or not isinstance(entry.get('reason'), str) or not entry['reason'].strip()):
+                raise ValueError('Incomplete reviewed handler variant evidence')
+            if 'required_sources' in entry:
+                guards = entry['required_sources']
+                if (not isinstance(guards, dict) or not 1 <= len(guards) <= 32
+                        or key.split(':', 1)[0] not in guards
+                        or any(source not in known_sources or not isinstance(digest, str)
+                               or not re.fullmatch(r'[a-f0-9]{64}', digest) for source, digest in guards.items())):
+                    raise ValueError('Invalid reviewed handler variant source guards')
+                if not all(new.get('source_hashes', {}).get(source) == digest for source, digest in guards.items()):
+                    continue
+                if new.get('handlers', {}).get(key) == entry['sha256']:
+                    applied.add(key)
+            accepted[key].add(entry['sha256'])
+    return accepted, applied
+
+
 def compare(baseline: dict, current: dict) -> dict:
     old, new = baseline['upstream']['contract'], current['contract']
     old_routes, new_routes = set(old['routes']), set(new['routes'])
@@ -717,18 +757,7 @@ def compare(baseline: dict, current: dict) -> dict:
     relevant = {'removed_used_routes': sorted(set(removed) & used), 'changed_used_flags': {key: value for key, value in flags.items() if key in baseline['mobile_used_static_flags']}, 'changed_job_constraints': constraints, 'removed_used_job_update_fields': sorted((set(old['job_update_fields']) & set(baseline['mobile_used_job_update_fields'])) - set(new['job_update_fields']))}
     removed_management = sorted(set(old.get('management_routes', []))-set(new.get('management_routes', [])))
     relevant['removed_used_management_routes'] = sorted(set(removed_management) & set(baseline.get('mobile_used_management_routes', [])))
-    variants=baseline.get('reviewed_handler_variants',{})
-    if not isinstance(variants,dict):raise ValueError('Invalid reviewed handler variants')
-    accepted={}
-    for key,entries in variants.items():
-        if key not in baseline.get('mobile_used_handlers',[]) or not isinstance(entries,list):raise ValueError('Invalid reviewed handler variant target')
-        accepted[key]=set()
-        for entry in entries:
-            if (not isinstance(entry,dict) or not isinstance(entry.get('sha256'),str) or not re.fullmatch(r'[a-f0-9]{64}',entry['sha256'])
-                    or not isinstance(entry.get('commit'),str) or not re.fullmatch(r'[a-f0-9]{40}',entry['commit'])
-                    or not isinstance(entry.get('reason'),str) or not entry['reason'].strip()):
-                raise ValueError('Incomplete reviewed handler variant evidence')
-            accepted[key].add(entry['sha256'])
+    accepted, guarded_variants = reviewed_handler_variants(baseline, current)
     introduced_absences=baseline.get('reviewed_handler_absences',{})
     if not isinstance(introduced_absences,dict):raise ValueError('Invalid reviewed handler absences')
     allowed_absences={}
@@ -754,7 +783,7 @@ def compare(baseline: dict, current: dict) -> dict:
             relevant['changed_used_handlers'][key]={'before':None,'after':None,'required_introduced_handler_missing':True}
     relevant['changed_used_request_fields'] = {key: {'before': old.get('request_fields', {}).get(key), 'after': new.get('request_fields', {}).get(key)}
         for key in baseline.get('mobile_used_request_fields', []) if old.get('request_fields', {}).get(key) != new.get('request_fields', {}).get(key)}
-    return {'baseline_commit': baseline['upstream']['commit'], 'reviewed_handler_replacements_applied': sorted(replaced), 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs only; transitive helper changes, runtime feature gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}
+    return {'baseline_commit': baseline['upstream']['commit'], 'reviewed_source_guarded_variants_applied': sorted(guarded_variants), 'reviewed_handler_replacements_applied': sorted(replaced), 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs; source-guarded variants also bind their selected complete modules. Other transitive helpers, runtime gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)

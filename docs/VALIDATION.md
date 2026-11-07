@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## 2026-11-07 — source-bound Yuanbao compatibility review
+
+The ef5 compatibility run42345791438 remains failed for real main981 drift,
+while its157 parser/15 runtime/8 pinned-module cases passed. All three artifact
+ZIP digests were independently verified. See the [review](contracts/UPSTREAM_981791D_REVIEW.md)
+for primary sources, hashes, client scope and limitations.
+
+The correction adds six variants bound to four complete source modules, strict
+guard validation and nine counterfactual policy regressions. Local166 parser
+and15 runtime cases pass. Digest-verified saved stable/main reports recompare
+cleanly, and eight source-identity counterfactuals re-open all six findings.
+Separate controlled39 checks used verified AST functions with fake imports and
+environments; no full upstream module or live migration/account was executed.
+F0/all prior evidence remain intact. Android production/test/build inputs are
+unchanged from ef5; its retained548 JVM/24 focused native per API evidence is
+not relabeled as a fresh full gate for this tooling commit.
+
+The ef5 Android run42345795933 passed build/lint/JVM and is running both full
+device suites. Do not cancel a healthy suite merely for observation time.
+Fresh exact-source complete hosted gates, signed110/beta.7 assets and public
+download verification remain required. No beta7 release has been created.
+
 ## 2026-11-06 — title regression catalog fixture correction
 
 The wider development108 integration retained167 focused positives and one

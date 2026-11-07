@@ -74,3 +74,17 @@ meaningful commit/merge/release, preserving remaining requirements.
 ## 7 November — priority release validation correction
 
 The b02 full API37 run remains failed:820 positive, one image-share no-root wait exception and116 unfinished at75 minutes; API26 passed936. The correction now has a clean required build/548 JVM,14 CI-runner and24 focused native passes per API, without changing production inputs. Carry the already-reviewed95-minute budget and retain finite waits, one invocation and all failures. Gate the new exact source before final signed publication. The independent status-dialog checkpoint39e7538 has577 JVM/four affected native UI passes/ten reviewed captures, but needs hotfix reconciliation and final full feature gates. The complete remaining audit ledger stays required.
+
+## 7 November — upstream plugin compatibility checkpoint
+
+Ef5 Android42345795933 passed build/lint/JVM; both complete device suites are
+running. Compatibility42345791438 failed on genuine main981 Yuanbao/migration
+drift. A reviewed tooling correction now binds all six variants to four full
+modules;166 parser/15 runtime tests,39 controlled-function checks and eight
+saved-report source counterfactuals pass. The failed run is retained, F0 remains
+intact, no app/Pi behavior changed, and the new source still needs its own gates.
+See contracts/UPSTREAM_981791D_REVIEW.md. Prior owner production110 retained-data,
+actual API chat, read-only foreign transcripts and project metadata checks remain
+bounded acceptance, not general worker/workspace/shared-chat certification.
+The independent status feature39e7538 remains unshipped. Every broader ledger
+row remains required; final signed candidate assets/publication are pending.

@@ -8538,6 +8538,84 @@
         "commit": "e36d4e57359074d0f9e8ccc8981bca16b893ad7f",
         "reason": "E36 auth registry/shared engine refactor; exact-name normalization, scoped maps, locking and identity-checked snapshot/restore reviewed and exercised by eight pinned real-module cases. Original F0 implementation retained."
       }
+    ],
+    "channel_catalog:binding:_PLATFORM_ORDER": [
+      {
+        "sha256": "63dbf1f2276f0f75c55b39bc5dd3aa1ef313fd012d9048c4b9c1263503816196",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Yuanbao leaves the built-in channel order; the client consumes discovered channels, never a local platform table. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "channel_config:schema:Platform": [
+      {
+        "sha256": "403dec3b589fa496cddb44a12f96e68e54d89adcee285ea69efad552f22cf39c",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Yuanbao leaves the core enum; plugin discovery owns its runtime registration, without client-side alias or installation inference. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "env_config:_worker_config_snapshot": [
+      {
+        "sha256": "3e194951f7a604bd3d9658ceb8cf00c9260c5bdedca90e3e3f2ce64a82d7e6d5",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "The root-agent import fallback remains equivalent for normal module names; unrelated missing dependencies still propagate in controlled before/after probes. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "plugin_legacy:LEFT_CORE": [
+      {
+        "sha256": "55a7d0ed11c93c1957137b060a359f256be16f53c182fe34ed3a3d7845aa9bf2",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Yuanbao becomes a catalog plugin with legacy key and manifest aliases, preserved disable/toolset intent, merged config and home-bound secret lookup. No client-side migration is authorized. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "plugin_legacy:legacy_plugin_alias": [
+      {
+        "sha256": "f919efd87703b3bd268ff84a9231a4b123eec59c1e232087c894ed970e398240",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Both platforms/yuanbao and yuanbao-platform map to catalog yuanbao; pre-existing mappings and unknown/case/space handling remain unchanged. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
+    ],
+    "plugin_legacy:legacy_plugin_keys": [
+      {
+        "sha256": "c35bc9263c6cb04729f9761f398422c357a8d2b0347e0e5a4bb20d1d657c302e",
+        "commit": "981791d9d41fd2efde27f563873ce8c48ef1dac6",
+        "reason": "Inverse legacy keys include both Yuanbao aliases; installed key/name, explicit review and exact receipts remain server-owned. Review and limitations: docs/contracts/UPSTREAM_981791D_REVIEW.md. All four reviewed module byte identities are required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      }
     ]
   },
   "reviewed_source_introductions": {
