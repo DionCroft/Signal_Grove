@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## 7 November 2026 — actual dashboard native auth and profile history
+
+On test/native-auth-history-matrix afterfac15fd, the repository probe executes
+the actual pinned Hermes ASGI app and lifespan, auth middleware, native broker
+and SessionDB readers with its upstream synthetic HMAC IdP. Both explicit
+stable2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19 and
+priorbf0203a794a07aac3ff764972ab9087baa4e4f4e pass21 distinct cases each.
+Stable imports819 project modules, prior765; actual file SHA inventories are
+retained.23 selected source blobs per revision, source HEAD and cleanliness are
+verified before execution. No owner credentials, Pi writes or installations.
+
+Coverage includes real authorize/callback/code exchange, no access cookie,
+cookieless bearer verification, same-identity refresh dispatch, invalid token/
+refresh responses, loopback/S256 enforcement, one-use code/wrong-verifier
+consumption without an error oracle, and profile inventories/transcripts. Two
+fresh profiles use the same session ID but return their own messages; foreign-
+only IDs return404 and an unknown profile is not created. Seeded session rows
+and messages match after browsing. This does not prove IdP refresh-token rotation.
+
+Four CLI refusal checks pass (existing output, -O, wrong source pin and unknown
+revision), preserving the existing fixture and creating no invalid fresh output.
+180 host policy cases pass. Required Android tasks plus release lint pass
+incrementally; all71 raw reports (69 JVM XML and both lint XML) and the exact
+original-keya879/46af debug APK bytes match the earlier fresh608/bothlint0 proof.
+592 frozen inputs and raw archive match. No fresh JVM/native run or install.
+
+The first six-case smoke passed its auth assertions but failed the boundary
+check on13 unexpected metadata subprocess attempts. That failed receipt remains.
+Version/source/safe-directory call sites, argv and cwd were reviewed and pinned;
+both accepted sources still block all13 exact attempts, recording them separately.
+There are0 unexpected denials and no spawned dashboard metadata Git command.
+Two separate read-only Git preflight checks precede the audit hook. Hooks are
+defense in depth, not an OS sandbox; nothing is patched into upstream behavior.
+
+This is actual ASGI/auth/store coverage with a synthetic IdP. Android browser
+callback delivery, TCP/TLS/reverse proxy, real identities, deployed Pi, canonical
+restore/adoption and worker/files/workspace effects remain separate acceptance.
+The original F0 contract and full audit ledger remain unchanged in scope.
+
+
 ## 7 November 2026 — scoped native job-run history
 
 Unpublished feat/cron-run-history, parent74be195. Fresh required Android

@@ -2,6 +2,9 @@
 
 ## Unreleased — scoped scheduled-job history
 
+- Added a pinned real-dashboard native-auth/profile-history regression matrix;
+  Android/browser, deployment and real identity providers remain separate checks.
+
 - Added a bounded recent-runs read in the authenticated host schedule detail.
   Private run text requires reveal; refresh, close and connection changes clear it.
 - Refuse missing or mismatched run ownership. Reviewed Hermes versions omit the
