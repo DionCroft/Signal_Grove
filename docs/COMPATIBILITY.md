@@ -154,3 +154,5 @@ The original F0 contract and prior review evidence are preserved. See the
 [pinned review](contracts/UPSTREAM_981791D_REVIEW.md) for hashes, controlled checks
 and live-migration limits. This adds no mobile migration, installation or Pi
 update. The original failed canary remains failed; new hosted gates are required.
+
+The later main d4 installation-root/profile cleanup is reviewed in [its own record](contracts/2026-11-07-install-root-profile-review.md). It adds a separate exact byte vector, preserving981 and the original baseline. No native profile import/rename or project-workspace authority is implied. Complete final-source gates remain required.

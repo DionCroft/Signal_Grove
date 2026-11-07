@@ -88,3 +88,7 @@ actual API chat, read-only foreign transcripts and project metadata checks remai
 bounded acceptance, not general worker/workspace/shared-chat certification.
 The independent status feature39e7538 remains unshipped. Every broader ledger
 row remains required; final signed candidate assets/publication are pending.
+
+## 7 November — installation-root/profile follow-up
+
+Main d4 advanced during the992 canary. The failed result is retained;166 parser/15 runtime/8 pinned cases passed. A separate exact source vector now has167 local parser/15 runtime passes and16 source-identity counterfactuals, preserving981/F0. No Android behavior changed. The signed992 predecessor passed its checks but remains unshipped. Final-source hosted gates, signed artifacts/publication and every remaining audit row stay required. See contracts/2026-11-07-install-root-profile-review.md.

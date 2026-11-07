@@ -8550,6 +8550,17 @@
           "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
+      },
+      {
+        "sha256": "63dbf1f2276f0f75c55b39bc5dd3aa1ef313fd012d9048c4b9c1263503816196",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
       }
     ],
     "channel_config:schema:Platform": [
@@ -8561,6 +8572,17 @@
           "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
           "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
           "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "403dec3b589fa496cddb44a12f96e68e54d89adcee285ea69efad552f22cf39c",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }
@@ -8576,6 +8598,17 @@
           "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
+      },
+      {
+        "sha256": "3e194951f7a604bd3d9658ceb8cf00c9260c5bdedca90e3e3f2ce64a82d7e6d5",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
       }
     ],
     "plugin_legacy:LEFT_CORE": [
@@ -8587,6 +8620,17 @@
           "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
           "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
           "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "55a7d0ed11c93c1957137b060a359f256be16f53c182fe34ed3a3d7845aa9bf2",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }
@@ -8602,6 +8646,17 @@
           "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
+      },
+      {
+        "sha256": "f919efd87703b3bd268ff84a9231a4b123eec59c1e232087c894ed970e398240",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
       }
     ],
     "plugin_legacy:legacy_plugin_keys": [
@@ -8613,6 +8668,17 @@
           "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
           "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
           "env_config": "f50d79e1ca5f051a78e51b162d0e88c27443acb3f6eaf1cd02074fad3b9aed5d",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "c35bc9263c6cb04729f9761f398422c357a8d2b0347e0e5a4bb20d1d657c302e",
+        "commit": "d4e7c3434209861f5cc6da0649e2df1f11f53e73",
+        "reason": "Same reviewed Yuanbao/worker ASTs with get_project_root delegated to the unchanged canonical startup helper. Complete consumed-source diff and profile tombstone cleanup reviewed in docs/contracts/2026-11-07-install-root-profile-review.md; all four module identities remain required.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }

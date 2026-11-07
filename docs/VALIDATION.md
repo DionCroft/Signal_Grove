@@ -1,5 +1,29 @@
 # Current development validation — audit follow-up
 
+## 2026-11-07 — separate d4 installation-root/profile source vector
+
+The992 hosted canary remains failed for new main d4 bytes; its166 parser/15
+runtime/8 pinned cases passed, with all three ZIP digests checked independently.
+The complete changed consumed-source diff and unchanged canonical root helper
+were reviewed. The [follow-up](contracts/2026-11-07-install-root-profile-review.md)
+retains the981 vector and adds a separate exact d4 vector, plus mixed-source
+rejection coverage.167 local parser/15 runtime cases and16 saved-snapshot source
+counterfactuals pass. The original F0/all previous entries are preserved.
+
+The signed992 predecessor passed its required build,548 JVM/zero failures,
+release/debug lint, original production/debug signers and default110/beta.7
+manifest checks. All559 frozen source inputs match the committed archive with
+explicit text-only CRLF equivalence;150 production dependencies match published
+beta6. Both APK runtime payloads match accepted b02 bytes; only VCS metadata
+differs. These are unshipped predecessor artifacts, not signed assets for this
+new commit. Final-source full hosted gates and publication remain pending.
+
+Two initial artifact-verifier attempts remain failed and retained: an obsolete
+VCS-record path, then an incorrect assumption that debug embeds that record.
+The corrected check requires production's actual embedded commit and uses frozen
+source/build evidence for debug. Production differs only in VCS metadata; the
+debug APK is byte-identical to the prior original-key default110 container.
+
 ## 2026-11-07 — source-bound Yuanbao compatibility review
 
 The ef5 compatibility run42345791438 remains failed for real main981 drift,

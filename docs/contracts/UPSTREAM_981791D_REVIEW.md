@@ -102,3 +102,10 @@ Raw private reports and probe receipts remain on the mandated temporary storage;
 no credentials or owner transcripts enter this repository. Full application
 release gates, signed final-source assets and public download verification stay
 pending. The broader audit in AUDIT_EXECUTION_PLAN remains active.
+
+## Later reviewed source vector
+
+The next canary advanced to d4; its changed config.py bytes correctly reopened
+these findings. A [separate source review](2026-11-07-install-root-profile-review.md)
+adds an additional exact four-module vector without replacing the981 evidence.
+Both complete modes remain valid; unreviewed byte combinations still need review.

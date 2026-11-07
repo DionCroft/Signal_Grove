@@ -1,53 +1,51 @@
-# Signal Grove project state — compatibility review and release gates
+# Signal Grove project state — reviewed compatibility follow-up
 
-Continue the full audit in `docs/AUDIT_EXECUTION_PLAN.md`. Preserve existing data,
-signing/package identities, main, TLS/auth/profile isolation, exact approvals and
-no replay of unknown work. Source stays here; temporary/tools/cache/evidence stay
-on the mandated temporary storage.
+Continue every required row in `docs/AUDIT_EXECUTION_PLAN.md`. Preserve data,
+package/signing identities, main, TLS/auth/profile isolation, exact approvals
+and no replay. Source stays here; tools/cache/temp/evidence stay on the mandated
+temporary storage. Keep the full goal active.
 
 ## Current bounded stage
 
-The ef5 release correction is pushed. Clean required build/548 JVM,14 CI-runner
-and24 focused history/image-share cases per API passed. Android run42345795933
-passed build/lint/JVM and its complete API26/API37 device suites are running.
-The earlier b02 source remains failed: API26 passed936; API37 had820 positives,
-one image-share no-root polling exception and116 unfinished at75 minutes. Failed
-reports remain retained and old publishers blocked. No beta7 publication exists.
+Ef5 Android run42345795933 passed build/lint/JVM548. Its complete API26/API37
+device suites are still running; inspect the same cohort until terminal, without
+canceling a healthy run just for time. Previous b02 and971 failures remain
+retained; their publishers are blocked. No beta7 release exists.
 
-The separate ef5 compatibility run42345791438 failed on genuine main981 source
-drift. Its157 parser/15 runtime/8 pinned-registry cases passed. The new reviewed
-tooling chunk binds six Yuanbao/migration variants to four exact full modules,
-preserving F0/all prior evidence. Local166 parser/15 runtime tests,39 controlled
-function checks and saved-report counterfactuals pass; see the pinned review.
-This is not a new hosted success or a Pi deployment. App/test/build inputs remain
-unchanged from ef5. The final new commit needs its own complete hosted gates.
+The992 compatibility run42348318248 passed166 parser/15 runtime/8 pinned cases
+but correctly rejected newer main d4 bytes. A further source review preserves
+F0/the981 vector and adds the exact d4 four-module vector; local167 parser/15
+runtime and16 saved-report source counterfactuals pass. Read the pinned d4 review
+for installation-root/profile cleanup effects and limits. Android/checker
+algorithm inputs are unchanged in this follow-up.
+
+Signed992 predecessor artifacts passed required build/548 JVM, release/debug
+lint, original keys, code110/beta.7 manifests,559-input provenance and150
+production dependency equality with publishedbeta6. Runtime APK payloads match
+accepted b02 bytes, with only VCS metadata differing. They remain unshipped and
+are not final signed artifacts for the new source commit. The local freeze is
+closed; no build/native source freeze is active after those proofs.
 
 ## Exact next action
 
-Commit/push this tested compatibility chunk, then dispatch its own compatibility
-gate once. Let the already-running ef5 Android cohort reach a terminal outcome
-and inspect its exact reports before the final complete Android dispatch; do not
-replay accepted requests or cancel a healthy cohort merely for elapsed time.
-Require all expected unique methods with no failures/skips, final original-key
-110/beta.7 signed assets, retained-data/provenance and public digest/download
-verification before publication. QA111/beta.8-qa remains private.
+Commit/push the tested d4 review and run its compatibility gate exactly once.
+Let the ef5 Android cohort finish and inspect all terminal reports before the
+next exact-source full Android dispatch. If it fails, fix its actual failure;
+do not redispatch unchanged failing Android inputs. Keep accepted/uncertain
+dispatch receipts and never replay them. Require every expected unique method,
+final original-key110 artifacts/provenance, fresh bounded advisory checks and
+public digest/download verification before publication. QA111 stays private.
 
-## Independent feature checkpoint
+## Independent feature and remaining work
 
-Status-dialog caption/safe-drawing/native-keyboard correction is pushed at39e7538
-on `feat/kanban-status-forms`, after577 JVM, two affected cases per API26/API37
-and ten fresh reviewed captures. Earlier failed full focused cohorts remain
-failed. Reconcile the history/release changes, version it and finish its own full
-hosted gates before shipping it.
+Status feature39e7538 remains on `feat/kanban-status-forms`, with577 JVM, two
+affected cases per API26/API37 and ten reviewed captures. Earlier failed cohorts
+remain failed. Reconcile the hotfixes, version it and close its own full gates.
+Owner production110 still retains connection/history/sign-in/request settings
+and actual API replies. Foreign transcripts are read-only; project details are
+metadata, not worker/filesystem execution or shared Bot Chat authority.
 
-## Owner acceptance and full remaining audit
-
-The existing original-key production110 upgrade retained connection/history,
-request settings, sign-in and actual API replies. Desktop/Discord transcripts are
-read-only; project details are metadata. Neither project metadata nor a serving
-observer certifies worker/filesystem execution or per-turn model identity.
-
-Workers/dispatch/events/files/pins/transfers, workspace adoption, advanced
-automation/rooms/grants, integrations/configuration, notifications, rendering/
-voice/OEM and security/community closure remain required. Keep the full goal
-active; stable1.0 and main6b809e6 remain unchanged.
+Workers/dispatch/events/files/pins/transfers, workspace adoption, automation/
+rooms/grants, integrations/configuration, notifications, rendering/voice/OEM
+and security/community closure remain required. Main6b809e6 and stable1.0 stay
+unchanged. No Pi/model/default/credential/phone/data changes in this follow-up.

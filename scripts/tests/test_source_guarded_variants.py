@@ -77,6 +77,27 @@ class SourceGuardedVariantTest(unittest.TestCase):
             self.assertTrue(result['mobile_review_required'])
             self.assertEqual([], result['reviewed_source_guarded_variants_applied'])
 
+    def test_same_ast_requires_one_complete_review_mode_without_mixing_sources(self):
+        value, _, first = self.fixture()
+        second = dict(first)
+        second['mcp'] += '\n# Second reviewed source identity.\n'
+        second['env_config'] += '\n# Second reviewed helper identity.\n'
+        current = checker.extract(second)
+        entry = copy.deepcopy(value['reviewed_handler_variants'][self.key][0])
+        entry['commit'] = 'c' * 40
+        entry['required_sources'] = {k: current['source_hashes'][k] for k in ('mcp', 'env_config')}
+        self.assertEqual(entry['sha256'], current['handlers'][self.key])
+        value['reviewed_handler_variants'][self.key].append(entry)
+        for data in (first, second):
+            self.assertFalse(self.compare(value, data)['mobile_review_required'])
+        for source in ('mcp', 'env_config'):
+            hybrid = dict(first)
+            hybrid[source] = second[source]
+            with self.subTest(source=source):
+                result = self.compare(value, hybrid)
+                self.assertTrue(result['mobile_review_required'])
+                self.assertEqual([], result['reviewed_source_guarded_variants_applied'])
+
     def test_legacy_unguarded_evidence_retains_its_behavior(self):
         value, _, changed = self.fixture()
         value['reviewed_handler_variants'][self.key][0].pop('required_sources')
@@ -139,7 +160,14 @@ class SourceGuardedVariantTest(unittest.TestCase):
             self.assertEqual(expected_sources, entry['required_sources'], key)
             self.assertNotEqual(value['upstream']['contract']['handlers'][key], entry['sha256'])
             self.assertIn(key, value['mobile_used_handlers'])
-            self.assertEqual(1, sum(v['sha256'] == entry['sha256'] for v in value['reviewed_handler_variants'][key]))
+            same_ast = [v for v in value['reviewed_handler_variants'][key] if v['sha256'] == entry['sha256']]
+            self.assertEqual(2, len(same_ast))
+            modes = {v['commit']: v for v in same_ast}
+            self.assertEqual({'981791d9d41fd2efde27f563873ce8c48ef1dac6', 'd4e7c3434209861f5cc6da0649e2df1f11f53e73'}, set(modes))
+            next_sources = dict(expected_sources)
+            next_sources['env_config'] = 'ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166'
+            self.assertEqual(next_sources, modes['d4e7c3434209861f5cc6da0649e2df1f11f53e73']['required_sources'])
+            self.assertTrue(all(set(v['required_sources']) == set(expected_sources) for v in same_ast))
 
 
 if __name__ == '__main__':
