@@ -2,6 +2,9 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add the bounded canonical event replay reducer, with exact owner/cursor fences,
+  atomic replay/live reconciliation and actual stable/prior dispatcher vectors.
+
 - Add authenticated project inventory/detail conformance through the Android
   repository and pinned real Hermes WebSocket dispatch, including profile/actor
   isolation and ticket refusal checks. File/workspace adoption remains separate.

@@ -1,5 +1,76 @@
 # Current development validation — audit follow-up
 
+## 7 November 2026 — production canonical event replay reducer
+
+On feat/canonical-replay-window after62de33d, CanonicalReplayWindow now implements
+exact-owner/cursor isolation, attach-first live buffering and atomic contiguous
+replay/live reconciliation. Complete event fingerprints ignore JSON object key
+order; conflicting duplicates, gaps, foreign scopes/epochs, malformed wire data,
+truncation and exhausted limits hold all output. Old duplicates beyond the
+fingerprint window also require a new snapshot. Close clears retained payloads.
+No event name or finish reason establishes terminal execution or writer grants.
+
+All638 unique JVM cases passed freshly: the existing608 plus30 reducer methods.
+The latter cover actual dispatcher vectors, out-of-order/concurrent duplicates,
+immutable payloads, complete owner isolation, strict integers/flags/aliases,
+sequence conflicts/gaps, byte/count/depth bounds, fingerprint eviction, overflow
+and close/privacy. The first successful build is retained before code review
+found serialization preceded its depth check. The second frozen build adds a
+structural UTF-8 budget before serialization, with5,000-level nesting, escaped/
+multibyte byte accounting and malformed Unicode/non-JSON regressions. Its
+70 raw JVM XML reports contain0 failures/errors/skips and exactly the expected
+method sets; all72 raw JVM/lint reports are retained.
+
+The actual isolated canonical probe preserves its46 stable assertions and13
+attach-first cases on each stable2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19 and
+priorbf0203a794a07aac3ff764972ab9087baa4e4f4e pin. It now exports only bounded
+synthetic owner/cursor/replay/live vectors. Exact exported resources drive the
+JVM reducer: replay2/3 plus live3/4 produces2/3/4 once.497 stable authority,
+486 stable attach and436 prior attach imported module inventories were
+independently rehashed. Prior's seven expected version subprocess attempts
+remain blocked;0 unexpected denials occur. These are actual-dispatch component
+fixtures with trusted synthetic actors and in-memory sinks, not network login,
+worker or deployed acceptance.
+
+Required testDebugUnitTest/lint/lintRelease/assembleDebug/assembleDebugAndroidTest
+tasks pass after the revised604-input freeze. Both lint variants have0 errors;
+all186 policy tests pass. Original CAB-signed debug app is
+6e6f9446c15431471c308a6c1854886c280acf6ba535edd11b939b333f940657;
+the unchanged companion is
+b1e2ca9c2b4074647c82f4ede43305914b5d788f474656c1ecb06d615fcbed71.
+Existing native auth/project clients pass two distinct methods on each preserved
+API26/large37/compact37 profile: three invocations/six method invocations,24
+semantic checks per invocation, all with local mocks. Credentials, AVD geometry
+and reverse bindings are preserved. No owner-phone fixture or reset occurs.
+This native cohort checks existing clients, not canonical attachment.
+
+Both source freezes are closed. The reducer is packaged production code with
+no UI caller or RPC transport yet. See
+[the reducer contract](contracts/2026-11-07-canonical-replay-client.md).
+Authenticated attachment/adoption, complete handle/grants, project files/workers,
+external browser/TLS/Pi and physical/OEM remain required. Full exact-head gates
+precede any merge or release; the full audit goal remains active.
+
+## 7 November 2026 — project-read parent hosted evidence
+
+Compatibility [42419784648](https://github.com/DionCroft/Signal_Grove/actions/runs/42419784648)
+at62de33d213cbc37a73eac4922971eed164c3eca3 independently passes all four jobs:
+186 policy,15 runtime,8 registry and11/13 sidecar cases, with166 Git-blob-verified
+stable2bd/main63f6852 source aliases. Artifact digests are41953d03 (registry),
+41fdfd32 (sidecar),d4f6a386 (stable) and9a215a58 (main), with full digests retained
+in the private verification proof. Static main comparison does not certify its
+entire runtime.
+
+Android [42419777378](https://github.com/DionCroft/Signal_Grove/actions/runs/42419777378)
+has an independently accepted build artifact13592998973:
+digestdd3c6d875f09fc23d216eafb055f346dca5011a5a2e47e5578a496ab3f6d5763.
+Raw reports verify608 unique JVM cases and both lint0; DEX includes both native
+auth and new project-client methods. Hosted QA appfffcbda1/testcc0f5348 have
+ephemeral keys and are not owner-phone update assets. Its API26/API37 jobs
+128548057758/128548057701 remain live; expected method counts1016/1017 are not
+accepted results until terminal receipts/artifacts are independently checked.
+
+
 ## 7 November 2026 — authenticated Android project reads
 
 On test/project-gateway-client-contract afterdc1fcea, the production project

@@ -1,6 +1,27 @@
 # Signal Grove audit execution plan
 
-## Current checkpoint — authenticated project client
+## Current checkpoint — canonical replay reducer
+
+The production reducer now has fresh638 JVM cases: all608 existing methods
+plus30 owner/cursor/replay/race/bounds/privacy regressions, including actual
+stable/prior dispatcher vectors. Stable46 and stable/prior13 component probes
+retain exact source/module evidence. Required Android tasks,186 policy and both
+lint0 pass; existing native auth/project clients pass six method invocations
+across three preserved emulator profiles with local mocks.604 source inputs,
+original signing identities and data are preserved; both local freezes closed.
+
+This has no application UI caller or RPC transport yet. Continue the separate
+authenticated canonical connection, explicit legacy adoption/lineage, complete
+handle/grant binding, workspace approvals and worker/file access. Do not treat
+this reducer as a completed live session view or narrow any remaining ledger row.
+
+Project-read62de33d compatibility42419784648 is independently accepted, and its
+Android42419777378 build608/both lint0 is accepted. API26/API37 jobs remain live.
+Require exact-head gates for the new production chunk before merge/release.
+Main6b and held release207c remain unchanged; all prior failures stay retained.
+
+
+## Historical checkpoint — authenticated project client
 
 The project-client chunk passes two targeted native methods in nine invocations
 across three preserved emulator profiles and local/stable/prior fixtures.

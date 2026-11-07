@@ -458,6 +458,15 @@ try:
             await peers[1].close()
             assert not authority.sessions['s'].subscribers and all((peer.actor.transport_id not in authority.events for peer in peers))
             passed('attach_first_teardown_releases_own_registration')
+            # Synthetic actual-dispatch vectors consumed by the Android replay reducer tests.
+            # Export only this bounded fixture's cursor/events; no transcript or credentials.
+            (root / 'client-replay-vector.json').write_text(json.dumps(dict(
+                schema='canonical-client-replay-v1', sourceCommit=SOURCE_COMMIT,
+                owner=dict(profile_id=authority.profile_id, instance_id=authority.instance_id,
+                           authority_epoch=authority.epoch, session_id='s'),
+                initialCursor=dict(replay_epoch=epoch, last_sequence=1),
+                replay=replay, live=sinks[1].frames, expectedSequences=[2, 3, 4],
+                syntheticOnly=True, authenticatedNetworkClaim=False), indent=2) + '\n')
             (root / 'attach-first-observation.json').write_text(json.dumps(dict(source=SOURCE_COMMIT, reconnectCursor=1, replaySequences=[f['seq'] for f in replay['events']], liveSequences=[f['params']['seq'] for f in sinks[1].frames], mergedSequences=sorted(merged), unknownAdmissionPreserved=True, strictWireSchemas=True, expectedBlockedVersionProbes=len(expected_blocked_version_probes)), indent=2) + '\n')
         finally:
             for peer in peers:

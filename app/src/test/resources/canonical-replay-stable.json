@@ -1,0 +1,83 @@
+{
+  "schema": "canonical-client-replay-v1",
+  "sourceCommit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+  "owner": {
+    "profile_id": "fixture",
+    "instance_id": "replacement-instance",
+    "authority_epoch": 2,
+    "session_id": "s"
+  },
+  "initialCursor": {
+    "replay_epoch": "3f86d18f122d452a899ef11ae5f486e2",
+    "last_sequence": 1
+  },
+  "replay": {
+    "events": [
+      {
+        "type": "status.update",
+        "session_id": "s",
+        "payload": {
+          "kind": "status",
+          "text": "fixture event 2"
+        },
+        "replay_epoch": "3f86d18f122d452a899ef11ae5f486e2",
+        "seq": 2
+      },
+      {
+        "type": "status.update",
+        "session_id": "s",
+        "payload": {
+          "kind": "status",
+          "text": "fixture event 3"
+        },
+        "replay_epoch": "3f86d18f122d452a899ef11ae5f486e2",
+        "seq": 3
+      }
+    ],
+    "latest_seq": 3,
+    "last_sequence": 3,
+    "epoch": "3f86d18f122d452a899ef11ae5f486e2",
+    "replay_epoch": "3f86d18f122d452a899ef11ae5f486e2",
+    "truncated": false,
+    "snapshot_required": false,
+    "count": 2,
+    "open_requests": []
+  },
+  "live": [
+    {
+      "jsonrpc": "2.0",
+      "method": "event",
+      "params": {
+        "type": "status.update",
+        "session_id": "s",
+        "payload": {
+          "kind": "status",
+          "text": "fixture event 3"
+        },
+        "replay_epoch": "3f86d18f122d452a899ef11ae5f486e2",
+        "seq": 3
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "method": "event",
+      "params": {
+        "type": "status.update",
+        "session_id": "s",
+        "payload": {
+          "kind": "status",
+          "text": "fixture event 4"
+        },
+        "replay_epoch": "3f86d18f122d452a899ef11ae5f486e2",
+        "seq": 4
+      }
+    }
+  ],
+  "expectedSequences": [
+    2,
+    3,
+    4
+  ],
+  "syntheticOnly": true,
+  "authenticatedNetworkClaim": false
+}
