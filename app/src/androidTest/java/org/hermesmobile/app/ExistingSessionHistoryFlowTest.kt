@@ -87,6 +87,17 @@ class ExistingSessionHistoryFlowTest {
         compose.onNodeWithTag("nav-chat").performClick()
         compose.waitUntil(5000) {compose.onAllNodesWithTag("chat-model-status-open").fetchSemanticsNodes().size==1}
     }
+    private fun assertHistorySearchCaptionSeparated() {
+        compose.waitForIdle()
+        val caption=compose.onNodeWithText(text(Words.Search),useUnmergedTree=true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val headings=compose.onAllNodesWithText(text(Words.History),useUnmergedTree=true).fetchSemanticsNodes()
+        assertTrue("History has at most one heading",headings.size<=1)
+        // A short IME viewport can scroll the heading out. Its visible portion must
+        // remain separate from the complete, displayed three-language Search caption.
+        headings.singleOrNull()?.boundsInRoot?.takeIf {it.height>0f}?.let {heading->
+            assertTrue("History search label overlaps visible heading: caption="+caption+"; heading="+heading,caption.top>=heading.bottom-1f)
+        }
+    }
     private fun browser()=compose.onNodeWithContentDescription(text(Words.History)).performClick()
     private fun reveal(id:String) {compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-open-"+id));compose.onNodeWithTag("history-open-"+id).assertIsDisplayed()}
     private fun source(value:String) {compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-source-filter"));compose.onNodeWithTag("history-source-filter").performClick();compose.onNodeWithTag("history-source-"+value).performClick()}
@@ -143,9 +154,13 @@ class ExistingSessionHistoryFlowTest {
         Fixture(credentials.uniqueToken("origin-keyboard"),"pagination").use {f->
             connect(f,true);browser();compose.waitUntil(5000) {compose.onAllNodesWithTag("history-close").fetchSemanticsNodes().singleOrNull()?.config?.getOrNull(SemanticsProperties.Focused)==true};compose.onNodeWithTag("history-close").assertIsFocused()
             compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
-            source("desktop");compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-search-input"))
+            source("desktop")
+            compose.onNodeWithTag("conversation-browser").performScrollToNode(hasText(text(Words.History)))
+            compose.onNodeWithText(text(Words.History),useUnmergedTree=true).assertIsDisplayed()
+            compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-search-input"))
             compose.onNodeWithTag("history-search-input").performClick().assertIsFocused();compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
             shot("bilingual-keyboard-footer")
+            assertHistorySearchCaptionSeparated()
             val more=compose.onNodeWithTag("history-load-more").assertIsDisplayed().assertHeightIsAtLeast(48.dp).fetchSemanticsNode().boundsInWindow.center
             tapFocusedDialogWindowPoint(more.x,more.y)
             compose.waitUntil(10000) {!vm.sessionsLoading.value && f.pages.toList()==listOf(0,50) && vm.conversations.value.any {it.remoteId=="disc_old"}}

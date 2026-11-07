@@ -49,8 +49,14 @@ import androidx.compose.ui.semantics.contentDescription
         // Filters and rows share one viewport so large multilingual controls cannot hide the list.
         LazyColumn(Modifier.heightIn(max=350.dp).testTag("conversation-browser"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             item(key="history-heading") {Text(label(Words.History),style=MaterialTheme.typography.headlineSmall,color=MaterialTheme.colorScheme.onSurface)}
-            item(key="history-search") {OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().testTag("history-search-input"),label={Text(label(Words.Search))},singleLine=true,
-                keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={focus.clearFocus();keyboard?.hide()}))}
+            item(key="history-search") {
+                val caption=label(Words.Search)
+                Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                    Text(caption,style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                    OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().testTag("history-search-input").semantics {contentDescription=caption},singleLine=true,
+                        keyboardOptions=KeyboardOptions(imeAction=ImeAction.Done),keyboardActions=KeyboardActions(onDone={focus.clearFocus();keyboard?.hide()}))
+                }
+            }
             item(key="history-hidden") {Row(verticalAlignment=Alignment.CenterVertically) {Checkbox(hidden,{hidden=it});Text(label(Words.ShowHidden),Modifier.weight(1f),style=MaterialTheme.typography.labelSmall)}}
             if(!p.demo) item(key="history-refresh") {TextButton({vm.refreshSessions()},enabled=!loading && caps?.sessions==true) {Text(label(Words.Refresh))}}
             item(key="history-source") {Box {

@@ -279,3 +279,72 @@ fix the observed history label issue, then gate the final source. The pinned
 beta7 source remains separate: its API26 CI job is green, API37 is still running,
 and its final phone-history and public-upload/download checks remain pending.
 Every remaining required audit row stays active; main and stable1.0 are unchanged.
+
+## 7 November — history Search overlap reproduction
+
+The strengthened existing real-Android-input pagination case first ran against
+the unchanged validated3fbc application with an original-key test companion.
+It failed exactly on the rendered overlap assertion: Search caption bounds
+(80,234)-(191,360), heading bounds(48,48)-(527,261), a27px overlap. The single
+failed method and fresh screenshot are retained. This expected pre-fix failure
+is not a native pass, timeout, missing-node diagnosis or weakened test.
+
+The proposed correction places the complete structured multilingual Search
+caption above the input in ordinary layout and labels the editable field for
+accessibility. The single-line query, tag, Done action, focus/paging/source/read-
+only behavior and every previous native assertion remain. The exact assertion
+that detected the old defect is unchanged. Required build, native and fresh
+capture validation of this correction are pending; prior593/129 results belong
+to the pre-fix integration source. The same common field requires review for
+the held beta7 candidate before final publication acceptance.
+
+## 7 November — external Search caption follow-up
+
+The corrected layout passed all four required tasks:593 JVM cases with no
+failure/error/skip and no debug/release lint errors. Its original-key app is
+933fe791c904; unchanged test companionf9bfac32cdbe. Both affected30-case native
+cohorts ended29/30. The original rendered-overlap regression passed on each;
+the sole failure was Milestone02Test's legacy text-input locator requiring the
+Search caption inside editable semantics. The complete failure and source
+freeze are retained and closed after review, not reported as passing.
+
+That locator now targets the existing history-search-input tag and explicitly
+requires a displayed, enabled, SetText-capable field before the same real text
+entry. Search/pin/rename/local-delete assertions and the exact red overlap
+regression remain unchanged. A fresh four-task build and the same30 cases per
+owned API26/API37 are pending. Full release gates remain required.
+
+Separately, pinned e5's complete hosted Android run42355744788 now passes with
+552 JVM and936/937 unique native methods, no failures/skips, digest-verified
+archives and original terminal command/device diagnostics. This supersedes
+earlier API37-running statements, but beta7 publication remains held for the
+common layout correction/backport, final-source gates and phone continuity.
+
+## 7 November — history Search caption validated
+
+The external structured Search caption resolves the reproduced27px heading
+overlap. The exact original rendered regression is byte-identical to its red
+run. The narrow legacy locator repair requires the existing field tag plus
+displayed/enabled/editable semantics before the same actual text entry; every
+search/pin/rename/local-delete and pagination/no-write assertion remains.
+
+Fresh required tasks passed in5m34s:593 JVM, no failures/errors/skips, and zero
+debug/release lint errors. The original CAB-signed app is byte-identical to the
+first corrected build:933fe791c904ffaed68f60ef971cb2f2a18b9b7cf270f3a7615f35c203629f87.
+The corrected companion is e77eac3d26440c6794ab35ffc11842742aa2f4abc40220c18c05872e5103a26a.
+All580 frozen inputs and original key were checked; raw input ZIP SHA-256 is
+10f5308cd4beac846590c1b74bd81e52af2fa1b1ba0be6b1b0e48b6523ae0ff7.
+
+The same30 affected cases now pass independently on each owned API26/API37,
+with exact unique method sets, terminal counts and installed APK hashes. No
+uninstall, data reset, geometry/font/AVD change or owner credential fixture was
+used. The earlier29/30 cohorts remain failed and retained. This is affected
+local coverage, not a whole-app hosted run or physical-phone acceptance.
+
+Four fresh captures were inspected: both keyboard views, the API26 legacy row
+and API37 normal history. Search no longer overlaps the heading. A separate
+issue remains: the API37 keyboard capture clips the bottom pinyin of More/Close
+at the IME edge. Successful native taps do not prove complete-caption visibility.
+Add a full-caption/window-inset regression and repair before the held beta7
+backport/release. Neither this chunk nor the earlier hosted e5 pass closes that
+visual requirement. The580-input freeze is closed after this explicit review.
