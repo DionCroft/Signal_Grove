@@ -2637,11 +2637,18 @@ No new device install, native run, owner fixture or deployed-authority acceptanc
 is claimed. The source freeze is closed; only these evidence documents changed
 after it. Feature111/beta.8 stays unpublished.
 
-Separately, exact-head hosted API26 artifacts now pass936 release207c and1011
-feature360 methods. Artifact SHA-256, complete committed method sets, original
-command/device receipts and bounded Send readiness traces were independently
-verified; no skips, failures or unfinished cases. Their API37 jobs remain live;
-these API26-only results are not full-cohort acceptance. Release207c has a fresh
-150-coordinate Maven OSV query with no listed findings at query time and newly
-staged exact APKs/certificate/checksums. Its publication hold and owner physical
-upgrade/connection/history/project-retention requirements remain.
+Separately, release207c's exact-head Android run42388552581 is fully accepted:
+552 raw unique JVM cases/both lint0,936 API26 and937 API37 methods. All three
+terminal jobs succeeded on attempt1. Downloaded artifact SHA-256, complete
+committed method sets (only the declared API37 local-network test is excluded
+on26), original command/device receipts and bounded Send readiness traces were
+independently verified; no skips, failures or unfinished cases. The API37 compact
+1080x1920 screenshot visibly keeps multilingual More/Close above the keyboard.
+Its separate compatibility42388559751 passed all four independently reviewed jobs.
+
+Feature360's separate API26 artifact passes1011 exact methods; its API37 job
+128451588761 remains live, expected1012. This is not full feature-cohort acceptance.
+Release207c has a fresh150-coordinate Maven OSV query with no listed findings
+at query time and newly staged exact APKs/certificate/checksums. Its publication
+hold and exact owner physical upgrade/connection/history/project-retention
+requirements remain. Earlier owner evidence applies to earlier APK bytes.

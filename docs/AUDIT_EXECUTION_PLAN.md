@@ -495,3 +495,13 @@ F0, uses existing dependencies and adds no application RPC. See
 [scope and remaining acceptance](contracts/2026-11-07-canonical-authority-component.md).
 Restore/adoption, authenticated transport, canonical conversation UI and exact
 worker/files/workspace routing remain required alongside every open ledger row.
+
+
+Exact release207c checkpoint: Android42388552581 and compatibility42388559751
+pass. Independent terminal artifacts verify552 JVM/both lint0 and full936/937
+native methods, complete source method sets, command/device outcomes and Send
+readiness. Compact API37 footer capture is readable above the keyboard. Fresh
+original-key assets, payload provenance, advisory query and public staging stay
+scoped separately; exact owner upgrade/retention remains before publication.
+Feature360 API26 passes1011; its same API37 job remains live. No old failure is
+removed and no canonical transport, worker/workspace or broad audit row closes.
