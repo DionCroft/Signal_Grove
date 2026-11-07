@@ -63,3 +63,63 @@ fun tapFocusedDialogWindowPoint(x:Float,y:Float) {
         }
     })
 }
+
+
+/** The real Android IME boundary, in screen coordinates, for a focused dialog. */
+data class FocusedDialogViewport(val visible:android.graphics.Rect,val screenOffsetX:Int,val screenOffsetY:Int,val imeBottom:Int,val displayHeight:Int)
+
+fun focusedDialogViewport():FocusedDialogViewport {
+    val nativeIme=withInteractiveWindows {windows->
+        val bounds=windows.filter {it.type==android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD}.map {item->android.graphics.Rect().also {item.getBoundsInScreen(it)}}.filter {!it.isEmpty}
+        check(bounds.isNotEmpty()) {"A native Android input-method window is required"}
+        bounds.minOf {it.top}
+    }
+    var result:FocusedDialogViewport?=null
+    onView(isRoot()).inRoot(focusedAppDialog()).check {view,error->
+        if(error!=null) throw error
+        val frame=android.graphics.Rect();view.getWindowVisibleDisplayFrame(frame)
+        val screen=IntArray(2);val window=IntArray(2);view.getLocationOnScreen(screen);view.getLocationInWindow(window)
+        val insets=checkNotNull(ViewCompat.getRootWindowInsets(view))
+        check(insets.isVisible(WindowInsetsCompat.Type.ime())) {"The real dialog keyboard must remain visible"}
+        val ime=insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        val metrics=android.util.DisplayMetrics()
+        @Suppress("DEPRECATION")
+        view.display.getRealMetrics(metrics)
+        // Platform fitting can consume the local inset; the actual native IME is mandatory.
+        check(ime>=0 && metrics.heightPixels>ime && nativeIme in 1 until metrics.heightPixels)
+        frame.bottom=minOf(frame.bottom,metrics.heightPixels-ime,nativeIme)
+        result=FocusedDialogViewport(frame,screen[0]-window[0],screen[1]-window[1],ime,metrics.heightPixels)
+    }
+    return checkNotNull(result)
+}
+
+
+private fun <T> withInteractiveWindows(read:(List<android.view.accessibility.AccessibilityWindowInfo>)->T):T {
+    val automation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation
+    val info=automation.serviceInfo;val oldFlags=info.flags
+    try {
+        info.flags=oldFlags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+        automation.serviceInfo=info
+        automation.waitForIdle(100,3000)
+        return read(automation.windows)
+    } finally {info.flags=oldFlags;automation.serviceInfo=info}
+}
+
+/** Native accessibility coordinates independently check the Compose-to-screen conversion. */
+fun focusedDialogCaptionScreenBounds(text:String,description:String):android.graphics.Rect=withInteractiveWindows {windows->
+    val target=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext.packageName
+    val matches=mutableListOf<android.graphics.Rect>();var visited=0
+    fun visit(node:android.view.accessibility.AccessibilityNodeInfo,depth:Int) {
+        check(++visited<=1000 && depth<=40) {"Unexpected accessibility tree size"}
+        if(node.text?.toString()==text || node.contentDescription?.toString()==description) {
+            val bounds=android.graphics.Rect();node.getBoundsInScreen(bounds)
+            if(!bounds.isEmpty) matches+=bounds
+        }
+        for(i in 0 until node.childCount) node.getChild(i)?.let {visit(it,depth+1)}
+    }
+    windows.filter {it.type==android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION}.forEach {window->
+        window.root?.takeIf {it.packageName?.toString()==target}?.let {visit(it,0)}
+    }
+    check(matches.size in 1..4) {"A bounded native footer caption is required: "+matches}
+    android.graphics.Rect(matches.first()).also {union->matches.drop(1).forEach {union.union(it)}}
+}

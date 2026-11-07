@@ -2392,3 +2392,96 @@ at the IME edge. Successful native taps do not prove complete-caption visibility
 Add a full-caption/window-inset regression and repair before the held beta7
 backport/release. Neither this chunk nor the earlier hosted e5 pass closes that
 visual requirement. The580-input freeze is closed after this explicit review.
+
+## 7 November — real keyboard-window caption regression
+
+The initial inset/Compose-coordinate diagnostic passed its one native method
+while both images still showed clipped footer pinyin. Its wrapper therefore
+failed the expected-negative check; the complete unexpected-positive result is
+retained. It did not establish full-caption acceptance. Before any native-window
+build/run, static review moved UiAutomation reads outside Espresso's UI-thread
+assertion; the unstarted snapshot and review remain distinct from run results.
+
+The strengthened test independently reads native Android IME and application
+caption screen bounds, with temporary accessibility-window flags restored in
+finally. On unchanged app933fe791c904 and original-key companion6c1d74f32df3,
+the exact existing keyboard/pagination case now fails on the observed defect:
+More caption bounds(434,1485)-(677,1686), keyboard top1643,43px overlap. Both
+fresh images agree. The actual failure, original geometry/configuration and580
+source hashes are retained. It is an expected diagnostic failure, not a pass.
+All earlier pagination/no-write/Search-separation assertions remain intact.
+
+The proposed correction lets the platform fit the history dialog to system
+windows and removes the surface's separate IME padding. Official
+[DialogProperties documentation](https://developer.android.com/reference/kotlin/androidx/compose/ui/window/DialogProperties#decorFitsSystemWindows())
+documents that opting out changes soft-input handling on Android31+. No fixed
+pixel offset, font/display change or hidden translated line is used. The exact
+native-window regression source is unchanged for validation. Four required
+tasks, the same30 cases on both owned APIs and fresh captures are pending.
+The release stays held until that evidence and final-source backport gates pass.
+
+The owner now confirms Chat opens normally on the exact e5 production APK.
+Fresh read-only inspection sees the saved connected state and empty draft on
+the new-conversation screen. Retained history still needs inspection; a single
+USB History tap returned0 with no visible effect, so the owner was asked to open
+that list manually. No additional agent message, reset or owner instrumentation
+was used. This does not yet certify all chat/project retention.
+
+## 7 November — keyboard fitting compatibility correction
+
+The first platform-fit proposal passed593 JVM/lint0 but both30-case cohorts
+ended29/30. API26's native More bounds(210,844)-(435,1038) remain below the
+keyboard top782; its screenshot agrees. API37's screenshot puts all footer
+lines above the keyboard, but its check stops at the helper's assumption that
+a visible keyboard must leave a positive unconsumed local inset. Both original
+failed results/logs/captures are retained; neither is relabelled as passing.
+
+The dialog now preserves the existing resize/manual-inset handling through
+Android30 and uses platform fitting on Android31+, matching the documented
+soft-input boundary. The helper permits a consumed local inset of0 while still
+requiring a visible actual native IME window, a valid positive native boundary,
+the complete native caption bounds and every glyph/layout/pagination/no-write
+check. The existing full regression source file is unchanged. For the original
+failed app, inset317 and native top1643 meet both old/new preconditions and the
+same caption bottom1686 still fails: the helper correction cannot hide that
+demonstrated43px clipping. Fresh required build/30-case cohorts are pending.
+
+Separately, the owner confirms Chat/history and earlier messages load normally
+on exact e5 production8605. A fresh screenshot/XML inspection shows both prior
+synthetic replies, the completed icon, saved connected state and empty draft.
+No additional turn, reset or owner instrumentation was used. This accepts that
+observed retention scope; fresh model-choice/network readback and worker/project
+file execution are separate, and new final release-source checks remain required.
+
+## 7 November — compatible history keyboard layout validated
+
+The history dialog keeps its resize/manual-inset path through Android30 and
+uses platform system-window fitting on Android31+. The independent native IME
+window and complete caption/glyph checks remain. The exact existing regression
+source is unchanged from the demonstrated43px failure; only the helper's invalid
+positive-unconsumed-inset assumption was corrected, with its original failure
+counterfactual retained. Earlier unexpected-positive and29/30 results stay
+retained failures/diagnostics, not acceptance.
+
+All four required tasks passed in9m18s:593 JVM cases, no failures/errors/skips,
+and zero debug/release lint errors. Original CAB signers and all580 frozen
+inputs were verified. App SHA-256: 77350ba2865679e10313e834883aec2e9a0d89fc9c7792bea3eb0e207c554c63.
+Companion SHA-256: 0e2ee9e4570ef07d6659243aae12160ebdd90db7fac29598393861a62d102f43.
+Raw source-input ZIP: 0660b241cb66507ed8e11c638e91b662521000a0e3382716fb740d1a4e4a2dea.
+These are unpublished111/beta.8 development fixtures, not110/beta.7 assets.
+
+All30 affected cases pass independently on each owned API26/API37 emulator,
+including complete native caption bounds above the actual keyboard, rendered
+glyphs, real Android-input paging/Close, search/pin/rename/local-delete and
+source/read-only/profile guards. Exact unique method sets, terminal counts,
+installed hashes, configuration/display/density/font and source inputs were
+verified. No uninstall/reset/data clear, display/font change or owner fixture
+was used. Four actual fresh normal/keyboard captures confirm readable captions
+and reachable footers. This is affected local scope on those two SDKs; full
+exact-source hosted gates and the release backport are still required.
+
+The owner separately confirms Chat/history and earlier messages on exact e5
+production8605; fresh read-only screen/XML evidence contains both earlier test
+replies, completed status, connected state and empty draft. No new turn was
+sent. That observed retention is accepted; new model-choice/network readback,
+new final-source upgrade and worker/project file actions remain separate.

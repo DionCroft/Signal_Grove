@@ -1,49 +1,51 @@
-# Signal Grove project state — history Search caption checkpoint
+# Signal Grove project state — compatible history keyboard layout
 
-Continue every required row of docs/AUDIT_EXECUTION_PLAN.md. Keep the full audit
-goal active, original keys/data/main unchanged, TLS/profile isolation, exact
-approvals and no unknown-work replay. Source belongs in the verified repository;
-all tools/caches/private evidence use the mandated temporary storage.
+Continue every required row of docs/AUDIT_EXECUTION_PLAN.md. The full goal stays
+active. Preserve original keys/data/main, scoped TLS/auth/profile identity,
+exact approvals and no unknown-work replay. Source belongs in the verified
+repository; tools/caches/private evidence use the mandated temporary storage.
 
 ## Current bounded stage
 
-Integration1ae0872 is pushed with593 JVM/179 policy/15 runtime and129 focused
-native cases per owned API26/API37. The follow-up external Search caption
-resolves the demonstrated27px heading overlap. Its exact red regression remains
-unchanged. A legacy editable-caption test locator failed29/30 on both APIs;
-that failure is retained. Only the locator changed to the existing input tag,
-with explicit displayed/enabled/editable checks; all behavior assertions remain.
+The Search caption fix2beec47 is committed/pushed. A native-window regression
+then proved43px footer clipping on the unchanged app. The first fitting proposal
+failed29/30 on both APIs: API26 still clipped; API37 consumed its local IME inset
+and exposed a diagnostic assumption. Those failures and the earlier ineffective
+coordinate-only diagnostic remain retained. Caption, paging and no-write assertions remain intact.
 
-Fresh required tasks pass593 JVM/lint0. The app remains933fe791c904 and the new
-original-key companion ise77eac3d2644. All30 affected cases pass on both APIs,
-with580 frozen inputs, exact unique methods and original key/data/geometry.
-This is local affected coverage, not the full hosted suite. The freeze is closed.
-
-Four fresh captures confirm the Search separation and usable history actions.
-The API37 keyboard-open capture still clips bottom pinyin of More/Close at the
-IME edge. Native taps succeed, but complete-label visual acceptance remains open.
-Commit/push this bounded Search fix with that limitation, then strengthen the
-caption/window-inset regression and repair the footer before beta7 backport.
-Keep111/beta.8 development artifacts separate from110/beta.7 release assets.
+The history dialog now keeps its old resize/inset path through API30 and uses
+platform fitting on API31+. A consumed local inset may be0, but actual native
+keyboard presence/positive boundary, complete caption bounds, all glyph/layout
+checks and real Android-input/no-write assertions remain mandatory. The original
+existing regression source file is unchanged and its43px counterfactual still
+fails. Fresh required tasks pass593 JVM/lint0; the same30 cases pass on each
+owned API26/API37 with original keys/data/geometry and580 frozen inputs.
+Four actual normal/IME captures are accepted. The source freeze is closed.
+Commit/push this chunk, then backport the four common history app/test files to
+the held release branch and complete its exact-source gates and final assets.
+Keep111/beta.8 development fixtures separate from110/beta.7 release artifacts.
 
 ## Independent beta7 release
 
-Pinned e5 has complete digest-verified hosted552 JVM/936 API26/937 API37 and
-compatibility gates, original production/debug signing, source provenance and
-advisory review. Its exact production APK is installed on the owner phone in
-place; saved connection remains visible. Physical Chat continuity is pending;
-USB taps previously left Home unchanged without a reported Android error.
-Publication remains held for the common layout fixes/backport, complete final-
-source checks, phone continuity and public upload/download verification. No
-new agent turn, owner instrumentation, data reset or model/default change was
-used. No beta7 tag/release exists from this work; stable1.0/main6b809e6 stay put.
+Pinned e5 has full digest-verified552 JVM/936 API26/937 API37 and compatibility
+gates, original signing/provenance and advisory review. Its exact production APK
+is installed on the owner phone in place. The owner confirms Chat/history and
+earlier messages; fresh read-only screenshot/XML evidence verifies both earlier
+synthetic replies, completed status, connected state and empty draft. No new
+agent turn, owner fixture, reset or model/default change was used. That observed
+retention scope is accepted, while independent fresh network/model-choice and
+new final-source upgrade checks remain separate. USB taps still have no effect;
+normal owner navigation works. Publication is held for the common fixes/backport,
+new final-source gates/assets and public upload/download verification. Stable1.0
+and main6b809e6 remain unchanged; no beta7 tag/release was created by this work.
 
 ## Remaining full audit
 
 Workers/dispatch/events/files/pins/transfers, explicit workspace adoption,
 automation/rooms/grants, integrations/configuration, notification targeting,
-rendering/voice/OEM and security/community closure remain required. Project
+rendering/voice/OEM and security/community closure remain required. Project-list
 metadata is not worker/filesystem execution or shared Bot Chat authority.
-Pinned workspace source discovery additionally confirms cwd preparation runs
-folder/git checks on the authority host; worker routing and actor authority
-must be verified independently before exposing a project move operation.
+Pinned source review confirms workspace folder/git checks run on the authority
+host. Gateway readiness can be legacy-only; canonical session authority and
+server-issued actor/ownership must be verified before any workspace operation.
+Do not relax foreign REST history write guards to add canonical transport.

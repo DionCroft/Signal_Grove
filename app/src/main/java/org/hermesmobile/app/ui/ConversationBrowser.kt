@@ -43,7 +43,9 @@ import androidx.compose.ui.semantics.contentDescription
     fun origin(c:Conversation)=SessionOrigin.source(c).ifBlank {SessionOrigin.Api}
     val sources=conversations.map(::origin).distinct().sorted()
     val rows=conversations.filter {(!it.hidden || hidden) && it.title.contains(search,true) && (source.isBlank() || origin(it)==source)}
-    AlertDialog(onDismissRequest=dismiss,modifier=Modifier.imePadding(),properties=DialogProperties(decorFitsSystemWindows=false),text={
+    // API31+ opts into platform fitting; older dialogs retain their resize/inset path.
+    val platformFits=android.os.Build.VERSION.SDK_INT>=android.os.Build.VERSION_CODES.S
+    AlertDialog(onDismissRequest=dismiss,modifier=if(platformFits) Modifier else Modifier.imePadding(),properties=DialogProperties(decorFitsSystemWindows=platformFits),text={
         val focus=LocalFocusManager.current
         val keyboard=LocalSoftwareKeyboardController.current
         // Filters and rows share one viewport so large multilingual controls cannot hide the list.

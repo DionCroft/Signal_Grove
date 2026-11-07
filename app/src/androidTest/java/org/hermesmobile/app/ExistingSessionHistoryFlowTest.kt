@@ -98,6 +98,39 @@ class ExistingSessionHistoryFlowTest {
             assertTrue("History search label overlaps visible heading: caption="+caption+"; heading="+heading,caption.top>=heading.bottom-1f)
         }
     }
+    private fun assertHistoryFooterCaptionsAboveKeyboard() {
+        var previous:FocusedDialogViewport?=null;var stableSince=0L
+        compose.waitUntil(5000) {
+            val current=focusedDialogViewport();val now=android.os.SystemClock.uptimeMillis()
+            if(current!=previous) {previous=current;stableSince=now;false} else now-stableSince>=250
+        }
+        val viewport=checkNotNull(previous)
+        shot("bilingual-keyboard-caption-boundary")
+        for(tag in listOf("history-load-more","history-close")) {
+            compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled()
+            val word=if(tag=="history-load-more") Words.MoreHistory else Words.Close
+            val description=if(tag=="history-load-more") text(Words.LoadMore) else text(Words.Close)
+            val nativeBounds=focusedDialogCaptionScreenBounds(text(word),description)
+            assertTrue("Footer caption clipped by Android keyboard window: "+tag+"; native="+nativeBounds+"; viewport="+viewport,
+                nativeBounds.left>=viewport.visible.left && nativeBounds.right<=viewport.visible.right && nativeBounds.top>=viewport.visible.top && nativeBounds.bottom<=viewport.visible.bottom)
+            val caption=compose.onAllNodes(SemanticsMatcher.keyIsDefined(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) and hasAnyAncestor(hasTestTag(tag)),useUnmergedTree=true)
+            assertEquals("One full footer caption is required: "+tag,1,caption.fetchSemanticsNodes().size)
+            val node=caption[0].fetchSemanticsNode();val layouts=mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+            caption[0].performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) {get->assertTrue(get(layouts))}
+            val layout=layouts.single();assertFalse("Footer text overflows: "+tag,layout.didOverflowHeight)
+            val origin=node.positionInWindow;val value=layout.layoutInput.text.text
+            assertTrue(value.isNotBlank());assertTrue("All translated footer lines are retained",value.count {it=='\n'}>=2)
+            for(line in 0 until layout.lineCount) assertFalse("Footer line is ellipsized: "+tag,layout.isLineEllipsized(line))
+            for(i in value.indices) {
+                if(value[i].isWhitespace() || Character.isLowSurrogate(value[i])) continue
+                val glyph=layout.getBoundingBox(i)
+                val left=glyph.left+origin.x+viewport.screenOffsetX;val right=glyph.right+origin.x+viewport.screenOffsetX
+                val top=glyph.top+origin.y+viewport.screenOffsetY;val bottom=glyph.bottom+origin.y+viewport.screenOffsetY
+                assertTrue("Footer glyph clipped by real keyboard viewport: "+tag+"; glyph="+i+"; screen=("+left+","+top+")-("+right+","+bottom+"); viewport="+viewport,
+                    left>=viewport.visible.left-1f && right<=viewport.visible.right+1f && top>=viewport.visible.top-1f && bottom<=viewport.visible.bottom+1f)
+            }
+        }
+    }
     private fun browser()=compose.onNodeWithContentDescription(text(Words.History)).performClick()
     private fun reveal(id:String) {compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-open-"+id));compose.onNodeWithTag("history-open-"+id).assertIsDisplayed()}
     private fun source(value:String) {compose.onNodeWithTag("conversation-browser").performScrollToNode(hasTestTag("history-source-filter"));compose.onNodeWithTag("history-source-filter").performClick();compose.onNodeWithTag("history-source-"+value).performClick()}
@@ -161,6 +194,7 @@ class ExistingSessionHistoryFlowTest {
             compose.onNodeWithTag("history-search-input").performClick().assertIsFocused();compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
             shot("bilingual-keyboard-footer")
             assertHistorySearchCaptionSeparated()
+            assertHistoryFooterCaptionsAboveKeyboard()
             val more=compose.onNodeWithTag("history-load-more").assertIsDisplayed().assertHeightIsAtLeast(48.dp).fetchSemanticsNode().boundsInWindow.center
             tapFocusedDialogWindowPoint(more.x,more.y)
             compose.waitUntil(10000) {!vm.sessionsLoading.value && f.pages.toList()==listOf(0,50) && vm.conversations.value.any {it.remoteId=="disc_old"}}
