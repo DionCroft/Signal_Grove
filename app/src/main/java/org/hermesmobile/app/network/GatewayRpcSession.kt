@@ -18,6 +18,12 @@ class GatewayRpcSession private constructor():Closeable {
     private val opened=CompletableDeferred<Unit>()
     private val ready=CompletableDeferred<Unit>()
     private val stopped=AtomicBoolean(false)
+    @Volatile private var firstReadyAdvertisement:GatewayAuthorityAdvertisement?=null
+    /** First ready frame on this socket; cleared by failure/close. Not a permission or identity. */
+    val sessionAuthorityAdvertisement:GatewayAuthorityAdvertisement
+        get()=if(stopped.get()) GatewayAuthorityAdvertisement.Unknown
+            else firstReadyAdvertisement ?: GatewayAuthorityAdvertisement.Unknown
+
     private val ids=AtomicLong()
     private val received=AtomicLong()
     private val notifications=AtomicLong()
@@ -40,7 +46,10 @@ class GatewayRpcSession private constructor():Closeable {
                 // Never advertise server_requests: this client does not answer tools, sudo, approvals or clarification RPCs.
                 if(j["method"]!=JsonPrimitive("event") || notifications.incrementAndGet()>256) throw GatewayProtocolException()
                 val params=j["params"] as? JsonObject ?: throw GatewayProtocolException()
-                if(params["type"]==JsonPrimitive("gateway.ready")) ready.complete(Unit)
+                if(params["type"]==JsonPrimitive("gateway.ready") && !ready.isCompleted) {
+                    firstReadyAdvertisement=GatewayAuthorityAdvertisement.fromReadyPayload(params["payload"])
+                    ready.complete(Unit)
+                }
                 return
             }
             if(id !is JsonPrimitive || !id.isString) throw GatewayProtocolException()

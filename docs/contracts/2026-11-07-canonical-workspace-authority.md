@@ -57,7 +57,7 @@ and worker dispatch each need their own authenticated ownership contracts.
 
 ## Next bounded implementation and acceptance
 
-1. Add typed, per-connection ready negotiation with explicit advertised,
+1. Preserve typed, per-connection ready negotiation with explicit advertised,
    unadvertised and malformed/unknown states. Parse a strict boolean; never
    turn a feature advertisement into a writer grant. Retain legacy metadata
    reads and all current credential/profile/prefix boundaries.
@@ -76,3 +76,26 @@ and worker dispatch each need their own authenticated ownership contracts.
 
 No canonical authority, workspace write, worker execution or project-file access
 is certified by this source review.
+
+
+## Implemented transport advertisement foundation
+
+The current feature adds GatewayAuthorityAdvertisement and a read-only getter on
+GatewayRpcSession. Missing payload/flag or explicit false is NotAdvertised;
+only a non-string JSON boolean true is Advertised. A malformed payload/flag is
+Unknown while existing scoped metadata remains usable. Only the first ready
+frame sets the socket snapshot; close or failure makes it Unknown. No raw ready
+payload, identity, prompt, credential hint or skin is retained by this type.
+
+599 unique JVM cases, both fresh lint variants,179 existing policy tests and
+seven affected native project cases per API26/API37 pass locally. Six new
+WebSocket fixture methods verify strict/malformed values, misleading grant and
+identity fields, exact ticket/profile/prefix traffic, no extra calls, connection
+isolation, duplicate frames and protocol-failure invalidation. The current
+gateway_ws:handle_ws AST watch covers the consumed wire field; changing its real
+boolean to a string requests review without rebaselining F0.
+
+This exposes protocol metadata to future setup code. It adds no workspace UI or
+canonical session RPC. Deployed authority/actor grants, canonical attachment and
+handle ownership, worker/filesystem routing, actual-server acceptance and full
+exact-head hosted gates remain required.

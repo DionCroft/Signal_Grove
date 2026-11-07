@@ -2501,3 +2501,38 @@ new APK is published. This qualification preserves the earlier raw reports.
 The canonical workspace contract document is a pinned, blob-verified static
 source review only. Modules were parsed without execution. No app/backend
 workspace change or runtime/native acceptance is claimed by this docs chunk.
+
+
+## 7 November: typed gateway authority advertisement foundation
+
+The111/beta.8 feature source records only the first ready advertisement on each
+gateway socket: strict boolean true, absent/false, or malformed/unknown. Close
+and protocol failure invalidate it. It carries no actor grants or session/workspace
+identity and sends no new RPC, subscription or server-request opt-in. Existing
+profile/prefix/ticket boundaries, metadata reads and no-replay behavior remain.
+
+Clean required tasks plus explicit release lint pass599 distinct JVM methods,
+zero failures/errors/skips and fresh debug/release lint0. Six new actual WebSocket
+fixture methods cover legacy/false/strict true, malformed values, misleading
+extra identity/grant fields, connection isolation, duplicate ready and failure
+invalidation. They are client transport fixtures, not an actual Hermes authority
+runtime. The existing179 policy tests pass. A real pinned ready AST boolean-to-
+string counterfactual requires review under the unchanged F0 watch.
+
+All seven HostProjectsFlowTest methods pass on each owned API26/API37 emulator,
+with exact unique started/positive names, original CAB keys,583 unchanged source
+inputs and existing geometry/fonts/AVDs. No owner fixture, reset, downgrade or
+new visual screen is claimed. App SHA-256:
+`cfd80358a43628c1510556f518dd62fd559c9514379ff56951d97e3ae132d9af`;
+companion:`09f7c3c0884634b6df511e950a574c2cd974f22e73ded74c7263cf3c9d6f3c49`.
+The source freeze is closed; full exact-commit hosted gates remain required.
+These fixtures are not public APKs. CI and contributor commands now explicitly
+request both lint variants and retain raw lint/JVM XML, matching release2e.
+
+Separately, the final110 release's eight packaged ELF-magic libraries across
+four declared ABI directories are byte-identical to native members from checksum-
+approved graphics-path1.0.1 and datastore-core-android1.3.0 AARs.71 resolved AAR
+checksums were checked against that release's source policy. This is bounded
+payload-origin evidence; ELF machine/loader/hardening, native advisories, tooling,
+OS/OEM and deliberate SBOM/provenance closure remain separate. The release stays
+unpublished pending its own full native and exact owner-upgrade checks.

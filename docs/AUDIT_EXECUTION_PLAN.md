@@ -453,3 +453,15 @@ is typed authority negotiation, then separately reviewed canonical attachment
 and exact-handle workspace approvals. This static review closes no runtime,
 worker or project-file acceptance row. Final release 2e checks continue on their
 existing handles, with phone USB reconnection pending. The full goal stays active.
+
+
+## 7 November: typed readiness implemented, workspace writes remain open
+
+The bounded authority-advertisement foundation passes599 unique JVM, fresh debug
+and release lint,179 policy and seven project-native cases on each owned API26/37.
+It adds no network method, writer or subscription and does not infer actor rights.
+Its583-input freeze is closed; commit/push and complete its own exact-head hosted
+gates before dependent merges. Continue separately scoped canonical attachment,
+handle/replay identity, exact cwd approval, worker routing and file hydration.
+Final release2e retains its independent native/owner/publication gates; main and
+stable stay pinned. All broader audit rows remain required.
