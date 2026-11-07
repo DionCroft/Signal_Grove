@@ -69,6 +69,49 @@ WebSocket authentication, network frame ordering, actual native-login/profile
 isolation, LOCAL restore/adoption or deployed acceptance. The fixture runner has
 no active agent or adapters. Those required stages remain open.
 
+## Independent prior revision and attach-first flow
+
+The same script now accepts explicit `--revision` and `--flow` choices. Its default
+remains stable2bd378e/authority-wire with all46 original assertions. The separately
+pinned prior source is `bf0203a794a07aac3ff764972ab9087baa4e4f4e`; four inspected
+canonical files match its reviewed packaged-source manifest. Other overlays and
+loaded process/authentication state remain separate. No stable/F0 pin is replaced.
+
+The prior type is named Principal with the same four actor fields. The prior
+source lacks the modern orphan-close fixture; the full authority lifecycle flow
+is therefore explicitly restricted to stable before any fixture is created.
+The shared attach-first flow uses public runtime-store setup and the actual
+canonical dispatcher on both revisions. Each run passes13 distinct assertions:
+three real claim/recovery/transcript invariants plus ten resume/replay/live/cleanup
+checks. Full stable remains46. These are three separately scoped runs, not72
+new independent Android tests.
+
+A retained prior-source replay-first counterexample reads event1, publishes
+event2 before resume, then receives no live event2 although resume reports sequence2.
+The same stable flow catches event2. Do not silently advertise the newer guarantee
+for an older owner or mark that failed counterexample passed.
+
+The attach-first sequence is: resume and bind the fresh subscription; buffer live
+frames; request replay from the previous epoch/sequence; merge exact same-epoch,
+same-session frames by sequence and reject conflicting duplicates or gaps. In the
+controlled fixture, event2 arrives while disconnected, event3 between attachment
+and replay, and event4 after replay. Actual replay gives2/3, live gives3/4, and
+reconciliation yields2/3/4 once. The unknown admission and transcript stay intact.
+Both actual source revisions pass this sequence under strict result schemas.
+
+Production fanout uses a daemon writer. The fixture waits up to3 seconds on a
+condition signalled by actual sink writes; its initial synchronous-delivery
+assumption failed on both revisions and those runs remain retained. No arbitrary
+sleep, upstream patch or relaxed event assertion was used. Prior-source version
+imports try seven read-only Git probes. Those exact source/caller/argv probes
+remain blocked and are reported separately; no subprocess runs, and version/
+provider discovery is not certified. All other blocked operations still fail.
+
+This adds compatibility evidence and a future client ordering requirement. The
+app's existing operator socket still has no transcript subscription, reconnect or
+server-request opt-in. No native live-view feature, worker write, network auth,
+restore/adoption or deployment upgrade is claimed by this probe.
+
 ## Running the probe
 
 This implementation currently supports Windows. Use an existing compatible
@@ -78,10 +121,17 @@ must be on E: on the owner's workstation. Pass paths as arguments; do not put
 credentials or a production Hermes home in them.
 
 ```powershell
+# Existing stable46 lifecycle and wire checks (default):
 & $HermesPython -I -S -B scripts/compatibility_probe_session_authority.py `
-  --source-root $PinnedHermesCheckout `
-  --work-root $FreshFixtureRoot `
+  --source-root $StableCheckout --work-root $FreshStableRoot `
   --dependency-site $ExistingDependencySite
+
+# Repeat with independently fresh roots for stable and prior source:
+& $HermesPython -I -S -B scripts/compatibility_probe_session_authority.py `
+  --revision prior-bf0203a --flow attach-first `
+  --source-root $PriorCheckout --work-root $FreshPriorRoot `
+  --dependency-site $ExistingDependencySite
+# For the stable attach-first run use --revision stable-2bd378e and its checkout.
 ```
 
 The probe clears inherited application/credential environment variables,

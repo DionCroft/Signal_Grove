@@ -1,4 +1,4 @@
-"""Exercise pinned real Hermes authority, canonical dispatch and replay in a fresh SQLite fixture.
+"""Exercise pinned real Hermes authority, canonical dispatch and attach-first replay fixtures.
 
 Windows component probe; run with an existing Hermes interpreter using -I -S -B.
 No dependency installation, site hooks, gateway startup, inference or owner data.
@@ -17,15 +17,24 @@ import traceback
 import urllib.parse
 import weakref
 
-SOURCE_COMMIT = '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'
-PINNED_BLOBS = {
-    'gateway/session_authority.py': '052252b70edc38b71b6a8679f91660d6009893aa',
-    'gateway/owner_identity.py': 'bffdf405527e53f3bd1b608c88d609b1dab34803',
-    'gateway/session_local_migration.py': '82a647465420180829beeb081a6271bcdc48272f',
-    'gateway/session_worker_reservation.py': '421bb89109330bd5eaf8f7ac29d77dcda1ce5554',
-    'tests/gateway/test_local_authority_transitions.py': '8e0e58485a882c7ee90bb204e7eded9ee81f6da8',
-    'tests/gateway/test_canonical_wire_contracts.py': '78364e99862de463129325a67c8ae6e0880a0a62',
-}
+REVISIONS = {'stable-2bd378e': {'commit': '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19',
+                    'blobs': {'gateway/session_authority.py': '052252b70edc38b71b6a8679f91660d6009893aa',
+                              'gateway/owner_identity.py': 'bffdf405527e53f3bd1b608c88d609b1dab34803',
+                              'gateway/session_local_migration.py': '82a647465420180829beeb081a6271bcdc48272f',
+                              'gateway/session_worker_reservation.py': '421bb89109330bd5eaf8f7ac29d77dcda1ce5554',
+                              'tests/gateway/test_local_authority_transitions.py': '8e0e58485a882c7ee90bb204e7eded9ee81f6da8',
+                              'tests/gateway/test_canonical_wire_contracts.py': '78364e99862de463129325a67c8ae6e0880a0a62',
+                              'gateway/session_controls.py': '3e4a89ad890cacf9645b648369d3daa682c1e114',
+                              'gateway/session_events.py': '5aa8636025d83497b23dcad7cc24bfd0c9ca911d',
+                              'tui_gateway/contracts/canonical_sessions.py': '642364a17f0ec8a12c66c285d76064996b604f10',
+                              'hermes_state_runtime.py': '49207f5508db3255cd90433a229c518f11cfd0f7'}},
+ 'prior-bf0203a': {'commit': 'bf0203a794a07aac3ff764972ab9087baa4e4f4e',
+                   'blobs': {'gateway/session_authority.py': '3bc6c596c77c495c1cf318495a84319c211dd523',
+                             'gateway/session_controls.py': '65887575dec12b3ddb9f859ebe56156264ea120e',
+                             'gateway/session_events.py': 'f669acfb44e3acc17058e67981b4cf8569478451',
+                             'gateway/session_local_migration.py': '484be549e64250e509bbaabe80b6ef9cc499c18e',
+                             'tui_gateway/contracts/canonical_sessions.py': 'db394b039bca3a75a9ed4e06e0fcc7a121c3ae33',
+                             'hermes_state_runtime.py': '516e3ea46152226e320dc0b6236e6af0b2a00ccb'}}}
 if not __debug__ or not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode):
     raise SystemExit('Use -I -S -B without -O; assertions and isolated imports are required.')
 if os.name != 'nt':
@@ -34,7 +43,13 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source-root', type=Path, required=True)
 parser.add_argument('--work-root', type=Path, required=True)
 parser.add_argument('--dependency-site', type=Path, required=True)
+parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
+parser.add_argument('--flow', choices=('authority-wire', 'attach-first'), default='authority-wire')
 a = parser.parse_args()
+if a.flow == 'authority-wire' and a.revision != 'stable-2bd378e':
+    parser.error('The full authority lifecycle flow requires the stable revision; use attach-first for the prior source.')
+SOURCE_COMMIT = REVISIONS[a.revision]['commit']
+PINNED_BLOBS = REVISIONS[a.revision]['blobs']
 source, root, site = a.source_root.resolve(), a.work_root.resolve(), a.dependency_site.resolve()
 assert source.is_dir() and site.is_dir() and not root.exists(), 'Use existing dependencies and a fresh output root.'
 assert source.drive.upper() == root.drive.upper() == 'E:', 'Source and temporary output must stay on E:.'
@@ -97,7 +112,33 @@ def refuse(event, target=None):
         denial_details.append(dict(event=event, targetName=target.name if target is not None else None, targetPathSha256=hashlib.sha256(str(target).encode()).hexdigest() if target is not None else None, frames=frames))
     raise PermissionError('Canonical fixture boundary: ' + event)
 
+expected_blocked_version_probes = []
+VERSION_PROBES = {
+    ('git', 'rev-parse', 'HEAD'),
+    ('git', 'branch', '--show-current'),
+    ('git', 'log', '-1', '--format=%ct', 'HEAD'),
+    ('git', '--no-optional-locks', 'status', '--porcelain', '-uno'),
+    ('git', 'tag', '--merged', 'HEAD', '--list', 'v[0-9]*'),
+    ('git', 'describe', '--tags', '--long', '--match', 'v2[0-9][0-9][0-9].*', 'HEAD'),
+    ('git', 'rev-parse', '--short=7', 'HEAD'),
+}
 def audit(event, args):
+    if event == 'subprocess.Popen':
+        argv, cwd = args[1], args[2]
+        frame = sys._getframe(1)
+        from_version_info = False
+        for _ in range(10):
+            if frame is None:
+                break
+            if frame.f_globals.get('__name__') == 'hermes_cli.version_info' and frame.f_code.co_name in ('_run_git', '_git_version_info'):
+                from_version_info = True
+            frame = frame.f_back
+        version_probe = next((probe for probe in VERSION_PROBES if isinstance(argv, str) and argv == subprocess.list2cmdline(list(probe))), None)
+        if isinstance(argv, (list, tuple)) and tuple(argv) in VERSION_PROBES:
+            version_probe = tuple(argv)
+        if a.revision == 'prior-bf0203a' and version_probe is not None and cwd is not None and Path(cwd).resolve() == source and from_version_info:
+            expected_blocked_version_probes.append(list(version_probe))
+            raise PermissionError('Version metadata subprocess intentionally blocked in fixture')
     if event in ('subprocess.Popen', 'os.system', 'os.kill', 'os.killpg', 'os.exec', 'os.posix_spawn', 'sqlite3.enable_load_extension', 'sqlite3.load_extension', 'socket.sendto', 'socket.sendmsg', 'socket.gethostbyname', 'socket.gethostbyaddr'):
         refuse(event)
     if event == 'socket.getaddrinfo':
@@ -182,7 +223,10 @@ try:
     from hermes_state_runtime import begin_runtime_epoch, RuntimeStoreError
     from gateway.session_authority import SessionAuthority, LiveSession
     from gateway.session_controls import AuthorityConnection
-    from gateway.session_contract import SessionActor, SessionRef
+    if a.revision == 'prior-bf0203a':
+        from gateway.session_contract import Principal as SessionActor, SessionRef
+    else:
+        from gateway.session_contract import SessionActor, SessionRef
     from gateway.config import Platform
     from hermes_state_runtime import admit_session_input, claim_session_input, recover_session_inputs, get_session_admission
     from types import SimpleNamespace
@@ -191,11 +235,19 @@ try:
     class Sink:
 
         def __init__(self):
+            import threading
             self.frames = []
+            self.changed = threading.Condition()
 
         def write(self, frame):
-            self.frames.append(frame)
+            with self.changed:
+                self.frames.append(frame)
+                self.changed.notify_all()
             return True
+
+        def wait_for_count(self, count, timeout):
+            with self.changed:
+                return self.changed.wait_for(lambda: len(self.frames) >= count, timeout)
 
         def close(self):
             pass
@@ -332,6 +384,110 @@ try:
             for peer in peers:
                 await peer.close()
 
+    async def attach_first_wire_behavior(authority, db):
+        from tui_gateway.contracts.events import StatusUpdatePayload
+        from tui_gateway.contracts import registry
+        assert registry.STRICT is True
+        sinks = [Sink(), Sink()]
+        identity = {'provider': 'local', 'user_id': 'wire-viewer', 'capabilities': ['session:read']}
+        peers = [AuthorityConnection(authority, sink, identity) for sink in sinks]
+        serial = 0
+
+        async def rpc(peer, method, params):
+            nonlocal serial
+            serial += 1
+            request = {'jsonrpc': '2.0', 'id': str(serial), 'method': method, 'params': params}
+            reply = await peer.dispatch(request)
+            assert reply['id'] == request['id'] and reply.get('jsonrpc') == '2.0' and ('error' not in reply), reply
+            return reply['result']
+
+        async def resume(peer):
+            snapshot = await rpc(peer, 'session.resume', {'session_id': 's'})
+            tasks = list(getattr(peer, '_notice_tasks', ()))
+            if tasks:
+                await asyncio.gather(*tasks)
+            return snapshot
+        stream = authority.sessions['s'].event_stream
+
+        def publish(index):
+            payload = {'kind': 'status', 'text': 'fixture event ' + str(index)}
+            StatusUpdatePayload.model_validate(payload)
+            return stream.publish('s', payload, event_type='status.update')
+        try:
+            first = await resume(peers[0])
+            assert first['session_id'] == first['stored_session_id'] == 's' and first['authority_epoch'] == authority.epoch and (first['execution_generation'] == 1) and (first['revision'] == 0)
+            assert first['last_sequence'] == 0 and first['message_count'] == 2
+            epoch = first['replay_epoch']
+            passed('attach_first_snapshot_binds_session_epoch_revision_generation')
+            assert publish(1) is True
+            assert await asyncio.to_thread(sinks[0].wait_for_count, 1, 3), 'Actual fanout did not deliver event1 within3 seconds'
+            assert [f['params']['seq'] for f in sinks[0].frames] == [1]
+            passed('attached_viewer_receives_initial_live_event')
+            await peers[0].close()
+            assert publish(2) is False and len(sinks[0].frames) == 1
+            passed('detached_event_is_not_mistaken_for_live_delivery')
+            second = await resume(peers[1])
+            assert second['subscription_id'] != first['subscription_id'] and second['replay_epoch'] == epoch and (second['last_sequence'] == 2)
+            passed('fresh_transport_attaches_before_requesting_replay')
+            assert publish(3) is True
+            assert await asyncio.to_thread(sinks[1].wait_for_count, 1, 3), 'Actual fanout did not deliver event3 within3 seconds'
+            assert [f['params']['seq'] for f in sinks[1].frames] == [3]
+            passed('post_attach_pre_replay_event_is_buffered_live')
+            replay = await rpc(peers[1], 'session.events.since', {'session_id': 's', 'replay_epoch': epoch, 'last_sequence': 1})
+            assert replay['snapshot_required'] is False and [f['seq'] for f in replay['events']] == [2, 3]
+            assert all((f['session_id'] == 's' and f['replay_epoch'] == epoch for f in replay['events']))
+            passed('replay_after_attach_recovers_detached_and_racing_events')
+            assert publish(4) is True
+            assert await asyncio.to_thread(sinks[1].wait_for_count, 2, 3), 'Actual fanout did not deliver event4 within3 seconds'
+            merged = {}
+            for frame in replay['events'] + [f['params'] for f in sinks[1].frames]:
+                assert frame['session_id'] == 's' and frame['replay_epoch'] == epoch
+                sequence = frame['seq']
+                assert sequence not in merged or merged[sequence] == frame
+                merged[sequence] = frame
+            assert sorted(merged) == [2, 3, 4] and [merged[n]['payload']['text'] for n in sorted(merged)] == ['fixture event 2', 'fixture event 3', 'fixture event 4']
+            passed('replay_and_live_frames_merge_contiguously_without_duplicates')
+            tail = await rpc(peers[1], 'session.events.since', {'session_id': 's', 'replay_epoch': epoch, 'last_sequence': 3})
+            assert tail['snapshot_required'] is False and [f['seq'] for f in tail['events']] == [4]
+            passed('advanced_cursor_replays_only_new_tail')
+            from hermes_state_runtime import list_session_admissions
+            admissions = list_session_admissions(db, session_id='s', pending_only=False)
+            assert len(admissions) == 1 and admissions[0]['status'] == 'unknown'
+            assert [(row['role'], row['content']) for row in db.get_messages('s')] == [('user', 'fixture user'), ('assistant', 'fixture assistant')]
+            passed('attach_first_flow_never_replays_unknown_admission')
+            await peers[1].close()
+            assert not authority.sessions['s'].subscribers and all((peer.actor.transport_id not in authority.events for peer in peers))
+            passed('attach_first_teardown_releases_own_registration')
+            (root / 'attach-first-observation.json').write_text(json.dumps(dict(source=SOURCE_COMMIT, reconnectCursor=1, replaySequences=[f['seq'] for f in replay['events']], liveSequences=[f['params']['seq'] for f in sinks[1].frames], mergedSequences=sorted(merged), unknownAdmissionPreserved=True, strictWireSchemas=True, expectedBlockedVersionProbes=len(expected_blocked_version_probes)), indent=2) + '\n')
+        finally:
+            for peer in peers:
+                await peer.close()
+
+    async def attach_first_fixture():
+        db = SessionDB(db_path=root / 'hermes-home/authority.sqlite')
+        try:
+            db.create_session('s', source='test')
+            db.append_message('s', 'user', 'fixture user')
+            db.append_message('s', 'assistant', 'fixture assistant')
+            db.create_session('private', source='test')
+            epoch = begin_runtime_epoch(db, instance_id='fixture-instance')
+            admission = admit_session_input(db, epoch=epoch, principal_id='fixture-owner', session_id='s', request_id='fixture-request', payload={'text': 'fixture admission only'})
+            claim = claim_session_input(db, epoch=epoch, session_id='s')
+            assert claim['admission_id'] == admission['admission_id'] and claim['status'] == 'started'
+            passed('fixture_real_admission_claimed_without_producer')
+            next_epoch = begin_runtime_epoch(db, instance_id='replacement-instance')
+            assert recover_session_inputs(db, epoch=next_epoch) == 1
+            assert get_session_admission(db, admission_id=admission['admission_id'])['status'] == 'unknown'
+            passed('fixture_claim_recovers_unknown_in_new_epoch')
+            runner = SimpleNamespace(_draining=False, _cached_agent_for=lambda route: None, adapters={})
+            authority = SessionAuthority(runner, profile_id='fixture', instance_id='replacement-instance', db=db, epoch=next_epoch)
+            authority.sessions['s'] = LiveSession(None, 'fixture-route')
+            await attach_first_wire_behavior(authority, db)
+            assert [(row['role'], row['content']) for row in db.get_messages('s')] == [('user', 'fixture user'), ('assistant', 'fixture assistant')]
+            passed('fixture_transcript_unchanged_after_wire_checks')
+        finally:
+            db.close()
+
     async def behavior():
         db = SessionDB(db_path=root / 'hermes-home/authority.sqlite')
         connections = []
@@ -442,8 +598,9 @@ try:
             passed('connection_close_releases_transport_registration')
         finally:
             db.close()
-    asyncio.run(behavior())
-    assert len(cases) == len(set(cases)) == 46, cases
+    asyncio.run(behavior() if a.flow == 'authority-wire' else attach_first_fixture())
+    expected_cases = 46 if a.flow == 'authority-wire' else 13
+    assert len(cases) == len(set(cases)) == expected_cases, cases
     for name, module in sorted(sys.modules.items()):
         file = getattr(module, '__file__', None)
         if file:
@@ -453,9 +610,10 @@ try:
     for name in ('hermes_state', 'gateway.session_authority', 'gateway.session_controls'):
         assert Path(sys.modules[name].__file__).resolve().is_relative_to(source)
     assert not denied
-    report = dict(state='PASS_BOUNDED_REAL_AUTHORITY_WIRE_BEHAVIOR', source=str(source), sourceCommit=SOURCE_COMMIT, python=sys.version.split()[0], projectModules=loaded, deniedEvents=denied, expectedMissingProbes=missing_os_probe_reads, codeLoadedFromPinnedCheckout=True, sessionOperationsExecuted=True, canonicalDispatcherExecuted=True, strictWireContractValidation=True, wireCases=22, cases=cases, ownedSocketEvents=owned_socket_events, scope='Actual canonical dispatcher with trusted synthetic actors and in-memory transports; isolated existing dependencies/Python audit hooks. Not HTTP/WebSocket authentication, restore/adoption, inference, worker or deployed acceptance; not an OS sandbox.')
+    assert len(expected_blocked_version_probes) <= 16
+    report = dict(state='PASS_BOUNDED_REAL_AUTHORITY_WIRE_BEHAVIOR' if a.flow == 'authority-wire' else 'PASS_BOUNDED_CANONICAL_ATTACH_FIRST_FLOW', source=str(source), sourceCommit=SOURCE_COMMIT, revision=a.revision, flow=a.flow, python=sys.version.split()[0], projectModules=loaded, deniedEvents=denied, expectedMissingProbes=missing_os_probe_reads, codeLoadedFromPinnedCheckout=True, sessionOperationsExecuted=True, canonicalDispatcherExecuted=True, strictWireContractValidation=True, wireCases=22 if a.flow == 'authority-wire' else 10, expectedBlockedVersionProbes=expected_blocked_version_probes, cases=cases, ownedSocketEvents=owned_socket_events, scope='Actual canonical dispatcher with trusted synthetic actors and in-memory transports; isolated existing dependencies/Python audit hooks. Not HTTP/WebSocket authentication, restore/adoption, inference, worker or deployed acceptance; not an OS sandbox.')
 except BaseException:
-    report = dict(state='BEHAVIOR_FAILED_PRESERVED', source=str(source), deniedEvents=denied, denialDetails=denial_details, traceback=traceback.format_exc(), passedBeforeFailure=cases, projectModules=loaded)
+    report = dict(state='BEHAVIOR_FAILED_PRESERVED', source=str(source), deniedEvents=denied, denialDetails=denial_details, expectedBlockedVersionProbes=expected_blocked_version_probes, traceback=traceback.format_exc(), passedBeforeFailure=cases, projectModules=loaded)
     raise
 finally:
     (root / 'result.json').write_text(json.dumps(report, indent=2) + '\n')

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add an independently pinned prior Hermes source and attachment-first replay matrix. Retain the stable46 checks and older replay-first counterexample; recover disconnected/racing events once without replaying unknown work. Test infrastructure only; app transport remains unchanged.
+
 - Extend the real Hermes authority probe through its canonical dispatcher: strict wire schemas, session resume, permission refusals and reconnect event catch-up without duplicate events or unknown-work replay. No application protocol or deployed changes.
 
 - Add a repeatable Windows component probe against pinned real Hermes authority modules for owner/profile gates, subscription cleanup and durable unknown-work recovery. Existing dependencies and fresh isolated SQLite fixtures only; deployed transport and workspace/worker acceptance remain separate.

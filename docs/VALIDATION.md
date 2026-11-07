@@ -2690,3 +2690,27 @@ control-plane checkout, so that SHA does not identify the packaged Hermes code.
 The discovered generation manifest supplies separate provenance and per-file
 hashes. This observation does not establish loaded module identity, authenticated
 authority grants or deployment compatibility.
+
+
+## Prior/stable canonical attach-first matrix — 7 November 2026
+
+Exact repository source passes stable46 (497 actual modules), stable attach-first13
+(486 modules) and prior bf0203a attach-first13 (436 modules), with strict official
+wire schemas. Each uses a fresh SQLite fixture and direct trusted identities.
+No unexpected denied operation; the prior's seven exact metadata Git subprocess
+attempts remain blocked and separately recorded. No dependency install/site hooks,
+owner fixture, Pi state write, model invocation or new Android acceptance.
+
+Prior diagnostic runs remain: renamed actor import, unavailable modern orphan
+fixture and the real replay-first reconnect gap. The gap read sequence1, published2
+while detached, then resumed at2 with no delivered event2. Stable46 retains the
+original stronger assertion. The shared attachment-first sequence recovers2/3/4
+once on both sources and keeps the existing unknown admission/transcript intact.
+Initial synchronous fanout assumptions failed; bounded actual-delivery observation
+fixes the fixture without changing production code or expected contents.
+
+Required Android tasks and policy/preflight verification for this Python/docs-only
+chunk are pending. Android/dependency/workflow source is unchanged; preserve the
+prior fresh599/both-lint proof and byte-identical original-key0e71/e297 APK pair.
+The full release207c552/936/937 and feature360599/1011/1012 cohorts stay separately
+accepted. This matrix is not full deployed or authenticated network acceptance.

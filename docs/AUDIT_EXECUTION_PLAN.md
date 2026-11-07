@@ -13,8 +13,10 @@ owner phone. Main remains6b809e6; no merge or public beta.7 has occurred.
 
 The next interoperability stage uses actual canonical transport/authentication,
 restore/adoption and exact handle/replay/owner boundaries before native project
-operations. The existing isolated component probe now passes46 real-module cases,
-including22 actual dispatcher and reconnect-gap cases with strict schemas.
+operations. The isolated component probe retains46 stable cases plus an independently
+pinned13-case attachment-first flow on each stable/prior source. The prior
+replay-first gap is retained; actual replay/live frames merge2/3/4 once with
+strict schemas and unknown work held. No app transcript transport is added.
 It is not an authenticated network server or worker/workspace certification.
 Every remaining row below stays required; unavailable hardware blocks its own
 acceptance, not independent implementation.
