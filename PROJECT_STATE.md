@@ -1,53 +1,50 @@
-# Signal Grove project state — validated sidecar boundary, incomplete CI device run
+# Signal Grove project state — CI outcome diagnostics
 
 Continue every required row of docs/AUDIT_EXECUTION_PLAN.md. Preserve source here,
-temporary/tools/cache/evidence on the mandated storage, original data/keys, main,
+temporary/tools/cache/evidence on mandated storage, original keys/data/main,
 TLS/auth/profile isolation, exact approvals and no unknown-work replay.
 
 ## Current bounded stage
 
-The AA gateway-response review is implemented. It adds the verified existing
-F0 request-registry source/42 fingerprints without changing any prior field,
-an exact two-module dispatch fence, a bounded11-case recurring probe and four
-JVM socket-boundary cases.170 parser/15 runtime/11 canonical module checks pass.
-One initial nine-versus-ten source-inventory assertion failed and is retained;
-the explicit new source/path is now checked, with all older assertions kept.
+The f793 sidecar boundary chunk is pushed:552 JVM/170 policy/15 runtime/11
+canonical probe and27 current-pair native cases per owned API pass. Its fresh
+four-job compatibility run42352569016 passed170/15 plus8 registry/11 sidecar
+cases and stable2bd; mainE826 changed only the registry's full source bytes,
+while the selected dispatch AST stayed unchanged. E826 is not yet reviewed.
 
-The strict required build passed552 JVM with zero failures/errors/skips and
-zero debug lint errors. All564 source inputs stayed frozen. The original-CAB
-QA111 app matches priora55c bytes; the rebuilt00754 companion matches all old
-payloads but has a different container.27 current-pair native cases passed on
-each owned API26/API37 without data/display changes. Earlier six-case diagnostics
-used the old pair and remain separate. The local freeze is now closed; no local
-build/native process is active. Read the pinned sidecar review for exact scope.
+The new CI diagnostic chunk records instrumentation return-code/verdict/timeout
+facts and owned-process/device state before cleanup, always retaining two JSON
+files.23 runner/179 policy/15 runtime tests pass, including original one-shot/
+deadline guards. Saved API26 stdout replays to an unknown outcome; no missing
+return code or root cause is invented. App/test/build inputs are unchanged from
+f793, so its Android evidence is retained as that earlier cohort. No local
+Gradle/native process or source freeze is active.
 
 ## Exact next action
 
-Commit/push the tested response-routing chunk and dispatch its own compatibility
-gate once. That workflow now has four jobs, including the independent11-case
-sidecar probe, and four result archives. Require exact-head success/digest review.
+Commit/push this coherent tested tooling chunk. Then fetch/review the exact
+E826 registry source diff and test any additional accepted source mode. Keep
+the original F0/all prior evidence; do not merely append a hash. After those
+chunks are integrated, dispatch final-source compatibility and full Android
+gates once with explicit receipts and no replay of accepted requests.
 
-Before a new full Android cohort, add bounded instrumentation return-code/
-verdict/timeout and owned-emulator pre-cleanup-state evidence. Ef5 run42345795933
-is terminal: API37 passed937 unique cases; API26 recorded912 positives/913 starts
-of936, then lost the device connection without an assertion/final verdict.
-24 cases remain unverified. Its exact cause is unknown; cleanup shutdown is not
-proof of a crash. Retain the failed/incomplete cohort. Do not redispatch unchanged
-failing inputs or claim that local guide passes fix long-run stability.
+Prior ef5 Android42345795933 remains overall failed: API37 passed937; API26 has
+912 positives of936 with24 unverified and no assertion/final verdict. The
+instrument stream stops at case913 start; waiting-for-device is from cleanup
+logcat. Exact interruption cause remains unknown. New diagnostics do not prove
+a fix. Read docs/audits/2026-11-07/CI_DEVICE_OUTCOMES.md before a fresh cohort.
 
-Then close final-source full Android gates and original-key110/beta.7 signing,
-provenance/advisories/public asset digest and download checks before publication.
-QA111 remains private; no beta7 release exists. The signed992 predecessor is held,
-not a final artifact for this source. Stable1.0/main6b809e6 remain unchanged.
+Require exact final-source full gates, original-key110/beta.7 signing/provenance,
+bounded advisories and public four-asset digest/download checks before release.
+No beta7 tag/draft/release exists; signed992 predecessors remain held. QA111 is
+private. Stable1.0 and main6b809e6 remain unchanged.
 
 ## Remaining scope
 
-The owner production110 connection/history/sign-in/request settings and actual
-API replies remain retained. Foreign histories are read-only; projects are
-metadata, not worker/filesystem or shared Bot Chat authority. No production Pi,
-model/default/credential or owner-phone changes occurred in this review.
-
-The independent status feature39e7538 needs reconciliation, versioning and full
-gates. Workers/dispatch/events/files/pins/transfers, workspaces, automation/rooms/
-grants, integrations/configuration, notifications, rendering/voice/OEM and
-security/community closure remain required. Keep the full goal active.
+Owner production110 connection/history/sign-in/request settings and API replies
+are retained; foreign histories stay read-only and project reads are metadata.
+No owner-phone, Pi, model/default or credential changes occurred here. The
+separate status feature39e7538 needs reconciliation/versioning/full gates.
+Workers/dispatch/events/files/pins/transfers, workspaces, automation/rooms/grants,
+integrations/configuration, notifications, rendering/voice/OEM and security/
+community closure remain required. Keep the full goal active.

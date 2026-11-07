@@ -96,3 +96,7 @@ Main d4 advanced during the992 canary. The failed result is retained;166 parser/
 ## 7 November — validated response boundary and CI interruption
 
 AA review adds a two-source fence and recurring11-case probe, preserving F0/all prior fields.170 parser/15 runtime/552 JVM and27 current-pair native cases per owned API26/37 pass. The full ef5 cohort remains failed: API37 passed937; API26 stopped after912 positives with24 unfinished, no assertion/final verdict. Retain the result, add bounded command/device diagnostics before a new full cohort, and finish exact-source gates/publication. See contracts/2026-11-07-sidecar-response-review.md. All broader audit rows remain required.
+
+## 7 November — bounded CI outcome diagnostics
+
+23 runner/179 policy/15 runtime cases pass for explicit command/timeout/negative-verdict metadata and original owned-device pre-cleanup state, preserving one invocation and95 minutes. The prior API26 command outcome/root cause remains unknown; waiting-for-device belongs to cleanup logcat, not the truncated instrument stream. This is observability, not a proven fix or new native pass. See audits/2026-11-07/CI_DEVICE_OUTCOMES.md. Review E826, then close integrated-source gates/publication; all broader rows remain required.

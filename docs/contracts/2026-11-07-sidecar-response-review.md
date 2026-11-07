@@ -103,7 +103,8 @@ The prior ef5 full Android cohort is terminal: API37 passed937 unique cases with
 no failures/skips, artifact ZIP digest
 `b156e457f163ac06c3eca676f0f2b43b37da96decc642800f344b3f4818e3f08`.
 API26 stopped after912 positives/913 starts out of936 with no failed assertion or
-terminal verdict. Its log ends waiting for device;24 cases remain unverified,
+terminal verdict. Instrumentation ends at case913's start; the waiting-for-device
+message comes from subsequent cleanup logcat.24 cases remain unverified,
 including the running bilingual setup-guide case. Its ZIP digest is
 `82a400c8a8fa30bedaea9d0df6609817c6553673a28316e820d2e35c00ab3564`.
 Both archives were independently checked. The exact connection-loss cause is

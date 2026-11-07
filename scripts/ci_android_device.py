@@ -4,6 +4,7 @@ Uses runner temporary storage. Never targets a developer's existing emulator/dev
 """
 from __future__ import annotations
 import argparse
+import json
 import os
 from pathlib import Path
 import re
@@ -13,21 +14,136 @@ import sys
 import time
 
 
-def run_instrumentation(device, log_path: Path, timeout: int = 5700) -> int:
-    """Run every case once within a finite deadline and retain even timed-out output."""
+def instrumentation_record(output: str, returncode: int | None, *, elapsed: float = 0,
+                           timed_out: bool = False, error_type: str | None = None) -> dict:
+    """Bounded facts about this command, never a substitute for exact case verification."""
+    passed = re.search(r'^OK \(([1-9][0-9]*) tests?\)', output, re.M)
+    failure_marker = bool(re.search(r'FAILURES!!!|INSTRUMENTATION_FAILED|shortMsg=|Process crashed', output))
+    status, started, positive, named_positive, negative = {}, 0, 0, set(), {}
+    last_started, last_finished, declared = None, None, None
+    for line in output.splitlines():
+        if line.startswith('INSTRUMENTATION_STATUS: '):
+            key, _, value = line[len('INSTRUMENTATION_STATUS: '):].partition('=')
+            if key in ('class', 'test'):
+                status[key] = value[:512]
+            elif key == 'numtests' and re.fullmatch(r'[0-9]{1,8}', value):
+                declared = int(value)
+        elif line.startswith('INSTRUMENTATION_STATUS_CODE: '):
+            value = line.partition(': ')[2]
+            if re.fullmatch(r'-?[0-9]{1,6}', value):
+                code = int(value)
+                method = {key: status.get(key) for key in ('class', 'test')}
+                if code == 1:
+                    started += 1
+                    last_started = method
+                elif code == 0:
+                    positive += 1
+                    last_finished = method
+                    if all(method.values()):
+                        named_positive.add((method['class'], method['test']))
+                elif code < 0:
+                    key = str(code) if code in (-1, -2, -3, -4) else 'other_negative'
+                    negative[key] = negative.get(key, 0) + 1
+            status = {}
+    success = returncode == 0 and passed is not None and not failure_marker and not negative and not timed_out and error_type is None
+    outcome = ('timed_out' if timed_out else 'command_error' if error_type else
+               'unknown_command_outcome' if returncode is None else 'passed' if success else 'failed')
+    return {'schema': 1, 'status': outcome, 'command_returncode': returncode,
+            'timed_out': timed_out, 'command_error_type': error_type,
+            'elapsed_seconds': round(max(0, elapsed), 3),
+            'ok_summary_tests': int(passed.group(1)) if passed else None,
+            'failure_marker': failure_marker, 'negative_status_codes': negative,
+            'declared_tests': declared, 'started_status_events': started,
+            'positive_status_events': positive, 'unique_named_positive_methods': len(named_positive),
+            'last_started': last_started, 'last_finished': last_finished,
+            'waiting_for_device_message': '- waiting for device -' in output,
+            'success_criteria_met': success,
+            'scope': 'One command only. Exact distinct cases, APK identity and complete reports require separate verification.'}
+
+
+def retain_instrumentation(log_path: Path, output: str, record: dict) -> bool:
     try:
-        result=device('shell','am','instrument','-w','-r','org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner',timeout=timeout,check=False)
+        log_path.write_text(output, encoding='utf-8')
+        log_path.with_name('instrumentation-result.json').write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
+        return True
+    except OSError as exc:
+        print(f'Instrumentation evidence could not be retained: {type(exc).__name__}.', file=sys.stderr)
+        return False
+
+
+def run_instrumentation(device, log_path: Path, timeout: int = 5700) -> int:
+    """One finite invocation; retain exit facts without retrying or accepting partial output."""
+    started = time.monotonic()
+    try:
+        result = device('shell', 'am', 'instrument', '-w', '-r',
+                        'org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner', timeout=timeout, check=False)
     except subprocess.TimeoutExpired as exc:
-        output=exc.stdout
-        if isinstance(output,bytes):output=output.decode('utf-8',errors='replace')
-        log_path.write_text(output or '',encoding='utf-8')
+        output = exc.stdout
+        if isinstance(output, bytes):
+            output = output.decode('utf-8', errors='replace')
+        output = output or ''
+        retain_instrumentation(log_path, output, instrumentation_record(output, None, elapsed=time.monotonic()-started, timed_out=True))
         raise
-    log_path.write_text(result.stdout,encoding='utf-8')
-    passed=re.search(r'^OK \(([1-9][0-9]*) tests?\)',result.stdout,re.M)
-    failed=re.search(r'FAILURES!!!|INSTRUMENTATION_FAILED|shortMsg=|Process crashed',result.stdout)
-    if result.returncode or not passed or failed:
-        raise RuntimeError('Instrumentation failed; inspect the retained log and screenshots.')
-    return int(passed.group(1))
+    except OSError as exc:
+        retain_instrumentation(log_path, '', instrumentation_record('', None, elapsed=time.monotonic()-started, error_type=type(exc).__name__))
+        raise
+    record = instrumentation_record(result.stdout, result.returncode, elapsed=time.monotonic()-started)
+    retained = retain_instrumentation(log_path, result.stdout, record)
+    if not record['success_criteria_met']:
+        raise RuntimeError('Instrumentation failed; inspect the retained log, command result and device state.')
+    if not retained:
+        raise RuntimeError('Instrumentation evidence could not be retained; no device pass is recorded.')
+    return record['ok_summary_tests']
+
+
+def retain_owned_device_state(process, device, path: Path) -> bool:
+    """Observe the same owned process/serial once, before cleanup; never restart it."""
+    record = {'schema': 1, 'before_cleanup': True}
+    try:
+        code = process.poll()
+        record.update(emulator_returncode=code, emulator_alive=code is None)
+    except OSError as exc:
+        code = None
+        record.update(emulator_returncode=None, emulator_alive=None, emulator_probe_error_type=type(exc).__name__)
+    if code is not None:
+        record['adb_get_state'] = {'skipped': 'owned_emulator_exited'}
+    else:
+        try:
+            result = device('get-state', timeout=10, check=False)
+            state = (result.stdout or '').strip()
+            record['adb_get_state'] = {'returncode': result.returncode,
+                'state': state if state in ('device', 'offline', 'unknown', 'unauthorized', 'bootloader', 'recovery', 'sideload') else 'empty' if not state else 'other'}
+        except (OSError, subprocess.SubprocessError) as exc:
+            record['adb_get_state'] = {'error_type': type(exc).__name__}
+    try:
+        path.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
+        return True
+    except OSError as exc:
+        print(f'Owned-device evidence could not be retained: {type(exc).__name__}.', file=sys.stderr)
+        return False
+
+
+def finish_owned_device(process, device, work: Path) -> bool:
+    retained = retain_owned_device_state(process, device, work/'device-state.json')
+    try:
+        (work/'test-runner.log').write_text(device('logcat', '-d', '-s', 'TestRunner:I', 'AndroidRuntime:E', timeout=15, check=False).stdout, encoding='utf-8')
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    try:
+        device('pull', '/sdcard/Android/data/org.hermesmobile.app.debug/files/qa', work/'screenshots', timeout=30, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    try:
+        device('emu', 'kill', timeout=10, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    try:
+        process.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=10)
+    return retained
+
 
 
 def install_sdk_packages(argv: list[str], env: dict, log_path: Path, timeout: int = 900) -> None:
@@ -172,15 +288,10 @@ def main() -> int:
             print(summary)
             with Path(env['GITHUB_STEP_SUMMARY']).open('a',encoding='utf-8') as report:report.write(summary+'\n')
         finally:
-            for filename,argv in [('test-runner.log',('logcat','-d','-s','TestRunner:I','AndroidRuntime:E'))]:
-                try:(work/filename).write_text(device(*argv,timeout=15,check=False).stdout,encoding='utf-8')
-                except (OSError,subprocess.TimeoutExpired):pass
-            try:device('pull','/sdcard/Android/data/org.hermesmobile.app.debug/files/qa',work/'screenshots',timeout=30,check=False)
-            except (OSError,subprocess.TimeoutExpired):pass
-            try:device('emu','kill',timeout=10,check=False)
-            except (OSError,subprocess.TimeoutExpired):pass
-            try:process.wait(timeout=15)
-            except subprocess.TimeoutExpired:process.kill();process.wait(timeout=10)
+            device_state_retained = finish_owned_device(process, device, work)
+    if not device_state_retained:
+        raise RuntimeError('Owned-device evidence could not be retained; inspect cleanup output.')
+
     return 0
 
 

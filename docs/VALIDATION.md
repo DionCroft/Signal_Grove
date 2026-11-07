@@ -1,5 +1,25 @@
 # Current development validation — audit follow-up
 
+## 2026-11-07 — bounded command/device diagnostics
+
+All23 CI-runner,179 policy and15 runtime cases pass. Nine new cases preserve
+one instrumentation invocation/95-minute deadline, reject partial or negative
+verdicts, retain exit/timeout facts, and observe the same owned process/serial
+before cleanup without restarting it. Both JSON reports are always uploaded.
+Missing evidence cannot turn a nominal successful command into a pass.
+
+The saved ef5 API26 stream replays to912 unique positives/913 starts of936 and
+an unknown command outcome; no missing exit code/duration is guessed. Exact-file
+inspection corrects the earlier attribution: instrumentation stops at case913
+start, while waiting-for-device appears in cleanup logcat. The initial replay
+assumption failed and remains retained; the parser was not changed to hide it.
+This is not a new native run or a proven disconnection fix. See the
+[outcome review](audits/2026-11-07/CI_DEVICE_OUTCOMES.md).
+
+App/test/build inputs remain identical to f793's tested source; its552 JVM/27
+native per API scope stays with that cohort. Final integrated-source compatibility
+and complete Android gates remain required, followed by signed/public checks.
+
 ## 2026-11-07 — sidecar response review and interrupted API26 full run
 
 See [the primary-source review](contracts/2026-11-07-sidecar-response-review.md).
