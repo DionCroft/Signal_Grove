@@ -8735,6 +8735,15 @@
           "gateway_ws": "f1f3750accad549937a0d34d3c4b0eafdffbb04fc3ea46022415bfbe5f361e2a",
           "gateway_server_requests": "47f1bac23ec50e36ebb09f9e7d9365fe703e11aca88f658c37d7a29413df6473"
         }
+      },
+      {
+        "sha256": "aa59f2ac28285aebb7b01d7616aa0e9ab40539831e656aaef1567df9652ec8ec",
+        "commit": "e826a14a467fa74a718b0010487a8eb12421f879",
+        "reason": "Same socket-pinned dispatch AST, with refusal logging moved outside the registry lock and limited to code/message. AA11/E82613 bounded probes, expected pre-change lock failure and exact vectors reviewed in docs/contracts/2026-11-07-response-error-logging-review.md.",
+        "required_sources": {
+          "gateway_ws": "f1f3750accad549937a0d34d3c4b0eafdffbb04fc3ea46022415bfbe5f361e2a",
+          "gateway_server_requests": "04b0fc8f1302ec1efcd36027f155f64dd8654bda5576ce4c37667a7e47eccadd"
+        }
       }
     ]
   },

@@ -1,43 +1,42 @@
-# Signal Grove project state — CI outcome diagnostics
+# Signal Grove project state — pinned response logging review
 
-Continue every required row of docs/AUDIT_EXECUTION_PLAN.md. Preserve source here,
-temporary/tools/cache/evidence on mandated storage, original keys/data/main,
-TLS/auth/profile isolation, exact approvals and no unknown-work replay.
+Continue every required row of docs/AUDIT_EXECUTION_PLAN.md. Preserve the N:
+source, E: temporary/tools/cache/evidence, original keys/data/main, TLS/auth/profile
+isolation, exact approvals and no replay of unknown work.
 
 ## Current bounded stage
 
-The f793 sidecar boundary chunk is pushed:552 JVM/170 policy/15 runtime/11
-canonical probe and27 current-pair native cases per owned API pass. Its fresh
-four-job compatibility run42352569016 passed170/15 plus8 registry/11 sidecar
-cases and stable2bd; mainE826 changed only the registry's full source bytes,
-while the selected dispatch AST stayed unchanged. E826 is not yet reviewed.
+The CI outcome diagnostics are committed/pushed as 5243683. They retain the
+original one-invocation/deadline guards and add command-verdict and owned-device
+state evidence before cleanup: 23 runner/179 policy/15 runtime tests pass.
 
-The new CI diagnostic chunk records instrumentation return-code/verdict/timeout
-facts and owned-process/device state before cleanup, always retaining two JSON
-files.23 runner/179 policy/15 runtime tests pass, including original one-shot/
-deadline guards. Saved API26 stdout replays to an unknown outcome; no missing
-return code or root cause is invented. App/test/build inputs are unchanged from
-f793, so its Android evidence is retained as that earlier cohort. No local
-Gradle/native process or source freeze is active.
+E826 response logging is now separately reviewed and source-bound, preserving
+AA and every previous F0 field/review. Canonical AA 11 and E826 13 focused cases,
+179 policy/15 runtime tests and eight saved-report source counterfactuals pass.
+The eleven shared probe cases are not counted twice as unique coverage. See
+docs/contracts/2026-11-07-response-error-logging-review.md. No app/test/build
+input changed; earlier f793 552 JVM and 27 current-pair native cases per owned
+API remain their earlier cohort. No local source freeze or Gradle/native run
+is active.
 
 ## Exact next action
 
-Commit/push this coherent tested tooling chunk. Then fetch/review the exact
-E826 registry source diff and test any additional accepted source mode. Keep
-the original F0/all prior evidence; do not merely append a hash. After those
-chunks are integrated, dispatch final-source compatibility and full Android
-gates once with explicit receipts and no replay of accepted requests.
+Commit/push this tested E826 chunk, then dispatch its four-job compatibility
+workflow once with a durable exact-head receipt. Independently verify artifacts,
+including the two sidecar JSONs. After compatibility passes, dispatch a fresh
+complete Android cohort on isolated CI fixtures with the new diagnostics. Review
+prior terminal outcomes first; do not replay accepted/unknown owner work.
 
-Prior ef5 Android42345795933 remains overall failed: API37 passed937; API26 has
-912 positives of936 with24 unverified and no assertion/final verdict. The
-instrument stream stops at case913 start; waiting-for-device is from cleanup
-logcat. Exact interruption cause remains unknown. New diagnostics do not prove
-a fix. Read docs/audits/2026-11-07/CI_DEVICE_OUTCOMES.md before a fresh cohort.
+Prior ef5 Android 42345795933 remains overall failed: API37 passed 937; API26 has
+912 positives of 936 with 24 unverified and no assertion/final verdict.
+Instrumentation ends at case 913 start; waiting-for-device came from cleanup
+logcat. The original return code and pre-cleanup health are unknown. The new
+diagnostics improve observability, not a proven root-cause fix.
 
-Require exact final-source full gates, original-key110/beta.7 signing/provenance,
+Require exact final-source full gates, original-key 110/beta.7 signing/provenance,
 bounded advisories and public four-asset digest/download checks before release.
-No beta7 tag/draft/release exists; signed992 predecessors remain held. QA111 is
-private. Stable1.0 and main6b809e6 remain unchanged.
+No beta7 tag/draft/release exists; signed predecessors remain held. QA111 stays
+private. Stable 1.0 and main 6b809e6 remain unchanged.
 
 ## Remaining scope
 

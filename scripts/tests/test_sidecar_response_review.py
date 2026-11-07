@@ -20,6 +20,14 @@ class SidecarResponseReviewTest(unittest.TestCase):
         self.assertEqual('aa59f2ac28285aebb7b01d7616aa0e9ab40539831e656aaef1567df9652ec8ec',reviewed[0]['sha256'])
         self.assertEqual({'gateway_ws': 'f1f3750accad549937a0d34d3c4b0eafdffbb04fc3ea46022415bfbe5f361e2a', 'gateway_server_requests': '47f1bac23ec50e36ebb09f9e7d9365fe703e11aca88f658c37d7a29413df6473'},reviewed[0]['required_sources'])
         self.assertEqual('10e64a801daf59efd1e60d085c548649ca998901ca1eb7c3a49cfd61f7e03f20',value['upstream']['contract']['source_hashes']['gateway_server_requests'])
+        same_ast=[e for e in entries if e['sha256']==reviewed[0]['sha256']]
+        self.assertEqual(2,len(same_ast))
+        modes={e['commit']:e for e in same_ast}
+        self.assertEqual({'aa389eba3df3c5839cf00a8d5941a83bbe3435cb','e826a14a467fa74a718b0010487a8eb12421f879'},set(modes))
+        next_sources=dict(reviewed[0]['required_sources'])
+        next_sources['gateway_server_requests']='04b0fc8f1302ec1efcd36027f155f64dd8654bda5576ce4c37667a7e47eccadd'
+        self.assertEqual(next_sources,modes['e826a14a467fa74a718b0010487a8eb12421f879']['required_sources'])
+
 
     def test_unchanged_dispatch_ast_cannot_hide_changed_registry_code(self):
         original=sources()
@@ -45,9 +53,9 @@ class SidecarResponseReviewTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);source=root/'source';(source/'tui_gateway').mkdir(parents=True)
             for name in ('ws.py','server_requests.py'):(source/'tui_gateway'/name).write_text('invalid source')
-            for optimized in (True,False):
-                work=root/('optimized' if optimized else 'wrong-source')
-                command=[sys.executable,'-I','-B']+(['-O'] if optimized else [])+[str(script),'--source-root',str(source),'--work-root',str(work)]
+            for revision,optimized in ((r,o) for r in ('aa','e826') for o in (True,False)):
+                work=root/(revision+('-optimized' if optimized else '-wrong-source'))
+                command=[sys.executable,'-I','-B']+(['-O'] if optimized else [])+[str(script),'--revision',revision,'--source-root',str(source),'--work-root',str(work)]
                 result=subprocess.run(command,capture_output=True,text=True,timeout=20)
                 self.assertNotEqual(0,result.returncode);self.assertFalse(work.exists())
                 self.assertIn('without -O' if optimized else 'Wrong pinned source bytes',result.stderr)

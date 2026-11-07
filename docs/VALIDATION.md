@@ -1734,3 +1734,17 @@ The b02 full run42336563273 passed API26 with936 unique methods. API37 recorded8
 The image-share predicate now allows zero roots only during its original5000ms bounded poll, then requires a displayed actual review. All VM identity, draft text, no-auto-send, import and recreation assertions remain. The95-minute complete-suite budget is copied exactly from the reviewed development runner; one invocation, finite timeout, partial-output retention and failure validation are unchanged. The reviewed Windows daemon fix keeps compiler rendezvous files in the configured temporary root. Application inputs, networking, version defaults and Room schema are unchanged.
 
 A clean build with task-output reuse disabled passed all four required Gradle tasks and548 JVM cases;14 CI-runner checks passed. The same original-key QA pair passed all24 existing-history/title/Milestone02/image-share cases on each owned API26/API37 emulator, with exact source/APK/configuration/display/density/font checks and no reset, resize, uninstall or data clear. Production input hashes for199 files match b02. Source snapshots and reports stay private. Local code111/beta.8-qa is an explicit emulator-upgrade override, not a public or phone-update artifact. New exact-source complete Android and compatibility gates, final original-key public artifacts and publication verification are still required. Main and the stable release remain unchanged.
+
+## 7 November — E826 response-error logging review
+
+The separately pinned E826 mode preserves the AA/F0 review and binds the unchanged
+dispatch AST to both complete modules. The complete registry diff moves logging
+outside its lock and excludes error.data from that statement, while code/message
+remain logged. Canonical AA 11/E826 13 focused cases, 179 policy/15 runtime tests,
+eight saved-report source counterfactuals and four compiled workflow snippets
+pass. The expected old-AA lock assertion failure is retained. See
+[the source review](contracts/2026-11-07-response-error-logging-review.md).
+No app/test/build input changed; earlier 552 JVM/27 native-per-API evidence stays
+its earlier cohort. Final-source hosted gates and signed/publication acceptance
+remain pending, as do every broader required audit row and the independent status
+feature. No Pi, model/default, owner-phone or signing change is included.

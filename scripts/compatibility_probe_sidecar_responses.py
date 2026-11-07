@@ -20,14 +20,20 @@ if not __debug__:
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source-root', type=Path, required=True)
 parser.add_argument('--work-root', type=Path, required=True)
+parser.add_argument('--revision', choices=('aa', 'e826'), default='aa')
 args = parser.parse_args()
 source, root = args.source_root.resolve(), args.work_root.resolve()
 assert source.is_dir() and not root.exists(), 'Existing exact source and a fresh output directory required'
 assert not root.is_relative_to(source) and not source.is_relative_to(root)
 if os.name == 'nt':
     assert source.drive.upper() == root.drive.upper() == 'E:', 'Temporary fixture material must stay on E:'
+revisions = {
+    'aa': ('aa389eba3df3c5839cf00a8d5941a83bbe3435cb', 'f2428742dcfe1c75fa1b47be2ec6739c3b38382a'),
+    'e826': ('e826a14a467fa74a718b0010487a8eb12421f879', '7d089f8ad2701f8b220ffc061d2872cf6ecf13ef'),
+}
+pin, registry_blob = revisions[args.revision]
 paths = {
-    'requests': (source / 'tui_gateway/server_requests.py', 'f2428742dcfe1c75fa1b47be2ec6739c3b38382a'),
+    'requests': (source / 'tui_gateway/server_requests.py', registry_blob),
     'ws': (source / 'tui_gateway/ws.py', '833751e0df038b0c551814ee3bfea95a27d0dabf'),
 }
 verified = {}
@@ -226,18 +232,68 @@ def test_no_authority_keeps_legacy_dispatch():
     result = complete(scope['_dispatch_request'](None,frame,None,origin))
     assert result['result']['legacy'] and legacy_calls == [(frame,origin)] and not authority_calls and not req.answered
 
+class ErrorCapture(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.records = []
+    def emit(self, record):
+        unlocked = requests._lock.acquire(blocking=False)
+        assert unlocked, 'Error logging must be outside the request lock'
+        requests._lock.release()
+        self.records.append((record.levelno, record.getMessage()))
+
+@contextlib.contextmanager
+def capture_errors():
+    handler = ErrorCapture()
+    old_level, old_propagation = requests.logger.level, requests.logger.propagate
+    requests.logger.addHandler(handler)
+    requests.logger.setLevel(logging.DEBUG)
+    requests.logger.propagate = False
+    try:
+        yield handler.records
+    finally:
+        requests.logger.removeHandler(handler)
+        requests.logger.setLevel(old_level)
+        requests.logger.propagate = old_propagation
+        handler.close()
+
+def test_error_logging_is_outside_lock_and_excludes_error_data():
+    origin, _ = seed(); req = register(origin); callbacks = []
+    req.on_result = callbacks.append
+    frame = {'id':req.id, 'error':{'code':-32603, 'message':'fixture-refusal', 'data':{'private':'SYNTHETIC-DATA-MARKER'}}}
+    with capture_errors() as records:
+        assert requests.resolve_pinned_response(frame, origin)
+    assert len(records) == 1 and records[0][0] == logging.WARNING
+    assert '-32603' in records[0][1] and 'fixture-refusal' in records[0][1]
+    assert 'SYNTHETIC-DATA-MARKER' not in records[0][1]
+    assert callbacks == [None] and req.event.is_set() and not req.answered and req.result is None
+    assert req.id not in requests._open
+
+def test_malformed_errors_refuse_without_logging_the_payload():
+    for error in (None, ['SYNTHETIC-DATA-MARKER'], 'SYNTHETIC-DATA-MARKER', {'data':'SYNTHETIC-DATA-MARKER'}):
+        origin, _ = seed(); req = register(origin)
+        with capture_errors() as records:
+            assert requests.resolve_pinned_response({'id':req.id,'error':error}, origin)
+        assert req.event.is_set() and not req.answered and req.result is None and req.id not in requests._open
+        assert len(records) == 1 and records[0][0] == logging.WARNING
+        assert 'SYNTHETIC-DATA-MARKER' not in records[0][1]
+
 tests = [test_only_origin_socket_can_settle, test_pinned_errors_are_final_refusals,
          test_unpinned_and_malformed_frames_are_not_intercepted, test_vault_payload_is_live_only_and_not_broadcast,
          test_ordinary_reconnect_snapshot_is_preserved, test_unanswerable_ordinary_request_does_not_send,
          test_explicit_pin_can_answer_without_session_subscription, test_timeout_and_late_response_do_not_replay,
          test_pinned_dispatch_bypasses_authority_only_for_its_origin, test_foreign_and_unpinned_dispatch_stay_with_authority,
          test_no_authority_keeps_legacy_dispatch]
+if args.revision == 'e826':
+    tests.extend([test_error_logging_is_outside_lock_and_excludes_error_data,
+                  test_malformed_errors_refuse_without_logging_the_payload])
+expected_cases = 13 if args.revision == 'e826' else 11
 try:
     for test in tests:
         test(); results.append(test.__name__)
-    assert len(results) == len(set(results)) == 11 and not denied
-    report = {'result':'PASS_BOUNDED_REAL_SERVER_REQUESTS', 'tests':results, 'cases':11,
-              'upstream':'aa389eba3df3c5839cf00a8d5941a83bbe3435cb',
+    assert len(results) == len(set(results)) == expected_cases and not denied
+    report = {'result':'PASS_BOUNDED_REAL_SERVER_REQUESTS', 'tests':results, 'cases':expected_cases,
+              'upstream':pin, 'revision':args.revision,
               'sourceBlobs':{name:blob for name,(_,blob) in paths.items()}, 'deniedEvents':denied,
               'scope':'Actual server_requests module and two extracted ws functions only. Synthetic contract validation, transport, authority, context and thread runner; no parent startup, schemas, real threads, HTTP, authentication, vault/account, deployment or owner-phone certification. Python audit hooks are not an OS sandbox.'}
 except BaseException:

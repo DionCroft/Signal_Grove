@@ -100,3 +100,17 @@ AA review adds a two-source fence and recurring11-case probe, preserving F0/all 
 ## 7 November — bounded CI outcome diagnostics
 
 23 runner/179 policy/15 runtime cases pass for explicit command/timeout/negative-verdict metadata and original owned-device pre-cleanup state, preserving one invocation and95 minutes. The prior API26 command outcome/root cause remains unknown; waiting-for-device belongs to cleanup logcat, not the truncated instrument stream. This is observability, not a proven fix or new native pass. See audits/2026-11-07/CI_DEVICE_OUTCOMES.md. Review E826, then close integrated-source gates/publication; all broader rows remain required.
+
+## 7 November — E826 response-error logging review
+
+The separately pinned E826 mode preserves the AA/F0 review and binds the unchanged
+dispatch AST to both complete modules. The complete registry diff moves logging
+outside its lock and excludes error.data from that statement, while code/message
+remain logged. Canonical AA 11/E826 13 focused cases, 179 policy/15 runtime tests,
+eight saved-report source counterfactuals and four compiled workflow snippets
+pass. The expected old-AA lock assertion failure is retained. See
+[the source review](contracts/2026-11-07-response-error-logging-review.md).
+No app/test/build input changed; earlier 552 JVM/27 native-per-API evidence stays
+its earlier cohort. Final-source hosted gates and signed/publication acceptance
+remain pending, as do every broader required audit row and the independent status
+feature. No Pi, model/default, owner-phone or signing change is included.
