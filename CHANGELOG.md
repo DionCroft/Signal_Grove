@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refresh Kanban/project review identity even when visible management state is unchanged, keeping stale confirmations closed and fresh read reviews available without changing request/receipt safeguards.
+
 - Include existing Desktop, Discord and other Hermes session origins in paginated conversation history. Add loaded-row source filtering and a reachable multilingual Load more footer.
 - Keep non-API and unknown histories read-only across the UI, request builder and operation repository; retain origin metadata without a Room migration. Preserve legacy API caches and existing pending work.
 - Add 12 JVM and 14 device regressions for origin parsing, partition isolation, storage, paging, actual history reads and blocked foreign writes. Three related chat regressions also pass locally. The original-key production candidate was installed on the owner phone without a data reset; existing Desktop/Discord histories, a post-upgrade reply in the same API chat, retained sign-in and project metadata reads were verified. Hosted device and release gates remain separate.

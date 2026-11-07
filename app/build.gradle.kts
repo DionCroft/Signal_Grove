@@ -11,7 +11,7 @@ android {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = providers.gradleProperty("hermesVersionCode").orNull?.toInt()?.also {require(it>0)} ?: 109
+        versionCode = providers.gradleProperty("hermesVersionCode").orNull?.toInt()?.also {require(it>0)} ?: 110
         versionName = providers.gradleProperty("hermesVersionName").orNull ?: "1.1.0-beta.7"
         require(versionName!!.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?")))
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

@@ -20,7 +20,7 @@ private fun projectTime(ms:Long)=DateFormat.getDateTimeInstance().format(Date(ms
     val visible=vm.visibleHostProjects(s)
     val receiptRows by vm.receipts.collectAsStateWithLifecycle()
     val pending=vm.visibleReceipts(s,receiptRows).any {it.state in setOf("sending","unknown")}
-    val generation=vm.hostProjectReviewGeneration()
+    val generation by vm.reviewGeneration.collectAsStateWithLifecycle()
     val home=vm.projectReceiptHome(s)
     var readReview by remember(s.apiScope,s.url,s.profile,s.identity,home,generation) {mutableStateOf<ReviewedHostProjectsRead?>(null)}
     var editor by remember(s.apiScope,s.url,s.profile,s.identity,home,generation,visible.inventory,pending) {mutableStateOf<ReviewedHostProjectEditor?>(null)}
