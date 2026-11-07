@@ -7,24 +7,32 @@ explicit approvals and durable no-replay handling.
 
 ## Current bounded implementation
 
-The existing authority probe now has explicit stable/prior source pins and flows.
-Stable46 assertions remain unchanged. Each source also passes13 attach-first
-cases using actual canonical dispatch, replay and asynchronous fanout. Real replay
-2/3 and live3/4 merge to2/3/4 once, while the existing unknown admission/transcript
-stay intact. Strict schemas are active. Prior metadata Git subprocesses remain
-blocked, not executed. Source/caller/argv classification and old failures remain.
+Native authenticated schedule detail now reads at most20 recent runs through the
+selected management profile and exact job, with a fresh job/identity preflight.
+Typed immutable rows validate bounds, ownership, flags, timestamps and counters.
+Private titles/previews/recorded model/IDs require reveal; refresh/close/scope
+changes clear them. A delayed success cannot reopen a closed detail.
 
-The prior source reproduces a replay-first gap (resume reports2 but event2 is
-not caught up), and lacks the modern orphan fixture. No full prior46 lifecycle
-claim is made. The shared flow and future client ordering requirement are described
-in docs/contracts/2026-11-07-canonical-authority-component.md. This adds no app
-transcript subscription, auth grant, live view, worker or deployed change.
+Fresh correction validation:608 JVM cases (all599 prior plus9 new), both lint variants
+with0 errors,180 policy checks and4 focused native methods on each preserved
+API26 large-font, API37 large and API37 compact profile (12 total). Nine captures
+were retained. Original CAB-signed111 debug/test upgrades preserved data/config;
+owner phone was not targeted.590 frozen inputs match. Full new-head hosted gates
+remain required; local focused results do not replace them.
+The initial608/12 functional cohort remains under its visual clipping hold;
+corrected cut-corner/full-width controls and visible-preview checks have their
+own accepted build/native captures. No old result was relabelled.
 
-Only the Python probe/docs change. Required Android tasks/both lint variants
-passed incrementally; all70 reports and original-key0e71/e297 APK bytes match
-the prior fresh599/lint0 proof.585 inputs match,179 policy cases and four CLI
-preflight refusals pass. Stable46 function bodies and case names are preserved.
-Freeze is closed. No fresh Android/native run, device install or deployment claim.
+Pinned BF/stable Hermes may fall back across profiles for a missing hinted job
+and omit ownership from script-output rows. Every displayed row therefore needs
+an explicit matching profile; unscoped/mixed history is refused in full with a
+dashboard explanation. Script-only history on those hosts remains a limitation.
+Reported activity/timestamps and recorded model do not prove worker completion
+or currently loaded weights. No trigger/edit/write, deployment or release claim.
+
+Stable/main used-contract checks pass at2bd378e/0ea6ea9 with all seven new
+source-bound guards applied. OriginalF0 pin and full audit scope are preserved.
+Authority matrix7ea742f/74be195 remains pushed; prior replay-first failure stays.
 
 ## Release and remaining scope
 
@@ -36,8 +44,8 @@ emulators. Main6b, release207c and feature360 refs stay unchanged.
 
 ## Exact next action
 
-Implement missing scheduled-job controls through the reviewed authenticated web
-contracts, beginning with bounded typed run-history/outcome reads. The verified
+Commit/push the validated run-history chunk and start its exact-head full gates.
+Continue missing edit/trigger/outcome controls only through reviewed native contracts. The verified
 GET job-runs response combines conversations and script-output records; do not
 infer tool completion or worker liveness from timestamps/activity flags. Continue actual native login/profile isolation and restore/
 adoption, exact handles/replay, worker/files/workspace ownership and approval/

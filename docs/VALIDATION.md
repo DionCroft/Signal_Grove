@@ -1,5 +1,47 @@
 # Current development validation — audit follow-up
 
+## 7 November 2026 — scoped native job-run history
+
+Unpublished feat/cron-run-history, parent74be195. Fresh required Android
+tasks plus explicit release lint pass:608 distinct JVM cases,0 failures/errors/
+skips, both lint variants0 errors. All599 previous cases remain plus exactly9
+new projection/HTTP cases.180 host policy checks pass.590 frozen inputs and
+original debug key were verified before/after build and native execution.
+
+Four focused native methods (three new and existing host schedule detail) pass
+on each preserved API26 720x1280/font1.3, API37 1080x2400 and compact API37
+1080x1920 profile:12 total. They exercise private reveal/refresh, foreign and
+ownerless reply refusal with old-data removal, a delayed reply after close,
+scope clearing, exact prefix/profile/limit/bearer and no writes. Nine fixture-only
+captures were retained and inspected. APKs were upgraded with -r, original CAB
+signer and no uninstall/data clear or geometry/font/config change. Owner phone
+was absent and never received fixture credentials.
+
+The first608/12 functional cohort remains retained under a visual hold: its
+multiline capsule reveal button clipped large-font API26 text. Explicit cut
+corners/full-width labels corrected that defect. The accepted cohort above
+reran608 JVM/both lint and all12 native cases, with an additional visible-preview
+assertion; all nine corrected captures were inspected. The180 policy result is
+retained from the unchanged frozen Python sources, without claiming a new run.
+
+Debug APK SHA-256: a879c78b17ab38ef52da8f2f936dbe0e44aed123fc16bdc0399b1e11cea3aeaf.
+Test APK SHA-256: 46af398456443d7ce490420082c5d29c326c800bb8bd17e8cacea601982e3d5b.
+These111 debug bytes are separate from held production110/release207c.
+
+Official stable2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19 and
+main0ea6ea941aee31b20fffeb6dfa0d0f29f4370e2e have no changed consumed contracts;
+all seven new cron source guards applied. OriginalF0 baseline remains intact.
+Source watcher approval is not deployed/authenticated interoperability proof.
+
+Reviewed BF/stable history can resolve another profile if a hinted job vanishes,
+and script-output rows omit owning profile. The app refuses the entire unproven
+or mixed reply; those hosts need the dashboard for script-only history. Typed
+fixture script rows with explicit profile test a possible host extension, not
+current Pi script compatibility. No worker/tool completion follows from activity
+or timestamps. No trigger/edit/full logs, Pi change, full new-head hosted gate,
+physical retention, publication or full audit completion is claimed.
+
+
 ## 2026-11-07 - native Demo-send readiness and retained diagnostics
 
 The original13-case model/navigation diagnostic sequence passed on API26 with

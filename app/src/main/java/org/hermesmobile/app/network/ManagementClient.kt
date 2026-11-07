@@ -149,6 +149,12 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     suspend fun createCron(tokens:ManagementTokens,profile:String,request:CronCreation):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return json("api/cron/jobs",tokens.access,request.body(),profile)}
     suspend fun cronJobs(tokens:ManagementTokens,profile:String):JsonArray {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true));return element("api/cron/jobs",tokens.access,profile=profile).jsonArray}
     suspend fun cronJob(tokens:ManagementTokens,profile:String,id:String):JsonObject {require(profile.isNotBlank() && !profile.trim().equals("all",ignoreCase=true) && id!="unknown" && id.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}")));return json("api/cron/jobs",tokens.access,profile=profile,tail=listOf(id))}
+    suspend fun cronRuns(tokens:ManagementTokens,profile:String,id:String,limit:Int=20):JsonObject {
+        require(profile.isNotBlank() && profile.length<=128 && !profile.trim().equals("all",true) && profile.none(Char::isISOControl))
+        require(id!="unknown" && id.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}")) && limit in 1..100)
+        return element("api/cron/jobs",tokens.access,profile=profile,tail=listOf(id,"runs"),query=mapOf("limit" to limit.toString())).jsonObject
+    }
+
     suspend fun exchange(code:String,verifier:String)=ManagementTokens.parse(json("auth/native/token",body=buildJsonObject {put("code",code);put("code_verifier",verifier)}))
     suspend fun refresh(tokens:ManagementTokens)=ManagementTokens.parse(json("auth/native/refresh",body=buildJsonObject {put("refresh_token",tokens.refresh);put("provider",tokens.provider)})).also {
         require(it.userId==tokens.userId && it.provider==tokens.provider) {"Management identity changed. Sign in again."}

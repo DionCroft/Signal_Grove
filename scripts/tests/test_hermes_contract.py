@@ -127,6 +127,26 @@ def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'cont
 
 class ContractWatchTest(unittest.TestCase):
 
+    def test_cron_history_profile_limit_projection_and_full_module_drift_require_review(self):
+        initial=sources()
+        initial['cron']="@router.get('/api/cron/jobs/{job_id}/runs')\nasync def list_cron_job_runs(job_id,profile=None,limit=20):\n    return await worker(job_id,profile,limit)\ndef _list_cron_job_runs_sync(job_id,profile,limit):\n    selected=owner_profile(job_id,profile)\n    with owner_scope(selected):\n        rows=db.read(job_id,limit=max(1,min(limit,100)))\n        for row in rows:row['profile']=selected\n    return {'runs':rows,'limit':limit}\n"
+        contract=checker.extract(initial);tracked=baseline(contract)
+        keys=['cron:list_cron_job_runs','cron:_list_cron_job_runs_sync']
+        tracked['mobile_used_handlers']+=keys;tracked['mobile_used_management_routes'].append('GET /api/cron/jobs/{job_id}/runs')
+        tracked['reviewed_handler_variants']={key:[{'sha256':contract['handlers'][key],'commit':'b'*40,'reason':'Synthetic bounded profile/history fixture.','required_sources':{'cron':contract['source_hashes']['cron'],'cron_helpers':contract['source_hashes']['cron_helpers']}}] for key in keys}
+        self.assertFalse(checker.compare(tracked,{'commit':'b'*40,'contract':contract})['mobile_review_required'])
+        for before,after in [("'/api/cron/jobs/{job_id}/runs'","'/api/cron/runs'"),('worker(job_id,profile,limit)','worker(job_id,None,limit)'),('owner_scope(selected)','owner_scope(None)'),('min(limit,100)','min(limit,10000)'),("row['profile']=selected","row['profile']=profile")]:
+            with self.subTest(before=before):
+                changed=copy.deepcopy(initial);self.assertIn(before,changed['cron']);changed['cron']=changed['cron'].replace(before,after)
+                self.assertTrue(checker.compare(tracked,{'commit':'c'*40,'contract':checker.extract(changed)})['mobile_review_required'])
+        changed=copy.deepcopy(initial);changed['cron_helpers']+='\ndef worker(job,profile,limit):\n    return cross_profile_rows(job)\n'
+        # The route AST can stay identical while its reviewed full dependency changes.
+        introduced=copy.deepcopy(tracked)
+        for key in keys:introduced['upstream']['contract']['handlers'].pop(key)
+        result=checker.compare(introduced,{'commit':'c'*40,'contract':checker.extract(changed)})
+        self.assertTrue(result['mobile_review_required']);self.assertEqual(set(keys),set(result['mobile_relevant_changes']['changed_used_handlers']))
+
+
     def test_relay_link_mint_guards_original_code_state_and_optional_metadata_require_review(self):
         initial=sources()
         initial['relay_routes']="@router.post('/api/messaging/relay/{platform}/link')\nasync def request_relay_link(platform):\n    return await _call({'action':'request','platform':platform})\n@router.get('/api/messaging/relay/link/{code}')\nasync def get_relay_link_state(code):\n    return await _call({'action':'state','code':code})\n"

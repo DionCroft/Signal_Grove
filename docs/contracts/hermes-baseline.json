@@ -4813,6 +4813,7 @@
     "GET /api/cron/delivery-targets",
     "GET /api/cron/jobs",
     "GET /api/cron/jobs/{job_id}",
+    "GET /api/cron/jobs/{job_id}/runs",
     "GET /api/env",
     "GET /api/mcp/catalog",
     "GET /api/mcp/oauth/callback/{server_name:path}",
@@ -5647,12 +5648,19 @@
     "credential_pool:import:write_credential_pool",
     "credential_pool:load_pool",
     "credential_pool:persist_pool_entries",
+    "cron:_cron_output_run_row",
     "cron:_get_cron_job_sync",
+    "cron:_job_owner_profile",
     "cron:_job_profile",
+    "cron:_list_cron_job_runs_sync",
     "cron:_list_cron_jobs_sync",
+    "cron:_list_cron_output_runs",
+    "cron:_owner_home_scope",
+    "cron:_reconcile_cron_runs",
     "cron:create_cron_job",
     "cron:get_cron_delivery_targets",
     "cron:get_cron_job",
+    "cron:list_cron_job_runs",
     "cron:list_cron_jobs",
     "cron_cancel:cancel_run",
     "cron_format:_FORMAT_JOB_OPTIONAL_KEYS",
@@ -5931,6 +5939,7 @@
     "kanban_api:_annotate_board_meta",
     "kanban_api:_apply_model_override",
     "kanban_api:_apply_reasoning_effort",
+    "kanban_api:_apply_status",
     "kanban_api:_attach_diagnostics",
     "kanban_api:_attachment_dict",
     "kanban_api:_board_conn",
@@ -5939,11 +5948,15 @@
     "kanban_api:_compute_task_diagnostics",
     "kanban_api:_conn",
     "kanban_api:_default_workspace_kind",
+    "kanban_api:_drag_to",
     "kanban_api:_existing_board_slug",
     "kanban_api:_link_tasks",
     "kanban_api:_links_for",
     "kanban_api:_map_errors",
     "kanban_api:_normalize_slug_or_400",
+    "kanban_api:_open_parent_refusal",
+    "kanban_api:_parents_blocking_ready",
+    "kanban_api:_patch_status",
     "kanban_api:_patch_title_body",
     "kanban_api:_projects_by_id",
     "kanban_api:_require",
@@ -5952,6 +5965,7 @@
     "kanban_api:_resolve_board",
     "kanban_api:_resolve_project",
     "kanban_api:_set_priority",
+    "kanban_api:_set_status_direct",
     "kanban_api:_task_dict",
     "kanban_api:_validate_workdir",
     "kanban_api:_warnings_summary_from_diagnostics",
@@ -6098,27 +6112,36 @@
     "kanban_db:_board_meta_for",
     "kanban_db:_board_path",
     "kanban_db:_canonical_assignee",
+    "kanban_db:_claim_is_live",
+    "kanban_db:_copy_capped",
     "kanban_db:_delete_task_relations",
+    "kanban_db:_end_or_synthesize_run",
+    "kanban_db:_end_run",
+    "kanban_db:_gate_empty_completion",
     "kanban_db:_inherit_notify_subs",
     "kanban_db:_json_or",
     "kanban_db:_link",
     "kanban_db:_lossy_text",
+    "kanban_db:_merge_completion_prose_artifacts",
     "kanban_db:_missing_task_ids",
     "kanban_db:_new_task_id",
     "kanban_db:_normalize_board_slug",
     "kanban_db:_normalize_task_skills",
     "kanban_db:_opt_int",
     "kanban_db:_parents_satisfied",
+    "kanban_db:_persist_scratch_completion_artifacts",
     "kanban_db:_require_slug",
     "kanban_db:_resolve_project_link",
     "kanban_db:_row_get",
     "kanban_db:_set_task_override",
     "kanban_db:_slug_or_default",
+    "kanban_db:_stage_completion_artifacts",
     "kanban_db:_task_status",
     "kanban_db:_to_epoch",
     "kanban_db:_validate_model_override",
     "kanban_db:_would_cycle",
     "kanban_db:add_comment",
+    "kanban_db:archive_task",
     "kanban_db:assign_task",
     "kanban_db:binding:BLOCK_RECURRENCE_LIMIT",
     "kanban_db:binding:DEFAULT_BOARD",
@@ -6149,10 +6172,12 @@
     "kanban_db:binding:_TICK_ACTIVITY_FIELDS",
     "kanban_db:binding:_UNSET",
     "kanban_db:binding:_log",
+    "kanban_db:block_task",
     "kanban_db:board_dir",
     "kanban_db:board_exists",
     "kanban_db:boards_root",
     "kanban_db:clear_current_board",
+    "kanban_db:complete_task",
     "kanban_db:create_task",
     "kanban_db:current_board_path",
     "kanban_db:current_run_started_ats",
@@ -6207,6 +6232,7 @@
     "kanban_db:import:unlink_files_older_than",
     "kanban_db:import:write_board_metadata",
     "kanban_db:import:write_txn",
+    "kanban_db:invalidate_descendants_for_parent_reopen",
     "kanban_db:kanban_db_path",
     "kanban_db:kanban_home",
     "kanban_db:known_assignees",
@@ -6221,6 +6247,9 @@
     "kanban_db:normalize_reasoning_effort",
     "kanban_db:notify_task_updated",
     "kanban_db:recompute_ready",
+    "kanban_db:reopen_review_task",
+    "kanban_db:request_review",
+    "kanban_db:schedule_task",
     "kanban_db:schema:Attachment",
     "kanban_db:schema:Comment",
     "kanban_db:schema:Event",
@@ -6230,6 +6259,7 @@
     "kanban_db:set_model_override",
     "kanban_db:set_reasoning_effort",
     "kanban_db:task_age",
+    "kanban_db:unblock_task",
     "kanban_db:unlink_tasks",
     "kanban_graph:inherit_creator_origin",
     "kanban_graph:initial_task_state",
@@ -7135,13 +7165,19 @@
     "signin_registry:_target",
     "signin_registry:binding:_lock",
     "signin_registry:binding:_providers",
+    "signin_registry:binding:_registry",
     "signin_registry:binding:_scoped_providers",
+    "signin_registry:binding:_target",
+    "signin_registry:binding:restore_registration",
+    "signin_registry:binding:snapshot_registration",
     "signin_registry:get_provider",
     "signin_registry:import:DashboardAuthProvider",
     "signin_registry:import:List",
     "signin_registry:import:Optional",
+    "signin_registry:import:ProviderRegistry",
     "signin_registry:import:annotations",
     "signin_registry:import:assert_protocol_compliance",
+    "signin_registry:import:exact_key",
     "signin_registry:import:hermes_home_key",
     "signin_registry:import:logging",
     "signin_registry:import:normalize_scope",
@@ -7149,7 +7185,20 @@
     "signin_registry:list_interactive_providers",
     "signin_registry:list_providers",
     "signin_registry:list_session_providers",
+    "signin_registry:register_global_provider",
     "signin_registry:register_provider",
+    "signin_registry:restore_registration",
+    "signin_registry:snapshot_registration",
+    "signin_registry:unregister_global_provider",
+    "signin_registry_engine:ProviderRegistry.__init__",
+    "signin_registry_engine:ProviderRegistry._bump",
+    "signin_registry_engine:ProviderRegistry._target",
+    "signin_registry_engine:ProviderRegistry.restore_registration",
+    "signin_registry_engine:ProviderRegistry.snapshot_registration",
+    "signin_registry_engine:exact_key",
+    "signin_registry_engine:import:hermes_home_key",
+    "signin_registry_engine:import:normalize_scope",
+    "signin_registry_engine:import:threading",
     "signin_shared:NonInteractiveMixin.complete_login",
     "signin_shared:NonInteractiveMixin.start_login",
     "signin_shared:import:Any",
@@ -7273,48 +7322,7 @@
     "ws_boundary:ws_host_origin_reason",
     "ws_tickets:TTL_SECONDS",
     "ws_tickets:consume_ticket",
-    "ws_tickets:mint_ticket",
-    "kanban_api:_apply_status",
-    "kanban_api:_patch_status",
-    "kanban_api:_drag_to",
-    "kanban_api:_set_status_direct",
-    "kanban_api:_open_parent_refusal",
-    "kanban_api:_parents_blocking_ready",
-    "kanban_db:complete_task",
-    "kanban_db:block_task",
-    "kanban_db:schedule_task",
-    "kanban_db:request_review",
-    "kanban_db:unblock_task",
-    "kanban_db:reopen_review_task",
-    "kanban_db:invalidate_descendants_for_parent_reopen",
-    "kanban_db:archive_task",
-    "kanban_db:_claim_is_live",
-    "kanban_db:_end_run",
-    "kanban_db:_end_or_synthesize_run",
-    "kanban_db:_gate_empty_completion",
-    "kanban_db:_merge_completion_prose_artifacts",
-    "kanban_db:_persist_scratch_completion_artifacts",
-    "kanban_db:_stage_completion_artifacts",
-    "kanban_db:_copy_capped",
-    "signin_registry_engine:ProviderRegistry.__init__",
-    "signin_registry_engine:ProviderRegistry._target",
-    "signin_registry_engine:ProviderRegistry._bump",
-    "signin_registry_engine:ProviderRegistry.snapshot_registration",
-    "signin_registry_engine:ProviderRegistry.restore_registration",
-    "signin_registry_engine:exact_key",
-    "signin_registry_engine:import:threading",
-    "signin_registry_engine:import:hermes_home_key",
-    "signin_registry_engine:import:normalize_scope",
-    "signin_registry:snapshot_registration",
-    "signin_registry:restore_registration",
-    "signin_registry:register_global_provider",
-    "signin_registry:unregister_global_provider",
-    "signin_registry:binding:_registry",
-    "signin_registry:binding:_target",
-    "signin_registry:binding:snapshot_registration",
-    "signin_registry:binding:restore_registration",
-    "signin_registry:import:ProviderRegistry",
-    "signin_registry:import:exact_key"
+    "ws_tickets:mint_ticket"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -8743,6 +8751,160 @@
         "required_sources": {
           "gateway_ws": "f1f3750accad549937a0d34d3c4b0eafdffbb04fc3ea46022415bfbe5f361e2a",
           "gateway_server_requests": "04b0fc8f1302ec1efcd36027f155f64dd8654bda5576ce4c37667a7e47eccadd"
+        }
+      }
+    ],
+    "cron:list_cron_job_runs": [
+      {
+        "sha256": "24c39f900330b7704dbe3f040f7e6fa9896567eb18176b7172559ef22aaa57fe",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "52478b3961f153bd14acf558eff7cc18f6eba0eaa08d3ad2b9c9827dc13f7fd5",
+          "cron_helpers": "f1ce09b890f94b6fb2f0db870b754a6b1ed04366674bf8627816b9924755a978",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      },
+      {
+        "sha256": "24c39f900330b7704dbe3f040f7e6fa9896567eb18176b7172559ef22aaa57fe",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "25bff50659a936c4b9daa6bcd439b9b809de73e2a3712169edd367c1c9a202ca",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      }
+    ],
+    "cron:_list_cron_job_runs_sync": [
+      {
+        "sha256": "921207a60bbea875f85e13902f6b101c5a72eaec79b825c53f5b95dec3a719d1",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "52478b3961f153bd14acf558eff7cc18f6eba0eaa08d3ad2b9c9827dc13f7fd5",
+          "cron_helpers": "f1ce09b890f94b6fb2f0db870b754a6b1ed04366674bf8627816b9924755a978",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      },
+      {
+        "sha256": "921207a60bbea875f85e13902f6b101c5a72eaec79b825c53f5b95dec3a719d1",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "25bff50659a936c4b9daa6bcd439b9b809de73e2a3712169edd367c1c9a202ca",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      }
+    ],
+    "cron:_job_owner_profile": [
+      {
+        "sha256": "7509b3ca73d5a1e8ce112f6018294430b49261a96222efe34ec141ec0319732c",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "52478b3961f153bd14acf558eff7cc18f6eba0eaa08d3ad2b9c9827dc13f7fd5",
+          "cron_helpers": "f1ce09b890f94b6fb2f0db870b754a6b1ed04366674bf8627816b9924755a978",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      },
+      {
+        "sha256": "7509b3ca73d5a1e8ce112f6018294430b49261a96222efe34ec141ec0319732c",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "25bff50659a936c4b9daa6bcd439b9b809de73e2a3712169edd367c1c9a202ca",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      }
+    ],
+    "cron:_owner_home_scope": [
+      {
+        "sha256": "649bd0c6db8849751fcc61d079b9224518344cffeb97f59f6e57d0b82ba8fc02",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "52478b3961f153bd14acf558eff7cc18f6eba0eaa08d3ad2b9c9827dc13f7fd5",
+          "cron_helpers": "f1ce09b890f94b6fb2f0db870b754a6b1ed04366674bf8627816b9924755a978",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      },
+      {
+        "sha256": "649bd0c6db8849751fcc61d079b9224518344cffeb97f59f6e57d0b82ba8fc02",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "25bff50659a936c4b9daa6bcd439b9b809de73e2a3712169edd367c1c9a202ca",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      }
+    ],
+    "cron:_list_cron_output_runs": [
+      {
+        "sha256": "c18e887d572c789b122021df2443400bb83848d4b22a66220d94157b627e3a71",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "52478b3961f153bd14acf558eff7cc18f6eba0eaa08d3ad2b9c9827dc13f7fd5",
+          "cron_helpers": "f1ce09b890f94b6fb2f0db870b754a6b1ed04366674bf8627816b9924755a978",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      },
+      {
+        "sha256": "0be681ebb50c11aef3d0da4dd1140b0e87e21e023b2eb2f16ff29f7e054c58e4",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "25bff50659a936c4b9daa6bcd439b9b809de73e2a3712169edd367c1c9a202ca",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      }
+    ],
+    "cron:_cron_output_run_row": [
+      {
+        "sha256": "89677f4df0a942180b199a852a059d7d86aa5a225ee1eae0ba1c323c78d71fb5",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "52478b3961f153bd14acf558eff7cc18f6eba0eaa08d3ad2b9c9827dc13f7fd5",
+          "cron_helpers": "f1ce09b890f94b6fb2f0db870b754a6b1ed04366674bf8627816b9924755a978",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      },
+      {
+        "sha256": "89677f4df0a942180b199a852a059d7d86aa5a225ee1eae0ba1c323c78d71fb5",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "25bff50659a936c4b9daa6bcd439b9b809de73e2a3712169edd367c1c9a202ca",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      }
+    ],
+    "cron:_reconcile_cron_runs": [
+      {
+        "sha256": "03aabd17581ceaf4bbe84c3b936134b1ad9afacb964d9ffe8f7ed91250a72679",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "52478b3961f153bd14acf558eff7cc18f6eba0eaa08d3ad2b9c9827dc13f7fd5",
+          "cron_helpers": "f1ce09b890f94b6fb2f0db870b754a6b1ed04366674bf8627816b9924755a978",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
+        }
+      },
+      {
+        "sha256": "74f0d4e742cdaddb099938285141315c064f44172b2d1443bd457f852503449a",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Reviewed bounded job-run history, explicit caller profile is only a hint; conversation rows stamp owner profile but script-output rows do not. Android refuses every unproven or mismatched row. Read only, no trigger/adoption/worker authority.",
+        "required_sources": {
+          "cron": "25bff50659a936c4b9daa6bcd439b9b809de73e2a3712169edd367c1c9a202ca",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "web_deps": "bc9a98329173c8f07bbf3b40c46bb0b46bd1518916d2f600df84866eccd725c6"
         }
       }
     ]

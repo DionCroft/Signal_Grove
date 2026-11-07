@@ -115,7 +115,7 @@ data class ReviewedCatalogInstall(val target:ManagementTarget,val request:McpCat
 data class ReviewedMcpCreation(val target:ManagementTarget,val creation:McpCreation,val generation:Long)
 data class ReviewedMcpAction(val target:ManagementTarget,val request:McpRequest,val generation:Long)
 data class ManagementObservation(val key:String,val name:String,val exists:Boolean,val enabled:Boolean?)
-data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:Boolean=false,val detail:ManagedCronJob?=null,val contract:CronCreateContract?=null,val deliveries:List<CronDeliveryTarget> = emptyList())
+data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:Boolean=false,val detail:ManagedCronJob?=null,val contract:CronCreateContract?=null,val deliveries:List<CronDeliveryTarget> = emptyList(),val runs:ManagedCronRuns?=null)
 
 data class ManagementState(val apiScope:String="",val url:String="",val debugHttp:Boolean=false,val signedIn:Boolean=false,
     val identity:ManagementIdentity?=null,val profiles:List<ManagedProfile> = emptyList(),val profile:String="",
@@ -277,6 +277,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         is CronCreationChanged->Words.ManagementReviewChanged
         is CronCreationReadbackPending->Words.ManagementReadbackPending
         is InvalidCronCreation->Words.HostCronCreateInvalid
+        is InvalidCronRunsReply->Words.HostCronRunsInvalid
         is HermesResponseTooLargeException->Words.ManagementTooLarge
         is McpOAuthUnavailable->Words.McpOAuthExpired
         is McpCatalogChanged->Words.ManagementReviewChanged
@@ -1286,12 +1287,21 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun loadHostCronDetail(job:ManagedCronJob)=operation {id ->
         val saved=state.value;val target=target() ?: error("Verify management profile first.")
         require(saved.cron.jobs.any {it===job} && job.addressable)
-        state.value=state.value.copy(cron=saved.cron.copy(detail=null))
+        state.value=state.value.copy(cron=saved.cron.copy(detail=null,runs=null))
         val current=tokens ?: error("Sign in first.");val api=client(saved);api.identity(current)
         val detail=ManagedCronJob.parse(api.cronJob(current,target.profile,job.id),target.profile);require(detail.id==job.id)
         if(id==generation) state.value=state.value.copy(cron=state.value.cron.copy(detail=detail))
     }
-    fun closeHostCronDetail() {state.value=state.value.copy(cron=state.value.cron.copy(detail=null))}
+    fun loadHostCronRuns(job:ManagedCronJob)=operation {id ->
+        val saved=state.value;val target=target() ?: error("Verify management profile first.")
+        require(saved.cron.detail===job && job.addressable)
+        state.value=state.value.copy(cron=saved.cron.copy(runs=null))
+        val current=tokens ?: error("Sign in first.");val api=client(saved);api.identity(current)
+        val fresh=ManagedCronJob.parse(api.cronJob(current,target.profile,job.id),target.profile);require(fresh.id==job.id)
+        val runs=ManagedCronRuns.parse(api.cronRuns(current,target.profile,job.id),target.profile,job.id)
+        if(id==generation && state.value.cron.detail===job) state.value=state.value.copy(cron=state.value.cron.copy(detail=fresh,runs=runs))
+    }
+    fun closeHostCronDetail() {state.value=state.value.copy(cron=state.value.cron.copy(detail=null,runs=null))}
     fun prepareOAuth(server:ManagedServer):ReviewedMcpOAuth? {
         if(state.value.busy || !state.value.loaded || state.value.servers.none {it==server} || !McpOAuthSnapshot.eligible(server)) return null
         return target()?.let {ReviewedMcpOAuth(it,server,generation)}

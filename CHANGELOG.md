@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — scoped scheduled-job history
+
+- Added a bounded recent-runs read in the authenticated host schedule detail.
+  Private run text requires reveal; refresh, close and connection changes clear it.
+- Refuse missing or mismatched run ownership. Reviewed Hermes versions omit the
+  profile on script output, so that history currently requires the dashboard.
+- Labels distinguish recorded models and reported activity from live execution.
+
+
 ## Unreleased
 
 - Add an independently pinned prior Hermes source and attachment-first replay matrix. Retain the stable46 checks and older replay-first counterexample; recover disconnected/racing events once without replaying unknown work. Test infrastructure only; app transport remains unchanged.

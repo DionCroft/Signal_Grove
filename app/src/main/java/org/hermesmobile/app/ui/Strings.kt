@@ -5,6 +5,23 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    HostCronRunsInvalid("Run history could not be verified for this profile. This host may omit ownership on script output. Review the history in the dashboard.","无法验证此配置的运行历史。此主机可能未在脚本输出中标明所属配置。请在仪表板中查看历史。","Wúfǎ yànzhèng cǐ pèizhì de yùnxíng lìshǐ. Cǐ zhǔjī kěnéng wèi zài jiǎoběn shūchū zhōng biāomíng suǒshǔ pèizhì. Qǐng zài yíbiǎobǎn zhōng chákàn lìshǐ."),
+    HostCronRecentRuns("Recent run records","最近运行记录","Zuìjìn yùnxíng jìlù"),
+    HostCronRunHistoryNote("Hermes reports these records from conversations and script output. Run text stays hidden until you reveal it.","Hermes 从对话和脚本输出报告这些记录。运行文本在您选择显示前保持隐藏。","Hermes cóng duìhuà hé jiǎoběn shūchū bàogào zhèxiē jìlù. Yùnxíng wénběn zài nín xuǎnzé xiǎnshì qián bǎochí yǐncáng."),
+    HostCronNoRuns("No run records reported.","尚无运行记录。","Shàng wú yùnxíng jìlù."),
+    HostCronScriptOutput("Script-output record","脚本输出记录","Jiǎoběn shūchū jìlù"),
+    HostCronConversationRun("Conversation record","对话记录","Duìhuà jìlù"),
+    HostCronRunRecord("Run record","运行记录","Yùnxíng jìlù"),
+    HostCronRunRecordedAt("Recorded time","记录时间","Jìlù shíjiān"),
+    HostCronRunLastActive("Last reported activity","上次报告的活动","Shàngcì bàogào de huódòng"),
+    HostCronRunActive("Recent activity reported","报告有最近活动","Bàogào yǒu zuìjìn huódòng"),
+    HostCronRunInactive("No recent activity reported","未报告最近活动","Wèi bàogào zuìjìn huódòng"),
+    HostCronRunActivityUnknown("Activity not reported","未报告活动","Wèi bàogào huódòng"),
+    HostCronRunMessages("Recorded messages","记录的消息数","Jìlù de xiāoxi shù"),
+    HostCronRunTools("Recorded tool calls","记录的工具调用数","Jìlù de gōngjù diàoyòng shù"),
+    HostCronRunReveal("Show private run text","显示私人运行文本","Xiǎnshì sīrén yùnxíng wénběn"),
+    HostCronRunHide("Hide run text","隐藏运行文本","Yǐncáng yùnxíng wénběn"),
+    HostCronRunModel("Recorded model","记录的模型","Jìlù de móxíng"),
     KanbanStatusChange("Change task status","更改任务状态","Gēnggǎi rènwù zhuàngtài"),
     KanbanStatusTarget("Requested status","请求的状态","Qǐngqiú de zhuàngtài"),
     KanbanStatusInvalid("Choose an available status and enter required text. Done requires a replacement result; Blocked requires a reason.","请选择可用状态并填写必需文本。完成需要替换结果；阻塞需要原因。","Qǐng xuǎnzé kěyòng zhuàngtài bìng tiánxiě bìxū wénběn. Wánchéng xūyào tìhuàn jiéguǒ; zǔsè xūyào yuányīn."),
