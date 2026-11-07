@@ -7,50 +7,54 @@ explicit approvals and durable no-replay handling.
 
 ## Current bounded implementation
 
-Real ASGI native-auth/history21+21 is committed/pushed at6886373. The next
-test/native-management-tcp-contract chunk now passes nine targeted invocations
-of one native method: three preserved emulator profiles, each using the local
-mock and both pinned actual Hermes TCP fixtures. All13 semantic checks execute
-in every invocation. Actual server traces independently confirm11 expected
-auth/profile/MCP/refresh/refusal requests per real run, with bearer-only API
-reads, explicit worker profile and unchanged seeded history. Saved encrypted
-credentials, app data/display configuration and original signing keys remain.
-All six owned servers stopped; exact ADB reverse bindings were restored.
+The test/native-auth-seam-main071 chunk now passes186 policy checks, four CLI
+refusals,17 actual-source counterfactuals and complete166-alias Git-blob-verified
+stable/main source comparisons. It preserves the original F0 identity and every
+existing fingerprint while adding seven dependencies and36 producer/caller
+projections. The two main071 middleware changes and the stable/main socket
+routing variant require exact complete source guards.
 
-The595-input correction has successful required incremental Android tasks,
-608 retained JVM cases with all71 prior raw reports unchanged, both lint0,
-180 policy checks and six fixture CLI refusals. Production debug APK is byte
-identical; the original-key companion is new. Initial three fixture URL failures
-and one readiness-file read race remain retained. The controller now waits
-boundedly for complete JSON; it does not restart an uncertain native request.
-The local source freeze is closed. See VALIDATION and the TCP contract review.
+The repository probe passes stable21/prior21 public-auth/history cases and
+main52 auth/history/private-grant/socket-routing/callback cases. All819/765/848
+imported project-module hashes were rechecked,13 metadata subprocess attempts
+per run remained blocked,0 unexpected denials occurred and seeded history
+remained unchanged. Synthetic peer/authority/downstream/token-exchange fixtures
+bound the component scope; no daemon, accepted remote socket, deployed Pi,
+external browser/TLS, inference, worker or project-file acceptance follows.
 
-This is real Android loopback/PKCE/client coverage using a synthetic IdP and a
-bounded HTTP browser driver. It does not certify TLS, external browsers, a real
-identity provider, the deployed Pi, canonical adoption, workers or project files.
+Required Android tasks passed incrementally after the597-input freeze.
+608 retained JVM cases and all71 prior raw reports, both lint0 and original-key
+a879 app/7514 companion are byte-identical. No fresh608 or new Android native
+run is claimed. The source freeze is closed. See VALIDATION and the source review.
 
-Native cron historyfac15fd has accepted608/bothlint0 hosted build bytes and
-its full compatibility cohort. API26's complete1014 distinct methods are now
-independently accepted with exact source sets, artifact digests, original command,
-device and Send-readiness receipts. API37 remains running. The device workflow's
-downloaded build artifact digest is verified; it publishes no guest APK hash
-readback. No original-key production APK is published by this stage.
+## Existing CI and release scope
 
-## Release and remaining scope
+Native TCP conformance is pushed at0c36c99, with nine targeted invocations of one
+method across three preserved emulator profiles, each executing13 semantic checks.
+Its full Android42412670080 has a successful build job and separate live
+API26/API37 jobs128526002383/128526002454. Compatibility42412679981 remains failed
+on the now-reviewed main071 changes; keep its raw reports and require a new gate.
 
-Release207c552/936/937 and feature360599/1011/1012 full Android cohorts, plus
-both compatibility cohorts, are independently accepted. The new release remains
-held for exact phone upgrade/connection/history/project retention and guarded
-publication/download verification. USB shows only preserved emulators. Main6b,
-release207c and feature360 refs stay unchanged.
+Cronfac15fd's API26 cohort has independently accepted1014 distinct methods.
+API37 failed its95-minute deadline with755 captured positive results and260
+unfinished methods. Native logs show continued progress at the deadline; no
+single hanging-test or production root cause is established. Retain this failed
+cohort. Earlier release207c552/936/937 and feature360599/1011/1012 full Android
+and compatibility cohorts remain separately accepted.
+
+Release207c remains held for exact phone upgrade/connection/history/project
+retention and guarded publication/download verification. USB last showed only
+preserved emulators. Main6b and all release/source refs stay unchanged.
 
 ## Exact next action
 
-Commit/push this accepted native TCP chunk, then complete its own exact-head
-hosted gates. Inspect fac Android42405323201's API37 native payload when terminal.
-Continue actual browser/TLS/Pi acceptance, canonical restore/adoption, exact
-handles/replay and worker/files/workspace ownership and uncertain outcomes.
-Rooms/grants, automation edit/trigger/results, integration/config, notifications,
-physical voice/OEM, maintainability and security/community remain required.
-Owner phone is absent; do not repeat the pending reconnect question. Main6b
-and held release207c remain unchanged; no automatic model/runtime update.
+Commit/push this auth-watch chunk and validate its corrected compatibility gate.
+Inspect the same live0c36 full Android jobs without cancellation or resubmission.
+Verify its build artifact independently; resolve remaining full-suite timing/
+coverage evidence before any merge or release. Continue actual browser/TLS/Pi,
+canonical restore/adoption and exact handles/replay, worker/files/workspace
+ownership and uncertain outcomes. Rooms/grants, automation edit/trigger/results,
+integration/config, notifications, physical voice/OEM, maintainability and
+security/community remain required. Owner phone is absent; do not repeat the
+pending reconnect question. No model/runtime/default update is authorized by
+this test-only stage.

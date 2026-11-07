@@ -2856,3 +2856,69 @@ were independently checked. Original job logs bind downloaded build artifact
 13587652110/digest5993f9...; the workflow publishes no guest APK hash readbacks,
 so that stronger claim is unavailable. API37 remains live and whole-cohort
 acceptance stays pending. No public APK or main/release ref was advanced.
+
+
+## 7 November — guarded native-auth seam and saved-gateway callback
+
+The test/native-auth-seam-main071 chunk adds seven complete source dependencies
+and36 private-grant/caller projections, preserving the original F0 identity and
+every existing fingerprint. The main071 public-prefix/gated-auth variants require
+ten exact complete module hashes; the stable/main runtime socket variant binds
+four. The four newly introduced saved-gateway modules have complete-tree absence
+proofs at exactly F0/b200/stable2bd/priorbf. Unknown missing sources still stop
+inspection. See contracts/2026-11-07-native-auth-seam-review.md.
+
+The frozen repository copy passes186 policy tests and four CLI refusals.
+Complete166-alias stable/main snapshots are independently verified against Git
+blobs, and17 actual-source counterfactuals are refused. Actual ASGI/component
+acceptance is stable21/prior21/main52, not94 distinct behaviors: main adds19
+private-grant, five socket-delegation/refusal and seven callback/store checks to
+the21 public-auth/history cases. Imported project modules819/765/848 were
+independently rehashed;13 expected metadata subprocess attempts per run remain
+blocked, with0 unexpected denials and unchanged seeded sessions/messages.
+The public probe SHA-256 is
+a23683367e83c9812c3e070bdeee3f957e4f11276a81c03a229a95355623171d.
+
+Scope: actual app/lifespan/native broker/profile stores, private HTTP admission,
+TicketStore, runtime socket boundary and callback/store, using synthetic peer/
+authority records, a refusing downstream socket gate and a synthetic outbound
+token response. Delegation does not prove an accepted remote socket. No daemon/
+private control-channel issuance, TCP peer capture, real IdP, external-browser/
+TLS, deployed Pi, inference, worker or project-file certification is implied.
+Python audit hooks are defense in depth, not an OS sandbox.
+
+Required testDebugUnitTest/lint/lintRelease/assembleDebug/assembleDebugAndroidTest
+tasks pass incrementally.608 retained JVM cases and all71 prior raw reports are
+byte-identical, with both lint0. Original-key app
+a879c78b17ab38ef52da8f2f936dbe0e44aed123fc16bdc0399b1e11cea3aeaf
+and companion
+7514fbc080d16c25b4e6439a32efb19907ec4c522db7c9f271f7c92e9fefee6c
+are byte-identical; no fresh608 or new native invocation is claimed.
+The initial successful build briefly overlapped source-snapshot completion;
+it remains retained. A second successful required-task command ran after the
+freeze was confirmed. All597 source inputs and archived bytes matched at closure.
+
+Retained diagnostics: the first main pilot passed47 cases. The next socket
+fixture mistook a nonempty opaque ticket for malformed protocol; its strict
+refusal expectation failed. The next used an empty credential but omitted
+Starlette's empty reason field from the expected close envelope. The corrected
+fixture asserts that exact envelope and no downstream call; all52 cases pass.
+No upstream code or refusal assertion was weakened. The initial local edit also
+stopped because the historical baseline had not projected _token_auth_seam;
+its original F0 source hash was independently checked before adding the missing
+projection. A randomized set-order reconstruction mismatch stopped before
+another write; the four verified pin sets are now emitted deterministically.
+
+The original0c36 compatibility run42412679981 stays failed, including its
+digest-verified main6c737a.../stableaa0d98... reports. A new corrected-source
+compatibility gate remains required. Native0c36 Android42412670080 has passed
+its build job; API26/API37 remain live. Cronfac15fd Android42405323201 is failed:
+API26 independently passed1014 exact methods; API37 timed out after5700 seconds
+with755 positive captured results, no recorded assertion failure and260
+unfinished methods. Its raw archive13590597956/digest
+469f0d4e6ea2dd8fe66437cbccfca35e3547a6278d23f61b7b801c8ca57eaf16
+and original command/device/native records remain retained. Native logs show
+continued progress at the deadline, including another finish not captured by
+the timed-out command. Do not accept that as a full pass, identify one test as
+hung, or replace missing cases with another cohort. No main/release ref or public
+APK was advanced. Every broader audit row remains required.

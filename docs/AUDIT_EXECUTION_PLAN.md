@@ -39,6 +39,25 @@ methods with exact source/artifact/command/device evidence; API37 remains runnin
 Full exact-head gates for this new native method remain required. Main6b and
 held release207c are unchanged; all remaining ledger rows stay required.
 
+## Current checkpoint — guarded main auth boundary
+
+The new auth-seam chunk passes186 policy/four CLI refusals,17 real-source
+counterfactuals and166-alias Git-verified stable/main source comparisons.
+Repository actual-source probes pass stable21/prior21/main52 with unchanged
+history and0 unexpected denials. Seven dependencies and36 producer/caller
+projections extend F0 without replacing existing fingerprints; exact guarded
+variants cover the two main071 middleware changes and shared stable/main socket
+routing. Required incremental Android checks retain608/both lint0 and unchanged
+original-key a879/7514 bytes;597 source inputs are accepted. See VALIDATION.
+
+Keep0c36's compatibility run42412679981 failed and require a corrected-source
+gate. Its separate Android42412670080 has live API26/API37 jobs. Cronfac15fd's
+API37 cohort timed out at95 minutes with755 positive captured results and260
+unfinished methods; continued native progress means no particular test is shown
+to have hung. Its API26 acceptance1014 remains separate. No deadline increase,
+unknown native replay, merge or publication follows from this observation.
+Continue canonical transport/adoption and every remaining ledger row.
+
 ## Historical checkpoint — native send readiness
 
 A diagnostic-only original13-case run exposed keyboard/frame movement after the

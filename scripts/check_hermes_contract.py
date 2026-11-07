@@ -158,11 +158,19 @@ EXTRA_SOURCES = {
 RUNTIME_GUARD_CONTRACT_SOURCES = {'web_signin': 'hermes_cli/webapp_sign_in.py', 'plugin_isolation': 'hermes_cli/plugin_isolation.py', 'signin_entry': 'hermes_cli/dashboard_auth/__init__.py', 'signin_registry': 'hermes_cli/dashboard_auth/registry.py', 'session_token_provider': 'plugins/dashboard_auth/session_token/__init__.py', 'session_token_loader': 'hermes_cli/web_server_session_token.py', 'auth_request_utils': 'hermes_cli/dashboard_auth/request_utils.py', 'signin_shared': 'plugins/dashboard_auth/_shared.py', 'signin_registry_engine': 'agent/provider_registry.py', 'gateway_server_requests': 'tui_gateway/server_requests.py'}
 EXTRA_SOURCES.update(RUNTIME_GUARD_CONTRACT_SOURCES)
 
+# Private-grant producer/peer boundary and saved-gateway callback dependencies.
+AUTH_BOUNDARY_CONTRACT_SOURCES = {'auth_native_http': 'hermes_cli/dashboard_auth/native_http.py', 'auth_native_bootstrap': 'gateway/runtime_bootstrap.py', 'auth_native_run_api': 'gateway/run_api.py', 'saved_gateway_oauth': 'hermes_cli/gateway_connections_oauth.py', 'saved_gateway_routes': 'hermes_cli/web_routers/gateway_connections_reach.py', 'saved_gateway_store': 'hermes_cli/gateway_connections.py', 'saved_gateway_normalize': 'hermes_cli/gateway_connections_normalize.py'}
+EXTRA_SOURCES.update(AUTH_BOUNDARY_CONTRACT_SOURCES)
+
 PLUGIN_UPDATE_CONTRACT_SOURCES = {'plugin_auto_update': 'hermes_cli/plugins_auto_update.py'}
 EXTRA_SOURCES.update(PLUGIN_UPDATE_CONTRACT_SOURCES)
 # Official complete trees and Contents 404s prove this dependency is absent at ONLY these pins.
 # A missing dependency at any other commit is an incomplete inspection, never empty success.
 REVIEWED_SOURCE_ABSENCES = {
+    'saved_gateway_oauth': ('hermes_cli/gateway_connections_oauth.py', frozenset(('2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
+    'saved_gateway_routes': ('hermes_cli/web_routers/gateway_connections_reach.py', frozenset(('2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
+    'saved_gateway_store': ('hermes_cli/gateway_connections.py', frozenset(('2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
+    'saved_gateway_normalize': ('hermes_cli/gateway_connections_normalize.py', frozenset(('2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
     'plugin_auto_update': ('hermes_cli/plugins_auto_update.py', frozenset({
         'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',
         'b200f5bc60e31588ba2cb60e288029c4a54ba5fa',
@@ -190,6 +198,7 @@ EXTRA_SOURCES.update(CHANNEL_CONTRACT_SOURCES)
 
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes', 'pool_routes'}
 MANAGEMENT_SOURCES.update(("channels","relay_routes","kanban_api"))
+MANAGEMENT_SOURCES.add("saved_gateway_routes")
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.
@@ -237,11 +246,11 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 selected=copy.deepcopy(node)
                 selected.iter.elts=[item for item in selected.iter.elts if isinstance(item,ast.Name) and item.id=='_methods_projects']
                 handlers['gateway_runtime:projects_registration_loop']=fingerprint(selected)
-            elif source in RUNTIME_GUARD_CONTRACT_SOURCES and isinstance(node,(ast.Assign,ast.AnnAssign)):
+            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name):handlers[f'{source}:binding:{prefix}{target.id}']=fingerprint(node)
-            elif source in RUNTIME_GUARD_CONTRACT_SOURCES and isinstance(node,(ast.Import,ast.ImportFrom)):
+            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
                 for alias in node.names:
                     binding=alias.asname or alias.name
                     isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])

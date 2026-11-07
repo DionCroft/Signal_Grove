@@ -2,6 +2,9 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Extend authentication drift guards through the private-grant producer and
+  saved-gateway callback dependencies, with isolated main-source regressions.
+
 - Added native client TCP/loopback conformance coverage with separate local and
   pinned real-Hermes fixture modes; validation and deployment scope stay explicit.
 

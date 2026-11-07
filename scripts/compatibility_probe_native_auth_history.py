@@ -19,54 +19,7 @@ import traceback
 import urllib.parse
 import weakref
 
-REVISIONS = {'stable-2bd378e': {'commit': '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19',
-                    'blobs': {'hermes_cli/web_server.py': '22ac93e69cae5a8c2a0e045cc9944f8416107e18',
-                              'hermes_cli/dashboard_auth/__init__.py': 'f52f683894b4272e85565f8b2778b4b77b170b73',
-                              'hermes_cli/dashboard_auth/base.py': 'b8e71461adf30b4814634cb3fbcfdf9b49488e33',
-                              'hermes_cli/dashboard_auth/routes.py': '97dfc55f91130da8924ff497b4560d9d5305b00e',
-                              'hermes_cli/dashboard_auth/native_flow.py': 'f9483c8bea04c046dab89907108b2a42132bd960',
-                              'hermes_cli/dashboard_auth/middleware.py': '5dc4c382ef9d93557c5eb022a9fa5f0737bdbc6a',
-                              'hermes_cli/dashboard_auth/cookies.py': 'd6e5bb541594277a99d7e8f3d71fd43b68b717bc',
-                              'hermes_cli/dashboard_auth/refresh_singleflight.py': '6d94bd44201237dd56075cd0a1c50e1c12c9428a',
-                              'hermes_cli/dashboard_auth/request_utils.py': 'aca6ad79247b6e66fc4dae99de19da1911c96543',
-                              'hermes_cli/dashboard_auth/prefix.py': 'c8b86dc8b8e55415c4c7069d7c5993d025c627bb',
-                              'hermes_cli/dashboard_auth/public_paths.py': 'a4793ab7e815b584869231b501806070f0485324',
-                              'hermes_cli/dashboard_auth/registry.py': 'ae0d377f8a308e4a9550f99817cf59c277e8876a',
-                              'tests/hermes_cli/conftest_dashboard_auth.py': 'f06ec93f722b26530b69d81c8fed0edf870a1599',
-                              'hermes_cli/version_info.py': '258d67b4df3bb18bedd7c77e2bd539c73043baa1',
-                              'hermes_cli/source_check.py': '6d2f267d5fa59f982c142f2abd8c0711b5a2e29c',
-                              'hermes_cli/_subprocess_compat.py': 'a2f985af6197eb80ba55b8f45d3c4fea8e3c4eff',
-                              'hermes_cli/web_routers/sessions.py': 'df2fe8084547a3c0cfc87ff8e6cc1dd5c496902e',
-                              'hermes_cli/web_routers/profiles.py': 'dedfdcb871aa06b621310321301a658871ded80c',
-                              'hermes_cli/web_server_sessions.py': '650ba6470402f763314aab7145fcbc8afd8a8a8f',
-                              'hermes_cli/web_server_cron.py': 'b777f511a8786d8c7ea788bc93276d58546f6b48',
-                              'hermes_cli/profiles.py': '622077d545b3dd322ba9e967a3e8620b0b18e278',
-                              'hermes_state.py': '6a7ae615405ee714c0a87f83835408e36bd645ea',
-                              'hermes_state_sessions.py': 'f3fc4c2854367bc1a61786406090b71bdccf28f6'}},
- 'prior-bf0203a': {'commit': 'bf0203a794a07aac3ff764972ab9087baa4e4f4e',
-                   'blobs': {'hermes_cli/web_server.py': '59700ba32c525efcc2b4039401f1b031b6c675c6',
-                             'hermes_cli/dashboard_auth/__init__.py': '05941a68bdd3bcdcca49a0fe0eeee9e0018cb840',
-                             'hermes_cli/dashboard_auth/base.py': '9e8c7a6b0c9d7b939b92c44cc8a92f497b0bcc86',
-                             'hermes_cli/dashboard_auth/routes.py': 'be029a317fb45edfa9d4f66f16c33dff856e7c48',
-                             'hermes_cli/dashboard_auth/native_flow.py': 'f9483c8bea04c046dab89907108b2a42132bd960',
-                             'hermes_cli/dashboard_auth/middleware.py': '2f360140b2e94df6457d33ba1d9d977463d545ef',
-                             'hermes_cli/dashboard_auth/cookies.py': '1a52c8b16db105a514a36b3b38ee14d9c23232de',
-                             'hermes_cli/dashboard_auth/refresh_singleflight.py': '6d94bd44201237dd56075cd0a1c50e1c12c9428a',
-                             'hermes_cli/dashboard_auth/request_utils.py': '2eca3d145c8cba33e974604e3308a0caa0339922',
-                             'hermes_cli/dashboard_auth/prefix.py': '1e61b5a72d5fef542532544890e0b4bd748fac74',
-                             'hermes_cli/dashboard_auth/public_paths.py': 'a4793ab7e815b584869231b501806070f0485324',
-                             'hermes_cli/dashboard_auth/registry.py': '18687691f8b79e551db1565b613e60fcda8afd35',
-                             'tests/hermes_cli/conftest_dashboard_auth.py': 'f06ec93f722b26530b69d81c8fed0edf870a1599',
-                             'hermes_cli/version_info.py': 'a4b3b33b9fe7341a7ed6e927afaf24bb391d9988',
-                             'hermes_cli/source_check.py': '5a67a576988ccaf49e1b0192de12606232a86a37',
-                             'hermes_cli/_subprocess_compat.py': '8ec065c638016983089e6b174c89951e9e2e93a3',
-                             'hermes_cli/web_routers/sessions.py': 'd6a5cb947a14855c260754307bcf7698fe520da2',
-                             'hermes_cli/web_routers/profiles.py': '8c60f23c4c52117558ebcccf941c27ce86ca3803',
-                             'hermes_cli/web_server_sessions.py': '5d2d82cb97003fc87116dd115a821538a845194d',
-                             'hermes_cli/web_server_cron.py': '761693b5d8e9a9e64606da49784be7879bfdeb42',
-                             'hermes_cli/profiles.py': '08b7eb1057f21f91175dc19074a98c24bd515def',
-                             'hermes_state.py': '833f4b738f4698034b7da22276fbcf7bfd3f9768',
-                             'hermes_state_sessions.py': 'a072ea5eec5bb9c74491052676e004c16eb2451a'}}}
+REVISIONS = {'stable-2bd378e': {'commit': '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'blobs': {'hermes_cli/web_server.py': '22ac93e69cae5a8c2a0e045cc9944f8416107e18', 'hermes_cli/dashboard_auth/__init__.py': 'f52f683894b4272e85565f8b2778b4b77b170b73', 'hermes_cli/dashboard_auth/base.py': 'b8e71461adf30b4814634cb3fbcfdf9b49488e33', 'hermes_cli/dashboard_auth/routes.py': '97dfc55f91130da8924ff497b4560d9d5305b00e', 'hermes_cli/dashboard_auth/native_flow.py': 'f9483c8bea04c046dab89907108b2a42132bd960', 'hermes_cli/dashboard_auth/middleware.py': '5dc4c382ef9d93557c5eb022a9fa5f0737bdbc6a', 'hermes_cli/dashboard_auth/cookies.py': 'd6e5bb541594277a99d7e8f3d71fd43b68b717bc', 'hermes_cli/dashboard_auth/refresh_singleflight.py': '6d94bd44201237dd56075cd0a1c50e1c12c9428a', 'hermes_cli/dashboard_auth/request_utils.py': 'aca6ad79247b6e66fc4dae99de19da1911c96543', 'hermes_cli/dashboard_auth/prefix.py': 'c8b86dc8b8e55415c4c7069d7c5993d025c627bb', 'hermes_cli/dashboard_auth/public_paths.py': 'a4793ab7e815b584869231b501806070f0485324', 'hermes_cli/dashboard_auth/registry.py': 'ae0d377f8a308e4a9550f99817cf59c277e8876a', 'tests/hermes_cli/conftest_dashboard_auth.py': 'f06ec93f722b26530b69d81c8fed0edf870a1599', 'hermes_cli/version_info.py': '258d67b4df3bb18bedd7c77e2bd539c73043baa1', 'hermes_cli/source_check.py': '6d2f267d5fa59f982c142f2abd8c0711b5a2e29c', 'hermes_cli/_subprocess_compat.py': 'a2f985af6197eb80ba55b8f45d3c4fea8e3c4eff', 'hermes_cli/web_routers/sessions.py': 'df2fe8084547a3c0cfc87ff8e6cc1dd5c496902e', 'hermes_cli/web_routers/profiles.py': 'dedfdcb871aa06b621310321301a658871ded80c', 'hermes_cli/web_server_sessions.py': '650ba6470402f763314aab7145fcbc8afd8a8a8f', 'hermes_cli/web_server_cron.py': 'b777f511a8786d8c7ea788bc93276d58546f6b48', 'hermes_cli/profiles.py': '622077d545b3dd322ba9e967a3e8620b0b18e278', 'hermes_state.py': '6a7ae615405ee714c0a87f83835408e36bd645ea', 'hermes_state_sessions.py': 'f3fc4c2854367bc1a61786406090b71bdccf28f6'}}, 'prior-bf0203a': {'commit': 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'blobs': {'hermes_cli/web_server.py': '59700ba32c525efcc2b4039401f1b031b6c675c6', 'hermes_cli/dashboard_auth/__init__.py': '05941a68bdd3bcdcca49a0fe0eeee9e0018cb840', 'hermes_cli/dashboard_auth/base.py': '9e8c7a6b0c9d7b939b92c44cc8a92f497b0bcc86', 'hermes_cli/dashboard_auth/routes.py': 'be029a317fb45edfa9d4f66f16c33dff856e7c48', 'hermes_cli/dashboard_auth/native_flow.py': 'f9483c8bea04c046dab89907108b2a42132bd960', 'hermes_cli/dashboard_auth/middleware.py': '2f360140b2e94df6457d33ba1d9d977463d545ef', 'hermes_cli/dashboard_auth/cookies.py': '1a52c8b16db105a514a36b3b38ee14d9c23232de', 'hermes_cli/dashboard_auth/refresh_singleflight.py': '6d94bd44201237dd56075cd0a1c50e1c12c9428a', 'hermes_cli/dashboard_auth/request_utils.py': '2eca3d145c8cba33e974604e3308a0caa0339922', 'hermes_cli/dashboard_auth/prefix.py': '1e61b5a72d5fef542532544890e0b4bd748fac74', 'hermes_cli/dashboard_auth/public_paths.py': 'a4793ab7e815b584869231b501806070f0485324', 'hermes_cli/dashboard_auth/registry.py': '18687691f8b79e551db1565b613e60fcda8afd35', 'tests/hermes_cli/conftest_dashboard_auth.py': 'f06ec93f722b26530b69d81c8fed0edf870a1599', 'hermes_cli/version_info.py': 'a4b3b33b9fe7341a7ed6e927afaf24bb391d9988', 'hermes_cli/source_check.py': '5a67a576988ccaf49e1b0192de12606232a86a37', 'hermes_cli/_subprocess_compat.py': '8ec065c638016983089e6b174c89951e9e2e93a3', 'hermes_cli/web_routers/sessions.py': 'd6a5cb947a14855c260754307bcf7698fe520da2', 'hermes_cli/web_routers/profiles.py': '8c60f23c4c52117558ebcccf941c27ce86ca3803', 'hermes_cli/web_server_sessions.py': '5d2d82cb97003fc87116dd115a821538a845194d', 'hermes_cli/web_server_cron.py': '761693b5d8e9a9e64606da49784be7879bfdeb42', 'hermes_cli/profiles.py': '08b7eb1057f21f91175dc19074a98c24bd515def', 'hermes_state.py': '833f4b738f4698034b7da22276fbcf7bfd3f9768', 'hermes_state_sessions.py': 'a072ea5eec5bb9c74491052676e004c16eb2451a'}}, 'main-071d31f': {'commit': '071d31ffc69493ca1d7d368c163ce0b303d83387', 'blobs': {'gateway/drain_control.py': 'e005b94867986382089efef07030b41c91e3e2ce', 'gateway/run_api.py': 'cd6997cf21b25e8c51e8faae323f5745c2279c04', 'gateway/runtime_bootstrap.py': '97e860e480f877b014834032f2fff8e46d49d1f1', 'gateway/session_authorities.py': '0ff207262b4843c05601028c1aadbdda2bcfd22e', 'hermes_cli/_subprocess_compat.py': 'a2f985af6197eb80ba55b8f45d3c4fea8e3c4eff', 'hermes_cli/dashboard_auth/__init__.py': 'f52f683894b4272e85565f8b2778b4b77b170b73', 'hermes_cli/dashboard_auth/base.py': '6ddeb91fe8efbbde7c1274db37f761cee4e7f4ae', 'hermes_cli/dashboard_auth/cookies.py': 'd6e5bb541594277a99d7e8f3d71fd43b68b717bc', 'hermes_cli/dashboard_auth/middleware.py': '29e8ee32381fc976f93282776c08a9151cb05eba', 'hermes_cli/dashboard_auth/native_flow.py': 'f9483c8bea04c046dab89907108b2a42132bd960', 'hermes_cli/dashboard_auth/native_http.py': 'd923d8812f360c534cb7758c7fc7f8cffc802f9a', 'hermes_cli/dashboard_auth/prefix.py': 'c8b86dc8b8e55415c4c7069d7c5993d025c627bb', 'hermes_cli/dashboard_auth/public_paths.py': 'a4793ab7e815b584869231b501806070f0485324', 'hermes_cli/dashboard_auth/refresh_singleflight.py': '6d94bd44201237dd56075cd0a1c50e1c12c9428a', 'hermes_cli/dashboard_auth/registry.py': '082f3731e315bc20f5331aec175af8bac34d17c5', 'hermes_cli/dashboard_auth/request_utils.py': 'aca6ad79247b6e66fc4dae99de19da1911c96543', 'hermes_cli/dashboard_auth/routes.py': '97dfc55f91130da8924ff497b4560d9d5305b00e', 'hermes_cli/gateway_connections.py': '7a2828d8fc689903b3166f45d4fd431897a66f32', 'hermes_cli/gateway_connections_normalize.py': '340523a3c48d6e272e323f967589e48eb6f3d613', 'hermes_cli/gateway_connections_oauth.py': 'd2088a348587fcb1972683d84cdb7d57007255c3', 'hermes_cli/profiles.py': '15a147c862ca6d60ab5175eb79efb569d5361772', 'hermes_cli/source_check.py': '5bc247aea6c67af9b6eccdfbd2bbd455401530fc', 'hermes_cli/ui_preferences.py': '966a59efac325574093543918f090c0a2f43a4d1', 'hermes_cli/version_info.py': '13aaee3631162f5c4d568d636e2567ec75b9dfd9', 'hermes_cli/web_routers/gateway_connections_reach.py': '924d910e122c5684e7f3b646c7fb6838e52efda9', 'hermes_cli/web_routers/profiles.py': 'dedfdcb871aa06b621310321301a658871ded80c', 'hermes_cli/web_routers/sessions.py': 'be61ae22c64628038396fbc135759f296889bd39', 'hermes_cli/web_server.py': '7001789f657d68778d826c1bc9e84be27969ee37', 'hermes_cli/web_server_cron.py': 'b777f511a8786d8c7ea788bc93276d58546f6b48', 'hermes_cli/web_server_sessions.py': '650ba6470402f763314aab7145fcbc8afd8a8a8f', 'hermes_cli/web_server_surface.py': 'd98e69371a5550cf152d4af634e3f3b3f915ca94', 'hermes_state.py': 'fe0249d6804ac5e6810a208f7a32e6dcf3e251f9', 'hermes_state_sessions.py': '476b3ef51d4304f3ef57d35576e2b98e73ca56fc', 'tests/hermes_cli/conftest_dashboard_auth.py': 'f06ec93f722b26530b69d81c8fed0edf870a1599', 'utils.py': '344d24eb16e3188cfa952fe6072da0e63e67c62d', 'hermes_cli/web_server_boundary.py': 'd4aeb4e044f148e9d873309220059956c020cc86', 'gateway/run_idle_exit.py': '2ee4909acfa27c40f467ec42450dab9be97a1756'}}}
 if not __debug__ or not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode):
     raise SystemExit('Use -I -S -B without -O; assertions and isolated imports are required.')
 if os.name != 'nt':
@@ -342,6 +295,158 @@ try:
         reply=client.post('/auth/native/token',json=dict(code=wrong_code,code_verifier='wrong-fixture-verifier'));assert reply.status_code==400 and reply.json()==replay_error
         reply=client.post('/auth/native/token',json=dict(code=wrong_code,code_verifier=good));assert reply.status_code==400 and reply.json()==replay_error;cases.append('wrong_verifier_consumes_code_without_oracle')
         reply=client.post('/auth/native/refresh',json=dict(refresh_token='invalid-fixture-refresh',provider='stub'));assert reply.status_code==401 and reply.json()['error']=='session_expired';cases.append('invalid_refresh_requires_signin')
+
+        if a.revision == 'main-071d31f':
+            # Actual private-grant admission inside the already-running ASGI app. The
+            # adapter supplies a synthetic captured socket peer, never from headers.
+            # This is not daemon/control-socket or TCP-peer-capture acceptance.
+            from types import SimpleNamespace
+            from gateway.runtime_bootstrap import TicketStore
+            from gateway.session_authorities import SessionAuthorities
+            registry=SessionAuthorities(homes['default'],multiplexed=True)
+            instance='synthetic-native-instance'
+            for profile,home in homes.items():
+                registry.add(home,SimpleNamespace(profile_id=str(home),instance_id=instance,retiring=False),name=profile)
+            store=TicketStore(instance,frozenset(str(h) for h in homes.values()))
+            runner=SimpleNamespace(session_authorities=registry,session_ticket_store=store,
+                session_runtime_descriptor=dict(state='ready',instance_id=instance,served_profiles=registry.served_profiles()),_draining=False)
+            web_server.app.state.gateway_runner=runner
+            class CapturedPeer:
+                def __init__(self,app):self.app=app
+                async def __call__(self,scope,receive,send):
+                    if scope['type']=='http':scope=dict(scope,**{'hermes.gateway_socket_peer':scope.get('client')})
+                    await self.app(scope,receive,send)
+            local=TestClient(CapturedPeer(web_server.app),base_url='https://fixture.invalid',follow_redirects=False,client=('127.0.0.1',50001))
+            foreign=TestClient(CapturedPeer(web_server.app),base_url='https://fixture.invalid',follow_redirects=False,client=('198.51.100.8',50002))
+            def mint(profile='default',purpose='native-http'):
+                return store.mint(profile_id=str(homes[profile]),subject='synthetic-owner',purpose=purpose)
+            def grant(token):return {'X-Hermes-Gateway-Ticket':token}
+            try:
+                token=mint();reply=local.get('/api/sessions',params={'profile':'default','limit':20},headers=grant(token))
+                assert reply.status_code==200 and {v['id'] for v in reply.json()['sessions']}=={'shared-fixture','default-only-fixture'}
+                cases.append('native_grant_passes_actual_gated_auth')
+                reply=local.get('/api/sessions',params={'profile':'default'},headers=grant(token));assert reply.status_code==401
+                cases.append('native_grant_replay_refused')
+                reply=local.get('/api/sessions',params={'profile':'default'},headers={**headers,**grant('invalid-native-fixture')});assert reply.status_code==401
+                cases.append('invalid_native_grant_cannot_fall_back_to_valid_bearer')
+                reply=client.get('/api/sessions',params={'profile':'default'},headers={**grant(mint()),'X-Forwarded-For':'127.0.0.1'});assert reply.status_code==401
+                cases.append('native_grant_without_captured_peer_refused')
+                reply=foreign.get('/api/sessions',params={'profile':'default'},headers={**grant(mint()),'X-Forwarded-For':'127.0.0.1'});assert reply.status_code==401
+                cases.append('forwarded_header_cannot_replace_actual_peer')
+                for label,origin in [('empty',''),('null','null'),('external','https://outside.example')]:
+                    reply=local.get('/api/sessions',params={'profile':'default'},headers={**grant(mint()),'Origin':origin});assert reply.status_code==401
+                    cases.append('native_grant_'+label+'_origin_refused')
+                reply=local.get('/api/sessions',params={'profile':'default'},headers=[('X-Hermes-Gateway-Ticket',mint()),('X-Hermes-Gateway-Ticket',mint())]);assert reply.status_code==401
+                cases.append('duplicate_native_grant_headers_refused')
+                for purpose in ('interactive','exposure','worker-adoption'):
+                    reply=local.get('/api/sessions',params={'profile':'default'},headers=grant(mint(purpose=purpose)));assert reply.status_code==401
+                    cases.append('native_grant_wrong_'+purpose+'_purpose_refused')
+                reply=local.get('/api/sessions',params={'profile':'worker'},headers=grant(mint()));assert reply.status_code==403
+                cases.append('native_grant_foreign_profile_refused')
+                reply=local.get('/api/sessions',params=[('profile','default'),('profile','worker')],headers=grant(mint()));assert reply.status_code==403
+                cases.append('native_grant_conflicting_profile_selectors_refused')
+                reply=local.get('/api/sessions',params={'profile':'worker','limit':20},headers=grant(mint('worker')))
+                assert reply.status_code==200 and {v['id'] for v in reply.json()['sessions']}=={'shared-fixture','worker-only-fixture'}
+                reply=local.get('/api/sessions/shared-fixture/messages',params={'profile':'worker','limit':20},headers=grant(mint('worker')))
+                assert reply.status_code==200 and [v['content'] for v in reply.json()['messages']]==['worker private user fixture','worker private reply fixture']
+                cases.append('secondary_native_grant_reads_only_its_own_history')
+                runner.session_runtime_descriptor['instance_id']='stale-synthetic-instance'
+                reply=local.get('/api/sessions',params={'profile':'default'},headers=grant(mint()));assert reply.status_code==401
+                runner.session_runtime_descriptor['instance_id']=instance;cases.append('native_grant_instance_mismatch_refused')
+                runner._draining=True
+                reply=local.get('/api/sessions',params={'profile':'default'},headers=grant(mint()));assert reply.status_code==401
+                runner._draining=False;cases.append('native_grant_during_drain_refused')
+                reply=local.get('/api/sessions',params={'profile':'default','ticket':mint()});assert reply.status_code==401
+                cases.append('native_grant_in_query_cannot_authenticate')
+                reply=local.get('/api/sessions',params={'profile':'default'},headers={'native_http_principal':'synthetic-owner'});assert reply.status_code==401
+                cases.append('principal_named_header_cannot_stamp_request_state')
+
+                # Exact remote-without-Origin routing changed in run_api. A refusing
+                # downstream gate proves delegation only; it cannot mint an actor.
+                import asyncio
+                from gateway.run_api import GatewayRuntimeAPI
+                async def routed(peer,token,extra=(),malformed=False):
+                    reached=[];sent=[]
+                    async def downstream(scope,receive,send):
+                        reached.append(dict(peer=scope['hermes.gateway_socket_peer'],principal='hermes.session_authority' in scope))
+                        await send({'type':'websocket.close','code':4401})
+                    async def receive():return {'type':'websocket.connect'}
+                    async def send(message):sent.append(message)
+                    protocol='hermes-gateway-v1, hermes-gateway-ticket.'+token
+                    if malformed:protocol='hermes-gateway-v1, hermes-gateway-ticket.'
+                    scope=dict(type='websocket',path='/api/ws',client=(peer,50003),server=('fixture.invalid',443),scheme='wss',http_version='1.1',root_path='',query_string=b'',headers=[(b'host',b'fixture.invalid'),(b'sec-websocket-protocol',protocol.encode()),*extra],subprotocols=protocol.split(', '))
+                    await GatewayRuntimeAPI(downstream,runner,web_server.app)(scope,receive,send)
+                    return reached,sent
+                for name,extra in [('without_origin',()),('with_origin',((b'origin',b'https://fixture.invalid'),)),('with_forwarded_loopback',((b'x-forwarded-for',b'127.0.0.1'),))]:
+                    token=mint(purpose='interactive');reached,sent=asyncio.run(routed('198.51.100.9',token,extra))
+                    assert reached==[{'peer':('198.51.100.9',50003),'principal':False}] and sent==[{'type':'websocket.close','code':4401}]
+                    assert store.redeem(token,profile_id=None,purpose='interactive')['subject']=='synthetic-owner'
+                    cases.append('remote_socket_'+name+'_delegates_to_existing_gate_without_native_redemption')
+                token=mint();reached,sent=asyncio.run(routed('127.0.0.1',token))
+                assert reached==[{'peer':('127.0.0.1',50003),'principal':False}] and sent==[{'type':'websocket.close','code':4401}]
+                assert store.redeem(token,profile_id=None,purpose='native-http')['subject']=='synthetic-owner'
+                cases.append('local_http_purpose_cannot_gain_interactive_socket_identity')
+                token=mint();reached,sent=asyncio.run(routed('127.0.0.1',token,malformed=True))
+                report['malformedSocketObservation']=dict(reached=reached,sent=sent)
+                assert reached==[] and sent==[{'type':'websocket.close','code':4403,'reason':''}]
+                assert store.redeem(token,profile_id=None,purpose='native-http')['subject']=='synthetic-owner'
+                cases.append('malformed_local_socket_protocol_refused_before_downstream')
+            finally:
+                local.close();foreign.close();del web_server.app.state.gateway_runner
+
+            # Exercise the actual public callback and actual issuer-bound store, with
+            # an explicit synthetic outbound token response. No remote request runs.
+            from hermes_cli import gateway_connections as connection_store,gateway_connections_oauth as oauth
+            from httpx import Response
+            previous_surface=getattr(web_server.app.state,'ui_surface',None)
+            web_server.app.state.ui_surface='webapp'
+            connection=connection_store.save_connection(dict(kind='remote',label='Synthetic callback fixture',url='https://gateway-fixture.example/prefix',authMode='oauth'))[0]
+            connection_id=connection['id'];base='https://gateway-fixture.example/prefix'
+            other=connection_store.save_connection(dict(kind='remote',label='Other synthetic fixture',url='https://other-fixture.example',authMode='oauth'))[0]['id']
+            post_calls=[];original_post=oauth._post_json
+            def fake_post(url,body,extra):
+                assert url==base+'/auth/native/token' and body=={'code':'synthetic-callback-code','code_verifier':'synthetic-callback-verifier'} and extra=={}
+                post_calls.append('one_synthetic_token_exchange')
+                return Response(200,json=dict(access_token='synthetic-stored-access',refresh_token='synthetic-stored-refresh',provider='stub',user_id='stub-callback-user',expires_at=4102444800))
+            oauth._post_json=fake_post
+            def flight(state,expires=None):
+                assert state not in oauth._flights
+                oauth._flights[state]=oauth._Flight(connection_id=connection_id,base_url=base,verifier='synthetic-callback-verifier',redirect_uri='http://127.0.0.1:53999'+oauth.CALLBACK_PATH,authorize_url='https://gateway-fixture.example/prefix/auth/native/authorize',expires_at=time.time()+60 if expires is None else expires)
+            try:
+                reply=client.get(oauth.CALLBACK_PATH,params={'code':'never-echo-this-code','state':'unknown-native-state'})
+                assert reply.status_code==400 and reply.headers.get('cache-control')=='no-store' and not post_calls and 'never-echo-this-code' not in reply.text
+                cases.append('public_saved_gateway_callback_unknown_state_refused')
+                flight('expired-native-state',0)
+                reply=client.get(oauth.CALLBACK_PATH,params={'code':'never-echo-this-code','state':'expired-native-state'})
+                assert reply.status_code==400 and not post_calls and 'expired-native-state' not in oauth._flights
+                cases.append('public_saved_gateway_callback_expired_state_consumed')
+                flight('error-native-state')
+                reply=client.get(oauth.CALLBACK_PATH,params={'state':'error-native-state','error':'denied','error_description':'<script>synthetic</script>'})
+                assert reply.status_code==400 and '<script>' not in reply.text and '&lt;script&gt;' in reply.text and not post_calls and 'error-native-state' not in oauth._flights
+                cases.append('public_saved_gateway_callback_error_escaped_and_state_consumed')
+                flight('good-native-state')
+                try:oauth.complete_sign_in(code='synthetic-callback-code',state='good-native-state',connection_id=other)
+                except connection_store.ConnectionStoreError:pass
+                else:raise AssertionError('Foreign connection accepted callback state')
+                assert not post_calls and 'good-native-state' in oauth._flights
+                cases.append('saved_gateway_callback_other_connection_refused_before_exchange')
+                reply=client.get(oauth.CALLBACK_PATH,params={'code':'synthetic-callback-code','state':'good-native-state'})
+                assert reply.status_code==200 and reply.headers.get('cache-control')=='no-store' and len(post_calls)==1 and 'good-native-state' not in oauth._flights
+                assert all(value not in reply.text for value in ('synthetic-stored-access','synthetic-stored-refresh','synthetic-callback-verifier','synthetic-callback-code'))
+                tokens=connection_store.read_tokens(connection_id)
+                assert tokens['accessToken']=='synthetic-stored-access' and tokens['refreshToken']=='synthetic-stored-refresh' and tokens['baseUrl']==base
+                cases.append('public_saved_gateway_callback_stores_only_for_exact_issuer')
+                reply=client.get(oauth.CALLBACK_PATH,params={'code':'synthetic-callback-code','state':'good-native-state'})
+                assert reply.status_code==400 and len(post_calls)==1
+                cases.append('public_saved_gateway_callback_replay_does_not_exchange_again')
+                flight('repointed-native-state')
+                connection_store.save_connection(dict(connection,id=connection_id,url='https://repointed-fixture.example'))
+                reply=client.get(oauth.CALLBACK_PATH,params={'code':'synthetic-callback-code','state':'repointed-native-state'})
+                assert reply.status_code==400 and len(post_calls)==1 and 'repointed-native-state' not in oauth._flights and not connection_store.read_tokens(connection_id)
+                cases.append('public_saved_gateway_callback_repointed_issuer_refused')
+            finally:
+                oauth._post_json=original_post;oauth._flights.clear();web_server.app.state.ui_surface=previous_surface
+
     for profile,home in homes.items():
         scope_token=hc.set_hermes_home_override(str(home))
         try:
@@ -352,6 +457,7 @@ try:
         assert after==original[profile]
     cases.append('browsing_preserves_exact_seeded_sessions_and_messages')
 
+    assert len(cases)==len(set(cases))==(52 if a.revision=='main-071d31f' else 21)
     assert not denied,denied
     report.update(state='PASS_REAL_DASHBOARD_NATIVE_AUTH_AND_SCOPED_HISTORY')
 except BaseException as error:
@@ -364,7 +470,7 @@ finally:
         if value:
             path=Path(value).resolve()
             if path.is_relative_to(source) and path.is_file():modules[path.relative_to(source).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
-    report.update(revision=a.revision,sourceCommit=SOURCE_COMMIT,cases=cases,projectModules=modules,deniedEvents=denied,denialDetails=denial_details,expectedBlockedMetadataProbes=expected_blocked_metadata_probes,missingOsProbeReads=missing_os_probe_reads,ownedSocketEvents=owned_socket_events,scope='Actual dashboard ASGI app/lifespan/auth gate, native broker and profile history stores with upstream synthetic HMAC provider; isolated fixture only. Not native Android, deployed Pi, real external IdP or inference acceptance. Audit hooks are not an OS sandbox.')
+    report.update(revision=a.revision,sourceCommit=SOURCE_COMMIT,cases=cases,projectModules=modules,deniedEvents=denied,denialDetails=denial_details,expectedBlockedMetadataProbes=expected_blocked_metadata_probes,missingOsProbeReads=missing_os_probe_reads,ownedSocketEvents=owned_socket_events,scope=('Actual dashboard ASGI/auth/profile history, private-grant middleware/TicketStore, socket-routing boundary and saved-gateway callback/store. Synthetic IdP, captured-peer adapter, refusing downstream socket gate, authority records and outbound token response. No daemon/private control channel/TCP capture, remote accepted socket, Android, Pi, real IdP or inference certification. Audit hooks are not an OS sandbox.' if a.revision=='main-071d31f' else 'Actual dashboard ASGI/lifespan/auth/profile history with an upstream synthetic HMAC provider. No Android, Pi, real IdP or inference certification. Audit hooks are not an OS sandbox.'))
     (root/'result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(dict(state=report['state'],cases=cases,modules=len(modules),deniedEvents=denied,errorType=report.get('errorType'))))
     if report['state'].startswith('FAILED'):raise SystemExit(1)
