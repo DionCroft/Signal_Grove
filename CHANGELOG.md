@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Bound compact Android31+ history dialogs by the hosting activity viewport so multilingual More/Close controls remain above the keyboard.
+- Synchronize the Demo-send regression against the actual native keyboard and stable control, retaining the original single tap/completion assertions and bounded failure evidence.
+
 - Refresh Kanban/project review identity even when visible management state is unchanged, keeping stale confirmations closed and fresh read reviews available without changing request/receipt safeguards.
 
 - Keep multilingual history filters and rows in one scrollable body. Use a compact read-only chat bar with a scrollable full explanation so large text leaves room for messages and controls. Keyboard-aware layout, intentional initial focus and a real Android-input paging/Close regression now pass on API26 and API37; full release gates remain open.

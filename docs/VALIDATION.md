@@ -1,5 +1,31 @@
 # Current development validation — audit follow-up
 
+## 2026-11-07 - reviewed compact-history and navigation backport
+
+This110/beta.7 branch receives exactly the ConversationBrowser and NavigationTest
+Git blobs tested on feature360247e. Both base files were checked against their
+shared ancestors before replacement, preserving all other release-specific
+source, defaults, configuration and prior fixes. History bounds the full dialog
+from the host activity viewport on API31+. Navigation closes the focused native
+keyboard and waits for a full, stable native Send control before its original
+one tap and strict15s completed-reply assertion. At most four bounded geometry/
+guard traces and a native failure screenshot are exported by the existing CI QA
+collector. No application send bypass, retry or timeout increase was added.
+
+The shared feature changes have599 JVM/both fresh lint and90 focused history
+cases, then599/both fresh lint and39 focused model/navigation cases on three
+preserved profiles. Those results justify this backport, not full release
+acceptance. Its fresh552 JVM, complete936/937 native, signed asset/source/
+dependency and physical retention gates are pending at this source checkpoint.
+
+Predecessor2e's original full API26 passes936 and API37 fails936/937 at keyboard
+clipping. Featureffd's original full gate fails1010/1011 API26 Demo send and
+1011/1012 API37 keyboard clipping. All failures and old publication holds remain.
+The isolated original13-case diagnostic passed while exposing IME0->498 and
+Send moving38px after a hide request; it was not an exact failure reproduction.
+New exact-head full gates must establish acceptance. Main/stable/public beta.6
+and original keys/data are preserved; no new public APK is published here.
+
 ## 2026-11-07 — bounded command/device diagnostics
 
 All23 CI-runner,179 policy and15 runtime cases pass. Nine new cases preserve

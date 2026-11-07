@@ -20,6 +20,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.text.KeyboardActions
@@ -45,7 +47,15 @@ import androidx.compose.ui.semantics.contentDescription
     val rows=conversations.filter {(!it.hidden || hidden) && it.title.contains(search,true) && (source.isBlank() || origin(it)==source)}
     // API31+ opts into platform fitting; older dialogs retain their resize/inset path.
     val platformFits=android.os.Build.VERSION.SDK_INT>=android.os.Build.VERSION_CODES.S
-    AlertDialog(onDismissRequest=dismiss,modifier=if(platformFits) Modifier else Modifier.imePadding(),properties=DialogProperties(decorFitsSystemWindows=platformFits),text={
+    var visibleDialogHeightPx by remember {mutableIntStateOf(0)}
+    val density=LocalDensity.current
+    if(platformFits) ObserveHistoryHostViewport {visibleDialogHeightPx=it}
+    // Platform fitting can leave a wrap-content dialog measured for its pre-keyboard height.
+    // Bound the whole surface; Material3 measures its actions before the weighted scrolling body.
+    val fittedBounds=if(platformFits && visibleDialogHeightPx>0) {
+        Modifier.heightIn(max=(with(density) {visibleDialogHeightPx.toDp()}-48.dp).coerceAtLeast(48.dp))
+    } else Modifier
+    AlertDialog(onDismissRequest=dismiss,modifier=if(platformFits) fittedBounds else Modifier.imePadding(),properties=DialogProperties(decorFitsSystemWindows=platformFits),text={
         val focus=LocalFocusManager.current
         val keyboard=LocalSoftwareKeyboardController.current
         // Filters and rows share one viewport so large multilingual controls cannot hide the list.
@@ -109,4 +119,27 @@ import androidx.compose.ui.semantics.contentDescription
         AlertDialog(onDismissRequest={deleting=null},title={Text(label(if(remote) Words.DeleteServer else Words.DeleteLocal))},text={Text(c.title+"\n\n"+label(Words.DeleteSessionConfirm))},
             confirmButton={TextButton({vm.deleteConversation(c.key,remote);deleting=null},enabled=allowed && (c.status in HermesViewModel.terminal || c.status=="idle")) {Text(label(Words.Delete))}},dismissButton={TextButton({deleting=null}) {Text(label(Words.Cancel))}})
     }
+}
+
+
+/** The hosting activity reports the full IME-affected viewport; dialog-local insets may be consumed. */
+@Composable private fun ObserveHistoryHostViewport(heightChanged:(Int)->Unit) {
+    val view=LocalView.current
+    val currentHeightChanged by rememberUpdatedState(heightChanged)
+    val imeBottom=WindowInsets.ime.getBottom(LocalDensity.current)
+    fun update() {
+        val frame=android.graphics.Rect()
+        view.getWindowVisibleDisplayFrame(frame)
+        if(frame.height()>0) currentHeightChanged(frame.height())
+    }
+    DisposableEffect(view) {
+        val listener=android.view.ViewTreeObserver.OnGlobalLayoutListener {update()}
+        view.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        update()
+        onDispose {
+            val observer=view.viewTreeObserver
+            if(observer.isAlive) observer.removeOnGlobalLayoutListener(listener)
+        }
+    }
+    LaunchedEffect(view,imeBottom) {update()}
 }

@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Current release checkpoint - reviewed UI/test backport
+
+The isolated110/beta.7 slice receives byte-identical compact-history and native
+Demo-readiness changes from feature360247e, preserving all other release source.
+Feature local evidence is599/both lint with90 history and39 model/navigation
+cases; new exact-release552/full936/937, signed/source/dependency and physical
+retention gates remain required. Keep predecessor2e/e5 holds and original failed
+cohorts. This release slice does not close the remaining companion audit ledger.
+
 Requested 5 November 2026, continuing the requirements in the
 [paused review](audits/2026-11-05/PAUSED_REVIEW.md). This is the durable project
 objective and acceptance ledger. Implement the full remaining companion scope in

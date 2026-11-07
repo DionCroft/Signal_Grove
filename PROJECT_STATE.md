@@ -1,64 +1,42 @@
-# Signal Grove project state — history layout release backport
+# Signal Grove release-slice state
 
-Continue every required row of docs/AUDIT_EXECUTION_PLAN.md. Keep the full audit
-goal active, original keys/data/main unchanged, TLS/profile isolation, exact
-approvals and no unknown-work replay. Use the authoritative repository and
-mandated temporary storage. No owner credential-fixture instrumentation.
+The full companion audit goal remains active. This branch contains the isolated
+110/beta.7 release slice; broader status/override forms and canonical readiness
+work remain on the feature branch. Preserve main6b809e6, original package/signing
+identities, existing data, scoped TLS/credentials and durable no-replay guards.
 
-## Current bounded stage
+## Reviewed backport
 
-Featurea7dcfa0 is committed/pushed:593 JVM/lint0,30 affected native cases per
-owned API26/API37, four actual captures, strict native keyboard/full-caption
-checks and580 frozen inputs. Its earlier failed/diagnostic cohorts remain
-retained. Both Search overlap and real keyboard footer clipping are resolved
-within that tested scope. The feature source freeze is closed.
+ConversationBrowser and NavigationTest are byte-identical Git blobs from tested
+feature360247e. The history dialog measures the hosting activity viewport on
+API31+ so its multilingual footer remains above the keyboard. The Demo test
+closes the focused native keyboard and waits for its real visible viewport and
+stable Send control before its same single tap and original15s completion check.
+Bounded geometry/guard traces and failure screenshots support diagnosis.
+No feature status/override forms, authority writer, new RPC or dependency is added.
 
-The four common history app/test files are backported byte-for-byte onto e5 on
-the release branch; version defaults stay110/beta.7 and status forms remain
-excluded. Clean required tasks now pass552 unique JVM cases and fresh debug lint; separate explicit release lint also passes with a freshly generated XML report. The566-input freeze is closed. The initial missing-release-report verification stop and earlier cached-feature-report scope correction are retained. Retained593-case
-raw reports and signed feature fixtures are safe before generated-output clean.
-Local QA devices stay111; do not downgrade them to install the110 debug build.
-The full exact-source hosted API26/API37 gate will verify release native scope.
-Commit/push this bounded backport. Then explicitly include release lint in the full CI/contributor commands before dispatching each final-head Android/compatibility workflow once. Keep their exact handles and inspect
-terminal artifacts; do not replay unknown outcomes. Prepare final original-key
-production/debug assets only against the final committed source.
+Feature evidence:599 JVM/both fresh lint0 and90 history native cases at4de;
+599/both fresh lint0 and39 model/navigation cases at360. The initial13-case
+read-only diagnostic showed keyboard/frame movement after the hide request but
+did not reproduce the original full-run failure. All original failures remain.
+These are feature-source results, not release-branch acceptance.
 
-## Phone and publication
+## Exact next action
 
-The predecessor e5 has full552 JVM/936/937 and compatibility passes. The owner
-confirms Chat/history and earlier messages on its exact production8605 APK.
-Read-only screenshot/XML shows both earlier synthetic replies, completed status,
-connected state and empty draft, with no new turn/reset/owner fixture. Fresh
-model-choice/network and new final-source upgrade checks stay separate.
-Publication is held for this backport's complete gates, signed provenance,
-upgrade acceptance and public download verification. Old publishers remain
-blocked. Stable1.0 and main6b809e6 stay unchanged; no beta7 tag/release was made.
+Build fresh original-key production/debug/test APKs from this exact committed
+source with all mandatory tasks, explicit release lint and dependency export.
+Verify its own552 JVM, raw inputs/reports, manifests/source/signers/dependency
+and native payloads. Run each exact-head full Android/compatibility workflow
+once; expected936 API26/937 API37 methods. Inspect terminal artifact digests and
+native readiness traces. Existing111 debug emulators must not be downgraded.
 
-## Remaining full audit
+The predecessor2e/e5 candidates and their publication holds remain intact.
+Never publish those bytes as this correction. The owner's production110 phone
+is disconnected; matching-signer upgrade/connection/history/project retention
+still requires the new APK on that phone. Prior owner evidence is scoped to its
+earlier APK. No new public tag/draft/release has been created.
 
-Workers/dispatch/events/files/pins/transfers, explicit workspace adoption,
-automation/rooms/grants, integrations/configuration, notification targeting,
-rendering/voice/OEM and security/community closure remain required. Project
-metadata is not worker/filesystem execution or shared Bot Chat authority.
-Canonical workspace changes require verified authority/actor/session ownership;
-the server-local cwd operation does not establish Windows/NAS worker routing.
-
-## Verification scope correction
-
-Featurea7dcfa0's593 JVM/30 native per API and fresh debug lint remain valid.
-Its cached06:56 release XML predates its11:06 build and does not establish that
-feature source's release-variant acceptance. The current backport has an explicit
-fresh release check; preserve that distinction. Fresh official mainaf5 source
-watch passes against the unchanged F0 baseline; stablev0.23.0 remains2bd.
-Owner-Pi authenticated API/health/observer reads returned200 with no state/model
-changes. These do not close canonical authority or project-worker execution.
-
-## CI report follow-up
-
-The common UI backport is committed/pushed at cceaeb0. The current separate
-configuration change explicitly requests release lint in Android CI, requires
-both lint XML reports and retains raw JVM/lint XML. Contributor instructions
-record variant/artifact scope. Native jobs, budgets, pins and permissions stay
-unchanged. Validate the existing policy checks, commit/push this bounded change,
-then dispatch full Android and compatibility once at the final exact head.
-No signed/public release assets are ready from this configuration change alone.
+The full audit ledger remains required: actual Hermes matrix and canonical
+attachment/adoption, exact workspace/worker/file ownership, automation/rooms/
+grants, integrations/config, notifications, physical voice/OEM and security/
+community closure. Stored project metadata is not cwd adoption or execution.
