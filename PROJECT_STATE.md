@@ -7,44 +7,43 @@ explicit approvals and durable no-replay handling.
 
 ## Current bounded implementation
 
-The isolated Windows authority probe checks a clean pinned Hermes2bd378e source
-checkout and executes real authority/SQLite modules with an existing dependency
-site. All24 ownership, subscription and unknown-work recovery cases pass;
-426 imported project modules are hashed and no boundary denial remains. The
-initial19-case diagnostic failure and committed unknown receipt are preserved.
-See docs/contracts/2026-11-07-canonical-authority-component.md for exact limits.
+The real authority probe now executes the canonical JSON-RPC dispatcher with
+strict official parameter/result schemas.46 distinct cases (24 original plus22
+wire) pass against clean pinned Hermes2bd378e/v0.23.0, with497 imported module
+hashes and no denied operation. Reconnect replay reads event1, catches event2 in
+the resume gap once, and keeps the existing unknown admission/transcript intact.
+Read-only mutation and foreign-owner history access are refused. See the component contract for
+scope; direct actors/in-memory sinks do not certify authentication or adoption.
 
-No application/dependency/protocol/workflow source changes in this chunk. Clean
-required Android tasks and both fresh lint variants pass599 unique JVM cases,
-0 errors/failures/skips and179 existing policy cases. All585 inputs are verified;
-two preflight refusals preserve existing results. Original-key app/test APK bytes
-match the previously accepted0e71/e297 development pair. No new install/native
-run, owner credential fixture or deployed authority is claimed. Freeze closed.
+Only the Python probe and documentation change. App/dependencies/workflows/native
+tests stay byte-identical to the accepted development source. Required Android
+tasks/both lint variants passed incrementally; all70 raw reports and original-key
+0e71/e297 APK bytes match the prior fresh599/lint0 proof.179 policy cases and two
+preflight refusals pass.585 inputs verified; freeze closed. No new Android/native
+run, owner fixture, install or deployed acceptance is claimed.
 
 ## Release and remaining scope
 
-Release207c6b4 separately backports byte-identical compact-history/navigation
-fixes, has fresh original-key110/beta.7 assets,552 JVM/both lint and verified
-packaging/source/class/native-origin evidence. Its exact full Android run
-42388552581 is fully accepted:552 JVM/both lint0 and exact936 API26/937 API37
-methods, no failures/skips/unfinished cases. Artifact digests, full method sets,
-original command/device receipts and Send readiness traces are verified. Compatibility
-42388559751 passed independently verified policy/observer/registry/source gates.
-Feature360 Android42387904773 has independently verified1011 API26 methods;
-API37 remains live, expected1012. Its compatibility42387911863 passed. Retain all original2e/ffd failures.
+Release207c Android42388552581 fully passes552 JVM/both lint0 and936/937 native
+cases. Feature360 Android42387904773 now fully passes599/both lint0 and1011/1012.
+Both compatibility cohorts pass. Exact artifacts/method sets, command/device
+receipts and native readiness traces are verified. No hosted job remains live;
+retain all earlier failed attempts. These source cohorts remain independently
+scoped; no main merge or public beta.7 is claimed.
 
-The new production APK remains unpublished. Main6b809e6 and feature360247e stay
-unchanged. Owner phone reconnection and the exact matching-signer upgrade,
-saved connection/history/project retention, final artifact/advisory/publication
-checks remain required. Prior owner evidence applies only to prior APKs.
+The new production APK remains held locally, awaiting the exact matching-signer
+phone upgrade and saved connection/history/project retention. USB shows only
+three preserved emulators. Main6b, release207c and feature360 refs stay unchanged.
+Prior owner evidence applies only to earlier APK bytes.
 
 ## Exact next action
 
-Inspect the same feature API37 handle128451588761 without replaying runs.
-Finish the owner's exact207c physical retention check when USB returns; verified
-public assets remain locally staged under the publication hold. Source regression
-chunk a21f01e is pushed. No local build, source freeze or native run remains active. Continue actual
-canonical transport/restore/adoption, exact handles/replay, worker/files/workspace
-ownership and native approval/unknown-outcome validation. Automation/rooms/grants,
-integrations/config, notifications, physical voice/OEM, security and community
-closure all stay in scope. Project metadata is not workspace adoption or execution.
+Review the observed deployed Hermes revision's exact native/authentication
+contracts and custom fixes before continuing actual canonical transport/login,
+restore/adoption, exact handles/replay and worker/files/workspace ownership.
+Both Pi services were observed running; source metadata alone does not prove
+loaded code, readiness or actor rights. Preserve native approval/no-replay guards. Complete exact phone
+retention and final guarded publication/download checks when USB returns.
+Automation/rooms/grants, integrations/config, notifications, physical voice/OEM,
+security and community closure all remain in scope. Stored project metadata is
+not workspace adoption or execution.

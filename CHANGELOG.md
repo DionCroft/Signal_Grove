@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Extend the real Hermes authority probe through its canonical dispatcher: strict wire schemas, session resume, permission refusals and reconnect event catch-up without duplicate events or unknown-work replay. No application protocol or deployed changes.
+
 - Add a repeatable Windows component probe against pinned real Hermes authority modules for owner/profile gates, subscription cleanup and durable unknown-work recovery. Existing dependencies and fresh isolated SQLite fixtures only; deployed transport and workspace/worker acceptance remain separate.
 
 - Synchronize Demo navigation tests against the actual keyboard and stable Send control, retaining the original single tap/completion assertions and bounded native failure diagnostics.

@@ -1,7 +1,8 @@
 # Real canonical authority component regression
 
 Reviewed 7 November 2026. `scripts/compatibility_probe_session_authority.py`
-executes the real SessionDB, SessionAuthority, LiveSession and AuthorityConnection
+executes the real SessionDB, SessionAuthority, LiveSession, AuthorityConnection
+and canonical JSON-RPC dispatcher
 from official Hermes v0.23.0, commit
 `2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19`. It checks the clean checkout identity
 and six reviewed Git blobs before importing it, then records imported module
@@ -10,7 +11,7 @@ hashes. It preserves the existing F0/source watcher and Android protocol.
 ## Verified behavior
 
 A fresh SQLite database contains two synthetic transcript messages. Twenty-four
-unique assertions exercise the real authority and runtime store:
+original assertions exercise the real authority and runtime store:
 
 - Reading binds profile/session, instance, epoch, revision and execution generation.
   Foreign actor/reference profiles, missing read capability, unknown sessions,
@@ -32,6 +33,41 @@ unique assertions exercise the real authority and runtime store:
 Contracts: [authority](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/gateway/session_authority.py),
 [connection](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/gateway/session_controls.py),
 [runtime store](https://github.com/NousResearch/hermes-agent/blob/2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/hermes_state_runtime.py).
+
+## Canonical dispatcher and replay extension
+
+The probe now runs46 distinct cases: the original24 plus22 actual dispatcher
+cases. It sets the upstream documented HERMES_TEST_ISOLATION flag before imports
+and asserts the official registry's STRICT mode. Actual declared parameter and
+result schemas validate every dispatched success. No handler or registry stub
+replaces these modules.
+
+The added cases exercise request-ID echo, nonmapping parameters, unknown methods,
+foreign profiles, closed/missing mutation fields, missing authenticated-user
+identity, runtime feature metadata without actor grants, read-only mutation
+refusal and foreign LOCAL history refusal. Opening a preloaded synthetic session
+preserves both messages and binds session/stored ID, authority epoch, revision,
+generation, replay cursor and subscription. Repeat resume reuses that viewer's
+subscription; another viewer cannot detach it. A foreign replay epoch requires
+a snapshot and boolean cursors are refused.
+
+The replay gap uses two declared status.update events and the actual bounded
+SessionEvents ring. The reconnecting viewer first reads event1, event2 arrives
+before resume, and resume catches up with exactly event2. No answered event is
+duplicated. A fresh transport receives its own subscription; teardown releases
+it. The original interrupted admission stays unknown, with one admission and the
+original transcript throughout. No inference, tool execution or rename occurs.
+
+The repository run passed46 cases with497 imported module hashes, strict schema
+checks and no denied operation. Required Android tasks passed incrementally;
+all70 prior reports and both original-key APKs remain byte-identical.179 policy
+tests and two preflight refusals pass. These reused Android outputs retain their
+original scope and do not become a fresh native or deployment run. The report identifies wire cases separately and
+uses PASS_BOUNDED_REAL_AUTHORITY_WIRE_BEHAVIOR. This remains an in-process
+component test with direct trusted actors and in-memory sinks. It is not HTTP or
+WebSocket authentication, network frame ordering, actual native-login/profile
+isolation, LOCAL restore/adoption or deployed acceptance. The fixture runner has
+no active agent or adapters. Those required stages remain open.
 
 ## Running the probe
 
@@ -62,9 +98,9 @@ checkout may naturally raise FileNotFoundError only while still missing. This
 exception does not allow reading a manifest that appears later. Python audit
 hooks are a diagnostic boundary, not an OS security sandbox.
 
-The private report includes all 24 names and module hashes. Local execution on
-Python3.14.9 imported426 project modules, passed24 cases and recorded no denied
-operation. Reusing that environment does not certify every supported Python or
+The private report includes all46 names,22 wire cases and imported module hashes.
+Local execution on Python3.14.9 imported497 project modules, passed46 cases and
+recorded no denied operation. The earlier24-case report remains separately retained. Reusing that environment does not certify every supported Python or
 OS version. Preflight refusal checks also preserve an existing result and refuse
 -O before upstream execution. Mandatory clean Android tasks, both lint variants
 and179 existing policy tests passed for this source chunk;599 unique JVM cases,

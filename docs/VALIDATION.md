@@ -2652,3 +2652,38 @@ Release207c has a fresh150-coordinate Maven OSV query with no listed findings
 at query time and newly staged exact APKs/certificate/checksums. Its publication
 hold and exact owner physical upgrade/connection/history/project-retention
 requirements remain. Earlier owner evidence applies to earlier APK bytes.
+
+
+## Real canonical wire and full feature closure — 7 November 2026
+
+The extended repository probe passes46 distinct cases (24 original authority,
+22 canonical dispatcher/replay),497 imported actual-module hashes, strict official
+wire schemas and zero denied operation. It uses a fresh SQLite fixture and direct
+trusted identities; no gateway process, HTTP/WebSocket authentication, deployed
+profile, actual restore/adoption, inference, worker or owner-device claim. See
+[precise wire scope](contracts/2026-11-07-canonical-authority-component.md).
+
+Feature360 Android42387904773 is now fully verified:599 raw unique JVM cases,
+both lint0,1011 API26 and1012 API37 exact committed method sets. All original
+command/device receipts, artifact SHA-256 and native Send readiness traces agree;
+no skips, failures or unfinished cases. API37 artifact13583219273 digest:
+`68899bc729278b26bf739f68975c8ac4292e6263d31f74b86e4b037006b07cd9`.
+These are synthetic hosted fixtures at360, not exact-head CI for later docs/probe
+commits, an original-key release or actual server/worker acceptance. No hosted
+job remains live. Release207c's independent552/936/937 acceptance remains intact.
+
+Required Android tasks and explicit lintRelease passed incrementally. The unit
+test and APK tasks were UP-TO-DATE; do not describe this as a fresh Android test
+run. All70 raw reports (68 JVM XML plus debug/release lint XML) are byte-identical
+to the prior fresh599-case/lint0 proof. App and companion are byte-identical to
+the original-key0e71/e297 pair. All585 frozen source inputs are verified; only
+these evidence docs changed after closure.179 policy regressions and two CLI
+preflight refusals pass; old results remain unchanged. No device install, native
+rerun or new deployed acceptance is claimed.
+
+The first evidence parser matched lint task-name prefixes rather than exact
+names and stopped. That parser is retained; an exact-name reader accepted the
+same completed17-second build without rerunning or changing assertions. The
+Pi services were independently observed running; source revision/file metadata
+differs from the pinned stable probe. This observation does not establish loaded
+module identity, authenticated authority grants or deployment compatibility.

@@ -1,6 +1,26 @@
 # Signal Grove audit execution plan
 
-## Current priority - native send readiness and exact-head gates
+## Current priority — real interoperability and exact phone retention
+
+Both source cohorts are now fully accepted: release207c Android42388552581
+passes552 JVM/both lint0 and936/937 native cases; feature360 Android42387904773
+passes599 JVM/both lint0 and1011/1012. Their independent compatibility cohorts
+also pass. Full method sets, artifact digests, original command/device receipts
+and Send readiness traces were reviewed; retain the earlier2e/ffd failures.
+The new release remains locally staged under its publication hold pending exact
+physical upgrade/connection/history/project retention. USB currently shows no
+owner phone. Main remains6b809e6; no merge or public beta.7 has occurred.
+
+The next interoperability stage uses actual canonical transport/authentication,
+restore/adoption and exact handle/replay/owner boundaries before native project
+operations. The existing isolated component probe now passes46 real-module cases,
+including22 actual dispatcher and reconnect-gap cases with strict schemas.
+It is not an authenticated network server or worker/workspace certification.
+Every remaining row below stays required; unavailable hardware blocks its own
+acceptance, not independent implementation.
+
+
+## Historical checkpoint — native send readiness
 
 A diagnostic-only original13-case run exposed keyboard/frame movement after the
 old asynchronous hide request. The test now uses actual native viewport/control
@@ -11,7 +31,7 @@ original ffd full failure. Complete new exact-head full gates, then corrected-
 source release backports/assets/physical retention. The compact-history fix has
 its independent90-case acceptance; all broader ledger rows remain required.
 
-## Current priority - compact keyboard and release hold
+## Historical checkpoint — compact keyboard hold
 
 The host-activity viewport correction has599 JVM,both fresh lint0 and30 unchanged
 focused native cases on each API26/large37/compact37 profile. Keep prior failed
@@ -46,12 +66,12 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | --- | --- | --- |
 | Model-status QoL | Read-only observer deployed with explicit owner approval; existing Spark credential already matched and was preserved. Client distinguishes serving/default/request/last-response identity, host/receipt age and failures.528 JVM/75 focused native passes; see VALIDATION. Owner confirms the earlier phone connection works. | Included in public beta.5 at69590bb with exact-head full916/917 device gates. Matching-signer physical-phone upgrade/acceptance remains separate; no model switch or inference certification. |
 | 1. Branch/release closure | Diagnostic7d40b96 and both voice heads passed their own full Android/compatibility gates with digest-verified native results. Main is now6b809e6 (full901/902); earlier failed heads remain retained. Beta.6 title fix is published at e2b2de7 with536 JVM/919 API26/920 API37, compatibility, original-key release lint/retention and all4 public byte hashes verified. | Keep exact-head gates for subsequent chunks. Beta.5 and beta.6 were published from tested feature commits; neither publication advances main or closes later development/physical acceptance. |
-| 2. Real Hermes matrix | Pinned stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers. A pinned v0.22.7 native run now has poll/SSE/sequence-resume/history and durable single-admission evidence, with both diagnostic errors retained and reconciled read-only. Full clean-install/current-native/tool matrix and owner inference/login remain uncertified. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
+| 2. Real Hermes matrix | Pinned stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers. The v0.22.7 poll/SSE/history/single-admission receipts remain. Current pinned v0.23.0 actual modules pass46 authority/dispatcher cases, including strict schemas, ownership, subscription cleanup and reconnect catch-up. Direct actors/in-memory sinks do not certify native login/transport/restore/adoption or tool/inference acceptance. | Extend the isolated actual-server matrix to native login/refresh/profile isolation, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
-| 4a. Kanban status/overrides | Private model/provider/reasoning forms and typed status with linked-impact review, explicit approval, scoped receipts and no-replay guards exist on the feature branch. Earlier local cohorts and caption failures remain recorded. | Validate the reconciled history/status source, then close its own complete hosted gates and isolated real-server transitions; runtime adoption and worker/filesystem effects remain separate. |
+| 4a. Kanban status/overrides | Private model/provider/reasoning forms and typed status with linked-impact review, explicit approval, scoped receipts and no-replay guards exist on the feature branch. Earlier local cohorts and caption failures remain recorded. | Reconciled feature360 source has full1011/1012 hosted acceptance. Complete isolated real-server transitions; runtime adoption and worker/filesystem effects remain separate. |
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
-| 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. | Typed editing/run/results/logs and explicit outcomes, without claiming runtime completion from ACK. |
+| 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. | Typed editing/run/results/logs and explicit outcomes. Reviewed stable cron.manage declares only list/add/remove/pause/resume; verify separate canonical admission or web contracts for missing controls. Never invent cron.manage actions or claim runtime completion from ACK. |
 | 5b. Rooms/grants/delivery | Missing native room administration. | Verified membership/lead/purpose/notes foundations, distinct grants and cron delivery; then authorized goal/heartbeat/loop monitoring/control. |
 | 6a. Integrations | Dynamic MCP/skill/plugin/provider and channel foundations exist. | Plugin bulk/automatic-update policy/bundles, channel/webhook/pairing-specific setup; preserve credential handoffs and host revision/CAS limits; real accounts only for their scoped tests. |
 | 6b. Configuration/workspaces | Narrow config slices and stored-project administration exist. | Typed memory/persona/context/config/reset and explicit chat-workspace adoption, repository/folder discovery and tree/file hydration. Active-project metadata alone is not cwd adoption. |

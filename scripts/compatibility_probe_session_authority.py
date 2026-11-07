@@ -1,4 +1,4 @@
-"""Exercise the pinned real Hermes authority against a fresh disposable SQLite fixture.
+"""Exercise pinned real Hermes authority, canonical dispatch and replay in a fresh SQLite fixture.
 
 Windows component probe; run with an existing Hermes interpreter using -I -S -B.
 No dependency installation, site hooks, gateway startup, inference or owner data.
@@ -70,6 +70,7 @@ os.environ.update(TEMP=str(temp), TMP=str(temp), TMPDIR=str(temp), HOME=str(user
                   APPDATA=str(user / 'AppData/Roaming'), LOCALAPPDATA=str(user / 'AppData/Local'),
                   HERMES_HOME=str(root / 'hermes-home'), HERMES_RUNTIME_DIR=str(root / 'runtime'),
                   HERMES_DISABLE_LAZY_INSTALLS='1', PYTHONDONTWRITEBYTECODE='1', NO_PROXY='127.0.0.1,localhost')
+os.environ['HERMES_TEST_ISOLATION'] = '1'
 os.chdir(root)
 sys.dont_write_bytecode = True
 sys.path[:0] = [str(source), str(site)]
@@ -219,6 +220,118 @@ try:
             return
         raise AssertionError('Expected refusal: ' + reason)
 
+    async def wire_behavior(authority, db):
+        from tui_gateway.contracts.events import StatusUpdatePayload
+        from tui_gateway.contracts import registry
+        assert registry.STRICT is True, "Official strict result validation must be active."
+        sinks = [Sink(), Sink(), Sink()]
+        identity = {'provider': 'local', 'user_id': 'wire-viewer', 'capabilities': ['session:read', 'session:operator']}
+        first = AuthorityConnection(authority, sinks[0], identity)
+        second = AuthorityConnection(authority, sinks[1], identity)
+        third = AuthorityConnection(authority, sinks[2], identity)
+        empty = AuthorityConnection(authority, Sink(), dict(identity, user_id=''))
+        peers = [first, second, third, empty]
+        authority.sessions['private'] = LiveSession(SimpleNamespace(platform=Platform.LOCAL, user_id='other-owner'), 'fixture-private')
+        serial = 0
+        async def rpc(peer, method, params):
+            nonlocal serial
+            serial += 1
+            frame = {'jsonrpc': '2.0', 'id': 'wire-' + str(serial), 'method': method, 'params': params}
+            response = await peer.dispatch(frame)
+            assert response['jsonrpc'] == '2.0' and response['id'] == frame['id']
+            return response
+        def success(response):
+            assert 'error' not in response and 'result' in response, response
+            return response['result']
+        def refusal(response, reason, code=4001):
+            assert response['error']['code'] == code and response['error']['data']['reason'] == reason, response
+            return response['error']
+        async def drain_notices():
+            tasks = [task for peer in peers for task in tuple(getattr(peer, '_notice_tasks', ()))]
+            if tasks:
+                await asyncio.gather(*tasks)
+        try:
+            assert success(await rpc(first, 'ping', {})) == {'pong': True}
+            passed('wire_ping_echoes_request_id')
+            refusal(await rpc(first, 'ping', ['bad']), 'invalid_params')
+            passed('wire_non_mapping_params_refused')
+            refusal(await rpc(first, 'fixture.unknown', {}), 'unknown_method', -32601)
+            passed('wire_unknown_method_has_protocol_error')
+            refusal(await rpc(first, 'ping', {'profile': 'other'}), 'profile_mismatch')
+            passed('wire_foreign_profile_refused')
+            missing = refusal(await rpc(first, 'session.mutate', {'session_id': 's'}), 'invalid_params')
+            assert missing['data']['fields']
+            passed('wire_missing_mutation_fields_refused_before_handler')
+            mutation = {'session_id': 's', 'request_id': 'fixture-wire-rename', 'expected_revision': 0, 'operation': 'rename', 'payload': {'title': 'Never written'}}
+            extra = refusal(await rpc(first, 'session.mutate', dict(mutation, actor='forged')), 'invalid_params')
+            assert extra['data']['fields']
+            passed('wire_unknown_mutation_fields_refused_before_handler')
+            refusal(await rpc(empty, 'ping', {}), 'permission_denied')
+            passed('wire_missing_user_revokes_supplied_capabilities')
+            description = success(await rpc(first, 'runtime.describe', {}))
+            assert description['instance_id'] == authority.instance_id and description['profile_id'] == authority.profile_id and description['authority_epoch'] == authority.epoch
+            assert 'durable-admission-v1' in description['capabilities'] and 'session:control' not in first.actor.capabilities and 'session:operator' not in first.actor.capabilities
+            passed('wire_runtime_features_do_not_grant_actor_rights')
+            refusal(await rpc(first, 'session.mutate', mutation), 'permission_denied')
+            passed('wire_read_only_viewer_cannot_rename')
+            refusal(await rpc(first, 'session.info', {'session_id': 'private'}), 'permission_denied')
+            passed('wire_foreign_local_history_owner_refused')
+            snapshot = success(await rpc(first, 'session.resume', {'session_id': 's'}))
+            await drain_notices()
+            assert snapshot['session_id'] == snapshot['stored_session_id'] == 's' and snapshot['authority_epoch'] == authority.epoch and snapshot['execution_generation'] == 1 and snapshot['revision'] == 0
+            assert [(row['role'], row['content']) for row in snapshot['messages']] == [('user', 'fixture user'), ('assistant', 'fixture assistant')]
+            assert snapshot['message_count'] == 2 and snapshot['info']['desktop_protocol'] == 'hermes-gateway-v1'
+            subscription = snapshot['subscription_id']
+            passed('wire_resume_preserves_history_and_binds_snapshot')
+            again = success(await rpc(first, 'session.resume', {'session_id': 's'}))
+            await drain_notices()
+            assert again['subscription_id'] == subscription and len(authority.sessions['s'].subscribers) == 1
+            passed('wire_repeated_resume_reuses_own_subscription')
+            bad_epoch = success(await rpc(first, 'session.events.since', {'session_id': 's', 'replay_epoch': 'foreign-epoch', 'last_sequence': 0}))
+            assert bad_epoch['snapshot_required'] is True and bad_epoch['events'] == []
+            passed('wire_foreign_replay_epoch_requires_snapshot')
+            replay_epoch = snapshot['replay_epoch']
+            empty_replay = success(await rpc(first, 'session.events.since', {'session_id': 's', 'replay_epoch': replay_epoch, 'last_sequence': 0}))
+            assert empty_replay['snapshot_required'] is False and empty_replay['count'] == 0 and empty_replay['events'] == []
+            passed('wire_matching_empty_replay_does_not_require_snapshot')
+            refusal(await rpc(first, 'session.events.since', {'session_id': 's', 'replay_epoch': replay_epoch, 'last_sequence': True}), 'invalid_params')
+            passed('wire_boolean_replay_cursor_refused')
+            detached = success(await rpc(second, 'session.detach', {'session_id': 's', 'subscription_id': subscription}))
+            assert detached['detached'] is False and subscription in authority.sessions['s'].subscribers
+            passed('wire_foreign_detach_does_not_remove_membership')
+            detached = success(await rpc(first, 'session.detach', {'session_id': 's', 'subscription_id': subscription}))
+            assert detached['detached'] is True and not authority.sessions['s'].subscribers
+            passed('wire_own_detach_removes_only_own_subscription')
+            stream = authority.sessions['s'].event_stream
+            def publish(text):
+                payload = {'kind': 'status', 'text': text}
+                StatusUpdatePayload.model_validate(payload)
+                return stream.publish('s', payload, event_type='status.update')
+            assert publish('fixture event one') is False
+            replay = success(await rpc(third, 'session.events.since', {'session_id': 's', 'replay_epoch': replay_epoch, 'last_sequence': 0}))
+            assert replay['snapshot_required'] is False and replay['count'] == 1 and replay['events'][0]['session_id'] == 's'
+            assert replay['events'][0]['payload']['text'] == 'fixture event one' and replay['events'][0]['seq'] == 1
+            passed('wire_replay_uses_public_session_and_exact_cursor')
+            assert publish('fixture event two') is False
+            resumed = success(await rpc(third, 'session.resume', {'session_id': 's'}))
+            await drain_notices()
+            assert resumed['subscription_id'] != subscription and resumed['last_sequence'] == 2
+            passed('wire_reconnected_transport_gets_new_subscription')
+            assert len(sinks[2].frames) == 1 and sinks[2].frames[0]['params']['seq'] == 2 and sinks[2].frames[0]['params']['payload']['text'] == 'fixture event two'
+            passed('wire_resume_catches_gap_without_replaying_answered_event')
+            from hermes_state_runtime import list_session_admissions
+            admissions = list_session_admissions(db, session_id='s', pending_only=False)
+            assert len(admissions) == 1 and admissions[0]['status'] == 'unknown' and admissions[0]['request_id'] == 'fixture-request'
+            assert [(row['role'], row['content']) for row in db.get_messages('s')] == [('user', 'fixture user'), ('assistant', 'fixture assistant')]
+            passed('wire_reconnect_does_not_replay_unknown_admission')
+            await third.close()
+            assert not authority.sessions['s'].subscribers and third.actor.transport_id not in authority.events
+            passed('wire_close_releases_subscription_and_transport')
+        finally:
+            await drain_notices()
+            for peer in peers:
+                await peer.close()
+
     async def behavior():
         db = SessionDB(db_path=root / 'hermes-home/authority.sqlite')
         connections = []
@@ -322,6 +435,7 @@ try:
             refused_call(lambda: claim_session_input(db, epoch=next_epoch, session_id='s'), 'unknown_execution')
             assert get_session_admission(db, admission_id=one['admission_id'])['status'] == 'unknown' and history() == [('user', 'fixture user'), ('assistant', 'fixture assistant')]
             passed('unknown_execution_blocks_another_claim')
+            await wire_behavior(replacement, db)
             for connection in connections:
                 await connection.close()
             assert all((connection.actor.transport_id not in authority.events for connection in connections))
@@ -329,7 +443,7 @@ try:
         finally:
             db.close()
     asyncio.run(behavior())
-    assert len(cases) == len(set(cases)) == 24, cases
+    assert len(cases) == len(set(cases)) == 46, cases
     for name, module in sorted(sys.modules.items()):
         file = getattr(module, '__file__', None)
         if file:
@@ -339,7 +453,7 @@ try:
     for name in ('hermes_state', 'gateway.session_authority', 'gateway.session_controls'):
         assert Path(sys.modules[name].__file__).resolve().is_relative_to(source)
     assert not denied
-    report = dict(state='PASS_BOUNDED_REAL_AUTHORITY_COMPONENT_BEHAVIOR', source=str(source), sourceCommit=SOURCE_COMMIT, python=sys.version.split()[0], projectModules=loaded, deniedEvents=denied, expectedMissingProbes=missing_os_probe_reads, codeLoadedFromPinnedCheckout=True, sessionOperationsExecuted=True, cases=cases, ownedSocketEvents=owned_socket_events, scope='Isolated dependency-site reuse and Python audit hooks; not an OS sandbox, server, inference or deployed acceptance.')
+    report = dict(state='PASS_BOUNDED_REAL_AUTHORITY_WIRE_BEHAVIOR', source=str(source), sourceCommit=SOURCE_COMMIT, python=sys.version.split()[0], projectModules=loaded, deniedEvents=denied, expectedMissingProbes=missing_os_probe_reads, codeLoadedFromPinnedCheckout=True, sessionOperationsExecuted=True, canonicalDispatcherExecuted=True, strictWireContractValidation=True, wireCases=22, cases=cases, ownedSocketEvents=owned_socket_events, scope='Actual canonical dispatcher with trusted synthetic actors and in-memory transports; isolated existing dependencies/Python audit hooks. Not HTTP/WebSocket authentication, restore/adoption, inference, worker or deployed acceptance; not an OS sandbox.')
 except BaseException:
     report = dict(state='BEHAVIOR_FAILED_PRESERVED', source=str(source), deniedEvents=denied, denialDetails=denial_details, traceback=traceback.format_exc(), passedBeforeFailure=cases, projectModules=loaded)
     raise
