@@ -2684,6 +2684,9 @@ rerun or new deployed acceptance is claimed.
 The first evidence parser matched lint task-name prefixes rather than exact
 names and stopped. That parser is retained; an exact-name reader accepted the
 same completed17-second build without rerunning or changing assertions. The
-Pi services were independently observed running; source revision/file metadata
-differs from the pinned stable probe. This observation does not establish loaded
-module identity, authenticated authority grants or deployment compatibility.
+Pi services were independently observed running; the inspected runtime source
+bytes differ from the pinned stable probe. Its Git query resolved the parent
+control-plane checkout, so that SHA does not identify the packaged Hermes code.
+The discovered generation manifest supplies separate provenance and per-file
+hashes. This observation does not establish loaded module identity, authenticated
+authority grants or deployment compatibility.

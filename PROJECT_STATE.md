@@ -38,11 +38,13 @@ Prior owner evidence applies only to earlier APK bytes.
 
 ## Exact next action
 
-Review the observed deployed Hermes revision's exact native/authentication
+Review the observed deployed runtime's exact native/authentication
 contracts and custom fixes before continuing actual canonical transport/login,
 restore/adoption, exact handles/replay and worker/files/workspace ownership.
-Both Pi services were observed running; source metadata alone does not prove
-loaded code, readiness or actor rights. Preserve native approval/no-replay guards. Complete exact phone
+Both Pi services were observed running. The packaged runtime has no Git checkout;
+the parent control-plane SHA is not its Hermes provenance. Its generation
+manifest and source hashes need separate review. Source metadata alone does not
+prove loaded code, readiness or actor rights. Preserve native approval/no-replay guards. Complete exact phone
 retention and final guarded publication/download checks when USB returns.
 Automation/rooms/grants, integrations/config, notifications, physical voice/OEM,
 security and community closure all remain in scope. Stored project metadata is
