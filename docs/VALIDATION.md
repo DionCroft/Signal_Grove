@@ -2485,3 +2485,19 @@ production8605; fresh read-only screen/XML evidence contains both earlier test
 replies, completed status, connected state and empty draft. No new turn was
 sent. That observed retention is accepted; new model-choice/network readback,
 new final-source upgrade and worker/project file actions remain separate.
+
+
+## 7 November: feature release-lint scope and canonical review
+
+Feature a7dcfa0 retains 593 unique JVM and 30 focused native passes per owned
+API26/API37, four inspected captures and fresh debug lint. Its release XML
+predated that build; it is not fresh feature release-variant evidence. The
+separate 110/beta.7 backport and final 2e10173 source have explicit fresh release
+lint. Final 2e original-key assets, 552 unique JVM, both fresh lint variants,
+566 frozen inputs, manifest and matching hosted/local application classes pass.
+Its complete hosted device suites and final owner upgrade remain pending; no
+new APK is published. This qualification preserves the earlier raw reports.
+
+The canonical workspace contract document is a pinned, blob-verified static
+source review only. Modules were parsed without execution. No app/backend
+workspace change or runtime/native acceptance is claimed by this docs chunk.

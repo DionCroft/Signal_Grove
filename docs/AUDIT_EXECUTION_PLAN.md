@@ -441,3 +441,15 @@ production8605; fresh read-only screen/XML evidence contains both earlier test
 replies, completed status, connected state and empty draft. No new turn was
 sent. That observed retention is accepted; new model-choice/network readback,
 new final-source upgrade and worker/project file actions remain separate.
+
+
+## 7 November: canonical workspace authority foundation
+
+The pinned [contract review](contracts/2026-11-07-canonical-workspace-authority.md)
+separates ready advertisement, actor grants, session handle/attachment effects,
+server-local cwd and worker execution. The current operator socket preserves
+its no-transcript/no-server-request boundary. The next bounded implementation
+is typed authority negotiation, then separately reviewed canonical attachment
+and exact-handle workspace approvals. This static review closes no runtime,
+worker or project-file acceptance row. Final release 2e checks continue on their
+existing handles, with phone USB reconnection pending. The full goal stays active.
