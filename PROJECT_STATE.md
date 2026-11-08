@@ -24,7 +24,24 @@ The published APK still has the disclosed stale-history error banner. The fix
 below is unreleased. No Pi deployment, model/default change, online speech or
 worker execution occurred during these chunks.
 
-## Current development checkpoint - fixed Kanban cancel footer
+## Current development checkpoint - receipt-return caption
+
+The separate receipt-return caption now fits the small pixel button; actual
+before/after images show intact English/Chinese/pinyin at the original API 26
+font scale 1.3. Only one shape property changes. Required builds pass 836 JVM /
+82 XML and both lint variants without errors. The test APK is byte-identical to
+`b583162`; three fresh pending-scroll/cancel executions and six inspected PNGs
+cover the current application, with the parent's 25-case proof kept separate.
+All 658 frozen inputs and original keys/preferences/display/configuration/reverse
+bindings, 28 legacy caches and staged beta.8 assets retain their proofs. Full
+exact-head hosted acceptance remains open; this correction is unreleased.
+
+Five Git-bound production files now identify the real control/bootstrap helpers
+and native peer subject behavior. Production host locking requires supported
+isolation and legitimate multiplexed profile reservation; no actual owner fixture
+or full gateway lifecycle has yet been accepted.
+
+## Previous development checkpoint - fixed Kanban cancel footer
 
 Cancel stays outside the scrolling Kanban body while busy, with fully reachable
 48 dp Cancel/Close controls at both scroll ends. All approval/controller/transport
@@ -32,8 +49,8 @@ and unknown-write behavior, including the original fixture deadline, is unchange
 The new trilingual regression failed on the old UI and now passes. Required local
 gates are 836 JVM / 82 XML, both lint variants without errors, and 25 selected
 native executions (12 API 26 / 12 API 37 / one compact). Six busy-footer images
-were inspected. A separate Return to management receipts label clips at its
-rounded edge on API 26 and remains next. All source, preference, display/configuration/reverse, key/cache
+were inspected. The separate receipt-caption finding from that checkpoint is
+corrected above. All source, preference, display/configuration/reverse, key/cache
 and staged beta.8 preservation checks pass. Earlier baseline/observer failures
 remain recorded, and the precise older hosted failure cause is not claimed.
 See [the cancellation contract](docs/contracts/2026-11-08-kanban-cancellation.md).
@@ -90,12 +107,13 @@ keys/data and the on-device-only speech preference remain protected.
 
 ## One exact next action
 
-Correct the separately observed Return to management receipts label clipping
-using the pixel-theme shape, verify the actual large-text caption and commit it.
-Then continue the actual owner-forwarding matrix with verified distinct native
-control-plane owners, same-ID private rooms, actor-filtered opaque paging and
-installation-shared/handed-root merges. Include full lifecycle and ownership-loss
-checks with zero unauthorized admissions or workers. Inspect the retained exact
-hosted handles and raw results without blind reruns. Review main `3e82260` fallback
-scoping/plugin refusals and its new room-member run-close route, then continue
-every remaining ledger row. Keep beta.8 immutable and preserve original data/keys.
+Build the actual owner-forwarding fixture using official runtime initialization,
+reserved profile ownership, native SID/session authentication, one-use tickets
+and real canonical WebSockets. Verify host_rendezvous storage and use its supported
+E-root lock namespace without bypassing singleton locking; use proper multiplexed
+profile authorities. Do not synthesize ready descriptors or assume forwarded
+native subjects equal dashboard subjects. Test same-ID private rooms, opaque
+actor-filtered paging, installation-shared/handed-root merges, owner loss and full
+lifecycle with zero unauthorized admissions/workers. Inspect retained exact-head
+hosted results without blind reruns. Review main `3e82260` handler changes and its
+new room-member run-close contract, then continue every remaining ledger row.

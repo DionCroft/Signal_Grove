@@ -1,5 +1,43 @@
 # Signal Grove audit execution plan
 
+## 8 November 2026 - receipt-return caption fits its pixel button
+
+The Return to management receipts body button now uses the existing small
+pixel-theme shape. Before/after PNGs confirm the first English R and full
+English/Chinese/pinyin captions are no longer cut by the rounded corner at the
+original API 26 font scale 1.3. Only this production shape property changes;
+labels, navigation, cancellation, request/approval code and all tests are unchanged.
+
+Required builds pass 836 unique JVM cases in 82 XML reports and both lint variants
+without errors. The original-key test APK is byte-identical to `b583162`. The
+existing pending-receipt scroll/cancellation case passes once on each preserved
+API 26, API 37 and compact API 37 emulator: three fresh executions, six inspected
+top/bottom PNGs. Cancel/Close remain fully reachable and the test still retains
+one write, an unknown receipt and no late result. Parent `b583162` retains its
+separate 25-case native proof; those executions are not counted as fresh checks
+of the new application APK.
+
+All 658 frozen inputs matched before documentation edits; tested code is unchanged.
+Complete preference archives, display/font/AVD configuration, reverse bindings,
+original keys, 28 legacy cache files and five staged beta.8 assets retain their
+verified hashes. No phone/Pi update, live worker action or publication occurred.
+This development correction is unreleased and full exact-head hosted gates remain
+open. See [the cancellation contract](contracts/2026-11-08-kanban-cancellation.md).
+
+Owner-forwarding preparation also progressed through five Git-bound production
+files. The official control bootstrap builds identify from the actual runtime
+descriptor and installs the real ticket store. The ticket client can carry a
+structured login subject, while owner_forward.connect_owner currently defaults to
+the native peer subject. Actual principal/filtering behavior still needs a live
+measurement. Production host-role locking forbids a second gateway for the same
+OS-user lock namespace; inspect and use the supported isolated lock directory and
+properly reserved multiplexed profile authorities. No owner fixture was launched
+and no constructed-ready reply or full-lifecycle acceptance is claimed.
+
+Continue the actual owner-forwarding/private-room/opaque-paging/lifecycle matrix,
+review exact main `3e82260` handler changes and its new room-member run-close route,
+inspect retained hosted evidence, and continue every remaining audit row.
+
 ## 8 November 2026 - Kanban cancellation stays visible
 
 The unreleased host-Kanban dialog keeps Cancel in its fixed footer while a

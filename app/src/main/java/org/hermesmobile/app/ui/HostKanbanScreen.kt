@@ -62,7 +62,7 @@ private fun kanbanField(key:String)=when(key) {
                 TextButton({projectsReview=projectRead},enabled=projectRead!=null,modifier=Modifier.heightIn(min=48.dp).testTag("board-read-projects")) {Text(label(Words.KanbanBoardReadProjects))}
             }
             item {val createTask=vm.prepareKanbanTaskCreate();TextButton({taskCreate=createTask},enabled=createTask!=null,modifier=Modifier.heightIn(min=48.dp).testTag("task-create-open")) {Text(label(Words.KanbanTaskCreate))};vm.kanbanTaskCreateBlock(s)?.let {Text(label(it))}}
-            if(pending) item {Text(label(Words.ManagementOutcomePending));TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("board-return-receipts")) {Text(label(Words.KanbanBoardReturnReceipts))}}
+            if(pending) item {Text(label(Words.ManagementOutcomePending));TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("board-return-receipts"),shape=MaterialTheme.shapes.small) {Text(label(Words.KanbanBoardReturnReceipts))}}
             visible.report?.let {report->item {KanbanBoardReport(report)}}
             visible.taskReport?.let {report->item {KanbanTaskReport(report)}}
             visible.statusReport?.let {report->item {KanbanStatusReport(report)}}

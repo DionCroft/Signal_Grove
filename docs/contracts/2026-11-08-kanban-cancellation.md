@@ -51,10 +51,24 @@ The baseline record lacks raw before-config/reverse values and does not claim
 their equality. The final cohort records and compares complete before/after
 metadata and collects the actual Kanban PNG format.
 
-The separate body button Return to management receipts still clips at its
-existing rounded edge on API 26 and is the next bounded follow-up. These six
-images accept the pinned Cancel/Close captions, not every dialog label.
+The separate receipt-return caption clipped at its rounded edge in the original
+footer checkpoint. Its subsequent correction is documented below; the original
+six footer images did not accept every dialog label.
 
 Full exact-head hosted acceptance and the wider integration/room/worker audit
 remain open. This is an unreleased development change; no owner phone, Pi, live
 worker or publication acceptance is implied. See [validation](../VALIDATION.md).
+
+## Receipt-caption follow-up
+
+The Return to management receipts body button now uses the same existing small
+pixel shape. Before/after inspection confirms intact English/Chinese/pinyin
+captions, including the first English R at API 26 font scale 1.3. Only this shape
+property changes; action, text, tests and controller/request behavior are unchanged.
+Required builds pass 836 JVM / 82 XML and both lint variants without errors. The
+test APK is byte-identical to `b583162`. Three fresh executions of the existing
+pending-scroll case, one per preserved emulator profile, pass with six new PNGs
+inspected. The parent's 25-case proof stays separate. All 658 frozen inputs,
+keys/preferences/display/configuration/reverse bindings, 28 legacy caches and five
+staged beta.8 assets retain their recorded proofs. The correction is unreleased;
+full hosted and broader integration acceptance remain open.

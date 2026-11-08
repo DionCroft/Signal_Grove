@@ -2,6 +2,9 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Keep the complete translated receipt-return caption inside its small pixel
+  button at larger text sizes, preserving the existing action and layout.
+
 - Keep host-Kanban Cancel visible in the dialog footer while receipts and body
   content change. Preserve unknown outcomes and approval checks, with a translated
   scroll regression and the existing cancellation workflows retained.
