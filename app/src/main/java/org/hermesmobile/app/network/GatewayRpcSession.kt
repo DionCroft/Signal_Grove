@@ -87,6 +87,19 @@ class GatewayRpcSession private constructor():Closeable {
         return call("plugins.manage",buildJsonObject {put("profile",profile);put("action","list")})
     }
     suspend fun changeProject(profile:String,request:org.hermesmobile.app.data.HostProjectChange):JsonObject=call(request.action.rpc,request.params(profile))
+    internal suspend fun roomCapabilities(profile:String):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
+        return call("groups.capabilities",buildJsonObject {put("profile",profile)})
+    }
+    internal suspend fun rooms(profile:String,offset:Int,includeDisbanded:Boolean):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile);require(offset>=0)
+        return call("groups.list",buildJsonObject {put("profile",profile);put("limit",100);put("offset",offset);put("include_disbanded",includeDisbanded)})
+    }
+    internal suspend fun room(profile:String,id:String,includeDisbanded:Boolean):JsonObject {
+        org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
+        require(org.hermesmobile.app.data.HostedRoomProtocol.id(id))
+        return call("groups.state",buildJsonObject {put("profile",profile);put("room_id",id);put("include_disbanded",includeDisbanded)})
+    }
     suspend fun projects(profile:String):JsonObject {
         org.hermesmobile.app.data.GatewayCronInventory.requireProfile(profile)
         return call("projects.list",buildJsonObject {put("profile",profile)})

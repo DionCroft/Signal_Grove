@@ -138,6 +138,19 @@ def complete_replacement_fixture(value, contract):
         contract['source_hashes'][retired.split(':', 1)[0]] = entry['source_sha256']
         contract['handlers'].update(entry['replacements'])
 
+    # Room guards bind their original and later source contexts. Complete the
+    # synthetic valid fixture with one whole reviewed room mode; never mix F0
+    # room bodies with the newer auth/authority helper bytes selected above.
+    # Counterfactual mutations in each test still happen AFTER this helper.
+    if value.get('baseline_handler_source_guards'):
+        pin='21ae0e1238fdf466fa52a85a6ebf75d6899e49da'
+        for target,entries in value.get('reviewed_handler_variants',{}).items():
+            if not target.startswith('hosted_room_'):continue
+            selected=next((entry for entry in entries if entry['commit']==pin),None)
+            if selected is not None:
+                contract['handlers'][target]=selected['sha256']
+                contract['source_hashes'].update(selected['required_sources'])
+
 
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 

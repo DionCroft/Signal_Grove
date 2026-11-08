@@ -1,5 +1,32 @@
 # Signal Grove audit execution plan
 
+## Current checkpoint - read-only room browser verified locally
+
+Hermes management now has a native room inventory/detail browser with exact
+connection/actor/profile/home checks, fresh ticketed sockets and capability
+rechecks. It preserves opaque server pagination, distinguishes old snapshots and
+unknown observations, and closes on lifecycle/context changes without auto-retry.
+Room mutations, grants and delivery controls remain separate work.
+
+All required builds pass831 JVM cases in81 XML reports (all prior797 retained),
+both lint0 and39 targeted Android executions across the three preserved emulator
+profiles. Nine screenshots were inspected. The full222-policy suite and immutable
+stable/main205-source comparisons pass; original189 entries and existing negative
+assertions are preserved. All651 frozen inputs, original keys/preferences/geometry,
+28 legacy cache files and the separate beta.8 candidate assets match. The
+runtime-model observer sources are unchanged from their accepted15-case revision.
+See [the room contract](contracts/2026-11-08-hosted-rooms.md).
+
+Next prove actual immutable Hermes room/profile/pagination transports; then add
+separately reviewed context/membership/grant/delivery controls and continue all
+other audit rows. Local mock/native checks do not certify the owner's Pi, phone,
+TLS, provider or workers. Exact-head hosted gates are pending. Earlier foundation
+CI failed Temurin24 downloadHTTP504 twice before compilation; both logs are
+retained, with no more blind reruns. Earlier privacy API26 is successful but its
+raw native artifact remains unaccepted; its specific API37 retry is live after
+successful setup. Owner beta.8 Automatic/history/project checks and publication
+remain separate. Main and the held release branch are unchanged.
+
 ## Current checkpoint - typed room foundation validated
 
 The missing native room work now has an internal typed capability/page/state
@@ -419,7 +446,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
 | 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. Scoped recent-run display now has608 JVM/both lint0/180 policy and12 focused native passes; unscoped script output is refused, with dashboard guidance. | Complete exact-head full gates and real scoped run reads, then typed editing/run/results/logs and explicit outcomes; script-row ownership needs a verified host contract. Reviewed stable cron.manage declares only list/add/remove/pause/resume; verify separate canonical admission or web contracts for missing controls. Never invent cron.manage actions or claim runtime completion from ACK. |
-| 5b. Rooms/grants/delivery | Internal typed room projection now passes797 JVM/both lint0 and9 Android runtime cases; server pagination/Unicode/private-field rules are verified. Native room administration is still missing. | Verified membership/lead/purpose/notes foundations, distinct grants and cron delivery; then authorized goal/heartbeat/loop monitoring/control. |
+| 5b. Rooms/grants/delivery | Read-only native room browser/repository/controller passes831 JVM,39 Android,222 policy and205-source static checks. Actual room transport/profile conformance and approved context/membership/grants/delivery remain open. | Verified membership/lead/purpose/notes foundations, distinct grants and cron delivery; then authorized goal/heartbeat/loop monitoring/control. |
 | 6a. Integrations | Dynamic MCP/skill/plugin/provider and channel foundations exist. | Plugin bulk/automatic-update policy/bundles, channel/webhook/pairing-specific setup; preserve credential handoffs and host revision/CAS limits; real accounts only for their scoped tests. |
 | 6b. Configuration/workspaces | Narrow config slices and stored-project administration exist. | Typed memory/persona/context/config/reset and explicit chat-workspace adoption, repository/folder discovery and tree/file hydration. Active-project metadata alone is not cwd adoption. |
 | 7a. Notification routing | Best-effort active-connection polling and generic routes. | Exact connection/conversation/run targeting, deliberate multi-connection/job/goal policy and lifecycle evidence. Push only with a real authenticated bridge/registration contract. |

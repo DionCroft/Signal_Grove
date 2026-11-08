@@ -168,6 +168,8 @@ CANONICAL_NEGOTIATION_CONTRACT_SOURCES = {
 EXTRA_SOURCES.update(CANONICAL_NEGOTIATION_CONTRACT_SOURCES)
 CANONICAL_ATTACHMENT_CONTRACT_SOURCES = {'canonical_sessions': 'tui_gateway/contracts/canonical_sessions.py', 'canonical_listing': 'gateway/session_listing.py', 'canonical_migration': 'gateway/session_local_migration.py', 'canonical_viewers': 'gateway/session_viewer_close.py', 'canonical_authority': 'gateway/session_authority.py', 'canonical_owner': 'gateway/owner_identity.py', 'canonical_snapshot': 'gateway/session_local_inventory.py', 'canonical_policy': 'gateway/session_policy_refresh.py', 'canonical_live_listing': 'gateway/session_live_listing.py'}
 CANONICAL_ATTACHMENT_CONTRACT_SOURCES.update({'canonical_event_stream': 'gateway/session_events.py', 'canonical_replay_store': 'tui_gateway/event_replay.py', 'canonical_transport': 'tui_gateway/transport.py', 'canonical_event_payloads': 'tui_gateway/contracts/events.py'})
+HOSTED_ROOM_CONTRACT_SOURCES = {'hosted_room_contract': 'tui_gateway/contracts/groups_bot_relay.py', 'hosted_room_methods': 'tui_gateway/methods_groups.py', 'hosted_room_forward': 'tui_gateway/methods_groups_forward.py', 'hosted_room_controls': 'gateway/session_group_controls.py', 'hosted_room_peers': 'gateway/session_group_peers.py', 'hosted_room_members': 'gateway/session_hosted_members.py', 'hosted_room_store': 'gateway/hosted_rooms.py', 'hosted_room_common': 'gateway/hosted_rooms_common.py', 'hosted_room_context': 'gateway/hosted_room_context.py', 'hosted_room_discussion': 'gateway/hosted_room_discussion.py', 'hosted_room_gateway_import': 'gateway/hosted_rooms_gateway_import.py', 'hosted_room_legacy_import': 'gateway/hosted_rooms_legacy_import.py', 'hosted_room_service': 'tui_gateway/hosted_room_service.py', 'hosted_room_member_activity': 'tui_gateway/hosted_room_member_activity.py', 'hosted_room_driver': 'tui_gateway/hosted_room_driver.py', 'hosted_room_owner_forward': 'tui_gateway/owner_forward.py'}
+CANONICAL_ATTACHMENT_CONTRACT_SOURCES.update(HOSTED_ROOM_CONTRACT_SOURCES)
 EXTRA_SOURCES.update(CANONICAL_ATTACHMENT_CONTRACT_SOURCES)
 MAIN_AUTHORITY_CONTRACT_SOURCES = {'canonical_stored_reads': 'gateway/session_stored_reads.py', 'canonical_picker': 'gateway/session_picker_fields.py', 'canonical_plugin_rpc': 'gateway/session_plugin_rpc.py', 'canonical_recovery': 'gateway/session_local_recovery.py', 'canonical_transcript_rows': 'gateway/session_transcript_rows.py', 'canonical_local_receipts': 'hermes_state_local.py', 'canonical_local_lineage': 'hermes_state_local_lineage.py', 'canonical_policy_state': 'gateway/session_policy.py'}
 EXTRA_SOURCES.update(MAIN_AUTHORITY_CONTRACT_SOURCES)
@@ -194,6 +196,13 @@ REVIEWED_SOURCE_ABSENCES = {
         'b200f5bc60e31588ba2cb60e288029c4a54ba5fa',
     })),
 }
+
+REVIEWED_SOURCE_ABSENCES.update({
+    'hosted_room_context': ('gateway/hosted_room_context.py', frozenset(('bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
+    'hosted_room_forward': ('tui_gateway/methods_groups_forward.py', frozenset(('bf0203a794a07aac3ff764972ab9087baa4e4f4e',))),
+    'hosted_room_gateway_import': ('gateway/hosted_rooms_gateway_import.py', frozenset(('bf0203a794a07aac3ff764972ab9087baa4e4f4e',))),
+    'hosted_room_peers': ('gateway/session_group_peers.py', frozenset(('2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
+})
 
 def reviewed_source_absence(name: str, path: str, commit: str) -> bool:
     entry = REVIEWED_SOURCE_ABSENCES.get(name)
@@ -780,6 +789,30 @@ def reviewed_handler_variants(baseline: dict, current: dict) -> tuple[dict, set]
     return accepted, applied
 
 
+def baseline_source_guard_failures(baseline: dict, current: dict, applied_variants: set) -> dict:
+    """Opt-in complete source contexts for original handlers; legacy targets retain their behavior."""
+    guards=baseline.get('baseline_handler_source_guards',{})
+    if not isinstance(guards,dict):raise ValueError('Invalid original handler source guards')
+    old,new=baseline['upstream']['contract'],current['contract']
+    known=old.get('source_hashes',{});failures={}
+    for key,names in guards.items():
+        if (key not in baseline.get('mobile_used_handlers',[]) or not isinstance(old.get('handlers',{}).get(key),str)
+                or not isinstance(names,list) or not 1<=len(names)<=32
+                or any(not isinstance(name,str) for name in names) or len(set(names))!=len(names)
+                or key.split(':',1)[0] not in names
+                or any(name not in known or not isinstance(known[name],str) or not re.fullmatch(r'[a-f0-9]{64}',known[name]) for name in names)):
+            raise ValueError('Invalid original handler source context')
+        for entry in baseline.get('reviewed_handler_variants',{}).get(key,[]):
+            required=entry.get('required_sources')
+            if not isinstance(required,dict) or not set(names)<=set(required):
+                raise ValueError('Reviewed variant omits an original source dependency')
+        original=(new.get('handlers',{}).get(key)==old['handlers'][key]
+                  and all(new.get('source_hashes',{}).get(name)==known[name] for name in names))
+        if not original and key not in applied_variants:
+            failures[key]={'before':old['handlers'][key],'after':new.get('handlers',{}).get(key),'original_source_context_changed':True}
+    return failures
+
+
 def compare(baseline: dict, current: dict) -> dict:
     old, new = baseline['upstream']['contract'], current['contract']
     old_routes, new_routes = set(old['routes']), set(new['routes'])
@@ -814,6 +847,8 @@ def compare(baseline: dict, current: dict) -> dict:
         if (old.get('handlers',{}).get(key) is None and new.get('handlers',{}).get(key) is None
                 and current.get('commit')!=baseline['upstream']['commit'] and current.get('commit') not in allowed_absences.get(key,set())):
             relevant['changed_used_handlers'][key]={'before':None,'after':None,'required_introduced_handler_missing':True}
+    for key,problem in baseline_source_guard_failures(baseline,current,guarded_variants).items():
+        relevant['changed_used_handlers'].setdefault(key,{}).update(problem)
     relevant['changed_used_request_fields'] = {key: {'before': old.get('request_fields', {}).get(key), 'after': new.get('request_fields', {}).get(key)}
         for key in baseline.get('mobile_used_request_fields', []) if old.get('request_fields', {}).get(key) != new.get('request_fields', {}).get(key)}
     return {'baseline_commit': baseline['upstream']['commit'], 'reviewed_source_guarded_variants_applied': sorted(guarded_variants), 'reviewed_handler_replacements_applied': sorted(replaced), 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs; source-guarded variants also bind their selected complete modules. Other transitive helpers, runtime gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}

@@ -17,14 +17,14 @@ class CanonicalStreamContractTest(unittest.TestCase):
     def test_every_original_f0_entry_and_mobile_scope_is_preserved(self):
         b=self.baseline();contract=copy.deepcopy(b['upstream']['contract'])
         for section in ('source_hashes','handlers','request_fields'):
-            contract[section]={k:v for k,v in contract[section].items() if not (k in STREAM_ALIASES or any(k.startswith(a+':') for a in STREAM_ALIASES))}
+            contract[section]={k:v for k,v in contract[section].items() if not (k in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES)) or any(k.startswith(a+':') for a in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES))))}
         self.assertEqual(OLD_F0_CONTRACT_SHA256,self.digest(contract))
         scope={k:copy.deepcopy(v) for k,v in b.items() if k.startswith('mobile_used_')}
-        scope['mobile_used_handlers']=[x for x in scope['mobile_used_handlers'] if x not in {a+':consumed_module' for a in STREAM_ALIASES}]
+        scope['mobile_used_handlers']=[x for x in scope['mobile_used_handlers'] if x not in {a+':consumed_module' for a in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES))}]
         self.assertEqual(OLD_MOBILE_SCOPE_SHA256,self.digest(scope))
 
     def test_expanded_baseline_compares_to_itself_and_watches_all_four_helpers(self):
-        b=self.baseline();self.assertEqual(189,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        b=self.baseline();self.assertEqual(205,len(checker.SOURCES|checker.EXTRA_SOURCES))
         self.assertFalse(checker.compare(b,{'commit':b['upstream']['commit'],'contract':copy.deepcopy(b['upstream']['contract'])})['mobile_review_required'])
         for alias in STREAM_ALIASES:self.assertIn(alias+':consumed_module',b['mobile_used_handlers'])
 

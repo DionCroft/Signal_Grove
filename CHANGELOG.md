@@ -2,6 +2,12 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add a translated, read-only Hermes room browser with exact profile/home checks,
+  ticketed list/detail reads, opaque pagination, explicit stale/unknown status and
+  lifecycle cancellation. No room write or automatic work retry is introduced.
+- Extend source drift checks to205 modules with complete original/reviewed room
+  dependency guards while retaining every earlier source and policy assertion.
+
 - Add an internal typed room capability/page/state foundation with opaque server
   pagination, immutable scope bindings, Unicode/UTF8 bounds and private-field
   exclusion. Authenticated room reads, browser and approved controls remain next.

@@ -1,5 +1,32 @@
 # Current development validation — audit follow-up
 
+## Current checkpoint - read-only room browser verified locally
+
+Hermes management now has a native room inventory/detail browser with exact
+connection/actor/profile/home checks, fresh ticketed sockets and capability
+rechecks. It preserves opaque server pagination, distinguishes old snapshots and
+unknown observations, and closes on lifecycle/context changes without auto-retry.
+Room mutations, grants and delivery controls remain separate work.
+
+All required builds pass831 JVM cases in81 XML reports (all prior797 retained),
+both lint0 and39 targeted Android executions across the three preserved emulator
+profiles. Nine screenshots were inspected. The full222-policy suite and immutable
+stable/main205-source comparisons pass; original189 entries and existing negative
+assertions are preserved. All651 frozen inputs, original keys/preferences/geometry,
+28 legacy cache files and the separate beta.8 candidate assets match. The
+runtime-model observer sources are unchanged from their accepted15-case revision.
+See [the room contract](contracts/2026-11-08-hosted-rooms.md).
+
+Next prove actual immutable Hermes room/profile/pagination transports; then add
+separately reviewed context/membership/grant/delivery controls and continue all
+other audit rows. Local mock/native checks do not certify the owner's Pi, phone,
+TLS, provider or workers. Exact-head hosted gates are pending. Earlier foundation
+CI failed Temurin24 downloadHTTP504 twice before compilation; both logs are
+retained, with no more blind reruns. Earlier privacy API26 is successful but its
+raw native artifact remains unaccepted; its specific API37 retry is live after
+successful setup. Owner beta.8 Automatic/history/project checks and publication
+remain separate. Main and the held release branch are unchanged.
+
 ## Current checkpoint - typed room foundation validated
 
 The missing native room work now has an internal typed capability/page/state

@@ -46,6 +46,7 @@ import org.hermesmobile.app.data.*
     var kanban by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
     var projects by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
     var canonical by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
+    var rooms by remember(s.apiScope,s.url,s.profile,s.identity?.provider,s.identity?.userId) {mutableStateOf(false)}
     var plugins by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var hub by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     var gateway by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
@@ -103,6 +104,7 @@ import org.hermesmobile.app.data.*
                     if(s.profile.isNotBlank()) item(key=1020) {TextButton({environment=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("host-env-open")) {Text(label(Words.HostEnvironment))}}
                     if(s.profile.isNotBlank()) item(key="host-kanban") {TextButton({kanban=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.heightIn(min=48.dp).testTag("host-kanban-open")) {Text(label(Words.HostKanban))}}
                     if(s.profile.isNotBlank()) item(key="canonical-sessions") {TextButton({canonical=true},enabled=vm.canonicalAvailable(),modifier=Modifier.heightIn(min=48.dp).testTag("canonical-sessions-open")) {Text(label(Words.ViewerTitle))}}
+                    if(s.profile.isNotBlank()) item(key="hosted-rooms") {TextButton({rooms=true},enabled=vm.roomsAvailable(),modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-open")) {Text(label(Words.RoomsTitle))};vm.roomUnavailableReason()?.let {Text(label(it))}}
                     if(s.profile.isNotBlank()) item(key="host-projects") {TextButton({projects=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.heightIn(min=48.dp).testTag("host-projects-open")) {Text(label(Words.HostProjects))}}
                     if(s.profile.isNotBlank()) item(key=1009) {TextButton({plugins=true},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("plugins-open")) {Text(label(Words.HostPlugins))}}
                     if(s.profile.isNotBlank()) item(key=1010) {TextButton({hub=true;vm.loadSkillHub()},enabled=!s.busy && s.identity!=null,modifier=Modifier.testTag("skill-hub-open")) {Text(label(Words.SkillHub))}}
@@ -148,6 +150,7 @@ import org.hermesmobile.app.data.*
     if(environment) HostEnvironmentDialog(vm,s) {vm.closeHostEnvironment();environment=false}
     if(kanban) HostKanbanDialog(vm,s) {vm.closeHostKanban();kanban=false}
     if(canonical) CanonicalSessionsDialog(vm.canonicalViewer,vm.canonicalAvailable(),pending) {vm.canonicalViewer.close();canonical=false}
+    if(rooms) HostedRoomsDialog(vm.roomBrowser,vm.roomsAvailable()) {vm.roomBrowser.close();rooms=false}
     if(projects) HostProjectsDialog(vm,s) {vm.closeHostProjects();projects=false}
     if(plugins) PluginInventoryDialog(vm,s) {vm.cancel();plugins=false}
     if(hub) SkillHubDialog(vm,s) {vm.cancel();hub=false}
