@@ -636,3 +636,18 @@ Open a task's details after reviewed inventory/board/task reads, then choose **A
 Selecting a parent opens a separate read review naming the dashboard, access profile, authenticated actor, board/database path and both IDs. Approval reads complete private details for both endpoints with existing authenticated home/mapping fences. It does not mutate the graph. A fresh exact request review then identifies the dependent child and parent, shows both titles/statuses and all payload/query fields, explains gating/subscription or readiness effects, and requires its own grant. This review is stored once, so recomposition does not replace the approved request. Cancellation, close, scope/generation changes or shared pending work discard it; clearing pending work never restores an old approval.
 
 Confirmation uses the existing typed dependency repository: fresh complete endpoint details/catalog/home, one shared atomic claim/send, durable ACK before separate observation, and no automatic replay. Changes between selection and the approved read are shown as fresh data; an invalid current edge/running state refuses the mutation review. Changes after that review refuse before claim. The host can still race after preflight, reject a cycle or commit before an observer/error; any attempted HTTP failure remains unknown. Unlink `ok=false` is an acknowledged no-effect result even if a later read finds the edge absent. A matching configuration does not establish exclusive causation or worker shutdown. No new route/schema/database/signing change is introduced. Local acceptance is complete: 499 JVM tests and 546 focused native passes on API26/36/37, with exact artifacts and inspected captures recorded in VALIDATION.md. Exact-head hosted gates and release acceptance remain separate.
+
+## Development: canonical activity viewer
+
+After verifying management identity and selecting a profile, open **Live sessions**. Choose live or stored inventory, review a row and acknowledge its
+opening/closing effects before confirming. Hermes can restore/adopt the selected
+chat and refresh its settings/hooks; its last-viewer policy applies when leaving.
+Use Hermes itself for decisions, work and workspace actions.
+
+This foreground viewer closes when you leave/background or change identity.
+Activity is a bounded preview, not the full stored transcript or proof that a
+run completed. Normally it resumes its last locally applied cursor; explicitly
+starting fresh skips older activity. A held/uncertain opening requires inspecting
+that exact chat in Hermes. Local uncertainty review never sends or undoes it.
+See the [contract and acceptance scope](contracts/2026-11-08-canonical-viewer.md).
+Actual-source/full hosted acceptance is pending; this UI is absent from beta.8.

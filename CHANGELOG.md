@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add a foreground canonical activity viewer with explicit restore/adoption consent,
+  applied-cursor recovery, heartbeat ownership checks and lifecycle/update guards.
+  Local JVM/Compose/Room gates pass; actual-source and full hosted acceptance
+  remain required. This viewer is excluded from the d0 beta.8 release candidate.
+
 - Recover interrupted authenticated identity/profile reads without replaying
   session adoption, token rotation or other management operations. Review and
   guard current Hermes session-authority dependencies with real-source checks.

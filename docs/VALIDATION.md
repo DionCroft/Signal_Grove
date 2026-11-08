@@ -1,5 +1,47 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 - foreground canonical viewer local acceptance
+
+A fresh five-task build passes 768 unique JVM methods across 78 XML reports,
+with 0 failures/errors/skips and 0 debug/release lint errors. Every earlier 727
+method remains; new coverage is 12 checkpoint, 20 controller and 9 heartbeat cases.
+The 201 policy and 15 runtime-observer checks also pass. All 634 frozen raw inputs
+match their E: build snapshot; published outputs, original CAB signers and all 28
+legacy checkout cache files are verified. No dependency/schema version changed.
+
+All 14 new native methods pass on each preserved API26, large API37 and compact
+API37 emulator (42 executions). Nine UI cases exercise real Compose consent,
+live/stored selection, cancellation, explicit fresh-cursor choice, stale identity,
+uncertain-receipt refusal, large bilingual reachability, lifecycle/disposal cleanup
+and the concrete UpdateWorkGuard. Five real in-memory Room cases verify repository
+recreation, every query scope boundary, one-winner concurrent CAS, monotonic cursors,
+corrupt-newer refusal and the 50-receipt bound. Each device retains identical
+shared-preference hashes, including credentials, plus AVD configuration/geometry.
+
+The first build's missing native-test import is retained as a compile failure,
+with 768 passing JVM cases and no native execution. The next complete build passes;
+its native cohort has 32 passes/10 failures because tests sought off-screen lazy
+nodes before composition. Each Room method already passed on all three devices.
+Raw errors identify the missing test tags. The correction scrolls the owning lazy
+container before querying its child, preserving all control/safety assertions.
+A fresh complete build and all 42 native executions then pass. No production
+viewer behavior changed for either test-harness correction.
+
+The viewer's socket adds only empty-parameter gateway.ping to its existing finite
+RPC surface. It requires the ready heartbeat advertisement and exactly an ok=true
+reply, matching the pinned outer WS handler. That whole handler and its source
+closure are already guarded by gateway_ws:handle_ws; inner AuthorityConnection.ping
+returns a different shape. Nine real MockWebSocket cases reject absent/false/bad
+advertisements, wrong replies/IDs, notifications, cancellation and binary frames.
+This is not an actual pinned backend heartbeat/TCP or external TLS acceptance.
+That conformance stage, synthetic UI screenshots and full exact-head hosted gates
+remain required before release of the viewer.
+
+The original-key owner phone and signed d0 beta.8 assets are separate. These native
+tests target only the three explicit emulators; all 5 staged release files remain
+byte-identical. No owner fixture/instrumentation, Pi change, new work admission,
+worker execution or physical voice/background acceptance is claimed.
+
 ## 8 November 2026 - beta.8 exact-source full hosted and signed release checks
 
 Candidate application source: `d0c01b818604b3dee057d544cff432d27c8bba63`.

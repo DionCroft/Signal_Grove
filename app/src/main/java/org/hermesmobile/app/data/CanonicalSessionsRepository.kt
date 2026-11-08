@@ -13,16 +13,18 @@ internal class CanonicalAdoptionAcknowledged(val receipt: ManagementOperation, c
 
 internal class CanonicalSessionConnection(
     private val channel: CanonicalGatewayChannel,
-    val attachment: CanonicalGatewayChannel.Attachment,
-    val receipt: ManagementOperation
-) : Closeable {
-    fun observations(): Flow<CanonicalFeedDelivery> = channel.observations()
+    override val attachment: CanonicalGatewayChannel.Attachment,
+    override val receipt: ManagementOperation,
+    private val verifyScope:suspend ()->Unit
+) : CanonicalViewerLink {
+    override fun observations(): Flow<CanonicalFeedDelivery> = channel.observations()
+    override suspend fun heartbeat() {channel.heartbeat();verifyScope()}
     override fun close() = channel.close()
     override fun toString() = "CanonicalSessionConnection(redacted)"
 }
 
 /** Explicit reviewed viewer adoption. Receipts never contain transcript/prompt content or credentials. */
-internal class CanonicalSessionsRepository(private val dao: HermesDao, private val ready: Deferred<Unit>) {
+internal class CanonicalSessionsRepository(private val dao: HermesDao, private val ready: Deferred<Unit>) : CanonicalViewerRepository {
     private fun scope(target: ManagementTarget, homeId: String, api: ManagementClient, tokens: ManagementTokens) {
         GatewayCronInventory.requireProfile(target.profile)
         require(target.url == api.base.toString() && target.actor == tokens.provider + " · " + tokens.userId)
@@ -32,13 +34,13 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
         if (api.profiles(tokens).singleOrNull { it.name == target.profile }?.pluginHome?.identity() != homeId) throw CanonicalScopeChanged()
         currentCoroutineContext().ensureActive()
     }
-    suspend fun prepare(target: ManagementTarget, homeId: String, api: ManagementClient, tokens: ManagementTokens, scope: CanonicalSessionScope = CanonicalSessionScope.Stored): CanonicalSessionInventory {
+    override suspend fun prepare(target: ManagementTarget, homeId: String, api: ManagementClient, tokens: ManagementTokens, scope: CanonicalSessionScope): CanonicalSessionInventory {
         ready.await(); scope(target,homeId,api,tokens)
         val inventory = api.canonicalGateway(tokens,target,homeId).use { it.sessionInventory(scope) }
         home(target,homeId,api,tokens)
         return inventory
     }
-    suspend fun adopt(review: CanonicalResumeReview, api: ManagementClient, tokens: ManagementTokens, previous: CanonicalReplayCheckpoint? = null): CanonicalSessionConnection {
+    override suspend fun adopt(review: CanonicalResumeReview, api: ManagementClient, tokens: ManagementTokens, previous: CanonicalReplayCheckpoint?, requireHeartbeat:Boolean): CanonicalSessionConnection {
         ready.await()
         val target = review.expected.binding.target
         val homeId = review.expected.binding.homeId
@@ -49,6 +51,7 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
         var channel: CanonicalGatewayChannel? = null
         try {
             channel = api.canonicalGateway(tokens,target,homeId)
+            if(requireHeartbeat) channel.heartbeat()
             val attachment = channel.resumeReviewed(review, previous,
                 beforeSend = {
                     dao.claimManagementOperation(record)
@@ -60,7 +63,7 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
                 })
             home(target,homeId,api,tokens)
             withContext(NonCancellable) { dao.confirmManagementOperation(record.key,attachment.snapshot.receiptSummary()) }
-            return CanonicalSessionConnection(channel,attachment,checkNotNull(dao.managementOperation(record.key)))
+            return CanonicalSessionConnection(channel,attachment,checkNotNull(dao.managementOperation(record.key))) {api.identity(tokens);home(target,homeId,api,tokens)}
         } catch (error: Exception) {
             channel?.close()
             val receipt = withContext(NonCancellable) {
@@ -73,6 +76,19 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
                 throw CanonicalAdoptionAcknowledged(checkNotNull(receipt),error)
             throw error
         }
+    }
+    override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {
+        ready.await()
+        val rows=dao.canonicalViewerReceipts(target.apiScope,target.url,target.profile,target.actor,homeId,requested)
+        for(row in rows) CanonicalViewerCheckpoint.read(row,target,homeId,requested)?.let {return it}
+        if(rows.size==50) throw CanonicalReviewChanged()
+        return null
+    }
+    override suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor) {
+        ready.await()
+        val row=dao.managementOperation(key) ?: throw CanonicalReviewChanged()
+        val result=CanonicalViewerCheckpoint.updated(row,owner,cursor)
+        if(dao.updateCanonicalViewerCheckpoint(key,row.resultSummary,result)!=1) throw CanonicalReviewChanged()
     }
     /** Local acknowledgement after an explicit backend inspection; never retries a server operation. */
     suspend fun reviewUnknown(target: ManagementTarget, homeId: String, key: String, api: ManagementClient, tokens: ManagementTokens) {

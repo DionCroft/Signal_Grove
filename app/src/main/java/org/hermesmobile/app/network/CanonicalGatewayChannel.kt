@@ -71,6 +71,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private val runtime = CompletableDeferred<JsonObject>()
     private val stopped = AtomicBoolean(false)
     private val firstFailure = AtomicReference<Exception?>()
+    private var heartbeatAdvertised = false
     private var readySeen = false
     private var describeSent = false
     private var describeAnswered = false
@@ -168,6 +169,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
                     val epoch = (payload["replay_epoch"] as? JsonPrimitive)?.takeIf { it.isString }?.content ?: throw GatewayProtocolException()
                     require(epoch.isNotBlank() && epoch.length <= 256 && epoch.none(Char::isISOControl))
                     payload["heartbeat"]?.let { require(it is JsonPrimitive && !it.isString && it.booleanOrNull != null) }
+                    heartbeatAdvertised = payload["heartbeat"] == JsonPrimitive(true)
                     ready.complete(Unit)
                 } else {
                     // Host notifications are observations. A transcript event before attachment is unsolicited.
@@ -251,7 +253,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     }
 
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
-        require(method in setOf("session.list", "session.resume", "session.events.since"))
+        require(method in setOf("session.list", "session.resume", "session.events.since", "gateway.ping"))
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -280,6 +282,17 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         val result = call("session.list", buildJsonObject { put("scope",scope.wire); put("limit",200) })
         if (binding !== identity) throw CanonicalScopeChanged()
         return CanonicalSessionProtocol.inventory(result, identity, scope)
+    }
+
+    /** WebSocket liveness only; the real WS layer returns ok, not the authority's pong. */
+    internal suspend fun heartbeat() {
+        val expected = binding
+        if (!heartbeatAdvertised) throw CanonicalNotSupported()
+        val result = call("gateway.ping", buildJsonObject {})
+        if (binding !== expected || result.keys != setOf("ok") || result["ok"] != JsonPrimitive(true)) {
+            fail(GatewayProtocolException())
+            throw GatewayProtocolException()
+        }
     }
 
     internal class Attachment(val snapshot: CanonicalSessionSnapshot, val initial: CanonicalFeedDelivery) {

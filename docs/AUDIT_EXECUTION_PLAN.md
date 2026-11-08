@@ -1,5 +1,32 @@
 # Signal Grove audit execution plan
 
+## Current checkpoint - foreground canonical viewer validated locally
+
+The development management panel now exposes live/stored canonical activity.
+Opening a selected session requires one-use consent to Hermes restore/adoption,
+settings/hooks and last-viewer close effects. Activity is bounded to 40 previews
+with 512 Unicode code points each. Leaving, backgrounding or changing identity
+closes the viewer; it never reconnects or submits work automatically. Applied
+cursors use exact actor/connection/profile/home/runtime ownership and Room CAS.
+Unknown openings have a separate inspection-only receipt review. The actual
+installation guard remains held while loading/opening/following.
+
+The fresh required build passes 768 unique JVM cases (41 new), both lint variants
+with 0 errors, 201 policy checks and 15 runtime-observer cases. All 14 new native
+UI/Room methods pass on API26, large API37 and compact API37: 42 executions.
+Original CAB keys, shared preferences, AVD geometry, 28 legacy cache files and
+634 frozen source/context inputs are verified. Earlier import/lazy-test failures
+remain retained; the final correction only scrolls the containing LazyColumn
+before locating a lazily composed control. Consent/lifecycle assertions remain.
+
+These are local UI/controller/Room and strict mock-wire checks. Next establish
+actual pinned Hermes heartbeat/viewer conformance, synthetic lifecycle screenshots
+and exact-head full hosted gates. See the [viewer contract](contracts/2026-11-08-canonical-viewer.md).
+The new viewer is absent from the signed beta.8 release candidate, whose d0 source,
+five asset hashes and private draft are unchanged. Owner post-upgrade history/
+project retention and the fresh Automatic live-turn check remain open. Continue
+every remaining audit row; main `6b809e6` and held `207c6b4` stay fixed.
+
 ## Current checkpoint - beta.8 full gates pass; phone acceptance in progress
 
 The exact application source is `d0c01b818604b3dee057d544cff432d27c8bba63`,

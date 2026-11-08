@@ -131,6 +131,12 @@ object RunStates {
     }
     @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='ProviderOAuthStart' AND state='acknowledged'") suspend fun updateProviderOAuthObservation(key:String,result:String)
     @Query("UPDATE management_operations SET state='confirmed',resultSummary=:result WHERE `key`=:key AND state='acknowledged'") suspend fun confirmManagementOperation(key:String,result:String)
+    @Query("SELECT * FROM management_operations WHERE action='CanonicalResume' AND state='confirmed' AND apiScope=:apiScope AND url=:url AND profile=:profile AND actor=:actor AND projectHome=:home AND target=:requested ORDER BY createdAt DESC,`key` DESC LIMIT 50")
+    suspend fun canonicalViewerReceipts(apiScope:String,url:String,profile:String,actor:String,home:String,requested:String):List<ManagementOperation>
+    @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='CanonicalResume' AND state='confirmed' AND resultSummary=:previous")
+    suspend fun updateCanonicalViewerCheckpoint(key:String,previous:String,result:String):Int
+
+
     @Query("UPDATE management_operations SET state='reviewed' WHERE `key`=:key AND ((resourceScope=:scope AND (projectHome='' OR projectHome=:projectHome)) OR (url=:url AND (action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe','KanbanBoardCreate','KanbanBoardUpdate','KanbanBoardArchive','KanbanBoardDelete','KanbanBoardSwitch','KanbanTaskCreate','KanbanTaskMetadata','KanbanTaskPriority','KanbanTaskAssignee','KanbanTaskComment','KanbanTaskLink','KanbanTaskUnlink','KanbanTaskDelete','KanbanTaskModelOverride','KanbanTaskReasoningOverride','KanbanTaskStatus') OR (:projectHome!='' AND projectHome=:projectHome)))) AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String,url:String="",projectHome:String="")
 
     @Query("SELECT * FROM run_reports WHERE sessionKey=:key ORDER BY updatedAt DESC LIMIT 100") fun reports(key:String):Flow<List<RunReport>>

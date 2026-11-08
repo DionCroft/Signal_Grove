@@ -157,6 +157,22 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private val catalogOperations=McpCatalogRepository(app.database.dao(),app.managementReady)
     private val creations=McpCreationRepository(app.database.dao(),app.managementReady)
     private val operations=ManagementOperationsRepository(app.database.dao(),app.managementReady)
+    private val canonicalOperations=CanonicalSessionsRepository(app.database.dao(),app.managementReady)
+    private val canonicalDelegate=lazy {
+        CanonicalViewerController(viewModelScope,canonicalOperations,::canonicalAccess,
+            {owner,busy->app.updateWorkGuard.set(owner,busy)})
+    }
+    internal val canonicalViewer get()=canonicalDelegate.value
+    internal fun canonicalAvailable()= !state.value.busy && canonicalAccess()!=null
+    private fun canonicalAccess():CanonicalViewerAccess?=runCatching {
+        val owner=target() ?: return null
+        val current=tokens ?: return null
+        val home=projectReceiptHome(state.value)
+        if(!home.matches(Regex("[a-f0-9]{64}")) || current.expiresAt<=System.currentTimeMillis()/1000) return null
+        CanonicalViewerAccess(owner,home,generation,client(state.value),current)
+    }.getOrNull()
+    private fun closeCanonical() {if(canonicalDelegate.isInitialized()) canonicalDelegate.value.close()}
+
     fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,baseUrl(s).toString(),s.profile,"scope").resourceScope}.getOrDefault("")
     private fun dashboardUrl(s:ManagementState)=runCatching {baseUrl(s).toString()}.getOrDefault("")
     fun projectReceiptHome(s:ManagementState):String=if(s.identity==null || !GatewayCronInventory.supportedProfile(s.profile)) "" else s.profiles.singleOrNull {it.name==s.profile}?.pluginHome?.identity().orEmpty()
@@ -175,6 +191,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var login:NativeLogin?=null
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
+        is CanonicalReviewChanged,is CanonicalScopeChanged,is CanonicalApprovalUsed->Words.ManagementReviewChanged
+        is CanonicalNotSupported->Words.ViewerUnsupported
+        is CanonicalAdoptionAcknowledged->Words.ViewerAdoptionKnown
         is HostKanbanStatusInvalid->Words.KanbanStatusInvalid
         is HostKanbanStatusImpactIncomplete->Words.KanbanStatusIncomplete
         is HostKanbanStatusApprovalUsed->Words.KanbanStatusApprovalUsed
@@ -294,6 +313,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private fun client(s:ManagementState)=ManagementClient(s.url,s.debugHttp,BuildConfig.DEBUG) {LocalNetworkAccess.granted(app)}
     fun bind(scope:String) {
         if(state.value.apiScope==scope) return
+        closeCanonical()
         generation++;login?.close();login=null;work?.cancel();tokens=null
         val id=generation;state.value=ManagementState(apiScope=scope)
         if(!scope.matches(Regex("[a-f0-9]{64}"))) return
@@ -312,6 +332,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }}
     private fun operation(block:suspend (Long)->Unit) {
         if(state.value.busy || !state.value.apiScope.matches(Regex("[a-f0-9]{64}"))) return
+        closeCanonical()
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
             catch(e:Exception) {if(id==generation) state.value=if(e is HostKanbanScopeChanged || e is HostProjectsScopeChanged) state.value.copy(kanban=HostKanbanState(),error=managementError(e)) else if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),kanban=HostKanbanState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
@@ -335,6 +356,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         } finally {pending.close();if(login===pending) login=null}
     }
     fun cancel() {
+        closeCanonical()
         generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,projects=HostProjectsState(),kanban=HostKanbanState(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
@@ -1405,7 +1427,11 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(project || expectedProjectHome.isNotBlank()) {
             val frozen=ReviewedManagementUncertainty(key,expected,projectHome=expectedProjectHome)
             if(!project || !managementUncertaintyCurrent(frozen)) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
-            operation {projectChanges.review(expected,expectedProjectHome,key,client(state.value),tokens ?: error("Sign in first."))}
+            operation {
+                if(app.database.dao().managementOperation(key)?.action==CanonicalResumeAction.Id)
+                    canonicalOperations.reviewUnknown(expected,expectedProjectHome,key,client(state.value),tokens ?: error("Sign in first."))
+                else projectChanges.review(expected,expectedProjectHome,key,client(state.value),tokens ?: error("Sign in first."))
+            }
         } else operation {operations.review(expected,key)}
     }
     fun reviewTarget():ManagementTarget?=target()
@@ -1414,5 +1440,5 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         withContext(Dispatchers.IO) {app.credentials.saveManagement(scope,null)}
         if(id==generation) {tokens=null;state.value=ManagementState(apiScope=scope)}
     }
-    override fun onCleared() {login?.close();super.onCleared()}
+    override fun onCleared() {closeCanonical();login?.close();super.onCleared()}
 }
