@@ -69,7 +69,7 @@ class HostedRoomsUiTest {
     @After fun stop() {compose.runOnUiThread {controller.close();shown=false;scope.cancel()};compose.waitForIdle();assertFalse(guard.active.value)}
 
     @Test fun openingReadsOnePageAndKeepsCloseReachable() {
-        render();scroll("hosted-room-view-r-0").assertIsEnabled();assertEquals(listOf(0 to false),reader.pages);assertFalse(guard.active.value)
+        render();compose.onNodeWithTag("hosted-rooms-list").performScrollToNode(hasText(Words.RoomsSharedScope.en));compose.onNodeWithText(Words.RoomsSharedScope.en).assertIsDisplayed();scroll("hosted-room-view-r-0").assertIsEnabled();assertEquals(listOf(0 to false),reader.pages);assertFalse(guard.active.value)
         capture("hosted-rooms-browser");compose.onNodeWithTag("hosted-rooms-close").performClick();compose.onNodeWithTag("hosted-rooms-list").assertDoesNotExist();assertEquals(HostedRoomBrowserPhase.Closed,controller.state.value.phase)
     }
     @Test fun detailShowsPurposeNotesAndMembersWithoutAnyControlOrExtraPageRead() {

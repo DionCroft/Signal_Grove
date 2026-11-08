@@ -7,6 +7,7 @@ import org.hermesmobile.app.data.AppPreferences
 enum class Words(val en: String, val zh: String, val pin: String) {
     RoomsTitle("Hermes rooms","Hermes 群聊室","Hermes qúnliáo shì"),
     RoomsBoundary("Read rooms from the selected connection and profile. Room controls and decisions remain in Hermes.","读取所选连接和配置中的群聊室。群聊控制和决策仍在 Hermes 中处理。","Dúqǔ suǒ xuǎn liánjiē hé pèizhì zhōng de qúnliáo shì. Qúnliáo kòngzhì hé juécè réng zài Hermes zhōng chǔlǐ."),
+    RoomsSharedScope("Some rooms are shared across profiles. Room details show their authority.","部分群聊室会在多个配置中共享。群聊室详情会显示其托管方。","Bùfen qúnliáo shì huì zài duō gè pèizhì zhōng gòngxiǎng. Qúnliáo shì xiángqíng huì xiǎnshì qí tuōguǎn fāng."),
     RoomsUnsupported("This Hermes endpoint does not offer a supported room protocol. Check its version and room configuration.","此 Hermes 端点未提供支持的群聊协议。请检查版本和群聊配置。","Cǐ Hermes duāndiǎn wèi tígōng zhīchí de qúnliáo xiéyì. Qǐng jiǎnchá bǎnběn hé qúnliáo pèizhì."),
     RoomsReadHeld("Rooms could not be read. Any previous result is from the last successful read. Refresh to try again.","无法读取群聊室。先前结果来自上次成功读取。请刷新后重试。","Wúfǎ dúqǔ qúnliáo shì. Xiānqián jiéguǒ láizì shàng cì chénggōng dúqǔ. Qǐng shuāxīn hòu chóngshì."),
     RoomsIncludeDisbanded("Include disbanded rooms","包含已解散的群聊室","Bāohán yǐ jiěsàn de qúnliáo shì"),

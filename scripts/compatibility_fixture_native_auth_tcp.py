@@ -5,7 +5,8 @@ IdP. This temporary test listener is not an application backend or deployment.
 It binds only an owned ephemeral loopback socket and stops within10..600 seconds.
 See docs/contracts/2026-11-07-native-management-tcp.md and
 docs/contracts/2026-11-07-project-gateway-client.md for controls and limits.
-The projects surface adds authenticated legacy project reads, never agent turns.
+The projects/rooms surfaces add finite authenticated metadata reads, never agent turns.
+Standalone room storage is installation-shared; profile-owned forwarding is a separate boundary.
 """
 from pathlib import Path
 import argparse
@@ -206,13 +207,33 @@ def canonical_viewer_activity(phase):
     raise ValueError('Unknown bounded fixture activity phase.')
 
 
+def hosted_room_fixture_rpc_allowed(method, params, count):
+    """Finite metadata reads only, against fixed synthetic installation-shared rooms."""
+    if type(count) is not int or not 0 <= count < 3 or type(params) is not dict:
+        return False
+    if params.get('profile') not in ('default', 'worker'):
+        return False
+    if count in (0, 2):
+        return method == 'groups.capabilities' and set(params) == {'profile'}
+    if method == 'groups.list':
+        return (set(params) == {'profile', 'limit', 'offset', 'include_disbanded'}
+                and type(params['limit']) is int and params['limit'] == 100
+                and type(params['offset']) is int and params['offset'] in (0, 100)
+                and type(params['include_disbanded']) is bool)
+    if method == 'groups.state':
+        return (set(params) == {'profile', 'room_id', 'include_disbanded'}
+                and params['room_id'] in ('fixture-shared-room', 'fixture-disbanded-room')
+                and type(params['include_disbanded']) is bool)
+    return False
+
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source-root', type=Path, required=True)
 parser.add_argument('--work-root', type=Path, required=True)
 parser.add_argument('--dependency-site', type=Path, required=True)
 parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
 parser.add_argument('--lifetime-seconds',type=int,default=180)
-parser.add_argument('--surface',choices=('native-auth','projects','canonical','canonical-session'),default='native-auth')
+parser.add_argument('--surface',choices=('native-auth','projects','rooms','canonical','canonical-session'),default='native-auth')
 parser.add_argument('--allow-viewer-heartbeat',action='store_true',help='Allow bounded empty heartbeat RPCs on the synthetic canonical-session fixture only.')
 parser.add_argument('--emit-viewer-activity',action='store_true',help='Emit four fixed observation frames only after reviewed synthetic adoption and its periodic heartbeat.')
 a = parser.parse_args()
@@ -228,6 +249,11 @@ if a.surface in ('canonical','canonical-session'):
     for stream_path,stream_blob in _CANONICAL_STREAM_PINS[REVISIONS[a.revision]['commit']].items():
         assert REVISIONS[a.revision]['blobs'].get(stream_path) in (None,stream_blob)
         REVISIONS[a.revision]['blobs'][stream_path]=stream_blob
+_ROOM_READ_PINS = {'stable-2bd378e': {'tui_gateway/contracts/groups_bot_relay.py': '7c6fb8d1a52c4a2ea61fd65c7df8a7a370e1c6ce', 'tui_gateway/methods_groups.py': '9984507c70431c5ccede20ac853ec6d99fbd375f', 'tui_gateway/methods_groups_forward.py': '89c9f604238d0f35b01fb836077cd64dba3af147', 'gateway/session_group_controls.py': '73ec6e94e68501d0704f5b0c7b104f6886083596', 'gateway/session_hosted_members.py': 'bf4a38a6281a720ad044bf491707666ca88468af', 'gateway/hosted_rooms.py': '6e73f91346de3360d0f03f51f247c435ff7072ec', 'gateway/hosted_rooms_common.py': '5bd58e5c3f24651fe30b842c546aac8104a31796', 'gateway/hosted_room_context.py': '2eb2c46bfd424f674078ef701492e93b61135f47', 'gateway/hosted_room_discussion.py': 'c996c48d139c3a41e2b9c58396ac894fcda80b0e', 'gateway/hosted_rooms_gateway_import.py': '03f40abb51bdc187c8845478e25d6b5027004845', 'gateway/hosted_rooms_legacy_import.py': 'd817cbaa48a7154171c6c82dc79e749fbb9125a6', 'tui_gateway/hosted_room_service.py': '4f6cc7809edc6eb9c9435e2c71cf096f85df3aa7', 'tui_gateway/hosted_room_member_activity.py': '8e7c8d4d991501fc780e034aa7832db9af9c16cd', 'tui_gateway/hosted_room_driver.py': 'cd88aa89dcfd44563e42c82ff5b2220b67e105cb', 'tui_gateway/owner_forward.py': '17ffecb4186300c86e60762dfdaa6553af8b1af8'}, 'prior-bf0203a': {'tui_gateway/contracts/groups_bot_relay.py': 'b6dc51ab7f04cce0c256912fe7d4e9e2de852a3c', 'tui_gateway/methods_groups.py': '5778910f213dc98f9a1aa0795433e831bd300133', 'gateway/session_group_controls.py': '0f0b80d20825e91d16ab0a8d1a60cfcc5b8ca108', 'gateway/session_hosted_members.py': 'bf4a38a6281a720ad044bf491707666ca88468af', 'gateway/hosted_rooms.py': '34f3abe4b22adc47d12a83b08fdad9d64aee362f', 'gateway/hosted_rooms_common.py': '5bd58e5c3f24651fe30b842c546aac8104a31796', 'gateway/hosted_room_discussion.py': '3821374706d8bd38cb182377936784cac6390233', 'gateway/hosted_rooms_legacy_import.py': '3aae609e073109588e413b025b6f97a802578b89', 'tui_gateway/hosted_room_service.py': '19583e2166f271bcffff1dcdd577b700f076e38c', 'tui_gateway/hosted_room_member_activity.py': '2de8f64af054dcae164679dfcffdb3401dea2e9c', 'tui_gateway/hosted_room_driver.py': '2d14741a5d897f0d740ac610ab901f8c4ff48f62', 'tui_gateway/owner_forward.py': '3ecc9851641f0e874b29b911f6c89c2001da2397'}, 'main-21ae0e1': {'tui_gateway/contracts/groups_bot_relay.py': 'e203bb8da865996ae37049ffc9f48b18626267cc', 'tui_gateway/methods_groups.py': '872cc194890cf25b90fc09f942bfaa4541e6c20e', 'tui_gateway/methods_groups_forward.py': '89c9f604238d0f35b01fb836077cd64dba3af147', 'gateway/session_group_controls.py': '003059f58dd358f70779030bed807801846980b5', 'gateway/session_group_peers.py': 'a8fb7aea5fe5bacac4ac82ed1328093b061609af', 'gateway/session_hosted_members.py': 'bf4a38a6281a720ad044bf491707666ca88468af', 'gateway/hosted_rooms.py': 'a32138f6e5aa5dc4e7dc9abd4a98834fece774eb', 'gateway/hosted_rooms_common.py': '5bd58e5c3f24651fe30b842c546aac8104a31796', 'gateway/hosted_room_context.py': '2eb2c46bfd424f674078ef701492e93b61135f47', 'gateway/hosted_room_discussion.py': 'c996c48d139c3a41e2b9c58396ac894fcda80b0e', 'gateway/hosted_rooms_gateway_import.py': '03f40abb51bdc187c8845478e25d6b5027004845', 'gateway/hosted_rooms_legacy_import.py': 'd817cbaa48a7154171c6c82dc79e749fbb9125a6', 'tui_gateway/hosted_room_service.py': '8400970bb0d853d18e7ec021802d217535f36097', 'tui_gateway/hosted_room_member_activity.py': 'd27d4a9ef678bc12c62670d7ed1baf666afaa5c9', 'tui_gateway/hosted_room_driver.py': '7195b2b896ec599edef16592b00d53fe2093720f', 'tui_gateway/owner_forward.py': '17ffecb4186300c86e60762dfdaa6553af8b1af8'}}
+if a.surface=='rooms':
+    for room_path,room_blob in _ROOM_READ_PINS[a.revision].items():
+        assert REVISIONS[a.revision]['blobs'].get(room_path) in (None,room_blob)
+        REVISIONS[a.revision]['blobs'][room_path]=room_blob
 SOURCE_COMMIT = REVISIONS[a.revision]['commit']
 PINNED_BLOBS = REVISIONS[a.revision]['blobs']
 source, root, site = a.source_root.resolve(), a.work_root.resolve(), a.dependency_site.resolve()
@@ -473,6 +499,33 @@ try:
                     project_original[profile]=project_rows(conn)
             finally:hc.reset_hermes_home_override(scope_token)
 
+    room_original=None
+    if a.surface=='rooms':
+        # Official standalone room storage is installation-shared, including named profiles.
+        # This fixture does not invent profile-private rooms or start a room driver.
+        from gateway import hosted_rooms as hr
+        import sqlite3
+        for home in homes.values():
+            (home/'config.yaml').write_text(json.dumps({'dashboard':{'startup_orphan_sweep':False}}),encoding='utf-8')
+        room_db=hr.default_db_path()
+        assert room_db.resolve()==root/'hermes-home/shared-state.db'
+        room_authority=hr.local_authority_gateway_id()
+        start=time.time()-200
+        members=[{'member_id':'fixture-member','profile':'default','handle':'fixture','display_name':'Fixture member'}]
+        for index in range(100):
+            hr.create_room(room_db,room_id=f'fixture-page-{index:03}',name=f'Shared fixture page {index:03}',members=members,authority_gateway_id=room_authority,now=start+index)
+        hr.create_room(room_db,room_id='fixture-shared-room',name='Installation shared fixture room',members=members,authority_gateway_id=room_authority,now=start+110)
+        hr.create_room(room_db,room_id='fixture-disbanded-room',name='Shared disbanded fixture room',members=members,authority_gateway_id=room_authority,now=start+120)
+        hr.disband_room(room_db,room_id='fixture-disbanded-room',expected_gateway_id=room_authority,expected_epoch=1,now=start+121)
+        def room_rows():
+            with sqlite3.connect('file:'+room_db.as_posix()+'?mode=ro',uri=True) as connection:
+                return {name:sorted((tuple(row) for row in connection.execute('SELECT * FROM '+name)),key=repr) for name, in connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'hosted_room%'")}
+        room_original=room_rows()
+        (root/'room-rows-before-startup.json').write_text(json.dumps(room_original,sort_keys=True)+'\n',encoding='utf-8')
+        report['roomStorageScope']='installation-shared-standalone'
+        report['backgroundLifespanEnabled']=False
+        report['roomSeedCount']=102
+
     from hermes_cli import web_server
     from hermes_cli.dashboard_auth import clear_providers,register_provider,native_flow
     from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
@@ -480,7 +533,7 @@ try:
     import asyncio,socket,uvicorn
     clear_providers();register_provider(StubAuthProvider());native_flow._reset_for_tests()
     web_server.app.state.bound_host='127.0.0.1';web_server.app.state.auth_required=True
-    if a.surface=='projects':
+    if a.surface in ('projects','rooms'):
         from tui_gateway import server as actual_project_server
     canonical_dbs=[];canonical_authority=None;runtime_replies=[]
     if a.surface in ('canonical','canonical-session'):
@@ -514,11 +567,11 @@ try:
                 emitted_activity.append(dict(phase=phase,eventType=event_type,sequence=stream.sequence,
                     payloadSha256=hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()))
     allowed={('GET','/auth/native/authorize'),('GET','/auth/callback'),('POST','/auth/native/token'),('POST','/auth/native/refresh'),('GET','/api/auth/me'),('GET','/api/profiles'),('GET','/api/mcp/servers')}
-    if a.surface in ('projects','canonical','canonical-session'):allowed.add(('POST','/api/auth/ws-ticket'))
+    if a.surface in ('projects','rooms','canonical','canonical-session'):allowed.add(('POST','/api/auth/ws-ticket'))
     async def proxy(scope,receive,send):
         if scope['type']=='websocket':
             path=scope['path'];headers=list(scope['headers'])
-            if a.surface not in ('projects','canonical','canonical-session') or path!='/dashboard/api/ws' or scope.get('query_string') or len(requests)>=128:
+            if a.surface not in ('projects','rooms','canonical','canonical-session') or path!='/dashboard/api/ws' or scope.get('query_string') or len(requests)>=128:
                 requests.append(dict(method='WS',path='unreviewed',status=404));await send(dict(type='websocket.close',code=1008));return
             entry=dict(method='WS',path='/api/ws',bearer=any(k.lower()==b'authorization' for k,v in headers),cookie=any(k.lower()==b'cookie' for k,v in headers),origin=any(k.lower()==b'origin' for k,v in headers),ticketPresented=any(k.lower()==b'sec-websocket-protocol' and b'hermes-gateway-ticket.' in v for k,v in headers))
             requests.append(entry)
@@ -544,7 +597,10 @@ try:
                         assert isinstance(frame,dict) and set(frame)=={'jsonrpc','id','method','params'} and frame['jsonrpc']=='2.0' and isinstance(frame['id'],str) and 0<len(frame['id'])<=64
                         method=frame['method'];params=frame['params'];assert isinstance(params,dict)
                         assert frame['id'] not in rpc_methods;rpc_methods[frame['id']]=method
-                        if a.surface in ('canonical','canonical-session'):
+                        if a.surface=='rooms':
+                            assert hosted_room_fixture_rpc_allowed(method,params,rpc_count)
+                            entry_rpc=dict(method='RPC',path=method,profile=[params['profile']],offset=params.get('offset'),includeDisbanded=params.get('include_disbanded'),roomId=params.get('room_id'),readOnly=True)
+                        elif a.surface in ('canonical','canonical-session'):
                             if a.surface=='canonical':
                                 assert method=='runtime.describe' and params=={} and rpc_count==0
                             else:
@@ -612,13 +668,13 @@ try:
             listener=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             listener.bind(('127.0.0.1',0));listener.listen(64)
         port=listener.getsockname()[1];web_server.app.state.bound_port=port
-        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets' if a.surface in ('projects','canonical','canonical-session') else 'none',lifespan='on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
+        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets' if a.surface in ('projects','rooms','canonical','canonical-session') else 'none',lifespan='off' if a.surface=='rooms' else 'on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
         server=uvicorn.Server(config);task=asyncio.create_task(server.serve(sockets=[listener]))
         deadline=time.monotonic()+15
         while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
         assert server.started and not task.done(),'Actual dashboard listener did not start'
         pending=root/'ready.pending'
-        pending.write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name,surface=a.surface,viewerHeartbeatEnabled=a.allow_viewer_heartbeat,viewerActivityEnabled=a.emit_viewer_activity))+'\n',encoding='utf-8')
+        pending.write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name,surface=a.surface,backgroundLifespanEnabled=a.surface!='rooms',viewerHeartbeatEnabled=a.allow_viewer_heartbeat,viewerActivityEnabled=a.emit_viewer_activity))+'\n',encoding='utf-8')
         pending.replace(root/'ready.json')
         deadline=time.monotonic()+a.lifetime_seconds
         try:
@@ -646,6 +702,11 @@ try:
                         report['sessionAdmissionCount']=conn.execute('SELECT COUNT(*) FROM session_admissions').fetchone()[0]
                         report['workerExecutionCount']=conn.execute('SELECT COUNT(*) FROM worker_executions').fetchone()[0]
                     assert report['sessionAdmissionCount']==report['workerExecutionCount']==0
+                if a.surface=='rooms':
+                    with db._read_ctx(reopen=False) as conn:
+                        counts={name:conn.execute('SELECT COUNT(*) FROM '+name).fetchone()[0] for name in ('session_admissions','worker_executions')}
+                    assert counts=={'session_admissions':0,'worker_executions':0}
+                    report.setdefault('roomExecutionCounts',{})[profile]=counts
             finally:db.close()
         finally:hc.reset_hermes_home_override(scope_token)
         if a.surface!='canonical-session':assert after==original[profile]
@@ -660,6 +721,14 @@ try:
             finally:hc.reset_hermes_home_override(scope_token)
         assert not (root/'hermes-home/profiles/missing-fixture').exists()
         report['seededProjectsUnchanged']=True
+    if a.surface=='rooms':
+        room_after=room_rows()
+        (root/'room-rows-after-stop.json').write_text(json.dumps(room_after,sort_keys=True)+'\n',encoding='utf-8')
+        assert room_after==room_original
+        report['seededRoomRowsUnchanged']=True
+        report['noRoomDriverStarted']=actual_project_server.get_hosted_room_service() is None
+        assert report['noRoomDriverStarted']
+        report['roomRpcCalls']=sum(row['method']=='RPC' for row in requests)
     if a.surface=='canonical-session':
         changes=report.get('sessionMetadataChanges',{})
         allowed={'user_id','session_key','chat_id','chat_type','origin_json'}

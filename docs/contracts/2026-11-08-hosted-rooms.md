@@ -1,5 +1,59 @@
 # Hosted room browser and read contract
 
+## Actual standalone transport checkpoint
+
+The Android repository now passes the actual immutable stable2bd, main21ae and
+priorbf0203a auth/ticket/WebSocket/room handlers on API26, largeAPI37 and
+compactAPI37: nine actual pairings. Each fresh E fixture contains102 synthetic
+rooms, including101 active and one disbanded. Reads cover the100-row page and its
+exact continuation, detail identity/authority, disbanded filtering, distinct
+verified profile homes, unregistered-profile refusal and pre-transport actor
+refusal. Native PKCE uses the upstream synthetic IdP. No saved credential changes.
+
+Standalone default_db_path intentionally resolves named profiles to the shared
+root shared-state.db. The test proves the same installation room through both
+profile views; it does not invent different profile-private copies. The translated
+UI now explains this shared scope. Profile-owned gateway forwarding, same-ID rooms
+held separately by different gateway owners, actor-filtered/merged owner paging
+and authority changes still require their own actual runtime matrix.
+
+Every pairing has exactly87 observed protocol records,27 read RPCs and9 ticketed
+sockets. API bearer auth stays off WebSockets, cookies stay off API calls and the
+/dashboard/ prefix and strict negotiated protocol remain intact. Source bytes for
+every imported upstream module are independently bound to the immutable Git tree.
+All fixtures stop, all seeded chat and room rows remain unchanged, and both
+profile databases have exactly0 session admissions and0 worker executions.
+
+The finite room fixture explicitly omits background ASGI lifespan, preserving
+unmodified auth/profile/ticket/room handlers. Two initial startup probes failed
+the strict unchanged-room-store assertion because normal dashboard startup
+created background policy schema/cursor/capacity metadata before any request.
+Both terminal failures and exact synthetic row snapshots are retained. The
+correction isolates the read surface; no changed room rows are accepted and all
+older fixture surfaces retain their original lifespan. A seven-case boundary
+suite preserves the old canonical helper AST and refuses work, writes, other
+reads, foreign IDs, extra fields, wrong types and unbounded repetition.
+
+The five required build tasks pass831 unique JVM cases in81 XML reports with both
+lint0. All previous831 methods remain. The full policy suite passes229 cases.
+Thirteen mock/UI/runtime methods pass on each emulator; the nine actual pairings
+bring this source chunk to48 Android executions. Nine new synthetic screenshots
+were inspected; shared scope, held errors and scrollable actions remain readable.
+The largest-font API26 Back button has slight leading-glyph corner clipping;
+its action is reachable, and a separate visual correction remains next.
+All652 frozen inputs, original keys/preferences/geometry,28 legacy cache files
+and the separate beta.8 assets match. The205-source checker/baseline and15-case
+runtime-model observer implementations are unchanged from their accepted revision.
+
+This certifies the finite actual standalone read path, not deployed gateway
+startup, real TLS, inference, workers, the owner's phone/Pi or room mutations.
+Exact-head full hosted suites remain separate. The earlier browser1a889d6 hosted
+verify and all four compatibility jobs report success; its API26/API37 device
+suites are running, with raw acceptance pending. Privacyd57 API26 has raw exact
+1043-method acceptance while API37 remains live. Main and held release refs stay
+fixed. Continue every remaining audit row and the separate beta.8 owner/release
+checks.
+
 Signal Grove now provides a foreground, read-only room browser in Hermes
 management. It reads the selected connection and profile, shows stored room
 members and context, and distinguishes source update time from client read time.
@@ -82,7 +136,7 @@ compatibility claim. Missing peers/context/forward/import modules are recorded
 only for the exact verified historical trees. No blanket commit waiver or
 unrelated cron-source absence was added.
 
-## Validation and limits
+## Browser validation and limits before the actual standalone matrix
 
 All five build tasks pass: testDebugUnitTest, lint, lintRelease, assembleDebug and
 assembleDebugAndroidTest. There are831 unique JVM cases in81 XML reports: all797
@@ -101,8 +155,8 @@ View, Back and Close reachable. All651 frozen inputs, original keys, preferences
 geometry,28 legacy cache files and the separate beta.8 assets match.
 
 These are native UI, mock transport and immutable static-source checks. Actual
-Hermes room/profile/pagination transport conformance remains required, including
-historical compatibility and runtime forwarding behavior. This chunk does not
+standalone transport checks are recorded above; profile-owned forwarding,
+actor-filtered/merged owner paging and full lifecycle remain required. This chunk does not
 certify the owner's phone/Pi, real TLS, inference or workers. Full hosted gates at
 this exact application revision remain separate. Earlier foundation CI failed
 twice downloading Temurin24 withHTTP504 before compilation; both logs are retained

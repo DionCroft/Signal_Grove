@@ -1,5 +1,33 @@
 # Signal Grove project state
 
+## Current checkpoint - actual standalone room reads validated
+
+The read-only room browser now passes actual immutable stable/main/prior Hermes
+handlers on all three preserved emulator profiles:9 actual pairings plus39
+mock/UI/runtime executions,48 total. Each actual pairing proves87 protocol
+records,27 read RPCs and9 ticketed sockets, unchanged seeded chats/room rows and
+exactly0 admissions/worker executions in both profile databases. Every imported
+upstream source file is Git-bound. Native PKCE, profile homes and saved credentials
+are checked. The UI explains that standalone rooms can be installation-shared.
+
+All required builds pass831 unique JVM cases in81 XML reports, both lint0 and229
+policy checks. All652 frozen inputs, original keys/preferences/geometry,28 legacy
+cache files and beta.8 assets match. The205-source guards and runtime-model
+observer sources are unchanged. See [the room contract](docs/contracts/2026-11-08-hosted-rooms.md).
+
+The finite fixture omits background ASGI startup while using unmodified read/auth
+handlers. Two initial startup probes caught policy metadata changes and remain
+retained; no unchanged-row assertion was relaxed. This does not certify full
+gateway startup, profile-owned forwarding, same-ID private owner rooms, merged
+owner pagination, Pi/phone/TLS/inference/workers or room controls. Those remain
+required. Next correct the small largest-font Back-label corner clipping, then
+continue the actual owner-forwarding matrix and every other audit row.
+
+Browser1a889d6 hosted verify/all4 compatibility jobs report success; full native
+suites and raw acceptance remain pending. Privacyd57 has exact1043-method raw
+API26 acceptance; API37 is still live. Owner Automatic/history/projects checks and
+beta.8 publication remain separate. Protected main/release refs are unchanged.
+
 ## Current checkpoint - read-only room browser verified locally
 
 Hermes management now has a native room inventory/detail browser with exact

@@ -34,6 +34,7 @@ private fun roomTime(millis:Long)=DateFormat.getDateTimeInstance().format(Date(m
     AlertDialog(onDismissRequest=::dismiss,title={Text(state.detail?.room?.name ?: label(Words.RoomsTitle),maxLines=3,overflow=TextOverflow.Ellipsis)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("hosted-rooms-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(label(Words.RoomsBoundary))}
+            item {Text(label(Words.RoomsSharedScope))}
             if(!available) item {Text(label(Words.ManagementVerify))}
             if(state.phase==HostedRoomBrowserPhase.Closed && available) item {Text(label(Words.RoomsReadAgain))}
             if(state.busy) item {QuietProgress();Text(label(Words.Loading))}

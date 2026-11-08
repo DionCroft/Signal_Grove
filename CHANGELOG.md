@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Verify actual standalone room reads against three immutable Hermes revisions on
+  three native emulator profiles, retaining exact transcript/room/execution-ledger
+  invariants. Explain that standalone rooms can be shared across profiles.
+
 - Add a translated, read-only Hermes room browser with exact profile/home checks,
   ticketed list/detail reads, opaque pagination, explicit stale/unknown status and
   lifecycle cancellation. No room write or automatic work retry is introduced.
