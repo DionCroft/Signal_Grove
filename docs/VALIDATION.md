@@ -1,5 +1,43 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 - actual owner bootstrap and a retained shutdown finding
+
+The new finite Windows probe uses immutable Hermes `2bd378e`, official profile
+reservations/host locking, runtime initialization, runner start and dashboard
+lifespan. Actual native SID/session checks mint one-use tickets; real canonical
+WebSockets read both authorities, reject cross-profile reads and reject replayed
+tickets. Owner loss leaves no ready fallback. No constructed ready response or
+patched authentication/dispatcher is used. All 1,167 imported source modules are
+Git-bound; post-process read-only SQLite checks find healthy stores and zero
+sessions, rooms and admissions in both profiles.
+
+The core passes, but the supervisor deliberately returns **2**:
+`CORE_PASS_SHUTDOWN_FINDING_OPEN`. Its last-running exit observer captures the
+legacy reaper's heartbeat cleanup reopening a DB after canonical shutdown. The
+warning and its exact source stack remain required follow-up; this is not a full
+lifecycle pass. Earlier fixture/status-call failures and boundary-denial attempts
+remain retained. See [the scoped contract](contracts/2026-11-08-owner-runtime-bootstrap.md).
+
+Fresh required builds pass 836 JVM cases / 82 XML reports, both lint variants
+without errors, and 229 policy cases. Both original-key APKs are byte-identical
+to the receipt-caption proof; application and Android test inputs are unchanged.
+No new Android native run is counted. All 659 frozen inputs, original key,
+28 legacy cache files and five staged beta.8 assets match. The probe is unreleased
+diagnostic tooling; no phone, Pi, model/default, online speech or worker action.
+
+Separately, exact history commit `c9479ca` has full raw hosted acceptance:
+836 JVM, both lint 0, 1,064 API 26 and 1,065 API 37 methods, complete source method
+sets, successful job/input-artifact binding and digest-checked archives. Installed
+APK hashes are not independently attested by those hosted receipts. This applies
+only to `c9479ca`; later footer/shape/current release gates remain separate.
+Main `3e82260` compatibility changes and its added room-member close route remain
+open. No canary waiver, baseline acceptance or duplicate full-CI dispatch.
+
+Next: seed actual separately owned same-ID rooms using the real single-owner
+principal semantics, then verify actor-filtered opaque paging, shared/handed-root
+merges and authenticated standalone-to-owner forwarding with lifecycle evidence.
+Keep the scheduler/full gateway/deployed fleet and every remaining audit row open.
+
 ## 8 November 2026 - receipt-return caption fits its pixel button
 
 The Return to management receipts body button now uses the existing small

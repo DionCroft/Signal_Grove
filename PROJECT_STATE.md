@@ -24,7 +24,33 @@ The published APK still has the disclosed stale-history error banner. The fix
 below is unreleased. No Pi deployment, model/default change, online speech or
 worker execution occurred during these chunks.
 
-## Current development checkpoint - receipt-return caption
+## Current development checkpoint - actual owner bootstrap
+
+The reusable finite Windows probe now executes immutable `2bd378e` through real
+profile/host reservations, official runtime initialization and runner/dashboard
+startup. Both authorities pass native SID/session, ticketed WebSocket identity,
+foreign-profile refusal, one-use replay rejection and no-ready owner-loss checks.
+All 1,167 imported source modules are Git-bound. Independent post-process SQLite
+checks pass with zero sessions, rooms and admissions in both stores.
+
+Its supervisor returns 2 (`CORE_PASS_SHUTDOWN_FINDING_OPEN`), retaining the real
+legacy reaper heartbeat cleanup's post-close DB reopen stack. Core transport is
+accepted; full lifecycle is not. No seeded owner-room, merged paging, outer
+forwarding, scheduler or deployed-fleet acceptance is claimed. See
+[scope and reproduction](docs/contracts/2026-11-08-owner-runtime-bootstrap.md).
+
+Fresh required checks pass 836 JVM / 82 XML, both lint 0 and 229 policy cases.
+Both original-key APKs are byte-identical to the caption proof; no fresh Android
+native executions are counted. All 659 frozen inputs and original key/cache/
+staged beta.8 digests match. The probe and prior fixes remain unreleased.
+
+Exact `c9479ca` raw full hosted acceptance is now 836 JVM, 1,064 API 26 and 1,065
+API 37, both lint 0. The archives, complete source method sets and successful
+job/input-artifact bindings pass. Hosted installed APK hashes are not independently
+attested. This does not close later commits' full release gates or main drift.
+
+## Previous development checkpoint - receipt-return caption
+
 
 The separate receipt-return caption now fits the small pixel button; actual
 before/after images show intact English/Chinese/pinyin at the original API 26
@@ -36,10 +62,9 @@ All 658 frozen inputs and original keys/preferences/display/configuration/revers
 bindings, 28 legacy caches and staged beta.8 assets retain their proofs. Full
 exact-head hosted acceptance remains open; this correction is unreleased.
 
-Five Git-bound production files now identify the real control/bootstrap helpers
-and native peer subject behavior. Production host locking requires supported
-isolation and legitimate multiplexed profile reservation; no actual owner fixture
-or full gateway lifecycle has yet been accepted.
+The earlier five-file source review informed the real owner-bootstrap probe above.
+Its empty read scope and retained shutdown finding leave seeded-room forwarding
+and full gateway lifecycle open.
 
 ## Previous development checkpoint - fixed Kanban cancel footer
 
@@ -107,13 +132,15 @@ keys/data and the on-device-only speech preference remain protected.
 
 ## One exact next action
 
-Build the actual owner-forwarding fixture using official runtime initialization,
-reserved profile ownership, native SID/session authentication, one-use tickets
-and real canonical WebSockets. Verify host_rendezvous storage and use its supported
-E-root lock namespace without bypassing singleton locking; use proper multiplexed
-profile authorities. Do not synthesize ready descriptors or assume forwarded
-native subjects equal dashboard subjects. Test same-ID private rooms, opaque
-actor-filtered paging, installation-shared/handed-root merges, owner loss and full
-lifecycle with zero unauthorized admissions/workers. Inspect retained exact-head
-hosted results without blind reruns. Review main `3e82260` handler changes and its
-new room-member run-close contract, then continue every remaining ledger row.
+Extend the exact-source owner probe with official atomic ownership seeding for
+same-ID rooms in separate profile stores, foreign non-owner rows and opaque
+actor-filtered paging. Hermes treats authenticated sign-ins as the machine owner;
+do not invent separate dashboard-user islands. Drive the real authenticated
+standalone-to-owner forwarding chain, shared/handed-root merge and owner-loss
+paths with zero new admissions/workers and unchanged seeded chats/rooms. Preserve
+the real post-close heartbeat cleanup finding and require complete exit evidence;
+do not suppress it or disable its background service to claim full lifecycle.
+Review exact main `3e82260` fallback/plugin changes and room-member close route,
+inspect the existing `b583162` full CI handles without reruns, and continue every
+remaining audit ledger row. No Pi deployment or model/default change is authorized
+by this diagnostic checkpoint alone.

@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add an isolated actual-Hermes owner-runtime conformance probe for native
+  identity, one-use tickets, profile isolation and owner loss. Surface its real
+  shutdown finding explicitly; preserve the narrower transport acceptance.
+
 - Keep the complete translated receipt-return caption inside its small pixel
   button at larger text sizes, preserving the existing action and layout.
 
