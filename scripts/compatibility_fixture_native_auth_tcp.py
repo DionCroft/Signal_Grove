@@ -117,9 +117,13 @@ parser.add_argument('--work-root', type=Path, required=True)
 parser.add_argument('--dependency-site', type=Path, required=True)
 parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
 parser.add_argument('--lifetime-seconds',type=int,default=180)
-parser.add_argument('--surface',choices=('native-auth','projects'),default='native-auth')
+parser.add_argument('--surface',choices=('native-auth','projects','canonical'),default='native-auth')
 a = parser.parse_args()
 if not 10<=a.lifetime_seconds<=600:parser.error('Lifetime must be10..600 seconds.')
+if a.surface=='canonical':
+    # Negotiation consumes the actual authority dispatcher, never a runtime-description stub.
+    if a.revision=='stable-2bd378e':REVISIONS[a.revision]['blobs'].update({'gateway/session_authority.py': '052252b70edc38b71b6a8679f91660d6009893aa', 'gateway/session_controls.py': '3e4a89ad890cacf9645b648369d3daa682c1e114', 'gateway/session_contract.py': 'accd1d9e2109e34c19263b90d730fad400128e6c', 'gateway/owner_identity.py': 'bffdf405527e53f3bd1b608c88d609b1dab34803', 'gateway/session_local_migration.py': '82a647465420180829beeb081a6271bcdc48272f', 'gateway/session_policy.py': 'ca1cac3b27c42ab22771dc93255a9d5cdb20b30b', 'gateway/session_skin.py': 'abb696b5c959ab01ba91fa0d5d0ab6f6b4076151', 'tui_gateway/contracts/canonical.py': '8976061235c34e286a7d475ce7db1283b42a6d6d', 'tui_gateway/contracts/canonical_sessions.py': '642364a17f0ec8a12c66c285d76064996b604f10', 'tui_gateway/contracts/events.py': '4fc6964c1fbcc240768200f5fd121643e222daee', 'hermes_state_runtime.py': '49207f5508db3255cd90433a229c518f11cfd0f7'})
+    if a.revision=='prior-bf0203a':REVISIONS[a.revision]['blobs'].update({'gateway/session_authority.py': '3bc6c596c77c495c1cf318495a84319c211dd523', 'gateway/session_controls.py': '65887575dec12b3ddb9f859ebe56156264ea120e', 'gateway/session_contract.py': 'dda3763a395814455cdf0de080d62f352dfd4b52', 'gateway/session_local_migration.py': '484be549e64250e509bbaabe80b6ef9cc499c18e', 'gateway/session_policy.py': 'ab3aace258bce8c74b151553153b2bb3d554bf1d', 'gateway/session_skin.py': 'abb696b5c959ab01ba91fa0d5d0ab6f6b4076151', 'tui_gateway/contracts/canonical.py': '3a9dd88a19decfea9d4c9307b90c5e2849a2d0a0', 'tui_gateway/contracts/canonical_sessions.py': 'db394b039bca3a75a9ed4e06e0fcc7a121c3ae33', 'tui_gateway/contracts/events.py': 'd782b3e6eec5b6d624aad9716ada2d415c8178f4', 'hermes_state_runtime.py': '516e3ea46152226e320dc0b6236e6af0b2a00ccb'})
 SOURCE_COMMIT = REVISIONS[a.revision]['commit']
 PINNED_BLOBS = REVISIONS[a.revision]['blobs']
 source, root, site = a.source_root.resolve(), a.work_root.resolve(), a.dependency_site.resolve()
@@ -362,13 +366,23 @@ try:
     web_server.app.state.bound_host='127.0.0.1';web_server.app.state.auth_required=True
     if a.surface=='projects':
         from tui_gateway import server as actual_project_server
+    canonical_dbs=[];canonical_authority=None;runtime_replies=[]
+    if a.surface=='canonical':
+        from types import SimpleNamespace
+        from gateway.session_authority import SessionAuthority
+        from hermes_state_runtime import begin_runtime_epoch
+        runner=SimpleNamespace(_draining=False,_cached_agent_for=lambda route:None,adapters={})
+        db=SessionDB(db_path=homes['default']/'state.db');canonical_dbs.append(db)
+        epoch=begin_runtime_epoch(db,instance_id='fixture-native-default')
+        canonical_authority=SessionAuthority(runner,profile_id=str(homes['default']),instance_id='fixture-native-default',db=db,epoch=epoch)
+        web_server.app.state.session_authority=canonical_authority
     requests=[]
     allowed={('GET','/auth/native/authorize'),('GET','/auth/callback'),('POST','/auth/native/token'),('POST','/auth/native/refresh'),('GET','/api/auth/me'),('GET','/api/profiles'),('GET','/api/mcp/servers')}
-    if a.surface=='projects':allowed.add(('POST','/api/auth/ws-ticket'))
+    if a.surface in ('projects','canonical'):allowed.add(('POST','/api/auth/ws-ticket'))
     async def proxy(scope,receive,send):
         if scope['type']=='websocket':
             path=scope['path'];headers=list(scope['headers'])
-            if a.surface!='projects' or path!='/dashboard/api/ws' or scope.get('query_string') or len(requests)>=128:
+            if a.surface not in ('projects','canonical') or path!='/dashboard/api/ws' or scope.get('query_string') or len(requests)>=128:
                 requests.append(dict(method='WS',path='unreviewed',status=404));await send(dict(type='websocket.close',code=1008));return
             entry=dict(method='WS',path='/api/ws',bearer=any(k.lower()==b'authorization' for k,v in headers),cookie=any(k.lower()==b'cookie' for k,v in headers),origin=any(k.lower()==b'origin' for k,v in headers),ticketPresented=any(k.lower()==b'sec-websocket-protocol' and b'hermes-gateway-ticket.' in v for k,v in headers))
             requests.append(entry)
@@ -387,10 +401,16 @@ try:
                             return result
                         frame=json.loads(raw,object_pairs_hook=unique)
                         assert isinstance(frame,dict) and set(frame)=={'jsonrpc','id','method','params'} and frame['jsonrpc']=='2.0' and isinstance(frame['id'],str) and 0<len(frame['id'])<=64
-                        method=frame['method'];params=frame['params'];assert method in ('projects.list','projects.get') and isinstance(params,dict)
-                        assert set(params)==({'profile'} if method=='projects.list' else {'profile','id'}) and params['profile'] in ('default','worker','missing-fixture')
-                        if method=='projects.get':assert params['id'] in ('fixture-shared-project','default-only-project','worker-only-project')
-                        rpc_count+=1;requests.append(dict(method='RPC',path=method,profile=[params['profile']],projectId=params.get('id')))
+                        method=frame['method'];params=frame['params'];assert isinstance(params,dict)
+                        if a.surface=='canonical':
+                            assert method=='runtime.describe' and params=={} and rpc_count==0
+                            entry_rpc=dict(method='RPC',path=method,profile=[],noSessionOrMutation=True)
+                        else:
+                            assert method in ('projects.list','projects.get')
+                            assert set(params)==({'profile'} if method=='projects.list' else {'profile','id'}) and params['profile'] in ('default','worker','missing-fixture')
+                            if method=='projects.get':assert params['id'] in ('fixture-shared-project','default-only-project','worker-only-project')
+                            entry_rpc=dict(method='RPC',path=method,profile=[params['profile']],projectId=params.get('id'))
+                        rpc_count+=1;requests.append(entry_rpc)
                     except Exception:
                         requests.append(dict(method='RPC',path='unreviewed',status=400));await send(dict(type='websocket.close',code=1008))
                         from starlette.websockets import WebSocketDisconnect
@@ -423,7 +443,7 @@ try:
         listener=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         listener.bind(('127.0.0.1',0));listener.listen(64)
         port=listener.getsockname()[1];web_server.app.state.bound_port=port
-        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets' if a.surface=='projects' else 'none',lifespan='on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
+        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets' if a.surface in ('projects','canonical') else 'none',lifespan='on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
         server=uvicorn.Server(config);task=asyncio.create_task(server.serve(sockets=[listener]))
         deadline=time.monotonic()+15
         while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
@@ -440,6 +460,10 @@ try:
             await asyncio.wait_for(task,10)
             listener.close()
     asyncio.run(serve())
+    if a.surface=='canonical':
+        assert canonical_authority.sessions=={} and canonical_authority.events=={}
+        for db in canonical_dbs:db.close()
+        report['noCanonicalSessionRestoredOrAdopted']=True
     for profile,home in homes.items():
         scope_token=hc.set_hermes_home_override(str(home))
         try:

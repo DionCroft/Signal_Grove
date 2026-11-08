@@ -161,6 +161,12 @@ EXTRA_SOURCES.update(RUNTIME_GUARD_CONTRACT_SOURCES)
 # Private-grant producer/peer boundary and saved-gateway callback dependencies.
 AUTH_BOUNDARY_CONTRACT_SOURCES = {'auth_native_http': 'hermes_cli/dashboard_auth/native_http.py', 'auth_native_bootstrap': 'gateway/runtime_bootstrap.py', 'auth_native_run_api': 'gateway/run_api.py', 'saved_gateway_oauth': 'hermes_cli/gateway_connections_oauth.py', 'saved_gateway_routes': 'hermes_cli/web_routers/gateway_connections_reach.py', 'saved_gateway_store': 'hermes_cli/gateway_connections.py', 'saved_gateway_normalize': 'hermes_cli/gateway_connections_normalize.py'}
 EXTRA_SOURCES.update(AUTH_BOUNDARY_CONTRACT_SOURCES)
+CANONICAL_NEGOTIATION_CONTRACT_SOURCES = {
+    'canonical_controls': 'gateway/session_controls.py',
+    'canonical_wire': 'tui_gateway/contracts/canonical.py',
+}
+EXTRA_SOURCES.update(CANONICAL_NEGOTIATION_CONTRACT_SOURCES)
+
 
 PLUGIN_UPDATE_CONTRACT_SOURCES = {'plugin_auto_update': 'hermes_cli/plugins_auto_update.py'}
 EXTRA_SOURCES.update(PLUGIN_UPDATE_CONTRACT_SOURCES)
@@ -222,6 +228,7 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     def visit(nodes, prefix=''):
         for node in nodes:
             if isinstance(node, ast.ClassDef):
+                if source=='canonical_wire' and not prefix and node.name in {'RuntimeDescribeParams','RuntimeDescribeResult','SessionCreateDescriptor'}:handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 project_classes={'project_contract':{'ProjectFolder','ProjectInfo','ProjectsPayload','ProjectResult','ProjectIdParams','OptionalProjectResult','ProjectsCreateParams','ProjectsUpdateParams','ProjectsAddFolderParams','ProjectFolderParams','ProjectsArchiveParams','ProjectsSetActiveParams','ActiveIdResult'},'project_db':{'Project','ProjectFolder'},'project_methods':{'_NoProject'}}
                 if not prefix and node.name in project_classes.get(source,set()):handlers[f'{source}:schema:{node.name}']=fingerprint(node)
                 kanban_classes={'kanban_api':{'CreateBoardBody','RenameBoardBody','CreateTaskBody','UpdateTaskBody','CommentBody','LinkBody'},'kanban_db':{'Task','Run','Comment','Event','Attachment'},'kanban_workflow':{'Column','Workflow'}}
@@ -236,6 +243,9 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 for item in node.body:
                     if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                         fields[f'{source}:{prefix}{node.name}.{item.target.id}'] = fingerprint(item)
+            elif source=='canonical_wire' and not prefix and isinstance(node,ast.Expr) and isinstance(node.value,ast.Call) and isinstance(node.value.func,ast.Name) and node.value.func.id=='canonical_method' and node.value.args and isinstance(node.value.args[0],ast.Constant) and node.value.args[0].value=='runtime.describe':
+                selected=copy.deepcopy(node);selected.value.keywords=[keyword for keyword in selected.value.keywords if keyword.arg!='doc']
+                handlers['canonical_wire:registration:runtime.describe']=fingerprint(selected)
             elif not prefix and source=='provider_auth' and isinstance(node,ast.Try):
                 platforms={alias.name for child in ast.walk(node) if isinstance(child,ast.Import) for alias in child.names} & {'fcntl','msvcrt'}
                 for platform in sorted(platforms):handlers[f'{source}:lock_platform:{platform}']=fingerprint(node)
@@ -246,11 +256,11 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 selected=copy.deepcopy(node)
                 selected.iter.elts=[item for item in selected.iter.elts if isinstance(item,ast.Name) and item.id=='_methods_projects']
                 handlers['gateway_runtime:projects_registration_loop']=fingerprint(selected)
-            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
+            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys() | CANONICAL_NEGOTIATION_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name):handlers[f'{source}:binding:{prefix}{target.id}']=fingerprint(node)
-            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
+            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys() | CANONICAL_NEGOTIATION_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
                 for alias in node.names:
                     binding=alias.asname or alias.name
                     isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])

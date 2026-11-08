@@ -1,5 +1,85 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 — separate authenticated canonical negotiation
+
+The new internal CanonicalGatewayChannel verifies explicit authority advertisement
+and the selected authenticated profile/home before accepting instance/epoch
+identity. ManagementClient checks actor and home before acquiring a fresh one-use
+ticket, then rechecks home before returning the separate connection. It sends
+exactly one runtime.describe with empty params. Sibling mismatch is refused before
+any session read/adoption. Creation descriptors and protocol features grant no
+actor authority. The existing management socket remains separate.
+
+The revised 610-input freeze freshly passes all 665 unique JVM methods: the prior
+638 plus 27 handshake regressions. All 71 raw XML reports contain zero failures,
+errors or skips; their exact new method set matches source. Debug/release lint
+have zero errors, all 191 policy tests pass, and all 73 raw JVM/lint reports are
+retained. Required testDebugUnitTest/lint/lintRelease/assembleDebug/
+assembleDebugAndroidTest tasks pass, with all 106 actionable tasks executed.
+All source/snapshot inputs, the historical debug key and 28 old checkout cache
+files are unchanged; all 159 published files match their E: sources.
+
+The first build exposes a real duplicate-ready race: after readiness completes,
+the pending describe could lose the original protocol failure and throw a generic
+state exception. Its 665-case report has one failure and remains retained. The
+revised channel retains the first cause across that race; the regression assertion
+is unchanged. The failed wrapper does not replace published APKs. A later private
+verifier regex error is corrected against the same successful build and retained
+partial reports; it does not imply another application build or weaker acceptance.
+
+Original CAB-signed APK hashes are:
+
+- App:d8123881d9d0f18962cfba930f179fdb40073b6b9cfc345099226ec23db969de.
+- Test:b5a9ece3c4cee88375b52b36f126855556693c9384a632423e87d89ce8cdf8e2.
+
+The new native method passes nine invocations: mock, actual stable2bd378e and
+actual priorbf0203a, each on preserved API26/large37/compact37 profiles. Ten named
+assertions per invocation cover actual native PKCE login, distinct profile homes,
+runtime/home identity, instance/integral epoch, close, sibling mismatch, stale
+home, absent profile, foreign actor and unchanged saved credentials. No owner
+phone, uninstall, data clear, resizing or downgrade occurs.
+
+Actual fixtures use upstream dashboard auth with a synthetic IdP, the real
+SessionAuthority and real WebSocket dispatcher. Each invocation's independent
+trace contains exactly 19 HTTP/WS/RPC records, two ticket-only sockets and one
+empty runtime.describe per socket. No session read, restore/adoption, mutation,
+admission or approval request occurs. Complete seeded rows/messages remain
+unchanged, authorities retain no restored sessions/subscriptions after teardown,
+and owned listeners stop with reverse bindings restored. All 903 stable/828 prior
+imported source-module inventories are independently rehashed. Thirteen expected
+metadata subprocess probes are blocked per actual invocation; zero unexpected
+denials occur. Python audit hooks are defense in depth, not an OS sandbox.
+
+Two new aliases extend the F0 baseline from verified immutable official Git blobs,
+preserving every prior handler/field/source entry. Twelve consumed handler/schema/
+registration projections and eight descriptor fields are watched; changed variants
+bind declaring/wire/socket bytes. A complete clean-clone static stable comparison
+passes all 168 Git-bound aliases (164 present, four explicitly reviewed absences).
+This is distinct from actual native runtime conformance.
+
+The preceding Windows chunk's compatibility
+[42429514096](https://github.com/DionCroft/Signal_Grove/actions/runs/42429514096)
+remains failed: main72d4433130823f506081cc1189a923b5aa67dbf0 changes the guarded
+saved_gateway_routes module from3a75c54e... to d6493fa0..., while middleware bytes
+are unchanged from reviewed main071. Parser, registry and sidecar jobs succeed.
+A matching middleware AST does not approve its changed callback dependency.
+The original failure/artifact is retained for separate review, without a waiver.
+
+Its Android [42429507721](https://github.com/DionCroft/Signal_Grove/actions/runs/42429507721)
+verify job128575054331 succeeds; device jobs128577043902/API26 and128577043817/API37
+remain live at this checkpoint. No new full exact-head CI acceptance is claimed.
+All local native/build commands are terminal and both source freezes are closed.
+
+This chunk has no application UI caller or session attachment/adoption yet.
+Configured deferred discovery can initialize when upstream opens a socket; these
+fixtures contain no external MCP configuration. TLS, external browser/real IdP,
+Pi deployment, inference, physical/OEM, workspace/worker/file access and the
+remaining full audit rows stay open. The full SessionHandle wire result belongs
+to session.interrupt; never use a stop as an identity read. Future workspace
+controls must use the actual operation's revision/generation/CAS contract without
+fabricating idle/terminal state. See
+[the negotiation contract](contracts/2026-11-08-canonical-gateway-negotiation.md).
+
 ## 8 November 2026 — verified Windows E: source snapshots
 
 The build/windows-e-intermediates chunk retains canonical source and final

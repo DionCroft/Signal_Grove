@@ -133,13 +133,30 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     suspend fun hubScan(tokens:ManagementTokens,profile:String,skill:HubSkill):JsonObject {SkillProtocol.profile(profile);require(skill.addressable);return element("api/skills/hub/scan",tokens.access,profile=profile,query=mapOf("identifier" to skill.canonicalId),slow=true).jsonObject}
     suspend fun installHubSkill(tokens:ManagementTokens,profile:String,request:HubInstallRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/hub/install",tokens.access,request.body(profile),profile)}
     suspend fun maintainHubSkills(tokens:ManagementTokens,profile:String,request:HubMaintenanceRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/hub/"+request.endpoint,tokens.access,request.body(profile),profile)}
-    suspend fun gateway(tokens:ManagementTokens):GatewayRpcSession {
+    private suspend fun gatewayTicket(tokens:ManagementTokens):String {
         val response=json("api/auth/ws-ticket",tokens.access,JsonObject(emptyMap()))
         val ticket=response["ticket"] as? JsonPrimitive
         val ttl=response["ttl_seconds"] as? JsonPrimitive
         require(ticket!=null && ticket.isString && ttl!=null && !ttl.isString && ttl.intOrNull in 1..120) {"Invalid gateway ticket."}
-        dns.checkHost(base.host)
-        return GatewayRpcSession.connect(http,base,ticket.content)
+        return ticket.content
+    }
+    suspend fun gateway(tokens:ManagementTokens):GatewayRpcSession {
+        val ticket=gatewayTicket(tokens);dns.checkHost(base.host)
+        return GatewayRpcSession.connect(http,base,ticket)
+    }
+    /** Explicit separate connection; identity negotiation cannot restore or adopt a session. */
+    internal suspend fun canonicalGateway(tokens:ManagementTokens,target:ManagementTarget,homeId:String):CanonicalGatewayChannel {
+        GatewayCronInventory.requireProfile(target.profile)
+        require(target.url==base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
+        require(homeId.matches(Regex("[a-f0-9]{64}")))
+        suspend fun verifyHome() {
+            if(profiles(tokens).singleOrNull {it.name==target.profile}?.pluginHome?.identity()!=homeId) throw CanonicalScopeChanged()
+        }
+        identity(tokens);verifyHome()
+        val ticket=gatewayTicket(tokens);dns.checkHost(base.host)
+        val channel=CanonicalGatewayChannel.connect(http,base,ticket,target,homeId)
+        try {verifyHome();return channel}
+        catch(error:Exception) {channel.close();throw error}
     }
     suspend fun skills(tokens:ManagementTokens,profile:String):JsonArray {SkillProtocol.profile(profile);return element("api/skills",tokens.access,profile=profile).jsonArray}
     suspend fun skillContent(tokens:ManagementTokens,profile:String,name:String):JsonObject {SkillProtocol.profile(profile);require(SkillProtocol.name(name));return element("api/skills/content",tokens.access,profile=profile,query=mapOf("name" to name)).jsonObject}

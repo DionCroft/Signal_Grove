@@ -1,29 +1,31 @@
 # Signal Grove audit execution plan
 
-## Current checkpoint — Windows build snapshot and accepted replay CI
+## Current checkpoint — authenticated canonical negotiation
 
-The Windows wrapper now builds a verified temporary E: source snapshot with E:
-intermediates/project/Kotlin caches, then publishes hash-verified APKs/reports to
-the requested checkout. Fresh638 JVM cases,186 policy, both lint0 and seven
-negative preflights pass against605 frozen inputs. Existing authentication and
-project native clients pass six method invocations across three preserved
-emulator profiles with local mocks. Source, original keys/data and28 old cache
-files are preserved. The freeze is closed. An unchanged repeat reuses cached
-results and verifies raw-report backup/retirement; it is not a fresh test run.
-See the Windows layout contract and VALIDATION for measurements and failures.
+The separate internal channel now verifies actor, selected profile home and
+strict ready/runtime identity before returning a binding. It sends one empty
+runtime.describe and no session operation. A sibling selection cannot borrow
+the primary instance. The existing operator socket keeps its behavior.
 
-Canonical replay e3d1b08 Android42422978712 is independently accepted at638 JVM,
-both lint0 and1016/API26 +1017/API37 distinct native methods. Its
-compatibility42422984535 is accepted at186/15/8/11+13 and166 source aliases.
-The preceding62de33d API37 run times out at5700s with806 positive methods and211
-uncompleted methods; retain that failed cohort separately. Its API26 and
-compatibility remain accepted. Exact-head gates for the new build chunk still
-precede merge/release; main6b and held release207c remain unchanged.
+Fresh 665 JVM cases (27 new), 191 policy and both lint0 pass against 610 inputs.
+One native method passes nine invocations across three preserved emulator
+profiles and mock/actual stable/actual prior backends. Each checks ten assertions;
+actual source-bound traces verify 19 records and no session restore/adoption.
+903/828 imported source inventories, keys/data/geometry and reverse bindings are
+preserved. Both freezes are closed; failed handshake and verifier attempts remain
+retained separately. Static stable passes 168 Git-bound aliases while preserving
+all prior F0 entries. See VALIDATION and the negotiation contract for exact scope.
 
-The production canonical reducer still has no UI caller or RPC transport.
-Continue the separate authenticated channel, explicit legacy adoption/lineage,
-complete handle/grant binding, workspace approvals and worker/file access.
-Every remaining ledger row stays required; the full audit goal remains active.
+This has no UI caller or resume/adoption/replay transport yet. Those stages,
+supported handle/grant binding, workspace approvals and worker/file access remain
+required. Do not send an interrupt just to obtain a full handle or infer execution
+state from a resume running flag. Every remaining ledger row stays required.
+
+Windows12a Android42429507721 verify passes; API26/API37 jobs remain live.
+Its compatibility42429514096 remains failed because main's saved-gateway callback
+dependency changed beneath unchanged middleware ASTs. Review it separately without
+waiving the source guard. Replaye3 full Android and compatibility stay accepted.
+Main6b and held release207c remain unchanged; exact-head gates precede merge/release.
 
 
 ## Historical checkpoint — authenticated project client

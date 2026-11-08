@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add a separate authenticated canonical handshake with strict actor/profile/home
+  and runtime binding, typed sibling-identity refusal and bounded wire parsing.
+  Add actual stable/prior Android conformance and source drift guards. Explicit
+  conversation attachment/adoption and its UI remain in development.
+
 - Build Windows intermediates and project/Kotlin caches on E:, preserving source
   and hash-verified final APK/report paths in the checkout and existing keys.
 
