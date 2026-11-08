@@ -19,8 +19,8 @@ class RuntimeChoiceTest {
         assertTrue(RuntimeChoice().fields().isEmpty())
         val chosen=RuntimeChoice("m","p",true,"high")
         val map=JsonObject(mapOf("a" to chosen.fields())).toString()
-        assertEquals(chosen,RuntimeChoice.saved(map,"a"));assertEquals(RuntimeChoice(),RuntimeChoice.saved(map,"b"))
-        assertEquals(RuntimeChoice(),RuntimeChoice.saved("broken","a"))
+        assertEquals(chosen,RuntimeChoice.saved(map,"a"));assertEquals(RuntimeChoice.automatic(),RuntimeChoice.saved(map,"b"))
+        assertEquals(RuntimeChoice.automatic(),RuntimeChoice.saved("broken","a"))
     }
     @Test fun malformedIdsAndContradictoryOptionsAreRefusedBeforeSending() {
         for(choice in listOf(RuntimeChoice("m\n"),RuntimeChoice("m",provider="p".repeat(81)),RuntimeChoice("m".repeat(257)),RuntimeChoice(provider="p"),RuntimeChoice("m",reasoning=false,effort="high"))) {

@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import org.hermesmobile.app.data.*
+import kotlinx.serialization.json.*
 import org.hermesmobile.app.ui.*
 import org.junit.After
 import org.junit.Assert.*
@@ -21,6 +22,16 @@ class RuntimeSelectionTest {
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
     private fun text(word:Words)=word.localized(vm.preferences.value)
+    private fun capturePreset(tag:String,name:String) {
+        val file=File(compose.activity.getExternalFilesDir(null),"qa/"+name+".png")
+        file.parentFile!!.mkdirs()
+        compose.onNodeWithTag(tag).assertIsDisplayed()
+        val bitmap=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            ?: error("The native screenshot was unavailable.")
+        try {file.outputStream().use {check(bitmap.compress(Bitmap.CompressFormat.PNG,100,it))}}
+        finally {bitmap.recycle()}
+    }
+
     @After fun reset() {
         compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
         compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
@@ -103,5 +114,68 @@ class RuntimeSelectionTest {
         compose.onNodeWithText(text(Words.ServerDefault)).performClick()
         compose.onNodeWithText(text(Words.ApplySettings)).performClick()
         compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
+    }
+
+    @Test fun automaticModeFreezesTheVerifiedDemoPairWithoutPinningPreferences()=runBlocking {
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(10000) {!vm.connecting.value && vm.preferences.value.demo}
+        compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice.automatic())}
+        compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.followServing}
+        compose.runOnUiThread {vm.newChat();vm.send("Automatic selection fixture")}
+        compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed"}
+        val c=app.database.dao().conversation(vm.selected.value)!!
+        val frozen=app.requests.read(c.scope,c.key,c.pendingKey,c.pendingRequestHash)
+        assertEquals("demo-model",frozen.body.text("model"));assertEquals("demo",frozen.body.text("provider"))
+        assertFalse(frozen.body.containsKey("_signal_grove_model_mode"))
+        val stored=RuntimeChoice.saved(app.preferences.flow.first().runtimeChoices,c.scope)
+        assertTrue(stored.followServing);assertTrue(stored.model.isBlank());assertTrue(stored.provider.isBlank())
+    }
+    @Test fun localServiceAndEffortControlsArePickersWithNoTextEntry() {
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(5000) {!vm.connecting.value && vm.preferences.value.demo}
+        compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
+        compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
+        compose.onAllNodesWithContentDescription(text(Words.Chat),useUnmergedTree=true).onLast().performClick()
+        compose.onNodeWithContentDescription(text(Words.Models)).performClick()
+        compose.onNodeWithTag("runtime-picker-list").performScrollToNode(hasTestTag("runtime-tier"))
+        compose.onNodeWithTag("runtime-tier").assertHasClickAction().assert(hasSetTextAction().not()).performClick()
+        compose.onNodeWithTag("runtime-tier-default").assertIsDisplayed()
+        capturePreset("runtime-tier-options","runtime-tier-presets")
+        compose.onNodeWithTag("runtime-tier-priority").assertDoesNotExist()
+        compose.onNodeWithTag("runtime-tier-default").performClick()
+        compose.onNodeWithTag("runtime-picker-list").performScrollToNode(hasTestTag("runtime-effort"))
+        compose.onNodeWithTag("runtime-effort").assertHasClickAction().assert(hasSetTextAction().not()).performClick()
+        compose.onNodeWithTag("runtime-effort-default").assertIsDisplayed()
+        compose.onNodeWithTag("runtime-effort-high").assertDoesNotExist()
+        compose.onNodeWithTag("runtime-effort-default").performClick()
+        compose.onNodeWithTag("runtime-apply").performClick()
+    }
+    @Test fun advertisedReasoningLevelsCanBePickedAndSavedWithoutTyping() {
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(5000) {!vm.connecting.value && vm.preferences.value.demo}
+        compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
+        compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
+        compose.onAllNodesWithContentDescription(text(Words.Chat),useUnmergedTree=true).onLast().performClick()
+        compose.onNodeWithContentDescription(text(Words.Models)).performClick()
+        compose.waitUntil(10000) {DiscoveryResource.Models !in vm.discovery.value.loading && vm.discovery.value.results.containsKey(DiscoveryResource.Models)}
+        // Explicit UI metadata fixture on Demo only; no owner credentials or real model are used.
+        compose.runOnUiThread {
+            check(vm.preferences.value.demo)
+            val old=vm.discovery.value
+            val payload=kotlinx.serialization.json.Json.parseToJsonElement("""{"model":"demo-model","provider":"demo","providers":[{"slug":"demo","authenticated":true,"models":["demo-model"],"capabilities":{"demo-model":{"reasoning":true,"fast":false}}}]}""").jsonObject
+            vm.discovery.value=old.copy(results=old.results+(DiscoveryResource.Models to payload))
+        }
+        compose.onNodeWithTag("runtime-picker-list").performScrollToNode(hasTestTag("runtime-effort"))
+        compose.onNodeWithTag("runtime-effort").performClick()
+        capturePreset("runtime-effort-options","runtime-effort-presets")
+        compose.onNodeWithTag("runtime-effort-options").performScrollToNode(hasTestTag("runtime-effort-high"))
+        compose.onNodeWithTag("runtime-effort-high").performClick()
+        compose.onNodeWithTag("runtime-apply").performClick()
+        compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.effort=="high"}
+        assertEquals(true,vm.requestedRuntime.value.reasoning)
+        assertEquals("",vm.requestedRuntime.value.model);assertEquals("",vm.requestedRuntime.value.provider)
     }
 }

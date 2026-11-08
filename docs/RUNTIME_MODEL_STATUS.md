@@ -4,31 +4,36 @@ Signal Grove keeps these observations separate:
 
 - **Verified serving model** comes from the optional authenticated runtime observer.
 - **Server default** is the selected model/provider in Hermes's model-options payload.
-- **Requested for this chat** is the phone's saved request selection; an empty selection inherits the server default.
+- **Requested for this chat** is the saved next-turn selection: Automatic, explicit Server default, or a chosen model/provider.
 - **Last model reported by this chat** comes from that conversation's public response telemetry, with its timestamp and reported lock state. It describes a past turn.
 
 The Home status summary and Chat header status button open full details. Chat
 keeps its message viewport; the summary adds no permanent rows there. Refresh is a
 read; Choose request model opens the existing picker. Selecting a model does not
-load weights or change a server default. Existing session locks retain precedence.
+load weights or change a server default. Hermes applies routing/session policy; the picker does not clear locks.
 English, Chinese and pinyin labels use the normal structured language layer.
 
 ## When the serving model and default differ
 
-A ready model does not automatically replace Hermes's saved default. If the
-default endpoint is offline while another model is ready, review an explicit
-request selection:
+New connections default to **Automatic · use serving model**. Existing explicit
+selections remain saved. For an existing connection:
 
-1. In Chat, open the model controls and choose **Enter IDs manually** if the
-   catalog picker does not expose the desired route.
-2. Copy the ready route's exact **Provider ID** and model ID from the reported
-   details into **Provider ID** and **Requested model**. The display label alone
-   is not always a provider ID.
-3. Choose **Apply to new turns**. Use a new conversation if an existing server
-   session has a conflicting lock; this selection does not clear that lock.
+1. In Chat, open model controls.
+2. Choose **Automatic · use serving model**, then **Apply to new turns**.
+3. Every new turn verifies fresh authenticated serving status and the exact
+   catalog provider/model. Stale, offline or ambiguous status keeps the draft.
+   A known reported conflicting session lock needs inspection.
 
-This changes the phone's request selection. It does not load weights, change the
-saved host default, evict another model or verify a later inference result.
+Automatic does not rewrite the saved default or load/evict weights. Servers
+without the advertised observer remain server-managed with no fixed phone
+model override. Explicit Server default sends no model/provider override.
+Manual model selection remains available. Frozen uncertain requests keep their
+original body/key even if Spark changes.
+
+Reasoning effort and service tier are preset menus. Reasoning choices use the
+advertised capability and Hermes's accepted effort ladder; Hermes may adapt them.
+Service choices appear only when offered for the model. Spark currently offers
+no service tiers, so use Server default. Preset IDs do not require typing.
 
 `HTTP400 invalid_title` is a separate session-creation error, before inference:
 the title can conflict with another conversation. Beta.6 generates distinct

@@ -26,6 +26,8 @@ Try the [1.1.0-beta.6 preview](https://github.com/DionCroft/Signal_Grove/release
 
 ## Features
 
+- **Automatic model selection (unreleased):** follow the freshly verified serving model for new turns, with reasoning/service preset menus. Explicit saved choices remain intact. [Setup](docs/RUNTIME_MODEL_STATUS.md).
+
 - **Model status:** Home summary and Chat model details distinguish verified serving identity, saved server default and requested/last-reported conversation models. Optional authenticated runtime observer; foreground refresh and explicit stale/error states. [Scope and setup](docs/RUNTIME_MODEL_STATUS.md).
 
 - Native Compose UI with phone navigation and a navigation rail on larger displays. Edge-to-edge layout, selectable Markdown/code blocks, copy, timestamps, conversation switching.

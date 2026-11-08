@@ -53,11 +53,23 @@ Recovery requests contain message/history data in app-private files. They contai
 
 Open the sliders icon in the Chat heading. Browse the server's provider/model inventory or explicitly enable manual IDs. Unauthenticated providers and account-unavailable models cannot be selected from the catalog. Refresh reloads the conservative inventory; full endpoint probing remains a separate action in Server details.
 
-Set an optional reasoning mode/effort or service tier. A nonempty effort enables reasoning in the picker. Provider support varies; Hermes validates the request. Options can also be requested while leaving the model/provider at server defaults. Apply stores the choice for this connection's future turns. Server default removes the request override and options; it does not remove a server session lock. Session locks and configured route precedence still govern the effective runtime. A bare manual model on compatibility endpoints may require server direct-model support.
+New connections default to **Automatic · use serving model**. On an existing
+connection, choose it in Chat's model controls and Apply to new turns; explicit
+saved choices remain intact. Automatic verifies fresh serving status and catalog
+identity before each new turn. Unavailable or ambiguous status keeps the draft.
+Servers without the advertised observer remain server-managed.
+
+Reasoning mode/effort and service tier use preset menus. Choices follow the
+model's capabilities; a nonempty effort enables reasoning. Hermes may adapt
+effort levels. No offered service tier means Server default only. Apply saves
+the next-turn choice. Explicit Server default clears the phone's model/provider/
+options override. Hermes applies routing/session policy. These controls do not
+load models or clear a server lock. Manual model IDs on compatibility endpoints
+may require direct-model support.
 
 Uncertain requests retain their saved model/provider/options even if you change the next-turn settings. The tool icon opens activity. The status icon opens the full run outcome and ID; recovery and stop actions appear when supported. Labels remain available in English/Chinese/pinyin to accessibility services. While typing, the compact header and hidden bottom navigation leave space for the composer. Dismiss the keyboard to restore navigation. New replies follow their end; dragging back stops automatic following until you return to the bottom or start a new turn.
 
-The branch icon opens Session controls for native Hermes conversations. Choose a requested model first, then review and confirm a session lock; a server lock takes precedence over future per-turn requests. There is no clear-lock control because the server has no verified route for it. Forking copies server history into a child and marks the original session branched. Review the child ID and title before confirming. Active runs can accept a reviewed guidance message; acceptance only confirms delivery. Refresh session metadata for server-supplied counts, runtime and usage, where present.
+The branch icon opens Session controls for native Hermes conversations. Choose a requested model first, then review and confirm a session lock; Hermes applies its routing/session-lock policy to future requests. There is no clear-lock control because the server has no verified route for it. Forking copies server history into a child and marks the original session branched. Review the child ID and title before confirming. Active runs can accept a reviewed guidance message; acceptance only confirms delivery. Refresh session metadata for server-supplied counts, runtime and usage, where present.
 
 An uncertain session mutation blocks further mutations and new turns on that connection. Inspect Hermes using the displayed target and saved request before marking the outcome reviewed. Reviewing the marker does not repeat or undo the operation. A lost fork acknowledgement retains the chosen child ID so you can locate it on Hermes. Older compatibility chats keep their local history and do not expose native session actions.
 

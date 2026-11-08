@@ -3237,7 +3237,7 @@ once and holds foreign/conflicting/gapped/truncated streams. No work, interrupt,
 workspace change, explicit detach/end_reason or reconnect is submitted.
 
 All five required tasks pass:703 fresh unique JVM cases (38 new),196 policy,
-both lint variants0errors and original CAB signers. E: contains intermediates
+both lint variants 0 errors and original CAB signers. E: contains intermediates
 and caches;617 frozen inputs,28 legacy cache files and163 published outputs
 are verified.18 targeted native invocations pass27 methods across the three
 preserved emulators:four new attachment/recovery methods against mocks, plus
@@ -3266,3 +3266,48 @@ terminal; never interrupt merely to obtain a full session handle.
 App SHA-256:3a057d75b6d97d1421526608d9d7765ddc2f66cc85503d961446c2dfa1bb04d3.
 Companion SHA-256:df9a30377258be27a531d966e6c4fb7204f17ec267fe1ae944315743fc58ade6.
 Unreleased111/1.1.0-beta.8 debug fixtures; no phone/publication acceptance.
+
+## 8 November - serving-model defaults and preset controls validated
+
+New/unconfigured connections default to Automatic: resolve a fresh, authenticated,
+unambiguous serving provider/model against the same connection's catalog before
+creating a session or freezing each new turn. An unavailable/stale/ambiguous
+observation or known conflicting reported lock holds the draft and submits
+nothing. Saved pending requests retain their exact concrete body/key. Older
+servers without the optional extension remain server-managed. Existing explicit
+choices stay intact; choose Automatic for an existing connection to follow Spark.
+
+Reasoning and service are preset pickers. Reasoning uses Hermes' accepted effort
+ladder when advertised; Hermes may adapt it. Service choices come only from that
+model's capability flags. The owner's Spark advertises reasoning and no service
+tiers. Global saved/boot defaults and loaded weights were not changed.
+
+All five required tasks pass: 721 fresh unique JVM cases (18 new), 197 policy
+checks, debug/release lint 0 errors and original CAB signers. All 620 frozen source
+inputs and E: build contexts, 28 legacy cache files and 165 published outputs
+are verified. All 21 affected native methods pass on each of the three preserved
+emulators (63 method executions), including automatic request freezing, no POST/
+session creation with unverified status, preset selection, no text-entry actions
+and the prior model-status regressions. Fresh preset images are retained.
+All 177 Git-bound stable source aliases pass; the new capability watch binds
+complete inventory bytes. Every prior F0 entry is unchanged.
+
+The first build passed; its five parser-fixture failures are retained. Synthetic
+valid future snapshots were completed with the newly required inventory identity;
+body/source change/removal counterfactuals still refuse. A fresh complete build,
+parser suite and affected native cohort pass after that fixture correction.
+The first affected API26 run retained two screenshot-helper failures; both API37
+runs passed. Android native screenshot capture fixes API26 support without
+skipping control assertions, followed by a fresh complete affected cohort.
+
+Exact held207c was separately upgraded in place on the owner's phone with its
+original production key. Earlier messages, connected state, dashboard identity/
+profile, saved projects and an existing project's details load. No owner
+instrumentation, credential fixture, reset, project write or retry was used.
+The current chat's requested RVN pair matches the serving pair; the saved server
+default is offline stock. The old failed-turn notice has no established cause.
+
+These are local affected checks. Complete exact-head hosted/release gates and
+the new production-signed phone upgrade before publishing the model changes.
+Main6b and held207c remain fixed. The canonical viewer WIP is preserved privately;
+continue it and every other open audit row. The full audit goal stays active.

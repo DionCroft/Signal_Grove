@@ -51,7 +51,7 @@ class PreferenceStore(context: Context) {
         urlValue?.let {p[url]=it};demoValue?.let {p[demo]=it};httpValue?.let {p[http]=it}
     }}
     suspend fun runtime(scope: String,choice: RuntimeChoice) {
-        val fields=choice.fields();require(scope.isNotBlank())
+        val fields=choice.storedFields();require(scope.isNotBlank())
         store.edit {p ->
             val old=runCatching {Json.parseToJsonElement(p[runtimes] ?: "{}").jsonObject}.getOrDefault(JsonObject(emptyMap()))
             val rows=old.filterKeys {it!=scope}.entries.toList().takeLast(63).associate {it.key to it.value}+mapOf(scope to fields)

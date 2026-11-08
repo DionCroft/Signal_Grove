@@ -93,7 +93,7 @@ private fun observationTime(value:Long)=DateTimeFormatter.ofPattern("yyyy-MM-dd 
         inventory?.provider?.takeIf {it.isNotBlank()}?.let {Text(it,style=MaterialTheme.typography.bodySmall)}
         if(discovery.results.containsKey(DiscoveryResource.Models) && modelStatusCached(discovery.fetchedAt[DiscoveryResource.Models],now,discovery.errors.containsKey(DiscoveryResource.Models) || !connected)) Text(label(Words.ModelCachedConfiguration),Modifier.testTag("model-configured-cached"),style=MaterialTheme.typography.labelSmall)
         Text(label(Words.ModelChatSelection),style=MaterialTheme.typography.titleSmall)
-        Text(choice.model.ifBlank {label(Words.ServerDefault)},Modifier.testTag("model-request-selection"))
+        Text(if(choice.followServing) label(Words.FollowServing) else choice.model.ifBlank {label(Words.ServerDefault)},Modifier.testTag("model-request-selection"))
         if(choice.provider.isNotBlank()) Text(choice.provider,style=MaterialTheme.typography.bodySmall)
         conversation?.reported?.let {reported->
             Text(label(Words.ModelLastReported),style=MaterialTheme.typography.titleSmall)
@@ -131,7 +131,7 @@ private fun observationTime(value:Long)=DateTimeFormatter.ofPattern("yyyy-MM-dd 
         Column(Modifier.fillMaxWidth().clickable {onOpen?.invoke()}.testTag("chat-model-status").padding(vertical=4.dp),verticalArrangement=Arrangement.spacedBy(2.dp)) {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 Text(label(Words.ModelChatSelection),Modifier.weight(.45f),maxLines=3,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)
-                Text(choice.model.ifBlank {label(Words.ServerDefault)},Modifier.weight(.55f),maxLines=2,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelMedium)
+                Text(if(choice.followServing) label(Words.FollowServing) else choice.model.ifBlank {label(Words.ServerDefault)},Modifier.weight(.55f),maxLines=2,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelMedium)
             }
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 Text(label(if(cached) Words.ModelCachedShort else Words.ServingModels),Modifier.weight(.45f),maxLines=3,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)

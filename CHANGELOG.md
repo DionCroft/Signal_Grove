@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Default new connections to Automatic serving-model selection for new turns;
+  retain explicit choices and frozen retries. Replace free-text reasoning effort
+  and service tier with supported preset menus. Hold unavailable model status
+  before creating a session or submitting work.
+
 - Add internal reviewed canonical session eligibility/adoption, durable unknown/
   acknowledged receipts and bounded attach-first replay. Validate real stable/
   prior behavior and recovery on preserved emulators; canonical UI and worker/

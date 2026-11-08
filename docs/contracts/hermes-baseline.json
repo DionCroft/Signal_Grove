@@ -8713,7 +8713,8 @@
     "canonical_controls:AuthorityConnection.resume",
     "canonical_controls:AuthorityConnection.events_since",
     "canonical_controls:AuthorityConnection.close",
-    "canonical_controls:_resume_transcript"
+    "canonical_controls:_resume_transcript",
+    "model_inventory:_apply_capabilities"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -10772,6 +10773,24 @@
           "gateway_ws": "d798ccd9328709c8c010820deb71a1b2adc28fbf5f5bfd6031cf1545e0ebd8e3"
         },
         "reason": "Reviewed bounded session.list scopes, explicit one-use resume/adoption, server-resolved lineage, attach-first event replay and ordinary orphan viewer lifecycle. Source-backed stable/prior probes preserve transcripts and admit no work."
+      }
+    ],
+    "model_inventory:_apply_capabilities": [
+      {
+        "sha256": "99bfdc20f1964f13446674b5e3c67ffae8d12c1b8940e46d7f904841b0f7176d",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "required_sources": {
+          "model_inventory": "e752a4a0f0f292878ab39c9791d12705dac5d6d7b6b08dd1bc5d47886b3b4235"
+        },
+        "reason": "Reviewed per-model reasoning/can-disable and fast/ultrafast/daybreak offers; the request preset menus consume only this advertised projection. Bind complete inventory bytes and preserve every earlier baseline entry."
+      },
+      {
+        "sha256": "bab5f0034b27477d542545febc03e7dbacd3595b6c60f57a3dd675c1dfc6ebb9",
+        "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "required_sources": {
+          "model_inventory": "db3710c659155baabc7f599acef8f737974f8c8fbad365f35f01890daaac1e01"
+        },
+        "reason": "Reviewed per-model reasoning/can-disable and fast/ultrafast/daybreak offers; the request preset menus consume only this advertised projection. Bind complete inventory bytes and preserve every earlier baseline entry."
       }
     ]
   },

@@ -101,7 +101,33 @@ class ModelStatusFlowTest {
                 compose.runOnUiThread {vm.refreshModelStatus(true)};compose.waitUntil(15000) {calls.get()==expected};waitRead()
                 assertEquals(previous,vm.discovery.value.results[DiscoveryResource.RuntimeModels]);assertEquals(at,vm.discovery.value.fetchedAt[DiscoveryResource.RuntimeModels]);assertTrue(vm.discovery.value.errors.containsKey(DiscoveryResource.RuntimeModels))
             }
-            assertTrue(RuntimeChoice.saved(vm.preferences.value.runtimeChoices,vm.profileScope.value).isDefault)
+            val untouched=RuntimeChoice.saved(vm.preferences.value.runtimeChoices,vm.profileScope.value)
+            assertTrue(untouched.followServing);assertTrue(untouched.model.isBlank());assertTrue(untouched.provider.isBlank())
+        }
+    }
+
+    @Test fun unverifiedAutomaticSelectionCannotCreateASessionOrSubmitTheDraft() {
+        val posts=AtomicInteger();val runtimeReads=AtomicInteger()
+        MockWebServer().use {server->
+            server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse {
+                if(request.method!="GET") {posts.incrementAndGet();return json("{}").setResponseCode(500)}
+                return when {
+                    request.path=="/work/v1/capabilities"->json("""{"features":{"model_runtime_status_v1":true,"model_options":true,"session_resources":true,"session_chat":true,"run_events_sse":true},"endpoints":{"runs":{"method":"POST","path":"/api/runs"},"model_runtime_status":{"method":"GET","path":"/api/model/runtime-status"},"model_options":{"method":"GET","path":"/api/model/options"}}}""")
+                    request.path=="/work/api/model/runtime-status"->{runtimeReads.incrementAndGet();json("""{"object":"signalgrove.model_runtime","schema_version":1,"observed_at":123000,"status":"unavailable","models":[{"provider":"fixture","model":"offline","state":"offline","verified":false}]}""")}
+                    request.path=="/work/api/model/options"->json("""{"model":"saved-offline","provider":"fixture","providers":[]}""")
+                    request.path.orEmpty().contains("/api/sessions")->json("""{"sessions":[]}""")
+                    request.path.orEmpty().contains("/api/jobs")->json("""{"jobs":[]}""")
+                    else->json("{}").setResponseCode(404)
+                }
+            }}
+            connect(server,"work/")
+            compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice.automatic())}
+            compose.waitUntil(5000) {!vm.controlBusy.value}
+            compose.runOnUiThread {vm.newChat();vm.draft.value="Keep this draft";vm.send()}
+            compose.waitUntil(10000) {!vm.busy.value && runtimeReads.get()>0}
+            assertEquals(0,posts.get());assertTrue(vm.selected.value.isBlank())
+            assertEquals("Keep this draft",vm.draft.value)
+            assertEquals(Words.FollowServingUnavailable.localized(vm.preferences.value),vm.error.value)
         }
     }
 }

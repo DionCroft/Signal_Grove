@@ -117,7 +117,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
     override fun onCleared() {discardImages(imageDraft.value);super.onCleared()}
 
-    val requestedRuntime=combine(preferences,scope) {p,partition -> RuntimeChoice.saved(p.runtimeChoices,partition)}.stateIn(viewModelScope,SharingStarted.Eagerly,RuntimeChoice())
+    val requestedRuntime=combine(preferences,scope) {p,partition -> RuntimeChoice.saved(p.runtimeChoices,partition)}.stateIn(viewModelScope,SharingStarted.Eagerly,RuntimeChoice.automatic())
     private var api: HermesApiClient=UnavailableHermesApiClient()
     private data class ConnectionContext(val client: HermesApiClient,val partition: String)
     private fun context()=ConnectionContext(api,scope.value)
@@ -291,7 +291,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun chooseRuntime(expectedScope: String,choice: RuntimeChoice) {
         if(busy.value || connecting.value || controlBusy.value || expectedScope!=scope.value) return
         try {choice.validate()} catch(e: Exception) {error.value=connectionError(e);return}
-        if(!choice.isDefault && capabilities.value?.has("model_options")!=true && capabilities.value?.endpoints?.containsKey("model_options")!=true) {error.value=Words.NotAdvertised.localized(preferences.value);return}
+        if(!choice.followServing && !choice.isDefault && capabilities.value?.has("model_options")!=true && capabilities.value?.endpoints?.containsKey("model_options")!=true) {error.value=Words.NotAdvertised.localized(preferences.value);return}
         controlBusy.value=true
         viewModelScope.launch {
             try {graph.preferences.runtime(expectedScope,choice)}
@@ -385,18 +385,35 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             error.value=null; activity.value=""
             var receipt:Conversation?=null
             try {
+                val operation=context();val expectedSelection=selected.value
                 require(dao.unresolvedServerOperations(scope.value).isEmpty()) {Words.ReviewServerOutcome.localized(preferences.value)}
                 val pictures=imageDraft.value
                 require(pictures==null || (pictures.scope==scope.value && pictures.conversation==selected.value)) {Words.ImageContextChanged.localized(preferences.value)}
-                var c=selected.value.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
+                var c=expectedSelection.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
+                require(c==null || c.scope==operation.partition) {"Conversation scope changed."}
                 c?.let {SessionOrigin.requireWritable(it,Words.ReadOnlySession.localized(preferences.value))}
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }
                 val transport=when {c?.transport=="compat"->"compat";preferences.value.demo->"demo";capabilities.value?.sessions==true && capabilities.value?.runs==true->"runs";capabilities.value?.nativeStream==true->"session";else->"compat"}
+                val stored=RuntimeChoice.saved(graph.preferences.flow.first().runtimeChoices,operation.partition)
+                if(stored.followServing) activity.value=Words.FollowServingChecking.localized(preferences.value)
+                val previousMessages=c?.let {dao.history(it.key)}.orEmpty()
+                val previousRuntime=conversationModelStatus(stored,c,previousMessages,operation.partition)
+                val resolved=AutomaticRuntime.beforeNewTurn(stored,capabilities.value,operation.client,
+                    current={current(operation) && selected.value==expectedSelection},
+                    knownLock=previousRuntime.reported.takeIf {previousRuntime.lockReported})
+                if(!current(operation) || selected.value!=expectedSelection) throw CancellationException("Conversation selection changed.")
+                require(resolved.choice.isDefault || capabilities.value?.has("model_options")==true || capabilities.value?.endpoints?.containsKey("model_options")==true) {Words.NotAdvertised.localized(preferences.value)}
+                val fetched=System.currentTimeMillis()
+                resolved.runtime?.let {result->discovery.value=discovery.value.copy(results=discovery.value.results+(DiscoveryResource.RuntimeModels to result),
+                    fetchedAt=discovery.value.fetchedAt+(DiscoveryResource.RuntimeModels to fetched),errors=discovery.value.errors-DiscoveryResource.RuntimeModels)}
+                resolved.catalog?.let {result->discovery.value=discovery.value.copy(results=discovery.value.results+(DiscoveryResource.Models to result),
+                    fetchedAt=discovery.value.fetchedAt+(DiscoveryResource.Models to fetched),errors=discovery.value.errors-DiscoveryResource.Models)}
                 if(c == null) {
                     val id="api_mobile_${UUID.randomUUID().toString().replace("-","")}"
                     val title=if(transport!="compat" && transport!="demo" && capabilities.value?.sessions==true) NewSessionTitle.create(text,id,Words.ImageMessage.en) else text.take(60).ifBlank {Words.ImageMessage.en}
-                    val remote=if(transport!="compat" && capabilities.value?.sessions==true) api.createSession(id,title) else RemoteSession(id,title)
-                    c=Conversation("${scope.value}:${remote.id}",scope.value,remote.id,remote.title,
+                    val remote=if(transport!="compat" && capabilities.value?.sessions==true) operation.client.createSession(id,title) else RemoteSession(id,title)
+                    if(!current(operation) || selected.value!=expectedSelection) throw CancellationException("Conversation selection changed.")
+                    c=Conversation("${operation.partition}:${remote.id}",operation.partition,remote.id,remote.title,
                         channelKey=if(capabilities.value?.features?.text("session_key_header")=="X-Hermes-Session-Key") "mobile_${UUID.randomUUID()}" else "",detailsJson=SessionOrigin.retain("",remote.source))
                     dao.save(c); selected.value=c.key
                     if(pictures!=null) imageDraft.value=pictures.copy(conversation=c.key)
@@ -411,8 +428,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     }
                 }}.orEmpty()}
                 val user=ChatMessage("${key}_user",c.key,"user",text,imagesJson=ImageContent.encode(imageRefs))
-                val requested=RuntimeChoice.saved(graph.preferences.flow.first().runtimeChoices,c.scope)
-                require(requested.isDefault || capabilities.value?.has("model_options")==true || capabilities.value?.endpoints?.containsKey("model_options")==true) {Words.NotAdvertised.localized(preferences.value)}
+                val requested=resolved.choice
+
                 val target=c;val history=dao.history(target.key)+user;val model=capabilities.value?.model ?: "hermes-agent"
                 val request=withContext(Dispatchers.IO) {TurnRequest.create(target,history,model,requested) {m -> graph.images.content(target.scope,target.key,m)}}
                 val hash=withContext(Dispatchers.IO) {graph.requests.freeze(c.scope,c.key,key,request)}
@@ -423,7 +440,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 draft.value="";clearDraftImages()
                 execute(c)
             } catch(e: CancellationException) { throw e }
-            catch(e: Exception) {error.value=if(e is RequestTooLarge) Words.RequestTooLarge.localized(preferences.value) else connectionError(e);receipt?.let {dao.submissionUnknown(it);runStatus.value=dao.conversation(it.key)?.status ?: "unknown"}}
+            catch(e: Exception) {error.value=when(e) {is AutomaticModelConflict->Words.FollowServingLockConflict.localized(preferences.value);is AutomaticModelUnavailable->Words.FollowServingUnavailable.localized(preferences.value);is RequestTooLarge->Words.RequestTooLarge.localized(preferences.value);else->connectionError(e)};receipt?.let {dao.submissionUnknown(it);runStatus.value=dao.conversation(it.key)?.status ?: "unknown"}}
             finally { busy.value=false }
         }
     }

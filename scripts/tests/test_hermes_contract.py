@@ -125,6 +125,13 @@ def complete_replacement_fixture(value, contract):
         if selected==entry['sha256']:
             contract['source_hashes'].update(entry.get('required_sources',{}))
             break
+    # The new capability consumer uses a whole-inventory fence. Complete only the
+    # synthetic valid fixture; mutations below still change/remove that exact fence.
+    key='model_inventory:_apply_capabilities'
+    for entry in reversed(value.get('reviewed_handler_variants',{}).get(key,[])):
+        if contract['handlers'].get(key)==entry['sha256']:
+            contract['source_hashes'].update(entry['required_sources'])
+            break
     for retired, entries in value.get('reviewed_handler_replacements', {}).items():
         entry = entries[-1]
         contract['handlers'].pop(retired, None)
@@ -1079,3 +1086,26 @@ class RunProjectionProgressVariantTests(unittest.TestCase):
         result=checker.compare(value,current)
         self.assertTrue(result['mobile_review_required'])
         self.assertEqual({key},set(result['mobile_relevant_changes']['changed_used_handlers']))
+
+
+class RuntimePresetCapabilityWatchTests(unittest.TestCase):
+    def test_capability_consumer_requires_reviewed_body_and_complete_inventory_source(self):
+        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        key='model_inventory:_apply_capabilities'
+        self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
+        self.assertIn(key,value['mobile_used_handlers'])
+        self.assertNotIn(key,value['upstream']['contract']['handlers'])
+        current=copy.deepcopy(value['upstream']['contract'])
+        for introduced,entries in value['reviewed_handler_variants'].items():
+            if introduced not in current['handlers']:current['handlers'][introduced]=entries[-1]['sha256']
+        complete_replacement_fixture(value,current)
+        self.assertFalse(checker.compare(value,{'commit':'e'*40,'contract':current})['mobile_review_required'])
+        for mode in ('changed_body','missing_body','changed_source','missing_source'):
+            changed=copy.deepcopy(current)
+            if mode=='changed_body':changed['handlers'][key]='0'*64
+            elif mode=='missing_body':changed['handlers'].pop(key)
+            elif mode=='changed_source':changed['source_hashes']['model_inventory']='0'*64
+            else:changed['source_hashes'].pop('model_inventory')
+            result=checker.compare(value,{'commit':'e'*40,'contract':changed})
+            self.assertTrue(result['mobile_review_required'])
+            self.assertIn(key,result['mobile_relevant_changes']['changed_used_handlers'])
