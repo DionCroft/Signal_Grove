@@ -1,5 +1,32 @@
 # Signal Grove audit execution plan
 
+## Current checkpoint - beta.8 full gates pass; phone acceptance in progress
+
+The exact application source is `d0c01b818604b3dee057d544cff432d27c8bba63`,
+Android code 111 /1.1.0-beta.8. Full hosted Android acceptance is 727 JVM,
+1026 API26 and 1027 API37 methods, with zero failures, errors, skips or unfinished
+methods and zero debug/release lint errors. Compatibility also passes 201 policy
+cases,185 Git-bound stable/current-main aliases and 32 bounded module probes.
+See [validation](VALIDATION.md) and the [candidate notes](releases/1.1.0-beta.8.md).
+
+Original-key production/debug APKs, checksums, public certificate and the
+schema-validated runtime SBOM are staged in one private release draft. All five
+authenticated draft downloads match reviewed bytes. The resolved runtime inventory
+covers 150 Maven components, 95 binary inputs and 8 packaged native files; the
+8 November OSV query found no matching known runtime advisories. This does not
+certify the build toolchain, server, plugins or absence of unknown vulnerabilities.
+
+The production phone upgrade is installed in place with the original signer,
+expected APK bytes, unchanged UID/first-install time and retained connected state.
+Post-upgrade history/project retention and a fresh Automatic live turn remain
+physical release gates. USB navigation taps are ignored; manual navigation is
+pending. No owner fixtures, reset, uninstall, model switch or Pi update occurred.
+
+Keep the draft private until those checks finish, then publish that same draft
+and verify public downloads. Main `6b809e6` and held `207c6b4` stay fixed. Continue the preserved
+canonical viewer (768 JVM-only passes; full/UI/native acceptance pending) and
+every open audit row. Beta.8 does not complete the audit goal.
+
 ## Current checkpoint - current Hermes authority and metadata recovery validated
 
 All five required tasks pass: 727 fresh unique JVM cases, 201 policy checks and

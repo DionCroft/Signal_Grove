@@ -1,5 +1,58 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 - beta.8 exact-source full hosted and signed release checks
+
+Candidate application source: `d0c01b818604b3dee057d544cff432d27c8bba63`.
+These results supersede the pending hosted-gate status in earlier checkpoints;
+old failed attempts remain failed.
+
+| Check | Verified result |
+| --- | --- |
+| [Full Android run 42449597301](https://github.com/DionCroft/Signal_Grove/actions/runs/42449597301) | 727 JVM / 75 XML, debug and release lint 0; API26: 1026 and API37: 1027 distinct methods, exact eligible source sets, zero failures/errors/ignored/unfinished |
+| [Compatibility run 42449602987](https://github.com/DionCroft/Signal_Grove/actions/runs/42449602987) | 201 policy checks; stable `2bd378e` / main `21ae0e1` source inventories match complete local 185-alias comparisons; registry 8 and two response-sidecar cohorts 11/13 |
+| Original-key local production build |All required tasks plus release assembly pass; package `org.hermesmobile.app`, version 111/beta.8, minSDK 26 / target 37; release/debug signers unchanged |
+| Private draft assets |Production/debug APKs, SHA256SUMS, public certificate and runtime SBOM: all 5 uploaded digests and authenticated downloaded byte hashes match |
+| Runtime inventory/advisories | CycloneDX 1.6 schema valid; 150 Maven components, 95 input binaries and 8 packaged native files; all95 inputs match strict verification metadata; OSV 0 matching known runtime advisories at 2026-11-08T06:18:01Z |
+
+Raw hosted artifact ZIP digests are verified independently before parsing. Native
+logs contain all eligible exact-source methods, including the original unknown-
+write case and the 21 affected model methods on both platforms. API26 excludes
+only the source-declared minSDK37 local-network test. Actual job logs bind the
+reviewed artifact ID/digest and explicit source-defined APK paths. CI does not
+emit independent installed-APK hashes, so no such stronger claim is made.
+The earlier 724 dialog/root failure remains a failed observation with unresolved
+root cause; later complete execution of the unchanged case passes. No assertion
+or device deadline was weakened to obtain these results.
+
+The production APK SHA256 is
+`21950510603316cf7bbc098f21c7137be78c928645c69542d82adaf71ae96d9e`;
+its signer SHA256 is
+`bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`.
+The optional debug APK SHA256 is
+`64fb9bd20bac7c4e12022740aa5388dab3b53c9e46e7e3832d23383c08ea96df`.
+Technical APK filenames retain the installed updater's `hermes-agent-mobile-`
+protocol convention. This is not a change to the Signal Grove brand.
+
+A real in-place production upgrade to this exact APK is independently confirmed
+on the connected API37 phone: unchanged UID/first-install time and retained
+connected UI. Read-only existing-project details passed immediately before the
+upgrade. Post-upgrade existing messages/projects and a fresh Automatic live turn
+remain pending. Xiaomi ignores USB navigation taps; no owner instrumentation,
+debug fixture, reset or uninstall is used. A private draft is not public-release
+acceptance. Public download verification follows publication after the remaining
+physical checks.
+
+The OSV positive control returned known advisories for an unrelated deliberately
+vulnerable coordinate. Pagination was exhausted. The SBOM schema is bound to the
+official immutable schema source `55343ba19dee1785acf1ce9191540d5fd7b590db`.
+These are bounded runtime inventory/known-advisory results, not full build-tool,
+backend/plugin security review or a claim that no vulnerability exists.
+
+A separate preserved canonical-viewer WIP passes 768 JVM cases, including 41 new
+controller/checkpoint/heartbeat methods. Its full build, UI/native and actual-
+source conformance gates remain open; it is absent from the beta.8 APKs. No full
+worker/workspace/file, physical voice/background or integration parity is claimed.
+
 ## 8 November 2026 - current-main authority and metadata read recovery
 
 The immutable Hermes main revision 21ae0e1238fdf466fa52a85a6ebf75d6899e49da
