@@ -1,5 +1,56 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 - actual pinned viewer heartbeat conformance
+
+All five required tasks pass 768 fresh unique JVM cases/78 XML reports and both
+lint variants 0, with every earlier method retained. Policy passes 205 cases,
+including four new fixture RPC-boundary regressions; runtime-observer passes 15.
+All 636 frozen source/context inputs, published outputs, original CAB keys and 28
+legacy checkout cache files match. The production application code is unchanged;
+the debug app APK remains af401e740fee4645f3708f479e03268529fe70f84eb10a789cabedfb0fd379e3.
+
+Fifteen explicit-emulator controllers pass 69 method executions. The mock cohort
+runs 15 methods per API26, large API37 and compact API37, retaining all 14 viewer
+UI/Room cases and adding the real controller/repository heartbeat flow. Each
+also creates native synthetic activity/review screenshots. Four images covering
+all three profiles were visually inspected; large trilingual titles constrain
+the small-screen body, but scrolling reaches consent/options and both decisions.
+No claim that all review text fits simultaneously is made.
+
+The five earlier adoption/recovery methods pass separately on each emulator
+(15 additional executions), with every original unknown-outcome assertion kept.
+
+The nine real pairings cover each emulator against stable `2bd378e`, main `21ae0e1`
+and prior `bf0203a`. A fresh PKCE login verifies the profile home before inventory.
+Stable/main independently verified wires contain exactly 29 records: read-only
+inventory, two ticketed sockets, one reviewed resume/replay, three empty
+outer gateway.ping calls and authenticated identity/home reads. The initial
+applied cursor is stored/read through Room; receipt summaries contain no transcript
+or execution conclusion. Close releases the installation guard without reopen.
+Prior's 12-record wire returns no remotely eligible legacy row and never adopts.
+
+Each owned real fixture stops with 0 unexpected audit denials, admissions and
+worker executions. Transcripts remain byte-identical. The exact five allowed
+ownership metadata keys may change only on the selected synthetic default row;
+prior changes none. Reverse bindings, AVD configuration/geometry and all protected
+shared-preference hashes are restored/preserved. Every imported source file is
+independently compared with its immutable Git-tree blob and fixture SHA256:
+stable 1301, main 1318 and prior 838 union files (prior individual 833/838/838).
+Audit hooks are defense in depth, not an OS sandbox.
+
+The fixture adds a default-off --allow-viewer-heartbeat flag, legal only on its
+canonical-session surface. The finite eight-RPC/session-ID/payload boundary stays
+in force; empty heartbeat is the sole added method. Counterfactuals reject missing
+heartbeat opt-in, nonempty/malformed payloads, foreign IDs, cursor/type/count overflow,
+work/control/file methods and unknown RPCs. The native client uses unchanged
+production code and the official pinned outer WS response, exactly ok=true.
+
+Scope: idle initial-cursor and periodic-owner/heartbeat conformance, not advancing
+live-event observation/checkpoint progression, active inference/worker execution,
+external browser/TLS/IdP/Pi deployment, or owner-phone canonical acceptance.
+Advancing event coverage and full exact-head hosted gates remain open. The signed
+d0 beta.8 release assets and owner installation are separate and unchanged.
+
 ## 8 November 2026 - foreground canonical viewer local acceptance
 
 A fresh five-task build passes 768 unique JVM methods across 78 XML reports,

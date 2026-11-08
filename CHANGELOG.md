@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Verify canonical viewer initial cursors and authenticated outer heartbeats
+  against pinned stable/prior/main on three emulator profiles, with Git-bound
+  source imports, native layouts and finite fixture refusal tests. Advancing
+  real-source activity and full exact-head hosted acceptance remain open.
+
 - Add a foreground canonical activity viewer with explicit restore/adoption consent,
   applied-cursor recovery, heartbeat ownership checks and lifecycle/update guards.
   Local JVM/Compose/Room gates pass; actual-source and full hosted acceptance

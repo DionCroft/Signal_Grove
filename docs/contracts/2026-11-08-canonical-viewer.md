@@ -52,3 +52,30 @@ Existing stable/prior/current-main negotiation/adoption results apply only to
 their recorded earlier source/scope. No owner-phone canonical adoption, worker
 admission, project filesystem operation, Pi deployment or broad integration
 certification follows from these local checks.
+
+## Pinned native heartbeat acceptance
+
+The next conformance chunk retains the application APK exactly and adds one
+native contract method plus a default-off, eight-RPC bounded fixture heartbeat
+flag and four refusal tests. A fresh complete build passes 768 JVM, both lint 0,
+205 policy and 15 runtime-observer cases. Fifteen explicit-emulator controllers
+pass 69 method executions: 45 mock/UI/Room, 15 preserved adoption/recovery
+regressions and nine actual-source pairings.
+Original keys, preferences, AVD geometry, 28 legacy cache files and all 636
+frozen source/context inputs match. Native screenshots are retained privately.
+
+Stable `2bd378e` and main `21ae0e1` each show an independently verified 29-record
+native PKCE/identity/home/ticket/socket/inventory/resume/replay/heartbeat trace.
+There is exactly one opening, two sockets and three outer pings; authenticated
+owner/home checks and Room initial applied-cursor readback pass. Prior `bf0203a`
+shows the expected 12-record empty-eligibility refusal. All nine fixtures stop,
+with exact transcripts, only the allowed synthetic ownership metadata delta,
+zero admissions/worker executions and restored reverse bindings. All imported
+source files match immutable Git blobs: stable 1301, main 1318, prior union 838.
+
+This covers an idle initial cursor and periodic heartbeat. Advancing real-source
+activity/checkpoint progression and full exact-head hosted gates remain open.
+It does not certify an active provider, worker, filesystem, external TLS/browser,
+real identity provider, owner-phone canonical session or current moving main.
+The parent d40 canary now observes `8d7061`; changed pool/auxiliary internals need
+separate triage even though selected mobile watches report no review required.

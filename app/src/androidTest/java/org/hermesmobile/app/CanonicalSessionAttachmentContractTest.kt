@@ -4,6 +4,7 @@ import androidx.room.Room
 import android.os.Build
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -11,6 +12,8 @@ import okhttp3.mockwebserver.*
 import okhttp3.mockwebserver.Dispatcher as MockDispatcher
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
+import org.hermesmobile.app.ui.*
+import org.hermesmobile.app.updates.UpdateWorkGuard
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
@@ -34,7 +37,7 @@ class CanonicalSessionAttachmentContractTest {
     }
     private data class Pending(val challenge:String,val redirect:HttpUrl,val state:String)
     private class Fixture(val mode:String="normal"):AutoCloseable {
-        val resumes=AtomicInteger();val replays=AtomicInteger();val sockets=AtomicInteger()
+        val resumes=AtomicInteger();val replays=AtomicInteger();val sockets=AtomicInteger();val pings=AtomicInteger()
         val profileReadAttempts=AtomicInteger()
         val server=MockWebServer()
         val failures=AtomicInteger()
@@ -46,7 +49,7 @@ class CanonicalSessionAttachmentContractTest {
         private fun listener()=object:WebSocketListener() {
             override fun onOpen(ws:WebSocket,response:Response) {
                 sockets.incrementAndGet()
-                ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"replay_epoch":"fixture-ring","session_authority":true}}}""")
+                ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"heartbeat":${mode=="viewer"},"replay_epoch":"fixture-ring","session_authority":true}}}""")
             }
             override fun onMessage(ws:WebSocket,text:String) {
                 try {
@@ -54,6 +57,10 @@ class CanonicalSessionAttachmentContractTest {
                     val id=frame["id"]!!;val params=frame["params"]!!.jsonObject
                     fun reply(result:JsonObject)=ws.send(buildJsonObject {put("jsonrpc","2.0");put("id",id);put("result",result)}.toString())
                     when(method) {
+                        "gateway.ping"->{
+                            check(mode=="viewer" && params.isEmpty());pings.incrementAndGet()
+                            reply(buildJsonObject {put("ok",true)})
+                        }
                         "runtime.describe"->{
                             check(params.isEmpty())
                             reply(Json.parseToJsonElement("""{"instance_id":"fixture-native-default","profile_id":"/fixture/homes/default","authority_epoch":1,"capabilities":["durable-admission-v1","event-replay-v1"],"session_create":{"sources":["cli"],"parameters":["title"]}}""").jsonObject)
@@ -165,6 +172,87 @@ class CanonicalSessionAttachmentContractTest {
     private fun base(f:Fixture)=f.server.url("/dashboard/").newBuilder().host("127.0.0.1").build().toString()
     private fun target(api:ManagementClient,tokens:ManagementTokens,profile:String="default")=ManagementTarget("b".repeat(64),api.base.toString(),profile,tokens.provider+" · "+tokens.userId)
     private suspend fun home(api:ManagementClient,tokens:ManagementTokens)=checkNotNull(api.profiles(tokens).single {it.name=="default"}.pluginHome).identity()
+
+    @Test fun viewerHeartbeatUsesRealRouterAndPersistsOnlyAppliedCursor() {
+        val args=InstrumentationRegistry.getArguments();val external=args.getString("signalGroveCanonicalSessionBase")
+        val label=args.getString("signalGroveCanonicalSessionLabel") ?: "mock"
+        require(label.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.-]{0,80}")))
+        val revision=args.getString("signalGroveCanonicalSessionRevision") ?: "mock"
+        require(revision in setOf("mock","stable","prior","main"))
+        val fixture=if(external==null) Fixture("viewer") else null
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val credentials=context.getSharedPreferences("credentials",0);val before=credentials.all.toMap()
+        val checks=mutableListOf<String>()
+        withDatabase {db->
+            try {
+                val url=(external ?: base(fixture!!)).toHttpUrl()
+                require(url.scheme=="http" && url.host=="127.0.0.1" && url.port in 1024..65535 && url.encodedPath=="/dashboard/")
+                require(url.username.isEmpty() && url.password.isEmpty() && url.query==null && url.fragment==null)
+                val api=ManagementClient(url.toString(),true,true)
+                runBlocking {withTimeout(60_000) {
+                    val tokens=signIn(api);val owner=target(api,tokens);val profileHome=home(api,tokens)
+                    checks+="native_pkce_and_verified_profile_home"
+                    val repo=CanonicalSessionsRepository(db.dao(),CompletableDeferred(Unit));val guard=UpdateWorkGuard()
+                    val controllerScope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
+                    val access=CanonicalViewerAccess(owner,profileHome,1,api,tokens)
+                    val viewer=CanonicalViewerController(controllerScope,repo,{access},guard::set,heartbeatDelay=2500,heartbeatDeadline=5000)
+                    try {
+                        withContext(Dispatchers.Main.immediate) {viewer.load(CanonicalSessionScope.Stored)}
+                        val loaded=viewer.state.first {it.phase in setOf(CanonicalViewerPhase.Inventory,CanonicalViewerPhase.Held)}
+                        assertEquals(CanonicalViewerPhase.Inventory,loaded.phase)
+                        val inventory=checkNotNull(loaded.inventory);assertEquals(owner,inventory.binding.target)
+                        assertEquals(profileHome,inventory.binding.homeId)
+                        assertNull(db.dao().unresolvedManagementOperations(owner.resourceScope,owner.url,profileHome).firstOrNull())
+                        assertTrue(db.dao().canonicalViewerReceipts(owner.apiScope,owner.url,owner.profile,owner.actor,profileHome,"shared-fixture").isEmpty())
+                        checks+="stored_inventory_has_no_adoption_receipt"
+                        if(revision=="prior") {
+                            assertTrue(inventory.rows.isEmpty());checks+="prior_remote_identity_has_no_legacy_eligibility"
+                        } else {
+                            assertTrue(inventory.rows.any {it.sessionId=="shared-fixture"})
+                            withContext(Dispatchers.Main.immediate) {viewer.review("shared-fixture")}
+                            val review=checkNotNull(viewer.state.value.review)
+                            assertTrue(viewer.reviewCurrent(review));assertFalse(guard.active.value)
+                            withContext(Dispatchers.Main.immediate) {viewer.approve(review,false)}
+                            val opened=viewer.state.first {it.phase in setOf(CanonicalViewerPhase.Following,CanonicalViewerPhase.Held)}
+                            assertEquals(CanonicalViewerPhase.Following,opened.phase);assertTrue(guard.active.value)
+                            assertNull(opened.review);assertEquals("shared-fixture",opened.sessionId)
+                            checks+="one_use_review_opens_a_guarded_foreground_viewer"
+                            val firstHeartbeat=checkNotNull(opened.heartbeatAt)
+                            val periodic=viewer.state.first {it.phase==CanonicalViewerPhase.Held || (it.heartbeatAt ?: 0)>firstHeartbeat}
+                            assertEquals(CanonicalViewerPhase.Following,periodic.phase)
+                            assertTrue(checkNotNull(periodic.heartbeatAt)>firstHeartbeat)
+                            checks+="initial_and_periodic_real_outer_heartbeat_verify_owner_home"
+                            val receipt=checkNotNull(db.dao().managementOperation(periodic.receiptKey))
+                            assertEquals("confirmed",receipt.state);assertEquals(CanonicalResumeAction.Id,receipt.action)
+                            val applied=checkNotNull(repo.lastApplied(owner,profileHome,"shared-fixture"))
+                            assertEquals(periodic.cursor,applied.cursor);assertEquals(owner,applied.owner.target)
+                            assertEquals(profileHome,applied.owner.homeId);assertEquals(periodic.sessionId,applied.owner.sessionId)
+                            checks+="applied_cursor_is_durable_and_exactly_owner_bound"
+                            val summary=Json.parseToJsonElement(receipt.resultSummary).jsonObject
+                            assertEquals(JsonPrimitive("unproven"),summary["execution_outcome"])
+                            assertFalse(summary.containsKey("execution_state"))
+                            assertFalse(receipt.requestSummary.contains("private user fixture"));assertFalse(receipt.resultSummary.contains("private reply fixture"))
+                            checks+="receipt_contains_no_transcript_or_execution_inference"
+                        }
+                    } finally {
+                        withContext(Dispatchers.Main.immediate) {viewer.close()}
+                        controllerScope.coroutineContext[Job]!!.cancelAndJoin()
+                    }
+                    assertFalse(guard.active.value);assertEquals(CanonicalViewerPhase.Closed,viewer.state.value.phase)
+                    checks+="close_releases_installation_guard_without_reopen"
+                    fixture?.let {assertEquals(1,it.resumes.get());assertEquals(1,it.replays.get());assertEquals(2,it.sockets.get());assertEquals(3,it.pings.get());assertEquals(0,it.failures.get())}
+                }}
+                assertEquals(before,credentials.all);checks+="saved_credentials_unchanged"
+                assertEquals(if(revision=="prior") 5 else 8,checks.size)
+                val qa=File(checkNotNull(context.getExternalFilesDir(null)),"qa");check(qa.isDirectory || qa.mkdirs())
+                File(qa,"canonical-viewer-contract-"+label+".json").writeText(buildJsonObject {
+                    put("state","PASS_CANONICAL_VIEWER_HEARTBEAT");put("revision",revision);put("api",Build.VERSION.SDK_INT)
+                    put("checks",JsonArray(checks.map(::JsonPrimitive)));put("savedCredentialsUnchanged",true)
+                    put("workerOrExecutionClaim",false);put("completedAtMillis",System.currentTimeMillis())
+                }.toString())
+            } finally {fixture?.close()}
+        }
+    }
 
     @Test fun reviewedResumeUsesRealAuthHomeAndDurableReceiptWithoutSubmittingWork() {
         val args=InstrumentationRegistry.getArguments();val external=args.getString("signalGroveCanonicalSessionBase")

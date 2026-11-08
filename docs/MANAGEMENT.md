@@ -650,4 +650,5 @@ run completed. Normally it resumes its last locally applied cursor; explicitly
 starting fresh skips older activity. A held/uncertain opening requires inspecting
 that exact chat in Hermes. Local uncertainty review never sends or undoes it.
 See the [contract and acceptance scope](contracts/2026-11-08-canonical-viewer.md).
-Actual-source/full hosted acceptance is pending; this UI is absent from beta.8.
+Pinned idle heartbeat/initial-cursor checks pass. Advancing real-source activity
+and full hosted acceptance remain pending; this UI is absent from beta.8.

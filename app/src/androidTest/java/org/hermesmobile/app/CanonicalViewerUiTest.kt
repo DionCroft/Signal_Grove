@@ -1,5 +1,8 @@
 package org.hermesmobile.app
 
+import android.graphics.Bitmap
+import androidx.test.platform.app.InstrumentationRegistry
+import java.io.File
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
@@ -97,6 +100,16 @@ class CanonicalViewerUiTest {
         compose.onNodeWithTag("canonical-open-confirm").assertIsNotEnabled()
     }
     private fun consent() {scroll("canonical-open-review","canonical-consent").performClick()}
+    private fun capture(tag:String,name:String) {
+        compose.onNodeWithTag(tag).assertIsDisplayed()
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val file=File(checkNotNull(context.getExternalFilesDir(null)),"qa/"+name+".png")
+        check(file.parentFile!!.isDirectory || file.parentFile!!.mkdirs())
+        val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            ?: error("The native screenshot was unavailable.")
+        try {file.outputStream().use {check(bitmap.compress(Bitmap.CompressFormat.PNG,100,it))}}
+        finally {bitmap.recycle()}
+    }
     private fun open() {
         review();consent();compose.onNodeWithTag("canonical-open-confirm").assertIsEnabled().performClick()
         compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Following}
@@ -114,7 +127,8 @@ class CanonicalViewerUiTest {
         assertEquals(0,repo.adoptions);assertEquals(0,repo.previousReads);assertFalse(guard.active.value)
     }
     @Test fun explicitConsentOpensOnceAndCloseReleasesTheActualInstallationGuard() {
-        render();open();assertEquals(1,repo.adoptions);assertTrue(repo.requireHeartbeat)
+        render();open();capture("canonical-following","canonical-viewer-following")
+        assertEquals(1,repo.adoptions);assertTrue(repo.requireHeartbeat)
         assertTrue(guard.active.value);assertEquals(1,repo.saves);assertEquals(1,repo.link.beats)
         compose.onNodeWithTag("canonical-close").performClick()
         compose.waitUntil(5000) {!guard.active.value}
@@ -160,6 +174,7 @@ class CanonicalViewerUiTest {
     @Test fun largeBilingualConsentAndBothDecisionsStayReachable() {
         render(large=true);review();consent()
         compose.onNodeWithTag("canonical-open-confirm").assertIsDisplayed().assertIsEnabled()
+        capture("canonical-open-confirm","canonical-viewer-large-review")
         compose.onNodeWithTag("canonical-open-cancel").assertIsDisplayed().performClick()
         assertEquals(0,repo.adoptions);assertFalse(guard.active.value)
     }

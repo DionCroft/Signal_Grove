@@ -173,6 +173,28 @@ if not __debug__ or not (sys.flags.isolated and sys.flags.no_site and sys.flags.
     raise SystemExit('Use -I -S -B without -O; assertions and isolated imports are required.')
 if os.name != 'nt':
     raise SystemExit('This bounded probe currently supports Windows only; no cross-host acceptance is claimed.')
+def canonical_fixture_rpc_allowed(method, params, count, allow_heartbeat=False):
+    """Finite synthetic-only canonical viewer surface; never admits tools/work."""
+    if type(count) is not int or not 0 <= count < 8 or not isinstance(params, dict):
+        return False
+    if method == 'gateway.ping':
+        return allow_heartbeat is True and params == {}
+    if method == 'runtime.describe':
+        return params == {}
+    if method == 'session.list':
+        return (set(params) == {'scope', 'limit'} and params['scope'] in ('stored', 'live')
+                and type(params['limit']) is int and params['limit'] == 200)
+    if method == 'session.resume':
+        return params == {'session_id': 'shared-fixture', 'omit_messages': True}
+    if method == 'session.events.since':
+        return (set(params) == {'session_id', 'last_sequence', 'replay_epoch'}
+                and params['session_id'] == 'shared-fixture'
+                and type(params['last_sequence']) is int and 0 <= params['last_sequence'] <= 2**63-1
+                and isinstance(params['replay_epoch'], str) and 0 < len(params['replay_epoch']) <= 256
+                and not any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in params['replay_epoch']))
+    return False
+
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source-root', type=Path, required=True)
 parser.add_argument('--work-root', type=Path, required=True)
@@ -180,7 +202,9 @@ parser.add_argument('--dependency-site', type=Path, required=True)
 parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
 parser.add_argument('--lifetime-seconds',type=int,default=180)
 parser.add_argument('--surface',choices=('native-auth','projects','canonical','canonical-session'),default='native-auth')
+parser.add_argument('--allow-viewer-heartbeat',action='store_true',help='Allow bounded empty heartbeat RPCs on the synthetic canonical-session fixture only.')
 a = parser.parse_args()
+if a.allow_viewer_heartbeat and a.surface!='canonical-session':parser.error('Viewer heartbeat requires the canonical-session surface.')
 if not 10<=a.lifetime_seconds<=600:parser.error('Lifetime must be10..600 seconds.')
 if a.surface in ('canonical','canonical-session'):
     # Negotiation consumes the actual authority dispatcher, never a runtime-description stub.
@@ -486,12 +510,8 @@ try:
                             if a.surface=='canonical':
                                 assert method=='runtime.describe' and params=={} and rpc_count==0
                             else:
-                                assert rpc_count<8
-                                assert (method=='runtime.describe' and params=={} or
-                                    method=='session.list' and set(params)=={'scope','limit'} and params['scope'] in ('stored','live') and params['limit']==200 or
-                                    method=='session.resume' and params=={'session_id':'shared-fixture','omit_messages':True} or
-                                    method=='session.events.since' and set(params)=={'session_id','last_sequence','replay_epoch'} and params['session_id']=='shared-fixture' and type(params['last_sequence']) is int and params['last_sequence']>=0 and isinstance(params['replay_epoch'],str))
-                            entry_rpc=dict(method='RPC',path=method,profile=[],noSessionOrMutation=method in ('runtime.describe','session.list'))
+                                assert canonical_fixture_rpc_allowed(method,params,rpc_count,a.allow_viewer_heartbeat)
+                            entry_rpc=dict(method='RPC',path=method,profile=[],noSessionOrMutation=method in ('runtime.describe','session.list','gateway.ping'))
                         else:
                             assert method in ('projects.list','projects.get')
                             assert set(params)==({'profile'} if method=='projects.list' else {'profile','id'}) and params['profile'] in ('default','worker','missing-fixture')
@@ -547,7 +567,7 @@ try:
         while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
         assert server.started and not task.done(),'Actual dashboard listener did not start'
         pending=root/'ready.pending'
-        pending.write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name,surface=a.surface))+'\n',encoding='utf-8')
+        pending.write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name,surface=a.surface,viewerHeartbeatEnabled=a.allow_viewer_heartbeat))+'\n',encoding='utf-8')
         pending.replace(root/'ready.json')
         deadline=time.monotonic()+a.lifetime_seconds
         try:
@@ -598,6 +618,8 @@ try:
         model_reads=[row for row in requests if row['method']=='MODEL_METADATA_GET']
         assert all(row['path'].startswith('/fixture-model/') for row in model_reads)
         report['modelMetadataReads']=len(model_reads)
+        report['viewerHeartbeatEnabled']=a.allow_viewer_heartbeat
+        report['viewerHeartbeatCount']=sum(row['method']=='RPC' and row['path']=='gateway.ping' for row in requests)
         report['seededTranscriptMessagesUnchanged']=True
     assert not denied,denied
     report.update(state='STOPPED_REAL_TCP_FIXTURE_REVIEW_CONSUMER',seededHistoryUnchanged=True)

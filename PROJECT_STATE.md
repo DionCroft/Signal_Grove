@@ -1,5 +1,38 @@
 # Signal Grove project state
 
+## Current checkpoint - pinned viewer heartbeat and initial cursor verified
+
+The viewer's authenticated controller now has actual stable `2bd378e`,
+main `21ae0e1` and prior `bf0203a` TCP conformance on all three preserved emulator
+profiles. Stable/main each produce exactly 29 protocol records, two sockets,
+one reviewed opening and three empty outer heartbeats with identity/home
+rechecks. Prior produces 12 records, no eligible legacy row and no opening.
+All fixtures stop, preserve transcript bytes and admit no work or worker runs.
+Only the previously reviewed five ownership fields on the selected synthetic
+stable/main row may change. Every imported source file is independently bound
+to its immutable Git tree: 1301 stable, 1318 main and 838 prior union entries.
+
+The full required build passes 768 JVM cases, both lint 0, 205 policy checks and 15
+runtime-observer cases. Fifteen native controllers pass 69 method executions:
+15 mock/UI/Room methods on each emulator, the nine actual-source pairings and
+the five preserved adoption/recovery regressions on each emulator.
+Six native screenshots are retained; inspected small/large layouts keep actions
+reachable through their scroll containers. All 636 frozen inputs, original keys,
+preferences, AVD geometry and 28 legacy cache files match. The app APK is byte-
+identical to the preceding viewer; this chunk changes tests/fixture evidence.
+
+This verifies the initial applied cursor and initial/periodic authenticated
+heartbeat on an otherwise idle synthetic session. Advancing real-source event
+observation/checkpoints and complete exact-head hosted gates remain required.
+Parent d40's raw hosted artifacts independently verify 768 JVM/both lint 0,
+201 policy and 32 bounded module probes. Both full device results remain open.
+The moving main canary is now `8d7061`; its pool/auxiliary source changes need their
+own triage. Do not equate the `21ae` fixture with that newer revision.
+
+The signed d0 beta.8 assets/private draft and the owner's upgraded phone are
+unchanged. Manual history/project/Automatic-turn checks remain pending because
+USB taps are ignored. Continue every audit row; main `6b809e6` and held `207c6b4` stay fixed.
+
 ## Current checkpoint - foreground canonical viewer validated locally
 
 The development management panel now exposes live/stored canonical activity.
