@@ -21,20 +21,22 @@ class MainAuthorityContractTest(unittest.TestCase):
                 self.assertEqual(1,len(found));reviewed[key]=found[0]
                 contract['handlers'][key]=found[0]['sha256']
                 contract['source_hashes'].update(found[0]['required_sources'])
-        self.assertEqual(11,len(reviewed))
+        self.assertEqual(13,len(reviewed))
+        self.assertEqual({'canonical_event_stream:consumed_module','canonical_event_payloads:consumed_module'},
+                         {key for key in reviewed if key.startswith(('canonical_event_stream:','canonical_event_payloads:'))})
         return value,{'commit':'e'*40,'contract':contract},reviewed
 
     def test_old_pin_remains_self_consistent_and_main_adds_no_blanket_commit_trust(self):
         value,current,reviewed=self.fixture()
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
-        self.assertEqual(185,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        self.assertEqual(189,len(checker.SOURCES|checker.EXTRA_SOURCES))
         self.assertFalse(checker.compare(value,{'commit':value['upstream']['commit'],'contract':copy.deepcopy(value['upstream']['contract'])})['mobile_review_required'])
         self.assertFalse(checker.compare(value,current)['mobile_review_required'])
         for entry in reviewed.values():
             self.assertTrue(entry['reason'].strip())
             self.assertTrue(entry['required_sources'])
         for key in reviewed:
-            if key.startswith('canonical_') or key=='gateway_ws:_authority_connection':
+            if (key.startswith('canonical_') or key=='gateway_ws:_authority_connection') and key not in {'canonical_event_stream:consumed_module','canonical_event_payloads:consumed_module'}:
                 self.assertTrue(set(checker.MAIN_AUTHORITY_CONTRACT_SOURCES)<=set(reviewed[key]['required_sources']))
 
     def test_every_consumed_dependency_is_required_even_when_handler_ast_matches(self):

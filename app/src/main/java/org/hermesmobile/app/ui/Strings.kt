@@ -30,6 +30,8 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     ViewerTitle("Live sessions","实时会话","Shíshí huìhuà"),
     ViewerLive("Live list","实时列表","Shíshí lièbiǎo"),
     ViewerStored("Stored list","已保存列表","Yǐ bǎocún lièbiǎo"),
+    ViewerPrivateActivity("Private reasoning is hidden.","不显示私密推理内容。","Bù xiǎnshì sīmì tuīlǐ nèiróng."),
+    ViewerSubagentActivity("Subagent activity","子代理活动","Zǐ dàilǐ huódòng"),
     ViewerBoundary("Read live activity from your selected Hermes profile. Answer decisions and run actions in Hermes.","读取所选 Hermes 配置的实时活动。请在 Hermes 中回答决策并执行操作。","Dúqǔ suǒ xuǎn Hermes pèizhì de shíshí huódòng. Qǐng zài Hermes zhōng huídá juécè bìng zhíxíng cāozuò."),
     ViewerEmpty("No eligible sessions reported in this list. Live and stored lists can differ.","此列表没有报告可用会话。实时列表与已保存列表可能不同。","Cǐ lièbiǎo méiyǒu bàogào kěyòng huìhuà. Shíshí lièbiǎo yǔ yǐ bǎocún lièbiǎo kěnéng bùtóng."),
     ViewerLimited("Hermes returns up to 200 eligible sessions here. Earlier messages remain in Chat history.","Hermes 在此最多返回 200 个可用会话。较早的消息仍在对话历史中。","Hermes zài cǐ zuìduō fǎnhuí èrbǎi gè kěyòng huìhuà. Jiào zǎo de xiāoxi réng zài duìhuà lìshǐ zhōng."),

@@ -2,6 +2,12 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Hide private canonical reasoning/thinking payloads while preserving applied
+  event cursors. Use reviewed public reply/tool/subagent preview fields and guard
+  the real stream/replay/transport/payload sources. Validate overlapping actual
+  replay/live events and Room cursor progression on three emulator profiles.
+  Full exact-head hosted acceptance remains open; d0 beta.8 assets are unchanged.
+
 - Verify canonical viewer initial cursors and authenticated outer heartbeats
   against pinned stable/prior/main on three emulator profiles, with Git-bound
   source imports, native layouts and finite fixture refusal tests. Advancing

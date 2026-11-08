@@ -17,7 +17,7 @@ internal object CanonicalViewerFixtures {
     fun snapshot()=CanonicalSessionSnapshot(owner,"history","reported-history","subscription",cursor,2,3,false,2,true)
     fun delivery(sequence:Long=4,events:List<CanonicalFeedEvent> = emptyList(),phase:CanonicalFeedPhase=CanonicalFeedPhase.Following)=
         CanonicalFeedDelivery(CanonicalFeedStatus(phase,CanonicalReplayCursor("ring",sequence),null,0),events)
-    fun event(sequence:Long,type:String="assistant.delta",text:String="Private fixture reply")=CanonicalFeedEvent.parse(buildJsonObject {
+    fun event(sequence:Long,type:String="message.delta",text:String="Private fixture reply")=CanonicalFeedEvent.parse(buildJsonObject {
         put("type",type);put("session_id",owner.sessionId);put("replay_epoch","ring");put("seq",sequence)
         put("payload",buildJsonObject {put("text",text)})
     },owner,cursor,65536)

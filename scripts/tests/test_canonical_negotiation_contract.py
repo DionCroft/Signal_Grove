@@ -23,7 +23,7 @@ class CanonicalNegotiationContractTest(unittest.TestCase):
         current={'commit':value['upstream']['commit'],'contract':copy.deepcopy(value['upstream']['contract'])}
         self.assertFalse(checker.compare(value,current)['mobile_review_required'])
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
-        self.assertEqual(185,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        self.assertEqual(189,len(checker.SOURCES|checker.EXTRA_SOURCES))
 
     def test_guarded_dispatch_variant_needs_every_exact_source_dependency(self):
         value,current,key,entry=self.variant()

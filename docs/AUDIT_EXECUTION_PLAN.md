@@ -1,5 +1,42 @@
 # Signal Grove audit execution plan
 
+## Current checkpoint - live replay and private activity projection verified
+
+The unreleased canonical viewer now projects only reviewed public payload fields.
+Private reasoning/thinking events use a translated hidden-activity notice;
+unknown event bodies stay hidden. Every event still advances the observed count
+and applied cursor. Actual message.delta/interim/complete use the reply label,
+tools use public names and subagents use public summaries or tool names.
+The signed d0 beta.8 candidate does not contain this viewer and is unchanged.
+
+Six schema-derived JVM regressions first failed against the unchanged old
+projection while all 768 earlier cases passed. The fix passes 775 JVM cases,
+both lint variants with 0 errors, 213 policy and 15 runtime-observer checks.
+All 22 mock UI/Room/adoption/recovery methods pass on each preserved emulator;
+nine actual stable/main/prior pairings bring this chunk to 75 native executions.
+
+Stable `2bd378e` and main `21ae0e1` publish opening sequences 1/2/3 through actual
+Hermes SessionEvents, then live sequence 4 after the viewer starts following.
+Overlapping live/replay deliveries apply once; private sequence 2 has no text
+preview. Confirmed Room writes are exactly cursor 3 then 4. Prior `bf0203a`
+remains ineligible and opens nothing. Exact protocol traces remain 29/12 records;
+all fixtures stop with no work admissions, worker executions or transcript drift.
+All imported source bytes match immutable Git trees: 1301/1318/838 files.
+
+Source guards now watch 189 modules, adding the event stream, replay store,
+transport and payload schema. Original F0 entries, mobile scope and all existing
+reviewed variants are preserved; complete seven-source stable/main vectors guard
+the two changed modules. Both immutable 189-module comparisons pass.
+All 638 frozen inputs, original keys/preferences/geometry and 28 legacy cache files
+match. Nine synthetic screenshots are retained; private-activity screens on all
+three profiles were inspected, with scrolling preserving access to Close.
+
+Full exact-head hosted gates, newer main `8d7061` pool/auxiliary triage and all
+remaining audit rows stay open. Owner beta.8 history/projects/Automatic-turn
+checks still need fresh manual navigation; USB taps remain ineffective. No Pi
+deployment, worker/inference or owner-phone canonical adoption is certified.
+Main `6b809e6` and held `207c6b4` stay fixed.
+
 ## Current checkpoint - pinned viewer heartbeat and initial cursor verified
 
 The viewer's authenticated controller now has actual stable `2bd378e`,

@@ -57,6 +57,52 @@ class CanonicalViewerControllerTest {
         assertTrue(h.guards.isEmpty())
     }
 
+    private fun event(sequence:Long,type:String,values:Map<String,String>)=CanonicalFeedEvent.parse(kotlinx.serialization.json.buildJsonObject {
+        put("type",kotlinx.serialization.json.JsonPrimitive(type));put("session_id",kotlinx.serialization.json.JsonPrimitive(CanonicalViewerFixtures.owner.sessionId))
+        put("replay_epoch",kotlinx.serialization.json.JsonPrimitive(CanonicalViewerFixtures.cursor.epoch));put("seq",kotlinx.serialization.json.JsonPrimitive(sequence))
+        put("payload",kotlinx.serialization.json.buildJsonObject {for((key,value) in values) put(key,kotlinx.serialization.json.JsonPrimitive(value))})
+    },CanonicalViewerFixtures.owner,CanonicalViewerFixtures.cursor,65536)
+
+    @Test fun allCanonicalReasoningAndThinkingTextIsOmittedWhileCursorsAdvance()=runTest {exercise {
+        opened();val privateText="fixture-private-reasoning-sentinel"
+        val types=listOf("reasoning.delta","reasoning.available","thinking.delta","subagent.thinking")
+        val events=types.mapIndexed {index,type->event(5L+index,type,listOf("text","content","message","tool_name","name","summary").associateWith {privateText})}
+        repo.link.events.send(f.delivery(8,events));runCurrent()
+        assertEquals(4L,viewer.state.value.observed);assertEquals(8L,viewer.state.value.cursor!!.sequence)
+        assertEquals(8L,repo.saves.last().cursor.sequence)
+        assertTrue(viewer.state.value.activities.all {it.text.isEmpty() && it.kind.en=="Private reasoning is hidden."})
+    }}
+    @Test fun unknownCanonicalEventsCannotProjectArbitraryPayloadText()=runTest {exercise {
+        opened();repo.link.events.send(f.delivery(5,listOf(event(5,"future.private.detail",mapOf("text" to "fixture-unknown-private-text")))));runCurrent()
+        assertEquals("",viewer.state.value.activities.single().text);assertEquals(5L,repo.saves.last().cursor.sequence)
+    }}
+    @Test fun actualMessageDeltaUsesTheReplyLabelAndOnlyItsPublicText()=runTest {exercise {
+        opened();repo.link.events.send(f.delivery(5,listOf(event(5,"message.delta",mapOf("text" to "Fixture public reply","content" to "fixture-private-content","reasoning" to "fixture-private-reasoning")))));runCurrent()
+        val value=viewer.state.value.activities.single();assertEquals("Fixture public reply",value.text);assertEquals(Words.ViewerReplyActivity,value.kind)
+    }}
+    @Test fun subagentPublicSummaryDoesNotFallBackToItsRawText()=runTest {exercise {
+        opened();repo.link.events.send(f.delivery(5,listOf(event(5,"subagent.progress",mapOf("summary" to "Fixture public child summary","text" to "fixture-private-child-text")))));runCurrent()
+        assertEquals("Fixture public child summary",viewer.state.value.activities.single().text)
+    }}
+    @Test fun toolActivityUsesThePublicNameInsteadOfGenericTextOrArguments()=runTest {exercise {
+        opened();repo.link.events.send(f.delivery(5,listOf(event(5,"tool.start",mapOf("name" to "fixture_tool","text" to "fixture-private-tool-text","arguments" to "fixture-private-arguments")))));runCurrent()
+        val value=viewer.state.value.activities.single();assertEquals("fixture_tool",value.text);assertEquals(Words.ViewerToolActivity,value.kind)
+    }}
+    @Test fun mixedPublicAndPrivateActivityAppliesEverySequenceOnce()=runTest {exercise {
+        opened();val events=listOf(event(5,"status.update",mapOf("kind" to "status","text" to "Fixture status one")),
+            event(6,"reasoning.delta",mapOf("text" to "fixture-private-reasoning")),event(7,"message.delta",mapOf("text" to "Fixture reply two")))
+        repo.link.events.send(f.delivery(7,events));runCurrent()
+        assertEquals(listOf(5L,6L,7L),viewer.state.value.activities.map {it.sequence})
+        assertEquals(listOf("Fixture status one","","Fixture reply two"),viewer.state.value.activities.map {it.text})
+        assertEquals(3L,viewer.state.value.observed);assertEquals(7L,repo.saves.last().cursor.sequence)
+    }}
+
+    @Test fun explicitlyPrivateStatusKindsCannotFallBackToVisibleStatusText()=runTest {exercise {
+        opened();repo.link.events.send(f.delivery(5,listOf(event(5,"status.update",mapOf("kind" to "thinking","text" to "fixture-private-status-text")))));runCurrent()
+        assertEquals("",viewer.state.value.activities.single().text);assertEquals(Words.ViewerPrivateActivity,viewer.state.value.activities.single().kind)
+        assertEquals(5L,repo.saves.last().cursor.sequence)
+    }}
+
     @Test fun missingAuthenticatedContextCannotReadOrOpenAnything()=runTest {exercise {
         access=null;viewer.load(CanonicalSessionScope.Live);runCurrent()
         assertEquals(Words.ManagementVerify,viewer.state.value.error);assertEquals(0,repo.prepares);assertEquals(0,repo.adoptions)

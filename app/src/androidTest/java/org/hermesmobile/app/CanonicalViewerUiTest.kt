@@ -14,7 +14,7 @@ import androidx.lifecycle.LifecycleRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 import org.hermesmobile.app.ui.*
@@ -57,6 +57,7 @@ class CanonicalViewerUiTest {
     private inner class Repo:CanonicalViewerRepository {
         val link=Link();val reads=mutableListOf<CanonicalSessionScope>()
         var adoptions=0;var requireHeartbeat=false;var saves=0;var previousReads=0
+        var expectedApplied=cursor
         var adoptError:Exception?=null
         override suspend fun prepare(target:ManagementTarget,homeId:String,api:ManagementClient,tokens:ManagementTokens,scope:CanonicalSessionScope):CanonicalSessionInventory {
             assertEquals(this@CanonicalViewerUiTest.target,target);assertEquals(home,homeId);reads+=scope;return inventory(scope)
@@ -66,7 +67,7 @@ class CanonicalViewerUiTest {
         }
         override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {previousReads++;return null}
         override suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor) {
-            assertEquals(link.receipt.key,key);assertEquals(this@CanonicalViewerUiTest.owner,owner);assertEquals(this@CanonicalViewerUiTest.cursor,cursor);saves++
+            assertEquals(link.receipt.key,key);assertEquals(this@CanonicalViewerUiTest.owner,owner);assertEquals(expectedApplied,cursor);saves++
         }
     }
     private val repo=Repo()
@@ -119,6 +120,30 @@ class CanonicalViewerUiTest {
         compose.runOnUiThread {viewer.close();shown=false;scope.cancel()}
         compose.waitForIdle();assertFalse(guard.active.value)
     }
+    @Test fun privateReasoningAdvancesTheCursorWithoutEnteringVisibleActivity() {
+        render();open()
+        val secret="fixture-private-reasoning-sentinel"
+        fun event(sequence:Long,type:String,text:String)=CanonicalFeedEvent.parse(buildJsonObject {
+            put("type",type);put("session_id",owner.sessionId);put("replay_epoch",cursor.epoch);put("seq",sequence)
+            put("payload",buildJsonObject {put("text",text);if(type=="status.update") put("kind","status")})
+        },owner,cursor,65536)
+        compose.runOnUiThread {
+            repo.expectedApplied=cursor.copy(sequence=3)
+            val events=listOf(event(1,"status.update","Fixture public activity"),event(2,"reasoning.delta",secret),event(3,"subagent.thinking",secret))
+            check(repo.link.events.trySend(CanonicalFeedDelivery(CanonicalFeedStatus(CanonicalFeedPhase.Following,repo.expectedApplied,null,0),events)).isSuccess)
+        }
+        compose.waitUntil(5000) {viewer.state.value.cursor?.sequence==3L && repo.saves==2}
+        val activity=viewer.state.value.activities
+        assertEquals(3L,viewer.state.value.observed);assertEquals(listOf(1L,2L,3L),activity.map {it.sequence})
+        assertEquals(listOf("Fixture public activity","",""),activity.map {it.text})
+        assertEquals(listOf(Words.ViewerPrivateActivity,Words.ViewerPrivateActivity),activity.drop(1).map {it.kind})
+        compose.onNodeWithTag("canonical-viewer-list").performScrollToNode(hasText(Words.ViewerPrivateActivity.en))
+        compose.onAllNodesWithText(Words.ViewerPrivateActivity.en).onFirst().assertIsDisplayed()
+        compose.onAllNodesWithText(secret,substring=true,useUnmergedTree=true).assertCountEquals(0)
+        assertTrue(guard.active.value)
+        capture("canonical-viewer-list","canonical-viewer-private-activity")
+    }
+
     @Test fun readingAndCancellingAnUncheckedReviewCannotAdopt() {
         render();assertEquals(listOf(CanonicalSessionScope.Live),repo.reads);assertFalse(guard.active.value)
         review();assertEquals(0,repo.adoptions)

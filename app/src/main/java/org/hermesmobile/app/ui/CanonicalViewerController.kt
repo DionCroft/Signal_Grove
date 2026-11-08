@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.*
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 import kotlinx.serialization.json.*
+import java.util.Locale
 
 internal class CanonicalViewerAccess(
     val target:ManagementTarget,val home:String,val generation:Long,
@@ -148,13 +149,29 @@ internal class CanonicalViewerController(
         requireCurrent(id,access)
     }
     private fun activity(event:CanonicalFeedEvent):CanonicalActivity {
+        val type=event.type
+        val privateType=type.lowercase(Locale.ROOT).split('.').any {it=="reasoning" || it=="thinking"}
+        val statusKind=(event.payload["kind"] as? JsonPrimitive)?.takeIf {it.isString}?.content?.lowercase(Locale.ROOT)
+        if(privateType || (type=="status.update" && statusKind in setOf("reasoning","thinking")))
+            return CanonicalActivity(event.sequence,Words.ViewerPrivateActivity,"")
+        val replies=setOf("message.delta","message.interim","message.complete")
+        val publicSubagents=setOf("subagent.spawn_requested","subagent.start","subagent.progress","subagent.tool","subagent.complete")
         val kind=when {
-            event.type.startsWith("tool.")->Words.ViewerToolActivity
-            event.type.startsWith("assistant.")->Words.ViewerReplyActivity
-            event.type.startsWith("approval.") || event.type.startsWith("clarify.")->Words.ViewerDecisionActivity
+            type in replies->Words.ViewerReplyActivity
+            type.startsWith("tool.")->Words.ViewerToolActivity
+            type in publicSubagents->Words.ViewerSubagentActivity
+            type.startsWith("approval.") || type.startsWith("clarify.")->Words.ViewerDecisionActivity
             else->Words.ViewerOtherActivity
         }
-        val raw=listOf("text","content","message","tool_name","name").firstNotNullOfOrNull {key->
+        // Only schema-reviewed public fields become previews. Unknown/private payloads still
+        // apply their sequence, with no generic text/content/message fallback.
+        val fields=when(type) {
+            "message.delta","message.interim","message.complete","status.update"->listOf("text")
+            "tool.start","tool.complete","tool.generating","tool.progress","tool.output_risk"->listOf("name","tool_name")
+            "subagent.spawn_requested","subagent.start","subagent.progress","subagent.tool","subagent.complete"->listOf("summary","tool_name")
+            else->emptyList()
+        }
+        val raw=fields.firstNotNullOfOrNull {key->
             (event.payload[key] as? JsonPrimitive)?.takeIf {it.isString}?.content?.takeIf {it.isNotBlank()}
         }.orEmpty()
         val clean=raw.filter {it=='\n' || it=='\t' || !it.isISOControl()}

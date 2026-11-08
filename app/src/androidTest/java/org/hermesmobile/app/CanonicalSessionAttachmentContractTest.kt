@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -46,10 +47,19 @@ class CanonicalSessionAttachmentContractTest {
         private val code="project-code-"+UUID.randomUUID().toString().replace("-","")
         private val envelope="""{"access_token":"project-access-fixture","refresh_token":"project-refresh-fixture","provider":"stub","user_id":"stub-user-1","expires_at":4102444800,"token_type":"Bearer"}"""
         private fun json(body:String,status:Int=200)=MockResponse().setHeader("Content-Type","application/json").setBody(body).setResponseCode(status)
+        private fun activity(sequence:Int):JsonObject=buildJsonObject {
+            val type=when(sequence) {1,4->"status.update";2->"reasoning.delta";3->"message.delta";else->error("Unreviewed fixture sequence.")}
+            val text=when(sequence) {1->"Fixture public status one";2->"fixture-private-reasoning-sentinel";3->"Fixture public reply three";4->"Fixture public live status four";else->error("Unreviewed fixture sequence.")}
+            put("type",type);put("session_id","shared-fixture");put("replay_epoch","fixture-ring");put("seq",sequence)
+            put("payload",buildJsonObject {put("text",text);if(type=="status.update") put("kind","status")})
+        }
+        private fun publish(ws:WebSocket,sequence:Int) {
+            ws.send(buildJsonObject {put("jsonrpc","2.0");put("method","event");put("params",activity(sequence))}.toString())
+        }
         private fun listener()=object:WebSocketListener() {
             override fun onOpen(ws:WebSocket,response:Response) {
                 sockets.incrementAndGet()
-                ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"heartbeat":${mode=="viewer"},"replay_epoch":"fixture-ring","session_authority":true}}}""")
+                ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"heartbeat":${mode in setOf("viewer","viewer-activity")},"replay_epoch":"fixture-ring","session_authority":true}}}""")
             }
             override fun onMessage(ws:WebSocket,text:String) {
                 try {
@@ -58,7 +68,8 @@ class CanonicalSessionAttachmentContractTest {
                     fun reply(result:JsonObject)=ws.send(buildJsonObject {put("jsonrpc","2.0");put("id",id);put("result",result)}.toString())
                     when(method) {
                         "gateway.ping"->{
-                            check(mode=="viewer" && params.isEmpty());pings.incrementAndGet()
+                            check(mode in setOf("viewer","viewer-activity") && params.isEmpty());pings.incrementAndGet()
+                            if(mode=="viewer-activity" && pings.get()==3) publish(ws,4)
                             reply(buildJsonObject {put("ok",true)})
                         }
                         "runtime.describe"->{
@@ -77,12 +88,14 @@ class CanonicalSessionAttachmentContractTest {
                             if(mode=="drop-resume") {ws.close(1000,"fixture-drop");return}
                             ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"sessions.changed","session_id":"","payload":{}}}""")
                             reply(Json.parseToJsonElement("""{"session_id":"shared-fixture","stored_session_id":"shared-fixture","messages":[],"messages_omitted":true,"message_count":2,"running":false,"authority_epoch":1,"replay_epoch":"fixture-ring","last_sequence":0,"subscription_id":"fixture-subscription","revision":0,"execution_generation":0,"pending":[],"prompts":[],"info":{"desktop_protocol":"hermes-gateway-v1","profile_id":"/fixture/homes/default"}}""").jsonObject)
+                            if(mode=="viewer-activity") (1..3).forEach {publish(ws,it)}
                         }
                         "session.events.since"->{
                             check(params==Json.parseToJsonElement("""{"session_id":"shared-fixture","last_sequence":0,"replay_epoch":"fixture-ring"}"""))
                             replays.incrementAndGet()
                             if(mode=="drop-replay") {ws.close(1000,"fixture-drop");return}
-                            reply(Json.parseToJsonElement("""{"events":[],"latest_seq":0,"last_sequence":0,"epoch":"fixture-ring","replay_epoch":"fixture-ring","truncated":false,"snapshot_required":false,"count":0}""").jsonObject)
+                            val result=Json.parseToJsonElement("""{"events":[],"latest_seq":0,"last_sequence":0,"epoch":"fixture-ring","replay_epoch":"fixture-ring","truncated":false,"snapshot_required":false,"count":0}""").jsonObject
+                            reply(if(mode=="viewer-activity") JsonObject(result+mapOf("events" to JsonArray((1..3).map(::activity)),"latest_seq" to JsonPrimitive(3),"last_sequence" to JsonPrimitive(3),"count" to JsonPrimitive(3))) else result)
                         }
                         else->error("Unreviewed fixture RPC.")
                     }
@@ -173,13 +186,15 @@ class CanonicalSessionAttachmentContractTest {
     private fun target(api:ManagementClient,tokens:ManagementTokens,profile:String="default")=ManagementTarget("b".repeat(64),api.base.toString(),profile,tokens.provider+" · "+tokens.userId)
     private suspend fun home(api:ManagementClient,tokens:ManagementTokens)=checkNotNull(api.profiles(tokens).single {it.name=="default"}.pluginHome).identity()
 
-    @Test fun viewerHeartbeatUsesRealRouterAndPersistsOnlyAppliedCursor() {
+    @Test fun viewerHeartbeatUsesRealRouterAndPersistsOnlyAppliedCursor()=viewerContract(false)
+    @Test fun advancingEventsHidePrivateTextAndPersistEachAppliedCursorOnce()=viewerContract(true)
+    private fun viewerContract(activity:Boolean) {
         val args=InstrumentationRegistry.getArguments();val external=args.getString("signalGroveCanonicalSessionBase")
         val label=args.getString("signalGroveCanonicalSessionLabel") ?: "mock"
         require(label.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.-]{0,80}")))
         val revision=args.getString("signalGroveCanonicalSessionRevision") ?: "mock"
         require(revision in setOf("mock","stable","prior","main"))
-        val fixture=if(external==null) Fixture("viewer") else null
+        val fixture=if(external==null) Fixture(if(activity) "viewer-activity" else "viewer") else null
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val credentials=context.getSharedPreferences("credentials",0);val before=credentials.all.toMap()
         val checks=mutableListOf<String>()
@@ -194,8 +209,14 @@ class CanonicalSessionAttachmentContractTest {
                     checks+="native_pkce_and_verified_profile_home"
                     val repo=CanonicalSessionsRepository(db.dao(),CompletableDeferred(Unit));val guard=UpdateWorkGuard()
                     val controllerScope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
+                    val appliedSequences=MutableStateFlow<List<Long>>(emptyList())
+                    val observedRepository=object:CanonicalViewerRepository by repo {
+                        override suspend fun recordApplied(key:String,eventOwner:CanonicalFeedOwner,cursor:CanonicalReplayCursor) {
+                            repo.recordApplied(key,eventOwner,cursor);appliedSequences.value=appliedSequences.value+cursor.sequence
+                        }
+                    }
                     val access=CanonicalViewerAccess(owner,profileHome,1,api,tokens)
-                    val viewer=CanonicalViewerController(controllerScope,repo,{access},guard::set,heartbeatDelay=2500,heartbeatDeadline=5000)
+                    val viewer=CanonicalViewerController(controllerScope,observedRepository,{access},guard::set,heartbeatDelay=2500,heartbeatDeadline=5000)
                     try {
                         withContext(Dispatchers.Main.immediate) {viewer.load(CanonicalSessionScope.Stored)}
                         val loaded=viewer.state.first {it.phase in setOf(CanonicalViewerPhase.Inventory,CanonicalViewerPhase.Held)}
@@ -222,11 +243,25 @@ class CanonicalSessionAttachmentContractTest {
                             assertEquals(CanonicalViewerPhase.Following,periodic.phase)
                             assertTrue(checkNotNull(periodic.heartbeatAt)>firstHeartbeat)
                             checks+="initial_and_periodic_real_outer_heartbeat_verify_owner_home"
-                            val receipt=checkNotNull(db.dao().managementOperation(periodic.receiptKey))
+                            if(activity) {
+                                val live=viewer.state.first {it.phase==CanonicalViewerPhase.Held || it.observed>=4}
+                                assertEquals(CanonicalViewerPhase.Following,live.phase)
+                                val saved=appliedSequences.first {it.lastOrNull()==4L}
+                                assertEquals(listOf(3L,4L),saved)
+                                assertEquals(listOf(1L,2L,3L,4L),live.activities.map {it.sequence})
+                                assertEquals(listOf("Fixture public status one","","Fixture public reply three","Fixture public live status four"),live.activities.map {it.text})
+                                assertEquals(Words.ViewerPrivateActivity,live.activities[1].kind)
+                                assertEquals(Words.ViewerReplyActivity,live.activities[2].kind)
+                                assertEquals(4L,live.observed);assertEquals(4L,live.cursor!!.sequence)
+                                checks+="actual_replay_and_live_activity_apply_once_without_private_text"
+                                checks+="confirmed_room_cursor_advances_from_three_to_four"
+                            }
+                            val current=viewer.state.value
+                            val receipt=checkNotNull(db.dao().managementOperation(current.receiptKey))
                             assertEquals("confirmed",receipt.state);assertEquals(CanonicalResumeAction.Id,receipt.action)
                             val applied=checkNotNull(repo.lastApplied(owner,profileHome,"shared-fixture"))
-                            assertEquals(periodic.cursor,applied.cursor);assertEquals(owner,applied.owner.target)
-                            assertEquals(profileHome,applied.owner.homeId);assertEquals(periodic.sessionId,applied.owner.sessionId)
+                            assertEquals(current.cursor,applied.cursor);assertEquals(owner,applied.owner.target)
+                            assertEquals(profileHome,applied.owner.homeId);assertEquals(current.sessionId,applied.owner.sessionId)
                             checks+="applied_cursor_is_durable_and_exactly_owner_bound"
                             val summary=Json.parseToJsonElement(receipt.resultSummary).jsonObject
                             assertEquals(JsonPrimitive("unproven"),summary["execution_outcome"])
@@ -243,10 +278,10 @@ class CanonicalSessionAttachmentContractTest {
                     fixture?.let {assertEquals(1,it.resumes.get());assertEquals(1,it.replays.get());assertEquals(2,it.sockets.get());assertEquals(3,it.pings.get());assertEquals(0,it.failures.get())}
                 }}
                 assertEquals(before,credentials.all);checks+="saved_credentials_unchanged"
-                assertEquals(if(revision=="prior") 5 else 8,checks.size)
+                assertEquals(if(revision=="prior") 5 else if(activity) 10 else 8,checks.size)
                 val qa=File(checkNotNull(context.getExternalFilesDir(null)),"qa");check(qa.isDirectory || qa.mkdirs())
-                File(qa,"canonical-viewer-contract-"+label+".json").writeText(buildJsonObject {
-                    put("state","PASS_CANONICAL_VIEWER_HEARTBEAT");put("revision",revision);put("api",Build.VERSION.SDK_INT)
+                File(qa,(if(activity) "canonical-viewer-activity-contract-" else "canonical-viewer-contract-")+label+".json").writeText(buildJsonObject {
+                    put("state",if(activity) "PASS_CANONICAL_VIEWER_ACTIVITY" else "PASS_CANONICAL_VIEWER_HEARTBEAT");put("revision",revision);put("api",Build.VERSION.SDK_INT)
                     put("checks",JsonArray(checks.map(::JsonPrimitive)));put("savedCredentialsUnchanged",true)
                     put("workerOrExecutionClaim",false);put("completedAtMillis",System.currentTimeMillis())
                 }.toString())

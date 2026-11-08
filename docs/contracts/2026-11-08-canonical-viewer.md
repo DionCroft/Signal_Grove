@@ -79,3 +79,40 @@ It does not certify an active provider, worker, filesystem, external TLS/browser
 real identity provider, owner-phone canonical session or current moving main.
 The parent d40 canary now observes `8d7061`; changed pool/auxiliary internals need
 separate triage even though selected mobile watches report no review required.
+
+## Advancing replay and privacy acceptance
+
+The next development chunk corrects a generic preview fallback that could expose
+private reasoning text. Only schema-reviewed public fields are displayed:
+message text, tool names and subagent summaries/tool names. Reasoning/thinking
+events and explicitly private status kinds get a translated hidden notice;
+unknown bodies have no preview. Their sequences still apply normally. Activity
+remains in memory; durable receipts contain ownership metadata and cursors only.
+
+The fresh full build passes 775 JVM cases, both lint 0, 213 policy and 15 observer
+checks. Six new privacy/public-field cases demonstrably failed against the old
+production projection before the fix; all earlier 768 cases remain passing.
+Twenty-two mock methods on each emulator retain UI/Room and all five earlier
+adoption/recovery cases. Nine real-source pairings produce 75 native executions.
+Stable/main actual SessionEvents publish status/reasoning/message sequences
+1/2/3 after the resume acknowledgement; overlapping replay/live delivery is
+deduplicated. A later live status 4 precedes the periodic pong. The Android
+controller observes exactly four entries, hides private text and records confirmed
+Room cursors exactly 3 then 4. Prior remote eligibility remains empty.
+
+Default-off fixture activity requires explicit heartbeat opt-in, fixed synthetic
+payloads, exact canonical-session scope and the existing finite RPC allowlist.
+It admits no tools/work and never reads the owner's projects. All nine actual
+fixtures stop with exact transcript preservation and unchanged 29/12-record wires.
+Every imported source file is independently bound to immutable Git objects;
+stable/main/prior contain 1301/1318/838 imported files respectively.
+
+The source inventory now includes `gateway/session_events.py`,
+`tui_gateway/event_replay.py`, `tui_gateway/transport.py` and
+`tui_gateway/contracts/events.py`. All original F0 and mobile-scope values and
+existing review entries remain exact. The two changed consumed-module modes
+require complete seven-module reviewed vectors; malformed or missing source
+identities still require review. Both immutable stable/main comparisons cover
+189 watched modules. This does not certify the newer moving main, local provider
+inference, workers, external TLS or owner-phone adoption. Exact-head hosted gates
+and every other open audit row remain required. The d0 beta.8 assets are unchanged.

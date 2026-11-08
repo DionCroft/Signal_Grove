@@ -195,6 +195,17 @@ def canonical_fixture_rpc_allowed(method, params, count, allow_heartbeat=False):
     return False
 
 
+def canonical_viewer_activity(phase):
+    """Fixed synthetic observation payloads; never a turn, tool or execution admission."""
+    if phase == 'opening':
+        return [('status.update', {'kind':'status','text':'Fixture public status one'}),
+                ('reasoning.delta', {'text':'fixture-private-reasoning-sentinel'}),
+                ('message.delta', {'text':'Fixture public reply three'})]
+    if phase == 'live':
+        return [('status.update', {'kind':'status','text':'Fixture public live status four'})]
+    raise ValueError('Unknown bounded fixture activity phase.')
+
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source-root', type=Path, required=True)
 parser.add_argument('--work-root', type=Path, required=True)
@@ -203,13 +214,20 @@ parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd3
 parser.add_argument('--lifetime-seconds',type=int,default=180)
 parser.add_argument('--surface',choices=('native-auth','projects','canonical','canonical-session'),default='native-auth')
 parser.add_argument('--allow-viewer-heartbeat',action='store_true',help='Allow bounded empty heartbeat RPCs on the synthetic canonical-session fixture only.')
+parser.add_argument('--emit-viewer-activity',action='store_true',help='Emit four fixed observation frames only after reviewed synthetic adoption and its periodic heartbeat.')
 a = parser.parse_args()
+if a.emit_viewer_activity and (a.surface!='canonical-session' or not a.allow_viewer_heartbeat):parser.error('Synthetic viewer activity requires canonical-session and explicit heartbeat opt-in.')
 if a.allow_viewer_heartbeat and a.surface!='canonical-session':parser.error('Viewer heartbeat requires the canonical-session surface.')
 if not 10<=a.lifetime_seconds<=600:parser.error('Lifetime must be10..600 seconds.')
 if a.surface in ('canonical','canonical-session'):
     # Negotiation consumes the actual authority dispatcher, never a runtime-description stub.
     if a.revision=='stable-2bd378e':REVISIONS[a.revision]['blobs'].update({'gateway/session_authority.py': '052252b70edc38b71b6a8679f91660d6009893aa', 'gateway/session_controls.py': '3e4a89ad890cacf9645b648369d3daa682c1e114', 'gateway/session_contract.py': 'accd1d9e2109e34c19263b90d730fad400128e6c', 'gateway/owner_identity.py': 'bffdf405527e53f3bd1b608c88d609b1dab34803', 'gateway/session_local_migration.py': '82a647465420180829beeb081a6271bcdc48272f', 'gateway/session_policy.py': 'ca1cac3b27c42ab22771dc93255a9d5cdb20b30b', 'gateway/session_skin.py': 'abb696b5c959ab01ba91fa0d5d0ab6f6b4076151', 'tui_gateway/contracts/canonical.py': '8976061235c34e286a7d475ce7db1283b42a6d6d', 'tui_gateway/contracts/canonical_sessions.py': '642364a17f0ec8a12c66c285d76064996b604f10', 'tui_gateway/contracts/events.py': '4fc6964c1fbcc240768200f5fd121643e222daee', 'hermes_state_runtime.py': '49207f5508db3255cd90433a229c518f11cfd0f7'})
     if a.revision=='prior-bf0203a':REVISIONS[a.revision]['blobs'].update({'gateway/session_authority.py': '3bc6c596c77c495c1cf318495a84319c211dd523', 'gateway/session_controls.py': '65887575dec12b3ddb9f859ebe56156264ea120e', 'gateway/session_contract.py': 'dda3763a395814455cdf0de080d62f352dfd4b52', 'gateway/session_local_migration.py': '484be549e64250e509bbaabe80b6ef9cc499c18e', 'gateway/session_policy.py': 'ab3aace258bce8c74b151553153b2bb3d554bf1d', 'gateway/session_skin.py': 'abb696b5c959ab01ba91fa0d5d0ab6f6b4076151', 'tui_gateway/contracts/canonical.py': '3a9dd88a19decfea9d4c9307b90c5e2849a2d0a0', 'tui_gateway/contracts/canonical_sessions.py': 'db394b039bca3a75a9ed4e06e0fcc7a121c3ae33', 'tui_gateway/contracts/events.py': 'd782b3e6eec5b6d624aad9716ada2d415c8178f4', 'hermes_state_runtime.py': '516e3ea46152226e320dc0b6236e6af0b2a00ccb'})
+_CANONICAL_STREAM_PINS = {'2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19': {'gateway/session_events.py': '5aa8636025d83497b23dcad7cc24bfd0c9ca911d', 'tui_gateway/event_replay.py': '20298bd23f80922c02d7b45a3c920716021f290b', 'tui_gateway/transport.py': '691f1d799027b211a073c685fbd7ee5d65fae3a6', 'tui_gateway/contracts/events.py': '4fc6964c1fbcc240768200f5fd121643e222daee'}, '21ae0e1238fdf466fa52a85a6ebf75d6899e49da': {'gateway/session_events.py': '5aa8636025d83497b23dcad7cc24bfd0c9ca911d', 'tui_gateway/event_replay.py': '20298bd23f80922c02d7b45a3c920716021f290b', 'tui_gateway/transport.py': '691f1d799027b211a073c685fbd7ee5d65fae3a6', 'tui_gateway/contracts/events.py': '4fc6964c1fbcc240768200f5fd121643e222daee'}, 'bf0203a794a07aac3ff764972ab9087baa4e4f4e': {'gateway/session_events.py': 'f669acfb44e3acc17058e67981b4cf8569478451', 'tui_gateway/event_replay.py': 'd2f4ab26936a8f3f8bbe10ab27e83c863b65ee8a', 'tui_gateway/transport.py': '691f1d799027b211a073c685fbd7ee5d65fae3a6', 'tui_gateway/contracts/events.py': 'd782b3e6eec5b6d624aad9716ada2d415c8178f4'}}
+if a.surface in ('canonical','canonical-session'):
+    for stream_path,stream_blob in _CANONICAL_STREAM_PINS[REVISIONS[a.revision]['commit']].items():
+        assert REVISIONS[a.revision]['blobs'].get(stream_path) in (None,stream_blob)
+        REVISIONS[a.revision]['blobs'][stream_path]=stream_blob
 SOURCE_COMMIT = REVISIONS[a.revision]['commit']
 PINNED_BLOBS = REVISIONS[a.revision]['blobs']
 source, root, site = a.source_root.resolve(), a.work_root.resolve(), a.dependency_site.resolve()
@@ -481,6 +499,20 @@ try:
         canonical_authority=SessionAuthority(runner,profile_id=str(homes['default']),instance_id='fixture-native-default',db=db,epoch=epoch)
         web_server.app.state.session_authority=canonical_authority
     requests=[]
+    emitted_activity=[]
+    def emit_viewer_activity(phase):
+        assert a.emit_viewer_activity and a.allow_viewer_heartbeat and a.surface=='canonical-session'
+        assert canonical_authority is not None and 'shared-fixture' in canonical_authority.sessions
+        from tui_gateway.contracts.events import StatusUpdatePayload, StreamDeltaPayload
+        stream=canonical_authority.sessions['shared-fixture'].event_stream
+        with stream.lock:
+            assert stream.sequence==(0 if phase=='opening' else 3)
+            for event_type,payload in canonical_viewer_activity(phase):
+                model=StatusUpdatePayload if event_type=='status.update' else StreamDeltaPayload
+                model.model_validate(payload)
+                assert stream.publish('shared-fixture',payload,event_type=event_type) is True
+                emitted_activity.append(dict(phase=phase,eventType=event_type,sequence=stream.sequence,
+                    payloadSha256=hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()))
     allowed={('GET','/auth/native/authorize'),('GET','/auth/callback'),('POST','/auth/native/token'),('POST','/auth/native/refresh'),('GET','/api/auth/me'),('GET','/api/profiles'),('GET','/api/mcp/servers')}
     if a.surface in ('projects','canonical','canonical-session'):allowed.add(('POST','/api/auth/ws-ticket'))
     async def proxy(scope,receive,send):
@@ -492,8 +524,13 @@ try:
             requests.append(entry)
             forwarded=dict(scope,path='/api/ws',raw_path=b'/api/ws',root_path='',headers=[(k,v) for k,v in headers if k.lower()!=b'x-forwarded-prefix']+[(b'x-forwarded-prefix',b'/dashboard')])
             rpc_count=0
+            rpc_methods={}
+            opening_activity_ready=asyncio.Event()
+            connection_pings=0
+            opening_activity_sent=False
+            live_activity_sent=False
             async def bounded_receive():
-                nonlocal rpc_count
+                nonlocal rpc_count,connection_pings,live_activity_sent
                 message=await receive()
                 if message['type']=='websocket.receive':
                     try:
@@ -506,11 +543,19 @@ try:
                         frame=json.loads(raw,object_pairs_hook=unique)
                         assert isinstance(frame,dict) and set(frame)=={'jsonrpc','id','method','params'} and frame['jsonrpc']=='2.0' and isinstance(frame['id'],str) and 0<len(frame['id'])<=64
                         method=frame['method'];params=frame['params'];assert isinstance(params,dict)
+                        assert frame['id'] not in rpc_methods;rpc_methods[frame['id']]=method
                         if a.surface in ('canonical','canonical-session'):
                             if a.surface=='canonical':
                                 assert method=='runtime.describe' and params=={} and rpc_count==0
                             else:
                                 assert canonical_fixture_rpc_allowed(method,params,rpc_count,a.allow_viewer_heartbeat)
+                            if a.emit_viewer_activity and method=='session.events.since':
+                                await asyncio.wait_for(opening_activity_ready.wait(),5)
+                            if a.emit_viewer_activity and method=='gateway.ping':
+                                connection_pings+=1
+                                if connection_pings==3:
+                                    assert opening_activity_ready.is_set() and not live_activity_sent
+                                    emit_viewer_activity('live');live_activity_sent=True
                             entry_rpc=dict(method='RPC',path=method,profile=[],noSessionOrMutation=method in ('runtime.describe','session.list','gateway.ping'))
                         else:
                             assert method in ('projects.list','projects.get')
@@ -524,9 +569,15 @@ try:
                         raise WebSocketDisconnect(code=1008)
                 return message
             async def observed_ws(message):
+                nonlocal opening_activity_sent
                 if message['type']=='websocket.accept':entry['accepted']=True;entry['subprotocol']=message.get('subprotocol')
                 elif message['type']=='websocket.close':entry['closeCode']=message.get('code')
                 await send(message)
+                if a.emit_viewer_activity and message['type']=='websocket.send' and isinstance(message.get('text'),str):
+                    reply=json.loads(message['text'])
+                    if rpc_methods.get(reply.get('id'))=='session.resume' and 'result' in reply:
+                        assert not opening_activity_sent
+                        emit_viewer_activity('opening');opening_activity_sent=True;opening_activity_ready.set()
             await web_server.app(forwarded,bounded_receive,observed_ws);return
         if scope['type']=='http' and scope['path'].startswith('/fixture-model/'):
             assert a.surface=='canonical-session' and scope['method']=='GET'
@@ -567,7 +618,7 @@ try:
         while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
         assert server.started and not task.done(),'Actual dashboard listener did not start'
         pending=root/'ready.pending'
-        pending.write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name,surface=a.surface,viewerHeartbeatEnabled=a.allow_viewer_heartbeat))+'\n',encoding='utf-8')
+        pending.write_text(json.dumps(dict(state='READY_OWNED_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',sourceCommit=SOURCE_COMMIT,revision=a.revision,authRequired=True,fixtureRootName=root.name,surface=a.surface,viewerHeartbeatEnabled=a.allow_viewer_heartbeat,viewerActivityEnabled=a.emit_viewer_activity))+'\n',encoding='utf-8')
         pending.replace(root/'ready.json')
         deadline=time.monotonic()+a.lifetime_seconds
         try:
@@ -620,6 +671,8 @@ try:
         report['modelMetadataReads']=len(model_reads)
         report['viewerHeartbeatEnabled']=a.allow_viewer_heartbeat
         report['viewerHeartbeatCount']=sum(row['method']=='RPC' and row['path']=='gateway.ping' for row in requests)
+        report['viewerActivityEnabled']=a.emit_viewer_activity
+        report['viewerActivityEvents']=emitted_activity
         report['seededTranscriptMessagesUnchanged']=True
     assert not denied,denied
     report.update(state='STOPPED_REAL_TCP_FIXTURE_REVIEW_CONSUMER',seededHistoryUnchanged=True)

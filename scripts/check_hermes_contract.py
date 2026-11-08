@@ -167,6 +167,7 @@ CANONICAL_NEGOTIATION_CONTRACT_SOURCES = {
 }
 EXTRA_SOURCES.update(CANONICAL_NEGOTIATION_CONTRACT_SOURCES)
 CANONICAL_ATTACHMENT_CONTRACT_SOURCES = {'canonical_sessions': 'tui_gateway/contracts/canonical_sessions.py', 'canonical_listing': 'gateway/session_listing.py', 'canonical_migration': 'gateway/session_local_migration.py', 'canonical_viewers': 'gateway/session_viewer_close.py', 'canonical_authority': 'gateway/session_authority.py', 'canonical_owner': 'gateway/owner_identity.py', 'canonical_snapshot': 'gateway/session_local_inventory.py', 'canonical_policy': 'gateway/session_policy_refresh.py', 'canonical_live_listing': 'gateway/session_live_listing.py'}
+CANONICAL_ATTACHMENT_CONTRACT_SOURCES.update({'canonical_event_stream': 'gateway/session_events.py', 'canonical_replay_store': 'tui_gateway/event_replay.py', 'canonical_transport': 'tui_gateway/transport.py', 'canonical_event_payloads': 'tui_gateway/contracts/events.py'})
 EXTRA_SOURCES.update(CANONICAL_ATTACHMENT_CONTRACT_SOURCES)
 MAIN_AUTHORITY_CONTRACT_SOURCES = {'canonical_stored_reads': 'gateway/session_stored_reads.py', 'canonical_picker': 'gateway/session_picker_fields.py', 'canonical_plugin_rpc': 'gateway/session_plugin_rpc.py', 'canonical_recovery': 'gateway/session_local_recovery.py', 'canonical_transcript_rows': 'gateway/session_transcript_rows.py', 'canonical_local_receipts': 'hermes_state_local.py', 'canonical_local_lineage': 'hermes_state_local_lineage.py', 'canonical_policy_state': 'gateway/session_policy.py'}
 EXTRA_SOURCES.update(MAIN_AUTHORITY_CONTRACT_SOURCES)
