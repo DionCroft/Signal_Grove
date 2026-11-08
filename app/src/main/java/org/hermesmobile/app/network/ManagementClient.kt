@@ -32,6 +32,9 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     private val dns=PermissionAwareDns(localNetworkAllowed)
     private val http=OkHttpClient.Builder().dns(dns).connectTimeout(15,TimeUnit.SECONDS).readTimeout(45,TimeUnit.SECONDS)
         .writeTimeout(30,TimeUnit.SECONDS).callTimeout(60,TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
+    // Only pure identity/profile metadata reads may recover a broken pooled connection.
+    // Mutation, token and ticket requests keep the original one-send client.
+    private val metadataHttp=http.newBuilder().retryOnConnectionFailure(true).build()
     private val hubHttp=http.newBuilder().readTimeout(180,TimeUnit.SECONDS).callTimeout(210,TimeUnit.SECONDS).build()
     private suspend fun element(path:String,token:String?=null,body:JsonObject?=null,profile:String?=null,method:String=if(body==null) "GET" else "POST",tail:List<String> = emptyList(),query:Map<String,String> = emptyMap(),slow:Boolean=false,relayMint:Boolean=false):JsonElement=suspendCancellableCoroutine {continuation ->
         dns.checkHost(base.host)
@@ -40,7 +43,10 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
             token?.let {header("Authorization","Bearer $it")}
             method(method,body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType()))
         }.build()
-        val call=(if(slow) hubHttp else http).newCall(request);continuation.invokeOnCancellation {call.cancel()}
+        val metadataRead=method=="GET" && body==null && profile==null && tail.isEmpty() && query.isEmpty() &&
+            path in setOf("api/auth/me","api/profiles")
+        val call=(if(metadataRead) metadataHttp else if(slow) hubHttp else http).newCall(request)
+        continuation.invokeOnCancellation {call.cancel()}
         call.enqueue(object:Callback {
             override fun onFailure(call:Call,e:IOException) {if(continuation.isActive) continuation.resumeWith(Result.failure(e))}
             override fun onResponse(call:Call,response:Response) {

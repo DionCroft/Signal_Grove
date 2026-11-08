@@ -1,5 +1,61 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 - current-main authority and metadata read recovery
+
+The immutable Hermes main revision 21ae0e1238fdf466fa52a85a6ebf75d6899e49da
+passes complete static comparison across 185 Git-bound aliases. Eleven changed
+handler variants bind the full canonical/auth dependency closure, including
+stored-read, picker, policy, lineage, recovery and plugin dispatch sources.
+The stable 2bd378e comparison passes too. Every original F0 source/handler/field
+entry is preserved; four new policy tests reject changed/missing dependencies
+and unknown/missing handler modes even when other AST projections match.
+The complete policy suite passes 201 cases.
+
+Actual immutable-main component execution passes 46 authority-wire and
+13 attach-first cases, with independently checked loaded-module hashes and
+zero unexpected audit denials. These synthetic component fixtures do not prove
+production worker execution or full backend deployment.
+
+A native main/API26 attempt retained a valid adoption ACK and exact transcript
+but failed its final authenticated profile GET with response-header EOF.
+Its failed result is preserved, with zero admissions/worker executions and only
+the five allowed ownership metadata changes. Six focused transport cases on
+unchanged production code produced three expected read-recovery failures.
+The fix changes only pure GET api/auth/me and api/profiles to use the library's
+connection recovery. Same origin/prefix/token/TLS/DNS/permission checks and
+aggregate timeout remain; response actor/home checks still execute. Token
+rotation, tickets, mutations, other reads and WebSocket RPCs stay one-send.
+The final six cases all pass, including recovered foreign-actor refusal,
+refresh POST no replay, other-read no retry, and redirect/error refusal.
+
+The final required testDebugUnitTest/lint/lintRelease/assembleDebug/
+assembleDebugAndroidTest build passes 727 fresh unique JVM cases across 75
+XML reports, with zero failures, errors or skips. All prior 721 methods remain.
+Debug/release lint have zero errors. All 623 frozen source/context inputs,
+original CAB debug signers, 28 legacy cache files and published files match.
+
+Thirteen affected native controllers pass 25 method executions on the preserved
+API26, large API37 and compact API37 emulators: five mock session methods on
+each, plus current-main session/negotiation on all three and prior session/
+negotiation on API26/large37. The new fault case requires post-ACK profile
+recovery with exactly one resume, one replay and two original sockets.
+Actual fixtures use source-bound auth/authority/dispatch; module hashes, exact
+wire traces, teardown, unchanged transcripts, zero admissions/worker executions
+and the narrowly allowed metadata delta are independently checked.
+The owner's phone, saved credentials and production package are untouched.
+
+The prior pin's full 185-alias scan remains incomplete at cron/jobs_time.py;
+no waiver was added. Its 19 canonical Git bindings and scoped native evidence
+do not establish full prior-source compatibility. Native Python audit hooks
+are defense in depth, not an OS sandbox. Underlying live EOF timing remains
+unproven. Full exact-head hosted/release/production-phone gates remain separate.
+
+The older Android run 42438666498 API26 job 128604967619 remains failed:
+all 1021 methods started, 1020 passed, one dialog-focus failure in
+CredentialPoolFlowTest.unknownWriteBlocksEvenAfterCatalogRefresh at
+DialogKeyboard.kt:26. It did not time out. No assertions are waived and the
+focus-helper fix is a separate required chunk.
+
 ## 8 November 2026 — separate authenticated canonical negotiation
 
 The new internal CanonicalGatewayChannel verifies explicit authority advertisement

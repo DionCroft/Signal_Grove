@@ -35,6 +35,7 @@ class CanonicalSessionAttachmentContractTest {
     private data class Pending(val challenge:String,val redirect:HttpUrl,val state:String)
     private class Fixture(val mode:String="normal"):AutoCloseable {
         val resumes=AtomicInteger();val replays=AtomicInteger();val sockets=AtomicInteger()
+        val profileReadAttempts=AtomicInteger()
         val server=MockWebServer()
         val failures=AtomicInteger()
         private val pending=AtomicReference<Pending>()
@@ -110,7 +111,7 @@ class CanonicalSessionAttachmentContractTest {
                             check(q.getHeader("Authorization")=="Bearer project-access-fixture" && q.getHeader("Cookie")==null)
                             when(url.encodedPath) {
                                 "/dashboard/api/auth/me"->{check(q.method=="GET");json("""{"user_id":"stub-user-1","provider":"stub","display_name":"Project fixture"}""")}
-                                "/dashboard/api/profiles"->{check(q.method=="GET");json("""{"profiles":[{"name":"default","path":"/fixture/homes/default"},{"name":"worker","path":"/fixture/homes/worker"},{"name":"alias","path":"/fixture/homes/default"}]}""")}
+                                "/dashboard/api/profiles"->{check(q.method=="GET");if(mode=="drop-profile-once" && replays.get()>0 && profileReadAttempts.incrementAndGet()==1) MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST) else json("""{"profiles":[{"name":"default","path":"/fixture/homes/default"},{"name":"worker","path":"/fixture/homes/worker"},{"name":"alias","path":"/fixture/homes/default"}]}""")}
                                 else->{
                                     check(q.method=="POST" && Json.parseToJsonElement(q.body.readUtf8())==JsonObject(emptyMap()))
                                     val ticket="project-ticket-"+UUID.randomUUID().toString().replace("-","");tickets+=ticket
@@ -168,7 +169,7 @@ class CanonicalSessionAttachmentContractTest {
     @Test fun reviewedResumeUsesRealAuthHomeAndDurableReceiptWithoutSubmittingWork() {
         val args=InstrumentationRegistry.getArguments();val external=args.getString("signalGroveCanonicalSessionBase")
         val label=args.getString("signalGroveCanonicalSessionLabel") ?: "mock";require(label.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.-]{0,80}")))
-        val revision=args.getString("signalGroveCanonicalSessionRevision") ?: "mock";require(revision in setOf("mock","stable","prior"))
+        val revision=args.getString("signalGroveCanonicalSessionRevision") ?: "mock";require(revision in setOf("mock","stable","prior","main"))
         val fixture=if(external==null) Fixture() else null
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val credentials=context.getSharedPreferences("credentials",0);val before=credentials.all.toMap()
@@ -267,5 +268,23 @@ class CanonicalSessionAttachmentContractTest {
             assertTrue(db.dao().unresolvedManagementOperations(owner.resourceScope,owner.url,"a".repeat(64)).any {it.key==record.key})
             assertTrue(runCatching {db.dao().claimManagementOperation(record.copy(key="second"))}.exceptionOrNull() is ManagementOutcomePending)
         }}
+    }
+
+    @Test fun postAckProfileRecoveryNeverRepeatsResumeOrOpensAnotherSocket() {
+        Fixture("drop-profile-once").use {f->withDatabase {db->runBlocking {withTimeout(60_000) {
+            val api=ManagementClient(base(f),true,true);val tokens=signIn(api);val owner=target(api,tokens);val profileHome=home(api,tokens)
+            val repo=CanonicalSessionsRepository(db.dao(),CompletableDeferred(Unit))
+            val review=repo.prepare(owner,profileHome,api,tokens).review("shared-fixture")
+            val connection=repo.adopt(review,api,tokens)
+            try {
+                assertEquals("confirmed",connection.receipt.state)
+                assertEquals("confirmed",db.dao().managementOperation(connection.receipt.key)!!.state)
+                assertEquals(CanonicalFeedPhase.Following,connection.attachment.initial.status.phase)
+                assertTrue(db.dao().unresolvedManagementOperations(owner.resourceScope,owner.url,profileHome).isEmpty())
+                assertEquals(2,f.profileReadAttempts.get())
+                assertEquals(1,f.resumes.get());assertEquals(1,f.replays.get());assertEquals(2,f.sockets.get())
+                assertEquals(0,f.failures.get())
+            } finally {connection.close()}
+        }}}}
     }
 }

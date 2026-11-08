@@ -1,5 +1,38 @@
 # Signal Grove project state
 
+## Current checkpoint - current Hermes authority and metadata recovery validated
+
+All five required tasks pass: 727 fresh unique JVM cases, 201 policy checks and
+debug/release lint with 0 errors. All 623 frozen source inputs and E: build
+contexts, 28 legacy checkout cache files and published outputs are verified.
+The only production change in this chunk is narrowly scoped connection recovery
+for authenticated identity/profile GETs. Token rotation, ticket requests,
+mutations, other reads and WebSocket RPCs keep their one-send policy.
+
+Thirteen affected native controllers pass 25 method executions on the preserved
+API26, large API37 and compact API37 emulators. A dropped post-ACK profile read
+recovers with exactly one resume, one replay and the original two sockets.
+Actual current-main and prior fixtures retain transcripts, admit no new work or
+worker execution and stop their owned listeners. Only the reviewed five ownership
+metadata fields may change on the current-main synthetic selected row.
+
+All 185 Git-bound stable/current-main source aliases pass, with full dependency
+guards and every original F0 entry preserved. Actual current-main component
+checks pass 59 cases. The prior pin's full-source scan remains incomplete at its
+absent cron/jobs_time.py; its 19 canonical bindings and scoped native results
+do not claim full prior support.
+
+The first native EOF after a valid adoption ACK remains a failed result.
+Six counterfactual transport tests against unchanged production code reproduced
+three read-recovery failures; the final six all pass, including actor rejection,
+no refresh replay, no broader retry and no cross-origin redirect forwarding.
+The live EOF timing itself is not conclusively isolated.
+
+Full exact-head hosted/release/phone gates remain required. The older 724 hosted
+API26 failure is a separate dialog-keyboard focus failure (1020/1021, no timeout)
+and still needs its own reproduction/fix. No new APK is published. Continue the
+preserved canonical viewer and every open audit row. Main6b and held207c stay fixed.
+
 ## Current checkpoint - serving-model defaults and preset controls validated
 
 New/unconfigured connections default to Automatic: resolve a fresh, authenticated,

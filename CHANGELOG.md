@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Recover interrupted authenticated identity/profile reads without replaying
+  session adoption, token rotation or other management operations. Review and
+  guard current Hermes session-authority dependencies with real-source checks.
+
 - Default new connections to Automatic serving-model selection for new turns;
   retain explicit choices and frozen retries. Replace free-text reasoning effort
   and service tier with supported preset menus. Hold unavailable model status

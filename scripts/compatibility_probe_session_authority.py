@@ -35,6 +35,25 @@ REVISIONS = {'stable-2bd378e': {'commit': '2bd378ed1b8d6bf2192cb26e0a55ff3091e6b
                              'gateway/session_local_migration.py': '484be549e64250e509bbaabe80b6ef9cc499c18e',
                              'tui_gateway/contracts/canonical_sessions.py': 'db394b039bca3a75a9ed4e06e0fcc7a121c3ae33',
                              'hermes_state_runtime.py': '516e3ea46152226e320dc0b6236e6af0b2a00ccb'}}}
+REVISIONS['main-21ae0e1'] = {'commit': '21ae0e1238fdf466fa52a85a6ebf75d6899e49da',
+ 'blobs': {'gateway/owner_identity.py': 'bffdf405527e53f3bd1b608c88d609b1dab34803',
+           'gateway/session_authority.py': '052252b70edc38b71b6a8679f91660d6009893aa',
+           'gateway/session_controls.py': '92c19bbfed5f4bb21a3520f9172b0248180a3731',
+           'gateway/session_events.py': '5aa8636025d83497b23dcad7cc24bfd0c9ca911d',
+           'gateway/session_local_migration.py': '82a647465420180829beeb081a6271bcdc48272f',
+           'gateway/session_local_recovery.py': '9b00f41786c47fef23500a9eca70f60c667ad9d4',
+           'gateway/session_picker_fields.py': '9bbbc5f41500083e74bbda532c5e66aa49622ef0',
+           'gateway/session_plugin_rpc.py': 'a1bc32a566f31254e7b9d761d57da7f00bb7d1b0',
+           'gateway/session_policy.py': '502eed0642e1ac5062df880240071844d6754ffa',
+           'gateway/session_stored_reads.py': 'f6f454a0a2492cd349f211c1ef77fd6374e1514e',
+           'gateway/session_transcript_rows.py': 'e3cacd910e2d5c946704404b98f573bb86ec82bc',
+           'gateway/session_worker_reservation.py': '421bb89109330bd5eaf8f7ac29d77dcda1ce5554',
+           'hermes_state_local.py': 'fd39d4c1bf10c36b5aa06664950dfa7b88d96ae6',
+           'hermes_state_local_lineage.py': 'd6c26730b277d97c50298fde75f1e5d9f96f5d8b',
+           'hermes_state_runtime.py': '49207f5508db3255cd90433a229c518f11cfd0f7',
+           'tests/gateway/test_canonical_wire_contracts.py': '78364e99862de463129325a67c8ae6e0880a0a62',
+           'tests/gateway/test_local_authority_transitions.py': '8e0e58485a882c7ee90bb204e7eded9ee81f6da8',
+           'tui_gateway/contracts/canonical_sessions.py': 'e3569203f6536a9c86c6dcaa9c95ae6b1403864f'}}
 if not __debug__ or not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode):
     raise SystemExit('Use -I -S -B without -O; assertions and isolated imports are required.')
 if os.name != 'nt':
@@ -46,8 +65,8 @@ parser.add_argument('--dependency-site', type=Path, required=True)
 parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
 parser.add_argument('--flow', choices=('authority-wire', 'attach-first'), default='authority-wire')
 a = parser.parse_args()
-if a.flow == 'authority-wire' and a.revision != 'stable-2bd378e':
-    parser.error('The full authority lifecycle flow requires the stable revision; use attach-first for the prior source.')
+if a.flow == 'authority-wire' and a.revision not in ('stable-2bd378e', 'main-21ae0e1'):
+    parser.error('The full authority lifecycle flow requires the pinned stable or main revision; use attach-first for the prior source.')
 SOURCE_COMMIT = REVISIONS[a.revision]['commit']
 PINNED_BLOBS = REVISIONS[a.revision]['blobs']
 source, root, site = a.source_root.resolve(), a.work_root.resolve(), a.dependency_site.resolve()

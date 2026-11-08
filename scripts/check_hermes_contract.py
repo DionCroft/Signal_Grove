@@ -168,6 +168,9 @@ CANONICAL_NEGOTIATION_CONTRACT_SOURCES = {
 EXTRA_SOURCES.update(CANONICAL_NEGOTIATION_CONTRACT_SOURCES)
 CANONICAL_ATTACHMENT_CONTRACT_SOURCES = {'canonical_sessions': 'tui_gateway/contracts/canonical_sessions.py', 'canonical_listing': 'gateway/session_listing.py', 'canonical_migration': 'gateway/session_local_migration.py', 'canonical_viewers': 'gateway/session_viewer_close.py', 'canonical_authority': 'gateway/session_authority.py', 'canonical_owner': 'gateway/owner_identity.py', 'canonical_snapshot': 'gateway/session_local_inventory.py', 'canonical_policy': 'gateway/session_policy_refresh.py', 'canonical_live_listing': 'gateway/session_live_listing.py'}
 EXTRA_SOURCES.update(CANONICAL_ATTACHMENT_CONTRACT_SOURCES)
+MAIN_AUTHORITY_CONTRACT_SOURCES = {'canonical_stored_reads': 'gateway/session_stored_reads.py', 'canonical_picker': 'gateway/session_picker_fields.py', 'canonical_plugin_rpc': 'gateway/session_plugin_rpc.py', 'canonical_recovery': 'gateway/session_local_recovery.py', 'canonical_transcript_rows': 'gateway/session_transcript_rows.py', 'canonical_local_receipts': 'hermes_state_local.py', 'canonical_local_lineage': 'hermes_state_local_lineage.py', 'canonical_policy_state': 'gateway/session_policy.py'}
+EXTRA_SOURCES.update(MAIN_AUTHORITY_CONTRACT_SOURCES)
+
 
 
 
@@ -176,6 +179,10 @@ EXTRA_SOURCES.update(PLUGIN_UPDATE_CONTRACT_SOURCES)
 # Official complete trees and Contents 404s prove this dependency is absent at ONLY these pins.
 # A missing dependency at any other commit is an incomplete inspection, never empty success.
 REVIEWED_SOURCE_ABSENCES = {
+    'canonical_transcript_rows': ('gateway/session_transcript_rows.py', frozenset(('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'))),
+    'canonical_plugin_rpc': ('gateway/session_plugin_rpc.py', frozenset(('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'))),
+    'canonical_picker': ('gateway/session_picker_fields.py', frozenset(('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'))),
+    'canonical_stored_reads': ('gateway/session_stored_reads.py', frozenset(('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'))),
     'canonical_owner': ('gateway/owner_identity.py', frozenset(('bf0203a794a07aac3ff764972ab9087baa4e4f4e',))),
     'saved_gateway_oauth': ('hermes_cli/gateway_connections_oauth.py', frozenset(('2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
     'saved_gateway_routes': ('hermes_cli/web_routers/gateway_connections_reach.py', frozenset(('2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19', 'b200f5bc60e31588ba2cb60e288029c4a54ba5fa', 'bf0203a794a07aac3ff764972ab9087baa4e4f4e', 'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab'))),
@@ -262,11 +269,11 @@ def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
                 selected=copy.deepcopy(node)
                 selected.iter.elts=[item for item in selected.iter.elts if isinstance(item,ast.Name) and item.id=='_methods_projects']
                 handlers['gateway_runtime:projects_registration_loop']=fingerprint(selected)
-            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys() | CANONICAL_NEGOTIATION_CONTRACT_SOURCES.keys() | CANONICAL_ATTACHMENT_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
+            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys() | CANONICAL_NEGOTIATION_CONTRACT_SOURCES.keys() | CANONICAL_ATTACHMENT_CONTRACT_SOURCES.keys() | MAIN_AUTHORITY_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Assign,ast.AnnAssign)):
                 targets=node.targets if isinstance(node,ast.Assign) else [node.target]
                 for target in targets:
                     if isinstance(target,ast.Name):handlers[f'{source}:binding:{prefix}{target.id}']=fingerprint(node)
-            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys() | CANONICAL_NEGOTIATION_CONTRACT_SOURCES.keys() | CANONICAL_ATTACHMENT_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
+            elif source in (RUNTIME_GUARD_CONTRACT_SOURCES.keys() | AUTH_BOUNDARY_CONTRACT_SOURCES.keys() | CANONICAL_NEGOTIATION_CONTRACT_SOURCES.keys() | CANONICAL_ATTACHMENT_CONTRACT_SOURCES.keys() | MAIN_AUTHORITY_CONTRACT_SOURCES.keys()) and isinstance(node,(ast.Import,ast.ImportFrom)):
                 for alias in node.names:
                     binding=alias.asname or alias.name
                     isolated=ast.ImportFrom(module=node.module,names=[alias],level=node.level) if isinstance(node,ast.ImportFrom) else ast.Import(names=[alias])
