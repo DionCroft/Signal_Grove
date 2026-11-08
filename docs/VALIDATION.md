@@ -1,5 +1,25 @@
 # Current development validation — audit follow-up
 
+## Hosted checkpoint - earlier viewer suites complete; privacy build retrying Java setup
+
+Parent viewer commit `d40fd06891adb65ed42253370995990dd7dfa7b9` now has
+independently verified complete hosted API26/API37 method sets: 1040 and 1041.
+Every eligible source method starts and passes once; there are no negative,
+ignored or unfinished results. Raw ZIP digests and job logs bind both device
+inputs to verify artifact 13609591453 at that exact commit. Earlier accepted
+768 JVM/both lint 0, 201 policy, 15 observer and 32 bounded module probes complete
+that revision's hosted gates. This does not accept later application source.
+
+Privacy/replay commit `d57cf10038fdc22863ff1659953eb9e14c3aac8f` is pushed with
+775 JVM/75 targeted native/213 policy local acceptance. Its first hosted verify
+job 128689672418 passed policy/observer checks, then failed with HTTP504 while
+setup-java downloaded Temurin24. Compilation and the device matrix were skipped.
+The exact failed log is retained. Failed jobs were retried once on the same
+run 42467297525, attempt2; verify job 128690665355 is in progress. No assertion,
+deadline, checksum or source changed for that recovery. All four compatibility
+jobs in run42467301858 report success; their raw artifact acceptance remains
+pending. Current privacy exact-head full Android gates are still open.
+
 ## 8 November 2026 - advancing canonical replay and privacy acceptance
 
 The unreleased canonical viewer now projects only reviewed public payload fields.
