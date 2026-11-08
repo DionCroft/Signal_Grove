@@ -1,5 +1,7 @@
 # Model status and foreground discovery
 
+Automatic selection and preset menus are available in [1.1.0-beta.8](releases/1.1.0-beta.8.md). Upgrade the matching package, then apply Automatic explicitly on an existing saved connection.
+
 Signal Grove keeps these observations separate:
 
 - **Verified serving model** comes from the optional authenticated runtime observer.

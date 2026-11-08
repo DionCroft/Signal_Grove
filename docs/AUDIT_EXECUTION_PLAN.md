@@ -1,5 +1,42 @@
 # Signal Grove audit execution plan
 
+## 8 November 2026 - beta.8 published after live phone checks
+
+The existing release438078635 was published once at exact application source
+`d0c01b818604b3dee057d544cff432d27c8bba63`, code111. No new draft, rebuilt APK,
+asset reupload, key or protected-branch change was needed. All five public assets
+download anonymously and match reviewed hashes. Both original APK signatures,
+GitHub digests, updater filenames and tag target pass; stable1.0.0 remains latest.
+See [the release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8).
+
+On the real Android17 phone, exact APK bytes, UID/first-install time and the saved
+connection remain intact. The owner selected Automatic and sent one new no-tool
+check; its successful reply is independently visible. Keyboard navigation opened
+an existing Desktop transcript with earlier messages and read-only controls.
+Project details loading after upgrade is owner-confirmed, distinguished from a
+current independently captured project screen. No second send, old-message retry,
+owner fixture, data reset, Pi update or model/default change occurred.
+
+The physical check also caught a remaining cache-feedback defect. A cached title
+absent from the current remote inventory returned `session_not_found` on selection.
+Its exact remote ID was not independently recovered. A separate previously read
+API ID now returns404, while direct Desktop and Discord detail/message reads
+return200. The finite current inventory contains82 rows. A valid Desktop history
+loads on the phone, but the previous selection's error banner persists. Cached
+data is retained. This is disclosed in the public release notes and remains an
+open audit fix; do not claim every cached row is currently available remotely.
+
+The release keeps its earlier exact-source727 JVM,1026 API26,1027 API37,201 policy,
+both lint0 and runtime SBOM/advisory evidence. No repeated device/build execution
+is claimed for this release-documentation checkpoint. Canonical viewer/room work,
+worker files/execution, physical speech/background and final updater installer
+acceptance remain outside this release's verified scope. The full audit is active.
+
+
+Next bounded fix: accurate unavailable-history feedback and selection-scoped
+error lifecycle, preserving caches and current failures. Then resume actual
+owner forwarding, upstream drift review and every remaining ledger row.
+
 ## Current checkpoint - cross-version room guard corrected
 
 Hosted951e29d verify/parser each failed one new AST-dump preservation assertion;

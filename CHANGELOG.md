@@ -40,15 +40,6 @@
   Local JVM/Compose/Room gates pass; actual-source and full hosted acceptance
   remain required. This viewer is excluded from the d0 beta.8 release candidate.
 
-- Recover interrupted authenticated identity/profile reads without replaying
-  session adoption, token rotation or other management operations. Review and
-  guard current Hermes session-authority dependencies with real-source checks.
-
-- Default new connections to Automatic serving-model selection for new turns;
-  retain explicit choices and frozen retries. Replace free-text reasoning effort
-  and service tier with supported preset menus. Hold unavailable model status
-  before creating a session or submitting work.
-
 - Add internal reviewed canonical session eligibility/adoption, durable unknown/
   acknowledged receipts and bounded attach-first replay. Validate real stable/
   prior behavior and recovery on preserved emulators; canonical UI and worker/
@@ -113,6 +104,19 @@
 - Include existing Desktop, Discord and other Hermes session origins in paginated conversation history. Add loaded-row source filtering and a reachable multilingual Load more footer.
 - Keep non-API and unknown histories read-only across the UI, request builder and operation repository; retain origin metadata without a Room migration. Preserve legacy API caches and existing pending work.
 - Add 12 JVM and 14 device regressions for origin parsing, partition isolation, storage, paging, actual history reads and blocked foreign writes. Three related chat regressions also pass locally. The original-key production candidate was installed on the owner phone without a data reset; existing Desktop/Discord histories, a post-upgrade reply in the same API chat, retained sign-in and project metadata reads were verified. Hosted device and release gates remain separate.
+
+## 1.1.0-beta.8 — 2026-11-08
+
+- Follow freshly observed serving-model status for new turns with Automatic;
+  retain explicit choices, session locks and frozen requests. Offer reasoning
+  and service presets supported by the server.
+- Recover interrupted identity/profile reads without replaying mutations.
+  Include existing-history browsing and stored-project metadata access.
+- Verify original-key phone upgrade, a fresh Automatic reply and an existing
+  read-only Desktop transcript. Project details after upgrade are owner-confirmed.
+- Publish five hash-verified assets, runtime SBOM and original APK certificates.
+  Stable1.0.0 remains latest. Cached unavailable entries and persistent prior
+  error banners remain documented audit follow-up. See [release scope](docs/releases/1.1.0-beta.8.md).
 
 ## 1.1.0-beta.6 — 2026-11-06
 

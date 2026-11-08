@@ -4,7 +4,7 @@ An unofficial, open-source native Android client for [Hermes Agent](https://gith
 
 **Stable 1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
 
-Preview release: [`1.1.0-beta.6`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6), code 107. It fixes duplicate automatic conversation titles, retaining beta.5 model awareness, voice/setup improvements and reviewed project/Kanban controls. Exact release checks and asset digests are recorded on the release page; the broader audit follow-up continues. The preview includes: original pixel-art retrofuturism, motion polish and approved in-app GitHub updates, alongside audit correctness fixes, server capability/readiness/model/skill/toolset discovery, reviewed management controls and Skill Hub preview/scan/installation/maintenance. [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md).
+Preview release: [`1.1.0-beta.8`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8), code 111. It adds Automatic serving-model selection and reasoning/service preset menus, with existing chat/history and stored-project access. Original-key phone upgrade, one fresh live reply and an existing Desktop transcript are verified; project details loading is owner-confirmed. Cached unavailable conversations and their persistent old error banner are documented limitations. [Release scope](docs/releases/1.1.0-beta.8.md) · [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md). The full audit continues.
 
 [Brand and upgrade compatibility](docs/BRANDING.md). The GitHub repository is now `DionCroft/Signal_Grove`. Older previews need one matching signed beta.5 (or later) APK upgrade so their fixed update feed can migrate; package and signing identities are retained.
 
@@ -22,11 +22,11 @@ Five interchangeable palettes, persistent conversations, English / Simplified Ch
 
 Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
 
-Try the [1.1.0-beta.6 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.6) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
+Try the [1.1.0-beta.8 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
 
 ## Features
 
-- **Automatic model selection (unreleased):** follow the freshly verified serving model for new turns, with reasoning/service preset menus. Explicit saved choices remain intact. [Setup](docs/RUNTIME_MODEL_STATUS.md).
+- **Automatic model selection (1.1.0-beta.8):** follow the freshly verified serving model for new turns, with reasoning/service preset menus. Explicit saved choices remain intact. [Setup](docs/RUNTIME_MODEL_STATUS.md).
 
 - **Model status:** Home summary and Chat model details distinguish verified serving identity, saved server default and requested/last-reported conversation models. Optional authenticated runtime observer; foreground refresh and explicit stale/error states. [Scope and setup](docs/RUNTIME_MODEL_STATUS.md).
 

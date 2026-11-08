@@ -1,69 +1,78 @@
 # Signal Grove project state
 
-The full audit goal remains active. Keep implementing verified chunks and pushing
-regularly. The complete remaining scope is in
-[the audit ledger](docs/AUDIT_EXECUTION_PLAN.md); earlier checkpoints and retained
-failures are in [validation](docs/VALIDATION.md) and Git history.
+The full audit goal remains active and incomplete. Continue verified commit
+chunks with regular pushes. The complete remaining scope is in
+[the audit ledger](docs/AUDIT_EXECUTION_PLAN.md); earlier failures and checkpoints
+remain in [validation](docs/VALIDATION.md) and Git history.
 
-## Current development checkpoint
+## Published preview and physical checks
 
-A hosted-only preservation-test failure is corrected. Both951e29d failed logs are
-retained. The original canonical fixture source remains exact; the test now guards
-its UTF8 source block, unique definition and lack of decorators. All229 policy
-cases pass on Python3.11/3.13/3.14, each with two positive and four expected-refusal
-controls. Required builds pass831 JVM/both lint0; both APKs are byte-identical to
-the accepted visual revision. Exact-head hosted verification remains pending.
+[Beta.8 is public](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8),
+code 111, application source `d0c01b818604b3dee057d544cff432d27c8bba63`.
+All five assets were anonymously downloaded and matched reviewed bytes. Both APK
+signers and the tag target match; stable 1.0.0 remains latest. Exact-source hosted
+gates are727 JVM,1026 API 26,1027 API 37,201 policy and both lint 0.
 
-The read-only native room browser has exact connection/actor/profile/home checks,
-ticketed list/detail reads, opaque paging, explicit stale/unknown observations and
-foreground lifecycle fencing. Standalone rooms can be installation-shared; the UI
-explains this. Membership/context/grant/delivery controls are not implemented.
+The production phone retains the exact original-key APK, UID, first-install time
+and saved connection. After choosing Automatic, the owner sent one new no-tool
+check and its successful reply was independently observed. An existing Desktop
+transcript loaded in the read-only phone reader. Project details after upgrade
+are owner-confirmed; no current project-screen capture is claimed.
 
-- Browser1a889d6:831 JVM,39 targeted Android,222 policy and immutable205-source checks.
-- Actual standalone2e15439:831 JVM,48 Android including9 actual stable/main/prior
-  pairings across three emulator profiles,229 policy. Every imported source byte
-  is Git-bound. Each actual pairing has87 wire records,27 read RPCs,9 sockets and
-  exactly0 admissions/workers in both profile databases; chats/room rows unchanged.
-- Current shape correction:831 JVM/81 XML,both lint0 and27 existing native UI cases.
-  The largest-font Back-label clipping is visually resolved. Only the room UI file
-  changed among non-document inputs; the test APK is byte-identical to2e15439.
+Known feedback defect: a cached entry unavailable on the current server reports
+`session_not_found`; its error banner persists when a different valid transcript
+loads. The remote inventory currently includes 82 rows and direct Desktop/Discord
+reads pass. Do not delete caches, recreate sessions or replay old messages to
+hide this issue. The published release notes disclose it. No Pi deployment,
+model/default change, online speech or worker execution occurred.
 
-All652 frozen build inputs, original keys/preferences/geometry,28 legacy cache
-files and the separate beta.8 assets match. See
-[the room contract and scope](docs/contracts/2026-11-08-hosted-rooms.md).
+## Development checkpoint
 
-The finite actual-room fixture uses unmodified auth/ticket/profile/room handlers
-with background ASGI startup omitted. Two initial startup probes caught policy
-metadata changes; their failures and exact snapshots remain retained. No
-unchanged-row or permission assertion was relaxed. Full deployed gateway startup,
-profile-owned forwarding, Pi/phone/TLS/inference and worker readiness remain
-separate acceptance boundaries.
+The room guard portability fix preserves the original UTF8 function block,
+unique definition and absence of decorators. All 229 policy cases pass on
+Python 3.11/3.13/3.14; hosted Python 3.12 raw acceptance is 229 plus 15 observer cases.
+Required local builds pass 831 JVM/81 XML and both lint 0. Both APKs are identical
+to the accepted large-text correction, retaining its 27 native UI executions.
+The exact-head hosted verify job reports success; full device gates remain open.
 
-## Release and protected state
+Current main8422 upstream checking found three genuine handler changes. Review
+fallback extra-body scoping and structured plugin refusals before accepting
+variants. Stable2bd remains unchanged. Do not waive the canary or rerun it solely
+to obtain a passing result. Privacyd57 now has exact full hosted 1043 API 26 and
+1044 API 37 raw acceptance; the room browser's later full suites still need raw
+artifact acceptance.
 
-Development chunks are pushed to feature/fix branches. Main6b809e6 and the held
-release branch207c6b4 stay fixed; the privacy branch remains277c89b. Do not merge,
-reset, force-push or advance these refs as part of unrelated audit work.
+The unreleased read-only room browser has exact actor/profile/home checks,
+ticketed list/detail reads, opaque paging, stale/unknown observations and lifecycle
+fences. Nine actual immutable standalone pairings across three emulator profiles
+prove unchanged chats/room rows and zero admissions/workers. Every imported source
+byte is Git-bound. Standalone rooms can be installation-shared. Background ASGI
+startup was omitted in that finite fixture; full gateway lifecycle, owner-private
+forwarding, merged pagination and room controls remain separate work.
 
-The owner's production phone retains version111/beta.8 and its saved connection.
-Project details loading is owner-confirmed. The pending Automatic-mode new-chat
-check, fresh history retention and exact-source publication gates remain open.
-The existing beta.8 release is a private draft; do not create another draft or
-reupload unchanged assets. Its source excludes the unreleased canonical viewer
-and rooms. Original keys/data and the offline speech preference remain protected.
+The prior 652-input build freeze closed successfully. This documentation chunk
+preserves every other tracked input and all five beta.8 assets. Original keys,
+preferences, geometry and the 28 legacy cache files retain their accepted proofs.
+See
+[the room contract](docs/contracts/2026-11-08-hosted-rooms.md).
+
+## Protected refs and scope
+
+Main6b809e6, held release branch207c6b4 and privacy branch277c89b stay fixed.
+Do not merge/reset/force-push or advance these refs during unrelated audit work.
+The beta.8 source excludes the unreleased canonical viewer and rooms. Original
+keys/data and the on-device-only speech preference remain protected.
 
 ## One exact next action
 
-Build the next bounded actual owner-forwarding fixture: distinct verified profile
-owners with same-ID rooms, selected-owner discovery, actor-filtered opaque paging
-and installation-shared/handed-root merges. Use immutable official components,
-owned synthetic storage/listeners, exact traces and zero admission/worker checks.
-Do not infer profile-private copies from the shared standalone store or substitute
-stubbed forwarding and call it actual-server conformance.
+Fix stale-history feedback in a bounded tested development chunk: show an
+accurate unavailable-session explanation while preserving cached data, and scope
+or clear a prior selection's banner when another history read succeeds. Cover
+failed/valid selection races without hiding current failures or replaying work.
+Keep the published beta.8 artifacts immutable.
 
-Reconcile the portability fix's exact-head hosted gates once dispatched. Old951e29d
-verify/parser failed before compilation/native; retain those failures. Also
-reconcile existing runs from their retained handles and raw artifact digests. Browser1a889d6 has successful verify/compatibility metadata
-and running full device suites; raw acceptance is pending. Privacyd57 API26 has
-exact1043-method raw acceptance; API37 is still live. No extra blind reruns.
-Continue every other audit row after each coherent verified checkpoint.
+Then continue the actual owner-forwarding matrix with distinct verified profile
+owners, same-ID private rooms, actor-filtered opaque paging and installation-
+shared/handed-root merges. Reconcile the retained hosted job/artifact handles,
+review current-main drift and continue every other audit row. No extra blind
+CI reruns, owner message retries or global model changes.
