@@ -155,6 +155,8 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     KanbanStatusHookEffect("Host lifecycle hooks may run.","主机生命周期钩子可能运行。","Zhǔjī shēngmìng zhōuqī gōuzi kěnéng yùnxíng."),
 
     ConversationSource("Conversation source","对话来源","Duìhuà láiyuán"),
+    ErrorDetails("Error details","错误详情","Cuòwù xiángqíng"),
+    HistoryUnavailable("This chat is unavailable on this Hermes connection. Saved messages were kept.","此对话在当前 Hermes 连接中不可用。已保留保存的消息。","Cǐ duìhuà zài dāngqián Hermes liánjiē zhōng bù kěyòng. Yǐ bǎoliú bǎocún de xiāoxi."),
     ReadOnlyHistory("Read-only history","只读历史记录","Zhǐdú lìshǐ jìlù"),
     HistoryLoadedFilter("Search and source filters apply to loaded conversations. Load more for older chats.","搜索和来源筛选仅适用于已加载的对话。加载更多以查看较早的对话。","Sōusuǒ hé láiyuán shāixuǎn jǐn shìyòng yú yǐ jiāzài de duìhuà. Jiāzài gèng duō yǐ chákàn jiào zǎo de duìhuà."),
     AllConversationSources("All sources","所有来源","Suǒyǒu láiyuán"),

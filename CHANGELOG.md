@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Explain unavailable saved history while preserving cached messages. Scope read
+  feedback/loading to the exact selection and connection so late responses cannot
+  restore a previous error. Keep long errors compact with full scrollable details
+  and reachable controls at larger text sizes. Add native and transport regressions.
+
 - Make the preserved canonical-fixture guard portable across Python versions by
   checking its exact original source, uniqueness and lack of decorators. Retain
   all negative boundaries; print the actual Python version in CI diagnostics.

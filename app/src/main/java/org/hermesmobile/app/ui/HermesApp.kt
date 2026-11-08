@@ -64,12 +64,7 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
                     destinations.forEach { d -> NavigationBarItem(modifier=Modifier.testTag("nav-${d.route.lowercase()}"),colors=NavigationBarItemDefaults.colors(indicatorColor=androidx.compose.ui.graphics.Color.Transparent),selected=current==d.route,onClick={go(d.route)},icon={PixelNavIcon(d.route,current==d.route)},label={Text(d.word.en,maxLines=1,style=MaterialTheme.typography.labelSmall)},alwaysShowLabel=current==d.route) }
                 } }) { padding ->
                 Column(Modifier.padding(padding).fillMaxSize()) {
-                    if(error!=null) Surface(color=MaterialTheme.colorScheme.errorContainer) {
-                        Row(Modifier.fillMaxWidth().padding(start=16.dp),verticalAlignment=Alignment.CenterVertically) {
-                            Text(error.orEmpty(),Modifier.weight(1f),color=MaterialTheme.colorScheme.onErrorContainer,style=MaterialTheme.typography.bodyMedium)
-                            IconButton(vm::dismissError) { Icon(Icons.Outlined.Close,label(Words.Dismiss),tint=MaterialTheme.colorScheme.onErrorContainer) }
-                        }
-                    }
+                    if(error!=null) ErrorBanner(error.orEmpty(),vm::dismissError)
                     if(busy && current!="Chat") TextButton({go("Chat")},Modifier.fillMaxWidth()) { Text(label(Words.Running)) }
                     NavHost(nav,"Home",Modifier.fillMaxSize(),enterTransition={if(reduced) EnterTransition.None else fadeIn(tween(180))+slideInHorizontally(tween(220)) {it/24}},exitTransition={if(reduced) ExitTransition.None else fadeOut(tween(120))},popEnterTransition={if(reduced) EnterTransition.None else fadeIn(tween(160))},popExitTransition={if(reduced) ExitTransition.None else fadeOut(tween(120))+slideOutHorizontally(tween(180)) {it/24}}) {
                         composable("Home") { HomeScreen(vm) { go(it) } }

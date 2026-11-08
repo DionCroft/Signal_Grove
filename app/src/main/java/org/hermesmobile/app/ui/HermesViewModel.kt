@@ -41,6 +41,12 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val sessionsLoading=MutableStateFlow(false)
     val sessionsHasMore=MutableStateFlow(false)
     val historyLoading=MutableStateFlow(false)
+    // A key can be selected again while an older read is still in flight.
+    private var historyReadGeneration=0L
+    private fun invalidateHistoryRead() {historyReadGeneration++;historyLoading.value=false}
+    private fun beginHistoryRead():Long {error.value=null;historyLoading.value=true;return ++historyReadGeneration}
+    private fun currentHistoryRead(operation:ConnectionContext,key:String,generation:Long)=
+        generation==historyReadGeneration && current(operation) && selected.value==key
     private var sessionsOffset=0
     val jobsStatus=MutableStateFlow("idle")
     val error=MutableStateFlow<String?>(null)
@@ -128,6 +134,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     init {viewModelScope.launch {try {dao.recoverControls();dao.recoverJobOperations();dao.recoverServerOperations();activate(graph.preferences.flow.first())} finally {connecting.value=false}}}
     fun dismissError() { error.value=null }
     private suspend fun activate(p: AppPreferences) {
+        invalidateHistoryRead()
         try {reloadConnections()} catch(e:Exception) {savedConnections.value=emptyList();error.value=connectionError(e)}
         draft.value="";runStatus.value="idle";activity.value=""
         clearDraftImages()
@@ -168,7 +175,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) };reloadConnections()
                 graph.preferences.connection(urlValue=config.url,demoValue=false,httpValue=debugHttp)
                 clearDraftImages();draft.value="";runStatus.value="idle";activity.value=""
-                api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState();sessionDetailsLoading.value=false
+                api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState();sessionDetailsLoading.value=false;invalidateHistoryRead()
                 connectionStatus.value="connected"; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"; sessionsLoading.value=false; error.value=null
                 loadSessions(); refreshJobs()
             } catch(e: Exception) { error.value=connectionError(e) }
@@ -196,16 +203,16 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         finally {if(scope.value==partition) sessionsLoading.value=false}
     }
     fun refreshSessions(more: Boolean = false) {if(busy.value || sessionsLoading.value) return;viewModelScope.launch {loadSessions(!more)}}
-    fun refreshHistory() {
-        if(busy.value || controlBusy.value || connecting.value || historyLoading.value) return
+    fun refreshHistory():Job? {
+        if(busy.value || controlBusy.value || connecting.value || historyLoading.value) return null
         val key=selected.value;val operation=context()
-        if(key.isBlank() || scope.value=="demo" || capabilities.value?.sessions!=true) return
-        historyLoading.value=true
-        viewModelScope.launch {try {
+        if(key.isBlank() || scope.value=="demo" || capabilities.value?.sessions!=true) return null
+        val generation=beginHistoryRead()
+        return viewModelScope.launch {try {
             dao.conversation(key)?.takeIf {it.scope==operation.partition}?.let {sessionRepo.importMessages(operation.client,it)}
         } catch(e: CancellationException) {throw e}
-        catch(e: Exception) {if(current(operation) && selected.value==key) error.value=connectionError(e)}
-        finally {historyLoading.value=false} }
+        catch(e: Exception) {if(currentHistoryRead(operation,key,generation)) error.value=historyReadError(e,preferences.value)}
+        finally {if(currentHistoryRead(operation,key,generation)) historyLoading.value=false} }
     }
     fun pinConversation(key: String) {viewModelScope.launch {
         dao.conversation(key)?.takeIf {it.scope==scope.value}?.let {dao.save(it.copy(pinned=!it.pinned))}
@@ -362,19 +369,22 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun acknowledgeJobOperation(key: String) {if(jobBusy.value) return;viewModelScope.launch {
         if(dao.unresolvedOperations(scope.value).any {it.key==key && it.state=="unknown"}) dao.jobOperationState(key,"reviewed")
     }}
-    fun newChat() { if(busy.value || controlBusy.value) return; clearDraftImages(); selected.value=""; runStatus.value="idle"; activity.value=""; draft.value="" }
-    fun select(key: String) {
-        if(busy.value || controlBusy.value || connecting.value) return
+    fun newChat() { if(busy.value || controlBusy.value) return; invalidateHistoryRead();error.value=null;clearDraftImages(); selected.value=""; runStatus.value="idle"; activity.value=""; draft.value="" }
+    fun select(key: String):Job? {
+        if(busy.value || controlBusy.value || connecting.value) return null
         val operation=context()
+        val generation=beginHistoryRead()
         if(key!=selected.value) clearDraftImages()
         selected.value=key; activity.value=""
-        viewModelScope.launch {
+        return viewModelScope.launch {try {
             val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
-            if(!current(operation) || selected.value!=key) return@launch
+            if(!currentHistoryRead(operation,key,generation)) return@launch
             runStatus.value=c.status
-            if(capabilities.value?.sessions == true && c.scope != "demo") try {sessionRepo.importMessages(operation.client,c)} catch(e: Exception) {if(current(operation) && selected.value==key) error.value=connectionError(e)}
-            if(current(operation) && selected.value==key && c.runId.isNotBlank() && c.status !in terminal) reconcile(c,operation=operation)
-        }
+            if(capabilities.value?.sessions == true && c.scope != "demo") try {sessionRepo.importMessages(operation.client,c)}
+            catch(e:CancellationException) {throw e}
+            catch(e:Exception) {if(currentHistoryRead(operation,key,generation)) error.value=historyReadError(e,preferences.value)}
+            if(currentHistoryRead(operation,key,generation) && c.runId.isNotBlank() && c.status !in terminal) reconcile(c,operation=operation)
+        } finally {if(currentHistoryRead(operation,key,generation)) historyLoading.value=false}}
     }
     fun send(text: String = draft.value) {
         if(text.length>64000) {error.value=Words.MessageTooLong.localized(preferences.value);return}

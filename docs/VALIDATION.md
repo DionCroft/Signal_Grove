@@ -1,5 +1,65 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 - history feedback and compact error details
+
+The unreleased history reader explains only the documented HTTP 404
+`session_not_found` outcome as unavailable on the current connection, with saved
+messages retained. Beginning a new selection or explicit refresh clears its old
+banner. Client/profile/key/read-generation checks fence late failures, loading
+completion and reconciliation, including leaving and reselecting the same chat.
+An old successful read cannot clear an error raised while another read is pending.
+New Chat and connection activation invalidate prior feedback. No automatic retry,
+session creation, title matching, cache pruning or server-text disclosure is added.
+Successful concurrent cache-write ordering remains a separate audit item.
+
+The global error banner uses a two-line summary and two horizontal 48 dp icon
+controls. Error details opens the entire message in a scrollable, read-only
+dialog; closing details retains the banner. A changed/cleared error removes the
+old details. This fixes a real layout failure where the translated banner left
+no usable chat viewport on API 26 at its existing font scale 1.3.
+
+All required tasks pass:836 unique JVM cases in 82 raw XML reports, both lint 0,
+and original-key app/test APKs. The fresh native cohort passes 20 API 26, 20 API 37
+and 8 compact API 37 executions, 48 total. Eight new methods retain the 12 related
+history/image methods on both full profiles. Twelve screenshots were inspected:
+missing and recovered native replies, translated details, and long details
+scrolled to the end on each profile. Checks require the complete actual native
+TextView reply, a displayed chat viewport at least48 dp, banner at most96 dp, full
+details text and reachable 48 dp controls. Original preferences, display/font/AVD
+configuration, reverse bindings, signing key, 28 legacy cache files and all five
+public beta.8 assets match their recorded hashes. All 656 frozen inputs matched before documentation edits; tested code is unchanged.
+
+Earlier failures remain evidence. The first new JVM positive fixture used an
+unsupported slash ID; the existing local guard correctly refused it. The valid
+positive and an explicit invalid-ID/no-request negative now pass. The first
+native 45 cohort had 39 positive observations and 6 failed Compose-text lookups;
+message bodies are AndroidView TextViews, so observation now checks their actual
+content and full native visible bounds. Its API 37 preference mismatch was fully
+audited:287 same files, only two updater timestamps changed; the other286 files
+were identical. Two legacy fixtures now use the existing updater-isolation rule.
+
+Two later compact preflights timed out before any install/test. The compact guest
+and a larger API 37 guest with a missing window service were recovered only after
+stopped-data backups were hash-verified, using original arguments/configuration;
+the larger guest's causal failure is unproven. The subsequent API 26 run exposed
+the real tall-banner defect. An explicitly recorded diagnostic dismiss allowed
+fixture cleanup; its nominal 19 passing statuses are excluded from acceptance.
+Two further builds failed to compile the new height helper. The installed Compose
+API was inspected and the unchanged 96 dp requirement now uses DpRect coordinates.
+Neither failed build started device tests. The final 48 cohort needs no intervention.
+
+Retained hosted raw evidence was reconciled without reruns. Exact browser `1a889d6`
+passes 1056 API 26 and 1057 API 37 named methods. Portability `72444fd` passes 1057 API 37;
+API 26 has 1055 positive methods and one failed
+`HostKanbanDependencyFlowTest.cancelledWriteKeepsUnknownBarrierAndDropsLateReply`
+because `kanban-cancel-work` was not displayed. Keep that investigation open;
+neither the later full API 26 gate nor the current exact-head hosted gates are
+claimed green. See [the history contract](contracts/2026-11-08-history-feedback.md).
+
+This development fix is absent from published beta.8. No owner-phone/Pi change,
+new live TLS/inference/provider/worker acceptance or release publication occurred.
+The complete audit goal and every other ledger row remain active.
+
 ## 8 November 2026 - beta.8 published after live phone checks
 
 The existing release438078635 was published once at exact application source
@@ -23,8 +83,8 @@ Its exact remote ID was not independently recovered. A separate previously read
 API ID now returns404, while direct Desktop and Discord detail/message reads
 return200. The finite current inventory contains82 rows. A valid Desktop history
 loads on the phone, but the previous selection's error banner persists. Cached
-data is retained. This is disclosed in the public release notes and remains an
-open audit fix; do not claim every cached row is currently available remotely.
+data is retained. This remains disclosed for published beta.8; the later unreleased feedback fix
+is recorded above. Do not claim every cached row is available remotely.
 
 The release keeps its earlier exact-source727 JVM,1026 API26,1027 API37,201 policy,
 both lint0 and runtime SBOM/advisory evidence. No repeated device/build execution
