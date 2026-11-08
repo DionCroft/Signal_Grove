@@ -1,5 +1,28 @@
 # Signal Grove audit execution plan
 
+## Current checkpoint - typed room foundation validated
+
+The missing native room work now has an internal typed capability/page/state
+projection. It preserves actor-filtered continuation offsets and first-page
+multi-store merges, fractional timestamps and Unicode/UTF8 limits; raw targets,
+grants and event payloads are excluded. Scope/home bindings and collections remain
+explicit/immutable. No network method or room UI/control is exposed by this chunk.
+
+The full build passes797 JVM cases (all prior775 plus22), both lint0 and9 pure
+Android runtime executions across three preserved emulator profiles. All641 frozen
+inputs, original keys/preferences/geometry and28 legacy cache files match. The
+unchanged Python sources retain their213-policy/15-observer acceptance. Present
+room source files are Git-bound at main/stable/prior (11/10/8); historical absences
+remain explicit. See [the room contract](contracts/2026-11-08-hosted-rooms.md).
+
+Next implement authenticated room reads, source guards, actual-server pagination/
+ownership conformance and the native browser, followed by separately approved
+membership/context/grant/delivery controls. Continue every other audit row. The
+privacy commitd57 has accepted raw hosted775 JVM/both lint0/213policy/189-source
+canaries/32bounded probes; its API26 full suite remains live. API37 failed Java
+setup withHTTP504 before tests; GitHub refused its specific retry while the parent
+run is live. No retry began. Beta.8 phone checks/publication remain separate.
+
 ## Current checkpoint - live replay and private activity projection verified
 
 The unreleased canonical viewer now projects only reviewed public payload fields.
@@ -396,7 +419,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 4b. Workers/dispatch | Private task/run metadata reads exist. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata and local navigation only. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
 | 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. Scoped recent-run display now has608 JVM/both lint0/180 policy and12 focused native passes; unscoped script output is refused, with dashboard guidance. | Complete exact-head full gates and real scoped run reads, then typed editing/run/results/logs and explicit outcomes; script-row ownership needs a verified host contract. Reviewed stable cron.manage declares only list/add/remove/pause/resume; verify separate canonical admission or web contracts for missing controls. Never invent cron.manage actions or claim runtime completion from ACK. |
-| 5b. Rooms/grants/delivery | Missing native room administration. | Verified membership/lead/purpose/notes foundations, distinct grants and cron delivery; then authorized goal/heartbeat/loop monitoring/control. |
+| 5b. Rooms/grants/delivery | Internal typed room projection now passes797 JVM/both lint0 and9 Android runtime cases; server pagination/Unicode/private-field rules are verified. Native room administration is still missing. | Verified membership/lead/purpose/notes foundations, distinct grants and cron delivery; then authorized goal/heartbeat/loop monitoring/control. |
 | 6a. Integrations | Dynamic MCP/skill/plugin/provider and channel foundations exist. | Plugin bulk/automatic-update policy/bundles, channel/webhook/pairing-specific setup; preserve credential handoffs and host revision/CAS limits; real accounts only for their scoped tests. |
 | 6b. Configuration/workspaces | Narrow config slices and stored-project administration exist. | Typed memory/persona/context/config/reset and explicit chat-workspace adoption, repository/folder discovery and tree/file hydration. Active-project metadata alone is not cwd adoption. |
 | 7a. Notification routing | Best-effort active-connection polling and generic routes. | Exact connection/conversation/run targeting, deliberate multi-connection/job/goal policy and lifecycle evidence. Push only with a real authenticated bridge/registration contract. |

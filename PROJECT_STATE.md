@@ -1,5 +1,28 @@
 # Signal Grove project state
 
+## Current checkpoint - typed room foundation validated
+
+The missing native room work now has an internal typed capability/page/state
+projection. It preserves actor-filtered continuation offsets and first-page
+multi-store merges, fractional timestamps and Unicode/UTF8 limits; raw targets,
+grants and event payloads are excluded. Scope/home bindings and collections remain
+explicit/immutable. No network method or room UI/control is exposed by this chunk.
+
+The full build passes797 JVM cases (all prior775 plus22), both lint0 and9 pure
+Android runtime executions across three preserved emulator profiles. All641 frozen
+inputs, original keys/preferences/geometry and28 legacy cache files match. The
+unchanged Python sources retain their213-policy/15-observer acceptance. Present
+room source files are Git-bound at main/stable/prior (11/10/8); historical absences
+remain explicit. See [the room contract](docs/contracts/2026-11-08-hosted-rooms.md).
+
+Next implement authenticated room reads, source guards, actual-server pagination/
+ownership conformance and the native browser, followed by separately approved
+membership/context/grant/delivery controls. Continue every other audit row. The
+privacy commitd57 has accepted raw hosted775 JVM/both lint0/213policy/189-source
+canaries/32bounded probes; its API26 full suite remains live. API37 failed Java
+setup withHTTP504 before tests; GitHub refused its specific retry while the parent
+run is live. No retry began. Beta.8 phone checks/publication remain separate.
+
 ## Hosted checkpoint - earlier viewer suites complete; privacy build retrying Java setup
 
 Parent viewer commit `d40fd06891adb65ed42253370995990dd7dfa7b9` now has

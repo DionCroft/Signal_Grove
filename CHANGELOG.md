@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add an internal typed room capability/page/state foundation with opaque server
+  pagination, immutable scope bindings, Unicode/UTF8 bounds and private-field
+  exclusion. Authenticated room reads, browser and approved controls remain next.
+
 - Hide private canonical reasoning/thinking payloads while preserving applied
   event cursors. Use reviewed public reply/tool/subagent preview fields and guard
   the real stream/replay/transport/payload sources. Validate overlapping actual
