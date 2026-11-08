@@ -1,5 +1,24 @@
 # Hosted room browser and read contract
 
+## Large-text room button correction
+
+The six room text buttons now explicitly use the theme's small cut-corner shape.
+The default rounded shape clipped part of the first Back glyph when its label
+wrapped at the largest API26 trilingual setting. The explicit shape keeps the
+pixel theme and leaves the existing label, click, minimum target and scroll
+behavior intact. Before/after native screenshots confirm the full Back glyph is
+visible; list, held-error and large-detail screenshots on all three profiles were
+inspected. Existing9 UI methods pass per profile:27 executions. No new mirrored
+or screenshot-golden test was added for this low-impact style correction.
+
+All required builds pass831 unique JVM cases in81 XML reports; both lint0. Only
+HostedRoomsScreen.kt differs among non-document inputs from the accepted actual
+standalone revision2e15439. The native test APK is byte-identical. Networking,
+fixtures,229-case policy/205-source guards and runtime-model observer sources are
+unchanged. Actual standalone transport acceptance remains the parent's nine
+pairings, not a new deployed-device claim. All652 frozen inputs, original
+keys/preferences/geometry,28 legacy cache files and beta.8 assets match.
+
 ## Actual standalone transport checkpoint
 
 The Android repository now passes the actual immutable stable2bd, main21ae and
@@ -39,8 +58,8 @@ lint0. All previous831 methods remain. The full policy suite passes229 cases.
 Thirteen mock/UI/runtime methods pass on each emulator; the nine actual pairings
 bring this source chunk to48 Android executions. Nine new synthetic screenshots
 were inspected; shared scope, held errors and scrollable actions remain readable.
-The largest-font API26 Back button has slight leading-glyph corner clipping;
-its action is reachable, and a separate visual correction remains next.
+The initial largest-font API26 Back-label corner clipping is corrected by the
+later explicit-shape change recorded above.
 All652 frozen inputs, original keys/preferences/geometry,28 legacy cache files
 and the separate beta.8 assets match. The205-source checker/baseline and15-case
 runtime-model observer implementations are unchanged from their accepted revision.

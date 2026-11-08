@@ -41,7 +41,7 @@ private fun roomTime(millis:Long)=DateFormat.getDateTimeInstance().format(Date(m
             state.error?.let {word->item {Text(label(word),color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("hosted-rooms-error"))}}
             val detail=state.detail
             if(detail!=null && state.phase==HostedRoomBrowserPhase.Detail) {
-                item {TextButton(controller::back,enabled=!state.busy && available,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-back")) {Text(label(Words.RoomsBack))}}
+                item {TextButton(controller::back,enabled=!state.busy && available,shape=MaterialTheme.shapes.small,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-back")) {Text(label(Words.RoomsBack))}}
                 item {SelectionContainer {Text(detail.room.name)};Text(detail.scope.owner.url);Text(detail.scope.owner.profile);Text(label(Words.RoomsObserved).replace("{time}",roomTime(detail.observedAt)));Text(label(Words.RoomsUpdated).replace("{time}",roomTime((detail.room.updatedAtSeconds*1000).toLong())))}
                 item {SelectionContainer {Text(detail.room.id)};Text(label(Words.RoomsAuthority));SelectionContainer {Text(detail.room.authorityId)};Text(label(Words.RoomsRevision).replace("{epoch}",detail.room.authorityEpoch.toString()).replace("{revision}",detail.room.revision.toString()))}
                 if(detail.room.disbandedAtSeconds!=null) item {Text(label(Words.RoomsDisbanded))}
@@ -71,24 +71,24 @@ private fun roomTime(millis:Long)=DateFormat.getDateTimeInstance().format(Date(m
                     Text(label(Words.RoomsIncludeDisbanded),Modifier.weight(1f))
                     Switch(state.includeDisbanded,{controller.reload(it)},enabled=!state.busy && available,modifier=Modifier.testTag("hosted-rooms-filter"))
                 }}
-                item {TextButton({controller.reload()},enabled=!state.busy && available,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-refresh")) {Text(label(Words.Refresh))}}
+                item {TextButton({controller.reload()},enabled=!state.busy && available,shape=MaterialTheme.shapes.small,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-refresh")) {Text(label(Words.Refresh))}}
                 state.listing?.let {listing->
                     item {Text(listing.scope.owner.url);Text(listing.scope.owner.profile);Text(label(Words.RoomsObserved).replace("{time}",roomTime(listing.page.observedAt)));Text(label(Words.RoomsOrder))}
                     if(!listing.capabilities.driver) item {Text(label(Words.RoomsDriverUnavailable))}
                     val canDetail="groups.state" in listing.capabilities.methods
                     if(!canDetail) item {Text(label(Words.RoomsStateUnavailable))}
-                    if(listing.page.offset>0) item {TextButton({controller.reload()},enabled=!state.busy && available,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-first")) {Text(label(Words.RoomsFirstPage))}}
+                    if(listing.page.offset>0) item {TextButton({controller.reload()},enabled=!state.busy && available,shape=MaterialTheme.shapes.small,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-first")) {Text(label(Words.RoomsFirstPage))}}
                     if(listing.page.rooms.isEmpty()) item {Text(label(Words.RoomsEmpty))}
                     items(listing.page.rooms,key={it.id}) {room->OutlinedCard(Modifier.fillMaxWidth().testTag("hosted-room-"+room.id)) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
                         Text(room.name,style=MaterialTheme.typography.titleMedium,maxLines=3,overflow=TextOverflow.Ellipsis)
                         Text(room.id,style=MaterialTheme.typography.labelSmall,maxLines=2,overflow=TextOverflow.Ellipsis)
                         Text(label(Words.RoomsMemberCount).replace("{count}",room.members.size.toString()))
                         if(room.disbandedAtSeconds!=null) Text(label(Words.RoomsDisbanded))
-                        TextButton({controller.detail(room)},enabled=!state.busy && available && canDetail,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-room-view-"+room.id)) {Text(label(Words.RoomsView))}
+                        TextButton({controller.detail(room)},enabled=!state.busy && available && canDetail,shape=MaterialTheme.shapes.small,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-room-view-"+room.id)) {Text(label(Words.RoomsView))}
                     }}}
-                    if(listing.page.nextOffset!=null) item {TextButton(controller::more,enabled=!state.busy && available,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-more")) {Text(label(Words.RoomsMore))}}
+                    if(listing.page.nextOffset!=null) item {TextButton(controller::more,enabled=!state.busy && available,shape=MaterialTheme.shapes.small,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-more")) {Text(label(Words.RoomsMore))}}
                 }
             }
         }
-    },confirmButton={TextButton(::dismiss,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-close")) {Text(label(Words.Close))}})
+    },confirmButton={TextButton(::dismiss,shape=MaterialTheme.shapes.small,modifier=Modifier.heightIn(min=48.dp).testTag("hosted-rooms-close")) {Text(label(Words.Close))}})
 }

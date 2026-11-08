@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Keep large multiline room-button labels clear of rounded corners by applying
+  the pixel theme's small cut-corner shape. Preserve existing navigation and
+  condense the current audit state while retaining its validation history.
+
 - Verify actual standalone room reads against three immutable Hermes revisions on
   three native emulator profiles, retaining exact transcript/room/execution-ledger
   invariants. Explain that standalone rooms can be shared across profiles.
