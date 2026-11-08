@@ -24,7 +24,27 @@ The published APK still has the disclosed stale-history error banner. The fix
 below is unreleased. No Pi deployment, model/default change, online speech or
 worker execution occurred during these chunks.
 
-## Current development checkpoint
+## Current development checkpoint - fixed Kanban cancel footer
+
+Cancel stays outside the scrolling Kanban body while busy, with fully reachable
+48 dp Cancel/Close controls at both scroll ends. All approval/controller/transport
+and unknown-write behavior, including the original fixture deadline, is unchanged.
+The new trilingual regression failed on the old UI and now passes. Required local
+gates are 836 JVM / 82 XML, both lint variants without errors, and 25 selected
+native executions (12 API 26 / 12 API 37 / one compact). Six busy-footer images
+were inspected. A separate Return to management receipts label clips at its
+rounded edge on API 26 and remains next. All source, preference, display/configuration/reverse, key/cache
+and staged beta.8 preservation checks pass. Earlier baseline/observer failures
+remain recorded, and the precise older hosted failure cause is not claimed.
+See [the cancellation contract](docs/contracts/2026-11-08-kanban-cancellation.md).
+
+Full exact-head hosted acceptance remains required. Prior `c9479ca` hosted build
+metadata is successful; its full API 26/37 jobs remain separate checks. The current
+stable contract remains unchanged at `2bd378e`. Main `3e82260` has three unreviewed
+handler changes and adds `POST /v1/room-members/runs/close`; review the exact source
+and scoped contract before enabling room controls. No canary waiver or Pi update.
+
+## Previous development checkpoint - history feedback
 
 Missing-history feedback is exact to HTTP 404/session_not_found and preserves
 saved messages. Selection/profile/client/read-generation fences prevent late
@@ -48,7 +68,7 @@ hosted Python 3.12 raw acceptance. Exact browser `1a889d6` now has full raw nati
 fails one Kanban cancel-control visibility check (1055 positives); investigate it.
 Current exact-head hosted gates remain pending until their raw evidence is checked.
 
-Main `8422` upstream checking found three genuine handler changes. Review fallback
+The earlier main `8422` observation also found three handler changes. Review fallback
 extra-body scoping and structured plugin refusals before accepting variants.
 Stable2bd remains unchanged. Do not waive canaries or rerun solely for green.
 Privacy `d57` retains full raw 1043 API 26/1044 API 37 acceptance.
@@ -70,10 +90,12 @@ keys/data and the on-device-only speech preference remain protected.
 
 ## One exact next action
 
-Inspect the exact retained API 26 Kanban cancel-control failure, reproduce it with
-bounded diagnostics and fix its cause without weakening cancellation/unknown-write
-assertions. Check the current history-feedback commit's exact hosted evidence.
-Then continue actual owner forwarding with distinct verified profile owners,
-same-ID private rooms, actor-filtered opaque paging and installation-shared/
-handed-root merges. Review upstream drift and continue every other audit row.
-Keep beta.8 assets immutable; no blind CI reruns or owner-message retries.
+Correct the separately observed Return to management receipts label clipping
+using the pixel-theme shape, verify the actual large-text caption and commit it.
+Then continue the actual owner-forwarding matrix with verified distinct native
+control-plane owners, same-ID private rooms, actor-filtered opaque paging and
+installation-shared/handed-root merges. Include full lifecycle and ownership-loss
+checks with zero unauthorized admissions or workers. Inspect the retained exact
+hosted handles and raw results without blind reruns. Review main `3e82260` fallback
+scoping/plugin refusals and its new room-member run-close route, then continue
+every remaining ledger row. Keep beta.8 immutable and preserve original data/keys.

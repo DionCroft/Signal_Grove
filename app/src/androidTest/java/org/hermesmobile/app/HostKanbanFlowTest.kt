@@ -83,7 +83,7 @@ class HostKanbanFlowTest {
                 if(mode=="before-board") f.dbPath.set("/other/kanban.db")
                 compose.onNodeWithTag("kanban-read-confirm").performClick()
                 if(mode=="held") {
-                    compose.waitUntil(10000) {f.entered.count==0L};tap("host-kanban-list","kanban-cancel-work");f.release.countDown();compose.waitUntil(10000) {f.returned.count==0L};compose.waitForIdle()
+                    compose.waitUntil(10000) {f.entered.count==0L};compose.onNodeWithTag("kanban-cancel-work").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick();f.release.countDown();compose.waitUntil(10000) {f.returned.count==0L};compose.waitForIdle()
                     assertNull(vm.state.value.kanban.board);assertNull(vm.state.value.kanban.inventory);assertEquals(1,f.boards.get());return@use
                 }
                 await()

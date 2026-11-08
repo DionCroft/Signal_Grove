@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Keep host-Kanban Cancel visible in the dialog footer while receipts and body
+  content change. Preserve unknown outcomes and approval checks, with a translated
+  scroll regression and the existing cancellation workflows retained.
+
 - Explain unavailable saved history while preserving cached messages. Scope read
   feedback/loading to the exact selection and connection so late responses cannot
   restore a previous error. Keep long errors compact with full scrollable details

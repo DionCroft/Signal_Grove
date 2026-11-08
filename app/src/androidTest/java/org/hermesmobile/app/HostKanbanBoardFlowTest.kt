@@ -141,7 +141,7 @@ class HostKanbanBoardFlowTest {
                 if(mode=="before-root") f.beforeOverride.set(HostKanbanBoardFixture.catalog(listOf(fields(anchor,"db_path" to JsonPrimitive("/other/root.db")),meta,archive)))
                 compose.onNodeWithTag("board-change-confirm").performClick()
                 if(mode=="held") {
-                    compose.waitUntil(10000) {f.entered.count==0L};tap("host-kanban-list","kanban-cancel-work");f.release.countDown();await();compose.waitUntil(10000) {runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state}=="unknown"};assertNull(vm.state.value.kanban.report);assertNull(vm.state.value.kanban.inventory);assertEquals(1,f.writes.get());return@use
+                    compose.waitUntil(10000) {f.entered.count==0L};compose.onNodeWithTag("kanban-cancel-work").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick();f.release.countDown();await();compose.waitUntil(10000) {runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state}=="unknown"};assertNull(vm.state.value.kanban.report);assertNull(vm.state.value.kanban.inventory);assertEquals(1,f.writes.get());return@use
                 }
                 await()
                 if(mode in setOf("before-home","before-root")) {assertEquals(0,f.writes.get());assertNull(vm.state.value.kanban.inventory);assertTrue(runBlocking {app.database.dao().managementOperations(scope).first().isEmpty()});return@use}

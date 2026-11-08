@@ -107,7 +107,7 @@ class HostKanbanTaskFlowTest {
                 if(mode=="before-home") f.currentHome.set("/srv/remapped")
                 if(mode=="before-task") f.beforeDetail.set(HostKanbanTaskFixture.detailJson(HostKanbanTaskFixture.card(title="Externally changed")))
                 compose.onNodeWithTag("task-change-confirm").performClick()
-                if(mode=="held") {compose.waitUntil(10000) {f.entered.count==0L};tap("host-kanban-list","kanban-cancel-work");f.release.countDown();await();compose.waitUntil(10000) {runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state}=="unknown"};assertNull(vm.state.value.kanban.taskReport);assertEquals(1,f.writes.get());return@use}
+                if(mode=="held") {compose.waitUntil(10000) {f.entered.count==0L};compose.onNodeWithTag("kanban-cancel-work").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick();f.release.countDown();await();compose.waitUntil(10000) {runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state}=="unknown"};assertNull(vm.state.value.kanban.taskReport);assertEquals(1,f.writes.get());return@use}
                 await()
                 if(mode in setOf("before-home","before-task")) {assertEquals(0,f.writes.get());assertNull(vm.state.value.kanban.inventory);assertTrue(runBlocking {app.database.dao().managementOperations(scope).first().isEmpty()});return@use}
                 assertEquals(1,f.writes.get());val receipt=runBlocking {app.database.dao().managementOperations(scope).first().single()};assertEquals(receipt,vm.state.value.kanban.taskReport!!.receipt);assertNull(vm.state.value.kanban.inventory)

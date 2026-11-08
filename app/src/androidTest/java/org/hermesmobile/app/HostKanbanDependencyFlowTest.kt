@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.test.platform.app.InstrumentationRegistry
@@ -37,8 +39,9 @@ class HostKanbanDependencyFlowTest {
     }
     private fun exercise(mode:String) {
         val remove=mode in setOf("remove","remove-hidden","false")
+        val bilingual=mode in setOf("bilingual","held-bilingual")
         credentials.managementServer().use {server->
-            val f=HostKanbanTaskFixture(server,when(mode) {"held-pair","pending-pair"->"held-pair";"held","lost","readback-fail","http409"->mode;else->"normal"})
+            val f=HostKanbanTaskFixture(server,when(mode) {"held-bilingual"->"held";"held-pair","pending-pair"->"held-pair";"held","lost","readback-fail","http409"->mode;else->"normal"})
             val card=HostKanbanTaskFixture.card(status=if(mode=="running") "running" else "ready")
             f.beforeDetail.set(HostKanbanTaskFixture.detailJson(card,if(remove || mode=="already-linked") listOf("t_parent") else emptyList()))
             f.parentDetail.set(HostKanbanTaskFixture.detailJson(HostKanbanTaskFixture.card("t_parent","Private parent",status="done")))
@@ -49,7 +52,7 @@ class HostKanbanDependencyFlowTest {
             f.afterDetail.set(HostKanbanTaskFixture.detailJson(card,if(remove) emptyList() else listOf("t_parent")))
             f.start();val original=api.preferences.value;val local=runBlocking {app.database.dao().tasks().first()}
             try {
-                compose.waitUntil(10000) {!api.connecting.value};compose.runOnUiThread {api.configure(server.url("prefix/inference/").toString(),credentials.uniqueToken("dependency-inference"),true);api.updatePreferences(api.preferences.value.copy(theme="STARHAVEN",chinese=mode=="bilingual",pinyin=mode=="bilingual"))};compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && api.preferences.value.chinese==(mode=="bilingual") && api.preferences.value.pinyin==(mode=="bilingual")}
+                compose.waitUntil(10000) {!api.connecting.value};compose.runOnUiThread {api.configure(server.url("prefix/inference/").toString(),credentials.uniqueToken("dependency-inference"),true);api.updatePreferences(api.preferences.value.copy(theme="STARHAVEN",chinese=bilingual,pinyin=bilingual))};compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && api.preferences.value.chinese==bilingual && api.preferences.value.pinyin==bilingual}
                 val scope=api.profileScope.value
                 app.credentials.saveManagement(scope,buildJsonObject {put("url",f.delegate.base);put("profile","worker");put("debugHttp",true);put("tokens",f.tokens.json())})
                 compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(10000) {vm.state.value.signedIn};compose.runOnUiThread {vm.refresh()};await();assertTrue(vm.state.value.loaded)
@@ -83,7 +86,7 @@ class HostKanbanDependencyFlowTest {
                 compose.onNodeWithTag("dependency-read-confirm").performClick()
                 if(mode in setOf("held-pair","pending-pair")) {
                     compose.waitUntil(10000) {f.entered.count==0L}
-                    if(mode=="held-pair") tap("host-kanban-list","kanban-cancel-work") else pending(scope,f.home)
+                    if(mode=="held-pair") compose.onNodeWithTag("kanban-cancel-work").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick() else pending(scope,f.home)
                     f.release.countDown();await();assertNull(vm.state.value.kanban.dependencyReview);assertEquals(0,f.writes.get());assertFalse(vm.kanbanDependencyReadCurrent(read));return@use
                 }
                 await();assertEquals(beforeReads+2,f.reads.get());assertEquals(0,f.writes.get())
@@ -110,7 +113,32 @@ class HostKanbanDependencyFlowTest {
                 if(mode=="changed-parent") f.parentDetail.set(HostKanbanTaskFixture.detailJson(HostKanbanTaskFixture.card("t_parent",title="Changed parent",status="done")))
                 if(mode=="changed-board") {val c=f.catalogBefore;f.delegate.beforeOverride.set(JsonObject(c+mapOf("boards" to JsonArray(c["boards"]!!.jsonArray.map {v->val b=v.jsonObject;if(b["slug"]==JsonPrimitive("garden")) JsonObject(b+mapOf("db_path" to JsonPrimitive("/other/kanban.db"))) else b}))))}
                 compose.onNodeWithTag("task-change-confirm").performClick()
-                if(mode=="held") {compose.waitUntil(10000) {f.entered.count==0L};tap("host-kanban-list","kanban-cancel-work");f.release.countDown();await();compose.waitUntil(10000) {runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state}=="unknown"};assertEquals(1,f.writes.get());assertNull(vm.state.value.kanban.taskReport);return@use}
+                if(mode in setOf("held","held-bilingual")) {
+                    compose.waitUntil(10000) {f.entered.count==0L}
+                    if(mode=="held-bilingual") {
+                        compose.waitUntil(5000) {vm.visibleReceipts(vm.state.value,vm.receipts.value).any {it.state=="sending"}}
+                        val list=compose.onNodeWithTag("host-kanban-list")
+                        fun pinnedFooter() {
+                            val frame=compose.onNode(isRoot() and hasAnyDescendant(hasTestTag("kanban-close")),useUnmergedTree=true).getUnclippedBoundsInRoot()
+                            for(tag in listOf("kanban-cancel-work","kanban-close")) {
+                                val bounds=compose.onNodeWithTag(tag).assertIsDisplayed().assertHeightIsAtLeast(48.dp).getUnclippedBoundsInRoot()
+                                assertTrue("The entire footer control must stay inside its dialog",bounds.left>=frame.left && bounds.top>=frame.top && bounds.right<=frame.right && bounds.bottom<=frame.bottom)
+                            }
+                            assertTrue(vm.state.value.busy);assertEquals(1,f.writes.get());assertNull(vm.state.value.kanban.taskReport)
+                        }
+                        list.performScrollToIndex(0)
+                        capture("bilingual-busy-cancel-top-"+UUID.randomUUID())
+                        pinnedFooter()
+                        val axis=list.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+                        assertTrue("The receipt and read controls must exceed the body viewport",axis.maxValue()>0f)
+                        list.performSemanticsAction(SemanticsActions.ScrollBy) {scroll->assertTrue(scroll(0f,100000f))}
+                        compose.waitUntil(5000) {axis.value()>0f && axis.value()>=axis.maxValue()-1f}
+                        pinnedFooter();capture("bilingual-busy-cancel-bottom-"+UUID.randomUUID())
+                        compose.onNodeWithTag("kanban-cancel-work").performClick()
+                    } else compose.onNodeWithTag("kanban-cancel-work").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick()
+                    f.release.countDown();await();compose.waitUntil(10000) {runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state}=="unknown"}
+                    assertEquals(1,f.writes.get());assertNull(vm.state.value.kanban.taskReport);return@use
+                }
                 await()
                 if(mode in setOf("before-home","changed-child","changed-parent","changed-board")) {assertEquals(0,f.writes.get());assertTrue(runBlocking {app.database.dao().managementOperations(scope).first().isEmpty()});return@use}
                 assertEquals(1,f.writes.get());val row=runBlocking {app.database.dao().managementOperations(scope).first().single()};assertEquals(row,vm.state.value.kanban.taskReport!!.receipt)
@@ -147,6 +175,7 @@ class HostKanbanDependencyFlowTest {
     @Test fun oldRawStateCannotResurrectClosedPairReview()=exercise("closed")
     @Test fun lostReplyStaysUnknownAndFreshReadsNeverReplay()=exercise("lost")
     @Test fun cancelledWriteKeepsUnknownBarrierAndDropsLateReply()=exercise("held")
+    @Test fun bilingualBusyCancelStaysVisibleAcrossPendingReceiptScroll()=exercise("held-bilingual")
     @Test fun failedReadbackKeepsDurableAcknowledgement()=exercise("readback-fail")
     @Test fun serverCycleRaceErrorAfterAttemptStaysUnknown()=exercise("http409")
     @Test fun bilingualPickerPairReadMutationReviewAndResultKeepFootersReachable()=exercise("bilingual")

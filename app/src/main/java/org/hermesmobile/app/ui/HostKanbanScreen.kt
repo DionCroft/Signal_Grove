@@ -66,7 +66,7 @@ private fun kanbanField(key:String)=when(key) {
             visible.report?.let {report->item {KanbanBoardReport(report)}}
             visible.taskReport?.let {report->item {KanbanTaskReport(report)}}
             visible.statusReport?.let {report->item {KanbanStatusReport(report)}}
-            if(s.busy) item {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel,Modifier.heightIn(min=48.dp).testTag("kanban-cancel-work")) {Text(label(Words.Cancel))}}
+            if(s.busy) item {QuietProgress();Text(label(Words.Loading))}
             visible.inventory?.let {inventory->
                 item {Text(label(Words.HostProjectsSnapshot).replace("{time}",DateFormat.getDateTimeInstance().format(Date(inventory.observedAt))));KanbanValue(Words.KanbanCurrent,inventory.current);if(inventory.boards.isEmpty()) Text(label(Words.EmptyInventory))}
                 items(inventory.boards,key={"board:"+it.slug}) {board->OutlinedCard(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
@@ -100,7 +100,8 @@ private fun kanbanField(key:String)=when(key) {
             }
             s.error?.let {item {Text(label(it),color=MaterialTheme.colorScheme.error)}}
         }
-    },confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("kanban-close")) {Text(label(Words.Close))}})
+    },dismissButton={if(s.busy) TextButton(vm::cancel,Modifier.heightIn(min=48.dp).testTag("kanban-cancel-work"),shape=MaterialTheme.shapes.small) {Text(label(Words.Cancel))}},
+        confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("kanban-close"),shape=MaterialTheme.shapes.small) {Text(label(Words.Close))}})
     visible.detail?.let {detail->HostKanbanDetails(detail,s.busy,vm.kanbanTaskBlock(s),vm.kanbanTaskOverrideBlock(s),vm.kanbanDependencyBlock(s,false),vm.kanbanDependencyBlock(s,true),vm.kanbanStatusBlock(s),s.error,{statusEditor=vm.prepareKanbanStatusEditor()},vm::closeHostKanbanDetail,{id->offer(detail.board,id)},{action->taskEditor=vm.prepareKanbanTaskEditor(action)},{remove->dependencyPicker=vm.prepareKanbanDependencyPicker(remove)})}
     dependencyPicker?.takeIf(vm::kanbanDependencyPickerCurrent)?.let {picker->KanbanDependencyPicker(picker,{dependencyPicker=null}) {id->dependencyRead=vm.prepareKanbanDependencyRead(picker,id);dependencyPicker=null}}
     dependencyRead?.takeIf(vm::kanbanDependencyReadCurrent)?.let {readPair->KanbanDependencyReadReview(readPair,{dependencyRead=null}) {dependencyRead=null;vm.loadKanbanDependency(readPair)}}

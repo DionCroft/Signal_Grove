@@ -1,5 +1,60 @@
 # Signal Grove audit execution plan
 
+## 8 November 2026 - Kanban cancellation stays visible
+
+The unreleased host-Kanban dialog keeps Cancel in its fixed footer while a
+request is busy. Pending receipts and scrolling body content cannot move it out
+of view. Cancel and Close retain minimum 48 dp targets and the small pixel-theme
+shape. The original cancellation controller, authenticated requests, approval
+checks and durable unknown-write barriers are unchanged. Stopping a foreground
+request does not establish that a remote write or worker stopped.
+
+A new regression first failed on the unchanged application: after observing a
+sending receipt and scrolling the trilingual body to the top, Cancel was not
+displayed while Close remained visible. The captured PNG was inspected. The fix
+passes the same case at both ends of the independently scrollable body, with
+both complete controls inside the dialog. Its original ten-second fixture gate
+is unchanged; after cancellation the test still requires exactly one write, an
+unknown receipt and no late result report. Six existing cancellation interactions
+now address the footer directly, retaining all their original outcome assertions.
+
+Required builds pass 836 unique JVM cases in 82 XML reports and both lint variants
+without errors. The selected native cohort passes 12 API 26, 12 API 37 and one
+compact API 37 execution: 25 total. It includes six existing held-read/write
+cancellation cases, five existing bilingual workflows and the new pending-receipt
+scroll case on each full profile; the compact profile runs the new case. Six
+busy-footer screenshots were reviewed. The separate Return to management receipts
+label still clips at the rounded edge on API 26; its shape correction is the next
+follow-up and general dialog-label acceptance is not claimed. Complete preference
+archives match before
+and after each run, as do display/font/AVD configuration and reverse bindings.
+All 657 frozen inputs matched at acceptance. Original signing keys, 28 legacy
+cache files and the five staged beta.8 assets retain their verified hashes.
+
+The earlier hosted API 26 failure remains recorded; its precise timing cause is
+not established by this layout regression. The unchanged English case passed
+locally. Its first wrapper rejected Android's singular `OK (1 test)` summary;
+independent raw review corrected that observation without replay. The new baseline
+case failed at the expected Cancel visibility assertion, but its recorder then
+requested history-only sidecars that the older Kanban helper does not produce.
+The original interrupted record is retained. Read-only reconciliation verified
+269 preference-file hashes, all source/APK bytes and original geometry. Raw
+before-config/reverse values were absent, so baseline equality for those fields
+is not claimed. The final observer records complete before/after metadata,
+accepts singular summaries and collects the actual PNG-only helper output.
+
+For prior history commit `c9479ca`, hosted build metadata reports success and its
+full API 26/37 jobs remain separate gates. Its stable v0.23.0 contract report at
+`2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19` needs no mobile review. Main now resolves
+to `3e82260ba041b75cf9eb20abf13bec937bb32e27`: three handler changes still require
+review, and the source adds `POST /v1/room-members/runs/close`. No guard is waived
+or new room-management control enabled. Actual private-owner forwarding, the new
+route and all other audit rows remain open.
+
+See [the cancellation contract](contracts/2026-11-08-kanban-cancellation.md).
+This fix is unreleased. No owner-phone/Pi deployment, live worker operation,
+new physical acceptance or release publication occurred in this chunk.
+
 ## 8 November 2026 - history feedback and compact error details
 
 The unreleased history reader explains only the documented HTTP 404
