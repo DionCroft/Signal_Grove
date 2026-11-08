@@ -4,7 +4,8 @@ import hashlib
 from pathlib import Path
 import unittest
 
-_tree=ast.parse((Path(__file__).resolve().parents[1]/'compatibility_fixture_native_auth_tcp.py').read_text())
+_fixture_source=(Path(__file__).resolve().parents[1]/'compatibility_fixture_native_auth_tcp.py').read_text(encoding='utf-8')
+_tree=ast.parse(_fixture_source)
 _function=next(n for n in _tree.body if isinstance(n,ast.FunctionDef) and n.name=='hosted_room_fixture_rpc_allowed')
 _namespace={}
 exec(compile(ast.Module(body=[_function],type_ignores=[]),'<local-room-fixture-boundary>','exec'),_namespace)
@@ -41,8 +42,14 @@ class HostedRoomFixtureBoundaryTest(unittest.TestCase):
             for count in (0,1,2):self.assertFalse(allowed(method,params,count))
 
     def test_old_canonical_boundary_is_byte_independent_and_unchanged(self):
-        function=next(n for n in _tree.body if isinstance(n,ast.FunctionDef) and n.name=='canonical_fixture_rpc_allowed')
-        self.assertEqual('9af86022f9c9169cdf735d55ec87ba58f8241f1ad0d28126ac89e24ac282629b',hashlib.sha256(ast.dump(function,include_attributes=False).encode()).hexdigest())
+        functions=[n for n in _tree.body if isinstance(n,ast.FunctionDef) and n.name=='canonical_fixture_rpc_allowed']
+        self.assertEqual(1,len(functions))
+        function=functions[0]
+        self.assertEqual([],function.decorator_list)
+        # ast.dump formatting/fields vary by Python release. Keep the original
+        # UTF8 source block exact instead, after normal checkout newline decoding.
+        source=''.join(_fixture_source.splitlines(keepends=True)[function.lineno-1:function.end_lineno])
+        self.assertEqual('1a138c60ca57698cc8bc3f9e186af04c068d2c303494ad3b18f8ada5c17c8350',hashlib.sha256(source.encode('utf-8')).hexdigest())
 
     def test_only_room_fixture_omits_background_startup_without_replacing_handlers(self):
         call=next(n for n in ast.walk(_tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='Config')

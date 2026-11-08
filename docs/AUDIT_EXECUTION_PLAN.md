@@ -1,5 +1,27 @@
 # Signal Grove audit execution plan
 
+## Current checkpoint - cross-version room guard corrected
+
+Hosted951e29d verify/parser each failed one new AST-dump preservation assertion;
+compilation/native steps did not run. Both exact logs are retained. The same
+unchanged seven-case suite reproduced one Python3.11 failure and a Python3.13
+positive control. The fix preserves the original UTF8 function block instead,
+independently equal at1a889d6/2e15439/951e29d, with unique-definition/no-decorator
+checks. There is no version-hash allowlist or waived negative assertion.
+
+All229 policy cases pass on Python3.11,3.13 and3.14. Each runtime passes two source/
+checkout positives and refuses four deliberate boundary/decorator/duplicate
+mutations. Required builds pass831 JVM cases in81 XML reports and both lint0.
+Both original-key APKs are byte-identical to951e29d; its27 native UI executions
+remain artifact-bound, with0 new device executions for this test-only change.
+All652 frozen inputs, original keys/caches and beta.8 assets match. CI only adds
+Python-version diagnostics; all earlier task/action/deadline scope is preserved.
+See [the room contract](contracts/2026-11-08-hosted-rooms.md).
+
+Exact-head hosted gates are pending. The actual owner-forwarding/private-room/
+merged-paging/full-lifecycle matrix and every other audit row remain required.
+Owner Automatic chat/history release checks and beta.8 publication stay separate.
+
 ## Current checkpoint - large room labels fit their pixel buttons
 
 Room text buttons explicitly use the small cut-corner theme shape. Before/after

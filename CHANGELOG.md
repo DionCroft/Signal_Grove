@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Make the preserved canonical-fixture guard portable across Python versions by
+  checking its exact original source, uniqueness and lack of decorators. Retain
+  all negative boundaries; print the actual Python version in CI diagnostics.
+
 - Keep large multiline room-button labels clear of rounded corners by applying
   the pixel theme's small cut-corner shape. Preserve existing navigation and
   condense the current audit state while retaining its validation history.

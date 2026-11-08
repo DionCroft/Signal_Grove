@@ -7,6 +7,13 @@ failures are in [validation](docs/VALIDATION.md) and Git history.
 
 ## Current development checkpoint
 
+A hosted-only preservation-test failure is corrected. Both951e29d failed logs are
+retained. The original canonical fixture source remains exact; the test now guards
+its UTF8 source block, unique definition and lack of decorators. All229 policy
+cases pass on Python3.11/3.13/3.14, each with two positive and four expected-refusal
+controls. Required builds pass831 JVM/both lint0; both APKs are byte-identical to
+the accepted visual revision. Exact-head hosted verification remains pending.
+
 The read-only native room browser has exact connection/actor/profile/home checks,
 ticketed list/detail reads, opaque paging, explicit stale/unknown observations and
 foreground lifecycle fencing. Standalone rooms can be installation-shared; the UI
@@ -54,8 +61,9 @@ owned synthetic storage/listeners, exact traces and zero admission/worker checks
 Do not infer profile-private copies from the shared standalone store or substitute
 stubbed forwarding and call it actual-server conformance.
 
-Also reconcile existing exact-head hosted runs from their retained handles and
-raw artifact digests. Browser1a889d6 has successful verify/compatibility metadata
+Reconcile the portability fix's exact-head hosted gates once dispatched. Old951e29d
+verify/parser failed before compilation/native; retain those failures. Also
+reconcile existing runs from their retained handles and raw artifact digests. Browser1a889d6 has successful verify/compatibility metadata
 and running full device suites; raw acceptance is pending. Privacyd57 API26 has
 exact1043-method raw acceptance; API37 is still live. No extra blind reruns.
 Continue every other audit row after each coherent verified checkpoint.

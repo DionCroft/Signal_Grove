@@ -1,5 +1,37 @@
 # Hosted room browser and read contract
 
+## Portable preservation of the earlier canonical boundary
+
+Hosted verify and compatibility parser jobs at951e29d each failed the same single
+new preservation test before compilation or native execution. The test hashed
+ast.dump output generated on one local Python version. Python's AST structure can
+vary by release, as documented in the [official AST reference](https://docs.python.org/3/library/ast.html).
+The exact unchanged seven-case guard suite reproduced one failure on Python3.11
+while its Python3.13 positive control passed. Both failed hosted logs are retained.
+
+The corrected assertion preserves the original UTF8 function source block after
+normal checkout newline decoding. Its SHA256 is
+1a138c60ca57698cc8bc3f9e186af04c068d2c303494ad3b18f8ada5c17c8350,
+independently equal at immutable browser1a889d6, actual-room2e15439 and visual951e29d.
+It also requires one definition and no decorators. No version-specific accepted
+hash list, skipped assertion, changed fixture handler or softened permission was
+introduced. Both workflows now print Python's version before the existing policy
+step; their runtime choice, task scope, action pins and deadlines are unchanged.
+
+All229 policy cases pass on Python3.11.0,3.13.2 and3.14.9. Each runtime additionally
+passes the exact-source and normal CRLF-checkout positive controls, while changed
+call bounds, a foreign selected-session identity, an added decorator and duplicate
+definitions all fail the guard as intended. These are six bounded controls per
+runtime; no canonical fixture is executed by those source-preservation probes.
+
+The required Android build passes831 unique JVM cases in81 XML reports with both
+lint0. App and test APK bytes/signatures are identical to the accepted visual
+revision, retaining its exact27 UI executions without a redundant device rerun.
+All652 frozen inputs, original key/cache/release-file digests match. Android and
+actual-room fixture sources are unchanged. Exact-head hosted verification of this
+correction is pending; earlier failed jobs remain failed historical evidence.
+Continue actual owner-forwarding/full lifecycle and every other audit row.
+
 ## Large-text room button correction
 
 The six room text buttons now explicitly use the theme's small cut-corner shape.
