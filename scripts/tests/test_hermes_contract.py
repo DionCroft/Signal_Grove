@@ -10,7 +10,7 @@ checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 def sources():
     route="def _http_routes():\n    return [('POST','/v1/runs',handler)]\n"
-    return {**{key:'' for key in checker.CANONICAL_NEGOTIATION_CONTRACT_SOURCES},**{key:'' for key in checker.RUNTIME_GUARD_CONTRACT_SOURCES},**{key:'' for key in checker.AUTH_BOUNDARY_CONTRACT_SOURCES},**{key:'' for key in checker.PLUGIN_UPDATE_CONTRACT_SOURCES},**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
+    return {**{key:'' for key in checker.CANONICAL_ATTACHMENT_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_NEGOTIATION_CONTRACT_SOURCES},**{key:'' for key in checker.RUNTIME_GUARD_CONTRACT_SOURCES},**{key:'' for key in checker.AUTH_BOUNDARY_CONTRACT_SOURCES},**{key:'' for key in checker.PLUGIN_UPDATE_CONTRACT_SOURCES},**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
         'api':"_STATIC_FEATURE_FLAGS={'enabled':True}\n_MAX_NAME_LENGTH=160\n_MAX_PROMPT_LENGTH=5000\n_UPDATE_ALLOWED_FIELDS={'enabled'}\ndef _http_route_table():\n    return [('GET','/v1/kept',handler)]\n",
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",

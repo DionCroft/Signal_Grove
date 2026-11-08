@@ -5,6 +5,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.hermesmobile.app.data.*
 import kotlinx.serialization.json.*
 import okhttp3.*
 import okio.ByteString
@@ -57,8 +62,8 @@ internal class CanonicalRuntimeBinding(
 }
 
 /**
- * Separate canonical socket. This stage negotiates identity only: no session read,
- * restore/adoption, subscription, server-request capability, work admission or retry.
+ * Separate canonical socket. Explicit reviewed resume can restore/adopt history and attach
+ * a viewer. No server-request capability, work admission, mutation replay or reconnect.
  */
 internal class CanonicalGatewayChannel private constructor() : Closeable {
     private val opened = CompletableDeferred<Unit>()
@@ -71,26 +76,49 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private var describeAnswered = false
     private var notificationCount = 0
     private var receivedBytes = 0L
+    private data class Pending(val id: String, val waiter: CompletableDeferred<JsonObject>)
+    private val requests = Mutex()
+    private var nextId = 1L
+    private var pending: Pending? = null
+    private var resuming = false
+    private var resumed = false
+    private val earlyFrames = ArrayList<JsonObject>()
+    private var earlyBytes = 0
+    private var feed: CanonicalReplayWindow? = null
+    private var snapshot: CanonicalSessionSnapshot? = null
+    private var baseline: CanonicalReplayCursor? = null
+    private val baselineFingerprints = linkedMapOf<Long,String>()
+    private val deliveries = Channel<CanonicalFeedDelivery>(64)
+    private var queuedBytes = 0
+    private val consumer = AtomicBoolean(false)
+    private var hostWindowStarted = System.nanoTime()
+
     @Volatile private var socket: WebSocket? = null
     @Volatile private var verified: CanonicalRuntimeBinding? = null
 
     val binding: CanonicalRuntimeBinding
         get() = verified?.takeUnless { stopped.get() } ?: throw GatewayUnavailable()
 
-    private fun fail(error: Exception) {
+    @Synchronized private fun fail(error: Exception) {
         firstFailure.compareAndSet(null, error)
         stopped.set(true); verified = null
         val cause = firstFailure.get() ?: error
         opened.completeExceptionally(cause); ready.completeExceptionally(cause); runtime.completeExceptionally(cause)
+        pending?.waiter?.completeExceptionally(cause); pending = null
+        earlyFrames.clear(); earlyBytes = 0; baselineFingerprints.clear()
+        feed?.close()
+        while (deliveries.tryReceive().isSuccess) { /* Clear queued private observations. */ }
+        queuedBytes = 0; deliveries.close(cause)
         socket?.cancel()
     }
 
     /** Bound depth before invoking the JSON parser, including escaped object keys. */
     private fun frame(text: String): JsonObject {
-        require(text.length <= 262144)
+        val maximum = if (verified == null) 262144 else 2097152
+        require(text.length <= maximum)
         val bytes = text.toByteArray(Charsets.UTF_8).size
-        receivedBytes += bytes
-        require(bytes <= 262144 && receivedBytes <= 2097152)
+        if (verified == null) receivedBytes += bytes
+        require(bytes <= maximum && (verified != null || receivedBytes <= 2097152))
         val containers = ArrayList<MutableSet<String>?>()
         var index = 0
         while (index < text.length) {
@@ -143,20 +171,44 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
                     ready.complete(Unit)
                 } else {
                     // Host notifications are observations. A transcript event before attachment is unsolicited.
-                    if (!readySeen || params.containsKey("session_id") || ++notificationCount > 64 || type.isBlank() || type.length > 256) throw GatewayProtocolException()
+                    if (!readySeen || type.isBlank() || type.length > 256 || type.any(Char::isISOControl)) throw GatewayProtocolException()
+                    if (text.toByteArray(Charsets.UTF_8).size > 262144) throw GatewayProtocolException()
+                    val hostChange = type in setOf("sessions.changed","skin.changed") &&
+                        params["session_id"] == JsonPrimitive("") &&
+                        listOf("seq","replay_epoch","authority_epoch","execution_generation").none(params::containsKey)
+                    if ((params.containsKey("session_id") && !hostChange) || type == "session.replay_gap") {
+                        acceptSessionFrame(j)
+                    } else {
+                        val now = System.nanoTime()
+                        if (verified != null && now - hostWindowStarted >= 1_000_000_000L) {
+                            hostWindowStarted = now; notificationCount = 0
+                        }
+                        if (++notificationCount > 64) throw GatewayProtocolException()
+                    }
                 }
                 return
             }
-            if (!readySeen || !describeSent || describeAnswered || j["id"] != JsonPrimitive("1") ||
-                j.containsKey("method") || j.containsKey("result") == j.containsKey("error") ||
+            if (!readySeen || j.containsKey("method") || j.containsKey("result") == j.containsKey("error") ||
                 j.keys.any { it !in setOf("jsonrpc", "id", "result", "error") }) throw GatewayProtocolException()
-            describeAnswered = true
+            val handshake = j["id"] == JsonPrimitive("1")
+            val waiter = if (handshake) {
+                if (!describeSent || describeAnswered) throw GatewayProtocolException()
+                describeAnswered = true; runtime
+            } else {
+                val current = pending ?: throw GatewayProtocolException()
+                if (j["id"] != JsonPrimitive(current.id)) throw GatewayProtocolException()
+                current.waiter
+            }
             if (j.containsKey("error")) {
                 val error = j["error"] as? JsonObject ?: throw GatewayProtocolException()
                 val code = (error["code"] as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull ?: throw GatewayProtocolException()
-                throw GatewayRpcException(code)
+                val refusal = GatewayRpcException(code)
+                waiter.completeExceptionally(refusal)
+                throw refusal
             }
-            runtime.complete(j["result"] as? JsonObject ?: throw GatewayProtocolException())
+            val result = j["result"] as? JsonObject ?: throw GatewayProtocolException()
+            waiter.complete(result)
+            if (!handshake) pending = null
         } catch (error: Exception) {
             fail(if (error is GatewayRpcException || error is CanonicalNotSupported) error else GatewayProtocolException())
         }
@@ -167,6 +219,141 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         check(readySeen && !describeSent)
         describeSent = true
         if (socket?.send("""{"jsonrpc":"2.0","id":"1","method":"runtime.describe","params":{}}""") != true) throw GatewayUnavailable()
+    }
+
+    private fun coveredByBaseline(frame: JsonObject, owner: CanonicalFeedOwner, cursor: CanonicalReplayCursor): Boolean {
+        val params = frame["params"] as? JsonObject ?: throw GatewayProtocolException()
+        val event = CanonicalFeedEvent.parse(params, owner, cursor, 262144)
+        if (event.sequence > cursor.sequence) return false
+        val known = baselineFingerprints[event.sequence]
+        if (known != null && known != event.fingerprint || known == null && baselineFingerprints.size >= 256) throw GatewayProtocolException()
+        baselineFingerprints[event.sequence] = event.fingerprint
+        return true
+    }
+
+    @Synchronized private fun acceptSessionFrame(frame: JsonObject) {
+        if (resuming) {
+            val size = frame.toString().toByteArray(Charsets.UTF_8).size
+            if (earlyFrames.size >= 256 || earlyBytes.toLong() + size > 2097152) throw GatewayProtocolException()
+            earlyFrames.add(frame); earlyBytes += size
+            return
+        }
+        val attached = snapshot ?: throw GatewayProtocolException()
+        val window = feed ?: throw GatewayProtocolException()
+        if (coveredByBaseline(frame,attached.owner,checkNotNull(baseline))) return
+        val delivery = window.offerLive(attached.owner, frame)
+        if (delivery.status.phase == CanonicalFeedPhase.SnapshotRequired) throw GatewayProtocolException()
+        if (delivery.events.isNotEmpty()) {
+            val bytes = delivery.events.sumOf { it.wireBytes }
+            if (queuedBytes.toLong() + bytes > 2097152 || !deliveries.trySend(delivery).isSuccess) throw GatewayProtocolException()
+            queuedBytes += bytes
+        }
+    }
+
+    private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
+        require(method in setOf("session.list", "session.resume", "session.events.since"))
+        val request: Pending
+        synchronized(this) {
+            if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
+            check(verified != null && pending == null && nextId < Long.MAX_VALUE)
+            request = Pending((++nextId).toString(), CompletableDeferred())
+            pending = request
+            val frame = buildJsonObject { put("jsonrpc","2.0"); put("id",request.id); put("method",method); put("params",params) }
+            if (socket?.send(frame.toString()) != true) {
+                fail(GatewayUnavailable()); throw GatewayUnavailable()
+            }
+        }
+        try {
+            withTimeoutOrNull(45000) { request.waiter.await() } ?: throw GatewayUnavailable()
+        } catch (error: Exception) {
+            fail(if (error is GatewayRpcException || error is GatewayProtocolException) error else GatewayUnavailable())
+            throw error
+        } finally {
+            synchronized(this) { if (pending === request) pending = null }
+            request.waiter.cancel()
+        }
+    }
+
+    internal suspend fun sessionInventory(scope: CanonicalSessionScope = CanonicalSessionScope.Stored): CanonicalSessionInventory {
+        synchronized(this) { check(!resuming && !resumed) }
+        val identity = binding
+        val result = call("session.list", buildJsonObject { put("scope",scope.wire); put("limit",200) })
+        if (binding !== identity) throw CanonicalScopeChanged()
+        return CanonicalSessionProtocol.inventory(result, identity, scope)
+    }
+
+    internal class Attachment(val snapshot: CanonicalSessionSnapshot, val initial: CanonicalFeedDelivery) {
+        override fun toString() = "CanonicalAttachment(redacted)"
+    }
+
+    /** Caller must persist a durable sending receipt in beforeSend, after fresh review validation. */
+    internal suspend fun resumeReviewed(
+        review: CanonicalResumeReview,
+        previous: CanonicalReplayCheckpoint? = null,
+        beforeSend: suspend () -> Unit,
+        acknowledged: suspend (CanonicalSessionSnapshot) -> Unit
+    ): Attachment {
+        val current = sessionInventory(review.expected.scope)
+        if (previous != null) {
+            val known = previous.owner; val owner = current.binding
+            if (known.target != owner.target || known.homeId != owner.homeId || known.profileId != owner.profileId ||
+                known.instanceId != owner.instanceId || known.authorityEpoch != owner.authorityEpoch) throw CanonicalReviewChanged()
+        }
+        review.consume(current)
+        beforeSend()
+        synchronized(this) {
+            check(!resuming && !resumed)
+            resuming = true; resumed = true
+        }
+        try {
+            val result = call("session.resume", buildJsonObject {
+                put("session_id",review.row.sessionId); put("omit_messages",true)
+            })
+            val accepted = CanonicalSessionProtocol.snapshot(result, current.binding, review.row.sessionId)
+            acknowledged(accepted)
+            val start = previous?.let {
+                if (it.owner != accepted.owner || it.cursor.epoch != accepted.cursor.epoch || it.cursor.sequence > accepted.cursor.sequence) throw CanonicalReviewChanged()
+                it.cursor
+            } ?: accepted.cursor
+            synchronized(this) {
+                if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
+                val window = CanonicalReplayWindow(accepted.owner, start)
+                baseline = start
+                // Snapshot watermark already covers earlier frames; validate every covered frame
+                // before discarding it, and buffer only events strictly after that watermark.
+                for (frame in earlyFrames) {
+                    if (!coveredByBaseline(frame,accepted.owner,start) &&
+                        window.offerLive(accepted.owner, frame).status.phase == CanonicalFeedPhase.SnapshotRequired) throw GatewayProtocolException()
+                }
+                earlyFrames.clear(); earlyBytes = 0; snapshot = accepted; feed = window; resuming = false
+            }
+            val replay = call("session.events.since", buildJsonObject {
+                put("session_id",accepted.owner.sessionId); put("last_sequence",start.sequence); put("replay_epoch",start.epoch)
+            })
+            val delivery = synchronized(this) {
+                val result = feed!!.reconcile(accepted.owner, replay)
+                if (result.status.phase != CanonicalFeedPhase.Following || result.status.cursor.sequence < accepted.cursor.sequence) throw GatewayProtocolException()
+                result
+            }
+            return Attachment(accepted, delivery)
+        } catch (error: Exception) {
+            fail(if (error is GatewayProtocolException || error is GatewayRpcException) error else GatewayUnavailable())
+            throw error
+        }
+    }
+
+    /** Exactly one consumer applies the initial batch before reading these queued live batches. */
+    internal fun observations(): Flow<CanonicalFeedDelivery> {
+        check(consumer.compareAndSet(false, true))
+        return kotlinx.coroutines.flow.flow {
+            for (delivery in deliveries) {
+                synchronized(this@CanonicalGatewayChannel) {
+                    queuedBytes -= delivery.events.sumOf { it.wireBytes }
+                    if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
+                }
+                emit(delivery)
+            }
+        }
     }
 
     override fun close() = fail(GatewayUnavailable())

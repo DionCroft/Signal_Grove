@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add internal reviewed canonical session eligibility/adoption, durable unknown/
+  acknowledged receipts and bounded attach-first replay. Validate real stable/
+  prior behavior and recovery on preserved emulators; canonical UI and worker/
+  workspace rollout remain in development.
+
 - Add a separate authenticated canonical handshake with strict actor/profile/home
   and runtime binding, typed sibling-identity refusal and bounded wire parsing.
   Add actual stable/prior Android conformance and source drift guards. Explicit

@@ -117,10 +117,10 @@ parser.add_argument('--work-root', type=Path, required=True)
 parser.add_argument('--dependency-site', type=Path, required=True)
 parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
 parser.add_argument('--lifetime-seconds',type=int,default=180)
-parser.add_argument('--surface',choices=('native-auth','projects','canonical'),default='native-auth')
+parser.add_argument('--surface',choices=('native-auth','projects','canonical','canonical-session'),default='native-auth')
 a = parser.parse_args()
 if not 10<=a.lifetime_seconds<=600:parser.error('Lifetime must be10..600 seconds.')
-if a.surface=='canonical':
+if a.surface in ('canonical','canonical-session'):
     # Negotiation consumes the actual authority dispatcher, never a runtime-description stub.
     if a.revision=='stable-2bd378e':REVISIONS[a.revision]['blobs'].update({'gateway/session_authority.py': '052252b70edc38b71b6a8679f91660d6009893aa', 'gateway/session_controls.py': '3e4a89ad890cacf9645b648369d3daa682c1e114', 'gateway/session_contract.py': 'accd1d9e2109e34c19263b90d730fad400128e6c', 'gateway/owner_identity.py': 'bffdf405527e53f3bd1b608c88d609b1dab34803', 'gateway/session_local_migration.py': '82a647465420180829beeb081a6271bcdc48272f', 'gateway/session_policy.py': 'ca1cac3b27c42ab22771dc93255a9d5cdb20b30b', 'gateway/session_skin.py': 'abb696b5c959ab01ba91fa0d5d0ab6f6b4076151', 'tui_gateway/contracts/canonical.py': '8976061235c34e286a7d475ce7db1283b42a6d6d', 'tui_gateway/contracts/canonical_sessions.py': '642364a17f0ec8a12c66c285d76064996b604f10', 'tui_gateway/contracts/events.py': '4fc6964c1fbcc240768200f5fd121643e222daee', 'hermes_state_runtime.py': '49207f5508db3255cd90433a229c518f11cfd0f7'})
     if a.revision=='prior-bf0203a':REVISIONS[a.revision]['blobs'].update({'gateway/session_authority.py': '3bc6c596c77c495c1cf318495a84319c211dd523', 'gateway/session_controls.py': '65887575dec12b3ddb9f859ebe56156264ea120e', 'gateway/session_contract.py': 'dda3763a395814455cdf0de080d62f352dfd4b52', 'gateway/session_local_migration.py': '484be549e64250e509bbaabe80b6ef9cc499c18e', 'gateway/session_policy.py': 'ab3aace258bce8c74b151553153b2bb3d554bf1d', 'gateway/session_skin.py': 'abb696b5c959ab01ba91fa0d5d0ab6f6b4076151', 'tui_gateway/contracts/canonical.py': '3a9dd88a19decfea9d4c9307b90c5e2849a2d0a0', 'tui_gateway/contracts/canonical_sessions.py': 'db394b039bca3a75a9ed4e06e0fcc7a121c3ae33', 'tui_gateway/contracts/events.py': 'd782b3e6eec5b6d624aad9716ada2d415c8178f4', 'hermes_state_runtime.py': '516e3ea46152226e320dc0b6236e6af0b2a00ccb'})
@@ -180,7 +180,7 @@ def refuse(event, target=None):
     denied.append(event)
     frames = []
     frame = sys._getframe(1)
-    for _ in range(12):
+    for _ in range(32):
         if frame is None:
             break
         file = Path(frame.f_code.co_filename)
@@ -223,7 +223,7 @@ def audit(event, args):
         words=next((p for p in probes|source_probes if argv==subprocess.list2cmdline(list(p)) or isinstance(argv,(list,tuple)) and tuple(argv)==p),None)
         expected_caller=False
         frame=sys._getframe(1)
-        for _ in range(12):
+        for _ in range(32):
             if frame is None:break
             module=frame.f_globals.get('__name__');function=frame.f_code.co_name
             if words in probes and module=='hermes_cli._subprocess_compat' and function=='_user_safe_directories' and cwd is None:expected_caller=True
@@ -298,13 +298,18 @@ def audit(event, args):
             refuse('sqlite-outside-fixture')
 missing_os_probes = {}
 assert os.name == 'nt'
-for name in ('/proc/1/cgroup', '/proc/self/mountinfo', '/proc/version'):
+for name in ('/proc/1/cgroup', '/proc/self/mountinfo', '/proc/version') + ((f'/proc/{os.getpid()}/stat', f'/proc/{os.getpid()}/cmdline') if a.surface=='canonical-session' else ()):
     target = Path(root.drive + name.replace('/', '\\'))
     assert target.resolve() == target and (not target.exists())
     missing_os_probes[name] = target
 missing_manifest = source.parent / 'manifest.json'
 assert missing_manifest.resolve() == missing_manifest and (not missing_manifest.exists())
 missing_os_probes[str(missing_manifest)] = missing_manifest
+# pathlib passes a Windows spelling for the same absent Linux self-stat probe.
+if a.surface=='canonical-session':
+    for leaf in ('stat','cmdline'):
+        self_probe=f'/proc/{os.getpid()}/{leaf}'
+        missing_os_probes[str(Path(self_probe))]=missing_os_probes[self_probe]
 missing_os_probe_reads = []
 bound_sockets = weakref.WeakSet()
 owned_socket_events = []
@@ -312,7 +317,12 @@ cases = []
 sys.addaudithook(audit)
 
 try:
-    import base64,time,urllib.parse
+    import base64,time,urllib.parse,socket
+    reserved_listener=None
+    if a.surface=='canonical-session':
+        reserved_listener=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        reserved_listener.bind(('127.0.0.1',0));reserved_listener.listen(64)
+        fixture_port=reserved_listener.getsockname()[1]
     import hermes_constants as hc
     assert hc.get_hermes_home().resolve()==root/'hermes-home'
 
@@ -321,6 +331,8 @@ try:
     original={}
     for profile,home in homes.items():
         home.mkdir(parents=True,exist_ok=True);(home/'SOUL.md').write_text('Synthetic '+profile+' identity only.',encoding='utf-8')
+        if a.surface=='canonical-session':
+            (home/'config.yaml').write_text(('model:\n  default: fixture-model\n  provider: custom\n  base_url: http://127.0.0.1:1/v1\nplatform_toolsets:\n  cli: []\nsessions:\n  orphan_end_grace_s: 0\n').replace('http://127.0.0.1:1/v1',f'http://127.0.0.1:{fixture_port}/fixture-model/v1'),encoding='utf-8')
         scope_token=hc.set_hermes_home_override(str(home))
         try:
             db=SessionDB(db_path=home/'state.db')
@@ -367,22 +379,28 @@ try:
     if a.surface=='projects':
         from tui_gateway import server as actual_project_server
     canonical_dbs=[];canonical_authority=None;runtime_replies=[]
-    if a.surface=='canonical':
+    if a.surface in ('canonical','canonical-session'):
         from types import SimpleNamespace
         from gateway.session_authority import SessionAuthority
         from hermes_state_runtime import begin_runtime_epoch
         runner=SimpleNamespace(_draining=False,_cached_agent_for=lambda route:None,adapters={})
+        if a.surface=='canonical-session':
+            from gateway.session import SessionStore
+            from gateway.config import GatewayConfig
+            store=SessionStore(homes['default']/'sessions',GatewayConfig())
+            runner.session_store=store;runner._session_db=store._db
+            runner._adapter_for_source=lambda source:None;runner._evict_cached_agent=lambda route:None
         db=SessionDB(db_path=homes['default']/'state.db');canonical_dbs.append(db)
         epoch=begin_runtime_epoch(db,instance_id='fixture-native-default')
         canonical_authority=SessionAuthority(runner,profile_id=str(homes['default']),instance_id='fixture-native-default',db=db,epoch=epoch)
         web_server.app.state.session_authority=canonical_authority
     requests=[]
     allowed={('GET','/auth/native/authorize'),('GET','/auth/callback'),('POST','/auth/native/token'),('POST','/auth/native/refresh'),('GET','/api/auth/me'),('GET','/api/profiles'),('GET','/api/mcp/servers')}
-    if a.surface in ('projects','canonical'):allowed.add(('POST','/api/auth/ws-ticket'))
+    if a.surface in ('projects','canonical','canonical-session'):allowed.add(('POST','/api/auth/ws-ticket'))
     async def proxy(scope,receive,send):
         if scope['type']=='websocket':
             path=scope['path'];headers=list(scope['headers'])
-            if a.surface not in ('projects','canonical') or path!='/dashboard/api/ws' or scope.get('query_string') or len(requests)>=128:
+            if a.surface not in ('projects','canonical','canonical-session') or path!='/dashboard/api/ws' or scope.get('query_string') or len(requests)>=128:
                 requests.append(dict(method='WS',path='unreviewed',status=404));await send(dict(type='websocket.close',code=1008));return
             entry=dict(method='WS',path='/api/ws',bearer=any(k.lower()==b'authorization' for k,v in headers),cookie=any(k.lower()==b'cookie' for k,v in headers),origin=any(k.lower()==b'origin' for k,v in headers),ticketPresented=any(k.lower()==b'sec-websocket-protocol' and b'hermes-gateway-ticket.' in v for k,v in headers))
             requests.append(entry)
@@ -402,9 +420,16 @@ try:
                         frame=json.loads(raw,object_pairs_hook=unique)
                         assert isinstance(frame,dict) and set(frame)=={'jsonrpc','id','method','params'} and frame['jsonrpc']=='2.0' and isinstance(frame['id'],str) and 0<len(frame['id'])<=64
                         method=frame['method'];params=frame['params'];assert isinstance(params,dict)
-                        if a.surface=='canonical':
-                            assert method=='runtime.describe' and params=={} and rpc_count==0
-                            entry_rpc=dict(method='RPC',path=method,profile=[],noSessionOrMutation=True)
+                        if a.surface in ('canonical','canonical-session'):
+                            if a.surface=='canonical':
+                                assert method=='runtime.describe' and params=={} and rpc_count==0
+                            else:
+                                assert rpc_count<8
+                                assert (method=='runtime.describe' and params=={} or
+                                    method=='session.list' and set(params)=={'scope','limit'} and params['scope'] in ('stored','live') and params['limit']==200 or
+                                    method=='session.resume' and params=={'session_id':'shared-fixture','omit_messages':True} or
+                                    method=='session.events.since' and set(params)=={'session_id','last_sequence','replay_epoch'} and params['session_id']=='shared-fixture' and type(params['last_sequence']) is int and params['last_sequence']>=0 and isinstance(params['replay_epoch'],str))
+                            entry_rpc=dict(method='RPC',path=method,profile=[],noSessionOrMutation=method in ('runtime.describe','session.list'))
                         else:
                             assert method in ('projects.list','projects.get')
                             assert set(params)==({'profile'} if method=='projects.list' else {'profile','id'}) and params['profile'] in ('default','worker','missing-fixture')
@@ -421,6 +446,15 @@ try:
                 elif message['type']=='websocket.close':entry['closeCode']=message.get('code')
                 await send(message)
             await web_server.app(forwarded,bounded_receive,observed_ws);return
+        if scope['type']=='http' and scope['path'].startswith('/fixture-model/'):
+            assert a.surface=='canonical-session' and scope['method']=='GET'
+            path=scope['path']
+            assert path in ('/fixture-model/v1/models','/fixture-model/v1/props','/fixture-model/props','/fixture-model/v1/models/fixture-model')
+            requests.append(dict(method='MODEL_METADATA_GET',path=path,status=200))
+            payload={'object':'list','data':[{'id':'fixture-model','object':'model','context_length':4096}]}
+            raw=json.dumps(payload).encode()
+            await send(dict(type='http.response.start',status=200,headers=[(b'content-type',b'application/json')]))
+            await send(dict(type='http.response.body',body=raw));return
         if scope['type']!='http':
             await web_server.app(scope,receive,send);return
         path=scope['path'];method=scope['method'];headers=list(scope['headers'])
@@ -440,10 +474,12 @@ try:
             await send(message)
         await web_server.app(forwarded,receive,observed)
     async def serve():
-        listener=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        listener.bind(('127.0.0.1',0));listener.listen(64)
+        listener=reserved_listener
+        if listener is None:
+            listener=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            listener.bind(('127.0.0.1',0));listener.listen(64)
         port=listener.getsockname()[1];web_server.app.state.bound_port=port
-        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets' if a.surface in ('projects','canonical') else 'none',lifespan='on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
+        config=uvicorn.Config(proxy,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets' if a.surface in ('projects','canonical','canonical-session') else 'none',lifespan='on',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5)
         server=uvicorn.Server(config);task=asyncio.create_task(server.serve(sockets=[listener]))
         deadline=time.monotonic()+15
         while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
@@ -460,18 +496,29 @@ try:
             await asyncio.wait_for(task,10)
             listener.close()
     asyncio.run(serve())
-    if a.surface=='canonical':
-        assert canonical_authority.sessions=={} and canonical_authority.events=={}
+    if a.surface in ('canonical','canonical-session'):
+        if a.surface=='canonical':assert canonical_authority.sessions=={}
+        assert canonical_authority.events=={}
+        report['canonicalSessionIds']=sorted(canonical_authority.sessions)
         for db in canonical_dbs:db.close()
-        report['noCanonicalSessionRestoredOrAdopted']=True
+        report['noCanonicalSessionRestoredOrAdopted']=(a.surface=='canonical')
     for profile,home in homes.items():
         scope_token=hc.set_hermes_home_override(str(home))
         try:
             db=SessionDB(db_path=home/'state.db',read_only=True)
-            try:after={sid:(db.get_session(sid),db.get_messages(sid)) for sid in ('shared-fixture',profile+'-only-fixture')}
+            try:
+                after={sid:(db.get_session(sid),db.get_messages(sid)) for sid in ('shared-fixture',profile+'-only-fixture')}
+                if a.surface=='canonical-session' and profile=='default':
+                    with db._read_ctx(reopen=False) as conn:
+                        report['sessionAdmissionCount']=conn.execute('SELECT COUNT(*) FROM session_admissions').fetchone()[0]
+                        report['workerExecutionCount']=conn.execute('SELECT COUNT(*) FROM worker_executions').fetchone()[0]
+                    assert report['sessionAdmissionCount']==report['workerExecutionCount']==0
             finally:db.close()
         finally:hc.reset_hermes_home_override(scope_token)
-        assert after==original[profile]
+        if a.surface!='canonical-session':assert after==original[profile]
+        else:
+            assert all(after[sid][1]==original[profile][sid][1] for sid in after)
+            report.setdefault('sessionMetadataChanges',{})[profile]={sid:{key:{'before':original[profile][sid][0].get(key),'after':row.get(key)} for key in row if row.get(key)!=original[profile][sid][0].get(key)} for sid,(row,messages) in after.items()}
     if a.surface=='projects':
         for profile,home in homes.items():
             scope_token=hc.set_hermes_home_override(str(home))
@@ -480,6 +527,16 @@ try:
             finally:hc.reset_hermes_home_override(scope_token)
         assert not (root/'hermes-home/profiles/missing-fixture').exists()
         report['seededProjectsUnchanged']=True
+    if a.surface=='canonical-session':
+        changes=report.get('sessionMetadataChanges',{})
+        allowed={'user_id','session_key','chat_id','chat_type','origin_json'}
+        for profile,rows in changes.items():
+            for sid,delta in rows.items():
+                assert set(delta)<=allowed if profile=='default' and sid=='shared-fixture' else not delta
+        model_reads=[row for row in requests if row['method']=='MODEL_METADATA_GET']
+        assert all(row['path'].startswith('/fixture-model/') for row in model_reads)
+        report['modelMetadataReads']=len(model_reads)
+        report['seededTranscriptMessagesUnchanged']=True
     assert not denied,denied
     report.update(state='STOPPED_REAL_TCP_FIXTURE_REVIEW_CONSUMER',seededHistoryUnchanged=True)
 except BaseException as error:

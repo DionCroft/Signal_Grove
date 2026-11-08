@@ -113,7 +113,7 @@ object RunStates {
     @Insert suspend fun insertManagementOperation(receipt:ManagementOperation)
     @Transaction suspend fun claimManagementOperation(receipt:ManagementOperation) {
         require(receipt.resourceScope==managementResourceScope(receipt.url,receipt.profile)) {"Invalid management resource identity."}
-        require(if(HostProjectAction.receipt(receipt.action)) receipt.projectHome.matches(Regex("[a-f0-9]{64}")) else receipt.projectHome.isEmpty()) {"Invalid project store identity."}
+        require(if(HostProjectAction.receipt(receipt.action) || receipt.action==CanonicalResumeAction.Id) receipt.projectHome.matches(Regex("[a-f0-9]{64}")) else receipt.projectHome.isEmpty()) {"Invalid project store identity."}
         val accessHome=if(HostKanbanBoardAction.receipt(receipt.action) || HostKanbanTaskAction.receipt(receipt.action) || HostKanbanStatusChange.receipt(receipt.action)) HostKanbanBoardChange.accessHome(receipt.requestSummary) else receipt.projectHome
         if(unresolvedManagementOperations(receipt.resourceScope,receipt.url,accessHome).isNotEmpty()) throw ManagementOutcomePending()
         insertManagementOperation(receipt)

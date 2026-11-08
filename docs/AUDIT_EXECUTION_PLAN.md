@@ -1,6 +1,44 @@
 # Signal Grove audit execution plan
 
-## Current checkpoint — authenticated canonical negotiation
+## Current checkpoint — reviewed canonical session attachment
+
+The internal repository now separates live/stored eligibility from explicit
+one-use resume approval. It rechecks the exact authenticated actor/profile/home,
+runtime instance/epoch and selected row before a durable one-send claim.
+A valid adoption ACK survives failed replay; a lost ACK blocks same-home alias
+replay until separately inspected. Attach-first replay applies exact overlaps
+once and holds foreign/conflicting/gapped/truncated streams. No work, interrupt,
+workspace change, explicit detach/end_reason or reconnect is submitted.
+
+All five required tasks pass:703 fresh unique JVM cases (38 new),196 policy,
+both lint variants0errors and original CAB signers. E: contains intermediates
+and caches;617 frozen inputs,28 legacy cache files and163 published outputs
+are verified.18 targeted native invocations pass27 methods across the three
+preserved emulators:four new attachment/recovery methods against mocks, plus
+actual stable/prior attachment and the existing handshake regression on each.
+These are affected local checks; full exact-head hosted acceptance is separate.
+
+Actual stable can adopt the selected legacy row; prior remote login lists none.
+Only five ownership metadata keys on that synthetic default row may change;
+transcripts remain exact and admissions/worker executions remain0. Every actual
+fixture stops with0unexpected denials. Nine added aliases pass complete static
+stable comparison at177 Git-bound sources, preserving every earlier F0 entry.
+
+The initial native test cleanup compile failure remains retained. A later real
+native attempt retained the valid adoption ACK when its final HTTP read failed;
+the fixture also denied absent own-PID cmdline metadata. A narrowly scoped
+read-only absent-probe correction passes on the same APKs, then the corrected
+source passes the complete fresh cohort. The initial failure is not relabelled
+passed, and its EOF root cause is not conclusively isolated.
+
+No canonical UI is exposed yet. Its explicit lifecycle/effect review, generation
+fences, heartbeat, last-applied cursor persistence, recovery and update guard
+remain required. Continue those into supported workspace/CAS and worker/files
+access, plus every remaining audit row. Running=false proves neither idle nor
+terminal; never interrupt merely to obtain a full session handle.
+
+
+## Historical checkpoint — authenticated canonical negotiation
 
 The separate internal channel now verifies actor, selected profile home and
 strict ready/runtime identity before returning a binding. It sends one empty
