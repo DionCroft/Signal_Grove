@@ -1,5 +1,84 @@
 # Current development validation — audit follow-up
 
+## 8 November 2026 — verified Windows E: source snapshots
+
+The build/windows-e-intermediates chunk retains canonical source and final
+APK/report paths in the requested checkout. Its605-file/hash E: snapshot
+contains no Git repository, key or private/generated path. Full source digest,
+revision and dirty state are rechecked before publication. Gradle/KSP build
+source and generated files on one Windows root; project/Kotlin caches also use
+E:. Normal non-wrapper/CI layout remains unchanged.
+
+The original direct E: build-directory relocation fails KSP's cross-root
+relative-path calculation; a supported nonincremental diagnostic also fails
+while enumerating generated output. Both failed attempts remain retained.
+Earlier preflight property-forwarding failure is corrected with a quoted Gradle
+argument. No compiler/KSP weakening or failure suppression is accepted.
+
+The revised full build executes all106 actionable tasks and passes
+testDebugUnitTest/lint/lintRelease/assembleDebug/assembleDebugAndroidTest.
+Exactly638 unique JVM methods pass freshly, including all30 reducer methods;
+70 raw XML reports contain0 failures/errors/skips. Both lint variants have0
+errors and186 policy tests pass. All605 canonical/snapshot files, the historical
+debug key and28 existing checkout cache files are unchanged. All157 published
+files independently match their E: sources.
+
+Seven negative cases pass: C: work/SDK/key refusal, foreign layout binding,
+active wrapper mutex, direct Gradle C: output refusal, and failed Gradle with
+no publication. Forbidden C: targets are never created. The first complete
+snapshot build reports3m21s in Gradle and240.9s for the wrapper including
+publication. An unchanged repeat reports8s/43.2s, with103 of106 tasks up-to-date.
+These are observations using existing dependency caches, not a controlled
+benchmark. All72 raw JVM/lint reports and APKs remain byte-identical on repeat;
+638 is retained coverage, not another fresh invocation.
+
+A clearly synthetic zero-test publisher fixture receives a verified E: backup
+before exact retirement from the checkout report directory. It is not counted
+as a JUnit test. Actual raw report count remains70 and distinct method count638.
+Original CAB-signed APK hashes are:
+
+- App:30efbb50bc42169077910db7eec93d0a228e9f75b0cd91f53349faed22964182.
+- Test:0c03f037d47900576a4261a6d6b682a7e21b8aa7d27019161b4d5623d2e112c6.
+
+Existing native auth/project clients pass their two distinct methods on each
+preserved API26/large37/compact37 profile: three invocations/six method invocations,
+24 semantic checks per profile with local mocks. Credentials, geometry and
+reverse bindings are preserved, with no uninstall/reset or owner-phone fixture.
+The605-input source freeze is closed and all local commands are terminal.
+Final documentation follows acceptance; exact-head gates precede merge/release.
+See [the layout contract](contracts/2026-11-07-windows-build-layout.md).
+
+## 8 November 2026 — terminal parent CI evidence
+
+Canonical replay e3d1b085e244d01c7303742137991824daadbfa3 has independently accepted
+Android [42422978712](https://github.com/DionCroft/Signal_Grove/actions/runs/42422978712):
+638 JVM methods, both lint0 and all1016/API26 +1017/API37 distinct native methods.
+Original instrumentation output is reparsed with the exact committed runner;
+positive method sets equal the immutable source universe. No failures, timeouts
+or missing methods occur. Original action logs bind the downloaded build artifact
+13594940748 (digest728ead43...) to device jobs128557345167/128557345237 and their
+uploaded artifact digests. API26 artifact13596257345 has
+b3b00a879a34909ce5d0606f134776a890d5e3189ebe804e2e7a7bb611252e1e;
+API37 artifact13596184238 has
+e33f89149250e5b6f732f9fdca5e0548af8422d8ccd5e1a6fb867e1d819a3d39.
+Captured command durations are3068.234s/3845.433s. This acceptance makes no
+additional guest-APK readback or physical-device claim.
+
+Compatibility [42422984535](https://github.com/DionCroft/Signal_Grove/actions/runs/42422984535)
+independently passes186 policy/15 runtime/8 registry/sidecar11+13 cases and166
+Git-blob-bound source aliases. Stable2bd and main04846730f363bf0014f89f813a43d19ad36a12b4
+are source comparisons; actual component probes remain on their reviewed pins.
+A static main match does not certify its entire runtime.
+
+Project-read62de33d Android42419777378 is terminal: API26 passes all1016 methods
+in3055.256s; API37 fails its5700s command deadline with806 positive completions
+and807 starts out of1017 methods.211 methods lack positive completion, and no
+negative instrumentation codes are recorded. Raw original receipts, native logs,
+exact source method sets and artifact/action bindings are retained. No single
+hanging-test cause or post-deadline continuation is inferred. That full cohort
+stays failed, separate from the successful e3 run. Its earlier build and
+compatibility evidence remain accepted. Main and held release refs are unchanged.
+
 ## 7 November 2026 — production canonical event replay reducer
 
 On feat/canonical-replay-window after62de33d, CanonicalReplayWindow now implements
@@ -67,8 +146,9 @@ digestdd3c6d875f09fc23d216eafb055f346dca5011a5a2e47e5578a496ab3f6d5763.
 Raw reports verify608 unique JVM cases and both lint0; DEX includes both native
 auth and new project-client methods. Hosted QA appfffcbda1/testcc0f5348 have
 ephemeral keys and are not owner-phone update assets. Its API26/API37 jobs
-128548057758/128548057701 remain live; expected method counts1016/1017 are not
-accepted results until terminal receipts/artifacts are independently checked.
+128548057758/128548057701 are now terminal: API26 is independently accepted at1016;
+API37 fails its5700s deadline after806 positive methods. See the8 November
+terminal evidence above; the full cohort is not accepted.
 
 
 ## 7 November 2026 — authenticated Android project reads

@@ -55,6 +55,8 @@ Use JDK 24 (CI), Android SDK Platform 37 and Build Tools 36.0.0. Gradle 9.8.2 is
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
+The Windows wrapper uses a verified temporary source snapshot, build outputs and project/Kotlin caches on E:, then hash-verifies published APKs and reports at the usual checkout paths. Its printed layout/receipt paths identify the temporary build and invocation outcome. See [the Windows layout](docs/contracts/2026-11-07-windows-build-layout.md).
+
 The Windows wrapper reuses an existing `debug.keystore` directly under its work root before choosing a `signing/` directory. Use `-DebugSigningHome` for another established directory on E:. Verify the signer before installing an update; retain the original key.
 
 On Windows, use `gradlew.bat`. Set `ANDROID_HOME` or an untracked `local.properties` with `sdk.dir`. The debug APK is `app/build/outputs/apk/debug/app-debug.apk`. Release builds are unsigned unless signing environment variables are supplied. The public production APK is privately signed; see the [signing process](docs/RELEASING.md).

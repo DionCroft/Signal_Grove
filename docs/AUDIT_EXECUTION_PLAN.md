@@ -1,24 +1,29 @@
 # Signal Grove audit execution plan
 
-## Current checkpoint — canonical replay reducer
+## Current checkpoint — Windows build snapshot and accepted replay CI
 
-The production reducer now has fresh638 JVM cases: all608 existing methods
-plus30 owner/cursor/replay/race/bounds/privacy regressions, including actual
-stable/prior dispatcher vectors. Stable46 and stable/prior13 component probes
-retain exact source/module evidence. Required Android tasks,186 policy and both
-lint0 pass; existing native auth/project clients pass six method invocations
-across three preserved emulator profiles with local mocks.604 source inputs,
-original signing identities and data are preserved; both local freezes closed.
+The Windows wrapper now builds a verified temporary E: source snapshot with E:
+intermediates/project/Kotlin caches, then publishes hash-verified APKs/reports to
+the requested checkout. Fresh638 JVM cases,186 policy, both lint0 and seven
+negative preflights pass against605 frozen inputs. Existing authentication and
+project native clients pass six method invocations across three preserved
+emulator profiles with local mocks. Source, original keys/data and28 old cache
+files are preserved. The freeze is closed. An unchanged repeat reuses cached
+results and verifies raw-report backup/retirement; it is not a fresh test run.
+See the Windows layout contract and VALIDATION for measurements and failures.
 
-This has no application UI caller or RPC transport yet. Continue the separate
-authenticated canonical connection, explicit legacy adoption/lineage, complete
-handle/grant binding, workspace approvals and worker/file access. Do not treat
-this reducer as a completed live session view or narrow any remaining ledger row.
+Canonical replay e3d1b08 Android42422978712 is independently accepted at638 JVM,
+both lint0 and1016/API26 +1017/API37 distinct native methods. Its
+compatibility42422984535 is accepted at186/15/8/11+13 and166 source aliases.
+The preceding62de33d API37 run times out at5700s with806 positive methods and211
+uncompleted methods; retain that failed cohort separately. Its API26 and
+compatibility remain accepted. Exact-head gates for the new build chunk still
+precede merge/release; main6b and held release207c remain unchanged.
 
-Project-read62de33d compatibility42419784648 is independently accepted, and its
-Android42419777378 build608/both lint0 is accepted. API26/API37 jobs remain live.
-Require exact-head gates for the new production chunk before merge/release.
-Main6b and held release207c remain unchanged; all prior failures stay retained.
+The production canonical reducer still has no UI caller or RPC transport.
+Continue the separate authenticated channel, explicit legacy adoption/lineage,
+complete handle/grant binding, workspace approvals and worker/file access.
+Every remaining ledger row stays required; the full audit goal remains active.
 
 
 ## Historical checkpoint — authenticated project client

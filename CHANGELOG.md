@@ -2,6 +2,9 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Build Windows intermediates and project/Kotlin caches on E:, preserving source
+  and hash-verified final APK/report paths in the checkout and existing keys.
+
 - Add the bounded canonical event replay reducer, with exact owner/cursor fences,
   atomic replay/live reconciliation and actual stable/prior dispatcher vectors.
 

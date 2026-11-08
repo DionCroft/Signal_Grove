@@ -4,7 +4,7 @@ Pinned toolchain: AGP 9.5.0, Gradle 9.8.2, Kotlin Compose plugin 2.4.21, KSP 2.3
 
 ## Windows owner setup
 
-Use **E:** for tools, SDK, Gradle user home, Android user data, emulator data and temporary files. Keep the source and generated app output in the requested N: repository. Never fall back to C: temporary directories. See `scripts/build-windows.ps1`. Set `JAVA_HOME` to an installed supported JDK. The script leaves no machine paths in tracked configuration. A debug signing key is generated in `HERMES_BUILD_HOME` on E:, not the default user-profile `.android` folder.
+Use **E:** for tools, SDK, Gradle user home, Android user data, emulator data and temporary files. Keep source and published APKs/reports in the requested N: repository. The wrapper builds a hash-verified temporary source snapshot, intermediates and project/Kotlin caches on E: (KSP requires source and generated files on one Windows root), then verifies and mirrors final artifacts/reports back to their usual checkout paths. Never fall back to C: temporary directories. See `scripts/build-windows.ps1`. Set `JAVA_HOME` to an installed supported JDK. The script leaves no machine paths in tracked configuration. Its E: layout and per-invocation receipt identify actual temporary outputs and verified published files; see [the Windows build layout](contracts/2026-11-07-windows-build-layout.md). A debug signing key is generated in `HERMES_BUILD_HOME` on E:, not the default user-profile `.android` folder.
 
 ```powershell
 .\scripts\build-windows.ps1 -WorkRoot E:\Temp\hermes-mobile -AndroidSdk E:\Android\Sdk

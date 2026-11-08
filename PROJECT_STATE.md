@@ -7,59 +7,60 @@ explicit approvals and durable no-replay handling.
 
 ## Current bounded implementation
 
-The feat/canonical-replay-window chunk adds the production canonical event
-reducer. It binds exact owner/cursor identity, buffers live frames during
-attach-first recovery, atomically merges contiguous replay/live events once,
-and holds output on conflicts, gaps, foreign scopes/epochs or exhausted bounds.
-UTF-8 byte/depth limits run before serialization. Debug strings redact private
-identity/content; execution finality and grants are never inferred from events.
+The build/windows-e-intermediates chunk keeps authoritative source in the
+requested checkout and builds a hash-verified temporary source snapshot on E:.
+Gradle intermediates, project caches and Kotlin data stay there; successful
+outputs receive hash-verified publication to the familiar checkout paths.
+Source changes during a build hold publication. No Git worktree or signing key
+is copied into the snapshot. Existing ignored checkout caches are preserved.
+The first direct cross-drive KSP attempt and nonincremental diagnostic fail and
+remain retained; the accepted approach keeps source/generated paths together.
 
-Fresh638 JVM cases pass, including all prior608 and30 new reducer methods.
-The new tests consume exact synthetic vectors from actual stable/prior Hermes
-dispatchers, exercise racing/concurrent duplicates and malformed/oversized data,
-and verify owner, cursor, overflow, cleanup and privacy behavior. Actual isolated
-probes pass stable46 authority cases plus13 attach-first cases per revision;
-497/486/436 imported module inventories were rehashed. Prior's seven expected
-version subprocess attempts remain blocked;0 unexpected denials occur.
+The first revised build executes all106 actionable tasks and freshly passes
+638 unique JVM cases,186 policy tests and both lint variants with0 errors.
+Seven negative preflights pass. All605 source/context files, the historical
+debug key and28 legacy cache files are unchanged;157 published files are
+verified. Original-key debug app30efbb50/test0c03f037 pass two existing native
+auth/project methods on each preserved emulator profile: six method invocations.
+An unchanged repeat reuses cached results with byte-identical reports/APKs and
+verifies obsolete raw-report backup/retirement. It is not a second fresh638 run.
+The source freeze is closed; all local build/native commands are terminal.
 
-Required Android tasks,186 policy and both lint0 pass. The first successful
-build is retained before a structural-budget review fix; revised acceptance
-uses the second604-input freeze and30-method suite. Existing auth/project native
-clients pass two methods on each preserved API26/large37/compact37 profile:
-six method invocations with local mocks. These do not test a canonical Android
-attachment. Original-key debug app6e6f/testb1e2 are verified. Both freezes are
-closed and all local build/native commands are terminal.
-
-This reducer has no UI caller or RPC transport yet. Separate authenticated
-canonical attachment, legacy adoption/lineage and complete handle/grant binding
-remain required before workspace operations. Project metadata is not file access.
+The preceding production canonical replay reducer remains packaged without a
+UI caller or RPC transport. Its30 owner/cursor/replay/bounds/privacy JVM methods
+consume actual stable/prior dispatcher vectors. Separate authenticated canonical
+attachment, legacy adoption/lineage and complete handle/grant binding remain
+required before workspace operations. Project metadata is not file access.
 
 ## CI and release scope
 
-Project-read62de33d is pushed. Its compatibility42419784648 is independently
-accepted:186 policy/15 runtime/8 registry/sidecar11+13 and166 stable/main source
-aliases. Android42419777378 has an independently accepted608/both lint0 build
-artifact13592998973 and live API26/API37 jobs128548057758/128548057701.
-Inspect the same handles without cancellation/resubmission. The project reducer
-chunk still needs its own full exact-head gates before merge/release.
+Canonical replay e3d1b08 is pushed. Android42422978712 is independently accepted:
+638 JVM cases, both lint0 and all1016/API26 and1017/API37 distinct native methods,
+bound to exact committed source and original command/action artifact receipts.
+Compatibility42422984535 independently passes186 policy/15 runtime/8 registry,
+sidecar11+13 and166 stable/main source aliases. Main source comparison0484673 is
+static evidence, not runtime certification.
 
-Earlier0c36 Android42412670080 is accepted at1015/1016 distinct native methods.
-Its failed compatibility run and cronfac15fd API37 timeout stay failed; successful
-descendant evidence does not rewrite them. Full scope remains in the ledger.
+Project-read62de33d compatibility42419784648 remains accepted. Android42419777378
+passes its608/lint build and all1016 API26 methods, but API37 times out at5700s:
+806 completed positive methods,211 not completed, no negative status codes.
+That cohort stays failed; the later successful run does not rewrite it.
+Earlier0c36 full Android remains accepted, while its original failed
+compatibility and cronfac15fd API37 timeout stay failed.
 
-Release207c remains held for exact phone upgrade/connection/history/project
-retention and guarded publication/download verification. Last USB inventory showed only preserved emulators;
-do not repeat the pending reconnect question. Main and release refs stay fixed.
+This build-tool chunk still requires its exact-head gates before merge/release.
+Release207c remains held for exact physical upgrade/connection/history/project
+retention and guarded publication/download verification. Latest USB inventory
+showed only preserved emulators; do not repeat the pending reconnect question.
+Main and release refs stay fixed.
 
 ## Exact next action
 
-Commit/push this reducer chunk and dispatch its exact-head gates once.
-Implement the separate authenticated canonical channel with actual transport
-fixtures and explicit resume/adoption effects, verified runtime/profile/actor/home
-identity, exact server-resolved session/handle and attach-first replay. The
-reviewed runtime.describe has empty params and dashboard tickets do not select a
-profile; verify profile-bound acquisition before trusting a sibling's identity.
-Never fabricate missing instance/execution-state fields from a resume snapshot.
-Continue durable workspace approvals, worker/files ownership and every remaining
-ledger row. Investigate moving Windows generated build/cache outputs to E as a
-separate measured build-tool improvement; source stays on N.
+Commit/push the validated Windows build chunk, then continue the separate
+authenticated canonical channel using actual transport fixtures and explicit
+resume/adoption effects. Bind verified runtime/profile/actor/home identity,
+exact server-resolved session/handle and attach-first replay. runtime.describe
+has empty params and dashboard tickets do not select a profile; verify
+profile-bound acquisition before trusting a sibling instance. Never fabricate
+missing instance/execution-state fields from a resume snapshot. Continue durable
+workspace approvals, worker/files ownership and every remaining ledger row.
