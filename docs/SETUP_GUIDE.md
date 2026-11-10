@@ -1,6 +1,6 @@
 # Connect Signal Grove to Hermes
 
-The offline guide is in **Settings → Server → Set up Hermes**. It contains six
+The offline guide is in **Settings → Server → Set up Hermes**. It contains nine
 steps in English, Simplified Chinese and pinyin. Reading it sends no requests,
 executes no commands and changes no credentials or connection preferences.
 
@@ -10,7 +10,9 @@ Install Hermes on the host that owns the agent, following the
 [official installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
 Keep the existing Hermes home, named profile, identity, sessions, model routing,
 skills and tools. Configure the provider there and verify a regular conversation.
-Signal Grove is an Android client, not an agent server or model runtime.
+This connection uses Hermes on its existing host. Optional on-device inference
+is separate development work; it does not move the host's identity, tools,
+sessions or project files onto the phone.
 Use the installed version's commands and service manager; avoid starting a second
 gateway alongside a managed installation. Changes to an existing production agent
 need its normal backup, active-work and restart procedures.
@@ -83,6 +85,31 @@ interfaces or weaken authentication to make a proxy work. Use the
 Enter `https://your-host.your-tailnet.ts.net:8443/` under **Hermes management**,
 sign in with the browser, return to Signal Grove and select the verified profile.
 The API key does not replace dashboard login. API and management URLs may differ.
+
+For a new dashboard, the guide separates its private `.env` login configuration,
+the `hermes dashboard --host 127.0.0.1 --port 9119 --no-open` command and the
+Tailscale forward. For an existing dashboard, inspect its actual deployment and
+Serve mappings first. The guide defaults to an existing installation and does
+not issue any command itself.
+
+## Follow the nine pages
+
+Use **Contents** to jump directly to the relevant page:
+
+1. Identify the existing Hermes host, or explicitly choose a new Linux host.
+2. Enable the authenticated API in the intended Hermes profile.
+3. Verify the phone-to-host private HTTPS route.
+4. Enter the API URL and its separate key on the phone.
+5. Add the dashboard login and management connection if needed.
+6. Verify the serving model, request selection and any session lock.
+7. Refresh history and open an existing conversation.
+8. Read stored project metadata on the verified management profile.
+9. Send one new harmless connection check and review troubleshooting advice.
+
+The current saved API URL appears only when it is valid HTTPS without embedded
+credentials, query or fragment. It is shown as an address, never inserted into
+a shell command. Navigation and language survive activity recreation; reading
+the guide does not change the saved connection.
 
 ## Troubleshooting and acceptance
 

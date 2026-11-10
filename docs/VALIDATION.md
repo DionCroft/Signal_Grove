@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## 10 November 2026 - nine-page offline setup walkthrough
+
+All five `SetupGuideFlowTest` methods pass on API 26 in a 32-bit process and
+API 37, using the original signed development app
+`4124a02c140184ec9c444b91869686ec4f6a3c9e01cd294cb78f20e736282d48`
+and test companion
+`a405b928d19bfc804560c0569070861f1eaf85891dc89781a3cf73bce90103dc`.
+Checks cover all nine pages, contents navigation, English/Chinese/pinyin,
+recreation, explicit new-host choice and unchanged connection preferences.
+The four `SetupGuideAddressTest` JVM cases also pass. The six source files match
+the retained draft's original hashes; no failed attempt was replaced or hidden.
+The broader development build passes 887 JVM cases and zero-error lint with the
+warnings recorded below. This is deterministic guide acceptance, not a native
+helper result or a production release. See [the written guide](SETUP_GUIDE.md).
+
 ## 10 November 2026 - private model library accepted independently
 
 Eleven focused JVM cases pass for import, hash identity, atomic installation,

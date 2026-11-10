@@ -10,11 +10,12 @@ The owner edited and resumed the expanded goal through the app controls; the API
 now confirms it is active with this scope. Do not clear or falsely complete the
 unfinished original audit.
 
-The six retained setup-guide files remain byte-identical to the original draft.
-Their five UI cases now pass on API 26 (32-bit process) and API 37, including
-language/connection retention, recreation and all nine pages. The current larger
-development build passes 887 JVM cases and zero-error lint. The guide can now be
-committed as its own tested chunk; this does not accept the model-based helper.
+The retained setup guide is now a separately tested delivery chunk. Its five UI
+cases pass on API 26 (32-bit process) and API 37, including language/connection
+retention, recreation and all nine pages. Four address-formatting JVM cases pass.
+The original six draft files were preserved byte-identically through validation.
+The current larger development build passes 887 JVM cases and zero-error lint.
+This accepts the deterministic guide, not the model-based helper or a release.
 
 Physical offline CLI feasibility now passes: official hash-pinned LFM3-1.7B
 QAD Q4_0, CPU generation about 51.44 tokens/s over three benchmark repetitions,

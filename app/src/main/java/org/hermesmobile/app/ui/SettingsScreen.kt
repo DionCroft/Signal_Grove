@@ -83,7 +83,7 @@ import org.hermesmobile.app.BuildConfig
             TextButton({clear=true},enabled=!busy) {Text(label(Words.ClearChats))}
         }
     }
-    if(setupGuide) SetupGuide {setupGuide=false}
+    if(setupGuide) SetupGuide(savedApiUrl=p.url) {setupGuide=false}
     if(clear) AlertDialog(onDismissRequest={clear=false},title={Text(label(Words.ClearChats))},text={Text(label(Words.ClearConfirm))},confirmButton={TextButton({vm.clearLocalChats();clear=false}) {Text(label(Words.Delete))}},dismissButton={TextButton({clear=false}) {Text(label(Words.Cancel))}})
     if(licences) AlertDialog(onDismissRequest={licences=false},title={Text(label(Words.Licences))},text={Text(remember {context.assets.open("NOTICE.txt").bufferedReader().use {it.readText()}},Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),style=MaterialTheme.typography.bodySmall)},confirmButton={TextButton({licences=false}) {Text(label(Words.Close))}})
 }
