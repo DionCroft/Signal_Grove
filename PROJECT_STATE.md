@@ -10,10 +10,11 @@ The owner edited and resumed the expanded goal through the app controls; the API
 now confirms it is active with this scope. Do not clear or falsely complete the
 unfinished original audit.
 
-The six retained setup-draft files are preserved uncommitted on feat/on-device-ai;
-its first 840-JVM/lint build passed, while the later dashboard-instruction revision
-was deferred before its build after a local helper path error. It is not accepted
-as a fully validated new guide. Do not publish that draft as a release.
+The six retained setup-guide files remain byte-identical to the original draft.
+Their five UI cases now pass on API 26 (32-bit process) and API 37, including
+language/connection retention, recreation and all nine pages. The current larger
+development build passes 887 JVM cases and zero-error lint. The guide can now be
+committed as its own tested chunk; this does not accept the model-based helper.
 
 Physical offline CLI feasibility now passes: official hash-pinned LFM3-1.7B
 QAD Q4_0, CPU generation about 51.44 tokens/s over three benchmark repetitions,
@@ -22,17 +23,25 @@ One monitor exit race was reconciled without replay. The ungrounded setup answer
 was inaccurate; helper quality is still open. See docs/ON_DEVICE_AI_VALIDATION.md.
 No production APK/data, Pi/model-default or credential changes occurred.
 
-The independent GGUF reader now passes 22 JVM cases plus a 45 ms full-model
-phone scan and scan cancellation. The larger development build passes 865 JVM,
-229 policy cases and zero-error lint (48 debug / 47 release warnings). Its native
-boundaries pass on the phone and API 26/37, and its first exact native reply and
-cancellation pass. Full native acceptance still fails the next request after
-cancellation, which reaches TOKEN_LIMIT. Keep that failure and native work open.
+The independent GGUF reader passes 22 JVM cases plus a 45 ms full-model phone
+scan and scan cancellation. The private model-library component now passes 11
+additional JVM cases. See docs/contracts/2026-11-10-private-model-library.md.
+The larger development build passes 887 JVM cases, 229 policy cases and
+zero-error lint (50 debug / 49 release warnings). Its native boundaries pass on
+the phone and API 26/37, including a 32-bit core-app launch with inference refused.
+Earlier native generation/cancellation passed, but recovery emitted reasoning
+and reached TOKEN_LIMIT. A missing automatic start token was corrected. The next
+phone run was held in its activity fixture before model loading and stopped only
+that exact debug process without clearing data. A signed, test-only empty-activity
+fixture update is staged; the owner's manual installation is pending. Native
+acceptance remains open. All failed/stopped attempts are retained.
 
-Exact next action: fix native context recovery after cancellation and repeat the
-bounded physical gate, then finish model management, independent local chat and
-the grounded helper. Native lifecycle/upgrade, representative compatibility and
-the complete remote audit remain required; parser/CLI results do not close them.
+Exact next action: verify the pending test-companion update, run the physical
+native gate without replaying an old request, and commit tested components.
+Then complete model-management UI, independent local chat and the grounded
+helper. Downloader code has passed development JVM checks but still needs its
+final redirect policy review and Android integration. Native lifecycle/upgrade,
+representative compatibility and the complete remote audit remain required.
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit

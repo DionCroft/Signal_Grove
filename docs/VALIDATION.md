@@ -1,5 +1,16 @@
 # Current development validation — audit follow-up
 
+## 10 November 2026 - private model library accepted independently
+
+Eleven focused JVM cases pass for import, hash identity, atomic installation,
+metadata checks, cancellation/cleanup, disk reserve, duplicates, corruption and
+path containment. The development build passes 887 JVM cases in 87 reports,
+229 policy cases and both lint variants with zero errors (50 debug / 49 release
+warnings, including two unsuppressed usable-space suggestions). It contains
+other development work and is not this component's exact-commit release gate.
+See [scope and limitations](contracts/2026-11-10-private-model-library.md).
+The native phone recovery gate, model UI, local chat and helper remain open.
+
 ## 10 November 2026 - bounded GGUF reader accepted independently
 
 The buffered, cancellable reader passes 22 JVM cases and a 45 ms real-phone scan
