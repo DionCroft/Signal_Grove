@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## 10 November 2026 - separate local conversation storage
+
+Eight focused JVM cases pass for Unicode/model identity, process interruption
+without replay, live-state preservation, terminal states, atomic invalid-update
+refusal, corrupt-file retention, path containment and partial/order handling.
+The source-identical component passes in the 895-case development builds, with
+zero-error lint (50 debug / 49 release warnings). No UI, controller lifecycle,
+Hermes handoff or production-history migration acceptance is implied. See
+[the storage contract](contracts/2026-11-10-local-conversation-storage.md).
+
 ## 10 November 2026 - verified download backend
 
 All eleven download JVM cases pass, including explicit resume/cancellation,
