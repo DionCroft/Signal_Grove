@@ -1,5 +1,26 @@
 # Signal Grove project state
 
+## Current priority - on-device AI, authorized 10 November 2026
+
+The owner requested a physical LFM3-1.7B test first, then native offline chat,
+user-added models and a grounded onboarding/troubleshooting helper, with tested
+regular commits/pushes. The complete original audit remains required. See
+[the expanded objective](docs/GOAL.md) and [acceptance plan](docs/ON_DEVICE_AI_PLAN.md).
+The owner edited and resumed the expanded goal through the app controls; the API
+now confirms it is active with this scope. Do not clear or falsely complete the
+unfinished original audit.
+
+The six retained setup-draft files are preserved uncommitted on feat/on-device-ai;
+its first 840-JVM/lint build passed, while the later dashboard-instruction revision
+was deferred before its build after a local helper path error. It is not accepted
+as a fully validated new guide. Do not publish that draft as a release.
+
+Exact next action: verify the reconnected phone identity, obtain the hash-pinned
+official model/runtime on E:, and run a bounded isolated physical feasibility
+probe before dependent on-device feature implementation. No Pi/model-default or
+phone production-app changes are part of that probe.
+
+## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit
 chunks with regular pushes. The complete remaining scope is in
 [the audit ledger](docs/AUDIT_EXECUTION_PLAN.md); retain earlier failures and

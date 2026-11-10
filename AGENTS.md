@@ -1,6 +1,6 @@
 # Project instructions
 
-Build a native Android client for the documented Hermes API. Use Kotlin, Compose, MVVM and the existing repositories. Keep the theme engine independent of connectivity. Use `FakeHermesApiClient` for fixtures. Do not create an agent backend.
+Build a native Android client for the documented Hermes API. Use Kotlin, Compose, MVVM and the existing repositories. Keep the theme engine independent of connectivity. Use `FakeHermesApiClient` for fixtures. Do not recreate a Hermes agent backend. The owner explicitly authorized optional on-device inference on 10 November 2026: offline chat, compatible user-added models and a grounded setup/diagnostic helper. Follow docs/ON_DEVICE_AI_PLAN.md; keep local inference/history separate from remote Hermes authority and never replay unknown remote work.
 
 Keep all project files in the chosen repository. On the owner's Windows machine use **E:** for tools, caches, temporary files and emulator data; never C: for temporary work. `scripts/build-windows.ps1` enforces this. Do not commit machine paths or local credentials.
 
