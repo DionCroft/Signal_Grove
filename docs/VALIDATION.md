@@ -1,5 +1,16 @@
 # Current development validation — audit follow-up
 
+## 10 November 2026 - bounded GGUF reader accepted independently
+
+The buffered, cancellable reader passes 22 JVM cases and a 45 ms real-phone scan
+of the official verified LFM3 weights, including cancellation during that scan.
+The development tree passes 865 total JVM / 85 reports, 229 policy cases and both
+lint variants with zero errors; 48 debug / 47 release warnings remain. These
+totals cover a larger development tree, not this component's exact-commit release.
+The full-model native test still fails cancellation recovery at TOKEN_LIMIT;
+only its first exact reply and explicit cancellation pass. Preserve that failure.
+See [scope, limits and hashes](contracts/2026-11-10-local-gguf-preflight.md).
+
 ## 10 November 2026 - physical on-device inference feasibility
 
 Official hash-pinned LFM3-1.7B QAD Q4_0 and ARM64 llama.cpp b12255 generated

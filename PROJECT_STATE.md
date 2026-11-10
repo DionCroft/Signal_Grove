@@ -22,10 +22,17 @@ One monitor exit race was reconciled without replay. The ungrounded setup answer
 was inaccurate; helper quality is still open. See docs/ON_DEVICE_AI_VALIDATION.md.
 No production APK/data, Pi/model-default or credential changes occurred.
 
-Exact next action: implement and validate the optional native inference/model
-foundation, then independent local chat and the grounded helper. Native Android
-lifecycle/upgrade, representative compatibility and the complete remote audit
-remain required; CLI feasibility alone does not close them.
+The independent GGUF reader now passes 22 JVM cases plus a 45 ms full-model
+phone scan and scan cancellation. The larger development build passes 865 JVM,
+229 policy cases and zero-error lint (48 debug / 47 release warnings). Its native
+boundaries pass on the phone and API 26/37, and its first exact native reply and
+cancellation pass. Full native acceptance still fails the next request after
+cancellation, which reaches TOKEN_LIMIT. Keep that failure and native work open.
+
+Exact next action: fix native context recovery after cancellation and repeat the
+bounded physical gate, then finish model management, independent local chat and
+the grounded helper. Native lifecycle/upgrade, representative compatibility and
+the complete remote audit remain required; parser/CLI results do not close them.
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit
