@@ -14,7 +14,7 @@ The retained setup guide is now a separately tested delivery chunk. Its five UI
 cases pass on API 26 (32-bit process) and API 37, including language/connection
 retention, recreation and all nine pages. Four address-formatting JVM cases pass.
 The original six draft files were preserved byte-identically through validation.
-The current larger development build passes 887 JVM cases and zero-error lint.
+Its measurement build passes 887 JVM cases and zero-error lint.
 This accepts the deterministic guide, not the model-based helper or a release.
 
 Physical offline CLI feasibility now passes: official hash-pinned LFM3-1.7B
@@ -27,33 +27,32 @@ No production APK/data, Pi/model-default or credential changes occurred.
 The independent GGUF reader passes 22 JVM cases plus a 45 ms full-model phone
 scan and scan cancellation. The private model-library component now passes 11
 additional JVM cases. See docs/contracts/2026-11-10-private-model-library.md.
-The larger development build passes 887 JVM cases, 229 policy cases and
-zero-error lint (50 debug / 49 release warnings). Its native boundaries pass on
-the phone and API 26/37, including a 32-bit core-app launch with inference refused.
-Earlier native generation/cancellation passed, but recovery emitted reasoning
-and reached TOKEN_LIMIT. A missing automatic start token was corrected. The next
-phone run was held in its activity fixture before model loading and stopped only
-that exact debug process without clearing data. A signed, test-only empty-activity
-fixture update is staged; the owner's manual installation is pending. Native
-acceptance remains open. All failed/stopped attempts are retained.
+Its earlier measurement build passes 887 JVM cases, 229 policy cases and
+zero-error lint (50 debug / 49 release warnings). Earlier TOKEN_LIMIT failures
+and blocked activity fixtures are retained. Only exact owned debug processes
+were stopped during recovery, with no data clearing. Later controls and the
+passing native measurement below supersede those incomplete checkpoints.
 
 The direct physical fixture now runs without the blocked ActivityScenario
-bootstrap. It still reproduced the reasoning/token-limit failure. Read-only
-same-library controls establish that prompt tokens match the CLI and that the
-model's recommended repetition penalty (1.1), omitted by the bare sampler, fixes
-the independent failing prompt. The app is being corrected with bounded model
-sampling settings; full native acceptance is still open. No old request was
-replayed or assertion relaxed.
+bootstrap. Same-library controls isolated the model-declared repetition penalty
+(1.1), omitted by the bare sampler. The corrected app passes both complete phone
+methods: consecutive replies, explicit/coroutine cancellation, recovery, overflow
+refusal, unload/reload and metadata scan/cancellation. Phone/API 26/API 37 native
+boundaries and a forced 32-bit core-app launch pass. No old request was replayed
+or assertion relaxed. See docs/contracts/2026-11-10-native-local-engine.md.
 
 The downloader backend passes eleven cases, including the final HTTPS redirect
-policy. Local-history storage passes eight cases; the controller compiles. The
-development snapshot passes 895 JVM / 88 reports and zero-error lint (50 / 49
-warnings). No local chat/model-management UI is connected yet.
+policy. Local-history storage passes eight cases. Nine controller cases now pass
+for cancellation-before-start, no replay, model identity, resource guarding and
+unload/delete ordering; its initial failed scheduling run is retained. The latest
+controller JVM snapshot passes 904 cases / 89 reports. The native measurement
+snapshot passes 895 JVM / 88 reports and zero-error lint (50 / 49 warnings).
+No local chat/model-management UI is connected yet.
 
-Exact next action: build the sampler correction and repeat the bounded native
-phone gate, commit tested components, then implement local chat/model controls
-and the grounded helper. Live Android transfer/picker, lifecycle/upgrade,
-representative compatibility and the complete remote audit remain required.
+Exact next action: commit the verified native foundation, then implement and test
+local chat/model controls and the grounded helper. Live Android transfer/picker,
+lifecycle/upgrade, representative compatibility and the complete remote audit
+remain required.
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit

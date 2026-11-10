@@ -15,6 +15,9 @@ class DeviceSdkSetupTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             log=Path(directory)/'instrumentation.log';device=Mock(return_value=Mock(returncode=0,stdout='OK (485 tests)\nINSTRUMENTATION_CODE: -1\n'))
             self.assertEqual(485,device_ci.run_instrumentation(device,log));self.assertEqual(device.return_value.stdout,log.read_text(encoding='utf-8'));device.assert_called_once();self.assertEqual(5700,device.call_args.kwargs['timeout']);self.assertFalse(device.call_args.kwargs['check'])
+            args=device.call_args.args
+            self.assertEqual(('notClass','org.hermesmobile.app.LocalModelPhysicalTest'),args[args.index('-e')+1:args.index('-e')+3])
+            self.assertEqual(1,args.count('notClass'))
 
     def test_explicit_suite_deadline_is_forwarded_once_and_never_reset_after_timeout(self):
         with tempfile.TemporaryDirectory() as directory:

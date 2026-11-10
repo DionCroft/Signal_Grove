@@ -1,6 +1,9 @@
-"""Run the full instrumentation APK on an owned, fresh GitHub Linux emulator.
+"""Run the standard instrumentation suite on an owned, fresh GitHub Linux emulator.
 
 Uses runner temporary storage. Never targets a developer's existing emulator/device.
+The separately required LocalModelPhysicalTest needs explicitly staged licensed
+weights on an actual phone. Exclude only that resource gate here; never accept
+its assumptions, a partial run or a failed native result as a pass.
 """
 from __future__ import annotations
 import argparse
@@ -76,6 +79,7 @@ def run_instrumentation(device, log_path: Path, timeout: int = 5700) -> int:
     started = time.monotonic()
     try:
         result = device('shell', 'am', 'instrument', '-w', '-r',
+                        '-e', 'notClass', 'org.hermesmobile.app.LocalModelPhysicalTest',
                         'org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner', timeout=timeout, check=False)
     except subprocess.TimeoutExpired as exc:
         output = exc.stdout
@@ -282,9 +286,9 @@ def main() -> int:
             if args.api>=37:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')
-            print('Running the complete instrumentation suite (95-minute limit).',flush=True)
+            print('Running the standard instrumentation suite; staged physical-model gate is separate (95-minute limit).',flush=True)
             count=run_instrumentation(device,work/'instrumentation.log')
-            summary=f'API {args.api}: full instrumentation suite passed ({count} cases).'
+            summary=f'API {args.api}: standard instrumentation suite passed ({count} cases); physical-model gate not run here.'
             print(summary)
             with Path(env['GITHUB_STEP_SUMMARY']).open('a',encoding='utf-8') as report:report.write(summary+'\n')
         finally:

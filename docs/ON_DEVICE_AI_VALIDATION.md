@@ -21,7 +21,9 @@ in the eventual manager, including its commercial-use conditions.
 The phone reports Android 17 / API 37, ARM64 only, SM8850, 15,447,612 KiB total
 RAM and approximately 7.3 GiB available at the initial snapshot. No root or
 unrelated process termination was used. A unique shell-owned test directory
-held the model/runtime; no HTTP service was started on the phone.
+held the model/runtime. The official CLI uses a temporary loopback HTTP service
+for its finite request and shuts it down on exit; later verbose controls clarified
+this implementation detail. No public listener or persistent service was deployed.
 
 | Check | Actual result |
 | --- | --- |
@@ -72,7 +74,11 @@ settings afterward. Save the exact PID, command, output and terminal receipt;
 inspect those records before any recovery. Cancellation may signal only that
 verified process. Keep serials, full device dumps and private paths out of Git.
 
-Still required: embedded engine/native lifecycle tests, app background/process
+The embedded native foundation subsequently passes its bounded physical gate;
+see [the exact checks and APK hashes](contracts/2026-11-10-native-local-engine.md).
+That test used normal radios and does not replace the earlier offline CLI proof.
+
+Still required: app-level offline chat, app background/process
 recovery, model-management error paths, independent local history, routing and
 handoff isolation, grounded helper acceptance, representative devices/emulators,
 and complete signed-release gates. This result closes none of those checks.

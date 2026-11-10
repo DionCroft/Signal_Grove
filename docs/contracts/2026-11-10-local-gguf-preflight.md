@@ -43,9 +43,11 @@ The earlier unbuffered full-model run exceeded its 420-second supervisor bound;
 its owned debug process was stopped without clearing data. That failed attempt
 is retained. The corrected development APK generates its first exact reply and
 cancels generation, but a later cancellation-recovery assertion fails at the
-token limit. Full embedded-engine acceptance remains failed; it is not waived
-by the successful parser test. Native lifecycle, offline chat, model management,
-grounded helper, old remote-audit requirements and release gates remain open.
+token limit at that checkpoint; the parser test did not waive it. The later
+[native foundation](2026-11-10-native-local-engine.md) passes its physical gate
+after isolating the model's sampling defaults. App-level lifecycle, offline chat,
+model management, grounded helper, old remote-audit requirements and release
+gates remain open.
 
 Focused JVM reproduction:
 

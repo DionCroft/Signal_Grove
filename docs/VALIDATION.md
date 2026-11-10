@@ -1,5 +1,18 @@
 # Current development validation — audit follow-up
 
+## 10 November 2026 - native LFM3 phone foundation accepted
+
+Both physical methods now pass: consecutive exact replies, explicit/coroutine
+cancellation, recovery, context overflow refusal, unload/reload and bounded
+metadata scanning/cancellation. The missing model-declared 1.1 repetition penalty
+was isolated by same-library controls and corrected with bounded sampling metadata.
+No assertion was relaxed. Phone/API 26/API 37 boundaries and the forced 32-bit
+core-app launch pass. Debug UIDs/model bytes and the production APK are retained.
+The measurement build passes 895 JVM / 88 reports and zero-error lint (50 / 49
+warnings); the newer controller-only snapshot separately passes 904 JVM / 89
+reports. These are development/component checks, not an exact-head release.
+See [scope, hashes, reproduction and open gates](contracts/2026-11-10-native-local-engine.md).
+
 ## 10 November 2026 - separate local conversation storage
 
 Eight focused JVM cases pass for Unicode/model identity, process interruption

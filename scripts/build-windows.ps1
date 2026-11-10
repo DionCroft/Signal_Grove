@@ -101,6 +101,7 @@ $layout=[ordered]@{
     appBuild=(Join-Path $contextRoot 'b\app')
     projectCache=(Join-Path $contextRoot 'g')
     kotlinProject=(Join-Path $contextRoot 'k')
+    nativeBuild=(Assert-EDirectory (Join-Path $WorkRoot ('n\'+$workspaceId.Substring(0,8)+'\'+$snapshot.digest.Substring(0,16))) 'Native build staging')
     publishedAppBuild=(Join-Path $sourceRoot 'app\build')
     publishedRootBuild=(Join-Path $sourceRoot 'build')
 }
@@ -117,7 +118,7 @@ try {
     catch [Threading.AbandonedMutexException] {$locked=$true;throw 'An earlier wrapper stopped unexpectedly. Inspect its receipt and build processes before retrying.'}
     if (!$locked) {throw 'Another Windows build is using this checkout. Inspect that build before starting another.'}
 
-    foreach ($directory in @($WorkRoot,$workspaceRoot,$layout.sourceContext,$layout.buildRoot,$layout.projectCache,$layout.kotlinProject,$DebugSigningHome)) {
+    foreach ($directory in @($WorkRoot,$workspaceRoot,$layout.sourceContext,$layout.buildRoot,$layout.projectCache,$layout.kotlinProject,$layout.nativeBuild,$DebugSigningHome)) {
         New-Item -ItemType Directory -Force -Path $directory | Out-Null
     }
     $env:TEMP=$WorkRoot
@@ -128,6 +129,10 @@ try {
     $env:ANDROID_AVD_HOME=Join-Path $WorkRoot 'avd'
     $env:HERMES_BUILD_HOME=$DebugSigningHome
     $env:SIGNAL_GROVE_BUILD_ROOT=$layout.buildRoot
+    $env:SIGNAL_GROVE_NATIVE_BUILD_ROOT=$layout.nativeBuild
+    $env:CCACHE_DIR=Assert-EDirectory (Join-Path $WorkRoot 'ccache') 'Compiler cache'
+    $env:CCACHE_TEMPDIR=Assert-EDirectory (Join-Path $WorkRoot 'ccache-tmp') 'Compiler temporary files'
+    New-Item -ItemType Directory -Force -Path $env:CCACHE_DIR,$env:CCACHE_TEMPDIR | Out-Null
     $kotlinDaemonRoot=Join-Path $WorkRoot 'kotlin-daemon'
     New-Item -ItemType Directory -Force -Path $env:ANDROID_USER_HOME,$env:ANDROID_AVD_HOME,$kotlinDaemonRoot | Out-Null
     $env:JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=`"$WorkRoot`" -Dkotlin.daemon.options=`"runFilesPath=$kotlinDaemonRoot`""

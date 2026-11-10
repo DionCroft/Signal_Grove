@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "org.hermesmobile.app"
     compileSdk = 37
+    ndkVersion = "29.0.14206865"
     defaultConfig {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
@@ -15,6 +16,8 @@ android {
         versionName = providers.gradleProperty("hermesVersionName").orNull ?: "1.1.0-beta.8"
         require(versionName!!.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?")))
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64") }
+        externalNativeBuild { cmake { arguments += listOf("-DCMAKE_BUILD_TYPE=Release", "-DANDROID_STL=c++_shared") } }
     }
     signingConfigs.getByName("debug") {
         storeFile = file((System.getenv("HERMES_BUILD_HOME") ?: rootProject.file(".local").path) + "/debug.keystore")
@@ -36,6 +39,17 @@ android {
     testOptions { unitTests.isReturnDefaultValues = true }
     lint { abortOnError = true; checkReleaseBuilds = true }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+    // CPU variants are loaded only from Android's extracted, signed native-library directory.
+    packaging { jniLibs.useLegacyPackaging = true }
+    externalNativeBuild { cmake {
+        path = file("src/main/cpp/CMakeLists.txt")
+        version = "3.31.6"
+        buildStagingDirectory = providers.environmentVariable("SIGNAL_GROVE_NATIVE_BUILD_ROOT").orNull?.let { requested ->
+            val directory = File(requested).canonicalFile
+            require(System.getProperty("os.name").startsWith("Windows") && directory.isAbsolute && directory.path.startsWith("E:\\", ignoreCase = true))
+            directory
+        } ?: rootProject.layout.buildDirectory.dir("native-cxx").get().asFile
+    } }
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
