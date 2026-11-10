@@ -1,5 +1,14 @@
 # Current development validation — audit follow-up
 
+## 10 November 2026 - verified download backend
+
+All eleven download JVM cases pass, including explicit resume/cancellation,
+full-file checksum, size/range failures, licence/space gates and independent
+credential-free HTTPS transport. The development snapshot passes 895 JVM / 88
+reports and both lint variants with zero errors (50 debug / 49 release warnings).
+This is backend acceptance; no live Android download or local-chat UI is claimed.
+See [the component contract](contracts/2026-11-10-verified-model-download.md).
+
 ## 10 November 2026 - nine-page offline setup walkthrough
 
 All five `SetupGuideFlowTest` methods pass on API 26 in a 32-bit process and

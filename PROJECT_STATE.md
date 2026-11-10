@@ -37,11 +37,22 @@ that exact debug process without clearing data. A signed, test-only empty-activi
 fixture update is staged; the owner's manual installation is pending. Native
 acceptance remains open. All failed/stopped attempts are retained.
 
-Exact next action: verify the pending test-companion update, run the physical
-native gate without replaying an old request, and commit tested components.
-Then complete model-management UI, independent local chat and the grounded
-helper. Downloader code has passed development JVM checks but still needs its
-final redirect policy review and Android integration. Native lifecycle/upgrade,
+The direct physical fixture now runs without the blocked ActivityScenario
+bootstrap. It still reproduced the reasoning/token-limit failure. Read-only
+same-library controls establish that prompt tokens match the CLI and that the
+model's recommended repetition penalty (1.1), omitted by the bare sampler, fixes
+the independent failing prompt. The app is being corrected with bounded model
+sampling settings; full native acceptance is still open. No old request was
+replayed or assertion relaxed.
+
+The downloader backend passes eleven cases, including the final HTTPS redirect
+policy. Local-history storage passes eight cases; the controller compiles. The
+development snapshot passes 895 JVM / 88 reports and zero-error lint (50 / 49
+warnings). No local chat/model-management UI is connected yet.
+
+Exact next action: build the sampler correction and repeat the bounded native
+phone gate, commit tested components, then implement local chat/model controls
+and the grounded helper. Live Android transfer/picker, lifecycle/upgrade,
 representative compatibility and the complete remote audit remain required.
 
 ## Earlier audit checkpoint (historical)
