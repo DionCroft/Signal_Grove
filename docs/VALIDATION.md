@@ -1,5 +1,18 @@
 # Current development validation — audit follow-up
 
+## 10 November 2026 - physical on-device inference feasibility
+
+Official hash-pinned LFM3-1.7B QAD Q4_0 and ARM64 llama.cpp b12255 generated
+text with Airplane mode on and Wi-Fi off on the owner's actual Android 17 phone.
+Offline generation and exact-process cancellation pass; three CPU benchmark
+repetitions average 51.44 generation tokens/s. Largest recorded high-water mark
+is about 2.04 GiB. One monitor exit race is retained and reconciled without
+replay. The ungrounded setup answer was inaccurate and is not accepted as a
+helper result. See [parameters, provenance and limitations](ON_DEVICE_AI_VALIDATION.md).
+This documentation/probe chunk changes no application code or production APK;
+no new app/JVM/lint/native-UI acceptance is claimed. Embedded local chat, model
+management, grounded helper and the complete original audit remain required.
+
 ## 8 November 2026 - actual owner bootstrap and a retained shutdown finding
 
 The new finite Windows probe uses immutable Hermes `2bd378e`, official profile

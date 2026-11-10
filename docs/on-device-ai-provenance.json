@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "model": {
+    "repository": "LiquidAI/LFM3-1.7B-GGUF",
+    "revision": "cd0c74c575b5c416f3011b5b4c298077f26ca8c2",
+    "file": "LFM3-1.7B-QAD-Q4_0.gguf",
+    "bytes": 1049615680,
+    "sha256": "43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452",
+    "licence": "LFM Open License v1.0",
+    "licenceUrl": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/blob/cd0c74c575b5c416f3011b5b4c298077f26ca8c2/LICENSE"
+  },
+  "runtime": {
+    "repository": "ggml-org/llama.cpp",
+    "tag": "b12255",
+    "prerelease": true,
+    "commit": "940a30ee3b5593e1a66fe0aadc3b731989022552",
+    "androidCpuAsset": "llama-b12255-bin-android-arm64.tar.gz",
+    "assetId": 732622791,
+    "bytes": 78436938,
+    "sha256": "4dbfa6fd644385bf08573f485bc62a04fa51b5b4163f06973aad5f6847460f21",
+    "sourceArchiveSha256": "9cac27a1d867fec8eda2c5b348ac5f0b3b22e70fc4af46d82c93b64ab3f83167"
+  }
+}

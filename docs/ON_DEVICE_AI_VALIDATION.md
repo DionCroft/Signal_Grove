@@ -1,0 +1,78 @@
+# On-device inference validation
+
+## 10 November 2026: physical CPU feasibility
+
+Accepted scope: the official native llama.cpp CLI, with the official LiquidAI
+LFM3-1.7B QAD Q4_0 weights, produces text on the owner's physical Android phone
+with Airplane mode enabled and Wi-Fi disabled. This is a feasibility result,
+not acceptance of an embedded Signal Grove feature or the remaining Hermes audit.
+The installed production application and its data were not changed by this probe.
+
+Provenance is pinned in [the manifest](on-device-ai-provenance.json). Model bytes
+were checked against the official Hugging Face LFS SHA-256, and the Android CPU
+archive against the GitHub release asset's SHA-256. Every transferred native file
+and the model were hashed again on the phone before execution. Runtime identity
+reports `b12255-940a30ee3`. This is an upstream prerelease build, deliberately
+pinned because the stable version's release metadata had no Android binaries.
+The weights are optional downloads under the LFM Open License v1.0; they are
+not bundled or relicensed as MIT. The model licence must be presented separately
+in the eventual manager, including its commercial-use conditions.
+
+The phone reports Android 17 / API 37, ARM64 only, SM8850, 15,447,612 KiB total
+RAM and approximately 7.3 GiB available at the initial snapshot. No root or
+unrelated process termination was used. A unique shell-owned test directory
+held the model/runtime; no HTTP service was started on the phone.
+
+| Check | Actual result |
+| --- | --- |
+| Offline exact reply | `Signal Grove offline OK`, exit 0; Airplane mode 1 and Wi-Fi 0 before and after |
+| Offline longer reply | Completed, exit 0; reported generation 49.0 tokens/s |
+| Offline cancellation | Interrupted the exact generating PID after visible output; exit 0, PID gone; observed signal-to-terminal interval about 0.66 s |
+| Three-repetition benchmark | CPU only, four threads, batch/microbatch 128; prompt 128: 39.061837 +/- 0.332385 tokens/s; generation 128: 51.436483 +/- 0.050385 tokens/s |
+| Memory | Largest recorded process high-water mark 2,140,392 KiB (about 2.04 GiB) during the 2,048-token-context CLI tests |
+| Bounded temperature | Battery sensor 26.5 to 26.6 C across offline reply/cancellation; 27.1 C before/after the 22.25-second benchmark |
+| Battery | 91%, charging throughout these short tests; no energy-use or long-duration battery claim |
+
+Generation used four CPU threads, context 2,048, batch/microbatch 128, no GPU
+layers, temperature 0, seed 42, reasoning off and explicit `--offline`. Each
+request was finite and single-turn. Memory was sampled from the owned PID's
+`/proc/status`; a very short process can exit between samples, so this is an
+observed high-water mark, not an exhaustive system-wide peak measurement.
+Observed first stdout is not time to first token: the CLI prints a loading banner.
+The benchmark uses its own prompt/generation contexts and is separate from the
+2,048-context functional runs. Its reported rates do not predict all chat lengths.
+
+One first offline run completed between the monitor's receipt and `/proc` reads.
+The monitor failed rather than claiming success. Its exact saved output, exit 0,
+vanished PID and unchanged offline radio state were then reconciled read-only;
+the request was not replayed. The failure receipt remains beside the separate
+reconciliation receipt in private E: evidence. Remaining tests used a monitor that
+handles process exit during sampling. No ambiguous request was silently retried.
+
+The ungrounded setup prompt produced inaccurate Tailscale instructions. It is
+not an accepted onboarding answer. The helper needs a versioned, verified guide,
+explicitly redacted observations and evaluation against that evidence. Successful
+text generation does not establish reliable troubleshooting advice.
+
+Reproduction uses the pinned ARM64 CPU archive, verified model and an explicit
+ADB serial in a fresh `/data/local/tmp/signal-grove-lfm3-<unique-id>` directory.
+Set `LD_LIBRARY_PATH` to the extracted runtime directory, then run:
+
+```sh
+./llama-cli -m /path/to/model.gguf --offline -c 2048 -t 4 -tb 4 \
+  -b 128 -ub 128 -ngl 0 -n 96 --temp 0 --seed 42 --reasoning off \
+  --single-turn --simple-io --no-display-prompt --no-warmup \
+  -p 'Reply with exactly: Signal Grove offline OK'
+./llama-bench -m /path/to/model.gguf --offline -p 128 -n 128 \
+  -r 3 -t 4 -b 128 -ub 128 -ngl 0 -o json
+```
+
+Disable radios explicitly for the offline proof and restore the owner's prior
+settings afterward. Save the exact PID, command, output and terminal receipt;
+inspect those records before any recovery. Cancellation may signal only that
+verified process. Keep serials, full device dumps and private paths out of Git.
+
+Still required: embedded engine/native lifecycle tests, app background/process
+recovery, model-management error paths, independent local history, routing and
+handoff isolation, grounded helper acceptance, representative devices/emulators,
+and complete signed-release gates. This result closes none of those checks.

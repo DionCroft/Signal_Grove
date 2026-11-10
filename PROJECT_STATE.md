@@ -15,10 +15,17 @@ its first 840-JVM/lint build passed, while the later dashboard-instruction revis
 was deferred before its build after a local helper path error. It is not accepted
 as a fully validated new guide. Do not publish that draft as a release.
 
-Exact next action: verify the reconnected phone identity, obtain the hash-pinned
-official model/runtime on E:, and run a bounded isolated physical feasibility
-probe before dependent on-device feature implementation. No Pi/model-default or
-phone production-app changes are part of that probe.
+Physical offline CLI feasibility now passes: official hash-pinned LFM3-1.7B
+QAD Q4_0, CPU generation about 51.44 tokens/s over three benchmark repetitions,
+largest recorded process high-water mark about 2.04 GiB, bounded cancellation.
+One monitor exit race was reconciled without replay. The ungrounded setup answer
+was inaccurate; helper quality is still open. See docs/ON_DEVICE_AI_VALIDATION.md.
+No production APK/data, Pi/model-default or credential changes occurred.
+
+Exact next action: implement and validate the optional native inference/model
+foundation, then independent local chat and the grounded helper. Native Android
+lifecycle/upgrade, representative compatibility and the complete remote audit
+remain required; CLI feasibility alone does not close them.
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit

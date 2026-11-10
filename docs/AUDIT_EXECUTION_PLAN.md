@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## 10 November 2026 - optional on-device inference extension
+
+The owner resumed the expanded goal. Retain every earlier audit requirement;
+[the on-device plan](ON_DEVICE_AI_PLAN.md) adds physical feasibility, embedded
+offline chat, model management and grounded onboarding/diagnostics. Physical
+offline CLI generation/cancellation and a bounded three-repetition CPU benchmark
+pass with official hash-pinned LFM3-1.7B. The ungrounded setup answer is inaccurate.
+[The validation scope](ON_DEVICE_AI_VALIDATION.md) explicitly leaves embedded
+app lifecycle, helper quality, local/server isolation and release gates open.
+
 ## 8 November 2026 - actual owner bootstrap and a retained shutdown finding
 
 The new finite Windows probe uses immutable Hermes `2bd378e`, official profile
