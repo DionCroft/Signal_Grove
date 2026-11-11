@@ -64,8 +64,8 @@ class ProjectGatewayContractTest {
                     check(frame["jsonrpc"]==JsonPrimitive("2.0") && (id as JsonPrimitive).isString)
                     val method=frame["method"]!!.jsonPrimitive.content
                     val params=frame["params"]!!.jsonObject;val profile=params["profile"]!!.jsonPrimitive.content
-                    check(method in setOf("projects.list","projects.get"))
-                    check(params.keys==if(method=="projects.list") setOf("profile") else setOf("profile","id"))
+                    check(method in setOf("projects.list","projects.get","projects.project_sessions"))
+                    check(params.keys==when(method) {"projects.list"->setOf("profile");"projects.project_sessions"->setOf("profile","project_id","session_limit");else->setOf("profile","id")})
                     val error=if(profile=="missing-fixture") 4064 else {
                         check(profile in setOf("default","worker"))
                         if(method=="projects.get" && params["id"]!!.jsonPrimitive.content !in setOf("fixture-shared-project","$profile-only-project")) 5062 else null
@@ -77,6 +77,19 @@ class ProjectGatewayContractTest {
                             if(method=="projects.list") {
                                 put("active_id","fixture-shared-project")
                                 put("projects",JsonArray(listOf(project(profile,"fixture-shared-project"),project(profile,"$profile-only-project"))))
+                            } else if(method=="projects.project_sessions") {
+                                check(params["project_id"]==JsonPrimitive("fixture-shared-project") && params["session_limit"]==JsonPrimitive(500))
+                                val stored=project(profile,"fixture-shared-project");val path=stored.getValue("primary_path")
+                                put("project",buildJsonObject {
+                                    put("id","fixture-shared-project");put("label",stored.getValue("name"));put("path",path);put("isAuto",false);put("isNoProject",false);put("sessionCount",1)
+                                    put("sessionIds",buildJsonArray {add("fixture-project-session")});put("repos",buildJsonArray {add(buildJsonObject {
+                                        put("id","fixture-repository");put("path",path);put("sessionCount",1);put("groups",buildJsonArray {add(buildJsonObject {
+                                            put("id","fixture-main");put("label","Main");put("sessions",buildJsonArray {add(buildJsonObject {
+                                                put("id","fixture-project-session");put("title",profile+" fixture-project-session");put("profile",profile);put("source","cli");put("cwd",path);put("message_count",2);put("last_active",101);put("archived",false);put("preview","Private fixture preview must not become a DTO field")
+                                            })})
+                                        })})
+                                    })})
+                                })
                             } else put("project",project(profile,params["id"]!!.jsonPrimitive.content))
                         })
                     }.toString())
@@ -231,4 +244,70 @@ class ProjectGatewayContractTest {
             }.toString())
         } finally {fixture?.close()}
     }
+    @Test fun projectConversationsRemainProfileBoundAndDoNotAdoptAWorkspace() {
+        val encoded=InstrumentationRegistry.getArguments().getString("signalGroveOwnerProjectCase")
+        val case=encoded?.let {raw->
+            require(raw.matches(Regex("[A-Za-z0-9_-]{16,32768}")))
+            Json.parseToJsonElement(String(Base64.getUrlDecoder().decode(raw),Charsets.UTF_8)).jsonObject.also {
+                require(it.keys==setOf("caseId","surface","sourceCommit","api","baseUrl","profileHomes","projects"))
+                require(it.getValue("sourceCommit").jsonPrimitive.content in setOf("2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19","3b421578588243f920886e6fe79a6faa87ea026e"))
+                require(it.getValue("api").jsonPrimitive.int==Build.VERSION.SDK_INT)
+            }
+        }
+        val caseId=case?.getValue("caseId")?.jsonPrimitive?.content ?: UUID.randomUUID().toString();require(UUID.fromString(caseId).toString()==caseId)
+        val surface=case?.getValue("surface")?.jsonPrimitive?.content ?: "legacy-mock";require(surface in setOf("gateway","webapp","legacy-mock"))
+        val fixture=if(case==null) Fixture() else null
+        val context=InstrumentationRegistry.getInstrumentation().targetContext;val credentials=context.getSharedPreferences("credentials",0)
+        val before=credentials.all.mapValues {(_,value)->if(value is Set<*>) value.toSet() else value};val checks=mutableListOf<String>();val supported=mutableListOf<String>()
+        try {
+            val base=(case?.getValue("baseUrl")?.jsonPrimitive?.content ?: fixture!!.server.url("/dashboard/").newBuilder().host("127.0.0.1").build().toString()).toHttpUrl()
+            require(base.scheme=="http" && base.host=="127.0.0.1" && base.port in 1024..65535 && base.encodedPath=="/dashboard/" && base.query==null && base.fragment==null && base.username.isEmpty() && base.password.isEmpty())
+            val api=ManagementClient(base.toString(),true,true)
+            runBlocking {withTimeout(180_000) {
+                val issued=signIn(api);val tokens=if(case==null) issued else api.refresh(issued);api.identity(tokens)
+                checks+="native_pkce_and_verified_identity";val profiles=api.profiles(tokens)
+                val names=listOf("default",if(case==null) "worker" else "field")
+                val homes=names.associateWith {name->checkNotNull(profiles.single {it.name==name}.pluginHome).identity()};assertNotEquals(homes.getValue(names[0]),homes.getValue(names[1]))
+                if(case!=null) for(name in names) assertEquals(PluginHome.project(case.getValue("profileHomes").jsonObject.getValue(name))!!.identity(),homes.getValue(name))
+                checks+="authenticated_distinct_profile_homes";val repo=HostProjectsRepository()
+                for(name in names) {
+                    val target=ManagementTarget("b".repeat(64),base.toString(),name,tokens.provider+" · "+tokens.userId);val home=homes.getValue(name)
+                    if(surface=="gateway" && name=="field") {
+                        val refusal=runCatching {repo.read(target,home,api,tokens)}.exceptionOrNull();assertTrue(refusal is CanonicalProfileTransportUnavailable);checks+="named_profile_unavailable_without_launch_profile_fallback";continue
+                    }
+                    val inventory=repo.read(target,home,api,tokens);val expected=case?.getValue("projects")?.jsonObject?.getValue(name)?.jsonObject
+                    val projectId=expected?.getValue("projectId")?.jsonPrimitive?.content ?: "fixture-shared-project"
+                    assertTrue(inventory.projects.any {it.id==projectId});assertEquals(projectId,inventory.activeId)
+                    val detail=repo.detail(target,home,projectId,api,tokens)
+                    if(expected!=null) {assertEquals(expected.getValue("name").jsonPrimitive.content,detail.project.name);assertEquals(expected.getValue("directory").jsonPrimitive.content,detail.project.primaryPath)}
+                    val conversations=repo.conversations(target,home,detail.project,api,tokens)
+                    assertEquals(target,conversations.owner);assertEquals(home,conversations.homeId);assertTrue(conversations.listed)
+                    val ids=expected?.getValue("sessionIds")?.jsonArray?.map {it.jsonPrimitive.content}?.toSet() ?: setOf("fixture-project-session")
+                    assertEquals(ids,conversations.rows.map {it.id}.toSet());assertEquals(ids.size,conversations.reportedCount)
+                    assertTrue(conversations.rows.all {it.title==name+" "+it.id && it.messageCount==2L && it.directory==detail.project.primaryPath})
+                    checks+=name+"_exact_project_and_eligible_conversations"
+                    if(case!=null) {
+                        api.canonicalGateway(tokens,target,home).use {channel->
+                            val stored=channel.sessionInventory(CanonicalSessionScope.Stored)
+                            for(id in ids) {val review=stored.review(id);assertEquals(id,review.row.sessionId);assertEquals(target,review.expected.binding.target);assertEquals(home,review.expected.binding.homeId)}
+                        }
+                        val foreign=case.getValue("projects").jsonObject.getValue(names.first {it!=name}).jsonObject.getValue("projectId").jsonPrimitive.content
+                        val refused=runCatching {repo.detail(target,home,foreign,api,tokens)}.exceptionOrNull();assertTrue(refused is GatewayRpcException);assertEquals(5062,(refused as GatewayRpcException).code)
+                        checks+=name+"_stored_review_only_and_foreign_project_refusal"
+                    }
+                    val wrongHome=runCatching {repo.conversations(target,homes.getValue(names.first {it!=name}),detail.project,api,tokens)}.exceptionOrNull();assertTrue(wrongHome is HostProjectsScopeChanged)
+                    checks+=name+"_wrong_home_refused";supported+=name
+                }
+            }}
+            fixture?.let {assertEquals(0,it.failures.get())};assertEquals(before,credentials.all)
+            val qa=File(checkNotNull(context.getExternalFilesDir(null)),"qa");check(qa.isDirectory || qa.mkdirs())
+            File(qa,"owner-project-"+caseId+".json").writeText(buildJsonObject {
+                put("state","PASS_ANDROID_PROJECT_CONVERSATIONS");put("backend",if(case==null) "local-mock" else "actual-owner");put("caseId",caseId);put("surface",surface)
+                put("sourceCommit",case?.getValue("sourceCommit") ?: JsonPrimitive("mock"));put("api",Build.VERSION.SDK_INT)
+                put("checks",JsonArray(checks.map(::JsonPrimitive)));put("supportedProfiles",JsonArray(supported.map(::JsonPrimitive)))
+                put("savedCredentialsUnchanged",true);put("sessionAdoptionCount",0);put("workerExecutionCount",0)
+            }.toString())
+        } finally {fixture?.close()}
+    }
+
 }

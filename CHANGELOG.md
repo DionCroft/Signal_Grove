@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Verify project conversation grouping and stored review against both actual
+  Hermes owner revisions on both Android APIs, with exact profile/root isolation,
+  excluded-session filters, preserved discovery cache and zero work effects.
+  Retain shutdown findings and the independent hosted keyboard-occlusion failure.
+
 - Add explicit project conversation navigation with visible window limits, verified
   profile/home transport and the existing separate canonical resume consent.
   Reject foreign metadata and stale selections; keep read errors visible in the

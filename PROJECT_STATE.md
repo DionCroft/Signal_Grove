@@ -1,6 +1,28 @@
 # Signal Grove project state
 
-## 11 November 2026 - project conversation navigation
+## Current checkpoint - actual-owner project navigation verified
+
+Eight real Android/Hermes cases pass across both reviewed revisions, both APIs
+and gateway/Webapp. Grouping filters, cross-profile same-ID history, exact roots
+and stored review are verified with no adoption, mutation or worker execution.
+Independent post-exit reads preserve all history/project/cache fields across
+16 stores. Source474 passes 1004 JVM, 311 policies, both lint and original signing;
+two normal project contracts pass per API. Eight upstream shutdown warnings
+remain open. [Scope/evidence](docs/contracts/2026-11-11-actual-owner-project-conversations.md).
+
+Hosted diagnostic head2581 API26 remains failed: 1124/1125 positive. Its screenshot
+shows a first-use Gboard help bubble obscuring the review caption. The viewport
+assertion is preserved; no layout cause or fix is inferred. The full audit,
+worker/files, physical/models, production, source/advisories/integrations and
+signed release remain required. Published APK is still beta.8; goal stays active.
+
+**Next exact action:** reproduce the keyboard coachmark on a disposable API26
+fixture, establish explicit default-keyboard readiness before acceptance, and
+run the unchanged complete-control/native-caption/consent/no-write checks.
+Then continue real worker/root/file access and every unresolved audit ledger row.
+
+
+## Previous checkpoint - project conversation navigation
 
 Stored project details can now explicitly read Hermes-grouped conversations and
 request the existing canonical opening review for an exact session ID. The
@@ -43,7 +65,7 @@ full audit goal and every unresolved ledger row remain active.
 
 [Contract and evidence scope](docs/contracts/2026-11-11-project-conversation-navigation.md).
 
-**Next exact action:** exercise the new project-conversation client against the actual isolated Hermes owner on both reviewed revisions, verify metadata-only DB/file effects and profile isolation, then continue worker identity/root/file access without assigning Pi paths as Windows authority. Preserve valid hosted CI and all unwaived findings.
+This checkpoint's actual-owner metadata-read action is completed in the current checkpoint above. Worker/root/file and all broader acceptance remain open. Preserve valid hosted CI and unwaived findings.
 
 ## Latest delivered chunk - bounded native-input diagnostics
 

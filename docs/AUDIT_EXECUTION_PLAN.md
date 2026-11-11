@@ -1,5 +1,40 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - actual-owner project conversation reads
+
+Eight actual Android/owner cases pass: exact 2bd378e and 3b42157, API26/37,
+gateway and Webapp. Real native PKCE/refresh, bearer identity, profile homes,
+projects list/get/grouping and stored-inventory review are exercised. Webapp
+reads default and field; gateway-only field refuses before borrowing the launch
+profile. The same conversation ID has different title/content/root per profile.
+Archived, empty, scheduled, child and unrelated sessions stay out of grouping.
+
+Independent post-exit SQLite reads verify all fields of 112 sessions and 192
+messages across 16 profile stores, plus all project/folder/meta/discovery-cache
+rows. All are unchanged; seeded cache entries and workspace markers remain.
+There are zero admissions, resumes, cwd changes, worker executions, room writes,
+leases/locks or mutation receipts. This is read-only navigation and a prepared
+review, not adopted-session execution or verified fleet worker authority.
+
+Source474 passes 1004 JVM / 96 reports, 311 policies, both lint variants with
+zero errors (51 / 50 warnings), original debug signing and all 32 native-library
+ABI/alignment checks. Both updated normal-CI project methods pass on each API.
+Each actual owner case retains the known reaper heartbeat write/reopen warning
+at shutdown: all eight are CORE_PASS_SHUTDOWN_FINDING_OPEN, not clean lifecycle.
+A host reconciler initially read the wrong source-commit field; existing terminal
+cases were reverified without re-running their Android/native requests.
+
+Separately, diagnostic head2581 hosted API26 fails one of 1125 methods (1124
+positive, no timeout). The exact workspace/IME geometry assertion stays intact.
+Its retained screenshot shows Gboard's first-use Google Search help bubble
+covering the review caption. Default-keyboard fixture readiness and a fresh full
+suite remain required; no application-layout cause or correction is claimed.
+Worker/root/files/dispatch, production IdP, physical/model/lifecycle, remaining
+source/advisory review, integrations and signed release all stay open. Beta.8
+remains the published preview; the full goal and original ledger stay active.
+
+[Actual-owner scope](contracts/2026-11-11-actual-owner-project-conversations.md).
+
 ## 11 November 2026 - project conversation navigation
 
 Stored project details can now explicitly read Hermes-grouped conversations and
