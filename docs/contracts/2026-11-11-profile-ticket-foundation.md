@@ -151,7 +151,9 @@ Independent build368 comparison proves all app/build inputs match source336;
 app DEX/resources/manifest match and the test APK is byte-identical. The 20 native
 libraries rebuild with separate hashes. Earlier 69-method-per-API acceptance stays
 bound to source336's actual APK. The new contract and closing state/validation/
-ledger/changelog edits follow the build; only documentation changes afterward.
+ledger/changelog edits follow the build; that foundation commit changes only
+documentation afterward. A subsequent workflow-only chunk changes concurrency,
+without changing any job commands or application/build inputs.
 
 The 275 policy tests, 15 model-status extension tests and checksum policy (495
 components / 1071 artifacts, no blanket trust) pass. No new dependency is installed.
@@ -165,3 +167,21 @@ upstream used-contract gate. Its verified main artifact observes commit `8f8696f
 126 changed source modules and 90 changed used handlers; that source has not been
 accepted for execution or rebaselined. Exact post-push workflow receipts are kept
 separately. No full compatibility pass or new APK release is claimed.
+
+## Main CI continuity during regular pushes
+
+The Android workflow keeps its existing per-ref concurrency group, but cancels
+an active run only for a pull request. Pushes and manual runs on main can wait
+behind the active complete device suite. The default queue retains one pending
+run; a newer pending head can replace an older pending head. This does not
+promise that every intermediate commit will receive a full device run. GitHub's
+[concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency)
+defines these separate running and pending behaviors.
+
+The main CI policy is changed separately from the profile-ticket foundation.
+Safe YAML parsing and structural comparison must show only the concurrency
+cancellation value changes: job commands, suites, deadlines, permissions, actions,
+triggers and source inputs stay the same. Existing source362 build/artifact proofs
+remain applicable to their exact inputs; this policy edit is not a new Android
+or interoperability pass. Post-push records verify that the prior main run is
+preserved and record the latest queued run instead of treating a queue as success.

@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - preserve running main device CI
+
+The Android workflow keeps its per-ref concurrency group and now cancels an
+active run only for pull requests. Main pushes queue behind the active suite;
+only the latest pending head is retained. Safe YAML parsing and comparison
+verify that job commands, checks, deadlines, permissions and triggers are unchanged.
+No application/build input changes. Existing exact-artifact proofs are retained;
+queued or running hosted checks are not counted as passes. See
+[the workflow policy](contracts/2026-11-11-profile-ticket-foundation.md#main-ci-continuity-during-regular-pushes).
+
 ## 11 November 2026 - named-profile ticket and retirement foundation
 
 A real backend probe now verifies native PKCE/bearer identity, launch-ticket

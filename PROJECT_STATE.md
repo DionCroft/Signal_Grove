@@ -32,6 +32,11 @@ pins and Android APIs with independent host/phone stores
 IME failure and interrupted ADB outcome remain open. Published preview is beta.8;
 these development chunks do not publish a new APK.
 
+Main Android CI now lets an active full suite finish across regular chunk
+pushes. Its existing per-ref group retains at most the latest pending head;
+pull requests still cancel their superseded active run. Queueing is not a pass.
+[Policy and proof scope](docs/contracts/2026-11-11-profile-ticket-foundation.md#main-ci-continuity-during-regular-pushes).
+
 ## Current priority - on-device AI, authorized 10 November 2026
 
 The full audit goal is active and incomplete. Its optional local-AI extension

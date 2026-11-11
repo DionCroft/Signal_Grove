@@ -2,6 +2,10 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Let active main Android CI finish during regular chunk pushes; queue the latest
+  pending head while retaining superseded-run cancellation for pull requests.
+  Preserve the complete device suite, checks and deadlines.
+
 - Add supervised real-Hermes profile-ticket/retirement probes for both reviewed
   revisions. Verify native authentication, Webapp-only named-profile binding,
   one-use tickets, stale workspace refusal and unchanged independent stores.
