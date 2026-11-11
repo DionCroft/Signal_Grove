@@ -70,6 +70,12 @@ modules and clean final boundary/store checks. Authentication against that real
 owner is not covered by the separate Android mock transport proof. See
 [scope and retained findings](docs/contracts/2026-11-11-reviewed-workspace-change.md).
 
+The owner bootstrap probe now covers two exact pins with actual native identity
+and profile/ticket checks. Both retain the same nonzero shutdown database warning;
+latest stable also has 47 used-handler source entries requiring review. The canary
+will now inspect main even when stable fails. No contract waiver or real Android
+workspace acceptance is claimed; see [the matrix checkpoint](docs/contracts/2026-11-11-owner-runtime-matrix.md).
+
 Exact next independent action: complete authenticated actual-Hermes workspace
 transport and fresh directory readback across the supported version matrix,
 including permission/busy/unknown-result/profile recovery. Then implement actual

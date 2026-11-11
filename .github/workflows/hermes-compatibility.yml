@@ -41,6 +41,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref latest --output "$RUNNER_TEMP/hermes-contract-latest.json"
       - name: Inspect main source without executing it
+        # A stable-source review failure must not hide the independent main report.
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref main --output "$RUNNER_TEMP/hermes-contract-main.json"

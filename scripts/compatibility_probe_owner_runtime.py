@@ -9,14 +9,21 @@ runtime contract for the deliberately narrower scope than the room matrix.
 from pathlib import Path
 import argparse, asyncio, atexit, datetime, hashlib, ipaddress, json, logging, os, subprocess, sys, traceback, urllib.parse, weakref
 
+# Immutable review targets only: a new release is not automatically trusted.
+REVIEWED_COMMITS = (
+    '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19',
+    '3b421578588243f920886e6fe79a6faa87ea026e',
+)
 p = argparse.ArgumentParser()
+p.add_argument('--source-commit', choices=REVIEWED_COMMITS, default=REVIEWED_COMMITS[0],
+               help='Exact reviewed checkout; defaults to the original owner-runtime pin.')
 p.add_argument('--source-root', type=Path, required=True)
 p.add_argument('--dependency-site', type=Path, required=True)
 p.add_argument('--work-root', type=Path, required=True)
 p.add_argument('--owned-child', action='store_true', help=argparse.SUPPRESS)
 a = p.parse_args()
 source, site, root = a.source_root.resolve(), a.dependency_site.resolve(), a.work_root.resolve()
-COMMIT = '2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'
+COMMIT = a.source_commit
 assert os.name == 'nt' and sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode
 assert source.is_dir() and site.is_dir() and not root.exists()
 assert source.drive.upper() == root.drive.upper() == 'E:'
@@ -26,10 +33,10 @@ def supervise():
     receipt=root.with_suffix('.supervisor.json');log=root.with_suffix('.supervisor.log')
     assert not receipt.exists() and not log.exists()
     command=[sys.executable,'-I','-S','-B',str(Path(__file__).resolve()),'--owned-child',
-             '--source-root',str(source),'--dependency-site',str(site),'--work-root',str(root)]
+             '--source-commit',COMMIT,'--source-root',str(source),'--dependency-site',str(site),'--work-root',str(root)]
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
-    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     def save():receipt.write_text(json.dumps(observation,indent=2)+'\n',encoding='utf-8')
     save()
     with log.open('xb') as stream:

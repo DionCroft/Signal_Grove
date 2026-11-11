@@ -1,5 +1,19 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - latest stable owner/runtime and canary checkpoint
+
+The tracked owner-runtime probe now accepts two exact reviewed execution pins.
+Fresh actual-owner authentication/ticket/profile runs return a core pass with
+one retained post-close database warning on each pin (1,167 / 1,206 Git-bound
+modules). Both final profile stores are healthy and empty. This remains a
+nonzero lifecycle finding, not real Android workspace acceptance. All 232 policy
+tests and checksum policy pass; product/Android fixture sources are unchanged.
+The hosted stable source canary correctly requires review of 47 used-handler
+entries with no changed watched request fields. Its independent main report was
+skipped; the workflow now runs it unless cancelled, preserving the stable failure.
+See [exact pins, evidence and remaining gates](contracts/2026-11-11-owner-runtime-matrix.md).
+Every original audit and signed-release requirement remains open.
+
 ## 11 November 2026 - reviewed Hermes-host workspace changes
 
 An exact-value two-step review now changes a live local session's authority-host

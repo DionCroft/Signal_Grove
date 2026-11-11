@@ -1,5 +1,9 @@
 # Actual owner-runtime bootstrap contract
 
+The [11 November matrix checkpoint](2026-11-11-owner-runtime-matrix.md) adds an
+explicit second immutable execution target. The original default and all scope,
+shutdown, supervision and no-replay requirements below remain in force.
+
 This is finite Windows conformance tooling, not an agent backend or deployment.
 It adds no application RPC, approval, credential, model selection or scheduler.
 It uses the existing interpreter/dependency site and a fresh ordinary E: root.
