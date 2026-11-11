@@ -1,42 +1,32 @@
 # Signal Grove project state
 
-## Latest delivered chunk - Android named-profile live connections
+## Latest delivered chunk - actual Android profile/cache retirement
 
-The client preserves a matching launch-profile connection and negotiates one
-profile-bound Webapp ticket only after a fully validated foreign-home describe.
-The same actor/home is rechecked before and after negotiation. Unsupported
-addresses show translated guidance; no adoption, workspace or tool work is replayed.
-Three new source watches retain every historical digest and prior finding.
-[Behavior, artifacts and limitations](docs/contracts/2026-11-11-android-profile-tickets.md).
+Eight final-source Android-to-owner cases pass across both reviewed Hermes pins,
+gateway/Webapp surfaces and API26/API37. Native PKCE/refresh, exact profile-bound
+resume/replay, genuine sibling retirement and continued default availability are
+verified. Independent quiescent before/after Room copies preserve the same 12
+confirmed receipts/cursors without a new claim or replay. Final host stores keep
+exact session/cwd/fences and zero work. Every owner case retains one known atexit
+reaper warning and supervisor exit 2; clean lifecycle remains open.
 
-Source384 passes 987 JVM / 95 reports, 284 policies, zero-error lint (51 / 50
-warnings), signing and ABI/alignment checks. All 18 new wire cases and the new
-translated guidance pass on both APIs. API37 passes 57 selected methods; API26
-passes 56 with one existing native Cancel tap that does not report success. Its
-batch stays failed; input cause and Cancel activation remain unverified. System
-font/IME settings and package UIDs are preserved. Complete source384 phone,
-Android-to-owner named-profile retirement/Room and settled visual checks remain.
+Source410 passes 987 JVM / 95 reports, 293 policies, 15 model-status policies,
+checksum policy and zero-error lint (51 / 50 warnings). Original signing and all
+32 packaged native libraries' ABI/alignment checks pass. Run412 passes 40 focused
+methods per API with hashes, UIDs and system settings retained. Preliminary host
+probe, APK preflight, mock refresh and temporary-verifier failures are preserved;
+none are counted as accepted cases. No production code, dependencies or release
+identity changes. [Contract and exact artifacts](docs/contracts/2026-11-11-android-owner-profile-cache.md).
 
-Standard CI now records five explicit external-model classes / 11 methods as
-not_run with their prerequisites. The exact filter passes a real native control
-on both APIs; all 287 policies pass. The standard parser still rejects every skip
-or incomplete result. A measured 95-minute API37 exhaustion justifies a bounded
-100-minute invocation / 115-minute job allowance, with all per-test checks intact.
-Full corrected-head hosted acceptance remains unproven.
+The full audit remains active: native Cancel diagnostics, physical/deployed and
+production authentication, worker/project/files/dispatch, integrations, model
+and lifecycle gates, upstream/advisory coverage, complete CI and signed release
+remain required. Published preview remains beta.8.
 
-Next exact action: run actual Android-to-owner named-profile and retirement/Room
-checks on both reviewed Hermes pins. Instrument the retained native Cancel result
-with one input and no retry, then continue worker/project/files and reviewed
-dispatch. Main45 API26 completed 1099 positive methods with eight prerequisite
-assumptions; API37 timed out after 1076 positives, eight assumptions and one
-unfinished setup-guide case. ADB stayed connected. Both jobs remain failed.
-
-The complete original audit and local-AI extension remain active: deployed/
-physical, upstream compatibility, dependency/native advisory and signed-release
-acceptance are required. Prior actual-owner ticket cases retain their shutdown
-warning; the older incomplete ADB loss remains unclassified. Main CI retains its
-active full run and latest pending head. Published preview remains beta.8; no new
-APK release is claimed.
+Next exact action: add bounded diagnostics around the one retained native Cancel
+input, preserving its single tap and existing keyboard/geometry assertions. Then
+continue verified worker/project/file ownership and reviewed dispatch. Main CI
+keeps its valid active run plus the latest pending head; pending is not passing.
 
 ## Current priority - on-device AI, authorized 10 November 2026
 

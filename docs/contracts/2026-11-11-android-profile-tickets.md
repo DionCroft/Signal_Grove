@@ -108,7 +108,7 @@ The required build passes 987 JVM cases / 95 reports, both lint variants with ze
 errors (51 debug / 50 release warnings), app and test APKs. The added warning is
 lint's newer-version metadata for kotlinx-serialization-json 1.13.0; dependencies
 remain unchanged, and version/advisory review remains a release gate. The original
-debug signing key and all 20 native libraries' ABI/load alignments are verified.
+debug signing key and all 32 packaged native libraries' ABI/load alignments are verified.
 
 - App SHA-256: `f7948187d2f06bb6db4a28c3e84673a520708e5ac56d99f49cc9f6df7d1a4e00`.
 - Companion SHA-256: `82c75e7f18d01536721a74606c71ee16a99e3e7c5e399515c30f9a31420794b6`.
@@ -201,3 +201,11 @@ Next complete actual Android-to-owner named-profile/retirement/Room checks and
 add one-input diagnostics for the retained native Cancel finding. Monitor the
 corrected full hosted run; keep all original worker, file, physical, local-AI,
 compatibility/advisory and signed-release gates open until their own evidence passes.
+
+## Actual Android owner/cache follow-up
+
+The [final Android/owner matrix](2026-11-11-android-owner-profile-cache.md) now
+measures native profile attachment, genuine retirement and exact Room receipt/
+cursor persistence on both reviewed pins and Android APIs. Its eight positive
+core cases retain the known shutdown warning; production, active work, physical
+and release acceptance remain open. Earlier failed batches stay scoped above.

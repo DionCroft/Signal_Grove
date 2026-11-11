@@ -139,7 +139,7 @@ Source362 freezes 745 files at digest
 `c3578168a8146e641edcb0c53202caa72822f1a904d8c7a061e692e762efeb69`.
 All required build tasks pass: 968 JVM cases / 94 XML reports, both lint variants
 with zero errors (50 debug / 49 release warnings), debug app and test APKs. The
-original debug signer and all 20 native libraries' ABI/load alignment checks pass.
+original debug signer and all 32 packaged native libraries' ABI/load alignment checks pass.
 
 - App SHA-256: `57ffcfdcf60754ac4fdb3c961e1bee6ed7bc8d4f749e726d2bfefdb9b3eb102e`.
 - Companion SHA-256: `f1837562d2591c7bf32ec36d9a66beb782bb2dc3d9cdb4f7310b7e2f5cb1a43d`.

@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - actual Android profile retirement and Room isolation
+
+Eight final-source Android-to-owner cases pass across both reviewed Hermes pins,
+gateway/Webapp surfaces and API26/API37. Native PKCE/refresh, exact profile-bound
+resume/replay, genuine sibling retirement and continued default availability are
+verified. Independent quiescent before/after Room copies preserve the same 12
+confirmed receipts/cursors without a new claim or replay. Final host stores keep
+exact session/cwd/fences and zero work. Every owner case retains one known atexit
+reaper warning and supervisor exit 2; clean lifecycle remains open.
+
+Source410 passes 987 JVM / 95 reports, 293 policies, 15 model-status policies,
+checksum policy and zero-error lint (51 / 50 warnings). Original signing and all
+32 packaged native libraries' ABI/alignment checks pass. Run412 passes 40 focused
+methods per API with hashes, UIDs and system settings retained. Preliminary host
+probe, APK preflight, mock refresh and temporary-verifier failures are preserved;
+none are counted as accepted cases. No production code, dependencies or release
+identity changes. [Contract and exact artifacts](contracts/2026-11-11-android-owner-profile-cache.md).
+
+The full audit remains active: native Cancel diagnostics, physical/deployed and
+production authentication, worker/project/files/dispatch, integrations, model
+and lifecycle gates, upstream/advisory coverage, complete CI and signed release
+remain required. Published preview remains beta.8.
+
 ## 11 November 2026 - separate explicit model gates from standard CI
 
 Standard instrumentation now excludes only five named prerequisite-dependent

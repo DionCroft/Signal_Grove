@@ -69,5 +69,44 @@ class ProfileTicketProbeCliBoundaryTest(unittest.TestCase):
         for flags in [('--drop-workspace-ack',),('--workspace-refusal','turn-lease'),('--read-api-history',)]:
             self.refused(['--probe-profile-tickets','gateway',*flags],'not allowed with argument')
     def test_android_fixture_still_requires_explicit_api(self):self.refused([],'Android fixture modes require --android-api')
+    def test_android_profile_mode_requires_api_and_excludes_other_effects(self):
+        self.refused(['--android-profile-tickets','webapp'],'Android fixture modes require --android-api')
+        self.refused(['--android-profile-tickets','webapp','--android-api','37','--emit-host-signals'],'Android profile mode does not emit')
+        for flags in [('--drop-workspace-ack',),('--workspace-refusal','turn-lease'),('--read-api-history',),('--probe-profile-tickets','gateway')]:
+            self.refused(['--android-profile-tickets','gateway','--android-api','26',*flags],'not allowed with argument')
+
+
+class AndroidProfileRpcBoundaryTest(unittest.TestCase):
+    def setUp(self):
+        tree=ast.parse(SCRIPT.read_text(encoding='utf-8'))
+        node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='profile_android_rpc_allowed')
+        space={};exec(compile(ast.Module(body=[node],type_ignores=[]),str(SCRIPT),'exec'),space)
+        self.guard=space['profile_android_rpc_allowed'];self.cursor=dict(last_sequence=7,replay_epoch='actual-ack-epoch')
+    def allowed(self,method,params,**extra):
+        return self.guard(method,params,**(dict(profile='field',session_id='real-field-session',resume_cursor=self.cursor,resumed=False,replayed=False,pinged=False)|extra))
+    def test_only_describe_is_allowed_before_actual_profile_binding(self):
+        self.assertTrue(self.allowed('runtime.describe',{},profile=None))
+        for method,params in [('gateway.ping',{}),('session.list',dict(scope='live',limit=200)),('session.resume',dict(session_id='real-field-session',omit_messages=True))]:
+            self.assertFalse(self.allowed(method,params,profile=None))
+        self.assertFalse(self.allowed('runtime.describe',dict(profile='field')))
+    def test_inventory_is_live_exact_and_never_work(self):
+        self.assertTrue(self.allowed('session.list',dict(scope='live',limit=200)))
+        for params in [dict(scope='stored',limit=200),dict(scope='live',limit=True),dict(scope='live',limit=201),dict(scope='live',limit=200,profile='default')]:self.assertFalse(self.allowed('session.list',params))
+        for method in ['session.create','session.mutate','session.submit','session.cancel','groups.list']:
+            self.assertFalse(self.allowed(method,{}))
+    def test_resume_is_one_reviewed_session_and_cannot_repeat(self):
+        params=dict(session_id='real-field-session',omit_messages=True)
+        self.assertTrue(self.allowed('session.resume',params))
+        self.assertFalse(self.allowed('session.resume',params,resumed=True))
+        for changed in [dict(session_id='default-session'),dict(omit_messages=1),dict(omit_messages=False),dict(profile='default')]:self.assertFalse(self.allowed('session.resume',params|changed))
+    def test_replay_requires_exact_real_ack_and_one_resume(self):
+        params=dict(session_id='real-field-session',**self.cursor)
+        self.assertTrue(self.allowed('session.events.since',params,resumed=True))
+        self.assertFalse(self.allowed('session.events.since',params))
+        self.assertFalse(self.allowed('session.events.since',params,resumed=True,replayed=True))
+        for changed in [dict(last_sequence=6),dict(last_sequence=True),dict(replay_epoch='stale'),dict(session_id='foreign'),dict(profile='field')]:self.assertFalse(self.allowed('session.events.since',params|changed,resumed=True))
+        for cursor in [None,dict(last_sequence=-1,replay_epoch='actual-ack-epoch'),dict(last_sequence=True,replay_epoch='actual-ack-epoch'),dict(last_sequence=7,replay_epoch='')]:self.assertFalse(self.allowed('session.events.since',params,resumed=True,resume_cursor=cursor))
+    def test_heartbeat_cannot_repeat_or_smuggle_profile(self):
+        self.assertTrue(self.allowed('gateway.ping',{}));self.assertFalse(self.allowed('gateway.ping',{},pinged=True));self.assertFalse(self.allowed('gateway.ping',dict(profile='field')))
 
 if __name__=='__main__':unittest.main()

@@ -2,6 +2,12 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Verify native Android profile attachment, genuine sibling retirement and exact
+  receipt/cursor Room persistence against both reviewed Hermes versions on both
+  Android APIs. Keep default live state isolated, refuse unavailable named
+  profiles without another durable claim, and retain upstream shutdown findings.
+  Add a normal-CI mock contract plus closed real-fixture RPC/CLI boundary policies.
+
 - Separate standard Android CI from 11 explicit model/input-dependent methods,
   publishing their not-run prerequisites while preserving strict skip rejection.
   Validate the exact filter on both APIs and allow a bounded complete-suite budget

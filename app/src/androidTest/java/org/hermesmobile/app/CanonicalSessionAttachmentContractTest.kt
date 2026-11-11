@@ -149,7 +149,7 @@ class CanonicalSessionAttachmentContractTest {
                             check(challenge==pending.get().challenge);json(envelope)
                         }
                         "/dashboard/auth/native/refresh"->{
-                            check(mode in setOf("workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock") && q.method=="POST" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null)
+                            check(mode in setOf("viewer","workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock") && q.method=="POST" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null)
                             val body=Json.parseToJsonElement(q.body.readUtf8()).jsonObject
                             check(body.keys==setOf("provider","refresh_token") && body["provider"]==JsonPrimitive("stub"))
                             check(body["refresh_token"]==Json.parseToJsonElement(envelope).jsonObject.getValue("refresh_token"))
@@ -166,6 +166,11 @@ class CanonicalSessionAttachmentContractTest {
                                     json(buildJsonObject {put("ticket",ticket);put("ttl_seconds",30)}.toString())
                                 }
                             }
+                        }
+                        "/dashboard/api/webapp/socket-ticket"->{
+                            check(q.method=="POST" && q.getHeader("Authorization")=="Bearer project-access-fixture" && q.getHeader("Cookie")==null)
+                            check(url.queryParameterNames==setOf("socket","profile") && url.queryParameter("socket")=="gateway" && url.queryParameter("profile")=="worker")
+                            check(q.body.readUtf8()=="{}");json("{}",404)
                         }
                         "/dashboard/api/ws"->{
                             check(q.method=="GET" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null && q.getHeader("Origin")==null)
@@ -702,4 +707,107 @@ class CanonicalSessionAttachmentContractTest {
         }
     }
 
+    @Test fun profileBoundConnectionsNeverBorrowAnotherProfileReceipt() {
+        val args=InstrumentationRegistry.getArguments();val encoded=args.getString("signalGroveOwnerProfileCase")
+        val fixture=if(encoded==null) Fixture("viewer") else null
+        val case=if(encoded==null) null else {
+            require(encoded.matches(Regex("[A-Za-z0-9_-]{16,16384}")))
+            Json.parseToJsonElement(String(Base64.getUrlDecoder().decode(encoded),Charsets.UTF_8)).jsonObject.also {
+                require(it.keys==setOf("caseId","surface","sourceCommit","api","baseUrl","profileHomes","sessions","workspace"))
+                require(it.getValue("sourceCommit").jsonPrimitive.content in setOf("2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19","3b421578588243f920886e6fe79a6faa87ea026e"))
+                require(it.getValue("api").jsonPrimitive.int==Build.VERSION.SDK_INT)
+            }
+        }
+        val caseId=case?.getValue("caseId")?.jsonPrimitive?.content ?: UUID.randomUUID().toString()
+        require(UUID.fromString(caseId).toString()==caseId)
+        val surface=case?.getValue("surface")?.jsonPrimitive?.content ?: "gateway";require(surface in setOf("gateway","webapp"))
+        val fieldName=if(case==null) "worker" else "field"
+        val api=ManagementClient(case?.getValue("baseUrl")?.jsonPrimitive?.content ?: base(checkNotNull(fixture)),true,true)
+        require(api.base.scheme=="http" && api.base.host=="127.0.0.1" && api.base.encodedPath=="/dashboard/" && api.base.query==null && api.base.fragment==null)
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val credentials=context.getSharedPreferences("credentials",0);val beforeCredentials=credentials.all.toMap()
+        val databaseName="owner-profile-$caseId.db";var db=Room.databaseBuilder(context,HermesDatabase::class.java,databaseName).build()
+        val qa=File(checkNotNull(context.getExternalFilesDir(null)),"qa");check(qa.isDirectory || qa.mkdirs())
+        val checks=mutableListOf<String>();var result:JsonObject?=null
+        try {
+            runBlocking {withTimeout(240_000) {
+                val issued=signIn(api);val tokens=api.refresh(issued)
+                assertEquals(issued.provider,tokens.provider);assertEquals(issued.userId,tokens.userId)
+                assertEquals(tokens.userId,api.identity(tokens).userId);checks+="native_pkce_refresh_identity"
+                val profiles=api.profiles(tokens)
+                fun profileHome(name:String)=checkNotNull(profiles.single {it.name==name}.pluginHome).identity()
+                val homes=mapOf("default" to profileHome("default"),fieldName to profileHome(fieldName));assertNotEquals(homes.getValue("default"),homes.getValue(fieldName))
+                if(case!=null) for(name in homes.keys) assertEquals(PluginHome.project(case.getValue("profileHomes").jsonObject.getValue(name))!!.identity(),homes.getValue(name))
+                checks+="authenticated_profile_homes_are_distinct"
+                val targets=homes.keys.associateWith {target(api,tokens,it)}
+                val sessionIds=if(case==null) mapOf("default" to "shared-fixture",fieldName to "unavailable-fixture") else case.getValue("sessions").jsonObject.mapValues {it.value.jsonPrimitive.content}
+                var repo=CanonicalSessionsRepository(db.dao(),CompletableDeferred(Unit))
+                val receipts=linkedMapOf<String,ManagementOperation>();val checkpoints=linkedMapOf<String,CanonicalReplayCheckpoint>();val inventories=linkedMapOf<String,CanonicalSessionInventory>()
+                suspend fun attach(name:String) {
+                    val t=targets.getValue(name);val home=homes.getValue(name);val inventory=repo.prepare(t,home,api,tokens,CanonicalSessionScope.Live)
+                    assertEquals(t,inventory.binding.target);assertEquals(home,inventory.binding.homeId)
+                    if(case!=null) {assertEquals(case.getValue("profileHomes").jsonObject.getValue(name).jsonPrimitive.content,inventory.binding.profileId);assertEquals(setOf(sessionIds.getValue(name)),inventory.rows.map {it.sessionId}.toSet())}
+                    inventories[name]=inventory
+                    val connection=repo.adopt(inventory.review(sessionIds.getValue(name)),api,tokens,requireHeartbeat=true)
+                    try {
+                        val snapshot=connection.attachment.snapshot;assertEquals(t,snapshot.owner.target);assertEquals(home,snapshot.owner.homeId);assertEquals(sessionIds.getValue(name),snapshot.owner.sessionId)
+                        assertEquals(if(case==null) 2L else 0L,snapshot.messageCount);assertFalse(snapshot.reportedRunning)
+                        if(case!=null) assertEquals(case.getValue("workspace").jsonPrimitive.content,(snapshot.workspace as CanonicalWorkspaceDirectory.Reported).path)
+                        repo.recordApplied(connection.receipt.key,snapshot.owner,connection.attachment.initial.status.cursor)
+                        receipts[name]=checkNotNull(db.dao().managementOperation(connection.receipt.key));assertEquals("confirmed",receipts.getValue(name).state)
+                        checkpoints[name]=checkNotNull(repo.lastApplied(t,home,sessionIds.getValue(name)))
+                    } finally {connection.close()}
+                }
+                attach("default");checks+="default_bound_resume_and_cursor_saved"
+                if(surface=="webapp") {attach(fieldName);assertNotEquals(checkpoints.getValue("default").owner,checkpoints.getValue(fieldName).owner);checks+="field_bound_resume_and_cursor_saved"}
+                else {assertTrue(runCatching {repo.prepare(targets.getValue(fieldName),homes.getValue(fieldName),api,tokens,CanonicalSessionScope.Live)}.exceptionOrNull() is CanonicalProfileTransportUnavailable);checks+="field_unavailable_without_default_cache_borrow"}
+                val heldReview=inventories[fieldName]?.review(sessionIds.getValue(fieldName))
+                db.close();checks+="receipt_database_closed_before_retirement"
+                if(case!=null) {
+                    val stage=File(qa,"owner-profile-stage-$caseId.json");assertFalse(stage.exists())
+                    val pending=File(qa,"owner-profile-stage-$caseId.pending");assertFalse(pending.exists())
+                    pending.writeText(buildJsonObject {put("state","CACHE_CLOSED_FOR_PROFILE_RETIREMENT");put("caseId",caseId);put("surface",surface);put("api",Build.VERSION.SDK_INT);put("sourceCommit",case.getValue("sourceCommit"));put("databaseName",databaseName);put("sessions",case.getValue("sessions"))}.toString());check(pending.renameTo(stage))
+                    val statusClient=OkHttpClient.Builder().retryOnConnectionFailure(false).followRedirects(false).callTimeout(3,TimeUnit.SECONDS).build()
+                    try {withTimeout(60_000) {
+                        while(true) {
+                            val state=statusClient.newCall(Request.Builder().url(api.base.newBuilder().addPathSegments("__probe/state").build()).build()).execute().use {response->assertEquals(200,response.code);Json.parseToJsonElement(response.body.string()).jsonObject}
+                            assertEquals(JsonPrimitive(caseId),state["caseId"])
+                            if(state["state"]==JsonPrimitive("retired")) break
+                            assertEquals(JsonPrimitive("waiting"),state["state"]);delay(250)
+                        }
+                    }} finally {statusClient.connectionPool.evictAll();statusClient.dispatcher.executorService.shutdown()}
+                    checks+="genuine_profile_retirement_reported_by_owned_fixture"
+                }
+                db=Room.databaseBuilder(context,HermesDatabase::class.java,databaseName).build();repo=CanonicalSessionsRepository(db.dao(),CompletableDeferred(Unit))
+                for((name,row) in receipts) {
+                    assertEquals(row,db.dao().managementOperation(row.key));assertEquals(checkpoints.getValue(name),repo.lastApplied(targets.getValue(name),homes.getValue(name),sessionIds.getValue(name)))
+                    assertNull(repo.lastApplied(targets.getValue(name),homes.getValue(if(name=="default") fieldName else "default"),sessionIds.getValue(name)))
+                    assertFalse(row.requestSummary.contains(tokens.access) || row.resultSummary.contains(tokens.access) || row.requestSummary.contains(tokens.refresh) || row.resultSummary.contains(tokens.refresh))
+                }
+                if(surface=="gateway") assertNull(repo.lastApplied(targets.getValue(fieldName),homes.getValue(fieldName),sessionIds.getValue("default")))
+                checks+="reopened_receipts_and_cursors_keep_exact_profile_scope"
+                val failure=runCatching {repo.prepare(targets.getValue(fieldName),homes.getValue(fieldName),api,tokens,CanonicalSessionScope.Live)}.exceptionOrNull()
+                if(surface=="gateway") assertTrue(failure is CanonicalProfileTransportUnavailable) else assertTrue(failure is GatewayUnavailable)
+                if(heldReview!=null) assertTrue(runCatching {repo.adopt(heldReview,api,tokens,requireHeartbeat=true)}.exceptionOrNull() is GatewayUnavailable)
+                checks+="unavailable_profile_cannot_open_or_adopt_default"
+                val live=repo.prepare(targets.getValue("default"),homes.getValue("default"),api,tokens,CanonicalSessionScope.Live)
+                assertEquals(homes.getValue("default"),live.binding.homeId);assertTrue(live.rows.any {it.sessionId==sessionIds.getValue("default")});checks+="default_authority_still_available"
+                for((name,row) in receipts) {assertEquals(row,db.dao().managementOperation(row.key));assertEquals(checkpoints.getValue(name),repo.lastApplied(targets.getValue(name),homes.getValue(name),sessionIds.getValue(name)));assertTrue(db.dao().unresolvedManagementOperations(targets.getValue(name).resourceScope,api.base.toString(),homes.getValue(name)).isEmpty())}
+                db.openHelper.readableDatabase.query("SELECT COUNT(*) FROM management_operations").use {assertTrue(it.moveToFirst());assertEquals(receipts.size,it.getInt(0))}
+                fixture?.let {assertEquals(0,it.failures.get());assertEquals(0,it.mutations.get());assertEquals(1,it.resumes.get());assertEquals(1,it.replays.get());assertEquals(1,it.pings.get())}
+                checks+="cache_rows_unchanged_without_new_unknown_or_replay"
+                result=buildJsonObject {
+                    put("state",if(case==null) "PASS_MOCK_GATEWAY_PROFILE_CACHE_ISOLATION" else "PASS_ANDROID_REAL_OWNER_PROFILE_RETIREMENT")
+                    put("backend",if(case==null) "mock-gateway" else "actual-owner");put("caseId",caseId);put("api",Build.VERSION.SDK_INT);put("surface",surface)
+                    put("sourceCommit",case?.getValue("sourceCommit") ?: JsonPrimitive("mock"));put("databaseName",databaseName);put("recordCount",receipts.size)
+                    put("homes",buildJsonObject {homes.forEach {(name,value)->put(name,value)}})
+                    put("receiptKeys",buildJsonObject {receipts.forEach {(name,row)->put(name,row.key)}})
+                    put("modelOrWorkerExecutionClaim",false);put("checks",JsonArray(checks.map(::JsonPrimitive)))
+                }
+            }}
+        } finally {db.close();fixture?.close()}
+        assertEquals(beforeCredentials,credentials.all)
+        val output=File(qa,"owner-profile-$caseId.json");assertFalse(output.exists())
+        output.writeText(JsonObject(checkNotNull(result)+mapOf("savedCredentialsUnchanged" to JsonPrimitive(true))).toString())
+    }
 }

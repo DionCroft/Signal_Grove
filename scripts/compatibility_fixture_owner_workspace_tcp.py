@@ -30,6 +30,22 @@ def workspace_fixture_rpc_allowed(method, params, *, session_id, directory, revi
             and isinstance(params['request_id'],str) and re.fullmatch(r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}',params['request_id']) is not None)
     return False
 
+def profile_android_rpc_allowed(method,params,*,profile,session_id,resume_cursor,resumed,replayed,pinged):
+    """Closed read/resume surface, exact ACK cursor, one attachment per actual profile."""
+    if not isinstance(params,dict):return False
+    if method=='runtime.describe':return params=={}
+    if profile not in ('default','field') or not isinstance(session_id,str) or not session_id:return False
+    if method=='gateway.ping':return params=={} and not pinged
+    if method=='session.list':return set(params)=={'scope','limit'} and params['scope']=='live' and type(params['limit']) is int and params['limit']==200
+    if method=='session.resume':return not resumed and params=={'session_id':session_id,'omit_messages':True} and type(params.get('omit_messages')) is bool
+    if method=='session.events.since':
+        return (resumed and not replayed and isinstance(resume_cursor,dict) and set(resume_cursor)=={'last_sequence','replay_epoch'}
+            and type(resume_cursor['last_sequence']) is int and 0<=resume_cursor['last_sequence']<2**63
+            and isinstance(resume_cursor['replay_epoch'],str) and 0<len(resume_cursor['replay_epoch'])<=256
+            and set(params)=={'session_id','last_sequence','replay_epoch'} and type(params['last_sequence']) is int
+            and params=={'session_id':session_id,**resume_cursor})
+    return False
+
 def catalog_fixture_request_blocked(url,data,headers,method,callers):
     """Refuse only named public read-only metadata before DNS; never produce a catalog."""
     manifest={
@@ -64,10 +80,12 @@ effect.add_argument('--drop-workspace-ack',action='store_true',help='Drop only t
 effect.add_argument('--workspace-refusal',choices=('turn-lease','compression-lock'),help='Hold a real fixture-local transcript lease/lock through the actual mutation refusal; no inference or fake response.')
 effect.add_argument('--read-api-history',action='store_true',help='Read closed seeded conversations through the actual bearer API; no session adoption or forwarded mutation.')
 effect.add_argument('--probe-profile-tickets',choices=('gateway','webapp'),help='Backend-only native-auth/profile-bound ticket and retirement proof; synthetic IdP/renderer, no Android or inference claim.')
+effect.add_argument('--android-profile-tickets',choices=('gateway','webapp'),help='Actual Android native-auth/profile attachment, retirement and quiescent Room cache isolation; no work submission.')
 p.add_argument('--owned-child', action='store_true', help=argparse.SUPPRESS)
 a = p.parse_args()
 if a.probe_profile_tickets and (a.android_api is not None or a.emit_host_signals):p.error('Backend profile probe does not accept Android API or controlled host signals.')
 if not a.probe_profile_tickets and a.android_api is None:p.error('Android fixture modes require --android-api.')
+if a.android_profile_tickets and a.emit_host_signals:p.error('Android profile mode does not emit controlled host signals.')
 if a.read_api_history and a.emit_host_signals:p.error("History mode does not emit canonical host notifications.")
 source, site, root = a.source_root.resolve(), a.dependency_site.resolve(), a.work_root.resolve()
 COMMIT = a.source_commit
@@ -103,13 +121,14 @@ def supervise():
              '--source-commit',COMMIT,'--transport',a.transport,'--source-root',str(source),'--dependency-site',str(site),'--work-root',str(root)]
     if a.android_api is not None:command.extend(['--android-api',str(a.android_api)])
     if a.probe_profile_tickets:command.extend(['--probe-profile-tickets',a.probe_profile_tickets])
+    if a.android_profile_tickets:command.extend(['--android-profile-tickets',a.android_profile_tickets])
     if a.emit_host_signals:command.append('--emit-host-signals')
     if a.drop_workspace_ack:command.append('--drop-workspace-ack')
     if a.workspace_refusal:command.extend(['--workspace-refusal',a.workspace_refusal])
     if a.read_api_history:command.append('--read-api-history')
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
-    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,controlledHostSignals=a.emit_host_signals,dropWorkspaceAck=a.drop_workspace_ack,workspaceRefusal=a.workspace_refusal,readApiHistory=a.read_api_history,profileTicketProbe=a.probe_profile_tickets,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,controlledHostSignals=a.emit_host_signals,dropWorkspaceAck=a.drop_workspace_ack,workspaceRefusal=a.workspace_refusal,readApiHistory=a.read_api_history,profileTicketProbe=a.probe_profile_tickets,androidProfileTickets=a.android_profile_tickets,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     def save():receipt.write_text(json.dumps(observation,indent=2)+'\n',encoding='utf-8')
     save()
     with log.open('xb') as stream:
@@ -126,7 +145,7 @@ def supervise():
     core=json.loads((root/'report.json').read_text(encoding='utf-8'))
     final=json.loads((root/'shutdown-diagnostics.json').read_text(encoding='utf-8'))
     assert core['harnessSha256']==observation['harnessSha256']
-    assert core['state']==('PASS_ACTUAL_OWNER_PROFILE_TICKET_PROBE' if a.probe_profile_tickets else ('PASS_ANDROID_REAL_OWNER_CLOSED_HISTORY' if a.read_api_history else 'PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT')) and core['importedModules']
+    assert core['state']==('PASS_ANDROID_REAL_OWNER_PROFILE_RETIREMENT' if a.android_profile_tickets else 'PASS_ACTUAL_OWNER_PROFILE_TICKET_PROBE' if a.probe_profile_tickets else ('PASS_ANDROID_REAL_OWNER_CLOSED_HISTORY' if a.read_api_history else 'PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT')) and core['importedModules']
     assert not core['denied'] and not final['denied']
     # After actual process exit, verify the one exact fixture session and mutation receipt through read-only SQLite.
     import sqlite3
@@ -138,9 +157,9 @@ def supervise():
             counts={name:db.execute('SELECT COUNT(*) FROM '+name).fetchone()[0]
                     for name in ('sessions','session_admissions','hosted_rooms') if name in tables}
             assert {'sessions','session_admissions'}<=counts.keys()
-            if a.probe_profile_tickets:
+            if a.probe_profile_tickets or a.android_profile_tickets:
                 profile='default' if db_path.parent.name=='hermes-home' else 'field'
-                verified=verify_profile_ticket_store(db,core['profileTicketProbe']['snapshots'][profile])
+                verified=verify_profile_ticket_store(db,core['profileTicketAndroid' if a.android_profile_tickets else 'profileTicketProbe']['snapshots'][profile])
                 assert counts=={key:verified[key] for key in counts}
             elif a.read_api_history:
                 profile='default' if db_path.parent.name=='hermes-home' else 'field'
@@ -170,7 +189,7 @@ def supervise():
     assert not (root/'hermes-home/gateway.pid').exists()
     observation.update(coreTransportAccepted=True,stores=stores,shutdownWarnings=len(final['warnings']),
         importedModules=len(core['importedModules']),sourceCommit=COMMIT,
-        scope=('Actual owner native-auth/profile ticket/retirement backend proof; synthetic IdP and renderer placeholder, no Android, inference, production or full Webapp/lifecycle acceptance.' if a.probe_profile_tickets else ('Actual owner/bearer API/closed seeded history/Room read proof; no native login, inference, production or full lifecycle acceptance.' if a.read_api_history else 'One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance.')))
+        scope=('Actual Android/native-auth/profile attachment/retirement and receipt/cursor Room proof; synthetic IdP and renderer placeholder, no inference, production or full lifecycle acceptance.' if a.android_profile_tickets else 'Actual owner native-auth/profile ticket/retirement backend proof; synthetic IdP and renderer placeholder, no Android, inference, production or full Webapp/lifecycle acceptance.' if a.probe_profile_tickets else ('Actual owner/bearer API/closed seeded history/Room read proof; no native login, inference, production or full lifecycle acceptance.' if a.read_api_history else 'One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance.')))
     clean=final['state']=='CLEAN_EXIT_OBSERVATION' and not final['warnings']
     observation['state']='PASS_FINITE_OWNER_RUNTIME' if clean else 'CORE_PASS_SHUTDOWN_FINDING_OPEN'
     save();print(json.dumps({k:observation[k] for k in ('state','transport','importedModules','shutdownWarnings','sourceCommit','stores')}))
@@ -541,11 +560,131 @@ async def profile_ticket_probe(runner,api):
         record['profileTicketProbe']['defaultStillServing']=True
         phase('DEFAULT_AUTHORITY_STILL_SERVING_AFTER_SIBLING_UNSERVE')
 
+async def serve_profile_tickets_android(runner,api):
+    """One real Android/native-auth/profile/cache case, with explicit host retirement."""
+    import socket,time,uuid,uvicorn
+    from tui_gateway.owner_forward import connect_owner
+    from hermes_cli.gateway_runtime import discover_gateway_endpoint
+    from gateway.run_api import GatewayRuntimeAPI
+    surface=a.android_profile_tickets;case_id=str(uuid.uuid4());homes={'default':launch,'field':secondary};sessions={};snapshots={}
+    for name,home in homes.items():
+        found=await asyncio.to_thread(discover_gateway_endpoint,home,timeout=5)
+        assert found.state=='ready' and found.endpoint is not None
+        async with connect_owner(home,found.endpoint) as client:
+            made=await client.rpc('session.create',_timeout=30,request_id='android-profile-create-'+name,source='gui',cwd=str(workspace_cwds[0]),cwd_explicit=True,model='fixture-no-inference',provider='custom',base_url='http://127.0.0.1:1/v1',api_key='fixture-no-inference',toolsets=[])
+            sessions[name]=made['session_id']
+        db=runner.session_authorities.require(home).db
+        rows=db._read_all('SELECT id,cwd,runtime_revision,runtime_generation FROM sessions')
+        assert len(rows)==1 and rows[0][0]==sessions[name]
+        snapshots[name]=dict(zip(('sessionId','cwd','revision','generation'),rows[0]))
+    real_app=api.server.config.loaded_app;assert isinstance(real_app,GatewayRuntimeAPI)
+    requests=[];rpc_requests=[];rejected=[];retired=False;resumed=set();replayed=set();pinged=set()
+    allowed={('GET','/auth/native/authorize'),('GET','/auth/callback'),('POST','/auth/native/token'),('POST','/auth/native/refresh'),('GET','/api/auth/me'),('GET','/api/profiles'),('POST','/api/auth/ws-ticket'),('POST','/api/webapp/socket-ticket')}
+    async def prefix(scope,receive,send):
+        if scope['type'] not in ('http','websocket'):return
+        path=scope['path'];headers=list(scope['headers']);query=scope.get('query_string',b'')
+        if not path.startswith('/dashboard/') or len(requests)>=512 or len(query)>8192:
+            rejected.append('scope');raise RuntimeError('Unreviewed profile fixture scope')
+        short=path[len('/dashboard'):]
+        forwarded=dict(scope,path=short,raw_path=short.encode('ascii'),root_path='',headers=[(k,v) for k,v in headers if not k.lower().startswith(b'x-forwarded-')]+[(b'x-forwarded-prefix',b'/dashboard')])
+        if scope['type']=='http':
+            if scope['method']=='GET' and short=='/__probe/state' and not query:
+                body=json.dumps(dict(caseId=case_id,state='retired' if retired else 'waiting')).encode()
+                await send(dict(type='http.response.start',status=200,headers=[(b'content-type',b'application/json'),(b'content-length',str(len(body)).encode())]));await send(dict(type='http.response.body',body=body));return
+            if (scope['method'],short) not in allowed:
+                rejected.append('route');raise RuntimeError('Unreviewed profile fixture route')
+            if short=='/api/webapp/socket-ticket' and urllib.parse.parse_qs(query.decode('ascii'),strict_parsing=True)!={'socket':['gateway'],'profile':['field']}:
+                rejected.append('ticket-query');raise RuntimeError('Foreign profile ticket')
+            entry=dict(method=scope['method'],path=short);requests.append(entry);received=0
+            async def bounded():
+                nonlocal received
+                message=await receive();received+=len(message.get('body',b''));assert received<=32768
+                return message
+            async def observed(message):
+                if message['type']=='http.response.start':entry['status']=message['status']
+                await send(message)
+            await real_app(forwarded,bounded,observed);return
+        if short!='/api/ws' or query or any(k.lower() in (b'authorization',b'cookie',b'origin') for k,v in headers):
+            rejected.append('upgrade');await send(dict(type='websocket.close',code=1008));return
+        entry=dict(method='WS',path=short,rpc=[]);requests.append(entry);ids={};bound=None;resume_cursor=None
+        async def bounded_ws():
+            message=await receive()
+            if message['type']!='websocket.receive':return message
+            try:
+                raw=message.get('text');assert isinstance(raw,str) and len(raw.encode())<=32768 and len(rpc_requests)<128
+                frame=json.loads(raw);assert set(frame)=={'jsonrpc','id','method','params'} and frame['jsonrpc']=='2.0'
+                rid=frame['id'];assert type(rid) in (str,int) and len(str(rid))<=128 and rid not in ids
+                method,params=frame['method'],frame['params']
+                assert profile_android_rpc_allowed(method,params,profile=bound,session_id=sessions.get(bound),resume_cursor=resume_cursor,resumed=bound in resumed,replayed=bound in replayed,pinged=bound in pinged)
+                if method=='session.resume':resumed.add(bound)
+                if method=='session.events.since':replayed.add(bound)
+                if method=='gateway.ping':pinged.add(bound)
+                ids[rid]=method;entry['rpc'].append(method);rpc_requests.append(dict(profile=bound,method=method))
+            except BaseException:
+                rejected.append('rpc');await send(dict(type='websocket.close',code=1008));raise
+            return message
+        async def observed_ws(message):
+            nonlocal bound,resume_cursor
+            if message['type']=='websocket.accept':entry['accepted']=True
+            if message['type']=='websocket.close':entry['serverCloseCode']=message.get('code')
+            if message['type']=='websocket.send' and isinstance(message.get('text'),str):
+                frame=json.loads(message['text']);method=ids.get(frame.get('id'));result=frame.get('result')
+                if method=='runtime.describe' and isinstance(result,dict):
+                    names=[name for name,home in homes.items() if result.get('profile_id')==str(home)];assert len(names)==1
+                    bound=names[0];entry['profile']=bound
+                    assert result['instance_id']==runner.session_runtime_descriptor['instance_id']
+                    assert result['authority_epoch']==runner.session_authorities.require(homes[bound]).epoch
+                if method=='session.resume':
+                    assert result['session_id']==sessions[bound] and result['message_count']==0 and result['running'] is False
+                    assert result['info']['cwd']==str(workspace_cwds[0])
+                    resume_cursor=dict(last_sequence=result['last_sequence'],replay_epoch=result['replay_epoch'])
+            await send(message)
+        await real_app(forwarded,bounded_ws,observed_ws)
+    listener=socket.socket();listener.bind(('127.0.0.1',0));listener.listen(64);port=listener.getsockname()[1]
+    server=uvicorn.Server(uvicorn.Config(prefix,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets',lifespan='off',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5))
+    task=asyncio.create_task(server.serve(sockets=[listener]))
+    try:
+        deadline=time.monotonic()+15
+        while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
+        assert server.started and not task.done()
+        case=dict(caseId=case_id,surface=surface,sourceCommit=COMMIT,api=a.android_api,baseUrl=f'http://127.0.0.1:{port}/dashboard/',profileHomes={k:str(v) for k,v in homes.items()},sessions=sessions,workspace=str(workspace_cwds[0]))
+        ready=dict(state='READY_ACTUAL_OWNER_PROFILE_ANDROID_FIXTURE',pid=os.getpid(),port=port,case=case,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+        pending=root/'ready.pending';pending.write_text(json.dumps(ready)+'\n');pending.replace(root/'ready.json')
+        phase('READY_FOR_ONE_ANDROID_PROFILE_RETIREMENT_CASE')
+        deadline=time.monotonic()+600
+        while not (root/'retire-request.json').exists() and not (root/'android-result.json').exists() and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
+        assert (root/'retire-request.json').exists(),'No reviewed retirement request; preserve exact case'
+        stage=json.loads((root/'retire-request.json').read_text())
+        assert stage==dict(state='CACHE_CLOSED_FOR_PROFILE_RETIREMENT',caseId=case_id,surface=surface,api=a.android_api,sourceCommit=COMMIT,databaseName='owner-profile-'+case_id+'.db',sessions=sessions)
+        expected={'default','field'} if surface=='webapp' else {'default'}
+        assert resumed==replayed==pinged==expected
+        authority=runner.session_authorities.require(secondary)
+        await runner._unserve_profile('field',secondary)
+        assert authority.retired and authority.retiring and not runner._draining
+        assert runner.session_authorities.for_home(secondary) is None and runner.session_authorities.profile_ids()==frozenset([str(launch)])
+        assert not runner.session_authorities.require(launch).retired
+        retired=True;phase('ACTUAL_FIELD_AUTHORITY_RETIRED_AFTER_ANDROID_CACHE_CLOSE')
+        while not (root/'android-result.json').exists() and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.1)
+        assert (root/'android-result.json').exists(),'Android result unknown; preserve exact case'
+        proof=json.loads((root/'android-result.json').read_text());assert proof['instrumentationPassed'] is True and proof['distinctMethods']==1
+        result=proof['result']
+        assert result['state']=='PASS_ANDROID_REAL_OWNER_PROFILE_RETIREMENT' and result['backend']=='actual-owner'
+        assert result['caseId']==case_id and result['surface']==surface and result['api']==a.android_api and result['sourceCommit']==COMMIT
+        assert result['savedCredentialsUnchanged'] is True and result['modelOrWorkerExecutionClaim'] is False and result['recordCount']==len(expected)
+        assert not rejected and resumed==replayed==pinged==expected
+        assert sum(row['method']=='session.resume' for row in rpc_requests)==len(expected)
+        assert sum(row['method']=='session.events.since' for row in rpc_requests)==len(expected)
+        record.update(android=result,profileTicketAndroid=dict(surface=surface,snapshots=snapshots,caseId=case_id,requests=requests,rpcRequests=rpc_requests,rejected=rejected,retired=retired))
+        phase('ANDROID_PROFILE_CACHE_RETIREMENT_RECONCILED_WITH_REAL_AUTHORITIES')
+    finally:
+        record['profileTicketAndroid']=dict(surface=surface,snapshots=snapshots,caseId=case_id,requests=requests,rpcRequests=rpc_requests,rejected=rejected,retired=retired)
+        server.should_exit=True;await asyncio.wait_for(task,15);listener.close()
+
 async def run():
     from hermes_cli.config import atomic_config_write
     import secrets
     fixture_keys={str(home):secrets.token_hex(32) for home in (launch,secondary)} if a.read_api_history else {}
-    if a.probe_profile_tickets=='webapp':
+    if (a.probe_profile_tickets or a.android_profile_tickets)=='webapp':
         dist=root/'synthetic-renderer';dist.mkdir();(dist/'index.html').write_text('<!doctype html><title>Fixture renderer: not exercised</title>',encoding='utf-8');os.environ['HERMES_WEBAPP_DIST']=str(dist)
     for profile_home in (launch,secondary):
         if a.read_api_history:(profile_home/'.env').write_text('API_SERVER_KEY='+fixture_keys[str(profile_home)]+'\n',encoding='utf-8')
@@ -582,7 +721,7 @@ async def run():
         assert control is not None
         _refresh_host_gateway_record(runner)
         phase('NATIVE_CONTROL_STARTED')
-        if a.probe_profile_tickets=='webapp':
+        if (a.probe_profile_tickets or a.android_profile_tickets)=='webapp':
             from gateway.webapp_listener import WebappMount
             api=await run_api.start_gateway_api(runner,host='127.0.0.1',port=0,webapp=WebappMount(dist=root/'synthetic-renderer',home=launch))
             runner.session_api=api;runner.session_runtime_descriptor['api_origin']=api.api_origin
@@ -603,6 +742,10 @@ async def run():
         if a.probe_profile_tickets:
             await profile_ticket_probe(runner,api)
             record['state']='PASS_ACTUAL_OWNER_PROFILE_TICKET_PROBE'
+            return
+        if a.android_profile_tickets:
+            await serve_profile_tickets_android(runner,api)
+            record['state']='PASS_ANDROID_REAL_OWNER_PROFILE_RETIREMENT'
             return
         if a.read_api_history:
             await serve_closed_history_android(runner,fixture_keys)
@@ -842,7 +985,7 @@ finally:
                 assert hashlib.sha256(raw).hexdigest()==before[rel],rel
                 imported.append(dict(module=name,path=rel,gitBlob=oid,sha256=before[rel]))
     record.update(importedModules=imported,versionProbes=version_probes,socketEvents=sockets,workspaceProbes=workspace_probes,blockedCatalogReads=blocked_catalog_reads,
-        scope=('Actual owner native-auth/profile ticket/retirement backend proof; synthetic IdP/renderer placeholder, no Android, model, worker, production or complete Webapp/lifecycle acceptance; shutdown diagnostics remain separate.' if a.probe_profile_tickets else ('Actual owner/bearer API/closed seeded history/Room reads. No native login, inference, production or complete lifecycle acceptance; final shutdown diagnostics remain separate.' if a.read_api_history else 'One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance. Final shutdown diagnostics must also be accepted.')))
+        scope=('Actual Android/native-auth/profile attachment/retirement and receipt/cursor Room proof; synthetic IdP and renderer placeholder, no inference, production or full lifecycle acceptance.' if a.android_profile_tickets else 'Actual owner native-auth/profile ticket/retirement backend proof; synthetic IdP/renderer placeholder, no Android, model, worker, production or complete Webapp/lifecycle acceptance; shutdown diagnostics remain separate.' if a.probe_profile_tickets else ('Actual owner/bearer API/closed seeded history/Room reads. No native login, inference, production or complete lifecycle acceptance; final shutdown diagnostics remain separate.' if a.read_api_history else 'One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance. Final shutdown diagnostics must also be accepted.')))
     (root/'report.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(dict(state=record['state'],modules=len(imported),denials=len(denied))),flush=True)
-if record['state']!=('PASS_ACTUAL_OWNER_PROFILE_TICKET_PROBE' if a.probe_profile_tickets else ('PASS_ANDROID_REAL_OWNER_CLOSED_HISTORY' if a.read_api_history else 'PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT')) or denied:sys.exit(1)
+if record['state']!=('PASS_ANDROID_REAL_OWNER_PROFILE_RETIREMENT' if a.android_profile_tickets else 'PASS_ACTUAL_OWNER_PROFILE_TICKET_PROBE' if a.probe_profile_tickets else ('PASS_ANDROID_REAL_OWNER_CLOSED_HISTORY' if a.read_api_history else 'PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT')) or denied:sys.exit(1)
