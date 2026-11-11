@@ -1,5 +1,19 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - native generation interruption and host restart checkpoint
+
+Actual native generation now passes a supervised debug-process interruption,
+no-replay cold recovery, one explicit fresh generation and a preserved-AVD host
+restart. A guest reboot timeout is retained; normal guest reboot remains open.
+The pending exchange becomes interrupted; both it and the completed fresh reply
+remain readable without loading weights. Installed APKs, UIDs, preference bytes,
+model/chat hashes and AVD configuration are retained. This is two passing methods
+and an intentionally interrupted preparation, not a full Android suite. The first
+exact-output failure remains recorded. See [scope and hashes](contracts/2026-11-11-native-process-recovery.md).
+Required checks pass 921 JVM, 229 policies and zero-error lint. Physical-phone,
+transfer process-death, broader lifecycle/UI, original remote audit and signed
+release gates remain open; all earlier requirements below are retained.
+
 ## 11 November 2026 - model publication/stop reconciliation
 
 Stopped imports/downloads now reconcile actual model files before idle, retain

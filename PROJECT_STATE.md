@@ -44,13 +44,23 @@ API 26 cancellation/discard and API 37 explicit full HTTPS resume. Committed
 models become visible without replay/reopen/load; reconciliation errors preserve
 files and release the guard. See [scope](docs/contracts/2026-11-11-model-stop-reconciliation.md).
 
+Real native generation also passes supervised force-stop/cold recovery and an
+Android 17 preserved-AVD host restart: two passing methods plus one intentionally
+interrupted preparation. The old turn is interrupted without replay; only an
+explicit fresh question generates, and read-only history works after host restart.
+Guest reboot/console-close timeouts are retained; normal guest reboot remains open.
+Preference/file/APK/UID/configuration checks pass. A failed exact-wording oracle
+is retained separately. Main/debug/native product sources are unchanged; see
+[the component recovery scope](docs/contracts/2026-11-11-native-process-recovery.md).
+
 Exact next action: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run
 its three-method physical fixture including all six reviewed helper topics and
 Chinese generation. Its pending installer filenames are unchanged. The later
 transfer-fix APK is not yet physical acceptance. Then complete current-source
-phone upgrade/download/UI interruption checks, installation-boundary/process/
-background/reboot recovery and normal Qwen picker/physical chat/switch/cancellation.
+phone upgrade/download/UI interruption checks, transfer installation-boundary/
+process recovery, broader background/reboot behavior and normal Qwen picker/
+physical chat/switch/cancellation.
 The original Hermes, workspace, worker, automation, integration and exact-source
 release gates remain required. No production APK release is claimed.
 See [usage](docs/ON_DEVICE_AI.md) and [the full audit ledger](docs/AUDIT_EXECUTION_PLAN.md).

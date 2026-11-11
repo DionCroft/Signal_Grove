@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - real native process and host restart recovery
+
+A new opt-in fixture verifies actual native output and a durable pending chat
+before the host force-stops the exact debug process on Android 17 x86_64. Cold
+startup marks the old turn interrupted without loading or replaying it. Only an
+explicit fresh send generates; its stored reply equals the real native output.
+A restart of the preserved AVD changes the boot ID and retains model/chat hashes,
+APKs, package UIDs, preferences and AVD configuration. Reading afterward performs no
+native load/generation and leaves the transcript unchanged. The guest reboot
+command and console close timed out; only the exact hung emulator was stopped
+on the host and relaunched with its original storage/configuration. Normal
+guest reboot is not accepted. Those timeout receipts are retained.
+
+Two methods pass; the deliberately interrupted preparation is not a JUnit pass.
+The first attempt's stochastic exact-wording failure is retained and reconciled
+without replay. The corrected output oracle is described in
+[the recovery contract](contracts/2026-11-11-native-process-recovery.md).
+Required checks pass 921 JVM / 90 reports, 229 policies, both APK assemblies and
+zero-error lint (50 / 49 warnings). This is component recovery acceptance, not
+physical-phone, transfer process-death, full UI or full release acceptance.
+The main/debug/native application sources and pending phone candidate are unchanged.
+
 ## 11 November 2026 - stopped imports reflect committed files
 
 The controller reconciles actual models/partials before returning a stopped

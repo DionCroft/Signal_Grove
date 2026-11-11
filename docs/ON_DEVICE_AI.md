@@ -55,6 +55,11 @@ readable even when their model is not loaded.
 Use **Stop** during generation. Cancelled, interrupted and failed questions are
 labelled and excluded from the context of a later send. After process exit,
 unfinished local exchanges are marked interrupted and never automatically rerun.
+An Android 17 emulator component test verifies real-native force-stop recovery
+and read-only history after restarting the preserved AVD. A timed-out guest
+reboot remains unaccepted; phone and transfer interruption checks are separate.
+See [the recovery scope](contracts/2026-11-11-native-process-recovery.md).
+
 Each chat has a 30-turn limit and each question an 8-KiB UTF-8 limit. Start a new
 chat if its context is full; history is retained.
 
