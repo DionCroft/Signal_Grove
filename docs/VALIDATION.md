@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - live HTTPS transfer and stopped-read correction
+
+Real publisher HTTPS checks pass on Android emulators: cancellation/partial
+retention and explicit discard on API 26, plus cancellation, cold-controller
+retention and explicit full resume on API 37. The full LFM3 file matches the exact
+size and publisher checksum before atomic installation. A real API 37 failure
+exposed cancelled blocking reads escaping as I/O errors; the narrow cancellation
+checkpoint now fixes that symptom with the original Android test APK unchanged.
+Paired JVM regressions retain active I/O failures and their cause.
+
+The corrected snapshot passes 918 JVM / 90 reports, 229 policies, both APK
+assemblies and zero-error lint (50 / 49 warnings). Phone UI/process/reboot and
+full release acceptance remain open. Earlier failed runs and the corrected
+exception-identity oracle are retained. See
+[scope, reproduction and hashes](contracts/2026-11-11-live-model-transfer.md).
+
 ## 11 November 2026 - real two-family Android integration
 
 Three fresh integration executions pass: Qwen import, embedded generation,

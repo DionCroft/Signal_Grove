@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - live optional-model transfer checkpoint
+
+The real default-client model path now passes Android HTTPS cancellation and
+explicit discard on API 26, plus retained-partial/cold-controller/explicit full
+resume and atomic install on API 37. A stopped blocking read previously surfaced
+an I/O failure; the correction and paired regressions retain genuine active I/O
+failures. See [the exact scope and retained attempts](contracts/2026-11-11-live-model-transfer.md).
+The new snapshot passes 918 JVM cases, 229 policies and zero-error lint. These
+component checks leave phone, process/reboot, full UI, original remote audit and
+signed-release requirements open. All earlier ledger requirements are retained.
+
 ## 11 November 2026 - optional local-AI integration checkpoint
 
 LFM3's actual phone flow now proves normal picker/licence import, offline typed

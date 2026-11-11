@@ -1,5 +1,7 @@
 # Verified optional model download
 
+Later [live Android transfer and cancellation checks](2026-11-11-live-model-transfer.md) extend the evidence below and correct a blocked-read cancellation error. These earlier component results retain their original scope.
+
 The download component pins the recommended LFM3-1.7B QAD Q4_0 to the revision,
 size and SHA-256 in `RecommendedLocalModel`, matching
 [the provenance manifest](../on-device-ai-provenance.json). Weights are not

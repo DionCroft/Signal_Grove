@@ -68,6 +68,10 @@ they are not included in Android backup.
 Interrupted recommended downloads retain their partial file. Resume or discard
 it explicitly from Phone models. A server that ignores a resume request leaves
 that partial intact; it does not trigger an automatic second download.
+The production transfer path has passed real HTTPS cancellation/discard on
+Android emulators and a full publisher-hash-verified resume on API 37. Physical
+phone, UI interruption and process/reboot recovery checks remain separate; see
+[the tested scope](contracts/2026-11-11-live-model-transfer.md).
 
 ## Setup and troubleshooting
 

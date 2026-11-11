@@ -29,16 +29,24 @@ that earlier UI measurement is not counted as a fresh full suite. See
 [the integration contract](docs/contracts/2026-11-11-two-family-android-integration.md).
 The history keyboard/native-input finding remains open. No APK release is claimed.
 
-Exact next action: the owner installs the already-staged, unchanged phone
-helper candidate through Xiaomi's installer; verify retained production/model/
-chat hashes and run its three-method physical fixture including all six reviewed
-helper topics and Chinese generation. New test-only APKs were used on emulators;
-they do not replace the pending phone installer filenames. Then complete normal
-Qwen picker/physical import/chat/switch, second-model cancellation/recovery,
-real HTTPS transfer/resume/cancellation and extended lifecycle. The original
-Hermes, workspace, worker, automation, integration and exact-source release
-gates remain required. See [usage](docs/ON_DEVICE_AI.md) and
-[the full audit ledger](docs/AUDIT_EXECUTION_PLAN.md).
+The latest transfer correction passes 918 JVM / 90 reports, 229 policies,
+zero-error lint (50 / 49 warnings) and two fresh real HTTPS checks. API 26 stops
+and explicitly discards only its partial; API 37 stops, retains the same partial
+through controller recreation and explicitly resumes to the full publisher-
+matching model before atomic install. The prior live API 37 cancellation failure
+is retained; a cancellation checkpoint fixes blocked-read I/O misclassification.
+See [the transfer contract](docs/contracts/2026-11-11-live-model-transfer.md).
+
+Exact next action: the owner installs the already-staged phone helper candidate
+through Xiaomi's installer; verify retained production/model/chat hashes and run
+its three-method physical fixture including all six reviewed helper topics and
+Chinese generation. Its pending installer filenames are unchanged. The later
+transfer-fix APK is not yet physical acceptance. Then complete current-source
+phone upgrade/download/UI interruption checks, installation-boundary/process/
+background/reboot recovery and normal Qwen picker/physical chat/switch/cancellation.
+The original Hermes, workspace, worker, automation, integration and exact-source
+release gates remain required. No production APK release is claimed.
+See [usage](docs/ON_DEVICE_AI.md) and [the full audit ledger](docs/AUDIT_EXECUTION_PLAN.md).
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit

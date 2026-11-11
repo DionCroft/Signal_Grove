@@ -1,6 +1,7 @@
 package org.hermesmobile.app.local
 
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -91,6 +92,10 @@ internal class LocalModelDownload(private val store: LocalModelStore,
                                 output.fd.sync()
                             } }
                         }
+                    } catch (e: IOException) {
+                        // A cancelled blocking read can fail before the next coroutine checkpoint.
+                        checkpoint()
+                        throw e
                     } finally { watcher.cancel() }
                 }
             }

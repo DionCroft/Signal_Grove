@@ -3,9 +3,13 @@ package org.hermesmobile.app.local
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.security.MessageDigest
 import java.util.concurrent.CancellationException
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import okio.source
+import okio.buffer
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -141,4 +145,69 @@ class LocalModelDownloadTest {
         try { downloader.download(true) } catch (e: LocalModelStorageException) { reason = e.reason }
         assertEquals("download_size", reason); assertTrue(root.listFiles()!!.isEmpty())
     }
+    private fun stalledBody(bytes: ByteArray, afterFirstRead: () -> Nothing): okhttp3.ResponseBody {
+        var emitted = false
+        val input = object : InputStream() {
+            override fun read(): Int {
+                val one = ByteArray(1); val n = read(one, 0, 1)
+                return if(n < 0) -1 else one[0].toInt() and 255
+            }
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                if(length == 0) return 0
+                if(emitted) afterFirstRead()
+                val n = minOf(length, 512, bytes.size)
+                bytes.copyInto(buffer, offset, 0, n); emitted = true
+                return n
+            }
+        }.source().buffer()
+        return object : okhttp3.ResponseBody() {
+            override fun contentType(): okhttp3.MediaType? = null
+            override fun contentLength(): Long = bytes.size.toLong()
+            override fun source(): okio.BufferedSource = input
+        }
+    }
+    @Test fun cancellingABlockedBodyReportsCancellationAndRetainsItsPrefix() = runBlocking {
+        val bytes = fixture(); val root = temp.newFolder(); val store = store(root)
+        val entered = java.util.concurrent.CountDownLatch(1)
+        val observed = CompletableDeferred<Exception>(); var requests = 0
+        val http = OkHttpClient.Builder().retryOnConnectionFailure(false).addInterceptor {chain ->
+            requests++
+            val body = stalledBody(bytes) {
+                entered.countDown()
+                val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(5)
+                while(!chain.call().isCanceled() && System.nanoTime() < deadline) Thread.sleep(1)
+                check(chain.call().isCanceled()) {"Stop did not reach the HTTP call"}
+                throw IOException("Stopped while blocked in a body read")
+            }
+            response(chain.request(), bytes).newBuilder().body(body).build()
+        }.build()
+        val downloader = LocalModelDownload(store, http, spec(bytes))
+        val job = launch(Dispatchers.Default) {
+            try {downloader.download(true)} catch(e: Exception) {observed.complete(e)}
+        }
+        assertTrue(withContext(Dispatchers.IO) {entered.await(5, java.util.concurrent.TimeUnit.SECONDS)})
+        withTimeout(5_000) {job.cancelAndJoin()}
+        val error = withTimeout(5_000) {observed.await()}
+        assertTrue("Expected coroutine cancellation, got ${error.javaClass.simpleName}", error is CancellationException)
+        assertEquals(1, requests); assertEquals(512L, downloader.partialBytes())
+        assertArrayEquals(bytes.copyOfRange(0, 512), File(root, "${spec(bytes).sha256}.part").readBytes())
+        assertTrue(store.models().isEmpty())
+    }
+    @Test fun anActiveBodyReadFailureRemainsAnIoFailureWithoutRetryOrInstallation() = runBlocking {
+        val bytes = fixture(); val root = temp.newFolder(); val store = store(root)
+        val failure = IOException("Connection lost before a stop request")
+        var requests = 0
+        val http = OkHttpClient.Builder().retryOnConnectionFailure(false).addInterceptor {chain ->
+            requests++
+            response(chain.request(), bytes).newBuilder().body(stalledBody(bytes) {throw failure}).build()
+        }.build()
+        val downloader = LocalModelDownload(store, http, spec(bytes))
+        var observed: Exception? = null
+        try {downloader.download(true)} catch(e: Exception) {observed = e}
+        assertTrue(observed is IOException)
+        assertTrue(generateSequence(observed as Throwable?) {it.cause}.take(8).any {it === failure})
+        assertEquals(1, requests)
+        assertEquals(512L, downloader.partialBytes()); assertTrue(store.models().isEmpty())
+    }
+
 }
