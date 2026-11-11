@@ -60,8 +60,16 @@ font scale 1.3. Eleven earlier API 37 regression cases retain byte-identical
 view-model/provenance/fixture sources and are counted separately. See
 [the routing acceptance](docs/contracts/2026-11-11-reviewed-phone-draft.md).
 
-Exact next independent action: inspect the pinned Hermes chat/project/workspace
-contracts against the audit ledger to implement missing workspace binding.
+The canonical viewer now has opt-in attachment-time Hermes-host directory
+observations and a tested internal exact-value review foundation. Required checks
+pass 939 JVM / 92 reports, 229 policies and zero-error lint; all 11 viewer methods
+pass freshly on each API 26/API 37 emulator. No workspace write or worker binding
+is exposed. See [scope and remaining acceptance](docs/contracts/2026-11-11-session-workspace-foundation.md).
+
+Exact next independent action: implement separately reviewed authority-host
+workspace mutation with supported handle/permission checks, durable receipts and
+real-runtime no-replay acceptance; then implement actual worker/project binding.
+Do not substitute a Pi-side directory for the Windows authoritative working copy.
 
 Owner-dependent check: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run

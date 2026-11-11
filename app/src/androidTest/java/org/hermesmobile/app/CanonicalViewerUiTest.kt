@@ -45,7 +45,7 @@ class CanonicalViewerUiTest {
     private inner class Link:CanonicalViewerLink {
         val events=Channel<CanonicalFeedDelivery>(Channel.UNLIMITED)
         val initial=CanonicalFeedDelivery(CanonicalFeedStatus(CanonicalFeedPhase.Following,cursor,null,0),emptyList())
-        val snapshot=CanonicalSessionSnapshot(owner,"fixture-history","fixture-history","fixture-subscription",cursor,2,3,false,2,true)
+        val snapshot=CanonicalSessionSnapshot(owner,"fixture-history","fixture-history","fixture-subscription",cursor,2,3,false,2,true,CanonicalWorkspaceDirectory.Reported("/fixture/private-project"))
         override val attachment=CanonicalGatewayChannel.Attachment(snapshot,initial)
         override val receipt=ManagementOperation("native-viewer-receipt",target.resourceScope,target.apiScope,target.url,target.profile,target.actor,
             CanonicalResumeAction.Id,"fixture-history",inventory(CanonicalSessionScope.Live).review("fixture-history").summary(),"confirmed",snapshot.receiptSummary(),1,home)
@@ -120,6 +120,21 @@ class CanonicalViewerUiTest {
         compose.runOnUiThread {viewer.close();shown=false;scope.cancel()}
         compose.waitForIdle();assertFalse(guard.active.value)
     }
+    @Test fun workspaceDetailsArePrivateUntilOpenedAndClearedOnClose() {
+        render();open()
+        compose.onNodeWithTag("canonical-workspace-path").assertDoesNotExist()
+        scroll("canonical-viewer-list","canonical-workspace-open").performClick()
+        scroll("canonical-viewer-list","canonical-workspace-path").assertTextEquals("/fixture/private-project")
+        assertNotNull(viewer.state.value.workspaceObservedAt)
+        compose.onNodeWithTag("canonical-viewer-list").performScrollToNode(hasText(Words.ViewerWorkspaceBoundary.en))
+        compose.onNodeWithText(Words.ViewerWorkspaceBoundary.en).assertIsDisplayed()
+        capture("canonical-viewer-list","canonical-workspace-details")
+        compose.onNodeWithTag("canonical-close").performClick()
+        compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Closed}
+        assertNull(viewer.state.value.workspace);assertNull(viewer.state.value.workspaceObservedAt)
+        assertEquals(1,repo.adoptions);assertEquals(1,repo.link.closes)
+    }
+
     @Test fun privateReasoningAdvancesTheCursorWithoutEnteringVisibleActivity() {
         render();open()
         val secret="fixture-private-reasoning-sentinel"

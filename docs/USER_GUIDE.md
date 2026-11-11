@@ -414,3 +414,17 @@ private values and old grants. After an attempt, explicitly reload the current
 inventory, board and task before preparing another status change. These host
 boards are separate from the phone's local Tasks database. Full acceptance and
 remaining actual-server/worker checks are in [VALIDATION](VALIDATION.md).
+
+
+## Inspect the directory reported by a live session
+
+In **Hermes management → Live sessions**, choose a conversation and complete its
+attachment review. Open **Session workspace** to reveal the directory reported
+when that viewer attached and its observation time. Close and separately review
+a new attachment to obtain a fresh snapshot. A missing/invalid optional directory
+shows an explanation without blocking valid session activity.
+
+For a Pi-backed setup, this is the Pi's Hermes-host directory. It does not bind a
+chat to a Windows/NAS project or verify a worker's files, applications or execution
+permissions. Workspace editing and worker/project binding remain pending; use the
+verified project owner for engineering work. Closing clears the private details.

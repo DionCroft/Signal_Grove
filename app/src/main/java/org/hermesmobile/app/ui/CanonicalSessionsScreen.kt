@@ -22,6 +22,7 @@ import java.util.Date
     controller:CanonicalViewerController,available:Boolean,pending:Boolean,close:()->Unit
 ) {
     val s by controller.state.collectAsStateWithLifecycle()
+    var workspaceDetails by remember(s.sessionId,s.workspaceObservedAt) {mutableStateOf(false)}
     val lifecycle=LocalLifecycleOwner.current.lifecycle
     DisposableEffect(controller,lifecycle) {
         val observer=LifecycleEventObserver {_,event->if(event==Lifecycle.Event.ON_STOP) controller.close()}
@@ -59,6 +60,18 @@ import java.util.Date
             if(s.sessionId.isNotBlank() && s.phase in setOf(CanonicalViewerPhase.Following,CanonicalViewerPhase.Held)) {
                 item {Text(s.title.ifBlank {s.sessionId},style=MaterialTheme.typography.titleMedium);SelectionContainer {Text(s.sessionId)};Text(label(Words.ViewerSnapshotNote))}
                 if(s.phase==CanonicalViewerPhase.Following) item {Text(label(Words.ViewerFollowing),modifier=Modifier.testTag("canonical-following"))}
+                s.workspace?.let {directory->item {
+                    TextButton({workspaceDetails=!workspaceDetails},Modifier.heightIn(min=48.dp).testTag("canonical-workspace-open")) {Text(label(Words.ViewerWorkspace))}
+                    if(workspaceDetails) Column(Modifier.testTag("canonical-workspace-details"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                        Text(label(Words.ViewerWorkspaceSnapshot))
+                        if(directory is CanonicalWorkspaceDirectory.Reported) {
+                            if(directory.path.isEmpty()) Text(label(Words.ViewerWorkspaceUnset))
+                            else SelectionContainer {Text(directory.path,Modifier.testTag("canonical-workspace-path"))}
+                        } else Text(label(Words.ViewerWorkspaceUnavailable))
+                        s.workspaceObservedAt?.let {time->Text(DateFormat.getDateTimeInstance().format(Date(time)))}
+                        Text(label(Words.ViewerWorkspaceBoundary),style=MaterialTheme.typography.bodySmall)
+                    }
+                }}
                 item {Text(label(Words.ViewerActivityLimit))}
                 item {Text(label(Words.ViewerEventCount).replace("{count}",s.observed.toString()))}
                 s.heartbeatAt?.let {time->item {Text(label(Words.ViewerHeartbeat).replace("{time}",DateFormat.getTimeInstance().format(Date(time))))}}

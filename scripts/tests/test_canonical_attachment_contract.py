@@ -55,7 +55,7 @@ class CanonicalAttachmentContractTest(unittest.TestCase):
         for key in ('CanonicalResumeParams.omit_messages','CanonicalListParams.scope','CanonicalSnapshot.stored_session_id',
                     'CanonicalSnapshot.subscription_id','CanonicalSnapshot.authority_epoch','CanonicalSnapshot.revision',
                     'CanonicalSnapshot.execution_generation','CanonicalSnapshot.last_sequence','CanonicalEventsParams.replay_epoch',
-                    'CanonicalEventsResult.snapshot_required','CanonicalReplayEvent.session_id'):
+                    'CanonicalEventsResult.snapshot_required','CanonicalReplayEvent.session_id','CanonicalSnapshotInfo.cwd'):
             key='canonical_sessions:'+key
             with self.subTest(key=key):
                 self.assertIn(key,b['mobile_used_request_fields'])

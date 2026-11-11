@@ -28,7 +28,8 @@ internal data class CanonicalViewerState(
     val inventory:CanonicalSessionInventory?=null,val review:CanonicalViewerReview?=null,
     val title:String="",val sessionId:String="",val receiptKey:String="",
     val cursor:CanonicalReplayCursor?=null,val observed:Long=0,
-    val activities:List<CanonicalActivity> = emptyList(),val heartbeatAt:Long?=null,val error:Words?=null
+    val activities:List<CanonicalActivity> = emptyList(),val heartbeatAt:Long?=null,val error:Words?=null,
+    val workspace:CanonicalWorkspaceDirectory?=null,val workspaceObservedAt:Long?=null
 ) {
     val busy get()=phase in setOf(CanonicalViewerPhase.Loading,CanonicalViewerPhase.Opening)
     override fun toString()="CanonicalViewerState("+phase+")"
@@ -113,7 +114,8 @@ internal class CanonicalViewerController(
                 link=attached
                 requireCurrent(id,access)
                 connection=attached
-                state.value=state.value.copy(receiptKey=attached.receipt.key,sessionId=attached.attachment.snapshot.owner.sessionId)
+                state.value=state.value.copy(receiptKey=attached.receipt.key,sessionId=attached.attachment.snapshot.owner.sessionId,
+                    workspace=attached.attachment.snapshot.workspace,workspaceObservedAt=now())
                 beat(attached)
                 requireCurrent(id,access)
                 apply(id,access,attached,attached.attachment.initial)

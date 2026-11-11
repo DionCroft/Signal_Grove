@@ -1,5 +1,20 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - private session workspace observations
+
+The explicitly attached canonical viewer now reveals its reported Hermes-host
+directory and attachment time only when requested. It clears on close/scope
+changes and excludes paths from receipts. Invalid optional directory metadata
+leaves valid history/activity available. Exact-value, one-use workspace review
+is an internal foundation only; no mutation RPC/control or worker binding is added.
+
+Fresh checks pass 939 JVM / 92 reports, 229 policies, both APK assemblies and
+zero-error lint (50 / 49 warnings). All 11 canonical-viewer methods pass on each
+API 26/API 37 emulator; two workspace screenshots are visually reviewed. See
+[the exact source/acceptance scope](contracts/2026-11-11-session-workspace-foundation.md).
+Real host-directory mutation, worker/project/files, physical current-source and
+full original audit/release gates remain required.
+
 ## 11 November 2026 - explicit offline routing checkpoint
 
 Reviewed new text-only drafts now have an opt-in path into phone chat without
