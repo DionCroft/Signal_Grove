@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - real-owner HTTP/native workspace matrix
+
+Four tracked-source executions now cover both exact runtime pins and both native
+owner tickets and synthetic-IdP HTTP PKCE/refresh/WS tickets. A separate fresh
+HTTP-ticketed attachment independently observes the mutated directory. Final
+SQLite/source/boundary checks agree; all four retain the nonzero upstream shutdown
+warning. The complete policy suite passes 232 tests. These Python proofs do not
+test Android's real HTTP callback/client/Room path or close lifecycle acceptance.
+See [exact matrix and remaining gates](contracts/2026-11-11-http-owner-workspace.md).
+All original audit, worker/project/files, physical and signed-release gates remain.
+
 ## 11 November 2026 - actual native-owner workspace transport
 
 The tracked real-owner probe now creates a disposable session, mutates its host

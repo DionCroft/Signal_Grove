@@ -3,9 +3,10 @@
 Uses an immutable reviewed Hermes checkout, existing dependencies and a fresh
 E: root. Creates one disposable session through the real owner ticketed socket;
 changes only its fixture-local workspace and checks a separate fresh attachment.
+Optional HTTP mode uses the upstream test IdP and real native-app PKCE/tickets.
 Never supplies a trusted Actor/runner or calls inference/tools. Exit 2 retains a
 core protocol pass with a process-exit shutdown finding; it is not full lifecycle,
-Android/HTTP authentication, worker/project binding or deployed-fleet acceptance.
+Android/production-IdP acceptance, worker/project binding or deployed-fleet acceptance.
 """
 from pathlib import Path
 import argparse, asyncio, atexit, datetime, hashlib, ipaddress, json, logging, os, subprocess, sys, traceback, urllib.parse, weakref
@@ -18,6 +19,8 @@ REVIEWED_COMMITS = (
 p = argparse.ArgumentParser()
 p.add_argument('--source-commit', choices=REVIEWED_COMMITS, default=REVIEWED_COMMITS[0],
                help='Exact reviewed checkout; defaults to the original owner-runtime pin.')
+p.add_argument('--transport', choices=('native','http'), default='native',
+               help='HTTP uses a local synthetic IdP through actual Hermes PKCE/refresh/WS-ticket routes.')
 p.add_argument('--source-root', type=Path, required=True)
 p.add_argument('--dependency-site', type=Path, required=True)
 p.add_argument('--work-root', type=Path, required=True)
@@ -34,10 +37,10 @@ def supervise():
     receipt=root.with_suffix('.supervisor.json');log=root.with_suffix('.supervisor.log')
     assert not receipt.exists() and not log.exists()
     command=[sys.executable,'-I','-S','-B',str(Path(__file__).resolve()),'--owned-child',
-             '--source-commit',COMMIT,'--source-root',str(source),'--dependency-site',str(site),'--work-root',str(root)]
+             '--source-commit',COMMIT,'--transport',a.transport,'--source-root',str(source),'--dependency-site',str(site),'--work-root',str(root)]
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
-    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     def save():receipt.write_text(json.dumps(observation,indent=2)+'\n',encoding='utf-8')
     save()
     with log.open('xb') as stream:
@@ -79,10 +82,10 @@ def supervise():
     assert not (root/'hermes-home/gateway.pid').exists()
     observation.update(coreTransportAccepted=True,stores=stores,shutdownWarnings=len(final['warnings']),
         importedModules=len(core['importedModules']),sourceCommit=COMMIT,
-        scope='Actual native-owner ticketed workspace create/mutate/fresh readback/fences only; no HTTP login, Android, Pi, inference/tool/worker or complete lifecycle acceptance.')
+        scope='Actual owner workspace exchange using selected native or synthetic-IdP HTTP transport; no Android, production IdP, Pi, inference/tool/worker or complete lifecycle acceptance.')
     clean=final['state']=='CLEAN_EXIT_OBSERVATION' and not final['warnings']
     observation['state']='PASS_FINITE_OWNER_RUNTIME' if clean else 'CORE_PASS_SHUTDOWN_FINDING_OPEN'
-    save();print(json.dumps({k:observation[k] for k in ('state','importedModules','shutdownWarnings','sourceCommit','stores')}))
+    save();print(json.dumps({k:observation[k] for k in ('state','transport','importedModules','shutdownWarnings','sourceCommit','stores')}))
     return 0 if clean else 2
 
 if not a.owned_child:
@@ -200,7 +203,7 @@ def audit(event,args):
             if value.startswith('/') and len(value)>2 and value[2]==':':value=value[1:]
         if not Path(value).resolve().is_relative_to(root):refuse('sqlite-outside-fixture')
 sys.addaudithook(audit)
-record=dict(state='STARTING_FINITE_REAL_OWNER_PROBE',commit=COMMIT,pid=os.getpid(),phases=[],denied=denied,
+record=dict(state='STARTING_FINITE_REAL_OWNER_PROBE',commit=COMMIT,transport=a.transport,pid=os.getpid(),phases=[],denied=denied,
     harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
 shutdown_warnings=[]
 class ShutdownDiagnostics(logging.Handler):
@@ -255,7 +258,12 @@ async def run():
         phase('NATIVE_CONTROL_STARTED')
         await runtime.start_gateway_runtime_api(runner);api=runner.session_api
         assert not api.task.done()
-        await api.app.ensure()
+        web=await api.app.ensure()
+        if a.transport=='http':
+            from hermes_cli.dashboard_auth import clear_providers,register_provider,native_flow
+            from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
+            clear_providers();register_provider(StubAuthProvider());native_flow._reset_for_tests()
+            web.app.state.auth_required=True
         phase('ACTUAL_DASHBOARD_LIFESPAN_STARTED')
         assert await runner.start()
         assert runner._running and not runner._draining
@@ -296,6 +304,52 @@ async def run():
                 raise AssertionError('A one-use ticket was accepted twice')
         except InvalidStatus as exc:assert exc.response.status_code==403
         phase('REPLAYED_TICKET_UPGRADE_REFUSED')
+        if a.transport=='http':
+            import httpx,base64,secrets,contextlib,socket
+            verifier=secrets.token_urlsafe(48);state=secrets.token_urlsafe(24)
+            challenge=base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
+            callback_socket=socket.socket();callback_socket.bind(('127.0.0.1',0))
+            redirect='http://127.0.0.1:'+str(callback_socket.getsockname()[1])+'/callback'
+            origin=api.api_origin.rstrip('/')
+            async with httpx.AsyncClient(base_url=origin,trust_env=False,follow_redirects=False,timeout=20) as browser:
+                first=await browser.get('/auth/native/authorize',params=dict(provider='stub',code_challenge=challenge,
+                    code_challenge_method='S256',redirect_uri=redirect,state=state))
+                assert first.status_code==302,('authorize',first.status_code,first.text[:200])
+                location=urllib.parse.urljoin(origin,first.headers['location'])
+                assert urllib.parse.urlsplit(location)._replace(path='',query='',fragment='').geturl()==origin
+                assert urllib.parse.urlsplit(location).path=='/auth/callback'
+                second=await browser.get(location)
+                assert second.status_code==302,('callback',second.status_code,second.text[:200])
+                destination=urllib.parse.urlsplit(second.headers['location']);expected=urllib.parse.urlsplit(redirect)
+                assert destination._replace(query='')==expected
+                result=urllib.parse.parse_qs(destination.query)
+                assert result['state']==[state] and len(result['code'])==1
+                third=await browser.post('/auth/native/token',json=dict(code=result['code'][0],code_verifier=verifier))
+                assert third.status_code==200,('exchange',third.status_code,third.text[:200])
+                tokens=third.json()
+                replay=await browser.post('/auth/native/token',json=dict(code=result['code'][0],code_verifier=verifier))
+                assert replay.status_code==400
+                assert (await browser.post('/api/auth/ws-ticket',json={})).status_code==401
+                renewed=await browser.post('/auth/native/refresh',json=dict(provider=tokens['provider'],refresh_token=tokens['refresh_token']))
+                assert renewed.status_code==200,('refresh',renewed.status_code,renewed.text[:200])
+                tokens=renewed.json()
+            callback_socket.close()
+            phase('ACTUAL_HTTP_NATIVE_PKCE_EXCHANGE_REFRESH_AND_CODE_REPLAY_REFUSAL')
+            @contextlib.asynccontextmanager
+            async def web_owner():
+                async with httpx.AsyncClient(base_url=origin,trust_env=False,follow_redirects=False,timeout=20) as http:
+                    ticket_reply=await http.post('/api/auth/ws-ticket',json={},headers={'Authorization':'Bearer '+tokens['access_token']})
+                    assert ticket_reply.status_code==200,('ticket',ticket_reply.status_code,ticket_reply.text[:200])
+                    ticket=ticket_reply.json()['ticket']
+                url=origin.replace('http://','ws://',1)+'/api/ws'
+                async with connect(url,subprotocols=[GATEWAY_WS_PROTOCOL,'hermes-gateway-ticket.'+ticket],open_timeout=10,proxy=None) as ws:
+                    async with GatewayClient(ws) as client:
+                        desc=await client.rpc('runtime.describe',_timeout=10)
+                        assert Path(desc['profile_id']).resolve()==launch
+                        assert desc['instance_id']==runner.session_runtime_descriptor['instance_id']
+                        assert desc['authority_epoch']==runner.session_authorities.require(launch).epoch
+                        yield client
+        workspace_channel=web_owner if a.transport=='http' else lambda:connect_owner(launch,endpoint)
         # The ordinary authenticated host-owner path; never seed a trusted Actor/runner.
         start,target=workspace_cwds
         endpoint=(await asyncio.to_thread(discover_gateway_endpoint,launch,timeout=5)).endpoint
@@ -309,18 +363,18 @@ async def run():
         command=dict(session_id=sid,request_id='workspace-reviewed-change',operation='workspace',payload={'cwd':str(target)},
                      expected_revision=created['revision'],expected_generation=created['execution_generation'])
         # As in the app, a separate freshly authenticated channel mutates without attach/resume.
-        async with connect_owner(launch,endpoint) as writer:
+        async with workspace_channel() as writer:
             ack=await writer.rpc('session.mutate',_timeout=30,**command)
             assert ack['session_id']==sid and ack['operation']=='workspace' and ack['cwd']==str(target)
             assert ack['revision']==created['revision']+1
             assert ack['execution_generation']==created['execution_generation']+1
-        phase('FRESH_NATIVE_TICKET_CHANNEL_WORKSPACE_ACK_VERIFIED')
-        async with connect_owner(launch,endpoint) as reader:
+        phase('FRESH_HTTP_TICKET_CHANNEL_WORKSPACE_ACK_VERIFIED' if a.transport=='http' else 'FRESH_NATIVE_TICKET_CHANNEL_WORKSPACE_ACK_VERIFIED')
+        async with workspace_channel() as reader:
             current=await reader.rpc('session.resume',_timeout=30,session_id=sid)
             assert current['session_id']==sid and current['info']['cwd']==str(target)
             assert current['revision']==ack['revision'] and current['execution_generation']==ack['execution_generation']
             assert not current['running'] and current['messages']==[] and current['pending']==[]
-        phase('SEPARATE_FRESH_NATIVE_ATTACHMENT_READS_ACTUAL_NEW_DIRECTORY')
+        phase('SEPARATE_FRESH_HTTP_ATTACHMENT_READS_ACTUAL_NEW_DIRECTORY' if a.transport=='http' else 'SEPARATE_FRESH_NATIVE_ATTACHMENT_READS_ACTUAL_NEW_DIRECTORY')
         async with connect_owner(launch,endpoint) as verifier:
             # Explicit finite server idempotency probe, not an app recovery/retry behavior.
             assert await verifier.rpc('session.mutate',_timeout=30,**command)==ack
@@ -381,7 +435,7 @@ finally:
                 assert hashlib.sha256(raw).hexdigest()==before[rel],rel
                 imported.append(dict(module=name,path=rel,gitBlob=oid,sha256=before[rel]))
     record.update(importedModules=imported,versionProbes=version_probes,socketEvents=sockets,workspaceProbes=workspace_probes,
-        scope='Actual native-owner ticketed workspace create/mutate/fresh readback/fences only; no HTTP login, Android, Pi, inference/tool/worker or complete lifecycle acceptance. Final shutdown diagnostics must also be accepted.')
+        scope='Actual owner workspace exchange using selected native or synthetic-IdP HTTP transport; no Android, production IdP, Pi, inference/tool/worker or complete lifecycle acceptance. Final shutdown diagnostics must also be accepted.')
     (root/'report.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(dict(state=record['state'],modules=len(imported),denials=len(denied))),flush=True)
 if record['state']!='PASS_REAL_OWNER_WORKSPACE_TRANSPORT' or denied:sys.exit(1)
