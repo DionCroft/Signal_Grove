@@ -1,5 +1,14 @@
 # On-device inference validation
 
+## 11 November 2026 - second model family preflight only
+
+The official Qwen2.5-0.5B Q4_K_M file is pinned and publisher-hash verified.
+The app's compiled metadata reader accepts it on Windows, and the verified phone
+native CLI loads it and returns an exact synthetic reply. Normal phone radios
+remained enabled. This is separate parser/native feasibility; Android import,
+embedded generation and model-switch/lifecycle acceptance remain open. See the
+[scope and provenance](contracts/2026-11-11-qwen-compatibility-preflight.md).
+
 ## 11 November 2026 - real offline app flow and reviewed helper checks
 
 The owner imported LFM3 through Android's normal document picker and separate

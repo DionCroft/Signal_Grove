@@ -29,8 +29,10 @@ See [the contract](docs/contracts/2026-11-11-reviewed-local-checks.md) and
 Exact next action: install the verified debug app/test update through Xiaomi's
 normal installer, verify retained production/model/chat hashes, and run the
 three-method physical fixture including all six reviewed helper topics and
-Chinese generation. Then validate another model family, real HTTPS transfer /
-resume / cancellation and extended lifecycle. The original Hermes, workspace,
+Chinese generation. The official Qwen0.5B Q4_K_M candidate now passes actual compiled-reader and
+phone-CLI preflight; embedded import/generation/model-switch gates remain open
+(docs/contracts/2026-11-11-qwen-compatibility-preflight.md). Then complete those
+gates, real HTTPS transfer / resume / cancellation and extended lifecycle. The original Hermes, workspace,
 worker, automation, integration and exact-source release gates remain required.
 
 ## Earlier audit checkpoint (historical)
