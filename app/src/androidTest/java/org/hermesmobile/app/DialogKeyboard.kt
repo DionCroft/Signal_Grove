@@ -68,12 +68,11 @@ fun tapFocusedDialogWindowPoint(x:Float,y:Float) {
 /** The real Android IME boundary, in screen coordinates, for a focused dialog. */
 data class FocusedDialogViewport(val visible:android.graphics.Rect,val screenOffsetX:Int,val screenOffsetY:Int,val imeBottom:Int,val displayHeight:Int)
 
-fun focusedDialogViewport():FocusedDialogViewport {
+fun focusedDialogViewport():FocusedDialogViewport? {
     val nativeIme=withInteractiveWindows {windows->
         val bounds=windows.filter {it.type==android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD}.map {item->android.graphics.Rect().also {item.getBoundsInScreen(it)}}.filter {!it.isEmpty}
-        check(bounds.isNotEmpty()) {"A native Android input-method window is required"}
-        bounds.minOf {it.top}
-    }
+        bounds.minOfOrNull {it.top}
+    } ?: return null // Insets can arrive before the real accessibility window is registered.
     var result:FocusedDialogViewport?=null
     onView(isRoot()).inRoot(focusedAppDialog()).check {view,error->
         if(error!=null) throw error

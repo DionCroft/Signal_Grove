@@ -77,7 +77,6 @@ import java.time.format.DateTimeFormatter
             IconButton(vm::newChat,enabled=!busy && !controlling) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
         }
         if(busy || historyLoading || controlling) QuietProgress()
-        LocalAiEntry()
         if(draft.isNotBlank()) PhoneDraftRoute(vm,vm.reviewPhoneDraft()!=null)
         if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
             Word(Words.NoChats)
@@ -88,6 +87,7 @@ import java.time.format.DateTimeFormatter
         }
         if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+            LocalAiEntry(compact=true)
             Box(Modifier.weight(1f)) {RunControls(vm,compact=true)}
             SessionControls(vm)
             if(status!="idle") IconButton({statusDetails=true}) {Icon(if(status=="completed") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(statusWord(status)))}

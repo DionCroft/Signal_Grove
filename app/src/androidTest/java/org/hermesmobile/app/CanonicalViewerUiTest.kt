@@ -223,15 +223,21 @@ class CanonicalViewerUiTest {
         var previous:FocusedDialogViewport?=null;var stableAt=0L
         compose.waitUntil(5000) {
             val current=focusedDialogViewport();val now=android.os.SystemClock.uptimeMillis()
-            if(previous!=current) {previous=current;stableAt=now;false} else now-stableAt>=250
+            if(current==null || previous!=current) {previous=current;stableAt=now;false} else now-stableAt>=250
         }
         val viewport=checkNotNull(previous)
-        for((tag,word) in listOf("workspace-review" to Words.WorkspaceReview,"workspace-cancel" to Words.Cancel)) {
-            val control=compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInWindow
-            assertTrue("Complete workspace action above native IME: "+tag,control.left+viewport.screenOffsetX>=viewport.visible.left && control.right+viewport.screenOffsetX<=viewport.visible.right && control.top+viewport.screenOffsetY>=viewport.visible.top && control.bottom+viewport.screenOffsetY<=viewport.visible.bottom)
-            val text=word.localized(AppPreferences(chinese=true,pinyin=true))
-            val native=focusedDialogCaptionScreenBounds(text,text)
-            assertTrue("Complete workspace caption above IME: "+tag,viewport.visible.contains(native))
+        try {
+            for((tag,word) in listOf("workspace-review" to Words.WorkspaceReview,"workspace-cancel" to Words.Cancel)) {
+                val control=compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInWindow
+                val bounds="tag=$tag control=$control viewport=$viewport"
+                assertTrue("Complete workspace action above native IME: "+bounds,control.left+viewport.screenOffsetX>=viewport.visible.left && control.right+viewport.screenOffsetX<=viewport.visible.right && control.top+viewport.screenOffsetY>=viewport.visible.top && control.bottom+viewport.screenOffsetY<=viewport.visible.bottom)
+                val text=word.localized(AppPreferences(chinese=true,pinyin=true))
+                val native=focusedDialogCaptionScreenBounds(text,text)
+                assertTrue("Complete workspace caption above IME: $bounds native=$native",viewport.visible.contains(native))
+            }
+        } catch(failure:Throwable) {
+            runCatching {capture("workspace-review","workspace-form-large-failed")}
+            throw failure
         }
         capture("workspace-review","workspace-form-large")
         compose.onNodeWithTag("workspace-review").performClick()

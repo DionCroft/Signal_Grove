@@ -1,5 +1,25 @@
 # Signal Grove project state
 
+## Latest verified chunk - readable chat at larger text sizes
+
+The two hosted history-height failures reproduce at API26/130% font size. Chat
+now keeps its on-device AI action in the existing control row, restoring a
+134.48 dp viewport from 29.33 dp. The action is visibly 48 dp with the complete
+translated accessibility label; Settings retains its text entry. Cached native
+replies, error details and read-only history remain usable.
+
+Source336 passes 968 JVM / 94 reports, 263 policies, zero-error lint (50 / 49
+warnings) and 69 selected Android methods on each API. Input-window observation
+waits retain the five-second deadline and require a real stable native window.
+[Evidence, failures and hashes](docs/contracts/2026-11-11-chat-large-text.md).
+
+Next inspect the final-head hosted standard device suite and reconcile the
+outstanding workspace/native-IME failure and prior ADB loss. Then continue real
+permission/actor/profile/owner-loss and active/unknown recovery, Windows worker/
+project/files and reviewed binding/dispatch. Full physical/deployed, local-AI,
+compatibility and signed-release acceptance remains required. Goal active; no
+new APK release is claimed.
+
 ## Latest verified chunk - closed saved history
 
 The active full-audit goal now has real bearer API/Room coverage for closed

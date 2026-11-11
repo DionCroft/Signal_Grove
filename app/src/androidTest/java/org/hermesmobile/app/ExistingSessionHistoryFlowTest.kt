@@ -102,7 +102,7 @@ class ExistingSessionHistoryFlowTest {
         var previous:FocusedDialogViewport?=null;var stableSince=0L
         compose.waitUntil(5000) {
             val current=focusedDialogViewport();val now=android.os.SystemClock.uptimeMillis()
-            if(current!=previous) {previous=current;stableSince=now;false} else now-stableSince>=250
+            if(current==null || current!=previous) {previous=current;stableSince=now;false} else now-stableSince>=250
         }
         val viewport=checkNotNull(previous)
         shot("bilingual-keyboard-caption-boundary")

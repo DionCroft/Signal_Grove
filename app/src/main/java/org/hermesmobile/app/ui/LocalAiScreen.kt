@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,9 +33,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.LocalAiActivity
 import org.hermesmobile.app.local.*
 
-@Composable fun LocalAiEntry() {
+@Composable fun LocalAiEntry(compact:Boolean=false) {
     val context = LocalContext.current
-    TextButton({context.startActivity(Intent(context, LocalAiActivity::class.java))}, Modifier.testTag("phone-ai-open")) {Text(label(Words.PhoneAi))}
+    val open={context.startActivity(Intent(context, LocalAiActivity::class.java))}
+    if(compact) IconButton(open, Modifier.size(48.dp).testTag("phone-ai-open")) {Icon(Icons.Outlined.PhoneAndroid,label(Words.PhoneAi))}
+    else TextButton(open, Modifier.testTag("phone-ai-open")) {Text(label(Words.PhoneAi))}
 }
 
 /** Keep the composer usable on short screens; the complete translated explanation stays one tap away. */

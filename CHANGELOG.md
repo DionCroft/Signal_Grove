@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Keep saved replies readable with larger text by placing the on-device AI
+  action in Chat's existing control row. Retain its full translated accessibility
+  label and explicit 48 dp size. Verify native replies, details, draft cancellation
+  and history-keyboard controls at the CI font scales.
+
 - Keep Hermes-marked hidden messages out of saved chat history, preserving raw
   paging offsets. Retain cached messages on malformed/inconsistent pages or a
   changed reported continuation; show translated advice without parser snippets.

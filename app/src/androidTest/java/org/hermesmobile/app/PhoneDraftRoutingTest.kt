@@ -102,7 +102,7 @@ class PhoneDraftRoutingTest {
         var previous:FocusedDialogViewport?=null;var stableAt=0L
         compose.waitUntil(5000) {
             val current=focusedDialogViewport();val now=android.os.SystemClock.uptimeMillis()
-            if(previous!=current) {previous=current;stableAt=now;false} else now-stableAt>=250
+            if(current==null || previous!=current) {previous=current;stableAt=now;false} else now-stableAt>=250
         }
         val viewport=checkNotNull(previous)
         for((tag,word) in listOf("phone-draft-confirm" to Words.PhoneDraftConfirm,"phone-draft-cancel" to Words.Cancel)) {

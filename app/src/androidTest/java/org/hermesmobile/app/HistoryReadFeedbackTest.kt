@@ -119,6 +119,8 @@ class HistoryReadFeedbackTest {
         compose.waitUntil(5000) {vm.messages.value.any {it.content==expected}}
         val message=vm.messages.value.single {it.content==expected}
         val body="message-body-"+message.id
+        compose.onNodeWithTag("phone-ai-open").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            .assertContentDescriptionEquals(text(Words.PhoneAi))
         compose.onNodeWithTag("chat-messages").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
         compose.onNodeWithTag("chat-messages").performScrollToNode(hasTestTag(body))
         compose.onNodeWithTag(body).assertIsDisplayed()

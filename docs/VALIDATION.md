@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - keep chat readable with larger text
+
+The hosted large-text history failures reproduce at API26's 130% system font:
+the message viewport was only 29.33 dp. Moving on-device AI into the existing
+control row as a 48 dp phone action restores 134.48 dp. Full translated labels,
+error details, native replies and read-only explanations remain available.
+
+Final source336 passes 968 JVM / 94 reports, 263 policies, zero-error lint
+(50 / 49 warnings) and 69 selected Android methods per API. Fresh native reply,
+draft Cancel, offline UI and history keyboard checks pass at the CI font scales.
+Settings, signer and installed identities are preserved. Failed first candidates
+and the API37 native-input-window observation race remain recorded; the test now
+waits for a real stable window within its original deadline. All actual caption,
+frame and action assertions remain. See
+[scope, artifacts and measurements](contracts/2026-11-11-chat-large-text.md).
+
+The original hosted workspace/IME failure remains unreproduced and open, along
+with its interrupted full-suite/ADB outcome. Final-head full hosted CI, physical/
+deployed, real permission/actor/profile/owner loss, active/unknown work, Windows
+worker/project/files, complete local-AI and signed-release gates remain required.
+The complete audit goal stays active; no APK release is claimed.
+
 ## 11 November 2026 - closed history keeps hidden messages private
 
 Normal Chat history now excludes Hermes-marked hidden rows while retaining raw
