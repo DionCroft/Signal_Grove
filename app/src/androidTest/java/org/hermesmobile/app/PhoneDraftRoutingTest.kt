@@ -113,7 +113,7 @@ class PhoneDraftRoutingTest {
         }
         snapshot("review-bottom")
         val cancel=compose.onNodeWithTag("phone-draft-cancel").fetchSemanticsNode().boundsInWindow.center
-        tapFocusedDialogWindowPoint(cancel.x,cancel.y)
+        tapFocusedDialogWindowPoint(cancel.x,cancel.y,NativeDialogTapAction.PhoneDraftCancel)
         compose.waitUntil(5000) {compose.onAllNodesWithTag("phone-draft-review").fetchSemanticsNodes().isEmpty()}
         assertEquals("Fresh unsent question",vm.draft.value);assertNotNull(vm.reviewPhoneDraft());assertEquals(before,history())
         assertTrue(vm.selected.value.isBlank());assertNull(app.localAi.state.value.loaded)

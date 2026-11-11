@@ -196,10 +196,10 @@ class ExistingSessionHistoryFlowTest {
             assertHistorySearchCaptionSeparated()
             assertHistoryFooterCaptionsAboveKeyboard()
             val more=compose.onNodeWithTag("history-load-more").assertIsDisplayed().assertHeightIsAtLeast(48.dp).fetchSemanticsNode().boundsInWindow.center
-            tapFocusedDialogWindowPoint(more.x,more.y)
+            tapFocusedDialogWindowPoint(more.x,more.y,NativeDialogTapAction.HistoryMore)
             compose.waitUntil(10000) {!vm.sessionsLoading.value && f.pages.toList()==listOf(0,50) && vm.conversations.value.any {it.remoteId=="disc_old"}}
             val close=compose.onNodeWithTag("history-close").assertIsDisplayed().fetchSemanticsNode().boundsInWindow.center
-            tapFocusedDialogWindowPoint(close.x,close.y);compose.waitUntil(5000) {compose.onAllNodesWithTag("conversation-browser").fetchSemanticsNodes().isEmpty()}
+            tapFocusedDialogWindowPoint(close.x,close.y,NativeDialogTapAction.HistoryClose);compose.waitUntil(5000) {compose.onAllNodesWithTag("conversation-browser").fetchSemanticsNodes().isEmpty()}
             assertEquals(0,f.writes.get());assertTrue(f.unexpected.toString(),f.unexpected.isEmpty())
         }
     }

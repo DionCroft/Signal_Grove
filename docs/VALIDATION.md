@@ -1,5 +1,29 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - bounded native-input diagnostics and recovered UI checks
+
+The native test helper records exact event/window facts and refuses Espresso's
+internal second DOWN before forwarding it. SUCCESS remains mandatory; failures
+and long-press warnings cannot retry or pass. Geometry, keyboard, caption,
+consent and effect assertions are unchanged. A linked read-only observation can
+now report whether workspace Cancel acted without masking the input result.
+
+Source420 passes 987 JVM / 95 reports, 293 policies, zero-error lint (51 / 50
+warnings), original signing and all 32 packaged-library alignment checks. Six
+scripted boundary cases pass per API in retained failed run421; its UI failures
+stay failed. API37 History captures a real WARNING with an 859 ms DOWN call and
+no retry; API26 shows a SystemUI ANR. After checked data-preserving host recovery,
+a distinct four-UI-case batch passes on each API, with six one-DOWN/one-UP
+SUCCESS reports, zero workspace writes and exact settings restoration. Recovery,
+scheduling and API26 animation settings changed; original causes are not inferred.
+[Exact scope and artifacts](contracts/2026-11-11-native-input-diagnostics.md).
+
+Separately, earlier main2fde hosted API26 passes all 1118 standard methods,
+independently verified with zero skips/partial results; its five model classes /
+11 methods stay not_run. API37/newer-head acceptance is not inferred. The full
+audit, original failures, worker/project/files, physical/models, production,
+upstream/advisories and signed release remain open. Published preview is beta.8.
+
 ## 11 November 2026 - actual Android profile retirement and Room isolation
 
 Eight final-source Android-to-owner cases pass across both reviewed Hermes pins,

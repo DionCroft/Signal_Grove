@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Bound native dialog test dispatch to one forwarded DOWN, recording redacted
+  event/window diagnostics and the actual Cancel effect. Keep warnings and
+  failed inputs rejected. Verify shared controls after preserved emulator
+  recovery and retain failed attempts and separately scoped hosted results.
+
 - Verify native Android profile attachment, genuine sibling retirement and exact
   receipt/cursor Room persistence against both reviewed Hermes versions on both
   Android APIs. Keep default live state isolated, refuse unavailable named

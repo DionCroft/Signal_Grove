@@ -251,9 +251,22 @@ class CanonicalViewerUiTest {
         grantWorkspaceConsent()
         compose.onNodeWithTag("workspace-confirm").assertIsDisplayed().assertIsEnabled()
         val cancel=compose.onNodeWithTag("workspace-cancel").assertIsDisplayed().fetchSemanticsNode().boundsInWindow.center
-        tapFocusedDialogWindowPoint(cancel.x,cancel.y)
-        compose.waitUntil(5000) {compose.onAllNodesWithTag("workspace-cancel").fetchSemanticsNodes().isEmpty()}
-        assertEquals(0,repo.workspaceChanges)
+        val tapId=java.util.UUID.randomUUID().toString();var primary:Throwable?=null
+        try {
+            tapFocusedDialogWindowPoint(cancel.x,cancel.y,NativeDialogTapAction.WorkspaceCancel,tapId)
+            compose.waitUntil(5000) {compose.onAllNodesWithTag("workspace-cancel").fetchSemanticsNodes().isEmpty()}
+            assertEquals(0,repo.workspaceChanges)
+        } catch(error:Throwable) {primary=error;throw error}
+        finally {
+            // One read-only observation even if dispatch reports WARNING/failure. It cannot accept the test or tap again.
+            val present=runCatching {compose.onAllNodesWithTag("workspace-cancel").fetchSemanticsNodes().isNotEmpty()}
+            try {writeNativeTapDiagnostic("workspace-cancel-observation-$tapId",buildJsonObject {
+                put("schema",1);put("id",tapId);put("api",android.os.Build.VERSION.SDK_INT)
+                put("cancelControlPresent",present.getOrNull()?.let(::JsonPrimitive) ?: JsonNull)
+                put("observationAvailable",present.isSuccess);put("workspaceChanges",repo.workspaceChanges)
+                put("viewerPhase",viewer.state.value.phase.name);put("readOnly",true)
+            })} catch(diagnostic:Throwable) {if(primary!=null) primary.addSuppressed(diagnostic) else throw diagnostic}
+        }
     }
 
     @Test fun workspaceReceiptShowsExactRequestIdAndAcknowledgementWithoutLeakingPrivateDetails() {

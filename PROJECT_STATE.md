@@ -1,32 +1,37 @@
 # Signal Grove project state
 
-## Latest delivered chunk - actual Android profile/cache retirement
+## Latest delivered chunk - bounded native-input diagnostics
 
-Eight final-source Android-to-owner cases pass across both reviewed Hermes pins,
-gateway/Webapp surfaces and API26/API37. Native PKCE/refresh, exact profile-bound
-resume/replay, genuine sibling retirement and continued default availability are
-verified. Independent quiescent before/after Room copies preserve the same 12
-confirmed receipts/cursors without a new claim or replay. Final host stores keep
-exact session/cwd/fences and zero work. Every owner case retains one known atexit
-reaper warning and supervisor exit 2; clean lifecycle remains open.
+The native test helper records exact event/window facts and refuses Espresso's
+internal second DOWN before forwarding it. SUCCESS remains mandatory; failures
+and long-press warnings cannot retry or pass. Geometry, keyboard, caption,
+consent and effect assertions are unchanged. A linked read-only observation can
+now report whether workspace Cancel acted without masking the input result.
 
-Source410 passes 987 JVM / 95 reports, 293 policies, 15 model-status policies,
-checksum policy and zero-error lint (51 / 50 warnings). Original signing and all
-32 packaged native libraries' ABI/alignment checks pass. Run412 passes 40 focused
-methods per API with hashes, UIDs and system settings retained. Preliminary host
-probe, APK preflight, mock refresh and temporary-verifier failures are preserved;
-none are counted as accepted cases. No production code, dependencies or release
-identity changes. [Contract and exact artifacts](docs/contracts/2026-11-11-android-owner-profile-cache.md).
+Source420 passes 987 JVM / 95 reports, 293 policies, zero-error lint (51 / 50
+warnings), original signing and all 32 packaged-library alignment checks. Six
+scripted boundary cases pass per API in retained failed run421; its UI failures
+stay failed. API37 History captures a real WARNING with an 859 ms DOWN call and
+no retry; API26 shows a SystemUI ANR. After checked data-preserving host recovery,
+a distinct four-UI-case batch passes on each API, with six one-DOWN/one-UP
+SUCCESS reports, zero workspace writes and exact settings restoration. Recovery,
+scheduling and API26 animation settings changed; original causes are not inferred.
+[Exact scope and artifacts](docs/contracts/2026-11-11-native-input-diagnostics.md).
 
-The full audit remains active: native Cancel diagnostics, physical/deployed and
-production authentication, worker/project/files/dispatch, integrations, model
-and lifecycle gates, upstream/advisory coverage, complete CI and signed release
-remain required. Published preview remains beta.8.
+Separately, earlier main2fde hosted API26 passes all 1118 standard methods,
+independently verified with zero skips/partial results; its five model classes /
+11 methods stay not_run. API37/newer-head acceptance is not inferred. The full
+audit, original failures, worker/project/files, physical/models, production,
+upstream/advisories and signed release remain open. Published preview is beta.8.
 
-Next exact action: add bounded diagnostics around the one retained native Cancel
-input, preserving its single tap and existing keyboard/geometry assertions. Then
-continue verified worker/project/file ownership and reviewed dispatch. Main CI
-keeps its valid active run plus the latest pending head; pending is not passing.
+The preceding eight actual Android/owner profile-retirement/cache cases remain
+accepted at source410, with their upstream shutdown warning still open; see
+[that contract](docs/contracts/2026-11-11-android-owner-profile-cache.md).
+
+Next exact action: inspect actual worker/project/session/file protocol sources
+and app gaps, then implement verified owner identity and project/workspace
+navigation in a bounded reviewed chunk. Preserve every requirement in the audit
+ledger. Keep the valid active main CI run and latest pending head intact.
 
 ## Current priority - on-device AI, authorized 10 November 2026
 

@@ -94,7 +94,7 @@ class HostKanbanStatusFlowTest {
                     for(tag in listOf("status-read-impact","status-form-cancel")) compose.assertDialogActionCaptionVisible(tag)
                     shot("bilingual-keyboard-form")
                     val read=compose.onNodeWithTag("status-read-impact").assertIsEnabled().fetchSemanticsNode().boundsInWindow.center
-                    tapFocusedDialogWindowPoint(read.x,read.y);await()
+                    tapFocusedDialogWindowPoint(read.x,read.y,NativeDialogTapAction.KanbanRead);await()
                     val review=checkNotNull(vm.visibleHostKanban(vm.state.value).statusReview)
                     assertEquals(f.expectedBody.get(),review.request.body());assertEquals(0,f.writes.get())
                     compose.onNodeWithTag("status-review").performScrollToNode(hasTestTag("task-field-status-confirm-id"))
@@ -105,7 +105,7 @@ class HostKanbanStatusFlowTest {
                     for(tag in listOf("status-confirm","status-review-cancel")) compose.assertDialogActionCaptionVisible(tag)
                     shot("bilingual-keyboard-review")
                     val cancel=compose.onNodeWithTag("status-review-cancel").fetchSemanticsNode().boundsInWindow.center
-                    tapFocusedDialogWindowPoint(cancel.x,cancel.y)
+                    tapFocusedDialogWindowPoint(cancel.x,cancel.y,NativeDialogTapAction.KanbanCancel)
                     compose.waitUntil(5000) {vm.visibleHostKanban(vm.state.value).statusReview==null}
                     compose.onNodeWithTag("status-review").assertDoesNotExist();assertFalse(vm.kanbanStatusChangeCurrent(review));assertEquals(0,f.writes.get());return@use
                 }

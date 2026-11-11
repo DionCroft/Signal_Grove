@@ -4,9 +4,6 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Root
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
-import androidx.test.espresso.action.Tap
-import androidx.test.espresso.action.Press
-import androidx.test.espresso.action.Tapper
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.View
@@ -50,16 +47,12 @@ fun focusedDialogKeyboardVisible():Boolean {
 }
 
 /** Android input dispatch must respect the IME window, unlike a direct Compose-view click. */
-fun tapFocusedDialogWindowPoint(x:Float,y:Float) {
+fun tapFocusedDialogWindowPoint(x:Float,y:Float,action:NativeDialogTapAction,id:String=java.util.UUID.randomUUID().toString()) {
     onView(isRoot()).inRoot(focusedAppDialog()).perform(object:ViewAction {
         override fun getConstraints():Matcher<View> = isRoot()
         override fun getDescription()="one Android-input tap on a known app-dialog control"
         override fun perform(controller:UiController,view:View) {
-            val screen=IntArray(2);val window=IntArray(2)
-            view.getLocationOnScreen(screen);view.getLocationInWindow(window)
-            val point=floatArrayOf(x+screen[0]-window[0],y+screen[1]-window[1])
-            check(Tap.SINGLE.sendTap(controller,point,Press.FINGER.describePrecision())==Tapper.Status.SUCCESS)
-            controller.loopMainThreadUntilIdle()
+            dispatchOneDialogTap(controller,view,x,y,action,id)
         }
     })
 }

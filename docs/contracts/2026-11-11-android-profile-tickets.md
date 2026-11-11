@@ -209,3 +209,12 @@ measures native profile attachment, genuine retirement and exact Room receipt/
 cursor persistence on both reviewed pins and Android APIs. Its eight positive
 core cases retain the known shutdown warning; production, active work, physical
 and release acceptance remain open. Earlier failed batches stay scoped above.
+
+## Native-input diagnostic follow-up
+
+The [instrumented input contract](2026-11-11-native-input-diagnostics.md) retains
+the original Cancel non-success and adds exact event/status/after-state reports.
+The older one-tap description meant one helper call; internal event multiplicity
+was not captured. The pinned library's internal DOWN retry is now refused before
+forwarding, and WARNING remains a failure. Controlled recovered UI cases pass;
+no cause is assigned retroactively to the original failure.
