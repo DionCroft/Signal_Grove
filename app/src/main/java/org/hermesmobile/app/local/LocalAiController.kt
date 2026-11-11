@@ -12,7 +12,8 @@ import org.hermesmobile.app.updates.UpdateWorkGuard
 
 data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val history: List<LocalConversationSummary> = emptyList(),
     val chat: LocalConversation? = null, val loaded: InstalledLocalModel? = null, val busy: Boolean = false,
-    val status: String = "idle", val error: String? = null, val partialBytes: Long = 0, val transfer: LocalTransferProgress? = null)
+    val status: String = "idle", val error: String? = null, val partialBytes: Long = 0, val transfer: LocalTransferProgress? = null,
+    val helper: LocalHelpResult? = null)
 
 /** One instance per application process, shared across activity recreation. No Hermes client or credential store. */
 class LocalAiController(private val modelRoot: File, historyRoot: File, private val nativeDirectory: String,
@@ -126,6 +127,28 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
     }
 
+    fun help(topic: LocalHelpTopic, observations: LocalHelpObservations?, chinese: Boolean) = action("generating") {
+        val model = mutable.value.loaded ?: throw LocalEngineException(4)
+        val pending = LocalHelpResult(topic, model.sha256, observations, LocalSetupHelper.sources(topic))
+        mutable.update {it.copy(helper = pending)}
+        var text = ""
+        var terminal = LocalReplyState.FAILED
+        try {
+            // Keep candidate advice private until terminal format/language/configuration checks pass.
+            terminal = when(engine!!.generate(LocalSetupHelper.messages(topic, observations, chinese)) {value -> text = value}) {
+                LocalGenerationEnd.COMPLETE -> LocalReplyState.COMPLETE
+                LocalGenerationEnd.CANCELLED -> LocalReplyState.CANCELLED
+                LocalGenerationEnd.TOKEN_LIMIT -> LocalReplyState.TOKEN_LIMIT
+            }
+        } catch (e: CancellationException) {terminal = LocalReplyState.CANCELLED; throw e}
+        finally {
+            val accepted = terminal == LocalReplyState.COMPLETE && LocalSetupHelper.accepts(text, topic, chinese)
+            val rejected = terminal !in setOf(LocalReplyState.CANCELLED, LocalReplyState.FAILED) && !accepted
+            mutable.update {it.copy(helper = pending.copy(text = if(accepted) text else "", state = if(rejected) LocalReplyState.FAILED else terminal),
+                error = if(rejected) "helper_unverified" else it.error)}
+        }
+    }
+
     /** Leaving the UI cancels work and releases weights; it never submits a replacement request. */
     fun leave() {
         if (leaving) return
@@ -135,7 +158,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             lock.withLock {
                 try { engine?.unload() }
                 finally {
-                    mutable.update { it.copy(loaded = null, busy = false, status = "idle", transfer = null) }
+                    mutable.update { it.copy(loaded = null, busy = false, status = "idle", transfer = null, helper = null) }
                     leaving = false; guard.set(owner, false)
                 }
             }

@@ -26,6 +26,8 @@ Try the [1.1.0-beta.8 preview](https://github.com/DionCroft/Signal_Grove/release
 
 ## Features
 
+- **Development: optional on-device AI.** Separate offline text chat and phone history, verified LFM3 download or compatible GGUF import, explicit model/context controls, reviewed handoff and a source-backed setup helper. Not included in beta.8; physical full-app acceptance and release gates remain open. [Usage and limits](docs/ON_DEVICE_AI.md).
+
 - **Automatic model selection (1.1.0-beta.8):** follow the freshly verified serving model for new turns, with reasoning/service preset menus. Explicit saved choices remain intact. [Setup](docs/RUNTIME_MODEL_STATUS.md).
 
 - **Model status:** Home summary and Chat model details distinguish verified serving identity, saved server default and requested/last-reported conversation models. Optional authenticated runtime observer; foreground refresh and explicit stale/error states. [Scope and setup](docs/RUNTIME_MODEL_STATUS.md).
@@ -51,7 +53,7 @@ See [1.0.0 release evidence](docs/releases/1.0.0.md), [user guide](docs/USER_GUI
 
 ## Build
 
-Use JDK 24 (CI), Android SDK Platform 37 and Build Tools 36.0.0. Gradle 9.8.2 is provided by the wrapper. Source/bytecode target is Java 17.
+Use JDK 24 (CI), Android SDK Platform 37 and Build Tools 36.0.0, NDK 29.0.14206865 and CMake 3.31.6. Gradle 9.8.2 is provided by the wrapper. Source/bytecode target is Java 17. Native source is fetched by pinned revision/hash; model weights are not bundled. See the [native build contract](docs/contracts/2026-11-10-native-local-engine.md).
 
 ```sh
 ./gradlew assembleDebug testDebugUnitTest lintDebug

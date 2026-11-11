@@ -12,6 +12,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -31,43 +36,54 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val load: (InstalledLocalModel, Int) -> Unit, val unload: () -> Unit, val remove: (InstalledLocalModel) -> Unit,
     val download: () -> Unit, val discard: () -> Unit, val chooseFile: () -> Unit,
     val acceptImport: () -> Unit, val cancelImport: () -> Unit, val openChat: (String) -> Unit,
-    val deleteChat: (String) -> Unit, val dismissError: () -> Unit, val refresh: () -> Unit = {})
+    val deleteChat: (String) -> Unit, val dismissError: () -> Unit, val refresh: () -> Unit = {},
+    val help: (LocalHelpTopic, Boolean) -> Unit = {_, _ ->})
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
     val pending by vm.pendingImport.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val preferences by (context.applicationContext as org.hermesmobile.app.HermesApplication).preferences.flow
+        .collectAsStateWithLifecycle<org.hermesmobile.app.data.AppPreferences?>(initialValue = null)
+    val observations = remember(preferences, state.loaded?.sha256) {preferences?.let {
+        LocalHelpObservations.capture(it.demo, it.url, android.os.Process.is64Bit(), state.loaded != null, System.currentTimeMillis())
+    }}
     val licence = remember {context.assets.open("LFM3-LICENSE.txt").bufferedReader().use {it.readText()}}
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {vm.pendingImport.value = it}
     val c = vm.controller
     LocalAiScreen(state, c.supported, draft, {vm.draft.value = it}, pending != null, licence,
         LocalAiActions(vm::send, c::cancel, c::newChat, c::load, c::unload, c::deleteModel,
             {c.download(true)}, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
-            {vm.pendingImport.value = null}, c::openChat, c::deleteChat, c::dismissError, c::refreshLibrary), close)
+            {vm.pendingImport.value = null}, c::openChat, c::deleteChat, c::dismissError, c::refreshLibrary,
+            {topic, share -> c.help(topic, observations.takeIf {share}, preferences?.chinese == true)}), close, observations)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
 @Composable fun LocalAiScreen(state: LocalAiState, supported: Boolean, draft: String, changeDraft: (String) -> Unit,
-    pendingImport: Boolean, licenceText: String, actions: LocalAiActions, close: () -> Unit) {
+    pendingImport: Boolean, licenceText: String, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null) {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
+    var helper by remember {mutableStateOf(false)}
     var downloadReview by remember {mutableStateOf(false)}
     var deleteModel by remember {mutableStateOf<InstalledLocalModel?>(null)}
     var deleteChat by remember {mutableStateOf<String?>(null)}
     var discardReview by remember {mutableStateOf(false)}
     var review by remember {mutableStateOf<String?>(null)}
+    var boundary by remember {mutableStateOf(false)}
+    var errorDetails by remember {mutableStateOf(false)}
     val context = LocalContext.current
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                TextButton(close, Modifier.testTag("phone-close")) {Text(label(Words.Close))}
+                IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
+                IconButton(close, Modifier.testTag("phone-close")) {Icon(Icons.Outlined.Close, label(Words.Close))}
             }
-            Text(label(Words.PhoneBoundary), style = MaterialTheme.typography.bodySmall)
             Row(Modifier.fillMaxWidth()) {
                 listOf(Words.Chat, Words.PhoneModels, Words.PhoneHistory).forEachIndexed { index, word ->
-                    TextButton({tab = index}, Modifier.weight(1f).testTag("phone-tab-$index")) {Text(label(word), color = if(tab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)}
+                    Tab(selected = tab == index, onClick = {tab = index}, modifier = Modifier.weight(1f).testTag("phone-tab-$index"),
+                        text = {Text(label(word))})
                 }
             }
             if (!supported) Text(label(Words.PhoneUnsupported), style = MaterialTheme.typography.bodySmall)
@@ -79,9 +95,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 }
                 if (state.status != "unloading") TextButton(actions.stop, Modifier.testTag("phone-stop")) {Text(label(Words.Stop))}
             }
-            state.error?.let { error ->
-                Text(label(phoneError(error)), Modifier.testTag("phone-error"), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                TextButton(actions.dismissError) {Text(label(Words.Close))}
+            state.error?.let {
+                TextButton({errorDetails = true}, Modifier.testTag("phone-error")) {Text(label(Words.PhoneIssue), color = MaterialTheme.colorScheme.error)}
             }
             when (tab) {
                 0 -> PhoneChat(state, draft, changeDraft, actions) {review = it}
@@ -111,10 +126,23 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     } }
                 }
             }
-            TextButton({guide = true}, Modifier.testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
+            Row {
+                TextButton({guide = true}, Modifier.weight(1f).testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
+                TextButton({helper = true}, Modifier.weight(1f).testTag("phone-helper-open")) {Text(label(Words.PhoneHelper))}
+            }
         }
     }
     if (guide) SetupGuide {guide = false}
+    if (boundary) AlertDialog(onDismissRequest = {boundary = false}, title = {Text(label(Words.PhoneAi))},
+        text = {Text(label(Words.PhoneBoundary) + "\n\n" + label(Words.PhoneEntry), Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()))},
+        confirmButton = {TextButton({boundary = false}) {Text(label(Words.Close))}})
+    if (errorDetails && state.error != null) AlertDialog(onDismissRequest = {errorDetails = false}, title = {Text(label(Words.PhoneIssue))},
+        text = {Text(label(phoneError(state.error)), Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()))},
+        confirmButton = {TextButton({errorDetails = false; actions.dismissError()}) {Text(label(Words.Close))}})
+    if (helper) LocalHelpScreen(state, observations, actions.help, actions.stop) {
+        helper = false
+        if(state.busy && state.helper?.state == LocalReplyState.GENERATING) actions.stop()
+    }
     if (downloadReview || pendingImport) {
         val importing = pendingImport
         PhoneLicence(if(importing) label(Words.PhoneImportLicence) else licenceText, state.busy,
@@ -140,14 +168,16 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 
 @Composable private fun ColumnScope.PhoneChat(state: LocalAiState, draft: String, change: (String) -> Unit, actions: LocalAiActions, review: (String) -> Unit) {
     val loaded = state.loaded
-    Text(if(loaded == null) label(Words.PhoneNotLoaded) else label(Words.PhoneLoaded).replace("{model}", loaded.metadata.name),
-        Modifier.testTag("phone-loaded"), style = MaterialTheme.typography.bodySmall)
     val mismatch = loaded != null && state.chat?.let {it.modelSha256 != loaded.sha256} == true
     val full = (state.chat?.exchanges?.size ?: 0) >= 30
-    if (mismatch || full) Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)
-    TextButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Text(label(Words.NewChat))}
+    Row(Modifier.fillMaxWidth()) {
+        Text(loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"), style = MaterialTheme.typography.labelMedium)
+        IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
+    }
     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val exchanges = state.chat?.exchanges.orEmpty()
+        if (loaded == null) item {Text(label(Words.PhoneNotLoaded))}
+        if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
         if (exchanges.isEmpty()) item {Text(label(Words.PhoneEmpty))}
         items(exchanges.size) { index -> val row = exchanges[index]
             HermesCard {
@@ -160,21 +190,23 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         }
     }
     if (draft.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
-    OutlinedTextField(draft, change, Modifier.fillMaxWidth().testTag("phone-draft"), label = {Text(label(Words.Message))}, maxLines = 4, enabled = !state.busy)
-    Button(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && draft.isNotBlank() && draft.toByteArray().size <= 8192,
-        modifier = Modifier.testTag("phone-send")) {Text(label(Words.Send))}
+    Row {
+        OutlinedTextField(draft, change, Modifier.weight(1f).testTag("phone-draft"), placeholder = {Text(label(Words.Message))}, maxLines = 4, enabled = !state.busy)
+        IconButton(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && draft.isNotBlank() && draft.toByteArray().size <= 8192,
+            modifier = Modifier.testTag("phone-send")) {Icon(Icons.AutoMirrored.Outlined.Send, label(Words.Send))}
+    }
 }
 
 @Composable private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supported: Boolean, actions: LocalAiActions, remove: () -> Unit) {
-    var context by rememberSaveable(model.sha256) {mutableIntStateOf(minOf(2048, model.metadata.trainedContext.toInt()))}
+    var context by rememberSaveable(model.sha256) {mutableIntStateOf(minOf(2048, model.metadata.trainedContext))}
     HermesCard {
         Text(model.metadata.name, style = MaterialTheme.typography.titleMedium)
         Text("${model.metadata.architecture} · ${model.metadata.bytes / 1048576} MiB", style = MaterialTheme.typography.bodySmall)
         Text("SHA-256: ${model.sha256}", style = MaterialTheme.typography.labelSmall)
         Text(label(if(model.sha256 == RecommendedLocalModel.SHA256) Words.PhonePublisher else Words.PhoneImported), style = MaterialTheme.typography.bodySmall)
         Text(label(Words.PhoneContext), style = MaterialTheme.typography.bodySmall)
-        Row { listOf(512, 1024, 2048, 4096).filter {it <= model.metadata.trainedContext}.forEach { size ->
-            FilterChip(context == size, {context = size}, label = {Text(size.toString())}, enabled = !state.busy, modifier = Modifier.weight(1f))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { listOf(512, 1024, 2048, 4096).filter {it <= model.metadata.trainedContext}.forEach { size ->
+            FilterChip(context == size, {context = size}, label = {Text(size.toString())}, enabled = !state.busy)
         } }
         if (state.loaded?.sha256 == model.sha256) Text(label(Words.PhoneLoaded).replace("{model}", model.metadata.name))
         Button({actions.load(model, context)}, enabled = supported && !state.busy, modifier = Modifier.testTag("phone-load-${model.sha256.take(8)}")) {Text(label(Words.PhoneLoad))}
@@ -216,7 +248,8 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     "importing" -> Words.PhoneImporting
     else -> Words.PhoneWorking
 }
-private fun phoneError(code: String) = when {
+internal fun phoneError(code: String) = when {
+    code == "helper_unverified" -> Words.PhoneHelperRejected
     code == "insufficient_memory" -> Words.PhoneMemoryError
     code == "engine_2" -> Words.PhoneContextError
     code == "engine_6" || code == "native_unavailable" -> Words.PhoneUnsupported

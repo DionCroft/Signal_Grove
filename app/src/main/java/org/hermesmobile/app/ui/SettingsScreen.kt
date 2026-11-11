@@ -81,7 +81,7 @@ import org.hermesmobile.app.BuildConfig
             Text(label(Words.Security),style=MaterialTheme.typography.bodySmall)
             TextButton({uri.openUri("https://github.com/DionCroft/Signal_Grove")}) {Text(label(Words.Github))}
             TextButton({licences=true}) {Text(label(Words.Licences))}
-            TextButton({clear=true},enabled=!busy) {Text(label(Words.ClearChats))}
+            TextButton({clear=true},enabled=!busy) {Text(label(Words.ClearHermesCache))}
         }
     }
     if(setupGuide) SetupGuide(savedApiUrl=p.url) {setupGuide=false}

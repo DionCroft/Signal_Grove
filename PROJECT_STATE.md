@@ -50,10 +50,22 @@ Eleven controller cases pass in a newer 906-case JVM snapshot, including the
 after-save cancellation race. See docs/contracts/2026-11-11-local-ai-ui.md. The
 physical phone still has the earlier native-engine APK; no new release is claimed.
 
-Exact next action: implement the versioned, grounded helper, then validate the
-combined app on the physical phone before a release. Live Android transfer/picker,
-lifecycle/upgrade, representative compatibility and the complete remote audit
-remain required.
+The grounded setup helper is now implemented: six preset topics, versioned guide
+facts and static examples, visible sources and optional typed/redacted phone
+observations. Candidate summaries are withheld until terminal citation/language/
+supported-setting checks pass. CLI preflight exposed and corrected an invented
+setting and wrong-language output; embedded helper quality is not yet accepted.
+The combined development snapshot passes 914 JVM / 90 reports, 229 policies,
+zero-error lint (50 / 49 warnings) and eight UI cases on each of API 26/API 37.
+Own-window screenshots verify the corrected large-text multilingual captions.
+See docs/contracts/2026-11-11-grounded-local-helper.md and docs/ON_DEVICE_AI.md.
+
+Exact next action: the owner installs the hash-verified app/test updates staged
+in the phone's Downloads; then run its three-method native/grounded-helper gate
+and actual local-chat/model-picker checks with radios off. The production app
+and saved Hermes connection are unchanged. Live Android transfers/cancellation,
+lifecycle/upgrade, representative model compatibility, complete remote audit and
+exact-source release acceptance remain required.
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit

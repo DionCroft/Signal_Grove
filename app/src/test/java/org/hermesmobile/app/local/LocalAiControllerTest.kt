@@ -17,12 +17,13 @@ class LocalAiControllerTest {
     private class Engine : LocalInference {
         var loads = 0; var unloads = 0; var cancels = 0
         var blockGeneration = false
+        var reply = "Phone reply"
         var failure: Exception? = null
         var unloadGate: CompletableDeferred<Unit>? = null
         val requests = mutableListOf<List<LocalChatMessage>>()
         override suspend fun load(file: File, context: Int, threads: Int) { assertTrue(file.isFile); loads++ }
         override suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int, onText: (String) -> Unit): LocalGenerationEnd {
-            requests.add(messages.toList()); failure?.let { throw it }; onText("Phone reply")
+            requests.add(messages.toList()); failure?.let { throw it }; onText(reply)
             if (blockGeneration) awaitCancellation()
             return LocalGenerationEnd.COMPLETE
         }
@@ -157,5 +158,33 @@ class LocalAiControllerTest {
         assertEquals(LocalReplyState.CANCELLED, LocalConversationStore(history).list().single().lastState)
         assertTrue(engine.requests.isEmpty()); assertFalse(controller.state.value.busy)
         controller.leave(); drain()
+    }
+    @Test fun helperSourcesAndObservationsNeverEnterChatHistoryOrALaterChatRequest() = runTest {
+        val root = temp.newFolder(); val model = model(root); val history = temp.newFolder(); val engine = Engine()
+        val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        controller.load(model); advanceUntilIdle(); controller.send("Only ordinary chat"); advanceUntilIdle()
+        val before = controller.state.value.chat
+        val observations = LocalHelpObservations.capture(false, "https://secret-user:secret-pass@host.invalid/profile?token=private", true, true, 55)
+        engine.reply = "Review the intended profile and API_SERVER_KEY. [S1]"
+        controller.help(LocalHelpTopic.AUTH, observations, false); advanceUntilIdle()
+        val help = controller.state.value.helper!!
+        assertEquals(LocalReplyState.COMPLETE, help.state); assertEquals(model.sha256, help.modelSha256)
+        assertEquals(before, controller.state.value.chat); assertEquals(1, LocalConversationStore(history).list().size)
+        val helperPrompt = engine.requests.last().joinToString {it.text}
+        assertFalse(helperPrompt.contains("Only ordinary chat")); assertFalse(helperPrompt.contains("secret-pass")); assertTrue(helperPrompt.contains(LocalSetupHelper.VERSION))
+        controller.send("Next chat turn"); advanceUntilIdle()
+        val chatPrompt = engine.requests.last().joinToString {it.text}
+        assertFalse(chatPrompt.contains(LocalSetupHelper.VERSION)); assertFalse(chatPrompt.contains("55 epoch"))
+        controller.leave(); advanceUntilIdle(); assertNull(controller.state.value.helper)
+    }
+    @Test fun unsupportedHelperSettingIsWithheldAndNoChatIsWritten() = runTest {
+        val root = temp.newFolder(); val model = model(root); val history = temp.newFolder(); val engine = Engine()
+        val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        controller.load(model); advanceUntilIdle(); engine.reply = "Set API_ENABLED=true. [S1]"
+        controller.help(LocalHelpTopic.AUTH, null, false); advanceUntilIdle()
+        assertEquals("helper_unverified", controller.state.value.error)
+        assertEquals("", controller.state.value.helper!!.text); assertEquals(LocalReplyState.FAILED, controller.state.value.helper!!.state)
+        assertTrue(LocalConversationStore(history).list().isEmpty()); assertNull(controller.state.value.chat)
+        controller.leave(); advanceUntilIdle()
     }
 }

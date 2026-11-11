@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - guarded offline setup helper and combined UI
+
+The final development snapshot passes 914 JVM cases / 90 reports, 229 policy
+cases, required debug/test APK assembly and both lint variants with zero errors
+(50 debug / 49 release warnings). Eight UI cases pass on each of API 26 and
+API 37. Their own app-content screenshots confirm readable multilingual tabs,
+composer and footer at font scale 1.3. The original debug signer is retained.
+The helper uses versioned guide facts and opt-in redacted observations, and
+withholds incomplete or rejected summaries. Phone CLI preflight caught and
+corrected unsupported-setting/language outputs; that is not embedded acceptance.
+Verified debug APKs/model/licence are staged on the phone, awaiting its installer
+prompts and final physical checks. The production APK is unchanged. See the
+[helper scope and exact hashes](contracts/2026-11-11-grounded-local-helper.md) and
+[usage guide](ON_DEVICE_AI.md). Full original audit/release gates remain open.
+
 ## 11 November 2026 - separate phone chat and model UI
 
 The local chat/model screen measurement passes 905 JVM cases / 89 reports,

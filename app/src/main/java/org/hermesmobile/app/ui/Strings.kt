@@ -5,6 +5,22 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    PhoneIssue("Review phone operation","审阅手机操作","Shěnyuè shǒujī cāozuò"),
+    PhoneHelperRejected("This summary did not meet the source, format or language checks. Use the guide below. No action was performed.","此摘要未通过来源、格式或语言检查。请使用下方指南。未执行任何操作。","Cǐ zhāiyào wèi tōngguò láiyuán, géshì huò yǔyán jiǎnchá. Qǐng shǐyòng xiàfāng zhǐnán. Wèi zhíxíng rènhé cāozuò."),
+    PhoneHelper("Setup helper","设置助手","Shèzhì zhùshǒu"),
+    PhoneHelperBoundary("Choose a topic for a short summary of the bundled setup guide. This helper has no tools or live server access. Do not enter passwords or keys. Check the sources before acting; the model can be wrong.","选择主题，让模型简述内置设置指南。此助手没有工具或实时服务器访问权限。不要输入密码或密钥。行动前请检查来源；模型可能出错。","Xuǎnzé zhǔtí, ràng móxíng jiǎnshù nèizhì shèzhì zhǐnán. Cǐ zhùshǒu méiyǒu gōngjù huò shíshí fúwùqì fǎngwèn quánxiàn. Bú yào shūrù mìmǎ huò mìyào. Xíngdòng qián qǐng jiǎnchá láiyuán; móxíng kěnéng chūcuò."),
+    PhoneHelperShare("Share only the redacted phone observations shown below for this request.","仅对此请求分享下面显示的已脱敏手机观察信息。","Jǐn duì cǐ qǐngqiú fēnxiǎng xiàmiàn xiǎnshì de yǐ tuōmǐn shǒujī guānchá xìnxī."),
+    PhoneHelperObservation("Phone preferences observed at {time}: Demo: {demo}; address kind: {address}; 64-bit process: {abi}; local model loaded: {model}. No server readiness or sign-in was checked.","手机偏好观察时间 {time}：演示模式：{demo}；地址类型：{address}；64 位进程：{abi}；本地模型已加载：{model}。未检查服务器就绪状态或登录。","Shǒujī piānhào guānchá shíjiān {time}: yǎnshì móshì: {demo}; dìzhǐ lèixíng: {address}; liùshísì wèi jìnchéng: {abi}; běndì móxíng yǐ jiāzài: {model}. Wèi jiǎnchá fúwùqì jiùxù zhuàngtài huò dēnglù."),
+    PhoneAddressMissing("not configured","未配置","Wèi pèizhì"),
+    PhoneAddressHttps("HTTPS scheme (unverified)","HTTPS 协议（未验证）","HTTPS xiéyì (wèi yànzhèng)"),
+    PhoneAddressOther("other or invalid scheme","其他或无效协议","Qítā huò wúxiào xiéyì"),
+    PhoneHelperRun("Summarize this topic on phone","在手机上总结此主题","Zài shǒujī shàng zǒngjié cǐ zhǔtí"),
+    PhoneHelperAdvice("Model advice · review required","模型建议 · 需审阅","Móxíng jiànyì · xū shěnyuè"),
+    PhoneHelperUnshared("No phone observations were shared.","未分享手机观察信息。","Wèi fēnxiǎng shǒujī guānchá xìnxī."),
+    PhoneHelperSources("Bundled guide sources","内置指南来源","Nèizhì zhǐnán láiyuán"),
+    PhoneHelperReference("Open official reference","打开官方参考资料","Dǎkāi guānfāng cānkǎo zīliào"),
+    PhoneHelperModel("Phone model SHA-256: {sha}","手机模型 SHA-256：{sha}","Shǒujī móxíng SHA-256: {sha}"),
+    ClearHermesCache("Clear Hermes conversation cache","清除 Hermes 对话缓存","Qīngchú Hermes duìhuà huǎncún"),
     PhoneAi("On-device AI","设备端 AI","Shèbèi duān AI"),
     PhoneBoundary("Runs on this phone. It cannot access Hermes chats, projects or tools. Nothing is sent to Hermes automatically.","在此手机上运行。无法访问 Hermes 聊天、项目或工具。不会自动向 Hermes 发送内容。","Zài cǐ shǒujī shàng yùnxíng. Wúfǎ fǎngwèn Hermes liáotiān, xiàngmù huò gōngjù. Bú huì zìdòng xiàng Hermes fāsòng nèiróng."),
     PhoneEntry("Chat offline, manage models, or read the setup guide. Start a separate local draft; remote requests are never copied or retried.","离线聊天、管理模型或阅读设置指南。新建独立本地草稿，不复制或重试远程请求。","Líxiàn liáotiān, guǎnlǐ móxíng huò yuèdú shèzhì zhǐnán. Xīnjiàn dúlì běndì cǎogǎo, bù fùzhì huò chóngshì yuǎnchéng qǐngqiú."),

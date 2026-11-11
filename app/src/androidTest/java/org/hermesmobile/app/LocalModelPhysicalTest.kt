@@ -60,6 +60,33 @@ class LocalModelPhysicalTest {
         assertTrue(cancelled); assertEquals(3, checkpoints)
         stage("metadata-cancellation-complete")
     }
+    @Test fun verifiedLfm3GroundedSetupSummariesUseSelectedSources() = runBlocking {
+        val (root, model) = modelInput()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val engine = NativeLocalEngine(root, context.applicationInfo.nativeLibraryDir)
+        try {
+            withTimeout(90_000) {engine.load(model, context = 2048, threads = 4)}
+            for (topic in listOf(LocalHelpTopic.NETWORK, LocalHelpTopic.AUTH, LocalHelpTopic.HISTORY, LocalHelpTopic.PROJECT)) {
+                stage("helper-${topic.name}-start")
+                var text = ""
+                val end = withTimeout(45_000) {engine.generate(LocalSetupHelper.messages(topic, null, false), 384) {text = it}}
+                InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {
+                    putString("local_helper_topic", topic.name); putString("local_helper_answer", text); putString("local_helper_end", end.name)
+                })
+                assertEquals(LocalGenerationEnd.COMPLETE, end)
+                assertTrue(text.isNotBlank()); assertTrue("Missing selected-source citation", text.contains("[S1]") || text.contains("[S2]"))
+                assertTrue("Unsupported advice in $topic", LocalSetupHelper.accepts(text, topic, false))
+                stage("helper-${topic.name}-complete")
+            }
+            var chinese = ""
+            val end = withTimeout(45_000) {engine.generate(LocalSetupHelper.messages(LocalHelpTopic.NETWORK, null, true), 384) {chinese = it}}
+            InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {putString("local_helper_topic", "NETWORK_ZH"); putString("local_helper_answer", chinese); putString("local_helper_end", end.name)})
+            assertEquals(LocalGenerationEnd.COMPLETE, end); assertTrue(chinese.any {it in '\u4e00'..'\u9fff'})
+            assertTrue(chinese.contains("[S1]") || chinese.contains("[S2]"))
+            assertTrue(LocalSetupHelper.accepts(chinese, LocalHelpTopic.NETWORK, true))
+            stage("helper-chinese-complete")
+        } finally {withContext(NonCancellable) {engine.unload()}}
+    }
     @Test fun verifiedLfm3GeneratesCancelsRecoversAndUnloads() = runBlocking {
         val (root, model) = modelInput()
         stage("preflight-start")

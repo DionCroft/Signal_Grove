@@ -3,6 +3,13 @@ package org.hermesmobile.app
 import androidx.compose.runtime.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.test.platform.app.InstrumentationRegistry
+import android.graphics.Bitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import java.io.File
 import org.hermesmobile.app.data.AppPreferences
 import org.hermesmobile.app.local.*
 import org.hermesmobile.app.ui.*
@@ -16,14 +23,19 @@ class LocalAiFlowTest {
     private var downloads = 0; private var imports = 0; private var sends = 0; private var stops = 0
     private var pending by mutableStateOf(false)
     private var state by mutableStateOf(LocalAiState())
+    private val helperRequests = mutableListOf<Pair<LocalHelpTopic, Boolean>>()
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
-    private fun show(supported: Boolean = true) {
+    private fun show(supported: Boolean = true, bilingual: Boolean = false) {
         val actions = LocalAiActions({sends++}, {stops++}, {}, {_, _ ->}, {}, {}, {downloads++}, {},
-            {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {})
+            {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {}, help = {topic, share -> helperRequests.add(topic to share)})
         compose.setContent {
-            HermesAppTheme(AppPreferences(chinese = false, pinyin = false)) {
-                LocalAiScreen(state, supported, "Fresh local draft", {}, pending, "Separate model licence fixture", actions) {}
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, if(bilingual) 1.3f else density.fontScale)) {
+            HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
+                LocalAiScreen(state, supported, "Fresh local draft", {}, pending, "Separate model licence fixture", actions, {},
+                    LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null))
+            }
             }
         }
     }
@@ -69,5 +81,35 @@ class LocalAiFlowTest {
         compose.onNodeWithText(Words.PhoneReviewHelp.en).assertExists()
         compose.onNodeWithText(Words.Cancel.en).performClick()
         assertEquals(0, sends); assertEquals(0, downloads)
+    }
+    @Test fun helperSourcesRemainAvailableWithoutAModelOrServer() {
+        show(false); compose.onNodeWithTag("phone-helper-open").performClick()
+        compose.onNodeWithTag("phone-helper-run").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithText(Words.PhoneHelperSources.en, substring = true).performScrollTo().assertExists()
+        assertTrue(helperRequests.isEmpty()); assertEquals(0, downloads)
+    }
+    @Test fun helperObservationsRequireExplicitOptInForTheRequest() {
+        state = LocalAiState(loaded = model)
+        show(); compose.onNodeWithTag("phone-helper-open").performClick()
+        compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
+        assertEquals(listOf(LocalHelpTopic.FIRST_SETUP to false), helperRequests)
+        compose.onNodeWithTag("phone-helper-observations").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
+        assertEquals(LocalHelpTopic.FIRST_SETUP to true, helperRequests.last())
+        assertEquals(0, sends); assertEquals(0, downloads)
+    }
+    @Test fun bilingualLargeTextKeepsTheConversationAndComposerReachable() {
+        state = LocalAiState(loaded = model)
+        show(bilingual = true)
+        val bounds = compose.onNodeWithTag("phone-messages").getUnclippedBoundsInRoot()
+        assertTrue(bounds.bottom - bounds.top >= 72.dp)
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed()
+        compose.onNodeWithTag("phone-send").assertIsDisplayed().assertIsEnabled()
+        compose.onNodeWithTag("phone-helper-open").assertIsDisplayed()
+        compose.waitForIdle()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val image = compose.onRoot().captureToImage().asAndroidBitmap()
+        val file = File(instrumentation.targetContext.getExternalFilesDir(null), "qa/local-ai-bilingual.png")
+        file.parentFile!!.mkdirs(); file.outputStream().use {image.compress(Bitmap.CompressFormat.PNG, 100, it)}; image.recycle()
     }
 }
