@@ -127,24 +127,25 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
     }
 
-    fun help(topic: LocalHelpTopic, observations: LocalHelpObservations?, chinese: Boolean) = action("generating") {
+    fun help(topic: LocalHelpTopic, observations: LocalHelpObservations?) = action("generating") {
         val model = mutable.value.loaded ?: throw LocalEngineException(4)
         val pending = LocalHelpResult(topic, model.sha256, observations, LocalSetupHelper.sources(topic))
         mutable.update {it.copy(helper = pending)}
         var text = ""
         var terminal = LocalReplyState.FAILED
         try {
-            // Keep candidate advice private until terminal format/language/configuration checks pass.
-            terminal = when(engine!!.generate(LocalSetupHelper.messages(topic, observations, chinese)) {value -> text = value}) {
+            // The untrusted output contains IDs only; displayed instructions come from the reviewed guide.
+            terminal = when(engine!!.generate(LocalSetupHelper.messages(topic, observations), maxTokens = 96) {value -> text = value}) {
                 LocalGenerationEnd.COMPLETE -> LocalReplyState.COMPLETE
                 LocalGenerationEnd.CANCELLED -> LocalReplyState.CANCELLED
                 LocalGenerationEnd.TOKEN_LIMIT -> LocalReplyState.TOKEN_LIMIT
             }
         } catch (e: CancellationException) {terminal = LocalReplyState.CANCELLED; throw e}
         finally {
-            val accepted = terminal == LocalReplyState.COMPLETE && LocalSetupHelper.accepts(text, topic, chinese)
+            val checks = if(terminal == LocalReplyState.COMPLETE) LocalSetupHelper.selection(text, topic, observations) else null
+            val accepted = checks != null
             val rejected = terminal !in setOf(LocalReplyState.CANCELLED, LocalReplyState.FAILED) && !accepted
-            mutable.update {it.copy(helper = pending.copy(text = if(accepted) text else "", state = if(rejected) LocalReplyState.FAILED else terminal),
+            mutable.update {it.copy(helper = pending.copy(checks = checks.orEmpty(), state = if(rejected) LocalReplyState.FAILED else terminal),
                 error = if(rejected) "helper_unverified" else it.error)}
         }
     }

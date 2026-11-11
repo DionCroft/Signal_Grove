@@ -2,70 +2,36 @@
 
 ## Current priority - on-device AI, authorized 10 November 2026
 
-The owner requested a physical LFM3-1.7B test first, then native offline chat,
-user-added models and a grounded onboarding/troubleshooting helper, with tested
-regular commits/pushes. The complete original audit remains required. See
-[the expanded objective](docs/GOAL.md) and [acceptance plan](docs/ON_DEVICE_AI_PLAN.md).
-The owner edited and resumed the expanded goal through the app controls; the API
-now confirms it is active with this scope. Do not clear or falsely complete the
-unfinished original audit.
+The full audit goal is active and incomplete. Its optional local-AI extension
+keeps remote Hermes authority, requests and history separate; the complete
+original scope remains in [the audit ledger](docs/AUDIT_EXECUTION_PLAN.md).
 
-The retained setup guide is now a separately tested delivery chunk. Its five UI
-cases pass on API 26 (32-bit process) and API 37, including language/connection
-retention, recreation and all nine pages. Four address-formatting JVM cases pass.
-The original six draft files were preserved byte-identically through validation.
-Its measurement build passes 887 JVM cases and zero-error lint.
-This accepts the deterministic guide, not the model-based helper or a release.
+LFM3 is now proven in the real debug app with radios off: normal file-picker
+import and licence consent, explicit load, a fresh typed reply and persistent
+phone history. Leaving released model mappings in the same process, reducing
+VmRSS to about 458 MiB. The owner reopened the completed reply without loading
+weights. The model/chat hashes and production APK are retained; normal radios
+are restored. See [physical evidence](docs/ON_DEVICE_AI_VALIDATION.md).
 
-Physical offline CLI feasibility now passes: official hash-pinned LFM3-1.7B
-QAD Q4_0, CPU generation about 51.44 tokens/s over three benchmark repetitions,
-largest recorded process high-water mark about 2.04 GiB, bounded cancellation.
-One monitor exit race was reconciled without replay. The ungrounded setup answer
-was inaccurate; helper quality is still open. See docs/ON_DEVICE_AI_VALIDATION.md.
-No production APK/data, Pi/model-default or credential changes occurred.
+Actual semantic probes found that the preceding freeform helper could attribute
+host CLI commands to the phone. The replacement model selects only reviewed
+check IDs. The app renders exact translated guide text, source references and
+phone/host/worker location labels. Invalid/incomplete selections show no model
+guidance. Optional typed observations contain no credentials, hostnames, paths,
+logs or chat content. The plain local-chat composer now identifies the phone model.
 
-The independent GGUF reader passes 22 JVM cases plus a 45 ms full-model phone
-scan and scan cancellation. The private model-library component now passes 11
-additional JVM cases. See docs/contracts/2026-11-10-private-model-library.md.
-Its earlier measurement build passes 887 JVM cases, 229 policy cases and
-zero-error lint (50 debug / 49 release warnings). Earlier TOKEN_LIMIT failures
-and blocked activity fixtures are retained. Only exact owned debug processes
-were stopped during recovery, with no data clearing. Later controls and the
-passing native measurement below supersede those incomplete checkpoints.
+The development snapshot passes 916 JVM / 90 reports, 229 policy tests,
+zero-error lint (50 / 49 warnings) and nine local UI cases on each API 26/API 37.
+The earlier history keyboard/native-input test finding is retained and open.
+See [the contract](docs/contracts/2026-11-11-reviewed-local-checks.md) and
+[usage guide](docs/ON_DEVICE_AI.md). No production APK release is claimed.
 
-The direct physical fixture now runs without the blocked ActivityScenario
-bootstrap. Same-library controls isolated the model-declared repetition penalty
-(1.1), omitted by the bare sampler. The corrected app passes both complete phone
-methods: consecutive replies, explicit/coroutine cancellation, recovery, overflow
-refusal, unload/reload and metadata scan/cancellation. Phone/API 26/API 37 native
-boundaries and a forced 32-bit core-app launch pass. No old request was replayed
-or assertion relaxed. See docs/contracts/2026-11-10-native-local-engine.md.
-
-The native foundation is committed/pushed. Chat and Settings now open a separate
-MVVM phone chat/model activity with explicit licence consent, import/download,
-context/load/unload/delete, local history and reviewed clipboard handoff. Five
-synthetic UI cases pass on each of API 26 and API 37. Its full measurement passes
-905 JVM / 89 reports, 229 policy tests and zero-error lint (50 / 49 warnings).
-Eleven controller cases pass in a newer 906-case JVM snapshot, including the
-after-save cancellation race. See docs/contracts/2026-11-11-local-ai-ui.md. The
-physical phone still has the earlier native-engine APK; no new release is claimed.
-
-The grounded setup helper is now implemented: six preset topics, versioned guide
-facts and static examples, visible sources and optional typed/redacted phone
-observations. Candidate summaries are withheld until terminal citation/language/
-supported-setting checks pass. CLI preflight exposed and corrected an invented
-setting and wrong-language output; embedded helper quality is not yet accepted.
-The combined development snapshot passes 914 JVM / 90 reports, 229 policies,
-zero-error lint (50 / 49 warnings) and eight UI cases on each of API 26/API 37.
-Own-window screenshots verify the corrected large-text multilingual captions.
-See docs/contracts/2026-11-11-grounded-local-helper.md and docs/ON_DEVICE_AI.md.
-
-Exact next action: the owner installs the hash-verified app/test updates staged
-in the phone's Downloads; then run its three-method native/grounded-helper gate
-and actual local-chat/model-picker checks with radios off. The production app
-and saved Hermes connection are unchanged. Live Android transfers/cancellation,
-lifecycle/upgrade, representative model compatibility, complete remote audit and
-exact-source release acceptance remain required.
+Exact next action: install the verified debug app/test update through Xiaomi's
+normal installer, verify retained production/model/chat hashes, and run the
+three-method physical fixture including all six reviewed helper topics and
+Chinese generation. Then validate another model family, real HTTPS transfer /
+resume / cancellation and extended lifecycle. The original Hermes, workspace,
+worker, automation, integration and exact-source release gates remain required.
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit

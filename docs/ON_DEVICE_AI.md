@@ -69,18 +69,20 @@ The **Setup guide** works before any model download. It includes connecting an
 existing Hermes host, authenticated API access, private HTTPS/Tailscale, separate
 dashboard sign-in, model choices, conversation history and stored projects.
 
-With a model loaded, **Setup helper** can summarize six preset topics. It uses
-the versioned guide text and safe examples shown under Sources. Optional phone
-observations require a checkbox and show their capture time. Only Demo mode,
-address-scheme category, 64-bit process and local-model-loaded state are shared;
-hostnames, paths, profile names, tokens, chat history and logs are not supplied.
-These observations do not establish live server readiness or authentication.
+With a model loaded, **Setup helper** suggests one to three reviewed checks for
+six preset topics. Each check identifies where it applies: the phone app, Hermes
+host or execution worker. The model chooses eligible IDs; the app displays exact
+reviewed English/Chinese/pinyin text and source references. Generated commands,
+URLs and freeform model instructions never enter this helper view. A rejected or
+incomplete selection leaves the full guide and examples available.
 
-The helper withholds candidate summaries until completion and format, citation,
-language and supported-setting checks. Rejected or incomplete summaries leave
-the deterministic source guide available. These checks cannot prove that all
-model advice is correct. Review it against the displayed sources and your actual
-host. The helper cannot change settings, execute commands or approve work.
+Optional phone observations require a checkbox and show their capture time.
+Only Demo mode, address-scheme category, 64-bit process and local-model-loaded
+state are shared; hostnames, paths, profile names, tokens, chat history and logs
+are excluded. These observations do not establish server readiness or
+authentication. The helper cannot change settings, execute commands or approve
+work. Suggestions still require your judgment about relevance. Ordinary phone
+chat is freeform; review its answers carefully before using them.
 
 ## Share reviewed advice with Hermes
 

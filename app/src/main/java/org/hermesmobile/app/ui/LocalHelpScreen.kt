@@ -45,13 +45,26 @@ import java.time.Instant
                         Text(label(Words.PhoneHelperAdvice), style = MaterialTheme.typography.titleMedium)
                         Text(label(Words.PhoneHelperModel).replace("{sha}", answer.modelSha256), style = MaterialTheme.typography.labelSmall)
                         answer.observations?.let {HelpObservations(it)} ?: Text(label(Words.PhoneHelperUnshared))
-                        SelectionContainer {Text(answer.text, Modifier.testTag("phone-helper-answer"))}
+                        Column(Modifier.testTag("phone-helper-answer"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            answer.checks.forEach {check -> HermesCard {
+                                Text(label(when(check.scope) {
+                                    LocalHelpScope.HERMES_HOST -> Words.PhoneHelperOnHost
+                                    LocalHelpScope.PHONE_APP -> Words.PhoneHelperOnPhone
+                                    LocalHelpScope.EXECUTION_WORKER -> Words.PhoneHelperOnWorker
+                                    LocalHelpScope.REFERENCE -> Words.PhoneHelperSources
+                                }), style = MaterialTheme.typography.labelMedium)
+                                SelectionContainer {Text(label(check.word))}
+                                Text("[${check.sourceId}]", style = MaterialTheme.typography.labelSmall)
+                            } }
+                        }
                         Text(label(phoneReplyState(answer.state)))
                     }
                     Text("${label(Words.PhoneHelperSources)} · ${LocalSetupHelper.VERSION}", style = MaterialTheme.typography.titleMedium)
                     (result?.sources ?: LocalSetupHelper.sources(topic)).forEach { source -> HermesCard {
                         Text("[${source.id}] ${label(source.heading)}")
                         Text(label(source.body))
+                        if(source.scope == LocalHelpScope.HERMES_HOST) Text(label(Words.PhoneHelperHostScope), style = MaterialTheme.typography.labelMedium)
+                        if(source.scope == LocalHelpScope.PHONE_APP) Text(label(Words.PhoneHelperPhoneScope), style = MaterialTheme.typography.labelMedium)
                         source.example?.let {SelectionContainer {Text(it, style = MaterialTheme.typography.bodySmall)}}
                         TextButton({uri.openUri(source.url)}) {Text(label(Words.PhoneHelperReference))}
                     } }

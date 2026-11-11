@@ -1,5 +1,7 @@
 # Versioned local setup summaries and observations
 
+Historical freeform implementation. Superseded by [reviewed check selection](2026-11-11-reviewed-local-checks.md) after actual phone semantic probes found misleading host/phone instructions. Earlier test results below retain their original scope.
+
 The optional helper has six preset topics: phone setup, private networking, API
 authentication, serving-model selection, conversation history and host projects.
 It uses the same bundled Words/SetupGuideContent facts as the deterministic guide,

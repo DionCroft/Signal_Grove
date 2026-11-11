@@ -165,10 +165,11 @@ class LocalAiControllerTest {
         controller.load(model); advanceUntilIdle(); controller.send("Only ordinary chat"); advanceUntilIdle()
         val before = controller.state.value.chat
         val observations = LocalHelpObservations.capture(false, "https://secret-user:secret-pass@host.invalid/profile?token=private", true, true, 55)
-        engine.reply = "Review the intended profile and API_SERVER_KEY. [S1]"
-        controller.help(LocalHelpTopic.AUTH, observations, false); advanceUntilIdle()
+        engine.reply = "[\"host.api\",\"phone.api_key\"]"
+        controller.help(LocalHelpTopic.AUTH, observations); advanceUntilIdle()
         val help = controller.state.value.helper!!
         assertEquals(LocalReplyState.COMPLETE, help.state); assertEquals(model.sha256, help.modelSha256)
+        assertEquals(listOf("host.api", "phone.api_key"), help.checks.map {it.id})
         assertEquals(before, controller.state.value.chat); assertEquals(1, LocalConversationStore(history).list().size)
         val helperPrompt = engine.requests.last().joinToString {it.text}
         assertFalse(helperPrompt.contains("Only ordinary chat")); assertFalse(helperPrompt.contains("secret-pass")); assertTrue(helperPrompt.contains(LocalSetupHelper.VERSION))
@@ -181,9 +182,9 @@ class LocalAiControllerTest {
         val root = temp.newFolder(); val model = model(root); val history = temp.newFolder(); val engine = Engine()
         val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
         controller.load(model); advanceUntilIdle(); engine.reply = "Set API_ENABLED=true. [S1]"
-        controller.help(LocalHelpTopic.AUTH, null, false); advanceUntilIdle()
+        controller.help(LocalHelpTopic.AUTH, null); advanceUntilIdle()
         assertEquals("helper_unverified", controller.state.value.error)
-        assertEquals("", controller.state.value.helper!!.text); assertEquals(LocalReplyState.FAILED, controller.state.value.helper!!.state)
+        assertTrue(controller.state.value.helper!!.checks.isEmpty()); assertEquals(LocalReplyState.FAILED, controller.state.value.helper!!.state)
         assertTrue(LocalConversationStore(history).list().isEmpty()); assertNull(controller.state.value.chat)
         controller.leave(); advanceUntilIdle()
     }

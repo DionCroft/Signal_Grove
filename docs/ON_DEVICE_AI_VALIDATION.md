@@ -1,5 +1,31 @@
 # On-device inference validation
 
+## 11 November 2026 - real offline app flow and reviewed helper checks
+
+The owner imported LFM3 through Android's normal document picker and separate
+licence confirmation, loaded it and received a newly typed local reply with
+Airplane mode on and Wi-Fi independently confirmed disabled. The complete reply
+was saved in phone history, bound to the publisher-matching model hash. A normal
+return to the main app released both model mappings in the same process; VmRSS
+fell from about 2.42 GiB to 458 MiB. The model and chat hashes were unchanged.
+The owner reopened the completed reply without loading weights. Normal radios
+were restored. Foreground VmHWM was about 2.43 GiB; a short charging temperature
+observation does not establish sustained thermal or battery performance.
+
+That preceding APK passes one native boundary and all three physical methods.
+Later semantic review found its freeform helper could misattribute host commands
+to the phone. The new helper instead permits only strict selection of reviewed
+checks with typed execution locations; the source guide remains available.
+
+The new combined development snapshot passes 916 JVM / 90 reports, 229 policy
+cases, required APK assemblies, zero-error lint (50 / 49 warnings) and all nine
+local UI cases on each of API 26/API 37. Exact-source phone upgrade and selector
+checks remain pending. The retained broader history keyboard/native-input
+failure remains open; no full instrumentation or release acceptance is claimed.
+The production beta.8 app remains unchanged. See the
+[reviewed-helper contract and exact hashes](contracts/2026-11-11-reviewed-local-checks.md)
+and [on-device usage guide](ON_DEVICE_AI.md).
+
 ## 10 November 2026: physical CPU feasibility
 
 Accepted scope: the official native llama.cpp CLI, with the official LiquidAI

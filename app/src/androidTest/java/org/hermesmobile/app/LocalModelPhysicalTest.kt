@@ -60,31 +60,33 @@ class LocalModelPhysicalTest {
         assertTrue(cancelled); assertEquals(3, checkpoints)
         stage("metadata-cancellation-complete")
     }
-    @Test fun verifiedLfm3GroundedSetupSummariesUseSelectedSources() = runBlocking {
+    @Test fun verifiedLfm3SelectsReviewedChecksAndGeneratesChineseText() = runBlocking {
         val (root, model) = modelInput()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val engine = NativeLocalEngine(root, context.applicationInfo.nativeLibraryDir)
         try {
             withTimeout(90_000) {engine.load(model, context = 2048, threads = 4)}
-            for (topic in listOf(LocalHelpTopic.NETWORK, LocalHelpTopic.AUTH, LocalHelpTopic.HISTORY, LocalHelpTopic.PROJECT)) {
+            for (topic in LocalHelpTopic.entries) {
                 stage("helper-${topic.name}-start")
                 var text = ""
-                val end = withTimeout(45_000) {engine.generate(LocalSetupHelper.messages(topic, null, false), 384) {text = it}}
+                val end = withTimeout(45_000) {engine.generate(LocalSetupHelper.messages(topic, null), 96) {text = it}}
                 InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {
                     putString("local_helper_topic", topic.name); putString("local_helper_answer", text); putString("local_helper_end", end.name)
                 })
                 assertEquals(LocalGenerationEnd.COMPLETE, end)
-                assertTrue(text.isNotBlank()); assertTrue("Missing selected-source citation", text.contains("[S1]") || text.contains("[S2]"))
-                assertTrue("Unsupported advice in $topic", LocalSetupHelper.accepts(text, topic, false))
+                val selected = LocalSetupHelper.selection(text, topic)
+                assertNotNull("Invalid setup selection for $topic: $text", selected)
+                assertTrue(selected!!.size in 1..3)
+                selected.forEach {check ->
+                    assertTrue(check.word.en.isNotBlank()); assertTrue(check.word.zh.isNotBlank()); assertTrue(check.word.pin.isNotBlank())
+                    assertTrue(LocalSetupHelper.sources(topic).any {it.id == check.sourceId})
+                }
                 stage("helper-${topic.name}-complete")
             }
-            var chinese = ""
-            val end = withTimeout(45_000) {engine.generate(LocalSetupHelper.messages(LocalHelpTopic.NETWORK, null, true), 384) {chinese = it}}
-            InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {putString("local_helper_topic", "NETWORK_ZH"); putString("local_helper_answer", chinese); putString("local_helper_end", end.name)})
-            assertEquals(LocalGenerationEnd.COMPLETE, end); assertTrue(chinese.any {it in '\u4e00'..'\u9fff'})
-            assertTrue(chinese.contains("[S1]") || chinese.contains("[S2]"))
-            assertTrue(LocalSetupHelper.accepts(chinese, LocalHelpTopic.NETWORK, true))
-            stage("helper-chinese-complete")
+            var reply = ""
+            assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) {engine.generate(listOf(LocalChatMessage("user", "只回复这六个字：离线测试成功")), 48) {reply = it}})
+            assertEquals("离线测试成功", reply.trim())
+            stage("native-chinese-text-complete")
         } finally {withContext(NonCancellable) {engine.unload()}}
     }
     @Test fun verifiedLfm3GeneratesCancelsRecoversAndUnloads() = runBlocking {

@@ -112,4 +112,17 @@ class LocalAiFlowTest {
         val file = File(instrumentation.targetContext.getExternalFilesDir(null), "qa/local-ai-bilingual.png")
         file.parentFile!!.mkdirs(); file.outputStream().use {image.compress(Bitmap.CompressFormat.PNG, 100, it)}; image.recycle()
     }
+    @Test fun helperDisplaysExactReviewedTextAndItsExecutionLocation() {
+        state = LocalAiState(loaded = model, helper = LocalHelpResult(LocalHelpTopic.NETWORK, sha, null,
+            LocalSetupHelper.sources(LocalHelpTopic.NETWORK),
+            LocalSetupHelper.selection("[\"host.serve\",\"phone.tailnet\"]", LocalHelpTopic.NETWORK)!!, LocalReplyState.COMPLETE))
+        show(bilingual = true); compose.onNodeWithTag("phone-helper-open").performClick()
+        compose.onNodeWithTag("phone-helper-topic-NETWORK").performScrollTo().performClick()
+        compose.onNodeWithText(Words.HelpHostServe.en, substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(Words.HelpHostServe.zh, substring = true).assertExists()
+        compose.onNodeWithText(Words.HelpHostServe.pin, substring = true).assertExists()
+        compose.onNodeWithText(listOf(Words.PhoneHelperOnHost.en, Words.PhoneHelperOnHost.zh,
+            Words.PhoneHelperOnHost.pin).joinToString("\n")).assertExists()
+        assertEquals(0, sends); assertEquals(0, downloads)
+    }
 }

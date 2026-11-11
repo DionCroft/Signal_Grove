@@ -56,7 +56,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         LocalAiActions(vm::send, c::cancel, c::newChat, c::load, c::unload, c::deleteModel,
             {c.download(true)}, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
             {vm.pendingImport.value = null}, c::openChat, c::deleteChat, c::dismissError, c::refreshLibrary,
-            {topic, share -> c.help(topic, observations.takeIf {share}, preferences?.chinese == true)}), close, observations)
+            {topic, share -> c.help(topic, observations.takeIf {share})}), close, observations)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
@@ -191,7 +191,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     }
     if (draft.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
     Row {
-        OutlinedTextField(draft, change, Modifier.weight(1f).testTag("phone-draft"), placeholder = {Text(label(Words.Message))}, maxLines = 4, enabled = !state.busy)
+        OutlinedTextField(draft, change, Modifier.weight(1f).testTag("phone-draft"), placeholder = {Text(label(Words.PhoneMessage))}, maxLines = 4, enabled = !state.busy)
         IconButton(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && draft.isNotBlank() && draft.toByteArray().size <= 8192,
             modifier = Modifier.testTag("phone-send")) {Icon(Icons.AutoMirrored.Outlined.Send, label(Words.Send))}
     }
