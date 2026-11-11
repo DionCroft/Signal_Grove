@@ -1,5 +1,27 @@
 # Signal Grove project state
 
+## Latest verified chunk - closed saved history
+
+The active full-audit goal now has real bearer API/Room coverage for closed
+Desktop conversations on both reviewed Hermes pins and Android APIs. An old-app
+reproduction confirmed 499 hidden rows entering its cache. The fix excludes those
+rows without breaking offsets and refuses inconsistent/changing reads before
+cache replacement. Independent server and copied-phone SQLite checks pass.
+
+Source315 passes 968 JVM / 94 reports, 263 policies, zero-error lint (50 / 49
+warnings) and 37 selected Android methods per API. Four actual-owner cases remain
+separately bound to their measured source301 app; all product inputs and app
+DEX/resources/manifest are identical, while native rebuild hashes differ.
+[Scope, failures and hashes](docs/contracts/2026-11-11-closed-history.md).
+
+Next reproduce and resolve the three prior-main hosted UI failures (native IME
+action boundary and two history reply-height assertions), retaining its incomplete
+ADB-loss run. Then complete real permission/actor/profile/owner-loss and active/unknown-work
+recovery, then verify Windows worker identity, authoritative project/working-copy
+files and reviewed binding/dispatch. Current-source physical/deployed history,
+normal inventory merging/UI, image/race and all original audit/local-AI/release
+gates remain open. No APK release or full-goal completion is claimed.
+
 ## Current priority - on-device AI, authorized 10 November 2026
 
 The full audit goal is active and incomplete. Its optional local-AI extension

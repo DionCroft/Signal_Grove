@@ -6807,7 +6807,9 @@
         "canonical_workspace_store:_worker_usage": "5c5223db3465316c091a5a71b48aa3b97efe4780ac95a220c54539762f73906d",
         "canonical_workspace_store:_worker_finish": "5dac3754c1320ddacab05bebe5b7ab384b2ff2f2ab3ed899c4f42afa82f1a642",
         "canonical_workspace_store:mutate_worker_execution": "824cf2f21af2e0e469f9412e022d7f8de317dbff2e282ab38678260fdc93e374",
-        "canonical_workspace_store:apply_worker_receipt": "836434d35c577d50e9b783b53fad7b257729fa830b44532a3d0f0fd5234ff286"
+        "canonical_workspace_store:apply_worker_receipt": "836434d35c577d50e9b783b53fad7b257729fa830b44532a3d0f0fd5234ff286",
+        "api:_project_client_message": "315e8f0c113e20a728700f8bf8dfabb4fc1aedfe602f51f1e3ddb36f32db6f59",
+        "api:APIServerAdapter._message_response": "e5137807d60c018838ebc0af754412412c6dc60e78fec3ec72003a7f78dfa7d7"
       },
       "request_fields": {
         "auth:_NativeRefreshBody.provider": "6f26da4d3397a0ad1e091e80f548edef3c9ec86067192a65272fb7d0def308d9",
@@ -11264,7 +11266,9 @@
     "canonical_workspace_guards:consumed_module",
     "canonical_workspace_binding:consumed_module",
     "canonical_workspace_retirement:consumed_module",
-    "canonical_workspace_store:consumed_module"
+    "canonical_workspace_store:consumed_module",
+    "api:_project_client_message",
+    "api:APIServerAdapter._message_response"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -14527,6 +14531,42 @@
           "hosted_room_store": "63d05323569900c32c0ba5e85ea8c99c7ae077f422a8642d272b8247332ed281"
         }
       }
+    ],
+    "api:_project_client_message": [
+      {
+        "sha256": "315e8f0c113e20a728700f8bf8dfabb4fc1aedfe602f51f1e3ddb36f32db6f59",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Saved-history projection reviewed for hidden/compaction markers, safe response fields and independent read-only client handling. This watch accepts only this exact API module; no other handler, field, route or lifecycle finding is waived.",
+        "required_sources": {
+          "api": "73175d668c0c683209ad047191921fe899e84b8a429470081a718ae7d163d3f6"
+        }
+      },
+      {
+        "sha256": "315e8f0c113e20a728700f8bf8dfabb4fc1aedfe602f51f1e3ddb36f32db6f59",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Saved-history projection reviewed for hidden/compaction markers, safe response fields and independent read-only client handling. This watch accepts only this exact API module; no other handler, field, route or lifecycle finding is waived.",
+        "required_sources": {
+          "api": "73175d668c0c683209ad047191921fe899e84b8a429470081a718ae7d163d3f6"
+        }
+      }
+    ],
+    "api:APIServerAdapter._message_response": [
+      {
+        "sha256": "e5137807d60c018838ebc0af754412412c6dc60e78fec3ec72003a7f78dfa7d7",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Saved-history projection reviewed for hidden/compaction markers, safe response fields and independent read-only client handling. This watch accepts only this exact API module; no other handler, field, route or lifecycle finding is waived.",
+        "required_sources": {
+          "api": "73175d668c0c683209ad047191921fe899e84b8a429470081a718ae7d163d3f6"
+        }
+      },
+      {
+        "sha256": "e5137807d60c018838ebc0af754412412c6dc60e78fec3ec72003a7f78dfa7d7",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Saved-history projection reviewed for hidden/compaction markers, safe response fields and independent read-only client handling. This watch accepts only this exact API module; no other handler, field, route or lifecycle finding is waived.",
+        "required_sources": {
+          "api": "73175d668c0c683209ad047191921fe899e84b8a429470081a718ae7d163d3f6"
+        }
+      }
     ]
   },
   "reviewed_source_introductions": {
@@ -15189,6 +15229,12 @@
       "hosted_room_peers",
       "hosted_room_service",
       "hosted_room_store"
+    ],
+    "api:_project_client_message": [
+      "api"
+    ],
+    "api:APIServerAdapter._message_response": [
+      "api"
     ]
   }
 }

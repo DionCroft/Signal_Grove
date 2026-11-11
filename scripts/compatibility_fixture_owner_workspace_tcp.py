@@ -62,14 +62,23 @@ p.add_argument('--emit-host-signals',action='store_true',help='Emit three explic
 effect=p.add_mutually_exclusive_group()
 effect.add_argument('--drop-workspace-ack',action='store_true',help='Drop only the actual committed workspace ACK at the outer transport; never alter dispatch or authority.')
 effect.add_argument('--workspace-refusal',choices=('turn-lease','compression-lock'),help='Hold a real fixture-local transcript lease/lock through the actual mutation refusal; no inference or fake response.')
+effect.add_argument('--read-api-history',action='store_true',help='Read closed seeded conversations through the actual bearer API; no session adoption or forwarded mutation.')
 p.add_argument('--owned-child', action='store_true', help=argparse.SUPPRESS)
 a = p.parse_args()
+if a.read_api_history and a.emit_host_signals:p.error("History mode does not emit canonical host notifications.")
 source, site, root = a.source_root.resolve(), a.dependency_site.resolve(), a.work_root.resolve()
 COMMIT = a.source_commit
 assert os.name == 'nt' and sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode
 assert source.is_dir() and site.is_dir() and not root.exists()
 assert source.drive.upper() == root.drive.upper() == 'E:'
 assert not any(x.is_relative_to(y) for x, y in ((root, source), (source, root), (root, site), (site, root)))
+def history_snapshot_digest(snapshot):
+    """Lossless typed encoding for SQLite BLOB fields; do not omit display identities."""
+    def encode(value):
+        if not isinstance(value,bytes):raise TypeError('Unsupported fixture snapshot type')
+        return {'sqlite_blob_hex':value.hex()}
+    return hashlib.sha256(json.dumps(snapshot,sort_keys=True,separators=(',',':'),ensure_ascii=True,default=encode).encode()).hexdigest()
+
 def supervise():
     # One owned attempt: never recycle a root or retry uncertain work.
     receipt=root.with_suffix('.supervisor.json');log=root.with_suffix('.supervisor.log')
@@ -79,9 +88,10 @@ def supervise():
     if a.emit_host_signals:command.append('--emit-host-signals')
     if a.drop_workspace_ack:command.append('--drop-workspace-ack')
     if a.workspace_refusal:command.extend(['--workspace-refusal',a.workspace_refusal])
+    if a.read_api_history:command.append('--read-api-history')
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
-    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,controlledHostSignals=a.emit_host_signals,dropWorkspaceAck=a.drop_workspace_ack,workspaceRefusal=a.workspace_refusal,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,controlledHostSignals=a.emit_host_signals,dropWorkspaceAck=a.drop_workspace_ack,workspaceRefusal=a.workspace_refusal,readApiHistory=a.read_api_history,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     def save():receipt.write_text(json.dumps(observation,indent=2)+'\n',encoding='utf-8')
     save()
     with log.open('xb') as stream:
@@ -98,7 +108,7 @@ def supervise():
     core=json.loads((root/'report.json').read_text(encoding='utf-8'))
     final=json.loads((root/'shutdown-diagnostics.json').read_text(encoding='utf-8'))
     assert core['harnessSha256']==observation['harnessSha256']
-    assert core['state']=='PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT' and core['importedModules']
+    assert core['state']==('PASS_ANDROID_REAL_OWNER_CLOSED_HISTORY' if a.read_api_history else 'PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT') and core['importedModules']
     assert not core['denied'] and not final['denied']
     # After actual process exit, verify the one exact fixture session and mutation receipt through read-only SQLite.
     import sqlite3
@@ -110,22 +120,35 @@ def supervise():
             counts={name:db.execute('SELECT COUNT(*) FROM '+name).fetchone()[0]
                     for name in ('sessions','session_admissions','hosted_rooms') if name in tables}
             assert {'sessions','session_admissions'}<=counts.keys()
-            expected = core['workspace'] if db_path.parent.name=='hermes-home' else None
-            assert counts==dict(sessions=int(expected is not None),session_admissions=0,hosted_rooms=0)
-            assert db.execute('SELECT COUNT(*) FROM messages').fetchone()[0]==0
-            if expected:
-                rows=db.execute('SELECT id,cwd,runtime_revision,runtime_generation FROM sessions').fetchall()
-                assert rows==[(expected['sessionId'],expected['cwd'],expected['revision'],expected['generation'])]
-                receipts=db.execute("SELECT value FROM state_meta WHERE key GLOB 'gateway.mutation.v1.*'").fetchall()
-                assert len(receipts)==(0 if a.workspace_refusal else 1)
-                if not a.workspace_refusal:assert json.loads(receipts[0][0])['result']==expected['ack']
+            if a.read_api_history:
+                profile='default' if db_path.parent.name=='hermes-home' else 'field'
+                assert counts==dict(sessions=2,session_admissions=0,hosted_rooms=0)
+                assert db.execute('SELECT COUNT(*) FROM worker_executions').fetchone()[0]==0
+                assert db.execute('SELECT COUNT(*) FROM messages').fetchone()[0]==503
+                assert db.execute('SELECT COUNT(*) FROM sessions WHERE ended_at IS NULL').fetchone()[0]==0
+                assert db.execute("SELECT COUNT(*) FROM state_meta WHERE key GLOB 'gateway.mutation.v1.*'").fetchone()[0]==0
+                assert db.execute('SELECT id FROM sessions ORDER BY id').fetchall()==[(profile+'-only-fixture',),('shared-closed-fixture',)]
+                snap={'sessions':[dict(zip([x[1] for x in db.execute('PRAGMA table_info(sessions)')],row)) for row in db.execute('SELECT * FROM sessions ORDER BY id')],
+                      'messages':[dict(zip([x[1] for x in db.execute('PRAGMA table_info(messages)')],row)) for row in db.execute('SELECT * FROM messages ORDER BY id')]}
+                digest=history_snapshot_digest(snap)
+                assert digest==core['historySnapshots'][profile]
+            else:
+                expected = core['workspace'] if db_path.parent.name=='hermes-home' else None
+                assert counts==dict(sessions=int(expected is not None),session_admissions=0,hosted_rooms=0)
+                assert db.execute('SELECT COUNT(*) FROM messages').fetchone()[0]==0
+                if expected:
+                    rows=db.execute('SELECT id,cwd,runtime_revision,runtime_generation FROM sessions').fetchall()
+                    assert rows==[(expected['sessionId'],expected['cwd'],expected['revision'],expected['generation'])]
+                    receipts=db.execute("SELECT value FROM state_meta WHERE key GLOB 'gateway.mutation.v1.*'").fetchall()
+                    assert len(receipts)==(0 if a.workspace_refusal else 1)
+                    if not a.workspace_refusal:assert json.loads(receipts[0][0])['result']==expected['ack']
             for table in ('session_turn_leases','compression_locks'):
                 assert db.execute('SELECT COUNT(*) FROM '+table).fetchone()[0]==0
             stores.append(dict(profile='default' if db_path.parent.name=='hermes-home' else 'field',counts=counts,quickCheck='ok'))
     assert not (root/'hermes-home/gateway.pid').exists()
     observation.update(coreTransportAccepted=True,stores=stores,shutdownWarnings=len(final['warnings']),
         importedModules=len(core['importedModules']),sourceCommit=COMMIT,
-        scope='One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance.')
+        scope=('Actual owner/bearer API/closed seeded history/Room read proof; no native login, inference, production or full lifecycle acceptance.' if a.read_api_history else 'One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance.'))
     clean=final['state']=='CLEAN_EXIT_OBSERVATION' and not final['warnings']
     observation['state']='PASS_FINITE_OWNER_RUNTIME' if clean else 'CORE_PASS_SHUTDOWN_FINDING_OPEN'
     save();print(json.dumps({k:observation[k] for k in ('state','transport','importedModules','shutdownWarnings','sourceCommit','stores')}))
@@ -286,13 +309,124 @@ def phase(name,**details):
     (root/'attempt.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
     print(name,flush=True)
 
+
+def history_fixture_http_allowed(method,path,query):
+    """Only finite read-only API paths, profiles and exact pagination shapes reach the real adapter."""
+    if method!='GET' or not isinstance(path,str) or not isinstance(query,bytes):return False
+    match=re.fullmatch(r'/history/p/(default|field|not-served-fixture)/api/sessions(?:/(shared-closed-fixture|default-only-fixture|field-only-fixture)/messages)?',path)
+    if match is None:return False
+    try:
+        pairs=urllib.parse.parse_qsl(query.decode('ascii'),keep_blank_values=True,strict_parsing=True)
+    except (ValueError,UnicodeError):return False
+    values=dict(pairs)
+    if len(values)!=len(pairs):return False
+    if match[2] is None:
+        return set(values)=={'limit','offset'} and values['limit'] in ('1','50') and values['offset'] in ('0','1','2','50')
+    return (set(values)=={'inline_images','limit','offset','order'} and values['inline_images']=='false'
+            and values['limit']=='500' and values['offset'] in ('0','500') and values['order']=='oldest')
+
+async def history_fixture_body(stream):
+    """Read every chunk with a hard bound; one read(n) is not a complete network response."""
+    body=bytearray()
+    async for chunk in stream.iter_chunked(65536):
+        if not isinstance(chunk,bytes) or len(chunk)>65536:raise RuntimeError('Malformed fixture response chunk')
+        if len(body)+len(chunk)>2_000_000:raise RuntimeError('Oversized fixture response')
+        body.extend(chunk)
+    return bytes(body)
+
+async def serve_closed_history_android(runner,keys):
+    import socket,time,uvicorn
+    from aiohttp import ClientSession
+    from gateway.config import Platform
+    from gateway.session_authorities import owner_scope
+    api=runner.adapters[Platform.API_SERVER]
+    inner_port=api._site._server.sockets[0].getsockname()[1]
+    assert type(inner_port) is int and 1024<=inner_port<=65535
+    homes=[('default',launch),('field',secondary)];snapshots={}
+    def snapshot(db):
+        with db._read_ctx() as conn:
+            return {'sessions':[dict(row) for row in conn.execute('SELECT * FROM sessions ORDER BY id')],
+                    'messages':[dict(row) for row in conn.execute('SELECT * FROM messages ORDER BY id')]}
+    for name,home in homes:
+        authority=runner.session_authorities.require(home);db=authority.db
+        with owner_scope(authority):
+            db.create_session('shared-closed-fixture',source='desktop')
+            db.append_message('shared-closed-fixture','user',name+' saved user',timestamp=100)
+            for index in range(2,501):db.append_message('shared-closed-fixture','assistant','private-hidden-fixture-'+name,display_kind='hidden',timestamp=100+index)
+            db.append_message('shared-closed-fixture','assistant',name+' saved reply',timestamp=1000,reasoning_content='private-reasoning-fixture-'+name)
+            db.end_session('shared-closed-fixture',end_reason='fixture_closed')
+            sid=name+'-only-fixture';db.create_session(sid,source='desktop')
+            db.append_message(sid,'user',name+' only user',timestamp=100)
+            db.append_message(sid,'assistant',name+' only reply',timestamp=101)
+            db.end_session(sid,end_reason='fixture_closed')
+        snapshots[name]=history_snapshot_digest(snapshot(db))
+    record['historySnapshots']=snapshots
+    phase('CLOSED_NONEMPTY_HISTORY_SEEDED_ONLY_IN_TWO_DISPOSABLE_PROFILE_STORES')
+    requests=[];rejected=[]
+    async with ClientSession() as client:
+        async def prefix(scope,receive,send):
+            if scope['type']!='http':
+                if scope['type']=='websocket':await send(dict(type='websocket.close',code=1008))
+                return
+            path=scope.get('path','');query=scope.get('query_string',b'');headers=scope.get('headers',[])
+            allowed=history_fixture_http_allowed(scope['method'],path,query)
+            auth=[value.decode('ascii') for key,value in headers if key.lower()==b'authorization']
+            allowed=allowed and len(auth)==1 and auth[0] in ['Bearer '+keys[str(home)] for _,home in homes]
+            allowed=allowed and not any(key.lower() in (b'cookie',b'origin',b'transfer-encoding') for key,value in headers)
+            if not allowed:
+                rejected.append('unreviewed-history-route-or-header');raise RuntimeError('Unreviewed history request')
+            size=0
+            while True:
+                message=await receive()
+                if message['type']=='http.disconnect':return
+                assert message['type']=='http.request';size+=len(message.get('body',b''))
+                if size:rejected.append('history-body');raise RuntimeError('History fixture GET has a body')
+                if not message.get('more_body',False):break
+            target='http://127.0.0.1:'+str(inner_port)+path[len('/history'):]+('?' + query.decode('ascii') if query else '')
+            async with client.get(target,headers={'Authorization':auth[0],'Accept':'application/json'},allow_redirects=False) as response:
+                body=await history_fixture_body(response.content)
+                requests.append(dict(method='GET',path=path,query=query.decode('ascii'),status=response.status))
+                await send(dict(type='http.response.start',status=response.status,headers=[(b'content-type',response.headers.get('Content-Type','').encode('ascii'))]))
+                await send(dict(type='http.response.body',body=body))
+        listener=socket.socket();listener.bind(('127.0.0.1',0));listener.listen(64);port=listener.getsockname()[1]
+        server=uvicorn.Server(uvicorn.Config(prefix,host='127.0.0.1',port=0,loop='asyncio',http='h11',ws='websockets',lifespan='off',log_config=None,access_log=False,log_level='warning',timeout_graceful_shutdown=5))
+        task=asyncio.create_task(server.serve(sockets=[listener]))
+        try:
+            deadline=time.monotonic()+15
+            while not server.started and not task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
+            assert server.started and not task.done()
+            ready=dict(state='READY_ACTUAL_OWNER_CLOSED_HISTORY_ANDROID_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/history/',sourceCommit=COMMIT,androidApi=a.android_api,historyKeys={name:keys[str(home)] for name,home in homes},harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+            pending=root/'ready.pending';pending.write_text(json.dumps(ready)+'\n',encoding='utf-8');pending.replace(root/'ready.json')
+            phase('READY_FOR_READ_ONLY_ANDROID_BEARER_HISTORY')
+            deadline=time.monotonic()+600
+            while not (root/'android-result.json').is_file() and time.monotonic()<deadline:await asyncio.sleep(.1)
+            assert (root/'android-result.json').is_file(),'Android did not publish its exact completed result; do not repeat it'
+            proof=json.loads((root/'android-result.json').read_text());assert proof['instrumentationPassed'] is True and proof['distinctMethods']==1
+            result=proof['result'];assert result['state']=='PASS_REAL_OWNER_API_CLOSED_HISTORY' and result['sourceCommit']==COMMIT and result['api']==a.android_api and result['backend']=='actual-api-owner'
+            assert result['savedCredentialsUnchanged'] and not result['modelOrWorkerExecutionClaim'] and len(result['checks'])==7
+            assert not rejected and len(requests)==12 and all(item['method']=='GET' for item in requests)
+            assert sorted(item['status'] for item in requests)==[200]*10+[401,404]
+            for name,home in homes:
+                db=runner.session_authorities.require(home).db
+                assert history_snapshot_digest(snapshot(db))==snapshots[name]
+                assert db._read_all('SELECT * FROM session_admissions')==[]
+            record.update(android=result,historySnapshots=snapshots,historyRequests=requests,historyRejected=rejected)
+            phase('ANDROID_BEARER_CLOSED_HISTORY_AND_ROOM_ISOLATION_RECONCILED_WITH_UNCHANGED_HOST')
+        finally:
+            record['historySnapshotsAfterClient']={name:history_snapshot_digest(snapshot(runner.session_authorities.require(home).db)) for name,home in homes}
+            record.update(historyRequests=requests,historyRejected=rejected)
+            server.should_exit=True;await asyncio.wait_for(task,15);listener.close()
+
 async def run():
     from hermes_cli.config import atomic_config_write
+    import secrets
+    fixture_keys={str(home):secrets.token_hex(32) for home in (launch,secondary)} if a.read_api_history else {}
     for profile_home in (launch,secondary):
+        if a.read_api_history:(profile_home/'.env').write_text('API_SERVER_KEY='+fixture_keys[str(profile_home)]+'\n',encoding='utf-8')
         atomic_config_write(profile_home/'config.yaml',{'gateway':{'multiplex_profiles':True,'loop_watchdog':False},
             'dashboard':{'startup_orphan_sweep':False},'agent':{'environment_probe':False},'terminal':{'cwd':str(root)},'model_catalog':{'enabled':False}})
     from gateway.run import GatewayRunner,_refresh_host_gateway_record
-    from gateway.config import GatewayConfig
+    from gateway.config import GatewayConfig,Platform,PlatformConfig
     from gateway import run_bootstrap as boot,run_runtime as runtime,run_api
     from gateway.runtime_ownership import process_ownership
     from gateway import host_rendezvous as hr,status
@@ -308,7 +442,7 @@ async def run():
     assert boot._start_gateway_reserve_profiles(profiles)
     assert all(process_ownership.owns(value) for value in (launch,secondary))
     assert boot._start_gateway_claim_pid_file()
-    config=GatewayConfig(multiplex_profiles=True,loop_watchdog=False)
+    config=GatewayConfig(multiplex_profiles=True,loop_watchdog=False,platforms={Platform.API_SERVER:PlatformConfig(enabled=True,extra=dict(host="127.0.0.1",port=0,key=fixture_keys[str(launch)]))} if a.read_api_history else {})
     config._runtime_profile_homes=tuple(profiles)
     runner=None;control=None;api=None
     try:
@@ -335,6 +469,10 @@ async def run():
         assert runner._running and not runner._draining
         runtime.publish_gateway_runtime_ready(runner)
         phase('OFFICIAL_RUNNER_STARTED_READY_PUBLISHED')
+        if a.read_api_history:
+            await serve_closed_history_android(runner,fixture_keys)
+            record['state']='PASS_ANDROID_REAL_OWNER_CLOSED_HISTORY'
+            return
         for profile_home in (launch,secondary):
             discovery=await asyncio.to_thread(discover_gateway_endpoint,profile_home,timeout=5)
             assert discovery.state=='ready' and discovery.endpoint is not None,discovery.state
@@ -569,7 +707,7 @@ finally:
                 assert hashlib.sha256(raw).hexdigest()==before[rel],rel
                 imported.append(dict(module=name,path=rel,gitBlob=oid,sha256=before[rel]))
     record.update(importedModules=imported,versionProbes=version_probes,socketEvents=sockets,workspaceProbes=workspace_probes,blockedCatalogReads=blocked_catalog_reads,
-        scope='One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance. Final shutdown diagnostics must also be accepted.')
+        scope=('Actual owner/bearer API/closed seeded history/Room reads. No native login, inference, production or complete lifecycle acceptance; final shutdown diagnostics remain separate.' if a.read_api_history else 'One bounded Android client over prefixed real-owner HTTP/PKCE/ticket/canonical workspace and Room proof; synthetic IdP only; no production IdP, Pi, inference/tool/worker or complete lifecycle acceptance. Final shutdown diagnostics must also be accepted.'))
     (root/'report.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(dict(state=record['state'],modules=len(imported),denials=len(denied))),flush=True)
-if record['state']!='PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT' or denied:sys.exit(1)
+if record['state']!=('PASS_ANDROID_REAL_OWNER_CLOSED_HISTORY' if a.read_api_history else 'PASS_ANDROID_REAL_OWNER_WORKSPACE_TRANSPORT') or denied:sys.exit(1)

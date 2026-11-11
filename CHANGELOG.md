@@ -2,6 +2,12 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Keep Hermes-marked hidden messages out of saved chat history, preserving raw
+  paging offsets. Retain cached messages on malformed/inconsistent pages or a
+  changed reported continuation; show translated advice without parser snippets.
+  Verify closed Desktop history and profile isolation against two real Hermes
+  pins on Android API 26/API 37, with independent host/phone database checks.
+
 - Explain reported busy, compression and permission workspace refusals with
   translated advice, keeping raw diagnostics private and uncertainty guarded.
   Verify real transcript-lock refusals and unchanged directories on both Hermes

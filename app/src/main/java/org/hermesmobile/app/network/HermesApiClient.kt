@@ -169,16 +169,16 @@ class OkHttpHermesApiClient(private val config: ServerConfig, debugBuild: Boolea
             val j=try {json("api/sessions/${segment(resolved)}/messages?inline_images=false&limit=$pageLimit&offset=$offset&order=oldest")} catch(e:HermesResponseTooLargeException) {
                 if(pageLimit==1) throw e
                 pageLimit=when(pageLimit) {500->50;50->5;else->1};continue
+            } catch(e:kotlinx.serialization.SerializationException) {
+                // Parser diagnostics can quote response bodies. Never expose private history text.
+                throw HistoryReadInvalid()
             }
-            resolved=j.text("session_id").ifBlank {resolved}
-            val rows=j.items("data")
+            val page=HistoryReadProjection.page(j,resolved,offset,pageLimit)
+            resolved=page.sessionId
+            val rows=page.rows
             retainedBytes+=rows.sumOf {it.toString().toByteArray(Charsets.UTF_8).size.toLong()}
             require(retainedBytes<=25_000_000) {"History exceeds the mobile memory limit. Saved messages were kept."}
-            all+=rows.filter {it.text("role") in listOf("user","assistant")}.mapIndexed {index,m ->
-                val ts=(m["timestamp"] as? JsonPrimitive)?.doubleOrNull ?: 0.0
-                val content=ImageContent.parse(m["content"])
-                RemoteMessage(m.text("role"),content.text,(ts*1000).toLong(),m.text("id").ifBlank {"legacy_${offset+index}"},content.sources)
-            }
+            all+=rows.mapIndexedNotNull {index,m->HistoryReadProjection.message(m,"legacy_${offset+index}")}
             offset+=rows.size
             if(rows.size<pageLimit) break
             require(offset<100_000) { "History exceeds the mobile import limit. Saved messages were kept." }

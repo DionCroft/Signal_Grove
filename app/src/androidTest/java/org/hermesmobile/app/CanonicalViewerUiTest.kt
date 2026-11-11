@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import androidx.compose.runtime.*
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -185,7 +186,10 @@ class CanonicalViewerUiTest {
                 compose.onNodeWithTag("workspace-directory").performScrollTo().performTextReplacement("/fixture/new project")
             }
             compose.onNodeWithTag("workspace-review").performClick()
-            grantWorkspaceConsent()
+            // This checks advice/uncertainty state. Other consent tests exercise physical taps.
+            val consent=compose.onNodeWithTag("workspace-consent").performScrollTo().assertIsOff()
+            consent.performSemanticsAction(SemanticsActions.OnClick) {it()}
+            consent.assertIsOn()
             compose.onNodeWithTag("workspace-confirm").performClick()
             compose.waitUntil(5000) {viewer.state.value.workspaceNotice==word && !viewer.state.value.workspaceChanging}
             scroll("canonical-viewer-list","workspace-result").assertTextEquals(word.en)

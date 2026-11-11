@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - closed history keeps hidden messages private
+
+Normal Chat history now excludes Hermes-marked hidden rows while retaining raw
+pagination offsets. Changed reported continuation identities and malformed or
+inconsistent pages fail before cached messages are replaced, with translated
+advice and no private parser snippets.
+
+A real old-app reproduction stores 499 hidden fixture rows. Four fixed Android
+cases cover API 26/API 37 and both reviewed Hermes execution pins through the
+actual bearer API: twelve GETs per case, isolated profile caches, wrong-key 401,
+foreign-ID 404 and read-only Desktop history after Room reopen. Independent host
+and copied-phone SQLite checks agree; all host history digests are unchanged.
+One parent verifier NameError is independently reconciled without rerunning its
+successful child. These history-mode children exit cleanly; the previous native
+workspace/owner shutdown finding remains open.
+
+Final source315 passes 968 JVM cases / 94 reports, 263 policies, both lint variants
+without errors and 37 selected Android methods per API. Failed fixture, paging,
+proxy, consent and historical-projection checks are retained. All product inputs
+and app DEX/resources/manifest match the measured actual-owner app; rebuilt native
+libraries and changed test APKs remain separately hash-bound. See
+[exact artifacts, evidence and limitations](contracts/2026-11-11-closed-history.md).
+
+The full audit remains active. Normal inventory merge/UI, images/compression
+races, real permission/actor/profile/owner loss, active/unknown work, physical and
+deployed checks, Windows worker/project/files, local-AI and signed-release gates
+remain required. No new APK release is claimed.
+
+The prior-main full hosted API26 suite failed and stopped early: three UI layout
+assertions, then ADB exit 255 with device state unavailable (649 positive methods
+of 1,105 declared). Reproduce the native keyboard/action and history reply-height
+findings next. The current 37-method local selection does not waive them; full
+hosted CI and compatibility review remain open. See the contract for exact handles.
+
 ## 11 November 2026 - specific workspace refusal guidance
 
 Workspace failures now distinguish a reported busy conversation, compression lock

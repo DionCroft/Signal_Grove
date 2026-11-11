@@ -6,7 +6,8 @@ from pathlib import Path
 import unittest
 from test_hermes_contract import checker, sources
 
-# Exclude only newly added workspace watches from the preserved historical projection.
+# Exclude only explicitly added workspace and history watches from historical projections.
+HISTORY_WATCHES={'api:_project_client_message','api:APIServerAdapter._message_response'}
 WORKSPACE_FIELDS={ 'canonical_wire:SessionMutateParams.'+x for x in ('session_id','request_id','expected_revision','operation','payload','expected_generation')} | {'canonical_wire:SessionMutateResult.'+x for x in ('session_id','operation','revision')}
 
 STREAM_ALIASES=('canonical_event_stream','canonical_replay_store','canonical_transport','canonical_event_payloads')
@@ -20,10 +21,10 @@ class CanonicalStreamContractTest(unittest.TestCase):
     def test_every_original_f0_entry_and_mobile_scope_is_preserved(self):
         b=self.baseline();contract=copy.deepcopy(b['upstream']['contract'])
         for section in ('source_hashes','handlers','request_fields'):
-            contract[section]={k:v for k,v in contract[section].items() if not (k in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES)+tuple(checker.WORKSPACE_CONTRACT_SOURCES)) or any(k.startswith(a+':') for a in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES)+tuple(checker.WORKSPACE_CONTRACT_SOURCES))))}
+            contract[section]={k:v for k,v in contract[section].items() if k not in HISTORY_WATCHES and not (k in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES)+tuple(checker.WORKSPACE_CONTRACT_SOURCES)) or any(k.startswith(a+':') for a in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES)+tuple(checker.WORKSPACE_CONTRACT_SOURCES))))}
         self.assertEqual(OLD_F0_CONTRACT_SHA256,self.digest(contract))
         scope={k:copy.deepcopy(v) for k,v in b.items() if k.startswith('mobile_used_')}
-        scope['mobile_used_handlers']=[x for x in scope['mobile_used_handlers'] if x not in {a+':consumed_module' for a in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES)+tuple(checker.WORKSPACE_CONTRACT_SOURCES))}]
+        scope['mobile_used_handlers']=[x for x in scope['mobile_used_handlers'] if x not in HISTORY_WATCHES and x not in {a+':consumed_module' for a in (STREAM_ALIASES+tuple(checker.HOSTED_ROOM_CONTRACT_SOURCES)+tuple(checker.WORKSPACE_CONTRACT_SOURCES))}]
         scope['mobile_used_request_fields']=[x for x in scope['mobile_used_request_fields'] if x not in WORKSPACE_FIELDS]
         self.assertEqual(OLD_MOBILE_SCOPE_SHA256,self.digest(scope))
 
