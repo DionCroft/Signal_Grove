@@ -1,5 +1,28 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - complete hosted standard suite at main2fde
+
+Both Android matrix jobs in run 43089398041 are now successful. Independent
+ZIP hash checks and strict reparsing verify all distinct starts and positive
+terminals: API26 passes 1118 methods in 3336.349 seconds; API37 passes 1119 in
+5665.758 seconds. Both have zero skipped/failed/partial outcomes and include
+the workspace/native-IME case. The SDK inventories are distinct; equal counts
+are not assumed. Five explicitly reviewed model classes / 11 methods remain
+not_run with their exact prerequisites, rather than becoming model acceptance.
+
+API26 artifact 13889469842 has SHA-256
+`fac1ad7163458af0bfb7428726c98a744478cd5d79d5c944dffc2445a93925c0`;
+API37 artifact 13892943951 has SHA-256
+`987f8154cf51a41acef9231fc544076c6914fb3299251f427f92fee3e754042b`.
+Both proofs remain bound to `2fde17d`, not a full-suite pass for later heads.
+
+At diagnostic head `2581cf3`, compatibility run 43104683688 passes parser,
+pinned registry-module and pinned sidecar-response jobs. Its latest stable/main
+source-inspection steps fail. No drift is waived or claimed compatible. The new
+Android workflow is queued. Original physical, model/lifecycle, production,
+worker/project/files, automation/integration, advisory and signed-release gates
+remain required. [Native-input scope](contracts/2026-11-11-native-input-diagnostics.md).
+
 ## 11 November 2026 - bounded native-input diagnostics and recovered UI checks
 
 The native test helper records exact event/window facts and refuses Espresso's

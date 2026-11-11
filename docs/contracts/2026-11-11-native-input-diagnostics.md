@@ -130,3 +130,17 @@ production authentication, worker/project/file ownership, reviewed dispatch,
 automations/integrations, upstream/advisories and signed release remain required.
 Next continue the worker/project/session/file gap with source-backed protocols;
 this diagnostics chunk is not a new APK release.
+
+## Subsequent complete API37 hosted result
+
+After the diagnostic chunk was published, main2fde API37 also completes
+successfully: 1119 exact distinct starts/positive terminals in 5665.758 seconds,
+zero skips, failures or incomplete cases. Artifact 13892943951 is independently
+hash-checked (`987f8154cf51a41acef9231fc544076c6914fb3299251f427f92fee3e754042b`)
+and reparsed; its manifest exactly retains the same five external-model classes /
+11 not-run methods. Together with the earlier API26 proof, this closes that
+specific head's complete standard Android matrix. It does not retrospectively
+change any failed local batch, accept external gates, accept upstream source
+drift or establish a full-suite result for later commits. The newer compatibility
+run passes its parser/registry/sidecar checks and fails only the latest stable/
+main source-inspection job. The full audit and next worker/project stage remain.

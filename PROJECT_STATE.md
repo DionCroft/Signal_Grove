@@ -18,10 +18,12 @@ SUCCESS reports, zero workspace writes and exact settings restoration. Recovery,
 scheduling and API26 animation settings changed; original causes are not inferred.
 [Exact scope and artifacts](docs/contracts/2026-11-11-native-input-diagnostics.md).
 
-Separately, earlier main2fde hosted API26 passes all 1118 standard methods,
-independently verified with zero skips/partial results; its five model classes /
-11 methods stay not_run. API37/newer-head acceptance is not inferred. The full
-audit, original failures, worker/project/files, physical/models, production,
+Separately, earlier main2fde hosted API26/API37 pass all 1118/1119 standard
+methods, independently verified with zero skips/partial results. Its five model
+classes / 11 methods stay not_run. Later-head full acceptance is not inferred.
+At diagnostic head2581, parser/pinned-registry/pinned-sidecar jobs pass, while
+latest stable/main source inspection fails; no drift is waived. The full audit,
+original failures, worker/project/files, physical/models, production,
 upstream/advisories and signed release remain open. Published preview is beta.8.
 
 The preceding eight actual Android/owner profile-retirement/cache cases remain
