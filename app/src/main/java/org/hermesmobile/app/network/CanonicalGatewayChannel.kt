@@ -265,7 +265,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     }
 
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
-        require(method in setOf("session.list", "session.resume", "session.events.since", "gateway.ping", "session.mutate"))
+        require(method in setOf("session.list", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions"))
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -294,6 +294,18 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         val result = call("session.list", buildJsonObject { put("scope",scope.wire); put("limit",200) })
         if (binding !== identity) throw CanonicalScopeChanged()
         return CanonicalSessionProtocol.inventory(result, identity, scope)
+    }
+
+    internal suspend fun projectMetadata(id:String?=null,conversations:Boolean=false):JsonObject {
+        val expected=binding
+        require(!conversations || id!=null)
+        id?.let {require(HostProjectProtocol.validId(it))}
+        val result=call(if(conversations) "projects.project_sessions" else if(id==null) "projects.list" else "projects.get",buildJsonObject {
+            put("profile",expected.target.profile)
+            if(conversations) {put("project_id",checkNotNull(id));put("session_limit",HostProjectConversationProtocol.SessionLimit)} else id?.let {put("id",it)}
+        })
+        if(binding!==expected) throw CanonicalScopeChanged()
+        return result
     }
 
     /** WebSocket liveness only; the real WS layer returns ok, not the authority's pong. */

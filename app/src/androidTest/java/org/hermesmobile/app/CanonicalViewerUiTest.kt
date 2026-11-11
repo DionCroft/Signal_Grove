@@ -86,7 +86,7 @@ class CanonicalViewerUiTest {
     private val viewer=CanonicalViewerController(scope,repo,{access},guard::set)
     private var shown by mutableStateOf(true)
     private var available by mutableStateOf(true)
-    private fun render(pending:Boolean=false,large:Boolean=false) {
+    private fun render(pending:Boolean=false,large:Boolean=false,selection:CanonicalViewerSelection?=null) {
         compose.runOnUiThread {
             access=CanonicalViewerAccess(target,home,1,ManagementClient(target.url,false),tokens)
             lifecycleOwner.registry.currentState=Lifecycle.State.RESUMED
@@ -96,7 +96,7 @@ class CanonicalViewerUiTest {
                 val density=LocalDensity.current
                 CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides lifecycleOwner,
                     LocalDensity provides if(large) Density(density.density,1.8f) else density) {
-                    if(shown) CanonicalSessionsDialog(viewer,available,pending) {viewer.close();shown=false}
+                    if(shown) CanonicalSessionsDialog(viewer,available,pending,selection) {viewer.close();shown=false}
                 }
             }
         }
@@ -131,6 +131,15 @@ class CanonicalViewerUiTest {
         compose.runOnUiThread {viewer.close();shown=false;scope.cancel()}
         compose.waitForIdle();assertFalse(guard.active.value)
     }
+    @Test fun projectConversationSelectionShowsConsentBeforeOpeningAtLargeCaptions() {
+        render(large=true,selection=CanonicalViewerSelection(target,home,1,"fixture-history"))
+        assertEquals(listOf(CanonicalSessionScope.Stored),repo.reads);assertEquals(0,repo.adoptions);assertEquals(0,repo.previousReads)
+        compose.onNodeWithTag("canonical-open-confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("canonical-open-cancel").assertIsDisplayed().performClick();assertEquals(0,repo.adoptions)
+        review();consent();compose.onNodeWithTag("canonical-open-confirm").assertIsEnabled().performClick()
+        compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Following};assertEquals(1,repo.adoptions);assertTrue(repo.requireHeartbeat);assertEquals(0,repo.workspaceChanges)
+    }
+
     @Test fun workspaceDetailsArePrivateUntilOpenedAndClearedOnClose() {
         render();open()
         compose.onNodeWithTag("canonical-workspace-path").assertDoesNotExist()

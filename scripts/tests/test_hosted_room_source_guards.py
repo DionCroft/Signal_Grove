@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import unittest
-from test_hermes_contract import checker, sources, profile_ticket_historical_projection
+from test_hermes_contract import checker, sources, profile_ticket_historical_projection, project_sessions_historical_projection
 
 # Exclude only explicitly added workspace and history watches from historical projections.
 HISTORY_WATCHES={'api:_project_client_message','api:APIServerAdapter._message_response'}
@@ -12,7 +12,7 @@ WORKSPACE_FIELDS={ 'canonical_wire:SessionMutateParams.'+x for x in ('session_id
 
 GOLDEN={'contract': '8b6e0d1272378e190b5d10e29f9aec251de5d024df8e3c8e01da444e8dbad6bb', 'scope': 'cbcd74b483f54d89068575e278dc5fb55a4fab94ff1aa7f0c1e00ca7370eca3b', 'variants': '3e817ad24ab57a0a4697cb73bed7f5caae4f050fd9275161084c92f15aa18c41', 'absences': 'f7d5c2b4f5aac2951f82f4d505aeaf463c7da0b9721f68464af94192f46126ed'}
 class HostedRoomSourceGuardsTest(unittest.TestCase):
-    def baseline(self):return profile_ticket_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text()))
+    def baseline(self):return profile_ticket_historical_projection(project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text())))
     def digest(self,value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()).hexdigest()
     def test_all_original189_entries_mobile_scope_and_review_modes_are_exact(self):
         value=self.baseline();aliases=checker.HOSTED_ROOM_CONTRACT_SOURCES;contract=copy.deepcopy(value['upstream']['contract'])
@@ -23,7 +23,7 @@ class HostedRoomSourceGuardsTest(unittest.TestCase):
         variants={k:v for k,v in value['reviewed_handler_variants'].items() if k not in HISTORY_WATCHES and not k.startswith('hosted_room_')}
         absences={k:v for k,v in value.get('reviewed_handler_absences',{}).items() if k not in HISTORY_WATCHES and not k.startswith('hosted_room_')}
         self.assertEqual(GOLDEN,dict(contract=self.digest(contract),scope=self.digest(scope),variants=self.digest(variants),absences=self.digest(absences)))
-        self.assertEqual(218,len(checker.SOURCES|checker.EXTRA_SOURCES));self.assertEqual(16,len(aliases))
+        self.assertEqual(222,len(checker.SOURCES|checker.EXTRA_SOURCES));self.assertEqual(16,len(aliases))
         self.assertFalse(checker.compare(value,dict(commit=value['upstream']['commit'],contract=copy.deepcopy(value['upstream']['contract'])))['mobile_review_required'])
     def test_original_and_reviewed_room_modes_require_every_dependency(self):
         value=self.baseline();guards={k:v for k,v in value['baseline_handler_source_guards'].items() if k not in HISTORY_WATCHES};self.assertEqual(14,len(guards))

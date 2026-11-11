@@ -18,6 +18,7 @@ import java.util.Date
 private fun projectTime(ms:Long)=DateFormat.getDateTimeInstance().format(Date(ms))
 @Composable fun HostProjectsDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
     val visible=vm.visibleHostProjects(s)
+    var conversationSelection by remember(s.apiScope,s.url,s.profile,s.identity,vm.projectReceiptHome(s)) {mutableStateOf<CanonicalViewerSelection?>(null)}
     val receiptRows by vm.receipts.collectAsStateWithLifecycle()
     val pending=vm.visibleReceipts(s,receiptRows).any {it.state in setOf("sending","unknown")}
     val generation by vm.reviewGeneration.collectAsStateWithLifecycle()
@@ -71,14 +72,17 @@ private fun projectTime(ms:Long)=DateFormat.getDateTimeInstance().format(Date(ms
         }
     },confirmButton={TextButton({readReview=null;vm.loadHostProjects(frozen)},enabled=!s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("host-projects-read-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton({readReview=null},modifier=Modifier.heightIn(min=48.dp).testTag("host-projects-read-cancel")) {Text(label(Words.Cancel))}})}
     visible.detail?.let {detail->HostProjectDetailsDialog(detail,vm.hostProjectBlockReason(s,detail.project),visible.inventory?.activeId==detail.project.id,vm::closeHostProjectDetail,
+        conversationError=s.error,conversations=visible.conversations,readConversations=vm.prepareProjectConversations(detail)?.let {frozen->{vm.loadProjectConversations(frozen)}},
+        openAllowed=vm.canonicalAvailable(),openConversation={row->visible.conversations?.let {snapshot->val selected=vm.prepareProjectConversationOpen(snapshot,row);if(selected==null) vm.hostProjectReviewChanged() else conversationSelection=selected}},
         edit={action->editor=vm.prepareHostProjectEditor(action,detail.project.id)},
         action={action->visible.inventory?.let {offer(HostProjectChange.action(it,detail.project.id,action))}},
         folder={path,primary->visible.inventory?.let {offer(HostProjectChange.folder(it,detail.project.id,path,primary))}})}
+    conversationSelection?.let {selection->CanonicalSessionsDialog(vm.canonicalViewer,vm.canonicalAvailable(),pending,selection) {vm.canonicalViewer.close();conversationSelection=null}}
     editor?.takeIf(vm::hostProjectEditorCurrent)?.let {draft->HostProjectForm(draft,{editor=null},::offer)}
     change?.takeIf(vm::hostProjectChangeCurrent)?.let {frozen->HostProjectChangeReview(frozen,!s.busy,{change=null}) {change=null;vm.performHostProjectChange(frozen)}}
 }
 
-@Composable private fun HostProjectDetailsDialog(detail:HostProjectDetail,blocked:Words?,active:Boolean,close:()->Unit,edit:(HostProjectAction)->Unit,action:(HostProjectAction)->Unit,folder:(String,Boolean)->Unit) {
+@Composable private fun HostProjectDetailsDialog(detail:HostProjectDetail,blocked:Words?,active:Boolean,close:()->Unit,edit:(HostProjectAction)->Unit,action:(HostProjectAction)->Unit,folder:(String,Boolean)->Unit,conversationError:Words?,conversations:HostProjectConversations?,readConversations:(()->Unit)?,openAllowed:Boolean,openConversation:(HostProjectConversation)->Unit) {
     val project=detail.project
     AlertDialog(onDismissRequest=close,title={Text(project.name)},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-project-detail"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -92,6 +96,28 @@ private fun projectTime(ms:Long)=DateFormat.getDateTimeInstance().format(Date(ms
                 for(kind in listOf(HostProjectAction.Update,HostProjectAction.AddFolder)) TextButton({edit(kind)},enabled=blocked==null,modifier=Modifier.heightIn(min=48.dp).testTag("project-action-"+kind.name)) {Text(label(mcpActionWord(kind.receiptAction)))}
                 for(kind in listOf(if(project.archived) HostProjectAction.Restore else HostProjectAction.Archive,HostProjectAction.Delete,HostProjectAction.SetActive)) TextButton({action(kind)},enabled=blocked==null && (kind!=HostProjectAction.SetActive || !active),modifier=Modifier.heightIn(min=48.dp).testTag("project-action-"+kind.name)) {Text(label(mcpActionWord(kind.receiptAction)))}
                 if(active) Text(label(Words.ProjectAlreadyActive))
+            }
+            item {
+                Text(label(Words.ProjectConversations),style=MaterialTheme.typography.titleMedium)
+                Text(label(Words.ProjectConversationsBoundary))
+                TextButton({readConversations?.invoke()},enabled=readConversations!=null,modifier=Modifier.heightIn(min=48.dp).testTag("project-conversations-read")) {Text(label(Words.ProjectConversationsRead))}
+                if(readConversations==null) Text(label(if(project.archived) Words.HostProjectArchived else Words.Loading))
+                if(!openAllowed) Text(label(Words.ManagementVerify))
+                conversationError?.let {Text(label(it),color=MaterialTheme.colorScheme.error)}
+            }
+            conversations?.let {snapshot->
+                item {
+                    Text(label(Words.HostProjectsSnapshot).replace("{time}",projectTime(snapshot.observedAt)))
+                    Text(label(Words.ProjectConversationsWindow).replace("{limit}",HostProjectConversationProtocol.SessionLimit.toString()))
+                    Text(label(Words.ProjectConversationsCount).replace("{visible}",snapshot.rows.size.toString()).replace("{reported}",snapshot.reportedCount.toString()))
+                    if(!snapshot.listed) Text(label(Words.ProjectConversationsAbsent)) else if(snapshot.rows.isEmpty()) Text(label(Words.EmptyInventory))
+                }
+                itemsIndexed(snapshot.rows,key={_,row->row.id}) {index,row->OutlinedCard(Modifier.fillMaxWidth().testTag("project-conversation-$index")) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                    Text(row.title.ifBlank {row.id},style=MaterialTheme.typography.titleSmall);SelectionContainer {Text(row.id)}
+                    row.source?.let {Text(label(Words.ConversationSource)+": "+it)}
+                    Text(row.lane);row.repository?.let {Text(label(Words.ProjectReportedRepository));SelectionContainer {Text(it)}}
+                    TextButton({openConversation(row)},enabled=readConversations!=null && openAllowed,modifier=Modifier.heightIn(min=48.dp).testTag("project-conversation-open-$index")) {Text(label(Words.ProjectConversationOpen))}
+                }}}
             }
             project.icon?.let {value->item {Text(label(Words.HostProjectIcon));SelectionContainer {Text(value)}}}
             project.color?.let {value->item {Text(label(Words.HostProjectColor));SelectionContainer {Text(value)}}}

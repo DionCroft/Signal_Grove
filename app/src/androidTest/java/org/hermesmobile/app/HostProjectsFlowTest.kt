@@ -36,8 +36,8 @@ class HostProjectsFlowTest {
     private val privateName="Private orbital garden"
     private val privatePath="/srv/private/orbital-garden"
     private fun json(j:JsonObject)=MockResponse().setHeader("Content-Type","application/json").setBody(j.toString())
-    private fun row(id:String="p_00000001",slug:String="orbital-garden")=buildJsonObject {
-        put("id",id);put("slug",slug);put("name",privateName);put("created_at",1793820000L);put("archived",true)
+    private fun row(id:String="p_00000001",slug:String="orbital-garden",archived:Boolean=true)=buildJsonObject {
+        put("id",id);put("slug",slug);put("name",privateName);put("created_at",1793820000L);put("archived",archived)
         put("description","Private notes\n第二行");put("board_slug","fixture-board");put("icon","sprout");put("color","forest")
         put("folders",buildJsonArray {add(buildJsonObject {put("path",privatePath);put("label","Private folder");put("is_primary",true);put("added_at",1793820001L)})})
     }
@@ -47,7 +47,8 @@ class HostProjectsFlowTest {
         file.outputStream().use {assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,it))};bitmap.recycle()
     }
     private fun exercise(mode:String) {
-        val tickets=AtomicInteger();val lists=AtomicInteger();val details=AtomicInteger()
+        val tickets=AtomicInteger();val lists=AtomicInteger();val details=AtomicInteger();val conversationReads=AtomicInteger()
+        val conversationMode=mode in setOf("conversations","foreign-conversations")
         val home=AtomicReference("/srv/project-worker")
         val entered=CountDownLatch(1);val release=CountDownLatch(1);val returned=CountDownLatch(1)
         credentials.managementServer().use {server->
@@ -72,9 +73,25 @@ class HostProjectsFlowTest {
                                     lists.incrementAndGet();assertEquals(setOf("profile"),params.keys)
                                     if(mode=="held") {entered.countDown();assertTrue(release.await(15,TimeUnit.SECONDS))}
                                     if(mode=="after") home.set("/srv/project-remapped")
-                                    buildJsonObject {put("projects",buildJsonArray {add(row())});put("active_id","p_deleted")}
+                                    buildJsonObject {put("projects",buildJsonArray {add(row(archived=!conversationMode))});put("active_id","p_deleted")}
                                 }
-                                "projects.get"->{details.incrementAndGet();assertEquals(setOf("profile","id"),params.keys);assertEquals(JsonPrimitive("p_00000001"),params["id"]);buildJsonObject {put("project",if(mode=="wrong-id") row("p_other","p_00000001") else row())}}
+                                "projects.get"->{details.incrementAndGet();assertEquals(setOf("profile","id"),params.keys);assertEquals(JsonPrimitive("p_00000001"),params["id"]);buildJsonObject {put("project",if(mode=="wrong-id") row("p_other","p_00000001") else row(archived=!conversationMode))}}
+                                "projects.project_sessions"->{
+                                    conversationReads.incrementAndGet();assertTrue(conversationMode)
+                                    assertEquals(setOf("profile","project_id","session_limit"),params.keys);assertEquals(JsonPrimitive("p_00000001"),params["project_id"]);assertEquals(JsonPrimitive(500),params["session_limit"])
+                                    buildJsonObject {put("project",buildJsonObject {
+                                        put("id","p_00000001");put("label",privateName);put("path",JsonNull);put("isAuto",false);put("isNoProject",false);put("sessionCount",1);put("sessionIds",buildJsonArray {add("fixture-project-chat")})
+                                        put("repos",buildJsonArray {add(buildJsonObject {
+                                            put("id","fixture-repository");put("path",privatePath);put("sessionCount",1)
+                                            put("groups",buildJsonArray {add(buildJsonObject {
+                                                put("id","fixture-main");put("label","Main");put("sessions",buildJsonArray {add(buildJsonObject {
+                                                    put("id","fixture-project-chat");put("title","Fixture project conversation");put("profile",if(mode=="foreign-conversations") "other" else "worker");put("source","cli");put("cwd",privatePath);put("message_count",2);put("last_active",1.0);put("archived",false)
+                                                    put("preview","PRIVATE_PROJECT_PREVIEW_MUST_STAY_HIDDEN")
+                                                })})
+                                            })})
+                                        })})
+                                    })}
+                                }
                                 else->error("Unapproved project RPC")
                             }
                             socket.send(buildJsonObject {put("jsonrpc","2.0");put("id",j["id"]!!);put("result",result)}.toString())
@@ -124,7 +141,7 @@ class HostProjectsFlowTest {
                     compose.onNodeWithTag("host-projects-list").performScrollToNode(hasText(Words.HostProjectsScopeChanged.en,substring=true));compose.onNodeWithText(privateName).assertDoesNotExist()
                     assertEquals(if(mode=="before") 0 else 1,tickets.get());assertEquals(if(mode=="before") 0 else 1,lists.get());return@use
                 }
-                assertNotNull(management.state.value.projects.inventory);assertNull(management.state.value.projects.inventory!!.activeProject);assertTrue(management.state.value.projects.inventory!!.projects.single().archived)
+                assertNotNull(management.state.value.projects.inventory);assertNull(management.state.value.projects.inventory!!.activeProject);assertEquals(!conversationMode,management.state.value.projects.inventory!!.projects.single().archived)
                 compose.onNodeWithTag("host-projects-list").performScrollToNode(hasText(Words.HostProjectMissingActive.en,substring=true))
                 compose.onNodeWithTag("host-projects-list").performScrollToNode(hasTestTag("host-project-details-p_00000001"));compose.onNodeWithTag("host-project-details-p_00000001").assertIsDisplayed().performClick()
                 compose.waitUntil(10000) {!management.state.value.busy}
@@ -133,6 +150,26 @@ class HostProjectsFlowTest {
                 }
                 assertNotNull(management.state.value.projects.detail)
                 compose.onNodeWithTag("host-project-detail").performScrollToNode(hasText(privatePath));compose.onNodeWithText(privatePath).assertIsDisplayed();compose.onNodeWithTag("host-project-detail-close").assertIsDisplayed()
+                if(conversationMode) {
+                    assertEquals(0,conversationReads.get())
+                    compose.onNodeWithTag("host-project-detail").performScrollToNode(hasTestTag("project-conversations-read"));compose.onNodeWithTag("project-conversations-read").assertIsEnabled().assertHeightIsAtLeast(48.dp).performClick()
+                    compose.waitUntil(15000) {!management.state.value.busy};assertEquals(1,conversationReads.get())
+                    if(mode=="foreign-conversations") {
+                        assertEquals(Words.ProjectConversationsUnsupported,management.state.value.error);assertNull(management.state.value.projects.conversations)
+                        compose.onNodeWithText("Fixture project conversation").assertDoesNotExist();assertEquals(4,tickets.get())
+                        compose.onNodeWithTag("host-project-detail").performScrollToNode(hasText(Words.ProjectConversationsUnsupported.en,substring=true));compose.onNodeWithText(Words.ProjectConversationsUnsupported.en).assertIsDisplayed()
+                    } else {
+                        val snapshot=checkNotNull(management.state.value.projects.conversations);assertEquals("worker",snapshot.owner.profile);assertEquals(1,snapshot.rows.size)
+                        compose.onNodeWithTag("host-project-detail").performScrollToNode(hasTestTag("project-conversation-open-0"));compose.onNodeWithTag("project-conversation-open-0").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+                        compose.onNodeWithText("PRIVATE_PROJECT_PREVIEW_MUST_STAY_HIDDEN").assertDoesNotExist();assertEquals(5,tickets.get());assertEquals(3,details.get())
+                        capture("project-conversations-reviewed-metadata")
+                        val frozen=management.prepareProjectConversations(management.state.value.projects.detail!!)!!
+                        compose.runOnUiThread {management.chooseProfile("other")};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.profile=="other"}
+                        compose.runOnUiThread {management.loadProjectConversations(frozen)};assertEquals(Words.ManagementReviewChanged,management.state.value.error)
+                        assertNull(management.state.value.projects.conversations);compose.onNodeWithText("Fixture project conversation").assertDoesNotExist();assertEquals(5,tickets.get())
+                    }
+                    return@use
+                }
                 if(mode=="closed") {
                     val raw=management.state.value
                     compose.runOnUiThread {management.closeHostProjects();compose.activity.setContent {HermesAppTheme(AppPreferences(chinese=false,pinyin=false)) {HostProjectsDialog(management,raw) {}}}}
@@ -146,6 +183,8 @@ class HostProjectsFlowTest {
             }
         }
     }
+    @Test fun explicitProjectConversationReadIsProfileScopedAndClearsOnProfileSwitch()=exercise("conversations")
+    @Test fun foreignProfileConversationCannotBecomeAnOpeningTarget()=exercise("foreign-conversations")
     @Test fun connectionReviewCancelAndBilingualCanonicalDetailsRemainReachable()=exercise("normal")
     @Test fun remappedProfileBeforeReadCannotOpenTheGateway()=exercise("before")
     @Test fun remappedProfileAfterReadCannotExposePrivateRows()=exercise("after")

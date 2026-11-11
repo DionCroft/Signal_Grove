@@ -1,5 +1,50 @@
 # Signal Grove project state
 
+## 11 November 2026 - project conversation navigation
+
+Stored project details can now explicitly read Hermes-grouped conversations and
+request the existing canonical opening review for an exact session ID. The
+server's globally capped recent eligible window is shown; this is not complete
+per-project pagination. Previews/transcripts are excluded from the metadata
+projection. Wrong project/profile stamps and stale contexts fail closed. A
+canonical hint requires a verified profile/home binding and cannot downgrade
+when that binding fails. Profile switches clear the visible navigation result.
+Errors remain visible inside the project-details dialog.
+
+Source453 passes 1004 JVM tests / 96 reports,
+300 policies, both lint variants with zero errors, original debug signing and
+all 32 packaged-library alignment checks. A distinct 32-method focused Android
+batch passes on API26 and API37, including actual management UI reads, foreign
+profile refusal, shared HTTP/ticket/socket cases and large-caption consent.
+In-place debug upgrades retain UIDs and every protected file hash before tests;
+font, keyboard and animation settings are restored exactly.
+
+Four consumed-source watches extend the original baseline additively. Original
+F0 source identities and prior review vectors remain intact; exact 2bd378e and
+3b42157 contexts bind all 19 metadata/auth dependencies. Source review still
+reports their prior 1 / 47 findings; neither pin is declared wholly compatible.
+The initial source450 build failed on a new test fixture's invalid copy call.
+Preliminary source-watch fixture projections also failed before correction; all
+logs remain retained. API26 then had a 40.466-second cold launch and an unknown
+empty-output instrumentation attempt across an observed guest reboot. API37
+initially stopped before instrumentation because the host queried window focus
+from the wrong dumpsys section. Upgrades remained verified, settings were
+restored, and distinct batches started only after independent foreground checks.
+A further API26 precheck observed null window focus after configuration and
+stopped before instrumentation. Batch464 starts with exact focus already present
+in its first sample; batch462 on API37 passes separately. No earlier failure or
+unknown outcome is reclassified as passing, and no original cause is inferred.
+
+This closes a metadata-navigation gap only. Actual-owner execution of this new
+project-conversation route, worker/root ownership, file browsing and dispatch,
+production login, final physical/model/lifecycle acceptance, upstream/advisory
+review and signed release remain open. Published preview remains beta.8. The
+full audit goal and every unresolved ledger row remain active.
+
+[Contract and evidence scope](docs/contracts/2026-11-11-project-conversation-navigation.md).
+
+**Next exact action:** exercise the new project-conversation client against the actual isolated Hermes owner on both reviewed revisions, verify metadata-only DB/file effects and profile isolation, then continue worker identity/root/file access without assigning Pi paths as Windows authority. Preserve valid hosted CI and all unwaived findings.
+
 ## Latest delivered chunk - bounded native-input diagnostics
 
 The native test helper records exact event/window facts and refuses Espresso's

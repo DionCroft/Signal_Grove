@@ -25,6 +25,7 @@ abstract class CanonicalProfileTicketCases {
         val generic="generic-ticket-"+"a".repeat(32)
         val scoped="scoped-ticket-"+"b".repeat(32)
         val tokens=ManagementTokens("fixture-profile-access","fixture-profile-refresh","fixture-idp","owner",9_000_000_000_000)
+        private fun project()=buildJsonObject {put("id","fixture-project");put("name","Fixture project");put("slug","fixture-project");put("created_at",1);put("archived",false);put("primary_path","/fixture/project");put("folders",JsonArray(emptyList()))}
         fun path(name:String)="/fixture/homes/"+name
         fun json(text:String,code:Int=200)=MockResponse().setResponseCode(code).setHeader("Content-Type","application/json").setBody(text)
         init {
@@ -45,6 +46,21 @@ abstract class CanonicalProfileTicketCases {
                             }
                             override fun onMessage(ws:WebSocket,text:String) {
                                 val call=Json.parseToJsonElement(text).jsonObject;calls+=call
+                                if(mode.startsWith("project-") && call["method"]!=JsonPrimitive("runtime.describe")) {
+                                    val method=call["method"]!!.jsonPrimitive.content;val params=call["params"]!!.jsonObject
+                                    check(owner==selected && params["profile"]==JsonPrimitive(selected));check(method in setOf("projects.list","projects.get","projects.project_sessions"))
+                                    val result=when(method) {
+                                        "projects.list"->{check(params.keys==setOf("profile"));buildJsonObject {put("projects",buildJsonArray {add(project())});put("active_id","fixture-project")}}
+                                        "projects.get"->{check(params.keys==setOf("profile","id") && params["id"]==JsonPrimitive("fixture-project"));buildJsonObject {put("project",project())}}
+                                        else->{check(params.keys==setOf("profile","project_id","session_limit") && params["project_id"]==JsonPrimitive("fixture-project") && params["session_limit"]==JsonPrimitive(500));buildJsonObject {put("project",buildJsonObject {
+                                            put("id","fixture-project");put("label","Fixture project");put("path","/fixture/project");put("isAuto",false);put("isNoProject",false);put("sessionCount",1);put("sessionIds",buildJsonArray {add("fixture-chat")})
+                                            put("repos",buildJsonArray {add(buildJsonObject {put("id","fixture-repo");put("path","/fixture/project");put("sessionCount",1);put("groups",buildJsonArray {add(buildJsonObject {put("id","fixture-main");put("label","Main");put("sessions",buildJsonArray {add(buildJsonObject {
+                                                put("id","fixture-chat");put("title","Fixture chat");put("profile",if(mode=="project-forged") "other" else selected);put("message_count",2);put("last_active",1.0);put("archived",false)
+                                            })})})})})})
+                                        })}}
+                                    }
+                                    ws.send(buildJsonObject {put("jsonrpc","2.0");put("id",checkNotNull(call["id"]));put("result",result)}.toString());return
+                                }
                                 check(call["method"]==JsonPrimitive("runtime.describe") && call["params"]==JsonObject(emptyMap()))
                                 if(mode=="legacy-disconnect" && !named) {ws.close(1000,"fixture");return}
                                 val home=if(mode=="invalid-home" && !named) "not-absolute" else path(owner)
@@ -129,4 +145,30 @@ abstract class CanonicalProfileTicketCases {
     @Test fun mismatchingScopedHomeCannotStartAThirdHandshake()=attempt("wrong-scoped-home") {f,r->assertTrue(r.exceptionOrNull() is CanonicalScopeChanged);assertEquals(2,f.sockets.get());assertEquals(1,f.mints())}
     @Test fun malformedScopedTicketCannotUpgrade()=attempt("invalid-scoped-ticket") {f,r->assertTrue(r.exceptionOrNull() is IllegalArgumentException);assertEquals(1,f.sockets.get())}
     @Test fun malformedScopedLifetimeCannotUpgrade()=attempt("invalid-scoped-ttl") {f,r->assertTrue(r.exceptionOrNull() is IllegalArgumentException);assertEquals(1,f.sockets.get())}
+    @Test fun canonicalProjectNavigationUsesSelectedHomeAndNeverAdoptsSessions()=runBlocking {
+        for(profile in listOf("default","field")) Fixture("project-normal",selected=profile).use {f->withTimeout(30000) {
+            val api=ManagementClient(f.base.toString(),true,true);val repo=HostProjectsRepository();val owner=f.target();val home=f.home()
+            val list=repo.read(owner,home,api,f.tokens);assertEquals(owner,list.owner);assertEquals(home,list.homeId)
+            val detail=repo.detail(owner,home,"fixture-project",api,f.tokens)
+            val chats=repo.conversations(owner,home,detail.project,api,f.tokens);assertEquals(profile,chats.owner.profile);assertEquals("fixture-chat",chats.rows.single().id)
+            val methods=f.calls.map {it["method"]!!.jsonPrimitive.content};assertEquals(5,methods.count {it.startsWith("projects.")})
+            assertTrue(methods.all {it in setOf("runtime.describe","projects.list","projects.get","projects.project_sessions")})
+            assertEquals(if(profile=="field") 5 else 0,f.mints())
+        }}
+    }
+    @Test fun canonicalProjectNavigationRejectsForeignStampedRows()=runBlocking {
+        Fixture("project-forged").use {f->withTimeout(30000) {
+            val api=ManagementClient(f.base.toString(),true,true);val repo=HostProjectsRepository();val detail=repo.detail(f.target(),f.home(),"fixture-project",api,f.tokens)
+            val error=runCatching {repo.conversations(f.target(),f.home(),detail.project,api,f.tokens)}.exceptionOrNull();assertTrue(error is HostProjectConversationsUnsupported)
+            assertFalse(f.calls.any {it["method"]!!.jsonPrimitive.content.startsWith("session.")})
+        }}
+    }
+    @Test fun projectReadCannotDowngradeAfterNamedProfileTransportIsRefused()=runBlocking {
+        Fixture("scoped-status-404").use {f->withTimeout(30000) {
+            val api=ManagementClient(f.base.toString(),true,true)
+            val error=runCatching {HostProjectsRepository().read(f.target(),f.home(),api,f.tokens)}.exceptionOrNull()
+            assertTrue(error is CanonicalProfileTransportUnavailable);assertEquals(1,f.mints());assertTrue(f.calls.all {it["method"]==JsonPrimitive("runtime.describe")})
+        }}
+    }
+
 }

@@ -15,6 +15,7 @@ internal class CanonicalViewerAccess(
         generation==other.generation && tokens===other.tokens
     override fun toString()="CanonicalViewerAccess(redacted)"
 }
+internal data class CanonicalViewerSelection(val target:ManagementTarget,val home:String,val contextGeneration:Long,val sessionId:String) {override fun toString()="CanonicalViewerSelection(redacted)"}
 internal enum class CanonicalViewerPhase { Closed, Loading, Inventory, Opening, Following, Held }
 internal class CanonicalViewerReview(val approval:CanonicalResumeReview,val generation:Long) {
     override fun toString()="CanonicalViewerReview(redacted)"
@@ -78,16 +79,25 @@ internal class CanonicalViewerController(
             }
         }.also {it.invokeOnCompletion {guard(owner,false)}}
     }
-    fun load(selected:CanonicalSessionScope) {
+    fun load(selected:CanonicalSessionScope)=load(selected,null)
+    internal fun loadSelection(selection:CanonicalViewerSelection)=load(CanonicalSessionScope.Stored,selection)
+    private fun load(selected:CanonicalSessionScope,selection:CanonicalViewerSelection?) {
         if(state.value.busy || state.value.phase==CanonicalViewerPhase.Following) return
         close()
         val access=context() ?: run {state.value=CanonicalViewerState(error=Words.ManagementVerify);return}
+        if(selection!=null && (selection.target!=access.target || selection.home!=access.home || selection.contextGeneration!=access.generation)) {
+            state.value=CanonicalViewerState(error=Words.ManagementReviewChanged);return
+        }
         val id=generation;acceptedContext=access
         state.value=CanonicalViewerState(phase=CanonicalViewerPhase.Loading,scope=selected)
         launch(id,access) {
             val inventory=repository.prepare(access.target,access.home,access.api,access.tokens,selected)
             requireCurrent(id,access)
             state.value=state.value.copy(phase=CanonicalViewerPhase.Inventory,inventory=inventory)
+            if(selection!=null) {
+                if(inventory.rows.none {it.sessionId==selection.sessionId}) state.value=state.value.copy(error=Words.ProjectConversationNotListed)
+                else review(selection.sessionId)
+            }
         }
     }
     fun review(sessionId:String) {

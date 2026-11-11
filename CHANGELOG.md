@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add explicit project conversation navigation with visible window limits, verified
+  profile/home transport and the existing separate canonical resume consent.
+  Reject foreign metadata and stale selections; keep read errors visible in the
+  project dialog. Preserve all original source-watch vectors and release gates.
+
 - Bound native dialog test dispatch to one forwarded DOWN, recording redacted
   event/window diagnostics and the actual Cancel effect. Keep warnings and
   failed inputs rejected. Verify shared controls after preserved emulator

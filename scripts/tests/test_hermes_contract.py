@@ -10,7 +10,7 @@ checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 def sources():
     route="def _http_routes():\n    return [('POST','/v1/runs',handler)]\n"
-    return {**{key:'' for key in checker.MAIN_AUTHORITY_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_ATTACHMENT_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_NEGOTIATION_CONTRACT_SOURCES},**{key:'' for key in checker.RUNTIME_GUARD_CONTRACT_SOURCES},**{key:'' for key in checker.AUTH_BOUNDARY_CONTRACT_SOURCES},**{key:'' for key in checker.PLUGIN_UPDATE_CONTRACT_SOURCES},**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
+    return {**{key:'' for key in checker.PROJECT_SESSION_CONTRACT_SOURCES},**{key:'' for key in checker.MAIN_AUTHORITY_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_ATTACHMENT_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_NEGOTIATION_CONTRACT_SOURCES},**{key:'' for key in checker.RUNTIME_GUARD_CONTRACT_SOURCES},**{key:'' for key in checker.AUTH_BOUNDARY_CONTRACT_SOURCES},**{key:'' for key in checker.PLUGIN_UPDATE_CONTRACT_SOURCES},**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
         'api':"_STATIC_FEATURE_FLAGS={'enabled':True}\n_MAX_NAME_LENGTH=160\n_MAX_PROMPT_LENGTH=5000\n_UPDATE_ALLOWED_FIELDS={'enabled'}\ndef _http_route_table():\n    return [('GET','/v1/kept',handler)]\n",
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",
@@ -150,6 +150,24 @@ def complete_replacement_fixture(value, contract):
             if selected is not None:
                 contract['handlers'][target]=selected['sha256']
                 contract['source_hashes'].update(selected['required_sources'])
+
+
+def project_sessions_historical_projection(value):
+    """Exclude only four additive navigation watches from historical golden vectors.
+
+    Production comparisons never call this; project source tests validate the
+    complete baseline and preserve all prior digests and review findings.
+    """
+    aliases={'project_session_config','project_session_methods','project_session_tree','project_session_wire'}
+    assert set(checker.PROJECT_SESSION_CONTRACT_SOURCES)==aliases
+    projected=copy.deepcopy(value)
+    contract=projected['upstream']['contract']
+    for section in ('source_hashes','handlers','request_fields'):
+        contract[section]={k:v for k,v in contract[section].items() if k.split(':',1)[0] not in aliases}
+    projected['mobile_used_handlers']=[k for k in projected['mobile_used_handlers'] if k.split(':',1)[0] not in aliases]
+    for section in ('baseline_handler_source_guards','reviewed_handler_variants','reviewed_handler_absences'):
+        if section in projected:projected[section]={k:v for k,v in projected[section].items() if k.split(':',1)[0] not in aliases}
+    return projected
 
 
 def profile_ticket_historical_projection(value):
@@ -549,7 +567,7 @@ class ContractWatchTest(unittest.TestCase):
             self.assertTrue(checker.compare(tracked,{'commit':'b'*40,'contract':checker.extract(changed)})['mobile_review_required'])
 
     def test_recorded_api_actor_variants_preserve_baseline_and_reject_future_changes(self):
-        tracked=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        tracked=project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8')))
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',tracked['upstream']['commit'])
         expected={'authority:respond_run': ['91ececa57860c5b4034976ce516f3521308ffb264d0d1a93f6ead1ceda6e151f', '4184a34230ffc7f0f80535fe18363db7d5b282a49f22046f1ecd5984c0bc3ca2'], 'authority:stop_run': ['71c001841698b9ef34ecfeb350a2d4382d508241f240430dddd476f7cab1645b', '96dd2e811391dc13582abe7de6386e772b55fd44d98ccf7ee73e437c616ca860'], 'authority:resolve_unknown_run': ['8fe7edb15f8bbb5bc55f1f3953d3ef91e94354939b35c8605570e010bfe6e045', 'f944fb77ca52397d51ec4f0d65d1dd6f3d79b550df3b46305abbe9d730e44c5d']}
         current={'commit':'e'*40,'contract':copy.deepcopy(tracked['upstream']['contract'])}
@@ -951,7 +969,7 @@ class PluginUpdateLockWatchTests(unittest.TestCase):
         bad=copy.deepcopy(value);bad['reviewed_handler_absences']['unknown:handler']=bad['reviewed_handler_absences'].pop(key)
         with self.assertRaises(ValueError):checker.compare(bad,{'commit':'e'*40,'contract':current})
     def test_every_recorded_introduced_relay_or_lock_handler_requires_future_presence(self):
-        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'));current=copy.deepcopy(value['upstream']['contract'])
+        value=project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8')));current=copy.deepcopy(value['upstream']['contract'])
         introduced=[k for k in value['reviewed_handler_variants'] if current['handlers'].get(k) is None]
         self.assertGreaterEqual(len(introduced),70)
         for key in introduced:current['handlers'][key]=value['reviewed_handler_variants'][key][-1]['sha256']
@@ -1103,7 +1121,7 @@ class KanbanStatusLifecycleWatchTests(unittest.TestCase):
 
 class RunProjectionProgressVariantTests(unittest.TestCase):
     def test_only_the_exact_reviewed_poll_progress_variant_is_accepted(self):
-        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        value=project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8')))
         key='authority:run_projection'
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
         self.assertEqual('a7b1081f98525a6eecd63ebbbedad430d972a7814c72e0e64c6dc44e7e35aedf',value['upstream']['contract']['handlers'][key])
@@ -1125,7 +1143,7 @@ class RunProjectionProgressVariantTests(unittest.TestCase):
 
 class RuntimePresetCapabilityWatchTests(unittest.TestCase):
     def test_capability_consumer_requires_reviewed_body_and_complete_inventory_source(self):
-        value=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        value=project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8')))
         key='model_inventory:_apply_capabilities'
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
         self.assertIn(key,value['mobile_used_handlers'])

@@ -466,7 +466,11 @@
         "canonical_workspace_store": "6bbcc688799d3ea784545b5227d20e07f8b5ce8f26fcf545825bc8a60462ee3f",
         "profile_socket_routes": "d3837976e33f199e5335955d22a7fdf3039dd463ca0c46b5ace0138f53d7dc79",
         "profile_socket_surface": "6a418664d4363375b5f473c071c37f0842abc8eaecf69ed0bc2b839ab4cf12bb",
-        "profile_socket_kinds": "513f8d0c83623c20e542139b979d9dd96bd0143c8f90ab549e23ff1aa9bc26b7"
+        "profile_socket_kinds": "513f8d0c83623c20e542139b979d9dd96bd0143c8f90ab549e23ff1aa9bc26b7",
+        "project_session_config": "871cc86af67d2ef30bca9a13116badf6e6eb2478798f03c6675a208cf1c049ae",
+        "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+        "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+        "project_session_wire": "99dd8852f22798957223b2f066f3fea77c4ac5170bc35e7fab2d0b64617feee2"
       },
       "handlers": {
         "api:APIServerAdapter._handle_capabilities": "fded591edab150c17cb5d89a1a531952c438c862a8cec884efaf1e18f8c44b50",
@@ -6816,7 +6820,11 @@
         "api:APIServerAdapter._message_response": "e5137807d60c018838ebc0af754412412c6dc60e78fec3ec72003a7f78dfa7d7",
         "profile_socket_routes:consumed_module": "7606e97e5777ae1a0aa3355ce52e1681e526925ad1e6417a52957cad45e9a8d6",
         "profile_socket_surface:consumed_module": "92109268856b1a4a367cf2f793ea972196b11b5b7be76ad0d637ff56d5299aec",
-        "profile_socket_kinds:consumed_module": "ea7ca18207902885d306ea82a6fa731f48e66c092c3b94340732d4599e1f2a7e"
+        "profile_socket_kinds:consumed_module": "ea7ca18207902885d306ea82a6fa731f48e66c092c3b94340732d4599e1f2a7e",
+        "project_session_config:consumed_module": "76fa26a8109f187d4d24ff2afc9ba4ba41440d431e97599a21209157d1fa4bc5",
+        "project_session_methods:consumed_module": "e2772ca62b91a37594d756762f0dc286158f56488f7e337955183bf7bc609ed1",
+        "project_session_tree:consumed_module": "b4eba43912da53b71da62f5304c717b384e1012069c63a8585ef322133b654ec",
+        "project_session_wire:consumed_module": "242b506890236bffcd5d4fba6989f31893ef526a8f36363c9e3ef5264187c804"
       },
       "request_fields": {
         "auth:_NativeRefreshBody.provider": "6f26da4d3397a0ad1e091e80f548edef3c9ec86067192a65272fb7d0def308d9",
@@ -11279,7 +11287,11 @@
     "api:APIServerAdapter._message_response",
     "profile_socket_routes:consumed_module",
     "profile_socket_surface:consumed_module",
-    "profile_socket_kinds:consumed_module"
+    "profile_socket_kinds:consumed_module",
+    "project_session_config:consumed_module",
+    "project_session_methods:consumed_module",
+    "project_session_tree:consumed_module",
+    "project_session_wire:consumed_module"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -11744,7 +11756,8 @@
     "2026-11-05: Reviewed board create/update/archive/delete/current-pointer writes add four used routes, CreateBoardBody/RenameBoardBody whole schemas and fields, exact mutation/display/path/project helpers and delegated-child guard. All newly selected definitions match original F0 and stable B200; previous hashes, variants and baseline commit are retained. Raced creation can reuse/overwrite metadata; archive/delete have partial pointer/filesystem effects; source review is not runtime/physical-erasure proof. See contracts/2026-11-05-kanban-board-controls.md.",
     "2026-11-05: Reviewed eight exact D8 plugin contract/install/update changes, added per-plugin lock/dependency/manual-helper and unchanged advisory-lock/home watches, and exact F0/B200 source-absence handling. Existing fields/defaults/dispatch, consent/caution/danger gates and all original fingerprints/variants remain; new bulk/host-auto actions are not yet Android controls.",
     "2026-11-05: Task mutation foundation adds six literal routes and typed create/text/priority/assignment/comment/dependency/delete contracts. Watch original task schemas/fields, one-phase PATCH ordering, create parent/project/model/nonce helpers, dependency graph/notifications and delete/recompute effects. New graph module and all newly selected boundaries match original F0 and stable B200; prior baseline, fingerprints and exact variants remain. This is a tested data-layer chunk, not completion of task forms/status/worker/dispatch/files. See contracts/2026-11-05-kanban-task-authoring.md.",
-    "2026-11-06: extend original F0 source coverage with agent/provider_registry.py, verified original Git blob af6280935e1ac3921c749afb243e8c4b67312d85. E36 aliases/engine variants are separately pinned; retired local handlers require the exact replacement module source hash and watched dependencies. Original F0 fields/fingerprints are unchanged. See 2026-11-06-auth-registry-refactor-review.md."
+    "2026-11-06: extend original F0 source coverage with agent/provider_registry.py, verified original Git blob af6280935e1ac3921c749afb243e8c4b67312d85. E36 aliases/engine variants are separately pinned; retired local handlers require the exact replacement module source hash and watched dependencies. Original F0 fields/fingerprints are unchanged. See 2026-11-06-auth-registry-refactor-review.md.",
+    "Additive project-session module review at exact 2bd378e and 3b42157. projects.project_sessions uses a globally capped eligible recent-session window; include_discovered=False avoids repository-discovery cache reconciliation. Metadata navigation never establishes Windows worker ownership or changes cwd. Four original F0 blobs verified separately; no prior digest/finding waived."
   ],
   "reviewed_handler_variants": {
     "ws_boundary:ws_host_origin_reason": [
@@ -14692,6 +14705,222 @@
           "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841"
         }
       }
+    ],
+    "project_session_config:consumed_module": [
+      {
+        "sha256": "4c0aa3429147739c16d6ffeb34722d2e9d09b9548831368e4e0ea32bf8c30d1a",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "ecccf8d09673b5d5401a3ecd30adb70cb7a9be1ee7d221dec23cd34a3feaa853",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "d3837976e33f199e5335955d22a7fdf3039dd463ca0c46b5ace0138f53d7dc79",
+          "profile_socket_surface": "a11177bce2b6c3123fd3afbf80a5ecbe04c94314757ef50fe8f68c561c2824fa",
+          "profile_socket_kinds": "513f8d0c83623c20e542139b979d9dd96bd0143c8f90ab549e23ff1aa9bc26b7",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "560beed4afd13134e20a9ff68767b04b51f20162c2fa1a22362627d1ee4f5b14",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "4c6065bd2d991d9506b505330cee9c1f70b7c0da2af618e4493d002b671cc020",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e93f7a727f3a218cba5f07e935c407b3cd43d389c8e6ac853dc69f9727a72bde"
+        }
+      },
+      {
+        "sha256": "4c0aa3429147739c16d6ffeb34722d2e9d09b9548831368e4e0ea32bf8c30d1a",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "6076fdf3e044265eb9d08046a9ea11cc913e43ff63f35c9389e09b6c7ad91135",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "22d0e7c1d010683c3e7d34634e1941d1c3fea348d490223427b64e73da5a3a99",
+          "profile_socket_surface": "0b2cac0e1b2d900f5328816b91cdc20a489f01f709acc776c0cc851dca75c07c",
+          "profile_socket_kinds": "7dcb411a108046dcf511bc3d2fb8e33d38c2c993dd2d816158845db2d277adfe",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "3ed79137e1b18e4ed1f972c2854d81e656a02fb3388c285f55bc4475390566fd",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841"
+        }
+      }
+    ],
+    "project_session_methods:consumed_module": [
+      {
+        "sha256": "e2772ca62b91a37594d756762f0dc286158f56488f7e337955183bf7bc609ed1",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "ecccf8d09673b5d5401a3ecd30adb70cb7a9be1ee7d221dec23cd34a3feaa853",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "d3837976e33f199e5335955d22a7fdf3039dd463ca0c46b5ace0138f53d7dc79",
+          "profile_socket_surface": "a11177bce2b6c3123fd3afbf80a5ecbe04c94314757ef50fe8f68c561c2824fa",
+          "profile_socket_kinds": "513f8d0c83623c20e542139b979d9dd96bd0143c8f90ab549e23ff1aa9bc26b7",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "560beed4afd13134e20a9ff68767b04b51f20162c2fa1a22362627d1ee4f5b14",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "4c6065bd2d991d9506b505330cee9c1f70b7c0da2af618e4493d002b671cc020",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e93f7a727f3a218cba5f07e935c407b3cd43d389c8e6ac853dc69f9727a72bde"
+        }
+      },
+      {
+        "sha256": "e2772ca62b91a37594d756762f0dc286158f56488f7e337955183bf7bc609ed1",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "6076fdf3e044265eb9d08046a9ea11cc913e43ff63f35c9389e09b6c7ad91135",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "22d0e7c1d010683c3e7d34634e1941d1c3fea348d490223427b64e73da5a3a99",
+          "profile_socket_surface": "0b2cac0e1b2d900f5328816b91cdc20a489f01f709acc776c0cc851dca75c07c",
+          "profile_socket_kinds": "7dcb411a108046dcf511bc3d2fb8e33d38c2c993dd2d816158845db2d277adfe",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "3ed79137e1b18e4ed1f972c2854d81e656a02fb3388c285f55bc4475390566fd",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841"
+        }
+      }
+    ],
+    "project_session_tree:consumed_module": [
+      {
+        "sha256": "b4eba43912da53b71da62f5304c717b384e1012069c63a8585ef322133b654ec",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "ecccf8d09673b5d5401a3ecd30adb70cb7a9be1ee7d221dec23cd34a3feaa853",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "d3837976e33f199e5335955d22a7fdf3039dd463ca0c46b5ace0138f53d7dc79",
+          "profile_socket_surface": "a11177bce2b6c3123fd3afbf80a5ecbe04c94314757ef50fe8f68c561c2824fa",
+          "profile_socket_kinds": "513f8d0c83623c20e542139b979d9dd96bd0143c8f90ab549e23ff1aa9bc26b7",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "560beed4afd13134e20a9ff68767b04b51f20162c2fa1a22362627d1ee4f5b14",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "4c6065bd2d991d9506b505330cee9c1f70b7c0da2af618e4493d002b671cc020",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e93f7a727f3a218cba5f07e935c407b3cd43d389c8e6ac853dc69f9727a72bde"
+        }
+      },
+      {
+        "sha256": "b4eba43912da53b71da62f5304c717b384e1012069c63a8585ef322133b654ec",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "6076fdf3e044265eb9d08046a9ea11cc913e43ff63f35c9389e09b6c7ad91135",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "22d0e7c1d010683c3e7d34634e1941d1c3fea348d490223427b64e73da5a3a99",
+          "profile_socket_surface": "0b2cac0e1b2d900f5328816b91cdc20a489f01f709acc776c0cc851dca75c07c",
+          "profile_socket_kinds": "7dcb411a108046dcf511bc3d2fb8e33d38c2c993dd2d816158845db2d277adfe",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "3ed79137e1b18e4ed1f972c2854d81e656a02fb3388c285f55bc4475390566fd",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841"
+        }
+      }
+    ],
+    "project_session_wire:consumed_module": [
+      {
+        "sha256": "80db98cabba5eec100ece166f2cd2195de2c4e10ad2eaeee098ee13e61dbd414",
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "ecccf8d09673b5d5401a3ecd30adb70cb7a9be1ee7d221dec23cd34a3feaa853",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "d3837976e33f199e5335955d22a7fdf3039dd463ca0c46b5ace0138f53d7dc79",
+          "profile_socket_surface": "a11177bce2b6c3123fd3afbf80a5ecbe04c94314757ef50fe8f68c561c2824fa",
+          "profile_socket_kinds": "513f8d0c83623c20e542139b979d9dd96bd0143c8f90ab549e23ff1aa9bc26b7",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "560beed4afd13134e20a9ff68767b04b51f20162c2fa1a22362627d1ee4f5b14",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "4c6065bd2d991d9506b505330cee9c1f70b7c0da2af618e4493d002b671cc020",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e93f7a727f3a218cba5f07e935c407b3cd43d389c8e6ac853dc69f9727a72bde"
+        }
+      },
+      {
+        "sha256": "80db98cabba5eec100ece166f2cd2195de2c4e10ad2eaeee098ee13e61dbd414",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Read-only explicit project conversation navigation review: profile-stamped metadata, global eligible session window, no discovered-repository reconciliation, no session adoption or worker authority. Full consumed modules and profile/auth dependencies are bound together; original baseline identities remain intact.",
+        "required_sources": {
+          "project_session_config": "b1a2a56c1a7c83dc014a7a65a1b36622aa2f121e8171c06059d9867b35a20aaa",
+          "project_session_methods": "b315f423df62eda19c9bdf8bb0739a4462006da1f0cb61a0209feeedc9d8a45e",
+          "project_session_tree": "f944de1dcf4c1a545a36bfe4c799dae61e2ef4ae01f7d5df69dd1b6fbbf35210",
+          "project_session_wire": "f68bd68ffd5da3179accd78c96ed61dc38f1bd6b2c5dc8fbe77adda892d7620e",
+          "project_db": "7f9316706c217bc1ba7fd31017059af1ff6dee0bbf9a2696caca1a3b147f23fd",
+          "profile_helpers": "921017070da7f2f55033e0334ad3bbf2dcc8284ea3d330b1720208f3c0a48704",
+          "canonical_wire": "6076fdf3e044265eb9d08046a9ea11cc913e43ff63f35c9389e09b6c7ad91135",
+          "canonical_transport": "4fee8994e514cbc6760a0c1912cb3fb906036048a7ce41e281e57532716384d3",
+          "profile_socket_routes": "22d0e7c1d010683c3e7d34634e1941d1c3fea348d490223427b64e73da5a3a99",
+          "profile_socket_surface": "0b2cac0e1b2d900f5328816b91cdc20a489f01f709acc776c0cc851dca75c07c",
+          "profile_socket_kinds": "7dcb411a108046dcf511bc3d2fb8e33d38c2c993dd2d816158845db2d277adfe",
+          "cron_helpers": "8a46c9e3e57496db99f0622e49a951e4807ed97b1cc2c5e7c9c208a2ca5971b4",
+          "chat_auth": "3ed79137e1b18e4ed1f972c2854d81e656a02fb3388c285f55bc4475390566fd",
+          "chat_ws": "0f5f6b3f51c2ce8c3c6edef8103de5dc5e5fd1cd8c5daba9dede2ce6b1e23696",
+          "ws_tickets": "c0a1a63623df7c7291d06a85c18f583ab112fa8b73ccc6359bbdbbd938f376a7",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92",
+          "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
+          "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
+          "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841"
+        }
+      }
     ]
   },
   "reviewed_source_introductions": {
@@ -15388,6 +15617,90 @@
       "auth_middleware"
     ],
     "profile_socket_kinds:consumed_module": [
+      "profile_socket_routes",
+      "profile_socket_surface",
+      "profile_socket_kinds",
+      "cron_helpers",
+      "chat_auth",
+      "chat_ws",
+      "ws_tickets",
+      "ws_boundary",
+      "web_signin",
+      "auth_request_utils",
+      "auth_middleware"
+    ],
+    "project_session_config:consumed_module": [
+      "project_session_config",
+      "project_session_methods",
+      "project_session_tree",
+      "project_session_wire",
+      "project_db",
+      "profile_helpers",
+      "canonical_wire",
+      "canonical_transport",
+      "profile_socket_routes",
+      "profile_socket_surface",
+      "profile_socket_kinds",
+      "cron_helpers",
+      "chat_auth",
+      "chat_ws",
+      "ws_tickets",
+      "ws_boundary",
+      "web_signin",
+      "auth_request_utils",
+      "auth_middleware"
+    ],
+    "project_session_methods:consumed_module": [
+      "project_session_config",
+      "project_session_methods",
+      "project_session_tree",
+      "project_session_wire",
+      "project_db",
+      "profile_helpers",
+      "canonical_wire",
+      "canonical_transport",
+      "profile_socket_routes",
+      "profile_socket_surface",
+      "profile_socket_kinds",
+      "cron_helpers",
+      "chat_auth",
+      "chat_ws",
+      "ws_tickets",
+      "ws_boundary",
+      "web_signin",
+      "auth_request_utils",
+      "auth_middleware"
+    ],
+    "project_session_tree:consumed_module": [
+      "project_session_config",
+      "project_session_methods",
+      "project_session_tree",
+      "project_session_wire",
+      "project_db",
+      "profile_helpers",
+      "canonical_wire",
+      "canonical_transport",
+      "profile_socket_routes",
+      "profile_socket_surface",
+      "profile_socket_kinds",
+      "cron_helpers",
+      "chat_auth",
+      "chat_ws",
+      "ws_tickets",
+      "ws_boundary",
+      "web_signin",
+      "auth_request_utils",
+      "auth_middleware"
+    ],
+    "project_session_wire:consumed_module": [
+      "project_session_config",
+      "project_session_methods",
+      "project_session_tree",
+      "project_session_wire",
+      "project_db",
+      "profile_helpers",
+      "canonical_wire",
+      "canonical_transport",
       "profile_socket_routes",
       "profile_socket_surface",
       "profile_socket_kinds",

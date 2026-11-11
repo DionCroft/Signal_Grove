@@ -3,13 +3,13 @@ import copy
 import json
 from pathlib import Path
 import unittest
-from test_hermes_contract import checker, complete_replacement_fixture, profile_ticket_historical_projection
+from test_hermes_contract import checker, complete_replacement_fixture, profile_ticket_historical_projection, project_sessions_historical_projection
 
 PIN='21ae0e1238fdf466fa52a85a6ebf75d6899e49da'
 
 class MainAuthorityContractTest(unittest.TestCase):
     def fixture(self):
-        value=profile_ticket_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text()))
+        value=profile_ticket_historical_projection(project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text())))
         contract=copy.deepcopy(value['upstream']['contract'])
         for key,entries in value['reviewed_handler_variants'].items():
             if key not in contract['handlers']:contract['handlers'][key]=entries[-1]['sha256']
@@ -29,7 +29,7 @@ class MainAuthorityContractTest(unittest.TestCase):
     def test_old_pin_remains_self_consistent_and_main_adds_no_blanket_commit_trust(self):
         value,current,reviewed=self.fixture()
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
-        self.assertEqual(218,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        self.assertEqual(222,len(checker.SOURCES|checker.EXTRA_SOURCES))
         self.assertFalse(checker.compare(value,{'commit':value['upstream']['commit'],'contract':copy.deepcopy(value['upstream']['contract'])})['mobile_review_required'])
         self.assertFalse(checker.compare(value,current)['mobile_review_required'])
         for entry in reviewed.values():

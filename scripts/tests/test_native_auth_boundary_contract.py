@@ -5,12 +5,12 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from test_hermes_contract import checker, sources, baseline, complete_replacement_fixture, profile_ticket_historical_projection
+from test_hermes_contract import checker, sources, baseline, complete_replacement_fixture, profile_ticket_historical_projection, project_sessions_historical_projection
 
 
 class NativeAuthBoundaryContractTest(unittest.TestCase):
     def real(self):
-        return profile_ticket_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8')))
+        return profile_ticket_historical_projection(project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))))
 
     def current(self, value):
         contract=copy.deepcopy(value['upstream']['contract'])

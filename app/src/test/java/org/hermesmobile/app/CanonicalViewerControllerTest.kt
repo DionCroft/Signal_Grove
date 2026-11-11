@@ -72,6 +72,29 @@ class CanonicalViewerControllerTest {
         put("payload",kotlinx.serialization.json.buildJsonObject {for((key,value) in values) put(key,kotlinx.serialization.json.JsonPrimitive(value))})
     },CanonicalViewerFixtures.owner,CanonicalViewerFixtures.cursor,65536)
 
+    @Test fun projectSelectionLoadsStoredInventoryAndRequiresSeparateResumeApproval()=runTest {exercise {
+        viewer.loadSelection(CanonicalViewerSelection(f.target,f.home,1,"history"));runCurrent()
+        assertEquals(CanonicalSessionScope.Stored,viewer.state.value.scope);assertNotNull(viewer.state.value.review)
+        assertEquals(1,repo.prepares);assertEquals(0,repo.adoptions);assertEquals(0,repo.cursorReads)
+        viewer.cancelReview();assertNull(viewer.state.value.review);assertEquals(0,repo.adoptions)
+        viewer.review("history");viewer.approve(checkNotNull(viewer.state.value.review),false);runCurrent();assertEquals(1,repo.adoptions)
+    }}
+    @Test fun staleProjectOwnerHomeOrGenerationCannotPrepareAnySession()=runTest {exercise {
+        for(selection in listOf(CanonicalViewerSelection(f.target.copy(profile="other"),f.home,1,"history"),CanonicalViewerSelection(f.target,"a".repeat(64),1,"history"),CanonicalViewerSelection(f.target,f.home,2,"history"))) {
+            viewer.loadSelection(selection);runCurrent();assertEquals(Words.ManagementReviewChanged,viewer.state.value.error)
+        }
+        assertEquals(0,repo.prepares);assertEquals(0,repo.adoptions);assertEquals(0,repo.cursorReads)
+    }}
+    @Test fun projectSelectionDoesNotGuessAnAliasOrAdoptAnAbsentSession()=runTest {exercise {
+        viewer.loadSelection(CanonicalViewerSelection(f.target,f.home,1,"absent"));runCurrent()
+        assertEquals(Words.ProjectConversationNotListed,viewer.state.value.error);assertNull(viewer.state.value.review);assertEquals(0,repo.adoptions)
+    }}
+    @Test fun delayedProjectSelectionCannotPublishAfterProfileContextChanges()=runTest {exercise {
+        repo.prepareGate=CompletableDeferred();viewer.loadSelection(CanonicalViewerSelection(f.target,f.home,1,"history"));runCurrent()
+        access=CanonicalViewerAccess(f.target,f.home,2,access!!.api,f.tokens);repo.prepareGate!!.complete(Unit);runCurrent()
+        assertNull(viewer.state.value.review);assertNull(viewer.state.value.inventory);assertEquals(0,repo.adoptions)
+    }}
+
     @Test fun allCanonicalReasoningAndThinkingTextIsOmittedWhileCursorsAdvance()=runTest {exercise {
         opened();val privateText="fixture-private-reasoning-sentinel"
         val types=listOf("reasoning.delta","reasoning.available","thinking.delta","subagent.thinking")

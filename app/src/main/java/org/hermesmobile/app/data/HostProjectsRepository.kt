@@ -19,16 +19,45 @@ class HostProjectsRepository {
         if(current!=homeId) throw HostProjectsScopeChanged()
         currentCoroutineContext().ensureActive()
     }
+    private suspend fun projectCall(owner:ManagementTarget,home:String,api:ManagementClient,tokens:ManagementTokens,id:String?=null,conversations:Boolean=false):kotlinx.serialization.json.JsonObject =
+        api.gateway(tokens).use {probe->
+            when(probe.sessionAuthorityAdvertisement) {
+                org.hermesmobile.app.network.GatewayAuthorityAdvertisement.Advertised->{
+                    // The hint selects a protocol, never authority. A failed canonical binding cannot downgrade.
+                    probe.close()
+                    try {api.canonicalGateway(tokens,owner,home).use {channel->channel.projectMetadata(id,conversations)}}
+                    catch(_:org.hermesmobile.app.network.CanonicalScopeChanged) {throw HostProjectsScopeChanged()}
+                }
+                org.hermesmobile.app.network.GatewayAuthorityAdvertisement.NotAdvertised->
+                    if(conversations) probe.projectConversations(owner.profile,checkNotNull(id)) else if(id==null) probe.projects(owner.profile) else probe.project(owner.profile,id)
+                org.hermesmobile.app.network.GatewayAuthorityAdvertisement.Unknown->throw org.hermesmobile.app.network.GatewayProtocolException()
+            }
+        }
     suspend fun read(target:ManagementTarget,homeId:String,api:ManagementClient,tokens:ManagementTokens):HostProjectSnapshot {
         scope(target,homeId,api,tokens);api.identity(tokens);home(target,homeId,api,tokens)
-        val result=api.gateway(tokens).use {socket->withContext(Dispatchers.Default) {HostProjectProtocol.inventory(socket.projects(target.profile),target,homeId)}}
+        val result=withContext(Dispatchers.Default) {HostProjectProtocol.inventory(projectCall(target,homeId,api,tokens),target,homeId)}
         home(target,homeId,api,tokens)
         return result
     }
     suspend fun detail(target:ManagementTarget,homeId:String,id:String,api:ManagementClient,tokens:ManagementTokens):HostProjectDetail {
         scope(target,homeId,api,tokens);require(HostProjectProtocol.validId(id));api.identity(tokens);home(target,homeId,api,tokens)
-        val result=api.gateway(tokens).use {socket->withContext(Dispatchers.Default) {HostProjectProtocol.detail(socket.project(target.profile,id),target,homeId,id)}}
+        val result=withContext(Dispatchers.Default) {HostProjectProtocol.detail(projectCall(target,homeId,api,tokens,id),target,homeId,id)}
         home(target,homeId,api,tokens)
         return result
     }
+    suspend fun conversations(owner:ManagementTarget,homeId:String,project:HostProjectInfo,api:ManagementClient,tokens:ManagementTokens):HostProjectConversations {
+        scope(owner,homeId,api,tokens);require(!project.archived);api.identity(tokens);home(owner,homeId,api,tokens)
+        suspend fun verifyProject() {
+            val observed=HostProjectProtocol.detail(projectCall(owner,homeId,api,tokens,project.id),owner,homeId,project.id).project
+            if(observed!=project) throw HostProjectsScopeChanged()
+            currentCoroutineContext().ensureActive()
+        }
+        verifyProject()
+        val result=withContext(Dispatchers.Default) {
+            HostProjectConversationProtocol.parse(projectCall(owner,homeId,api,tokens,project.id,true),owner,homeId,project)
+        }
+        api.identity(tokens);home(owner,homeId,api,tokens);verifyProject();home(owner,homeId,api,tokens)
+        return result
+    }
+
 }

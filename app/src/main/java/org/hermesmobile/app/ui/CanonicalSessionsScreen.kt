@@ -19,7 +19,7 @@ import java.text.DateFormat
 import java.util.Date
 
 @Composable internal fun CanonicalSessionsDialog(
-    controller:CanonicalViewerController,available:Boolean,pending:Boolean,close:()->Unit
+    controller:CanonicalViewerController,available:Boolean,pending:Boolean,selection:CanonicalViewerSelection?=null,close:()->Unit
 ) {
     val s by controller.state.collectAsStateWithLifecycle()
     var workspaceDetails by remember(s.sessionId,s.workspaceObservedAt) {mutableStateOf(false)}
@@ -30,7 +30,7 @@ import java.util.Date
         lifecycle.addObserver(observer)
         onDispose {lifecycle.removeObserver(observer);controller.close()}
     }
-    LaunchedEffect(controller) {controller.load(CanonicalSessionScope.Live)}
+    LaunchedEffect(controller,selection) {if(selection==null) controller.load(CanonicalSessionScope.Live) else controller.loadSelection(selection)}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.ViewerTitle))},text={
         LazyColumn(Modifier.heightIn(max=480.dp).testTag("canonical-viewer-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(label(Words.ViewerBoundary))}

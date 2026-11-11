@@ -27,8 +27,9 @@ data class ReviewedKanbanProjects(val inventory:HostKanbanInventory,val generati
 data class ReviewedKanbanBoardEditor(val expected:HostKanbanInventory,val projects:HostProjectSnapshot?,val action:HostKanbanBoardAction,val slug:String?,val generation:Long) {override fun toString()="ReviewedKanbanBoardEditor(redacted)"}
 data class ReviewedKanbanBoardChange(val request:HostKanbanBoardChange,val generation:Long) {override fun toString()="ReviewedKanbanBoardChange(redacted)"}
 data class ReviewedHostKanbanRead(val owner:ManagementTarget,val profileHomeId:String,val generation:Long,val board:HostKanbanBoard?=null,val taskId:String?=null) {override fun toString()="ReviewedHostKanbanRead(redacted)"}
-data class HostProjectsState(val inventory:HostProjectSnapshot?=null,val detail:HostProjectDetail?=null,val report:HostProjectChangeReport?=null)
+data class HostProjectsState(val inventory:HostProjectSnapshot?=null,val detail:HostProjectDetail?=null,val report:HostProjectChangeReport?=null,val conversations:HostProjectConversations?=null)
 data class HostProjectChangeReport(val owner:ManagementTarget,val homeId:String,val receipt:ManagementOperation) {override fun toString()="HostProjectChangeReport(redacted)"}
+data class ReviewedProjectConversations(val detail:HostProjectDetail,val generation:Long) {override fun toString()="ReviewedProjectConversations(redacted)"}
 data class ReviewedHostProjectEditor(val expected:HostProjectSnapshot,val action:HostProjectAction,val id:String?,val generation:Long) {override fun toString()="ReviewedHostProjectEditor(redacted)"}
 data class ReviewedHostProjectChange(val request:HostProjectChange,val generation:Long) {
     val target get()=request.expected.owner
@@ -239,6 +240,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         is HostProjectChangeChanged->Words.ManagementReviewChanged
         is HostProjectsScopeChanged->Words.HostProjectsScopeChanged
         is HostProjectsUnsupported->Words.HostProjectsUnsupported
+        is HostProjectConversationsUnsupported->Words.ProjectConversationsUnsupported
+        is org.hermesmobile.app.network.CanonicalProfileTransportUnavailable->Words.ViewerProfileTransportUnavailable
+        is org.hermesmobile.app.network.CanonicalScopeChanged->Words.ManagementReviewChanged
         is CustomEndpointChanged->Words.ManagementReviewChanged
         is CustomEndpointUnavailable->Words.CustomEndpointsUnavailable
         is CustomEndpointDuplicate->Words.CustomEndpointsDuplicate
@@ -358,7 +362,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         closeForegroundReaders()
         val id=++generation;state.value=state.value.copy(busy=true,error=null,notice=null,observation=null)
         work=viewModelScope.launch {try {block(id)} catch(e:CancellationException) {throw e}
-            catch(e:Exception) {if(id==generation) state.value=if(e is HostKanbanScopeChanged || e is HostProjectsScopeChanged) state.value.copy(kanban=HostKanbanState(),error=managementError(e)) else if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),kanban=HostKanbanState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
+            catch(e:Exception) {if(id==generation) state.value=if(e is HostKanbanScopeChanged || e is HostProjectsScopeChanged) state.value.copy(kanban=HostKanbanState(),projects=if(e is HostProjectsScopeChanged) HostProjectsState() else state.value.projects,error=managementError(e)) else if(e is CredentialPoolReadbackPending) state.value.copy(poolCleanup=e.report?.takeIf {it.owner==target()},error=managementError(e)) else if(e is HostMoaChanged) state.value.copy(moa=e.snapshot,hostModels=e.snapshot?.catalog,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is HostAuxModelChanged) state.value.copy(hostModels=e.inventory,hostAuxModel=HostAuxModelState(),hostMainModel=HostMainModelState(),error=managementError(e)) else if(e is HostMainModelChanged) state.value.copy(hostModels=e.inventory,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),error=managementError(e)) else if(e is PluginUpdateChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginRemovalChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is PluginToggleChanged) state.value.copy(plugins=PluginInventoryState(inventory=e.inventory),error=managementError(e)) else if(e is McpReviewChanged) state.value.copy(servers=e.servers,loaded=true,error=managementError(e)) else if(e is HermesHttpException && e.code==401) state.value.copy(identity=null,profiles=emptyList(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,plugins=PluginInventoryState(),hub=SkillHubState(),gateway=GatewayAutomationState(),projects=HostProjectsState(),kanban=HostKanbanState(),skills=HostSkillState(),cron=HostCronState(),oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,catalog=emptyList(),catalogLoaded=false,servers=emptyList(),loaded=false,error=managementError(e)) else state.value.copy(error=managementError(e))}
             finally {if(id==generation) state.value=state.value.copy(busy=false)}}
     }
     fun signIn(url:String,debugHttp:Boolean,openBrowser:(String)->Unit)=operation {id ->
@@ -1176,7 +1180,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun visibleHostProjects(s:ManagementState):HostProjectsState {
         val context=projectContext() ?: return HostProjectsState()
         if(s.apiScope!=context.first.apiScope || s.profile!=context.first.profile || s.url!=state.value.url || s.identity!=state.value.identity) return HostProjectsState()
-        return HostProjectsState(s.projects.inventory?.takeIf {it===state.value.projects.inventory && it.owner==context.first && it.homeId==context.second},s.projects.detail?.takeIf {it===state.value.projects.detail && it.owner==context.first && it.homeId==context.second},s.projects.report?.takeIf {it===state.value.projects.report && it.owner==context.first && it.homeId==context.second})
+        return HostProjectsState(s.projects.inventory?.takeIf {it===state.value.projects.inventory && it.owner==context.first && it.homeId==context.second},s.projects.detail?.takeIf {it===state.value.projects.detail && it.owner==context.first && it.homeId==context.second},s.projects.report?.takeIf {it===state.value.projects.report && it.owner==context.first && it.homeId==context.second},s.projects.conversations?.takeIf {it===state.value.projects.conversations && it.owner==context.first && it.homeId==context.second && it.project==s.projects.detail?.project})
     }
     fun hostProjectReviewGeneration()=generation
     fun hostProjectPending(s:ManagementState)=visibleReceipts(s,receipts.value).any {it.state in setOf("sending","unknown")}
@@ -1249,7 +1253,27 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             if(id==generation && projectContext()==(review.target to review.homeId)) state.value=state.value.copy(projects=HostProjectsState(snapshot,result))
         }
     }
-    fun closeHostProjectDetail() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(projects=state.value.projects.copy(detail=null))}}
+    fun prepareProjectConversations(detail:HostProjectDetail):ReviewedProjectConversations? {
+        if(state.value.busy || detail.project.archived || visibleHostProjects(state.value).detail!==detail) return null
+        return ReviewedProjectConversations(detail,generation)
+    }
+    fun loadProjectConversations(review:ReviewedProjectConversations) {
+        if(prepareProjectConversations(review.detail)?.generation!=review.generation) {hostProjectReviewChanged();return}
+        val previous=visibleHostProjects(state.value);val detail=review.detail
+        state.value=state.value.copy(projects=previous.copy(conversations=null))
+        operation {id->
+            val result=projectReads.conversations(detail.owner,detail.homeId,detail.project,client(state.value),tokens ?: error("Sign in first."))
+            if(id==generation && projectContext()==(detail.owner to detail.homeId) && state.value.projects.detail===detail)
+                state.value=state.value.copy(projects=state.value.projects.copy(conversations=result))
+        }
+    }
+    internal fun prepareProjectConversationOpen(snapshot:HostProjectConversations,row:HostProjectConversation):CanonicalViewerSelection? {
+        if(state.value.busy || visibleHostProjects(state.value).conversations!==snapshot || snapshot.rows.none {it===row}) return null
+        val access=canonicalAccess() ?: return null
+        if(access.target!=snapshot.owner || access.home!=snapshot.homeId) return null
+        return CanonicalViewerSelection(access.target,access.home,access.generation,row.id)
+    }
+    fun closeHostProjectDetail() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(projects=state.value.projects.copy(detail=null,conversations=null))}}
     fun closeHostProjects() {if(state.value.busy) cancel() else {generation++;state.value=state.value.copy(projects=HostProjectsState())}}
     fun prepareGatewayRead():ReviewedGatewayRead?=if(state.value.busy || !GatewayCronInventory.supportedProfile(state.value.profile)) null else target()?.let {ReviewedGatewayRead(it,generation)}
     fun loadGatewayCron(review:ReviewedGatewayRead) {

@@ -221,6 +221,8 @@ MANAGEMENT_ROUTE_PREFIXES = {'kanban_api':'/api/plugins/kanban'}
 
 PROJECT_CONTRACT_SOURCES = {'project_contract':'tui_gateway/contracts/projects_pets.py','project_methods':'tui_gateway/methods_projects.py','project_db':'hermes_cli/projects_db.py'}
 EXTRA_SOURCES.update(PROJECT_CONTRACT_SOURCES)
+PROJECT_SESSION_CONTRACT_SOURCES = {'project_session_config':'tui_gateway/methods_config.py','project_session_methods':'tui_gateway/methods_projects.py','project_session_tree':'tui_gateway/project_tree.py','project_session_wire':'tui_gateway/contracts/projects_pets.py'}
+EXTRA_SOURCES.update(PROJECT_SESSION_CONTRACT_SOURCES)
 
 CHANNEL_CONTRACT_SOURCES = {'channels': 'hermes_cli/web_routers/messaging.py', 'channel_catalog': 'hermes_cli/web_server_messaging.py', 'channel_registry': 'gateway/platform_registry.py', 'channel_profiles': 'hermes_cli/profile_channels.py', 'channel_status': 'gateway/status.py', 'channel_served': 'gateway/status_served.py', 'channel_pairing': 'gateway/pairing.py', 'channel_config_env': 'gateway/config_env.py', 'channel_multiplex': 'hermes_cli/gateway_multiplex_mode.py', 'channel_env_loader': 'hermes_cli/env_loader.py', 'channel_gate': 'gateway/platforms/_shared.py', 'channel_hidden': 'hermes_cli/setup_hidden_env.py', 'channel_config': 'gateway/config.py'}
 CHANNEL_CONTRACT_SOURCES.update({'channel_relay_config':'gateway/relay/__init__.py','channel_relay_links':'gateway/relay/link.py'})
@@ -251,7 +253,7 @@ def fingerprint(node):
 
 def definitions(tree: ast.AST, source: str) -> tuple[dict, dict]:
     handlers, fields = {}, {}
-    if source in CANONICAL_ATTACHMENT_CONTRACT_SOURCES and tree.body:
+    if source in (CANONICAL_ATTACHMENT_CONTRACT_SOURCES | PROJECT_SESSION_CONTRACT_SOURCES) and tree.body:
         handlers[f'{source}:consumed_module']=fingerprint(tree)
     def visit(nodes, prefix=''):
         for node in nodes:

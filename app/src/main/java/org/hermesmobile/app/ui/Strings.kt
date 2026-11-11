@@ -5,6 +5,17 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    ProjectConversations("Project conversations","项目对话","Xiàngmù duìhuà"),
+    ProjectConversationsRead("Read project conversations","读取项目对话","Dúqǔ xiàngmù duìhuà"),
+    ProjectConversationsBoundary("Hermes groups these conversations by recorded directories and repositories. Reading or opening one does not change its workspace or verify a Windows worker.","Hermes 按记录的目录和仓库归类这些对话。读取或打开对话不会更改其工作目录，也不会验证 Windows 工作节点。","Hermes àn jìlù de mùlù hé cāngkù guīlèi zhèxiē duìhuà. Dúqǔ huò dǎkāi duìhuà bú huì gēnggǎi qí gōngzuò mùlù, yě bú huì yànzhèng Windows gōngzuò jiédiǎn."),
+    ProjectConversationsWindow("Hermes checks up to {limit} recent, non-archived conversations with messages across this profile. Scheduled runs, task runs and child sessions are excluded; older matches may be absent.","Hermes 最多检查此档案最近的 {limit} 个有消息且未归档的对话。定时运行、任务运行和子会话不包括在内；更早的匹配项可能不在列表中。","Hermes zuìduō jiǎnchá cǐ dàng’àn zuìjìn de {limit} ge yǒu xiāoxi qiě wèi guīdàng de duìhuà. Dìngshí yùnxíng, rènwù yùnxíng hé zǐ huìhuà bù bāokuò zài nèi; gèng zǎo de pǐpèixiàng kěnéng bú zài lièbiǎo zhōng."),
+    ProjectConversationsCount("Listed {visible} of {reported} conversations reported for this project.","已列出此项目所报告的 {reported} 个对话中的 {visible} 个。","Yǐ lièchū cǐ xiàngmù suǒ bàogào de {reported} ge duìhuà zhōng de {visible} ge."),
+    ProjectConversationsAbsent("Hermes did not return this project in its conversation view. Its stored project metadata is unchanged.","Hermes 未在对话视图中返回此项目。其已存储的项目元数据未更改。","Hermes wèi zài duìhuà shìtú zhōng fǎnhuí cǐ xiàngmù. Qí yǐ cúnchǔ de xiàngmù yuánshùjù wèi gēnggǎi."),
+    ProjectConversationOpen("Review opening this conversation","审阅并打开此对话","Shěnyuè bìng dǎkāi cǐ duìhuà"),
+    ProjectConversationNotListed("This conversation is not in the freshly verified session inventory. Refresh its project view or use conversation history; nothing was opened automatically.","此对话不在刚验证的会话列表中。请刷新项目视图或使用对话历史；未自动打开任何会话。","Cǐ duìhuà bú zài gāng yànzhèng de huìhuà lièbiǎo zhōng. Qǐng shuāxīn xiàngmù shìtú huò shǐyòng duìhuà lìshǐ; wèi zìdòng dǎkāi rènhé huìhuà."),
+    ProjectConversationsUnsupported("Project conversations could not be verified. Keep the saved project and refresh this view after checking Hermes support.","无法验证项目对话。请保留已保存的项目，检查 Hermes 支持情况后刷新此视图。","Wúfǎ yànzhèng xiàngmù duìhuà. Qǐng bǎoliú yǐ bǎocún de xiàngmù, jiǎnchá Hermes zhīchí qíngkuàng hòu shuāxīn cǐ shìtú."),
+    ProjectReportedRepository("Reported repository","所报告的仓库","Suǒ bàogào de cāngkù"),
+
     HelpDemo("Turn Demo mode off in Signal Grove’s Settings → Server before connecting to Hermes.","连接 Hermes 前，在 Signal Grove 设置 → 服务器中关闭演示模式。","Liánjiē Hermes qián, zài Signal Grove shèzhì → fúwùqì zhōng guānbì yǎnshì móshì."),
     HelpTailnet("On the phone, open the Android Tailscale app and connect to the same private tailnet as the Hermes host.","在手机上打开 Android Tailscale 应用，连接到与 Hermes 主机相同的私有尾网。","Zài shǒujī shàng dǎkāi Android Tailscale yìngyòng, liánjiē dào yǔ Hermes zhǔjī xiāngtóng de sīyǒu wěiwǎng."),
     HelpUrl("Enter the host’s HTTPS API base URL in phone Settings → Server. Omit /v1 and preserve the configured profile or proxy path prefix.","在手机设置 → 服务器中输入主机的 HTTPS API 基础网址。不要添加 /v1，并保留已配置的档案或代理路径前缀。","Zài shǒujī shèzhì → fúwùqì zhōng shūrù zhǔjī de HTTPS API jīchǔ wǎngzhǐ. Bú yào tiānjiā /v1, bìng bǎoliú yǐ pèizhì de dàng’àn huò dàilǐ lùjìng qiánzhuì."),
