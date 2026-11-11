@@ -1,46 +1,36 @@
 # Signal Grove project state
 
-## Latest verified chunk - readable chat at larger text sizes
+## Latest verified chunk - named-profile ticket foundation
 
-The two hosted history-height failures reproduce at API26/130% font size. Chat
-now keeps its on-device AI action in the existing control row, restoring a
-134.48 dp viewport from 29.33 dp. The action is visibly 48 dp with the complete
-translated accessibility label; Settings retains its text entry. Cached native
-replies, error details and read-only history remain usable.
+Four actual-Hermes backend cases across both reviewed pins verify native PKCE,
+launch/scoped ticket separation, one-use tickets and genuine named-profile
+retirement. Stale workspace writes are refused; the default remains available.
+Independent final stores retain exact session IDs, directories and revision/
+generation fences with zero work/messages/receipts. All four retain the known
+shutdown warning and supervisor exit 2; clean lifecycle acceptance remains open.
 
-Source336 passes 968 JVM / 94 reports, 263 policies, zero-error lint (50 / 49
-warnings) and 69 selected Android methods on each API. Input-window observation
-waits retain the five-second deadline and require a real stable native window.
-[Evidence, failures and hashes](docs/contracts/2026-11-11-chat-large-text.md).
+Source362 passes 968 JVM / 94 reports, 275 policy and 15 model-status tests,
+zero-error lint (50 / 49 warnings), signing/native alignment and 20 focused
+Android methods per API. App/build inputs and DEX/resources/manifest match the
+prior source336; rebuilt native artifacts stay separately hash-bound.
+[Scope, contract and evidence](docs/contracts/2026-11-11-profile-ticket-foundation.md).
 
-Next inspect the final-head hosted standard device suite and reconcile the
-outstanding workspace/native-IME failure and prior ADB loss. Then continue real
-permission/actor/profile/owner-loss and active/unknown recovery, Windows worker/
-project/files and reviewed binding/dispatch. Full physical/deployed, local-AI,
-compatibility and signed-release acceptance remains required. Goal active; no
-new APK release is claimed.
+Next reconcile main45b90db's hosted device jobs without cancelling a live run,
+then implement supported Android profile-bound ticket negotiation and actual
+Android/profile-loss/Room recovery checks. The current client refuses a wrong
+home but does not yet use the named-profile ticket path. Preserve unknown writes
+and exact no-replay barriers. Reduced-role permission, active/unknown work,
+Windows worker/project/files and reviewed dispatch remain open, as do the full
+physical/local-AI, upstream compatibility and signed-release gates. Goal active.
 
-## Latest verified chunk - closed saved history
-
-The active full-audit goal now has real bearer API/Room coverage for closed
-Desktop conversations on both reviewed Hermes pins and Android APIs. An old-app
-reproduction confirmed 499 hidden rows entering its cache. The fix excludes those
-rows without breaking offsets and refuses inconsistent/changing reads before
-cache replacement. Independent server and copied-phone SQLite checks pass.
-
-Source315 passes 968 JVM / 94 reports, 263 policies, zero-error lint (50 / 49
-warnings) and 37 selected Android methods per API. Four actual-owner cases remain
-separately bound to their measured source301 app; all product inputs and app
-DEX/resources/manifest are identical, while native rebuild hashes differ.
-[Scope, failures and hashes](docs/contracts/2026-11-11-closed-history.md).
-
-Next reproduce and resolve the three prior-main hosted UI failures (native IME
-action boundary and two history reply-height assertions), retaining its incomplete
-ADB-loss run. Then complete real permission/actor/profile/owner-loss and active/unknown-work
-recovery, then verify Windows worker identity, authoritative project/working-copy
-files and reviewed binding/dispatch. Current-source physical/deployed history,
-normal inventory merging/UI, image/race and all original audit/local-AI/release
-gates remain open. No APK release or full-goal completion is claimed.
+Prior accepted chunks: larger-text Chat restores a 134.48 dp message viewport
+from 29.33 dp at API26/130% font; source336 passes 69 selected methods per API
+([evidence](docs/contracts/2026-11-11-chat-large-text.md)). Closed Desktop history
+excludes hidden rows without breaking offsets, verified on both reviewed Hermes
+pins and Android APIs with independent host/phone stores
+([evidence](docs/contracts/2026-11-11-closed-history.md)). The older hosted workspace/
+IME failure and interrupted ADB outcome remain open. Published preview is beta.8;
+these development chunks do not publish a new APK.
 
 ## Current priority - on-device AI, authorized 10 November 2026
 

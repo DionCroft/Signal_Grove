@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add supervised real-Hermes profile-ticket/retirement probes for both reviewed
+  revisions. Verify native authentication, Webapp-only named-profile binding,
+  one-use tickets, stale workspace refusal and unchanged independent stores.
+  Retain the real shutdown finding and the separate Android implementation gap.
+
 - Keep saved replies readable with larger text by placing the on-device AI
   action in Chat's existing control row. Retain its full translated accessibility
   label and explicit 48 dp size. Verify native replies, details, draft cancellation

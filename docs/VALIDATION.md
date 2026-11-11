@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - named-profile ticket and retirement foundation
+
+A real backend probe now verifies native PKCE/bearer identity, launch-ticket
+binding and the separate Webapp-only named-profile ticket on both reviewed
+Hermes pins. It checks one-use replay refusal, genuine profile removal, exact
+stale-workspace refusal and continued default-profile availability. Independent
+read-only final SQLite checks verify unchanged session IDs, cwd and revision/
+generation fences, zero work/messages/receipts and healthy stores.
+
+Four protocol cases pass with zero denied operations; all retain the known
+upstream shutdown warning and explicit supervisor exit 2. No clean lifecycle,
+Android named-profile support, production login or inference acceptance is claimed.
+Source362 passes 968 JVM / 94 reports, 275 policies, 15 model-status tests and
+zero-error lint (50 / 49 warnings). Run367 passes 20 focused Android methods per
+API; signer, installed hashes/UIDs and system-setting restoration are verified.
+[Contract, artifacts and preserved failures](contracts/2026-11-11-profile-ticket-foundation.md).
+
+Next add Android profile-bound ticket negotiation and exact no-fallback/recovery
+checks, and reconcile the final-main hosted device suite. The complete original
+audit/local-AI, workers/projects/files, deployed/physical, upstream compatibility
+and signed-release requirements remain open. No release/version change.
+
 ## 11 November 2026 - keep chat readable with larger text
 
 The hosted large-text history failures reproduce at API26's 130% system font:
