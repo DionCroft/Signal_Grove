@@ -1,5 +1,30 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - specific workspace refusal guidance
+
+Workspace failures now distinguish a reported busy conversation, compression lock
+and permission refusal with closed English/Chinese/pinyin advice. Only an exact
+bound workspace RPC error can select that advice; raw server details stay out.
+A refusal label never confirms an outcome, releases a guard or causes a retry.
+
+Eight actual-owner Android cases cover both immutable execution pins, both APIs
+and real fixture-local turn/compression locks. Each genuine refusal leaves the
+host directory unchanged with no mutation receipt. Android retains unknown state
+through Room reopen and blocks another write even after the host lock is released.
+Independent host/phone SQLite checks pass; every run retains the upstream shutdown
+finding. These are actual transcript guards, not a running model/tool admission.
+
+Final local checks pass 959 JVM cases / 93 reports, 244 policies, both lint variants
+without errors, and 35 selected Android methods per API. Earlier UI oracle/consent
+failures are retained. Actual-owner and final selected artifacts remain separately
+hash-bound; all application DEX/resources/manifest entries are identical, while
+native libraries rebuilt under the new context. See
+[exact scope, hashes and remaining gates](contracts/2026-11-11-workspace-refusals.md).
+
+Real permission/actor/profile/owner loss, active/unknown work, closed HTTP history,
+current-source physical/deployed acceptance, Windows worker/project/files and all
+original audit/release requirements remain open. No APK release is claimed.
+
 ## 11 November 2026 - lost workspace acknowledgement stays uncertain
 
 Four real-owner Android cases now withhold only the acknowledgement after Hermes

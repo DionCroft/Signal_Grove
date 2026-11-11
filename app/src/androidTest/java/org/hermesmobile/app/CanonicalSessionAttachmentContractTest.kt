@@ -84,6 +84,11 @@ class CanonicalSessionAttachmentContractTest {
                             check(params["expected_revision"]==JsonPrimitive(2) && params["expected_generation"]==JsonPrimitive(3))
                             check(params["payload"]==buildJsonObject {put("cwd","/fixture/new project")})
                             mutations.incrementAndGet();mutationReceived(params)
+                            if(mode.startsWith("workspace-refusal-")) {
+                                ws.send(buildJsonObject {put("jsonrpc","2.0");put("id",id);put("error",buildJsonObject {
+                                    put("code",4001);put("message","session_busy");put("data",buildJsonObject {put("reason","session_busy");if(mode.endsWith("compression-lock")) put("field","compression")})
+                                })}.toString());return
+                            }
                             if(mode in setOf("workspace-drop","workspace-drop-roundtrip")) {ws.close(1000,"fixture");return}
                             reply(buildJsonObject {put("session_id","shared-fixture");put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd","/fixture/new project")})
                         }
@@ -91,7 +96,7 @@ class CanonicalSessionAttachmentContractTest {
                             check(params.keys==setOf("scope","limit") && params["limit"]==JsonPrimitive(200))
                             val scope=params["scope"]!!.jsonPrimitive.content;check(scope in setOf("stored","live"))
                             val row=Json.parseToJsonElement("""{"id":"shared-fixture","session_id":"shared-fixture","resolved_id":"shared-fixture","title":"Fixture legacy history","source":"cli","started_at":1.0,"message_count":2,"running":false,"model":null}""")
-                            reply(buildJsonObject {put("scope",scope);put("sessions",if(mode in setOf("workspace-roundtrip","workspace-drop-roundtrip") && scope=="stored") JsonArray(emptyList()) else JsonArray(listOf(if(mode in setOf("workspace-roundtrip","workspace-drop-roundtrip")) JsonObject(row.jsonObject+mapOf("message_count" to JsonPrimitive(0))) else row)))})
+                            reply(buildJsonObject {put("scope",scope);put("sessions",if(mode in setOf("workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock") && scope=="stored") JsonArray(emptyList()) else JsonArray(listOf(if(mode in setOf("workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock")) JsonObject(row.jsonObject+mapOf("message_count" to JsonPrimitive(0))) else row)))})
                         }
                         "session.resume"->{
                             check(params==Json.parseToJsonElement("""{"session_id":"shared-fixture","omit_messages":true}"""))
@@ -99,7 +104,7 @@ class CanonicalSessionAttachmentContractTest {
                             if(mode=="drop-resume") {ws.close(1000,"fixture-drop");return}
                             ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"sessions.changed","session_id":"","payload":{}}}""")
                             val raw=Json.parseToJsonElement("""{"session_id":"shared-fixture","stored_session_id":"shared-fixture","messages":[],"messages_omitted":true,"message_count":2,"running":false,"authority_epoch":1,"replay_epoch":"fixture-ring","last_sequence":0,"subscription_id":"fixture-subscription","revision":0,"execution_generation":0,"pending":[],"prompts":[],"info":{"desktop_protocol":"hermes-gateway-v1","profile_id":"/fixture/homes/default"}}""").jsonObject
-                            val roundTrip=mode in setOf("workspace-roundtrip","workspace-drop-roundtrip");val changed=mutations.get()>0
+                            val roundTrip=mode in setOf("workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock");val changed=mutations.get()>0 && !mode.startsWith("workspace-refusal-")
                             reply(if(roundTrip) JsonObject(raw+mapOf(
                                 "message_count" to JsonPrimitive(0),"revision" to JsonPrimitive(if(changed) 3 else 2),
                                 "execution_generation" to JsonPrimitive(if(changed) 4 else 3),
@@ -144,7 +149,7 @@ class CanonicalSessionAttachmentContractTest {
                             check(challenge==pending.get().challenge);json(envelope)
                         }
                         "/dashboard/auth/native/refresh"->{
-                            check(mode in setOf("workspace-roundtrip","workspace-drop-roundtrip") && q.method=="POST" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null)
+                            check(mode in setOf("workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock") && q.method=="POST" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null)
                             val body=Json.parseToJsonElement(q.body.readUtf8()).jsonObject
                             check(body.keys==setOf("provider","refresh_token") && body["provider"]==JsonPrimitive("stub"))
                             check(body["refresh_token"]==Json.parseToJsonElement(envelope).jsonObject.getValue("refresh_token"))
@@ -591,13 +596,20 @@ class CanonicalSessionAttachmentContractTest {
     }
 
 
-    @Test fun ownerWorkspaceLostAckSurvivesRoomReopenAndBlocksFurtherWrites() {
+    @Test fun ownerWorkspaceLostAckSurvivesRoomReopenAndBlocksFurtherWrites()=ownerWorkspaceUnknown(null)
+
+    @Test fun ownerWorkspaceBusyRefusalRetainsUnknownAndBlocksAfterHostGuardReleased() {
+        val expected=InstrumentationRegistry.getArguments().getString("signalGroveOwnerWorkspaceRefusal") ?: "turn-lease"
+        require(expected in setOf("turn-lease","compression-lock"));ownerWorkspaceUnknown(expected)
+    }
+
+    private fun ownerWorkspaceUnknown(expectedRefusal:String?) {
         val args=InstrumentationRegistry.getArguments();val external=args.getString("signalGroveOwnerWorkspaceBase")
         val label=args.getString("signalGroveOwnerWorkspaceLabel") ?: "mock"
         require(label.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.-]{0,80}")))
         val commit=args.getString("signalGroveOwnerWorkspaceCommit") ?: "mock"
         if(external!=null) require(commit in setOf("2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19","3b421578588243f920886e6fe79a6faa87ea026e"))
-        val fixture=if(external==null) Fixture("workspace-drop-roundtrip") else null
+        val fixture=if(external==null) Fixture(if(expectedRefusal==null) "workspace-drop-roundtrip" else "workspace-refusal-"+expectedRefusal) else null
         val session=if(external==null) "shared-fixture" else checkNotNull(args.getString("signalGroveOwnerWorkspaceSession"))
         val beforeDirectory=if(external==null) "/fixture/old" else checkNotNull(args.getString("signalGroveOwnerWorkspaceBefore"))
         val afterDirectory=if(external==null) "/fixture/new project" else checkNotNull(args.getString("signalGroveOwnerWorkspaceAfter"))
@@ -636,6 +648,12 @@ class CanonicalSessionAttachmentContractTest {
                 }}
                 val failure=runCatching {repo.changeWorkspace(review,api,tokens)}.exceptionOrNull()
                 assertNotNull(failure);assertFalse(failure is CanonicalWorkspaceAcknowledged)
+                if(expectedRefusal!=null) {
+                    assertTrue(failure is CanonicalWorkspaceRefused)
+                    assertEquals(4001,(failure as CanonicalWorkspaceRefused).code)
+                    assertEquals(if(expectedRefusal=="compression-lock") CanonicalWorkspaceRefusal.Compressing else CanonicalWorkspaceRefusal.Busy,failure.refusal)
+                    checks+="actual_bound_busy_refusal_has_only_closed_advice_without_remote_details"
+                }
                 val unknown=checkNotNull(db.dao().managementOperation(review.requestId))
                 assertEquals("unknown",unknown.state);assertEquals(CanonicalWorkspaceAction.Id,unknown.action)
                 assertEquals(profileHome,unknown.projectHome);assertTrue(unknown.resultSummary.isEmpty())
@@ -671,8 +689,9 @@ class CanonicalSessionAttachmentContractTest {
         finally {
             db.close();fixture?.close()
             val qa=File(checkNotNull(context.getExternalFilesDir(null)),"qa");check(qa.isDirectory || qa.mkdirs())
-            File(qa,"owner-workspace-unknown-"+label+".json").writeText(buildJsonObject {
-                put("state",if(completed) "PASS_OWNER_WORKSPACE_ANDROID_UNKNOWN_RECOVERY" else "FAILED_OWNER_WORKSPACE_ANDROID_UNKNOWN_RECOVERY")
+            File(qa,(if(expectedRefusal==null) "owner-workspace-unknown-" else "owner-workspace-refusal-")+label+".json").writeText(buildJsonObject {
+                put("state",if(expectedRefusal==null) (if(completed) "PASS_OWNER_WORKSPACE_ANDROID_UNKNOWN_RECOVERY" else "FAILED_OWNER_WORKSPACE_ANDROID_UNKNOWN_RECOVERY") else (if(completed) "PASS_OWNER_WORKSPACE_ANDROID_REFUSAL" else "FAILED_OWNER_WORKSPACE_ANDROID_REFUSAL"))
+                expectedRefusal?.let {put("expectedRefusal",it)}
                 put("backend",if(external==null) "mock" else "actual-owner");put("sourceCommit",commit);put("api",Build.VERSION.SDK_INT);put("inventoryScope","live")
                 put("checks",JsonArray(checks.map(::JsonPrimitive)));put("databaseName",databaseName);put("receiptState","unknown");put("localReviewApplied",false)
                 requestId?.let {put("requestId",it)};errorType?.let {put("errorType",it)}

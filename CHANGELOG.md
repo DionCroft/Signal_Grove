@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Explain reported busy, compression and permission workspace refusals with
+  translated advice, keeping raw diagnostics private and uncertainty guarded.
+  Verify real transcript-lock refusals and unchanged directories on both Hermes
+  execution pins and Android APIs without inference, retries or local review.
+
 - Explain uncertain workspace changes in English, Chinese and pinyin, including
   their exact request ID and the need for independent host receipt inspection.
   Verify real committed-result loss on both Android APIs and Hermes pins: Room

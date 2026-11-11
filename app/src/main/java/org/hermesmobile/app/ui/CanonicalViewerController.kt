@@ -204,6 +204,11 @@ internal class CanonicalViewerController(
                         is CanonicalWorkspaceAcknowledged->Words.WorkspaceAcknowledged
                         is CanonicalReviewChanged,is CanonicalApprovalUsed,is CanonicalScopeChanged->Words.ManagementReviewChanged
                         is ManagementOutcomePending->Words.ManagementOutcomePending
+                        is CanonicalWorkspaceRefused->when(e.refusal) {
+                            CanonicalWorkspaceRefusal.Busy->Words.WorkspaceBusy
+                            CanonicalWorkspaceRefusal.Compressing->Words.WorkspaceCompressing
+                            CanonicalWorkspaceRefusal.Permission->Words.WorkspacePermission
+                        }
                         else->Words.WorkspaceUncertain
                     })
             } finally {guard(owner,false)}

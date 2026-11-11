@@ -79,7 +79,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private var describeAnswered = false
     private var notificationCount = 0
     private var receivedBytes = 0L
-    private data class Pending(val id: String, val waiter: CompletableDeferred<JsonObject>)
+    private data class Pending(val id: String, val waiter: CompletableDeferred<JsonObject>,val workspace:Boolean)
     private val requests = Mutex()
     private var nextId = 1L
     private var pending: Pending? = null
@@ -210,7 +210,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
             if (j.containsKey("error")) {
                 val error = j["error"] as? JsonObject ?: throw GatewayProtocolException()
                 val code = (error["code"] as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull ?: throw GatewayProtocolException()
-                val refusal = GatewayRpcException(code)
+                val refusal = if(!handshake && pending?.workspace==true) CanonicalWorkspaceRefused.parse(code,error) ?: GatewayRpcException(code) else GatewayRpcException(code)
                 waiter.completeExceptionally(refusal)
                 throw refusal
             }
@@ -264,7 +264,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
             check(verified != null && pending == null && nextId < Long.MAX_VALUE)
-            request = Pending((++nextId).toString(), CompletableDeferred())
+            request = Pending((++nextId).toString(), CompletableDeferred(),method=="session.mutate" && params["operation"]==JsonPrimitive("workspace"))
             pending = request
             val frame = buildJsonObject { put("jsonrpc","2.0"); put("id",request.id); put("method",method); put("params",params) }
             if (socket?.send(frame.toString()) != true) {

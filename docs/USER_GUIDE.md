@@ -445,6 +445,17 @@ closes the stale viewer under its previously reviewed close policy. Open a newly
 reviewed viewer to read fresh context. It does not verify worker binding or a tool
 run. Worker/project binding remains pending.
 
+If Hermes reports a refusal, the development app gives specific guidance:
+
+- **Conversation busy:** wait for its work to finish.
+- **Compression lock:** wait for conversation compression to finish. Stopping a
+  reply does not release this lock.
+- **Permission refused:** ask the host owner to inspect access for this sign-in.
+
+These messages are server reports, not confirmation of the change's outcome.
+The attempted request remains guarded until separate host inspection and approved
+local review. Finishing work or releasing a host lock does not retry the change.
+
 If the result is uncertain, open management receipts and copy the exact **Mutation
 request ID**. Do not resend the change. Have the Hermes host operator inspect that
 request's mutation receipt for this session and its actual directory. A matching

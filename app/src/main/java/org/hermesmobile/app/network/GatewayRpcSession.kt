@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class GatewayProtocolException:Exception("Unsupported gateway response.")
 class GatewayUnavailable:Exception("Gateway connection unavailable.")
-class GatewayRpcException(val code:Int,val sourceMoved:Boolean=false):Exception("Gateway request refused ($code).")
+open class GatewayRpcException(val code:Int,val sourceMoved:Boolean=false):Exception("Gateway request refused ($code).")
 
 /** One explicitly opened operator connection. No reconnect, mutation replay, server-request opt-in or transcript subscription. */
 class GatewayRpcSession private constructor():Closeable {

@@ -78,18 +78,30 @@ Required checks remain 956 JVM / 93 reports, 244 policies and zero-error lint;
 33 selected native methods pass freshly on each API. See
 [the lost-ACK contract](docs/contracts/2026-11-11-workspace-lost-ack.md).
 
+Eight real-owner refusal cases now exercise actual fixture-local turn/compression
+guards on both pins and APIs. The app shows specific closed, translated advice
+but retains unknown state and the same-home barrier after the host guard is
+released. Independent host/phone SQLite proves unchanged directories, zero
+mutation receipts, one attempted request and no extra adoption. No actual model,
+tool or worker admission runs. Final checks pass 959 JVM / 93 reports, 244 policies,
+zero-error lint and 35 selected Android methods per API. Product DEX/resources/
+manifest match the actual-owner app; rebuilt native APK bytes remain separately
+bound. Earlier UI failures and visual limits are retained. See
+[the refusal contract](docs/contracts/2026-11-11-workspace-refusals.md).
+
 All real-owner runs retain the nonzero upstream shutdown warning. Native-only
 Stored feed refusal, the earlier unattributed pre-claim closure, closed HTTP
-history, busy/permission/owner/profile recovery, production/deployed/physical
-acceptance and Windows worker/project/files remain open. Room reopen is not
-process-death/reboot acceptance. An empty disposable conversation is not
-inference, user-history or engineering execution evidence.
+history, active/unknown work, real permission/owner/profile recovery,
+production/deployed/physical acceptance and Windows worker/project/files remain
+open. Room reopen is not process-death/reboot acceptance. An empty disposable
+conversation is not inference, user-history or engineering execution evidence.
 
-Exact next independent action: verify real-authority busy and permission/refusal
-behavior without replay or inference, then profile/owner loss and supported
-closed-session HTTP access. Follow with actual worker/project identity, files and
-reviewed binding/dispatch. Preserve every original ledger row and phone-to-Hermes/
-local-AI release gate; a Pi directory does not establish a Windows working copy.
+Exact next independent action: test supported closed-session HTTP reads with real
+Android identity and nonempty fixture history; retain the native-only Stored
+refusal. Then close real permission/profile/owner-loss and active/unknown-work
+recovery, followed by actual worker/project identity, files and reviewed binding/
+dispatch. Preserve every original ledger row and phone-to-Hermes/local-AI release
+gate; a Pi directory does not establish a Windows working copy.
 
 Owner-dependent check: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run

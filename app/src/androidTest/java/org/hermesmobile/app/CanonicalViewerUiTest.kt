@@ -59,6 +59,7 @@ class CanonicalViewerUiTest {
     private inner class Repo:CanonicalViewerRepository {
         val link=Link();val reads=mutableListOf<CanonicalSessionScope>()
         var workspaceChanges=0
+        var workspaceError:Exception?=null
         var adoptions=0;var requireHeartbeat=false;var saves=0;var previousReads=0
         var expectedApplied=cursor
         var adoptError:Exception?=null
@@ -69,7 +70,7 @@ class CanonicalViewerUiTest {
             adoptions++;this.requireHeartbeat=requireHeartbeat;review.consume(review.expected);adoptError?.let {throw it};return link
         }
         override suspend fun changeWorkspace(review:CanonicalWorkspaceReview,api:ManagementClient,tokens:ManagementTokens):CanonicalWorkspaceAcknowledgement {
-            workspaceChanges++;review.consume(review.expected)
+            workspaceChanges++;review.consume(review.expected);workspaceError?.let {throw it}
             return CanonicalWorkspaceAcknowledgement.parse(buildJsonObject {
                 put("session_id",owner.sessionId);put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd",review.requestedDirectory)
             },review)
@@ -149,20 +150,61 @@ class CanonicalViewerUiTest {
         scroll("canonical-viewer-list","workspace-edit").performClick()
         compose.onNodeWithTag("workspace-directory").performScrollTo().performTextReplacement("/fixture/new project")
     }
+    private fun grantWorkspaceConsent() {
+        val checkbox=compose.onNodeWithTag("workspace-consent").performScrollTo().assertIsOff()
+        compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
+        var previous:androidx.compose.ui.geometry.Rect?=null;var stableAt=0L
+        compose.waitUntil(5000) {
+            val bounds=checkbox.fetchSemanticsNode().boundsInWindow;val now=android.os.SystemClock.uptimeMillis()
+            if(bounds!=previous) {previous=bounds;stableAt=now;false} else now-stableAt>=250
+        }
+        // One tap only. Require the checkbox itself to change before inspecting Confirm.
+        checkbox.performClick().assertIsOn()
+    }
     @Test fun workspaceCancelFromCheckedReviewNeverChangesTheSession() {
         render();open();editWorkspace()
         compose.onNodeWithTag("workspace-review").assertIsEnabled().performClick()
         compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
-        compose.onNodeWithTag("workspace-consent").performScrollTo().performClick()
+        grantWorkspaceConsent()
         compose.onNodeWithTag("workspace-confirm").assertIsEnabled()
         compose.onNodeWithTag("workspace-cancel").performClick()
         assertEquals(0,repo.workspaceChanges);assertEquals(CanonicalViewerPhase.Following,viewer.state.value.phase)
     }
+    @Test fun workspaceRefusalAdviceDoesNotClaimAcknowledgementOrRetry() {
+        render();open()
+        val cases=listOf("session_busy" to Words.WorkspaceBusy,"compression" to Words.WorkspaceCompressing,"permission_denied" to Words.WorkspacePermission)
+        for((index,pair) in cases.withIndex()) {
+            val (reason,word)=pair
+            repo.workspaceError=CanonicalWorkspaceRefused.parse(4001,buildJsonObject {
+                put("message",if(reason=="compression") "session_busy" else reason)
+                put("data",buildJsonObject {put("reason",if(reason=="compression") "session_busy" else reason);if(reason=="compression") put("field","compression");put("detail","private-fixture-detail")})
+            })
+            assertNotNull(repo.workspaceError)
+            if(index==0) editWorkspace() else {
+                scroll("canonical-viewer-list","workspace-edit").performClick()
+                compose.onNodeWithTag("workspace-directory").performScrollTo().performTextReplacement("/fixture/new project")
+            }
+            compose.onNodeWithTag("workspace-review").performClick()
+            grantWorkspaceConsent()
+            compose.onNodeWithTag("workspace-confirm").performClick()
+            compose.waitUntil(5000) {viewer.state.value.workspaceNotice==word && !viewer.state.value.workspaceChanging}
+            scroll("canonical-viewer-list","workspace-result").assertTextEquals(word.en)
+            assertEquals(index+1,repo.workspaceChanges);assertEquals(CanonicalViewerPhase.Following,viewer.state.value.phase)
+            assertNotNull(viewer.state.value.workspaceSnapshot);assertTrue("An attached viewer retains its installation guard",guard.active.value)
+            compose.onAllNodesWithText(Words.WorkspaceAcknowledged.en).assertCountEquals(0)
+            compose.onAllNodesWithText("private-fixture-detail",substring=true).assertCountEquals(0)
+            capture("workspace-result","workspace-refusal-"+reason)
+        }
+        compose.onNodeWithTag("canonical-close").performClick()
+        compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Closed}
+        assertFalse(guard.active.value)
+    }
+
     @Test fun checkedWorkspaceReviewSendsOnceAndRequiresAFreshAttachmentAfterAcknowledgement() {
         render();open();editWorkspace()
         compose.onNodeWithTag("workspace-review").performClick()
         compose.onNodeWithTag("workspace-reviewed-directory").performScrollTo().assertTextEquals("/fixture/new project")
-        compose.onNodeWithTag("workspace-consent").performScrollTo().performClick()
+        grantWorkspaceConsent()
         capture("workspace-confirm","workspace-review-checked")
         compose.onNodeWithTag("workspace-confirm").performClick()
         compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Closed}
@@ -196,7 +238,7 @@ class CanonicalViewerUiTest {
             val bounds=focusedDialogCaptionScreenBounds(text,text);val now=android.os.SystemClock.uptimeMillis()
             if(lastCancel!=bounds) {lastCancel=bounds;cancelStableAt=now;false} else now-cancelStableAt>=250
         }
-        compose.onNodeWithTag("workspace-consent").performScrollTo().performClick()
+        grantWorkspaceConsent()
         compose.onNodeWithTag("workspace-confirm").assertIsDisplayed().assertIsEnabled()
         val cancel=compose.onNodeWithTag("workspace-cancel").assertIsDisplayed().fetchSemanticsNode().boundsInWindow.center
         tapFocusedDialogWindowPoint(cancel.x,cancel.y)

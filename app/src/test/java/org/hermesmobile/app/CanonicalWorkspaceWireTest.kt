@@ -12,7 +12,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CanonicalWorkspaceWireTest {
-    private class Fixture(val mode:String="normal"):Closeable {
+    private class Fixture(val mode:String="normal",val refusal:JsonObject?=null,val refusedMethod:String="session.mutate"):Closeable {
         val server=MockWebServer();val http=OkHttpClient.Builder().retryOnConnectionFailure(false).followRedirects(false).build()
         val calls=CopyOnWriteArrayList<JsonObject>();val order=CopyOnWriteArrayList<String>()
         val target get()=ManagementTarget("b".repeat(64),server.url("/prefix/").toString(),"default","fixture · owner")
@@ -25,6 +25,10 @@ class CanonicalWorkspaceWireTest {
                 override fun onMessage(ws:WebSocket,text:String) {
                     val q=Json.parseToJsonElement(text).jsonObject;calls+=q
                     fun reply(value:JsonObject)=ws.send(buildJsonObject {put("jsonrpc","2.0");put("id",q["id"]!!);put("result",value)}.toString())
+                    if(refusal!=null && q["method"]==JsonPrimitive(refusedMethod)) {
+                        if(refusedMethod=="session.mutate") order+="wire"
+                        ws.send(buildJsonObject {put("jsonrpc","2.0");put("id",q["id"]!!);put("error",refusal)}.toString());return
+                    }
                     when(q["method"]!!.jsonPrimitive.content) {
                         "runtime.describe"->reply(Json.parseToJsonElement("""{"instance_id":"runtime","profile_id":"/fixture/home","authority_epoch":7,"capabilities":["durable-admission-v1","event-replay-v1"],"session_create":{"sources":["cli"],"parameters":["title"]}}""").jsonObject)
                         "session.mutate"->{
@@ -95,6 +99,39 @@ class CanonicalWorkspaceWireTest {
             entered.await();job.cancelAndJoin()
             assertTrue(runCatching {channel.changeWorkspaceReviewed(r,{f.order+="claim"},{error("Unexpected ACK")})}.exceptionOrNull() is CanonicalApprovalUsed)
             assertEquals(1,f.calls.size);assertTrue(f.order.isEmpty())
+        }}
+    }
+
+    private fun refusal(reason:String="session_busy",field:String?=null,code:Int=4001,message:String=reason)=buildJsonObject {
+        put("code",code);put("message",message)
+        put("data",buildJsonObject {put("reason",reason);field?.let {put("field",it)};put("detail","private-fixture-detail")})
+    }
+    @Test fun recognizedWorkspaceRefusalsGiveOnlyClosedAdviceWithoutAcknowledgementOrRetry()=runBlocking {
+        for((frame,expected) in listOf(refusal() to CanonicalWorkspaceRefusal.Busy,refusal(field="compression") to CanonicalWorkspaceRefusal.Compressing,refusal("permission_denied") to CanonicalWorkspaceRefusal.Permission)) {
+            Fixture(refusal=frame).use {f->f.connect().use {channel->
+                val review=f.review();val error=runCatching {channel.changeWorkspaceReviewed(review,{f.order+="claim"},{f.order+="ack"})}.exceptionOrNull()
+                assertTrue(error is CanonicalWorkspaceRefused);error as CanonicalWorkspaceRefused
+                assertEquals(expected,error.refusal);assertEquals(4001,error.code);assertFalse(error.toString().contains("private-fixture-detail"))
+                assertEquals(listOf("claim","wire"),f.order);assertEquals(1,f.calls.count {it["method"]==JsonPrimitive("session.mutate")})
+                assertTrue(runCatching {channel.changeWorkspaceReviewed(review,{f.order+="extra"},{f.order+="ack"})}.isFailure)
+                assertEquals(listOf("claim","wire"),f.order)
+            }}
+        }
+    }
+    @Test fun unrecognizedOrContradictoryWorkspaceReasonsRemainGenericAndPrivate()=runBlocking {
+        val frames=listOf(refusal(code=5000),refusal(message="private-fixture-detail"),refusal(field="other"),refusal("permission_denied",field="other"),refusal("unknown_execution"),refusal("private-fixture-detail"),buildJsonObject {put("code",4001);put("message","session_busy");put("data",buildJsonObject {put("reason",true)})})
+        for(frame in frames) Fixture(refusal=frame).use {f->f.connect().use {channel->
+            val error=runCatching {channel.changeWorkspaceReviewed(f.review(),{f.order+="claim"},{f.order+="ack"})}.exceptionOrNull()
+            assertTrue(error is GatewayRpcException);assertFalse(error is CanonicalWorkspaceRefused)
+            assertFalse(error.toString().contains("private-fixture-detail"));assertEquals(listOf("claim","wire"),f.order)
+        }}
+    }
+    @Test fun aMatchingReasonOnInventoryDoesNotBecomeWorkspaceAdvice()=runBlocking {
+        Fixture(refusal=refusal(),refusedMethod="session.list").use {f->f.connect().use {channel->
+            val error=runCatching {channel.sessionInventory()}.exceptionOrNull()
+            assertTrue(error is GatewayRpcException);assertFalse(error is CanonicalWorkspaceRefused)
+            assertEquals(listOf("runtime.describe","session.list"),f.calls.map {it["method"]!!.jsonPrimitive.content})
+            assertTrue(f.order.isEmpty())
         }}
     }
 }
