@@ -1,5 +1,19 @@
 # On-device inference validation
 
+## 11 November 2026 - stopped imports reflect committed files
+
+The controller reconciles actual models/partials before returning a stopped
+transfer to idle, handles provider close exceptions as cancellation when the
+coroutine is cancelled, and safely records reconciliation failures. Three new
+JVM regressions reproduce the previous missing-model, false-error and unreported
+metadata-error behavior before the fix. A real 1 GB Android import now passes the
+controlled publication/Main-dispatch cancellation boundary without reopening its
+source, loading weights or creating a chat. Fresh real HTTPS checks still pass
+on API 26/API 37. Required checks pass 921 JVM / 90 reports, 229 policies and
+zero-error lint (50 / 49 warnings), with both APK assemblies. These three new
+Android executions are component acceptance; process/reboot, phone and full
+release gates remain open. See [scope and exact hashes](contracts/2026-11-11-model-stop-reconciliation.md).
+
 ## 11 November 2026 - live HTTPS transfer and stopped-read correction
 
 Real publisher HTTPS checks pass on Android emulators: cancellation/partial

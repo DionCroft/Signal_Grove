@@ -5,6 +5,7 @@ import java.io.DataOutputStream
 import java.io.File
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
+import kotlinx.coroutines.flow.first
 import org.hermesmobile.app.updates.UpdateWorkGuard
 import org.junit.Assert.*
 import org.junit.Rule
@@ -188,4 +189,83 @@ class LocalAiControllerTest {
         assertTrue(LocalConversationStore(history).list().isEmpty()); assertNull(controller.state.value.chat)
         controller.leave(); advanceUntilIdle()
     }
+    @Test fun cancellingAfterImportCommitReconcilesTheInstalledModelBeforeIdle() = runTest {
+        val sourceRoot = temp.newFolder(); val expected = model(sourceRoot)
+        val source = LocalModelStore(sourceRoot).verifiedFile(expected.sha256)
+        val root = temp.newFolder(); val engine = Engine(); val guard = UpdateWorkGuard()
+        val ioScheduler = TestCoroutineScheduler()
+        val controller = LocalAiController(root, temp.newFolder(), "unused", true, {Long.MAX_VALUE}, guard,
+            StandardTestDispatcher(testScheduler), StandardTestDispatcher(ioScheduler)) {engine}
+        fun drain() {repeat(10) {testScheduler.runCurrent(); ioScheduler.runCurrent()}}
+        drain(); controller.importModel(true) {source.inputStream()}
+        testScheduler.runCurrent(); ioScheduler.runCurrent()
+        assertEquals(listOf(expected), LocalModelStore(root).models())
+        assertTrue(controller.state.value.models.isEmpty())
+        controller.cancel(); testScheduler.runCurrent()
+        val heldBeforeReconciliation = controller.state.value.busy && guard.active.value
+        drain()
+        assertEquals(listOf(expected), controller.state.value.models)
+        assertTrue(heldBeforeReconciliation)
+        assertFalse(controller.state.value.busy); assertFalse(guard.active.value)
+        assertNull(controller.state.value.error); assertNull(controller.state.value.loaded)
+        assertEquals(0, engine.loads); assertTrue(engine.requests.isEmpty())
+        assertEquals(source.length(), LocalModelStore(root).verifiedFile(expected.sha256).length())
+        controller.leave(); drain()
+    }
+    @Test fun failedStopReconciliationPreservesFilesReportsTheReasonAndReleasesTheGuard() = runTest {
+        val sourceRoot = temp.newFolder(); val expected = model(sourceRoot)
+        val source = LocalModelStore(sourceRoot).verifiedFile(expected.sha256)
+        val root = temp.newFolder(); val guard = UpdateWorkGuard(); val engine = Engine()
+        val ioScheduler = TestCoroutineScheduler()
+        val controller = LocalAiController(root, temp.newFolder(), "unused", true, {Long.MAX_VALUE}, guard,
+            StandardTestDispatcher(testScheduler), StandardTestDispatcher(ioScheduler)) {engine}
+        fun drain() {repeat(10) {testScheduler.runCurrent(); ioScheduler.runCurrent()}}
+        drain(); controller.importModel(true) {source.inputStream()}
+        testScheduler.runCurrent(); ioScheduler.runCurrent()
+        assertTrue(File(root, "${expected.sha256}.gguf").isFile)
+        val corrupt = File(root, "${"b".repeat(64)}.gguf").apply {writeBytes(ByteArray(24))}
+        controller.cancel(); testScheduler.runCurrent()
+        val heldBeforeReconciliation = controller.state.value.busy && guard.active.value
+        drain()
+        assertEquals("gguf_version", controller.state.value.error)
+        assertTrue(heldBeforeReconciliation)
+        assertFalse(controller.state.value.busy); assertFalse(guard.active.value)
+        assertTrue(File(root, "${expected.sha256}.gguf").isFile)
+        assertArrayEquals(ByteArray(24), corrupt.readBytes())
+        assertEquals(0, engine.loads); assertTrue(engine.requests.isEmpty())
+        controller.leave(); drain()
+    }
+    @Test fun cancellingAClosingDocumentProviderRetainsNoImportAndReportsNoFalseError() = runBlocking {
+        val root = temp.newFolder(); val guard = UpdateWorkGuard(); val engine = Engine()
+        val controller = LocalAiController(root, temp.newFolder(), "unused", true, {Long.MAX_VALUE}, guard,
+            Dispatchers.Default, Dispatchers.IO) {engine}
+        val entered = CompletableDeferred<Unit>(); val closed = java.util.concurrent.atomic.AtomicBoolean(false)
+        var opens = 0
+        val input = object : java.io.InputStream() {
+            override fun read(): Int = read(ByteArray(1), 0, 1)
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                entered.complete(Unit)
+                val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(5)
+                while(!closed.get() && System.nanoTime() < deadline) Thread.sleep(1)
+                check(closed.get()) {"Provider was not closed"}
+                throw java.io.IOException("Document provider closed after cancellation")
+            }
+            override fun close() {closed.set(true)}
+        }
+        try {
+            withTimeout(5_000) {controller.state.first {!it.busy}; guard.active.first {!it}}
+            controller.importModel(true) {opens++; input}
+            withTimeout(5_000) {entered.await()}
+            assertTrue(guard.active.value); controller.cancel()
+            val stopped = withTimeout(5_000) {controller.state.first {!it.busy}}
+            withTimeout(5_000) {guard.active.first {!it}}
+            assertNull(stopped.error); assertTrue(closed.get()); assertEquals(1, opens)
+            assertTrue(stopped.models.isEmpty()); assertTrue(root.listFiles()!!.isEmpty())
+            assertEquals(0, engine.loads); assertTrue(engine.requests.isEmpty())
+        } finally {
+            input.close(); controller.leave()
+            withTimeout(5_000) {controller.state.first {!it.busy}; guard.active.first {!it}}
+        }
+    }
+
 }

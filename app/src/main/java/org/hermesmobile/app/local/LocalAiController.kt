@@ -56,6 +56,10 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 try {
                     val input = open(); source.set(input); context.ensureActive()
                     store.importModel(input, licenceReviewed, checkpoint = { context.ensureActive() })
+                } catch (e: Exception) {
+                    // A document provider may signal close/cancellation with its own exception.
+                    context.ensureActive()
+                    throw e
                 } finally { watcher.cancel(); runCatching { source.get()?.close() } }
             }
         }
@@ -173,17 +177,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             lock.withLock {
                 try { block() }
                 catch (_: CancellationException) {
-                    if (status == "downloading") withContext(NonCancellable) {
-                        val bytes = downloads.partialBytes(); mutable.update { it.copy(partialBytes = bytes) }
-                    }
+                    if (status == "downloading" || status == "importing") reconcileStoppedTransfer()
                 }
-                catch (e: Exception) { mutable.update { it.copy(error = when (e) {
-                    is LocalModelStorageException -> e.reason
-                    is LocalModelFormatException -> e.reason
-                    is LocalEngineException -> "engine_${e.code}"
-                    is LocalHistoryException -> "history"
-                    else -> "operation_failed"
-                }) } }
+                catch (e: Exception) { mutable.update { it.copy(error = failure(e)) } }
                 catch (_: LinkageError) { mutable.update { it.copy(error = "native_unavailable") } }
             }
         }
@@ -193,6 +189,24 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
         next.start()
     }
+    /** Cancellation can lose the return value after atomic publication. Read actual files before idle. */
+    private suspend fun reconcileStoppedTransfer() = withContext(NonCancellable) {
+        try {
+            val models = io { val context = currentCoroutineContext(); store.models { context.ensureActive() } }
+            val partial = downloads.partialBytes()
+            mutable.update { it.copy(models = models, partialBytes = partial) }
+        } catch (e: Exception) {
+            mutable.update { it.copy(error = failure(e)) }
+        }
+    }
+    private fun failure(e: Exception): String = when (e) {
+        is LocalModelStorageException -> e.reason
+        is LocalModelFormatException -> e.reason
+        is LocalEngineException -> "engine_${e.code}"
+        is LocalHistoryException -> "history"
+        else -> "operation_failed"
+    }
+
     private suspend fun refresh() {
         if (!recovered) { io { val context = currentCoroutineContext(); conversations.recoverInterrupted { context.ensureActive() } }; recovered = true }
         val models = io { val context = currentCoroutineContext(); store.models { context.ensureActive() } }

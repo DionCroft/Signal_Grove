@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - model publication/stop reconciliation
+
+Stopped imports/downloads now reconcile actual model files before idle, retain
+an already committed model and preserve errors/files when reconciliation fails.
+Three failing JVM regressions are corrected. A real Android 1 GB import passes
+controlled commit/Main-dispatch cancellation; existing real HTTPS stop/discard/
+full-resume checks pass again. See [exact scope and remaining gates](contracts/2026-11-11-model-stop-reconciliation.md).
+The latest required checks pass 921 JVM, 229 policies and zero-error lint. This
+does not close actual process/reboot, phone, full UI, original remote audit or
+signed-release acceptance. All earlier requirements remain in this ledger.
+
 ## 11 November 2026 - live optional-model transfer checkpoint
 
 The real default-client model path now passes Android HTTPS cancellation and

@@ -37,6 +37,13 @@ matching model before atomic install. The prior live API 37 cancellation failure
 is retained; a cancellation checkpoint fixes blocked-read I/O misclassification.
 See [the transfer contract](docs/contracts/2026-11-11-live-model-transfer.md).
 
+The stopped-transfer correction passes 921 JVM / 90 reports, 229 policies and
+zero-error lint (50 / 49 warnings). Three new Android executions pass: a real
+1 GB import cancelled after publication/before Main acknowledgement, plus fresh
+API 26 cancellation/discard and API 37 explicit full HTTPS resume. Committed
+models become visible without replay/reopen/load; reconciliation errors preserve
+files and release the guard. See [scope](docs/contracts/2026-11-11-model-stop-reconciliation.md).
+
 Exact next action: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run
 its three-method physical fixture including all six reviewed helper topics and

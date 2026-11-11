@@ -65,6 +65,11 @@ does not delete its conversations. The matching file is needed to continue them.
 Android app-data removal/uninstallation deletes private models and local history;
 they are not included in Android backup.
 
+Stop ends unfinished work. If a verified model was already atomically installed,
+it stays in Phone models; loading still requires your choice. Stopping an import
+before publication removes its temporary copy and keeps the original selected
+file. A reconciliation error preserves stored files and displays its reason.
+
 Interrupted recommended downloads retain their partial file. Resume or discard
 it explicitly from Phone models. A server that ignores a resume request leaves
 that partial intact; it does not trigger an automatic second download.
