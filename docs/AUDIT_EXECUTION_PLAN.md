@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - actual native-owner workspace transport
+
+The tracked real-owner probe now creates a disposable session, mutates its host
+directory through a separate authenticated native-ticket channel, then verifies
+it from another fresh attachment. Both exact source pins pass the nine protocol
+checks and final read-only SQLite invariants (1,361 / 1,395 Git-bound modules).
+Both still return a nonzero shutdown finding. All 232 policy tests pass; product
+and Android fixture sources are unchanged. The feature canary now demonstrably
+retains both stable/main reports while preserving their review-required failures.
+See [exact scope, hashes and remaining gates](contracts/2026-11-11-native-owner-workspace.md).
+Real Android HTTP-login/ticket/workspace/Room transport and loss/permission/busy
+recovery, worker/project/files and all original audit/release gates remain open.
+
 ## 11 November 2026 - latest stable owner/runtime and canary checkpoint
 
 The tracked owner-runtime probe now accepts two exact reviewed execution pins.

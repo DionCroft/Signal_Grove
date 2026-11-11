@@ -76,6 +76,12 @@ latest stable also has 47 used-handler source entries requiring review. The cana
 will now inspect main even when stable fails. No contract waiver or real Android
 workspace acceptance is claimed; see [the matrix checkpoint](docs/contracts/2026-11-11-owner-runtime-matrix.md).
 
+Actual authenticated native-owner workspace transport now passes on both exact
+pins: one disposable session, fresh-channel mutation, separate fresh attachment
+and final SQLite agreement. Both keep the upstream shutdown warning. The feature
+canary now retains both review-required reports. See [the scoped proof](docs/contracts/2026-11-11-native-owner-workspace.md).
+This does not yet test Android's HTTP sign-in/ticket/Room path against that owner.
+
 Exact next independent action: complete authenticated actual-Hermes workspace
 transport and fresh directory readback across the supported version matrix,
 including permission/busy/unknown-result/profile recovery. Then implement actual
