@@ -1,5 +1,21 @@
 # On-device inference validation
 
+## 11 November 2026 - real two-family Android integration
+
+Three fresh integration executions pass: Qwen import, embedded generation,
+unloaded history and deletion on API 26/API 37, plus LFM3-to-Qwen switching on
+API 37 with 8 GiB test RAM. The production controller/store/JNI are used with
+actual pinned weights and memory guards. A mismatched chat is refused without
+changing its file; both model-bound histories survive explicit model deletion.
+The original emulator RAM/configuration/package IDs are restored or retained.
+
+Required checks pass 916 JVM / 90 reports, 229 policies and zero-error lint
+(50 / 49 warnings), with both APK assemblies. Main/debug application and native
+sources are unchanged from the preceding local UI measurement. These three new
+native executions do not establish a full instrumentation/release pass, a normal
+Qwen picker flow, physical second-model acceptance or process-death behavior.
+See [scope, model provenance and exact APK hashes](contracts/2026-11-11-two-family-android-integration.md).
+
 ## 11 November 2026 - second model family preflight only
 
 The official Qwen2.5-0.5B Q4_K_M file is pinned and publisher-hash verified.

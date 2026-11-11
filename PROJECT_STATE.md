@@ -20,20 +20,25 @@ phone/host/worker location labels. Invalid/incomplete selections show no model
 guidance. Optional typed observations contain no credentials, hostnames, paths,
 logs or chat content. The plain local-chat composer now identifies the phone model.
 
-The development snapshot passes 916 JVM / 90 reports, 229 policy tests,
-zero-error lint (50 / 49 warnings) and nine local UI cases on each API 26/API 37.
-The earlier history keyboard/native-input test finding is retained and open.
-See [the contract](docs/contracts/2026-11-11-reviewed-local-checks.md) and
-[usage guide](docs/ON_DEVICE_AI.md). No production APK release is claimed.
+The test-only integration snapshot passes 916 JVM / 90 reports, 229 policy
+tests, zero-error lint (50 / 49 warnings) and three real native executions:
+Qwen import/generation/unloaded history/delete on API 26/API 37, plus LFM3↔Qwen
+switching on API 37. A mismatched chat is refused without a transcript write.
+Main/native/debug sources match the preceding nine-case-per-emulator UI proof;
+that earlier UI measurement is not counted as a fresh full suite. See
+[the integration contract](docs/contracts/2026-11-11-two-family-android-integration.md).
+The history keyboard/native-input finding remains open. No APK release is claimed.
 
-Exact next action: install the verified debug app/test update through Xiaomi's
-normal installer, verify retained production/model/chat hashes, and run the
-three-method physical fixture including all six reviewed helper topics and
-Chinese generation. The official Qwen0.5B Q4_K_M candidate now passes actual compiled-reader and
-phone-CLI preflight; embedded import/generation/model-switch gates remain open
-(docs/contracts/2026-11-11-qwen-compatibility-preflight.md). Then complete those
-gates, real HTTPS transfer / resume / cancellation and extended lifecycle. The original Hermes, workspace,
-worker, automation, integration and exact-source release gates remain required.
+Exact next action: the owner installs the already-staged, unchanged phone
+helper candidate through Xiaomi's installer; verify retained production/model/
+chat hashes and run its three-method physical fixture including all six reviewed
+helper topics and Chinese generation. New test-only APKs were used on emulators;
+they do not replace the pending phone installer filenames. Then complete normal
+Qwen picker/physical import/chat/switch, second-model cancellation/recovery,
+real HTTPS transfer/resume/cancellation and extended lifecycle. The original
+Hermes, workspace, worker, automation, integration and exact-source release
+gates remain required. See [usage](docs/ON_DEVICE_AI.md) and
+[the full audit ledger](docs/AUDIT_EXECUTION_PLAN.md).
 
 ## Earlier audit checkpoint (historical)
 The full audit goal remains active and incomplete. Continue verified commit

@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - optional local-AI integration checkpoint
+
+LFM3's actual phone flow now proves normal picker/licence import, offline typed
+chat, persistent local history and same-process weight release. The replacement
+helper selects reviewed guide checks with explicit execution locations; its new
+phone APK gate remains pending. Three new real Android component executions
+also prove Qwen import/generation/unloaded history/delete on API 26/API 37 and
+LFM3↔Qwen model/history switching on API 37. See
+[exact scope and open gates](contracts/2026-11-11-two-family-android-integration.md).
+The static guide and all original audit requirements below are retained. These
+local checks do not close remote Hermes, worker/project, integration or release
+acceptance. No production APK publication or Pi/Spark/default change occurred.
+
 ## 10 November 2026 - optional on-device inference extension
 
 The owner resumed the expanded goal. Retain every earlier audit requirement;

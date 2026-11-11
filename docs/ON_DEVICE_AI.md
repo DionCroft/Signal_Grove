@@ -38,6 +38,12 @@ every quantization, template, model or device will load successfully. The actual
 native load is a separate check. Broader physical model compatibility remains
 under validation; see [current evidence](ON_DEVICE_AI_VALIDATION.md).
 
+The official Qwen2.5-0.5B Q4_K_M candidate also passes real embedded import,
+generation, unload/history and delete tests on Android emulators. Switching
+between it and LFM3 keeps histories separate. Normal Qwen picker/physical-phone
+acceptance remains open; this does not create another recommended download.
+See the [tested scope](contracts/2026-11-11-two-family-android-integration.md).
+
 ## Chat offline and manage memory
 
 Type a new message in the on-device composer and send it explicitly. No failed
