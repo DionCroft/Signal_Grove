@@ -3,6 +3,8 @@ package org.hermesmobile.app.network
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.channels.Channel
@@ -253,7 +255,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     }
 
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
-        require(method in setOf("session.list", "session.resume", "session.events.since", "gateway.ping"))
+        require(method in setOf("session.list", "session.resume", "session.events.since", "gateway.ping", "session.mutate"))
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -353,6 +355,24 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
             fail(if (error is GatewayProtocolException || error is GatewayRpcException) error else GatewayUnavailable())
             throw error
         }
+    }
+
+    /** A separately authenticated socket; no attachment, prompt or work is replayed. */
+    internal suspend fun changeWorkspaceReviewed(
+        review:CanonicalWorkspaceReview,beforeSend:suspend ()->Unit,
+        acknowledged:suspend (CanonicalWorkspaceAcknowledgement)->Unit
+    ):CanonicalWorkspaceAcknowledgement {
+        synchronized(this) {check(!resuming && !resumed)}
+        val current=binding;val expected=review.expected.owner
+        if(current.target!=expected.target || current.homeId!=expected.homeId || current.profileId!=expected.profileId ||
+            current.instanceId!=expected.instanceId || current.authorityEpoch!=expected.authorityEpoch) throw CanonicalReviewChanged()
+        val payload=review.consume(review.expected)
+        beforeSend()
+        currentCoroutineContext().ensureActive()
+        if(binding!==current) throw CanonicalScopeChanged()
+        val result=CanonicalWorkspaceAcknowledgement.parse(call("session.mutate",payload),review)
+        acknowledged(result)
+        return result
     }
 
     /** Exactly one consumer applies the initial batch before reading these queued live batches. */

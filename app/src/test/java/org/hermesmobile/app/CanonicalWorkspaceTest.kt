@@ -92,4 +92,16 @@ class CanonicalWorkspaceTest {
             assertFalse(s.receiptSummary().contains(old));assertFalse(s.receiptSummary().contains("private-sentinel"))
         }
     }
+    @Test fun acknowledgementsRequireExactSessionOperationRevisionGenerationAndAbsoluteDirectory() {
+        val r=review()
+        val good=buildJsonObject {put("session_id",f.owner.sessionId);put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd","/normalized")}
+        val ack=CanonicalWorkspaceAcknowledgement.parse(good,r)
+        assertEquals(3L,ack.revision);assertEquals(4L,ack.generation);assertEquals("/normalized",ack.directory.path)
+        for((key,value) in listOf("session_id" to JsonPrimitive("other"),"operation" to JsonPrimitive("model"),"revision" to JsonPrimitive(4),
+            "execution_generation" to JsonPrimitive(3),"revision" to JsonPrimitive("3"),"cwd" to JsonPrimitive("relative"),"cwd" to JsonNull))
+            refuses {CanonicalWorkspaceAcknowledgement.parse(JsonObject(good+mapOf(key to value)),r)}
+        assertFalse(r.summary().contains(old));assertFalse(r.summary().contains("/fixture/new"))
+        assertFalse(ack.summary().contains("/normalized"));assertFalse(ack.summary().contains("idle"))
+    }
+
 }

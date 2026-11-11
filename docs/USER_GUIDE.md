@@ -426,5 +426,20 @@ shows an explanation without blocking valid session activity.
 
 For a Pi-backed setup, this is the Pi's Hermes-host directory. It does not bind a
 chat to a Windows/NAS project or verify a worker's files, applications or execution
-permissions. Workspace editing and worker/project binding remain pending; use the
-verified project owner for engineering work. Closing clears the private details.
+permissions. Use the verified project owner for engineering work. Closing clears
+the private details.
+
+For an eligible local session, choose **Change host directory**. Enter a different
+absolute directory that exists on the Hermes host, choose **Review directory
+change**, check the exact host/profile/session and old/new paths, tick approval,
+then confirm. Cancel sends nothing. Hermes checks permissions, idle state and
+both revisions; it may normalize the path. Success acknowledges the change and
+closes the stale viewer under its previously reviewed close policy. Open a newly
+reviewed viewer to read fresh context. It does not verify worker binding or a tool
+run. Worker/project binding remains pending.
+
+If the result is uncertain, open management receipts and copy the exact **Mutation
+request ID**. Inspect that session's backend receipt and actual directory before
+using the separate local uncertainty review. The app never retries automatically.
+The local review changes only the device's barrier. See
+[workspace behavior and limits](contracts/2026-11-11-reviewed-workspace-change.md).

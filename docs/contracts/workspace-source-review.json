@@ -1,0 +1,257 @@
+{
+  "scope": "Git-bound static AST review only; real mutation/idle/permission/deployment acceptance remains required.",
+  "aliases": {
+    "canonical_workspace_mutations": "gateway/session_mutations.py",
+    "canonical_workspace_prepare": "gateway/session_mutation_policy.py",
+    "canonical_workspace_handle": "gateway/session_contract.py",
+    "canonical_workspace_local": "gateway/session_local.py",
+    "canonical_workspace_actions": "hermes_state_mutations.py",
+    "canonical_workspace_commit": "hermes_state_mutation_prepared.py",
+    "canonical_workspace_guards": "hermes_state_mutation_guards.py",
+    "canonical_workspace_binding": "hermes_state_mutation_binding.py",
+    "canonical_workspace_retirement": "hermes_state_mutation_retirement.py",
+    "canonical_workspace_store": "hermes_state_runtime.py"
+  },
+  "files": [
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "gateway/session_mutations.py",
+      "blob": "6e6dbffbe8feaf1482cb28265597c9b5ca06ae87",
+      "sha256": "457b503c9a4615de4c60ff81eb1db4eab1fae1b124ae2a1cac63f3d48f548caa",
+      "bytes": 28455
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "gateway/session_mutation_policy.py",
+      "blob": "626c92aa4f4f3dc0f341be9920d303ba6e5e1682",
+      "sha256": "473de901963d922f97d2d722d0baf8ae5d66e6c41135ebf4cdf44a909c676ebc",
+      "bytes": 3795
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "gateway/session_contract.py",
+      "blob": "3ccab60afb132d19c6061b9a5c2d2b867d54c8c2",
+      "sha256": "dbebb8296aea175e4e62bb80b26cb915bb529e1510b2bb3abb73f0ee68d866eb",
+      "bytes": 3476
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "gateway/session_local.py",
+      "blob": "9b78e982ea040eabb8dcade4286259515c71bc24",
+      "sha256": "b417164aaf12599f139119dceef592e4f6e0cee6255e070c47ee3f392cacf8a6",
+      "bytes": 29831
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "hermes_state_mutations.py",
+      "blob": "c809fca4a43b8e6f5187a472b40b602cdadb5dbe",
+      "sha256": "86461c9d7222bc5eb7ecbca605d31738284592921ab27897a4caa5abe0761719",
+      "bytes": 13906
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "hermes_state_mutation_prepared.py",
+      "blob": "5638ed213f7c00d53da282c34800dca84ac5fcdc",
+      "sha256": "f7edc4c773a8d1e9c4bd8115d5d9f867b0de62f9596b5e1a927b3547b9b8524c",
+      "bytes": 9741
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "hermes_state_mutation_guards.py",
+      "blob": "46ed9bdceb66495449ade1b0ce273bb36fb955db",
+      "sha256": "a3fef3337acecb3298d3c87b01b95d49067a82abcbf5724267fc4aa087dd98e1",
+      "bytes": 7374
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "hermes_state_mutation_binding.py",
+      "blob": "265c33fe16cfda436351f989746f21aee1e85457",
+      "sha256": "8cb4e89846f5bbfce5e925df3869663e456a122e858cdc168f6b6d694a034e46",
+      "bytes": 6406
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "hermes_state_mutation_retirement.py",
+      "blob": "0e3afdb7d3fa450963e86e8fb3bb20edca2a47d0",
+      "sha256": "bee966ed661abdadf4dec5556e371a17fb06c1ceef58ad51f0e62b847ac0fe73",
+      "bytes": 25909
+    },
+    {
+      "version": "f0",
+      "commit": "f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab",
+      "path": "hermes_state_runtime.py",
+      "blob": "49207f5508db3255cd90433a229c518f11cfd0f7",
+      "sha256": "6bbcc688799d3ea784545b5227d20e07f8b5ce8f26fcf545825bc8a60462ee3f",
+      "bytes": 56987
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "gateway/session_mutations.py",
+      "blob": "6e6dbffbe8feaf1482cb28265597c9b5ca06ae87",
+      "sha256": "457b503c9a4615de4c60ff81eb1db4eab1fae1b124ae2a1cac63f3d48f548caa",
+      "bytes": 28455
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "gateway/session_mutation_policy.py",
+      "blob": "626c92aa4f4f3dc0f341be9920d303ba6e5e1682",
+      "sha256": "473de901963d922f97d2d722d0baf8ae5d66e6c41135ebf4cdf44a909c676ebc",
+      "bytes": 3795
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "gateway/session_contract.py",
+      "blob": "accd1d9e2109e34c19263b90d730fad400128e6c",
+      "sha256": "624f45de8dcf2537266614ac14eaf98150ad6ed82ac3167f30f6f463733e7a41",
+      "bytes": 3509
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "gateway/session_local.py",
+      "blob": "9b78e982ea040eabb8dcade4286259515c71bc24",
+      "sha256": "b417164aaf12599f139119dceef592e4f6e0cee6255e070c47ee3f392cacf8a6",
+      "bytes": 29831
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "hermes_state_mutations.py",
+      "blob": "c809fca4a43b8e6f5187a472b40b602cdadb5dbe",
+      "sha256": "86461c9d7222bc5eb7ecbca605d31738284592921ab27897a4caa5abe0761719",
+      "bytes": 13906
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "hermes_state_mutation_prepared.py",
+      "blob": "5638ed213f7c00d53da282c34800dca84ac5fcdc",
+      "sha256": "f7edc4c773a8d1e9c4bd8115d5d9f867b0de62f9596b5e1a927b3547b9b8524c",
+      "bytes": 9741
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "hermes_state_mutation_guards.py",
+      "blob": "46ed9bdceb66495449ade1b0ce273bb36fb955db",
+      "sha256": "a3fef3337acecb3298d3c87b01b95d49067a82abcbf5724267fc4aa087dd98e1",
+      "bytes": 7374
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "hermes_state_mutation_binding.py",
+      "blob": "265c33fe16cfda436351f989746f21aee1e85457",
+      "sha256": "8cb4e89846f5bbfce5e925df3869663e456a122e858cdc168f6b6d694a034e46",
+      "bytes": 6406
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "hermes_state_mutation_retirement.py",
+      "blob": "0e3afdb7d3fa450963e86e8fb3bb20edca2a47d0",
+      "sha256": "bee966ed661abdadf4dec5556e371a17fb06c1ceef58ad51f0e62b847ac0fe73",
+      "bytes": 25909
+    },
+    {
+      "version": "stable0230",
+      "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+      "path": "hermes_state_runtime.py",
+      "blob": "49207f5508db3255cd90433a229c518f11cfd0f7",
+      "sha256": "6bbcc688799d3ea784545b5227d20e07f8b5ce8f26fcf545825bc8a60462ee3f",
+      "bytes": 56987
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "gateway/session_mutations.py",
+      "blob": "6e6dbffbe8feaf1482cb28265597c9b5ca06ae87",
+      "sha256": "457b503c9a4615de4c60ff81eb1db4eab1fae1b124ae2a1cac63f3d48f548caa",
+      "bytes": 28455
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "gateway/session_mutation_policy.py",
+      "blob": "626c92aa4f4f3dc0f341be9920d303ba6e5e1682",
+      "sha256": "473de901963d922f97d2d722d0baf8ae5d66e6c41135ebf4cdf44a909c676ebc",
+      "bytes": 3795
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "gateway/session_contract.py",
+      "blob": "accd1d9e2109e34c19263b90d730fad400128e6c",
+      "sha256": "624f45de8dcf2537266614ac14eaf98150ad6ed82ac3167f30f6f463733e7a41",
+      "bytes": 3509
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "gateway/session_local.py",
+      "blob": "4054cd0c50cafff9036e7787d24284b729caec59",
+      "sha256": "cd7c5b2a2718c6b0fab56314f039f0d6bac8b1b80046b2100284e71cad1a2c2c",
+      "bytes": 30236
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "hermes_state_mutations.py",
+      "blob": "090fb0ddebb0fb50935fe85e12fd8f3167eb4576",
+      "sha256": "3fb096d3089f35354baf06159245625e646db802d44611193819c0ecb0d73bff",
+      "bytes": 14185
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "hermes_state_mutation_prepared.py",
+      "blob": "5638ed213f7c00d53da282c34800dca84ac5fcdc",
+      "sha256": "f7edc4c773a8d1e9c4bd8115d5d9f867b0de62f9596b5e1a927b3547b9b8524c",
+      "bytes": 9741
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "hermes_state_mutation_guards.py",
+      "blob": "46ed9bdceb66495449ade1b0ce273bb36fb955db",
+      "sha256": "a3fef3337acecb3298d3c87b01b95d49067a82abcbf5724267fc4aa087dd98e1",
+      "bytes": 7374
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "hermes_state_mutation_binding.py",
+      "blob": "86bd07a4ad72ff6cf8b9f38ba576857bcf0bae38",
+      "sha256": "d3d9e788953611b960cd0f60087e941e3f03bab8a413f1efa8fd684d9117bb68",
+      "bytes": 6560
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "hermes_state_mutation_retirement.py",
+      "blob": "0e3afdb7d3fa450963e86e8fb3bb20edca2a47d0",
+      "sha256": "bee966ed661abdadf4dec5556e371a17fb06c1ceef58ad51f0e62b847ac0fe73",
+      "bytes": 25909
+    },
+    {
+      "version": "stable0231",
+      "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "path": "hermes_state_runtime.py",
+      "blob": "49207f5508db3255cd90433a229c518f11cfd0f7",
+      "sha256": "6bbcc688799d3ea784545b5227d20e07f8b5ce8f26fcf545825bc8a60462ee3f",
+      "bytes": 56987
+    }
+  ]
+}

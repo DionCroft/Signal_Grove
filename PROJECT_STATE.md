@@ -60,16 +60,22 @@ font scale 1.3. Eleven earlier API 37 regression cases retain byte-identical
 view-model/provenance/fixture sources and are counted separately. See
 [the routing acceptance](docs/contracts/2026-11-11-reviewed-phone-draft.md).
 
-The canonical viewer now has opt-in attachment-time Hermes-host directory
-observations and a tested internal exact-value review foundation. Required checks
-pass 939 JVM / 92 reports, 229 policies and zero-error lint; all 11 viewer methods
-pass freshly on each API 26/API 37 emulator. No workspace write or worker binding
-is exposed. See [scope and remaining acceptance](docs/contracts/2026-11-11-session-workspace-foundation.md).
+The canonical viewer now supports explicit Hermes-host directory changes with
+one-use revision/generation review, durable one-send receipts, honest ACK/unknown
+outcomes and exact request IDs. Thirty selected native methods pass freshly on
+each API 26/API 37 emulator, including real keyboard/caption bounds and Cancel.
+Required checks pass 950 JVM / 93 reports, 232 policies and zero-error lint. A
+tracked supervised real-Hermes component passes 11 cases with 1,049 Git-bound
+modules and clean final boundary/store checks. Authentication against that real
+owner is not covered by the separate Android mock transport proof. See
+[scope and retained findings](docs/contracts/2026-11-11-reviewed-workspace-change.md).
 
-Exact next independent action: implement separately reviewed authority-host
-workspace mutation with supported handle/permission checks, durable receipts and
-real-runtime no-replay acceptance; then implement actual worker/project binding.
-Do not substitute a Pi-side directory for the Windows authoritative working copy.
+Exact next independent action: complete authenticated actual-Hermes workspace
+transport and fresh directory readback across the supported version matrix,
+including permission/busy/unknown-result/profile recovery. Then implement actual
+worker/project identity, file access and reviewed binding/dispatch. Keep every
+original ledger row and the phone-to-Hermes handoff/local-AI release gates open.
+Do not substitute a Pi directory for the Windows authoritative working copy.
 
 Owner-dependent check: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run

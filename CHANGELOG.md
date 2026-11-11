@@ -2,6 +2,13 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add explicitly reviewed Hermes-host workspace changes with exact revision and
+  generation fences, durable one-send ACK/unknown receipts and selectable request
+  IDs. Keep independent directory readback and Windows worker binding separate.
+  Verify large translated actions above the native keyboard and native Cancel.
+- Add a bounded actual-Hermes workspace mutation probe with process-exit/store
+  evidence and additive source watches; preserve every historical contract digest.
+
 - Add an isolated actual-Hermes owner-runtime conformance probe for native
   identity, one-use tickets, profile isolation and owner loss. Surface its real
   shutdown finding explicitly; preserve the narrower transport acceptance.

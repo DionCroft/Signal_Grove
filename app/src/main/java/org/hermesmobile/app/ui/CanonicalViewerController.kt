@@ -29,7 +29,8 @@ internal data class CanonicalViewerState(
     val title:String="",val sessionId:String="",val receiptKey:String="",
     val cursor:CanonicalReplayCursor?=null,val observed:Long=0,
     val activities:List<CanonicalActivity> = emptyList(),val heartbeatAt:Long?=null,val error:Words?=null,
-    val workspace:CanonicalWorkspaceDirectory?=null,val workspaceObservedAt:Long?=null
+    val workspace:CanonicalWorkspaceDirectory?=null,val workspaceObservedAt:Long?=null,
+    val workspaceSnapshot:CanonicalSessionSnapshot?=null,val workspaceChanging:Boolean=false,val workspaceNotice:Words?=null
 ) {
     val busy get()=phase in setOf(CanonicalViewerPhase.Loading,CanonicalViewerPhase.Opening)
     override fun toString()="CanonicalViewerState("+phase+")"
@@ -48,6 +49,7 @@ internal class CanonicalViewerController(
     val state=MutableStateFlow(CanonicalViewerState())
     private var generation=0L
     private var task:Job?=null
+    private var workspaceTask:Job?=null
     private var connection:CanonicalViewerLink?=null
     private var acceptedContext:CanonicalViewerAccess?=null
     private fun current(id:Long,access:CanonicalViewerAccess) = id==generation && access.same(context())
@@ -115,7 +117,7 @@ internal class CanonicalViewerController(
                 requireCurrent(id,access)
                 connection=attached
                 state.value=state.value.copy(receiptKey=attached.receipt.key,sessionId=attached.attachment.snapshot.owner.sessionId,
-                    workspace=attached.attachment.snapshot.workspace,workspaceObservedAt=now())
+                    workspace=attached.attachment.snapshot.workspace,workspaceObservedAt=now(),workspaceSnapshot=attached.attachment.snapshot)
                 beat(attached)
                 requireCurrent(id,access)
                 apply(id,access,attached,attached.attachment.initial)
@@ -180,8 +182,35 @@ internal class CanonicalViewerController(
         val end=clean.offsetByCodePoints(0,minOf(512,clean.codePointCount(0,clean.length)))
         return CanonicalActivity(event.sequence,kind,clean.substring(0,end),end<clean.length)
     }
+    fun workspaceCurrent(snapshot:CanonicalSessionSnapshot)=state.value.workspaceSnapshot===snapshot &&
+        state.value.phase==CanonicalViewerPhase.Following && !state.value.workspaceChanging &&
+        acceptedContext?.same(context())==true && CanonicalWorkspaceReview.eligible(snapshot)
+    fun changeWorkspace(review:CanonicalWorkspaceReview) {
+        if(!workspaceCurrent(review.expected)) return
+        val access=checkNotNull(acceptedContext);val id=generation;val owner=Any()
+        state.value=state.value.copy(workspaceChanging=true,workspaceNotice=null);guard(owner,true)
+        workspaceTask=scope.launch {
+            try {
+                requireCurrent(id,access)
+                repository.changeWorkspace(review,access.api,access.tokens)
+                requireCurrent(id,access)
+                // The old attachment is now stale. A fresh one needs a new explicit review.
+                generation++;task?.cancel();task=null;connection?.close();connection=null;acceptedContext=null
+                state.value=CanonicalViewerState(workspaceNotice=Words.WorkspaceAcknowledged)
+            } catch(e:CancellationException) {throw e}
+            catch(e:Exception) {
+                if(current(id,access)) state.value=state.value.copy(workspaceChanging=false,
+                    workspaceSnapshot=if(e is CanonicalWorkspaceAcknowledged) null else state.value.workspaceSnapshot,workspaceNotice=when(e) {
+                        is CanonicalWorkspaceAcknowledged->Words.WorkspaceAcknowledged
+                        is CanonicalReviewChanged,is CanonicalApprovalUsed,is CanonicalScopeChanged->Words.ManagementReviewChanged
+                        is ManagementOutcomePending->Words.ManagementOutcomePending
+                        else->Words.WorkspaceUncertain
+                    })
+            } finally {guard(owner,false)}
+        }
+    }
     fun close() {
-        generation++;task?.cancel();task=null;connection?.close();connection=null;acceptedContext=null
+        generation++;task?.cancel();task=null;workspaceTask?.cancel();workspaceTask=null;connection?.close();connection=null;acceptedContext=null
         state.value=CanonicalViewerState()
     }
 }

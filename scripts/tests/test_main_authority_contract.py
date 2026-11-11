@@ -29,7 +29,7 @@ class MainAuthorityContractTest(unittest.TestCase):
     def test_old_pin_remains_self_consistent_and_main_adds_no_blanket_commit_trust(self):
         value,current,reviewed=self.fixture()
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab',value['upstream']['commit'])
-        self.assertEqual(205,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        self.assertEqual(215,len(checker.SOURCES|checker.EXTRA_SOURCES))
         self.assertFalse(checker.compare(value,{'commit':value['upstream']['commit'],'contract':copy.deepcopy(value['upstream']['contract'])})['mobile_review_required'])
         self.assertFalse(checker.compare(value,current)['mobile_review_required'])
         for entry in reviewed.values():

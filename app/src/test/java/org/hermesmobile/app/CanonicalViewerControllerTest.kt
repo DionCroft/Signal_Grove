@@ -1,6 +1,7 @@
 package org.hermesmobile.app
 
 import java.io.IOException
+import kotlinx.serialization.json.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -14,7 +15,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class CanonicalViewerControllerTest {
     private class Link:CanonicalViewerLink {
-        override val attachment=CanonicalGatewayChannel.Attachment(CanonicalViewerFixtures.snapshot(),CanonicalViewerFixtures.delivery())
+        override val attachment=CanonicalGatewayChannel.Attachment(CanonicalViewerFixtures.snapshot(CanonicalWorkspaceDirectory.Reported("/fixture/old")),CanonicalViewerFixtures.delivery())
         override val receipt=CanonicalViewerFixtures.receipt()
         val events=Channel<CanonicalFeedDelivery>(Channel.UNLIMITED)
         var beats=0;var closes=0;var beat:suspend ()->Unit={}
@@ -24,6 +25,7 @@ class CanonicalViewerControllerTest {
     }
     private class Repo:CanonicalViewerRepository {
         val link=Link();var prepares=0;var adoptions=0;var cursorReads=0
+        var workspaceCalls=0;var workspaceGate:CompletableDeferred<Unit>?=null;var workspaceError:Exception?=null
         var requireHeartbeat=false;var previous:CanonicalReplayCheckpoint?=null
         var savedPrevious:CanonicalReplayCheckpoint?=null
         var prepareGate:CompletableDeferred<Unit>?=null;var adoptGate:CompletableDeferred<Unit>?=null
@@ -38,6 +40,13 @@ class CanonicalViewerControllerTest {
             adoptions++;this.previous=previous;this.requireHeartbeat=requireHeartbeat
             adoptGate?.let {withContext(NonCancellable) {it.await()}};adoptError?.let {throw it}
             review.consume(review.expected);return link
+        }
+        override suspend fun changeWorkspace(review:CanonicalWorkspaceReview,api:ManagementClient,tokens:ManagementTokens):CanonicalWorkspaceAcknowledgement {
+            workspaceCalls++;review.consume(review.expected)
+            workspaceGate?.let {withContext(NonCancellable) {it.await()}};workspaceError?.let {throw it}
+            return CanonicalWorkspaceAcknowledgement.parse(buildJsonObject {
+                put("session_id",review.expected.owner.sessionId);put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd",review.requestedDirectory)
+            },review)
         }
         override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {cursorReads++;return savedPrevious}
         override suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor) {save();savedKeys+=key;saves+=CanonicalReplayCheckpoint(owner,cursor)}
@@ -210,5 +219,37 @@ class CanonicalViewerControllerTest {
         repo.prepareError=HermesHttpException(401,"fixture");viewer.load(CanonicalSessionScope.Live);runCurrent()
         assertEquals(CanonicalViewerPhase.Held,viewer.state.value.phase);assertEquals(Words.ManagementExpired,viewer.state.value.error)
         assertNull(viewer.state.value.inventory);assertEquals(0,repo.adoptions);assertTrue(guards.isEmpty())
+    }}    @Test fun confirmedWorkspaceChangeClosesTheStaleViewerAndDuplicateClicksSendOnce()=runTest {exercise {
+        opened();val snapshot=checkNotNull(viewer.state.value.workspaceSnapshot)
+        val review=CanonicalWorkspaceReview.create(snapshot,"/fixture/new")
+        viewer.changeWorkspace(review);viewer.changeWorkspace(review);runCurrent()
+        assertEquals(1,repo.workspaceCalls);assertEquals(CanonicalViewerPhase.Closed,viewer.state.value.phase)
+        assertEquals(Words.WorkspaceAcknowledged,viewer.state.value.workspaceNotice);assertNull(viewer.state.value.workspaceSnapshot)
+        assertEquals(1,repo.link.closes);assertTrue(guards.isEmpty())
     }}
+    @Test fun changedAuthenticationBeforeWorkspaceConfirmationCannotSend()=runTest {exercise {
+        opened();val review=CanonicalWorkspaceReview.create(checkNotNull(viewer.state.value.workspaceSnapshot),"/fixture/new")
+        access=null;viewer.changeWorkspace(review);runCurrent();assertEquals(0,repo.workspaceCalls)
+    }}
+    @Test fun closingDuringWorkspaceMutationClearsPrivateContextAndLateAckCannotReopen()=runTest {exercise {
+        opened();val gate=CompletableDeferred<Unit>();gates+=gate;repo.workspaceGate=gate
+        viewer.changeWorkspace(CanonicalWorkspaceReview.create(checkNotNull(viewer.state.value.workspaceSnapshot),"/fixture/new"));runCurrent()
+        assertTrue(viewer.state.value.workspaceChanging);viewer.close();gate.complete(Unit);runCurrent()
+        assertEquals(1,repo.workspaceCalls);assertNull(viewer.state.value.workspaceSnapshot);assertNull(viewer.state.value.workspaceNotice)
+        assertEquals(CanonicalViewerPhase.Closed,viewer.state.value.phase);assertTrue(guards.isEmpty())
+    }}
+    @Test fun uncertainWorkspaceWritePreservesTheViewerAndDoesNotAutomaticallyRepeat()=runTest {exercise {
+        opened();repo.workspaceError=IOException("fixture")
+        viewer.changeWorkspace(CanonicalWorkspaceReview.create(checkNotNull(viewer.state.value.workspaceSnapshot),"/fixture/new"));runCurrent()
+        assertEquals(Words.WorkspaceUncertain,viewer.state.value.workspaceNotice);assertEquals(CanonicalViewerPhase.Following,viewer.state.value.phase)
+        advanceTimeBy(400);runCurrent();assertEquals(1,repo.workspaceCalls);assertFalse(viewer.state.value.workspaceChanging)
+    }}
+    @Test fun acknowledgedWorkspaceWithFailedLaterVerificationCannotReuseTheOldSnapshot()=runTest {exercise {
+        opened();repo.workspaceError=CanonicalWorkspaceAcknowledged(repo.link.receipt,IOException("fixture"))
+        val snapshot=checkNotNull(viewer.state.value.workspaceSnapshot)
+        viewer.changeWorkspace(CanonicalWorkspaceReview.create(snapshot,"/fixture/new"));runCurrent()
+        assertEquals(Words.WorkspaceAcknowledged,viewer.state.value.workspaceNotice);assertNull(viewer.state.value.workspaceSnapshot)
+        assertFalse(viewer.workspaceCurrent(snapshot));assertEquals(1,repo.workspaceCalls)
+    }}
+
 }

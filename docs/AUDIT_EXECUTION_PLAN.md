@@ -1,5 +1,26 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - reviewed Hermes-host workspace changes
+
+An exact-value two-step review now changes a live local session's authority-host
+directory through the canonical mutation contract. One durable sending claim
+precedes one send; correctly bound results remain acknowledged until independent
+directory readback. Lost/cancelled/unusable results preserve uncertainty and the
+alias/home barrier. Receipts show their exact request ID. The form uses pixel
+actions, native keyboard bounds and a real Android Cancel check.
+
+Required checks pass 950 JVM / 93 reports, 232 policies and zero-error lint. Thirty
+selected methods pass freshly on each API 26/API 37 emulator, with keyboard
+settings restored and four captures reviewed. A separately supervised actual-
+Hermes component passes 11 cases, 1,049 Git-bound imported modules, final exit
+boundary and read-only store checks. Its synthetic actors/callback and the
+Android mock-auth proof do not constitute real authenticated end-to-end acceptance.
+See [scope, retained failures and remaining gates](contracts/2026-11-11-reviewed-workspace-change.md).
+
+Real-source authenticated workspace transport/readback, supported/deployed version
+acceptance, Windows worker/project/files, physical current-source and every earlier
+original audit/release requirement remain open. No production APK is published.
+
 ## 11 November 2026 - private session workspace observations
 
 The explicitly attached canonical viewer now reveals its reported Hermes-host

@@ -14,7 +14,7 @@ internal object CanonicalViewerFixtures {
     val tokens=ManagementTokens("viewer-access-fixture","viewer-refresh-fixture","fixture","owner",4102444800)
     fun inventory(scope:CanonicalSessionScope=CanonicalSessionScope.Live)=CanonicalSessionInventory(binding,
         listOf(CanonicalStoredSession("history","history","resolved-history","Private fixture title","cli","fixture-model",2,1.0,false,"fingerprint")),scope)
-    fun snapshot()=CanonicalSessionSnapshot(owner,"history","reported-history","subscription",cursor,2,3,false,2,true)
+    fun snapshot(workspace:CanonicalWorkspaceDirectory=CanonicalWorkspaceDirectory.NotReported)=CanonicalSessionSnapshot(owner,"history","reported-history","subscription",cursor,2,3,false,2,true,workspace)
     fun delivery(sequence:Long=4,events:List<CanonicalFeedEvent> = emptyList(),phase:CanonicalFeedPhase=CanonicalFeedPhase.Following)=
         CanonicalFeedDelivery(CanonicalFeedStatus(phase,CanonicalReplayCursor("ring",sequence),null,0),events)
     fun event(sequence:Long,type:String="message.delta",text:String="Private fixture reply")=CanonicalFeedEvent.parse(buildJsonObject {

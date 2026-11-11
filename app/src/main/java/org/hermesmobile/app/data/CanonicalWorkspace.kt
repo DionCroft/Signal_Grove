@@ -1,5 +1,6 @@
 package org.hermesmobile.app.data
 
+import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.serialization.json.*
@@ -32,7 +33,12 @@ internal sealed class CanonicalWorkspaceDirectory {
     }
 }
 
-/** Preflight only: no transport, filesystem access, database write or automatic retry. */
+internal object CanonicalWorkspaceAction {
+    const val Id="CanonicalWorkspace"
+    fun receipt(action:String)=action==Id || action==CanonicalResumeAction.Id
+}
+
+/** Exact-value one-use approval. The server still checks permissions, idleness and both fences. */
 internal class CanonicalWorkspaceReview private constructor(
     val expected:CanonicalSessionSnapshot,val requestedDirectory:String,val requestId:String
 ) {
@@ -48,8 +54,20 @@ internal class CanonicalWorkspaceReview private constructor(
             put("operation","workspace");put("payload",buildJsonObject {put("cwd",requestedDirectory)})
         }
     }
+    fun summary()=buildJsonObject {
+        put("instance_id",expected.owner.instanceId);put("authority_epoch",expected.owner.authorityEpoch)
+        put("resolved_session_id",expected.owner.sessionId);put("expected_revision",expected.revision)
+        put("expected_generation",expected.executionGeneration);put("request_id",requestId)
+        put("before_directory_sha256",directoryHash((expected.workspace as CanonicalWorkspaceDirectory.Reported).path))
+        put("requested_directory_sha256",directoryHash(requestedDirectory));put("automatic_replay",false)
+    }.toString()
     override fun toString()="CanonicalWorkspaceReview(redacted)"
     companion object {
+        fun eligible(snapshot:CanonicalSessionSnapshot):Boolean {
+            val old=(snapshot.workspace as? CanonicalWorkspaceDirectory.Reported)?.path ?: return false
+            return !snapshot.reportedRunning && snapshot.revision in 0 until Long.MAX_VALUE &&
+                snapshot.executionGeneration in 0 until Long.MAX_VALUE && (old.isEmpty() || CanonicalWorkspaceDirectory.absolute(old))
+        }
         fun create(snapshot:CanonicalSessionSnapshot,directory:String):CanonicalWorkspaceReview {
             val reported=snapshot.workspace as? CanonicalWorkspaceDirectory.Reported ?: throw CanonicalReviewChanged()
             require(!snapshot.reportedRunning && snapshot.revision in 0 until Long.MAX_VALUE && snapshot.executionGeneration in 0 until Long.MAX_VALUE)
@@ -58,4 +76,34 @@ internal class CanonicalWorkspaceReview private constructor(
             return CanonicalWorkspaceReview(snapshot,directory,UUID.randomUUID().toString())
         }
     }
+}
+
+
+internal fun directoryHash(path:String)=MessageDigest.getInstance("SHA-256").digest(path.toByteArray(Charsets.UTF_8)).joinToString("") {"%02x".format(it)}
+
+/** ACK projection only; never file access, worker binding or terminal-run evidence. */
+internal class CanonicalWorkspaceAcknowledgement private constructor(
+    val sessionId:String,val revision:Long,val generation:Long,val directory:CanonicalWorkspaceDirectory.Reported
+) {
+    fun summary()=buildJsonObject {
+        put("resolved_session_id",sessionId);put("revision",revision);put("execution_generation",generation)
+        put("directory_sha256",directoryHash(directory.path));put("workspace_acknowledged",true)
+        put("execution_outcome","unproven");put("worker_binding_verified",false);put("workspace_readback_verified",false)
+    }.toString()
+    override fun toString()="CanonicalWorkspaceAcknowledgement(redacted)"
+    companion object {
+        fun parse(value:JsonObject,review:CanonicalWorkspaceReview):CanonicalWorkspaceAcknowledgement {
+            fun stamp(name:String)=(value[name] as? JsonPrimitive)?.takeIf {!it.isString}?.longOrNull
+            val path=(CanonicalWorkspaceDirectory.parse(value["cwd"]) as? CanonicalWorkspaceDirectory.Reported)
+            if(value["session_id"]!=JsonPrimitive(review.expected.owner.sessionId) || value["operation"]!=JsonPrimitive("workspace") ||
+                stamp("revision")!=review.expected.revision+1 || stamp("execution_generation")!=review.expected.executionGeneration+1 ||
+                path==null || !CanonicalWorkspaceDirectory.absolute(path.path)) throw org.hermesmobile.app.network.GatewayProtocolException()
+            return CanonicalWorkspaceAcknowledgement(review.expected.owner.sessionId,review.expected.revision+1,review.expected.executionGeneration+1,path)
+        }
+    }
+}
+
+internal class CanonicalWorkspaceAcknowledged(val receipt:ManagementOperation,cause:Exception):
+    Exception("The workspace change was acknowledged; subsequent verification was unavailable.",cause) {
+    override fun toString()="CanonicalWorkspaceAcknowledged(redacted)"
 }

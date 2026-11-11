@@ -77,6 +77,36 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
             throw error
         }
     }
+    override suspend fun changeWorkspace(review:CanonicalWorkspaceReview,api:ManagementClient,tokens:ManagementTokens):CanonicalWorkspaceAcknowledgement {
+        ready.await()
+        val target=review.expected.owner.target;val homeId=review.expected.owner.homeId
+        scope(target,homeId,api,tokens)
+        if(dao.unresolvedManagementOperations(target.resourceScope,target.url,homeId).isNotEmpty()) throw ManagementOutcomePending()
+        api.identity(tokens);home(target,homeId,api,tokens)
+        val record=ManagementOperation(review.requestId,target.resourceScope,target.apiScope,target.url,target.profile,target.actor,
+            CanonicalWorkspaceAction.Id,review.expected.owner.sessionId,review.summary(),"sending","",System.currentTimeMillis(),homeId)
+        try {
+            val result=api.canonicalGateway(tokens,target,homeId).use {channel->
+                channel.changeWorkspaceReviewed(review,beforeSend={
+                    // Revalidate scope before the durable claim. Every later failure preserves uncertainty.
+                    api.identity(tokens);home(target,homeId,api,tokens)
+                    dao.claimManagementOperation(record);currentCoroutineContext().ensureActive()
+                },acknowledged={ack->withContext(NonCancellable) {dao.finishManagementOperation(record.key,"acknowledged",ack.summary())}})
+            }
+            api.identity(tokens);home(target,homeId,api,tokens)
+            // Identity/home readback does not independently verify the directory.
+            // Keep the durable result acknowledged until a separately reviewed fresh snapshot.
+            return result
+        } catch(error:Exception) {
+            val saved=withContext(NonCancellable) {
+                dao.managementOperation(record.key)?.let {dao.finishManagementOperation(record.key,"unknown","")}
+                dao.managementOperation(record.key)
+            }
+            if(saved?.state in setOf("acknowledged","confirmed") && error !is CancellationException)
+                throw CanonicalWorkspaceAcknowledged(checkNotNull(saved),error)
+            throw error
+        }
+    }
     override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {
         ready.await()
         val rows=dao.canonicalViewerReceipts(target.apiScope,target.url,target.profile,target.actor,homeId,requested)
@@ -94,7 +124,7 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
     suspend fun reviewUnknown(target: ManagementTarget, homeId: String, key: String, api: ManagementClient, tokens: ManagementTokens) {
         ready.await(); scope(target,homeId,api,tokens); api.identity(tokens); home(target,homeId,api,tokens)
         val row = dao.managementOperation(key) ?: throw CanonicalReviewChanged()
-        require(row.action == CanonicalResumeAction.Id && row.url == target.url && row.projectHome == homeId && row.state == "unknown")
+        require(CanonicalWorkspaceAction.receipt(row.action) && row.url == target.url && row.projectHome == homeId && row.state == "unknown")
         dao.reviewManagementOperation(key,target.resourceScope,target.url,homeId)
     }
 }

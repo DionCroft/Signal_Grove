@@ -1,5 +1,9 @@
 # Canonical session workspace observations and review foundation
 
+This records the earlier read-only foundation. The current development follow-up
+adds [separately reviewed workspace changes](2026-11-11-reviewed-workspace-change.md);
+its remaining real-source transport, worker and release gates stay open.
+
 The canonical conversation viewer now offers **Session workspace** after an
 explicitly reviewed attachment. It reveals only the directory reported in that
 attachment and its local observation time. It does not live-refresh the path.

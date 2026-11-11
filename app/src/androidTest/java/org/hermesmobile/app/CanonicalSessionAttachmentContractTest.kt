@@ -38,6 +38,7 @@ class CanonicalSessionAttachmentContractTest {
     }
     private data class Pending(val challenge:String,val redirect:HttpUrl,val state:String)
     private class Fixture(val mode:String="normal"):AutoCloseable {
+        val mutations=AtomicInteger();var mutationReceived:(JsonObject)->Unit={}
         val resumes=AtomicInteger();val replays=AtomicInteger();val sockets=AtomicInteger();val pings=AtomicInteger()
         val profileReadAttempts=AtomicInteger()
         val server=MockWebServer()
@@ -75,6 +76,16 @@ class CanonicalSessionAttachmentContractTest {
                         "runtime.describe"->{
                             check(params.isEmpty())
                             reply(Json.parseToJsonElement("""{"instance_id":"fixture-native-default","profile_id":"/fixture/homes/default","authority_epoch":1,"capabilities":["durable-admission-v1","event-replay-v1"],"session_create":{"sources":["cli"],"parameters":["title"]}}""").jsonObject)
+                        }
+                        "session.mutate"->{
+                            check(mode.startsWith("workspace"))
+                            check(params.keys==setOf("session_id","request_id","expected_revision","expected_generation","operation","payload"))
+                            check(params["session_id"]==JsonPrimitive("shared-fixture") && params["operation"]==JsonPrimitive("workspace"))
+                            check(params["expected_revision"]==JsonPrimitive(2) && params["expected_generation"]==JsonPrimitive(3))
+                            check(params["payload"]==buildJsonObject {put("cwd","/fixture/new project")})
+                            mutations.incrementAndGet();mutationReceived(params)
+                            if(mode=="workspace-drop") {ws.close(1000,"fixture");return}
+                            reply(buildJsonObject {put("session_id","shared-fixture");put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd","/fixture/new project")})
                         }
                         "session.list"->{
                             check(params.keys==setOf("scope","limit") && params["limit"]==JsonPrimitive(200))
@@ -131,7 +142,7 @@ class CanonicalSessionAttachmentContractTest {
                             check(q.getHeader("Authorization")=="Bearer project-access-fixture" && q.getHeader("Cookie")==null)
                             when(url.encodedPath) {
                                 "/dashboard/api/auth/me"->{check(q.method=="GET");json("""{"user_id":"stub-user-1","provider":"stub","display_name":"Project fixture"}""")}
-                                "/dashboard/api/profiles"->{check(q.method=="GET");if(mode=="drop-profile-once" && replays.get()>0 && profileReadAttempts.incrementAndGet()==1) MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST) else json("""{"profiles":[{"name":"default","path":"/fixture/homes/default"},{"name":"worker","path":"/fixture/homes/worker"},{"name":"alias","path":"/fixture/homes/default"}]}""")}
+                                "/dashboard/api/profiles"->{check(q.method=="GET");if(mode=="workspace-remap" && mutations.get()>0) json("""{"profiles":[{"name":"default","path":"/fixture/homes/changed"}]}""") else if(mode=="drop-profile-once" && replays.get()>0 && profileReadAttempts.incrementAndGet()==1) MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST) else json("""{"profiles":[{"name":"default","path":"/fixture/homes/default"},{"name":"worker","path":"/fixture/homes/worker"},{"name":"alias","path":"/fixture/homes/default"}]}""")}
                                 else->{
                                     check(q.method=="POST" && Json.parseToJsonElement(q.body.readUtf8())==JsonObject(emptyMap()))
                                     val ticket="project-ticket-"+UUID.randomUUID().toString().replace("-","");tickets+=ticket
@@ -409,5 +420,69 @@ class CanonicalSessionAttachmentContractTest {
                 assertEquals(0,f.failures.get())
             } finally {connection.close()}
         }}}}
+    }    private fun workspaceSnapshot(target:ManagementTarget,home:String)=CanonicalSessionSnapshot(
+        CanonicalFeedOwner(target,home,"/fixture/homes/default","fixture-native-default","shared-fixture",1),
+        "shared-fixture","shared-fixture","fixture-sub",CanonicalReplayCursor("fixture-ring",0),2,3,false,2,true,CanonicalWorkspaceDirectory.Reported("/fixture/old"))
+
+    @Test fun workspaceUsesNativeTicketTransportAndDurableClaimBeforeOneAcknowledgedMutation()=runBlocking {
+        Fixture("workspace").use {f->
+            val api=ManagementClient(base(f),true,true);val tokens=signIn(api)
+            val target=ManagementTarget("a".repeat(64),api.base.toString(),"default",tokens.provider+" · "+tokens.userId)
+            val home=checkNotNull(PluginHome.project(JsonPrimitive("/fixture/homes/default"))).identity()
+            val database=Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getInstrumentation().targetContext,HermesDatabase::class.java).build()
+            try {
+                val dao=database.dao();val repo=CanonicalSessionsRepository(dao,CompletableDeferred(Unit))
+                val review=CanonicalWorkspaceReview.create(workspaceSnapshot(target,home),"/fixture/new project")
+                f.mutationReceived={params->runBlocking {
+                    val row=checkNotNull(dao.managementOperation(params["request_id"]!!.jsonPrimitive.content))
+                    check(row.state=="sending" && row.action==CanonicalWorkspaceAction.Id && row.projectHome==home)
+                }}
+                val ack=repo.changeWorkspace(review,api,tokens)
+                assertEquals("/fixture/new project",ack.directory.path)
+                val row=checkNotNull(dao.managementOperation(review.requestId));assertEquals("acknowledged",row.state)
+                assertFalse(row.requestSummary.contains("/fixture"));assertFalse(row.resultSummary.contains("/fixture"))
+                assertEquals(1,f.mutations.get());assertEquals(0,f.resumes.get());assertEquals(0,f.replays.get())
+                assertEquals(0,f.failures.get());assertTrue(dao.unresolvedManagementOperations(target.resourceScope,target.url,home).isEmpty())
+                assertTrue(runCatching {repo.changeWorkspace(review,api,tokens)}.isFailure);assertEquals(1,f.mutations.get())
+            } finally {database.close()}
+        }
     }
+    @Test fun lostWorkspaceAckPersistsUnknownAcrossRepositoryRecoveryAndBlocksAliasWrites()=runBlocking {
+        Fixture("workspace-drop").use {f->
+            val api=ManagementClient(base(f),true,true);val tokens=signIn(api)
+            val target=ManagementTarget("b".repeat(64),api.base.toString(),"default",tokens.provider+" · "+tokens.userId)
+            val home=checkNotNull(PluginHome.project(JsonPrimitive("/fixture/homes/default"))).identity()
+            val database=Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getInstrumentation().targetContext,HermesDatabase::class.java).build()
+            try {
+                val dao=database.dao();val repo=CanonicalSessionsRepository(dao,CompletableDeferred(Unit))
+                val review=CanonicalWorkspaceReview.create(workspaceSnapshot(target,home),"/fixture/new project")
+                assertTrue(runCatching {repo.changeWorkspace(review,api,tokens)}.isFailure)
+                assertEquals("unknown",dao.managementOperation(review.requestId)!!.state);dao.recoverManagementOperations()
+                val alias=target.copy(apiScope="c".repeat(64),profile="alias")
+                assertEquals(1,dao.unresolvedManagementOperations(alias.resourceScope,alias.url,home).size)
+                val next=CanonicalWorkspaceReview.create(workspaceSnapshot(alias,home),"/fixture/new project")
+                val restored=CanonicalSessionsRepository(dao,CompletableDeferred(Unit))
+                assertTrue(runCatching {restored.changeWorkspace(next,api,tokens)}.exceptionOrNull() is ManagementOutcomePending)
+                assertEquals(1,f.mutations.get());assertEquals(0,f.failures.get());assertNull(dao.managementOperation(next.requestId))
+                restored.reviewUnknown(target,home,review.requestId,api,tokens)
+                assertEquals("reviewed",dao.managementOperation(review.requestId)!!.state);assertEquals(1,f.mutations.get())
+            } finally {database.close()}
+        }
+    }
+    @Test fun workspaceAckRemainsKnownWhenProfileReadbackRemapsTheHome()=runBlocking {
+        Fixture("workspace-remap").use {f->
+            val api=ManagementClient(base(f),true,true);val tokens=signIn(api)
+            val target=ManagementTarget("d".repeat(64),api.base.toString(),"default",tokens.provider+" · "+tokens.userId)
+            val home=checkNotNull(PluginHome.project(JsonPrimitive("/fixture/homes/default"))).identity()
+            val database=Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getInstrumentation().targetContext,HermesDatabase::class.java).build()
+            try {
+                val dao=database.dao();val repo=CanonicalSessionsRepository(dao,CompletableDeferred(Unit))
+                val review=CanonicalWorkspaceReview.create(workspaceSnapshot(target,home),"/fixture/new project")
+                assertTrue(runCatching {repo.changeWorkspace(review,api,tokens)}.exceptionOrNull() is CanonicalWorkspaceAcknowledged)
+                assertEquals("acknowledged",dao.managementOperation(review.requestId)!!.state)
+                assertEquals(1,f.mutations.get());assertEquals(0,f.failures.get())
+            } finally {database.close()}
+        }
+    }
+
 }

@@ -56,6 +56,7 @@ class CanonicalViewerUiTest {
     }
     private inner class Repo:CanonicalViewerRepository {
         val link=Link();val reads=mutableListOf<CanonicalSessionScope>()
+        var workspaceChanges=0
         var adoptions=0;var requireHeartbeat=false;var saves=0;var previousReads=0
         var expectedApplied=cursor
         var adoptError:Exception?=null
@@ -64,6 +65,12 @@ class CanonicalViewerUiTest {
         }
         override suspend fun adopt(review:CanonicalResumeReview,api:ManagementClient,tokens:ManagementTokens,previous:CanonicalReplayCheckpoint?,requireHeartbeat:Boolean):CanonicalViewerLink {
             adoptions++;this.requireHeartbeat=requireHeartbeat;review.consume(review.expected);adoptError?.let {throw it};return link
+        }
+        override suspend fun changeWorkspace(review:CanonicalWorkspaceReview,api:ManagementClient,tokens:ManagementTokens):CanonicalWorkspaceAcknowledgement {
+            workspaceChanges++;review.consume(review.expected)
+            return CanonicalWorkspaceAcknowledgement.parse(buildJsonObject {
+                put("session_id",owner.sessionId);put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd",review.requestedDirectory)
+            },review)
         }
         override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {previousReads++;return null}
         override suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor) {
@@ -133,6 +140,78 @@ class CanonicalViewerUiTest {
         compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Closed}
         assertNull(viewer.state.value.workspace);assertNull(viewer.state.value.workspaceObservedAt)
         assertEquals(1,repo.adoptions);assertEquals(1,repo.link.closes)
+    }
+
+    private fun editWorkspace() {
+        scroll("canonical-viewer-list","canonical-workspace-open").performClick()
+        scroll("canonical-viewer-list","workspace-edit").performClick()
+        compose.onNodeWithTag("workspace-directory").performScrollTo().performTextReplacement("/fixture/new project")
+    }
+    @Test fun workspaceCancelFromCheckedReviewNeverChangesTheSession() {
+        render();open();editWorkspace()
+        compose.onNodeWithTag("workspace-review").assertIsEnabled().performClick()
+        compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("workspace-consent").performScrollTo().performClick()
+        compose.onNodeWithTag("workspace-confirm").assertIsEnabled()
+        compose.onNodeWithTag("workspace-cancel").performClick()
+        assertEquals(0,repo.workspaceChanges);assertEquals(CanonicalViewerPhase.Following,viewer.state.value.phase)
+    }
+    @Test fun checkedWorkspaceReviewSendsOnceAndRequiresAFreshAttachmentAfterAcknowledgement() {
+        render();open();editWorkspace()
+        compose.onNodeWithTag("workspace-review").performClick()
+        compose.onNodeWithTag("workspace-reviewed-directory").performScrollTo().assertTextEquals("/fixture/new project")
+        compose.onNodeWithTag("workspace-consent").performScrollTo().performClick()
+        capture("workspace-confirm","workspace-review-checked")
+        compose.onNodeWithTag("workspace-confirm").performClick()
+        compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Closed}
+        assertEquals(1,repo.workspaceChanges);assertNull(viewer.state.value.workspaceSnapshot)
+        scroll("canonical-viewer-list","workspace-result").assertTextEquals(Words.WorkspaceAcknowledged.en)
+        assertEquals(1,repo.link.closes)
+    }
+    @Test fun largeBilingualWorkspaceFormKeepsKeyboardActionsReachableAndCancelHasNoEffect() {
+        render(large=true);open();editWorkspace()
+        compose.onNodeWithTag("workspace-directory").performScrollTo().performClick()
+        compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+        var previous:FocusedDialogViewport?=null;var stableAt=0L
+        compose.waitUntil(5000) {
+            val current=focusedDialogViewport();val now=android.os.SystemClock.uptimeMillis()
+            if(previous!=current) {previous=current;stableAt=now;false} else now-stableAt>=250
+        }
+        val viewport=checkNotNull(previous)
+        for((tag,word) in listOf("workspace-review" to Words.WorkspaceReview,"workspace-cancel" to Words.Cancel)) {
+            val control=compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInWindow
+            assertTrue("Complete workspace action above native IME: "+tag,control.left+viewport.screenOffsetX>=viewport.visible.left && control.right+viewport.screenOffsetX<=viewport.visible.right && control.top+viewport.screenOffsetY>=viewport.visible.top && control.bottom+viewport.screenOffsetY<=viewport.visible.bottom)
+            val text=word.localized(AppPreferences(chinese=true,pinyin=true))
+            val native=focusedDialogCaptionScreenBounds(text,text)
+            assertTrue("Complete workspace caption above IME: "+tag,viewport.visible.contains(native))
+        }
+        capture("workspace-review","workspace-form-large")
+        compose.onNodeWithTag("workspace-review").performClick()
+        compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
+        var lastCancel:android.graphics.Rect?=null;var cancelStableAt=0L
+        compose.waitUntil(5000) {
+            val text=Words.Cancel.localized(AppPreferences(chinese=true,pinyin=true))
+            val bounds=focusedDialogCaptionScreenBounds(text,text);val now=android.os.SystemClock.uptimeMillis()
+            if(lastCancel!=bounds) {lastCancel=bounds;cancelStableAt=now;false} else now-cancelStableAt>=250
+        }
+        compose.onNodeWithTag("workspace-consent").performScrollTo().performClick()
+        compose.onNodeWithTag("workspace-confirm").assertIsDisplayed().assertIsEnabled()
+        val cancel=compose.onNodeWithTag("workspace-cancel").assertIsDisplayed().fetchSemanticsNode().boundsInWindow.center
+        tapFocusedDialogWindowPoint(cancel.x,cancel.y)
+        compose.waitUntil(5000) {compose.onAllNodesWithTag("workspace-cancel").fetchSemanticsNodes().isEmpty()}
+        assertEquals(0,repo.workspaceChanges)
+    }
+
+    @Test fun workspaceReceiptShowsExactRequestIdAndAcknowledgementWithoutLeakingPrivateDetails() {
+        val row=repo.link.receipt.copy(action=CanonicalWorkspaceAction.Id,state="acknowledged",requestSummary="private-directory-sentinel")
+        var receipt by mutableStateOf(row)
+        compose.setContent {HermesAppTheme(AppPreferences(chinese=false,pinyin=false,reducedMotion=true)) {CanonicalViewerReceiptCard(receipt,null,null)}}
+        compose.onNodeWithTag("workspace-receipt-request-id").assertTextEquals(row.key)
+        compose.onNodeWithText(Words.ManagementAcknowledged.en).assertIsDisplayed()
+        compose.onAllNodesWithText("private-directory-sentinel",substring=true).assertCountEquals(0)
+        compose.runOnUiThread {receipt=row.copy(state="confirmed")}
+        compose.onNodeWithText(Words.ManagementAcknowledged.en).assertIsDisplayed()
+        compose.onAllNodesWithText(Words.ManagementVerified.en).assertCountEquals(0)
     }
 
     @Test fun privateReasoningAdvancesTheCursorWithoutEnteringVisibleActivity() {

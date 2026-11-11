@@ -15,6 +15,8 @@ internal interface CanonicalViewerRepository {
                         scope:CanonicalSessionScope=CanonicalSessionScope.Stored):CanonicalSessionInventory
     suspend fun adopt(review:CanonicalResumeReview,api:ManagementClient,tokens:ManagementTokens,
                       previous:CanonicalReplayCheckpoint?=null,requireHeartbeat:Boolean=false):CanonicalViewerLink
+    suspend fun changeWorkspace(review:CanonicalWorkspaceReview,api:ManagementClient,tokens:ManagementTokens):CanonicalWorkspaceAcknowledgement =
+        throw CanonicalNotSupported()
     suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint?
     suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor)
 }

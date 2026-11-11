@@ -1450,7 +1450,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
             val frozen=ReviewedManagementUncertainty(key,expected,projectHome=expectedProjectHome)
             if(!project || !managementUncertaintyCurrent(frozen)) {state.value=state.value.copy(error=Words.ManagementReviewChanged);return}
             operation {
-                if(app.database.dao().managementOperation(key)?.action==CanonicalResumeAction.Id)
+                if(app.database.dao().managementOperation(key)?.action?.let(CanonicalWorkspaceAction::receipt)==true)
                     canonicalOperations.reviewUnknown(expected,expectedProjectHome,key,client(state.value),tokens ?: error("Sign in first."))
                 else projectChanges.review(expected,expectedProjectHome,key,client(state.value),tokens ?: error("Sign in first."))
             }
