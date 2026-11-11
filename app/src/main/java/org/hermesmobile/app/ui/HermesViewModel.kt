@@ -59,7 +59,40 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val toolEvents=selected.flatMapLatest {if(it.isBlank()) flowOf(emptyList()) else dao.events(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val controlBusy=MutableStateFlow(false)
     val selectedConversation=combine(selected,conversations) {key,rows -> rows.firstOrNull {it.key==key}}.stateIn(viewModelScope,SharingStarted.Eagerly,null)
-    val draft=MutableStateFlow("")
+    private val unsentDraft=org.hermesmobile.app.local.UnsentDraft()
+    val draft=unsentDraft.text
+    fun changeDraft(text:String) {unsentDraft.change(text)}
+    private fun resetDraft() {unsentDraft.reset()}
+    private fun phoneDraftAllowed(ownControl:Boolean=false):Boolean {
+        if(busy.value || (!ownControl && controlBusy.value) || connecting.value || historyLoading.value || imageLoading.value || !imageDraft.value?.refs.isNullOrEmpty()) return false
+        if(runStatus.value !in RunStates.authoritativeTerminal && runStatus.value!="idle") return false
+        val key=selected.value
+        val c=selectedConversation.value
+        return key.isBlank() || (c?.key==key && c.scope==scope.value && !SessionOrigin.readOnly(c) && (c.status in RunStates.authoritativeTerminal || c.status=="idle"))
+    }
+    fun reviewPhoneDraft():org.hermesmobile.app.local.UnsentDraft.Review? =
+        if(phoneDraftAllowed()) unsentDraft.review(scope.value,selected.value) else null
+    suspend fun routePhoneDraft(review:org.hermesmobile.app.local.UnsentDraft.Review,text:String):String? {
+        if(!phoneDraftAllowed() || !unsentDraft.matches(review,scope.value,selected.value) || !org.hermesmobile.app.local.UnsentDraft.valid(text)) {
+            error.value=Words.PhoneDraftUnavailable.localized(preferences.value);return null
+        }
+        val operation=context();val key=selected.value
+        controlBusy.value=true
+        try {
+            val stored=if(key.isBlank()) null else dao.conversation(key)
+            currentCoroutineContext().ensureActive()
+            if(!current(operation) || key!=selected.value || !phoneDraftAllowed(ownControl=true) || !unsentDraft.matches(review,scope.value,key) ||
+                (key.isNotBlank() && (stored==null || stored.scope!=operation.partition || SessionOrigin.readOnly(stored) || (stored.status !in RunStates.authoritativeTerminal && stored.status!="idle")))) {
+                error.value=Words.PhoneDraftUnavailable.localized(preferences.value);return null
+            }
+            val token=graph.phoneDrafts.offer(text)
+            if(token==null) error.value=Words.PhoneDraftUnavailable.localized(preferences.value) else unsentDraft.invalidate()
+            return token
+        } catch(e:CancellationException) {throw e}
+        catch(e:Exception) {error.value=Words.PhoneDraftUnavailable.localized(preferences.value);return null}
+        finally {controlBusy.value=false}
+    }
+    fun cancelPhoneDraft(token:String) {graph.phoneDrafts.cancel(token);error.value=Words.PhoneDraftExpired.localized(preferences.value)}
     val imageDraft=MutableStateFlow<ImageDraft?>(null)
     val imageLoading=MutableStateFlow(false)
     private var imageGeneration=0L
@@ -78,7 +111,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         val refs=current.refs.filterNot {it.hash.ifBlank {it.url}==hash}
         if(refs.isEmpty()) clearDraftImages() else imageDraft.value=current.copy(refs=refs)
     }
-    private fun stageImages(expectedScope:String,expectedConversation:String,producer:suspend (String)->DraftPayload):Boolean {
+    private fun stageImages(expectedScope:String,expectedConversation:String,attemptedTurn:Boolean=false,producer:suspend (String)->DraftPayload):Boolean {
         if(busy.value || controlBusy.value || connecting.value) return false
         if(expectedScope!=scope.value || expectedConversation!=selected.value) {error.value=Words.ImageContextChanged.localized(preferences.value);return false}
         val generation=++imageGeneration;val namespace="draft_${UUID.randomUUID()}"
@@ -95,7 +128,10 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 if(text!=null && text.length>64000) throw DraftProblem(Words.MessageTooLong)
                 val previous=imageDraft.value
                 imageDraft.value=payload.refs.takeIf {it.isNotEmpty()}?.let {ImageDraft(expectedScope,expectedConversation,namespace,it)}
-                text?.let {draft.value=it};discardImages(previous);accepted=true
+                text?.let {
+                    val attempted=attemptedTurn || (payload.append && unsentDraft.isAttempted())
+                    changeDraft(it);if(attempted) unsentDraft.markAttempted()
+                };discardImages(previous);accepted=true
             } catch(e:TimeoutCancellationException) {if(generation==imageGeneration) error.value=Words.ImageImportFailed.localized(preferences.value)}
             catch(e:CancellationException) {throw e}
             catch(e:Exception) {if(generation==imageGeneration) error.value=(if(e is DraftProblem) e.word else Words.ImageImportFailed).localized(preferences.value)}
@@ -136,7 +172,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     private suspend fun activate(p: AppPreferences) {
         invalidateHistoryRead()
         try {reloadConnections()} catch(e:Exception) {savedConnections.value=emptyList();error.value=connectionError(e)}
-        draft.value="";runStatus.value="idle";activity.value=""
+        resetDraft();runStatus.value="idle";activity.value=""
         clearDraftImages()
         selected.value=""; capabilities.value=null;discovery.value=DiscoveryState();sessionDetailsLoading.value=false; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"
         if(p.demo) {
@@ -174,7 +210,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val discovered=connection.test(candidate)
                 withContext(Dispatchers.IO) { graph.credentials.writeConfig(config) };reloadConnections()
                 graph.preferences.connection(urlValue=config.url,demoValue=false,httpValue=debugHttp)
-                clearDraftImages();draft.value="";runStatus.value="idle";activity.value=""
+                clearDraftImages();resetDraft();runStatus.value="idle";activity.value=""
                 api=candidate; scope.value=config.scope; selected.value=""; capabilities.value=discovered;discovery.value=DiscoveryState();sessionDetailsLoading.value=false;invalidateHistoryRead()
                 connectionStatus.value="connected"; sessionsOffset=0; sessionsHasMore.value=false; jobsStatus.value="idle"; sessionsLoading.value=false; error.value=null
                 loadSessions(); refreshJobs()
@@ -369,13 +405,13 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun acknowledgeJobOperation(key: String) {if(jobBusy.value) return;viewModelScope.launch {
         if(dao.unresolvedOperations(scope.value).any {it.key==key && it.state=="unknown"}) dao.jobOperationState(key,"reviewed")
     }}
-    fun newChat() { if(busy.value || controlBusy.value) return; invalidateHistoryRead();error.value=null;clearDraftImages(); selected.value=""; runStatus.value="idle"; activity.value=""; draft.value="" }
+    fun newChat() { if(busy.value || controlBusy.value) return; invalidateHistoryRead();error.value=null;clearDraftImages(); selected.value=""; runStatus.value="idle"; activity.value=""; resetDraft() }
     fun select(key: String):Job? {
         if(busy.value || controlBusy.value || connecting.value) return null
         val operation=context()
         val generation=beginHistoryRead()
         if(key!=selected.value) clearDraftImages()
-        selected.value=key; activity.value=""
+        unsentDraft.invalidate();selected.value=key; activity.value=""
         return viewModelScope.launch {try {
             val c=dao.conversation(key)?.takeIf {it.scope==operation.partition} ?: return@launch
             if(!currentHistoryRead(operation,key,generation)) return@launch
@@ -444,10 +480,11 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val request=withContext(Dispatchers.IO) {TurnRequest.create(target,history,model,requested) {m -> graph.images.content(target.scope,target.key,m)}}
                 val hash=withContext(Dispatchers.IO) {graph.requests.freeze(c.scope,c.key,key,request)}
                 c=c.copy(pendingRequestHash=hash)
+                unsentDraft.markAttempted() // From here, preserve the frozen submission rather than routing a retry.
                 dao.beginTurn(c,user,ChatMessage("${key}_assistant",c.key,"assistant","",System.currentTimeMillis()+1,"submitting"))
                 receipt=c
                 withContext(Dispatchers.IO) {runCatching {graph.requests.retainCurrent(c.scope,c.key,key)}}
-                draft.value="";clearDraftImages()
+                resetDraft();clearDraftImages()
                 execute(c)
             } catch(e: CancellationException) { throw e }
             catch(e: Exception) {error.value=when(e) {is AutomaticModelConflict->Words.FollowServingLockConflict.localized(preferences.value);is AutomaticModelUnavailable->Words.FollowServingUnavailable.localized(preferences.value);is RequestTooLarge->Words.RequestTooLarge.localized(preferences.value);else->connectionError(e)};receipt?.let {dao.submissionUnknown(it);runStatus.value=dao.conversation(it.key)?.status ?: "unknown"}}
@@ -522,7 +559,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         if(SessionOrigin.readOnly(c)) {error.value=Words.ReadOnlySession.localized(preferences.value);return}
         val failed=setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")
         if(runStatus.value !in failed) return
-        stageImages(c.scope,c.key) {namespace ->
+        stageImages(c.scope,c.key,attemptedTurn=true) {namespace ->
             val current=dao.conversation(c.key) ?: throw DraftProblem(Words.ImageContextChanged)
             if(!current.sameSubmission(c) || current.status !in failed) throw DraftProblem(Words.ImageContextChanged)
             if(c.pendingRequestHash.isBlank()) DraftPayload(emptyList(),c.pendingInput)

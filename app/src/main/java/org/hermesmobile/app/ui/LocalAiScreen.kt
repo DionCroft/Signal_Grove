@@ -17,10 +17,15 @@ import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +35,31 @@ import org.hermesmobile.app.local.*
 @Composable fun LocalAiEntry() {
     val context = LocalContext.current
     TextButton({context.startActivity(Intent(context, LocalAiActivity::class.java))}, Modifier.testTag("phone-ai-open")) {Text(label(Words.PhoneAi))}
+}
+
+/** Keep the composer usable on short screens; the complete translated explanation stays one tap away. */
+@Composable private fun PhoneDraftNotice(state:String) {
+    var details by remember {mutableStateOf(false)}
+    val title=if(state=="received") Words.PhoneDraftReady else Words.PhoneDraftNotReady
+    val body=if(state=="received") Words.PhoneDraftReceived else Words.PhoneDraftExpired
+    val focus=LocalFocusManager.current
+    val keyboard=LocalSoftwareKeyboardController.current
+    IconButton({focus.clearFocus();keyboard?.hide();details=true},Modifier.testTag("phone-draft-notice")) {
+        Icon(if(state=="received") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(title),tint=if(state=="received") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+    }
+    if(details) Dialog(onDismissRequest={details=false},properties=DialogProperties(usePlatformDefaultWidth=false,decorFitsSystemWindows=false)) {
+        Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(),color=MaterialTheme.colorScheme.surface) {
+            Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                    Text(label(title),style=MaterialTheme.typography.headlineSmall)
+                    Text(label(body),Modifier.testTag("phone-draft-info-text"))
+                    Text(label(Words.PhoneBoundary))
+                    Text(label(Words.PhoneEntry))
+                }
+                TextButton({details=false},Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("phone-draft-info-close")) {Text(label(Words.Close))}
+            }
+        }
+    }
 }
 
 data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newChat: () -> Unit,
@@ -42,6 +72,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
+    val handoff by vm.handoffState.collectAsStateWithLifecycle()
     val pending by vm.pendingImport.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val preferences by (context.applicationContext as org.hermesmobile.app.HermesApplication).preferences.flow
@@ -56,12 +87,12 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         LocalAiActions(vm::send, c::cancel, c::newChat, c::load, c::unload, c::deleteModel,
             {c.download(true)}, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
             {vm.pendingImport.value = null}, c::openChat, c::deleteChat, c::dismissError, c::refreshLibrary,
-            {topic, share -> c.help(topic, observations.takeIf {share})}), close, observations)
+            {topic, share -> c.help(topic, observations.takeIf {share})}), close, observations, handoff)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
 @Composable fun LocalAiScreen(state: LocalAiState, supported: Boolean, draft: String, changeDraft: (String) -> Unit,
-    pendingImport: Boolean, licenceText: String, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null) {
+    pendingImport: Boolean, licenceText: String, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null, handoffState:String = "") {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
     var helper by remember {mutableStateOf(false)}
@@ -77,7 +108,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
+                if(handoffState.isNotEmpty()) PhoneDraftNotice(handoffState)
+                else IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
                 IconButton(close, Modifier.testTag("phone-close")) {Icon(Icons.Outlined.Close, label(Words.Close))}
             }
             Row(Modifier.fillMaxWidth()) {

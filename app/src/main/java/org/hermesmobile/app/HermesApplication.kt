@@ -16,6 +16,7 @@ class HermesApplication : Application() {
         appScope.launch {preferences.flow.collect {BackgroundChecks.schedule(this@HermesApplication,it);TaskWidget.updateAll(this@HermesApplication)}}
         appScope.launch {database.dao().tasks().collect {TaskWidget.updateAll(this@HermesApplication)}}
     }
+    val phoneDrafts=org.hermesmobile.app.local.PhoneDraftHandoff()
     val updateWorkGuard=org.hermesmobile.app.updates.UpdateWorkGuard()
     val localAi by lazy {
         org.hermesmobile.app.local.LocalAiController(

@@ -123,11 +123,12 @@ class ModelStatusFlowTest {
             connect(server,"work/")
             compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice.automatic())}
             compose.waitUntil(5000) {!vm.controlBusy.value}
-            compose.runOnUiThread {vm.newChat();vm.draft.value="Keep this draft";vm.send()}
+            compose.runOnUiThread {vm.newChat();vm.changeDraft("Keep this draft");vm.send()}
             compose.waitUntil(10000) {!vm.busy.value && runtimeReads.get()>0}
             assertEquals(0,posts.get());assertTrue(vm.selected.value.isBlank())
             assertEquals("Keep this draft",vm.draft.value)
             assertEquals(Words.FollowServingUnavailable.localized(vm.preferences.value),vm.error.value)
+            assertNotNull("Readiness-only failure did not submit this fresh draft",vm.reviewPhoneDraft())
         }
     }
 }

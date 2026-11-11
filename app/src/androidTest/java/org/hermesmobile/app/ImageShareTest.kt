@@ -39,7 +39,7 @@ class ImageShareTest {
     @After fun reset() {compose.runOnUiThread {vm.cancelImageImport();vm.clearDraftImages()}}
     @Test fun shareIsReviewedForTheCurrentTargetAndNeverSubmitsAutomatically() {
         val existing=vm;val before=runBlocking {app.database.dao().conversations("demo").first().size}
-        compose.runOnUiThread {vm.draft.value="Local text";launch(share(uri("red")).putExtra(Intent.EXTRA_TEXT,"Shared note"))}
+        compose.runOnUiThread {vm.changeDraft("Local text");launch(share(uri("red")).putExtra(Intent.EXTRA_TEXT,"Shared note"))}
         awaitShareReview()
         assertSame(existing,vm);assertNull(vm.imageDraft.value);assertEquals("Local text",vm.draft.value)
         val screenshot=File(compose.activity.getExternalFilesDir(null),"qa/image-share-review.png");screenshot.parentFile!!.mkdirs()
@@ -55,7 +55,7 @@ class ImageShareTest {
         compose.onNodeWithTag("share-image-review").assertDoesNotExist()
     }
     @Test fun cancelAndInvalidFileSharesLeaveTheDraftUnchanged() {
-        compose.runOnUiThread {vm.draft.value="Keep this text";launch(share(uri("blue")))}
+        compose.runOnUiThread {vm.changeDraft("Keep this text");launch(share(uri("blue")))}
         awaitShareReview()
         compose.onNodeWithText(Words.Cancel.localized(vm.preferences.value)).performClick()
         assertNull(vm.imageDraft.value);assertEquals("Keep this text",vm.draft.value)

@@ -55,7 +55,7 @@ class TurnReceiptTest {
             val frozen=app.requests.read(before.scope,before.key,before.pendingKey,before.pendingRequestHash)
             compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice("different-model","different-provider"))}
             compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.model=="different-model"}
-            compose.runOnUiThread {vm.draft.value="Different work";vm.retryOrRefresh()}
+            compose.runOnUiThread {vm.changeDraft("Different work");vm.retryOrRefresh()}
             compose.waitUntil(10000) {!vm.busy.value && vm.runStatus.value=="completed"}
             assertEquals(2,count.get());assertEquals(posts.first(),posts.last())
             assertEquals(frozen.body,Json.parseToJsonElement(posts.last().first).jsonObject)

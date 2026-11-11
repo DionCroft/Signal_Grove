@@ -47,7 +47,7 @@ class ConnectionProfilesTest {
             try {
                 compose.runOnUiThread {vm.renameConnection(original,"Original fixture")}
                 compose.waitUntil(5000) {!vm.controlBusy.value && vm.savedConnections.value.any {it.name=="Original fixture"}}
-                compose.runOnUiThread {vm.draft.value="Unsent original text"}
+                compose.runOnUiThread {vm.changeDraft("Unsent original text")}
                 connect("rotated-profile-fixture");val rotated=vm.profileScope.value
                 assertNotEquals(original,rotated);assertEquals("",vm.draft.value)
                 compose.waitUntil(5000) {vm.savedConnections.value.size==2 && vm.conversations.value.none {it.key==saved.key}}

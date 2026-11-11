@@ -162,7 +162,7 @@ import java.util.concurrent.atomic.AtomicBoolean
             else if(ContextCompat.checkSelfPermission(context,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED) start()
             else {session=session.configure(mode,language).cancel(clearFailure=true);permissionRequest=session;permission.launch(Manifest.permission.RECORD_AUDIO)}
         },
-        onCancel={cancelListening()},onChat={cancelListening();vm.draft.value=transcript;goChat()},
+        onCancel={cancelListening()},onChat={cancelListening();vm.changeDraft(transcript);goChat()},
         onRead={
             if(speaking) stopSpeaking()
             else if(readBlock==null && owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) try {

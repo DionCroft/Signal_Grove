@@ -1,5 +1,22 @@
 # On-device inference validation
 
+## 11 November 2026 - reviewed unsent questions can move offline
+
+Chat can copy a reviewed new text-only question into a separate phone draft,
+keeping the Hermes draft and both histories unchanged. Exact revision/context
+and stored-receipt checks reject attempted/staged retries, images, unknown or
+active work and response-only endings. A readiness-only failure leaves an unsent
+question eligible. One-use expiring in-memory delivery carries no text in intents
+and never loads a model, generates, sends or transfers credentials/approvals.
+
+Required checks pass 931 JVM / 91 reports, 229 policies and zero-error lint,
+with both APK assemblies. Selected Android method sets pass on API 26/API 37,
+including native keyboard/control bounds and an Android Cancel tap with all
+three languages at font scale 1.3. Settings are restored and screenshots reviewed.
+The wrapping-dialog finding and earlier fixture failures are retained. Exact
+scope, counts and hashes are in [the routing contract](contracts/2026-11-11-reviewed-phone-draft.md).
+Exact-source physical-phone and full original audit/release checks remain open.
+
 ## 11 November 2026 - real native process and host restart recovery
 
 A new opt-in fixture verifies actual native output and a durable pending chat

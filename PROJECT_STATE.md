@@ -53,7 +53,17 @@ Preference/file/APK/UID/configuration checks pass. A failed exact-wording oracle
 is retained separately. Main/debug/native product sources are unchanged; see
 [the component recovery scope](docs/contracts/2026-11-11-native-process-recovery.md).
 
-Exact next action: the owner installs the already-staged phone helper candidate
+Reviewed unsent-text routing now preserves both histories and the source draft,
+rejects uncertain/staged work and opens a separate phone draft without loading
+or sending. Both emulators pass native keyboard and Cancel-input checks at
+font scale 1.3. Eleven earlier API 37 regression cases retain byte-identical
+view-model/provenance/fixture sources and are counted separately. See
+[the routing acceptance](docs/contracts/2026-11-11-reviewed-phone-draft.md).
+
+Exact next independent action: inspect the pinned Hermes chat/project/workspace
+contracts against the audit ledger to implement missing workspace binding.
+
+Owner-dependent check: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run
 its three-method physical fixture including all six reviewed helper topics and
 Chinese generation. Its pending installer filenames are unchanged. The later

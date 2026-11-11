@@ -82,6 +82,12 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         if (mutable.value.loaded?.sha256 == model.sha256) { engine?.unload(); mutable.update { it.copy(loaded = null) } }
         io { store.delete(model.sha256) }; refresh()
     }
+    /** Select a fresh unsent question without deleting history, loading or generating. */
+    fun startDraft():Boolean {
+        if(mutable.value.busy || leaving) return false
+        mutable.update {it.copy(chat=null,error=null)}
+        return true
+    }
     fun newChat() {
         if (mutable.value.busy) return
         val model = mutable.value.loaded ?: return

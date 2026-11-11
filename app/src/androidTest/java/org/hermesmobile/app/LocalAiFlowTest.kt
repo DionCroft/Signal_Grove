@@ -26,7 +26,7 @@ class LocalAiFlowTest {
     private val helperRequests = mutableListOf<Pair<LocalHelpTopic, Boolean>>()
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
-    private fun show(supported: Boolean = true, bilingual: Boolean = false) {
+    private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false) {
         val actions = LocalAiActions({sends++}, {stops++}, {}, {_, _ ->}, {}, {}, {downloads++}, {},
             {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {}, help = {topic, share -> helperRequests.add(topic to share)})
         compose.setContent {
@@ -34,7 +34,7 @@ class LocalAiFlowTest {
             CompositionLocalProvider(LocalDensity provides Density(density.density, if(bilingual) 1.3f else density.fontScale)) {
             HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
                 LocalAiScreen(state, supported, "Fresh local draft", {}, pending, "Separate model licence fixture", actions, {},
-                    LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null))
+                    LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "")
             }
             }
         }
@@ -125,4 +125,18 @@ class LocalAiFlowTest {
             Words.PhoneHelperOnHost.pin).joinToString("\n")).assertExists()
         assertEquals(0, sends); assertEquals(0, downloads)
     }
+    @Test fun bilingualCopiedDraftKeepsComposerAndModelChoiceReachable() {
+        show(bilingual=true,copied=true)
+        compose.onNodeWithTag("phone-draft-notice").assertIsDisplayed()
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed()
+        compose.onNodeWithTag("phone-tab-1").assertIsDisplayed()
+        val bounds=compose.onNodeWithTag("phone-messages").getUnclippedBoundsInRoot()
+        assertTrue("Copied-draft transcript height: ${bounds.bottom-bounds.top}",bounds.bottom-bounds.top>=72.dp)
+        compose.onNodeWithTag("phone-draft-notice").performClick()
+        compose.onNodeWithTag("phone-draft-info-text").assertTextEquals(listOf(Words.PhoneDraftReceived.en,Words.PhoneDraftReceived.zh,Words.PhoneDraftReceived.pin).joinToString("\n"))
+        compose.onNodeWithTag("phone-draft-info-close").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed()
+        assertEquals(0,sends);assertEquals(0,downloads)
+    }
+
 }

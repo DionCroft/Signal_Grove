@@ -1,5 +1,17 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - explicit offline routing checkpoint
+
+Reviewed new text-only drafts now have an opt-in path into phone chat without
+replaying attempted Hermes work or importing remote authority/history. Readiness
+failures before submission remain routable; staged retries and uncertain receipts
+do not. Both Android versions pass native-IME review/control checks at font scale
+1.3. Required checks pass 931 JVM cases, 229 policies and zero-error lint. See
+[acceptance and retained findings](contracts/2026-11-11-reviewed-phone-draft.md).
+The physical helper/current-source gate is pending. Resume independent original
+chat/project/workspace audit work while waiting; every earlier ledger item and
+signed-release requirement remains open.
+
 ## 11 November 2026 - native generation interruption and host restart checkpoint
 
 Actual native generation now passes a supervised debug-process interruption,

@@ -46,8 +46,17 @@ See the [tested scope](contracts/2026-11-11-two-family-android-integration.md).
 
 ## Chat offline and manage memory
 
-Type a new message in the on-device composer and send it explicitly. No failed
-Hermes request or existing remote draft is copied or replayed. Phone conversations
+Type a new message in the on-device composer and send it explicitly. To copy a
+new unsent question from Hermes Chat:
+
+1. Type a new text-only question, then choose **Use unsent draft on phone**.
+2. Review/edit the exact text and choose **Open as new phone draft**.
+3. Choose/load a phone model and send separately. Your Hermes draft is retained.
+
+Images, history, credentials, settings and approvals are excluded. Staged retries
+and active/uncertain remote work cannot be copied. Expired delivery reports an
+issue and keeps the original draft. See [routing scope](contracts/2026-11-11-reviewed-phone-draft.md).
+No failed Hermes request is replayed. Phone conversations
 have independent history; each stays bound to its model hash. To use another
 model, load it and start a new conversation. Existing phone messages remain
 readable even when their model is not loaded.

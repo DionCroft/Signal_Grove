@@ -78,6 +78,7 @@ import java.time.format.DateTimeFormatter
         }
         if(busy || historyLoading || controlling) QuietProgress()
         LocalAiEntry()
+        if(draft.isNotBlank()) PhoneDraftRoute(vm,vm.reviewPhoneDraft()!=null)
         if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
             Word(Words.NoChats)
             if(LocalPreferences.current.demo) {TextButton({vm.sendDemoExercise("approval")},enabled=!busy) {Text(label(Words.DemoApproval))};TextButton({vm.sendDemoExercise("clarify")},enabled=!busy) {Text(label(Words.DemoClarification))}}
@@ -101,7 +102,7 @@ import java.time.format.DateTimeFormatter
                 Icon(Icons.Outlined.Info,null);Spacer(Modifier.width(8.dp));Text(label(Words.ReadOnlyHistory),Modifier.weight(1f))
             }
             IconButton({},enabled=false,modifier=Modifier.testTag("chat-read-only-send")) {Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send))}
-        } else OutlinedTextField(draft,{vm.draft.value=it},Modifier.fillMaxWidth(),enabled=!readOnly,placeholder={Text(label(Words.Message))},maxLines=5,
+        } else OutlinedTextField(draft,{vm.changeDraft(it)},Modifier.fillMaxWidth(),enabled=!readOnly,placeholder={Text(label(Words.Message))},maxLines=5,
             leadingIcon={if(!readOnly) ImagePickerButton(vm)},
             trailingIcon={IconButton({vm.send()},enabled=(draft.isNotBlank() || pictureDraft?.refs?.isNotEmpty()==true) && !busy && !controlling && !connecting && !readOnly) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
         Spacer(Modifier.height(4.dp))

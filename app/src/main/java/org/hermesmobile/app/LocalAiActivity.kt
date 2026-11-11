@@ -17,11 +17,13 @@ class LocalAiActivity : ComponentActivity() {
     private val model by lazy { ViewModelProvider(this)[LocalAiViewModel::class.java] }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); enableEdgeToEdge()
+        model.receiveDraft(intent.getStringExtra(DRAFT_TOKEN))
         setContent {
             val preferences by (application as HermesApplication).preferences.flow.collectAsStateWithLifecycle(AppPreferences())
             HermesAppTheme(preferences) { LocalAiRoute(model, ::finish) }
         }
     }
+    companion object {const val DRAFT_TOKEN="phone_draft_token"}
     override fun onStart() { super.onStart(); model.controller.refreshLibrary() }
     override fun onStop() {
         if (!isChangingConfigurations) model.controller.leave()
