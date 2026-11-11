@@ -35,6 +35,8 @@ android {
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { compose = true; buildConfig = true }
+    sourceSets.getByName("test").kotlin.srcDir("src/sharedTest/java")
+    sourceSets.getByName("androidTest").kotlin.srcDir("src/sharedTest/java")
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     testOptions { unitTests.isReturnDefaultValues = true }
     lint { abortOnError = true; checkReleaseBuilds = true }

@@ -61,6 +61,7 @@ internal class CanonicalViewerController(
     }
     private fun error(error:Throwable):Words=when(error) {
         is CanonicalReviewChanged,is CanonicalScopeChanged,is CanonicalApprovalUsed->Words.ManagementReviewChanged
+        is CanonicalProfileTransportUnavailable->Words.ViewerProfileTransportUnavailable
         is CanonicalNotSupported->Words.ViewerUnsupported
         is ManagementOutcomePending->Words.ManagementOutcomePending
         is CanonicalAdoptionAcknowledged->Words.ViewerAdoptionKnown

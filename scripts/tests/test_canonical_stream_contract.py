@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import unittest
-from test_hermes_contract import checker, sources
+from test_hermes_contract import checker, sources, profile_ticket_historical_projection
 
 # Exclude only explicitly added workspace and history watches from historical projections.
 HISTORY_WATCHES={'api:_project_client_message','api:APIServerAdapter._message_response'}
@@ -15,7 +15,7 @@ OLD_F0_CONTRACT_SHA256='3bf0ff78e20bc88da8ded497caea02b0e09752ce627f985f946f90fa
 OLD_MOBILE_SCOPE_SHA256='3d4ade32df8379b55912aadeeb2e9d0366a24abdd5a9bbc7347feb5193d0f0cd'
 
 class CanonicalStreamContractTest(unittest.TestCase):
-    def baseline(self):return json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text())
+    def baseline(self):return profile_ticket_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text()))
     def digest(self,value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()).hexdigest()
 
     def test_every_original_f0_entry_and_mobile_scope_is_preserved(self):
@@ -29,7 +29,7 @@ class CanonicalStreamContractTest(unittest.TestCase):
         self.assertEqual(OLD_MOBILE_SCOPE_SHA256,self.digest(scope))
 
     def test_expanded_baseline_compares_to_itself_and_watches_all_four_helpers(self):
-        b=self.baseline();self.assertEqual(215,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        b=self.baseline();self.assertEqual(218,len(checker.SOURCES|checker.EXTRA_SOURCES))
         self.assertFalse(checker.compare(b,{'commit':b['upstream']['commit'],'contract':copy.deepcopy(b['upstream']['contract'])})['mobile_review_required'])
         for alias in STREAM_ALIASES:self.assertIn(alias+':consumed_module',b['mobile_used_handlers'])
 

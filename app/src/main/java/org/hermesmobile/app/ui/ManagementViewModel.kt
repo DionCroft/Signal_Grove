@@ -214,6 +214,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private var tokens:ManagementTokens?=null
     private fun managementError(e:Throwable)=when(e) {
         is CanonicalReviewChanged,is CanonicalScopeChanged,is CanonicalApprovalUsed->Words.ManagementReviewChanged
+        is CanonicalProfileTransportUnavailable->Words.ViewerProfileTransportUnavailable
         is CanonicalNotSupported->Words.ViewerUnsupported
         is CanonicalAdoptionAcknowledged->Words.ViewerAdoptionKnown
         is HostKanbanStatusInvalid->Words.KanbanStatusInvalid

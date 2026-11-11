@@ -481,3 +481,18 @@ to the same reported home. After independent host inspection, the separate appro
 local uncertainty review changes only this device's barrier. It does not retry,
 undo or confirm remote execution. See [workspace behavior](contracts/2026-11-11-reviewed-workspace-change.md)
 and [lost-acknowledgement validation](contracts/2026-11-11-workspace-lost-ack.md).
+
+
+## Named Hermes profiles and live views
+
+Your existing default-profile management connection continues to work. If you
+select another profile for **Live sessions**, the address must support that
+profile's live authority. If Signal Grove says the address cannot open its live
+view, use an existing **Hermes Webapp** management address serving that profile,
+sign in there and refresh. Do not substitute an inference API address.
+
+A profile in the stored list may not be running. Signal Grove verifies your
+signed-in identity and the selected profile before opening a live view; it will
+not show the default profile's sessions in place of an unavailable named profile.
+If a workspace result is uncertain, inspect its exact host receipt before another
+change. Reconnecting does not resend an earlier operation.

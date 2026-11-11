@@ -18,7 +18,10 @@ import okio.ByteString
 import org.hermesmobile.app.data.ManagementTarget
 import org.hermesmobile.app.data.PluginHome
 
-internal class CanonicalScopeChanged : Exception("Canonical profile identity changed.")
+internal open class CanonicalScopeChanged : Exception("Canonical profile identity changed.")
+/** Only a complete, valid pre-session describe can request profile ticket negotiation. */
+internal class CanonicalTicketProfileMismatch : CanonicalScopeChanged()
+internal class CanonicalProfileTransportUnavailable : Exception("Profile-bound live transport is unavailable.")
 internal class CanonicalNotSupported : Exception("Canonical session transport is unavailable.")
 
 /** Runtime identity only. Features are protocol support, never actor grants or execution state. */
@@ -38,7 +41,7 @@ internal class CanonicalRuntimeBinding(
                 ?.also { require(it.isNotBlank() && it.length <= limit && it.none(Char::isISOControl) && it.codePoints().noneMatch { c -> c in 0xD800..0xDFFF }) }
                 ?: throw GatewayProtocolException()
             val profile = text("profile_id", 8192)
-            if (PluginHome.project(JsonPrimitive(profile))?.identity() != homeId) throw CanonicalScopeChanged()
+            val actualHome = PluginHome.project(JsonPrimitive(profile))?.identity() ?: throw CanonicalScopeChanged()
             val instance = text("instance_id", 512)
             val epoch = (result["authority_epoch"] as? JsonPrimitive)?.takeIf { !it.isString }?.longOrNull
                 ?.takeIf { it >= 0 } ?: throw GatewayProtocolException()
@@ -58,6 +61,9 @@ internal class CanonicalRuntimeBinding(
             val create = result["session_create"] as? JsonObject ?: throw GatewayProtocolException()
             strings(create["sources"], 128); strings(create["parameters"], 256)
             if (result["skin"] != null && result["skin"] != JsonNull && result["skin"] !is JsonObject) throw GatewayProtocolException()
+            // Validate the complete descriptor before permitting a different ticket handshake.
+            // No session/adoption/mutation has been sent on this unverified channel.
+            if (actualHome != homeId) throw CanonicalTicketProfileMismatch()
             return CanonicalRuntimeBinding(target, homeId, profile, instance, epoch)
         }
     }

@@ -2,6 +2,13 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Connect live views to the selected Hermes profile through its supported
+  profile-bound Webapp ticket when the launch home differs. Recheck actor/home,
+  retain legacy launch-profile support and show translated unavailable-address
+  advice. Keep malformed responses, disconnects and unknown work out of replay.
+  Add shared JVM/Android wire cases and guarded source review without erasing
+  historical findings; retain the separate native Cancel and end-to-end gates.
+
 - Let active main Android CI finish during regular chunk pushes; queue the latest
   pending head while retaining superseded-run cancellation for pull requests.
   Preserve the complete device suite, checks and deadlines.

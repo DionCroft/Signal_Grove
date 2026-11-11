@@ -139,12 +139,23 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
     suspend fun hubScan(tokens:ManagementTokens,profile:String,skill:HubSkill):JsonObject {SkillProtocol.profile(profile);require(skill.addressable);return element("api/skills/hub/scan",tokens.access,profile=profile,query=mapOf("identifier" to skill.canonicalId),slow=true).jsonObject}
     suspend fun installHubSkill(tokens:ManagementTokens,profile:String,request:HubInstallRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/hub/install",tokens.access,request.body(profile),profile)}
     suspend fun maintainHubSkills(tokens:ManagementTokens,profile:String,request:HubMaintenanceRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/hub/"+request.endpoint,tokens.access,request.body(profile),profile)}
-    private suspend fun gatewayTicket(tokens:ManagementTokens):String {
-        val response=json("api/auth/ws-ticket",tokens.access,JsonObject(emptyMap()))
+    private fun gatewayTicketValue(response:JsonObject):String {
         val ticket=response["ticket"] as? JsonPrimitive
         val ttl=response["ttl_seconds"] as? JsonPrimitive
         require(ticket!=null && ticket.isString && ttl!=null && !ttl.isString && ttl.intOrNull in 1..120) {"Invalid gateway ticket."}
         return ticket.content
+    }
+    private suspend fun gatewayTicket(tokens:ManagementTokens):String =
+        gatewayTicketValue(json("api/auth/ws-ticket",tokens.access,JsonObject(emptyMap())))
+    private suspend fun profileGatewayTicket(tokens:ManagementTokens,profile:String):String {
+        val response=try {
+            element("api/webapp/socket-ticket",tokens.access,JsonObject(emptyMap()),profile,
+                query=mapOf("socket" to "gateway")).jsonObject
+        } catch(error:HermesHttpException) {
+            if(error.code==404) throw CanonicalProfileTransportUnavailable()
+            throw error
+        }
+        return gatewayTicketValue(response)
     }
     suspend fun gateway(tokens:ManagementTokens):GatewayRpcSession {
         val ticket=gatewayTicket(tokens);dns.checkHost(base.host)
@@ -159,8 +170,17 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
             if(profiles(tokens).singleOrNull {it.name==target.profile}?.pluginHome?.identity()!=homeId) throw CanonicalScopeChanged()
         }
         identity(tokens);verifyHome()
-        val ticket=gatewayTicket(tokens);dns.checkHost(base.host)
-        val channel=CanonicalGatewayChannel.connect(http,base,ticket,target,homeId)
+        suspend fun connect(ticket:String):CanonicalGatewayChannel {
+            dns.checkHost(base.host)
+            return CanonicalGatewayChannel.connect(http,base,ticket,target,homeId)
+        }
+        val channel=try {connect(gatewayTicket(tokens))}
+        catch(error:CanonicalTicketProfileMismatch) {
+            // The rejected connection is closed and has sent only runtime.describe.
+            // Recheck the same actor/home before the sole profile-bound handshake.
+            identity(tokens);verifyHome()
+            connect(profileGatewayTicket(tokens,target.profile))
+        }
         try {verifyHome();return channel}
         catch(error:Exception) {channel.close();throw error}
     }

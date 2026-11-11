@@ -215,6 +215,11 @@ class CanonicalViewerControllerTest {
         repo.link.events.send(f.delivery(6,listOf(f.event(6,text="b".repeat(513)))));runCurrent()
         assertEquals("b".repeat(512),viewer.state.value.activities.last().text);assertTrue(viewer.state.value.activities.last().truncated)
     }}
+    @Test fun unavailableProfileTransportHasSpecificAdviceWithoutAnAdoption()=runTest {exercise {
+        repo.prepareError=CanonicalProfileTransportUnavailable();viewer.load(CanonicalSessionScope.Live);runCurrent()
+        assertEquals(CanonicalViewerPhase.Held,viewer.state.value.phase);assertEquals(Words.ViewerProfileTransportUnavailable,viewer.state.value.error)
+        assertNull(viewer.state.value.inventory);assertEquals(0,repo.adoptions);assertTrue(repo.saves.isEmpty());assertTrue(guards.isEmpty())
+    }}
     @Test fun anExpiredIdentityReadCannotBeReportedAsAnExecutionOutcome()=runTest {exercise {
         repo.prepareError=HermesHttpException(401,"fixture");viewer.load(CanonicalSessionScope.Live);runCurrent()
         assertEquals(CanonicalViewerPhase.Held,viewer.state.value.phase);assertEquals(Words.ManagementExpired,viewer.state.value.error)

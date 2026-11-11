@@ -152,6 +152,28 @@ def complete_replacement_fixture(value, contract):
                 contract['source_hashes'].update(selected['required_sources'])
 
 
+def profile_ticket_historical_projection(value):
+    """Only the three additive ticket watches are absent from the prior corpus.
+
+    Preserve original auth/stream/room golden vectors and synthetic test scope.
+    Production comparisons never use this projection; new ticket tests exercise
+    the complete extended baseline, including rejected mixed auth contexts.
+    """
+    aliases={'profile_socket_routes','profile_socket_surface','profile_socket_kinds'}
+    assert set(checker.PROFILE_TICKET_CONTRACT_SOURCES)==aliases
+    projected=copy.deepcopy(value)
+    contract=projected['upstream']['contract']
+    for section in ('source_hashes','handlers','request_fields'):
+        contract[section]={k:v for k,v in contract[section].items() if k.split(':',1)[0] not in aliases}
+    route='POST /api/webapp/socket-ticket'
+    contract['management_routes']=[r for r in contract['management_routes'] if r!=route]
+    projected['mobile_used_management_routes']=[r for r in projected['mobile_used_management_routes'] if r!=route]
+    projected['mobile_used_handlers']=[k for k in projected['mobile_used_handlers'] if k.split(':',1)[0] not in aliases]
+    for section in ('baseline_handler_source_guards','reviewed_handler_variants','reviewed_handler_absences'):
+        if section in projected:projected[section]={k:v for k,v in projected[section].items() if k.split(':',1)[0] not in aliases}
+    return projected
+
+
 def compare(old,new):return checker.compare(baseline(old),{'commit':'b'*40,'contract':new})
 
 class ContractWatchTest(unittest.TestCase):

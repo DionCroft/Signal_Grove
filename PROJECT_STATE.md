@@ -1,41 +1,36 @@
 # Signal Grove project state
 
-## Latest verified chunk - named-profile ticket foundation
+## Latest delivered chunk - Android named-profile live connections
 
-Four actual-Hermes backend cases across both reviewed pins verify native PKCE,
-launch/scoped ticket separation, one-use tickets and genuine named-profile
-retirement. Stale workspace writes are refused; the default remains available.
-Independent final stores retain exact session IDs, directories and revision/
-generation fences with zero work/messages/receipts. All four retain the known
-shutdown warning and supervisor exit 2; clean lifecycle acceptance remains open.
+The client preserves a matching launch-profile connection and negotiates one
+profile-bound Webapp ticket only after a fully validated foreign-home describe.
+The same actor/home is rechecked before and after negotiation. Unsupported
+addresses show translated guidance; no adoption, workspace or tool work is replayed.
+Three new source watches retain every historical digest and prior finding.
+[Behavior, artifacts and limitations](docs/contracts/2026-11-11-android-profile-tickets.md).
 
-Source362 passes 968 JVM / 94 reports, 275 policy and 15 model-status tests,
-zero-error lint (50 / 49 warnings), signing/native alignment and 20 focused
-Android methods per API. App/build inputs and DEX/resources/manifest match the
-prior source336; rebuilt native artifacts stay separately hash-bound.
-[Scope, contract and evidence](docs/contracts/2026-11-11-profile-ticket-foundation.md).
+Source384 passes 987 JVM / 95 reports, 284 policies, zero-error lint (51 / 50
+warnings), signing and ABI/alignment checks. All 18 new wire cases and the new
+translated guidance pass on both APIs. API37 passes 57 selected methods; API26
+passes 56 with one existing native Cancel tap that does not report success. Its
+batch stays failed; input cause and Cancel activation remain unverified. System
+font/IME settings and package UIDs are preserved. Complete source384 phone,
+Android-to-owner named-profile retirement/Room and settled visual checks remain.
 
-Next reconcile main45b90db's hosted device jobs without cancelling a live run,
-then implement supported Android profile-bound ticket negotiation and actual
-Android/profile-loss/Room recovery checks. The current client refuses a wrong
-home but does not yet use the named-profile ticket path. Preserve unknown writes
-and exact no-replay barriers. Reduced-role permission, active/unknown work,
-Windows worker/project/files and reviewed dispatch remain open, as do the full
-physical/local-AI, upstream compatibility and signed-release gates. Goal active.
+Next exact action: correct standard CI registration for the explicitly staged
+model/download/recovery gates, preserving strict skip/failure detection. Main45's
+API26 full invocation has 1099 positive methods, eight prerequisite assumptions
+and no assertion failure/ADB interruption; the strict job remains failed. Inspect
+its still-running API37 peer and latest pending head without cancelling active
+runs. Then complete actual Android profile/owner/unknown recovery and native-tap
+diagnostics, followed by Windows worker/project/files and reviewed dispatch.
 
-Prior accepted chunks: larger-text Chat restores a 134.48 dp message viewport
-from 29.33 dp at API26/130% font; source336 passes 69 selected methods per API
-([evidence](docs/contracts/2026-11-11-chat-large-text.md)). Closed Desktop history
-excludes hidden rows without breaking offsets, verified on both reviewed Hermes
-pins and Android APIs with independent host/phone stores
-([evidence](docs/contracts/2026-11-11-closed-history.md)). The older hosted workspace/
-IME failure and interrupted ADB outcome remain open. Published preview is beta.8;
-these development chunks do not publish a new APK.
-
-Main Android CI now lets an active full suite finish across regular chunk
-pushes. Its existing per-ref group retains at most the latest pending head;
-pull requests still cancel their superseded active run. Queueing is not a pass.
-[Policy and proof scope](docs/contracts/2026-11-11-profile-ticket-foundation.md#main-ci-continuity-during-regular-pushes).
+The complete original audit and local-AI extension remain active: deployed/
+physical, upstream compatibility, dependency/native advisory and signed-release
+acceptance are required. Prior actual-owner ticket cases retain their shutdown
+warning; the older incomplete ADB loss remains unclassified. Main CI retains its
+active full run and latest pending head. Published preview remains beta.8; no new
+APK release is claimed.
 
 ## Current priority - on-device AI, authorized 10 November 2026
 

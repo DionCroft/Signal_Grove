@@ -366,6 +366,14 @@ class CanonicalViewerUiTest {
         compose.onNodeWithTag("canonical-open-cancel").assertIsDisplayed().performClick()
         assertEquals(0,repo.adoptions);assertFalse(guard.active.value)
     }
+    @Test fun unavailableProfileTransportExplainsTheWebappAddressInAllEnabledLanguages() {
+        repo.adoptError=CanonicalProfileTransportUnavailable();render(large=true);review();consent()
+        compose.onNodeWithTag("canonical-open-confirm").performClick()
+        compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Held && !guard.active.value}
+        scroll("canonical-viewer-list","canonical-error").assertTextEquals(Words.ViewerProfileTransportUnavailable.localized(AppPreferences(chinese=true,pinyin=true)))
+        compose.waitForIdle();assertEquals(1,repo.adoptions);assertEquals(0,repo.saves)
+        capture("canonical-error","profile-ticket-unavailable-large")
+    }
     @Test fun unsupportedHeartbeatShowsAnExplainedHoldWithoutAutomaticRetry() {
         repo.adoptError=CanonicalNotSupported();render();review();consent()
         compose.onNodeWithTag("canonical-open-confirm").performClick()

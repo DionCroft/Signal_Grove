@@ -12,7 +12,7 @@ class CanonicalAttachmentContractTest(unittest.TestCase):
     def test_f0_baseline_still_compares_to_itself(self):
         b=self.baseline()
         self.assertFalse(checker.compare(b,{'commit':b['upstream']['commit'],'contract':copy.deepcopy(b['upstream']['contract'])})['mobile_review_required'])
-        self.assertEqual(215,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        self.assertEqual(218,len(checker.SOURCES|checker.EXTRA_SOURCES))
 
     def test_each_consumed_module_is_parsed_without_execution_and_all_code_is_watched(self):
         for alias in checker.CANONICAL_ATTACHMENT_CONTRACT_SOURCES:

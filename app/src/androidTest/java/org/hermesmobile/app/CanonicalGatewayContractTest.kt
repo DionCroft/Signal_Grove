@@ -89,6 +89,12 @@ class CanonicalGatewayContractTest {
                                 }
                             }
                         }
+                        "/dashboard/api/webapp/socket-ticket"->{
+                            check(q.method=="POST" && q.getHeader("Authorization")=="Bearer project-access-fixture" && q.getHeader("Cookie")==null)
+                            check(url.queryParameterNames==setOf("socket","profile") && url.queryParameter("socket")=="gateway" && url.queryParameter("profile")=="worker")
+                            check(q.body.readUtf8()=="{}")
+                            json("{}",404) // This fixture models the gateway-only surface, not Webapp.
+                        }
                         "/dashboard/api/ws"->{
                             check(q.method=="GET" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null && q.getHeader("Origin")==null)
                             val protocols=checkNotNull(q.getHeader("Sec-WebSocket-Protocol")).split(',').map(String::trim)
@@ -160,8 +166,8 @@ class CanonicalGatewayContractTest {
                     channel.close()
                     assertTrue(runCatching {channel.binding}.exceptionOrNull() is GatewayUnavailable)
                     checks+="close_removes_access_to_runtime_identity"
-                    assertTrue(runCatching {api.canonicalGateway(tokens,target("worker"),home("worker"))}.exceptionOrNull() is CanonicalScopeChanged)
-                    checks+="secondary_home_cannot_borrow_primary_runtime_instance"
+                    assertTrue(runCatching {api.canonicalGateway(tokens,target("worker"),home("worker"))}.exceptionOrNull() is CanonicalProfileTransportUnavailable)
+                    checks+="secondary_home_requires_supported_profile_ticket"
                     assertTrue(runCatching {api.canonicalGateway(tokens,expected,"0".repeat(64))}.exceptionOrNull() is CanonicalScopeChanged)
                     checks+="changed_home_is_refused_before_ticket_or_socket"
                     assertTrue(runCatching {api.canonicalGateway(tokens,target("missing-fixture"),home("default"))}.exceptionOrNull() is CanonicalScopeChanged)

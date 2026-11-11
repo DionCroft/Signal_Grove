@@ -1,8 +1,12 @@
 # Named-profile gateway tickets and real retirement: backend foundation
 
+This records the backend foundation at commit f6a4364. The later
+[Android negotiation chunk](2026-11-11-android-profile-tickets.md) implements its
+client path; real Android-to-owner retirement and clean lifecycle remain open.
+
 ## Discovery and contract
 
-The Android canonical channel currently mints the generic dashboard ticket and
+At that foundation commit, the Android canonical channel mints the generic dashboard ticket and
 sends an empty `runtime.describe`. On the reviewed Hermes revisions that ticket
 binds the launch profile. A named sibling cannot select itself by adding a
 `profile` parameter to `runtime.describe`: the actual dispatcher refuses it with

@@ -172,6 +172,8 @@ HOSTED_ROOM_CONTRACT_SOURCES = {'hosted_room_contract': 'tui_gateway/contracts/g
 CANONICAL_ATTACHMENT_CONTRACT_SOURCES.update(HOSTED_ROOM_CONTRACT_SOURCES)
 WORKSPACE_CONTRACT_SOURCES = {'canonical_workspace_mutations': 'gateway/session_mutations.py', 'canonical_workspace_prepare': 'gateway/session_mutation_policy.py', 'canonical_workspace_handle': 'gateway/session_contract.py', 'canonical_workspace_local': 'gateway/session_local.py', 'canonical_workspace_actions': 'hermes_state_mutations.py', 'canonical_workspace_commit': 'hermes_state_mutation_prepared.py', 'canonical_workspace_guards': 'hermes_state_mutation_guards.py', 'canonical_workspace_binding': 'hermes_state_mutation_binding.py', 'canonical_workspace_retirement': 'hermes_state_mutation_retirement.py', 'canonical_workspace_store': 'hermes_state_runtime.py'}
 CANONICAL_ATTACHMENT_CONTRACT_SOURCES.update(WORKSPACE_CONTRACT_SOURCES)
+PROFILE_TICKET_CONTRACT_SOURCES = {'profile_socket_routes': 'hermes_cli/web_routers/webapp.py', 'profile_socket_surface': 'hermes_cli/web_server_surface.py', 'profile_socket_kinds': 'hermes_cli/web_session_sockets.py'}
+CANONICAL_ATTACHMENT_CONTRACT_SOURCES.update(PROFILE_TICKET_CONTRACT_SOURCES)
 EXTRA_SOURCES.update(CANONICAL_ATTACHMENT_CONTRACT_SOURCES)
 MAIN_AUTHORITY_CONTRACT_SOURCES = {'canonical_stored_reads': 'gateway/session_stored_reads.py', 'canonical_picker': 'gateway/session_picker_fields.py', 'canonical_plugin_rpc': 'gateway/session_plugin_rpc.py', 'canonical_recovery': 'gateway/session_local_recovery.py', 'canonical_transcript_rows': 'gateway/session_transcript_rows.py', 'canonical_local_receipts': 'hermes_state_local.py', 'canonical_local_lineage': 'hermes_state_local_lineage.py', 'canonical_policy_state': 'gateway/session_policy.py'}
 EXTRA_SOURCES.update(MAIN_AUTHORITY_CONTRACT_SOURCES)
@@ -228,6 +230,7 @@ EXTRA_SOURCES.update(CHANNEL_CONTRACT_SOURCES)
 MANAGEMENT_SOURCES = {'auth', 'profiles', 'mcp', 'cron', 'skills', 'chat_ws', 'env_routes', 'model_routes', 'oauth_routes', 'pool_routes'}
 MANAGEMENT_SOURCES.update(("channels","relay_routes","kanban_api"))
 MANAGEMENT_SOURCES.add("saved_gateway_routes")
+MANAGEMENT_SOURCES.add("profile_socket_routes")
 
 def ast_signature(value):
     # ast.dump formatting/default fields differ across supported Python releases.

@@ -1,5 +1,27 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - Android named-profile ticket negotiation
+
+Live views now retain the matching launch-profile path and negotiate one scoped
+Webapp ticket only after a complete valid descriptor reports another profile.
+Actor/home checks repeat before and after that handshake. Unsupported addresses
+show specific English/Chinese/pinyin guidance; malformed data, disconnects and
+attempted work do not trigger replay. Three additive complete-source watches
+preserve every historical value and existing upstream finding.
+
+Source384 passes 987 JVM / 95 reports, all 284 policy tests, zero-error lint
+(51 / 50 warnings), signing and native ABI/alignment checks. All 18 new wire cases
+and translated guidance pass on both Android APIs. API37 passes 57 selected
+methods; API26 passes 56 with one retained existing native Cancel non-success.
+The API26 batch is failed, and no cause or successful action is inferred.
+[Exact artifacts, failures and scope](contracts/2026-11-11-android-profile-tickets.md).
+
+The hosted main45 API26 run finishes all 1107 starts with 1099 positive methods,
+eight external-prerequisite assumptions and no assertion failure or ADB loss.
+Its strict collector correctly fails the batch; standard gate registration needs
+a separate correction. Real Android/owner profile retirement, phone/deployed,
+worker/project/files, full upstream/advisory and signed-release gates remain open.
+
 ## 11 November 2026 - named-profile ticket and retirement foundation
 
 A real backend probe now verifies native PKCE/bearer identity, launch-ticket
