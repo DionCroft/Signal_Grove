@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Explain uncertain workspace changes in English, Chinese and pinyin, including
+  their exact request ID and the need for independent host receipt inspection.
+  Verify real committed-result loss on both Android APIs and Hermes pins: Room
+  retains unknown state and blocks another write without retrying or clearing it.
+
 - Keep canonical channels open for registered empty-scope host notifications while
   preserving private-event, profile and approval guards. Verify Android native
   sign-in, tickets, reviewed workspace mutation, persisted Room receipt and fresh

@@ -43,7 +43,7 @@ class OwnerWorkspaceFixturePolicyTest(unittest.TestCase):
         self.assertFalse(self.allowed('session.mutate',{**self.command,'payload':{'cwd':self.cwd,'other':True}}))
     def test_no_other_work_or_control_methods_are_forwarded(self):
         for method in ('session.submit','session.create','session.cancel','session.close','slash.exec',
-            'worker.register','session.resolve_unknown','groups.create','approval.respond','unreviewed'):
+            'worker.register','session.resolve_unknown','session.receipt','groups.create','approval.respond','unreviewed'):
             self.assertFalse(self.allowed(method,self.command),method)
     def test_only_closed_identity_ping_and_inventory_shapes_are_allowed(self):
         for method in ('runtime.describe','gateway.ping'):

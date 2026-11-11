@@ -1,5 +1,26 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - lost workspace acknowledgement stays uncertain
+
+Four real-owner Android cases now withhold only the acknowledgement after Hermes
+commits one reviewed directory change. Across both immutable execution pins and
+API 26/API 37, Android preserves its exact unknown receipt through Room reopen,
+blocks further writes/adoption across a connection alias, and still permits
+read-only inventory. Independent host and copied-phone SQLite checks agree:
+one committed host mutation, one unknown phone receipt, no retry or local review.
+
+Required checks pass 956 JVM cases / 93 reports, 244 policies and zero-error
+lint (50 / 49 warnings). Thirty-three selected native methods pass on each API;
+the four actual-owner lost-ACK executions are separate. The translated receipt
+explains why the request ID and exact host mutation receipt need inspection;
+a matching directory alone does not resolve uncertainty. See
+[measured scope and hashes](contracts/2026-11-11-workspace-lost-ack.md).
+
+All four retain the nonzero upstream shutdown finding. Room reopen is not Android
+process-death/reboot acceptance. Real busy/permission/profile/owner-loss recovery,
+supported closed HTTP history, deployed/physical, Windows worker/project/files,
+and every original audit and signed-release gate remain required.
+
 ## 11 November 2026 - Android reaches an actual owner workspace
 
 The real Android HTTP/PKCE/profile/ticket/canonical/Room path now passes a reviewed

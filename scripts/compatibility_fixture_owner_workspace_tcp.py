@@ -3,7 +3,8 @@
 Immutable source, existing dependencies and a fresh E: root only. The actual
 native owner keeps one disposable live session open. Android uses a local test
 IdP through real prefixed HTTP/PKCE/tickets/authority; exactly one reviewed host
-workspace mutation is allowed. No inference, tools, worker, production credential
+workspace mutation is allowed. Optional outer-only ACK loss proves preserved
+uncertainty; the host checks its exact receipt independently. No inference, tools, worker, production credential
 or server changes. Exit 2 retains a core proof with a shutdown finding, not full
 lifecycle, production IdP, physical-device or deployed-fleet acceptance.
 """
@@ -58,6 +59,7 @@ p.add_argument('--dependency-site', type=Path, required=True)
 p.add_argument('--work-root', type=Path, required=True)
 p.add_argument('--android-api',type=int,choices=(26,37),required=True)
 p.add_argument('--emit-host-signals',action='store_true',help='Emit three explicit public metadata signals through the real upstream producer on describe.')
+p.add_argument('--drop-workspace-ack',action='store_true',help='Drop only the actual committed workspace ACK at the outer transport; never alter dispatch or authority.')
 p.add_argument('--owned-child', action='store_true', help=argparse.SUPPRESS)
 a = p.parse_args()
 source, site, root = a.source_root.resolve(), a.dependency_site.resolve(), a.work_root.resolve()
@@ -73,9 +75,10 @@ def supervise():
     command=[sys.executable,'-I','-S','-B',str(Path(__file__).resolve()),'--owned-child',
              '--source-commit',COMMIT,'--transport',a.transport,'--android-api',str(a.android_api),'--source-root',str(source),'--dependency-site',str(site),'--work-root',str(root)]
     if a.emit_host_signals:command.append('--emit-host-signals')
+    if a.drop_workspace_ack:command.append('--drop-workspace-ack')
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
-    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,controlledHostSignals=a.emit_host_signals,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,controlledHostSignals=a.emit_host_signals,dropWorkspaceAck=a.drop_workspace_ack,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     def save():receipt.write_text(json.dumps(observation,indent=2)+'\n',encoding='utf-8')
     save()
     with log.open('xb') as stream:
@@ -401,7 +404,7 @@ async def run():
                     await real_app(forwarded,bounded,observed);return
                 if short!='/api/ws' or scope.get('query_string') or any(k.lower() in (b'authorization',b'cookie',b'origin') for k,v in headers):
                     rejected.append('ws-upgrade');await send(dict(type='websocket.close',code=1008));return
-                entry=dict(method='WS',path=short,rpc=[],outbound=[]);requests.append(entry);ids={};resumes=0
+                entry=dict(method='WS',path=short,rpc=[],outbound=[]);requests.append(entry);ids={};resumes=0;ack_dropped=False
                 async def bounded_ws():
                     nonlocal mutation_request,resumes
                     message=await receive()
@@ -431,7 +434,8 @@ async def run():
                         rejected.append('ws-rpc');await send(dict(type='websocket.close',code=1008));raise
                     return message
                 async def observed_ws(message):
-                    nonlocal mutation_ack
+                    nonlocal mutation_ack,ack_dropped
+                    if ack_dropped:return
                     if message['type']=='websocket.accept':entry['accepted']=True
                     if message['type']=='websocket.close':entry['serverCloseCode']=message.get('code')
                     if message['type']=='websocket.send' and isinstance(message.get('text'),str):
@@ -448,6 +452,10 @@ async def run():
                             ack=frame['result'];assert ack['session_id']==sid and ack['operation']=='workspace' and ack['cwd']==str(target)
                             assert ack['revision']==revision+1 and ack['execution_generation']==generation+1
                             mutation_ack=ack
+                            if a.drop_workspace_ack:
+                                ack_dropped=True;entry['workspaceAckWithheld']=True
+                                await send(dict(type='websocket.close',code=1000))
+                                return
                     await send(message)
                 await real_app(forwarded,bounded_ws,observed_ws)
             listener=socket.socket();listener.bind(('127.0.0.1',0));listener.listen(64);port=listener.getsockname()[1]
@@ -459,7 +467,7 @@ async def run():
                 while not proxy_server.started and not proxy_task.done() and time.monotonic()<deadline:await asyncio.sleep(.05)
                 assert proxy_server.started and not proxy_task.done()
                 ready=dict(state='READY_ACTUAL_OWNER_WORKSPACE_ANDROID_FIXTURE',pid=os.getpid(),port=port,baseUrl=f'http://127.0.0.1:{port}/dashboard/',
-                    sourceCommit=COMMIT,androidApi=a.android_api,controlledHostSignals=a.emit_host_signals,profileHome=str(launch),sessionId=sid,beforeDirectory=str(start),afterDirectory=str(target),
+                    sourceCommit=COMMIT,androidApi=a.android_api,controlledHostSignals=a.emit_host_signals,dropWorkspaceAck=a.drop_workspace_ack,profileHome=str(launch),sessionId=sid,beforeDirectory=str(start),afterDirectory=str(target),
                     revision=revision,generation=generation,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
                 pending=root/'ready.pending';pending.write_text(json.dumps(ready)+'\n',encoding='utf-8');pending.replace(root/'ready.json')
                 phase('READY_FOR_ONE_CONTROLLED_ANDROID_WORKSPACE_MUTATION')
@@ -469,17 +477,20 @@ async def run():
                 proof=json.loads((root/'android-result.json').read_text(encoding='utf-8'))
                 assert proof['instrumentationPassed'] is True and proof['distinctMethods']==1
                 result=proof['result']
-                assert result['state']=='PASS_OWNER_WORKSPACE_ANDROID_ROUNDTRIP' and result['backend']=='actual-owner'
+                assert result['state']==('PASS_OWNER_WORKSPACE_ANDROID_UNKNOWN_RECOVERY' if a.drop_workspace_ack else 'PASS_OWNER_WORKSPACE_ANDROID_ROUNDTRIP') and result['backend']=='actual-owner'
                 assert result['sourceCommit']==COMMIT and result['api']==a.android_api and result['savedCredentialsUnchanged'] is True
-                assert result['modelOrWorkerExecutionClaim'] is False and result['inventoryScope']=='live' and len(result['checks'])==8
+                assert result['modelOrWorkerExecutionClaim'] is False and result['inventoryScope']=='live' and len(result['checks'])==(9 if a.drop_workspace_ack else 8)
                 assert mutation_request is not None and mutation_ack is not None and result['requestId']==mutation_request['requestId']
                 assert result['beforeDirectorySha256']==hashlib.sha256(str(start).encode()).hexdigest()
                 assert result['afterDirectorySha256']==hashlib.sha256(str(target).encode()).hexdigest()
-                assert not rejected and rpc_requests.count('session.mutate')==1 and rpc_requests.count('session.resume')==2
-                assert rpc_requests.count('session.events.since')==2
+                assert not rejected and rpc_requests.count('session.mutate')==1 and rpc_requests.count('session.resume')==(1 if a.drop_workspace_ack else 2)
+                assert rpc_requests.count('session.events.since')==(1 if a.drop_workspace_ack else 2)
+                if a.drop_workspace_ack:
+                    assert result['receiptState']=='unknown' and result['localReviewApplied'] is False
+                    assert sum(bool(x.get('workspaceAckWithheld')) for x in requests)==1
                 record.update(android=result,requests=requests,rpcRequests=rpc_requests,rejected=rejected,hostSignalStimuli=host_emissions,
                     workspace=dict(sessionId=sid,cwd=str(target),revision=mutation_ack['revision'],generation=mutation_ack['execution_generation'],ack=mutation_ack))
-                phase('ANDROID_AUTH_ROOM_WORKSPACE_FRESH_READBACK_RECONCILED_WITH_REAL_AUTHORITY')
+                phase('ANDROID_UNKNOWN_ROOM_BARRIER_RECONCILED_WITH_SERVER_COMMIT' if a.drop_workspace_ack else 'ANDROID_AUTH_ROOM_WORKSPACE_FRESH_READBACK_RECONCILED_WITH_REAL_AUTHORITY')
             finally:
                 record.update(requests=requests,rpcRequests=rpc_requests,rejected=rejected,hostSignalStimuli=host_emissions,mutationRequest=mutation_request,mutationAcknowledgement=mutation_ack)
                 proxy_server.should_exit=True

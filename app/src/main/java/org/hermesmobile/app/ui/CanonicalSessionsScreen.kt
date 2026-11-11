@@ -124,9 +124,9 @@ import java.util.Date
         }
         Text(label(Words.ViewerSnapshotNote))
         if(receipt.state=="acknowledged") Text(label(if(receipt.action==CanonicalWorkspaceAction.Id) Words.WorkspaceAcknowledged else Words.ViewerAdoptionKnown))
-        if(receipt.state=="unknown" && vm!=null && s!=null) {
-            Text(label(Words.ViewerReceiptNote))
-            TextButton({review=vm.prepareManagementUncertainty(receipt.key)},enabled=!s.busy && vm.prepareManagementUncertainty(receipt.key)!=null,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-receipt-review")) {Text(label(Words.ManagementReview))}
+        if(receipt.state=="unknown") {
+            Text(label(if(workspace) Words.WorkspaceUncertain else Words.ViewerReceiptNote),Modifier.testTag("canonical-receipt-unknown-note"))
+            if(vm!=null && s!=null) TextButton({review=vm.prepareManagementUncertainty(receipt.key)},enabled=!s.busy && vm.prepareManagementUncertainty(receipt.key)!=null,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-receipt-review")) {Text(label(Words.ManagementReview))}
         }
     }
     review?.takeIf {vm?.managementUncertaintyCurrent(it)==true}?.let {frozen->

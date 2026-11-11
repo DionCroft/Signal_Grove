@@ -68,18 +68,28 @@ real-producer public metadata stimulus and final SQLite agreement; 31 selected
 UI/auth/storage methods pass on each API. Required checks are 956 JVM / 93 reports,
 244 policies and zero-error lint. See [the scoped acceptance](docs/contracts/2026-11-11-android-owner-workspace.md).
 
+Four additional actual-owner lost-ACK cases pass on both execution pins and both
+Android APIs. The transport withholds only a real committed ACK. Actual Room
+reopen preserves the exact unknown receipt and same-home connection-alias barrier;
+new writes/adoption cannot send. Independent host/phone SQLite reads prove one
+host commit and one phone unknown without resolving it. The receipt explains exact
+host inspection; local review remains explicit and is not used by this test.
+Required checks remain 956 JVM / 93 reports, 244 policies and zero-error lint;
+33 selected native methods pass freshly on each API. See
+[the lost-ACK contract](docs/contracts/2026-11-11-workspace-lost-ack.md).
+
 All real-owner runs retain the nonzero upstream shutdown warning. Native-only
 Stored feed refusal, the earlier unattributed pre-claim closure, closed HTTP
-history, loss/busy/permission/owner/profile recovery, production/deployed/physical
-acceptance and Windows worker/project/files remain open. An empty disposable
-conversation is not inference, user-history or engineering execution evidence.
+history, busy/permission/owner/profile recovery, production/deployed/physical
+acceptance and Windows worker/project/files remain open. Room reopen is not
+process-death/reboot acceptance. An empty disposable conversation is not
+inference, user-history or engineering execution evidence.
 
-Exact next independent action: test actual Android workspace lost-ACK recovery
-against the real owner, reconciling the exact receipt before any further write.
-Then close busy/permission/profile/owner-loss recovery and supported closed-session
-HTTP access, followed by real worker/project identity, files and reviewed binding/
-dispatch. Preserve every original ledger row and phone-to-Hermes/local-AI release
-gate; a Pi directory does not establish the Windows authoritative working copy.
+Exact next independent action: verify real-authority busy and permission/refusal
+behavior without replay or inference, then profile/owner loss and supported
+closed-session HTTP access. Follow with actual worker/project identity, files and
+reviewed binding/dispatch. Preserve every original ledger row and phone-to-Hermes/
+local-AI release gate; a Pi directory does not establish a Windows working copy.
 
 Owner-dependent check: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run
@@ -219,8 +229,10 @@ forwarding and merged paging remain open. See
 
 ## Protected refs and scope
 
-Main `6b809e6`, held release branch `207c6b4` and privacy branch `277c89b` stay fixed.
-Do not merge/reset/force-push or advance them during unrelated audit work.
+The held release branch `207c6b4` and privacy branch `277c89b` stay fixed.
+Main now receives tested audit chunks under the owner's explicit authorization;
+advance it only without force after verifying its expected head. Do not reset or
+advance the held branches during this work.
 Published beta.8 excludes the unreleased canonical viewer and rooms. Original
 keys/data and the on-device-only speech preference remain protected.
 

@@ -1,5 +1,7 @@
 package org.hermesmobile.app
 
+import androidx.compose.foundation.lazy.LazyColumn
+
 import android.graphics.Bitmap
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
@@ -212,6 +214,21 @@ class CanonicalViewerUiTest {
         compose.runOnUiThread {receipt=row.copy(state="confirmed")}
         compose.onNodeWithText(Words.ManagementAcknowledged.en).assertIsDisplayed()
         compose.onAllNodesWithText(Words.ManagementVerified.en).assertCountEquals(0)
+    }
+
+    @Test fun unknownWorkspaceReceiptExplainsExactHostInspectionWithoutInventingSuccess() {
+        var row by mutableStateOf(repo.link.receipt.copy(action=CanonicalWorkspaceAction.Id,state="unknown"))
+        compose.setContent {HermesAppTheme(AppPreferences(chinese=false,pinyin=false,reducedMotion=true)) {
+            LazyColumn {item {CanonicalViewerReceiptCard(row,null,null)}}
+        }}
+        compose.onNodeWithTag("workspace-receipt-request-id").assertTextEquals(row.key)
+        compose.onNodeWithTag("canonical-receipt-unknown-note").assertTextEquals(Words.WorkspaceUncertain.en).assertIsDisplayed()
+        compose.onAllNodesWithText(Words.ManagementAcknowledged.en).assertCountEquals(0)
+        compose.onAllNodesWithText(Words.ManagementVerified.en).assertCountEquals(0)
+        compose.onAllNodesWithTag("canonical-receipt-review").assertCountEquals(0)
+        compose.runOnUiThread {row=row.copy(state="acknowledged")}
+        compose.onAllNodesWithTag("canonical-receipt-unknown-note").assertCountEquals(0)
+        compose.onNodeWithText(Words.ManagementAcknowledged.en).assertIsDisplayed()
     }
 
     @Test fun privateReasoningAdvancesTheCursorWithoutEnteringVisibleActivity() {

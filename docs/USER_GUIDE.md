@@ -446,7 +446,15 @@ reviewed viewer to read fresh context. It does not verify worker binding or a to
 run. Worker/project binding remains pending.
 
 If the result is uncertain, open management receipts and copy the exact **Mutation
-request ID**. Inspect that session's backend receipt and actual directory before
-using the separate local uncertainty review. The app never retries automatically.
-The local review changes only the device's barrier. See
-[workspace behavior and limits](contracts/2026-11-11-reviewed-workspace-change.md).
+request ID**. Do not resend the change. Have the Hermes host operator inspect that
+request's mutation receipt for this session and its actual directory. A matching
+directory alone cannot establish what happened to this request. The app does not
+currently offer a verified mutation-receipt lookup. Hermes's turn-admission receipt
+API is a different operation; do not use it or resend a mutation as a lookup.
+
+Closing/reopening the app or refreshing inventory does not settle this receipt.
+Further writes and new attachments are guarded, including another saved connection
+to the same reported home. After independent host inspection, the separate approved
+local uncertainty review changes only this device's barrier. It does not retry,
+undo or confirm remote execution. See [workspace behavior](contracts/2026-11-11-reviewed-workspace-change.md)
+and [lost-acknowledgement validation](contracts/2026-11-11-workspace-lost-ack.md).
