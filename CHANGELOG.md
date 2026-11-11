@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Separate standard Android CI from 11 explicit model/input-dependent methods,
+  publishing their not-run prerequisites while preserving strict skip rejection.
+  Validate the exact filter on both APIs and allow a bounded complete-suite budget
+  based on the observed API37 timeout; keep per-test checks and no-retry execution.
+
 - Connect live views to the selected Hermes profile through its supported
   profile-bound Webapp ticket when the launch home differs. Recheck actor/home,
   retain legacy launch-profile support and show translated unavailable-address

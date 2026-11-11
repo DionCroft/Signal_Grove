@@ -142,3 +142,62 @@ The full original and local-AI scope stays active. Next correct standard CI's
 external-model registration while preserving its strict zero-skip criteria, then
 complete Android-to-owner named-profile/retirement/Room checks and instrument the
 retained native Cancel finding. No signed release or full-goal completion claim.
+
+## Standard CI registration and runtime allowance
+
+A separate CI-only chunk closes the discovered registration error without
+accepting assumptions. It excludes only the following explicit prerequisite
+classes from standard instrumentation and publishes `external-model-gates.json`
+with every class, exact method name, required inputs and **not_run** status:
+
+| Separate acceptance gate | Methods | Required state |
+| --- | ---: | --- |
+| LocalModelPhysicalTest | 3 | Actual phone, 64-bit process, staged verified licensed LFM3 |
+| LocalImportCommitIntegrationTest | 1 | Staged publisher-verified licensed LFM3 |
+| LocalModelFamilyIntegrationTest | 2 | Staged verified licensed LFM3 and Qwen |
+| LocalModelTransferIntegrationTest | 2 | Explicit model-network and licence consent |
+| LocalProcessRecoveryIntegrationTest | 3 | Staged verified Qwen plus prepared interruption/reboot |
+
+All 11 remain required in their separate acceptance scope. No weights download,
+licence consent, phone result or recovery proof is implied by standard CI. Adding
+a method to these classes requires updating the reviewed inventory; unregistered
+assumptions still fail the standard collector. Native no-model boundary tests
+remain included. No filter based on arbitrary assumption/ignore annotations is added.
+
+All 287 policy tests pass. The actual Android runner is checked on both APIs:
+one invocation deliberately selects the native-boundary control together with
+all five gated classes, while passing the exact standard `notClass` filter. Each
+executes exactly its one named native control, with one start/positive completion
+and zero negative statuses; none of the 11 external methods runs. Installed
+source384 APK hashes are verified. The final manifest/filter arguments match
+those measured invocations after the suite-budget adjustment.
+
+The prior main45 API37 job 130701019291 is now terminal: invocation timeout at
+5700.004 seconds, 1108 declared methods, 1085 starts, 1076 distinct positive
+completions, eight prerequisite assumptions and one unfinished setup-guide case.
+ADB still reports `device` and the emulator is alive at cleanup. The last case
+starts at 19:25:48.796, about six seconds before the timeout; its eventual result
+is unknown. This is not evidence that that case hung. No assertion failures are
+reported in the captured prefix, but 23 declared cases never start. Artifact
+13887700788 is retained with SHA-256
+`87de62b48f1c514ca1413fe76b07283c872996f5b48e6a4b4ed30c64c991d644`.
+The older ADB-loss outcome remains separate and unclassified.
+
+The complete-invocation allowance is now 6000 seconds (100 minutes), with a
+115-minute job budget for SDK/startup/evidence cleanup. Per-test assertions and
+limits stay unchanged. One command, explicit timeout forwarding, no retry and
+strict complete-result parsing remain. This budget is justified by the observed
+whole-suite exhaustion; completion under it still requires a new full run.
+
+Final structural proof external-gates-proof398.json verifies the result-collector
+AST is unchanged. After normalizing only the named-class filter and default suite
+budget, the command/error-handling AST is identical. Safe YAML comparison permits
+only the step label, extra evidence artifact and job budget; permissions, triggers,
+concurrency and other jobs are unchanged. All 538 app/build inputs match measured
+source384. This CI-only change reuses those exact application proofs; it does not
+claim a new app build, full hosted pass or model acceptance.
+
+Next complete actual Android-to-owner named-profile/retirement/Room checks and
+add one-input diagnostics for the retained native Cancel finding. Monitor the
+corrected full hosted run; keep all original worker, file, physical, local-AI,
+compatibility/advisory and signed-release gates open until their own evidence passes.

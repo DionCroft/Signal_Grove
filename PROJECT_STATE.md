@@ -17,13 +17,19 @@ batch stays failed; input cause and Cancel activation remain unverified. System
 font/IME settings and package UIDs are preserved. Complete source384 phone,
 Android-to-owner named-profile retirement/Room and settled visual checks remain.
 
-Next exact action: correct standard CI registration for the explicitly staged
-model/download/recovery gates, preserving strict skip/failure detection. Main45's
-API26 full invocation has 1099 positive methods, eight prerequisite assumptions
-and no assertion failure/ADB interruption; the strict job remains failed. Inspect
-its still-running API37 peer and latest pending head without cancelling active
-runs. Then complete actual Android profile/owner/unknown recovery and native-tap
-diagnostics, followed by Windows worker/project/files and reviewed dispatch.
+Standard CI now records five explicit external-model classes / 11 methods as
+not_run with their prerequisites. The exact filter passes a real native control
+on both APIs; all 287 policies pass. The standard parser still rejects every skip
+or incomplete result. A measured 95-minute API37 exhaustion justifies a bounded
+100-minute invocation / 115-minute job allowance, with all per-test checks intact.
+Full corrected-head hosted acceptance remains unproven.
+
+Next exact action: run actual Android-to-owner named-profile and retirement/Room
+checks on both reviewed Hermes pins. Instrument the retained native Cancel result
+with one input and no retry, then continue worker/project/files and reviewed
+dispatch. Main45 API26 completed 1099 positive methods with eight prerequisite
+assumptions; API37 timed out after 1076 positives, eight assumptions and one
+unfinished setup-guide case. ADB stayed connected. Both jobs remain failed.
 
 The complete original audit and local-AI extension remain active: deployed/
 physical, upstream compatibility, dependency/native advisory and signed-release

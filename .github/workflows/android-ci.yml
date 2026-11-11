@@ -75,7 +75,7 @@ jobs:
     name: Device API ${{ matrix.api }}
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 105
+    timeout-minutes: 115
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +97,7 @@ jobs:
           path: ${{ runner.temp }}/hermes-apks
       - name: Enable KVM on the isolated runner
         run: sudo chmod a+rw /dev/kvm
-      - name: Execute standard device suite (physical model gate separate)
+      - name: Execute standard device suite (external model gates separate)
         env:
           DEVICE_API: ${{ matrix.api }}
         run: python3 -B scripts/ci_android_device.py --api "$DEVICE_API" --artifacts "$RUNNER_TEMP/hermes-apks"
@@ -108,6 +108,7 @@ jobs:
           path: |
             ${{ runner.temp }}/hermes-device-qa/instrumentation.log
             ${{ runner.temp }}/hermes-device-qa/instrumentation-result.json
+            ${{ runner.temp }}/hermes-device-qa/external-model-gates.json
             ${{ runner.temp }}/hermes-device-qa/device-state.json
             ${{ runner.temp }}/hermes-device-qa/test-runner.log
             ${{ runner.temp }}/hermes-device-qa/emulator.log

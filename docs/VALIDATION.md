@@ -1,5 +1,23 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - separate explicit model gates from standard CI
+
+Standard instrumentation now excludes only five named prerequisite-dependent
+classes (11 reviewed methods), reporting every gate as not_run with its required
+inputs in an uploaded manifest. All other tests and strict rejection of skips,
+partial output and failed native results remain. All 287 policies pass; the exact
+filter executes one native no-model control and excludes all five gated classes
+on both Android APIs, with installed hashes verified.
+
+The prior main45 API37 invocation times out at 5700.004 seconds: 1076 positive
+methods, eight prerequisite assumptions and one unfinished case whose start is
+about six seconds before expiry. ADB remains connected. Its full-suite result is
+incomplete, not an inferred hung test or pass. The complete-suite allowance is now
+100 minutes / 115-minute job; per-test checks and one-command/no-retry behavior
+are unchanged. Structural proof preserves the strict parser and all 538 app/build
+inputs from source384. No new APK/model acceptance or full hosted pass is claimed.
+[Detailed scope, inventories and retained failures](contracts/2026-11-11-android-profile-tickets.md#standard-ci-registration-and-runtime-allowance).
+
 ## 11 November 2026 - Android named-profile ticket negotiation
 
 Live views now retain the matching launch-profile path and negotiate one scoped

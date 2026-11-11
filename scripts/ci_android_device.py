@@ -1,9 +1,10 @@
 """Run the standard instrumentation suite on an owned, fresh GitHub Linux emulator.
 
 Uses runner temporary storage. Never targets a developer's existing emulator/device.
-The separately required LocalModelPhysicalTest needs explicitly staged licensed
-weights on an actual phone. Exclude only that resource gate here; never accept
-its assumptions, a partial run or a failed native result as a pass.
+Explicit model/import/family/download/recovery gates need staged licensed inputs,
+network consent or prepared process/device state. Keep their exact inventory and
+not-run status separate; never accept assumptions, partial runs or failed native
+results as a standard-suite or model-acceptance pass.
 """
 from __future__ import annotations
 import argparse
@@ -15,6 +16,42 @@ import shutil
 import subprocess
 import sys
 import time
+
+
+# Closed inventory: adding a method to one of these classes requires an explicit
+# gate review. All other tests remain in the standard suite; skips still fail it.
+EXTERNAL_MODEL_GATES = {
+    'org.hermesmobile.app.LocalModelPhysicalTest': {
+        'methods': ('verifiedLfm3MetadataScanIsBoundedAndCancellable', 'verifiedLfm3SelectsReviewedChecksAndGeneratesChineseText', 'verifiedLfm3GeneratesCancelsRecoversAndUnloads'),
+        'requires': ('actual Android phone', '64-bit process', 'explicitly staged verified licensed LFM3 model'),
+    },
+    'org.hermesmobile.app.LocalImportCommitIntegrationTest': {
+        'methods': ('cancelledCommittedImportBecomesVisibleWithoutReopeningOrLoading',),
+        'requires': ('64-bit process', 'explicitly staged publisher-verified licensed LFM3 model'),
+    },
+    'org.hermesmobile.app.LocalModelFamilyIntegrationTest': {
+        'methods': ('verifiedQwenImportChatHistoryAndDelete', 'verifiedLfmQwenSwitchKeepsHistoryBoundToEachFile'),
+        'requires': ('64-bit process', 'explicitly staged verified licensed LFM3 and Qwen models'),
+    },
+    'org.hermesmobile.app.LocalModelTransferIntegrationTest': {
+        'methods': ('livePinnedDownloadCancelsAndExplicitlyDiscards', 'livePinnedDownloadCancelsAndExplicitlyResumes'),
+        'requires': ('64-bit process', 'explicit public-model network and licence acknowledgement'),
+    },
+    'org.hermesmobile.app.LocalProcessRecoveryIntegrationTest': {
+        'methods': ('prepareInterruptedNativeGeneration', 'coldRecoveryMarksInterruptedAndOnlyAnExplicitFreshSendGenerates', 'rebootKeepsCompletedAndInterruptedHistoryWithoutAutomaticLoad'),
+        'requires': ('64-bit process', 'explicitly staged verified licensed Qwen model', 'externally prepared interruption and reboot state'),
+    },
+}
+
+
+def external_model_gate_manifest() -> dict:
+    return {
+        'schema': 1, 'status': 'not_run', 'separate_acceptance_required': True,
+        'automatic_model_download': False,
+        'reason': 'Explicit prerequisites are not supplied by the standard suite.',
+        'gates': [dict(class_name=name, methods=list(gate['methods']), requires=list(gate['requires']), status='not_run')
+                  for name, gate in EXTERNAL_MODEL_GATES.items()],
+    }
 
 
 def instrumentation_record(output: str, returncode: int | None, *, elapsed: float = 0,
@@ -74,12 +111,12 @@ def retain_instrumentation(log_path: Path, output: str, record: dict) -> bool:
         return False
 
 
-def run_instrumentation(device, log_path: Path, timeout: int = 5700) -> int:
+def run_instrumentation(device, log_path: Path, timeout: int = 6000) -> int:
     """One finite invocation; retain exit facts without retrying or accepting partial output."""
     started = time.monotonic()
     try:
         result = device('shell', 'am', 'instrument', '-w', '-r',
-                        '-e', 'notClass', 'org.hermesmobile.app.LocalModelPhysicalTest',
+                        '-e', 'notClass', ','.join(EXTERNAL_MODEL_GATES),
                         'org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner', timeout=timeout, check=False)
     except subprocess.TimeoutExpired as exc:
         output = exc.stdout
@@ -236,6 +273,7 @@ def main() -> int:
         raise ValueError('This helper is restricted to isolated GitHub Linux runners.')
     temp=Path(os.environ['RUNNER_TEMP']).resolve(strict=True)
     work=temp/'hermes-device-qa';work.mkdir(exist_ok=True)
+    (work/'external-model-gates.json').write_text(json.dumps(external_model_gate_manifest(),indent=2)+'\n',encoding='utf-8')
     env=dict(os.environ)
     for key,folder in [('ANDROID_USER_HOME','android-user'),('ANDROID_EMULATOR_HOME','android-user'),('ANDROID_AVD_HOME','avd'),('TMPDIR','tmp')]:
         target=work/folder;target.mkdir(exist_ok=True);env[key]=str(target)
@@ -286,9 +324,9 @@ def main() -> int:
             if args.api>=37:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')
-            print('Running the standard instrumentation suite; staged physical-model gate is separate (95-minute limit).',flush=True)
+            print('Running the standard instrumentation suite; explicit external model gates are separate (100-minute limit).',flush=True)
             count=run_instrumentation(device,work/'instrumentation.log')
-            summary=f'API {args.api}: standard instrumentation suite passed ({count} cases); physical-model gate not run here.'
+            summary=f'API {args.api}: standard instrumentation suite passed ({count} cases); external model gates not run here.'
             print(summary)
             with Path(env['GITHUB_STEP_SUMMARY']).open('a',encoding='utf-8') as report:report.write(summary+'\n')
         finally:
