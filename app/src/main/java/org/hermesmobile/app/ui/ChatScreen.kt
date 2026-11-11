@@ -77,6 +77,7 @@ import java.time.format.DateTimeFormatter
             IconButton(vm::newChat,enabled=!busy && !controlling) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
         }
         if(busy || historyLoading || controlling) QuietProgress()
+        LocalAiEntry()
         if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
             Word(Words.NoChats)
             if(LocalPreferences.current.demo) {TextButton({vm.sendDemoExercise("approval")},enabled=!busy) {Text(label(Words.DemoApproval))};TextButton({vm.sendDemoExercise("clarify")},enabled=!busy) {Text(label(Words.DemoClarification))}}

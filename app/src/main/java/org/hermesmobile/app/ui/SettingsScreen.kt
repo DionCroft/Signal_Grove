@@ -36,6 +36,7 @@ import org.hermesmobile.app.BuildConfig
     val context=LocalContext.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
         Word(Words.Settings,heading=true)
+        HermesCard {Word(Words.PhoneAi);Text(label(Words.PhoneEntry));LocalAiEntry()}
         AppUpdateSettings(busy || connecting)
         HermesCard {
             Word(Words.Server)

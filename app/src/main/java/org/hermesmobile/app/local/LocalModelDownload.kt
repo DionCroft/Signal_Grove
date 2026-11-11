@@ -34,11 +34,12 @@ data class LocalTransferProgress(val bytes: Long, val total: Long, val phase: Lo
 internal class LocalModelDownload(private val store: LocalModelStore,
     private val client: OkHttpClient = OkHttpClient.Builder().retryOnConnectionFailure(false).followSslRedirects(false)
         .connectTimeout(30, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build(),
-    private val spec: ModelDownloadSpec = RecommendedLocalModel.spec) {
+    private val spec: ModelDownloadSpec = RecommendedLocalModel.spec,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO) {
     private val mutex = Mutex()
     private fun partial() = store.owned("${spec.sha256}.part")
 
-    suspend fun partialBytes(): Long = mutex.withLock { withContext(Dispatchers.IO) {
+    suspend fun partialBytes(): Long = mutex.withLock { withContext(ioDispatcher) {
         val file = partial()
         if (!file.exists()) 0L else {
             if (!file.isFile || file.length() > spec.bytes) throw LocalModelStorageException("partial_size")
@@ -46,14 +47,14 @@ internal class LocalModelDownload(private val store: LocalModelStore,
         }
     } }
 
-    suspend fun discardPartial() = mutex.withLock { withContext(Dispatchers.IO) {
+    suspend fun discardPartial() = mutex.withLock { withContext(ioDispatcher) {
         val file = partial()
         if (file.exists() && !file.delete()) throw LocalModelStorageException("delete_failed")
     } }
 
     suspend fun download(licenceReviewed: Boolean, progress: (LocalTransferProgress) -> Unit = {}): InstalledLocalModel = mutex.withLock {
         require(licenceReviewed)
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             val context = currentCoroutineContext()
             val checkpoint = { context.ensureActive() }
             val existing = store.models(checkpoint).find { it.sha256 == spec.sha256 }

@@ -17,6 +17,13 @@ class HermesApplication : Application() {
         appScope.launch {database.dao().tasks().collect {TaskWidget.updateAll(this@HermesApplication)}}
     }
     val updateWorkGuard=org.hermesmobile.app.updates.UpdateWorkGuard()
+    val localAi by lazy {
+        org.hermesmobile.app.local.LocalAiController(
+            java.io.File(noBackupFilesDir,"local-ai/models"),java.io.File(noBackupFilesDir,"local-ai/chats"),
+            applicationInfo.nativeLibraryDir,android.os.Process.is64Bit(),
+            {android.app.ActivityManager.MemoryInfo().also {getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it)}.availMem},
+            updateWorkGuard)
+    }
     val managementReady by lazy {appScope.async {database.dao().recoverManagementOperations()}}
     val database by lazy { Room.databaseBuilder(this,HermesDatabase::class.java,"hermes.db").addMigrations(*ALL_HERMES_MIGRATIONS).build() }
     val imageDrafts by lazy {ImageBlobStore(java.io.File(filesDir,"image-drafts"))}

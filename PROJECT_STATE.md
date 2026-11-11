@@ -41,16 +41,17 @@ refusal, unload/reload and metadata scan/cancellation. Phone/API 26/API 37 nativ
 boundaries and a forced 32-bit core-app launch pass. No old request was replayed
 or assertion relaxed. See docs/contracts/2026-11-10-native-local-engine.md.
 
-The downloader backend passes eleven cases, including the final HTTPS redirect
-policy. Local-history storage passes eight cases. Nine controller cases now pass
-for cancellation-before-start, no replay, model identity, resource guarding and
-unload/delete ordering; its initial failed scheduling run is retained. The latest
-controller JVM snapshot passes 904 cases / 89 reports. The native measurement
-snapshot passes 895 JVM / 88 reports and zero-error lint (50 / 49 warnings).
-No local chat/model-management UI is connected yet.
+The native foundation is committed/pushed. Chat and Settings now open a separate
+MVVM phone chat/model activity with explicit licence consent, import/download,
+context/load/unload/delete, local history and reviewed clipboard handoff. Five
+synthetic UI cases pass on each of API 26 and API 37. Its full measurement passes
+905 JVM / 89 reports, 229 policy tests and zero-error lint (50 / 49 warnings).
+Eleven controller cases pass in a newer 906-case JVM snapshot, including the
+after-save cancellation race. See docs/contracts/2026-11-11-local-ai-ui.md. The
+physical phone still has the earlier native-engine APK; no new release is claimed.
 
-Exact next action: commit the verified native foundation, then implement and test
-local chat/model controls and the grounded helper. Live Android transfer/picker,
+Exact next action: implement the versioned, grounded helper, then validate the
+combined app on the physical phone before a release. Live Android transfer/picker,
 lifecycle/upgrade, representative compatibility and the complete remote audit
 remain required.
 

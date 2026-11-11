@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## 11 November 2026 - separate phone chat and model UI
+
+The local chat/model screen measurement passes 905 JVM cases / 89 reports,
+229 policy cases, required debug/test APK assembly and zero-error lint (50 / 49
+warnings). Five synthetic UI cases pass on each of API 26 and API 37. A subsequent
+controller-only snapshot passes 906 cases, including eleven focused cases and
+cancellation immediately after atomic save. This is component/development
+acceptance, not physical offline UI or a signed release. See the
+[scope and exact APK hashes](contracts/2026-11-11-local-ai-ui.md).
+
 ## 10 November 2026 - native LFM3 phone foundation accepted
 
 Both physical methods now pass: consecutive exact replies, explicit/coroutine
