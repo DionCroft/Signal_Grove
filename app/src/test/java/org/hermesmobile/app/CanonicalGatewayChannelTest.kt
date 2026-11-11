@@ -62,6 +62,20 @@ class CanonicalGatewayChannelTest {
                                 else -> result
                             }
                             if (mode == "host-notification") ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"sessions.changed","payload":{}}}""")
+                            if(mode.startsWith("host-empty:")) ws.send(buildJsonObject {
+                                put("jsonrpc","2.0");put("method","event");put("params",buildJsonObject {
+                                    put("type",mode.substringAfter(':'));put("session_id","");put("payload",JsonObject(emptyMap()))
+                                })
+                            }.toString())
+                            if(mode.startsWith("host-invalid:")) ws.send(buildJsonObject {
+                                put("jsonrpc","2.0");put("method","event");put("params",buildJsonObject {
+                                    put("type",if(mode=="host-invalid:unknown") "unreviewed.changed" else "projects.changed")
+                                    put("session_id",if(mode=="host-invalid:session") "unreviewed" else "")
+                                    put("payload",if(mode=="host-invalid:payload") JsonArray(emptyList()) else JsonObject(emptyMap()))
+                                    if(mode=="host-invalid:sequence") put("seq",1)
+                                    if(mode=="host-invalid:authority") put("authority_epoch",7)
+                                })
+                            }.toString())
                             ws.send("""{"jsonrpc":"2.0","id":"1","result":$result}""")
                         }
                     }
@@ -104,6 +118,15 @@ class CanonicalGatewayChannelTest {
     }
     @Test fun exactHomeIdentityAndPrefixAreBoundWithoutGrantOrSessionRequests() = success("normal")
     @Test fun boundedHostNotificationDoesNotSendOrInferAnApproval() = success("host-notification")
+    @Test fun registeredEmptyScopeHostSignalsNeverBecomeReviewedTranscriptEvents() {
+        listOf("sessions.changed","skin.changed","pet.changed","cron.changed","platforms.changed",
+            "projects.changed","pairing.changed","skills.changed","bot_relay.outbox.pending").forEach {success("host-empty:"+it)}
+    }
+    @Test fun scopedHostNameCannotBypassTheUnattachedTranscriptGuard() = refused("host-invalid:session",GatewayProtocolException::class.java)
+    @Test fun sequencedHostNameCannotBypassTheUnattachedTranscriptGuard() = refused("host-invalid:sequence",GatewayProtocolException::class.java)
+    @Test fun authorityStampedHostNameCannotBypassTheUnattachedTranscriptGuard() = refused("host-invalid:authority",GatewayProtocolException::class.java)
+    @Test fun unregisteredEmptyScopeHostNameIsRefused() = refused("host-invalid:unknown",GatewayProtocolException::class.java)
+    @Test fun malformedEmptyScopeHostPayloadIsRefused() = refused("host-invalid:payload",GatewayProtocolException::class.java)
     @Test fun secondaryHomeCannotBorrowThePrimaryInstance() = refused("normal", CanonicalScopeChanged::class.java, home("/fixture/worker"))
     @Test fun invalidRuntimeHomeCannotPassTheAuthenticatedHomeFence() = refused("invalid-home", CanonicalScopeChanged::class.java)
     @Test fun missingAuthorityAdvertisementRefusesBeforeDescribe() = refused("no-authority", CanonicalNotSupported::class.java)

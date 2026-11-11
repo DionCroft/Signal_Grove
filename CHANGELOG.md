@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Keep canonical channels open for registered empty-scope host notifications while
+  preserving private-event, profile and approval guards. Verify Android native
+  sign-in, tickets, reviewed workspace mutation, persisted Room receipt and fresh
+  readback against two actual Hermes runtimes; retain shutdown/history limits.
+
 - Add explicitly reviewed Hermes-host workspace changes with exact revision and
   generation fences, durable one-send ACK/unknown receipts and selectable request
   IDs. Keep independent directory readback and Windows worker binding separate.

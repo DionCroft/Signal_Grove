@@ -91,14 +91,19 @@ class CanonicalSessionAttachmentContractTest {
                             check(params.keys==setOf("scope","limit") && params["limit"]==JsonPrimitive(200))
                             val scope=params["scope"]!!.jsonPrimitive.content;check(scope in setOf("stored","live"))
                             val row=Json.parseToJsonElement("""{"id":"shared-fixture","session_id":"shared-fixture","resolved_id":"shared-fixture","title":"Fixture legacy history","source":"cli","started_at":1.0,"message_count":2,"running":false,"model":null}""")
-                            reply(buildJsonObject {put("scope",scope);put("sessions",JsonArray(listOf(row)))})
+                            reply(buildJsonObject {put("scope",scope);put("sessions",if(mode=="workspace-roundtrip" && scope=="stored") JsonArray(emptyList()) else JsonArray(listOf(if(mode=="workspace-roundtrip") JsonObject(row.jsonObject+mapOf("message_count" to JsonPrimitive(0))) else row)))})
                         }
                         "session.resume"->{
                             check(params==Json.parseToJsonElement("""{"session_id":"shared-fixture","omit_messages":true}"""))
                             resumes.incrementAndGet()
                             if(mode=="drop-resume") {ws.close(1000,"fixture-drop");return}
                             ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"sessions.changed","session_id":"","payload":{}}}""")
-                            reply(Json.parseToJsonElement("""{"session_id":"shared-fixture","stored_session_id":"shared-fixture","messages":[],"messages_omitted":true,"message_count":2,"running":false,"authority_epoch":1,"replay_epoch":"fixture-ring","last_sequence":0,"subscription_id":"fixture-subscription","revision":0,"execution_generation":0,"pending":[],"prompts":[],"info":{"desktop_protocol":"hermes-gateway-v1","profile_id":"/fixture/homes/default"}}""").jsonObject)
+                            val raw=Json.parseToJsonElement("""{"session_id":"shared-fixture","stored_session_id":"shared-fixture","messages":[],"messages_omitted":true,"message_count":2,"running":false,"authority_epoch":1,"replay_epoch":"fixture-ring","last_sequence":0,"subscription_id":"fixture-subscription","revision":0,"execution_generation":0,"pending":[],"prompts":[],"info":{"desktop_protocol":"hermes-gateway-v1","profile_id":"/fixture/homes/default"}}""").jsonObject
+                            val roundTrip=mode=="workspace-roundtrip";val changed=mutations.get()>0
+                            reply(if(roundTrip) JsonObject(raw+mapOf(
+                                "message_count" to JsonPrimitive(0),"revision" to JsonPrimitive(if(changed) 3 else 2),
+                                "execution_generation" to JsonPrimitive(if(changed) 4 else 3),
+                                "info" to JsonObject(raw.getValue("info").jsonObject+mapOf("cwd" to JsonPrimitive(if(changed) "/fixture/new project" else "/fixture/old"))))) else raw)
                             if(mode=="viewer-activity") (1..3).forEach {publish(ws,it)}
                         }
                         "session.events.since"->{
@@ -137,6 +142,13 @@ class CanonicalSessionAttachmentContractTest {
                             check(body["code"]==JsonPrimitive(code))
                             val challenge=Base64.getUrlEncoder().withoutPadding().encodeToString(MessageDigest.getInstance("SHA-256").digest(body["code_verifier"]!!.jsonPrimitive.content.toByteArray(Charsets.US_ASCII)))
                             check(challenge==pending.get().challenge);json(envelope)
+                        }
+                        "/dashboard/auth/native/refresh"->{
+                            check(mode=="workspace-roundtrip" && q.method=="POST" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null)
+                            val body=Json.parseToJsonElement(q.body.readUtf8()).jsonObject
+                            check(body.keys==setOf("provider","refresh_token") && body["provider"]==JsonPrimitive("stub"))
+                            check(body["refresh_token"]==Json.parseToJsonElement(envelope).jsonObject.getValue("refresh_token"))
+                            json(envelope)
                         }
                         "/dashboard/api/auth/me","/dashboard/api/profiles","/dashboard/api/auth/ws-ticket"->{
                             check(q.getHeader("Authorization")=="Bearer project-access-fixture" && q.getHeader("Cookie")==null)
@@ -482,6 +494,99 @@ class CanonicalSessionAttachmentContractTest {
                 assertEquals("acknowledged",dao.managementOperation(review.requestId)!!.state)
                 assertEquals(1,f.mutations.get());assertEquals(0,f.failures.get())
             } finally {database.close()}
+        }
+    }
+
+
+    /** The same assertions run against the bounded mock or an explicitly staged real owner. */
+    @Test fun ownerWorkspaceRoundTripUsesAuthRoomAndIndependentFreshReadback() {
+        val args=InstrumentationRegistry.getArguments();val external=args.getString("signalGroveOwnerWorkspaceBase")
+        val label=args.getString("signalGroveOwnerWorkspaceLabel") ?: "mock"
+        require(label.matches(Regex("[A-Za-z0-9][A-Za-z0-9_.-]{0,80}")))
+        val commit=args.getString("signalGroveOwnerWorkspaceCommit") ?: "mock"
+        if(external!=null) require(commit in setOf("2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19","3b421578588243f920886e6fe79a6faa87ea026e"))
+        val fixture=if(external==null) Fixture("workspace-roundtrip") else null
+        val session=if(external==null) "shared-fixture" else checkNotNull(args.getString("signalGroveOwnerWorkspaceSession"))
+        val beforeDirectory=if(external==null) "/fixture/old" else checkNotNull(args.getString("signalGroveOwnerWorkspaceBefore"))
+        val afterDirectory=if(external==null) "/fixture/new project" else checkNotNull(args.getString("signalGroveOwnerWorkspaceAfter"))
+        require(CanonicalWorkspaceDirectory.absolute(beforeDirectory) && CanonicalWorkspaceDirectory.absolute(afterDirectory) && beforeDirectory!=afterDirectory)
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val credentials=context.getSharedPreferences("credentials",0);val beforeCredentials=credentials.all.toMap()
+        val databaseName="canonical-owner-fixture-"+UUID.randomUUID()+".db"
+        check(!context.getDatabasePath(databaseName).exists())
+        var db=Room.databaseBuilder(context,HermesDatabase::class.java,databaseName).build()
+        val checks=mutableListOf<String>();var requestId:String?=null;var completed=false;var errorType:String?=null
+        try {
+            val url=(external ?: base(checkNotNull(fixture))).toHttpUrl()
+            require(url.scheme=="http" && url.host=="127.0.0.1" && url.port in 1024..65535 && url.encodedPath=="/dashboard/")
+            require(url.username.isEmpty() && url.password.isEmpty() && url.query==null && url.fragment==null)
+            val api=ManagementClient(url.toString(),true,true)
+            runBlocking {withTimeout(180_000) {
+                val signed=signIn(api);val tokens=api.refresh(signed)
+                assertEquals(signed.userId,tokens.userId);assertEquals(signed.provider,tokens.provider)
+                val identity=api.identity(tokens);assertEquals(tokens.userId,identity.userId);assertEquals(tokens.provider,identity.provider)
+                val owner=target(api,tokens);val profileHome=home(api,tokens)
+                if(external!=null) assertEquals(PluginHome.project(JsonPrimitive(checkNotNull(args.getString("signalGroveOwnerWorkspaceHome"))))!!.identity(),profileHome)
+                checks+="native_pkce_callback_refresh_identity_and_profile_home"
+                var repo=CanonicalSessionsRepository(db.dao(),CompletableDeferred(Unit))
+                val stored=repo.prepare(owner,profileHome,api,tokens,CanonicalSessionScope.Stored)
+                assertTrue(stored.rows.none {it.sessionId==session})
+                checks+="http_native_only_stored_scope_does_not_manufacture_eligibility"
+                val inventory=repo.prepare(owner,profileHome,api,tokens,CanonicalSessionScope.Live)
+                assertTrue(inventory.rows.any {it.sessionId==session})
+                val first=repo.adopt(inventory.review(session),api,tokens)
+                val snapshot=try {
+                    first.attachment.snapshot.also {snap->
+                        assertEquals(session,snap.owner.sessionId);assertEquals(owner,snap.owner.target);assertEquals(profileHome,snap.owner.homeId)
+                        assertEquals(0L,snap.messageCount);assertFalse(snap.reportedRunning)
+                        assertEquals(beforeDirectory,(snap.workspace as CanonicalWorkspaceDirectory.Reported).path)
+                        assertEquals("confirmed",first.receipt.state)
+                    }
+                } finally {first.close()}
+                checks+="reviewed_actual_session_attachment_preserves_empty_history_and_workspace"
+                val review=CanonicalWorkspaceReview.create(snapshot,afterDirectory);requestId=review.requestId
+                val ack=repo.changeWorkspace(review,api,tokens)
+                assertEquals(session,ack.sessionId);assertEquals(afterDirectory,ack.directory.path)
+                assertEquals(snapshot.revision+1,ack.revision);assertEquals(snapshot.executionGeneration+1,ack.generation)
+                val saved=checkNotNull(db.dao().managementOperation(review.requestId))
+                assertEquals("acknowledged",saved.state);assertEquals(CanonicalWorkspaceAction.Id,saved.action);assertEquals(profileHome,saved.projectHome)
+                assertFalse(saved.requestSummary.contains(beforeDirectory));assertFalse(saved.requestSummary.contains(afterDirectory));assertFalse(saved.resultSummary.contains(afterDirectory))
+                checks+="one_use_fenced_mutation_saves_redacted_acknowledgement"
+                assertTrue(runCatching {repo.changeWorkspace(review,api,tokens)}.isFailure)
+                checks+="consumed_review_cannot_send_another_mutation"
+                db.close();db=Room.databaseBuilder(context,HermesDatabase::class.java,databaseName).build()
+                assertEquals(saved,db.dao().managementOperation(review.requestId))
+                repo=CanonicalSessionsRepository(db.dao(),CompletableDeferred(Unit))
+                checks+="actual_room_file_reopen_retains_exact_workspace_receipt"
+                val fresh=repo.prepare(owner,profileHome,api,tokens,CanonicalSessionScope.Live)
+                val second=repo.adopt(fresh.review(session),api,tokens)
+                try {
+                    val observed=second.attachment.snapshot
+                    assertEquals(afterDirectory,(observed.workspace as CanonicalWorkspaceDirectory.Reported).path)
+                    assertEquals(ack.revision,observed.revision);assertEquals(ack.generation,observed.executionGeneration)
+                    assertEquals(snapshot.owner,observed.owner);assertEquals(0L,observed.messageCount);assertFalse(observed.reportedRunning)
+                    assertEquals("acknowledged",db.dao().managementOperation(review.requestId)!!.state)
+                } finally {second.close()}
+                checks+="independent_fresh_attachment_observes_new_directory_without_falsely_confirming_ack"
+                assertTrue(db.dao().unresolvedManagementOperations(owner.resourceScope,owner.url,profileHome).isEmpty())
+                fixture?.let {assertEquals(1,it.mutations.get());assertEquals(2,it.resumes.get());assertEquals(2,it.replays.get());assertEquals(0,it.failures.get())}
+                assertEquals(beforeCredentials,credentials.all)
+                checks+="saved_credentials_unchanged_and_no_unknown_write_barrier"
+            }}
+            completed=true
+        } catch(error:Throwable) {errorType=error.javaClass.simpleName;throw error}
+        finally {
+            db.close();fixture?.close()
+            val qa=File(checkNotNull(context.getExternalFilesDir(null)),"qa");check(qa.isDirectory || qa.mkdirs())
+            File(qa,"owner-workspace-"+label+".json").writeText(buildJsonObject {
+                put("state",if(completed) "PASS_OWNER_WORKSPACE_ANDROID_ROUNDTRIP" else "FAILED_OWNER_WORKSPACE_ANDROID_ROUNDTRIP")
+                put("backend",if(external==null) "mock" else "actual-owner");put("sourceCommit",commit);put("api",Build.VERSION.SDK_INT);put("inventoryScope","live")
+                put("checks",JsonArray(checks.map(::JsonPrimitive)));put("databaseName",databaseName)
+                requestId?.let {put("requestId",it)};errorType?.let {put("errorType",it)}
+                put("beforeDirectorySha256",directoryHash(beforeDirectory));put("afterDirectorySha256",directoryHash(afterDirectory))
+                put("savedCredentialsUnchanged",beforeCredentials==credentials.all);put("modelOrWorkerExecutionClaim",false)
+                put("completedAtMillis",System.currentTimeMillis())
+            }.toString())
         }
     }
 

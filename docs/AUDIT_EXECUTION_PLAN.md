@@ -1,5 +1,22 @@
 # Signal Grove audit execution plan
 
+## 11 November 2026 - Android reaches an actual owner workspace
+
+The real Android HTTP/PKCE/profile/ticket/canonical/Room path now passes a reviewed
+workspace change and independent fresh attachment on both exact Hermes execution
+pins and API 26/API 37. A reproduced host-notification protocol bug is fixed with
+strict registered empty-scope handling. Each final run processes 21 real-producer
+public metadata signals, preserves credentials and agrees with the final SQLite
+mutation receipt. All four still return the nonzero upstream shutdown finding.
+
+Required checks pass 956 JVM cases / 93 reports, 244 policy tests and zero-error
+lint. Thirty-one selected native methods pass freshly on each Android API; the
+four real-owner methods and two normal baseline methods are counted separately.
+See [exact hashes, failed attempts and remaining gates](contracts/2026-11-11-android-owner-workspace.md).
+Stored canonical history is native-transport limited; closed HTTP history,
+lost-result/busy/permission/profile/owner recovery, deployed/physical, actual
+worker/project/files and all original audit/release gates remain required.
+
 ## 11 November 2026 - real-owner HTTP/native workspace matrix
 
 Four tracked-source executions now cover both exact runtime pins and both native

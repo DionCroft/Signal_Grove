@@ -60,41 +60,26 @@ font scale 1.3. Eleven earlier API 37 regression cases retain byte-identical
 view-model/provenance/fixture sources and are counted separately. See
 [the routing acceptance](docs/contracts/2026-11-11-reviewed-phone-draft.md).
 
-The canonical viewer now supports explicit Hermes-host directory changes with
-one-use revision/generation review, durable one-send receipts, honest ACK/unknown
-outcomes and exact request IDs. Thirty selected native methods pass freshly on
-each API 26/API 37 emulator, including real keyboard/caption bounds and Cancel.
-Required checks pass 950 JVM / 93 reports, 232 policies and zero-error lint. A
-tracked supervised real-Hermes component passes 11 cases with 1,049 Git-bound
-modules and clean final boundary/store checks. Authentication against that real
-owner is not covered by the separate Android mock transport proof. See
-[scope and retained findings](docs/contracts/2026-11-11-reviewed-workspace-change.md).
+Canonical host-directory changes now have an actual Android HTTP/PKCE/ticket/
+profile/Room/authority proof on both exact execution pins and API 26/API 37. A
+reproduced registered host-notification bug is fixed without allowing private
+unattached activity or work. Four final actual-owner methods pass with explicit
+real-producer public metadata stimulus and final SQLite agreement; 31 selected
+UI/auth/storage methods pass on each API. Required checks are 956 JVM / 93 reports,
+244 policies and zero-error lint. See [the scoped acceptance](docs/contracts/2026-11-11-android-owner-workspace.md).
 
-The owner bootstrap probe now covers two exact pins with actual native identity
-and profile/ticket checks. Both retain the same nonzero shutdown database warning;
-latest stable also has 47 used-handler source entries requiring review. The canary
-will now inspect main even when stable fails. No contract waiver or real Android
-workspace acceptance is claimed; see [the matrix checkpoint](docs/contracts/2026-11-11-owner-runtime-matrix.md).
+All real-owner runs retain the nonzero upstream shutdown warning. Native-only
+Stored feed refusal, the earlier unattributed pre-claim closure, closed HTTP
+history, loss/busy/permission/owner/profile recovery, production/deployed/physical
+acceptance and Windows worker/project/files remain open. An empty disposable
+conversation is not inference, user-history or engineering execution evidence.
 
-Actual authenticated native-owner workspace transport now passes on both exact
-pins: one disposable session, fresh-channel mutation, separate fresh attachment
-and final SQLite agreement. Both keep the upstream shutdown warning. The feature
-canary now retains both review-required reports. See [the scoped proof](docs/contracts/2026-11-11-native-owner-workspace.md).
-This does not yet test Android's HTTP sign-in/ticket/Room path against that owner.
-
-The real-owner fixture now also passes synthetic-IdP HTTP PKCE/exchange/refresh,
-bearer-required WS-ticket minting, a workspace mutation and separate fresh HTTP
-attachment readback on both pins. All four native/HTTP executions preserve the
-same shutdown finding and clean store/source invariants. See [the matrix](docs/contracts/2026-11-11-http-owner-workspace.md).
-Android HTTP callback/client/Room, forwarded prefixes, remote-client/profile and
-production/deployed acceptance remain open.
-
-Exact next independent action: complete Android authenticated actual-Hermes workspace
-transport and its own fresh directory readback across the supported version matrix,
-including permission/busy/unknown-result/profile recovery. Then implement actual
-worker/project identity, file access and reviewed binding/dispatch. Keep every
-original ledger row and the phone-to-Hermes handoff/local-AI release gates open.
-Do not substitute a Pi directory for the Windows authoritative working copy.
+Exact next independent action: test actual Android workspace lost-ACK recovery
+against the real owner, reconciling the exact receipt before any further write.
+Then close busy/permission/profile/owner-loss recovery and supported closed-session
+HTTP access, followed by real worker/project identity, files and reviewed binding/
+dispatch. Preserve every original ledger row and phone-to-Hermes/local-AI release
+gate; a Pi directory does not establish the Windows authoritative working copy.
 
 Owner-dependent check: the owner installs the already-staged phone helper candidate
 through Xiaomi's installer; verify retained production/model/chat hashes and run

@@ -177,9 +177,13 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
                     // Host notifications are observations. A transcript event before attachment is unsolicited.
                     if (!readySeen || type.isBlank() || type.length > 256 || type.any(Char::isISOControl)) throw GatewayProtocolException()
                     if (text.toByteArray(Charsets.UTF_8).size > 262144) throw GatewayProtocolException()
-                    val hostChange = type in setOf("sessions.changed","skin.changed") &&
+                    // Registered surface-global notifications use an empty session ID and no
+                    // session sequence. They never enter the reviewed transcript/feed or grant work.
+                    val hostChange = type in setOf("sessions.changed","skin.changed","pet.changed","cron.changed",
+                        "platforms.changed","projects.changed","pairing.changed","skills.changed","bot_relay.outbox.pending") &&
                         params["session_id"] == JsonPrimitive("") &&
-                        listOf("seq","replay_epoch","authority_epoch","execution_generation").none(params::containsKey)
+                        params.keys.all {it in setOf("type","session_id","payload")} &&
+                        (!params.containsKey("payload") || params["payload"] is JsonObject)
                     if ((params.containsKey("session_id") && !hostChange) || type == "session.replay_gap") {
                         acceptSessionFrame(j)
                     } else {

@@ -418,6 +418,13 @@ remaining actual-server/worker checks are in [VALIDATION](VALIDATION.md).
 
 ## Inspect the directory reported by a live session
 
+In this window, **Stored** and **Live** are separate host inventories. Hermes can
+limit Stored to native clients, so a remote dashboard sign-in may see an empty
+Stored list. Live lists conversations currently kept open in a host client.
+Regular Chat history uses its separate reader; an empty canonical Stored list
+does not mean there are no saved chats. Complete closed-session access through
+this canonical flow remains under validation.
+
 In **Hermes management → Live sessions**, choose a conversation and complete its
 attachment review. Open **Session workspace** to reveal the directory reported
 when that viewer attached and its observation time. Close and separately review
