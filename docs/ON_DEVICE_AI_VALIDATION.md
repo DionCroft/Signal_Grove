@@ -1,5 +1,16 @@
 # On-device inference validation
 
+## 12 November 2026 - retained upgrade and offline model-gate failure
+
+Exact original-debug-key upgrade retains both UIDs, all 1,544 protected files
+and three model hashes. Actual offline API37 emulator run: one Qwen lifecycle
+pass and two LFM import timing failures, not complete model acceptance. Core
+database/preferences/earlier transcripts/models survive; five platform bookkeeping
+changes are independently reconciled. Original network is restored. Encrypted
+recovery and failed roots/logs remain. [Cases, timings and scope](contracts/2026-11-12-retained-model-upgrade.md).
+No timeout or memory guard is weakened. Final-source physical/model and the
+original-production-key downloadable APK remain in the active goal.
+
 ## 11 November 2026 - reviewed unsent questions can move offline
 
 Chat can copy a reviewed new text-only question into a separate phone draft,

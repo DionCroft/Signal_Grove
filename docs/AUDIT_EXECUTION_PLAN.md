@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - retained model upgrade and pipe deadline regression
+
+The original-key debug emulator upgrade and post-run core-data/model retention
+are verified. Real offline cases: one Qwen lifecycle pass, two retained LFM import
+timing failures; full model acceptance remains open. Original guest network is
+restored. [Evidence](contracts/2026-11-12-retained-model-upgrade.md). Approved Pi
+in-memory trials expose read unavailability without changing persistent Pi state
+or eight completed receipts. A real late-client pipe regression reproduces a
+deadline defect and passes its bounded fix: 417 portable/66 real Windows cases,
+including actual worker Python. [Remaining deployment scope](contracts/2026-11-12-pipe-exchange-deadline.md).
+Live cutover, complete Pi/native/Android/NAS, final phone/model and signed GitHub
+APK remain required. No original row or 40 stable/97 saved-main finding closes.
+
 ## 12 November 2026 - complete standard hosted Android gate
 
 Independent ZIP/raw-log/APK/source verification accepts the complete standard

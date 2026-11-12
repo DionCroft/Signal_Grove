@@ -6,6 +6,14 @@ Use [validation history](docs/VALIDATION.md),
 Private raw logs, hashes, APKs and runtime observations remain on the execution
 owner. A derived graph is navigation, not independent validation.
 
+Latest: [retained model upgrade](docs/contracts/2026-11-12-retained-model-upgrade.md)
+verifies the original-key upgrade, encrypted recovery and post-run core-data/model
+retention, while retaining one offline Qwen pass and two LFM import failures.
+[Late-client pipe fix](docs/contracts/2026-11-12-pipe-exchange-deadline.md) records
+actual Pi failures, valid native failing-before/fixed-after reproduction and
+417 portable/66 Windows passes on both interpreter versions. Live cutover,
+complete Pi/phone/model and original-key downloadable APK remain required.
+
 The corrected main-branch Windows read transport gate passed all 50 distinct
 native cases (run 43150240082, source 642eaa2), with exact source and artifact
 hash verification. The earlier SID text-alias test failure remains retained.

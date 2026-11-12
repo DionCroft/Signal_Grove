@@ -13,3 +13,12 @@ all temporary work on the owner's Windows workstation uses its approved E drive.
 [Validation](docs/VALIDATION.md) and the dated contracts distinguish fixture,
 local native, hosted, real-worker, emulator, physical and release acceptance.
 Do not turn a component pass into overall or live deployment acceptance.
+
+Latest checkpoint: original-key retained emulator upgrade is verified. Offline
+native model gate has one Qwen pass/two LFM import timing failures. Original
+network is restored and core data/model retention reconciled. Approved Pi trials
+have terminal read failures. A reproduced late-client pipe deadline fix passes
+417 portable/66 native Windows cases, including actual worker Python; the source
+fix is not live until the exact idle staged cutover. See [model evidence](docs/contracts/2026-11-12-retained-model-upgrade.md)
+and [pipe fix](docs/contracts/2026-11-12-pipe-exchange-deadline.md). Phone reconnection
+is requested for the verified debug candidate. No new production APK is released.

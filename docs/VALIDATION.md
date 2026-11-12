@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - retained model gate and late-client pipe deadline
+
+Original-key debug emulator upgrade and core database/preferences/history/model
+retention are verified. The real offline run reports one Qwen lifecycle pass and
+two LFM import timing failures; full model acceptance remains open. Original
+guest network is restored; encrypted recovery and failed roots/logs remain.
+[Exact cases and reconciliation](contracts/2026-11-12-retained-model-upgrade.md).
+Explicitly approved in-memory Pi trials have retained terminal read failures,
+with eight completed Windows receipts/source unchanged. The real late-client
+pipe regression fails before its bounded fix and passes afterward: 417 portable,
+66 native Windows on Python 3.13.2 and actual worker 3.14.9, no skips or source
+drift. [Contract and live-deployment limits](contracts/2026-11-12-pipe-exchange-deadline.md).
+Android/build inputs remain unchanged. No new APK or completed Pi/phone/release
+acceptance is inferred. All original audit rows remain in the active goal.
+
 ### Windows CI SID identity gate correction
 
 The first c37483a Windows run retained 47 positives / 48 and one failed test:

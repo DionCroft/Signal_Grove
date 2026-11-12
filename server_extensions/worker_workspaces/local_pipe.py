@@ -205,6 +205,12 @@ class LocalReadPipe:
     def wait_closed(self,timeout=3):return self._closed_event.wait(timeout)
 
     def serve_one(self,*,timeout=3):
+        """Bound idle accept and the authenticated exchange separately.
+
+        A client arriving near the end of an idle listen still receives one full
+        exchange budget. Request, reply and acknowledgement share that deadline;
+        no individual I/O or request is retried or given another extension.
+        """
         deadline=_deadline(timeout)
         with self._lock:
             if self._closed:raise WorkspaceError('UNAVAILABLE')
@@ -214,6 +220,7 @@ class LocalReadPipe:
             operation=self._begin(lambda handle:self._windows.api.ConnectNamedPipe(handle,overlapped=True));self._listening.set()
             try:self._windows.wait(operation,deadline)
             finally:self._listening.clear()
+            deadline=_deadline(timeout)
             raw=self._read(MAX_REQUEST_BYTES,deadline);self._windows.client_owner(self._handle,self.endpoint.owner_sid)
             reply=self._adapter.handle(raw)
             if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')

@@ -92,3 +92,10 @@ without specific approval. A narrowly scoped transfer question is pending. No
 workaround or inferred approval is used. The previously completed deployed pipe
 and Pi SSH proof remain separate evidence; native HTTP/WS/Android and signed APK
 gates remain open. This correction is source-tested, not production certification.
+
+Subsequent checkpoint: the user explicitly approves the in-memory transfer and
+the trials execute. Fixture-selection and terminal read failures are retained;
+no complete Pi acceptance is claimed. The reproduced contributing pipe deadline
+defect and its tested source fix are described in the [follow-up contract](2026-11-12-pipe-exchange-deadline.md).
+The optional extension is still not installed in the Pi gateway. All native
+HTTP/WS/default/foreign-profile, Android and signed-release gates remain.

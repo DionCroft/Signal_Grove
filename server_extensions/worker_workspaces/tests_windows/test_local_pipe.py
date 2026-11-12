@@ -127,6 +127,19 @@ class PipeNativeTest(unittest.TestCase):
         with self.assertRaises(Exception) as error:self.pipe.serve_one(timeout=.1)
         self.assertEqual('UNAVAILABLE',str(error.exception));self.assertEqual('ok',self.call(self.frame('prepare'))['status'])
 
+    def test_client_arriving_late_in_idle_accept_gets_a_full_exchange_budget(self):
+        original=self.adapter.handle
+        def bounded_slow_read(raw):
+            time.sleep(1.25)
+            return original(raw)
+        with patch.object(self.adapter,'handle',side_effect=bounded_slow_read) as dispatch,ThreadPoolExecutor(max_workers=1) as pool:
+            server=pool.submit(self.pipe.serve_one,timeout=3)
+            self.assertTrue(self.pipe._listening.wait(2),'Native accept did not become observable')
+            time.sleep(2)
+            reply=t.call_once(self.pipe.endpoint,self.frame('prepare'),timeout=5)
+            self.assertEqual('served',server.result(timeout=6));self.assertEqual('ok',json.loads(reply)['status'])
+            dispatch.assert_called_once()
+
     def test_disconnect_after_reply_does_not_replay_completed_request(self):
         native=self.pipe._windows;raw=self.frame('prepare')
         with ThreadPoolExecutor(max_workers=1) as pool,patch.object(self.provider,'dispatch',wraps=self.provider.dispatch) as dispatch:

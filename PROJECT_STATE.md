@@ -1,12 +1,27 @@
 # Signal Grove project state
 
-Current milestone: complete standard hosted Android gate independently verified.
-Current objective: final-source model gates, remaining compatibility/integration.
-Assurance state: 40 stable findings remain; no new APK or Pi deployment.
-Last checkpoint: 12 November 2026, complete-standard-android-gate.
+Current milestone: retained-model upgrade and bounded read-pipe deadline fix.
+Current objective: import diagnostics, physical model and actual read integration.
+Assurance state: 40 stable findings remain; model gate has two retained failures.
+Last checkpoint: 12 November 2026, retained-model-and-pipe-deadline.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
+
+Original-debug-key API37 emulator upgrade preserves both UIDs, all 1,544 protected
+files and three model hashes. The real offline three-case run has one Qwen pass
+and two LFM import timing failures: full model acceptance remains open. Original
+guest network is restored. Core database/preferences/history/model retention is
+reconciled with five platform bookkeeping changes and encrypted recovery.
+[Exact scope](docs/contracts/2026-11-12-retained-model-upgrade.md).
+
+Explicit approval enables the in-memory Pi trials. Fixture-selection and later
+terminal UNAVAILABLE reads remain retained; no complete acceptance is claimed.
+No persistent Pi, gateway, model, credential or job changes occur. Worker remains
+ready with all eight completed receipts/source hashes unchanged. A contributing
+late-client deadline defect is reproduced before its fix and passes afterward:
+417 portable/66 native Windows cases, including the actual worker Python. This
+source fix is not deployed. [Contract](docs/contracts/2026-11-12-pipe-exchange-deadline.md).
 
 Hosted source7ee standard Android acceptance is now independently verified from
 all six downloaded ZIP digests and raw case logs. Full unions: API26 1132/1132,
@@ -45,9 +60,9 @@ scoped evidence. No new Android/device/production APK result is claimed.
 The existing interactive Windows read daemon and all eight terminal receipts
 remain commissioned. Optional native coordinator source previously passes 408
 policies/12 actual-native cases, including strict worker reply envelopes. It is
-not deployed to Pi. The real Pi in-memory coordinator trial never executed:
-automatic review rejected code/project-metadata transfer without specific
-approval. Its narrowly scoped question is pending; do not bypass or infer consent.
+not deployed to Pi. Earlier transfer rejections are retained; subsequent explicit
+approval enables the in-memory trials above. No production native HTTP/WS or
+Android coordinator acceptance is inferred from those trials.
 Prior deployed Windows/local-Pi SSH reads remain separate evidence. Doctor
 optional key/tool and owner graph identity/index findings stay open.
 
@@ -55,15 +70,14 @@ optional key/tool and owner graph identity/index findings stay open.
 [Coordinator scope](docs/contracts/2026-11-12-native-coordinator-workspace-reads.md).
 [Live bridge](docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
 
-**Next exact action:** inspect the retained API37 local-model emulator's actual
-idle state, UIDs and protected data/model receipts. Prepare verified metadata
-recovery and the exact-source original-debug-key upgrade before applicable
-nonphysical model tests. Do not wipe/restart or replay unknown work, and retain
-the separate final-source physical-phone gate. Continue remaining native/auth
-source review. If Pi transfer approval arrives, reconcile its unexecuted trial
-before that approved read-only test; production encrypted recovery/idle/staged
-deployment and actual HTTP/WS/default/foreign-profile proof remain required before
-Android files. NAS, graphs, every original audit and signed APK gate remain.
+**Next exact action:** push the tested pipe fix, review its immutable Windows
+runtime/encrypted recovery and idle receipts, then stage the exact optional
+component cutover before a fresh approved Pi trial. Diagnose LFM import latency
+with bounded progress/error evidence; preserve assertions and failed roots.
+The verified original-key debug APK is ready for final physical checks; phone
+reconnection is requested. Actual native HTTP/WS/default/foreign-profile proof
+remains required before Android files. NAS, graphs, all original audit and
+original-production-key downloadable APK gates remain in the active goal.
 
 ## Continuing scope and authoritative records
 
