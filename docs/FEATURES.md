@@ -13,7 +13,7 @@ release inclusion are separate. [Release status and figures](../README.md).
 | Hosted rooms | Explicit read-only room inventory/history browsing | [Room contract](contracts/2026-11-08-hosted-rooms.md); forwarding, membership/grants/delivery controls remain in the audit |
 | Serving models | Verified serving identity, freshness/errors, server default and requested/session model shown separately; Automatic for new turns; reasoning/service presets | Live owner setup was exercised; model choices do not load/evict server weights by themselves |
 | Phone inference | Optional CPU-native LFM3 text chat, streaming, cancellation, context limits, load/unload/delete and model-bound local history | Six physical native cases across LFM3/helper and Qwen/import/family behavior; final beta.9 phone upgrade still due |
-| Model management | Pinned LFM3 download, explicit resume/discard, Android picker import, hash/size/licence/template checks and private atomic installation | Eight metadata architecture names, not eight universally supported model families; real HTTPS cancellation/discard pass; full resume retains timeouts |
+| Model management | Pinned LFM3 download, explicit resume/discard, Android picker import, hash/size/licence/template checks and private atomic installation | Eight metadata architecture names, not eight universally supported model families; real HTTPS cancel/discard and full foreground resume have physical passes; earlier failures remain |
 | Setup helper | Static guide plus six topics; model selects eligible IDs and UI renders exact versioned English/Chinese/pinyin sources | All six topics have physical native evidence; selected redacted observations require opt-in; no settings/tool/approval execution |
 | Local/remote handoff | Review a new unsent text-only question into a separate phone draft; review local advice before copying | Credentials, remote history, images, approvals and attempted/unknown work are excluded; sending remains explicit |
 | Stored projects | Reviewed inventory/details and create/edit/archive/restore/delete/active-pointer controls; project-conversation navigation | Owner confirmed stored project details; metadata does not establish worker identity, a mounted root or permission to execute |
@@ -45,7 +45,7 @@ do not certify installation of beta.9's new packaging/version.
 | Candidate JVM/lint | 1,006 cases / 96 reports; no failures/errors/skips; lint 0 errors, 51 debug/50 release warnings |
 | Earlier candidate native local-AI UI | API26: 10 distinct positive cases, no skips/failures |
 | Prior standard gate | Source 7ee5c59: API26 1,132 and API37 1,133 complete distinct cases; new candidate union not yet accepted |
-| Current transfer gate | Cancellation 3 ms phone /18-34 ms emulator and discard pass; resume 300s failures retain 23,246,323 /668,174,446 bytes; phone freezer recovery is not a clean pass |
+| Current transfer gate | Physical cancel/discard pass; full foreground phone resume/hash/install passes in 27,010 ms; earlier frozen-phone/emulator timeouts and their partials remain |
 | Advisory query | 150 resolved Maven versions, zero known matching OSV advisories on 12 November; pinned native commit query also returned none, with known-indexed coverage limits |
 
 Import numbers are individual observations, not a model/storage performance
@@ -54,5 +54,5 @@ these final-source batches. Generic GGUF admission does not establish licence,
 publisher, native compatibility or safe memory requirements on another phone.
 
 [Physical evidence](contracts/2026-11-12-physical-offline-model-acceptance.md) ·
-[Current cancellation/build evidence](contracts/2026-11-12-download-cancellation.md) · [Earlier candidate evidence](contracts/2026-11-12-uncompressed-dex-candidate.md) ·
+[Full foreground phone download](contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](contracts/2026-11-12-download-cancellation.md) · [Earlier candidate evidence](contracts/2026-11-12-uncompressed-dex-candidate.md) ·
 [On-device usage](ON_DEVICE_AI.md) · [Full audit](AUDIT_EXECUTION_PLAN.md).

@@ -1,13 +1,23 @@
 # Signal Grove project state
 
 Current milestone: beta.9 uncompressed-DEX candidate and download/release checks.
-Current objective: finish foreground full-download/resume acceptance,
+Current objective: finish lifecycle and final-source release acceptance,
 finish candidate device/release checks and keep the separate worker audit moving.
 Assurance state: fresh stable40/main100 findings and full original audit remain.
-Last checkpoint: 12 November 2026, download-cancellation.
+Last checkpoint: 12 November 2026, foreground-model-download.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
+
+The full foreground phone HTTPS resume case now passes unchanged assertions:
+3 ms cancellation, stable 8,451,250-byte prefix, full 1,049,615,680-byte hash/metadata
+check and atomic installation in 27,010 ms, followed by scoped test-model deletion.
+Six sampled kernel/screen/foreground states pass; original models/chat/settings/
+UIDs/APKs and production beta.8 remain. USB-awake setting is restored. Both HTTPS
+methods have positive physical evidence; prior failures stay retained.
+[Current foreground evidence](docs/contracts/2026-11-12-foreground-model-download.md).
+
+Earlier cancellation checkpoint:
 
 Latest checkpoint: the saturated-I/O cancellation defect is reproduced by two
 failing regressions and fixed; full 1,006 JVM /96 reports and zero-error lint51/50
@@ -63,10 +73,10 @@ c55d070 Android workflow also succeeds; CI signer is not the production signer.
 Fresh source c55 reports stable40/current main100 changed handlers; the older
 saved main97 outcome remains historical evidence. No source/commit waiver applies.
 
-**Next exact action:** establish a foreground phone transfer fixture with observed
-kernel-freezer state, diagnose transfer progress and verify full download/resume
-without relaxing original assertions; preserve all failed roots. Repair the
-hosted API26 keyboard-preparation gate before accepting the full standard union. Finish candidate process/recovery, full standard hosted
+**Next exact action:** prepare the current-source isolated process-interruption/
+cold-recovery/reboot gate on an owned emulator, preserving existing roots and
+owner data. Do not reboot the physical phone. Repair hosted API26 keyboard
+preparation before standard-union acceptance; keep all prior failures. Finish candidate process/recovery, full standard hosted
 union, physical production upgrade, compatibility review, SBOM/provenance and
 public-asset verification before publication. The actual Windows read failure
 also remains: new diagnostic prepare is submitted then loses its reply (Win32

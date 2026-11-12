@@ -13,7 +13,9 @@ separate text assistant that runs on the phone without Hermes connectivity.
 3. For the recommended **LFM3-1.7B QAD Q4_0**, review the complete separate model
    licence and explicitly confirm the download. It is 1,049,615,680 bytes (about
    1,001 MiB). The application does not bundle model weights. Downloading needs
-   connectivity; inference after installation does not.
+   connectivity; inference after installation does not. Keep On-device AI visible
+   and the phone awake during the transfer. Leaving its foreground activity stops
+   work; retained partial data requires an explicit resume.
 4. Alternatively, choose **Import GGUF file** and select a file through Android's
    document picker. Review its publisher's licence before confirming the copy.
    The file is copied into private application storage; its original remains.
@@ -130,7 +132,7 @@ The earlier original-key debug candidate passes six physical offline native
 cases, including all six helper topics and model/history isolation. The earlier
 beta.9 candidate passes ten API26 local-AI UI cases. The current candidate passes
 1,006 JVM cases and zero-error lint; its debug phone upgrade preserves owner data.
-Real HTTPS cancellation/discard pass, but resume retains timeouts, including a
-phone kernel-freezer recovery. Production-key upgrade, full transfer and lifecycle/
-release acceptance remain open. [Current figures](FEATURES.md),
+Real HTTPS cancellation/discard and full foreground resume/hash/atomic install
+have positive physical evidence; earlier timeout/freezer failures are retained.
+Production-key upgrade and remaining lifecycle/release acceptance stay open. [Current figures](FEATURES.md),
 [delivery plan](ON_DEVICE_AI_PLAN.md) and [validation](VALIDATION.md).

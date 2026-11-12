@@ -21,7 +21,15 @@ all temporary work on the owner's Windows workstation uses its approved E drive.
 local native, hosted, real-worker, emulator, physical and release acceptance.
 Do not turn a component pass into overall or live deployment acceptance.
 
-Current cancellation checkpoint:1006 JVM and current signed APK checks pass;
+Current foreground checkpoint: the original physical resume case passes in 27,010 ms
+for the full LFM3 download/hash/atomic install, then scoped deletion. Six sampled
+unlocked/awake/foreground/unfrozen states pass. Owner models/chat/settings/UIDs and
+APKs remain; USB-awake setting is restored. Both HTTPS methods now have physical
+positive evidence; preserve earlier failures. Continue isolated emulator process/
+reboot and final standard/production/compatibility/publication gates.
+[Foreground evidence](docs/contracts/2026-11-12-foreground-model-download.md).
+
+Earlier cancellation checkpoint:1006 JVM and current signed APK checks pass;
 native cancellation/discard pass on phone/emulator, but resume fails300s on both.
 Phone kernel freezer is observed1 and recovered0 by foregrounding the existing
 debug process once. No native restart/replay; all protected data/models/UIDs and

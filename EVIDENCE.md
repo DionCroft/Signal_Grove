@@ -12,7 +12,12 @@ synthetic candidate screenshot and preserved historical captures. Published
 stable/preview metadata is rechecked; roadmap/usage/compatibility/release guidance
 is reconciled. No executable/APK change or new functional pass is claimed.
 
-Current candidate: [download-cancellation fix and partial native acceptance](docs/contracts/2026-11-12-download-cancellation.md)
+Latest: [full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md)
+verifies explicit resume/hash/atomic installation of the entire LFM3 file in
+27,010 ms, scoped deletion and retained owner data, with sampled kernel/screen/
+foreground checks and restored temporary setting. Earlier failed runs remain.
+
+Earlier candidate: [download-cancellation fix and partial native acceptance](docs/contracts/2026-11-12-download-cancellation.md)
 records two reproduced regressions,1006 JVM, original-key APK checks and current
 phone/emulator cancellation/discard passes. Resume failures, phone kernel-freezer
 recovery, retained data, exact APK hashes and remaining gates are explicit.

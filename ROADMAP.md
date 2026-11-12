@@ -23,8 +23,8 @@ See [the release record](docs/releases/0.2.0.md). Session controls distinguish l
 
 Six earlier physical offline native cases, ten earlier candidate API26 local-AI
 UI cases and the current 1,006 candidate JVM cases pass within their stated scopes.
-Current native HTTPS cancellation/discard pass; resume retains timeout failures.
-Phone kernel-freezer recovery is documented separately. Test totals do not establish full
+Current native HTTPS cancellation/discard and full foreground resume have physical
+positive evidence. Earlier timeout/freezer failures remain documented separately. Test totals do not establish full
 milestone completion. [Current features and figures](docs/FEATURES.md).
 
 ## Further ideas

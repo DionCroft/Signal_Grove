@@ -31,8 +31,8 @@ The beta.9 candidate has 1,006 JVM cases /96 reports; its preceding candidate ha
 ten scoped API26 local-AI UI passes. The earlier fully reconciled standard gate at source 7ee5c59 executes
 1,132 API26 / 1,133 API37 cases; fresh candidate full-suite acceptance is separate.
 Six physical offline native cases use an earlier original-key debug candidate,
-while current HTTPS cancellation/discard pass and resume retains timeout failures.
-Phone kernel-freezer recovery does not establish a clean foreground run. Consult
+while both HTTPS methods now have physical positive evidence, including a separate
+full foreground resume; prior timeout/freezer outcomes remain. Consult
 [the feature/figure matrix](FEATURES.md) and dated [validation](VALIDATION.md) before
 copying counts into a release. Report inventory, actual execution, hardware and
 live-server evidence separately; do not total them into one completion figure.

@@ -1,5 +1,17 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - full foreground phone model download passes
+
+The original HTTPS resume case passes on the retained-data beta.9 debug phone:
+3 ms cancellation, 8,451,250-byte retained prefix without automatic resume, then
+full 1,049,615,680-byte download/hash/atomic installation in 27,010 ms. Scoped model
+deletion passes; both owner models/chat/settings/UIDs/APKs remain. Six sampled
+foreground/unlocked/awake/kernel-freezer checks pass. The temporary USB-awake
+setting is restored. Both HTTPS methods now have positive physical evidence;
+earlier timeout failures remain. [Exact source, case and scope](contracts/2026-11-12-foreground-model-download.md).
+Process/reboot, complete final standard CI, production upgrade, compatibility and
+publication remain open; this is not a new public release.
+
 ## 12 November 2026 - cancellation watcher fix and retained resume failures
 
 Both no-free-I/O-thread regressions fail before the fix and pass after it. Full

@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Verify the full recommended-model HTTPS resume/hash/atomic installation on a
+  foreground physical phone in 27,010 ms, with unchanged timing guards and scoped
+  deletion. Retain prior freezer/timeout failures and owner data; restore the
+  temporary USB-awake setting. Lifecycle/release gates remain separate.
+
 - Fix stalled model-download cancellation when the I/O dispatcher is occupied.
   Add two reproduced regressions; all 1,006 JVM tests pass. Native cancellation and
   explicit discard pass on phone/emulator; resume failures and phone-freezer

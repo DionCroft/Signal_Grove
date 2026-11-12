@@ -1,5 +1,8 @@
 # Download cancellation under I/O saturation and beta.9 checks
 
+A subsequent [foreground phone run passes full HTTPS resume](2026-11-12-foreground-model-download.md).
+The failed outcomes below remain historical evidence.
+
 ## Reproduced defect and bounded fix
 
 Two JVM regressions occupy the downloader's only I/O thread while headers or a
