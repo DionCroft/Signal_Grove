@@ -49,6 +49,10 @@ Hermes capability and Android root/file review; retain live full CI separately.
 Published application: v1.1.0-beta.8 (code111). Current source includes later
 optional phone inference, user-model/helper and canonical/project-navigation
 work. Source changes do not certify that published APK or the final phone build.
+Final delivery explicitly includes the original-key production APK as a public
+versioned GitHub Release asset, verified download/checksums and retained-data
+phone upgrade, with a direct APK link. Publish after applicable release gates;
+source pushes or temporary CI artifacts do not fulfil that delivery.
 The goal remains active; all unresolved requirements stay in the
 [full audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and
 [on-device AI plan](docs/ON_DEVICE_AI_PLAN.md).
