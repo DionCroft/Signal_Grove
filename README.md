@@ -41,20 +41,21 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Candidate JVM tests | **1,004 cases / 96 reports** | Beta.9 candidate; no failures/errors/skips |
+| Candidate JVM tests | **1,006 cases / 96 reports** | Beta.9 candidate; no failures/errors/skips |
+| Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; full resume remains unaccepted |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
-| Candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
+| Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Prior complete standard device gate | **1,132 API26 / 1,133 API37 cases** | Independently verified source `7ee5c59`; fresh candidate full-suite acceptance remains pending |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
-| Signed candidate production APK | **71.0 MB** | 70,993,762 bytes; original signing identity, not published yet |
+| Signed candidate production APK | **71.0 MB** | 70,993,978 bytes; original signing identity, not published yet |
 | Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 12 November; known-indexed coverage, not a full security certification |
 
-[Candidate evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
+[Current cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-**Still open:** two current HTTPS model tests hit cancellation/resume time bounds; process/reboot, physical production-upgrade, full candidate CI, compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 100 on the inspected `main`; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
+**Still open:** real HTTPS cancellation/discard now pass on the phone and emulator, but full resume retains timeout failures. Process/reboot, physical production-upgrade, full candidate CI (including failed API26 keyboard preparation), compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 100 on the inspected `main`; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
 
 ## Interface figures
 

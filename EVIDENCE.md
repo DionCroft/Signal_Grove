@@ -12,7 +12,12 @@ synthetic candidate screenshot and preserved historical captures. Published
 stable/preview metadata is rechecked; roadmap/usage/compatibility/release guidance
 is reconciled. No executable/APK change or new functional pass is claimed.
 
-Latest candidate: [uncompressed DEX and scoped emulator checks](docs/contracts/2026-11-12-uncompressed-dex-candidate.md)
+Current candidate: [download-cancellation fix and partial native acceptance](docs/contracts/2026-11-12-download-cancellation.md)
+records two reproduced regressions,1006 JVM, original-key APK checks and current
+phone/emulator cancellation/discard passes. Resume failures, phone kernel-freezer
+recovery, retained data, exact APK hashes and remaining gates are explicit.
+
+Earlier candidate: [uncompressed DEX and scoped emulator checks](docs/contracts/2026-11-12-uncompressed-dex-candidate.md)
 records1004 JVM, original signers/native alignment, zero-error lint51/50 and10
 API26 local-AI UI passes. UIDs/core hashes survive emulator upgrades; the native
 installer resolves a host timeout without replay. Two HTTPS timeout failures,

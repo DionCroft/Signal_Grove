@@ -69,7 +69,9 @@ internal class LocalModelDownload(private val store: LocalModelStore,
                     .apply { if (count > 0) header("Range", "bytes=$count-") }.build()
                 val call = client.newCall(request)
                 coroutineScope {
-                    val watcher = launch(start = CoroutineStart.UNDISPATCHED) {
+                    // Only OkHttp's thread-safe cancel runs here; it must not queue behind
+                    // the blocking HTTP operation on a saturated I/O dispatcher.
+                    val watcher = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
                         try { awaitCancellation() } finally { call.cancel() }
                     }
                     try {

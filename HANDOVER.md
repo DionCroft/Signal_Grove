@@ -21,13 +21,22 @@ all temporary work on the owner's Windows workstation uses its approved E drive.
 local native, hosted, real-worker, emulator, physical and release acceptance.
 Do not turn a component pass into overall or live deployment acceptance.
 
-Latest checkpoint: beta.9/code112 candidate stores DEX uncompressed/aligned after
+Current cancellation checkpoint:1006 JVM and current signed APK checks pass;
+native cancellation/discard pass on phone/emulator, but resume fails300s on both.
+Phone kernel freezer is observed1 and recovered0 by foregrounding the existing
+debug process once. No native restart/replay; all protected data/models/UIDs and
+production APK remain, and temporary USB-awake setting is restored. Establish a
+properly observed foreground fixture, finish full resume and repair the failed
+hosted API26 keyboard-preparation step before standard-union acceptance.
+[Exact current scope](docs/contracts/2026-11-12-download-cancellation.md).
+
+Earlier checkpoint: beta.9/code112 candidate stores DEX uncompressed/aligned after
 an actual pre-app ART inflation ANR.1004 JVM, original signing/native alignment,
 zero-error lint51/50 and all10 API26 local-AI UI cases pass. Emulator upgrades
 retain UIDs and351/66 core hashes, including native-success reconciliation of a
 host install timeout without replay. [Candidate scope](docs/contracts/2026-11-12-uncompressed-dex-candidate.md).
 
-Both new HTTPS cases fail their original10s/300s bounds; one partial reaches384 MB.
+That earlier batch failed both original10s/300s bounds; one partial reached384 MB.
 The foreground-harness error and exact existing process's terminal failures are
 preserved, with no restart/replay or weakened assertion. Candidate physical,
 process/reboot, full standard CI, SBOM and publication remain due. Fresh compatibility

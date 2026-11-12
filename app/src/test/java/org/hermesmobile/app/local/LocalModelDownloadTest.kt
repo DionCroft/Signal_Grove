@@ -210,4 +210,55 @@ class LocalModelDownloadTest {
         assertEquals(512L, downloader.partialBytes()); assertTrue(store.models().isEmpty())
     }
 
+    private suspend fun cancelsWithoutAFreeIoThread(stallInBody: Boolean) = coroutineScope {
+        val bytes = fixture(); val root = temp.newFolder(); val store = store(root)
+        val entered = java.util.concurrent.CountDownLatch(1)
+        val release = java.util.concurrent.CountDownLatch(1)
+        val call = java.util.concurrent.atomic.AtomicReference<okhttp3.Call>()
+        val observed = CompletableDeferred<Exception>(); var requests = 0
+        val http = OkHttpClient.Builder().retryOnConnectionFailure(false).addInterceptor {chain ->
+            requests++; call.set(chain.call())
+            if(stallInBody) {
+                response(chain.request(), bytes).newBuilder().body(stalledBody(bytes) {
+                    entered.countDown()
+                    check(release.await(5, java.util.concurrent.TimeUnit.SECONDS)) {"Fixture body was not released"}
+                    throw IOException("Released blocked fixture body")
+                }).build()
+            } else {
+                entered.countDown()
+                check(release.await(5, java.util.concurrent.TimeUnit.SECONDS)) {"Fixture headers were not released"}
+                response(chain.request(), bytes)
+            }
+        }.build()
+        java.util.concurrent.Executors.newSingleThreadExecutor().asCoroutineDispatcher().use { io ->
+            val downloader = LocalModelDownload(store, http, spec(bytes), ioDispatcher = io)
+            val job = launch(Dispatchers.Default) {
+                try {downloader.download(true)} catch(e: Exception) {observed.complete(e)}
+            }
+            try {
+                assertTrue(withContext(Dispatchers.Default) {entered.await(5, java.util.concurrent.TimeUnit.SECONDS)})
+                job.cancel()
+                val cancelled = withContext(Dispatchers.Default) {
+                    val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(2)
+                    while(!call.get().isCanceled() && System.nanoTime() < deadline) Thread.sleep(2)
+                    call.get().isCanceled()
+                }
+                assertTrue("Stop must cancel the HTTP call while its only I/O thread is blocked", cancelled)
+            } finally {
+                release.countDown()
+                withContext(NonCancellable) {withTimeout(5_000) {job.cancelAndJoin()}}
+            }
+            assertTrue(withTimeout(5_000) {observed.await()} is CancellationException)
+            assertEquals(1, requests); assertTrue(store.models().isEmpty())
+            assertEquals(if(stallInBody) 512L else 0L, downloader.partialBytes())
+            if(stallInBody) assertArrayEquals(bytes.copyOfRange(0,512), File(root,"${spec(bytes).sha256}.part").readBytes())
+        }
+    }
+    @Test fun cancellingBlockedHeadersDoesNotNeedAFreeIoThread() = runBlocking {
+        cancelsWithoutAFreeIoThread(stallInBody = false)
+    }
+    @Test fun cancellingBlockedBodyDoesNotNeedAFreeIoThread() = runBlocking {
+        cancelsWithoutAFreeIoThread(stallInBody = true)
+    }
+
 }

@@ -1,5 +1,20 @@
 # On-device inference validation
 
+## 12 November 2026 - cancellation watcher fix and retained resume failures
+
+Both no-free-I/O-thread regressions fail before the fix and pass after it. Full
+build:1006 JVM /96 reports, no failures/errors/skips; lint0 errors51/50 warnings;
+original signers/native/page/DEX checks pass. Real HTTPS cancellation takes3 ms
+on the phone and18-34 ms on API37 emulator; explicit discard passes on both.
+Resume still times out at the unchanged300s bound; partials668,174,446 and
+23,246,323 bytes remain. Phone kernel-freezer recovery is documented, not accepted
+as a clean resume pass. Original models/chat/preferences/UIDs remain; production
+beta.8 is unchanged. [Exact fix, hashes, scope and gates](contracts/2026-11-12-download-cancellation.md).
+
+The current hosted API26 shard1 fails keyboard preparation before inventory;
+complete candidate standard union remains open. Earlier scoped checks below
+remain historical. No new public release is claimed.
+
 ## 12 November 2026 - uncompressed DEX beta.9 candidate
 
 A stored API37 startup ANR identifies compressed DEX inflation before app classes

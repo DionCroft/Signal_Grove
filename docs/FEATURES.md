@@ -13,7 +13,7 @@ release inclusion are separate. [Release status and figures](../README.md).
 | Hosted rooms | Explicit read-only room inventory/history browsing | [Room contract](contracts/2026-11-08-hosted-rooms.md); forwarding, membership/grants/delivery controls remain in the audit |
 | Serving models | Verified serving identity, freshness/errors, server default and requested/session model shown separately; Automatic for new turns; reasoning/service presets | Live owner setup was exercised; model choices do not load/evict server weights by themselves |
 | Phone inference | Optional CPU-native LFM3 text chat, streaming, cancellation, context limits, load/unload/delete and model-bound local history | Six physical native cases across LFM3/helper and Qwen/import/family behavior; final beta.9 phone upgrade still due |
-| Model management | Pinned LFM3 download, explicit resume/discard, Android picker import, hash/size/licence/template checks and private atomic installation | Eight metadata architecture names, not eight universally supported model families; current HTTPS cancellation/resume gate has two retained timeouts |
+| Model management | Pinned LFM3 download, explicit resume/discard, Android picker import, hash/size/licence/template checks and private atomic installation | Eight metadata architecture names, not eight universally supported model families; real HTTPS cancellation/discard pass; full resume retains timeouts |
 | Setup helper | Static guide plus six topics; model selects eligible IDs and UI renders exact versioned English/Chinese/pinyin sources | All six topics have physical native evidence; selected redacted observations require opt-in; no settings/tool/approval execution |
 | Local/remote handoff | Review a new unsent text-only question into a separate phone draft; review local advice before copying | Credentials, remote history, images, approvals and attempted/unknown work are excluded; sending remains explicit |
 | Stored projects | Reviewed inventory/details and create/edit/archive/restore/delete/active-pointer controls; project-conversation navigation | Owner confirmed stored project details; metadata does not establish worker identity, a mounted root or permission to execute |
@@ -41,11 +41,11 @@ do not certify installation of beta.9's new packaging/version.
 | Qwen2.5-0.5B-Instruct Q4_K_M | 491,400,032 bytes; SHA-256 `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db` |
 | Three physical imports | 649, 685 and 1,438 ms |
 | Highest observed VmHWM | 2,608,447,488 bytes (2.43 GiB); short USB-charging observations, not minimum RAM or a complete peak/endurance benchmark |
-| Candidate APKs | Production 70,993,762 bytes; original-key debug 92,543,658 bytes; test 7,865,091 bytes; no model weights bundled |
-| Candidate JVM/lint | 1,004 cases / 96 reports; no failures/errors/skips; lint 0 errors, 51 debug/50 release warnings |
-| Candidate native local-AI UI | API26: 10 distinct positive cases, no skips/failures |
+| Candidate APKs | Production 70,993,978 bytes; original-key debug 92,543,466 bytes; test 7,865,091 bytes; no model weights bundled |
+| Candidate JVM/lint | 1,006 cases / 96 reports; no failures/errors/skips; lint 0 errors, 51 debug/50 release warnings |
+| Earlier candidate native local-AI UI | API26: 10 distinct positive cases, no skips/failures |
 | Prior standard gate | Source 7ee5c59: API26 1,132 and API37 1,133 complete distinct cases; new candidate union not yet accepted |
-| Current transfer gate | Two failures: cancellation 10s and resume 300s; retained partials 8,447,628 and 384,018,487 bytes; no timeout weakened |
+| Current transfer gate | Cancellation 3 ms phone /18-34 ms emulator and discard pass; resume 300s failures retain 23,246,323 /668,174,446 bytes; phone freezer recovery is not a clean pass |
 | Advisory query | 150 resolved Maven versions, zero known matching OSV advisories on 12 November; pinned native commit query also returned none, with known-indexed coverage limits |
 
 Import numbers are individual observations, not a model/storage performance
@@ -54,5 +54,5 @@ these final-source batches. Generic GGUF admission does not establish licence,
 publisher, native compatibility or safe memory requirements on another phone.
 
 [Physical evidence](contracts/2026-11-12-physical-offline-model-acceptance.md) ·
-[Candidate evidence](contracts/2026-11-12-uncompressed-dex-candidate.md) ·
+[Current cancellation/build evidence](contracts/2026-11-12-download-cancellation.md) · [Earlier candidate evidence](contracts/2026-11-12-uncompressed-dex-candidate.md) ·
 [On-device usage](ON_DEVICE_AI.md) · [Full audit](AUDIT_EXECUTION_PLAN.md).

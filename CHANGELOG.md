@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Fix stalled model-download cancellation when the I/O dispatcher is occupied.
+  Add two reproduced regressions; all 1,006 JVM tests pass. Native cancellation and
+  explicit discard pass on phone/emulator; resume failures and phone-freezer
+  recovery remain documented. No timeout or transfer verification is relaxed.
+
 - Prepare beta.9/code112 with original package/signing identities. Store DEX
   uncompressed/aligned after reproducing an ART inflation startup ANR; retain
   emulator UID/core data and verify local-AI UI on API26. Larger APK size and

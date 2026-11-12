@@ -127,8 +127,10 @@ Hermes connection and conversation, paste, review the destination and send it
 yourself. No action, approval or automatic remote submission accompanies copying.
 
 The earlier original-key debug candidate passes six physical offline native
-cases, including all six helper topics and model/history isolation. The beta.9
-candidate passes ten API26 local-AI UI cases, with 1,004 JVM cases and zero-error
-lint. These do not establish a final beta.9 phone upgrade, successful current
-transfer gate or complete lifecycle/release acceptance. [Current figures](FEATURES.md),
+cases, including all six helper topics and model/history isolation. The earlier
+beta.9 candidate passes ten API26 local-AI UI cases. The current candidate passes
+1,006 JVM cases and zero-error lint; its debug phone upgrade preserves owner data.
+Real HTTPS cancellation/discard pass, but resume retains timeouts, including a
+phone kernel-freezer recovery. Production-key upgrade, full transfer and lifecycle/
+release acceptance remain open. [Current figures](FEATURES.md),
 [delivery plan](ON_DEVICE_AI_PLAN.md) and [validation](VALIDATION.md).

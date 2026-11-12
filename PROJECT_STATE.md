@@ -1,13 +1,23 @@
 # Signal Grove project state
 
 Current milestone: beta.9 uncompressed-DEX candidate and download/release checks.
-Current objective: diagnose bounded download cancellation/completion failures,
+Current objective: finish foreground full-download/resume acceptance,
 finish candidate device/release checks and keep the separate worker audit moving.
 Assurance state: fresh stable40/main100 findings and full original audit remain.
-Last checkpoint: 12 November 2026, uncompressed-dex-candidate.
+Last checkpoint: 12 November 2026, download-cancellation.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
+
+Latest checkpoint: the saturated-I/O cancellation defect is reproduced by two
+failing regressions and fixed; full 1,006 JVM /96 reports and zero-error lint51/50
+pass. Current signed APKs retain original keys, native alignment and uncompressed
+DEX. Cancellation/discard pass on the phone and emulator, but resume retains
+300s failures. Phone cgroup freeze is reconciled by foregrounding the exact
+existing process once; no restart/replay, assertion relaxation or root occurs.
+Original phone models/chat/preferences/UIDs and production APK remain. Temporary
+USB-awake state is restored and encrypted snapshots verify.
+[Current cancellation evidence](docs/contracts/2026-11-12-download-cancellation.md).
 
 The owner explicitly requests publication from main once the application passes
 its release checks, plus current repository/README features and figures. README,
@@ -16,17 +26,12 @@ index are refreshed with published/candidate distinctions and scoped measurement
 The new screenshot is a synthetic API26 candidate UI capture. Documentation-only
 changes do not alter candidate APKs or close any original release/audit gate.
 
-The planned beta.9/code112 candidate avoids DEX inflation at cold startup. Build,
-1004 JVM, original signers/native alignment and zero-error lint51/50 pass. Debug/
-test emulator upgrades retain UIDs and351 API37 /66 API26 scoped core hashes;
-API26 host timeout is reconciled from native install success without replay.
-All10 exact API26 local-AI UI cases pass; synthetic bilingual layout is inspected.
-Two new HTTPS cases fail unchanged10s/300s bounds, with partials preserved; the
-second resumes to384 MB. This is not complete transfer or physical beta.9 proof.
-Fresh compatibility remains stable40/current main100 handler findings. OSV150-
-module/pinned-native queries return no matching known indexed advisories, with
-explicit coverage limits. Public beta.8 and the owner's phone remain unchanged.
-[Candidate scope](docs/contracts/2026-11-12-uncompressed-dex-candidate.md).
+Earlier packaging-only candidate checks retain their exact scope:10 API26 local-AI
+UI passes and351 API37 /66 API26 scoped core hashes across upgrades. Its original
+two transfer failures remain [historical evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md).
+Fresh compatibility remains stable40/current main100 handler findings. Advisory
+review covers150 Maven modules and the pinned native revision with known-indexed
+coverage limits. Published beta.8 and the phone's production app remain unchanged.
 
 The owner's physical ARM64 API37 phone passes six exact offline native cases on
 the original-debug-key candidate: LFM3 output/cancel/recover/unload, all six grounded
@@ -58,9 +63,10 @@ c55d070 Android workflow also succeeds; CI signer is not the production signer.
 Fresh source c55 reports stable40/current main100 changed handlers; the older
 saved main97 outcome remains historical evidence. No source/commit waiver applies.
 
-**Next exact action:** diagnose the transfer cancellation delay and capture actual
-progress before a fresh bounded acceptance run; preserve both failed roots and
-all original assertions. Finish candidate process/recovery, full standard hosted
+**Next exact action:** establish a foreground phone transfer fixture with observed
+kernel-freezer state, diagnose transfer progress and verify full download/resume
+without relaxing original assertions; preserve all failed roots. Repair the
+hosted API26 keyboard-preparation gate before accepting the full standard union. Finish candidate process/recovery, full standard hosted
 union, physical production upgrade, compatibility review, SBOM/provenance and
 public-asset verification before publication. The actual Windows read failure
 also remains: new diagnostic prepare is submitted then loses its reply (Win32
