@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Execute the complete standard device set in two owned shards per API, with
+  installed-APK identity, explicit inventory-only evidence and a required native
+  union check. Reject missing, duplicate, failed or altered case evidence; keep
+  model prerequisites, prior failures and lifecycle/release acceptance separate.
+
 - Prepare the reviewed default keyboard on fresh owned API26 CI emulators with one
   explicit first-use-tip dismissal and verified hide/reopen geometry. Retain exact
   receipts and failed attempts; preserve all app visibility, consent and native

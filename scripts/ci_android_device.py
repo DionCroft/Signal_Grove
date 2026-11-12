@@ -8,6 +8,7 @@ results as a standard-suite or model-acceptance pass.
 """
 from __future__ import annotations
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -112,11 +113,13 @@ def retain_instrumentation(log_path: Path, output: str, record: dict) -> bool:
         return False
 
 
-def run_instrumentation(device, log_path: Path, timeout: int = 6000) -> int:
+def run_instrumentation(device, log_path: Path, timeout: int = 6000, *, shard_index: int | None = None) -> int:
     """One finite invocation; retain exit facts without retrying or accepting partial output."""
+    if shard_index is not None and (type(shard_index) is not int or shard_index not in (0,1)):raise ValueError('Invalid owned device shard')
+    shard_args=[] if shard_index is None else ['-e','numShards','2','-e','shardIndex',str(shard_index)]
     started = time.monotonic()
     try:
-        result = device('shell', 'am', 'instrument', '-w', '-r',
+        result = device('shell', 'am', 'instrument', '-w', '-r', *shard_args,
                         '-e', 'notClass', ','.join(EXTERNAL_MODEL_GATES),
                         'org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner', timeout=timeout, check=False)
     except subprocess.TimeoutExpired as exc:
@@ -136,6 +139,37 @@ def run_instrumentation(device, log_path: Path, timeout: int = 6000) -> int:
     if not retained:
         raise RuntimeError('Instrumentation evidence could not be retained; no device pass is recorded.')
     return record['ok_summary_tests']
+
+
+def read_standard_inventory(device, work: Path) -> dict:
+    """One log-only enumeration. It never supplies a native execution verdict."""
+    from android_device_coverage import inventory_record
+    log=work/'inventory.log';receipt=work/'inventory-result.json'
+    if log.exists() or receipt.exists():raise ValueError('Inventory already attempted; inspect its exact receipt')
+    try:
+        result=device('shell','am','instrument','-w','-r','-e','log','true','-e','notClass',','.join(EXTERNAL_MODEL_GATES),
+            'org.hermesmobile.app.debug.test/androidx.test.runner.AndroidJUnitRunner',timeout=120,check=False)
+        log.write_text(result.stdout,encoding='utf-8');report=inventory_record(result.stdout,result.returncode)
+        receipt.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+        return report
+    except (OSError,ValueError,subprocess.SubprocessError) as error:
+        if not log.exists():
+            output=getattr(error,'stdout','') or ''
+            log.write_text(output.decode('utf-8',errors='replace') if isinstance(output,bytes) else output,encoding='utf-8')
+        receipt.write_text(json.dumps(dict(schema=1,status='inventory_failed_or_unknown',native_acceptance=False,error_type=type(error).__name__))+'\n',encoding='utf-8')
+        raise
+
+
+def verified_installed_apks(device, app: Path, tests: Path) -> dict:
+    hashes={}
+    for kind,path,pkg in [('app',app,'org.hermesmobile.app.debug'),('test',tests,'org.hermesmobile.app.debug.test')]:
+        expected=hashlib.sha256(path.read_bytes()).hexdigest()
+        installed=device('shell','pm','path',pkg).stdout.strip()
+        if re.fullmatch(r'package:/data/app/[A-Za-z0-9_~+=./-]+/base\.apk',installed) is None:raise ValueError('Unexpected installed APK path')
+        actual=device('shell','sha256sum',installed.partition(':')[2]).stdout.split()
+        if not actual or actual[0]!=expected:raise ValueError('Installed APK differs from this workflow artifact')
+        hashes[kind]=expected
+    return hashes
 
 
 def keyboard_preparation_record(output: str, code: int, nonce: str) -> dict:
@@ -325,9 +359,12 @@ def main() -> int:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--api',type=int,choices=(26,37),required=True)
     parser.add_argument('--artifacts',type=Path,required=True)
+    parser.add_argument('--shard-index',type=int,choices=(0,1),required=True)
     args=parser.parse_args()
     if sys.platform!='linux' or os.environ.get('GITHUB_ACTIONS')!='true':
         raise ValueError('This helper is restricted to isolated GitHub Linux runners.')
+    source=os.environ.get('GITHUB_SHA','')
+    if re.fullmatch(r'[0-9a-f]{40}',source) is None:raise ValueError('Exact workflow source is required')
     temp=Path(os.environ['RUNNER_TEMP']).resolve(strict=True)
     work=temp/'hermes-device-qa';work.mkdir(exist_ok=True)
     (work/'external-model-gates.json').write_text(json.dumps(external_model_gate_manifest(),indent=2)+'\n',encoding='utf-8')
@@ -340,6 +377,7 @@ def main() -> int:
         raise ValueError('KVM is unavailable; device execution is not verified.')
     def run(argv,timeout=30,check=True):
         return subprocess.run([str(x) for x in argv],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=timeout,check=check)
+    if run(['git','rev-parse','HEAD']).stdout.strip()!=source:raise ValueError('Checkout differs from workflow source')
     image=f'system-images;android-{"37.0" if args.api==37 else "26"};google_apis;x86_64'
     print(f'Installing the API {args.api} system image in the isolated runner.',flush=True)
     install_sdk_packages(['sdkmanager','emulator','platform-tools',image],env,work/'sdk.log')
@@ -378,13 +416,19 @@ def main() -> int:
             device('shell','wm','dismiss-keyguard',check=False)
             device('install','-r',app,timeout=120)
             device('install','-r',tests,timeout=120)
+            apk_hashes=verified_installed_apks(device,app,tests)
             prepare_owned_keyboard(device,work,args.api)
             if args.api>=37:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')
-            print('Running the standard instrumentation suite; explicit external model gates are separate (100-minute limit).',flush=True)
-            count=run_instrumentation(device,work/'instrumentation.log')
-            summary=f'API {args.api}: standard instrumentation suite passed ({count} cases); external model gates not run here.'
+            inventory=read_standard_inventory(device,work)
+            print(f'Running standard-suite shard {args.shard_index}/2; full inventory {len(inventory["cases"])}; external model gates separate (100-minute limit).',flush=True)
+            count=run_instrumentation(device,work/'instrumentation.log',shard_index=args.shard_index)
+            from android_device_coverage import partition_record,read_log
+            partition=partition_record(api=args.api,index=args.shard_index,source=source,apks=apk_hashes,external=external_model_gate_manifest(),
+                inventory_output=read_log(work/'inventory.log'),native_output=read_log(work/'instrumentation.log'))
+            (work/'device-partition.json').write_text(json.dumps(partition,indent=2)+'\n',encoding='utf-8')
+            summary=f'API {args.api} shard {args.shard_index}: {count} native cases passed; complete cross-shard coverage still requires the union gate; external models not run here.'
             print(summary)
             with Path(env['GITHUB_STEP_SUMMARY']).open('a',encoding='utf-8') as report:report.write(summary+'\n')
         finally:

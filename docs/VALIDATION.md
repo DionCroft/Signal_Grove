@@ -1,5 +1,33 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - exact complete device partitions
+
+Standard CI now executes two AndroidJUnitRunner shards on each API, keeping the
+same test bodies/assertions, 100-minute command limit and five-class/eleven-method
+external-model boundary. Each fresh owned device records a full log-only
+inventory, installed APK hashes and native case evidence. A separate union gate
+requires both APIs, the same source/APK pair, identical per-API full inventories,
+one positive start/finish per distinct case and disjoint complete native unions.
+Inventory, missing/duplicated/failed/skipped/partial output and changed raw logs
+cannot become a complete standard-suite pass.
+
+Source 530 passes 1004 JVM / 96 reports, 335 policies, both lint variants with zero
+errors (51 debug/50 release warnings), original debug signing and all 32 packaged
+native-library ABI/alignment checks. Full inventory-only partitions are
+1132=535+597 on API26 and 1133=536+597 on API37. Six real focused methods per API
+pass across both shards (1+5), with settings restored. A real focused-only union
+is refused as incomplete. The CLI also accepts a synthetic valid matrix and
+rejects altered evidence; that fixture is not Android acceptance.
+
+Protected upgrades retain all 9 / 1547 file hashes and UIDs. Preserve the new
+API37 disposable preboot failure, the host log-name collision after independently
+verified upgrades and the focused zero-test rejection; none is relabelled as a
+pass or blindly replayed. Full hosted native union, monolithic timeout/long-lived
+performance, physical/models/lifecycle, production and every worker/files,
+integration/advisory and signed-release row remain open. Beta.8 remains published.
+
+[Scope/evidence](contracts/2026-11-12-complete-device-partitions.md).
+
 ## 12 November 2026 - owned API26 keyboard readiness
 
 Fresh API26 CI now explicitly prepares its reviewed default Gboard before the
