@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add an internal registered Windows workspace read provider with actor/profile
+  fencing, full 128-bit root/entry identities, bounded listings/previews and native
+  junction/hard-link/rename protection. Add a strict Windows CI gate; broker,
+  Hermes transport and Android file-browser integration remain separate.
+
 - Execute the complete standard device set in two owned shards per API, with
   installed-APK identity, explicit inventory-only evidence and a required native
   union check. Reject missing, duplicate, failed or altered case evidence; keep

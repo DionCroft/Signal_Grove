@@ -1,36 +1,42 @@
 # Signal Grove project state
 
-## Current checkpoint - exact complete device partitions
+## Current checkpoint - Windows worker file-read provider
 
-Standard CI now executes two AndroidJUnitRunner shards on each API, keeping the
-same test bodies/assertions, 100-minute command limit and five-class/eleven-method
-external-model boundary. Each fresh owned device records a full log-only
-inventory, installed APK hashes and native case evidence. A separate union gate
-requires both APIs, the same source/APK pair, identical per-API full inventories,
-one positive start/finish per distinct case and disjoint complete native unions.
-Inventory, missing/duplicated/failed/skipped/partial output and changed raw logs
-cannot become a complete standard-suite pass.
+An internal owning-host provider now prepares registered project/root bindings,
+lists bounded directories and previews exact listed text files through real
+Windows disk handles. Authenticated actor/profile scopes, actual hostname,
+process instance, registry revision, full 128-bit file IDs, entry tokens and expiry are
+fenced. Held ancestor handles prevent replacement during reads; junctions,
+reparse/hard links, traversal/ADS/device aliases and credential trees refuse.
+Lists/previews are bounded and contents stay out of logs/model context. Full
+file-ID support is mandatory; there is no legacy 64-bit fallback. The current
+mapped network repository returns native error 87 for FileIdInfo and is explicitly
+UNSUPPORTED. This is a compatibility finding, not completed NAS project access.
 
-Source 530 passes 1004 JVM / 96 reports, 335 policies, both lint variants with zero
-errors (51 debug/50 release warnings), original debug signing and all 32 packaged
-native-library ABI/alignment checks. Full inventory-only partitions are
-1132=535+597 on API26 and 1133=536+597 on API37. Six real focused methods per API
-pass across both shards (1+5), with settings restored. A real focused-only union
-is refused as incomplete. The CLI also accepts a synthetic valid matrix and
-rejects altered evidence; that fixture is not Android acceptance.
+This is not yet a broker, Hermes or Android file-browser integration. A trusted
+interactive worker must supply fresh authorized registry bindings. Native Hermes
+filesystem defaults do not certify the separate Windows project owner.
 
-Protected upgrades retain all 9 / 1547 file hashes and UIDs. Preserve the new
-API37 disposable preboot failure, the host log-name collision after independently
-verified upgrades and the focused zero-test rejection; none is relabelled as a
-pass or blindly replayed. Full hosted native union, monolithic timeout/long-lived
-performance, physical/models/lifecycle, production and every worker/files,
-integration/advisory and signed-release row remain open. Beta.8 remains published.
+Source 566 passes 1004 JVM / 96 reports, 347 script policies, both lint variants
+with zero errors (51/50 warnings), original signing and all 32 native-library
+ABI/alignment checks. Twenty-three real Windows filesystem cases pass, without
+skips and with source hashes unchanged. Two unchanged Android project-gateway
+cases pass on the installed source 566 pair after all 9 protected file hashes/UIDs
+are retained. These scopes do not certify deployed/NAS/Surface/phone access.
 
-[Scope/evidence](docs/contracts/2026-11-12-complete-device-partitions.md).
+The older daa3ec8 hosted suite is now independently verified: 1132 API26 and 1133
+API37 exact positive cases, no missing/skipped/failed cases; eleven external-model
+methods stay not-run. Its success covers only that parent. The newer 2a763fe
+four-shard jobs were still live at this checkpoint; new-source full union,
+compatibility, production/physical/model/lifecycle and every broader audit row
+remain required. Beta.8 remains published; goal stays active.
 
-**Next exact action:** retain new-source full four-partition CI/union evidence and
-review unwaived compatibility reports, then continue verified worker/root/file
-access and the complete original audit ledger. Preserve live parent CI jobs.
+[Provider boundary and evidence](docs/contracts/2026-11-12-windows-workspace-provider.md).
+
+**Next exact action:** implement and test the fixed read adapter in the trusted
+interactive broker, preserving authenticated actor/profile-to-worker binding
+and keeping preview contents out of coordinator storage. Then wire the optional
+Hermes capability and Android root/file review; retain live full CI separately.
 
 ## Continuing scope and authoritative records
 

@@ -1,0 +1,50 @@
+name: Windows worker workspace provider
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    paths: ['server_extensions/worker_workspaces/**', 'scripts/run_workspace_provider_tests.py', 'scripts/tests/test_workspace_provider_policy.py', 'scripts/tests/test_workspace_native_gate.py', '.github/workflows/worker-workspaces.yml']
+permissions:
+  contents: read
+concurrency:
+  group: worker-workspaces-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: python3 -B -m unittest discover -s scripts/tests -p 'test_workspace_*.py' -v
+  windows-native:
+    needs: protocol
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - name: Verify native Windows filesystem and fixed read boundary
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $scratchRoot = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP 'worker-workspace-fixtures'))
+          if ([IO.Path]::GetPathRoot($scratchRoot).TrimEnd('\') -eq 'C:') { throw 'Native scratch must not use C:' }
+          New-Item -ItemType Directory -Path $scratchRoot -Force | Out-Null
+          $env:TEMP = $scratchRoot
+          $env:TMP = $scratchRoot
+          $env:PYTHONDONTWRITEBYTECODE = '1'
+          python -B scripts/run_workspace_provider_tests.py --output "$env:RUNNER_TEMP/worker-workspace-native.json" 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/worker-workspace-native.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: windows-worker-workspace-provider
+          path: |
+            ${{ runner.temp }}/worker-workspace-native.json
+            ${{ runner.temp }}/worker-workspace-native.log
+          if-no-files-found: warn
+          retention-days: 7

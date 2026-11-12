@@ -1,5 +1,38 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - Windows worker file-read provider
+
+An internal owning-host provider now prepares registered project/root bindings,
+lists bounded directories and previews exact listed text files through real
+Windows disk handles. Authenticated actor/profile scopes, actual hostname,
+process instance, registry revision, full 128-bit file IDs, entry tokens and expiry are
+fenced. Held ancestor handles prevent replacement during reads; junctions,
+reparse/hard links, traversal/ADS/device aliases and credential trees refuse.
+Lists/previews are bounded and contents stay out of logs/model context. Full
+file-ID support is mandatory; there is no legacy 64-bit fallback. The current
+mapped network repository returns native error 87 for FileIdInfo and is explicitly
+UNSUPPORTED. This is a compatibility finding, not completed NAS project access.
+
+This is not yet a broker, Hermes or Android file-browser integration. A trusted
+interactive worker must supply fresh authorized registry bindings. Native Hermes
+filesystem defaults do not certify the separate Windows project owner.
+
+Source 566 passes 1004 JVM / 96 reports, 347 script policies, both lint variants
+with zero errors (51/50 warnings), original signing and all 32 native-library
+ABI/alignment checks. Twenty-three real Windows filesystem cases pass, without
+skips and with source hashes unchanged. Two unchanged Android project-gateway
+cases pass on the installed source 566 pair after all 9 protected file hashes/UIDs
+are retained. These scopes do not certify deployed/NAS/Surface/phone access.
+
+The older daa3ec8 hosted suite is now independently verified: 1132 API26 and 1133
+API37 exact positive cases, no missing/skipped/failed cases; eleven external-model
+methods stay not-run. Its success covers only that parent. The newer 2a763fe
+four-shard jobs were still live at this checkpoint; new-source full union,
+compatibility, production/physical/model/lifecycle and every broader audit row
+remain required. Beta.8 remains published; goal stays active.
+
+[Provider boundary and evidence](contracts/2026-11-12-windows-workspace-provider.md).
+
 ## 12 November 2026 - exact complete device partitions
 
 Standard CI now executes two AndroidJUnitRunner shards on each API, keeping the
