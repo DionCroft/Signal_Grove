@@ -1,5 +1,40 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - private local worker read transport
+
+An opt-in local Windows pipe now carries the fixed read frames without a public
+port, shared secret, persistent queue or content cache. A protected owner-only
+DACL and local-client flag restrict access. The client verifies actual broker
+PID, creation time, user and session before submission; the server checks the
+client token and reverts impersonation before project reads. Actor/profile/root
+authorization remains the existing broker's separate responsibility.
+
+Message I/O has finite deadlines and no implicit retry. Failures conservatively
+report whether submission may have occurred. Reply hashes are acknowledged;
+closure cancels pending pipe I/O, retires leases and discards in-flight contents.
+A real regression now prevents a grant committing after provider retirement.
+No live service, worker enrollment, Pi, credential or model change is performed.
+
+Source 630 passes 1004 JVM / 96 reports, 359 policies, both lint variants with no
+errors (51/50 warnings), original debug signing and 32 native ABI/alignment
+checks. All 48 distinct Windows cases pass on Python3.13 and the installed
+worker Python3.14.9, without skips or source drift. They include actual restricted-
+token denial, a separate client process, spoofed peer metadata, size limits,
+timeouts/disconnect/no replay, cancellation and reported identity failures.
+Two unchanged Android project-gateway cases pass after all 9 protected hashes
+and package UIDs survive the exact installed upgrade.
+
+Read-only live-broker observation verifies fresh ready/registry health, exact
+process identity, current owner/nonzero session, maintained runtime declaration
+and eight completed queue/receipts only. This is a point-in-time observation,
+not authorization for a later restart or proof of phone integration. The new
+transport still needs enrollment with actual broker policy and the private
+helper, followed by Hermes capability and Android wiring. NAS full-ID support,
+Surface, production/physical/model and every audit/release gate remain open.
+Published beta.8 and the full active goal are unchanged.
+
+[Transport contract and evidence](contracts/2026-11-12-local-worker-read-transport.md).
+
 ## 12 November 2026 - checked worker read frames and complete parent Android union
 
 An internal broker adapter now accepts bounded strict JSON byte frames for one
@@ -1335,7 +1370,7 @@ independent work. Exact-head full Android and compatibility gates precede merges
 | 2. Real Hermes matrix | Pinned stable/prior gateways returned authenticated discovery/chat through isolated synthetic providers. The v0.22.7 poll/SSE/history/single-admission receipts remain. Current pinned v0.23.0 actual modules pass46 authority/dispatcher cases, including strict schemas, ownership, subscription cleanup and reconnect catch-up. Actual dashboard lifespan/auth/broker/profile-history ASGI probes also pass21 stable/21 prior cases with a synthetic IdP, same-ID transcript isolation, replay/PKCE refusal and unchanged stored history. Direct actors/in-memory sinks do not certify native login/transport/restore/adoption or tool/inference acceptance. | Extend the now-validated ASGI native-login/refresh/profile isolation matrix to actual Android browser/TCP/TLS, approvals/recovery, images and representative integrations/projects/Kanban. Main stays a separate canary. |
 | 3. Physical Android | Redmi/API37 ARM64 installed hashes/signers and Home inspected; isolated1 plus foreground29 data cases pass. Background29 timeouts remain retained/unresolved. On-device recognizer unavailable; owner keeps offline policy. Owner-authorized inspection resolved the unset TTS default; audible read-aloud and stop-on-leave confirmed on the904f/4c67 pair with online voices off. | Complete UI/lifecycle/idle/notifications/IME, offline speech/TTS/Bluetooth and approved matching-signer update retention; do not generalize foreground passes to background/OEM certification. |
 | 4a. Kanban status/overrides | Private model/provider/reasoning forms and typed status with linked-impact review, explicit approval, scoped receipts and no-replay guards exist on the feature branch. Earlier local cohorts and caption failures remain recorded. | Reconciled feature360 source has full1011/1012 hosted acceptance. Complete isolated real-server transitions; runtime adoption and worker/filesystem effects remain separate. |
-| 4b. Workers/dispatch | Private task/run metadata reads and an internal Windows registered-root read provider exist. Source 600 adds checked-context broker byte frames and provider retirement, with 33 native Windows, 353 policy and 1004 JVM passes; private transport, deployment and Android wiring remain open. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
+| 4b. Workers/dispatch | Private task/run metadata reads and an internal Windows registered-root read provider exist. Source 630 adds an opt-in owner-only local pipe, peer verification and bounded foreground I/O, with 48 native cases on Python3.13/3.14, 359 policy and 1004 JVM passes; actual policy/enrollment, Hermes and Android wiring remain open. | Bounded identity-aware observations and separately reviewed reclaim/reassign/dispatch actions. Dispatch dry-run is a mutation; PID/ACK/status is not worker-stop proof. |
 | 4c. Events/files/pins/transfers | Metadata/local navigation plus an internal bounded Windows directory/text-preview provider. Authenticated broker transport and Android file hydration remain open; local NTFS fixtures do not establish NAS/Surface ownership. | Verify event-stream, attachment-byte, pin and transfer/workspace contracts; authenticated scope/bounds, approval and uncertain-outcome evidence as applicable. |
 | 5a. Advanced automation | Basic jobs and advanced inventory/detail/paused-create/pause/resume/remove exist. Scoped recent-run display now has608 JVM/both lint0/180 policy and12 focused native passes; unscoped script output is refused, with dashboard guidance. | Complete exact-head full gates and real scoped run reads, then typed editing/run/results/logs and explicit outcomes; script-row ownership needs a verified host contract. Reviewed stable cron.manage declares only list/add/remove/pause/resume; verify separate canonical admission or web contracts for missing controls. Never invent cron.manage actions or claim runtime completion from ACK. |
 | 5b. Rooms/grants/delivery | Browser plus actual installation-shared standalone reads pass831 JVM,48 Android and229 policy;205-source implementation retained. Profile-owned forwarding/full lifecycle and approved context/membership/grants/delivery remain open. | Verified membership/lead/purpose/notes foundations, distinct grants and cron delivery; then authorized goal/heartbeat/loop monitoring/control. |

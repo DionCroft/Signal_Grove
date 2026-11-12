@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add an opt-in Windows owner-only pipe for worker file reads, with actual peer
+  verification, bounded message I/O, cancellation and submission uncertainty.
+  Fix grant creation racing provider retirement. Live broker/actor policy,
+  Hermes and Android integration remain separate.
+
 - Add bounded worker-broker read frames with fresh context/revocation checks,
   explicit provider retirement, correlation and duplicate-request refusal. Fix
   close-during-context-validation content disclosure before deployment.

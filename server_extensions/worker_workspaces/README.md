@@ -126,3 +126,45 @@ added by this adapter. In particular, the existing execution queue is not a
 preview-content transport. The next stage is an authenticated private foreground
 bridge in the actual interactive broker, followed by the optional Hermes
 capability and Android review. The NAS full-ID refusal remains unresolved.
+
+## Opt-in local Windows transport
+
+`local_pipe.LocalReadPipe(adapter)` explicitly creates one ephemeral local named
+pipe for an existing checked broker context. Importing starts nothing. The pipe
+has a protected DACL granting only the current Windows user SID; its handle is
+not inheritable, its name is generated, only the first single instance exists,
+and PIPE_REJECT_REMOTE_CLIENTS refuses network clients. No TCP port, shared
+secret, credential copy, persistent queue or project-content file is added.
+
+The server queries the client's actual Windows token after reading a bounded
+message and always reverts impersonation before the interactive worker reads a
+project. Identification-only client SQOS prevents using client credentials for
+those operations. A failure to impersonate retires the endpoint. A reported
+failure to revert raises `IdentityRevertFailure`, permanently closes the context
+and must stop the dedicated pipe thread; callers must never catch it and reuse
+that thread for other work. The native fault test performs real successful
+reversion before simulating its reported failure, so it leaves no impersonation.
+
+`call_once(endpoint, frame)` verifies the actual pipe server PID, process creation
+time, Windows user and session before submission. The locator accepts only the
+fixed local pipe namespace and exact scope/instance. Process timestamps must
+retain their complete integer precision. Endpoint metadata comes from the trusted
+broker/control path, never directly from a phone request. Windows account
+identity is separate from actor/profile/project authorization; the existing
+broker must supply fresh policy and actual interactive-owner checks. A service
+session in a disposable transport test is not production interactive acceptance.
+
+Each call has a finite 0.05–10 second deadline, bounded message I/O and an ACK over
+the exact reply hash. Pending local I/O is cancelled and drained; unread contents
+are not kept for retry. `ReadTransportError.request_submitted` is conservative:
+a failed write or lost reply may have reached the broker. There is no implicit
+retry or listener restart. Close retires leases, cancels pending pipe I/O and
+drops in-flight file contents; OS filesystem work already in progress must still
+return before its thread can finish. Transport deadlines do not force-kill that
+work or certify that an unresponsive filesystem stopped.
+
+This transport is locally tested but not enrolled in the live host daemon, exposed
+through Hermes or connected to the app. The next stage is reviewed integration
+with the existing interactive broker's fresh registry/actor policy and private
+SSH helper, preserving current jobs. NAS full-ID incompatibility, Surface,
+production auth, phone files and the rest of the audit remain open.

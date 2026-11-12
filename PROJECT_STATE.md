@@ -1,41 +1,46 @@
 # Signal Grove project state
 
-## Current checkpoint - checked worker read frames
+## Current checkpoint - private local worker read transport
 
-An internal broker adapter now accepts bounded strict JSON byte frames for one
-already authenticated interactive actor/profile context. Worker instance,
-request correlation, policy revision and fresh context are fenced. Duplicate
-IDs refuse without replay; four live reads and 256 retained IDs are maximums.
-Close retires the provider; context loss/revocation drops observed contents.
-The close-from-context-callback regression fails before the fix and passes after.
+An opt-in local Windows pipe now carries the fixed read frames without a public
+port, shared secret, persistent queue or content cache. A protected owner-only
+DACL and local-client flag restrict access. The client verifies actual broker
+PID, creation time, user and session before submission; the server checks the
+client token and reverts impersonation before project reads. Actor/profile/root
+authorization remains the existing broker's separate responsibility.
 
-Source 600 passes 1004 JVM / 96 reports, 353 policies and both lint variants with
-zero errors (51 debug / 50 release warnings). Original debug signing and all 32
-native-library ABI/alignment checks pass. Thirty-three real Windows cases pass
-with no skips/source drift; two unchanged Android project-gateway cases pass
-after all 9 protected hashes and package UIDs survive the verified upgrade.
-These are internal component checks, not deployed broker or phone-file acceptance.
+Message I/O has finite deadlines and no implicit retry. Failures conservatively
+report whether submission may have occurred. Reply hashes are acknowledged;
+closure cancels pending pipe I/O, retires leases and discards in-flight contents.
+A real regression now prevents a grant committing after provider retirement.
+No live service, worker enrollment, Pi, credential or model change is performed.
 
-Parent 2a763fe's full hosted native union is independently verified from all four
-SHA-bound shard ZIPs, raw inventory/native logs and the separate union summary:
-API26 1132=535+597; API37 1133=536+597, disjoint and complete. The eleven external
-model methods remain not-run. This closes that parent's standard-suite gate,
-not final-source model/phone, production or release acceptance.
+Source 630 passes 1004 JVM / 96 reports, 359 policies, both lint variants with no
+errors (51/50 warnings), original debug signing and 32 native ABI/alignment
+checks. All 48 distinct Windows cases pass on Python3.13 and the installed
+worker Python3.14.9, without skips or source drift. They include actual restricted-
+token denial, a separate client process, spoofed peer metadata, size limits,
+timeouts/disconnect/no replay, cancellation and reported identity failures.
+Two unchanged Android project-gateway cases pass after all 9 protected hashes
+and package UIDs survive the exact installed upgrade.
 
-The current mapped network storage still refuses full FileIdInfo (native87).
-Its NTFS label and missing open-by-file-ID capability flag do not justify a
-legacy-ID fallback. Existing private services, jobs, credentials, model choices
-and published beta.8 are unchanged. Actual authenticated foreground transport,
-optional Hermes capability, Android root/file review, NAS/Surface ownership and
-every other audit/release requirement remain open; the full goal stays active.
+Read-only live-broker observation verifies fresh ready/registry health, exact
+process identity, current owner/nonzero session, maintained runtime declaration
+and eight completed queue/receipts only. This is a point-in-time observation,
+not authorization for a later restart or proof of phone integration. The new
+transport still needs enrollment with actual broker policy and the private
+helper, followed by Hermes capability and Android wiring. NAS full-ID support,
+Surface, production/physical/model and every audit/release gate remain open.
+Published beta.8 and the full active goal are unchanged.
 
-[Adapter contract and evidence](docs/contracts/2026-11-12-worker-broker-read-adapter.md).
+[Transport contract and evidence](docs/contracts/2026-11-12-local-worker-read-transport.md).
 
-**Next exact action:** integrate and verify an authenticated private foreground
-read transport in the actual interactive broker, with fresh actor/profile/owner
-authorization and no project content in the coordinator queue. Then connect the
-optional Hermes capability and Android root/file review. Resolve the separately
-observed NAS identity incompatibility before enabling that storage.
+**Next exact action:** integrate the pipe with the actual interactive broker
+and private helper using fresh authenticated actor/profile and registry/root
+policy. Recheck live receipts/process identity, review the exact install diff
+and verify recovery before enabling it. Then wire the optional Hermes capability
+and Android review. Resolve NAS identity support separately; keep APK release
+and every original audit requirement in scope.
 
 ## Continuing scope and authoritative records
 

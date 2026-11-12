@@ -233,6 +233,7 @@ class WorkspaceProvider:
             now=self.clock();token=self._mac('binding',secrets.token_hex(16),self.scope,project_id,self.instance,meta.path,meta.identity,binding.registry_revision)
             grant=Grant(binding,meta.path,meta.identity,now+TTL,token)
             with self._lock:
+                if self._retired:raise WorkspaceError('UNAVAILABLE')
                 self._grants={key:value for key,value in self._grants.items() if value.deadline>now}
                 if len(self._grants)>=16:raise WorkspaceError('BUSY')
                 self._grants[token]=grant

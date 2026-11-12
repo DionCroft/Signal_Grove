@@ -62,6 +62,12 @@ class WindowsWorkspaceTest(unittest.TestCase):
         def unsupported(*args):ctypes.set_last_error(50);return False
         with patch.object(native.k,'GetFileInformationByHandleEx',side_effect=unsupported),patch.object(native,'read',wraps=native.read) as read:
             self.refuses('UNSUPPORTED',lambda:self.prepare());read.assert_not_called()
+    def test_retirement_between_validation_and_grant_commit_refuses(self):
+        original=self.provider._mac
+        def retire_before_commit(*values):
+            result=original(*values);self.provider.retire();return result
+        with patch.object(self.provider,'_mac',side_effect=retire_before_commit):self.refuses('UNAVAILABLE',lambda:self.prepare())
+        self.assertEqual({},self.provider._grants)
     def test_changed_file_is_refused_before_content_read(self):
         file=self.root/'notes.txt';file.write_text('before');token=self.prepare();row=self.entry(token,file.name);file.write_text('after contents changed')
         native=self.provider._files()

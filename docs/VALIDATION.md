@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - private local worker read transport
+
+An opt-in local Windows pipe now carries the fixed read frames without a public
+port, shared secret, persistent queue or content cache. A protected owner-only
+DACL and local-client flag restrict access. The client verifies actual broker
+PID, creation time, user and session before submission; the server checks the
+client token and reverts impersonation before project reads. Actor/profile/root
+authorization remains the existing broker's separate responsibility.
+
+Message I/O has finite deadlines and no implicit retry. Failures conservatively
+report whether submission may have occurred. Reply hashes are acknowledged;
+closure cancels pending pipe I/O, retires leases and discards in-flight contents.
+A real regression now prevents a grant committing after provider retirement.
+No live service, worker enrollment, Pi, credential or model change is performed.
+
+Source 630 passes 1004 JVM / 96 reports, 359 policies, both lint variants with no
+errors (51/50 warnings), original debug signing and 32 native ABI/alignment
+checks. All 48 distinct Windows cases pass on Python3.13 and the installed
+worker Python3.14.9, without skips or source drift. They include actual restricted-
+token denial, a separate client process, spoofed peer metadata, size limits,
+timeouts/disconnect/no replay, cancellation and reported identity failures.
+Two unchanged Android project-gateway cases pass after all 9 protected hashes
+and package UIDs survive the exact installed upgrade.
+
+Read-only live-broker observation verifies fresh ready/registry health, exact
+process identity, current owner/nonzero session, maintained runtime declaration
+and eight completed queue/receipts only. This is a point-in-time observation,
+not authorization for a later restart or proof of phone integration. The new
+transport still needs enrollment with actual broker policy and the private
+helper, followed by Hermes capability and Android wiring. NAS full-ID support,
+Surface, production/physical/model and every audit/release gate remain open.
+Published beta.8 and the full active goal are unchanged.
+
+[Transport contract and evidence](contracts/2026-11-12-local-worker-read-transport.md).
+
 ## 12 November 2026 - checked worker read frames and complete parent Android union
 
 An internal broker adapter now accepts bounded strict JSON byte frames for one
