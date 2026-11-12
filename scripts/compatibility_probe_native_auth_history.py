@@ -7,6 +7,7 @@ Exact read-only metadata subprocess attempts remain blocked and are recorded.
 Python audit hooks bound this fixture but are not an OS security sandbox.
 See docs/contracts/2026-11-07-native-auth-history-matrix.md and
 docs/contracts/2026-11-12-current-stable-auth-release-inventory.md.
+Loader/start-entry scope: docs/contracts/2026-11-12-native-loader-startup.md.
 """
 from pathlib import Path
 import argparse
@@ -70,6 +71,13 @@ REVISIONS["stable-3b42157"] = {
         "hermes_state_sessions.py": "476b3ef51d4304f3ef57d35576e2b98e73ca56fc",
         "plugins/dashboard_auth/_shared.py": "ded9cb05bc279a7e814924ff8a16f273579caf48",
         "plugins/dashboard_auth/session_token/__init__.py": "bea000c6aa1dfd2bee982fccb29babd96719ee2e",
+        "pm/__init__.py": "b738469c81615aa214f9f5eba2a409629e4ad734",
+        "pm/client.py": "be154967c6aa932be053f10467c18dc7ff02c1e6",
+        "pm/environments.py": "9c3844d790282e675ee40e69e1d7dcfa09225bca",
+        "pm/environments_adopt.py": "4e48efd6303f2b9c02589fab777a79ff7d61e2d8",
+        "pm/extras.py": "a5b7a81aa3ffa8a399b075452f3687f3ed90a317",
+        "pm/package.py": "537761f099f94fa55b3937e943e25548c4a2c664",
+        "pm/paths.py": "52d4f0a882d0b91c8ad3b40f9118725b3b3d612c",
         "tests/hermes_cli/conftest_dashboard_auth.py": "f06ec93f722b26530b69d81c8fed0edf870a1599",
         "tools/terminal_scope.py": "caeac5135e7e2f832a2d5ce06a0f752e894d2ee9",
         "tui_gateway/launch_profile_policy.py": "1127824ac984e8e65895871a9355f5d2f9261cec",
@@ -663,6 +671,152 @@ try:
                 web_server.app.state.ui_surface=original_surface
 
 
+    if a.revision == 'stable-3b42157':
+        # Execute the real loader helpers with an explicitly synthetic module body.
+        # Python's import machinery/lock and asyncio worker handoff remain real;
+        # this does not exercise tui_gateway.ws's downstream handler or side effects.
+        import asyncio,importlib.abc,importlib.util,threading,types
+        import gateway.run_api as loader_api
+        socket_name=loader_api._SESSION_SOCKET_MODULE
+        assert socket_name=='tui_gateway.ws' and socket_name not in sys.modules
+        parent=__import__('tui_gateway');old_child=getattr(parent,'ws',None)
+        assert old_child is None
+        async def synthetic_handle(*args,**kwargs):raise AssertionError('Synthetic handler must not execute')
+        class FixtureImportFailure(RuntimeError):pass
+        class SocketModuleLoader(importlib.abc.MetaPathFinder,importlib.abc.Loader):
+            def __init__(self):self.entered=threading.Event();self.release=threading.Event();self.threads=[];self.modules=[];self.fail=False
+            def reset(self):
+                old=sys.modules.pop(socket_name,None)
+                assert old is None or old in self.modules
+                if hasattr(parent,'ws'):
+                    assert parent.ws in self.modules;del parent.ws
+                self.entered=threading.Event();self.release=threading.Event();self.fail=False
+            def find_spec(self,fullname,path=None,target=None):
+                if fullname==socket_name:return importlib.util.spec_from_loader(fullname,self)
+                return None
+            def create_module(self,spec):return None
+            def exec_module(self,module):
+                self.modules.append(module);self.threads.append(threading.get_ident());self.entered.set()
+                assert self.release.wait(5),'Synthetic import release deadline'
+                if self.fail:raise FixtureImportFailure('Synthetic import failure; no handler executed')
+                module.handle_ws=synthetic_handle
+        importer=SocketModuleLoader();sys.meta_path.insert(0,importer)
+        try:
+            async def real_loader_cases():
+                loop_thread=threading.get_ident();task=None;attach=None
+                try:
+                    task=loader_api.preload_session_socket();assert isinstance(task,asyncio.Task) and task.get_name()=='gateway-ws-preload'
+                    assert await asyncio.wait_for(asyncio.to_thread(importer.entered.wait,3),4)
+                    assert importer.threads==[importer.threads[0]] and importer.threads[0]!=loop_thread and not task.done()
+                    cases.append('real_preload_helper_imports_synthetic_module_off_loop')
+                    await loader_api.await_session_socket_preload(task,timeout=0.01)
+                    assert not task.done() and not task.cancelled()
+                    cases.append('real_preload_timeout_preserves_shared_import_task')
+                    attach=asyncio.create_task(loader_api.session_socket_handler())
+                    # A concurrent attach must wait on the genuine Python import lock
+                    # in another worker, keeping the event loop responsive.
+                    for _ in range(3):await asyncio.sleep(0.01);assert not attach.done()
+                    importer.release.set();await asyncio.wait_for(task,3)
+                    assert await asyncio.wait_for(attach,3) is synthetic_handle
+                    assert len(importer.threads)==1
+                    cases.append('real_handler_helper_waits_for_preload_without_blocking_loop')
+                    assert loader_api.preload_session_socket() is None
+                    await loader_api.await_session_socket_preload(None)
+                    assert await loader_api.session_socket_handler() is synthetic_handle and len(importer.threads)==1
+                    cases.append('real_cached_preload_fast_path_does_not_reimport')
+                finally:
+                    importer.release.set()
+                    for pending in (task,attach):
+                        if pending is not None:
+                            try:await asyncio.wait_for(asyncio.shield(pending),4)
+                            except FixtureImportFailure:pass
+                importer.reset();importer.fail=True;importer.release.set()
+                failed=loader_api.preload_session_socket();await loader_api.await_session_socket_preload(failed,timeout=3)
+                assert failed.done() and isinstance(failed.exception(),FixtureImportFailure) and socket_name not in sys.modules
+                importer.fail=False
+                assert await loader_api.session_socket_handler() is synthetic_handle
+                assert len(importer.threads)==3
+                cases.append('real_failed_preload_is_consumed_and_explicit_attach_can_load')
+            asyncio.run(real_loader_cases())
+        finally:
+            importer.release.set();importer.reset();sys.meta_path.remove(importer)
+            assert socket_name not in sys.modules and not hasattr(parent,'ws')
+
+        # Exercise the actual public startup wrapper and real PM suppression.
+        # The runtime body and installer are explicit stopping adapters: no
+        # listener, package operation or inherited TTY input may run here.
+        import builtins,concurrent.futures
+        from pm import extras as startup_extras,client as pm_client
+        assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==0
+        original_runtime=web_server._start_server_runtime
+        class StartupFixtureStop(RuntimeError):pass
+        class PromptFixtureWitness(RuntimeError):pass
+        def worker_suppression():
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                return pool.submit(startup_extras.interactive_install_prompts_suppressed).result(timeout=3)
+        try:
+            seen=[];value=object();argument=object()
+            def runtime_success(*args,**kwargs):
+                assert startup_extras.interactive_install_prompts_suppressed() and worker_suppression()
+                seen.append((args,kwargs));return value
+            web_server._start_server_runtime=runtime_success
+            assert web_server.start_server(argument,port=0,open_browser=False) is value
+            assert seen==[((argument,),{'port':0,'open_browser':False})] and startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==0
+            cases.append('actual_start_entry_forwards_values_with_worker_visible_pm_suppression')
+            def runtime_failure(*args,**kwargs):
+                assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==1
+                raise StartupFixtureStop('Synthetic runtime stopped before bind')
+            web_server._start_server_runtime=runtime_failure
+            try:web_server.start_server()
+            except StartupFixtureStop:pass
+            else:raise AssertionError('Startup exception was swallowed')
+            assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==0
+            cases.append('actual_start_entry_restores_pm_scope_after_runtime_error')
+            with startup_extras.suppress_interactive_install_prompts():
+                assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==1
+                def nested_runtime():
+                    assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==2 and worker_suppression()
+                web_server._start_server_runtime=nested_runtime;web_server.start_server()
+                assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==1
+            assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==0
+            cases.append('actual_start_entry_preserves_nested_process_wide_pm_scope')
+            previous_available=startup_extras.available;previous_supported=startup_extras.extra_supported
+            previous_sync=pm_client.sync_venv;previous_input=builtins.input;previous_in=sys.stdin;previous_out=sys.stdout
+            prompt_calls=[];install_calls=[]
+            class TtyStream:
+                def __init__(self,stream):self.stream=stream
+                def isatty(self):return True
+                def __getattr__(self,key):return getattr(self.stream,key)
+            def stopped_install(extras,*args,**kwargs):
+                assert extras==['signal-grove-synthetic-absent-extra'];install_calls.append(tuple(extras))
+                raise StartupFixtureStop('Synthetic installer stops before any package operation')
+            def witnessed_prompt(*args,**kwargs):
+                prompt_calls.append('synthetic-tty-prompt');raise PromptFixtureWitness('Input adapter; no actual stdin read')
+            try:
+                startup_extras.available=lambda extra:False
+                startup_extras.extra_supported=lambda extra:True
+                pm_client.sync_venv=stopped_install;builtins.input=witnessed_prompt
+                sys.stdin=TtyStream(previous_in);sys.stdout=TtyStream(previous_out)
+                web_server._start_server_runtime=lambda:startup_extras.ensure_import('signal-grove-synthetic-absent-extra')
+                try:web_server.start_server()
+                except StartupFixtureStop:pass
+                else:raise AssertionError('Synthetic install boundary was not reached')
+                assert not prompt_calls and len(install_calls)==1 and startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==0
+                cases.append('actual_start_entry_suppresses_tty_prompt_before_synthetic_install_refusal')
+                try:startup_extras.ensure_import('signal-grove-synthetic-absent-extra')
+                except PromptFixtureWitness:pass
+                else:raise AssertionError('Unscoped interactive contrast did not reach prompt adapter')
+                assert prompt_calls==['synthetic-tty-prompt'] and len(install_calls)==1
+                cases.append('actual_pm_unscoped_tty_contrast_prompts_without_installing')
+            finally:
+                sys.stdin=previous_in;sys.stdout=previous_out;builtins.input=previous_input
+                startup_extras.available=previous_available;startup_extras.extra_supported=previous_supported;pm_client.sync_venv=previous_sync
+        finally:
+            web_server._start_server_runtime=original_runtime
+            assert startup_extras._INTERACTIVE_INSTALL_PROMPT_SUPPRESSIONS==0
+        report['loaderStartupFixture']=dict(realLoaderHelpers=True,realPythonImportLock=True,syntheticImportedModuleBody=True,realStartEntryAndPmSuppression=True,syntheticRuntimeBody=True,syntheticInstallerStop=True,actualPackageOperations=0,actualStdinReads=0,actualListenersStarted=0)
+
+
     for profile,home in homes.items():
         scope_token=hc.set_hermes_home_override(str(home))
         try:
@@ -673,7 +827,7 @@ try:
         assert after==original[profile]
     cases.append('browsing_preserves_exact_seeded_sessions_and_messages')
 
-    assert len(cases)==len(set(cases))==(77 if a.revision=='stable-3b42157' else 52 if a.revision=='main-071d31f' else 21)
+    assert len(cases)==len(set(cases))==(87 if a.revision=='stable-3b42157' else 52 if a.revision=='main-071d31f' else 21)
     assert not denied,denied
     report.update(state='PASS_REAL_DASHBOARD_NATIVE_AUTH_AND_SCOPED_HISTORY')
 except BaseException as error:
@@ -686,7 +840,7 @@ finally:
         if value:
             path=Path(value).resolve()
             if path.is_relative_to(source) and path.is_file():modules[path.relative_to(source).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
-    report.update(revision=a.revision,sourceCommit=SOURCE_COMMIT,cases=cases,projectModules=modules,deniedEvents=denied,denialDetails=denial_details,expectedBlockedMetadataProbes=expected_blocked_metadata_probes,missingOsProbeReads=missing_os_probe_reads,ownedSocketEvents=owned_socket_events,scope=('Actual stable dashboard ASGI/auth/profile history, deployment-header/cookie refusal and actual async native-admission/client accounting. Synthetic IdP, captured peer, synthetic downstream handler and synthetic authority records; no daemon/private control channel/TCP capture, full canonical socket, Android, Pi, real IdP, PM server-start entry point or inference certification. Audit hooks are not an OS sandbox.' if a.revision=='stable-3b42157' else 'Actual dashboard ASGI/auth/profile history, private-grant middleware/TicketStore, socket-routing boundary and saved-gateway callback/store. Synthetic IdP, captured-peer adapter, refusing downstream socket gate, authority records and outbound token response. No daemon/private control channel/TCP capture, remote accepted socket, Android, Pi, real IdP or inference certification. Audit hooks are not an OS sandbox.' if a.revision=='main-071d31f' else 'Actual dashboard ASGI/lifespan/auth/profile history with an upstream synthetic HMAC provider. No Android, Pi, real IdP or inference certification. Audit hooks are not an OS sandbox.'))
+    report.update(revision=a.revision,sourceCommit=SOURCE_COMMIT,cases=cases,projectModules=modules,deniedEvents=denied,denialDetails=denial_details,expectedBlockedMetadataProbes=expected_blocked_metadata_probes,missingOsProbeReads=missing_os_probe_reads,ownedSocketEvents=owned_socket_events,scope=('Actual stable dashboard ASGI/auth/profile history, deployment-header/cookie refusal, async admission/client accounting, real loader helpers/import lock and public start-entry/PM suppression. Synthetic IdP, captured peer, downstream handler/authority, imported socket-module body, runtime body and stopping installer/input adapters; no actual package operation, stdin read, live listener, daemon/private control channel/TCP capture, full canonical socket, Android, Pi, real IdP or inference certification. Audit hooks are not an OS sandbox.' if a.revision=='stable-3b42157' else 'Actual dashboard ASGI/auth/profile history, private-grant middleware/TicketStore, socket-routing boundary and saved-gateway callback/store. Synthetic IdP, captured-peer adapter, refusing downstream socket gate, authority records and outbound token response. No daemon/private control channel/TCP capture, remote accepted socket, Android, Pi, real IdP or inference certification. Audit hooks are not an OS sandbox.' if a.revision=='main-071d31f' else 'Actual dashboard ASGI/lifespan/auth/profile history with an upstream synthetic HMAC provider. No Android, Pi, real IdP or inference certification. Audit hooks are not an OS sandbox.'))
     (root/'result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(dict(state=report['state'],cases=cases,modules=len(modules),deniedEvents=denied,errorType=report.get('errorType'))))
     if report['state'].startswith('FAILED'):raise SystemExit(1)

@@ -1,169 +1,76 @@
 # Signal Grove project state
 
-## Current checkpoint - native workspace Review
+Last checkpoint: 12 November 2026, native-loader-startup-and-complete-hosted-gate.
+The existing full audit/on-device AI goal remains active. Published APK is
+beta.8/code 111; planned beta.9/code 112 is unpublished. The owner authorizes regular
+tested commits/pushes to main and public original-key APK delivery after its gates.
 
-Hosted f9e3835 passes the complete 1,133-case API37 subset. API26 shard 1
-passes 597 cases; shard 0 starts 535 with 534 positive results and one failed
-workspace-consent case. Its 1,132-case inventory independently matches the
-successful partition. The complete standard gate remains failed; no synthetic
-pass receipt is substituted. The unchanged class later passes 19/19 locally,
-which does not identify the hosted failure's cause or erase it.
+## Current evidence
 
-Review now waits for a native-confirmed stable viewport and complete action/
-caption bounds, sends one acknowledged DOWN/UP pair, then requires fresh unchecked
-consent. A new large bilingual case covers keyboards both open and closed.
-Actual cut-corner caption outlines replace an incorrect capsule assumption;
-two rendered counterexamples prove the distinction and retain clipping refusal.
-The 31-case API26 batch passes, with 16 one-attempt native tap receipts and eight
-Review observations. This includes six scripted dispatch guards, not 31 physical
-tap tests. Test-only source changes preserve every production input.
+- Exact stable Hermes 3b42157 probe passes 87 unique cases with 55 critical Git-blob
+  guards and 949 loaded module hashes, retaining every prior 77 case. Three new
+  source/invocation refusals and 422 portable/15 runtime/checksum policies pass.
+  Loader/import-lock and start-entry/PM behavior are real; socket-module body,
+  runtime body and installer/input are explicit stopping adapters. No live server,
+  actual package operation or stdin read is certified. [Scope and reproduction](docs/contracts/2026-11-12-native-loader-startup.md).
+- Hosted d50518c passes the independently reproduced complete standard gate:
+  1,132 API26/1,133 API37 unique cases, all four raw partitions and identical APK
+  bindings. The newer 2970ffb workspace/outline test source still needs its full
+  exact-head gate. Its separate local API26 batch passes 31 cases, 16 acknowledged
+  native taps and eight Review observations. [Native Review](docs/contracts/2026-11-12-native-workspace-review.md).
+- Latest frozen Android debug/test build passes 1,006 JVM cases/96 reports, both
+  lint variants with zero errors, 51/50 warnings, original signing identity, all
+  four native ABIs, 64-bit 16 KiB and uncompressed/aligned DEX. This Python/docs
+  chunk changes no Android/native/build input or existing APK source identity.
+- The phone passes cold recovery and one explicitly approved normal-restart
+  retention check with no automatic load/generation/replay. Original models,
+  protected history/settings/UIDs and the production APK remain. Do not reboot
+  it again. [Physical retention](docs/contracts/2026-11-12-physical-restart-retention.md).
+- Both model HTTPS methods have positive phone evidence, including full LFM3
+  foreground resume/hash/atomic installation in 27,010 ms and 3 ms cancellation.
+  Prior failed/time-out/frozen-process outcomes remain. [Download proof](docs/contracts/2026-11-12-foreground-model-download.md).
+- Six earlier physical offline LFM3/Qwen/helper/import/family cases pass within
+  their exact debug-source scope. 649–1,438ms imports and 2.43 GiB observed VmHWM
+  are short USB observations, not sustained throughput/thermal/battery acceptance.
+  [Physical model scope](docs/contracts/2026-11-12-physical-offline-model-acceptance.md).
+- The clean f9e3835 original-key production candidate and six release files are
+  prepared locally: 183 CycloneDX components, 95 strict dependency inputs and 150
+  Maven versions/pinned-native OSV queries with no matching known indexed advisory.
+  This is limited advisory coverage, not full certification or publication.
+  [Inventory and exact assets](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md).
 
-The frozen debug/test build passes 1,006 JVM cases/96 reports, both lint variants
-with zero errors, original debug signing and all native/DEX alignment checks.
-The new API37 local fixture has not reached verified boot; no application test
-is submitted to it. Fresh full hosted source acceptance, original-key physical
-production upgrade/live checks, compatibility 40/100 and every broader audit
-requirement remain. Beta.9 is not published; the phone is unchanged.
+## Open acceptance
 
-[Exact cases, diagnostics and preserved failures](docs/contracts/2026-11-12-native-workspace-review.md).
+Current compatibility retains 40 changed used-handler findings on stable 3b42157
+and 100 on inspected main2bfa6b0. Complete source-dependency/semantic review and
+actual canonical transport/actor/profile/private-channel/TCP/TLS/live Pi acceptance
+remain. Component fixtures add no source waiver. Final production phone upgrade,
+saved connection/history/live behavior and public APK download/checksums remain.
 
-Current milestone: beta.9 uncompressed-DEX candidate and download/release checks.
-Current objective: finish lifecycle and final-source release acceptance,
-finish candidate device/release checks and keep the separate worker audit moving.
-Assurance state: fresh stable40/main100 findings and full original audit remain.
-Last checkpoint: 12 November 2026, native-workspace-review.
-Last handover: HANDOVER.md.
+The optional Windows deadline component has reviewed deployment/backup and 66-case
+native evidence. The approved read-only Pi trial passes status/prepare but its
+list call fails before submission; subsequent status is ready. Root cause remains
+open. Preserve all eight completed receipts and the daemon/task/source. Do not
+restart it or replay unknown effects. [Worker evidence](docs/contracts/2026-11-12-pipe-exchange-deadline.md).
 
-## Current checkpoint - stable auth and clean inventory
+Worker identity/registered roots/files/NAS and reviewed dispatch, approvals/images/
+reconnect/integrations, advanced Kanban/jobs/rooms/configuration, notifications/
+multiple connections/background/audio/accessibility/performance, remaining physical
+model checks and community-release acceptance remain in the [full audit ledger](docs/AUDIT_EXECUTION_PLAN.md)
+and [on-device plan](docs/ON_DEVICE_AI_PLAN.md). Project metadata is not execution
+ownership. No original unresolved row is removed by this summary.
 
-The final repository probe passes77 distinct cases against exact stable Hermes
-3b42157: native sign-in/refresh, isolated history, private-grant refusal/routing,
-saved-gateway callback,20 deployment-header/cookie cases and five actual async
-admission/client-accounting cases.48 critical Git blobs, clean source HEAD and
-946 loaded project-module hashes bind the fixture. Unknown source/revision
-controls refuse before fixture creation. Synthetic identities/captured peers and
-an explicit downstream handler adapter remain; this is not Pi/Android/TLS/full
-canonical-socket or PM server-start acceptance. Earlier failed fixtures remain.
-No compatibility baseline variant or used-handler waiver is added.
+## One exact next action
 
-Clean main f9e3835 builds with1006 JVM/96 reports, lint0 errors51/50 warnings,
-original signing/package/version identities and complete native/DEX alignment.
-Fresh OSV query at16:39 UTC covers150 Maven versions with no matching known
-advisories; the pinned native query also returns none, within index limits.
-Private release inventory verifies95 dependency inputs against strict metadata,
-32 packaged native files,183 CycloneDX1.6 components, certificate, checksums and
-local build provenance. Six prepared files are local only, not a GitHub release.
+Observe the existing 2970ffb Android run 43277441323 and independently verify its
+four raw partitions when terminal, without cancellation or replay. Then continue
+current-stable used-handler dependency closure and actual canonical/worker read
+acceptance before the original-key physical production upgrade and public release.
+Keep the source/fixture/advisory/physical scopes distinct. Both newly owned review
+emulators are normally stopped with disks/evidence retained; the new API37 boot
+remains unverified and older unknown fixtures are untouched. Preserve all original
+phone data, signing/package identity, TLS/profile/approval boundaries and no-replay
+behavior. All temporary work on the owner workstation stays on E.
 
-Portable422/runtime15 policies pass. Fresh stable40/inspected-main100 findings
-remain; the inspected main pin is2bfa6b0. Full hosted Android coverage, complete
-dependency/semantic review, original-key physical production upgrade/live checks
-and publication/download verification stay open. Prior phone retention and all
-original worker/project/integration audit requirements remain intact.
-
-[Exact scope, source and artifact identities](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md).
-
-Previous physical cold/restart and both keyboard-state checks remain verified;
-see [physical retention](docs/contracts/2026-11-12-physical-restart-retention.md)
-and [keyboard evidence](docs/contracts/2026-11-12-ready-keyboard.md).
-
-Earlier foreground checkpoint:
-
-The full foreground phone HTTPS resume case now passes unchanged assertions:
-3 ms cancellation, stable 8,451,250-byte prefix, full 1,049,615,680-byte hash/metadata
-check and atomic installation in 27,010 ms, followed by scoped test-model deletion.
-Six sampled kernel/screen/foreground states pass; original models/chat/settings/
-UIDs/APKs and production beta.8 remain. USB-awake setting is restored. Both HTTPS
-methods have positive physical evidence; prior failures stay retained.
-[Current foreground evidence](docs/contracts/2026-11-12-foreground-model-download.md).
-
-Earlier cancellation checkpoint:
-
-Latest checkpoint: the saturated-I/O cancellation defect is reproduced by two
-failing regressions and fixed; full 1,006 JVM /96 reports and zero-error lint51/50
-pass. Current signed APKs retain original keys, native alignment and uncompressed
-DEX. Cancellation/discard pass on the phone and emulator, but resume retains
-300s failures. Phone cgroup freeze is reconciled by foregrounding the exact
-existing process once; no restart/replay, assertion relaxation or root occurs.
-Original phone models/chat/preferences/UIDs and production APK remain. Temporary
-USB-awake state is restored and encrypted snapshots verify.
-[Current cancellation evidence](docs/contracts/2026-11-12-download-cancellation.md).
-
-The owner explicitly requests publication from main once the application passes
-its release checks, plus current repository/README features and figures. README,
-feature/validation matrix, roadmap, usage/compatibility/development and screenshot
-index are refreshed with published/candidate distinctions and scoped measurements.
-The new screenshot is a synthetic API26 candidate UI capture. Documentation-only
-changes do not alter candidate APKs or close any original release/audit gate.
-
-Earlier packaging-only candidate checks retain their exact scope:10 API26 local-AI
-UI passes and351 API37 /66 API26 scoped core hashes across upgrades. Its original
-two transfer failures remain [historical evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md).
-Fresh compatibility remains stable40/current main100 handler findings. Advisory
-review covers150 Maven modules and the pinned native revision with known-indexed
-coverage limits. Published beta.8 and the phone's production app remain unchanged.
-
-The owner's physical ARM64 API37 phone passes six exact offline native cases on
-the original-debug-key candidate: LFM3 output/cancel/recover/unload, all six grounded
-helper topics/Chinese output, metadata cancellation, committed-import cancellation,
-Qwen chat/history/deletion and separate two-family histories. Original memory and
-timing guards remain; imports take 649-1438 ms. Normal networking is restored.
-Original preferences, both original model files, package UIDs and earlier local
-chat remain, with the owner's confirmed new turn preserved. SQLite changes are
-limited to cache freshness/framework bookkeeping. Scoped encrypted recovery verifies
-and only owned duplicate test inputs are removed; production app is unchanged.
-[Physical scope and remaining five methods](docs/contracts/2026-11-12-physical-offline-model-acceptance.md).
-Earlier emulator one-pass/two-failure evidence remains retained separately.
-
-The late-client pipe deadline fix is deployed as an exact optional Windows
-component after idle/source/policy/task/receipt checks and encrypted recovery.
-All eight completed receipts, worker/daemon source and task remain unchanged.
-417 portable and 66 native cases pass locally on two Python versions and the
-66-case hosted artifact is independently verified. The fresh approved Pi trial
-passes status/prepare but list fails before submission. Later status is ready;
-its cause is not yet established. No persistent Pi/gateway/credential/model/job
-change or request replay occurs. Doctor and graph findings remain open.
-[Deployment and limitations](docs/contracts/2026-11-12-pipe-exchange-deadline.md).
-
-Complete standard Android source7ee raw evidence remains API26 1132/1132 and
-API37 1133/1133 distinct cases, 1004 JVM/96 reports, zero-error lint (52/51 warnings),
-32 native ABI/page checks and all 545 unchanged Android/build/gate inputs. Latest
-c55d070 Android workflow also succeeds; CI signer is not the production signer.
-[Standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md).
-Fresh source c55 reports stable40/current main100 changed handlers; the older
-saved main97 outcome remains historical evidence. No source/commit waiver applies.
-
-**Next exact action:** finish the actual async handler-load/PM start-entry and
-complete used-handler dependency review before any auth cohort admission, then
-review canonical authority/room findings. Retain the same live f9e3835 hosted
-native jobs and verify their exact union. Preserve the clean f9 signed assets and
-their source identity; continue production upgrade/live and public-download gates
-once required checks pass. No phone restart or uncertain emulator/install replay.
-Continue Windows read-path root cause, actor/profile/workspace/NAS and every
-original audit requirement.
-
-## Continuing scope and authoritative records
-
-Published application: v1.1.0-beta.8 (code111). Current source includes later
-optional phone inference, user-model/helper and canonical/project-navigation
-work. Source changes do not certify that published APK or the final phone build.
-Final delivery explicitly includes the original-key production APK as a public
-versioned GitHub Release asset, verified download/checksums and retained-data
-phone upgrade, with a direct APK link. Publish after applicable release gates;
-source pushes or temporary CI artifacts do not fulfil that delivery.
-The goal remains active; all unresolved requirements stay in the
-[full audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and
-[on-device AI plan](docs/ON_DEVICE_AI_PLAN.md).
-
-Worker/root/file ownership and reviewed dispatch, real production auth/recovery/
-approvals/images/integrations, advanced Kanban/automation/rooms/configuration,
-notification/multi-connection/voice/background performance, physical/model
-acceptance, advisories/provenance and the signed community release remain open.
-Project metadata or a passing fixture does not establish a live worker root.
-
-Prior checkpoints remain in Git and the detailed evidence records:
-
-- [Default-keyboard readiness](docs/contracts/2026-11-12-owned-keyboard-readiness.md).
-- [Actual-owner project reads](docs/contracts/2026-11-11-actual-owner-project-conversations.md).
-- [Project navigation](docs/contracts/2026-11-11-project-conversation-navigation.md).
-- [Native input diagnostics](docs/contracts/2026-11-11-native-input-diagnostics.md).
-- [Complete validation history](docs/VALIDATION.md).
+Detailed history remains in [validation](docs/VALIDATION.md), [evidence](EVIDENCE.md),
+dated contracts, sessions and Git. [Handover](HANDOVER.md).

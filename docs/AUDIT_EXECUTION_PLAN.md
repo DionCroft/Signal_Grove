@@ -1,5 +1,33 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - real loader/start-entry checks and complete hosted gate
+
+The exact stable 3b42157 source probe now passes 87 cases, retaining all prior 77
+and adding five real loader-helper and five public-start-entry/PM cases. Real
+Python import locks and worker handoff are exercised with an explicit synthetic
+socket-module body. Startup executes the actual public wrapper and PM suppression
+with stopping runtime/installer/input adapters. No package operation, actual stdin
+read or live listener occurs. 55 critical source guards and 949 loaded module
+hashes bind the clean checkout; no unexpected audit denial occurs. Tampered new
+PM source, unknown revision and disabled assertions refuse before fixture creation.
+
+Hosted Android d50518c independently passes the complete standard gate: 1,132
+API26 and 1,133 API37 unique methods from all four raw partitions. Artifact hashes,
+identical APK bindings, inventories, disjoint unions and exact hosted summary
+reproduction verify. The five-class/eleven-method external-model gates remain
+separate. The f9 failure stays failed; the newer workspace-test source needs its
+own full exact-head gate. Portable 422/runtime 15/checksum policies pass again.
+
+This changes one Python probe and documentation; Android/native/build inputs and
+the phone/backend are unchanged. Both newly owned review emulators are normally
+stopped with disks/evidence retained; API37 guest boot remains unverified. Current
+stable 40/inspected-main 100 findings and complete source-dependency review remain;
+these probes add no compatibility waiver. Full canonical transport/live Pi and
+worker/project effects, production upgrade and publication remain open, together
+with every unresolved original audit row. Beta.9 is still unpublished.
+
+[Exact source, adapters and complete hosted evidence](contracts/2026-11-12-native-loader-startup.md).
+
 ## 12 November 2026 - native workspace Review regression
 
 Hosted f9e3835 passes the complete 1,133-case API37 subset. API26 shard 1

@@ -3,7 +3,9 @@
 As of 12 November 2026. This describes `main`, whose planned beta.9/code 112 APK
 is still unpublished. Published beta.8/code 111 and stable 1.0.0 retain their own
 release notes. Implementation, fixture acceptance, live-system acceptance and
-release inclusion are separate. [Release status and figures](../README.md).
+release inclusion are separate. The [latest real-source startup and complete
+hosted evidence](contracts/2026-11-12-native-loader-startup.md) retains its exact
+source scope; newer final-head and live release gates remain open. [Release status and figures](../README.md).
 
 | Feature | Current main implementation | Validation or remaining boundary |
 | --- | --- | --- |

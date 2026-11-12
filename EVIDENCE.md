@@ -1,5 +1,11 @@
 # Evidence navigation
 
+## 12 November 2026 - loader/start-entry and complete hosted evidence
+
+87 real-source fixture cases, three source/invocation refusals and 422/runtime 15/
+checksum policies pass. Complete d505 hosted coverage independently verifies all
+1,132 API26/1,133 API37 unique cases. [Exact sources/adapters and remaining gates](docs/contracts/2026-11-12-native-loader-startup.md).
+
 ## 12 November 2026 - native workspace Review
 
 31 API26 methods,16 exact native taps and eight Review observations pass. Full
