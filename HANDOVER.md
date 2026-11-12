@@ -21,14 +21,33 @@ all temporary work on the owner's Windows workstation uses its approved E drive.
 local native, hosted, real-worker, emulator, physical and release acceptance.
 Do not turn a component pass into overall or live deployment acceptance.
 
-Current native checkpoint: witnessed interruption and the unchanged cold-recovery
-case pass on the owned API37 emulator (9.344s JUnit). No automatic load/replay;
-only explicit fresh JNI generation. Before one guest reboot, 288 protected hashes,
-package IDs/APKs and full recovered model hash verify. The same host VM remains
-live/ADB offline; guest boot and post-reboot method are unverified. No repeated
-reboot, host restart, data reset or phone action. Reconcile that same VM before
-further recovery actions; independently repair the API26 keyboard CI gate.
-[Exact source and failures](docs/contracts/2026-11-12-native-cold-recovery.md).
+## Current native checkpoint
+
+The owner's ARM64 API37 phone passes the original native cold-recovery and
+post-reboot cases, 2.849s and 1.856s JUnit. One explicitly approved normal Android
+restart has a changed kernel boot ID. Completed/interrupted history remains,
+with zero automatic model load/generation/replay. The deliberately interrupted
+preparation is not a positive test. Both original LFM files, protected metadata,
+package UIDs/APKs and owner SQLite rows remain; only cache freshness/framework
+bookkeeping changes. Scoped encrypted snapshots verify. The owner's USB-awake
+setting is unchanged, and only the isolated input/model copy is removed.
+
+API26 preparation now accepts either the exact reviewed first-use tip or an
+already-clear keyboard. Both native paths pass on a fresh disposable fixture;
+all four unchanged focused app cases and six exact native DOWN/UP taps pass.
+Initial unexplained no-tip gaps, unsupported versions, failed/partial receipts
+and repeated actions remain rejected. No app visibility/consent assertion or
+five-class/eleven-method external-model inventory changes.
+
+Fresh original-key APKs pass 1,006 JVM cases /96 reports, lint0 errors51/50
+warnings, all four native ABIs and uncompressed/aligned DEX checks. Portable
+policies422 and runtime-model policies15 pass. These are scoped checks, not a
+complete final hosted-suite or production-upgrade pass. Prior failed/unknown
+fixtures remain, including the offline older API37 VM and a separate API26
+host-install timeout. Published beta.8 is unchanged; beta.9 remains unpublished.
+
+[Physical lifecycle](docs/contracts/2026-11-12-physical-restart-retention.md) ·
+[Keyboard fix and exact candidate](docs/contracts/2026-11-12-ready-keyboard.md).
 
 Earlier foreground checkpoint: the original physical resume case passes in 27,010 ms
 for the full LFM3 download/hash/atomic install, then scoped deletion. Six sampled

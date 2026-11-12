@@ -1,5 +1,33 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - physical restart retention and both keyboard states
+
+The owner's ARM64 API37 phone passes the original native cold-recovery and
+post-reboot cases, 2.849s and 1.856s JUnit. One explicitly approved normal Android
+restart has a changed kernel boot ID. Completed/interrupted history remains,
+with zero automatic model load/generation/replay. The deliberately interrupted
+preparation is not a positive test. Both original LFM files, protected metadata,
+package UIDs/APKs and owner SQLite rows remain; only cache freshness/framework
+bookkeeping changes. Scoped encrypted snapshots verify. The owner's USB-awake
+setting is unchanged, and only the isolated input/model copy is removed.
+
+API26 preparation now accepts either the exact reviewed first-use tip or an
+already-clear keyboard. Both native paths pass on a fresh disposable fixture;
+all four unchanged focused app cases and six exact native DOWN/UP taps pass.
+Initial unexplained no-tip gaps, unsupported versions, failed/partial receipts
+and repeated actions remain rejected. No app visibility/consent assertion or
+five-class/eleven-method external-model inventory changes.
+
+Fresh original-key APKs pass 1,006 JVM cases /96 reports, lint0 errors51/50
+warnings, all four native ABIs and uncompressed/aligned DEX checks. Portable
+policies422 and runtime-model policies15 pass. These are scoped checks, not a
+complete final hosted-suite or production-upgrade pass. Prior failed/unknown
+fixtures remain, including the offline older API37 VM and a separate API26
+host-install timeout. Published beta.8 is unchanged; beta.9 remains unpublished.
+
+[Physical lifecycle](contracts/2026-11-12-physical-restart-retention.md) ·
+[Keyboard fix and exact candidate](contracts/2026-11-12-ready-keyboard.md).
+
 ## 12 November checkpoint - foreground download and native cold recovery
 
 The current candidate passes 1,006 JVM and original-key APK checks; full foreground

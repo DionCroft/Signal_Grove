@@ -49,4 +49,35 @@ class KeyboardPreparationTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as path:
             native=Mock();self.assertIsNone(device.prepare_owned_keyboard(native,Path(path),37));native.assert_not_called();self.assertFalse(list(Path(path).iterdir()))
         self.assertEqual(5,len(device.EXTERNAL_MODEL_GATES));self.assertEqual(11,sum(len(x['methods']) for x in device.EXTERNAL_MODEL_GATES.values()))
+    def ready_receipt(self,nonce=None):
+        value=self.receipt(nonce);value['before']=copy.deepcopy(value['reopened']);value['afterDismiss']=copy.deepcopy(value['reopened'])
+        value.update(hintSeen=False,dismissAttempts=0,state='READY_EXISTING_KEYBOARD')
+        value['actions'].remove('dismiss_hint');value['actionAcknowledgements'].pop('dismiss_hint')
+        return value
+    def test_already_unobscured_keyboard_without_a_tip_is_accepted_after_reopen(self):
+        value=self.ready_receipt();self.assertEqual(value,device.keyboard_preparation_record(self.output(value),0,self.nonce))
+    def test_already_ready_focused_editor_needs_no_search_open_or_dismissal(self):
+        value=self.ready_receipt();value['actions'].remove('open_settings_search');value['actionAcknowledgements'].pop('open_settings_search')
+        self.assertEqual(value,device.keyboard_preparation_record(self.output(value),0,self.nonce))
+    def test_no_tip_branch_refuses_gaps_overlays_coercions_or_unreviewed_actions(self):
+        changes=[('state','READY_FRESH_KEYBOARD'),('hintSeen',0),('dismissAttempts',False),('dismissAttempts',1),('actions',['dismiss_hint','hide_keyboard','reopen_editor','return_home'])]
+        for key,value in changes:
+            changed=self.ready_receipt();changed[key]=value
+            with self.subTest(key=key,value=value),self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+        for phase,key,value in [('before','top',827),('before','ready',False),('before','hints',1),('before','closes',1),('before','exactHintText',True),('before','ready',1),('afterDismiss','top',827),('afterDismiss','ready',False),('reopened','top',827),('reopened','hints',1)]:
+            changed=self.ready_receipt();changed[phase][key]=value
+            with self.subTest(phase=phase,key=key,value=value),self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+        for phase in ['before','afterDismiss','reopened']:
+            changed=self.ready_receipt();changed[phase].update(top=827,ready=False)
+            with self.subTest(coherentGap=phase),self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+    def test_failed_native_setup_cannot_be_relabelled_from_a_ready_latest_sample(self):
+        value=self.ready_receipt();failed={k:value[k] for k in ['schema','nonce','api','hardware','mode','imeVersion','selectedImeBefore']}
+        failed.update(state='FAILED',errorType='IllegalStateException',failureStage='reviewed first-use hint or prepared keyboard',latestKeyboard=value['before'])
+        with self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(failed),0,self.nonce)
+    def test_already_ready_native_setup_is_once_only_and_its_receipt_cannot_be_reused(self):
+        with tempfile.TemporaryDirectory() as path:
+            def result(*args,**kwargs):return Mock(stdout=self.output(self.ready_receipt(args[args.index('ownedKeyboardFixture')+1])),returncode=0)
+            native=Mock(side_effect=result);report=device.prepare_owned_keyboard(native,Path(path),26);self.assertEqual(0,report['dismissAttempts']);native.assert_called_once()
+            with self.assertRaises(ValueError):device.prepare_owned_keyboard(native,Path(path),26)
+            native.assert_called_once()
 if __name__=='__main__':unittest.main()

@@ -12,11 +12,13 @@ synthetic candidate screenshot and preserved historical captures. Published
 stable/preview metadata is rechecked; roadmap/usage/compatibility/release guidance
 is reconciled. No executable/APK change or new functional pass is claimed.
 
-Latest: [current-source native cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md)
-verifies the intended debug-process interruption and one exact positive cold
-case without automatic load/replay. The guest reboot is unverified; same VM
-live/ADB offline after re-observation, no retry/restart/reset. Prior failures,
-pre-reboot full model/hash/identity checks and remaining gates are explicit.
+Latest: [physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md)
+records two original positive cases, one intentional preparation interruption and
+one approved normal Android restart. Full owner retention and no automatic
+load/replay verify. [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md)
+records the reproduced setup defect,422 policies, fresh signed build and both
+native paths plus four unchanged focused cases/six exact taps. Older unresponsive
+fixtures remain unknown; complete CI/production-upgrade/release gates stay open.
 
 Earlier: [full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md)
 verifies explicit resume/hash/atomic installation of the entire LFM3 file in

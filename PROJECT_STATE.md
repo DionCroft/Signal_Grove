@@ -4,20 +4,36 @@ Current milestone: beta.9 uncompressed-DEX candidate and download/release checks
 Current objective: finish lifecycle and final-source release acceptance,
 finish candidate device/release checks and keep the separate worker audit moving.
 Assurance state: fresh stable40/main100 findings and full original audit remain.
-Last checkpoint: 12 November 2026, native-cold-recovery.
+Last checkpoint: 12 November 2026, physical-restart-and-ready-keyboard.
 Last handover: HANDOVER.md.
 
-## Current checkpoint
+## Current checkpoint - physical restart and keyboard readiness
 
-Current-source native interruption/cold recovery passes on the owned API37
-emulator: exact PID/model/chat witness, expected force-stop, fresh-process
-INTERRUPTED state without load/replay, then only explicit fresh JNI generation.
-The one positive case is 9.344s JUnit; 288 protected file hashes/package identities
-remain before reboot, and the complete recovered model hash verifies. The
-preparation is intentionally interrupted and is not a positive JUnit pass.
-One guest reboot is unverified: same host VM live, ADB offline after re-observation.
-No request is repeated, host restarted or data reset; post-reboot case is not run.
-Physical phone, source and APKs are unchanged. [Current scope](docs/contracts/2026-11-12-native-cold-recovery.md).
+The owner's ARM64 API37 phone passes the original native cold-recovery and
+post-reboot cases, 2.849s and 1.856s JUnit. One explicitly approved normal Android
+restart has a changed kernel boot ID. Completed/interrupted history remains,
+with zero automatic model load/generation/replay. The deliberately interrupted
+preparation is not a positive test. Both original LFM files, protected metadata,
+package UIDs/APKs and owner SQLite rows remain; only cache freshness/framework
+bookkeeping changes. Scoped encrypted snapshots verify. The owner's USB-awake
+setting is unchanged, and only the isolated input/model copy is removed.
+
+API26 preparation now accepts either the exact reviewed first-use tip or an
+already-clear keyboard. Both native paths pass on a fresh disposable fixture;
+all four unchanged focused app cases and six exact native DOWN/UP taps pass.
+Initial unexplained no-tip gaps, unsupported versions, failed/partial receipts
+and repeated actions remain rejected. No app visibility/consent assertion or
+five-class/eleven-method external-model inventory changes.
+
+Fresh original-key APKs pass 1,006 JVM cases /96 reports, lint0 errors51/50
+warnings, all four native ABIs and uncompressed/aligned DEX checks. Portable
+policies422 and runtime-model policies15 pass. These are scoped checks, not a
+complete final hosted-suite or production-upgrade pass. Prior failed/unknown
+fixtures remain, including the offline older API37 VM and a separate API26
+host-install timeout. Published beta.8 is unchanged; beta.9 remains unpublished.
+
+[Physical lifecycle](docs/contracts/2026-11-12-physical-restart-retention.md) ·
+[Keyboard fix and exact candidate](docs/contracts/2026-11-12-ready-keyboard.md).
 
 Earlier foreground checkpoint:
 
@@ -85,17 +101,13 @@ c55d070 Android workflow also succeeds; CI signer is not the production signer.
 Fresh source c55 reports stable40/current main100 changed handlers; the older
 saved main97 outcome remains historical evidence. No source/commit waiver applies.
 
-**Next exact action:** re-observe/reconcile the same live offline owned API37 VM
-and its boot/console state before any further recovery action; do not repeat the
-reboot or substitute a host restart for guest-reboot acceptance. Independently
-repair hosted API26 keyboard preparation, preserving native visibility assertions.
-Do not reboot the physical phone; retain all failed fixtures and original scope. Finish candidate process/recovery, full standard hosted
-union, physical production upgrade, compatibility review, SBOM/provenance and
-public-asset verification before publication. The actual Windows read failure
-also remains: new diagnostic prepare is submitted then loses its reply (Win32
-233), while disposable provider and preconnected-pipe checks pass. Cause is not
-established; do not replay or restart to hide it. Native HTTP/WS actor/profile,
-Android workspace browsing, NAS, graphs and the full original audit stay active.
+**Next exact action:** push the tested keyboard fix and physical lifecycle evidence
+to main, retain the resulting complete hosted device union and compatibility
+findings, then finish original-key production upgrade/live connection and release
+provenance/public-asset checks. Preserve the two older unresponsive emulator
+outcomes without reboot/install replay. Continue actual Windows read-path root
+cause, native actor/profile/Android workspace/NAS and all original audit rows.
+Do not repeat the physical restart or reset owner data.
 
 ## Continuing scope and authoritative records
 

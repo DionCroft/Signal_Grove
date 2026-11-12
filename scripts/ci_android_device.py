@@ -189,10 +189,14 @@ def keyboard_preparation_record(output: str, code: int, nonce: str) -> dict:
     if not isinstance(report,dict) or set(report)!=keys:raise ValueError('Unexpected keyboard setup receipt')
     if (type(report['schema']) is not int or report['schema']!=1 or report['nonce']!=nonce or str(uuid.UUID(nonce))!=nonce
         or type(report['api']) is not int or report['api']!=26 or report['hardware'] not in ('ranchu','goldfish') or report['mode']!='prepare'
-        or report['cleanupKeyboardHidden'] is not True or report['state']!='READY_FRESH_KEYBOARD' or report['imeVersion']!='6.2.34.154174348-preload-x86_64'
-        or report['selectedImeBefore']!=ime or report['selectedImeAfter']!=ime or report['hintSeen'] is not True
-        or type(report['dismissAttempts']) is not int or report['dismissAttempts']!=1):raise ValueError('Unverified keyboard setup identity or effect')
-    actions=['dismiss_hint','hide_keyboard','reopen_editor','return_home']
+        or report['cleanupKeyboardHidden'] is not True or report['imeVersion']!='6.2.34.154174348-preload-x86_64'
+        or report['selectedImeBefore']!=ime or report['selectedImeAfter']!=ime):raise ValueError('Unverified keyboard setup identity')
+    if report['hintSeen'] is True:
+        state='READY_FRESH_KEYBOARD';dismissals=1;actions=['dismiss_hint','hide_keyboard','reopen_editor','return_home']
+    elif report['hintSeen'] is False:
+        state='READY_EXISTING_KEYBOARD';dismissals=0;actions=['hide_keyboard','reopen_editor','return_home']
+    else:raise ValueError('Invalid keyboard hint observation')
+    if report['state']!=state or type(report['dismissAttempts']) is not int or report['dismissAttempts']!=dismissals:raise ValueError('Unverified keyboard setup effect')
     if report['actions'] not in (actions,['open_settings_search',*actions]):raise ValueError('Unexpected or repeated keyboard setup action')
     acknowledgements=report['actionAcknowledgements']
     if not isinstance(acknowledgements,dict) or set(acknowledgements)!=set(report['actions']) or any(value is not True for value in acknowledgements.values()):raise ValueError('Keyboard setup action was not acknowledged')
@@ -201,9 +205,13 @@ def keyboard_preparation_record(output: str, code: int, nonce: str) -> dict:
         if not isinstance(value,dict) or set(value)!={'top','bottom','keyTop','keys','hints','closes','exactHintText','ready'}:raise ValueError('Invalid keyboard geometry observation')
         if any(type(value[k]) is not int or not 0<=value[k]<=32768 for k in ('top','bottom','keyTop','keys','hints','closes')):raise ValueError('Invalid keyboard geometry type')
         if not 20<=value['keys']<=256 or not value['top']<value['bottom'] or not value['top']<=value['keyTop']<value['bottom']:raise ValueError('Keyboard not visible')
-        if name=='before':
+        if name=='before' and report['hintSeen'] is True:
             if value['hints']!=1 or value['closes']!=1 or value['exactHintText'] is not True or value['ready'] is not False or value['top']>=value['keyTop']:raise ValueError('Reviewed first-use occlusion not observed')
-        elif value['hints']!=0 or value['closes']!=0 or value['exactHintText'] is not False or type(value['ready']) is not bool or value['ready']!=(value['top']==value['keyTop']):raise ValueError('Hint removal or geometry observation is inconsistent')
+        else:
+            if value['hints']!=0 or value['closes']!=0 or value['exactHintText'] is not False or type(value['ready']) is not bool or value['ready']!=(value['top']==value['keyTop']):raise ValueError('Hint absence or geometry observation is inconsistent')
+            # No-tip preparation starts with an unobscured window; no unobserved
+            # dismissal can explain a gap before hiding/reopening that keyboard.
+            if report['hintSeen'] is False and value['ready'] is not True:raise ValueError('No-tip keyboard was not unobscured')
         if name=='reopened' and (value['ready'] is not True or value['top']!=value['keyTop']):raise ValueError('Reopened keyboard remains obscured')
     return report
 
@@ -218,7 +226,7 @@ def prepare_owned_keyboard(device, work: Path, api: int) -> dict | None:
             'org.hermesmobile.app.debug.test/org.hermesmobile.app.KeyboardFixtureInstrumentation',timeout=45,check=False)
         log.write_text(result.stdout,encoding='utf-8');report=keyboard_preparation_record(result.stdout,result.returncode,nonce)
         record.write_text(json.dumps(dict(state='OWNED_DEFAULT_KEYBOARD_PREPARED',nonce=nonce,report=report),indent=2)+'\n',encoding='utf-8')
-        print('Owned API26 default keyboard prepared with one reviewed first-use dismissal.',flush=True)
+        print('Owned API26 default keyboard prepared with one reviewed dismissal.' if report['hintSeen'] else 'Owned API26 already-clear keyboard verified by hide/reopen geometry.',flush=True)
         return report
     except (OSError,ValueError,subprocess.SubprocessError) as error:
         if not log.exists():

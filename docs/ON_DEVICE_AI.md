@@ -1,5 +1,11 @@
 # Using on-device AI (beta.9 candidate)
 
+Current lifecycle checkpoint: the original cold/post-reboot methods pass on the
+owner phone after one approved normal Android restart. Original models/history/
+settings remain and no automatic model load/replay occurs. The intentional
+preparation interruption is not a positive test. [Exact scope](contracts/2026-11-12-physical-restart-retention.md).
+Earlier measurements and failed fixtures below retain their original scope.
+
 These controls are in development source, not the published beta.8 APK. The
 Hermes connection still uses your agent host. On-device AI is an optional,
 separate text assistant that runs on the phone without Hermes connectivity.

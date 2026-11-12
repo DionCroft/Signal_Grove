@@ -86,7 +86,7 @@ class KeyboardFixtureInstrumentation:Instrumentation() {
         val found=matches(AccessibilityWindowInfo.TYPE_APPLICATION,"com.android.settings") {it.viewIdResourceName=="android:id/search_src_text" && it.className=="android.widget.EditText" && it.isFocused}
         try {return found.size==1} finally {found.forEach(::recycle)}
     }
-    private fun prepare(requireHint:Boolean) {
+    private fun prepare() {
         if(!hasEditor()) {
             val intent=Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             check(targetContext.packageManager.resolveActivity(intent,0)?.activityInfo?.packageName=="com.android.settings")
@@ -98,14 +98,14 @@ class KeyboardFixtureInstrumentation:Instrumentation() {
             }
             clickOne(AccessibilityWindowInfo.TYPE_APPLICATION,"com.android.settings",{it.contentDescription?.toString()=="Search settings" && it.isClickable},"open_settings_search")
         }
-        val first=awaitKeyboard("reviewed first-use hint or prepared keyboard",{it.keys>=20 && ((it.hints==1 && it.closes==1 && it.exactText) || !requireHint && it.ready)},250)
+        val first=awaitKeyboard("reviewed first-use hint or prepared keyboard",{it.keys>=20 && ((it.hints==1 && it.closes==1 && it.exactText) || it.ready)},250)
         evidence["before"]=first.json();evidence["hintSeen"]=JsonPrimitive(first.hints==1)
         if(first.hints==1) {
             clickOne(AccessibilityWindowInfo.TYPE_INPUT_METHOD,imePackage,{it.viewIdResourceName==closeId && it.className=="android.widget.ImageView" && it.isClickable && it.isEnabled},"dismiss_hint")
         }
         // API26 can retain the old accessibility-window extent until the IME reopens.
         // This sample proves hint removal only; reopened below must prove complete native geometry.
-        val after=awaitKeyboard("reviewed hint absent after one dismissal",{it.keys>=20 && it.hints==0 && it.closes==0 && !it.exactText},250);evidence["afterDismiss"]=after.json()
+        val after=awaitKeyboard("reviewed hint absent after preparation",{it.keys>=20 && it.hints==0 && it.closes==0 && !it.exactText && (first.hints==1 || it.ready)},250);evidence["afterDismiss"]=after.json()
         oneAction("hide_keyboard") {uiAutomation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)}
         val deadline=SystemClock.uptimeMillis()+7000
         while(keyboard()!=null && SystemClock.uptimeMillis()<deadline) SystemClock.sleep(75)
@@ -118,7 +118,7 @@ class KeyboardFixtureInstrumentation:Instrumentation() {
         val cleanupDeadline=SystemClock.uptimeMillis()+7000
         while(keyboard()!=null && SystemClock.uptimeMillis()<cleanupDeadline) SystemClock.sleep(75)
         check(keyboard()==null);evidence["cleanupKeyboardHidden"]=JsonPrimitive(true)
-        evidence["state"]=JsonPrimitive(if(requireHint) "READY_FRESH_KEYBOARD" else "READY_EXISTING_KEYBOARD")
+        evidence["state"]=JsonPrimitive(if(first.hints==1) "READY_FRESH_KEYBOARD" else "READY_EXISTING_KEYBOARD")
     }
     override fun onStart() {
         val result=Bundle();var nonce=""
@@ -134,7 +134,7 @@ class KeyboardFixtureInstrumentation:Instrumentation() {
             try {
                 info.flags=original or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;automation.serviceInfo=info
                 automation.waitForIdle(100,3000)
-                if(mode=="observe") {evidence["keyboard"]=checkNotNull(keyboard()).json();evidence["state"]=JsonPrimitive("OWNED_KEYBOARD_OBSERVED")} else prepare(mode=="prepare")
+                if(mode=="observe") {evidence["keyboard"]=checkNotNull(keyboard()).json();evidence["state"]=JsonPrimitive("OWNED_KEYBOARD_OBSERVED")} else prepare()
             } finally {info.flags=original;automation.serviceInfo=info}
             val text=JsonObject(evidence).toString();check(text.length<=8192);val file=File(targetContext.getExternalFilesDir(null),"qa/keyboard-fixture-$nonce.json");check(file.parentFile!!.isDirectory || file.parentFile!!.mkdirs());file.writeText(text)
             result.putString("keyboardFixtureReport",text);finish(Activity.RESULT_OK,result)

@@ -2,6 +2,14 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Accept an already-clear reviewed default keyboard during owned API26 CI setup,
+  while preserving strict native geometry, exact actions and original app checks.
+  Both fresh-tip/clear native paths and four focused app cases pass; complete
+  final hosted coverage remains separate.
+- Verify original physical cold/restart recovery through one approved normal
+  Android restart: retain models/history/settings, never auto-load/replay, and
+  keep intentional interruption separate from the two positive cases.
+
 - Verify current-source native process interruption and cold recovery: retain the
   interrupted turn, perform zero automatic loads/replays, and generate only after
   a fresh explicit send. Guest-reboot acceptance remains open; failed/unknown
