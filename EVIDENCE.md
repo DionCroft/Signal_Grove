@@ -54,3 +54,13 @@ five-source review closes only seven stable findings (47 -> 40); saved main
 stays 97 -> 97. Original policy/golden and Android inputs are preserved. [Scope,
 reproduction and remaining gates](docs/contracts/2026-11-12-channel-registry-context-review.md).
 No Pi trial/deployment, account delivery, phone or new APK acceptance is claimed.
+
+
+## 12 November 2026 - complete standard hosted Android gate
+
+Six artifact digests and complete raw native case unions verify: API26 1132,
+API37 1133, JVM 1004/96 reports, both lint variants zero errors and 32 native
+ABI/page alignments. All 545 current build/gate inputs match the tested commit.
+External-model acceptance stays false; CI debug signer differs from retained
+owner signing and no APK is installed/published. [Exact scope and remaining
+release checks](docs/contracts/2026-11-12-complete-standard-android-gate.md).

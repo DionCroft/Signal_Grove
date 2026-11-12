@@ -1,12 +1,24 @@
 # Signal Grove project state
 
-Current milestone: exact stable channel/registry context review complete.
-Current objective: remaining native/auth compatibility and actual integration.
+Current milestone: complete standard hosted Android gate independently verified.
+Current objective: final-source model gates, remaining compatibility/integration.
 Assurance state: 40 stable findings remain; no new APK or Pi deployment.
-Last checkpoint: 12 November 2026, channel-registry-context-review.
+Last checkpoint: 12 November 2026, complete-standard-android-gate.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
+
+Hosted source7ee standard Android acceptance is now independently verified from
+all six downloaded ZIP digests and raw case logs. Full unions: API26 1132/1132,
+API37 1133/1133, zero skips/failures/partial cases. All 1004 JVM / 96 raw reports
+pass, both lint variants have zero errors (52/51 warnings), both APK signatures
+and 32 native ABI/page alignments verify. The one extra warning is plugin-version
+availability, retained without a dependency update. All 545 current Android/build/
+gate files are canonically identical to the tested commit. These CI debug APKs
+use a different signer and code111; they are not the owner's production update.
+Five external-model classes (11 methods) remain explicitly not accepted by the
+standard gate. Their final-source prerequisites and physical checks remain.
+[Complete standard gate scope](docs/contracts/2026-11-12-complete-standard-android-gate.md).
 
 Seven exact source-bound variants accept only the reviewed v0.23.1 context:
 catalog/config/migration are byte-identical, CLI config removes a redundant
@@ -43,12 +55,15 @@ optional key/tool and owner graph identity/index findings stay open.
 [Coordinator scope](docs/contracts/2026-11-12-native-coordinator-workspace-reads.md).
 [Live bridge](docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
 
-**Next exact action:** review the remaining stable native/auth boundary from
-primary source and run its bounded actual-native profile/ticket fixture. If Pi
-transfer approval arrives, reconcile the unexecuted trial then run only that
-approved read-only trial; production encrypted recovery/idle/staged deployment
-and actual native HTTP/WS/default/foreign-profile proof remain required before
-Android file wiring. NAS, graphs, every original audit and signed APK gate remain.
+**Next exact action:** inspect the retained API37 local-model emulator's actual
+idle state, UIDs and protected data/model receipts. Prepare verified metadata
+recovery and the exact-source original-debug-key upgrade before applicable
+nonphysical model tests. Do not wipe/restart or replay unknown work, and retain
+the separate final-source physical-phone gate. Continue remaining native/auth
+source review. If Pi transfer approval arrives, reconcile its unexecuted trial
+before that approved read-only test; production encrypted recovery/idle/staged
+deployment and actual HTTP/WS/default/foreign-profile proof remain required before
+Android files. NAS, graphs, every original audit and signed APK gate remain.
 
 ## Continuing scope and authoritative records
 

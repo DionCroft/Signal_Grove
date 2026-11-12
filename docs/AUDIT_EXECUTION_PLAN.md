@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - complete standard hosted Android gate
+
+Independent ZIP/raw-log/APK/source verification accepts the complete standard
+API26 1132 / API37 1133 case unions, 1004 JVM, zero-error lint and 32 native ABI
+checks for unchanged Android inputs. [Scope, external-model exclusions and exact
+evidence](contracts/2026-11-12-complete-standard-android-gate.md). The five external
+model classes, final physical/upgrade and original-production-key public APK
+remain required. Existing 40 stable/97 saved-main findings, production/native/
+NAS/worker and every original audit row are retained; no Pi trial or release occurs.
+
 ## 12 November 2026 - exact stable channel context review
 
 Seven variants require exact AST and all five complete source identities. Full
