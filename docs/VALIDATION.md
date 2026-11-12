@@ -1,5 +1,16 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - fresh reviewed-main signed beta.9 candidate
+
+Clean b182ae8 produces new original-key APKs: production 70,993,354 bytes,
+debug 92,543,394 and test 7,901,783. Independent 1,006 JVM/96-report, zero-error
+lint, signature/package/version/native/DEX and 183-component inventory checks
+pass. Fresh advisory queries retain limited scope. Phone identities/original
+models and encrypted debug metadata verify; the production APK is staged for
+the normal installer. Production upgrade/live retention, exact-source CI,
+compatibility and public download gates remain. Beta.9 is unpublished.
+[Exact source, hashes, scope and retained failures](contracts/2026-11-12-reviewed-main-beta9-candidate.md).
+
 ## 12 November 2026 - native owner room reads and complete Android code freeze
 
 Exact stable 3b42157 now has 20 seeded native-owner room checks using the actual

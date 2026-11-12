@@ -2,12 +2,19 @@
 
 ## Unreleased — native management conformance and scoped job history
 
-- Extend the isolated real-source auth probe to current stable Hermes:77 cases
-  cover deployment-header/cookie boundaries and async native admission/accounting,
+- Verify 20 real native-owner room-read checks and the complete standard Android
+  source2970 gate (1,135 API26 / 1,136 API37). Keep real shutdown/worker findings
+  and exact-head CI separate.
+- Extend the isolated real-source auth probe to current stable Hermes:87 cases
+  cover auth, deployment headers/cookies, async admission, real loader helpers
+  and start-entry/PM suppression with explicit stopping adapters,
   preserving old revisions and strict source/environment guards. No compatibility
   baseline waiver or full live-server claim is added.
-- Verify clean-main signed candidate, fresh bounded advisory queries and local
-  schema-valid runtime inventory/provenance. Public release gates stay explicit.
+- Build fresh clean b182ae8 original-key beta.9 APKs, verify 1,006 JVM cases and
+  both lint/native/signing variants, and prepare matching 183-component runtime
+  inventory/checksums/provenance. Stage the checked production APK for the normal
+  phone installer; upgrade/live retention, compatibility/CI and publication
+  gates remain. [Exact candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md).
 
 - Accept an already-clear reviewed default keyboard during owned API26 CI setup,
   while preserving strict native geometry, exact actions and original app checks.

@@ -37,11 +37,13 @@ changes no Android/native/build input. [Workspace evidence](docs/contracts/2026-
 
 ## Immediate continuation
 
-1. Complete 2970ffb raw union is independently verified: 1,135 API26/1,136 API37.
-   All 543 Android/native/build inputs are unchanged in later Python/docs chunks.
-   Prepare a fresh original-key beta.9 production candidate from reviewed main,
-   validate its exact identities/provenance, then stage physical upgrade/live
-   checks. Preserve earlier failures and exact APK source identities.
+1. Fresh clean b182ae8 original-key build and independent artifact/inventory
+   checks pass. The exact production APK is staged for Xiaomi's normal installer;
+   reconcile that pending install before any retry, then verify its hash/UID/
+   version and saved production connection/history/live behavior. The encrypted
+   debug snapshot does not prove production-private retention. Complete2970
+   standard coverage is 1,135/1,136, with543 identical Android inputs here;
+   pending exact-head CI and compatibility failures remain separate.
 2. Complete current-stable used-handler dependency closure and real canonical
    socket/actor/profile/transport acceptance. Stable 40/inspected-main 100 findings
    remain; no handler/absence/cohort waiver is added by the component probe.
@@ -78,10 +80,10 @@ source/APK hashes and active handles before a deliberate new trial.
 ## Delivery and records
 
 Published beta.8/code 111 and the phone's production package remain unchanged;
-beta.9/code 112 is unpublished. Prepared original-key f9e3835 assets stay bound to
-that source, not a later documentation/probe commit. 183-component SBOM, 95 verified
-dependency inputs and 150-version/pinned-native advisory queries retain scope.
-[Local signed inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md).
+beta.9/code 112 is unpublished. Fresh b182ae8 assets are verified/staged with
+183-component SBOM, 95 inputs and fresh 150-version/pinned-native advisory scope.
+Earlier f9e3835 assets retain their own source/hash identities.
+[Fresh signed inventory and phone stage](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md).
 
 Source pushes and temporary CI artifacts are not public APK delivery. Refresh
 [README figures](README.md) and [features](docs/FEATURES.md) at final publication.

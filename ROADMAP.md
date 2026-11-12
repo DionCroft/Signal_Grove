@@ -18,7 +18,7 @@ See [the release record](docs/releases/0.2.0.md). Session controls distinguish l
 | Delivery | Scope | Status |
 | --- | --- | --- |
 | 1.1.0-beta.8 | Signal Grove pixel interface/updater, serving-model awareness, preset reasoning/service choices, existing chats and stored projects | Published preview; [release evidence](docs/releases/1.1.0-beta.8.md) |
-| 1.1.0-beta.9 | Optional phone LLM chat/history, compatible model management, grounded setup helper, newer canonical/project navigation and startup packaging | Candidate/code 112; tested chunks on main, final transfer/device/compatibility/release gates open; [candidate record](docs/releases/1.1.0-beta.9.md) |
+| 1.1.0-beta.9 | Optional phone LLM chat/history, compatible model management, grounded setup helper, newer canonical/project navigation and startup packaging | Candidate/code 112; tested chunks and fresh original-key build on main; production-upgrade/live, compatibility/exact-source CI and publication gates open; [candidate record](docs/releases/1.1.0-beta.9.md) |
 | Continuing audit / later stable release | Real interoperability, worker/workspace ownership and files, automation/rooms/management, background/audio/accessibility and community hardening | Active; every unresolved requirement remains in the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) |
 
 Six earlier physical offline native cases, ten earlier candidate API26 local-AI

@@ -1,6 +1,6 @@
 # Signal Grove project state
 
-Last checkpoint: 12 November 2026, native-owner-room-reads-and-complete-android-code-freeze.
+Last checkpoint: 12 November 2026, reviewed-main-signed-beta9-candidate.
 The existing full audit/on-device AI goal remains active. Published APK is
 beta.8/code 111; planned beta.9/code 112 is unpublished. The owner authorizes regular
 tested commits/pushes to main and public original-key APK delivery after its gates.
@@ -46,11 +46,13 @@ tested commits/pushes to main and public original-key APK delivery after its gat
   their exact debug-source scope. 649–1,438ms imports and 2.43 GiB observed VmHWM
   are short USB observations, not sustained throughput/thermal/battery acceptance.
   [Physical model scope](docs/contracts/2026-11-12-physical-offline-model-acceptance.md).
-- The clean f9e3835 original-key production candidate and six release files are
-  prepared locally: 183 CycloneDX components, 95 strict dependency inputs and 150
-  Maven versions/pinned-native OSV queries with no matching known indexed advisory.
-  This is limited advisory coverage, not full certification or publication.
-  [Inventory and exact assets](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md).
+- Fresh clean b182ae8 original-key APKs verify: production 70,993,354 bytes,
+  1,006 JVM/96 reports, zero-error lint, all native ABIs/DEX alignment and matching
+  183-component inventory. Fresh 150-version/pinned-native OSV queries find no
+  known matching indexed advisory, within limited coverage. Original models/UIDs
+  and encrypted debug metadata verify. The production APK is staged for the
+  normal phone installer; its upgrade/live retention is pending. Earlier f9
+  artifacts keep their own identities. [Fresh source and artifacts](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md).
 
 ## Open acceptance
 
@@ -75,10 +77,12 @@ ownership. No original unresolved row is removed by this summary.
 
 ## One exact next action
 
-Build a fresh original-key beta.9 production candidate from reviewed main,
-compare relevant inputs/signing/package/version/alignment/provenance and prepare
-the physical retained-data upgrade/live checks. While builds run, continue actual
-Pi/worker read-path root cause and stable/main dependency/semantic acceptance.
+Reconcile the pending normal production-APK installation, verify its exact
+hash/signer/package UID/version, then check saved connection, existing history
+and live behavior without replay. Continue actual Pi/worker root cause and
+stable/main semantic/dependency acceptance using the 40 prepared exact diffs.
+Finish exact-source CI and public release/download gates; do not infer them from
+older input-equivalent scopes.
 The shutdown finding and every original audit row stay open until proven.
 Keep the source/fixture/advisory/physical scopes distinct. Both newly owned review
 emulators are normally stopped with disks/evidence retained; the new API37 boot
