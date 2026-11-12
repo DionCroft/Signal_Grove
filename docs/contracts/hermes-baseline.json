@@ -12721,6 +12721,18 @@
           "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
+      },
+      {
+        "sha256": "63dbf1f2276f0f75c55b39bc5dd3aa1ef313fd012d9048c4b9c1263503816196",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Complete five-module d4e7c34-to-v0.23.1 review: redundant Honcho explicit key still matches _API_KEY routing; passive catalog/config/migration bytes unchanged; independent tool-note defaults and off-loop dependency verdict added in registry. Actual-source isolated 12-case proof and limits: docs/contracts/2026-11-12-channel-registry-context-review.md. All five module identities and exact AST required; no commit/branch waiver.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "channel_registry": "05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261",
+          "env_config": "bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
       }
     ],
     "channel_config:schema:Platform": [
@@ -12743,6 +12755,18 @@
           "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
           "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
           "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "403dec3b589fa496cddb44a12f96e68e54d89adcee285ea69efad552f22cf39c",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Complete five-module d4e7c34-to-v0.23.1 review: redundant Honcho explicit key still matches _API_KEY routing; passive catalog/config/migration bytes unchanged; independent tool-note defaults and off-loop dependency verdict added in registry. Actual-source isolated 12-case proof and limits: docs/contracts/2026-11-12-channel-registry-context-review.md. All five module identities and exact AST required; no commit/branch waiver.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "channel_registry": "05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261",
+          "env_config": "bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }
@@ -12769,6 +12793,18 @@
           "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
+      },
+      {
+        "sha256": "3e194951f7a604bd3d9658ceb8cf00c9260c5bdedca90e3e3f2ce64a82d7e6d5",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Complete five-module d4e7c34-to-v0.23.1 review: redundant Honcho explicit key still matches _API_KEY routing; passive catalog/config/migration bytes unchanged; independent tool-note defaults and off-loop dependency verdict added in registry. Actual-source isolated 12-case proof and limits: docs/contracts/2026-11-12-channel-registry-context-review.md. All five module identities and exact AST required; no commit/branch waiver.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "channel_registry": "05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261",
+          "env_config": "bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
       }
     ],
     "plugin_legacy:LEFT_CORE": [
@@ -12791,6 +12827,18 @@
           "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
           "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
           "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "55a7d0ed11c93c1957137b060a359f256be16f53c182fe34ed3a3d7845aa9bf2",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Complete five-module d4e7c34-to-v0.23.1 review: redundant Honcho explicit key still matches _API_KEY routing; passive catalog/config/migration bytes unchanged; independent tool-note defaults and off-loop dependency verdict added in registry. Actual-source isolated 12-case proof and limits: docs/contracts/2026-11-12-channel-registry-context-review.md. All five module identities and exact AST required; no commit/branch waiver.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "channel_registry": "05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261",
+          "env_config": "bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }
@@ -12817,6 +12865,18 @@
           "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
+      },
+      {
+        "sha256": "f919efd87703b3bd268ff84a9231a4b123eec59c1e232087c894ed970e398240",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Complete five-module d4e7c34-to-v0.23.1 review: redundant Honcho explicit key still matches _API_KEY routing; passive catalog/config/migration bytes unchanged; independent tool-note defaults and off-loop dependency verdict added in registry. Actual-source isolated 12-case proof and limits: docs/contracts/2026-11-12-channel-registry-context-review.md. All five module identities and exact AST required; no commit/branch waiver.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "channel_registry": "05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261",
+          "env_config": "bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
       }
     ],
     "plugin_legacy:legacy_plugin_keys": [
@@ -12839,6 +12899,18 @@
           "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
           "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
           "env_config": "ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
+        }
+      },
+      {
+        "sha256": "c35bc9263c6cb04729f9761f398422c357a8d2b0347e0e5a4bb20d1d657c302e",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Complete five-module d4e7c34-to-v0.23.1 review: redundant Honcho explicit key still matches _API_KEY routing; passive catalog/config/migration bytes unchanged; independent tool-note defaults and off-loop dependency verdict added in registry. Actual-source isolated 12-case proof and limits: docs/contracts/2026-11-12-channel-registry-context-review.md. All five module identities and exact AST required; no commit/branch waiver.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "channel_registry": "05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261",
+          "env_config": "bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763",
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }
@@ -14919,6 +14991,20 @@
           "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
           "auth_request_utils": "29390aca8217e6003a78df933e8628ee2b27d6f33e3d84614b4a7eb475ebc809",
           "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841"
+        }
+      }
+    ],
+    "channel_registry:schema:PlatformEntry": [
+      {
+        "sha256": "d3d2d041558be760053d8ea0daf3b971deeaadc283556687eb2a0959519395b1",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Complete five-module d4e7c34-to-v0.23.1 review: redundant Honcho explicit key still matches _API_KEY routing; passive catalog/config/migration bytes unchanged; independent tool-note defaults and off-loop dependency verdict added in registry. Actual-source isolated 12-case proof and limits: docs/contracts/2026-11-12-channel-registry-context-review.md. All five module identities and exact AST required; no commit/branch waiver.",
+        "required_sources": {
+          "channel_catalog": "dee21f5b9b5d38ba8e6d811648baf20fe16125870d0466d289848d504c6b2baa",
+          "channel_config": "711847b5f740a5131bd2772bc8d737f94ab549faab8d8de18befe8202dbe7dd7",
+          "channel_registry": "05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261",
+          "env_config": "bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }
     ]

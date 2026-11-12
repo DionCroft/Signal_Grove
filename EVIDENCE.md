@@ -45,3 +45,12 @@ Exact-helper-envelope follow-up: 408 portable / 21 coordinator-specific and
 12 strict actual-native cases pass (private proof 752). The new Pi transfer
 trial was rejected before execution and is pending explicit approval; no
 production or new APK acceptance is claimed.
+
+
+## 12 November 2026 - stable channel registry context
+
+414 portable, 12 real-source component and 15 model-observer checks pass. Exact
+five-source review closes only seven stable findings (47 -> 40); saved main
+stays 97 -> 97. Original policy/golden and Android inputs are preserved. [Scope,
+reproduction and remaining gates](docs/contracts/2026-11-12-channel-registry-context-review.md).
+No Pi trial/deployment, account delivery, phone or new APK acceptance is claimed.

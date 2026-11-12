@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - exact stable channel context review
+
+Seven variants require exact AST and all five complete source identities. Full
+before/current review and actual-source component checks close only seven stable
+findings (47 -> 40); saved main remains 97 -> 97, and all other findings stay open.
+414 portable / 12 real-source / 15 model-observer cases pass, with historical
+policy/golden and unchanged Android inputs preserved. [Evidence and remaining
+scope](contracts/2026-11-12-channel-registry-context-review.md). Fresh hosted
+comparison, native integration, pending Pi transfer approval, Android/NAS/phone
+and the full original signed downloadable APK requirement remain in the goal.
+
 ## 12 November 2026 - native coordinator workspace-read source
 
 Follow-up: strict existing worker stdout envelope handling passes 408 portable

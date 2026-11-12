@@ -22,6 +22,22 @@ class HostedRoomSourceGuardsTest(unittest.TestCase):
         scope['mobile_used_request_fields']=[x for x in scope['mobile_used_request_fields'] if x not in WORKSPACE_FIELDS]
         variants={k:v for k,v in value['reviewed_handler_variants'].items() if k not in HISTORY_WATCHES and not k.startswith('hosted_room_')}
         absences={k:v for k,v in value.get('reviewed_handler_absences',{}).items() if k not in HISTORY_WATCHES and not k.startswith('hosted_room_')}
+        # Pin the complete current non-room review set as well as the exact
+        # historical set below. Only the seven independently reviewed channel
+        # additions are projected out of the old golden; no old mode changes.
+        self.assertEqual('6ee01864a6865d4e6b8a0bcf0bbe005fb949b3e6f85608ee068163f914397cb6',self.digest(variants))
+        channel_context_keys={'channel_catalog:binding:_PLATFORM_ORDER','channel_config:schema:Platform',
+            'env_config:_worker_config_snapshot','plugin_legacy:LEFT_CORE','plugin_legacy:legacy_plugin_alias',
+            'plugin_legacy:legacy_plugin_keys','channel_registry:schema:PlatformEntry'}
+        historical=copy.deepcopy(variants);removed=0
+        for key in channel_context_keys:
+            entries=historical[key]
+            kept=[e for e in entries if e['commit']!='3b421578588243f920886e6fe79a6faa87ea026e']
+            removed+=len(entries)-len(kept)
+            if kept:historical[key]=kept
+            else:del historical[key]
+        self.assertEqual(7,removed)
+        variants=historical
         self.assertEqual(GOLDEN,dict(contract=self.digest(contract),scope=self.digest(scope),variants=self.digest(variants),absences=self.digest(absences)))
         self.assertEqual(222,len(checker.SOURCES|checker.EXTRA_SOURCES));self.assertEqual(16,len(aliases))
         self.assertFalse(checker.compare(value,dict(commit=value['upstream']['commit'],contract=copy.deepcopy(value['upstream']['contract'])))['mobile_review_required'])

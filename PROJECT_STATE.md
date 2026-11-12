@@ -1,52 +1,54 @@
 # Signal Grove project state
 
-Current milestone: optional native coordinator workspace-read source verified.
-Current objective: production native owner/profile binding, then Android files.
-Assurance state: live Windows/SSH bridge passes; coordinator source tested only.
-Last checkpoint: 12 November 2026, native-coordinator-workspace-reads.
+Current milestone: exact stable channel/registry context review complete.
+Current objective: remaining native/auth compatibility and actual integration.
+Assurance state: 40 stable findings remain; no new APK or Pi deployment.
+Last checkpoint: 12 November 2026, channel-registry-context-review.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
 
-The optional extension adds two closed versioned methods on the existing native
-Hermes authority socket. It derives scope from the actual authenticated owner,
-selected profile and current explicit grant. Nonoperator/API/foreign subjects,
-wrong instances, sibling profiles without a grant and closed transports refuse.
-Authority/caller/policy changes during a read drop contents. The one-shot private
-SSH adapter bounds larger replies explicitly and never submits execution work,
-retries, persists project contents or changes a model/default/credential.
+Seven exact source-bound variants accept only the reviewed v0.23.1 context:
+catalog/config/migration are byte-identical, CLI config removes a redundant
+Honcho key that still matches credential routing, and registry adds independent
+tool-note metadata plus completed off-loop dependency verdict reuse. All five
+complete source hashes and exact ASTs are required. No general commit waiver.
+Saved stable findings: 47 -> 40, with every other category/finding preserved.
+Saved main fe664929 stays 97 -> 97 because its context is not this reviewed mode.
+Official latest release is rechecked as v0.23.1; fresh hosted reports remain due.
 
-Full portable policy suite: 408 passes (21 coordinator/transport cases). Actual
-v0.23.1/3b42157 AuthorityConnection/SessionAuthority/strict native contracts: 12
-isolated cases pass, with empty admission/worker/conversation tables and audited
-external network/execution denied. Worker replies and constructor identities are
-synthetic; native HTTP/WS sign-in and deployed Pi acceptance remain open.
-The guarded source adapter is applied in memory only, not to production.
-The exact installed worker stdout envelope is now strictly unwrapped and tested;
-raw/unexpected/helper-failure envelopes never expose private error details.
-The new real Pi in-memory coordinator trial has not executed: automatic approval
-review rejected code/project-metadata transfer without specific confirmation.
-The narrowly scoped transfer approval question is pending. Continue independent
-local/Android/release work; do not bypass that rejection or assume approval.
+414 portable policies, 12 actual-source card/registry/config cases and 15 serving
+model observer tests pass. Synthetic dependency callbacks cannot install or send;
+audited external network/execution/out-of-root writes are denied. This is not a
+real account/HTTP/phone integration or full lifecycle proof. All original F0
+contract/watch/history fields and review modes are proven unchanged; the old
+golden remains and the complete new variant set is independently pinned.
 
-All existing non-Markdown source 706 inputs remain hash-identical. Its previous
-1004 JVM, 65 native Windows, Android build/lint/signing/native-library and retained
-API26 checks remain scoped evidence for unchanged inputs; this adds no new APK.
-The phone is not currently visible over USB; existing emulators remain preserved.
-The existing Windows read daemon, eight terminal receipts and private Pi SSH path
-remain as commissioned. Do not repeat the terminal cutover. Private source-only
-deployment package is committed locally; unrelated private edits/remote preserved.
-Doctor optional key/tool and owner graph identity/index findings remain open.
+658 other pre-existing frozen-source 706 executable/config inputs remain exact.
+The three changed existing inputs are compatibility JSON and two policy tests;
+all Android/runtime/native/model bytes remain unchanged. Their earlier 1004 JVM,
+65 Windows native, build/lint/signing and retained-data API26 evidence remains
+scoped evidence. No new Android/device/production APK result is claimed.
 
-[Native contract and limitations](docs/contracts/2026-11-12-native-coordinator-workspace-reads.md).
-[Live bridge evidence](docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
+The existing interactive Windows read daemon and all eight terminal receipts
+remain commissioned. Optional native coordinator source previously passes 408
+policies/12 actual-native cases, including strict worker reply envelopes. It is
+not deployed to Pi. The real Pi in-memory coordinator trial never executed:
+automatic review rejected code/project-metadata transfer without specific
+approval. Its narrowly scoped question is pending; do not bypass or infer consent.
+Prior deployed Windows/local-Pi SSH reads remain separate evidence. Doctor
+optional key/tool and owner graph identity/index findings stay open.
 
-**Next exact action:** inspect the live Pi native source/auth/profile and idle
-state; prepare its explicit owner/default-profile grant and read-only larger-reply
-transport using the existing SSH route. Complete reviewed encrypted recovery and
-staged source maintenance before any restart. Prove actual native HTTP/WS sign-in,
-default/foreign-profile isolation and uncertainty before Android project/root/file
-review. NAS, graphs, all original audit/release and signed APK gates stay open.
+[Current review/evidence](docs/contracts/2026-11-12-channel-registry-context-review.md).
+[Coordinator scope](docs/contracts/2026-11-12-native-coordinator-workspace-reads.md).
+[Live bridge](docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
+
+**Next exact action:** review the remaining stable native/auth boundary from
+primary source and run its bounded actual-native profile/ticket fixture. If Pi
+transfer approval arrives, reconcile the unexecuted trial then run only that
+approved read-only trial; production encrypted recovery/idle/staged deployment
+and actual native HTTP/WS/default/foreign-profile proof remain required before
+Android file wiring. NAS, graphs, every original audit and signed APK gate remain.
 
 ## Continuing scope and authoritative records
 

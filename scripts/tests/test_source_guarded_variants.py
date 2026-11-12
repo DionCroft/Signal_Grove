@@ -161,13 +161,15 @@ class SourceGuardedVariantTest(unittest.TestCase):
             self.assertNotEqual(value['upstream']['contract']['handlers'][key], entry['sha256'])
             self.assertIn(key, value['mobile_used_handlers'])
             same_ast = [v for v in value['reviewed_handler_variants'][key] if v['sha256'] == entry['sha256']]
-            self.assertEqual(2, len(same_ast))
+            self.assertEqual(3, len(same_ast))
             modes = {v['commit']: v for v in same_ast}
-            self.assertEqual({'981791d9d41fd2efde27f563873ce8c48ef1dac6', 'd4e7c3434209861f5cc6da0649e2df1f11f53e73'}, set(modes))
+            self.assertEqual({'981791d9d41fd2efde27f563873ce8c48ef1dac6', 'd4e7c3434209861f5cc6da0649e2df1f11f53e73', '3b421578588243f920886e6fe79a6faa87ea026e'}, set(modes))
             next_sources = dict(expected_sources)
             next_sources['env_config'] = 'ac6677722a209d62a602fe6d3140abdd394502a9c2926447dc194f9cd2a35166'
             self.assertEqual(next_sources, modes['d4e7c3434209861f5cc6da0649e2df1f11f53e73']['required_sources'])
-            self.assertTrue(all(set(v['required_sources']) == set(expected_sources) for v in same_ast))
+            self.assertTrue(all(set(modes[c]['required_sources']) == set(expected_sources) for c in ('981791d9d41fd2efde27f563873ce8c48ef1dac6', 'd4e7c3434209861f5cc6da0649e2df1f11f53e73')))
+            current_sources=dict(expected_sources,env_config='bdd14e65866864bbb6afad73fa3b2f4ba69097e783ac3cda18ac374dca33b763',channel_registry='05103cf65cf74935afa5660b140f012f22255a0b764b6c99c6c680a7a0d7f261')
+            self.assertEqual(current_sources,modes['3b421578588243f920886e6fe79a6faa87ea026e']['required_sources'])
 
 
 if __name__ == '__main__':
