@@ -1,5 +1,11 @@
 # Evidence navigation
 
+## 12 November 2026 - native workspace Review
+
+31 API26 methods,16 exact native taps and eight Review observations pass. Full
+hosted/API37/live release acceptance remains open. [Bound source/artifacts and
+retained failures](docs/contracts/2026-11-12-native-workspace-review.md).
+
 ## 12 November 2026 - current stable authentication and clean release inventory
 
 The final repository probe passes77 distinct cases against exact stable Hermes

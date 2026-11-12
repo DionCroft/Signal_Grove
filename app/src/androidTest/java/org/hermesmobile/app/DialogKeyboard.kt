@@ -59,30 +59,38 @@ fun tapFocusedDialogWindowPoint(x:Float,y:Float,action:NativeDialogTapAction,id:
 
 
 /** The real Android IME boundary, in screen coordinates, for a focused dialog. */
-data class FocusedDialogViewport(val visible:android.graphics.Rect,val screenOffsetX:Int,val screenOffsetY:Int,val imeBottom:Int,val displayHeight:Int)
+data class FocusedDialogViewport(val visible:android.graphics.Rect,val screenOffsetX:Int,val screenOffsetY:Int,val imeBottom:Int,val displayHeight:Int,val keyboardVisible:Boolean=true)
 
-fun focusedDialogViewport():FocusedDialogViewport? {
+fun focusedDialogViewport(requireKeyboard:Boolean=true):FocusedDialogViewport? {
     val nativeIme=withInteractiveWindows {windows->
         val bounds=windows.filter {it.type==android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD}.map {item->android.graphics.Rect().also {item.getBoundsInScreen(it)}}.filter {!it.isEmpty}
         bounds.minOfOrNull {it.top}
-    } ?: return null // Insets can arrive before the real accessibility window is registered.
+    }
+    if(requireKeyboard && nativeIme==null) return null // Insets can precede the native IME window.
     var result:FocusedDialogViewport?=null
     onView(isRoot()).inRoot(focusedAppDialog()).check {view,error->
         if(error!=null) throw error
         val frame=android.graphics.Rect();view.getWindowVisibleDisplayFrame(frame)
         val screen=IntArray(2);val window=IntArray(2);view.getLocationOnScreen(screen);view.getLocationInWindow(window)
         val insets=checkNotNull(ViewCompat.getRootWindowInsets(view))
-        check(insets.isVisible(WindowInsetsCompat.Type.ime())) {"The real dialog keyboard must remain visible"}
-        val ime=insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        val keyboardVisible=insets.isVisible(WindowInsetsCompat.Type.ime())
+        if(requireKeyboard) check(keyboardVisible) {"The real dialog keyboard must remain visible"}
+        // A general action can be checked with or without an IME, but not during
+        // disagreement between native windows and delivered insets.
+        if(keyboardVisible!=(nativeIme!=null)) return@check
+        val ime=if(keyboardVisible) insets.getInsets(WindowInsetsCompat.Type.ime()).bottom else 0
         val metrics=android.util.DisplayMetrics()
         @Suppress("DEPRECATION")
         view.display.getRealMetrics(metrics)
         // Platform fitting can consume the local inset; the actual native IME is mandatory.
-        check(ime>=0 && metrics.heightPixels>ime && nativeIme in 1 until metrics.heightPixels)
-        frame.bottom=minOf(frame.bottom,metrics.heightPixels-ime,nativeIme)
-        result=FocusedDialogViewport(frame,screen[0]-window[0],screen[1]-window[1],ime,metrics.heightPixels)
+        check(ime>=0 && metrics.heightPixels>ime)
+        if(keyboardVisible) {
+            val top=checkNotNull(nativeIme);check(top in 1 until metrics.heightPixels)
+            frame.bottom=minOf(frame.bottom,metrics.heightPixels-ime,top)
+        }
+        result=FocusedDialogViewport(frame,screen[0]-window[0],screen[1]-window[1],ime,metrics.heightPixels,keyboardVisible)
     }
-    return checkNotNull(result)
+    return if(requireKeyboard) checkNotNull(result) else result
 }
 
 

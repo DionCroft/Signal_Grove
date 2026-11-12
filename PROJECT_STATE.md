@@ -1,10 +1,37 @@
 # Signal Grove project state
 
+## Current checkpoint - native workspace Review
+
+Hosted f9e3835 passes the complete 1,133-case API37 subset. API26 shard 1
+passes 597 cases; shard 0 starts 535 with 534 positive results and one failed
+workspace-consent case. Its 1,132-case inventory independently matches the
+successful partition. The complete standard gate remains failed; no synthetic
+pass receipt is substituted. The unchanged class later passes 19/19 locally,
+which does not identify the hosted failure's cause or erase it.
+
+Review now waits for a native-confirmed stable viewport and complete action/
+caption bounds, sends one acknowledged DOWN/UP pair, then requires fresh unchecked
+consent. A new large bilingual case covers keyboards both open and closed.
+Actual cut-corner caption outlines replace an incorrect capsule assumption;
+two rendered counterexamples prove the distinction and retain clipping refusal.
+The 31-case API26 batch passes, with 16 one-attempt native tap receipts and eight
+Review observations. This includes six scripted dispatch guards, not 31 physical
+tap tests. Test-only source changes preserve every production input.
+
+The frozen debug/test build passes 1,006 JVM cases/96 reports, both lint variants
+with zero errors, original debug signing and all native/DEX alignment checks.
+The new API37 local fixture has not reached verified boot; no application test
+is submitted to it. Fresh full hosted source acceptance, original-key physical
+production upgrade/live checks, compatibility 40/100 and every broader audit
+requirement remain. Beta.9 is not published; the phone is unchanged.
+
+[Exact cases, diagnostics and preserved failures](docs/contracts/2026-11-12-native-workspace-review.md).
+
 Current milestone: beta.9 uncompressed-DEX candidate and download/release checks.
 Current objective: finish lifecycle and final-source release acceptance,
 finish candidate device/release checks and keep the separate worker audit moving.
 Assurance state: fresh stable40/main100 findings and full original audit remain.
-Last checkpoint: 12 November 2026, current-stable-auth-and-clean-inventory.
+Last checkpoint: 12 November 2026, native-workspace-review.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint - stable auth and clean inventory

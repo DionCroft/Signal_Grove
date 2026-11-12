@@ -41,6 +41,8 @@ class CanonicalViewerUiTest {
         listOf(CanonicalStoredSession("fixture-history","fixture-history","fixture-history","Fixture conversation","cli",null,2,1.0,false,"fingerprint")),scope)
     private val scope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
     private val guard=UpdateWorkGuard()
+    private data class WorkspaceActionStyle(val shape:androidx.compose.ui.graphics.Shape,val density:Density,val direction:androidx.compose.ui.unit.LayoutDirection)
+    private var workspaceActionStyle:WorkspaceActionStyle?=null
     private val lifecycleOwner=object:LifecycleOwner {
         val registry=LifecycleRegistry(this)
         override val lifecycle:Lifecycle get()=registry
@@ -96,6 +98,9 @@ class CanonicalViewerUiTest {
                 val density=LocalDensity.current
                 CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides lifecycleOwner,
                     LocalDensity provides if(large) Density(density.density,1.8f) else density) {
+                    val actionStyle=WorkspaceActionStyle(androidx.compose.material3.MaterialTheme.shapes.small,
+                        LocalDensity.current,androidx.compose.ui.platform.LocalLayoutDirection.current)
+                    SideEffect {workspaceActionStyle=actionStyle}
                     if(shown) CanonicalSessionsDialog(viewer,available,pending,selection) {viewer.close();shown=false}
                 }
             }
@@ -171,9 +176,96 @@ class CanonicalViewerUiTest {
         // One tap only. Require the checkbox itself to change before inspecting Confirm.
         checkbox.performClick().assertIsOn()
     }
+    private fun assertWorkspaceActionCaption(tag:String) {
+        val bounds=compose.onNodeWithTag(tag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val style=checkNotNull(workspaceActionStyle)
+        compose.assertDialogActionCaptionVisible(tag,style.shape.createOutline(
+            androidx.compose.ui.geometry.Size(bounds.width,bounds.height),style.direction,style.density))
+    }
+    private data class WorkspaceReviewGeometry(val viewport:FocusedDialogViewport,val control:androidx.compose.ui.geometry.Rect)
+    private fun reviewWorkspace(large:Boolean=false,keyboardExpected:Boolean?=null) {
+        val control=compose.onNodeWithTag("workspace-review").assertIsDisplayed().assertIsEnabled()
+        val id=java.util.UUID.randomUUID().toString();val samples=mutableListOf<JsonObject>()
+        var ready:WorkspaceReviewGeometry?=null;var previous:WorkspaceReviewGeometry?=null;var stableAt=0L
+        var dispatched=false;var primary:Throwable?=null
+        fun observation(value:WorkspaceReviewGeometry?)=buildJsonObject {
+            put("nativeViewportReady",value!=null)
+            value?.let {
+                put("keyboardVisible",it.viewport.keyboardVisible)
+                put("control",JsonArray(listOf(it.control.left,it.control.top,it.control.right,it.control.bottom).map(::JsonPrimitive)))
+                val frame=it.viewport.visible
+                put("visible",JsonArray(listOf(frame.left,frame.top,frame.right,frame.bottom).map(::JsonPrimitive)))
+                put("screenOffsetX",it.viewport.screenOffsetX);put("screenOffsetY",it.viewport.screenOffsetY)
+            }
+        }
+        try {
+            compose.waitUntil(5000) {
+                val viewport=focusedDialogViewport(requireKeyboard=false)
+                val value=viewport?.let {WorkspaceReviewGeometry(it,control.fetchSemanticsNode().boundsInWindow)}
+                val sample=observation(value);if(samples.lastOrNull()!=sample && samples.size<16) samples+=sample
+                val now=android.os.SystemClock.uptimeMillis()
+                val contained=value?.let {g->val v=g.viewport;val b=g.control
+                    b.left+v.screenOffsetX>=v.visible.left && b.right+v.screenOffsetX<=v.visible.right &&
+                    b.top+v.screenOffsetY>=v.visible.top && b.bottom+v.screenOffsetY<=v.visible.bottom &&
+                    (keyboardExpected==null || v.keyboardVisible==keyboardExpected)}==true
+                if(!contained || value!=previous) {previous=value;stableAt=now;false}
+                else (now-stableAt>=250).also {if(it) ready=value}
+            }
+            val settled=checkNotNull(ready)
+            assertWorkspaceActionCaption("workspace-review")
+            val caption=Words.WorkspaceReview.localized(AppPreferences(chinese=large,pinyin=large))
+            val native=focusedDialogCaptionScreenBounds(caption,caption)
+            assertTrue("The complete native Review caption must fit the observed viewport",settled.viewport.visible.contains(native))
+            assertEquals("Review geometry changed before its only tap",settled.viewport,focusedDialogViewport(requireKeyboard=false))
+            val center=settled.control.center;dispatched=true
+            tapFocusedDialogWindowPoint(center.x,center.y,NativeDialogTapAction.WorkspaceReview,id)
+            compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
+            compose.onNodeWithTag("workspace-consent").performScrollTo().assertIsOff()
+        } catch(error:Throwable) {primary=error;throw error}
+        finally {
+            val consentPresent=runCatching {compose.onAllNodesWithTag("workspace-consent").fetchSemanticsNodes().isNotEmpty()}.getOrNull()
+            try {writeNativeTapDiagnostic("workspace-review-observation-$id",buildJsonObject {
+                put("schema",1);put("id",id);put("action","workspace-review");put("nativeTapAttempted",dispatched)
+                put("samples",JsonArray(samples));put("ready",observation(ready))
+                put("consentPresent",consentPresent?.let(::JsonPrimitive) ?: JsonNull)
+                put("failureType",primary?.javaClass?.simpleName?.let(::JsonPrimitive) ?: JsonNull)
+            })} catch(diagnostic:Throwable) {if(primary!=null) primary.addSuppressed(diagnostic) else throw diagnostic}
+        }
+    }
+
+    @Test fun nativeWorkspaceReviewRequiresFreshConsentWithAndWithoutKeyboard() {
+        render(large=true);open()
+        for((index,keyboard) in listOf(true,false).withIndex()) {
+            if(index==0) editWorkspace() else {
+                scroll("canonical-viewer-list","workspace-edit").performClick()
+                compose.onNodeWithTag("workspace-directory").performScrollTo().performTextReplacement("/fixture/new project")
+            }
+            if(keyboard) {
+                compose.onNodeWithTag("workspace-directory").performScrollTo().performClick()
+                compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+            } else {
+                closeDialogKeyboard();compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
+            }
+            reviewWorkspace(large=true,keyboardExpected=keyboard)
+            compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
+            grantWorkspaceConsent()
+            compose.onNodeWithTag("workspace-confirm").assertIsEnabled()
+            assertWorkspaceActionCaption("workspace-cancel")
+            val caption=Words.Cancel.localized(AppPreferences(chinese=true,pinyin=true))
+            val viewport=checkNotNull(focusedDialogViewport(requireKeyboard=false))
+            assertTrue(viewport.visible.contains(focusedDialogCaptionScreenBounds(caption,caption)))
+            val cancel=compose.onNodeWithTag("workspace-cancel").assertIsDisplayed().fetchSemanticsNode().boundsInWindow.center
+            tapFocusedDialogWindowPoint(cancel.x,cancel.y,NativeDialogTapAction.WorkspaceCancel)
+            compose.waitUntil(5000) {compose.onAllNodesWithTag("workspace-cancel").fetchSemanticsNodes().isEmpty()}
+            assertEquals(0,repo.workspaceChanges);assertEquals(CanonicalViewerPhase.Following,viewer.state.value.phase)
+            assertTrue(guard.active.value);assertNotNull(viewer.state.value.workspaceSnapshot)
+            compose.onAllNodesWithText(Words.WorkspaceAcknowledged.en).assertCountEquals(0)
+        }
+    }
+
     @Test fun workspaceCancelFromCheckedReviewNeverChangesTheSession() {
         render();open();editWorkspace()
-        compose.onNodeWithTag("workspace-review").assertIsEnabled().performClick()
+        reviewWorkspace()
         compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
         grantWorkspaceConsent()
         compose.onNodeWithTag("workspace-confirm").assertIsEnabled()
@@ -194,7 +286,7 @@ class CanonicalViewerUiTest {
                 scroll("canonical-viewer-list","workspace-edit").performClick()
                 compose.onNodeWithTag("workspace-directory").performScrollTo().performTextReplacement("/fixture/new project")
             }
-            compose.onNodeWithTag("workspace-review").performClick()
+            reviewWorkspace()
             // This checks advice/uncertainty state. Other consent tests exercise physical taps.
             val consent=compose.onNodeWithTag("workspace-consent").performScrollTo().assertIsOff()
             consent.performSemanticsAction(SemanticsActions.OnClick) {it()}
@@ -215,7 +307,7 @@ class CanonicalViewerUiTest {
 
     @Test fun checkedWorkspaceReviewSendsOnceAndRequiresAFreshAttachmentAfterAcknowledgement() {
         render();open();editWorkspace()
-        compose.onNodeWithTag("workspace-review").performClick()
+        reviewWorkspace()
         compose.onNodeWithTag("workspace-reviewed-directory").performScrollTo().assertTextEquals("/fixture/new project")
         grantWorkspaceConsent()
         capture("workspace-confirm","workspace-review-checked")
@@ -249,7 +341,7 @@ class CanonicalViewerUiTest {
             throw failure
         }
         capture("workspace-review","workspace-form-large")
-        compose.onNodeWithTag("workspace-review").performClick()
+        reviewWorkspace(large=true,keyboardExpected=true)
         compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
         var lastCancel:android.graphics.Rect?=null;var cancelStableAt=0L
         compose.waitUntil(5000) {

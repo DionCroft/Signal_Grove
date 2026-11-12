@@ -20,7 +20,7 @@ import java.util.UUID
 
 /** Fixed test actions only; no captions, paths, credentials or view text enter diagnostics. */
 enum class NativeDialogTapAction(val wire:String) {
-    WorkspaceCancel("workspace-cancel"),HistoryMore("history-more"),HistoryClose("history-close"),
+    WorkspaceReview("workspace-review"),WorkspaceCancel("workspace-cancel"),HistoryMore("history-more"),HistoryClose("history-close"),
     KanbanRead("kanban-read"),KanbanCancel("kanban-cancel"),PhoneDraftCancel("phone-draft-cancel")
 }
 
@@ -109,7 +109,7 @@ internal fun dispatchOneDialogTap(controller:UiController,view:View,x:Float,y:Fl
 }
 
 internal fun writeNativeTapDiagnostic(name:String,report:JsonObject) {
-    require(Regex("(?:native-dialog-tap|workspace-cancel-observation)-[0-9a-f-]{36}").matches(name))
+    require(Regex("(?:native-dialog-tap|workspace-cancel-observation|workspace-review-observation)-[0-9a-f-]{36}").matches(name))
     val context=InstrumentationRegistry.getInstrumentation().targetContext
     val directory=File(checkNotNull(context.getExternalFilesDir(null)),"qa");check(directory.isDirectory || directory.mkdirs())
     val output=File(directory,"$name.json");val pending=File(directory,"$name.pending");check(!output.exists() && !pending.exists())
