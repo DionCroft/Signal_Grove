@@ -187,7 +187,7 @@ class WorkspaceProvider:
     def __init__(self,lookup,*,scope_id,clock=time.monotonic):
         if not isinstance(scope_id,str) or not _TOKEN.fullmatch(scope_id):raise WorkspaceError('INVALID')
         self.scope=scope_id;self.lookup=lookup;self.clock=clock;self.device=socket.gethostname().upper();self.instance=str(uuid.uuid4())
-        self._key=secrets.token_bytes(32);self._grants={};self._lock=threading.Lock();self._slots=threading.BoundedSemaphore(4)
+        self._key=secrets.token_bytes(32);self._grants={};self._lock=threading.Lock();self._slots=threading.BoundedSemaphore(4);self._retired=False
         self._native=None
 
     def _files(self):
@@ -195,7 +195,12 @@ class WorkspaceProvider:
             if self._native is None:self._native=WindowsFiles()
             return self._native
 
+    def retire(self):
+        with self._lock:self._retired=True;self._grants.clear()
+
     def _binding(self,project_id):
+        with self._lock:
+            if self._retired:raise WorkspaceError('UNAVAILABLE')
         if not isinstance(project_id,str) or not _PROJECT.fullmatch(project_id):raise WorkspaceError('INVALID')
         if socket.gethostname().upper()!=self.device:raise WorkspaceError('CHANGED')
         try:binding=self.lookup(self.scope,project_id)

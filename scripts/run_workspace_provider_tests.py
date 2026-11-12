@@ -33,11 +33,15 @@ def main():
     if sys.platform!='win32':raise RuntimeError('Real Windows native acceptance is required')
     output=args.output.absolute()
     if output.drive.lower()=='c:':raise RuntimeError('Native evidence must use the approved non-C scratch root')
-    inputs=[ROOT/'server_extensions/worker_workspaces/workspace_provider.py',ROOT/'server_extensions/worker_workspaces/tests_windows/test_workspace_provider.py',Path(__file__).resolve()]
-    before={str(path.relative_to(ROOT)).replace('\\','/'):hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
-    suite=unittest.defaultTestLoader.discover(str(inputs[1].parent),pattern='test_*.py');expected=list(identities(suite))
+    package=ROOT/'server_extensions/worker_workspaces'
+    sys.path.insert(0,str(ROOT))
+    def source_hashes():
+        inputs=[Path(__file__).resolve(),*sorted(package.rglob('*.py'))]
+        return {str(path.relative_to(ROOT)).replace('\\','/'):hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
+    before=source_hashes()
+    suite=unittest.defaultTestLoader.discover(str(package/'tests_windows'),pattern='test_*.py');expected=list(identities(suite))
     result=unittest.TextTestRunner(verbosity=2,resultclass=RecordedResult).run(suite)
-    after={str(path.relative_to(ROOT)).replace('\\','/'):hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
+    after=source_hashes()
     accepted=acceptance(expected,result,before,after)
     record=dict(schema=1,status='windows_native_provider_pass' if accepted else 'failed_or_incomplete',platform=sys.platform,
         python=list(sys.version_info[:3]),source_revision=os.environ.get('GITHUB_SHA'),source_files=before,source_unchanged=before==after,

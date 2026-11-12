@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Add bounded worker-broker read frames with fresh context/revocation checks,
+  explicit provider retirement, correlation and duplicate-request refusal. Fix
+  close-during-context-validation content disclosure before deployment.
+  Authenticated transport and Android integration remain separate.
+
 - Add an internal registered Windows workspace read provider with actor/profile
   fencing, full 128-bit root/entry identities, bounded listings/previews and native
   junction/hard-link/rename protection. Add a strict Windows CI gate; broker,

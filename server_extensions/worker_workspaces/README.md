@@ -96,3 +96,33 @@ File identity requires the full `FILE_ID_INFO` volume/128-bit identifier from
 `GetFileInformationByHandleEx(FileIdInfo)`. The legacy 64-bit identity is not
 a fallback: [Microsoft documents possible ReFS collisions](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information). Unsupported filesystems
 refuse explicitly; local NTFS testing does not certify ReFS or SMB deployment.
+
+## Checked broker byte adapter
+
+`broker_protocol.BrokerReadAdapter` binds one authenticated interactive context
+and one provider to strict JSON byte frames. The trusted broker supplies fresh
+`CheckedReadContext(scope_id, device, policy_revision, interactive)` observations;
+these are internal authority inputs, never fields accepted from request JSON.
+Authentication and actual interactive-owner verification remain the transport's
+responsibility. An ordinary SSH process or its cached registry projection must
+not assert that context merely by setting a Boolean.
+
+Frames contain schema1, a 32-hex request_id, the exact worker_instance and the
+closed provider payload. Duplicate JSON fields, invalid UTF-8, nonfinite constants,
+unknown fields and requests above 16 KiB refuse. Replies are bounded to 128 KiB.
+Four live requests and 256 retained request IDs are maximums. Duplicate IDs do not
+replay file reads or cached contents; exhaustion explicitly requires a newly
+reviewed context, without evicting live identities. Errors return fixed codes,
+not exception text, supplied contents or credentials.
+
+Context is checked before and after dispatch. Revocation, owner loss or closure
+drops observed file contents. `close()` retires the provider and its leases;
+close and successful serialization share a lock. The transport must discard
+responses for a retired context and must not retry unknown submissions itself.
+Native acceptance includes the close-from-context-callback race with a real read.
+
+No listener, HTTP route, SSH action, durable job queue or scheduled service is
+added by this adapter. In particular, the existing execution queue is not a
+preview-content transport. The next stage is an authenticated private foreground
+bridge in the actual interactive broker, followed by the optional Hermes
+capability and Android review. The NAS full-ID refusal remains unresolved.

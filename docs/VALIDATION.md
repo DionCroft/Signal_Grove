@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - checked worker read frames and complete parent Android union
+
+An internal broker adapter now accepts bounded strict JSON byte frames for one
+already authenticated interactive actor/profile context. Worker instance,
+request correlation, policy revision and fresh context are fenced. Duplicate
+IDs refuse without replay; four live reads and 256 retained IDs are maximums.
+Close retires the provider; context loss/revocation drops observed contents.
+The close-from-context-callback regression fails before the fix and passes after.
+
+Source 600 passes 1004 JVM / 96 reports, 353 policies and both lint variants with
+zero errors (51 debug / 50 release warnings). Original debug signing and all 32
+native-library ABI/alignment checks pass. Thirty-three real Windows cases pass
+with no skips/source drift; two unchanged Android project-gateway cases pass
+after all 9 protected hashes and package UIDs survive the verified upgrade.
+These are internal component checks, not deployed broker or phone-file acceptance.
+
+Parent 2a763fe's full hosted native union is independently verified from all four
+SHA-bound shard ZIPs, raw inventory/native logs and the separate union summary:
+API26 1132=535+597; API37 1133=536+597, disjoint and complete. The eleven external
+model methods remain not-run. This closes that parent's standard-suite gate,
+not final-source model/phone, production or release acceptance.
+
+The current mapped network storage still refuses full FileIdInfo (native87).
+Its NTFS label and missing open-by-file-ID capability flag do not justify a
+legacy-ID fallback. Existing private services, jobs, credentials, model choices
+and published beta.8 are unchanged. Actual authenticated foreground transport,
+optional Hermes capability, Android root/file review, NAS/Surface ownership and
+every other audit/release requirement remain open; the full goal stays active.
+
+[Adapter contract and evidence](contracts/2026-11-12-worker-broker-read-adapter.md).
+
 ## 12 November 2026 - Windows worker file-read provider
 
 An internal owning-host provider now prepares registered project/root bindings,
