@@ -4782,3 +4782,22 @@ hashes, source preservation, failed attempts and every remaining requirement.
 The preceding main 6d9863c hosted artifact independently passes all 58 earlier
 native cases with exact inventory/committed-source hashes. It does not accept
 this newer source. Full audit and signed APK delivery remain active.
+
+
+## 12 November 2026 - persistent owner read bridge cutover and real Pi path
+
+The reviewed source 7ee5c59 is deployed to the existing interactive worker with
+its unchanged scheduled task. The exact idle daemon exits through its owned stop
+marker; a controlled intake hold is released only after the new read host and
+unchanged eight-receipt queue are verified. No model, credentials or public ports
+change. Actual local and real Pi strict-host-key SSH prepare/list/preview pass on
+the registered local validation root (seven entries/302 existing text bytes),
+retaining both other project denials. No project material is staged on Pi.
+Sixteen regular paths/seven runtime hashes and seven inherited control ACLs pass.
+Post-cutover CurrentUser encrypted recovery decrypts exactly with no plaintext
+ZIP or upload. Doctor returns 1 for generic key/tool findings without fixes;
+registered MCP graph identity/index findings remain open. Hosted main 7ee5c59's
+65-case artifact is hash/inventory/committed-source verified independently.
+[The bounded deployment contract](contracts/2026-11-12-persistent-owner-read-bridge.md)
+retains exact scopes, hashes, failed preflight and remaining acceptance. These
+proofs do not certify native phone actor binding, NAS, full app or signed release.

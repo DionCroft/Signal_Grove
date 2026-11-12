@@ -23,3 +23,10 @@ adds 65 native/387 policy and frozen-source build/device verification, plus the
 private seven-process actual-worker read and encrypted component recovery.
 Persistent deployment, native coordinator/phone and complete release acceptance
 remain separate. The previous 6d9863c hosted 58-case artifact is verified.
+
+
+[Persistent owner bridge deployment](docs/contracts/2026-11-12-persistent-owner-read-bridge.md)
+records the actual idle cutover, local/Pi read paths, preserved receipts/denials,
+source/path/ACL checks, encrypted recovery and independently verified hosted
+65-case artifact. Doctor and graph findings remain explicit. Native coordinator
+actor/profile, Android/NAS and full signed APK delivery are still separate gates.

@@ -1,5 +1,19 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - persistent owner read bridge enabled
+
+The existing interactive Windows daemon now runs the verified optional pipe
+extension. Its controlled idle cutover preserves all eight receipts, task config,
+execution/routing functions and newer runtime fixes. Actual local and real Pi
+strict-host-key SSH prepare/list/preview pass on the registered local validation
+root, with other project denials retained and no Pi project material staging.
+Post-cutover source/path/ACL and encrypted recovery checks pass. Doctor exit 1
+missing-key/tool findings and incomplete owner graph checks remain recorded.
+Native phone/coordinator actor binding, larger bounded replies, Android and NAS
+file acceptance are still required. See [deployment scope/evidence](contracts/2026-11-12-persistent-owner-read-bridge.md).
+The source 7ee5c59 hosted 65-case artifact is independently verified. Every original
+audit row and downloadable signed production APK requirement remains open.
+
 ## 12 November 2026 - managed worker read host
 
 The explicit host lifetime, fresh private projections and caller-bound read

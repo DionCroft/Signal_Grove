@@ -1,62 +1,58 @@
 # Signal Grove project state
 
-Current milestone: managed worker read host and private RPC cutover preparation.
-Current objective: integrate verified owner reads with the existing worker daemon.
-Assurance state: native/private-candidate proofs pass; production/phone/release open.
-Last checkpoint: 12 November 2026, managed-worker-read-host.
+Current milestone: persistent Windows owner read bridge deployed and verified.
+Current objective: bind native coordinator authentication, then Android file review.
+Assurance state: deployed worker/SSH path verified; phone/full release remains open.
+Last checkpoint: 12 November 2026, persistent-owner-read-bridge.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
 
-An explicit lifetime owner now runs one dedicated pipe thread per enrolled scope.
-It publishes only currently accepting listeners, retires held sessions without
-replacement, bounds transport-fault loops and cancels/joins on closure. Native
-identity-revert failures never invoke a file/receipt writer from that thread.
-Private projections have closed schemas, exact scope/instance correlation and a
-10-second freshness limit; native process identity is rechecked before submission.
+The reviewed optional read host is now installed in the existing interactive
+Windows worker. The exact idle old daemon exited, the unchanged scheduled task
+started its new instance and the controlled intake hold was released. All eight
+durable terminal receipts are unchanged; both paused/foreign registrations remain
+denied. No model, credential or public listener changed. Do not repeat the cutover:
+its terminal receipt is live-cutover717.json in protected operator evidence.
 
-The new code passes 65 distinct Windows native cases without skips or source
-drift. Frozen source 706 also passes all 387 portable policies, 1004 JVM cases / 96
-reports, both lint variants (zero errors, 51/50 warnings), original debug signing
-and 32 native ABI/alignment checks. The exact API26 upgrade retains all nine
-protected hashes and both package UIDs; both project contract cases pass. Earlier readiness-assertion and error-code expectation
-failures are retained; existing peer-spoof denial behavior remains unchanged.
+Actual deployed prepare/list/preview pass through separate local RPC processes
+on the registered local validation root: seven entries and 302 existing text
+bytes. The same reads also pass from the real Pi over the existing strict-host-key
+SSH route into the interactive Windows pipe, with no project material written on
+Pi. This proves infrastructure transport, not native phone/HTTP/WS actor binding.
+Only the explicitly enrolled intended owner/default-profile scope is configured;
+coordinator binding still needs actual authenticated acceptance before advertising
+capability or trusting a phone request.
 
-A private fixed-RPC candidate passes seven separate-process requests using the
-actual interactive owner, existing worker validator and already registered local
-validation root. It reads 302 existing text bytes, rejects scope spoofing before
-submission, holds on revocation and never revives on restoring old policy. The
-live worker/daemon source and all eight durable queue receipts remain unchanged.
-An import-only staging failure and a stopped fixture-hash edit are retained.
+Source 7ee5c59 is on main and feature, clean/protected refs verified. Its canonical
+seven-module runtime is byte-identical to the committed Git blobs. Frozen source
+706 passes 1004 JVM / 96 reports, 387 policies and 65 local Windows native cases,
+zero lint errors (51/50 warnings), original debug signing/32 native ABI checks and
+the retained-data API26 upgrade (nine files/two package UIDs/two project cases).
+Hosted run 43166502425 independently passes all 65 cases; downloaded artifact,
+raw inventory and all 13 committed-source hashes are verified.
 
-The maintained older worker template differs from deployed native-runtime fixes.
-The candidate preserves every execution/routing function and changes only fixed
-RPC handling and daemon main wiring. A tested maintenance hold blocks new stages
-without enqueueing, preserving the health schema. Private policy is staged from
-observed Tailscale self identity and default owner/profile metadata; authenticated
-coordinator request binding still needs live acceptance. Canonical-LF runtime
-packaging permits exact future Git-blob reconstruction. Its seven-process proof
-passes too. The affected worker source/consistent queue recovery is encrypted
-and round-trip verified locally, with no plaintext ZIP or upload. Nothing is
-installed; native coordinator binding still needs separate acceptance.
+Pre/post affected-component CurrentUser encrypted recoveries round-trip exactly;
+no plaintext ZIP or private upload. Paths/runtime hashes and inherited control
+ACLs pass. Doctor runs without fix/live/ack and returns 1 for two generic missing
+API-key/full-tool findings; optional auth/tool warnings are retained, not repaired
+by adding credentials. Owner MCP validation still reports the application graph
+as incomplete/unbound and the maintained source as not indexed. No freshness or
+full health claim is made; existing authoritative files remain the bounded source.
 
-The preceding 6d9863c main gate is independently verified: all 58 hosted native
-cases, exact Git/source inventory and artifact digest pass. Its raw evidence is
-retained; it does not certify this newer code. Source 677's 1004 JVM/373 policy,
-lint/signing/32 native-library and nine-file/two-project-case retained-data checks
-remain historical evidence, not the final current-source build.
+Maintained private deployment source is added in its own new integration folder;
+other private working-tree changes are untouched. The older worker template's
+runtime differences were preserved. All original audit rows stay in scope.
 
-Owner-local derived graph indexing/context-pack identity remains unresolved;
-no freshness claim or coordinator-local substitute is made. All authoritative
-files stay on their verified owner, with private staging/evidence on E.
+[Deployment evidence and limits](docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
 
-[Managed-host contract and evidence](docs/contracts/2026-11-12-managed-worker-read-host.md).
-
-**Next exact action:** recheck encrypted recovery, actual idle work, source/ACL
-and process identity, then deploy the reviewed private helper with a controlled
-hold and prove its fixed RPC on the actual owner. Wire the optional native-auth
-coordinator capability and Android review next. NAS, physical/model, compatibility
-and every original audit/downloadable signed APK requirement remain open.
+**Next exact action:** implement the optional coordinator method/capability using
+its actual authenticated native actor/profile, the existing private owner SSH
+route and bounded replies. Prove default/other-profile isolation and exact unknown
+outcomes before Android wiring. Handle the legacy 64 KiB generic SSH reply limit
+explicitly; do not silently replay or use the smaller metadata check as full file
+acceptance. NAS identity, session renewal, derived graphs, physical/model, full
+compatibility and every signed/downloadable APK gate remain open.
 
 ## Continuing scope and authoritative records
 
