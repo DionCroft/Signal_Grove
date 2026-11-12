@@ -134,5 +134,8 @@ beta.9 candidate passes ten API26 local-AI UI cases. The current candidate passe
 1,006 JVM cases and zero-error lint; its debug phone upgrade preserves owner data.
 Real HTTPS cancellation/discard and full foreground resume/hash/atomic install
 have positive physical evidence; earlier timeout/freezer failures are retained.
-Production-key upgrade and remaining lifecycle/release acceptance stay open. [Current figures](FEATURES.md),
+The current native cold-recovery case also passes on an API37 emulator, with no
+automatic model load or replay. Guest reboot is unverified: the same VM remains
+ADB offline after one request. Production-key upgrade and remaining lifecycle/
+release acceptance stay open. [Current figures](FEATURES.md),
 [delivery plan](ON_DEVICE_AI_PLAN.md) and [validation](VALIDATION.md).

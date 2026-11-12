@@ -44,6 +44,7 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 | Candidate JVM tests | **1,006 cases / 96 reports** | Beta.9 candidate; no failures/errors/skips |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |
+| Native cold recovery | **1 case; 9.344 s JUnit** | Current API37 emulator: interrupted turn retained, no automatic load/replay, explicit fresh JNI generation; post-reboot gate remains open |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
@@ -54,9 +55,9 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 | Signed candidate production APK | **71.0 MB** | 70,993,978 bytes; original signing identity, not published yet |
 | Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 12 November; known-indexed coverage, not a full security certification |
 
-[Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
+[Native cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-**Still open:** both HTTPS methods now have positive physical evidence, including full foreground resume; earlier emulator/frozen-phone failures are retained. Process/reboot, physical production-upgrade, full candidate CI (including failed API26 keyboard preparation), compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 100 on the inspected `main`; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
+**Still open:** both HTTPS methods now have positive physical evidence, including full foreground resume; earlier emulator/frozen-phone failures are retained. Cold recovery now passes; guest reboot remains unverified. Physical production-upgrade, full candidate CI (including failed API26 keyboard preparation), compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 100 on the inspected `main`; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
 
 ## Interface figures
 

@@ -4,10 +4,22 @@ Current milestone: beta.9 uncompressed-DEX candidate and download/release checks
 Current objective: finish lifecycle and final-source release acceptance,
 finish candidate device/release checks and keep the separate worker audit moving.
 Assurance state: fresh stable40/main100 findings and full original audit remain.
-Last checkpoint: 12 November 2026, foreground-model-download.
+Last checkpoint: 12 November 2026, native-cold-recovery.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
+
+Current-source native interruption/cold recovery passes on the owned API37
+emulator: exact PID/model/chat witness, expected force-stop, fresh-process
+INTERRUPTED state without load/replay, then only explicit fresh JNI generation.
+The one positive case is 9.344s JUnit; 288 protected file hashes/package identities
+remain before reboot, and the complete recovered model hash verifies. The
+preparation is intentionally interrupted and is not a positive JUnit pass.
+One guest reboot is unverified: same host VM live, ADB offline after re-observation.
+No request is repeated, host restarted or data reset; post-reboot case is not run.
+Physical phone, source and APKs are unchanged. [Current scope](docs/contracts/2026-11-12-native-cold-recovery.md).
+
+Earlier foreground checkpoint:
 
 The full foreground phone HTTPS resume case now passes unchanged assertions:
 3 ms cancellation, stable 8,451,250-byte prefix, full 1,049,615,680-byte hash/metadata
@@ -73,10 +85,11 @@ c55d070 Android workflow also succeeds; CI signer is not the production signer.
 Fresh source c55 reports stable40/current main100 changed handlers; the older
 saved main97 outcome remains historical evidence. No source/commit waiver applies.
 
-**Next exact action:** prepare the current-source isolated process-interruption/
-cold-recovery/reboot gate on an owned emulator, preserving existing roots and
-owner data. Do not reboot the physical phone. Repair hosted API26 keyboard
-preparation before standard-union acceptance; keep all prior failures. Finish candidate process/recovery, full standard hosted
+**Next exact action:** re-observe/reconcile the same live offline owned API37 VM
+and its boot/console state before any further recovery action; do not repeat the
+reboot or substitute a host restart for guest-reboot acceptance. Independently
+repair hosted API26 keyboard preparation, preserving native visibility assertions.
+Do not reboot the physical phone; retain all failed fixtures and original scope. Finish candidate process/recovery, full standard hosted
 union, physical production upgrade, compatibility review, SBOM/provenance and
 public-asset verification before publication. The actual Windows read failure
 also remains: new diagnostic prepare is submitted then loses its reply (Win32

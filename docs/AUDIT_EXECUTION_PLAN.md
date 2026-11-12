@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## 12 November checkpoint - foreground download and native cold recovery
+
+The current candidate passes 1,006 JVM and original-key APK checks; full foreground
+phone HTTPS resume/hash/atomic installation passes in 27,010 ms. Current-source
+native interruption/cold recovery passes on an API37 emulator without automatic
+load/replay. The deliberate preparation interruption is not a positive test.
+One guest reboot remains unverified: same VM live/ADB offline after re-observation,
+no request repeated, host restarted or data reset. Post-reboot case is not run.
+All original unresolved rows, compatibility findings, CI/keyboard, production
+upgrade and final signed/public APK gates below remain. [Exact current scope](contracts/2026-11-12-native-cold-recovery.md).
+
 ## 12 November checkpoint - beta.9 startup packaging and retained failures
 
 Uncompressed/aligned DEX candidate passes1004 JVM, signing/alignment, zero-error

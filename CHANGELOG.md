@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Verify current-source native process interruption and cold recovery: retain the
+  interrupted turn, perform zero automatic loads/replays, and generate only after
+  a fresh explicit send. Guest-reboot acceptance remains open; failed/unknown
+  outcomes are retained without replay or data reset.
+
 - Verify the full recommended-model HTTPS resume/hash/atomic installation on a
   foreground physical phone in 27,010 ms, with unchanged timing guards and scoped
   deletion. Retain prior freezer/timeout failures and owner data; restore the

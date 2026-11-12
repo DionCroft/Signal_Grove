@@ -1,5 +1,19 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - current native interruption/cold recovery passes
+
+An isolated real Qwen generation is witnessed and its exact debug process is
+intentionally stopped. The original cold-recovery method passes: saved state
+becomes INTERRUPTED without automatic load/replay; only an explicit fresh send
+generates. JUnit 9.344s /ADB 12.636s; 288 protected hashes and package identities
+remain before reboot. Full recovered model hash verifies. Preparation is an
+expected interruption, not a positive test. [Exact case and retained failures](contracts/2026-11-12-native-cold-recovery.md).
+
+The one normal guest reboot is unverified: the same VM is live but ADB remains
+offline after observation and re-observation. No reboot is repeated or host VM
+restarted. The post-reboot case is not run. Physical phone, source and APKs are
+unchanged; remaining CI/compatibility/production-upgrade/publication gates stay open.
+
 ## 12 November 2026 - full foreground phone model download passes
 
 The original HTTPS resume case passes on the retained-data beta.9 debug phone:

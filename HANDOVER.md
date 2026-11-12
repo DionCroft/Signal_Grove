@@ -21,7 +21,16 @@ all temporary work on the owner's Windows workstation uses its approved E drive.
 local native, hosted, real-worker, emulator, physical and release acceptance.
 Do not turn a component pass into overall or live deployment acceptance.
 
-Current foreground checkpoint: the original physical resume case passes in 27,010 ms
+Current native checkpoint: witnessed interruption and the unchanged cold-recovery
+case pass on the owned API37 emulator (9.344s JUnit). No automatic load/replay;
+only explicit fresh JNI generation. Before one guest reboot, 288 protected hashes,
+package IDs/APKs and full recovered model hash verify. The same host VM remains
+live/ADB offline; guest boot and post-reboot method are unverified. No repeated
+reboot, host restart, data reset or phone action. Reconcile that same VM before
+further recovery actions; independently repair the API26 keyboard CI gate.
+[Exact source and failures](docs/contracts/2026-11-12-native-cold-recovery.md).
+
+Earlier foreground checkpoint: the original physical resume case passes in 27,010 ms
 for the full LFM3 download/hash/atomic install, then scoped deletion. Six sampled
 unlocked/awake/foreground/unfrozen states pass. Owner models/chat/settings/UIDs and
 APKs remain; USB-awake setting is restored. Both HTTPS methods now have physical
