@@ -1,12 +1,18 @@
 # Signal Grove project state
 
-Last checkpoint: 12 November 2026, native-loader-startup-and-complete-hosted-gate.
+Last checkpoint: 12 November 2026, current-stable-canonical-authority.
 The existing full audit/on-device AI goal remains active. Published APK is
 beta.8/code 111; planned beta.9/code 112 is unpublished. The owner authorizes regular
 tested commits/pushes to main and public original-key APK delivery after its gates.
 
 ## Current evidence
 
+- Current stable canonical authority passes 46 authority/wire and 13 attach-first
+  cases with 57 critical source guards and 532/520 loaded-module hashes. Existing
+  assertions and older variants remain. Three source/invocation controls and
+  422 portable/15 runtime/checksum policies pass. Actual dispatcher/store/event
+  behavior uses synthetic actors/transports; live socket/room/worker acceptance
+  stays separate. [Current-stable authority](docs/contracts/2026-11-12-current-stable-authority.md).
 - Exact stable Hermes 3b42157 probe passes 87 unique cases with 55 critical Git-blob
   guards and 949 loaded module hashes, retaining every prior 77 case. Three new
   source/invocation refusals and 422 portable/15 runtime/checksum policies pass.

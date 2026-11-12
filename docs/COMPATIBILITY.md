@@ -1,5 +1,23 @@
 # Compatibility and protocol scope
 
+## 12 November 2026 - exact current-stable canonical authority
+
+The existing authority probe adds immutable stable 3b42157 with 57 critical Git-blob
+guards. Earlier variants, fixture bodies and assertions remain. Exact final
+repository source passes 46 authority/wire cases and 13 attach-first cases in
+separate fresh isolated fixtures, hashing 532/520 loaded modules with zero
+unexpected denial. The real dispatcher, strict declared parameter/result schemas,
+runtime store and event ring execute; actors/transports are synthetic.
+
+Changed canonical source, unknown revision and disabled assertions refuse before
+fixture creation or upstream execution. Portable 422/runtime 15/checksum policies
+pass again. This is not HTTP/WebSocket authentication, real owner/Pi/worker/room
+or production acceptance. No baseline variant/hash/absence waiver, Android input,
+phone state or live service changes. Full final-head hosted, used-handler closure,
+production upgrade/publication and all original audit rows remain required.
+
+[Exact cases, source and reproduction](contracts/2026-11-12-current-stable-authority.md).
+
 ## 12 November 2026 - real loader/start-entry checks and complete hosted gate
 
 The exact stable 3b42157 source probe now passes 87 cases, retaining all prior 77

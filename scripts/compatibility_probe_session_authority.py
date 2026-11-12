@@ -4,6 +4,7 @@ Windows component probe; run with an existing Hermes interpreter using -I -S -B.
 No dependency installation, site hooks, gateway startup, inference or owner data.
 Python audit hooks bound this probe but do not constitute an OS security sandbox.
 See docs/contracts/2026-11-07-canonical-authority-component.md for scope and invocation.
+Current stable scope: docs/contracts/2026-11-12-current-stable-authority.md.
 """
 from pathlib import Path
 import argparse
@@ -54,6 +55,68 @@ REVISIONS['main-21ae0e1'] = {'commit': '21ae0e1238fdf466fa52a85a6ebf75d6899e49da
            'tests/gateway/test_canonical_wire_contracts.py': '78364e99862de463129325a67c8ae6e0880a0a62',
            'tests/gateway/test_local_authority_transitions.py': '8e0e58485a882c7ee90bb204e7eded9ee81f6da8',
            'tui_gateway/contracts/canonical_sessions.py': 'e3569203f6536a9c86c6dcaa9c95ae6b1403864f'}}
+REVISIONS["stable-3b42157"] = {
+    "blobs": {
+        "gateway/config.py": "a663f8ad9c055a5166ce361ba44fe91b20bde045",
+        "gateway/hosted_room_context.py": "2eb2c46bfd424f674078ef701492e93b61135f47",
+        "gateway/hosted_room_discussion.py": "c996c48d139c3a41e2b9c58396ac894fcda80b0e",
+        "gateway/hosted_rooms.py": "a32138f6e5aa5dc4e7dc9abd4a98834fece774eb",
+        "gateway/hosted_rooms_common.py": "5bd58e5c3f24651fe30b842c546aac8104a31796",
+        "gateway/hosted_rooms_gateway_import.py": "03f40abb51bdc187c8845478e25d6b5027004845",
+        "gateway/hosted_rooms_legacy_import.py": "d817cbaa48a7154171c6c82dc79e749fbb9125a6",
+        "gateway/owner_identity.py": "bffdf405527e53f3bd1b608c88d609b1dab34803",
+        "gateway/session_authority.py": "96152d34b2028f13d976f00b4582ce31dd8dde22",
+        "gateway/session_contract.py": "accd1d9e2109e34c19263b90d730fad400128e6c",
+        "gateway/session_controls.py": "48bdf7e1696e1843a5f6672cd8f5eaac1124cb86",
+        "gateway/session_events.py": "5aa8636025d83497b23dcad7cc24bfd0c9ca911d",
+        "gateway/session_group_controls.py": "003059f58dd358f70779030bed807801846980b5",
+        "gateway/session_group_peers.py": "a8fb7aea5fe5bacac4ac82ed1328093b061609af",
+        "gateway/session_hosted_members.py": "bf4a38a6281a720ad044bf491707666ca88468af",
+        "gateway/session_listing.py": "73d9762420918450f371062ef4aca4630601bb10",
+        "gateway/session_live_listing.py": "60d9af1273cc6d8f09cc970af3203ed44fa92fac",
+        "gateway/session_local.py": "4054cd0c50cafff9036e7787d24284b729caec59",
+        "gateway/session_local_inventory.py": "b1e8f66e35d440ad061f833a54387cef060de75d",
+        "gateway/session_local_migration.py": "cb47b294451ae131ab64c6fcfe0813e7c5ef1ec3",
+        "gateway/session_local_recovery.py": "9b00f41786c47fef23500a9eca70f60c667ad9d4",
+        "gateway/session_mutation_policy.py": "626c92aa4f4f3dc0f341be9920d303ba6e5e1682",
+        "gateway/session_mutations.py": "6e6dbffbe8feaf1482cb28265597c9b5ca06ae87",
+        "gateway/session_picker_fields.py": "9bbbc5f41500083e74bbda532c5e66aa49622ef0",
+        "gateway/session_plugin_rpc.py": "a1bc32a566f31254e7b9d761d57da7f00bb7d1b0",
+        "gateway/session_policy.py": "502eed0642e1ac5062df880240071844d6754ffa",
+        "gateway/session_policy_refresh.py": "973315bb4c53bc16465c77447eebae1512d7dcd6",
+        "gateway/session_stored_reads.py": "f6f454a0a2492cd349f211c1ef77fd6374e1514e",
+        "gateway/session_transcript_rows.py": "e3cacd910e2d5c946704404b98f573bb86ec82bc",
+        "gateway/session_viewer_close.py": "245fd794b04d50d73b22bcd8801ca02704021932",
+        "gateway/session_worker_reservation.py": "421bb89109330bd5eaf8f7ac29d77dcda1ce5554",
+        "hermes_cli/web_routers/webapp.py": "15746363bf97bb299d5d86dd27a679a193946a99",
+        "hermes_cli/web_server_surface.py": "d98e69371a5550cf152d4af634e3f3b3f915ca94",
+        "hermes_cli/web_session_sockets.py": "a1a4824b8a1ccf5f5c0adb15b1da144e74007d6e",
+        "hermes_constants.py": "32dbd53c9737545edea778df17eaec42c2581b56",
+        "hermes_state.py": "fe0249d6804ac5e6810a208f7a32e6dcf3e251f9",
+        "hermes_state_local.py": "fd39d4c1bf10c36b5aa06664950dfa7b88d96ae6",
+        "hermes_state_local_lineage.py": "d6c26730b277d97c50298fde75f1e5d9f96f5d8b",
+        "hermes_state_mutation_binding.py": "86bd07a4ad72ff6cf8b9f38ba576857bcf0bae38",
+        "hermes_state_mutation_guards.py": "46ed9bdceb66495449ade1b0ce273bb36fb955db",
+        "hermes_state_mutation_prepared.py": "5638ed213f7c00d53da282c34800dca84ac5fcdc",
+        "hermes_state_mutation_retirement.py": "0e3afdb7d3fa450963e86e8fb3bb20edca2a47d0",
+        "hermes_state_mutations.py": "090fb0ddebb0fb50935fe85e12fd8f3167eb4576",
+        "hermes_state_runtime.py": "49207f5508db3255cd90433a229c518f11cfd0f7",
+        "tests/gateway/test_canonical_wire_contracts.py": "78364e99862de463129325a67c8ae6e0880a0a62",
+        "tests/gateway/test_local_authority_transitions.py": "8e0e58485a882c7ee90bb204e7eded9ee81f6da8",
+        "tui_gateway/contracts/canonical_sessions.py": "e3569203f6536a9c86c6dcaa9c95ae6b1403864f",
+        "tui_gateway/contracts/events.py": "4fc6964c1fbcc240768200f5fd121643e222daee",
+        "tui_gateway/contracts/groups_bot_relay.py": "e203bb8da865996ae37049ffc9f48b18626267cc",
+        "tui_gateway/event_replay.py": "20298bd23f80922c02d7b45a3c920716021f290b",
+        "tui_gateway/hosted_room_driver.py": "7c498f376e85c17e76d73e79bb74ed963d87c249",
+        "tui_gateway/hosted_room_member_activity.py": "d27d4a9ef678bc12c62670d7ed1baf666afaa5c9",
+        "tui_gateway/hosted_room_service.py": "8400970bb0d853d18e7ec021802d217535f36097",
+        "tui_gateway/methods_groups.py": "872cc194890cf25b90fc09f942bfaa4541e6c20e",
+        "tui_gateway/methods_groups_forward.py": "89c9f604238d0f35b01fb836077cd64dba3af147",
+        "tui_gateway/owner_forward.py": "17ffecb4186300c86e60762dfdaa6553af8b1af8",
+        "tui_gateway/transport.py": "691f1d799027b211a073c685fbd7ee5d65fae3a6"
+    },
+    "commit": "3b421578588243f920886e6fe79a6faa87ea026e"
+}
 if not __debug__ or not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode):
     raise SystemExit('Use -I -S -B without -O; assertions and isolated imports are required.')
 if os.name != 'nt':
@@ -65,7 +128,7 @@ parser.add_argument('--dependency-site', type=Path, required=True)
 parser.add_argument('--revision', choices=tuple(REVISIONS), default='stable-2bd378e')
 parser.add_argument('--flow', choices=('authority-wire', 'attach-first'), default='authority-wire')
 a = parser.parse_args()
-if a.flow == 'authority-wire' and a.revision not in ('stable-2bd378e', 'main-21ae0e1'):
+if a.flow == 'authority-wire' and a.revision not in ('stable-2bd378e', 'main-21ae0e1', 'stable-3b42157'):
     parser.error('The full authority lifecycle flow requires the pinned stable or main revision; use attach-first for the prior source.')
 SOURCE_COMMIT = REVISIONS[a.revision]['commit']
 PINNED_BLOBS = REVISIONS[a.revision]['blobs']

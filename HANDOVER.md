@@ -7,6 +7,13 @@ smaller release-only task or treat a fixture pass as live integration acceptance
 
 ## Current checkpoint
 
+- Current stable canonical authority passes 46 authority/wire and 13 attach-first
+  cases with 57 critical source guards and 532/520 loaded-module hashes. Existing
+  assertions and older variants remain. Three source/invocation controls and
+  422 portable/15 runtime/checksum policies pass. Actual dispatcher/store/event
+  behavior uses synthetic actors/transports; live socket/room/worker acceptance
+  stays separate. [Current-stable authority](docs/contracts/2026-11-12-current-stable-authority.md).
+
 The final stable 3b42157 real-source probe passes 87 distinct cases, 55 critical
 source guards and 949 loaded module hashes. All earlier 77 cases remain; actual
 loader helpers/import lock and public start-entry/PM behavior use explicit

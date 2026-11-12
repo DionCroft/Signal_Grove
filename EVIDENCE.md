@@ -1,5 +1,12 @@
 # Evidence navigation
 
+## 12 November 2026 - current-stable authority
+
+Exact stable authority/wire 46 and attach-first 13 flows pass unchanged assertions,
+57 critical guards and 532/520 module hashes. Three source/invocation controls and
+422 portable/15 runtime/checksum policies pass. [Scope and remaining transport/
+room/worker gates](docs/contracts/2026-11-12-current-stable-authority.md).
+
 ## 12 November 2026 - loader/start-entry and complete hosted evidence
 
 87 real-source fixture cases, three source/invocation refusals and 422/runtime 15/
