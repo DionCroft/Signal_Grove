@@ -46,16 +46,46 @@ class PipeNativeTest(unittest.TestCase):
         result=self.call(self.frame('preview',binding_token=token,relative_path=row['relative_path'],entry_token=row['entry_token']))
         self.assertEqual('Signal Grove 🌱',result['result']['text']);self.assertEqual('ok',result['status'])
 
+    def assert_descriptor_owner(self,descriptor,expected_sid,mask):
+        native=self.pipe._windows;a=native.a;present=w.BOOL();defaulted=w.BOOL();dacl=ctypes.c_void_p();control=w.WORD();revision=w.DWORD();expected=ctypes.c_void_p();ace=ctypes.c_void_p()
+        class Acl(ctypes.Structure):_fields_=[('revision',w.BYTE),('pad',w.BYTE),('size',w.WORD),('count',w.WORD),('pad2',w.WORD)]
+        class Ace(ctypes.Structure):_fields_=[('kind',w.BYTE),('flags',w.BYTE),('size',w.WORD),('mask',w.DWORD),('sid_start',w.DWORD)]
+        a.GetSecurityDescriptorDacl.argtypes=[ctypes.c_void_p,ctypes.POINTER(w.BOOL),ctypes.POINTER(ctypes.c_void_p),ctypes.POINTER(w.BOOL)];a.GetSecurityDescriptorDacl.restype=w.BOOL
+        a.GetSecurityDescriptorControl.argtypes=[ctypes.c_void_p,ctypes.POINTER(w.WORD),ctypes.POINTER(w.DWORD)];a.GetSecurityDescriptorControl.restype=w.BOOL
+        a.GetAce.argtypes=[ctypes.c_void_p,w.DWORD,ctypes.POINTER(ctypes.c_void_p)];a.GetAce.restype=w.BOOL
+        a.ConvertStringSidToSidW.argtypes=[w.LPCWSTR,ctypes.POINTER(ctypes.c_void_p)];a.ConvertStringSidToSidW.restype=w.BOOL
+        a.EqualSid.argtypes=[ctypes.c_void_p,ctypes.c_void_p];a.EqualSid.restype=w.BOOL
+        native.check(a.GetSecurityDescriptorDacl(descriptor,ctypes.byref(present),ctypes.byref(dacl),ctypes.byref(defaulted)));self.assertTrue(present.value);self.assertTrue(dacl.value);self.assertFalse(defaulted.value)
+        native.check(a.GetSecurityDescriptorControl(descriptor,ctypes.byref(control),ctypes.byref(revision)));self.assertTrue(control.value&0x1000)
+        self.assertEqual(1,ctypes.cast(dacl,ctypes.POINTER(Acl)).contents.count);native.check(a.GetAce(dacl,0,ctypes.byref(ace)));entry=ctypes.cast(ace,ctypes.POINTER(Ace)).contents
+        self.assertEqual(0,entry.kind);self.assertEqual(0,entry.flags);self.assertEqual(mask,entry.mask);native.check(a.ConvertStringSidToSidW(expected_sid,ctypes.byref(expected)))
+        try:self.assertTrue(a.EqualSid(ace.value+Ace.sid_start.offset,expected))
+        finally:self.assertFalse(native.k.LocalFree(expected))
+
     def test_native_pipe_dacl_is_protected_owner_only_and_handle_is_not_inheritable(self):
-        native=self.pipe._windows;a=native.a;k=native.k;needed=w.DWORD();descriptor=ctypes.c_void_p()
+        native=self.pipe._windows;a=native.a;k=native.k;needed=w.DWORD()
         a.GetKernelObjectSecurity.argtypes=[w.HANDLE,w.DWORD,ctypes.c_void_p,w.DWORD,ctypes.POINTER(w.DWORD)];a.GetKernelObjectSecurity.restype=w.BOOL
-        a.ConvertSecurityDescriptorToStringSecurityDescriptorW.argtypes=[ctypes.c_void_p,w.DWORD,w.DWORD,ctypes.POINTER(ctypes.c_void_p),ctypes.POINTER(w.DWORD)];a.ConvertSecurityDescriptorToStringSecurityDescriptorW.restype=w.BOOL
         a.GetKernelObjectSecurity(self.pipe._handle,4,None,0,ctypes.byref(needed));self.assertGreater(needed.value,0);buffer=ctypes.create_string_buffer(needed.value)
-        native.check(a.GetKernelObjectSecurity(self.pipe._handle,4,buffer,len(buffer),ctypes.byref(needed)));native.check(a.ConvertSecurityDescriptorToStringSecurityDescriptorW(buffer,1,4,ctypes.byref(descriptor),None))
-        try:
-            value=ctypes.wstring_at(descriptor);self.assertTrue(value.startswith('D:P'));self.assertEqual(1,value.count('('));self.assertIn(';;;'+self.pipe.endpoint.owner_sid+')',value)
-        finally:self.assertFalse(k.LocalFree(descriptor))
+        native.check(a.GetKernelObjectSecurity(self.pipe._handle,4,buffer,len(buffer),ctypes.byref(needed)));self.assert_descriptor_owner(buffer,self.pipe.endpoint.owner_sid,0x1f01ff)
         k.GetHandleInformation.argtypes=[w.HANDLE,ctypes.POINTER(w.DWORD)];k.GetHandleInformation.restype=w.BOOL;flags=w.DWORD();native.check(k.GetHandleInformation(self.pipe._handle,ctypes.byref(flags)));self.assertEqual(0,flags.value&1)
+
+    def test_administrator_sid_alias_has_the_same_binary_identity_as_its_numeric_sid(self):
+        native=self.pipe._windows;a=native.a;descriptor=ctypes.c_void_p();literal=ctypes.c_void_p();dacl=ctypes.c_void_p();present=w.BOOL();defaulted=w.BOOL();ace=ctypes.c_void_p()
+        native.check(a.ConvertStringSecurityDescriptorToSecurityDescriptorW('D:P(A;;GA;;;LA)',1,ctypes.byref(descriptor),None))
+        try:
+            a.GetSecurityDescriptorDacl.argtypes=[ctypes.c_void_p,ctypes.POINTER(w.BOOL),ctypes.POINTER(ctypes.c_void_p),ctypes.POINTER(w.BOOL)];a.GetSecurityDescriptorDacl.restype=w.BOOL
+            a.GetAce.argtypes=[ctypes.c_void_p,w.DWORD,ctypes.POINTER(ctypes.c_void_p)];a.GetAce.restype=w.BOOL
+            native.check(a.GetSecurityDescriptorDacl(descriptor,ctypes.byref(present),ctypes.byref(dacl),ctypes.byref(defaulted)));native.check(a.GetAce(dacl,0,ctypes.byref(ace)));native.check(a.ConvertSidToStringSidW(ace.value+8,ctypes.byref(literal)))
+            self.assert_descriptor_owner(descriptor,ctypes.wstring_at(literal),0x10000000)
+        finally:
+            if literal:self.assertFalse(native.k.LocalFree(literal))
+            self.assertFalse(native.k.LocalFree(descriptor))
+
+    def test_administrators_group_dacl_does_not_count_as_the_owner_account(self):
+        native=self.pipe._windows;descriptor=ctypes.c_void_p();native.check(native.a.ConvertStringSecurityDescriptorToSecurityDescriptorW('D:P(A;;GA;;;BA)',1,ctypes.byref(descriptor),None))
+        try:
+            with self.assertRaises(AssertionError):self.assert_descriptor_owner(descriptor,self.pipe.endpoint.owner_sid,0x10000000)
+        finally:self.assertFalse(native.k.LocalFree(descriptor))
 
     def test_actual_restricted_token_cannot_open_pipe(self):
         native=self.pipe._windows;a=native.a;k=native.k;token=w.HANDLE();restricted=w.HANDLE();sid=ctypes.c_void_p()

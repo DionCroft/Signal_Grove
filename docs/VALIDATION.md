@@ -1,5 +1,30 @@
 # Current development validation — audit follow-up
 
+### Windows CI SID identity gate correction
+
+The first c37483a Windows run retained 47 positives / 48 and one failed test:
+Windows Server formatted the Administrator account SID as SDDL `LA`, while the
+test expected its numeric spelling. The pipe DACL/runtime code is unchanged.
+The corrected gate reads the binary ACL and requires protected/non-default DACL,
+one non-inheriting allow ACE, exact full file rights, `EqualSid` equality to the
+owner token and a non-inheritable pipe handle. Native alias equivalence and
+Administrators-group rejection cases prevent string formatting from determining
+authorization. All 50 native cases pass on Python3.13 and 3.14.9 with no skips or
+source drift. Hosted acceptance of that corrected commit remains required.
+
+Only the native test file changes executable bytes after source 630; all 653 other
+frozen executable inputs, including every runtime/Android input, are verified
+unchanged. The source 630 build/1004 JVM/359 policy/lint/signing/alignment and
+retained-data connected results remain evidence for those unchanged inputs;
+this test-only follow-up does not claim a new APK or a new full Android run.
+Failed [run 43148625763](https://github.com/DionCroft/Signal_Grove/actions/runs/43148625763)
+and artifact 13912787747 are retained with ZIP SHA-256
+`06876233beb7addfa318a185b8deecb7e2da6767fd593f791aec9636d9b9fdc4`.
+The correction follows Microsoft's [SID string aliases](https://learn.microsoft.com/en-us/windows/win32/secauthz/sid-strings)
+and [EqualSid](https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-equalsid).
+All deployment, Hermes/app wiring, NAS and full original release requirements
+remain open; the goal stays active and published beta.8 is unchanged.
+
 ## 12 November 2026 - private local worker read transport
 
 An opt-in local Windows pipe now carries the fixed read frames without a public

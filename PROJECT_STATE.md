@@ -2,6 +2,13 @@
 
 ## Current checkpoint - private local worker read transport
 
+The first hosted 48-case gate found a SID text-alias test defect (LA versus the
+same numeric Administrator SID). Runtime security code is unchanged. Binary
+ACL/SID/rights/inheritance checks plus alias/group regressions now pass 50 native
+cases on both Python3.13 and 3.14.9. Only that native test file changes after source
+630; all 653 other frozen executable inputs remain identical. The failed hosted
+artifact is retained and the corrected hosted gate still needs its own result.
+
 An opt-in local Windows pipe now carries the fixed read frames without a public
 port, shared secret, persistent queue or content cache. A protected owner-only
 DACL and local-client flag restrict access. The client verifies actual broker

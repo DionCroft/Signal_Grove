@@ -2,6 +2,9 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Verify Windows pipe ACL ownership with binary SID and exact rights checks,
+  including Administrator SID aliases and refusal of group-wide grants.
+
 - Add an opt-in Windows owner-only pipe for worker file reads, with actual peer
   verification, bounded message I/O, cancellation and submission uncertainty.
   Fix grant creation racing provider retirement. Live broker/actor policy,
