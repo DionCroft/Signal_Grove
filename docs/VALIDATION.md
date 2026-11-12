@@ -1,5 +1,32 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - native owner room reads and complete Android code freeze
+
+Exact stable 3b42157 now has 20 seeded native-owner room checks using the actual
+Windows current-user DACL/SID, native control tickets and canonical sockets.
+Synthetic room rows and management-only rename events exercise owner/legacy-login
+visibility, foreign/private and sibling-profile refusal, bounded visible paging,
+same IDs in separate profiles and monotonic event history. Six rooms/18 events
+and ownership rows per profile are unchanged after reads and actual process exit.
+Successful response corpora contain no foreign canaries; no model/tool turn or
+admission occurs. 1,207 loaded source modules independently match Git hashes.
+
+The original empty mode also passes its protocol/store checks with 1,206 imported
+modules. Both actual supervisor invocations return 2 with the retained one-warning
+DB-reopen shutdown finding. Clean/full lifecycle is not accepted. Four preflight
+refusals and 422 portable/15 runtime/checksum policies pass. The short dependency
+alias preserves its identical resolved read-only site; no dependency install,
+SDK patch, actor/auth bypass or warning suppression occurs.
+
+The 2970ffb complete Android gate independently verifies 1,135 API26/1,136 API37
+unique cases from all four raw partitions and exactly reproduces its hosted
+summary. This includes the three new workspace/outline cases. External-model
+acceptance stays separate. Later Python/docs chunks retain 543 identical Android/
+native/build inputs; their source and existing APK identities are not relabelled.
+Phone/Pi/Spark and all original audit requirements remain. Beta.9 is unpublished.
+
+[Exact source, adapters, failures and remaining release gates](contracts/2026-11-12-native-owner-room-reads.md).
+
 ## 12 November 2026 - exact current-stable canonical authority
 
 The existing authority probe adds immutable stable 3b42157 with 57 critical Git-blob

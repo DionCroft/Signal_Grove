@@ -1,5 +1,12 @@
 # Evidence navigation
 
+## 12 November 2026 - actual owner room reads and complete Android freeze
+
+20 native-owner room checks, independent post-exit retention and four preflight
+refusals verify. Both seeded/empty modes retain exit 2/one SDK shutdown warning.
+Complete 2970 Android raw union verifies 1,135/1,136 unique cases; later Python/docs
+retain 543 Android inputs. [Exact scope, failures and release work](docs/contracts/2026-11-12-native-owner-room-reads.md).
+
 ## 12 November 2026 - current-stable authority
 
 Exact stable authority/wire 46 and attach-first 13 flows pass unchanged assertions,

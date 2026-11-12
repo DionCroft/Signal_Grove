@@ -7,6 +7,13 @@ smaller release-only task or treat a fixture pass as live integration acceptance
 
 ## Current checkpoint
 
+- Native owner room reads verify 20 checks through real Windows SID/control
+  tickets/canonical sockets and synthetic room data; six rooms/18 events per
+  profile remain exact after reads and process exit. Empty mode also verifies.
+  Both still return 2 for the one-warning SDK shutdown finding; full lifecycle
+  stays open. Four preflight refusals and 422/15/checksum policies pass.
+  [Native owner room scope](docs/contracts/2026-11-12-native-owner-room-reads.md).
+
 - Current stable canonical authority passes 46 authority/wire and 13 attach-first
   cases with 57 critical source guards and 532/520 loaded-module hashes. Existing
   assertions and older variants remain. Three source/invocation controls and
@@ -22,17 +29,19 @@ starts. Three source/invocation controls and 422 portable/15 runtime/checksum
 policies pass. [Exact source/adapters](docs/contracts/2026-11-12-native-loader-startup.md).
 
 The independently verified d50518c complete standard Android gate passes1,132
-API26/1,133 API37 cases. The newer workspace test source 2970ffb still needs its
-complete gate; its focused API26 batch passes 31 cases/16 one-attempt native taps.
+API26/1,133 API37 cases. The newer workspace test source 2970ffb also passes its complete 1,135/1,136
+gate; its focused API26 batch passes 31 cases/16 one-attempt native taps.
 The build passes 1,006 JVM/96 reports and zero-error lint 51/50 with original keys,
 all native ABIs/page alignment and uncompressed DEX. This Python/docs chunk
 changes no Android/native/build input. [Workspace evidence](docs/contracts/2026-11-12-native-workspace-review.md).
 
 ## Immediate continuation
 
-1. Observe existing Android run 43277441323 for 2970ffb and independently reproduce
-   the full raw four-partition union when terminal. Preserve earlier failures;
-   do not cancel/restart merely because observation times out.
+1. Complete 2970ffb raw union is independently verified: 1,135 API26/1,136 API37.
+   All 543 Android/native/build inputs are unchanged in later Python/docs chunks.
+   Prepare a fresh original-key beta.9 production candidate from reviewed main,
+   validate its exact identities/provenance, then stage physical upgrade/live
+   checks. Preserve earlier failures and exact APK source identities.
 2. Complete current-stable used-handler dependency closure and real canonical
    socket/actor/profile/transport acceptance. Stable 40/inspected-main 100 findings
    remain; no handler/absence/cohort waiver is added by the component probe.

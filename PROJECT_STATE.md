@@ -1,12 +1,18 @@
 # Signal Grove project state
 
-Last checkpoint: 12 November 2026, current-stable-canonical-authority.
+Last checkpoint: 12 November 2026, native-owner-room-reads-and-complete-android-code-freeze.
 The existing full audit/on-device AI goal remains active. Published APK is
 beta.8/code 111; planned beta.9/code 112 is unpublished. The owner authorizes regular
 tested commits/pushes to main and public original-key APK delivery after its gates.
 
 ## Current evidence
 
+- Native owner room reads verify 20 checks through real Windows SID/control
+  tickets/canonical sockets and synthetic room data; six rooms/18 events per
+  profile remain exact after reads and process exit. Empty mode also verifies.
+  Both still return 2 for the one-warning SDK shutdown finding; full lifecycle
+  stays open. Four preflight refusals and 422/15/checksum policies pass.
+  [Native owner room scope](docs/contracts/2026-11-12-native-owner-room-reads.md).
 - Current stable canonical authority passes 46 authority/wire and 13 attach-first
   cases with 57 critical source guards and 532/520 loaded-module hashes. Existing
   assertions and older variants remain. Three source/invocation controls and
@@ -20,9 +26,10 @@ tested commits/pushes to main and public original-key APK delivery after its gat
   runtime body and installer/input are explicit stopping adapters. No live server,
   actual package operation or stdin read is certified. [Scope and reproduction](docs/contracts/2026-11-12-native-loader-startup.md).
 - Hosted d50518c passes the independently reproduced complete standard gate:
-  1,132 API26/1,133 API37 unique cases, all four raw partitions and identical APK
-  bindings. The newer 2970ffb workspace/outline test source still needs its full
-  exact-head gate. Its separate local API26 batch passes 31 cases, 16 acknowledged
+  1,132 API26/1,133 API37 unique cases. The newer 2970ffb complete gate now also
+  independently passes 1,135/1,136, including the new workspace/outline cases;
+  later Python/docs changes retain 543 Android/native/build inputs. Its separate
+  local API26 batch passes 31 cases, 16 acknowledged
   native taps and eight Review observations. [Native Review](docs/contracts/2026-11-12-native-workspace-review.md).
 - Latest frozen Android debug/test build passes 1,006 JVM cases/96 reports, both
   lint variants with zero errors, 51/50 warnings, original signing identity, all
@@ -68,10 +75,11 @@ ownership. No original unresolved row is removed by this summary.
 
 ## One exact next action
 
-Observe the existing 2970ffb Android run 43277441323 and independently verify its
-four raw partitions when terminal, without cancellation or replay. Then continue
-current-stable used-handler dependency closure and actual canonical/worker read
-acceptance before the original-key physical production upgrade and public release.
+Build a fresh original-key beta.9 production candidate from reviewed main,
+compare relevant inputs/signing/package/version/alignment/provenance and prepare
+the physical retained-data upgrade/live checks. While builds run, continue actual
+Pi/worker read-path root cause and stable/main dependency/semantic acceptance.
+The shutdown finding and every original audit row stay open until proven.
 Keep the source/fixture/advisory/physical scopes distinct. Both newly owned review
 emulators are normally stopped with disks/evidence retained; the new API37 boot
 remains unverified and older unknown fixtures are untouched. Preserve all original
