@@ -16,3 +16,10 @@ This does not certify live enrollment, NAS support, phone or release acceptance.
 adds 58 local native and 373 policy passes, 1004 JVM cases, the actual registered
 foreground worker read and retained-data API26 upgrade plus two project contract
 cases. New hosted/production/physical/release acceptance remains separate.
+
+
+[Managed host checkpoint](docs/contracts/2026-11-12-managed-worker-read-host.md)
+adds 65 native/387 policy and frozen-source build/device verification, plus the
+private seven-process actual-worker read and encrypted component recovery.
+Persistent deployment, native coordinator/phone and complete release acceptance
+remain separate. The previous 6d9863c hosted 58-case artifact is verified.

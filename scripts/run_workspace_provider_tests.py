@@ -46,7 +46,7 @@ def main():
     record=dict(schema=1,status='windows_native_provider_pass' if accepted else 'failed_or_incomplete',platform=sys.platform,
         python=list(sys.version_info[:3]),source_revision=os.environ.get('GITHUB_SHA'),source_files=before,source_unchanged=before==after,
         declared_cases=sorted(expected),positive_cases=sorted(result.positive),tests_run=result.testsRun,
-        failures=len(result.failures),errors=len(result.errors),skips=len(result.skipped),scope='Real Windows disposable filesystem, enrollment and pipe fixtures; not production enrollment, phone or release acceptance')
+        failures=len(result.failures),errors=len(result.errors),skips=len(result.skipped),scope='Real Windows disposable filesystem, enrollment, managed host and pipe fixtures; not production enrollment, phone or release acceptance')
     output.parent.mkdir(parents=True,exist_ok=True);output.write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:record[k] for k in ['status','tests_run','failures','errors','skips','source_unchanged']}))
     return 0 if accepted else 1

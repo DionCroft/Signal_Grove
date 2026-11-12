@@ -1,50 +1,62 @@
 # Signal Grove project state
 
-Current milestone: explicit worker read enrollment (foreground proof).
-Current objective: connect reviewed workspace reads to actual owner policy.
-Assurance state: component verified; production/phone/release acceptance open.
-Last checkpoint: 12 November 2026, worker-read-enrollment.
+Current milestone: managed worker read host and private RPC cutover preparation.
+Current objective: integrate verified owner reads with the existing worker daemon.
+Assurance state: native/private-candidate proofs pass; production/phone/release open.
+Last checkpoint: 12 November 2026, managed-worker-read-host.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
 
-Explicit operator scope/project allowlists now reuse the worker's existing
-project validator, fresh locked registry bytes and actual Windows token/WTS
-identity. Policy, registry or owner change permanently retires the session and
-leases. No caller-selected root or claimed interactive identity is trusted.
-The configured-source reader holds ancestor/source handles; it does not loosen
-mandatory full 128-bit workspace IDs or enable NAS workspace reads.
+An explicit lifetime owner now runs one dedicated pipe thread per enrolled scope.
+It publishes only currently accepting listeners, retires held sessions without
+replacement, bounds transport-fault loops and cancels/joins on closure. Native
+identity-revert failures never invoke a file/receipt writer from that thread.
+Private projections have closed schemas, exact scope/instance correlation and a
+10-second freshness limit; native process identity is rechecked before submission.
 
-The actual foreground proof passes against the already registered local
-validation project: pipe prepare/list/preview, seven entries, 302 existing text
-bytes, 22 fresh registry reads and six existing worker validations. The paused
-and foreign-worker projects remain denied. This changes no production daemon,
-project contents, coordinator, credentials or models.
+The new code passes 65 distinct Windows native cases without skips or source
+drift. Frozen source 706 also passes all 387 portable policies, 1004 JVM cases / 96
+reports, both lint variants (zero errors, 51/50 warnings), original debug signing
+and 32 native ABI/alignment checks. The exact API26 upgrade retains all nine
+protected hashes and both package UIDs; both project contract cases pass. Earlier readiness-assertion and error-code expectation
+failures are retained; existing peer-spoof denial behavior remains unchanged.
 
-Frozen source 677 passes 1004 JVM / 96 reports, 373 policies and 58 Windows native
-cases on the installed worker Python3.14.9, without skips or drift. Both lint
-variants have no errors (51/50 warnings), original debug signing and all 32
-native ABI/alignment checks pass. The exact API26 upgrade retains all nine
-protected hashes and both package UIDs; two project contract cases pass.
-Failed newline-fixture, pre-install inventory and UNC-path attempts
-are retained. The earlier corrected 50-case SID gate independently passes on
-hosted main run 43150240082; its artifact/source hashes are verified. Hosted
-acceptance of this new enrollment chunk remains separate.
+A private fixed-RPC candidate passes seven separate-process requests using the
+actual interactive owner, existing worker validator and already registered local
+validation root. It reads 302 existing text bytes, rejects scope spoofing before
+submission, holds on revocation and never revives on restoring old policy. The
+live worker/daemon source and all eight durable queue receipts remain unchanged.
+An import-only staging failure and a stopped fixture-hash edit are retained.
 
-Missing lifecycle metadata was initialized non-destructively through the owner
-ContextGraph MCP. Derived state/config is ignored. Indexing timed out and the
-context pack refuses its incomplete graph identity; no freshness/graph acceptance
-is claimed. The first zero-node/schema-only partial index was hash-preserved
-before recovery. Existing source files remain authoritative and bounded.
+The maintained older worker template differs from deployed native-runtime fixes.
+The candidate preserves every execution/routing function and changes only fixed
+RPC handling and daemon main wiring. A tested maintenance hold blocks new stages
+without enqueueing, preserving the health schema. Private policy is staged from
+observed Tailscale self identity and default owner/profile metadata; authenticated
+coordinator request binding still needs live acceptance. Canonical-LF runtime
+packaging permits exact future Git-blob reconstruction. Its seven-process proof
+passes too. The affected worker source/consistent queue recovery is encrypted
+and round-trip verified locally, with no plaintext ZIP or upload. Nothing is
+installed; native coordinator binding still needs separate acceptance.
 
-[Enrollment contract and evidence](docs/contracts/2026-11-12-worker-read-enrollment.md).
+The preceding 6d9863c main gate is independently verified: all 58 hosted native
+cases, exact Git/source inventory and artifact digest pass. Its raw evidence is
+retained; it does not certify this newer code. Source 677's 1004 JVM/373 policy,
+lint/signing/32 native-library and nine-file/two-project-case retained-data checks
+remain historical evidence, not the final current-source build.
 
-**Next exact action:** review the private host-daemon/helper enrollment diff,
-verify recovery and fresh idle receipts, then enable only the explicitly scoped
-read endpoint on its actual owner. Wire the optional authenticated coordinator
-capability and Android review after that proof. Reconcile the owner-local derived
-graph separately. Keep NAS support, physical/model/live interoperability and all
-original audit and downloadable signed APK requirements open.
+Owner-local derived graph indexing/context-pack identity remains unresolved;
+no freshness claim or coordinator-local substitute is made. All authoritative
+files stay on their verified owner, with private staging/evidence on E.
+
+[Managed-host contract and evidence](docs/contracts/2026-11-12-managed-worker-read-host.md).
+
+**Next exact action:** recheck encrypted recovery, actual idle work, source/ACL
+and process identity, then deploy the reviewed private helper with a controlled
+hold and prove its fixed RPC on the actual owner. Wire the optional native-auth
+coordinator capability and Android review next. NAS, physical/model, compatibility
+and every original audit/downloadable signed APK requirement remain open.
 
 ## Continuing scope and authoritative records
 

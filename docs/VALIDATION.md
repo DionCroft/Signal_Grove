@@ -4761,3 +4761,24 @@ The current prior main compatibility run 43150240092 passes parser, pinned
 sidecar and pinned registry jobs but fails latest-stable/main source inspection;
 those failures remain open without broad baseline waivers. Android run
 43150240110 is still pending at this checkpoint. No new APK is published.
+
+
+## 12 November 2026 - managed worker read host and private cutover preparation
+
+Frozen source 706: 801 inputs, digest
+`38c6006d5ad0140c30b22cd7a817fffe36fe4fa2da48922c957bd7e1646fb3a9`.
+Required tasks pass: 1004 JVM / 96 reports, both lint variants zero errors (51/50
+warnings), app/test compilation, original debug certificate and 32 native-library
+ABI/alignment checks. All 387 policies and 65 distinct Windows native cases pass
+without skips or drift. Exact API26 upgrade retains nine protected hashes/both
+UIDs, with both unchanged project gateway contract methods passing.
+The private canonical-LF runtime/RPC candidate passes seven separate-process
+requests against the real registered local root, preserving eight live receipts
+and deployed sources. Revocation/scope-spoof/no-revival checks pass. The local
+affected-component DPAPI recovery decrypts exactly; no plaintext ZIP or upload.
+No production cutover, native coordinator/phone or release acceptance is claimed.
+See [the bounded contract](contracts/2026-11-12-managed-worker-read-host.md) for
+hashes, source preservation, failed attempts and every remaining requirement.
+The preceding main 6d9863c hosted artifact independently passes all 58 earlier
+native cases with exact inventory/committed-source hashes. It does not accept
+this newer source. Full audit and signed APK delivery remain active.

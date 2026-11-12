@@ -166,7 +166,7 @@ class LocalReadPipe:
     """One opt-in owner pipe; the existing broker owns serving/thread lifecycle."""
     def __init__(self,adapter):
         adapter._context()
-        self._windows=_Windows();self._adapter=adapter;self._lock=threading.Lock();self._serving=False;self._closed=False;self._closed_event=threading.Event()
+        self._windows=_Windows();self._adapter=adapter;self._lock=threading.Lock();self._serving=False;self._closed=False;self._closed_event=threading.Event();self._listening=threading.Event()
         sid,started,session=self._windows.process_identity(os.getpid())
         self.endpoint=PipeEndpoint('\\\\.\\pipe\\SignalGrove.Workspace.'+secrets.token_hex(16),adapter.instance,adapter._scope,sid,os.getpid(),started,session)
         _endpoint(self.endpoint);self._handle=self._windows.pipe(self.endpoint.address,sid)
@@ -198,6 +198,10 @@ class LocalReadPipe:
                 if not self._serving:self._finish_close()
         finally:self._adapter.close()
 
+    @property
+    def accepting(self):
+        with self._lock:return not self._closed and self._listening.is_set()
+
     def wait_closed(self,timeout=3):return self._closed_event.wait(timeout)
 
     def serve_one(self,*,timeout=3):
@@ -207,7 +211,9 @@ class LocalReadPipe:
             if self._serving:raise WorkspaceError('BUSY')
             self._serving=True
         try:
-            operation=self._begin(lambda handle:self._windows.api.ConnectNamedPipe(handle,overlapped=True));self._windows.wait(operation,deadline)
+            operation=self._begin(lambda handle:self._windows.api.ConnectNamedPipe(handle,overlapped=True));self._listening.set()
+            try:self._windows.wait(operation,deadline)
+            finally:self._listening.clear()
             raw=self._read(MAX_REQUEST_BYTES,deadline);self._windows.client_owner(self._handle,self.endpoint.owner_sid)
             reply=self._adapter.handle(raw)
             if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')

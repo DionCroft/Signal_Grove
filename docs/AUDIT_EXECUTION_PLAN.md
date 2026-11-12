@@ -1,5 +1,19 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - managed worker read host
+
+The explicit host lifetime, fresh private projections and caller-bound read
+bridge pass frozen-source 706 checks: 1004 JVM, 387 policy, 65 Windows native,
+both lint variants, signing/32 native-library checks and retained-data API26
+upgrade with two project cases. A canonical-source private candidate also passes
+seven separate-process reads/revocation checks using actual existing worker
+policy, preserving all eight live receipts. CurrentUser encrypted component
+recovery is verified; no live cutover occurs in this checkpoint.
+See the [contract, retained failures and remaining acceptance](contracts/2026-11-12-managed-worker-read-host.md).
+The prior 6d9863c hosted gate passes all 58 cases with independent artifact/source
+verification. All original audit rows, native coordinator/Android/NAS integration,
+physical/model checks and downloadable signed production APK delivery remain.
+
 ## 12 November 2026 - explicit worker read enrollment
 
 A real foreground owner proof now reuses the installed worker validator and
