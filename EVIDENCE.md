@@ -6,6 +6,12 @@ Use [validation history](docs/VALIDATION.md),
 Private raw logs, hashes, APKs and runtime observations remain on the execution
 owner. A derived graph is navigation, not independent validation.
 
+Documentation checkpoint, 12 November: README and [feature matrix](docs/FEATURES.md)
+now consolidate implemented features and scoped current figures, with a genuine
+synthetic candidate screenshot and preserved historical captures. Published
+stable/preview metadata is rechecked; roadmap/usage/compatibility/release guidance
+is reconciled. No executable/APK change or new functional pass is claimed.
+
 Latest candidate: [uncompressed DEX and scoped emulator checks](docs/contracts/2026-11-12-uncompressed-dex-candidate.md)
 records1004 JVM, original signers/native alignment, zero-error lint51/50 and10
 API26 local-AI UI passes. UIDs/core hashes survive emulator upgrades; the native

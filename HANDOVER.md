@@ -4,6 +4,13 @@ Repository: `DionCroft/Signal_Grove`. Continue the existing active audit goal.
 Read [PROJECT_STATE](PROJECT_STATE.md) for the next exact action and
 [full audit ledger](docs/AUDIT_EXECUTION_PLAN.md) for unresolved requirements.
 
+Latest owner instruction: publish the completed, checked application as a public
+GitHub Release from main, and keep README/repository features, figures and images
+current. Public publication is already authorized; finish its concrete gates.
+The refreshed [feature matrix](docs/FEATURES.md) distinguishes current source,
+prior scoped results and published availability. Refresh those figures again at
+final publication; a documentation push is not delivery of the APK.
+
 Published APK is beta.8. Newer optional offline AI and project-navigation source
 is not a new release. Do not publish an unverified future-version fixture.
 Keep production and debug signing identities, phone history and original failed

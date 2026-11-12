@@ -9,6 +9,13 @@ Last handover: HANDOVER.md.
 
 ## Current checkpoint
 
+The owner explicitly requests publication from main once the application passes
+its release checks, plus current repository/README features and figures. README,
+feature/validation matrix, roadmap, usage/compatibility/development and screenshot
+index are refreshed with published/candidate distinctions and scoped measurements.
+The new screenshot is a synthetic API26 candidate UI capture. Documentation-only
+changes do not alter candidate APKs or close any original release/audit gate.
+
 The planned beta.9/code112 candidate avoids DEX inflation at cold startup. Build,
 1004 JVM, original signers/native alignment and zero-error lint51/50 pass. Debug/
 test emulator upgrades retain UIDs and351 API37 /66 API26 scoped core hashes;

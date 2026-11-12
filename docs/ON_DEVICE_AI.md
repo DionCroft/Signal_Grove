@@ -1,4 +1,4 @@
-# Using on-device AI (development branch)
+# Using on-device AI (beta.9 candidate)
 
 These controls are in development source, not the published beta.8 APK. The
 Hermes connection still uses your agent host. On-device AI is an optional,
@@ -38,11 +38,13 @@ every quantization, template, model or device will load successfully. The actual
 native load is a separate check. Broader physical model compatibility remains
 under validation; see [current evidence](ON_DEVICE_AI_VALIDATION.md).
 
-The official Qwen2.5-0.5B Q4_K_M candidate also passes real embedded import,
-generation, unload/history and delete tests on Android emulators. Switching
-between it and LFM3 keeps histories separate. Normal Qwen picker/physical-phone
-acceptance remains open; this does not create another recommended download.
-See the [tested scope](contracts/2026-11-11-two-family-android-integration.md).
+The official Qwen2.5-0.5B Q4_K_M file also passes real embedded import,
+generation, unload/history, deletion and two-family switching on the owner's
+physical ARM64 phone. LFM3 and Qwen histories stay bound to their separate file
+hashes. These are native integration cases using explicitly staged inputs;
+normal Qwen document-picker and final beta.9 physical-upgrade acceptance remain
+separate. Qwen is not another built-in recommended download.
+See [physical evidence and figures](contracts/2026-11-12-physical-offline-model-acceptance.md).
 
 ## Chat offline and manage memory
 
@@ -87,10 +89,14 @@ file. A reconciliation error preserves stored files and displays its reason.
 Interrupted recommended downloads retain their partial file. Resume or discard
 it explicitly from Phone models. A server that ignores a resume request leaves
 that partial intact; it does not trigger an automatic second download.
-The production transfer path has passed real HTTPS cancellation/discard on
-Android emulators and a full publisher-hash-verified resume on API 37. Physical
-phone, UI interruption and process/reboot recovery checks remain separate; see
-[the tested scope](contracts/2026-11-11-live-model-transfer.md).
+An earlier component build passed real HTTPS cancellation/discard and a full
+publisher-hash-verified API37 resume ([historical scope](contracts/2026-11-11-live-model-transfer.md)).
+The current beta.9 emulator batch hits both original bounds: cancellation 10s
+and resume 300s. The latter retains a 384 MB partial after actual progress. These
+failures are preserved; current transfer acceptance is open. No network speed,
+completion time or automatic resume is promised. Physical download, UI
+interruption and process/reboot recovery remain separate gates; see
+[the candidate record](contracts/2026-11-12-uncompressed-dex-candidate.md).
 
 ## Setup and troubleshooting
 
@@ -120,6 +126,9 @@ For a local chat reply, choose **Review for handoff**, edit the excerpt and choo
 Hermes connection and conversation, paste, review the destination and send it
 yourself. No action, approval or automatic remote submission accompanies copying.
 
-Physical offline CLI/native-engine evidence is recorded separately from full app
-UI, document-provider, transfer, lifecycle and release acceptance. See
-[the delivery plan](ON_DEVICE_AI_PLAN.md) and [validation](VALIDATION.md).
+The earlier original-key debug candidate passes six physical offline native
+cases, including all six helper topics and model/history isolation. The beta.9
+candidate passes ten API26 local-AI UI cases, with 1,004 JVM cases and zero-error
+lint. These do not establish a final beta.9 phone upgrade, successful current
+transfer gate or complete lifecycle/release acceptance. [Current figures](FEATURES.md),
+[delivery plan](ON_DEVICE_AI_PLAN.md) and [validation](VALIDATION.md).

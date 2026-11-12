@@ -13,6 +13,23 @@ Versions are completed in order with one active version goal at a time. A goal r
 
 See [the release record](docs/releases/0.2.0.md). Session controls distinguish local pin/hide from remote rename/delete. Jobs were read-only in 0.2.0; confirmed mutation controls arrived in 0.4.0.
 
-## Later ideas
+## Current release and audit work
 
-Attachments/images, full-duplex voice where supported, advanced profiles, custom themes and Wear OS are outside these four mandatory milestones unless explicitly added later. No release dates are promised. Physical-device/live-Hermes checks are reported separately from emulator/mock-contract tests.
+| Delivery | Scope | Status |
+| --- | --- | --- |
+| 1.1.0-beta.8 | Signal Grove pixel interface/updater, serving-model awareness, preset reasoning/service choices, existing chats and stored projects | Published preview; [release evidence](docs/releases/1.1.0-beta.8.md) |
+| 1.1.0-beta.9 | Optional phone LLM chat/history, compatible model management, grounded setup helper, newer canonical/project navigation and startup packaging | Candidate/code 112; tested chunks on main, final transfer/device/compatibility/release gates open; [candidate record](docs/releases/1.1.0-beta.9.md) |
+| Continuing audit / later stable release | Real interoperability, worker/workspace ownership and files, automation/rooms/management, background/audio/accessibility and community hardening | Active; every unresolved requirement remains in the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) |
+
+Six physical offline native cases, ten candidate API26 local-AI UI cases and 1,004
+candidate JVM cases pass within their documented scopes. Two current HTTPS model
+cases retain their original timeout failures. Test totals do not establish full
+milestone completion. [Current features and figures](docs/FEATURES.md).
+
+## Further ideas
+
+Image input/history/share and advanced profile/canonical work have since been
+added to source; they are no longer merely future ideas. Full-duplex voice,
+user-authored themes and Wear OS remain future possibilities unless deliberately
+added to the goal. No release dates are promised. Hardware/live-server evidence
+remains separate from emulator and fixture acceptance.

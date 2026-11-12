@@ -1,4 +1,16 @@
-# Signal Grove — 1.1.0-beta.3 preview
+# Signal Grove screenshots
+
+## Beta.9 candidate: on-device AI
+
+Captured by the exact candidate's API26 LocalAiFlowTest with English, Chinese,
+pinyin and 130% font scale. The model name and draft are synthetic fixture values;
+this is an actual component-test capture, not a mockup or live inference output.
+All ten local-AI UI cases pass; complete release/device gates remain separate.
+[Candidate scope](contracts/2026-11-12-uncompressed-dex-candidate.md).
+
+<img src="screenshots/on-device-ai-candidate-api26.png" width="360" alt="Candidate on-device chat with English, Chinese and pinyin at large text size">
+
+## 1.1.0-beta.3 pixel interface
 
 Original code-native orbital-garden pixel art, stepped panels and navigation icons with readable native text. These are actual screenshots of the tested app in labelled Demo mode. The narrow capture is Android 8/API 26 at 720×1280, density 320 and 130% font. The phone capture is Android 16/API 36 at 1080×2400, density 420. Motion is paused in these still images; app/system reduced motion is tested separately. Existing explicit palettes remain selectable.
 

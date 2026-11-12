@@ -1,118 +1,107 @@
 # Signal Grove
 
-An unofficial, open-source native Android client for [Hermes Agent](https://github.com/NousResearch/hermes-agent). Your agent runs on your infrastructure; the phone is its companion.
+An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI in the next release candidate. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
 
-**Stable 1.0.0 · Android 8.0+ (API 26) · Kotlin · Jetpack Compose · MIT**
+**Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Preview release: [`1.1.0-beta.8`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8), code 111. It adds Automatic serving-model selection and reasoning/service preset menus, with existing chat/history and stored-project access. Original-key phone upgrade, one fresh live reply and an existing Desktop transcript are verified; project details loading is owner-confirmed. Cached unavailable conversations and their persistent old error banner are documented limitations. [Release scope](docs/releases/1.1.0-beta.8.md) · [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md). The full audit continues.
+## Download and release status
 
-Next candidate: **1.1.0-beta.9 (code112), not yet published** adds optional phone
-chat/models and the grounded setup helper, plus uncompressed DEX startup packaging.
-[Candidate checks and remaining gates](docs/releases/1.1.0-beta.9.md).
+| Version | Status | Install |
+| --- | --- | --- |
+| [1.0.0](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) | Published stable community release | [Release assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
+| [1.1.0-beta.8](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) · code 111 | Published preview: serving-model selection, reasoning/service presets, existing chats and stored projects | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.8/hermes-agent-mobile-1.1.0-beta.8.apk) |
+| [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 112 | Unpublished candidate: optional offline AI, model management, setup helper and startup packaging improvements | Release checks remain; no public candidate APK yet |
 
-[Brand and upgrade compatibility](docs/BRANDING.md). The GitHub repository is now `DionCroft/Signal_Grove`. Older previews need one matching signed beta.5 (or later) APK upgrade so their fixed update feed can migrate; package and signing identities are retained.
+The table below describes current `main`; release notes define what is included in each published APK. Production and debug are separate packages with separate signing keys. Upgrade the matching package to preserve its data; see [installation and migration](docs/USER_GUIDE.md). The [approved GitHub updater](docs/APP_UPDATES.md) requires your download/install approval, validates the APK and preserves active-work guards. Enable **Include preview releases** to discover betas.
 
-Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.
+[Brand and upgrade compatibility](docs/BRANDING.md) · [Changelog](CHANGELOG.md) · [Roadmap](ROADMAP.md) · [Full audit](docs/AUDIT_EXECUTION_PLAN.md)
 
-## A calm place for your agent
+Independent community project; not affiliated with or endorsed by NousResearch. Original pixel art and system fonts; no copied game assets.
 
-![Starhaven Grove pixel interface](docs/screenshots/pixel-starhaven-phone.png)
+## Features on main
 
-Five interchangeable palettes, persistent conversations, English / Simplified Chinese / accented pinyin, local tasks, confirmed scheduled-job controls, and push-to-talk transcription.
+| Area | What is implemented | Details |
+| --- | --- | --- |
+| Hermes chat and history | Capability-based Runs/session/compatibility transports; streaming, conversation search/paging, model choices, session locks/forks/steering, tool/subagent activity and reviewed approvals | [Protocol scope](docs/COMPATIBILITY.md) |
+| Serving-model awareness | Distinguish the verified serving model, server default and conversation selection. Automatic follows the freshly verified serving model for new turns; reasoning/service use presets | [Model status/setup](docs/RUNTIME_MODEL_STATUS.md) |
+| Optional on-device AI | Separate offline text chat/history, streamed cancellable generation, context/load/unload/delete controls, pinned LFM3 download and compatible GGUF import | [Usage and current limits](docs/ON_DEVICE_AI.md) |
+| Setup and troubleshooting | Static setup guide works without a model; the optional helper selects versioned source-backed checks for setup, network, authentication, models, history and projects | [Set up Hermes](docs/SETUP_GUIDE.md) |
+| Conversations and projects | Canonical read-only conversation viewer, hosted room browsing, stored project management and project-conversation navigation | [Feature and validation matrix](docs/FEATURES.md) |
+| Host management | Reviewed provider/device-code accounts, credential pools, fallback chains, custom endpoints, MCPs, plugins, skills, channels and Kanban controls | [Management scopes](docs/MANAGEMENT.md) |
+| Tasks and automation | Phone tasks with notes, filters, due dates/priorities and reviewed JSON transfer; opt-in supported Hermes scheduled-job controls | [User guide](docs/USER_GUIDE.md) |
+| Voice and notifications | Foreground dictation/read-aloud through installed Android services; opt-in task/run monitoring and task-count widget | [Compatibility](docs/COMPATIBILITY.md) |
+| Pixel interface | Starhaven Grove, Lavender Original, Jade Terminal, Solar Archive and Mint Circuit; stepped panels/icons, original animations, phone/tablet navigation, reduced motion and scalable text | [Themes](docs/THEMING.md) |
+| Private connections and updates | Trusted HTTPS, profile path prefixes, Keystore-backed credential encryption, exact review of sensitive effects and signed, checksum-verified APK updates | [Security](SECURITY.md) |
 
-| Lavender Original | Jade Terminal | Solar Archive | Mint Circuit |
-| --- | --- | --- | --- |
-| ![Lavender](docs/screenshots/signal-grove-lavender.png) | ![Jade](docs/screenshots/signal-grove-jade.png) | ![Solar](docs/screenshots/signal-grove-solar.png) | ![Mint](docs/screenshots/signal-grove-mint.png) |
+A feature being implemented does not establish interoperability with every Hermes install. Controls depend on advertised server capabilities and authentication. Remote project metadata does not establish a worker's execution location. [Detailed implementation/validation boundaries](docs/FEATURES.md).
 
-Actual Android 16 emulator screenshots in Demo mode. [Chat, tasks and tablet screenshots](docs/screenshots.md) · [Validation results](docs/VALIDATION.md) · [Original design preview](docs/design-preview.svg).
+## Current figures
 
-Try the [1.1.0-beta.8 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) for the pixel interface and approved updater. The signed production APK and optional development-upgrade APK are also available from the [stable community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). See the [install/migration guide](docs/USER_GUIDE.md) for production vs debug data. Local outputs are under `app/build/outputs/apk/`.
+Checked **12 November 2026**. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
-## Features
+| Check or measurement | Verified result | Scope |
+| --- | ---: | --- |
+| Candidate JVM tests | **1,004 cases / 96 reports** | Beta.9 candidate; no failures/errors/skips |
+| Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
+| Candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
+| Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
+| Prior complete standard device gate | **1,132 API26 / 1,133 API37 cases** | Independently verified source `7ee5c59`; fresh candidate full-suite acceptance remains pending |
+| Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
+| Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
+| Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
+| Signed candidate production APK | **71.0 MB** | 70,993,762 bytes; original signing identity, not published yet |
+| Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 12 November; known-indexed coverage, not a full security certification |
 
-- **Development: optional on-device AI.** Separate offline text chat and phone history, verified LFM3 download or compatible GGUF import, explicit model/context controls, reviewed handoff and a source-backed setup helper. Not included in beta.8; physical full-app acceptance and release gates remain open. [Usage and limits](docs/ON_DEVICE_AI.md).
+[Candidate evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-- **Automatic model selection (1.1.0-beta.8):** follow the freshly verified serving model for new turns, with reasoning/service preset menus. Explicit saved choices remain intact. [Setup](docs/RUNTIME_MODEL_STATUS.md).
+**Still open:** two current HTTPS model tests hit cancellation/resume time bounds; process/reboot, physical production-upgrade, full candidate CI, compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 100 on the inspected `main`; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
 
-- **Model status:** Home summary and Chat model details distinguish verified serving identity, saved server default and requested/last-reported conversation models. Optional authenticated runtime observer; foreground refresh and explicit stale/error states. [Scope and setup](docs/RUNTIME_MODEL_STATUS.md).
+## Interface figures
 
-- Native Compose UI with phone navigation and a navigation rail on larger displays. Edge-to-edge layout, selectable Markdown/code blocks, copy, timestamps, conversation switching.
-- Starhaven Grove (new default), Lavender Original, Jade Terminal, Solar Archive and Mint Circuit. Original animated orbital-garden pixel art, physically aligned pixel edges, stepped panels/icons/progress, responsive navigation and button feedback. Ambient motion pauses in the background. Saved palettes remain selected; app/system reduced motion and system font scaling are respected. Native readable text, no bundled fonts or copied game assets.
-- Approved [in-app GitHub updates](docs/APP_UPDATES.md): daily checks on app open/resume, optional previews, release review, private verified download and Android install confirmation. APK checksum, package, version and current signer must match. Installation waits for active Hermes work to finish.
-- **Preview (beta.4):** reviewed, profile-scoped host project inventory and fresh canonical-ID details, including archived entries and folder metadata. Chat workspace adoption remains pending.
-- **Preview (beta.5, code 106):** reviewed project creation/editing, host-folder metadata, archive/restore/delete and active-pointer controls, with exact-value approval, shared-home uncertainty guards and separate acknowledgement/configuration reports.
-- **Preview Kanban inspection and controls:** authenticated host board inventory, explicit board/task reads, local column/search filters and private comments, attempts, dependencies, events and attachment metadata. Host boards use shared Kanban storage and remain separate from local phone tasks. Board administration and task text/priority/assignment/comment/deletion use private exact-value approvals and durable uncertainty receipts. Task creation covers project/workspace, parent, skill, model and limit choices. Dependency add/remove controls now have separate pair-read and exact request reviews; worker controls remain in progress. [Inspection and board-effect scope](docs/MANAGEMENT.md#host-kanban-inspection-development-beta5).
-- Independent English, Chinese and pinyin strings. Pinyin can be hidden without hiding Chinese. Agent responses are never translated automatically.
-- Trusted HTTPS with bearer authentication. AES-GCM token encryption backed by Android Keystore; no certificate bypass, redirects or HTTP request logging. Path prefixes such as `/p/work/` are preserved.
-- Capability discovery. Native server sessions where supported; Runs API for resumable streams and explicit status; native session streams on older installs; OpenAI-compatible completion fallback.
-- Durable local turn keys for safely retrying Runs submission. Connection interruptions show **unknown** until checked. Assistant finalisation never implies run completion. Compatibility streams say **response received / run outcome unavailable**.
-- Persisted tool activity with timestamps/duration and visible previews. Durable allow-once / deny approvals and explicit clarification answers verify current prompt identity/generation/content. Uncertain delivery never automatically retries a decision. Demo includes harmless exercises.
-- Room tasks: create, edit, complete, delete, notes, title/notes search, open/completed/overdue filters, priority and ISO due date, with real local progress. Reviewed task JSON export/import enables backup and migration without exporting credentials or conversations.
-- Hermes scheduled jobs: list and fetch details, enabled state and supplied run timestamps. Profile-partitioned snapshots remain available offline with stale indicators. Confirmed create/edit/pause/resume/run/delete controls are available after a per-connection opt-in. New jobs start paused with local delivery. Uncertain mutations are retained for review and never automatically replayed.
-- Foreground speech recognition defaults to on-device-only, with explicit microphone permission, English/Chinese input and editable transcription transferred to Chat for review. Optional read-aloud supports installed language voices, speed and stop. Network voices require opt-in. Audio stops when leaving Voice or backgrounding.
-- Opt-in, generic private notifications for local due tasks and optionally tracked run outcomes/action requests. WorkManager checks are best effort, about every 15 minutes; they never submit agent work or answer approvals. A local-task widget shows counts and opens Tasks.
-- Explicit **Demo mode**, enabled initially. Sample text and job are labelled; no network requests are made by the fake client. Demo and real conversation storage are separated.
+| Pixel interface | Candidate on-device AI |
+| --- | --- |
+| ![Starhaven Grove Demo interface](docs/screenshots/pixel-starhaven-phone.png) | ![Candidate on-device AI with English, Chinese and pinyin](docs/screenshots/on-device-ai-candidate-api26.png) |
 
-See [1.0.0 release evidence](docs/releases/1.0.0.md), [user guide](docs/USER_GUIDE.md), [compatibility](docs/COMPATIBILITY.md) and [release/signing process](docs/RELEASING.md). Earlier milestone evidence remains under `docs/releases/`.
+Left: earlier Android 16 Demo capture. Right: exact beta.9 API26 component-test capture, synthetic model/draft, bilingual text at 130% font scale. These are app captures, not generated mockups or proof of live model output. [More themes, tablet views and capture provenance](docs/screenshots.md).
 
-## Build
+## Connect to Hermes
 
-Use JDK 24 (CI), Android SDK Platform 37 and Build Tools 36.0.0, NDK 29.0.14206865 and CMake 3.31.6. Gradle 9.8.2 is provided by the wrapper. Source/bytecode target is Java 17. Native source is fetched by pinned revision/hash; model weights are not bundled. See the [native build contract](docs/contracts/2026-11-10-native-local-engine.md).
+1. Run Hermes' authenticated API server on your existing host. Its normal local binding is `127.0.0.1:8642`.
+2. Reach it through a private VPN such as Tailscale and trusted HTTPS. Keep the raw API port private.
+3. In **Settings → Server**, enter the API root and bearer token, then **Save & test connection**. The app preserves profile prefixes such as `/p/work/`. Complete any Android local-network permission prompt when using a private endpoint.
+4. Open Chat and Conversation history. Existing Desktop/Discord conversations can be read in their selected profile; API-owned conversations support replies and advertised controls. Use explicit paging for older chats.
+5. Configure the separate **Hermes management** dashboard sign-in when using management/project features. Its authentication is separate from the chat API token.
+
+`127.0.0.1` on Android means the phone. Production requires HTTPS. The token may grant powerful agent/tool access: keep it private. Start with labelled Demo mode to explore without a server.
+
+[Complete setup guide](docs/SETUP_GUIDE.md) · [Connection details](docs/HERMES_CONNECTION.md) · [Official API reference](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/)
+
+## Use on-device AI
+
+In the candidate, open **Chat → On-device AI** or **Settings → On-device AI**, review a model's licence, download/import it, choose a context and explicitly load it. Inference requires a 64-bit process and sufficient memory/storage. The metadata allowlist covers eight architecture names; actual compatibility is checked at load time. LFM3 and Qwen2.5-0.5B have physical native evidence; this does not certify arbitrary GGUF files.
+
+Phone chat remains separate from Hermes. A new unsent text question can be reviewed into a fresh phone draft; remote history, credentials and approvals are excluded. Local advice can be reviewed for clipboard handoff. Failed or unknown remote work is never silently replayed locally or on reconnection. Leaving local AI cancels work and unloads weights. [Models, routing, helper and recovery details](docs/ON_DEVICE_AI.md).
+
+## Build and contribute
+
+JDK 24; Android SDK Platform 37 and CI Build Tools 36.0.0; NDK 29.0.14206865; CMake 3.31.6. Wrapper: Gradle 9.8.2; AGP 9.5.0; Compose plugin 2.4.21; KSP 2.3.13. Java bytecode target 17. Native sources are pinned by revision/hash.
 
 ```sh
-./gradlew assembleDebug testDebugUnitTest lintDebug
+./gradlew testDebugUnitTest lint assembleDebug assembleDebugAndroidTest
 ```
 
-The Windows wrapper uses a verified temporary source snapshot, build outputs and project/Kotlin caches on E:, then hash-verifies published APKs and reports at the usual checkout paths. Its printed layout/receipt paths identify the temporary build and invocation outcome. See [the Windows layout](docs/contracts/2026-11-07-windows-build-layout.md).
-
-The Windows wrapper reuses an existing `debug.keystore` directly under its work root before choosing a `signing/` directory. Use `-DebugSigningHome` for another established directory on E:. Verify the signer before installing an update; retain the original key.
-
-On Windows, use `gradlew.bat`. Set `ANDROID_HOME` or an untracked `local.properties` with `sdk.dir`. The debug APK is `app/build/outputs/apk/debug/app-debug.apk`. Release builds are unsigned unless signing environment variables are supplied. The public production APK is privately signed; see the [signing process](docs/RELEASING.md).
-
-For an E:-only Windows tool/cache/temp setup:
+On Windows, use the verified snapshot wrapper and keep tools, caches, emulator data and temporary output on E:
 
 ```powershell
 .\scripts\build-windows.ps1 -WorkRoot E:\Temp\hermes-mobile -AndroidSdk E:\Android\Sdk
 ```
 
-See [development](docs/DEVELOPMENT.md) for the toolchain, tests, emulator and directory rules. Build reports are local generated artifacts and are not committed.
+Retain existing debug/production signing keys for upgrades. CI keys cannot update the owner's installed packages. Never commit signing material, credentials, model weights or generated/private evidence. [Development](docs/DEVELOPMENT.md) · [Release process](docs/RELEASING.md) · [Contributing](CONTRIBUTING.md) · [Notices](NOTICE.md).
 
-## Connect your Hermes
+## Important boundaries
 
-1. Enable Hermes' API server on the existing host; its default host binding is `127.0.0.1:8642`.
-2. Make it reachable through a private VPN and a trusted HTTPS reverse proxy. Do not expose its raw port publicly.
-3. In Settings enter the server root, e.g. `https://agent.example.net/p/work/`, and its bearer token. The app appends API paths while retaining your prefix.
-4. Tap **Save & test connection**. The settings become active only after an authenticated discovery request succeeds. Empty token retains the saved credential only for the same URL.
-5. Start Chat and open **Conversation history**. The selected profile's session inventory includes Desktop, Discord and other origins. Search/source filters apply to loaded rows; use **Load more conversations** for older chats. API-owned sessions support replies. Other origins are read-only because Hermes keeps their write ownership with the original interface.
-
-`127.0.0.1` on Android is the **phone**, not your computer. Cleartext testing requires both the debug build and an explicit Settings toggle. Release builds always require HTTPS. A token can grant terminal/tool access: protect it as a powerful credential.
-
-For Demo, leave Demo mode enabled. You can explore themes, local tasks, sample streaming and the sample job without a Hermes installation. To use your saved server again, disable Demo or save/test the connection.
-
-See [connection details](docs/HERMES_CONNECTION.md) and the [official API reference](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/).
-
-## Known limits
-
-- Community release. Real-server interoperability depends on your specific Hermes install and advertised features. The project does not include a live server or credentials. See the exact [tested matrix](docs/VALIDATION.md).
-- No full-duplex voice or file attachments. Background monitoring is read-only and delayed by Android scheduling; it is not server push or an exact reminder alarm. The widget exposes counts and opens the app for task changes.
-- A dropped stream does not mean the server stopped. Use Check / recover run; a run with a known ID is queried without resubmission. No run ID on a non-Runs transport means automatic resending is deliberately unavailable.
-- Run streams are not automatically reattached after process death. Check / recover run uses the saved ID and sequence cursor without creating new work. Replay gaps use status-only recovery. Hermes may expire event buffers/status records; unknown outcomes may require server review.
-- Legacy OpenAI-compatible chat has local history only and no authoritative run outcome. It does not advertise cancellation unless a usable run ID/control exists.
-- The conversation browser searches loaded local records and loads additional server pages explicitly. Selecting/refreshing settled API sessions synchronizes saved history atomically; active/unknown turns retain their receipts. A history beyond 100,000 server rows produces an explicit limit error and keeps the cache. Server compression continuation IDs are retained.
-- Conversations/tasks use Android app-private Room storage, **not database encryption**. Backups/transfer are excluded. The connection URL/token/transport policy are Keystore encrypted together. Job prompts remain in the app-private cache. Clear local cache does not delete server history or tasks.
-- Only system-provided fonts are used. Pixel scenery, stepped panels and interaction feedback respect the app and system reduced-motion settings. Actual UI labels and pinyin wrap; compact navigation retains English labels and multilingual accessibility descriptions.
-- Speech recognition availability and accuracy depend on the Android service. On-device-only mode fails closed when no local recognizer is available; system recognition may use the network when that mode is explicitly disabled.
-
-## Contributing
-
-See [CONTRIBUTING](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md), [theme guide](docs/THEMING.md), [security policy](SECURITY.md), [roadmap](ROADMAP.md) and [changelog](CHANGELOG.md). Bugs and feature requests have issue templates. Original code is MIT; third-party notices are in [NOTICE](NOTICE.md) and in Settings.
-
-Provider accounts now include reviewed device-code sign-in for Hermes' curated and plugin-added providers, encrypted expiring code recovery, separate browser review/status refresh, owned-session cancellation and stored-credential disconnect. External CLI flows explain where setup belongs. These use the independent management listener and preserve durable uncertainty; see [management behavior](docs/MANAGEMENT.md#provider-device-code-accounts). Credential pools and fallback-chain editing are described below; live provider interoperability remains in the active audit follow-up.
-
-Credential pools now support reviewed reads, fresh credential addition, index-based removal and scoped cleanup diagnostics. Reviews disclose shared-root/source cleanup effects and the server's mutable-index limitation; durable receipts preserve acknowledgments/uncertainty without saving keys, labels or raw cleanup messages. See [credential-pool management](docs/MANAGEMENT.md#reviewed-credential-pools). Fallback-chain editing is described below; broader configuration administration remains in the active audit follow-up.
-
-Fallback chains now support staged add/edit/order/remove/clear operations for primary and legacy saved rows. The reviewed save sends only changed fallback arrays, retains unknown fields and private credential references, and records value-free durable acknowledgment/uncertainty. See [fallback-chain management](docs/MANAGEMENT.md#reviewed-fallback-chains).
-
-Custom endpoint management now provides reviewed catalog/private-detail reads, named-provider creation/editing, main-route activation and removal. It preserves literal stored IDs and omitted credentials/modes, guards hidden provider collisions, discloses shared environment/main-model effects and keeps private endpoint values out of durable receipts. See [custom endpoint administration](docs/MANAGEMENT.md#reviewed-custom-endpoint-administration). Explicit outbound probes now have their own destination/credential consent and private typed report. Model-alias import remains active audit work.
-
-For guided connection setup, open **Settings → Server → Set up Hermes**, or read [the setup guide](docs/SETUP_GUIDE.md).
+- Read-aloud and dictation depend on installed Android services. On-device-only recognition is unavailable on the tested owner's phone; read-aloud was separately confirmed. This is independent of local LLM text inference.
+- Run interruptions can leave unknown outcomes. Check the exact saved receipt/status; a response-ending event is not proof of completed tool work. Reconnection never silently replays an uncertain operation.
+- Background checks are best effort, about every 15 minutes. They are not server push or exact reminder alarms. Widget task changes open the app.
+- Chats, tasks, job cache and local models use app-private storage, not database encryption. Connection secrets use Keystore-backed encryption. Uninstall/app-data removal deletes private phone data; local models/history are excluded from Android backup.
+- The full audit covers native authentication/recovery, worker identity/workspace access, automation/integrations, multi-connection/background/audio behavior and community-release hardening. [Compatibility](docs/COMPATIBILITY.md) and the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) retain the details.

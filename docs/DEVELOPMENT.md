@@ -25,9 +25,18 @@ Exercise every navigation destination on a narrow phone and a wide tablet; use A
 
 Build reports: `app/build/reports/tests`, `app/build/reports/lint-results-*.html`. APK: `app/build/outputs/apk/debug/app-debug.apk`. Generated reports and debug signing material are excluded from Git. Run `python -B scripts/secret_review.py` before publishing.
 
-## Stable release coverage and contribution scope
+## Current validation and historical baseline
 
-The 1.0 suite has 43 unit and 30 device cases. Use unique fixture notification/task identities when testing durable receipts across repeated installs. UI tests must scroll controls into view on API-26-sized screens. ActivityScenario route tests restore their original launch Intent after exercising onNewIntent. Exported task files are bounded and fully validated before atomic import; never add server credentials or execution definitions to that format.
+The beta.9 candidate has 1,004 JVM cases / 96 reports and ten scoped API26 local-AI
+UI passes. The earlier fully reconciled standard gate at source 7ee5c59 executes
+1,132 API26 / 1,133 API37 cases; fresh candidate full-suite acceptance is separate.
+Six physical offline native cases use an earlier original-key debug candidate,
+while two current HTTPS transfer cases retain timeout failures. Consult
+[the feature/figure matrix](FEATURES.md) and dated [validation](VALIDATION.md) before
+copying counts into a release. Report inventory, actual execution, hardware and
+live-server evidence separately; do not total them into one completion figure.
+
+The historical 1.0 suite had 43 unit and 30 device cases. Use unique fixture notification/task identities when testing durable receipts across repeated installs. UI tests must scroll controls into view on API-26-sized screens. ActivityScenario route tests restore their original launch Intent after exercising onNewIntent. Exported task files are bounded and fully validated before atomic import; never add server credentials or execution definitions to that format.
 
 Use [the release process](RELEASING.md) for signing, private key backup and public asset verification. Contributors can build unsigned release variants; the owner's production key/password are never required for ordinary tests or CI. Update [compatibility](COMPATIBILITY.md) and [user instructions](USER_GUIDE.md) when behavior changes.
 

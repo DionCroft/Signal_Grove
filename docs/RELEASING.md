@@ -18,6 +18,19 @@ Back up the keystore and its password through an owner-controlled secure backup.
 
 ## Publish and verify
 
+Publish completed application releases from the verified `main` commit. The
+owner has authorized the public APK release once its checks are complete; do not
+leave delivery at a source push or temporary CI artifact. Preserve preview/stable
+semantics below. A signed candidate that still fails a required gate is not ready.
+
+Before publication refresh the README's release table, implemented features,
+validation date/counts, APK/model sizes and current screenshots. Reconcile
+`docs/FEATURES.md`, ROADMAP, changelog, compatibility and release notes with the
+same final artifacts. Keep historical results labelled with their exact scope;
+current-main source, fixture/hardware evidence and published inclusion differ.
+After upload verify assets/digests and the download URL, then update availability
+and provide the direct production APK link. Preserve failed checks in validation.
+
 Create the release at the exact passing source commit. Versions below 1.0 and versions with a preview suffix (for example `1.1.0-beta.1`) are prereleases; 1.0.0 remains the stable community release until a newer stable version is published. Include concise change notes, compatibility limits, tested matrix, signed production APK, optional debug-upgrade APK, public signing certificate and checksums. Verify the uploaded asset digests against local files. Use exact asset names `hermes-agent-mobile-VERSION.apk` and `hermes-agent-mobile-VERSION-debug.apk` (no `v` in VERSION). The updater requires GitHub’s `sha256:` asset digest and rejects missing/ambiguous assets. Increment Android versionCode for every published upgrade and retain the same signing key for each package. Defaults are the public version; `-PhermesVersionCode=... -PhermesVersionName=...` is reserved for owned local upgrade fixtures and deliberate release versioning. Never upload future-version QA fixtures as release assets. Preserve historical release records. No Play Store deployment is part of this repository workflow.
 
 Signing background: [Android app signing](https://developer.android.com/studio/publish/app-signing). Task migration uses the [Storage Access Framework](https://developer.android.com/training/data-storage/shared/documents-files) with explicit user-selected files and no broad storage permission.
