@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 
 
 # Closed inventory: adding a method to one of these classes requires an explicit
@@ -135,6 +136,62 @@ def run_instrumentation(device, log_path: Path, timeout: int = 6000) -> int:
     if not retained:
         raise RuntimeError('Instrumentation evidence could not be retained; no device pass is recorded.')
     return record['ok_summary_tests']
+
+
+def keyboard_preparation_record(output: str, code: int, nonce: str) -> dict:
+    """Validate one owned-API26 setup receipt, separate from standard-suite evidence."""
+    if not isinstance(output,str) or len(output)>32768 or code!=0:raise ValueError('Keyboard setup command failed or was unbounded')
+    reports=[line[len('INSTRUMENTATION_RESULT: keyboardFixtureReport='):] for line in output.splitlines() if line.startswith('INSTRUMENTATION_RESULT: keyboardFixtureReport=')]
+    terminals=[line.partition(': ')[2] for line in output.splitlines() if line.startswith('INSTRUMENTATION_CODE: ')]
+    if len(reports)!=1 or terminals!=['-1']:raise ValueError('Keyboard setup did not return one terminal receipt')
+    def unique_pairs(pairs):
+        result={}
+        for key,value in pairs:
+            if key in result:raise ValueError('Duplicate keyboard receipt field')
+            result[key]=value
+        return result
+    report=json.loads(reports[0],object_pairs_hook=unique_pairs);ime='com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME'
+    keys={'schema','nonce','api','hardware','mode','imeVersion','selectedImeBefore','selectedImeAfter','before','afterDismiss','reopened','hintSeen','dismissAttempts','actions','actionAcknowledgements','state','cleanupKeyboardHidden'}
+    if not isinstance(report,dict) or set(report)!=keys:raise ValueError('Unexpected keyboard setup receipt')
+    if (type(report['schema']) is not int or report['schema']!=1 or report['nonce']!=nonce or str(uuid.UUID(nonce))!=nonce
+        or type(report['api']) is not int or report['api']!=26 or report['hardware'] not in ('ranchu','goldfish') or report['mode']!='prepare'
+        or report['cleanupKeyboardHidden'] is not True or report['state']!='READY_FRESH_KEYBOARD' or report['imeVersion']!='6.2.34.154174348-preload-x86_64'
+        or report['selectedImeBefore']!=ime or report['selectedImeAfter']!=ime or report['hintSeen'] is not True
+        or type(report['dismissAttempts']) is not int or report['dismissAttempts']!=1):raise ValueError('Unverified keyboard setup identity or effect')
+    actions=['dismiss_hint','hide_keyboard','reopen_editor','return_home']
+    if report['actions'] not in (actions,['open_settings_search',*actions]):raise ValueError('Unexpected or repeated keyboard setup action')
+    acknowledgements=report['actionAcknowledgements']
+    if not isinstance(acknowledgements,dict) or set(acknowledgements)!=set(report['actions']) or any(value is not True for value in acknowledgements.values()):raise ValueError('Keyboard setup action was not acknowledged')
+    for name in ('before','afterDismiss','reopened'):
+        value=report[name]
+        if not isinstance(value,dict) or set(value)!={'top','bottom','keyTop','keys','hints','closes','exactHintText','ready'}:raise ValueError('Invalid keyboard geometry observation')
+        if any(type(value[k]) is not int or not 0<=value[k]<=32768 for k in ('top','bottom','keyTop','keys','hints','closes')):raise ValueError('Invalid keyboard geometry type')
+        if not 20<=value['keys']<=256 or not value['top']<value['bottom'] or not value['top']<=value['keyTop']<value['bottom']:raise ValueError('Keyboard not visible')
+        if name=='before':
+            if value['hints']!=1 or value['closes']!=1 or value['exactHintText'] is not True or value['ready'] is not False or value['top']>=value['keyTop']:raise ValueError('Reviewed first-use occlusion not observed')
+        elif value['hints']!=0 or value['closes']!=0 or value['exactHintText'] is not False or type(value['ready']) is not bool or value['ready']!=(value['top']==value['keyTop']):raise ValueError('Hint removal or geometry observation is inconsistent')
+        if name=='reopened' and (value['ready'] is not True or value['top']!=value['keyTop']):raise ValueError('Reopened keyboard remains obscured')
+    return report
+
+
+def prepare_owned_keyboard(device, work: Path, api: int) -> dict | None:
+    """One explicit setup on this script's newly created emulator. Never retry an action."""
+    if api!=26:return None
+    nonce=str(uuid.uuid4());log=work/'keyboard-preparation.log';record=work/'keyboard-preparation.json'
+    if log.exists() or record.exists():raise ValueError('Keyboard preparation already attempted; inspect its exact receipt')
+    try:
+        result=device('shell','am','instrument','-w','-r','-e','ownedKeyboardFixture',nonce,'-e','keyboardFixtureMode','prepare',
+            'org.hermesmobile.app.debug.test/org.hermesmobile.app.KeyboardFixtureInstrumentation',timeout=45,check=False)
+        log.write_text(result.stdout,encoding='utf-8');report=keyboard_preparation_record(result.stdout,result.returncode,nonce)
+        record.write_text(json.dumps(dict(state='OWNED_DEFAULT_KEYBOARD_PREPARED',nonce=nonce,report=report),indent=2)+'\n',encoding='utf-8')
+        print('Owned API26 default keyboard prepared with one reviewed first-use dismissal.',flush=True)
+        return report
+    except (OSError,ValueError,subprocess.SubprocessError) as error:
+        if not log.exists():
+            text=getattr(error,'stdout','') or ''
+            log.write_text(text.decode('utf-8',errors='replace') if isinstance(text,bytes) else text,encoding='utf-8')
+        record.write_text(json.dumps(dict(state='KEYBOARD_PREPARATION_FAILED_OR_UNKNOWN',nonce=nonce,errorType=type(error).__name__),indent=2)+'\n',encoding='utf-8')
+        raise
 
 
 def retain_owned_device_state(process, device, path: Path) -> bool:
@@ -321,6 +378,7 @@ def main() -> int:
             device('shell','wm','dismiss-keyguard',check=False)
             device('install','-r',app,timeout=120)
             device('install','-r',tests,timeout=120)
+            prepare_owned_keyboard(device,work,args.api)
             if args.api>=37:
                 device('shell','pm','revoke','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK',check=False)
                 device('shell','pm','clear-permission-flags','org.hermesmobile.app.debug','android.permission.ACCESS_LOCAL_NETWORK','user-set','user-fixed')

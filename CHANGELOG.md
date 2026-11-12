@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Prepare the reviewed default keyboard on fresh owned API26 CI emulators with one
+  explicit first-use-tip dismissal and verified hide/reopen geometry. Retain exact
+  receipts and failed attempts; preserve all app visibility, consent and native
+  tap assertions, suite coverage and separately declared model gates.
+
 - Verify project conversation grouping and stored review against both actual
   Hermes owner revisions on both Android APIs, with exact profile/root isolation,
   excluded-session filters, preserved discovery cache and zero work effects.

@@ -1,6 +1,34 @@
 # Signal Grove project state
 
-## Current checkpoint - actual-owner project navigation verified
+## Current checkpoint - owned API26 keyboard readiness
+
+Fresh API26 CI now explicitly prepares its reviewed default Gboard before the
+standard suite. The one-dismissal receipt requires the exact emulator/IME,
+acknowledged actions, absent hint, fully unobscured reopened geometry, unchanged
+IME and hidden keyboard at exit. Unknown versions, partial output and reuse
+fail closed. Existing app/native geometry, caption, consent, no-write and
+single-DOWN/UP assertions are unchanged; normal-suite exclusions stay 5 classes /
+11 separately declared model methods.
+
+Source511 passes 1004 JVM tests / 96 reports, 320 policy tests, both lint variants
+with zero errors (51 debug / 50 release warnings), original debug signing and all
+32 native-library ABI/alignment checks. A fresh first-use preparation passes,
+then all four unchanged focused Android cases pass with six successful native
+taps. This is focused API26 evidence, not a complete hosted-suite or release pass.
+
+Retain failed preparation500/507. Diagnostic 2581 API26 remains failed; its
+API37 run timed out after 990 positive methods, with the next case unresolved.
+Current main's older hosted device jobs remain separately scoped. Worker/files,
+production integrations, physical/models/lifecycle, source/advisory review and
+signed release remain open. The published APK stays beta.8; full goal stays active.
+
+[Scope and evidence](docs/contracts/2026-11-12-owned-keyboard-readiness.md).
+
+**Next exact action:** retain final-source hosted device results, investigate the
+separate API37 timeout without replay or a blanket deadline waiver, then continue
+real worker/root/file ownership and every unresolved audit-ledger requirement.
+
+## Previous checkpoint - actual-owner project navigation verified
 
 Eight real Android/Hermes cases pass across both reviewed revisions, both APIs
 and gateway/Webapp. Grouping filters, cross-profile same-ID history, exact roots

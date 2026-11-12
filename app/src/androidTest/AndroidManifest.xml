@@ -2,5 +2,6 @@
     <!-- AGP injects its configured runner into the first instrumentation element. -->
     <instrumentation android:name="androidx.test.runner.AndroidJUnitRunner" android:targetPackage="org.hermesmobile.app.debug" />
     <instrumentation android:name="org.hermesmobile.app.SelfUpdateInstrumentation" android:targetPackage="org.hermesmobile.app.debug" android:label="Owned emulator self-update QA" />
+    <instrumentation android:name="org.hermesmobile.app.KeyboardFixtureInstrumentation" android:targetPackage="org.hermesmobile.app.debug" android:label="Owned emulator keyboard readiness QA" />
     <application><provider android:name="org.hermesmobile.app.ImageFixtureProvider" android:authorities="org.hermesmobile.app.test.images" android:exported="true" /></application>
 </manifest>
