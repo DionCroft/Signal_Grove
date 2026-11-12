@@ -54,7 +54,7 @@ The complete hosted standard source2970 gate independently passes 1,135 API26 /
 candidate. This does not turn a queued exact-head CI job into a completed run.
 At this checkpoint b599 Android is running and b182 Android is pending; b182
 Windows CI passes, while Hermes compatibility remains failed with stable40 /
-inspected-main100 used-handler findings. No compatibility baseline or source
+inspected-main1773ba3 101 used-handler findings. No compatibility baseline or source
 waiver changes. Forty Git-blob-verified predecessor/current handler diffs across
 33 modules are prepared for semantic/transitive review, without SDK execution;
 that preparation is not acceptance. Two partial review-helper guard failures

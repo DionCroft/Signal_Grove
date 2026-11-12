@@ -45,7 +45,7 @@ changes no Android/native/build input. [Workspace evidence](docs/contracts/2026-
    standard coverage is 1,135/1,136, with543 identical Android inputs here;
    pending exact-head CI and compatibility failures remain separate.
 2. Complete current-stable used-handler dependency closure and real canonical
-   socket/actor/profile/transport acceptance. Stable 40/inspected-main 100 findings
+   socket/actor/profile/transport acceptance. Stable 40/inspected-main1773ba3 101 findings
    remain; no handler/absence/cohort waiver is added by the component probe.
 3. Continue the Windows/Pi read-path root cause, actual worker/root/file/NAS and
    reviewed action acceptance, preserving receipts and every original audit row.

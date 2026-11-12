@@ -1,5 +1,18 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - fresh upstream main pin advances
+
+The independently hash-verified b182 compatibility artifacts inspect stable
+`3b421578588243f920886e6fe79a6faa87ea026e` with40 changed used handlers and
+main `1773ba3bab962dc7755a64ddfb1235428d32b1ec` with101. The preceding inspected
+main2bfa6b0 had100. The newly flagged key is `env_config:_normalize_root_model_keys`;
+other transitive/semantic review remains required. Neither report removes a used
+route; both require review. These are review findings, not proven bug counts.
+No baseline, handler waiver, app/APK or live service changes. The failed verifier
+expecting the older main count is retained; the same downloaded ZIPs and exact
+reports are independently reconciled without another download.
+[Current signed-candidate and release scope](contracts/2026-11-12-reviewed-main-beta9-candidate.md).
+
 ## 12 November 2026 - fresh reviewed-main signed beta.9 candidate
 
 Clean b182ae8 produces new original-key APKs: production 70,993,354 bytes,

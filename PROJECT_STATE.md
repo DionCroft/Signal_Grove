@@ -57,7 +57,7 @@ tested commits/pushes to main and public original-key APK delivery after its gat
 ## Open acceptance
 
 Current compatibility retains 40 changed used-handler findings on stable 3b42157
-and 100 on inspected main2bfa6b0. Complete source-dependency/semantic review and
+and 101 on inspected main1773ba3. Complete source-dependency/semantic review and
 actual canonical transport/actor/profile/private-channel/TCP/TLS/live Pi acceptance
 remain. Component fixtures add no source waiver. Final production phone upgrade,
 saved connection/history/live behavior and public APK download/checksums remain.
