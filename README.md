@@ -1,5 +1,16 @@
 # Signal Grove
 
+## 12 November 2026 - bounded reasoning and reviewed helper schema
+
+Code113 fully builds/signs (1,006 JVM cases, zero-error lint, all ABIs) but its
+helper diagnostic fails0/6 without a reasoning limit and5/6 with the budget alone.
+Code114 now implements the supported budget plus constrained unique reviewed-ID
+selections. Integrated native vocabulary coverage passes49 checks; all six public
+helper diagnostic topics pass at the original96-token total. Original48/96-token
+physical assertions are restored. These diagnostics are not final APK/JNI proof.
+Fresh build/CI/phone/upgrade/publication gates and all original audit work remain.
+[Exact failed stages, correction and scope](docs/contracts/2026-11-12-bounded-helper-selections.md).
+
 ## 12 November 2026 - native answer projection, fresh gates pending
 
 The pinned runtime diagnostic identifies the pre-closed reasoning prefill as the
@@ -27,7 +38,7 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 | --- | --- | --- |
 | [1.0.0](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) | Published stable community release | [Release assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
 | [1.1.0-beta.8](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) · code 111 | Published preview: serving-model selection, reasoning/service presets, existing chats and stored projects | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.8/hermes-agent-mobile-1.1.0-beta.8.apk) |
-| [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 113 planned | Unpublished candidate: optional offline AI, model management, setup helper and startup packaging improvements | Release checks remain; no public candidate APK yet |
+| [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 114 planned | Unpublished candidate: optional offline AI, model management, setup helper and startup packaging improvements | Release checks remain; no public candidate APK yet |
 
 The table below describes current `main`; release notes define what is included in each published APK. Production and debug are separate packages with separate signing keys. Upgrade the matching package to preserve its data; see [installation and migration](docs/USER_GUIDE.md). The [approved GitHub updater](docs/APP_UPDATES.md) requires your download/install approval, validates the APK and preserves active-work guards. Enable **Include preview releases** to discover betas.
 
@@ -73,7 +84,7 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
-| Signed candidate production APK | **71.0 MB** | 70,993,354 bytes from clean b182ae8; original signing identity, not published yet |
+| Last built production APK (code113) | **71.0 MB** | 70,996,382 bytes from clean b297791; original signer, unpublished; helper follow-up code114 needs a fresh build |
 | Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 12 November; known-indexed coverage, not a full security certification |
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)

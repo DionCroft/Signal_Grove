@@ -172,9 +172,9 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_load(JNIEnv * env, jobject, jl
 }
 
 extern "C" JNIEXPORT jint JNICALL
-Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject, jlong handle, jobjectArray roles, jobjectArray contents, jint limit, jlong operation, jobject sink) {
+Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject, jlong handle, jobjectArray roles, jobjectArray contents, jobjectArray helper_choices, jint limit, jlong operation, jobject sink) {
     auto engine = get(handle);
-    if (!engine || !roles || !contents || !sink || operation <= 0 || limit < 1 || limit > 512) return invalid;
+    if (!engine || !roles || !contents || !helper_choices || !sink || operation <= 0 || limit < 1 || limit > 512) return invalid;
     std::unique_lock<std::mutex> lock(engine->operation_mutex, std::try_to_lock);
     if (!lock.owns_lock() || !engine->model || !engine->templates) return invalid;
     engine->active.store(operation);
@@ -182,7 +182,15 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
     try {
         const int count = env->GetArrayLength(roles);
         if (count < 1 || count > 64 || count != env->GetArrayLength(contents)) return invalid;
-        auto input = signal_grove::local_chat_inputs();
+        const int choice_count = env->GetArrayLength(helper_choices);
+        if (choice_count > 5) return invalid;
+        std::vector<std::string> helper_ids;
+        for (int i = 0; i < choice_count; ++i) {
+            auto ref = static_cast<jstring>(env->GetObjectArrayElement(helper_choices, i));
+            auto value = utf(env, ref); env->DeleteLocalRef(ref);
+            helper_ids.push_back(std::move(value));
+        }
+        auto input = signal_grove::local_chat_inputs(helper_ids);
         size_t input_bytes = 0;
         for (int i = 0; i < count; ++i) {
             auto role_ref = static_cast<jstring>(env->GetObjectArrayElement(roles, i));
@@ -226,7 +234,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
         }
         auto sampling = engine->sampling;
-        session.apply_sampling(sampling);
+        signal_grove::apply_local_chat_sampling(session, vocab, sampling, limit);
         common_sampler_ptr sampler(common_sampler_init(engine->model, sampling));
         if (!sampler) return failed;
         for (const auto token : tokens) common_sampler_accept(sampler.get(), token, false);

@@ -1,5 +1,16 @@
 # Native answer projection correction
 
+## 12 November 2026 - bounded reasoning and reviewed helper schema
+
+Code113 fully builds/signs (1,006 JVM cases, zero-error lint, all ABIs) but its
+helper diagnostic fails0/6 without a reasoning limit and5/6 with the budget alone.
+Code114 now implements the supported budget plus constrained unique reviewed-ID
+selections. Integrated native vocabulary coverage passes49 checks; all six public
+helper diagnostic topics pass at the original96-token total. Original48/96-token
+physical assertions are restored. These diagnostics are not final APK/JNI proof.
+Fresh build/CI/phone/upgrade/publication gates and all original audit work remain.
+[Exact failed stages, correction and scope](2026-11-12-bounded-helper-selections.md).
+
 12 November 2026. This source correction prepares beta.9/code113, increasing the
 code above the installed code112. It has not yet passed a fresh APK/physical
 acceptance gate and is not a public release.

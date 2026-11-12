@@ -1,8 +1,8 @@
 # Signal Grove project state
 
-Last checkpoint: 12 November 2026, native-answer-projection source correction.
+Last checkpoint: 12 November 2026, bounded-helper-selections source follow-up.
 The existing full audit/on-device AI goal remains active. Published APK is
-beta.8/code 111; planned beta.9/code 113 is unpublished. Code112 is installed
+beta.8/code 111; planned beta.9/code 114 is unpublished. Code112 is installed
 locally and retains its observed offline-output defect. The owner authorizes regular
 tested commits/pushes to main and public original-key APK delivery after its gates.
 
@@ -80,10 +80,12 @@ ownership. No original unresolved row is removed by this summary.
 
 ## One exact next action
 
-Build the corrected code113 from a clean committed source, then verify fresh
-JVM/lint/all native ABIs and exact-source CI. Repeat physical JNI garden, helper,
-Unicode/cancellation/family and original-key upgrade checks; the29-case native
-vocabulary regression and one CLI sentence do not replace APK acceptance. Continue
+Build corrected code114 from clean committed source and verify fresh JVM/lint/
+all native ABIs and exact-source CI. The code113 full build passes but its helper
+diagnostic fails. Budget plus constrained selection now passes49 vocabulary
+checks and6/6 native helper topics at the original96-token total. Repeat actual
+JNI garden/helper/Chinese/cancellation/family and original-key upgrade checks;
+native diagnostics do not replace APK acceptance. Continue
 actual Pi/worker root cause and
 stable/main semantic/dependency acceptance using the 40 prepared exact diffs.
 Finish exact-source CI and public release/download gates; do not infer them from

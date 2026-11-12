@@ -145,7 +145,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         var terminal = LocalReplyState.FAILED
         try {
             // The untrusted output contains IDs only; displayed instructions come from the reviewed guide.
-            terminal = when(engine!!.generate(LocalSetupHelper.messages(topic, observations), maxTokens = 384) {value -> text = value}) {
+            terminal = when(engine!!.selectHelperChecks(LocalSetupHelper.messages(topic, observations),
+                LocalCheckChoices.from(LocalSetupHelper.checks(topic, observations).map { it.id }), maxTokens = 96) {value -> text = value}) {
                 LocalGenerationEnd.COMPLETE -> LocalReplyState.COMPLETE
                 LocalGenerationEnd.CANCELLED -> LocalReplyState.CANCELLED
                 LocalGenerationEnd.TOKEN_LIMIT -> LocalReplyState.TOKEN_LIMIT

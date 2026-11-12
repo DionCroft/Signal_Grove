@@ -28,7 +28,7 @@ class LocalNativeBoundaryTest {
         } finally { NativeLlmBindings.dispose(handle) }
         assertEquals(4, NativeLlmBindings.load(handle, "/nonexistent-model.gguf", 512, 1, 3))
         val sink = object : NativeTokenSink { override fun onBytes(bytes: ByteArray) = true }
-        assertEquals(4, NativeLlmBindings.generate(handle, arrayOf("user"), arrayOf("test".toByteArray()), 16, 4, sink))
+        assertEquals(4, NativeLlmBindings.generate(handle, arrayOf("user"), arrayOf("test".toByteArray()), emptyArray(), 16, 4, sink))
         NativeLlmBindings.cancel(handle, 99); NativeLlmBindings.dispose(handle)
     }
 }

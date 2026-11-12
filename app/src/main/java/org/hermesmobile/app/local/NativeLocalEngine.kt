@@ -32,7 +32,14 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
         checkResult(NativeLlmBindings.load(handle.get(), file.canonicalPath, context, threads, id))
     }
 
-    suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int = 384, onText: (String) -> Unit): LocalGenerationEnd = operation { id ->
+    suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int = 384, onText: (String) -> Unit): LocalGenerationEnd =
+        generateInternal(messages, maxTokens, emptyList(), onText)
+
+    suspend fun selectHelperChecks(messages: List<LocalChatMessage>, choices: LocalCheckChoices, maxTokens: Int = 96,
+        onText: (String) -> Unit): LocalGenerationEnd = generateInternal(messages, maxTokens, choices.ids, onText)
+
+    private suspend fun generateInternal(messages: List<LocalChatMessage>, maxTokens: Int, helperIds: List<String>,
+        onText: (String) -> Unit): LocalGenerationEnd = operation { id ->
         require(messages.isNotEmpty() && messages.size <= 64 && messages.last().role == "user")
         require(messages.all { it.role in setOf("system", "user", "assistant") } && messages.sumOf { it.text.toByteArray().size } <= 65_536)
         require(maxTokens in 1..512 && handle.get() != 0L)
@@ -44,7 +51,7 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
                 return true
             }
         }
-        val code = NativeLlmBindings.generate(handle.get(), messages.map { it.role }.toTypedArray(), messages.map { it.text.toByteArray(Charsets.UTF_8) }.toTypedArray(), maxTokens, id, callback)
+        val code = NativeLlmBindings.generate(handle.get(), messages.map { it.role }.toTypedArray(), messages.map { it.text.toByteArray(Charsets.UTF_8) }.toTypedArray(), helperIds.toTypedArray(), maxTokens, id, callback)
         when (code) {
             0 -> LocalGenerationEnd.COMPLETE
             1 -> LocalGenerationEnd.CANCELLED
@@ -78,7 +85,7 @@ internal object NativeLlmBindings {
     external fun available(): Boolean
     external fun create(nativeLibraryDirectory: String): Long
     external fun load(handle: Long, path: String, context: Int, threads: Int, operation: Long): Int
-    external fun generate(handle: Long, roles: Array<String>, contents: Array<ByteArray>, maxTokens: Int, operation: Long, sink: NativeTokenSink): Int
+    external fun generate(handle: Long, roles: Array<String>, contents: Array<ByteArray>, helperChoices: Array<String>, maxTokens: Int, operation: Long, sink: NativeTokenSink): Int
     external fun cancel(handle: Long, operation: Long)
     external fun dispose(handle: Long)
 }
