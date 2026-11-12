@@ -45,7 +45,9 @@ JSON as the reviewed Windows enrollment; it is a context fence, not a credential
 
 `SingleCallSsh` accepts operator-created argv only. Reuse the existing verified
 SSH alias/config, BatchMode, StrictHostKeyChecking and fixed worker RPC command;
-no phone field may choose those values. Do not change the generic execution-job
+no phone field may choose those values. Its stdout must use the existing helper
+`{ok:true,result:{...}}` envelope exactly; raw/failed/extra-field wrappers refuse
+without exposing helper details. Do not change the generic execution-job
 transport's limits. This read-specific transport bounds input to 16 KiB, output
 to 512 KiB (including the escaped broker envelope), stderr to 8 KiB and deadline
 to at most 30 seconds. It handles replies above the old 64 KiB metadata limit.

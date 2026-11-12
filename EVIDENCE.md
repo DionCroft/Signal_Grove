@@ -39,3 +39,9 @@ All 661 pre-existing non-Markdown frozen-source 706 inputs are hash-verified
 unchanged; no new Android/device/APK result is claimed. No Pi/runtime deployment
 occurs; Windows read daemon and existing receipts stay unchanged. [Evidence,
 reproduction and full remaining scope](docs/contracts/2026-11-12-native-coordinator-workspace-reads.md).
+
+
+Exact-helper-envelope follow-up: 408 portable / 21 coordinator-specific and
+12 strict actual-native cases pass (private proof 752). The new Pi transfer
+trial was rejected before execution and is pending explicit approval; no
+production or new APK acceptance is claimed.

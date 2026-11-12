@@ -162,7 +162,7 @@ class SshTransportTest(unittest.IsolatedAsyncioTestCase):
             spawn.assert_not_called()
 
     async def test_real_child_handles_reply_above_legacy_64_kib_without_disk(self):
-        code="import sys,json;data=json.load(sys.stdin);print(json.dumps({'received':data['action'],'text':'\\u4e2d'*40000}))"
+        code="import sys,json;data=json.load(sys.stdin);print(json.dumps({'ok':True,'result':{'received':data['action'],'text':'中'*40000}}))"
         transport=SingleCallSsh((sys.executable,'-B','-c',code))
         result=await transport(self.payload('workspace_status'))
         self.assertEqual(40000,len(result['text']));self.assertEqual('workspace_status',result['received'])
@@ -180,6 +180,17 @@ class SshTransportTest(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(c.ReadRefused) as caught:
                 await SingleCallSsh((sys.executable,'-B','-c',code))(self.payload('workspace_read'))
             self.assertEqual('TOO_LARGE',caught.exception.code);self.assertTrue(caught.exception.request_submitted)
+
+    async def test_exact_existing_worker_envelope_required_without_error_details(self):
+        envelopes=[{'ok':False,'error_type':'PrivateFailure'}, {'ok':True,'result':{} ,'extra':'unexpected'},
+                   {'ok':1,'result':{}}, {'ok':True,'result':[]}, {'transport':'status'}]
+        for envelope in envelopes:
+            code="import sys,json;sys.stdin.read();print("+repr(json.dumps(envelope))+")"
+            with self.assertRaises(c.ReadRefused) as caught:
+                await SingleCallSsh((sys.executable,'-B','-c',code))(self.payload('workspace_read'))
+            self.assertEqual('UNAVAILABLE',caught.exception.code)
+            self.assertTrue(caught.exception.request_submitted)
+            self.assertNotIn('PrivateFailure',str(caught.exception))
 
     async def test_timeout_does_not_assert_remote_work_stopped(self):
         code="import sys,time;sys.stdin.read();time.sleep(3)"

@@ -73,3 +73,22 @@ phone/model/upgrade, advisories/provenance and every original audit row remain.
 Published APK remains v1.1.0-beta.8. The active goal still requires the final
 original-key versioned production APK and a verified public GitHub download link.
 Source pushes do not fulfill APK delivery.
+
+
+## Exact existing-helper envelope follow-up
+
+The installed worker writes `{ok:true,result:{...}}`, or a fixed failure envelope.
+The SSH reader now strictly unwraps that exact successful dictionary and refuses
+raw, extra-field, non-Boolean, non-dictionary and failed envelopes. It returns
+only a fixed error code and conservative submission state, never helper details.
+The large real-child fixture uses this actual wrapper shape. Full local suite:
+408 passes, including 21 coordinator/transport cases. Final strict actual-native
+probe 752 passes all 12 cases and records the corrected extension source hashes.
+No deployed source, project file, model, credential or job record is changed.
+
+The newly prepared Pi in-memory coordinator trial did not execute: automatic
+approval review rejected transferring coordinator code/project identity metadata
+without specific approval. A narrowly scoped transfer question is pending. No
+workaround or inferred approval is used. The previously completed deployed pipe
+and Pi SSH proof remain separate evidence; native HTTP/WS/Android and signed APK
+gates remain open. This correction is source-tested, not production certification.

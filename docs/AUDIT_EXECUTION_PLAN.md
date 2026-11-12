@@ -2,6 +2,11 @@
 
 ## 12 November 2026 - native coordinator workspace-read source
 
+Follow-up: strict existing worker stdout envelope handling passes 408 portable
+and 12 actual-native cases. The real Pi in-memory transfer trial has not executed
+and is awaiting explicit approval after automatic review rejection. Continue
+independent work and retain every production/Android/NAS/release gate below.
+
 An optional versioned extension of the existing authenticated authority socket
 and bounded one-shot private SSH transport pass 407 portable and 12 strict
 actual-native-dispatch cases. No Pi deployment or Android file integration is

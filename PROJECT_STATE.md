@@ -16,12 +16,18 @@ Authority/caller/policy changes during a read drop contents. The one-shot privat
 SSH adapter bounds larger replies explicitly and never submits execution work,
 retries, persists project contents or changes a model/default/credential.
 
-Full portable policy suite: 407 passes (20 coordinator/transport cases). Actual
+Full portable policy suite: 408 passes (21 coordinator/transport cases). Actual
 v0.23.1/3b42157 AuthorityConnection/SessionAuthority/strict native contracts: 12
 isolated cases pass, with empty admission/worker/conversation tables and audited
 external network/execution denied. Worker replies and constructor identities are
 synthetic; native HTTP/WS sign-in and deployed Pi acceptance remain open.
 The guarded source adapter is applied in memory only, not to production.
+The exact installed worker stdout envelope is now strictly unwrapped and tested;
+raw/unexpected/helper-failure envelopes never expose private error details.
+The new real Pi in-memory coordinator trial has not executed: automatic approval
+review rejected code/project-metadata transfer without specific confirmation.
+The narrowly scoped transfer approval question is pending. Continue independent
+local/Android/release work; do not bypass that rejection or assume approval.
 
 All existing non-Markdown source 706 inputs remain hash-identical. Its previous
 1004 JVM, 65 native Windows, Android build/lint/signing/native-library and retained

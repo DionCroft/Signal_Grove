@@ -40,7 +40,12 @@ class SingleCallSsh:
                    asyncio.create_task(bounded(process.stderr,8192)),asyncio.create_task(process.wait())]
             output, _, code=await asyncio.gather(*tasks)
             if code != 0: raise ReadRefused('UNAVAILABLE',request_submitted=submitted)
-            try: return decode(output)
+            try:
+                envelope=decode(output)
+                if (set(envelope)!={'ok','result'} or envelope['ok'] is not True
+                        or type(envelope['result']) is not dict):
+                    raise ReadRefused('UNAVAILABLE',request_submitted=submitted)
+                return envelope['result']
             except ReadRefused as exc: raise ReadRefused(exc.code,request_submitted=submitted) from None
         try: return await asyncio.wait_for(exchange(),timeout=self._timeout)
         except asyncio.CancelledError: raise
