@@ -1,6 +1,6 @@
 # Signal Grove project state
 
-Last checkpoint: 12 November 2026, reviewed-main-signed-beta9-candidate.
+Last checkpoint: 12 November 2026, production-phone-offline-output finding.
 The existing full audit/on-device AI goal remains active. Published APK is
 beta.8/code 111; planned beta.9/code 112 is unpublished. The owner authorizes regular
 tested commits/pushes to main and public original-key APK delivery after its gates.
@@ -50,17 +50,19 @@ tested commits/pushes to main and public original-key APK delivery after its gat
   1,006 JVM/96 reports, zero-error lint, all native ABIs/DEX alignment and matching
   183-component inventory. Fresh 150-version/pinned-native OSV queries find no
   known matching indexed advisory, within limited coverage. Original models/UIDs
-  and encrypted debug metadata verify. The production APK is staged for the
-  normal phone installer; its upgrade/live retention is pending. Earlier f9
-  artifacts keep their own identities. [Fresh source and artifacts](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md).
+  and encrypted debug metadata verify. Its normal production installation, saved
+  connection, current live history and stored project details now verify. Offline
+  generation/history work, but exposed reasoning markup and a repeated sentence
+  block output acceptance and release. Earlier f9 artifacts keep their identities. [Fresh source and artifacts](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md).
 
 ## Open acceptance
 
 Current compatibility retains 40 changed used-handler findings on stable 3b42157
 and 101 on inspected main1773ba3. Complete source-dependency/semantic review and
 actual canonical transport/actor/profile/private-channel/TCP/TLS/live Pi acceptance
-remain. Component fixtures add no source waiver. Final production phone upgrade,
-saved connection/history/live behavior and public APK download/checksums remain.
+remain. Component fixtures add no source waiver. The production upgrade/read
+checks pass in their stated scope; native output formatting fails and must be
+fixed/retested before public APK download/checksum acceptance.
 
 The optional Windows deadline component has reviewed deployment/backup and 66-case
 native evidence. The approved read-only Pi trial passes status/prepare but its
@@ -77,9 +79,10 @@ ownership. No original unresolved row is removed by this summary.
 
 ## One exact next action
 
-Reconcile the pending normal production-APK installation, verify its exact
-hash/signer/package UID/version, then check saved connection, existing history
-and live behavior without replay. Continue actual Pi/worker root cause and
+Reproduce the observed local reasoning-marker/repetition defect with the pinned
+chat parser; fix and test native output projection, preserving saved history and
+control-token isolation. Prepare a fresh increasing-version candidate. Continue
+actual Pi/worker root cause and
 stable/main semantic/dependency acceptance using the 40 prepared exact diffs.
 Finish exact-source CI and public release/download gates; do not infer them from
 older input-equivalent scopes.

@@ -1,5 +1,19 @@
 # Using on-device AI (beta.9 candidate)
 
+## 12 November 2026 - production upgrade/read checks and native output blocker
+
+The installed original-key beta.9/code112 retains its identity and saved
+connection. Refreshed current-server history and stored project details load.
+An older cached missing chat remains preserved and is not counted as a live pass.
+Production LFM3 completes a genuinely offline turn and its reply reloads with
+weights unloaded, but exposes a reasoning-close marker and repeats a sentence:
+native output acceptance and publication remain blocked. No history is rewritten.
+The owner restores normal networking. Bounded resource points are not sustained
+benchmarks. Fresh b599 complete standard CI independently verifies1,135 API26 /
+1,136 API37 unique cases; external models remain separate. All original audit
+rows, stable40/main101 compatibility findings and live worker/runtime limits stay.
+[Exact observations, failures and scope](contracts/2026-11-12-production-phone-offline-output.md).
+
 Current lifecycle checkpoint: the original cold/post-reboot methods pass on the
 owner phone after one approved normal Android restart. Original models/history/
 settings remain and no automatic model load/replay occurs. The intentional

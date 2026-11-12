@@ -1,5 +1,10 @@
 # Current feature and validation matrix
 
+Production-phone update: upgrade, saved connection, live history and project
+metadata reads verify. Offline generation/history expose a reasoning-marker and
+repetition defect; the candidate stays unpublished pending correction.
+[Exact phone evidence and limits](contracts/2026-11-12-production-phone-offline-output.md).
+
 As of 12 November 2026. This describes `main`, whose planned beta.9/code 112 APK
 is still unpublished. Published beta.8/code 111 and stable 1.0.0 retain their own
 release notes. Implementation, fixture acceptance, live-system acceptance and
@@ -14,7 +19,7 @@ source scope; newer final-head and live release gates remain open. [Release stat
 | Canonical viewer | Read-only canonical conversation browsing and separately reviewed native attachment/resume | [Viewer](contracts/2026-11-08-canonical-viewer.md); [current-stable46/13 component flows](contracts/2026-11-12-current-stable-authority.md); [31-case native workspace Review regression](contracts/2026-11-12-native-workspace-review.md); fresh full CI and production actor/profile/recovery acceptance remain open |
 | Hosted rooms | Explicit read-only room inventory/history browsing | [Room contract](contracts/2026-11-08-hosted-rooms.md); [20 actual native-owner read checks](contracts/2026-11-12-native-owner-room-reads.md); HTTP/Pi and forwarding/membership/grants/delivery remain in the audit |
 | Serving models | Verified serving identity, freshness/errors, server default and requested/session model shown separately; Automatic for new turns; reasoning/service presets | Live owner setup was exercised; model choices do not load/evict server weights by themselves |
-| Phone inference | Optional CPU-native LFM3 text chat, streaming, cancellation, context limits, load/unload/delete and model-bound local history | Six physical native cases across LFM3/helper and Qwen/import/family behavior; final beta.9 phone upgrade still due |
+| Phone inference | Optional CPU-native LFM3 text chat, streaming, cancellation, context limits, load/unload/delete and model-bound local history | Six physical native cases across LFM3/helper and Qwen/import/family behavior; production upgrade/offline history verify; reasoning-marker/repetition output defect blocks release |
 | Model management | Pinned LFM3 download, explicit resume/discard, Android picker import, hash/size/licence/template checks and private atomic installation | Eight metadata architecture names, not eight universally supported model families; real HTTPS cancel/discard and full foreground resume have physical passes; earlier failures remain |
 | Setup helper | Static guide plus six topics; model selects eligible IDs and UI renders exact versioned English/Chinese/pinyin sources | All six topics have physical native evidence; selected redacted observations require opt-in; no settings/tool/approval execution |
 | Local/remote handoff | Review a new unsent text-only question into a separate phone draft; review local advice before copying | Credentials, remote history, images, approvals and attempted/unknown work are excluded; sending remains explicit |
@@ -28,14 +33,15 @@ source scope; newer final-head and live release gates remain open. [Release stat
 | Voice | Foreground Android speech/TTS, language/speed/stop and explicit online-service choices | Owner phone lacks offline recognition; read-aloud/stop confirmed separately; Bluetooth/audio/background checks remain |
 | Notifications/widget | Opt-in private task/run monitoring, action requests and task-count widget | Best-effort WorkManager scheduling; precise targeting, multiple connections and reboot/battery behavior remain in the audit |
 | Interface | Five palettes, original animated pixel scenery, multilingual native text, reduced motion, large text and phone/tablet navigation | Candidate API26 local-AI UI 10/10 passes; [captures](screenshots.md) identify historical/current synthetic views |
-| App updates | Public GitHub checks, preview opt-in, release review, verified private APK download and Android confirmation | Package/version/current signer/checksum guards and active-work blocking; publication and final retained-data production upgrade are still release gates |
+| App updates | Public GitHub checks, preview opt-in, release review, verified private APK download and Android confirmation | Package/version/current signer/checksum guards and active-work blocking; production upgrade/live reads verify; native output correction and publication remain release gates |
 
 ## Model observations and figures
 
 The physical tests use an ARM64 Android 17/API37 phone. All six cases run with
 Airplane mode on, Wi-Fi actually disabled and no default network, then normal
 networking is restored. They use an earlier original-debug-key candidate; they
-do not certify installation of beta.9's new packaging/version.
+retain their original scope. Production beta.9 upgrade/live reads now verify;
+its separate offline generation exposes a reasoning-marker/repetition defect.
 
 | File or observation | Result |
 | --- | --- |
@@ -48,7 +54,7 @@ do not certify installation of beta.9's new packaging/version.
 | Physical lifecycle | Two original cold/post-reboot cases pass, 2.849/1.856s JUnit; one approved normal restart with no automatic load/replay and original data retained. Intentional preparation is not a positive test; earlier emulator boot remains unverified |
 | Keyboard CI preparation | Both reviewed fresh-tip/already-clear native states pass, plus four unchanged focused API26 methods/six exact native taps; full hosted union remains separate |
 | Earlier candidate native local-AI UI | API26: 10 distinct positive cases, no skips/failures |
-| Latest complete standard gate | Source2970ffb: API26 1,135 and API37 1,136 complete distinct cases; all 543 Android/native/build inputs match b182ae8; exact-head CI remains separate |
+| Latest complete standard gate | Sourceb599e88: API26 1,135 and API37 1,136 complete distinct cases; all 543 Android/native/build inputs match b182ae8; exact-head CI remains separate |
 | Current transfer gate | Physical cancel/discard pass; full foreground phone resume/hash/install passes in 27,010 ms; earlier frozen-phone/emulator timeouts and their partials remain |
 | Stable native-auth fixture | 87 distinct real-source auth/loader/start-entry cases,55 critical source guards and949 loaded module hashes; synthetic identity/peer/downstream, not live Pi/TLS/full canonical socket |
 | Local runtime inventory | Schema-valid CycloneDX1.6:150 Maven components,95 verified inputs,32 packaged native files and pinned native source; release assets remain local/unpublished |

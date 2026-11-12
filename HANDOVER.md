@@ -37,13 +37,14 @@ changes no Android/native/build input. [Workspace evidence](docs/contracts/2026-
 
 ## Immediate continuation
 
-1. Fresh clean b182ae8 original-key build and independent artifact/inventory
-   checks pass. The exact production APK is staged for Xiaomi's normal installer;
-   reconcile that pending install before any retry, then verify its hash/UID/
-   version and saved production connection/history/live behavior. The encrypted
-   debug snapshot does not prove production-private retention. Complete2970
-   standard coverage is 1,135/1,136, with543 identical Android inputs here;
-   pending exact-head CI and compatibility failures remain separate.
+1. Installed b182ae8 production beta.9/code112 retains its identity and saved
+   connection. Current refreshed history and stored project details load. Offline
+   LFM3 generation/history work but leak a reasoning-close marker and repeat a
+   sentence. Preserve the saved answer; fix/test pinned native output projection,
+   then build a fresh increasing-version candidate. Production private-file hash
+   retention is not claimed. Fresh b599 complete standard coverage independently
+   passes1,135/1,136 with543 identical Android inputs; external-model output and
+   compatibility remain separate. Normal phone networking is restored.
 2. Complete current-stable used-handler dependency closure and real canonical
    socket/actor/profile/transport acceptance. Stable 40/inspected-main1773ba3 101 findings
    remain; no handler/absence/cohort waiver is added by the component probe.

@@ -1,5 +1,10 @@
 # Signal Grove
 
+Production-phone update: upgrade, saved connection, live history and project
+metadata reads verify. Offline generation/history expose a reasoning-marker and
+repetition defect; the candidate stays unpublished pending correction.
+[Exact phone evidence and limits](docs/contracts/2026-11-12-production-phone-offline-output.md).
+
 An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI in the next release candidate. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
@@ -52,7 +57,7 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
-| Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently verified raw source `2970ffb`; later Python/docs retain 543 identical Android/native/build inputs |
+| Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently verified raw source `b599e88`; later Python/docs retain 543 identical Android/native/build inputs |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
@@ -61,7 +66,7 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-**Still open:** both HTTPS methods now have positive physical evidence, including full foreground resume; earlier emulator/frozen-phone failures are retained. Physical cold/restart recovery now passes; the older emulator guest reboot remains unverified. Both API26 keyboard-preparation paths and focused native cases pass; the 2970ffb complete standard gate is now independently verified. Physical production-upgrade, remaining compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 101 on inspected `main` 1773ba3; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
+**Still open:** both HTTPS methods now have positive physical evidence, including full foreground resume; earlier emulator/frozen-phone failures are retained. Physical cold/restart recovery now passes; the older emulator guest reboot remains unverified. Both API26 keyboard-preparation paths and focused native cases pass; the 2970ffb complete standard gate is now independently verified. Production upgrade, saved connection, refreshed live history and stored project details now pass. Production offline generation/history reveal a reasoning-marker/repetition defect; output acceptance, remaining compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 101 on inspected `main` 1773ba3; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
 
 ## Interface figures
 
