@@ -1,0 +1,14 @@
+# Decisions
+
+## 2026-11-12: keep the existing audit and explicit APK delivery
+
+The optional phone LLM extends the original audit. Neither native engine proof
+nor source publication closes worker, real Hermes, physical or signed-release
+requirements. The final downloadable APK must preserve the existing package/key.
+See docs/GOAL.md and docs/AUDIT_EXECUTION_PLAN.md.
+
+## 2026-11-12: owner-local derived navigation
+
+Initialize missing lifecycle metadata without replacing existing instructions or
+state. ContextGraph stays beside this verified checkout, ignored by public Git;
+private host paths and runtime configuration are not public project metadata.

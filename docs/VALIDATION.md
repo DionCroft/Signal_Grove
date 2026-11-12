@@ -4732,3 +4732,32 @@ These are local affected checks. Complete exact-head hosted/release gates and
 the new production-signed phone upgrade before publishing the model changes.
 Main6b and held207c remain fixed. The canonical viewer WIP is preserved privately;
 continue it and every other open audit row. The full audit goal stays active.
+
+
+## 12 November 2026 - explicit owner-scoped worker read enrollment
+
+Frozen source 677 (796 inputs, digest
+`2abddc3214886c8d854f2717c5097a6ceec3c748966adffdf649b0e6856210ec`)
+passes required Android builds: 1004 JVM cases / 96 reports, debug/release lint
+zero errors (51/50 warnings), instrumentation compilation, original debug key
+and all 32 native ABI/alignment checks. All 373 portable policies and 58 distinct
+Windows cases pass on the installed worker Python3.14.9 without skips/drift.
+The independent real-owner foreground proof passes prepare/list/preview using
+locked canonical registry bytes and the existing worker validator; both other
+registered-project denials remain. No production daemon or project writes occur.
+See the [contract, failure retention and exact limits](contracts/2026-11-12-worker-read-enrollment.md).
+The preceding corrected SID gate passes hosted run 43150240082 with independently
+verified artifact/source hashes; that historical pass does not accept new code.
+Owner MCP lifecycle initialization preserves existing instructions/state. Derived
+index/context-pack identity remains open after indexing timeouts; no freshness
+or engineering acceptance is inferred. Full audit and signed APK delivery remain.
+
+The source 677 API26 in-place debug upgrade retains all nine protected-file hashes
+(including no_backup WorkManager files) and both package UIDs. Both unchanged
+ProjectGatewayContractTest methods pass on that installed APK. An initial
+preflight omitted no_backup and stopped before installation; its failed record
+is retained. These are emulator fixture checks, not physical/live-chain acceptance.
+The current prior main compatibility run 43150240092 passes parser, pinned
+sidecar and pinned registry jobs but fails latest-stable/main source inspection;
+those failures remain open without broad baseline waivers. Android run
+43150240110 is still pending at this checkpoint. No new APK is published.

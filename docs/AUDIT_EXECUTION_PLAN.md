@@ -1,5 +1,24 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - explicit worker read enrollment
+
+A real foreground owner proof now reuses the installed worker validator and
+fresh locked canonical registry bytes for owner-pipe prepare/list/preview on its
+already registered local validation root. Paused and foreign-worker denials are
+preserved. Operator scope/project allowlists and fresh actual token/WTS checks
+retire all leases on observed policy/registry/owner changes. This is not yet a
+persistent daemon/coordinator/Android capability or NAS workspace acceptance.
+
+Frozen source 677 passes required builds, 1004 JVM, 373 policies and 58 native
+Windows cases, original debug signing and native ABI/alignment checks. Failed
+fixture/UNC probes remain retained. Owner-local lifecycle metadata is now
+present; derived ContextGraph indexing/context-pack identity remains unresolved.
+See [bounded contract](contracts/2026-11-12-worker-read-enrollment.md).
+
+Every existing audit row below remains in scope. Published beta.8 is unchanged;
+the active goal still requires a verified original-key production APK uploaded
+to GitHub Releases and a direct download link after applicable release gates.
+
 ### Windows CI SID identity gate correction
 
 The first c37483a Windows run retained 47 positives / 48 and one failed test:
@@ -10,7 +29,8 @@ one non-inheriting allow ACE, exact full file rights, `EqualSid` equality to the
 owner token and a non-inheritable pipe handle. Native alias equivalence and
 Administrators-group rejection cases prevent string formatting from determining
 authorization. All 50 native cases pass on Python3.13 and 3.14.9 with no skips or
-source drift. Hosted acceptance of that corrected commit remains required.
+source drift. Corrected hosted run 43150240082 also passes all 50 cases;
+its exact source and artifact hashes are independently verified.
 
 Only the native test file changes executable bytes after source 630; all 653 other
 frozen executable inputs, including every runtime/Android input, are verified

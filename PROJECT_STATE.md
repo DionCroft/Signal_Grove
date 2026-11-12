@@ -1,53 +1,50 @@
 # Signal Grove project state
 
-## Current checkpoint - private local worker read transport
+Current milestone: explicit worker read enrollment (foreground proof).
+Current objective: connect reviewed workspace reads to actual owner policy.
+Assurance state: component verified; production/phone/release acceptance open.
+Last checkpoint: 12 November 2026, worker-read-enrollment.
+Last handover: HANDOVER.md.
 
-The first hosted 48-case gate found a SID text-alias test defect (LA versus the
-same numeric Administrator SID). Runtime security code is unchanged. Binary
-ACL/SID/rights/inheritance checks plus alias/group regressions now pass 50 native
-cases on both Python3.13 and 3.14.9. Only that native test file changes after source
-630; all 653 other frozen executable inputs remain identical. The failed hosted
-artifact is retained and the corrected hosted gate still needs its own result.
+## Current checkpoint
 
-An opt-in local Windows pipe now carries the fixed read frames without a public
-port, shared secret, persistent queue or content cache. A protected owner-only
-DACL and local-client flag restrict access. The client verifies actual broker
-PID, creation time, user and session before submission; the server checks the
-client token and reverts impersonation before project reads. Actor/profile/root
-authorization remains the existing broker's separate responsibility.
+Explicit operator scope/project allowlists now reuse the worker's existing
+project validator, fresh locked registry bytes and actual Windows token/WTS
+identity. Policy, registry or owner change permanently retires the session and
+leases. No caller-selected root or claimed interactive identity is trusted.
+The configured-source reader holds ancestor/source handles; it does not loosen
+mandatory full 128-bit workspace IDs or enable NAS workspace reads.
 
-Message I/O has finite deadlines and no implicit retry. Failures conservatively
-report whether submission may have occurred. Reply hashes are acknowledged;
-closure cancels pending pipe I/O, retires leases and discards in-flight contents.
-A real regression now prevents a grant committing after provider retirement.
-No live service, worker enrollment, Pi, credential or model change is performed.
+The actual foreground proof passes against the already registered local
+validation project: pipe prepare/list/preview, seven entries, 302 existing text
+bytes, 22 fresh registry reads and six existing worker validations. The paused
+and foreign-worker projects remain denied. This changes no production daemon,
+project contents, coordinator, credentials or models.
 
-Source 630 passes 1004 JVM / 96 reports, 359 policies, both lint variants with no
-errors (51/50 warnings), original debug signing and 32 native ABI/alignment
-checks. All 48 distinct Windows cases pass on Python3.13 and the installed
-worker Python3.14.9, without skips or source drift. They include actual restricted-
-token denial, a separate client process, spoofed peer metadata, size limits,
-timeouts/disconnect/no replay, cancellation and reported identity failures.
-Two unchanged Android project-gateway cases pass after all 9 protected hashes
-and package UIDs survive the exact installed upgrade.
+Frozen source 677 passes 1004 JVM / 96 reports, 373 policies and 58 Windows native
+cases on the installed worker Python3.14.9, without skips or drift. Both lint
+variants have no errors (51/50 warnings), original debug signing and all 32
+native ABI/alignment checks pass. The exact API26 upgrade retains all nine
+protected hashes and both package UIDs; two project contract cases pass.
+Failed newline-fixture, pre-install inventory and UNC-path attempts
+are retained. The earlier corrected 50-case SID gate independently passes on
+hosted main run 43150240082; its artifact/source hashes are verified. Hosted
+acceptance of this new enrollment chunk remains separate.
 
-Read-only live-broker observation verifies fresh ready/registry health, exact
-process identity, current owner/nonzero session, maintained runtime declaration
-and eight completed queue/receipts only. This is a point-in-time observation,
-not authorization for a later restart or proof of phone integration. The new
-transport still needs enrollment with actual broker policy and the private
-helper, followed by Hermes capability and Android wiring. NAS full-ID support,
-Surface, production/physical/model and every audit/release gate remain open.
-Published beta.8 and the full active goal are unchanged.
+Missing lifecycle metadata was initialized non-destructively through the owner
+ContextGraph MCP. Derived state/config is ignored. Indexing timed out and the
+context pack refuses its incomplete graph identity; no freshness/graph acceptance
+is claimed. The first zero-node/schema-only partial index was hash-preserved
+before recovery. Existing source files remain authoritative and bounded.
 
-[Transport contract and evidence](docs/contracts/2026-11-12-local-worker-read-transport.md).
+[Enrollment contract and evidence](docs/contracts/2026-11-12-worker-read-enrollment.md).
 
-**Next exact action:** integrate the pipe with the actual interactive broker
-and private helper using fresh authenticated actor/profile and registry/root
-policy. Recheck live receipts/process identity, review the exact install diff
-and verify recovery before enabling it. Then wire the optional Hermes capability
-and Android review. Resolve NAS identity support separately; keep APK release
-and every original audit requirement in scope.
+**Next exact action:** review the private host-daemon/helper enrollment diff,
+verify recovery and fresh idle receipts, then enable only the explicitly scoped
+read endpoint on its actual owner. Wire the optional authenticated coordinator
+capability and Android review after that proof. Reconcile the owner-local derived
+graph separately. Keep NAS support, physical/model/live interoperability and all
+original audit and downloadable signed APK requirements open.
 
 ## Continuing scope and authoritative records
 
