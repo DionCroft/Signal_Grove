@@ -37,3 +37,34 @@ policy796 and native796/797. The installed runtime is unchanged. Next: review
 the immutable runtime manifest, encrypted recovery, idle state and exact staged
 cutover, then a fresh approved Pi trial. Actual native HTTP/WS owner/profile
 binding, Android workspace browsing, NAS and all audit/release gates remain.
+
+## Exact optional Windows component deployment and remaining failure
+
+The reviewed immutable source fix is now deployed on the existing Windows worker
+through an idle, journaled component cutover. Before/after scoped DPAPI recovery
+verifies source, unchanged scheduled-task definition and a consistent eight-row
+receipt snapshot. Policy, worker/daemon source, all eight completed receipts and
+task definition remain unchanged. Old runtime/recovery are retained. No Pi file,
+gateway, credential, model, default or job changes occur. Post-change path/ACL
+checks pass. Read-only doctor retains the existing optional key/tool findings;
+ContextGraph retains the different-project/unindexed findings without repair.
+
+The fresh in-memory Pi trial reaches ready status and completes prepare, then
+list returns terminal UNAVAILABLE with requestSubmitted:false. No complete Pi
+coordinator acceptance is claimed and the failed request is not replayed. A later
+independent projection/status observation is fresh and ready, with no maintenance
+or stop marker. A transient readiness snapshot is only a hypothesis, not a cause
+established by that trace. Further native diagnosis is required.
+
+Hosted source c55d070 Windows run 43194783802 passes all 66 distinct native cases.
+Its exact artifact digest, complete raw case inventory and all 13 native source
+hashes are independently verified (including recorded CRLF normalization).
+Hosted Android run 43194783773 also completes successfully; full raw acceptance
+still uses the independently reconciled earlier unchanged Android source. Hermes
+compatibility run 43194783793 remains failing in upstream source inspection;
+parser, pinned registry and sidecar jobs pass. Fresh finding counts are not yet
+accepted, and saved stable40/main97 findings remain open.
+
+Private cutover814/trial815, doctor/graph816, recovery810/817, ACL818 and later
+status833 record the exact scope. Verified hosted artifact13932711219 ZIP SHA-256:
+`7beff017a5d39169e0b3bd58d7a7cf82a2de3aa4fb2ff90ee21df4a62352a5ed`.

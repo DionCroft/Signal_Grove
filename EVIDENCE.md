@@ -6,13 +6,16 @@ Use [validation history](docs/VALIDATION.md),
 Private raw logs, hashes, APKs and runtime observations remain on the execution
 owner. A derived graph is navigation, not independent validation.
 
-Latest: [retained model upgrade](docs/contracts/2026-11-12-retained-model-upgrade.md)
-verifies the original-key upgrade, encrypted recovery and post-run core-data/model
-retention, while retaining one offline Qwen pass and two LFM import failures.
-[Late-client pipe fix](docs/contracts/2026-11-12-pipe-exchange-deadline.md) records
-actual Pi failures, valid native failing-before/fixed-after reproduction and
-417 portable/66 Windows passes on both interpreter versions. Live cutover,
-complete Pi/phone/model and original-key downloadable APK remain required.
+Latest: [six physical offline cases](docs/contracts/2026-11-12-physical-offline-model-acceptance.md)
+verify real LFM3/helper and Qwen/import/model-family behavior on the retained-data
+owner phone. Original models, preferences and earlier chat remain; the owner's
+confirmed added turn is preserved. Normal networking is restored. Five external
+model methods and production release/upgrade gates remain. Earlier emulator
+failures are retained separately.
+[Live deadline component](docs/contracts/2026-11-12-pipe-exchange-deadline.md)
+records exact Windows deployment, unchanged receipts/task/policy/source, verified
+scoped recovery/ACLs and hosted66-case proof. Pi status/prepare pass but list fails
+before submission, with cause unproven. No full Pi/HTTP/WS or public APK acceptance.
 
 The corrected main-branch Windows read transport gate passed all 50 distinct
 native cases (run 43150240082, source 642eaa2), with exact source and artifact

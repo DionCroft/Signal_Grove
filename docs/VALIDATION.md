@@ -1,5 +1,23 @@
 # Current development validation — audit follow-up
 
+## 12 November 2026 - six final-source physical offline cases and retention
+
+The original-debug-key candidate passes six exact native cases on the owner's
+physical ARM64 API37 phone with Airplane mode/Wi-Fi/default-network observations
+proving both batches offline. Real LFM generation/cancellation/recovery/unload,
+all six grounded helper topics and Chinese text, committed-import cancellation,
+Qwen chat/history/deletion and two-family history isolation pass unchanged memory
+and timing guards. Model imports take 649-1438 ms. Six of eleven external methods
+are now accepted; two HTTPS and three process-recovery methods remain. The earlier
+emulator failures are retained. [Cases and observations](contracts/2026-11-12-physical-offline-model-acceptance.md).
+
+Normal phone networking is restored. Original model/preference/package identities
+and earlier chat are retained; the owner's confirmed new turn is preserved.
+SQLite changes are limited to cached-job freshness and framework bookkeeping.
+Encrypted scoped recovery verifies; only owned duplicate test inputs are removed.
+The production app is unchanged. Short USB-charging observations are not an
+endurance, sustained thermal or throughput benchmark. No new public APK is claimed.
+
 ## 12 November 2026 - retained model gate and late-client pipe deadline
 
 Original-key debug emulator upgrade and core database/preferences/history/model

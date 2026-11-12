@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## 12 November checkpoint - physical offline six-case acceptance
+
+Six final-source physical model/helper cases pass; five external-model methods
+remain. Original preferences/models/UIDs and earlier messages plus the owner's
+new turn are retained; networking is restored. [Scope](contracts/2026-11-12-physical-offline-model-acceptance.md).
+The optional Windows deadline fix is deployed with exact recovery/receipt/source
+checks. Pi status/prepare pass, list fails before submission; cause remains open.
+Hosted66-case source proof passes. Existing compatibility, doctor/graph and all
+original audit/release rows below remain unchanged. No production APK released.
+
 ## 12 November 2026 - retained model upgrade and pipe deadline regression
 
 The original-key debug emulator upgrade and post-run core-data/model retention

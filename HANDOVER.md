@@ -14,11 +14,17 @@ all temporary work on the owner's Windows workstation uses its approved E drive.
 local native, hosted, real-worker, emulator, physical and release acceptance.
 Do not turn a component pass into overall or live deployment acceptance.
 
-Latest checkpoint: original-key retained emulator upgrade is verified. Offline
-native model gate has one Qwen pass/two LFM import timing failures. Original
-network is restored and core data/model retention reconciled. Approved Pi trials
-have terminal read failures. A reproduced late-client pipe deadline fix passes
-417 portable/66 native Windows cases, including actual worker Python; the source
-fix is not live until the exact idle staged cutover. See [model evidence](docs/contracts/2026-11-12-retained-model-upgrade.md)
-and [pipe fix](docs/contracts/2026-11-12-pipe-exchange-deadline.md). Phone reconnection
-is requested for the verified debug candidate. No new production APK is released.
+Latest checkpoint: six final-source physical offline native model/helper cases
+pass with the original debug key. Original models/preferences/history/UIDs remain;
+the owner's confirmed added turn is preserved. Network is restored and the debug
+app remains available. Only exact owned duplicate test inputs are removed.
+[Phone evidence and remaining five external methods](docs/contracts/2026-11-12-physical-offline-model-acceptance.md).
+
+The optional Windows deadline fix is live with eight receipts and task/policy/
+worker source retained and before/after encrypted recovery verified. Fresh Pi
+trial status/prepare pass but list fails before submission; later status is ready.
+Cause remains unproven. Do not replay that request or restart to hide readiness.
+[Deployment evidence](docs/contracts/2026-11-12-pipe-exchange-deadline.md). Saved
+compatibility findings and doctor/graph issues stay open. The production app is
+unchanged and no new public APK has been released. Continue final-source model
+and incremented original-production-key release gates, preserving the full audit.
