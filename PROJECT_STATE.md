@@ -24,6 +24,12 @@ skips and with source hashes unchanged. Two unchanged Android project-gateway
 cases pass on the installed source 566 pair after all 9 protected file hashes/UIDs
 are retained. These scopes do not certify deployed/NAS/Surface/phone access.
 
+Hosted Windows provider acceptance is independently verified for main commit
+0ad6c6a: 23 distinct native successes, no skips/errors/source drift. The retained
+ZIP digest and all three source hashes match the committed blobs with Windows
+checkout line endings. This closes only that hosted provider gate; Android,
+broker, NAS/Surface, production and physical/release acceptance stay open.
+
 The older daa3ec8 hosted suite is now independently verified: 1132 API26 and 1133
 API37 exact positive cases, no missing/skipped/failed cases; eleven external-model
 methods stay not-run. Its success covers only that parent. The newer 2a763fe

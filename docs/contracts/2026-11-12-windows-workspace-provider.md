@@ -93,8 +93,16 @@ Windows runner rejects empty/duplicate/foreign/partial, skipped, expected-failur
 unexpected-success and changed-source results. A separate Windows2025/Python3.13
 workflow records native evidence on each main source. The setup-python action is
 pinned to the verified official v6 commit
-ece7cb06caefa5fff74198d8649806c4678c61a1. Hosted acceptance of the new job remains
-required; a local result is not its success.
+ece7cb06caefa5fff74198d8649806c4678c61a1. Hosted acceptance is independently verified
+for [main commit 0ad6c6a](https://github.com/DionCroft/Signal_Grove/commit/0ad6c6a8c996c5406324236218beaa9705f63638)
+and [Windows CI run 43140057175](https://github.com/DionCroft/Signal_Grove/actions/runs/43140057175).
+Artifact 13909093060 has ZIP SHA-256
+`6677e135affff5ffd3c4032449b63eeb181663d408dbf08de0e994cd00334064`.
+Its real log and strict report agree on all 23 distinct positive methods, with
+no skips/errors or source drift. All three recorded source hashes match the
+committed blobs with Windows CRLF checkout encoding. This verifies the hosted
+provider foundation, not transport, NAS/Surface, phone or full Android acceptance.
+The documentation-only follow-up changes no executable inputs.
 
 ## Preserved failures and parent evidence
 
