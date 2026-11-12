@@ -12,8 +12,8 @@ android {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = providers.gradleProperty("hermesVersionCode").orNull?.toInt()?.also {require(it>0)} ?: 111
-        versionName = providers.gradleProperty("hermesVersionName").orNull ?: "1.1.0-beta.8"
+        versionCode = providers.gradleProperty("hermesVersionCode").orNull?.toInt()?.also {require(it>0)} ?: 112
+        versionName = providers.gradleProperty("hermesVersionName").orNull ?: "1.1.0-beta.9"
         require(versionName!!.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?")))
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64") }
@@ -43,6 +43,8 @@ android {
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     // CPU variants are loaded only from Android's extracted, signed native-library directory.
     packaging { jniLibs.useLegacyPackaging = true }
+    // Avoid inflating compressed DEX during cold startup, including instrumentation.
+    packaging { dex.useLegacyPackaging = false }
     externalNativeBuild { cmake {
         path = file("src/main/cpp/CMakeLists.txt")
         version = "3.31.6"

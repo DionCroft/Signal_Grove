@@ -2,6 +2,11 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Prepare beta.9/code112 with original package/signing identities. Store DEX
+  uncompressed/aligned after reproducing an ART inflation startup ANR; retain
+  emulator UID/core data and verify local-AI UI on API26. Larger APK size and
+  incomplete download/physical/release gates are recorded; no release is claimed.
+
 - Verify Windows pipe ACL ownership with binary SID and exact rights checks,
   including Administrator SID aliases and refusal of group-wide grants.
 

@@ -14,17 +14,22 @@ all temporary work on the owner's Windows workstation uses its approved E drive.
 local native, hosted, real-worker, emulator, physical and release acceptance.
 Do not turn a component pass into overall or live deployment acceptance.
 
-Latest checkpoint: six final-source physical offline native model/helper cases
-pass with the original debug key. Original models/preferences/history/UIDs remain;
-the owner's confirmed added turn is preserved. Network is restored and the debug
-app remains available. Only exact owned duplicate test inputs are removed.
-[Phone evidence and remaining five external methods](docs/contracts/2026-11-12-physical-offline-model-acceptance.md).
+Latest checkpoint: beta.9/code112 candidate stores DEX uncompressed/aligned after
+an actual pre-app ART inflation ANR.1004 JVM, original signing/native alignment,
+zero-error lint51/50 and all10 API26 local-AI UI cases pass. Emulator upgrades
+retain UIDs and351/66 core hashes, including native-success reconciliation of a
+host install timeout without replay. [Candidate scope](docs/contracts/2026-11-12-uncompressed-dex-candidate.md).
 
-The optional Windows deadline fix is live with eight receipts and task/policy/
-worker source retained and before/after encrypted recovery verified. Fresh Pi
-trial status/prepare pass but list fails before submission; later status is ready.
-Cause remains unproven. Do not replay that request or restart to hide readiness.
-[Deployment evidence](docs/contracts/2026-11-12-pipe-exchange-deadline.md). Saved
-compatibility findings and doctor/graph issues stay open. The production app is
-unchanged and no new public APK has been released. Continue final-source model
-and incremented original-production-key release gates, preserving the full audit.
+Both new HTTPS cases fail their original10s/300s bounds; one partial reaches384 MB.
+The foreground-harness error and exact existing process's terminal failures are
+preserved, with no restart/replay or weakened assertion. Candidate physical,
+process/reboot, full standard CI, SBOM and publication remain due. Fresh compatibility
+reports stable40/main100 handlers; OSV150-module/pinned-native query coverage is
+limited. Production on the phone and published beta.8 remain unchanged.
+
+The earlier six physical offline passes retain their exact debug-source scope,
+original preferences/models/history/UIDs and the owner's added turn. Networking is
+restored. The live Windows deadline component retains receipts/task/policy/source;
+fresh read diagnostics still fail after submission while isolated metadata/provider/
+preconnection checks pass. Cause remains open. Do not replay or restart the daemon.
+All original audit rows, native actor/profile/Android/NAS and graphs remain active.

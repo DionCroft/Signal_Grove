@@ -6,6 +6,10 @@ An unofficial, open-source native Android client for [Hermes Agent](https://gith
 
 Preview release: [`1.1.0-beta.8`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8), code 111. It adds Automatic serving-model selection and reasoning/service preset menus, with existing chat/history and stored-project access. Original-key phone upgrade, one fresh live reply and an existing Desktop transcript are verified; project details loading is owner-confirmed. Cached unavailable conversations and their persistent old error banner are documented limitations. [Release scope](docs/releases/1.1.0-beta.8.md) · [Implementation progress](docs/AUDIT_FOLLOW_UP.md) · [Current validation](docs/VALIDATION.md). The full audit continues.
 
+Next candidate: **1.1.0-beta.9 (code112), not yet published** adds optional phone
+chat/models and the grounded setup helper, plus uncompressed DEX startup packaging.
+[Candidate checks and remaining gates](docs/releases/1.1.0-beta.9.md).
+
 [Brand and upgrade compatibility](docs/BRANDING.md). The GitHub repository is now `DionCroft/Signal_Grove`. Older previews need one matching signed beta.5 (or later) APK upgrade so their fixed update feed can migrate; package and signing identities are retained.
 
 Independent community project. Not affiliated with or endorsed by NousResearch. Hermes Agent is a separate project.

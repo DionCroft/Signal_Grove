@@ -1,5 +1,25 @@
 # On-device inference validation
 
+## 12 November 2026 - uncompressed DEX beta.9 candidate
+
+A stored API37 startup ANR identifies compressed DEX inflation before app classes
+initialize. The candidate stores every DEX uncompressed/aligned and increments
+the planned release to beta.9/code112 with both original signing identities.
+1004 JVM /96 reports, build/signature/native alignment and zero-error lint51/50
+pass. In-place emulator upgrades retain UIDs and351 API37 /66 API26 scoped core
+hashes; the API26 host timeout is reconciled from native installer success without
+replay. All10 API26 local-AI UI cases pass, including bilingual large-text/helper
+review. [Exact candidate and failure scope](contracts/2026-11-12-uncompressed-dex-candidate.md).
+
+The new real-HTTPS batch retains two timeout failures, not acceptance: cancellation
+10s and resume300s (partial384 MB). The existing run is observed to termination
+without restart after a foreground-helper failure. All assertions stay unchanged.
+Physical beta.9, process/reboot, complete standard CI, compatibility review and
+original-key publication remain. Fresh reports flag stable40/current main100
+handlers. OSV finds no matching known advisories for150 Maven modules; the pinned
+native commit query is similarly limited to indexed knowledge. Public beta.8 and
+the owner's phone are unchanged; this candidate is not a downloadable release.
+
 ## 12 November 2026 - six final-source physical offline cases and retention
 
 The original-debug-key candidate passes six exact native cases on the owner's

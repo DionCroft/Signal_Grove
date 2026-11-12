@@ -1,13 +1,25 @@
 # Signal Grove project state
 
-Current milestone: final-source physical offline acceptance and release preparation.
-Current objective: checkpoint six phone passes, diagnose remaining pre-submission
-worker unavailability, then finish the outstanding model/release gates.
-Assurance state: saved stable40/main97 findings and full original audit remain.
-Last checkpoint: 12 November 2026, physical-offline-and-live-read-deadline.
+Current milestone: beta.9 uncompressed-DEX candidate and download/release checks.
+Current objective: diagnose bounded download cancellation/completion failures,
+finish candidate device/release checks and keep the separate worker audit moving.
+Assurance state: fresh stable40/main100 findings and full original audit remain.
+Last checkpoint: 12 November 2026, uncompressed-dex-candidate.
 Last handover: HANDOVER.md.
 
 ## Current checkpoint
+
+The planned beta.9/code112 candidate avoids DEX inflation at cold startup. Build,
+1004 JVM, original signers/native alignment and zero-error lint51/50 pass. Debug/
+test emulator upgrades retain UIDs and351 API37 /66 API26 scoped core hashes;
+API26 host timeout is reconciled from native install success without replay.
+All10 exact API26 local-AI UI cases pass; synthetic bilingual layout is inspected.
+Two new HTTPS cases fail unchanged10s/300s bounds, with partials preserved; the
+second resumes to384 MB. This is not complete transfer or physical beta.9 proof.
+Fresh compatibility remains stable40/current main100 handler findings. OSV150-
+module/pinned-native queries return no matching known indexed advisories, with
+explicit coverage limits. Public beta.8 and the owner's phone remain unchanged.
+[Candidate scope](docs/contracts/2026-11-12-uncompressed-dex-candidate.md).
 
 The owner's physical ARM64 API37 phone passes six exact offline native cases on
 the original-debug-key candidate: LFM3 output/cancel/recover/unload, all six grounded
@@ -36,16 +48,18 @@ API37 1133/1133 distinct cases, 1004 JVM/96 reports, zero-error lint (52/51 warn
 32 native ABI/page checks and all 545 unchanged Android/build/gate inputs. Latest
 c55d070 Android workflow also succeeds; CI signer is not the production signer.
 [Standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md).
-Compatibility upstream job still fails; saved stable40/main97 findings remain,
-with fresh report reconciliation due. No general source/commit waiver applies.
+Fresh source c55 reports stable40/current main100 changed handlers; the older
+saved main97 outcome remains historical evidence. No source/commit waiver applies.
 
-**Next exact action:** finish the five outstanding final-source model transfer/
-process checks and original-production-key release preparation, while diagnosing
-the separate read projection/pipe failure from actual evidence. Preserve all
-terminal failures and owner data. Actual native HTTP/WS actor/profile acceptance,
-Android workspace browsing, NAS and graphs remain open; metadata is not execution
-ownership. Publish the incremented original-key APK only after its applicable
-upgrade/signing/device/release gates, while keeping the full audit goal active.
+**Next exact action:** diagnose the transfer cancellation delay and capture actual
+progress before a fresh bounded acceptance run; preserve both failed roots and
+all original assertions. Finish candidate process/recovery, full standard hosted
+union, physical production upgrade, compatibility review, SBOM/provenance and
+public-asset verification before publication. The actual Windows read failure
+also remains: new diagnostic prepare is submitted then loses its reply (Win32
+233), while disposable provider and preconnected-pipe checks pass. Cause is not
+established; do not replay or restart to hide it. Native HTTP/WS actor/profile,
+Android workspace browsing, NAS, graphs and the full original audit stay active.
 
 ## Continuing scope and authoritative records
 

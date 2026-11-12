@@ -68,3 +68,13 @@ accepted, and saved stable40/main97 findings remain open.
 Private cutover814/trial815, doctor/graph816, recovery810/817, ACL818 and later
 status833 record the exact scope. Verified hosted artifact13932711219 ZIP SHA-256:
 `7beff017a5d39169e0b3bd58d7a7cf82a2de3aa4fb2ff90ee21df4a62352a5ed`.
+
+## Subsequent bounded diagnosis
+
+A fresh local status is ready, but a new prepare loses its reply with Win32233
+and requestSubmitted:true. Existing sources/eight receipts remain. Three protected
+registry reads take about24ms; a disposable real-policy provider prepares/lists in
+about194/174ms, and a deliberately preconnected real native client passes. Those
+isolated checks do not identify the live daemon's intermittent cause. No pending
+read is replayed, daemon restarted or timeout/identity control relaxed. Private
+847-850 and the maintained local-only deployment note retain this scope.

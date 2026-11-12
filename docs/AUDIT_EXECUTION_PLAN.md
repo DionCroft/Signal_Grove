@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## 12 November checkpoint - beta.9 startup packaging and retained failures
+
+Uncompressed/aligned DEX candidate passes1004 JVM, signing/alignment, zero-error
+lint and10 API26 local-AI UI cases. Emulator upgrades retain UIDs/core hashes;
+no timed-out install is replayed. Two HTTPS timeout failures remain unaccepted,
+with partials and original bounds preserved. Fresh compatibility flags stable40/
+current main100 handlers; original audit rows below remain intact. Candidate
+physical/standard-CI/recovery/SBOM and public APK gates remain. Public beta.8 is
+unchanged. [Scope](contracts/2026-11-12-uncompressed-dex-candidate.md).
+
 ## 12 November checkpoint - physical offline six-case acceptance
 
 Six final-source physical model/helper cases pass; five external-model methods

@@ -6,7 +6,15 @@ Use [validation history](docs/VALIDATION.md),
 Private raw logs, hashes, APKs and runtime observations remain on the execution
 owner. A derived graph is navigation, not independent validation.
 
-Latest: [six physical offline cases](docs/contracts/2026-11-12-physical-offline-model-acceptance.md)
+Latest candidate: [uncompressed DEX and scoped emulator checks](docs/contracts/2026-11-12-uncompressed-dex-candidate.md)
+records1004 JVM, original signers/native alignment, zero-error lint51/50 and10
+API26 local-AI UI passes. UIDs/core hashes survive emulator upgrades; the native
+installer resolves a host timeout without replay. Two HTTPS timeout failures,
+partials, fresh stable40/main100 handler findings and remaining release gates
+are retained. Known-indexed advisory checks do not certify full security. The
+original-key production candidate is not published or installed on the phone.
+
+Earlier: [six physical offline cases](docs/contracts/2026-11-12-physical-offline-model-acceptance.md)
 verify real LFM3/helper and Qwen/import/model-family behavior on the retained-data
 owner phone. Original models, preferences and earlier chat remain; the owner's
 confirmed added turn is preserved. Normal networking is restored. Five external
