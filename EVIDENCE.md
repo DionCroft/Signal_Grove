@@ -30,3 +30,12 @@ records the actual idle cutover, local/Pi read paths, preserved receipts/denials
 source/path/ACL checks, encrypted recovery and independently verified hosted
 65-case artifact. Doctor and graph findings remain explicit. Native coordinator
 actor/profile, Android/NAS and full signed APK delivery are still separate gates.
+
+
+## 12 November 2026 - native coordinator workspace-read source
+
+407 portable policy cases and 12 strict actual-native authority/contract cases pass.
+All 661 pre-existing non-Markdown frozen-source 706 inputs are hash-verified
+unchanged; no new Android/device/APK result is claimed. No Pi/runtime deployment
+occurs; Windows read daemon and existing receipts stay unchanged. [Evidence,
+reproduction and full remaining scope](docs/contracts/2026-11-12-native-coordinator-workspace-reads.md).

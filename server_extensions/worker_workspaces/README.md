@@ -1,10 +1,13 @@
 # Windows registered-workspace read provider
 
-This is the first worker-side component for Signal Grove's project-file access.
-It runs on the Windows execution owner inside its trusted interactive broker.
-It is **not yet wired to the broker, Hermes HTTP service or Android UI**. It
-does not create a listener, agent, SSH client, model, registry entry or execution
-job. Existing phone/Pi production behavior is unchanged by adding this source.
+This read provider runs on the Windows execution owner inside its trusted
+interactive broker. The separately reviewed existing-daemon integration is now
+deployed and actual local/Pi private SSH reads pass; see the
+[deployment scope](../../docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
+The optional [native coordinator extension](../coordinator_workspaces/README.md)
+is source-tested separately. Production native-auth/Android wiring and NAS file
+acceptance remain open. Importing these modules starts no listener, agent,
+SSH client, model, registry entry or execution job.
 
 The native Hermes profile filesystem can point to the coordinator or an SSH /
 container backend. Its default-cwd and list responses do not certify a Project
@@ -85,9 +88,9 @@ The strict runner records actual distinct successes and source hashes and reject
 skips, failures, empty/partial suites and source changes. The Windows CI job uses
 its disposable runner scratch; no owner files, credentials or registry are used.
 
-Remaining stages: install a reviewed fixed-action adapter in the owning broker,
-preserve authenticated worker/root identity over the existing private control
-channel, publish a versioned optional Hermes capability and add translated
+The deployed broker adapter preserves worker/root identity over the existing
+private control channel. Remaining stages: accept the optional native Hermes
+coordinator capability against production authentication and add translated
 Android project/root/file review controls. Validate real registered roots on each
 owner and preserve current data before deployment. Large/binary downloads,
 dispatch/reassignment, owner-phone acceptance and the full audit stay open.
@@ -123,9 +126,9 @@ Native acceptance includes the close-from-context-callback race with a real read
 
 No listener, HTTP route, SSH action, durable job queue or scheduled service is
 added by this adapter. In particular, the existing execution queue is not a
-preview-content transport. The next stage is an authenticated private foreground
-bridge in the actual interactive broker, followed by the optional Hermes
-capability and Android review. The NAS full-ID refusal remains unresolved.
+preview-content transport. The separately commissioned private foreground bridge
+is deployed; optional native Hermes capability acceptance and Android review
+remain. The NAS full-ID refusal remains unresolved.
 
 ## Opt-in local Windows transport
 
@@ -163,8 +166,8 @@ drops in-flight file contents; OS filesystem work already in progress must still
 return before its thread can finish. Transport deadlines do not force-kill that
 work or certify that an unresponsive filesystem stopped.
 
-This transport is locally tested but not enrolled in the live host daemon, exposed
-through Hermes or connected to the app. The next stage is reviewed integration
-with the existing interactive broker's fresh registry/actor policy and private
-SSH helper, preserving current jobs. NAS full-ID incompatibility, Surface,
-production auth, phone files and the rest of the audit remain open.
+This transport is enrolled in the existing live host daemon through its reviewed
+fresh-registry/operator policy and private SSH helper, preserving current jobs.
+The coordinator native-auth source extension has its own isolated acceptance;
+production auth, Android/phone files, NAS full-ID incompatibility, Surface and
+the rest of the audit remain open.

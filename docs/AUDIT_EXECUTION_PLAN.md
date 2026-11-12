@@ -1,5 +1,17 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - native coordinator workspace-read source
+
+An optional versioned extension of the existing authenticated authority socket
+and bounded one-shot private SSH transport pass 407 portable and 12 strict
+actual-native-dispatch cases. No Pi deployment or Android file integration is
+claimed. Current owner/profile/transport/authority/grant checks derive scope;
+the API-key subject is never promoted to owner. Missing policy is unavailable,
+no request is replayed and NAS UNSUPPORTED is retained. The live Windows bridge
+is unchanged. See [contract and reproducible scope](contracts/2026-11-12-native-coordinator-workspace-reads.md).
+Every original row below, production native-auth/default/foreign-profile proof,
+Android/NAS/phone and final signed downloadable APK remain in the active goal.
+
 ## 12 November 2026 - persistent owner read bridge enabled
 
 The existing interactive Windows daemon now runs the verified optional pipe
