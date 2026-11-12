@@ -1,5 +1,33 @@
 # Evidence navigation
 
+## 12 November 2026 - current stable authentication and clean release inventory
+
+The final repository probe passes77 distinct cases against exact stable Hermes
+3b42157: native sign-in/refresh, isolated history, private-grant refusal/routing,
+saved-gateway callback,20 deployment-header/cookie cases and five actual async
+admission/client-accounting cases.48 critical Git blobs, clean source HEAD and
+946 loaded project-module hashes bind the fixture. Unknown source/revision
+controls refuse before fixture creation. Synthetic identities/captured peers and
+an explicit downstream handler adapter remain; this is not Pi/Android/TLS/full
+canonical-socket or PM server-start acceptance. Earlier failed fixtures remain.
+No compatibility baseline variant or used-handler waiver is added.
+
+Clean main f9e3835 builds with1006 JVM/96 reports, lint0 errors51/50 warnings,
+original signing/package/version identities and complete native/DEX alignment.
+Fresh OSV query at16:39 UTC covers150 Maven versions with no matching known
+advisories; the pinned native query also returns none, within index limits.
+Private release inventory verifies95 dependency inputs against strict metadata,
+32 packaged native files,183 CycloneDX1.6 components, certificate, checksums and
+local build provenance. Six prepared files are local only, not a GitHub release.
+
+Portable422/runtime15 policies pass. Fresh stable40/inspected-main100 findings
+remain; the inspected main pin is2bfa6b0. Full hosted Android coverage, complete
+dependency/semantic review, original-key physical production upgrade/live checks
+and publication/download verification stay open. Prior phone retention and all
+original worker/project/integration audit requirements remain intact.
+
+[Exact scope, source and artifact identities](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md).
+
 Use [validation history](docs/VALIDATION.md),
 [on-device validation](docs/ON_DEVICE_AI_VALIDATION.md) and dated
 [contracts](docs/contracts/) for reproducible acceptance scopes and limitations.

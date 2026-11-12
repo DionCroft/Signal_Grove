@@ -2,6 +2,13 @@
 
 ## Unreleased — native management conformance and scoped job history
 
+- Extend the isolated real-source auth probe to current stable Hermes:77 cases
+  cover deployment-header/cookie boundaries and async native admission/accounting,
+  preserving old revisions and strict source/environment guards. No compatibility
+  baseline waiver or full live-server claim is added.
+- Verify clean-main signed candidate, fresh bounded advisory queries and local
+  schema-valid runtime inventory/provenance. Public release gates stay explicit.
+
 - Accept an already-clear reviewed default keyboard during owned API26 CI setup,
   while preserving strict native geometry, exact actions and original app checks.
   Both fresh-tip/clear native paths and four focused app cases pass; complete

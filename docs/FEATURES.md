@@ -41,13 +41,15 @@ do not certify installation of beta.9's new packaging/version.
 | Qwen2.5-0.5B-Instruct Q4_K_M | 491,400,032 bytes; SHA-256 `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db` |
 | Three physical imports | 649, 685 and 1,438 ms |
 | Highest observed VmHWM | 2,608,447,488 bytes (2.43 GiB); short USB-charging observations, not minimum RAM or a complete peak/endurance benchmark |
-| Candidate APKs | Production 70,993,990 bytes; original-key debug 92,542,534 bytes; test 7,865,099 bytes; no model weights bundled |
+| Candidate APKs | Production 70,993,838 bytes; original-key debug 92,543,466 bytes; test 7,865,099 bytes; no model weights bundled |
 | Candidate JVM/lint | 1,006 cases / 96 reports; no failures/errors/skips; lint 0 errors, 51 debug/50 release warnings |
 | Physical lifecycle | Two original cold/post-reboot cases pass, 2.849/1.856s JUnit; one approved normal restart with no automatic load/replay and original data retained. Intentional preparation is not a positive test; earlier emulator boot remains unverified |
 | Keyboard CI preparation | Both reviewed fresh-tip/already-clear native states pass, plus four unchanged focused API26 methods/six exact native taps; full hosted union remains separate |
 | Earlier candidate native local-AI UI | API26: 10 distinct positive cases, no skips/failures |
 | Prior standard gate | Source 7ee5c59: API26 1,132 and API37 1,133 complete distinct cases; new candidate union not yet accepted |
 | Current transfer gate | Physical cancel/discard pass; full foreground phone resume/hash/install passes in 27,010 ms; earlier frozen-phone/emulator timeouts and their partials remain |
+| Stable native-auth fixture | 77 distinct real-ASGI/boundary cases,48 critical source guards and946 loaded module hashes; synthetic identity/peer/downstream, not live Pi/TLS/full canonical socket |
+| Local runtime inventory | Schema-valid CycloneDX1.6:150 Maven components,95 verified inputs,32 packaged native files and pinned native source; release assets remain local/unpublished |
 | Advisory query | 150 resolved Maven versions, zero known matching OSV advisories on 12 November; pinned native commit query also returned none, with known-indexed coverage limits |
 
 Import numbers are individual observations, not a model/storage performance

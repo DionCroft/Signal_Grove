@@ -4,36 +4,40 @@ Current milestone: beta.9 uncompressed-DEX candidate and download/release checks
 Current objective: finish lifecycle and final-source release acceptance,
 finish candidate device/release checks and keep the separate worker audit moving.
 Assurance state: fresh stable40/main100 findings and full original audit remain.
-Last checkpoint: 12 November 2026, physical-restart-and-ready-keyboard.
+Last checkpoint: 12 November 2026, current-stable-auth-and-clean-inventory.
 Last handover: HANDOVER.md.
 
-## Current checkpoint - physical restart and keyboard readiness
+## Current checkpoint - stable auth and clean inventory
 
-The owner's ARM64 API37 phone passes the original native cold-recovery and
-post-reboot cases, 2.849s and 1.856s JUnit. One explicitly approved normal Android
-restart has a changed kernel boot ID. Completed/interrupted history remains,
-with zero automatic model load/generation/replay. The deliberately interrupted
-preparation is not a positive test. Both original LFM files, protected metadata,
-package UIDs/APKs and owner SQLite rows remain; only cache freshness/framework
-bookkeeping changes. Scoped encrypted snapshots verify. The owner's USB-awake
-setting is unchanged, and only the isolated input/model copy is removed.
+The final repository probe passes77 distinct cases against exact stable Hermes
+3b42157: native sign-in/refresh, isolated history, private-grant refusal/routing,
+saved-gateway callback,20 deployment-header/cookie cases and five actual async
+admission/client-accounting cases.48 critical Git blobs, clean source HEAD and
+946 loaded project-module hashes bind the fixture. Unknown source/revision
+controls refuse before fixture creation. Synthetic identities/captured peers and
+an explicit downstream handler adapter remain; this is not Pi/Android/TLS/full
+canonical-socket or PM server-start acceptance. Earlier failed fixtures remain.
+No compatibility baseline variant or used-handler waiver is added.
 
-API26 preparation now accepts either the exact reviewed first-use tip or an
-already-clear keyboard. Both native paths pass on a fresh disposable fixture;
-all four unchanged focused app cases and six exact native DOWN/UP taps pass.
-Initial unexplained no-tip gaps, unsupported versions, failed/partial receipts
-and repeated actions remain rejected. No app visibility/consent assertion or
-five-class/eleven-method external-model inventory changes.
+Clean main f9e3835 builds with1006 JVM/96 reports, lint0 errors51/50 warnings,
+original signing/package/version identities and complete native/DEX alignment.
+Fresh OSV query at16:39 UTC covers150 Maven versions with no matching known
+advisories; the pinned native query also returns none, within index limits.
+Private release inventory verifies95 dependency inputs against strict metadata,
+32 packaged native files,183 CycloneDX1.6 components, certificate, checksums and
+local build provenance. Six prepared files are local only, not a GitHub release.
 
-Fresh original-key APKs pass 1,006 JVM cases /96 reports, lint0 errors51/50
-warnings, all four native ABIs and uncompressed/aligned DEX checks. Portable
-policies422 and runtime-model policies15 pass. These are scoped checks, not a
-complete final hosted-suite or production-upgrade pass. Prior failed/unknown
-fixtures remain, including the offline older API37 VM and a separate API26
-host-install timeout. Published beta.8 is unchanged; beta.9 remains unpublished.
+Portable422/runtime15 policies pass. Fresh stable40/inspected-main100 findings
+remain; the inspected main pin is2bfa6b0. Full hosted Android coverage, complete
+dependency/semantic review, original-key physical production upgrade/live checks
+and publication/download verification stay open. Prior phone retention and all
+original worker/project/integration audit requirements remain intact.
 
-[Physical lifecycle](docs/contracts/2026-11-12-physical-restart-retention.md) ·
-[Keyboard fix and exact candidate](docs/contracts/2026-11-12-ready-keyboard.md).
+[Exact scope, source and artifact identities](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md).
+
+Previous physical cold/restart and both keyboard-state checks remain verified;
+see [physical retention](docs/contracts/2026-11-12-physical-restart-retention.md)
+and [keyboard evidence](docs/contracts/2026-11-12-ready-keyboard.md).
 
 Earlier foreground checkpoint:
 
@@ -101,13 +105,14 @@ c55d070 Android workflow also succeeds; CI signer is not the production signer.
 Fresh source c55 reports stable40/current main100 changed handlers; the older
 saved main97 outcome remains historical evidence. No source/commit waiver applies.
 
-**Next exact action:** push the tested keyboard fix and physical lifecycle evidence
-to main, retain the resulting complete hosted device union and compatibility
-findings, then finish original-key production upgrade/live connection and release
-provenance/public-asset checks. Preserve the two older unresponsive emulator
-outcomes without reboot/install replay. Continue actual Windows read-path root
-cause, native actor/profile/Android workspace/NAS and all original audit rows.
-Do not repeat the physical restart or reset owner data.
+**Next exact action:** finish the actual async handler-load/PM start-entry and
+complete used-handler dependency review before any auth cohort admission, then
+review canonical authority/room findings. Retain the same live f9e3835 hosted
+native jobs and verify their exact union. Preserve the clean f9 signed assets and
+their source identity; continue production upgrade/live and public-download gates
+once required checks pass. No phone restart or uncertain emulator/install replay.
+Continue Windows read-path root cause, actor/profile/workspace/NAS and every
+original audit requirement.
 
 ## Continuing scope and authoritative records
 
