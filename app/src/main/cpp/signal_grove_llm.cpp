@@ -13,6 +13,7 @@
 #include "llama.h"
 #include "ggml-backend.h"
 #include "chat.h"
+#include "local_chat_output.h"
 #include "common.h"
 #include "log.h"
 #include "sampling.h"
@@ -181,9 +182,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
     try {
         const int count = env->GetArrayLength(roles);
         if (count < 1 || count > 64 || count != env->GetArrayLength(contents)) return invalid;
-        common_chat_templates_inputs input;
-        input.enable_thinking = false;
-        input.use_jinja = true;
+        auto input = signal_grove::local_chat_inputs();
         size_t input_bytes = 0;
         for (int i = 0; i < count; ++i) {
             auto role_ref = static_cast<jstring>(env->GetObjectArrayElement(roles, i));
@@ -198,14 +197,14 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             common_chat_msg message; message.role = role; message.content = std::move(content);
             input.messages.push_back(std::move(message));
         }
-        auto formatted = common_chat_templates_apply(engine->templates.get(), input);
-        if (formatted.prompt.str().size() > 131072) return context_full;
         const auto * vocab = llama_model_get_vocab(engine->model);
+        common_chat_session session(engine->templates.get(), vocab, input, {});
+        if (session.prompt().str().size() > 131072) return context_full;
         std::vector<llama_token> tokens;
         // The upstream formatter removes automatic BOS/EOS from template text.
         // Restore them exactly once, without parsing user-provided control tokens.
         if (llama_vocab_get_add_bos(vocab)) tokens.push_back(llama_vocab_bos(vocab));
-        for (const auto & part : formatted.prompt.parts) {
+        for (const auto & part : session.prompt().parts) {
             // Template syntax may contain control tokens; user text is always plain text.
             auto more = common_tokenize(vocab, part.text, false, !part.is_input);
             tokens.insert(tokens.end(), more.begin(), more.end());
@@ -227,7 +226,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
         }
         auto sampling = engine->sampling;
-        sampling.generation_prompt = formatted.generation_prompt;
+        session.apply_sampling(sampling);
         common_sampler_ptr sampler(common_sampler_init(engine->model, sampling));
         if (!sampler) return failed;
         for (const auto token : tokens) common_sampler_accept(sampler.get(), token, false);
@@ -235,23 +234,39 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
         auto method = env->GetMethodID(sink_class, "onBytes", "([B)Z");
         env->DeleteLocalRef(sink_class);
         if (!method) return invalid;
+        signal_grove::FinalAnswerProjection answer;
+        auto emit_answer = [&](const common_chat_msg & message) {
+            if (engine->stopped()) return cancelled;
+            auto delta = answer.append(message);
+            if (delta.empty()) return ok;
+            if (delta.size() > 65536) return failed;
+            auto buffer = env->NewByteArray(delta.size());
+            if (!buffer) return failed;
+            env->SetByteArrayRegion(buffer, 0, delta.size(), reinterpret_cast<const jbyte *>(delta.data()));
+            auto accepted = env->CallBooleanMethod(sink, method, buffer);
+            env->DeleteLocalRef(buffer);
+            return env->ExceptionCheck() || !accepted || engine->stopped() ? cancelled : ok;
+        };
+        size_t generated_bytes = 0;
         for (int i = 0; i < limit; ++i) {
             if (engine->stopped()) return cancelled;
             auto token = common_sampler_sample(sampler.get(), engine->context, -1);
             common_sampler_accept(sampler.get(), token, true);
-            if (llama_vocab_is_eog(vocab, token)) return ok;
-            auto piece = common_token_to_piece(vocab, token, false);
-            if (piece.size() > 65536) return failed;
-            auto buffer = env->NewByteArray(piece.size());
-            if (!buffer) return failed;
-            env->SetByteArrayRegion(buffer, 0, piece.size(), reinterpret_cast<const jbyte *>(piece.data()));
-            auto accepted = env->CallBooleanMethod(sink, method, buffer);
-            env->DeleteLocalRef(buffer);
-            if (env->ExceptionCheck() || !accepted || engine->stopped()) return cancelled;
+            if (llama_vocab_is_eog(vocab, token)) {
+                auto status = emit_answer(session.finish());
+                return status != ok ? status : answer.empty() ? failed : ok;
+            }
+            auto piece = common_token_to_piece(vocab, token, true);
+            generated_bytes += piece.size();
+            if (piece.size() > 65536 || generated_bytes > 131072) return failed;
+            common_chat_input chunk; chunk.append(piece, token);
+            auto status = emit_answer(session.feed(chunk));
+            if (status != ok) return status;
             auto batch = llama_batch_get_one(&token, 1);
             if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
         }
-        return token_limit;
+        auto status = emit_answer(session.finish());
+        return status != ok ? status : token_limit;
     } catch (...) { return failed; }
 }
 

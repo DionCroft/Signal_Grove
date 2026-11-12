@@ -1,5 +1,17 @@
 # Signal Grove
 
+## 12 November 2026 - native answer projection, fresh gates pending
+
+The pinned runtime diagnostic identifies the pre-closed reasoning prefill as the
+source of the observed marker/repetition. Code113 prepares one upstream session
+for template/sampling/parser and streams only its append-only answer channel.
+The physical vocabulary regression passes29 checks and one bounded native CLI
+turn produces a clean sentence. These do not certify the APK or helper. Fresh
+JVM/lint/all-ABI/standard-CI and physical JNI/helper/family/recovery gates remain.
+The helper shares a384-token reasoning/answer budget; strict reviewed-ID validation
+and approval boundaries remain. Old history and its observed defect are retained.
+[Correction and exact validation scope](docs/contracts/2026-11-12-native-answer-projection.md).
+
 Production-phone update: upgrade, saved connection, live history and project
 metadata reads verify. Offline generation/history expose a reasoning-marker and
 repetition defect; the candidate stays unpublished pending correction.
@@ -15,7 +27,7 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 | --- | --- | --- |
 | [1.0.0](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) | Published stable community release | [Release assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
 | [1.1.0-beta.8](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) · code 111 | Published preview: serving-model selection, reasoning/service presets, existing chats and stored projects | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.8/hermes-agent-mobile-1.1.0-beta.8.apk) |
-| [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 112 | Unpublished candidate: optional offline AI, model management, setup helper and startup packaging improvements | Release checks remain; no public candidate APK yet |
+| [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 113 planned | Unpublished candidate: optional offline AI, model management, setup helper and startup packaging improvements | Release checks remain; no public candidate APK yet |
 
 The table below describes current `main`; release notes define what is included in each published APK. Production and debug are separate packages with separate signing keys. Upgrade the matching package to preserve its data; see [installation and migration](docs/USER_GUIDE.md). The [approved GitHub updater](docs/APP_UPDATES.md) requires your download/install approval, validates the APK and preserves active-work guards. Enable **Include preview releases** to discover betas.
 
@@ -57,7 +69,7 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
-| Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently verified raw source `b599e88`; later Python/docs retain 543 identical Android/native/build inputs |
+| Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently verified raw source `b599e88`; historical coverage before the native output correction, which needs fresh checks |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |

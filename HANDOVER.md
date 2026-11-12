@@ -40,8 +40,10 @@ changes no Android/native/build input. [Workspace evidence](docs/contracts/2026-
 1. Installed b182ae8 production beta.9/code112 retains its identity and saved
    connection. Current refreshed history and stored project details load. Offline
    LFM3 generation/history work but leak a reasoning-close marker and repeat a
-   sentence. Preserve the saved answer; fix/test pinned native output projection,
-   then build a fresh increasing-version candidate. Production private-file hash
+   sentence. Preserve the saved answer. Code113 now implements the pinned
+   session/parser answer projection;29 vocabulary checks and one native CLI
+   sentence pass. Build clean committed source and repeat the APK/JNI/helper/
+   family/cancellation and increasing-version upgrade gates. Production private-file hash
    retention is not claimed. Fresh b599 complete standard coverage independently
    passes1,135/1,136 with543 identical Android inputs; external-model output and
    compatibility remain separate. Normal phone networking is restored.

@@ -69,7 +69,7 @@ class LocalModelPhysicalTest {
             for (topic in LocalHelpTopic.entries) {
                 stage("helper-${topic.name}-start")
                 var text = ""
-                val end = withTimeout(45_000) {engine.generate(LocalSetupHelper.messages(topic, null), 96) {text = it}}
+                val end = withTimeout(45_000) {engine.generate(LocalSetupHelper.messages(topic, null), 384) {text = it}}
                 InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {
                     putString("local_helper_topic", topic.name); putString("local_helper_answer", text); putString("local_helper_end", end.name)
                 })
@@ -84,10 +84,29 @@ class LocalModelPhysicalTest {
                 stage("helper-${topic.name}-complete")
             }
             var reply = ""
-            assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) {engine.generate(listOf(LocalChatMessage("user", "只回复这六个字：离线测试成功")), 48) {reply = it}})
+            assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) {engine.generate(listOf(LocalChatMessage("user", "只回复这六个字：离线测试成功")), 384) {reply = it}})
             assertEquals("离线测试成功", reply.trim())
             stage("native-chinese-text-complete")
         } finally {withContext(NonCancellable) {engine.unload()}}
+    }
+    @Test fun verifiedLfm3StreamsOnlyAnswerTextForGardenPrompt() = runBlocking {
+        val (root, model) = modelInput()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val engine = NativeLocalEngine(root, context.applicationInfo.nativeLibraryDir)
+        try {
+            withTimeout(90_000) { engine.load(model, context = 2048, threads = 4) }
+            var reply = ""
+            val end = withTimeout(30_000) { engine.generate(listOf(
+                LocalChatMessage("system", "You are an on-device text assistant in Signal Grove. You have no access to Hermes, servers, projects, credentials or tools. Never claim to have performed an action. Give advice as advice."),
+                LocalChatMessage("user", "Write a short sentence about a peaceful garden")
+            ), 384) {
+                assertFalse(it.contains("<think>")); assertFalse(it.contains("</think>"))
+                assertTrue(it.startsWith(reply)); reply = it
+            } }
+            assertEquals(LocalGenerationEnd.COMPLETE, end); assertTrue(reply.isNotBlank())
+            assertTrue(reply.contains("garden", ignoreCase = true))
+            stage("native-answer-only-garden-complete")
+        } finally { withContext(NonCancellable) { engine.unload() } }
     }
     @Test fun verifiedLfm3GeneratesCancelsRecoversAndUnloads() = runBlocking {
         val (root, model) = modelInput()
@@ -101,12 +120,12 @@ class LocalModelPhysicalTest {
             withTimeout(90_000) { engine.load(model) }
             stage("model-load-complete")
             var reply = ""
-            val end = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Signal Grove native OK")), 96) { reply = it } }
+            val end = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Signal Grove native OK")), 384) { reply = it } }
             assertEquals(LocalGenerationEnd.COMPLETE, end)
             assertEquals("Signal Grove native OK", reply.trim())
             stage("exact-native-reply-complete")
             reply = ""
-            val second = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Second native OK")), 96) { reply = it } }
+            val second = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Second native OK")), 384) { reply = it } }
             assertEquals("Second request text: ${reply.take(512)}", LocalGenerationEnd.COMPLETE, second)
             assertEquals("Second native OK", reply.trim())
             stage("second-independent-native-reply-complete")
@@ -119,7 +138,7 @@ class LocalModelPhysicalTest {
             assertEquals(LocalGenerationEnd.CANCELLED, interrupted); assertTrue(cancelledText.length > 100)
             stage("explicit-generation-cancellation-complete")
             reply = ""
-            val recovered = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Recovered")), 48) { reply = it } }
+            val recovered = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Recovered")), 384) { reply = it } }
             assertEquals("Recovery text: ${reply.take(512)}", LocalGenerationEnd.COMPLETE, recovered)
             assertEquals("Recovered", reply.trim())
             stage("generation-after-cancellation-complete")
@@ -130,7 +149,7 @@ class LocalModelPhysicalTest {
             assertTrue(job.isCancelled)
             stage("coroutine-generation-cancellation-complete")
             var overflow: LocalEngineException? = null
-            try { engine.generate(listOf(LocalChatMessage("user", "large context ".repeat(3000))), 96) { fail("Overflow must not emit output") } }
+            try { engine.generate(listOf(LocalChatMessage("user", "large context ".repeat(3000))), 384) { fail("Overflow must not emit output") } }
             catch (e: LocalEngineException) { overflow = e }
             assertEquals(2, overflow?.code)
             stage("context-overflow-refused")
@@ -139,7 +158,7 @@ class LocalModelPhysicalTest {
             withTimeout(90_000) { engine.load(model, context = 512, threads = 2) }
             stage("reload-complete")
             reply = ""
-            assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Reloaded")), 48) { reply = it } })
+            assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Reloaded")), 384) { reply = it } })
             assertEquals("Reloaded", reply.trim())
             stage("reply-after-reload-complete")
         } finally { withContext(NonCancellable) { engine.unload() } }

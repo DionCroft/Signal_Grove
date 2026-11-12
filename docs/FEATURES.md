@@ -1,11 +1,23 @@
 # Current feature and validation matrix
 
+## 12 November 2026 - native answer projection, fresh gates pending
+
+The pinned runtime diagnostic identifies the pre-closed reasoning prefill as the
+source of the observed marker/repetition. Code113 prepares one upstream session
+for template/sampling/parser and streams only its append-only answer channel.
+The physical vocabulary regression passes29 checks and one bounded native CLI
+turn produces a clean sentence. These do not certify the APK or helper. Fresh
+JVM/lint/all-ABI/standard-CI and physical JNI/helper/family/recovery gates remain.
+The helper shares a384-token reasoning/answer budget; strict reviewed-ID validation
+and approval boundaries remain. Old history and its observed defect are retained.
+[Correction and exact validation scope](contracts/2026-11-12-native-answer-projection.md).
+
 Production-phone update: upgrade, saved connection, live history and project
 metadata reads verify. Offline generation/history expose a reasoning-marker and
 repetition defect; the candidate stays unpublished pending correction.
 [Exact phone evidence and limits](contracts/2026-11-12-production-phone-offline-output.md).
 
-As of 12 November 2026. This describes `main`, whose planned beta.9/code 112 APK
+As of 12 November 2026. This describes `main`, whose planned beta.9/code 113 APK
 is still unpublished. Published beta.8/code 111 and stable 1.0.0 retain their own
 release notes. Implementation, fixture acceptance, live-system acceptance and
 release inclusion are separate. The [latest real-source startup and complete
@@ -54,7 +66,7 @@ its separate offline generation exposes a reasoning-marker/repetition defect.
 | Physical lifecycle | Two original cold/post-reboot cases pass, 2.849/1.856s JUnit; one approved normal restart with no automatic load/replay and original data retained. Intentional preparation is not a positive test; earlier emulator boot remains unverified |
 | Keyboard CI preparation | Both reviewed fresh-tip/already-clear native states pass, plus four unchanged focused API26 methods/six exact native taps; full hosted union remains separate |
 | Earlier candidate native local-AI UI | API26: 10 distinct positive cases, no skips/failures |
-| Latest complete standard gate | Sourceb599e88: API26 1,135 and API37 1,136 complete distinct cases; all 543 Android/native/build inputs match b182ae8; exact-head CI remains separate |
+| Latest complete standard gate | Sourceb599e88: API26 1,135 and API37 1,136 complete distinct cases; historical pre-correction coverage; corrected native source needs fresh checks |
 | Current transfer gate | Physical cancel/discard pass; full foreground phone resume/hash/install passes in 27,010 ms; earlier frozen-phone/emulator timeouts and their partials remain |
 | Stable native-auth fixture | 87 distinct real-source auth/loader/start-entry cases,55 critical source guards and949 loaded module hashes; synthetic identity/peer/downstream, not live Pi/TLS/full canonical socket |
 | Local runtime inventory | Schema-valid CycloneDX1.6:150 Maven components,95 verified inputs,32 packaged native files and pinned native source; release assets remain local/unpublished |

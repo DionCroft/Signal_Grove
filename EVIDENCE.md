@@ -1,5 +1,17 @@
 # Evidence navigation
 
+## 12 November 2026 - native answer projection, fresh gates pending
+
+The pinned runtime diagnostic identifies the pre-closed reasoning prefill as the
+source of the observed marker/repetition. Code113 prepares one upstream session
+for template/sampling/parser and streams only its append-only answer channel.
+The physical vocabulary regression passes29 checks and one bounded native CLI
+turn produces a clean sentence. These do not certify the APK or helper. Fresh
+JVM/lint/all-ABI/standard-CI and physical JNI/helper/family/recovery gates remain.
+The helper shares a384-token reasoning/answer budget; strict reviewed-ID validation
+and approval boundaries remain. Old history and its observed defect are retained.
+[Correction and exact validation scope](docs/contracts/2026-11-12-native-answer-projection.md).
+
 ## 12 November 2026 - production upgrade/read checks and native output blocker
 
 The installed original-key beta.9/code112 retains its identity and saved

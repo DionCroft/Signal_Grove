@@ -50,3 +50,12 @@ target_link_libraries(signal_grove_llm PRIVATE llama llama-common android log)
 target_compile_options(signal_grove_llm PRIVATE -Wall -Wextra -Werror=return-type)
 # Android 15+ can use 16-KiB pages, including devices other than the owner's phone.
 target_link_options(signal_grove_llm PRIVATE -Wl,-z,max-page-size=16384)
+
+# Explicit vocabulary-only device regression target. It is never packaged in an APK.
+option(SIGNAL_GROVE_BUILD_NATIVE_TESTS "Build model-vocabulary output regression" OFF)
+if(SIGNAL_GROVE_BUILD_NATIVE_TESTS)
+    add_executable(signal_grove_chat_output_tests ../../test/cpp/native_chat_output_test.cpp)
+    target_include_directories(signal_grove_chat_output_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${llama_source_SOURCE_DIR}/common)
+    target_link_libraries(signal_grove_chat_output_tests PRIVATE llama llama-common android log)
+    target_link_options(signal_grove_chat_output_tests PRIVATE -Wl,-z,max-page-size=16384)
+endif()
