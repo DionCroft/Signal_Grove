@@ -1,5 +1,22 @@
 # Signal Grove audit execution plan
 
+## 13 November 2026 - full audit goal resumed
+
+The owner explicitly resumed the existing goal with four acceptance priorities:
+API26 Demo failure investigation; upstream compatibility/shutdown review;
+real project/workspace/worker, automation and integration acceptance; and final
+production upgrade/release checks. All original audit rows remain required.
+The beta.9 experimental preview is already public with verified download hashes;
+its incomplete compatibility/final-production acceptance is not closed by that
+publication. Earlier paused entries below retain their historical scope.
+
+Next bounded stage: inspect and reproduce the new-conversation/Demo-control
+transition behind the retained API26 failure, preserve all original assertions
+and raw outcomes, then validate a cause-specific fix. No live Hermes model,
+credential, worker receipt or user-phone data change is part of this stage.
+
+[Expanded goal and acceptance priorities](GOAL.md).
+
 ## 13 November 2026 - beta.9 preview published; full audit remains paused
 
 At the owner's request, beta.9/code114 is public as an experimental prerelease

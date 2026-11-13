@@ -1,125 +1,52 @@
 # Signal Grove handover
 
-## 13 November 2026 - beta.9 preview published; full audit remains paused
+13 November 2026. The owner resumed the same goal. Continue the four explicit
+acceptance priorities in [docs/GOAL.md](docs/GOAL.md) and preserve all original
+[audit rows](docs/AUDIT_EXECUTION_PLAN.md). No replacement goal is needed.
 
-At the owner's request, beta.9/code114 is public as an experimental prerelease
-from exact APK source0ee08e3 in main history. Both original-key APKs and all six
-assets verify through anonymous public downloads and GitHub SHA-256 metadata.
-Production APK:71,052,938 bytes; debug:92,608,818. Checksums, certificate,
-183-component runtime SBOM and honest source/validation provenance are attached.
-Stable1.0.0 is unchanged. Use the production APK to update the normal app without
-uninstalling; Include preview releases enables in-app discovery.
+## Where to continue
 
-The source's complete standard Android gate and seven selected debug-phone
-native positives retain their exact scopes. Upstream compatibility inspection,
-final exact-production-phone upgrade/live/offline acceptance and the full
-original audit remain incomplete. No failed result/baseline/source guard is
-waived. This release-only request does not resume the wider paused goal.
-Earlier entries below describe their historical publication/candidate states.
+The original source1180 API26 Demo clarification failure remains unresolved.
+Five independent exact-pair Milestone03 class trials pass 15 unchanged methods
+on a fresh disposable API26 emulator with CI-equivalent settings. One full
+original 598-case shard 1/2 reproduction is currently running; inspect its exact
+record and terminal raw log before dependent testing. Do not accept a running
+shard or treat isolated passes as the original failure's cause/fix.
 
-[Download, exact source and remaining checks](docs/contracts/2026-11-13-beta9-public-preview.md).
+Next: reconcile the current shard, then inspect rendered/lifecycle/preferences
+readiness and make a cause-specific correction with existing assertions intact.
+The temporary fixture is owned by this investigation; physical-phone data is
+not a reproduction target. No phone is currently connected over USB.
+[Baseline/source evidence](docs/contracts/2026-11-13-resumed-acceptance.md).
 
-## 13 November 2026 - current check complete; owner-requested pause
+## Release state
 
-The final actually offline cancellation/recovery method passes in27.984 s:
-Stop during thinking and visible streaming, exact recovery, coroutine stop,
-overflow refusal, unload/reload and retained original short-limit probes.
-Seven selected native methods have positive evidence on the unchanged source0ee
-debug app across identified companions; this is not the full twelve-method
-external gate. The latest companion source6034/cdb0570164ff compiles and signs
-with the original key. App code/defaults/caps are unchanged. Both app APKs,
-models, UIDs and core rows are retained; only WorkManager's force-stop timestamp
-changes. Exact private SQLite copies are removed and original networking is
-restored. No phone test/model CLI/local build remains active.
+Beta.9/code114 is public as an experimental preview. Its six public assets and
+anonymous hashes verify; source0ee08e3, original production/debug signers and
+stable 1.0.0 are preserved. Current main a2a3dd2 has the availability docs.
+Publication does not close upstream compatibility or final exact production
+upgrade/live/offline acceptance. Do not assume the owner has installed it.
+[Publication proof](docs/contracts/2026-11-13-beta9-public-preview.md).
 
-Source0ee's complete1,135 API26/1,136 API37 standard gate remains accepted.
-Source1180 has a retained one-case API26 Demo clarification failure, so its
-complete gate fails. Source6034 Android CI is in progress at observation,
-compatibility fails and worker CI passes; pending runs are not acceptance.
-Beta.8 remains published and beta.9/code114 remains unpublished. Full upstream,
-live project/worker/integration, phone and final-release audit rows stay open.
-Work stops after this checkpoint at the owner's request; resume only on request.
+## Evidence to preserve
 
-[Paused evaluation and remaining work](docs/audits/2026-11-13/PAUSED_REVIEW.md).
+The actual source0ee standard suite passes 1,135/1,136 cases on API26/API37.
+Prior full signed builds pass 1,011 JVM/97 reports; lint has zero errors with
+51/50 warnings. Seven selected debug-phone native methods have positive evidence,
+including helper/Chinese and thinking/stream cancellation/recovery/reload.
+Original model/history/core rows and UID/signing identities were retained; only
+WorkManager force-stop bookkeeping changed. Networking was restored after
+those checks; exact final production-phone acceptance remains separate.
 
-Exact next action after the owner resumes: investigate the retained API26 Demo
-clarification readiness failure, preserving all assertions and old outcomes.
-The older sections below are historical checkpoints, not new instructions to
-start work while paused. Full original audit and release obligations remain.
+Current stable/main source reviews retain 40/101 findings. The native-owner
+shutdown warning occurs in the registered heartbeat clear after DB closure;
+do not suppress it or unregister callbacks. Immutable SDK sources, real actor/
+profile guards and all incomplete transport/project/worker/automation/device
+acceptance remain. Preserve eight completed worker receipts and unknown work;
+do not restart that daemon or replay submissions.
 
-
-## 13 November 2026 - helper passes; thinking-aware cancellation pending
-
-The unchanged source0ee debug app with the source1180 companion passes the
-actually offline six-topic helper/Chinese method (23.968 s). Six selected
-current-app native methods now have positive evidence; generation still fails
-because its fixture waits for visible output before requesting Stop. Exact
-controls show the long-list request emits no answer in512 tokens. A test-only
-correction checks Stop during thinking and a separate measured visible stream;
-new compilation/physical acceptance is pending. Product code/defaults/caps and
-old failures are preserved. The companion update retains23/23 metadata files,
-both models, UIDs and both app APKs. Original networking is fully restored;
-post-test retention remains separate.
-
-Source0ee's complete standard emulator gate is independently reproduced from
-five hash-verified artifacts:1,135 API26/1,136 API37 unique cases, no missing,
-duplicate, failed or skipped cases, exact source/APK binding and hosted-summary
-match. Five classes/twelve external methods stay outside this gate. New fixture
-source needs its own CI. Stable40/inspected-main101 semantic reviews and the
-entire original audit/final signed-release scope remain open. Beta.8 remains
-published; beta.9/code114 remains unpublished.
-
-One exact next action: compile and independently verify the corrected test
-companion, keeping the installed debug application unchanged. Then exercise
-the cancellation/recovery method alone with a new radio-window journal,
-restore original settings and check retained data. All earlier sections below
-are historical checkpoints; the full audit/goal remains active.
-
-[Exact contract](docs/contracts/2026-11-13-thinking-cancellation.md).
-
-13 November 2026. Continue the active full audit and optional local-AI goal.
-Main/source0ee08e3 is pushed. Beta.8/code111 is still the published preview;
-normal phone remains code112, debug/test code114 source0ee08e3 is installed.
-
-The clean signed build passes1,011 JVM/97 reports, zero-error lint51/50 warnings,
-all four ABIs,64-bit16-KiB and uncompressed/aligned DEX. Original package/signers
-are preserved. Five isolated actual offline native cases pass: garden, metadata,
-Qwen, family switching/history and atomic import. Combined helper/Chinese and
-generation/cancellation cases fail at48/96 completion limits, so the full gate
-is not accepted. All six helper selections finish; preserve both failed raw runs.
-
-Controlled exact-context native diagnostics complete Chinese at75 tokens and the
-second reply at108. Only the physical fixture now changes: keep the original
-short probes, refuse unexpected outcomes/markers/non-prefix output and require a
-separate96/384 exact completion after a known limit. Existing cancellation,
-recovery, overflow and reload assertions stay. No app/default/limit/retry change.
-Next: compile the companion and exercise the failed cases against the exact
-installed application. Preserve separate app/companion source and APK hashes.
-
-Upgrade keeps20/20 metadata files identical. After testing16/20 remain identical;
-the profile marker and WorkManager files differ. Four private SQLite quick checks
-reconcile unchanged core rows/schema and WorkManager work/other tables, with only
-last_force_stop_ms advancing. Original models/package UIDs match; encrypted
-snapshots round-trip. Private temporary databases are removed, no owner data is
-restored/deleted, and production-private hashes are not claimed.
-
-Current OSV150/native requests return no known indexed advisories. Local assets,
-95 inputs/32 native files/183 SBOM components verify. Source0ee08e3 parser,
-registry, sidecar, worker and Android verification pass; all four API26/API37
-device partitions are running at this checkpoint. Final union is still required.
-Stable3b42157/main415fa33 retain40/101 review findings. Preserve SDK shutdown
-cleanup warning/exit2, every original audit row and eight completed worker receipts.
-Do not restart that daemon or replay unknown work. Stored projects are metadata,
-not worker/filesystem execution proof. No baseline/source waiver is added.
-
-Phone networking is restored after tests; the owner authorizes USB control.
-Verify actual offline/foreground state and restore temporary settings. Awake15
-is unchanged. Do not repeat the one completed authorized phone restart. Keep
-source in its authoritative repository and all workstation scratch/private
-evidence on E. Preserve TLS/authentication/profile isolation, approvals, signing
-keys and no-replay rules. The production114 upgrade/live/offline, exact passing
-release CI/upstream review and public asset/download checks remain open.
-
-[Current evidence and artifact identities](docs/contracts/2026-11-13-natural-output-phone.md) ·
-[Full original audit](docs/AUDIT_EXECUTION_PLAN.md) · [Goal](docs/GOAL.md) ·
-[Validation](docs/VALIDATION.md) · [Evidence](EVIDENCE.md).
+Keep TLS/auth/profile boundaries, approval and no-replay behavior and original
+keys/data. Do not repeat the earlier approved/performed normal phone reboot.
+Work on the verified owner, keep source on authoritative storage and every
+temporary tool/build/model/AVD/evidence file on E:. Update concise state and
+evidence and commit/push tested chunks as work proceeds.

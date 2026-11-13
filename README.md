@@ -5,9 +5,10 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 **Beta.9 is available:** the experimental prerelease includes optional offline
 AI, model management and the grounded setup helper. Its seven selected native
 phone methods have positive evidence; incomplete compatibility and final
-production-phone acceptance remain disclosed. The wider audit stays paused.
+production-phone acceptance remain disclosed. The wider audit is active again with four explicit acceptance priorities.
 [Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)
-· [Published evidence and limitations](docs/contracts/2026-11-13-beta9-public-preview.md).
+· [Published evidence and limitations](docs/contracts/2026-11-13-beta9-public-preview.md)
+· [Resumed goal and next checks](docs/GOAL.md).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 

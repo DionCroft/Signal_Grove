@@ -1,5 +1,10 @@
 # Signal Grove paused review - 13 November 2026
 
+Resume follow-up: the owner subsequently resumed the existing goal with four
+explicit [acceptance priorities](../../GOAL.md). The pause/publication entries
+below are historical; [current investigation evidence](../../contracts/2026-11-13-resumed-acceptance.md)
+records the resumed work without discarding prior failures.
+
 Publication follow-up: the owner subsequently requested beta.9 for download.
 It is now a [public experimental preview](../../contracts/2026-11-13-beta9-public-preview.md)
 with the incomplete checks disclosed. The wider goal remains paused. The

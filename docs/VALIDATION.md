@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## 13 November 2026 - goal active; four acceptance priorities explicit
+
+The owner resumed the existing full audit goal. Its explicit priorities are
+API26 Demo failure investigation, upstream compatibility/shutdown review,
+real project/workspace/worker/automation/integration acceptance, and final
+production upgrade/release checks. Beta.9 preview availability is complete;
+incomplete acceptance stays open. All original audit requirements remain.
+
+Five unchanged source1180 Milestone03 class trials pass15 original native
+methods on a fresh owned API26 emulator under the original CI settings.
+They do not reproduce or fix the retained hosted failure. One original598-case
+shard reproduction is running with all outcomes retained. No app/test assertion,
+SDK source, live Pi/model/credential or user-phone data is changed.
+
+[Resumed criteria and exact baseline scope](contracts/2026-11-13-resumed-acceptance.md).
+
 ## 13 November 2026 - beta.9 preview published; full audit remains paused
 
 At the owner's request, beta.9/code114 is public as an experimental prerelease
