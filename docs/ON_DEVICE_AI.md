@@ -1,4 +1,23 @@
-# Using on-device AI (beta.9 candidate)
+# Using on-device AI (beta.9 preview)
+
+## 13 November 2026 - beta.9 preview published; full audit remains paused
+
+At the owner's request, beta.9/code114 is public as an experimental prerelease
+from exact APK source0ee08e3 in main history. Both original-key APKs and all six
+assets verify through anonymous public downloads and GitHub SHA-256 metadata.
+Production APK:71,052,938 bytes; debug:92,608,818. Checksums, certificate,
+183-component runtime SBOM and honest source/validation provenance are attached.
+Stable1.0.0 is unchanged. Use the production APK to update the normal app without
+uninstalling; Include preview releases enables in-app discovery.
+
+The source's complete standard Android gate and seven selected debug-phone
+native positives retain their exact scopes. Upstream compatibility inspection,
+final exact-production-phone upgrade/live/offline acceptance and the full
+original audit remain incomplete. No failed result/baseline/source guard is
+waived. This release-only request does not resume the wider paused goal.
+Earlier entries below describe their historical publication/candidate states.
+
+[Download, exact source and remaining checks](contracts/2026-11-13-beta9-public-preview.md).
 
 ## 13 November 2026 - current check complete; owner-requested pause
 
@@ -69,7 +88,7 @@ settings remain and no automatic model load/replay occurs. The intentional
 preparation interruption is not a positive test. [Exact scope](contracts/2026-11-12-physical-restart-retention.md).
 Earlier measurements and failed fixtures below retain their original scope.
 
-These controls are in development source, not the published beta.8 APK. The
+These controls are available in the beta.9 preview; beta.8 does not include them. The
 Hermes connection still uses your agent host. On-device AI is an optional,
 separate text assistant that runs on the phone without Hermes connectivity.
 

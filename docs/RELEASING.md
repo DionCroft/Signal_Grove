@@ -1,5 +1,17 @@
 # Community release process
 
+## Owner-requested beta.9 experimental preview
+
+On13 November2026, after the audit pause review, the owner requested beta.9
+on GitHub for phone installation. That release-only request is fulfilled as
+an experimental prerelease with incomplete compatibility/final-production-phone
+acceptance clearly disclosed. It does not resume or complete the full audit,
+waive a failed CI result/source baseline, or change later completed-release
+requirements below. Preserve its exact built main-history source/tag and do
+not relabel a newer documentation commit as the APK source.
+
+[Publication evidence and explicit open checks](contracts/2026-11-13-beta9-public-preview.md).
+
 Versions are completed in order, one active version goal at a time. Keep the source, versionCode/versionName, changelog, roadmap, compatibility notes and validation evidence consistent. Android schema changes need exported schemas and non-destructive migration tests from supported historical versions.
 
 ## Validate before publication

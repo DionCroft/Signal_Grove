@@ -1,5 +1,24 @@
 # Current feature and validation matrix
 
+## 13 November 2026 - beta.9 preview published; full audit remains paused
+
+At the owner's request, beta.9/code114 is public as an experimental prerelease
+from exact APK source0ee08e3 in main history. Both original-key APKs and all six
+assets verify through anonymous public downloads and GitHub SHA-256 metadata.
+Production APK:71,052,938 bytes; debug:92,608,818. Checksums, certificate,
+183-component runtime SBOM and honest source/validation provenance are attached.
+Stable1.0.0 is unchanged. Use the production APK to update the normal app without
+uninstalling; Include preview releases enables in-app discovery.
+
+The source's complete standard Android gate and seven selected debug-phone
+native positives retain their exact scopes. Upstream compatibility inspection,
+final exact-production-phone upgrade/live/offline acceptance and the full
+original audit remain incomplete. No failed result/baseline/source guard is
+waived. This release-only request does not resume the wider paused goal.
+Earlier entries below describe their historical publication/candidate states.
+
+[Download, exact source and remaining checks](contracts/2026-11-13-beta9-public-preview.md).
+
 ## 13 November 2026 - current check complete; owner-requested pause
 
 The final actually offline cancellation/recovery method passes in27.984 s:
@@ -49,9 +68,9 @@ published; beta.9/code114 remains unpublished.
 
 [Exact checkpoint and limits](contracts/2026-11-13-thinking-cancellation.md).
 
-As of 13 November 2026. This describes `main`, whose planned beta.9/code 114 APK
-is still unpublished. Published beta.8/code 111 and stable 1.0.0 retain their own
-release notes. Implementation, fixture acceptance, live-system acceptance and
+As of 13 November 2026. This describes `main`; beta.9/code114 is published
+as an experimental preview with incomplete checks disclosed. Beta.8/code111
+and stable1.0.0 retain their own release notes. Implementation, fixture acceptance, live-system acceptance and
 release inclusion are separate. The [latest real-source startup and complete
 hosted evidence](contracts/2026-11-12-native-loader-startup.md) retains its exact
 source scope; newer final-head and live release gates remain open. [Release status and figures](../README.md).

@@ -1,13 +1,13 @@
 # Signal Grove
 
-An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI in the next release candidate. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
+An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI in the beta.9 preview. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
 
-**Candidate status:** beta.8 remains the published preview. The signed code114
-candidate has seven positive selected offline native methods, including the
-source-backed helper and thinking/streaming cancellation with recovery/reload.
-Work is paused at the owner's request. Complete source0ee standard coverage is
-verified; a later API26 UI failure and final release gates remain open.
-[Paused review, exact scopes and next work](docs/audits/2026-11-13/PAUSED_REVIEW.md).
+**Beta.9 is available:** the experimental prerelease includes optional offline
+AI, model management and the grounded setup helper. Its seven selected native
+phone methods have positive evidence; incomplete compatibility and final
+production-phone acceptance remain disclosed. The wider audit stays paused.
+[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)
+· [Published evidence and limitations](docs/contracts/2026-11-13-beta9-public-preview.md).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
@@ -17,7 +17,7 @@ verified; a later API26 UI failure and final release gates remain open.
 | --- | --- | --- |
 | [1.0.0](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) | Published stable community release | [Release assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
 | [1.1.0-beta.8](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) · code 111 | Published preview: serving-model selection, reasoning/service presets, existing chats and stored projects | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.8/hermes-agent-mobile-1.1.0-beta.8.apk) |
-| [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 114 planned | Unpublished candidate: optional offline AI, model management, setup helper and startup packaging improvements | Release checks remain; no public candidate APK yet |
+| [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 114 | Published experimental preview: offline AI, model management, setup helper and packaging improvements; full acceptance remains open | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk) |
 
 The table below describes current `main`; release notes define what is included in each published APK. Production and debug are separate packages with separate signing keys. Upgrade the matching package to preserve its data; see [installation and migration](docs/USER_GUIDE.md). The [approved GitHub updater](docs/APP_UPDATES.md) requires your download/install approval, validates the APK and preserves active-work guards. Enable **Include preview releases** to discover betas.
 
@@ -64,7 +64,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
-| Last built production APK (code114) | **71.1 MB** | 71,053,262 bytes from clean1180d48; original signer; not installed/published; phone-tested debug app remains source0ee |
+| Published beta.9 production APK (code114) | **71.1 MB** | 71,052,938 bytes from clean0ee08e3; original signer and anonymous public download verified; final production-phone acceptance remains open |
 | Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 13 November; known-indexed coverage, not a full security certification |
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
@@ -100,7 +100,7 @@ Left: earlier Android 16 Demo capture. Right: exact beta.9 API26 component-test 
 
 ## Use on-device AI
 
-In the candidate, open **Chat → On-device AI** or **Settings → On-device AI**, review a model's licence, download/import it, choose a context and explicitly load it. Inference requires a 64-bit process and sufficient memory/storage. The metadata allowlist covers eight architecture names; actual compatibility is checked at load time. LFM3 and Qwen2.5-0.5B have physical native evidence; this does not certify arbitrary GGUF files.
+In beta.9, open **Chat → On-device AI** or **Settings → On-device AI**, review a model's licence, download/import it, choose a context and explicitly load it. Inference requires a 64-bit process and sufficient memory/storage. The metadata allowlist covers eight architecture names; actual compatibility is checked at load time. LFM3 and Qwen2.5-0.5B have physical native evidence; this does not certify arbitrary GGUF files.
 
 Phone chat remains separate from Hermes. A new unsent text question can be reviewed into a fresh phone draft; remote history, credentials and approvals are excluded. Local advice can be reviewed for clipboard handoff. Failed or unknown remote work is never silently replayed locally or on reconnection. Leaving local AI cancels work and unloads weights. [Models, routing, helper and recovery details](docs/ON_DEVICE_AI.md).
 

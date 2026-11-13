@@ -1,6 +1,23 @@
 # Changelog
 
-## Unreleased — native management conformance and scoped job history
+## 1.1.0-beta.9 - 13 November 2026 - experimental preview
+
+- Publish the original-key code114 APKs at the owner's request, from exact
+  reviewed main-history source0ee08e3, with checksums/certificate/SBOM/provenance.
+  All six anonymous public downloads and GitHub digests verify.
+- Include optional offline text chat/history, native Stop/recovery, LFM3 download
+  and compatible GGUF import/management, static setup guidance and a grounded
+  offline helper. Model weights remain separate licensed downloads.
+- Retain source-backed 1,011 JVM, zero-error lint and complete1,135 API26/
+  1,136 API37 standard evidence; seven selected debug-phone native methods have
+  positive evidence across identified companions. Full compatibility and final
+  exact-production-phone acceptance remain open; all old failures are preserved.
+- Keep the full audit paused and stable1.0.0 unchanged. This preview availability
+  does not close unfinished worker/project/automation/integration/device gates.
+
+[Published assets, exact checks and known limits](docs/contracts/2026-11-13-beta9-public-preview.md).
+
+## Earlier beta.9 development checkpoints and continuing audit
 
 - Verify 20 real native-owner room-read checks and the complete standard Android
   source2970 gate (1,135 API26 / 1,136 API37). Keep real shutdown/worker findings

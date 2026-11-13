@@ -1,5 +1,11 @@
 # Signal Grove paused review - 13 November 2026
 
+Publication follow-up: the owner subsequently requested beta.9 for download.
+It is now a [public experimental preview](../../contracts/2026-11-13-beta9-public-preview.md)
+with the incomplete checks disclosed. The wider goal remains paused. The
+evaluation below is the original stopping-point snapshot; its then-unpublished
+beta.9 status is historical and does not describe current download availability.
+
 The owner requested finishing the current check, then pausing the goal for an
 evaluation. The thinking-aware cancellation check is finished, original phone
 networking is restored and this review records the stopping point. The original
