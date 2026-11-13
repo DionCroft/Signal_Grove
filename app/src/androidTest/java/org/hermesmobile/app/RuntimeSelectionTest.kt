@@ -55,7 +55,7 @@ class RuntimeSelectionTest {
         try {
             app.database.dao().save(c)
             app.database.dao().saveMessages((0..14).map {ChatMessage("follow-$it",c.key,"user","Earlier note $it",timestamp=it.toLong())}+last)
-            compose.onAllNodesWithContentDescription(text(Words.Chat),useUnmergedTree=true).onLast().performClick()
+            compose.openChatRouteOnce()
             compose.runOnUiThread {vm.select(c.key)}
             compose.waitUntil(5000) {vm.messages.value.size==16 && vm.selectedConversation.value?.key==c.key}
             compose.waitForIdle()
@@ -84,7 +84,7 @@ class RuntimeSelectionTest {
         compose.runOnUiThread {vm.setDemo(true)};compose.waitUntil(5000) {!vm.connecting.value && vm.preferences.value.demo}
         compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
         compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
-        compose.onAllNodesWithContentDescription(text(Words.Chat),useUnmergedTree=true).onLast().performClick()
+        compose.openChatRouteOnce()
         compose.onNodeWithContentDescription(text(Words.Models)).performClick()
         compose.onNodeWithTag("runtime-picker-list").performScrollToNode(hasText(text(Words.ReasoningSetting),substring=true))
         compose.onNodeWithText(text(Words.ReasoningSetting),substring=true).performClick()
@@ -99,7 +99,7 @@ class RuntimeSelectionTest {
         compose.waitUntil(5000) {!vm.connecting.value && vm.preferences.value.demo}
         compose.runOnUiThread {vm.updatePreferences(vm.preferences.value.copy(chinese=true,pinyin=true))}
         compose.waitUntil(5000) {vm.preferences.value.chinese && vm.preferences.value.pinyin}
-        compose.onAllNodesWithContentDescription(text(Words.Chat),useUnmergedTree=true).onLast().performClick()
+        compose.openChatRouteOnce()
         compose.onNodeWithContentDescription(text(Words.Models)).performClick()
         compose.onNodeWithTag("runtime-picker-list").performScrollToNode(hasTestTag("runtime-manual"))
         compose.onNodeWithTag("runtime-manual").performClick()
@@ -147,7 +147,7 @@ class RuntimeSelectionTest {
         compose.waitUntil(5000) {!vm.connecting.value && vm.preferences.value.demo}
         compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
         compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
-        compose.onAllNodesWithContentDescription(text(Words.Chat),useUnmergedTree=true).onLast().performClick()
+        compose.openChatRouteOnce()
         compose.onNodeWithContentDescription(text(Words.Models)).performClick()
         compose.onNodeWithTag("runtime-picker-list").performScrollToNode(hasTestTag("runtime-tier"))
         compose.onNodeWithTag("runtime-tier").assertHasClickAction().assert(hasSetTextAction().not()).performClick()
@@ -168,7 +168,7 @@ class RuntimeSelectionTest {
         compose.waitUntil(5000) {!vm.connecting.value && vm.preferences.value.demo}
         compose.runOnUiThread {vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
         compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
-        compose.onAllNodesWithContentDescription(text(Words.Chat),useUnmergedTree=true).onLast().performClick()
+        compose.openChatRouteOnce()
         compose.onNodeWithContentDescription(text(Words.Models)).performClick()
         compose.waitUntil(10000) {DiscoveryResource.Models !in vm.discovery.value.loading && vm.discovery.value.results.containsKey(DiscoveryResource.Models)}
         // Explicit UI metadata fixture on Demo only; no owner credentials or real model are used.

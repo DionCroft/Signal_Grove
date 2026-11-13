@@ -45,6 +45,7 @@ Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
 reboot or change live gateway/models/credentials without the existing applicable
 approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The next bounded stage checks final-source first-run
-keyboard preparation and standard CI, then continues the original API26 rendered
-Demo transition and delayed native-tap investigation without replay or waivers.
+and tooling remain on E:. The next bounded stage observes final-head standard CI
+and first-run keyboard setup, then continues original Demo/rendering, delayed
+native-tap/caption, upstream and real workspace/worker acceptance without replay
+or waivers.

@@ -56,7 +56,7 @@ class UiFixtureDiagnosticsTest {
             assertEquals(1,retained.size);assertTrue(retained.single().length()<=16384)
             // Now actually render Chat using its stable route tag and observe
             // the opposite result, with exactly the same selected data.
-            compose.onNodeWithTag("nav-chat").performClick()
+            compose.openChatRouteOnce()
             compose.waitUntil(5000) {compose.onAllNodesWithTag("chat-messages").fetchSemanticsNodes().size==1}
             val chat=captureUiFixtureSnapshot(compose,compose.activity,vm,c.key,16)
             assertEquals(1,chat.getJSONObject("selectedNavigation").getInt("Chat"))
@@ -79,12 +79,12 @@ class UiFixtureDiagnosticsTest {
         }
     }
 
-    @Test fun homePickerKeyboardDismissalKeepsTheOriginalChatSelectorUsable()=runBlocking {
+    @Test fun homePickerKeyboardDismissalUsesTheUniqueChatRoute()=runBlocking {
         compose.waitUntil(10000) {!vm.connecting.value}
         compose.runOnUiThread {vm.setDemo(true)}
         compose.waitUntil(10000) {!vm.connecting.value && vm.preferences.value.demo}
         val previous=vm.preferences.value
-        val trace=JSONObject().put("version",1).put("atomic",false)
+        val trace=JSONObject().put("version",2).put("atomic",false).put("routeTarget","nav-chat")
         val cases=org.json.JSONArray();trace.put("cases",cases)
         var stage="prepare"
         var completed=false
@@ -94,11 +94,13 @@ class UiFixtureDiagnosticsTest {
             for(action in listOf("apply","cancel")) {
                 val row=JSONObject().put("action",action);cases.put(row)
                 val c=Conversation("transition-${UUID.randomUUID()}","demo","api-transition",title="Keyboard navigation fixture",transport="demo")
+                val decoys=(0..3).map {Conversation("route-decoy-${UUID.randomUUID()}","demo","api-transition",title="Synthetic recent conversation",transport="demo")}
                 try {
                     stage="prepare-$action"
                     compose.runOnUiThread {vm.newChat();vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
                     compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
-                    app.database.dao().save(c)
+                    app.database.dao().save(c);decoys.forEach {app.database.dao().save(it)}
+                    compose.waitUntil(5000) {vm.conversations.value.count {it.key==c.key || decoys.any {d->d.key==it.key}}==5}
                     app.database.dao().saveMessages((0..15).map {ChatMessage("transition-$it",c.key,if(it==15) "assistant" else "user","Synthetic navigation note",timestamp=it.toLong())})
                     compose.onNodeWithTag("nav-home").performClick()
                     compose.onNodeWithTag("nav-home").assertIsSelected()
@@ -119,19 +121,19 @@ class UiFixtureDiagnosticsTest {
                     stage="dismiss-$action"
                     if(action=="apply") compose.onNodeWithTag("runtime-apply").performClick()
                     else compose.onNodeWithText(Words.Cancel.localized(vm.preferences.value)).performClick()
-                    // No added wait/snapshot between dismissal and the same
-                    // onLast touch action used by the original scroll test.
-                    stage="original-chat-click-$action"
-                    compose.onAllNodesWithContentDescription(Words.Chat.localized(vm.preferences.value),useUnmergedTree=true).onLast().performClick()
+                    // A description can match offscreen Recent actions as well as navigation.
+                    // Wait for the unique visible route target, click once and require selection.
+                    stage="tagged-chat-click-$action"
+                    compose.openChatRouteOnce()
                     compose.runOnUiThread {row.put("selectionAccepted",vm.select(c.key)!=null)}
-                    stage="original-data-wait-$action"
+                    stage="data-wait-$action"
                     compose.waitUntil(5000) {vm.messages.value.size==16 && vm.selectedConversation.value?.key==c.key}
                     compose.waitForIdle()
-                    stage="original-message-lookup-$action"
+                    stage="message-lookup-$action"
                     try {compose.onNodeWithTag("chat-messages").fetchSemanticsNode()}
                     catch(original:AssertionError) {throw retainUiFixtureFailure(compose,compose.activity,vm,original,FixtureFailureKind.RuntimeMessages,c.key,16,1)}
                     val rendered=captureUiFixtureSnapshot(compose,compose.activity,vm,c.key,16)
-                    row.put("afterOriginalClick",rendered)
+                    row.put("afterRouteClick",rendered)
                     assertEquals(1,rendered.getJSONObject("selectedNavigation").getInt("Chat"))
                     assertEquals(1,rendered.getInt("chatMessageLists"))
                     compose.waitUntil(5000) {!vm.controlBusy.value}
@@ -148,7 +150,7 @@ class UiFixtureDiagnosticsTest {
                     runCatching {closeFocusedKeyboard()}
                     compose.runOnUiThread {vm.newChat();vm.chooseRuntime(vm.profileScope.value,RuntimeChoice())}
                     compose.waitUntil(5000) {!vm.controlBusy.value && vm.requestedRuntime.value.isDefault}
-                    app.database.dao().deleteConversation(c.key)
+                    app.database.dao().deleteConversation(c.key);decoys.forEach {app.database.dao().deleteConversation(it.key)}
                 }
             }
             completed=true
@@ -156,7 +158,7 @@ class UiFixtureDiagnosticsTest {
             trace.put("completed",completed).put("lastStage",stage)
             val retention=runCatching {
                 val text=trace.toString();check(text.toByteArray(Charsets.UTF_8).size<=32768)
-                val file=File(compose.activity.getExternalFilesDir(null),"qa/chat-selector-transition-${UUID.randomUUID()}.json")
+                val file=File(compose.activity.getExternalFilesDir(null),"qa/chat-route-transition-${UUID.randomUUID()}.json")
                 file.parentFile!!.mkdirs();file.writeText(text)
             }
             if(completed) retention.getOrThrow()

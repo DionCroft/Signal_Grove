@@ -1,5 +1,23 @@
 # Current development validation — audit follow-up
 
+## 13 November 2026 - unique Chat targeting after measured Home failure
+
+A hash-verified 4f27df1 API26 transition failure now proves that 16 ready messages
+can coexist with selected Home after the old description/onLast Chat click.
+The exact target is unobserved; six descriptions match. The original clarification
+method passes in that failed partition; the original scroll method is absent.
+The cohort stays failed. Tests now wait for the unique visible nav-chat target,
+click once and require selected Chat, with no fallback/replay. Scroll/data and
+Demo assertions are preserved; app main/native tap code is unchanged.
+
+Fresh required checks pass 1,011 JVM/97 reports and lint 0 errors (51/50 warnings).
+Both owned API26/37 scopes pass 16 methods, including two route/no-replay
+counterexamples and two real keyboard Apply/Cancel cases per API. New inventories
+are 1,141/1,142; full clean-source coverage, original API26 causes and the other
+native/keyboard findings remain open. All four priorities/full audit stay active.
+
+[Exact evidence and remaining acceptance](contracts/2026-11-13-unique-chat-route.md).
+
 ## 13 November 2026 - keyboard gap preparation and exact upstream delta
 
 Owned-emulator keyboard preparation now permits one explicitly labelled

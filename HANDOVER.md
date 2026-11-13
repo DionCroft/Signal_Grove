@@ -5,39 +5,38 @@ The full audit/on-device AI goal remains **active**, with all four
 
 ## Latest evidence
 
-Owned-emulator keyboard preparation now permits one explicitly labelled
-hide/reopen from an observed no-hint gap, while preserving strict final native
-geometry, action/wait limits and every failed receipt. All 20 host keyboard
-cases and 446 policy + 15 runtime-model cases pass; required build checks pass
-1,011 JVM/97 reports and lint 0 errors (51/50 warnings). Fresh API26 scopes:
-workspace/input 30/30, original Demo/runtime 14/14 positive. Both focused cohorts pass.
-Actual new-gap branch acceptance is still pending; native setup used the already-clear branch.
+A hash-verified 4f27df1 API26 transition failure now proves that 16 ready messages
+can coexist with selected Home after the old description/onLast Chat click.
+The exact target is unobserved; six descriptions match. The original clarification
+method passes in that failed partition; the original scroll method is absent.
+The cohort stays failed. Tests now wait for the unique visible nav-chat target,
+click once and require selected Chat, with no fallback/replay. Scroll/data and
+Demo assertions are preserved; app main/native tap code is unchanged.
 
-Exact source 9744 hosted evidence separates an API26 preparation failure before
-standard tests from an API37 delayed Review WARNING with consent visible. Those
-cohorts stay failed; neither original API26 UI failure is fixed. Official source
-triage verifies eight newly flagged main handlers at b51a30c (112 flags); stable
-3b42157 remains 40. No variants are waived or live services changed. App main,
-public APKs and owner data remain unchanged. All four priorities/full audit stay.
+Fresh required checks pass 1,011 JVM/97 reports and lint 0 errors (51/50 warnings).
+Both owned API26/37 scopes pass 16 methods, including two route/no-replay
+counterexamples and two real keyboard Apply/Cancel cases per API. New inventories
+are 1,141/1,142; full clean-source coverage, original API26 causes and the other
+native/keyboard findings remain open. All four priorities/full audit stay active.
 
-[Exact evidence](docs/contracts/2026-11-13-keyboard-gap-and-upstream-delta.md).
+[Exact evidence](docs/contracts/2026-11-13-unique-chat-route.md).
 
 ## Exact next action
 
-Inspect final clean-source CI, including first-run keyboard preparation, then
-continue the original API26 rendered Demo transition and delayed native-tap
-investigation. Do not replay input, relabel old failures or merge cohorts. The
-new native inventory is 1,139; complete final-source standard acceptance remains
-open. No owner phone is visible; its final upgrade checks are still pending.
+Inspect final-head hosted standard coverage and first-run keyboard setup on the
+existing CI handles. Preserve old failed cohorts and do not merge partitions.
+Continue original Demo/rendering and delayed-tap/caption investigations, plus
+independent upstream and real workspace/worker acceptance while CI is queued.
+No owner phone is visible; final production upgrade checks remain pending.
 
 ## Remaining scope and safeguards
 
-Last complete independently reproduced standard gate stays c9c0718's 1,135
-API26/1,136 API37. Full upstream semantic/transitive/shutdown, real project/
-workspace/worker, automation/integration, approvals/images/recovery, device/
-lifecycle/security and production upgrade/live/offline release gates remain.
-The experimental SDK candidate is not deployed. Beta.9/source 0ee and stable 1.0.0
-are unchanged. Preserve all owner package/signing/UID/model/chat/connection data
-and unknown receipts. No owner reset/repeated reboot, worker-daemon restart,
-blind replay or live gateway/model/credential/job change. Source stays on the
-authoritative share; scratch/builds/models/AVDs/private evidence stay on E:.
+Last complete independently reproduced standard gate stays c9c0718's 1,135/1,136.
+Full upstream semantic/transitive/shutdown, real project/workspace/worker,
+automation/integration, approvals/images/recovery, device/lifecycle/security
+and production upgrade/live/offline release gates remain. No SDK candidate is
+deployed; beta.9/source 0ee and stable 1.0.0 are unchanged. Preserve owner package/
+signing/UID/model/chat/connection data and unknown receipts. No owner reset or
+repeat reboot, worker-daemon restart, input/worker replay or live gateway/model/
+credential/job change. Source stays on its authoritative share; all scratch,
+builds/models/AVDs/private evidence stays on E:.
