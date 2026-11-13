@@ -80,4 +80,38 @@ class KeyboardPreparationTest(unittest.TestCase):
             native=Mock(side_effect=result);report=device.prepare_owned_keyboard(native,Path(path),26);self.assertEqual(0,report['dismissAttempts']);native.assert_called_once()
             with self.assertRaises(ValueError):device.prepare_owned_keyboard(native,Path(path),26)
             native.assert_called_once()
+    def gap_receipt(self,nonce=None):
+        value=self.ready_receipt(nonce);value['state']='READY_REOPENED_KEYBOARD'
+        for phase in ('before','afterDismiss'):value[phase].update(top=827,ready=False)
+        return value
+    def test_observed_no_hint_gap_requires_explicit_reopen_and_strict_final_geometry(self):
+        value=self.gap_receipt();self.assertEqual(value,device.keyboard_preparation_record(self.output(value),0,self.nonce))
+        value['afterDismiss']=copy.deepcopy(value['reopened']);self.assertEqual(value,device.keyboard_preparation_record(self.output(value),0,self.nonce))
+    def test_reopened_gap_cannot_be_ready_hidden_coerced_or_overlaid_in_its_final_sample(self):
+        for patch in [dict(top=827,ready=False),dict(top=827,ready=True),dict(ready=False),dict(keys=0),dict(hints=1),dict(closes=1),dict(exactHintText=True),dict(ready=1),dict(keyTop=1794),dict(bottom=1053)]:
+            changed=self.gap_receipt();changed['reopened'].update(patch)
+            with self.subTest(patch=patch),self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+    def test_new_gap_state_requires_an_observed_gap_and_no_claimed_hint_dismissal(self):
+        for phase,patch in [('before',dict(top=1053,ready=True)),('before',dict(ready=True)),('before',dict(hints=1)),('before',dict(exactHintText=True)),('before',dict(keys=0)),('afterDismiss',dict(hints=1))]:
+            changed=self.gap_receipt();changed[phase].update(patch)
+            with self.subTest(phase=phase,patch=patch),self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+        changed=self.receipt();changed['state']='READY_REOPENED_KEYBOARD'
+        with self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+    def test_gap_recovery_cannot_add_repeat_or_omit_acknowledged_actions(self):
+        for actions in [['hide_keyboard','reopen_editor','reopen_editor','return_home'],['dismiss_hint','hide_keyboard','reopen_editor','return_home'],['hide_keyboard','return_home'],['replace_ime','hide_keyboard','reopen_editor','return_home']]:
+            changed=self.gap_receipt();changed['actions']=actions;changed['actionAcknowledgements']={k:True for k in actions}
+            with self.subTest(actions=actions),self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+        changed=self.gap_receipt();changed['actionAcknowledgements']['reopen_editor']=False
+        with self.assertRaises(ValueError):device.keyboard_preparation_record(self.output(changed),0,self.nonce)
+    def test_original_failed_gap_receipt_is_not_relabelled_success(self):
+        failed=self.gap_receipt();failed={k:failed[k] for k in ['schema','nonce','api','hardware','mode','imeVersion','selectedImeBefore']}
+        failed.update(actions=['open_settings_search'],actionAcknowledgements={'open_settings_search':True},state='FAILED',errorType='IllegalStateException',failureStage='reviewed first-use hint or prepared keyboard',latestKeyboard=self.gap_receipt()['before'])
+        output='INSTRUMENTATION_RESULT: keyboardFixtureReport='+json.dumps(failed)+'\nINSTRUMENTATION_CODE: 0\n'
+        with self.assertRaises(ValueError):device.keyboard_preparation_record(output,0,self.nonce)
+    def test_gap_setup_remains_once_only_and_cannot_reuse_a_receipt(self):
+        with tempfile.TemporaryDirectory() as path:
+            def result(*args,**kwargs):return Mock(stdout=self.output(self.gap_receipt(args[args.index('ownedKeyboardFixture')+1])),returncode=0)
+            native=Mock(side_effect=result);report=device.prepare_owned_keyboard(native,Path(path),26);self.assertEqual('READY_REOPENED_KEYBOARD',report['state']);self.assertEqual(0,report['dismissAttempts']);native.assert_called_once()
+            with self.assertRaises(ValueError):device.prepare_owned_keyboard(native,Path(path),26)
+            native.assert_called_once()
 if __name__=='__main__':unittest.main()

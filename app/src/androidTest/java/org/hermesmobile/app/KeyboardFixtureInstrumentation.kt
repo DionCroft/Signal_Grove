@@ -29,8 +29,12 @@ class KeyboardFixtureInstrumentation:Instrumentation() {
     private val acknowledgements=linkedMapOf<String,Boolean>()
     private var stage="identity_guard"
     private var lastKeyboard:Keyboard?=null
-    private data class Keyboard(val bounds:Rect,val keyTop:Int,val keys:Int,val hints:Int,val closes:Int,val exactText:Boolean) {
+    internal data class Keyboard(val bounds:Rect,val keyTop:Int,val keys:Int,val hints:Int,val closes:Int,val exactText:Boolean) {
         val ready get()=keys>=20 && hints==0 && closes==0 && bounds.top==keyTop
+        // A visible key row with no hint can still have a larger observed IME extent.
+        // It is eligible for one explicit hide/reopen, never accepted as final readiness.
+        val reopenableGap get()=keys in 20..256 && hints==0 && closes==0 && !exactText &&
+            !bounds.isEmpty && bounds.top>=0 && bounds.top<keyTop && keyTop<bounds.bottom
         fun json()=buildJsonObject {put("top",bounds.top);put("bottom",bounds.bottom);put("keyTop",keyTop);put("keys",keys);put("hints",hints);put("closes",closes);put("exactHintText",exactText);put("ready",ready)}
     }
     override fun onCreate(arguments:Bundle?) {super.onCreate(arguments);this.arguments=arguments ?: Bundle();start()}
@@ -98,14 +102,14 @@ class KeyboardFixtureInstrumentation:Instrumentation() {
             }
             clickOne(AccessibilityWindowInfo.TYPE_APPLICATION,"com.android.settings",{it.contentDescription?.toString()=="Search settings" && it.isClickable},"open_settings_search")
         }
-        val first=awaitKeyboard("reviewed first-use hint or prepared keyboard",{it.keys>=20 && ((it.hints==1 && it.closes==1 && it.exactText) || it.ready)},250)
+        val first=awaitKeyboard("reviewed first-use hint or prepared keyboard",{it.keys>=20 && ((it.hints==1 && it.closes==1 && it.exactText) || it.ready || it.reopenableGap)},250)
         evidence["before"]=first.json();evidence["hintSeen"]=JsonPrimitive(first.hints==1)
         if(first.hints==1) {
             clickOne(AccessibilityWindowInfo.TYPE_INPUT_METHOD,imePackage,{it.viewIdResourceName==closeId && it.className=="android.widget.ImageView" && it.isClickable && it.isEnabled},"dismiss_hint")
         }
-        // API26 can retain the old accessibility-window extent until the IME reopens.
-        // This sample proves hint removal only; reopened below must prove complete native geometry.
-        val after=awaitKeyboard("reviewed hint absent after preparation",{it.keys>=20 && it.hints==0 && it.closes==0 && !it.exactText && (first.hints==1 || it.ready)},250);evidence["afterDismiss"]=after.json()
+        // API26 can expose a window/key-row gap even when no hint was observed.
+        // This sample proves hint absence only; reopened below must prove complete native geometry.
+        val after=awaitKeyboard("reviewed hint absent after preparation",{it.keys>=20 && it.hints==0 && it.closes==0 && !it.exactText && (first.hints==1 || first.reopenableGap || it.ready)},250);evidence["afterDismiss"]=after.json()
         oneAction("hide_keyboard") {uiAutomation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)}
         val deadline=SystemClock.uptimeMillis()+7000
         while(keyboard()!=null && SystemClock.uptimeMillis()<deadline) SystemClock.sleep(75)
@@ -118,7 +122,7 @@ class KeyboardFixtureInstrumentation:Instrumentation() {
         val cleanupDeadline=SystemClock.uptimeMillis()+7000
         while(keyboard()!=null && SystemClock.uptimeMillis()<cleanupDeadline) SystemClock.sleep(75)
         check(keyboard()==null);evidence["cleanupKeyboardHidden"]=JsonPrimitive(true)
-        evidence["state"]=JsonPrimitive(if(first.hints==1) "READY_FRESH_KEYBOARD" else "READY_EXISTING_KEYBOARD")
+        evidence["state"]=JsonPrimitive(when {first.hints==1->"READY_FRESH_KEYBOARD";first.reopenableGap->"READY_REOPENED_KEYBOARD";else->"READY_EXISTING_KEYBOARD"})
     }
     override fun onStart() {
         val result=Bundle();var nonce=""

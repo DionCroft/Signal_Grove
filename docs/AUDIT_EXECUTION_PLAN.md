@@ -1,5 +1,24 @@
 # Signal Grove audit execution plan
 
+## 13 November 2026 - keyboard gap preparation and exact upstream delta
+
+Owned-emulator keyboard preparation now permits one explicitly labelled
+hide/reopen from an observed no-hint gap, while preserving strict final native
+geometry, action/wait limits and every failed receipt. All 20 host keyboard
+cases and 446 policy + 15 runtime-model cases pass; required build checks pass
+1,011 JVM/97 reports and lint 0 errors (51/50 warnings). Fresh API26 scopes:
+workspace/input 30/30, original Demo/runtime 14/14 positive. Both focused cohorts pass.
+Actual new-gap branch acceptance is still pending; native setup used the already-clear branch.
+
+Exact source 9744 hosted evidence separates an API26 preparation failure before
+standard tests from an API37 delayed Review WARNING with consent visible. Those
+cohorts stay failed; neither original API26 UI failure is fixed. Official source
+triage verifies eight newly flagged main handlers at b51a30c (112 flags); stable
+3b42157 remains 40. No variants are waived or live services changed. App main,
+public APKs and owner data remain unchanged. All four priorities/full audit stay.
+
+[Exact evidence and acceptance limits](contracts/2026-11-13-keyboard-gap-and-upstream-delta.md).
+
 ## 13 November 2026 - IME/caption diagnostics; connected failure retained
 
 Test-only observers preserve every original guard/action/wait and add bounded,
