@@ -1,5 +1,24 @@
 # Signal Grove audit execution plan
 
+## 13 November 2026 - rendered UI diagnostic counterexample passes
+
+Failure-only test snapshots now distinguish selected navigation, rendered
+message lists, locale, activity and IME state. Exact source comparison preserves
+the original successful actions/waits/methods/assertions. A native controlled
+counterexample proves 16 ready messages can coexist with Home and no Chat list,
+then verifies rendered Chat with the same data. Its actual error/JSON path
+preserves the cause and excludes private fixture canaries. This is no claimed
+reproduction or fix of either original hosted failure.
+
+All 13 focused API26 methods pass, including original Demo/runtime/predecessor
+cases and the new privacy/render counterexample. Required build checks pass
+1,011 JVM/97 reports and lint 0 errors (51/50 warnings). New API26 inventory is
+1,136; complete new-source standard coverage remains pending. The last complete
+verified gate remains source c9c0718. App behavior, live services, public APKs and
+owner-phone data are unchanged. All four priorities and original gates remain.
+
+[Exact diagnostic scope and validation](contracts/2026-11-13-rendered-ui-failure-diagnostics.md).
+
 ## 13 November 2026 - explicit native owner candidate; exact UI replay retained
 
 The public owner probe now has an explicit exact-pin candidate mode. Four

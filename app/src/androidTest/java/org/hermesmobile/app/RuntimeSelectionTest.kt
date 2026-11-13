@@ -59,7 +59,17 @@ class RuntimeSelectionTest {
             compose.runOnUiThread {vm.select(c.key)}
             compose.waitUntil(5000) {vm.messages.value.size==16 && vm.selectedConversation.value?.key==c.key}
             compose.waitForIdle()
-            fun position()=compose.onNodeWithTag("chat-messages").fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
+            var positionReads=0
+            fun position():Float {
+                positionReads++
+                try {return compose.onNodeWithTag("chat-messages").fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()}
+                catch(original:AssertionError) {
+                    // Observe only after the original lookup has failed. Keep
+                    // successful actions, waits and scroll assertions unchanged.
+                    throw retainUiFixtureFailure(compose,compose.activity,vm,original,
+                        FixtureFailureKind.RuntimeMessages,c.key,16,positionReads)
+                }
+            }
             val initial=position()
             compose.onNodeWithTag("chat-messages").performTouchInput {swipeDown(durationMillis=500)}
             compose.waitForIdle();val before=position();assertTrue("The reader must actually move back",before<initial)

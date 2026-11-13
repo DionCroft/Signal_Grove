@@ -71,12 +71,13 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-The [explicit native SDK candidate and exact UI replay evidence](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md)
-records three passing finite owner trials, the unchanged pristine shutdown
-warning and a complete source-c9c0718 standard device gate. These maintenance
-tools change no app behavior or live service. The original source1180 Demo and
-b543 scroll-preservation failures remain unresolved despite unchanged passing
-replays; the next stage improves failure-state evidence.
+The [rendered UI diagnostic counterexample](docs/contracts/2026-11-13-rendered-ui-failure-diagnostics.md)
+and 12 original focused methods pass on API26. Failure-only snapshots preserve
+original test interactions/assertions and exclude private fixture values.
+Ready ViewModel data can coexist with Home and no Chat list; that controlled
+observation does not establish either original hosted failure's cause or fix.
+The [experimental native SDK candidate](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md)
+remains separate from unmodified-upstream/deployed acceptance.
 
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
 review (latest inspected stable40/main104), real project/workspace/worker,

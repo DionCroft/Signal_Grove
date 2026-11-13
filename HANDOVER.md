@@ -1,45 +1,45 @@
 # Signal Grove handover
 
-The existing full audit/on-device AI goal remains **active**. Retain all four
-[priorities](docs/GOAL.md) and every original audit requirement.
+The full audit/on-device AI goal remains **active**, retaining all four
+[explicit priorities](docs/GOAL.md) and every original audit requirement.
 
-## Continue the API26 investigation
+## Latest tested chunk
 
-The exact b543 hosted pair has now passed its original five-method RuntimeSelection
-sequence and one clean synthetic full537-case API26 shard0 replay. Original
-assertions/waits/interactions are unchanged. This does not explain or fix the
-hosted missing chat-messages node. Original source1180 Demo failure is also open
-despite its positive class/shard replays. Next add failure-only sanitized route,
-render and lifecycle evidence, verify a controlled counterexample, and preserve
-successful-path behavior and explicit review/submission/scroll assertions.
+Failure-only snapshots distinguish rendered navigation/list state from the
+ViewModel's data, plus locale/lifecycle/IME. Exact reverse source comparison
+preserves original successful actions/waits/assertions. A controlled native
+counterexample satisfies the original 16-message data predicates on Home with
+no message list, verifies safe retained JSON/cause and then renders Chat with
+the same data. Private fixture values are excluded. This does not reproduce or
+fix either original hosted failure. All 13 focused API26 cases pass; required
+checks pass 1,011 JVM/97 reports, lint 0 errors (51/50 warnings), original debug
+signing and 4-ABI/DEX/native packaging. New API26 inventory is 1,136, not a claimed
+complete new standard gate. [Exact evidence](docs/contracts/2026-11-13-rendered-ui-failure-diagnostics.md).
 
-## Verified explicit native candidate
+## Exact next action
 
-Read [the exact new evidence](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md)
-and [reproduction commands](upstream_patches/README.md). The default-off owner
-probe candidate mode verifies the complete exact3b42157 two-file snapshot.
-Four invalid-source/mode trials refuse before SDK execution. Three finite native
-candidate trials exit0; seeded/held modes each retain20 room checks. The real
-held-writer fence returns in1.219s with both DBs open, then drains/closes without
-replay/reopen. Canonical eight helper cases and440+15 policy/runtime cases pass.
-Pristine mode still retains the original warning/exit2. No live installation,
-SDK function replacement, source guard, warning, callback or baseline waiver.
-Wider semantic/transitive and deployed-version/integration acceptance stays open.
+Test the original onLast Chat-description click across a controlled runtime-
+picker keyboard dismissal, inspecting whether the navigation bar or an off-
+screen recent-chat action is selected. The Home snapshot has five matches;
+ambiguity is observed but the original wrong target is unproven. Also inspect
+new exact-source hosted reports and any failure JSON before changing behavior. Passing replays and the controlled counterexample do not
+establish the old failures' cause. Do not add waits, weaken assertions, blindly
+retry jobs or mix source/APK cohorts to claim a complete gate.
 
-## Source, CI, phone and release boundaries
+## Remaining scope and safeguards
 
-The required local b995a28-plus-three-Python-file build passes1,011 JVM/97 reports,
-lint0 errors (51/50 warnings), original debug signing and all4ABIs/DEX/16KiB
-packaging. Android source is unchanged. Separately c9c0718's complete raw device
-gate verifies1,135 API26/1,136 API37 and exact summary/APK binding. Do not assign
-that hosted gate to a newer commit. Latest inspected upstream retains stable40/
-main104 findings, without waivers. Public beta.9/source0ee and stable1.0.0 remain
-unchanged. Final production upgrade/live/offline acceptance requires the owner
-phone, absent at last USB inventory; a connection question is already pending.
+The last independently verified complete device gate remains c9c0718's1,135
+API26/1,136 API37 cases. Default pristine Hermes retains the shutdown warning;
+the explicit finite experimental native candidate passes but is not deployed.
+Wider upstream semantic/transitive, real project/workspace/worker, automation/
+integration, approvals/images/recovery, background/notifications/audio/
+accessibility/performance and final production upgrade/live/offline release
+gates stay required. Public beta.9/source 0ee and stable 1.0.0 are unchanged.
 
-Preserve package/signing/UID/model/chat/connection data and unknown worker
-receipts. Do not clear owner data, repeat the prior authorized phone reboot,
-restart worker daemons or change live gateway/model/credential state. Real
-project/workspace/worker, automation/integration and all remaining original
-audit gates stay required. Source remains on the authoritative share; all
-scratch/builds/models/AVDs/private evidence stay on E:.
+Only the verified owned disposable emulator is used. The owner phone is absent
+from the current USB inventory; a connection question is already pending.
+Preserve owner package/signing/UID/model/chat/connection data. Do not clear it,
+repeat the earlier phone reboot, restart worker daemons, replay unknown worker
+receipts or change live gateway/models/credentials/jobs without applicable
+authorization. Source remains on its authoritative share; all scratch/builds/
+models/AVDs/private evidence stay on E:. All original audit rows are retained.

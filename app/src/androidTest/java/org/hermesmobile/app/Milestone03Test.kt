@@ -35,7 +35,9 @@ class Milestone03Test {
             }.getOrDefault(-1)
             val preferences=vm.preferences.value
             val diagnostic=org.json.JSONObject().apply {
-                put("version",1);put("exercise",word.name)
+                put("version",2);put("exercise",word.name)
+                put("rendered",runCatching {captureUiFixtureSnapshot(compose,compose.activity,vm,expectedMessageCount=0)}
+                    .getOrElse {org.json.JSONObject().put("snapshotUnavailable",true)})
                 put("demo",preferences.demo);put("chinese",preferences.chinese);put("pinyin",preferences.pinyin)
                 put("preferencesAreDefault",preferences==AppPreferences())
                 put("connectionIsDemo",vm.connectionStatus.value=="demo");put("connecting",vm.connecting.value)
