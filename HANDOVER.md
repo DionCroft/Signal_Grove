@@ -1,50 +1,45 @@
 # Signal Grove handover
 
-The existing full audit goal remains **active**. Preserve its four
+The existing full audit/on-device AI goal remains **active**. Retain all four
 [priorities](docs/GOAL.md) and every original audit requirement.
 
-## Continue with API26 investigation
+## Continue the API26 investigation
 
-The b5433027 hosted API26 shard 0 has one failure in
-`RuntimeSelectionTest.scrollingBackKeepsTheReadersPositionWhenMoreReplyTextArrives`:
-initial chat-messages semantics is missing after VM readiness. Raw artifact/log
-hashes verify; 537 methods start, 536 pass, one fails. Do not blindly retry or
-weaken its assertions. Reproduce the exact predecessor/navigation context next.
-This is distinct from the still-unresolved source1180 Demo-node failure; its
-15 class-trial and 598 original-shard passes did not establish a cause/fix.
+The exact b543 hosted pair has now passed its original five-method RuntimeSelection
+sequence and one clean synthetic full537-case API26 shard0 replay. Original
+assertions/waits/interactions are unchanged. This does not explain or fix the
+hosted missing chat-messages node. Original source1180 Demo failure is also open
+despite its positive class/shard replays. Next add failure-only sanitized route,
+render and lifecycle evidence, verify a controlled counterexample, and preserve
+successful-path behavior and explicit review/submission/scroll assertions.
 
-## Verified SDK candidate, not deployment
+## Verified explicit native candidate
 
-Read [the exact lifecycle candidate evidence](docs/contracts/2026-11-13-heartbeat-lifecycle-candidate.md) and
-[the source/reproduction guide](upstream_patches/README.md). Two hash-pinned
-changes apply only to exact 3b42157 in fresh E-drive snapshots. Canonical Git
-blob materialization verifies all 23,586 files and avoids archive EOL filters.
-Eight real-helper/SQLite regressions and all 438+15 policy/runtime cases pass.
+Read [the exact new evidence](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md)
+and [reproduction commands](upstream_patches/README.md). The default-off owner
+probe candidate mode verifies the complete exact3b42157 two-file snapshot.
+Four invalid-source/mode trials refuse before SDK execution. Three finite native
+candidate trials exit0; seeded/held modes each retain20 room checks. The real
+held-writer fence returns in1.219s with both DBs open, then drains/closes without
+replay/reopen. Canonical eight helper cases and440+15 policy/runtime cases pass.
+Pristine mode still retains the original warning/exit2. No live installation,
+SDK function replacement, source guard, warning, callback or baseline waiver.
+Wider semantic/transitive and deployed-version/integration acceptance stays open.
 
-Three private actual-owner trials exit 0: empty, seeded and held-SQLite.
-The latter keeps both DBs open at the actual 1.224 s close fence, drains after
-lock release and completes normal shutdown without replay or late reopen.
-These are finite synthetic profiles/room data with no model/tool/live turn.
-The canonical SDK bytes match those private trials exactly. Their source and
-harness identities remain in private evidence; public native owner-probe
-candidate-mode integration is still a separate required step.
+## Source, CI, phone and release boundaries
 
-The unmodified public owner probe remains byte-unchanged, with warning/exit 2.
-No source guard, callback, warning, upstream pin or handler baseline was waived.
-No base SDK or live gateway/model/credential/job was modified. Wider semantic/
-transitive compatibility, deployed versions and integrations remain open.
+The required local b995a28-plus-three-Python-file build passes1,011 JVM/97 reports,
+lint0 errors (51/50 warnings), original debug signing and all4ABIs/DEX/16KiB
+packaging. Android source is unchanged. Separately c9c0718's complete raw device
+gate verifies1,135 API26/1,136 API37 and exact summary/APK binding. Do not assign
+that hosted gate to a newer commit. Latest inspected upstream retains stable40/
+main104 findings, without waivers. Public beta.9/source0ee and stable1.0.0 remain
+unchanged. Final production upgrade/live/offline acceptance requires the owner
+phone, absent at last USB inventory; a connection question is already pending.
 
-## Build, phone and release boundaries
-
-Required Android checks pass 1,011 JVM/97 reports and zero-error lint with 51/50
-warnings; original debug signer, four ABIs and DEX/16KiB packaging verify.
-Android main/test source is unchanged. Public beta.9/code114/source 0ee08e3 and
-stable 1.0.0 are unchanged; neither new hosted full coverage nor final production
-upgrade/live/offline gates are accepted. The phone was absent from the latest
-USB inventory; an owner question is pending. Verify its current package/signing/
-UID/data state when connected. Never clear owner data or repeat its prior reboot.
-
-Keep real project/worker/automation/integration and all remaining original audit
-gates. Preserve uncertain worker receipts; no blind replay or daemon restart.
-All scratch/builds/models/private evidence stay on E:; source stays on the
-requested authoritative share. Git and audit/validation history preserve scope.
+Preserve package/signing/UID/model/chat/connection data and unknown worker
+receipts. Do not clear owner data, repeat the prior authorized phone reboot,
+restart worker daemons or change live gateway/model/credential state. Real
+project/workspace/worker, automation/integration and all remaining original
+audit gates stay required. Source remains on the authoritative share; all
+scratch/builds/models/AVDs/private evidence stay on E:.

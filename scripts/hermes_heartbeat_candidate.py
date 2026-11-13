@@ -75,7 +75,7 @@ def git_env(scratch: Path) -> dict:
     env = {k: v for k, v in os.environ.items() if k.upper() in ("SYSTEMROOT", "WINDIR", "PATH", "PATHEXT")}
     env.update(TEMP=str(scratch), TMP=str(scratch), TMPDIR=str(scratch),
                GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull,
-               GIT_OPTIONAL_LOCKS="0", GIT_NO_LAZY_FETCH="1", GIT_TERMINAL_PROMPT="0")
+               GIT_OPTIONAL_LOCKS="0", GIT_NO_LAZY_FETCH="1", GIT_NO_REPLACE_OBJECTS="1", GIT_TERMINAL_PROMPT="0")
     return env
 
 
@@ -150,7 +150,8 @@ def verify_candidate(base: Path, source: Path) -> dict:
     total = 0
     hashes, patched = {}, {}
     for name, oid in rows.items():
-        raw = (source / name).read_bytes()
+        with (source / name).open("rb") as stream:
+            raw = stream.read(MAX_FILE_BYTES + 1)
         total += len(raw)
         if len(raw) > MAX_FILE_BYTES or total > MAX_TOTAL_BYTES:
             raise ValueError("Candidate byte bound exceeded")

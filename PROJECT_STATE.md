@@ -1,52 +1,44 @@
 # Signal Grove project state
 
-13 November 2026. The existing full audit/on-device AI goal remains **active**.
-Keep all four [explicit priorities](docs/GOAL.md) and every original
-[audit requirement](docs/AUDIT_EXECUTION_PLAN.md).
+13 November 2026. The full audit/on-device AI goal remains **active** with all
+four [explicit priorities](docs/GOAL.md) and every original audit requirement.
 
-## Latest maintenance chunk
+## Latest tested chunk
 
-- Exact Hermes 3b42157 two-file heartbeat candidate: close writer admission,
-  bounded drain/one cleanup, then DB close; blocked/failed cleanup keeps DBs open.
-  No base SDK, live gateway, model, credential, job or Android source is changed.
-- Canonical preparation verifies 23,586 exact source files; all eight actual
-  helper/SQLite tests and 438 policy + 15 runtime-model cases pass. The source
-  bytes match three separately identified private native owner trials.
-- Empty, seeded and held-SQLite native trials exit 0 without late reopen.
-  Seeded cases retain 20 room checks. The actual held-write fence returns in
-  1.224 s with both DB connections open and closes them only after drain.
-- Unmodified owner probe is byte-unchanged and retains its original warning/
-  exit 2. A public explicit candidate mode remains to integrate. No upstream
-  handler/pin/baseline waiver is added. Stable/main last inspected: 40/104 findings.
-- Fresh required Android checks: 1,011 JVM/97 reports, lint 0 errors/51 and 50
-  warnings, original debug signing and all four ABIs/DEX/native packaging.
-  Frozen source is c9c0718 plus seven maintenance files; APKs are test outputs.
-- [Exact evidence and failure history](docs/contracts/2026-11-13-heartbeat-lifecycle-candidate.md).
+- Explicit exact-pin SDK candidate owner mode now verifies all 23,586 files.
+  Four invalid-mode/source trials refuse before SDK execution. Pristine mode
+  retains warning/exit 2; no upstream acceptance or live deployment is claimed.
+- Three native candidate trials exit 0: empty, 20 seeded room checks and actual
+  held-SQLite contention. The 1.219 s close gate keeps both DBs open, then drains
+  and closes without replay/reopen. Eight helper, 440 policy and 15 runtime-model
+  cases pass. Required build: 1,011 JVM/97 reports, lint zero errors/51 and 50
+  warnings, original debug signing and four-ABI/DEX/native packaging.
+- The exact original b543 hosted APK pair passes its five-method sequence and
+  all 537 original API26 shard0 cases. Its hosted failure remains unresolved.
+- Separately, c9c0718's complete raw standard device gate verifies all 1,135
+  API26/1,136 API37 cases and exact summary/APK binding. This accepts that source.
+- Latest inspected compatibility reports retain 40 stable/104 main findings.
+  No baseline/handler waiver or SDK/live gateway/model/credential/job change.
+- [Exact evidence and source identities](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md).
 
 ## Exact next action
 
-Reproduce the retained b5433027 API26 scroll-test failure from its exact source,
-raw artifact and predecessor/navigation context. The initial chat-messages node
-is missing after its VM readiness wait; cause is unproven. Do not change a wait
-or claim a fix without evidence. Original source1180 Demo failure also remains
-open despite 15 isolated passes and its unchanged 598-case shard pass.
+Capture failure-only sanitized route/render/lifecycle evidence for the initial
+missing chat-messages node without changing successful test interactions or
+assertions. Verify the diagnostic path with a controlled synthetic state, then
+run source-bound native checks. Passing unchanged replays do not establish a
+cause/fix. Original source1180 Demo failure remains open too. Do not merely add
+waits, suppress assertions or blindly rerun a failed hosted job.
 
-Keep the SDK candidate's public native owner-probe integration queued as its
-next separate stage. The canonical eight-case helper runner does not replace
-whole-owner/deployed acceptance. Preserve original failing baseline evidence.
+## Remaining acceptance
 
-## Delivery and remaining gates
-
-Public beta.9/code114 remains the experimental source 0ee08e3 preview with its
-original production signer and six download hashes verified. Stable 1.0.0 and
-the published APKs are unchanged. No complete new hosted standard gate or
-production-phone upgrade acceptance is claimed. Last USB inventory has only
-the owned emulator; the pending phone installation/connection question remains.
-
-Real project/workspace/worker, automation/integration, approval/image/recovery,
-background/notification/audio/accessibility/performance and final release gates
-remain required. Never replay unknown worker receipts, restart that daemon or
-repeat the earlier authorized normal phone reboot. No live Pi/gateway/model/
-credential change is part of these fixtures. Source stays on the requested
-canonical share; all scratch/builds/models/AVDs/private evidence remain on E:.
-Historical records and all original audit rows remain intact.
+Final-source hosted checks, wider semantic/transitive Hermes review, real
+project/workspace/worker, automation/integration, approvals/images/recovery,
+background/notification/audio/accessibility/performance and final production
+upgrade/live/offline release gates remain required. Public beta.9/code114/source
+0ee08e3 and stable1.0.0 are unchanged. Phone absent at last inventory; an owner
+connection question is pending. Preserve its data and signing identity.
+Never replay unknown worker receipts, restart that daemon, repeat the earlier
+phone reboot or change live gateway/models/credentials without applicable
+authorization. Source stays on its authoritative share; all scratch/builds/
+models/AVDs/private evidence remain on E:. All original audit rows remain.

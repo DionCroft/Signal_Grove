@@ -55,14 +55,14 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Physical process/restart recovery | **2 positive cases; 2.849 / 1.856 s JUnit** | Original cold/post-reboot methods on the owner phone; one approved normal restart, no automatic load/replay, original data retained; preparation intentionally interrupted |
 | Stable native-auth/startup fixture | **87 / 87 cases** | Exact stable3b42157; real ASGI, loader helpers and start-entry/PM suppression with explicit adapters; not full backend, live Pi or complete socket acceptance |
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
-| Native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
-| Experimental heartbeat candidate | **8 helper cases; 3 private owner trials** | Exact 3b42157 + two-file patch; actual SQLite close fence; not deployed or accepted as unmodified upstream |
+| Unmodified native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
+| Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current selected offline methods | **7 have positive evidence** | Unchanged code114 source0ee app, separately identified companions; garden/metadata/helper/generation/Qwen/switch/import; not the full external-model gate; old failures retained |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
-| Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently reproduced source `0ee08e3`, all four disjoint raw partitions and hosted summary; external model methods excluded |
+| Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently reproduced source `c9c0718`, all four disjoint raw partitions and hosted summary; external model methods excluded |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
@@ -71,21 +71,19 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-The [experimental SDK heartbeat candidate](docs/contracts/2026-11-13-heartbeat-lifecycle-candidate.md)
-now has source-bound helper and separate native owner evidence. It is maintenance
-test tooling; the app and live server are unchanged. A second retained API26
-scroll-preservation failure also needs investigation.
+The [explicit native SDK candidate and exact UI replay evidence](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md)
+records three passing finite owner trials, the unchanged pristine shutdown
+warning and a complete source-c9c0718 standard device gate. These maintenance
+tools change no app behavior or live service. The original source1180 Demo and
+b543 scroll-preservation failures remain unresolved despite unchanged passing
+replays; the next stage improves failure-state evidence.
 
-**Still open:** source1180 retains one hosted API26 Demo clarification failure;
-its unchanged 598-case shard now passes locally, but its cause remains unresolved.
-The diagnostic pair passes 5 focused native cases. See [Demo/shutdown evidence](docs/contracts/2026-11-13-demo-shutdown-diagnostics.md).
-newer exact-source CI and final production acceptance remain. Earlier production
-code112 upgrade, saved
-connection, current history and stored-project reads passed; final production
-code114 acceptance remains. Fresh upstream inspection flags 40/104 changed used
-handlers on stable/inspected main 0e72e8a. Complete semantic/dependency, live
-worker/project/automation/integration and publication checks remain in the
-[full audit](docs/AUDIT_EXECUTION_PLAN.md). Failed outcomes retain their scope.
+**Still open:** final-source hosted checks, wider upstream semantic/dependency
+review (latest inspected stable40/main104), real project/workspace/worker,
+automation/integration and final production code114 phone acceptance. Earlier
+production code112 upgrade, connection/history and stored-project reads passed.
+Public beta.9 remains the separately identified experimental source0ee preview.
+Every remaining requirement stays in the [full audit](docs/AUDIT_EXECUTION_PLAN.md).
 
 ## Interface figures
 

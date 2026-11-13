@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import stat
@@ -53,6 +54,28 @@ class HeartbeatCandidatePolicyTest(unittest.TestCase):
                      "NUL.py", "nested/COM1.txt", "trailing.", "trailing ", "a:b", "a?b", "a*b", "a|b", "a\nb"):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 candidate.relative_path(name)
+
+    def test_git_provenance_disables_replacement_objects(self):
+        env = candidate.git_env(self.root)
+        self.assertEqual(env["GIT_NO_REPLACE_OBJECTS"], "1")
+        self.assertEqual(env["GIT_NO_LAZY_FETCH"], "1")
+        self.assertEqual(env["GIT_OPTIONAL_LOCKS"], "0")
+
+    def test_oversize_source_read_is_bounded_before_hashing(self):
+        reads = []
+        class GuardedReader(io.BytesIO):
+            def read(inner, size=-1):
+                if size != 4:
+                    raise AssertionError("Unbounded candidate source read")
+                reads.append(size)
+                return super().read(size)
+        def guarded_open(path, *args, **kwargs):
+            self.assertEqual(path, self.source / "module.py")
+            return GuardedReader(self.raw)
+        with patch.object(candidate, "MAX_FILE_BYTES", 3), patch.object(Path, "open", guarded_open):
+            with self.assertRaisesRegex(ValueError, "byte bound"):
+                self.verify_fixture()
+        self.assertEqual(reads, [4])
 
     def test_committed_patch_has_the_exact_reviewed_bytes(self):
         path = ROOT / "upstream_patches" / candidate.PATCH_NAME

@@ -8,6 +8,9 @@ runtime contract for the deliberately narrower scope than the room matrix.
 Optional --seeded-room-reads adds current-stable native owner visibility/paging
 checks with synthetic stored rooms and management events; no user/model turn.
 See docs/contracts/2026-11-12-native-owner-room-reads.md.
+Optional --heartbeat-candidate-base explicitly validates the exact two-file
+experimental SDK candidate; its results are never unmodified-upstream acceptance.
+--held-heartbeat-writer adds one owned real-SQLite close-fence regression.
 """
 from pathlib import Path
 import argparse, asyncio, atexit, datetime, hashlib, ipaddress, json, logging, os, subprocess, sys, traceback, urllib.parse, weakref
@@ -28,20 +31,35 @@ p.add_argument('--dependency-site', type=Path, required=True)
 p.add_argument('--work-root', type=Path, required=True)
 p.add_argument('--seeded-room-reads',action='store_true',help='Add current-stable seeded native owner room visibility/history checks; retains nonzero shutdown findings.')
 p.add_argument('--trace-close-order',action='store_true',help='Observe reviewed current-stable DB/heartbeat teardown without replacing SDK functions or suppressing warnings.')
+p.add_argument('--heartbeat-candidate-base',type=Path,help='Opt in to the exact reviewed derived SDK; source-root must be its separately prepared snapshot.')
+p.add_argument('--held-heartbeat-writer',action='store_true',help='Candidate-only synthetic SQLite contention; no runtime SDK function replacement.')
 p.add_argument('--owned-child', action='store_true', help=argparse.SUPPRESS)
 a = p.parse_args()
 if a.seeded_room_reads and a.source_commit!='3b421578588243f920886e6fe79a6faa87ea026e':p.error('Seeded room reads require the exact current-stable execution target.')
 if a.trace_close_order and a.source_commit!='3b421578588243f920886e6fe79a6faa87ea026e':p.error('Close-order tracing requires the exact reviewed current-stable execution target.')
+if a.heartbeat_candidate_base and a.source_commit!='3b421578588243f920886e6fe79a6faa87ea026e':p.error('Heartbeat candidate requires the exact reviewed current-stable base.')
+if a.held_heartbeat_writer and not a.heartbeat_candidate_base:p.error('Held heartbeat writer requires explicit candidate mode.')
 source, site, root = a.source_root.resolve(), a.dependency_site.resolve(), a.work_root.resolve()
+base_source=a.heartbeat_candidate_base.resolve() if a.heartbeat_candidate_base else source
+candidate_helper=None;candidate_helper_path=None;candidate_helper_sha=None
+if a.heartbeat_candidate_base:
+    import importlib.util
+    candidate_helper_path=Path(__file__).resolve().with_name('hermes_heartbeat_candidate.py')
+    candidate_helper_sha=hashlib.sha256(candidate_helper_path.read_bytes()).hexdigest()
+    spec=importlib.util.spec_from_file_location('signal_grove_native_heartbeat_candidate',candidate_helper_path)
+    candidate_helper=importlib.util.module_from_spec(spec);sys.modules[spec.name]=candidate_helper;spec.loader.exec_module(candidate_helper)
 # Preserve the caller's short DLL-loader spelling; audit checks keep using the
 # identical resolved, read-only site. No dependency or permission changes.
 site_alias=a.dependency_site.absolute()
 assert a.dependency_site.is_absolute() and site_alias.resolve()==site
 COMMIT = a.source_commit
 CORE_EXPECTED_STATE='PASS_REAL_OWNER_SEEDED_ROOM_READS' if a.seeded_room_reads else 'PASS_REAL_OWNER_BOOTSTRAP_EMPTY_READS'
+if candidate_helper is not None:CORE_EXPECTED_STATE=CORE_EXPECTED_STATE.replace('PASS_REAL_OWNER_','PASS_CANDIDATE_OWNER_')
 assert os.name == 'nt' and sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode
 assert source.is_dir() and site.is_dir() and not root.exists()
 assert source.drive.upper() == root.drive.upper() == 'E:'
+assert base_source.is_dir() and base_source.drive.upper()=='E:'
+assert not root.is_relative_to(base_source) and not base_source.is_relative_to(root)
 assert not any(x.is_relative_to(y) for x, y in ((root, source), (source, root), (root, site), (site, root)))
 def supervise():
     # One owned attempt: never recycle a root or retry uncertain work.
@@ -51,6 +69,8 @@ def supervise():
              '--source-commit',COMMIT,'--source-root',str(source),'--dependency-site',str(site_alias),'--work-root',str(root)]
     if a.seeded_room_reads:command.append('--seeded-room-reads')
     if a.trace_close_order:command.append('--trace-close-order')
+    if candidate_helper is not None:command+=['--heartbeat-candidate-base',str(base_source)]
+    if a.held_heartbeat_writer:command.append('--held-heartbeat-writer')
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
     observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -72,6 +92,13 @@ def supervise():
     assert core['harnessSha256']==observation['harnessSha256']
     assert core['state']==CORE_EXPECTED_STATE and core['importedModules']
     if a.seeded_room_reads:assert len(core['seededRoomReads']['cases'])==20
+    if candidate_helper is not None:
+        assert core['sdkCandidate']['patchSha256']==candidate_helper.PATCH_SHA256
+        assert core['sdkCandidate']['helperSha256']==candidate_helper_sha and core['sdkCandidate']['unmodifiedUpstreamAccepted'] is False
+        assert any(x['name']=='CANDIDATE_HEARTBEAT_DRAIN_AND_PHYSICAL_DB_CLOSE_VERIFIED' for x in core['phases'])
+    if a.held_heartbeat_writer:
+        assert any(x['name']=='REAL_SQLITE_HEARTBEAT_CONTENTION_KEEPS_ALL_SESSION_DBS_OPEN' for x in core['phases'])
+        assert any(x['name']=='HELD_SQLITE_WRITER_RELEASED_CLEANUP_DRAINED_WITHOUT_RETRY' for x in core['phases'])
     assert not core['denied'] and not final['denied']
     if a.trace_close_order:
         trace_path=root/'close-call-trace.json'
@@ -79,6 +106,7 @@ def supervise():
         assert trace['state']=='OBSERVATION_ONLY_LIFECYCLE_TRACE' and not trace['truncated']
         assert trace['mainThreadProfilerActive'] and trace['events'] and len(trace['events'])<=2000
         assert not trace['sdkFunctionsReplaced'] and not trace['callbacksUnregistered'] and not trace['warningsSuppressed']
+        if candidate_helper is not None:assert not any(x['function']=='_reopen_after_close_locked' for x in trace['events'])
         observation.update(closeOrderTraceObserved=True,closeOrderTraceSha256=hashlib.sha256(trace_path.read_bytes()).hexdigest(),closeOrderEvents=len(trace['events']))
 
     # After actual process exit, inspect its own stores through read-only SQLite.
@@ -87,6 +115,7 @@ def supervise():
     for db_path in (root/'hermes-home/state.db',root/'hermes-home/profiles/field/state.db'):
         with sqlite3.connect('file:'+db_path.as_posix()+'?mode=ro',uri=True) as db:
             assert db.execute('PRAGMA quick_check').fetchall()==[('ok',)]
+            if candidate_helper is not None:assert db.execute('SELECT COUNT(*) FROM gateway_heartbeats').fetchone()[0]==0
             tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             counts={name:db.execute('SELECT COUNT(*) FROM '+name).fetchone()[0]
                     for name in ('sessions','session_admissions','hosted_rooms') if name in tables}
@@ -105,7 +134,10 @@ def supervise():
         observation['seededRoomReads']=core['seededRoomReads']
         observation['scope']='Actual current-owner native pipe/SID/tickets and canonical socket seeded room reads in isolated profiles. Synthetic stored rooms and management-only events; no model/tool/user turn, Android/Pi/deployed acceptance. Shutdown finding remains nonzero.'
     clean=final['state']=='CLEAN_EXIT_OBSERVATION' and not final['warnings']
-    observation['state']='PASS_FINITE_OWNER_RUNTIME' if clean else 'CORE_PASS_SHUTDOWN_FINDING_OPEN'
+    if candidate_helper is not None:
+        observation['sdkCandidate']=core['sdkCandidate']
+        observation['scope']='Finite experimental exact-base plus two-file candidate owner runtime. Synthetic profiles/room data and optional SQLite contention; no model/tool/Pi/deployed or unmodified-upstream acceptance.'
+    observation['state']=('PASS_FINITE_HEARTBEAT_CANDIDATE' if candidate_helper is not None else 'PASS_FINITE_OWNER_RUNTIME') if clean else 'CORE_PASS_SHUTDOWN_FINDING_OPEN'
     save();print(json.dumps({k:observation[k] for k in ('state','importedModules','shutdownWarnings','sourceCommit','stores')}))
     return 0 if clean else 2
 
@@ -119,9 +151,9 @@ for path in (user/'AppData/Local', user/'AppData/Roaming', temp, launch, seconda
     path.mkdir(parents=True, exist_ok=True)
 git_env = {k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
 git_env.update(TEMP=str(temp), TMP=str(temp), GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull,
-               GIT_OPTIONAL_LOCKS='0', GIT_NO_LAZY_FETCH='1', GIT_TERMINAL_PROMPT='0')
+               GIT_OPTIONAL_LOCKS='0', GIT_NO_LAZY_FETCH='1', GIT_NO_REPLACE_OBJECTS='1', GIT_TERMINAL_PROMPT='0')
 def git(*args):
-    q=subprocess.run(['git','--no-optional-locks','-c','safe.directory='+str(source),'-c','core.fsmonitor=false','-C',str(source),*args],
+    q=subprocess.run(['git','--no-optional-locks','-c','safe.directory='+str(base_source),'-c','core.fsmonitor=false','-C',str(base_source),*args],
                      env=git_env,capture_output=True,check=True,timeout=45)
     return q.stdout
 assert git('rev-parse','HEAD').decode().strip()==COMMIT
@@ -132,6 +164,15 @@ for line in git('ls-files','--stage','-z').split(b'\0'):
         entry,name=line.split(b'\t',1);mode,oid,stage=entry.decode().split()
         if mode=='100644':tracked[name.decode()]=oid
 assert 'gateway/run_runtime.py' in tracked
+candidate_identity=None;candidate_blobs={}
+if candidate_helper is not None:
+    candidate_identity=candidate_helper.verify_candidate(base_source,source)
+    assert candidate_identity['base_commit']==COMMIT
+    tracked=candidate_identity['base_git_blobs']
+    candidate_blobs=candidate_identity['patched_git_blobs']
+    assert set(candidate_blobs)==set(candidate_helper.PATCH_FILES)
+    (root/'sdk-candidate-source.json').write_text(json.dumps(candidate_identity,indent=2)+'\n',encoding='utf-8')
+
 before={name:hashlib.sha256((source/name).read_bytes()).hexdigest() for name in tracked if name.endswith('.py')}
 system={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR')}
 os.environ.clear();os.environ.update(system)
@@ -143,6 +184,7 @@ os.environ.update(TEMP=str(temp),TMP=str(temp),TMPDIR=str(temp),USERPROFILE=str(
     GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL=os.devnull,GIT_OPTIONAL_LOCKS='0',GIT_NO_LAZY_FETCH='1',GIT_TERMINAL_PROMPT='0')
 os.chdir(root);sys.path[:0]=[str(source),str(site_alias)]
 reads=[root,source,site,Path(sys.base_prefix).resolve(),Path(__file__).resolve()]
+if candidate_helper_path is not None:reads.append(candidate_helper_path)
 denied=[]; bound=weakref.WeakSet(); sockets=[]; version_probes=[]
 def inside(value, roots):return any(value.is_relative_to(x) for x in roots)
 def path_of(value):return Path(os.fsdecode(value)).resolve() if isinstance(value,(str,bytes,os.PathLike)) else None
@@ -217,6 +259,8 @@ def audit(event,args):
 sys.addaudithook(audit)
 record=dict(state='STARTING_FINITE_REAL_OWNER_PROBE',commit=COMMIT,pid=os.getpid(),phases=[],denied=denied,
     harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+if candidate_identity is not None:
+    record['sdkCandidate']=dict(sourceKind=candidate_identity['source_kind'],baseCommit=COMMIT,patchSha256=candidate_identity['patch_sha256'],sourceFiles=candidate_identity['files'],helperSha256=candidate_helper_sha,unmodifiedUpstreamAccepted=False)
 shutdown_warnings=[]
 class ShutdownDiagnostics(logging.Handler):
     def emit(self,entry):
@@ -243,7 +287,7 @@ if a.trace_close_order:
      'hermes_state.py':{'close','_close_physical','_reopen_after_close_locked'},
      'hermes_state_registry.py':{'close_all','release','_close_generation'},
      'gateway/run_shutdown.py':{'_stop_quiesce_and_close_session_dbs','_close_shared'},
-     'tui_gateway/session_reaper.py':{'_atexit_clear','_refresh_backend_heartbeat'},
+     'tui_gateway/session_reaper.py':{'_atexit_clear','_refresh_backend_heartbeat','_stop_backend_heartbeat_refresher','_finish_backend_heartbeat','_run_backend_heartbeat_refresh'},
      'tui_gateway/server.py':{'_get_db'},
      'hermes_state_gateway.py':{'clear_backend_heartbeat'},
     }
@@ -251,7 +295,7 @@ if a.trace_close_order:
      global _trace_truncated
      if event not in ('call','return'):return
      name=frame.f_code.co_name
-     if name not in {'close','_close_physical','_reopen_after_close_locked','close_all','release','_close_generation','_stop_quiesce_and_close_session_dbs','_close_shared','_atexit_clear','_refresh_backend_heartbeat','_get_db','clear_backend_heartbeat'}:return
+     if name not in {'close','_close_physical','_reopen_after_close_locked','close_all','release','_close_generation','_stop_quiesce_and_close_session_dbs','_close_shared','_atexit_clear','_refresh_backend_heartbeat','_get_db','clear_backend_heartbeat','_stop_backend_heartbeat_refresher','_finish_backend_heartbeat','_run_backend_heartbeat_refresh'}:return
      filename=frame.f_code.co_filename.replace('\\','/').casefold()
      if not filename.startswith(_trace_source):return
      relative=filename[len(_trace_source):]
@@ -481,10 +525,60 @@ async def run():
         for authority in runner.session_authorities:
             assert authority.db._read_all('SELECT * FROM session_admissions')==[]
         phase('ZERO_ADMISSIONS_CONFIRMED')
+        if a.held_heartbeat_writer:
+            # Real SQLite contention, real production writer admission and the
+            # real GatewayRunner close gate. No SDK function is replaced.
+            import sqlite3 as held_sqlite
+            import threading as held_threading
+            import time as held_time
+            from tui_gateway import server as heartbeat_server
+            from gateway.run_shutdown import GatewayShutdownMixin
+            state=heartbeat_server._heartbeat_refresher_state
+            db=heartbeat_server._get_db()
+            handles=[authority.db for authority in runner.session_authorities]
+            connections=[handle._conn for handle in handles]
+            original_connection=db._conn
+            assert original_connection is not None and not state['finished'].is_set()
+            held=held_sqlite.connect(str(db.db_path),timeout=0,isolation_level=None)
+            writer=None
+            try:
+                held.execute('BEGIN IMMEDIATE')
+                writer=held_threading.Thread(target=heartbeat_server._run_backend_heartbeat_refresh,args=(state,),name='owned-held-heartbeat-regression',daemon=True)
+                writer.start()
+                deadline=held_time.monotonic()+5
+                while True:
+                    with state['lock']:active=state['active']
+                    if active:break
+                    assert writer.is_alive() and held_time.monotonic()<deadline
+                    await asyncio.sleep(.005)
+                ctx=GatewayShutdownMixin._StopContext(deferred_count=lambda:0,started_at=held_time.monotonic())
+                started=held_time.monotonic()
+                await asyncio.to_thread(runner._stop_quiesce_and_close_session_dbs,10,ctx)
+                elapsed=held_time.monotonic()-started
+                assert elapsed<4 and not state['finished'].is_set()
+                assert db._conn is original_connection and all(handle._conn is connection and connection is not None for handle,connection in zip(handles,connections))
+                phase('REAL_SQLITE_HEARTBEAT_CONTENTION_KEEPS_ALL_SESSION_DBS_OPEN',elapsedSeconds=round(elapsed,3),profiles=len(handles),activeRefreshAtAdmission=active)
+            finally:
+                held.rollback();held.close()
+                if writer is not None:
+                    await asyncio.to_thread(writer.join,5)
+                    assert not writer.is_alive()
+            assert await asyncio.to_thread(heartbeat_server._stop_backend_heartbeat_refresher,5)
+            assert state['finished'].is_set() and not state['failed']
+            assert db.list_backend_heartbeats()==[]
+            phase('HELD_SQLITE_WRITER_RELEASED_CLEANUP_DRAINED_WITHOUT_RETRY')
         record['state']=CORE_EXPECTED_STATE
     finally:
         if runner is not None:
             await runner.stop()
+        if candidate_helper is not None:
+            from tui_gateway import server as heartbeat_server
+            heartbeat_state=heartbeat_server._heartbeat_refresher_state
+            assert heartbeat_server._heartbeat_shutdown_requested and heartbeat_state is not None
+            assert heartbeat_state['finished'].is_set() and not heartbeat_state['failed'] and heartbeat_state['active']==0
+            assert heartbeat_state['stop'].is_set() and (heartbeat_state['thread'] is None or not heartbeat_state['thread'].is_alive())
+            assert all(db._conn is None for db,_ in heartbeat_state['registrations'].values())
+            phase('CANDIDATE_HEARTBEAT_DRAIN_AND_PHYSICAL_DB_CLOSE_VERIFIED',registrations=len(heartbeat_state['registrations']))
         if control is not None:
             await control.stop()
         process_ownership.close();status.remove_pid_file();status.release_gateway_runtime_lock();hr.release_host_lock(hr.ROLE_GATEWAY)
@@ -510,9 +604,10 @@ finally:
             if path.is_relative_to(source) and path.suffix=='.py':
                 rel=path.relative_to(source).as_posix();raw=path.read_bytes()
                 oid=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-                assert oid==tracked[rel],rel
+                assert oid==candidate_blobs.get(rel,tracked[rel]),rel
                 assert hashlib.sha256(raw).hexdigest()==before[rel],rel
                 imported.append(dict(module=name,path=rel,gitBlob=oid,sha256=before[rel]))
+    if candidate_helper_path is not None:assert hashlib.sha256(candidate_helper_path.read_bytes()).hexdigest()==candidate_helper_sha
     record.update(importedModules=imported,versionProbes=version_probes,socketEvents=sockets,
         scope='Finite empty no-platform owner runtime and negative-auth reads only; no phone, Pi, model, tool turn, outer forwarding or seeded private/shared/paged room acceptance. Final shutdown diagnostics must also be accepted.')
     if a.seeded_room_reads:record['scope']='Actual owner bootstrap/current-user DACL/SID/native tickets and canonical socket seeded room reads. Synthetic room rows/management events; no user/model/tool turn, Android/Pi/deployed acceptance. Complete process-exit diagnostics remain required.'

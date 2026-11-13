@@ -46,13 +46,29 @@ failed fixture writes. It refuses network, subprocesses and outside writes.
 Its positive result is **not full native owner-runtime or deployed acceptance**.
 Failed roots/receipts are retained; inspect them before making a new trial.
 
-Separate private native trials exercised actual owner bootstrap, tickets,
-profile isolation, room reads, process exit and real SQLite contention without
-runtime SDK function replacement. Those exact-source trial details belong in
-the audit evidence; do not substitute the helper test for the broader gate.
-The unmodified owner probe still reports the original shutdown finding. A
-supported reproducible candidate mode for that probe is the next integration
-step. No source guards, warnings or callbacks have been waived or suppressed.
+## Reproduce the finite native owner trial
+
+On Windows, use the existing isolated dependency environment and a fresh output
+for each invocation. After preparing the exact candidate above:
+
+```text
+python -I -S -B scripts/compatibility_probe_owner_runtime.py --source-commit 3b421578588243f920886e6fe79a6faa87ea026e --source-root <FRESH_CANDIDATE>/source --heartbeat-candidate-base <SDK_BASE> --dependency-site <EXISTING_SITE_PACKAGES> --work-root <FRESH_OWNER_OUTPUT> --trace-close-order
+```
+
+For the seeded room trial, use another fresh output and add
+`--seeded-room-reads`. For the actual SQLite contention trial, use a third fresh
+output and add both `--seeded-room-reads --held-heartbeat-writer`. The held mode
+requires explicit candidate opt-in. Unsupported pins and unreviewed snapshots
+refuse before SDK execution. Reports identify experimental derived source;
+successful candidate exit is never unmodified-upstream acceptance.
+
+These three finite native trials pass actual bootstrap/tickets/profile/socket
+checks and process exit; both seeded trials retain 20 room checks. The held
+writer leaves both DBs open at its bounded close gate, then drains/closes after
+lock release. They replace no SDK function and run no model/tool/user turn.
+The default pristine mode retains its original warning/exit 2. No source guard,
+warning or callback is waived. The full semantic, deployed and Android/Pi
+acceptance remains separate. See [exact trial evidence](../docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md).
 
 The patch is derived from Nous Research's MIT-licensed Hermes Agent source.
 See [the upstream notice](NOUS_RESEARCH_LICENSE) and the repository's

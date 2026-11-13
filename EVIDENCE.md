@@ -1,5 +1,24 @@
 # Evidence navigation
 
+## 13 November 2026 - explicit native owner candidate; exact UI replay retained
+
+The public owner probe now has an explicit exact-pin candidate mode. Four
+unreviewed/unpaired-mode counterexamples refuse before SDK execution; pristine
+mode retains warning/exit 2. Three finite candidate owner trials exit 0: empty,
+20 seeded room reads and held SQLite contention. The real close fence returns
+in 1.219 s with both DBs open, then drains/closes without late reopen. All eight
+helper cases, 440 policy cases and 15 runtime-model cases pass. Required Android
+checks pass 1,011 JVM/97 reports and zero-error lint (51/50 warnings).
+
+The original b543 hosted pair passes its five-method class sequence and one
+537-case API26 shard replay, unchanged. The original failure is still unresolved.
+Separately, c9c0718's complete raw standard gate verifies: 1,135 API26/1,136 API37
+cases and exact hosted summary/APK binding. No old failure is relabelled fixed.
+Latest inspected upstream still flags stable40/main104; no waiver/deployment.
+All four goal priorities and original live/worker/phone/release gates remain.
+
+[Exact candidate, replay and source-bound gate evidence](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md).
+
 ## 13 November 2026 - heartbeat candidate verified; second API26 failure retained
 
 An exact-pin experimental two-file SDK patch closes heartbeat admission and
