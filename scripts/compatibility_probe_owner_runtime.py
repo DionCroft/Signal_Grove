@@ -27,9 +27,11 @@ p.add_argument('--source-root', type=Path, required=True)
 p.add_argument('--dependency-site', type=Path, required=True)
 p.add_argument('--work-root', type=Path, required=True)
 p.add_argument('--seeded-room-reads',action='store_true',help='Add current-stable seeded native owner room visibility/history checks; retains nonzero shutdown findings.')
+p.add_argument('--trace-close-order',action='store_true',help='Observe reviewed current-stable DB/heartbeat teardown without replacing SDK functions or suppressing warnings.')
 p.add_argument('--owned-child', action='store_true', help=argparse.SUPPRESS)
 a = p.parse_args()
 if a.seeded_room_reads and a.source_commit!='3b421578588243f920886e6fe79a6faa87ea026e':p.error('Seeded room reads require the exact current-stable execution target.')
+if a.trace_close_order and a.source_commit!='3b421578588243f920886e6fe79a6faa87ea026e':p.error('Close-order tracing requires the exact reviewed current-stable execution target.')
 source, site, root = a.source_root.resolve(), a.dependency_site.resolve(), a.work_root.resolve()
 # Preserve the caller's short DLL-loader spelling; audit checks keep using the
 # identical resolved, read-only site. No dependency or permission changes.
@@ -48,6 +50,7 @@ def supervise():
     command=[sys.executable,'-I','-S','-B',str(Path(__file__).resolve()),'--owned-child',
              '--source-commit',COMMIT,'--source-root',str(source),'--dependency-site',str(site_alias),'--work-root',str(root)]
     if a.seeded_room_reads:command.append('--seeded-room-reads')
+    if a.trace_close_order:command.append('--trace-close-order')
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
     observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -70,6 +73,14 @@ def supervise():
     assert core['state']==CORE_EXPECTED_STATE and core['importedModules']
     if a.seeded_room_reads:assert len(core['seededRoomReads']['cases'])==20
     assert not core['denied'] and not final['denied']
+    if a.trace_close_order:
+        trace_path=root/'close-call-trace.json'
+        trace=json.loads(trace_path.read_text(encoding='utf-8'))
+        assert trace['state']=='OBSERVATION_ONLY_LIFECYCLE_TRACE' and not trace['truncated']
+        assert trace['mainThreadProfilerActive'] and trace['events'] and len(trace['events'])<=2000
+        assert not trace['sdkFunctionsReplaced'] and not trace['callbacksUnregistered'] and not trace['warningsSuppressed']
+        observation.update(closeOrderTraceObserved=True,closeOrderTraceSha256=hashlib.sha256(trace_path.read_bytes()).hexdigest(),closeOrderEvents=len(trace['events']))
+
     # After actual process exit, inspect its own stores through read-only SQLite.
     import sqlite3
     stores=[]
@@ -216,6 +227,55 @@ def observe_process_exit():
     (root/'shutdown-diagnostics.json').write_text(json.dumps(dict(warnings=shutdown_warnings,denied=denied,
         state='CLEAN_EXIT_OBSERVATION' if not shutdown_warnings and not denied else 'FOLLOW_UP_REQUIRED'),indent=2)+'\n',encoding='utf-8')
 atexit.register(observe_process_exit)
+record['closeOrderTraceEnabled']=a.trace_close_order
+if a.trace_close_order:
+    # Observation-only call profiling: never replaces an SDK function or callback.
+    import threading as _trace_threading
+    import time as _trace_time
+    if sys.getprofile() is not None or _trace_threading.getprofile() is not None:raise RuntimeError('Close-order tracing refuses to replace an existing profiler')
+    _trace_events=[]
+    _trace_lock=_trace_threading.Lock()
+    _trace_truncated=False
+    _trace_origin=_trace_time.monotonic()
+    _trace_source=str(source).replace('\\','/').casefold().rstrip('/')+'/'
+    _trace_root=str(root).replace('\\','/').casefold().rstrip('/')+'/'
+    _trace_wanted={
+     'hermes_state.py':{'close','_close_physical','_reopen_after_close_locked'},
+     'hermes_state_registry.py':{'close_all','release','_close_generation'},
+     'gateway/run_shutdown.py':{'_stop_quiesce_and_close_session_dbs','_close_shared'},
+     'tui_gateway/session_reaper.py':{'_atexit_clear','_refresh_backend_heartbeat'},
+     'tui_gateway/server.py':{'_get_db'},
+     'hermes_state_gateway.py':{'clear_backend_heartbeat'},
+    }
+    def _trace_calls(frame,event,arg):
+     global _trace_truncated
+     if event not in ('call','return'):return
+     name=frame.f_code.co_name
+     if name not in {'close','_close_physical','_reopen_after_close_locked','close_all','release','_close_generation','_stop_quiesce_and_close_session_dbs','_close_shared','_atexit_clear','_refresh_backend_heartbeat','_get_db','clear_backend_heartbeat'}:return
+     filename=frame.f_code.co_filename.replace('\\','/').casefold()
+     if not filename.startswith(_trace_source):return
+     relative=filename[len(_trace_source):]
+     if name not in _trace_wanted.get(relative,set()):return
+     value=frame.f_locals.get('self',frame.f_locals.get('db'))
+     path=getattr(value,'db_path',None)
+     row=dict(event=event,file=relative,function=name,line=frame.f_lineno,milliseconds=round((_trace_time.monotonic()-_trace_origin)*1000,3),thread=_trace_threading.current_thread().name)
+     if path is not None:
+      path=str(path).replace('\\','/');folded=path.casefold();row['db']=path[len(_trace_root):] if folded.startswith(_trace_root) else '<outside-fixture>';row['connectionClosed']=getattr(value,'_conn','missing') is None
+     if event=='call':
+      stack=[];parent=frame.f_back
+      while parent is not None and len(stack)<12:
+       f=parent.f_code.co_filename.replace('\\','/');folded=f.casefold();stack.append(dict(file=f[len(_trace_source):] if folded.startswith(_trace_source) else f.rsplit('/',1)[-1],function=parent.f_code.co_name,line=parent.f_lineno));parent=parent.f_back
+      row['stack']=stack
+     with _trace_lock:
+      if len(_trace_events)<2000:_trace_events.append(row)
+      else:_trace_truncated=True
+    def _dump_close_trace():
+     with _trace_lock:rows=list(_trace_events);truncated=_trace_truncated
+     (root/'close-call-trace.json').write_text(json.dumps(dict(state='OBSERVATION_ONLY_LIFECYCLE_TRACE',events=rows,truncated=truncated,sdkFunctionsReplaced=False,callbacksUnregistered=False,warningsSuppressed=False,mainThreadProfilerActive=sys.getprofile() is _trace_calls),indent=2)+'\n',encoding='utf8')
+    atexit.register(_dump_close_trace)
+    sys.setprofile(_trace_calls)
+    _trace_threading.setprofile(_trace_calls)
+
 def phase(name,**details):
     record['phases'].append(dict(name=name,at=datetime.datetime.now(datetime.timezone.utc).isoformat(),**details))
     (root/'attempt.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')

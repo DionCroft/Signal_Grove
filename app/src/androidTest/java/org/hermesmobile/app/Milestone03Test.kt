@@ -23,9 +23,43 @@ class Milestone03Test {
         compose.waitForIdle()
     }
     private fun go(w:Words)=compose.onAllNodesWithContentDescription(w.localized(AppPreferences()),useUnmergedTree=true).onLast().performClick()
+    private fun demoExercise(word:Words) {
+        // Keep the original interaction and assertion timing. On failure capture
+        // safe fixture state so a transient missing node can be distinguished
+        // from a language, connection or message-list mismatch. Never retry it.
+        try {
+            compose.onNodeWithText(word.localized(AppPreferences())).performScrollTo().performClick()
+        } catch(original:AssertionError) {
+            fun nodeCount(text:String,substring:Boolean=false)=runCatching {
+                compose.onAllNodesWithText(text,substring=substring).fetchSemanticsNodes().size
+            }.getOrDefault(-1)
+            val preferences=vm.preferences.value
+            val diagnostic=org.json.JSONObject().apply {
+                put("version",1);put("exercise",word.name)
+                put("demo",preferences.demo);put("chinese",preferences.chinese);put("pinyin",preferences.pinyin)
+                put("preferencesAreDefault",preferences==AppPreferences())
+                put("connectionIsDemo",vm.connectionStatus.value=="demo");put("connecting",vm.connecting.value)
+                put("busy",vm.busy.value);put("controlling",vm.controlBusy.value)
+                put("selectionIsBlank",vm.selected.value.isBlank());put("messageCount",vm.messages.value.size)
+                put("controlCount",vm.controls.value.size)
+                put("expectedExactNodes",nodeCount(word.localized(AppPreferences())))
+                put("englishSubstringNodes",nodeCount(word.en,true))
+                put("homeNewConversationNodes",nodeCount("New conversation"))
+                put("activityLifecycle",compose.activity.lifecycle.currentState.name)
+                put("imeBottomPx",androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)
+                    ?.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())?.bottom ?: -1)
+            }.toString()
+            runCatching {
+                val file=java.io.File(compose.activity.getExternalFilesDir(null),
+                    "qa/demo-exercise-failure-"+java.util.UUID.randomUUID()+".json")
+                file.parentFile!!.mkdirs();file.writeText(diagnostic)
+            }
+            throw AssertionError("Demo exercise interaction failed; safe fixture snapshot=$diagnostic",original)
+        }
+    }
     @Test fun demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure() {
         compose.onNodeWithText("New conversation").performScrollTo().performClick()
-        compose.onNodeWithText(Words.DemoApproval.localized(AppPreferences())).performScrollTo().performClick()
+        demoExercise(Words.DemoApproval)
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}
         assertTrue(vm.busy.value);assertEquals("pending",vm.controls.value.single().state)
         compose.onNodeWithText(Words.Deny.localized(AppPreferences())).performClick()
@@ -38,7 +72,7 @@ class Milestone03Test {
     }
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {
         compose.onNodeWithText("New conversation").performScrollTo().performClick()
-        compose.onNodeWithText(Words.DemoClarification.localized(AppPreferences())).performScrollTo().performClick()
+        demoExercise(Words.DemoClarification)
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}
         compose.onNodeWithText("Brief").performClick();assertTrue(vm.busy.value)
         compose.onNodeWithText(Words.SubmitAnswer.localized(AppPreferences())).performClick()

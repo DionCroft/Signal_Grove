@@ -70,12 +70,14 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-**Still open:** source1180 has one failed API26 Demo clarification case;
+**Still open:** source1180 retains one hosted API26 Demo clarification failure;
+its unchanged 598-case shard now passes locally, but its cause remains unresolved.
+The diagnostic pair passes 5 focused native cases. See [Demo/shutdown evidence](docs/contracts/2026-11-13-demo-shutdown-diagnostics.md).
 newer exact-source CI and final production acceptance remain. Earlier production
 code112 upgrade, saved
 connection, current history and stored-project reads passed; final production
-code114 acceptance remains. Fresh upstream inspection flags40/101 changed used
-handlers on stable/inspected main415fa33. Complete semantic/dependency, live
+code114 acceptance remains. Fresh upstream inspection flags 40/104 changed used
+handlers on stable/inspected main 0e72e8a. Complete semantic/dependency, live
 worker/project/automation/integration and publication checks remain in the
 [full audit](docs/AUDIT_EXECUTION_PLAN.md). Failed outcomes retain their scope.
 

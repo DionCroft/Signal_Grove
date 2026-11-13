@@ -1,5 +1,24 @@
 # Compatibility and protocol scope
 
+## 13 November 2026 - original Demo shard passes; shutdown cause traced
+
+The original source1180 API26 shard1/2 passes all 598 cases locally after15
+unchanged class-trial passes. The hosted failure remains unreproduced/unfixed.
+Failure-only sanitized fixture snapshots preserve its assertions and timing.
+A fresh original-key diagnostic pair passes 5 focused native cases; full
+clean-head Android coverage remains pending.
+
+Both default and optional-trace owner probes preserve the actual shutdown
+warning/exit 2. The trace confirms a heartbeat callback writes after shared DB
+closure. Seeded mode retains 20 real-owner room checks; no SDK/deployed fix is
+claimed. Fresh stable/main scans flag 40/104 changed used handlers; the 3 newly
+flagged model/profile handlers are statically triaged without waivers.
+
+Required build checks pass1011 JVM/97 reports,422 policy and15 runtime-model
+cases; lint has0 errors (51/50 warnings). Product behavior and public beta.9
+are unchanged. Final production-phone, real worker/project/automation/integration
+and all original acceptance obligations remain. See [exact evidence](contracts/2026-11-13-demo-shutdown-diagnostics.md).
+
 ## 13 November 2026 - goal active; four acceptance priorities explicit
 
 The owner resumed the existing full audit goal. Its explicit priorities are
