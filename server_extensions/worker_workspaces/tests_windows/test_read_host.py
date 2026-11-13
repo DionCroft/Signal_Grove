@@ -51,6 +51,23 @@ class ReadHostNativeTest(unittest.TestCase):
         with self.assertRaises(p.ReadTransportError) as error:p.call_once(endpoint,self.frame(endpoint,'list',binding_token=token,relative_path='',entry_token=None))
         self.assertFalse(error.exception.request_submitted);self.assertTrue(self.session._provider._retired)
 
+    def test_fresh_starting_projection_is_reobserved_before_one_native_admission(self):
+        from unittest.mock import patch
+        endpoint=self.start();reads=[];starting=h.encode_projection([h.ReadHostStatus(self.scope,'starting')],device=self.device,observed=time.time())
+        def projection():
+            reads.append(None)
+            return starting if len(reads)==1 else h.encode_projection(self.host.statuses(),device=self.device,observed=time.time())
+        raw=self.frame(endpoint,'prepare')
+        with patch.object(self.session.adapter,'handle',wraps=self.session.adapter.handle) as admitted:
+            reply=json.loads(h.call_current_projected(projection,raw,scope_id=self.scope,device=self.device,timeout=3))
+            self.assertEqual('ok',reply['status']);self.assertGreaterEqual(len(reads),2);admitted.assert_called_once_with(raw)
+
+    def test_held_projection_never_uses_a_live_pipe_or_waits_for_restoration(self):
+        from unittest.mock import Mock,patch
+        endpoint=self.start();held=h.encode_projection([h.ReadHostStatus(self.scope,'held',None,'DENIED')],device=self.device,observed=time.time());reader=Mock(return_value=held)
+        with patch.object(self.session.adapter,'handle',wraps=self.session.adapter.handle) as admitted,self.assertRaises(p.ReadTransportError) as error:h.call_current_projected(reader,self.frame(endpoint,'prepare'),scope_id=self.scope,device=self.device)
+        self.assertFalse(error.exception.request_submitted);reader.assert_called_once();admitted.assert_not_called()
+
     def test_fresh_private_projection_serves_the_exact_enrolled_native_request(self):
         endpoint=self.start();raw=h.encode_projection(self.host.statuses(),device=self.device,observed=time.time());frame=self.frame(endpoint,'prepare')
         reply=json.loads(h.call_projected(raw,frame,scope_id=self.scope,device=self.device,now=time.time()))

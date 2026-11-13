@@ -5,6 +5,7 @@ transport replay. The interactive host alone publishes endpoint projections.
 """
 from dataclasses import dataclass,field
 import threading
+import time
 from .broker_enrollment import EnrolledReadSession
 from .local_pipe import IdentityRevertFailure,LocalReadPipe
 from .workspace_provider import WorkspaceError
@@ -183,3 +184,32 @@ def call_projected(raw_projection,raw_request,*,scope_id,device,now,timeout=3):
         if status.state!='ready' or status.endpoint is None:raise WorkspaceError('UNAVAILABLE')
         return call_once(status.endpoint,raw_request,timeout=timeout)
     except WorkspaceError as error:raise ReadTransportError(error.code,request_submitted=False) from None
+
+def call_current_projected(read_projection,raw_request,*,scope_id,device,timeout=3):
+    """Wait only for fresh starting state, then admit at most one frame.
+
+    The trusted loader rechecks caller policy before returning protected bytes.
+    Held/closed, stale data and changed instances never resume automatically.
+    Readiness observation, native connection and I/O share one absolute deadline.
+    """
+    from .broker_protocol import decode_frame
+    from .local_pipe import _deadline,call_once,ReadTransportError
+    try:
+        deadline=_deadline(timeout)
+        if not callable(read_projection):raise WorkspaceError('INVALID')
+        frame=decode_frame(raw_request)
+        if frame['payload'].get('scope_id')!=scope_id:raise WorkspaceError('DENIED')
+        waiting=threading.Event()
+        while True:
+            if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
+            status=select_projection(read_projection(),scope_id=scope_id,device=device,now=time.time())
+            if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
+            if status.state=='ready':
+                if frame['worker_instance']!=status.endpoint.worker_instance:raise WorkspaceError('CHANGED')
+                break
+            if status.state!='starting':raise WorkspaceError('UNAVAILABLE')
+            waiting.wait(min(.05,max(0.0,deadline-time.monotonic())))
+    except WorkspaceError as error:raise ReadTransportError(error.code,request_submitted=False) from None
+    except Exception:raise ReadTransportError('UNAVAILABLE',request_submitted=False) from None
+    # Once native admission begins, preserve its exact submission uncertainty.
+    return call_once(status.endpoint,raw_request,timeout=timeout,deadline=deadline)

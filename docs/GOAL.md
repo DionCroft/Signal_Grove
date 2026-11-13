@@ -45,11 +45,12 @@ Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
 reboot or change live gateway/models/credentials without the existing applicable
 approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The next bounded stage observes the live c814 API37 handles and independently
-reconciles the complete four-shard raw union once terminal. Keep failed cohorts
-separate and final-head CI open. Continue stable42/main124 semantic/transitive
-review, the original owner-runtime shutdown finding, Pi pre-submission
-UNAVAILABLE and real authenticated workspace/worker/automation acceptance.
-The nine additional source-context guards waive no baseline finding; paired
-50-case official shutdown cohorts are regression evidence for pristine and the
-undeployed candidate. See contracts/2026-11-13-transitive-review-and-shutdown.md.
+and tooling remain on E:. The next bounded stage prepares reviewed component integration/cutover and its
+recovery/idle evidence, preserving maintained fixes, caller policy and receipts;
+complete any required approval before live maintenance. Continue native caller/
+profile/operator binding and actual Android chat/workspace/worker/file/NAS and
+automation/integration acceptance. Observe final-head CI separately from c814's
+complete 1,141/1,142 standard gate. Stable42/main6da124 semantics, pristine SDK
+shutdown, original failure causes and final production phone/release checks stay
+open. See contracts/2026-11-13-fresh-workspace-readiness.md for the measured Pi
+boundary, bounded candidate admission and five-call client-only proof.

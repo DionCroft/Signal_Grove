@@ -4,9 +4,10 @@ This read provider runs on the Windows execution owner inside its trusted
 interactive broker. The separately reviewed existing-daemon integration is now
 deployed. Earlier local/Pi private SSH reads passed at the documented revisions;
 see the [deployment scope](../../docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
-The current RAM-only coordinator trial refuses directory listing before
-submission. A separately tested client availability fix is undeployed; see the
-[current evidence and limits](../../docs/contracts/2026-11-13-pipe-availability.md).
+The recorded snapshot-client trial refuses a fresh starting projection before
+directory-list submission. A candidate-only Pi trial now passes five read calls
+with bounded fresh-readiness admission; nothing is installed or restarted. See
+[current evidence and limits](../../docs/contracts/2026-11-13-fresh-workspace-readiness.md).
 The optional [native coordinator extension](../coordinator_workspaces/README.md)
 is source-tested separately. Production native-auth/Android wiring and NAS file
 acceptance remain open. Importing these modules starts no listener, agent,
@@ -165,6 +166,19 @@ its single CreateFileW attempt, sharing the original deadline. Readiness does
 not reserve the instance: a racing open can still refuse without retry.
 Caller/server identity checks and conservative submission state are preserved.
 This source change is not yet installed in the live worker component.
+
+For a protected projection that can briefly publish starting between exchanges,
+use call_current_projected(trusted_loader, frame, scope_id=..., device=...).
+The integrator-owned loader must freshly validate protected caller/operator policy
+on each observation and return only protected local projection bytes. Phone input
+must never select a loader, path or policy. This helper waits only for fresh
+starting state, then makes one native call. Held/closed/stale data and changed
+workers refuse; a native failure never triggers a second read or submission.
+An optional call_once absolute deadline can shorten, never extend, its budget;
+expiry during identity checks prevents the first request write. Authoritative
+registry/root checks remain on the interactive owner, not an SSH-side projection.
+The snapshot-only call_projected behavior remains unchanged. Live integration of
+this candidate still needs its reviewed component maintenance procedure.
 
 Each call has a finite 0.05–10 second deadline, bounded message I/O and an ACK over
 the exact reply hash. Pending local I/O is cancelled and drained; unread contents

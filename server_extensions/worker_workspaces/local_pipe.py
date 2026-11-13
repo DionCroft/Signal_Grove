@@ -269,11 +269,15 @@ def _reply(raw,request,endpoint):
     return raw
 
 
-def call_once(endpoint,raw,*,timeout=3):
+def call_once(endpoint,raw,*,timeout=3,deadline=None):
     """Return one authenticated reply or a fixed error with submission uncertainty."""
     submitted=False;handle=None;windows=None
     try:
-        deadline=_deadline(timeout);_endpoint(endpoint);request=decode_frame(raw)
+        limit=_deadline(timeout)
+        if deadline is None:deadline=limit
+        elif type(deadline) not in (float,int) or not 0<deadline<=limit or not math.isfinite(deadline):raise WorkspaceError('INVALID')
+        if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
+        _endpoint(endpoint);request=decode_frame(raw)
         if request['worker_instance']!=endpoint.worker_instance or request['payload'].get('scope_id')!=endpoint.scope_id:raise WorkspaceError('CHANGED')
         windows=_Windows();sid,_,_=windows.process_identity(os.getpid())
         if endpoint.owner_sid!=sid:raise WorkspaceError('DENIED')
@@ -285,6 +289,7 @@ def call_once(endpoint,raw,*,timeout=3):
         if pid.value!=endpoint.server_pid:raise WorkspaceError('DENIED')
         owner,started,session=windows.process_identity(pid.value)
         if (owner,started,session)!=(endpoint.owner_sid,endpoint.server_started,endpoint.server_session):raise WorkspaceError('DENIED')
+        if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
         windows.api.SetNamedPipeHandleState(handle,2,None,None)
         submitted=True # A failed/expired write can still have reached the broker.
         windows.write(handle,raw,deadline);reply=windows.read(handle,MAX_REPLY_BYTES,deadline);_reply(reply,request,endpoint)

@@ -5,40 +5,41 @@
 
 ## Latest evidence
 
-Nine existing model/channel/credential callers now require their original full
-module context, closing helper-only drift missed by a parent fingerprint. No
-upstream fingerprint, usage entry or acceptance decision changes. Nine old/new
-counterexamples prove the gap; final 456 policy and 15 runtime-model cases pass.
-Stable now retains 42 findings, inspected main6da 124; none are waived.
+A disposable Windows client now captures the Pi refusal exactly: list consumes a
+fresh starting projection without an endpoint; no native connection is entered.
+The candidate waits only for fresh starting metadata before one admission, sharing
+one absolute deadline with native I/O. Held/stale/changed states and all replay
+boundaries remain strict. Full checks pass 469 policy, 15 runtime-model and 71
+Windows native cases, including 13 portable and two native counterexamples.
 
-Both exact stable and the undeployed heartbeat candidate pass the same 50
-official shutdown behavior cases across six canonical, no-retry file runs.
-All 23,586 tracked inputs stay unchanged in each cohort. This regression evidence
-does not reproduce or close the separate pristine owner-runtime shutdown warning.
+A candidate-only Pi trial completes status/prepare/list/preview plus duplicate
+refusal, with foreign subject/profile denied before SSH. Five traces include a
+real starting-to-ready wait. Installed sources, grants, registry, owner/fixture,
+Pi services/stamp and eight receipt rows stay unchanged; nothing is deployed.
 
-The f0 controlled Home/Chat failure is reconciled and retained. Source c814 now
-has an independently verified API26 union: 540 + 601 positives cover all 1,141
-standard cases, including original clarification/scroll and Apply/Cancel routing.
-API37 and the full final-head gate remain pending. All four priorities/full audit
-remain active; live components, app inputs, owner data and releases are unchanged.
+The complete c814 Android gate is independently reproduced: all four raw shards,
+hosted summary and actual same-run APK bytes bind 1,141 API26 / 1,142 API37 positives.
+External-model and final-head/phone acceptance remain separate. Original failures,
+upstream/shutdown and the full project/automation/integration audit remain open.
 
-[Exact evidence](docs/contracts/2026-11-13-transitive-review-and-shutdown.md).
+[Exact evidence](docs/contracts/2026-11-13-fresh-workspace-readiness.md).
 
 ## Exact next action
 
-Observe the two live c814 API37 jobs; retain their exact raw partitions and
-reproduce the complete four-shard aggregator once terminal. Keep failed cohorts
-separate. Continue the unreviewed stable42/main124 semantics and original runtime
-shutdown warning, Pi readiness/UNAVAILABLE and native workspace/worker acceptance.
-No owner phone is attached; final production device checks remain pending.
+Prepare a reviewed component integration/cutover plan and recovery/idle proof,
+preserving maintained worker fixes and all grants/receipts; complete any required
+approval before live maintenance. Then verify native actor/profile/operator
+binding and actual Android chat/workspace/worker/file/NAS acceptance. Observe
+the new final-head CI handles; retain c814's complete gate separately.
 
 ## Remaining scope and safeguards
 
-All original API26-cause, upstream/transitive/lifecycle, authenticated project/
-workspace/worker/NAS, automation/integration, approvals/images/recovery and
-device/security/release gates remain. The pipe and heartbeat candidates are
-undeployed. Preserve package/signing/UID/models/history/connections and unknown
-receipts. No owner reset or repeated reboot, daemon restart, replay or live
-gateway/model/credential/job change. Source stays authoritative; all scratch,
-tools/builds/models/SDK test copies and private evidence stay in approved storage.
+Original API26-cause/delayed-tap questions, stable42/main6da124 semantic/transitive
+review, pristine SDK shutdown, all real project/worker, automation/integration,
+approvals/images/recovery, device/security and final production upgrade/live/
+offline gates remain. Pipe/readiness and heartbeat candidates are undeployed.
+No owner phone is attached. Preserve signing/package/UID/models/history/connection
+data and unknown work. No reset/repeat reboot, unreviewed daemon/gateway change,
+model/credential/grant change or replay. Source stays authoritative; all scratch,
+SDK copies/tools/builds/models/private evidence stays in approved storage.
 Beta.9/source0ee and stable1.0.0 remain unchanged.

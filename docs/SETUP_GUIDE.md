@@ -10,9 +10,11 @@ Install Hermes on the host that owns the agent, following the
 [official installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
 Keep the existing Hermes home, named profile, identity, sessions, model routing,
 skills and tools. Configure the provider there and verify a regular conversation.
-This connection uses Hermes on its existing host. Optional on-device inference
-is separate development work; it does not move the host's identity, tools,
-sessions or project files onto the phone.
+This connection uses Hermes on its existing host. Beta.9 also includes experimental
+optional phone AI, compatible model import/download and a setup helper. It needs
+its own reviewed model and keeps separate local history. It does not move the
+host's identity, tools, remote sessions or project authority onto the phone;
+remote project work still requires the authenticated host and owning worker.
 Use the installed version's commands and service manager; avoid starting a second
 gateway alongside a managed installation. Changes to an existing production agent
 need its normal backup, active-work and restart procedures.

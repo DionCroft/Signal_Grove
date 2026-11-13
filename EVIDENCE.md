@@ -1,5 +1,26 @@
 # Evidence navigation
 
+## 13 November 2026 - fresh read admission and complete Android fixture gate
+
+A disposable Windows client now captures the Pi refusal exactly: list consumes a
+fresh starting projection without an endpoint; no native connection is entered.
+The candidate waits only for fresh starting metadata before one admission, sharing
+one absolute deadline with native I/O. Held/stale/changed states and all replay
+boundaries remain strict. Full checks pass 469 policy, 15 runtime-model and 71
+Windows native cases, including 13 portable and two native counterexamples.
+
+A candidate-only Pi trial completes status/prepare/list/preview plus duplicate
+refusal, with foreign subject/profile denied before SSH. Five traces include a
+real starting-to-ready wait. Installed sources, grants, registry, owner/fixture,
+Pi services/stamp and eight receipt rows stay unchanged; nothing is deployed.
+
+The complete c814 Android gate is independently reproduced: all four raw shards,
+hosted summary and actual same-run APK bytes bind 1,141 API26 / 1,142 API37 positives.
+External-model and final-head/phone acceptance remain separate. Original failures,
+upstream/shutdown and the full project/automation/integration audit remain open.
+
+[Exact evidence and remaining acceptance](docs/contracts/2026-11-13-fresh-workspace-readiness.md).
+
 ## 13 November 2026 - transitive guards and paired shutdown regressions
 
 Nine existing model/channel/credential callers now require their original full

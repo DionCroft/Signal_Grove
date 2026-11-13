@@ -56,7 +56,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Stable native-auth/startup fixture | **87 / 87 cases** | Exact stable3b42157; real ASGI, loader helpers and start-entry/PM suppression with explicit adapters; not full backend, live Pi or complete socket acceptance |
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
 | Unmodified native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
-| Policy and Windows workspace checks | **456 policy / 15 runtime-model / 69 Windows native cases** | Strengthened helper-source guards; unchanged native component; candidate-only registered read passes, full acceptance remains open |
+| Policy and Windows workspace checks | **469 policy / 15 runtime-model / 71 Windows native cases** | Bounded fresh-readiness admission; candidate-only Pi read passes with original receipts intact; full deployment/native-auth/phone acceptance remains open |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
@@ -64,8 +64,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current selected offline methods | **7 have positive evidence** | Unchanged code114 source0ee app, separately identified companions; garden/metadata/helper/generation/Qwen/switch/import; not the full external-model gate; old failures retained |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
-| Current API26 standard gate only | **1,141 / 1,141 cases** | Source c814d743, two disjoint raw shards; original methods and actual keyboard transitions pass; API37/full final-head gate pending |
-| Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently reproduced source `c9c0718`, all four disjoint raw partitions and hosted summary; external model methods excluded |
+| Latest complete standard device gate | **1,141 API26 / 1,142 API37 cases** | Independently reproduced source `c814d743`, four disjoint raw partitions, hosted summary and actual build APK hashes; external-model/final-head/phone gates remain separate |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
@@ -92,7 +91,14 @@ candidate client; this does not close native-auth or phone workspace acceptance.
 The [transitive/shutdown review](docs/contracts/2026-11-13-transitive-review-and-shutdown.md)
 adds source-context guards without resetting the baseline, records paired
 50-case official regression cohorts and verifies the new API26 raw union.
-The separate shutdown warning and complete two-API/final-head gate stay open.
+The separate shutdown warning and final-current-head gate stay open; the complete
+c814 fixture gate is reconciled below.
+
+The [fresh workspace readiness evidence](docs/contracts/2026-11-13-fresh-workspace-readiness.md)
+identifies the Pi refusal before native admission, validates the candidate through
+five actual private read calls and reconciles the complete c814 Android gate.
+The candidate remains undeployed; native authentication and phone/NAS workspace
+acceptance still need separate proof.
 
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
 review (inspected stable42/main124), real project/workspace/worker,
