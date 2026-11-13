@@ -79,6 +79,7 @@ class _Windows:
             (self.k,'DisconnectNamedPipe',[w.HANDLE],w.BOOL),
             (self.k,'CreateNamedPipeW',[w.LPCWSTR,*([w.DWORD]*6),ctypes.POINTER(Attributes)],w.HANDLE),
             (self.k,'CreateFileW',[w.LPCWSTR,w.DWORD,w.DWORD,ctypes.c_void_p,w.DWORD,w.DWORD,w.HANDLE],w.HANDLE),
+            (self.k,'WaitNamedPipeW',[w.LPCWSTR,w.DWORD],w.BOOL),
             (self.a,'OpenProcessToken',[w.HANDLE,w.DWORD,ctypes.POINTER(w.HANDLE)],w.BOOL),
             (self.a,'OpenThreadToken',[w.HANDLE,w.DWORD,w.BOOL,ctypes.POINTER(w.HANDLE)],w.BOOL),
             (self.a,'GetTokenInformation',[w.HANDLE,ctypes.c_int,ctypes.c_void_p,w.DWORD,ctypes.POINTER(w.DWORD)],w.BOOL),
@@ -95,6 +96,14 @@ class _Windows:
     def check(self,value):
         if not value:self.error()
         return value
+
+    def wait_available(self,address,deadline):
+        # One pre-admission wait shares the request deadline. Availability can
+        # race another client; CreateFile still gets exactly one attempt.
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise WorkspaceError('UNAVAILABLE')
+        self.check(self.k.WaitNamedPipeW(address,max(1,math.ceil(remaining*1000))))
+        if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
 
     def token_sid(self,token):
         needed=w.DWORD();self.a.GetTokenInformation(token,1,None,0,ctypes.byref(needed))
@@ -268,6 +277,7 @@ def call_once(endpoint,raw,*,timeout=3):
         if request['worker_instance']!=endpoint.worker_instance or request['payload'].get('scope_id')!=endpoint.scope_id:raise WorkspaceError('CHANGED')
         windows=_Windows();sid,_,_=windows.process_identity(os.getpid())
         if endpoint.owner_sid!=sid:raise WorkspaceError('DENIED')
+        windows.wait_available(endpoint.address,deadline)
         # Identification-only SQOS: the server can query identity, not use client credentials.
         handle=windows.k.CreateFileW(endpoint.address,0xc0000000,0,None,3,0x40000000|0x100000|0x10000,None)
         if handle in (None,ctypes.c_void_p(-1).value):handle=None;windows.error()

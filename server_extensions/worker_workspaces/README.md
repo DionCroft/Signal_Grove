@@ -2,8 +2,11 @@
 
 This read provider runs on the Windows execution owner inside its trusted
 interactive broker. The separately reviewed existing-daemon integration is now
-deployed and actual local/Pi private SSH reads pass; see the
-[deployment scope](../../docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
+deployed. Earlier local/Pi private SSH reads passed at the documented revisions;
+see the [deployment scope](../../docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
+The current RAM-only coordinator trial refuses directory listing before
+submission. A separately tested client availability fix is undeployed; see the
+[current evidence and limits](../../docs/contracts/2026-11-13-pipe-availability.md).
 The optional [native coordinator extension](../coordinator_workspaces/README.md)
 is source-tested separately. Production native-auth/Android wiring and NAS file
 acceptance remain open. Importing these modules starts no listener, agent,
@@ -156,6 +159,12 @@ broker/control path, never directly from a phone request. Windows account
 identity is separate from actor/profile/project authorization; the existing
 broker must supply fresh policy and actual interactive-owner checks. A service
 session in a disposable transport test is not production interactive acceptance.
+
+The candidate client makes one finite WaitNamedPipeW availability wait before
+its single CreateFileW attempt, sharing the original deadline. Readiness does
+not reserve the instance: a racing open can still refuse without retry.
+Caller/server identity checks and conservative submission state are preserved.
+This source change is not yet installed in the live worker component.
 
 Each call has a finite 0.05–10 second deadline, bounded message I/O and an ACK over
 the exact reply hash. Pending local I/O is cancelled and drained; unread contents

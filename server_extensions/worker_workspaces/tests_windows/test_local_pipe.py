@@ -46,6 +46,55 @@ class PipeNativeTest(unittest.TestCase):
         result=self.call(self.frame('preview',binding_token=token,relative_path=row['relative_path'],entry_token=row['entry_token']))
         self.assertEqual('Signal Grove 🌱',result['result']['text']);self.assertEqual('ok',result['status'])
 
+    def hold_first_ack(self):
+        original=self.pipe._read;held=threading.Event();release=threading.Event()
+        self.addCleanup(release.set)
+        def read(limit,deadline):
+            raw=original(limit,deadline)
+            if limit==35 and not held.is_set():
+                held.set()
+                if not release.wait(2):raise AssertionError('Controlled acknowledgement was not released')
+            return raw
+        return read,held,release
+
+    def test_real_busy_pipe_without_availability_wait_refuses_before_submission(self):
+        read,held,release=self.hold_first_ack()
+        with patch.object(self.pipe,'_read',side_effect=read),patch.object(self.provider,'dispatch',wraps=self.provider.dispatch) as dispatch,ThreadPoolExecutor(max_workers=1) as pool:
+            server=pool.submit(self.pipe.serve_one,timeout=5)
+            try:
+                token=json.loads(t.call_once(self.pipe.endpoint,self.frame('prepare'),timeout=5))['result']['binding_token'];self.assertTrue(held.wait(2))
+                with patch.object(t._Windows,'wait_available',return_value=None),self.assertRaises(t.ReadTransportError) as error:t.call_once(self.pipe.endpoint,self.frame('list',binding_token=token,relative_path='',entry_token=None),timeout=1)
+                self.assertEqual('BUSY',error.exception.code);self.assertFalse(error.exception.request_submitted);self.assertEqual(1,dispatch.call_count)
+            finally:release.set()
+            self.assertEqual('served',server.result(timeout=5))
+
+    def test_real_held_ack_rearms_before_the_single_next_connection_and_request(self):
+        (self.root/'note.txt').write_bytes(b'bounded read\n');read,held,release=self.hold_first_ack();entered=threading.Event();original_wait=t._Windows.wait_available
+        def available(native,address,deadline):entered.set();return original_wait(native,address,deadline)
+        def serve():return [self.pipe.serve_one(timeout=5),self.pipe.serve_one(timeout=5)]
+        with patch.object(self.pipe,'_read',side_effect=read),patch.object(self.provider,'dispatch',wraps=self.provider.dispatch) as dispatch,ThreadPoolExecutor(max_workers=2) as pool:
+            server=pool.submit(serve)
+            try:
+                token=json.loads(t.call_once(self.pipe.endpoint,self.frame('prepare'),timeout=5))['result']['binding_token'];self.assertTrue(held.wait(2))
+                raw=self.frame('list',binding_token=token,relative_path='',entry_token=None)
+                with patch.object(t._Windows,'wait_available',new=available):
+                    second=pool.submit(t.call_once,self.pipe.endpoint,raw,timeout=5);self.assertTrue(entered.wait(2));self.assertFalse(second.done());self.assertEqual(1,dispatch.call_count)
+                    release.set();reply=json.loads(second.result(timeout=7))
+                self.assertEqual('ok',reply['status']);self.assertEqual(['note.txt'],[x['relative_path'] for x in reply['result']['entries']]);self.assertEqual(2,dispatch.call_count)
+            finally:release.set()
+            self.assertEqual(['served','served'],server.result(timeout=7))
+
+    def test_real_busy_availability_timeout_is_unsubmitted_and_does_not_replay(self):
+        read,held,release=self.hold_first_ack()
+        with patch.object(self.pipe,'_read',side_effect=read),patch.object(self.provider,'dispatch',wraps=self.provider.dispatch) as dispatch,ThreadPoolExecutor(max_workers=1) as pool:
+            server=pool.submit(self.pipe.serve_one,timeout=5)
+            try:
+                token=json.loads(t.call_once(self.pipe.endpoint,self.frame('prepare'),timeout=5))['result']['binding_token'];self.assertTrue(held.wait(2));started=time.monotonic()
+                with self.assertRaises(t.ReadTransportError) as error:t.call_once(self.pipe.endpoint,self.frame('list',binding_token=token,relative_path='',entry_token=None),timeout=.05)
+                self.assertEqual('UNAVAILABLE',error.exception.code);self.assertFalse(error.exception.request_submitted);self.assertLess(time.monotonic()-started,1.5);self.assertEqual(1,dispatch.call_count)
+            finally:release.set()
+            self.assertEqual('served',server.result(timeout=5))
+
     def assert_descriptor_owner(self,descriptor,expected_sid,mask):
         native=self.pipe._windows;a=native.a;present=w.BOOL();defaulted=w.BOOL();dacl=ctypes.c_void_p();control=w.WORD();revision=w.DWORD();expected=ctypes.c_void_p();ace=ctypes.c_void_p()
         class Acl(ctypes.Structure):_fields_=[('revision',w.BYTE),('pad',w.BYTE),('size',w.WORD),('count',w.WORD),('pad2',w.WORD)]

@@ -45,7 +45,10 @@ Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
 reboot or change live gateway/models/credentials without the existing applicable
 approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The next bounded stage observes final-head standard CI
-and first-run keyboard setup, then continues original Demo/rendering, delayed
-native-tap/caption, upstream and real workspace/worker acceptance without replay
-or waivers.
+and tooling remain on E:. The next bounded stage inspects current standard CI and the failed preceding
+cohort, retains the Pi pre-submission UNAVAILABLE, and verifies the undeployed
+bounded pipe-availability candidate before any guarded component cutover.
+Continue original Demo/rendering, delayed native-tap/caption, current stable/main
+semantic/shutdown and real authenticated workspace/worker/automation acceptance
+without replay or waivers. See contracts/2026-11-13-pipe-availability.md for the
+measured local BUSY race, candidate checks and separate Pi acceptance limits.

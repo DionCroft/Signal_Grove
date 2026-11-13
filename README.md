@@ -56,6 +56,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Stable native-auth/startup fixture | **87 / 87 cases** | Exact stable3b42157; real ASGI, loader helpers and start-entry/PM suppression with explicit adapters; not full backend, live Pi or complete socket acceptance |
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
 | Unmodified native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
+| Workspace read transport candidate | **453 policy / 15 runtime-model / 69 Windows native cases** | One bounded availability wait; actual candidate-only registered read passes; undeployed, Pi/native-auth/Android/NAS acceptance remains open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
@@ -81,8 +82,13 @@ coverage and original API26 causes remain open. The
 [earlier keyboard/upstream review](docs/contracts/2026-11-13-keyboard-gap-and-upstream-delta.md)
 retains its native gap and semantic/transitive compatibility limits.
 
+The [pipe availability evidence](docs/contracts/2026-11-13-pipe-availability.md)
+retains the current Pi refusal and separately fixes a measured local busy-pipe
+connection race in an undeployed candidate. Real registered reads pass with the
+candidate client; this does not close native-auth or phone workspace acceptance.
+
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
-review (latest inspected stable40/main104), real project/workspace/worker,
+review (latest inspected stable40/main115), real project/workspace/worker,
 automation/integration and final production code114 phone acceptance. Earlier
 production code112 upgrade, connection/history and stored-project reads passed.
 Public beta.9 remains the separately identified experimental source0ee preview.

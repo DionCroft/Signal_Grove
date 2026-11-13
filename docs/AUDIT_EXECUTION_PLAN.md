@@ -1,5 +1,25 @@
 # Signal Grove audit execution plan
 
+## 13 November 2026 - bounded pipe availability; Pi refusal retained
+
+A fresh RAM-only Pi coordinator trial reaches status/prepare, then refuses list
+with UNAVAILABLE before submission. The failure is retained. A separate local
+diagnostic proves a ready projection can coexist with native ERROR_PIPE_BUSY.
+The candidate client waits once for availability inside the original deadline,
+opens once and preserves every identity/no-replay boundary. It is not deployed.
+
+All 453 policy, 15 runtime-model and 69 real Windows native cases pass, including
+seven new portable and three native busy/timeout counterexamples. One candidate-
+only local client completes fresh prepare/list/preview against the already-granted
+validation workspace; installed sources, owner/policy/registry and eight receipts
+stay unchanged. Pi/native-auth/Android/NAS workspace acceptance remains open.
+
+Stable40/main115 used handlers still require compatibility review; SDK shutdown
+remains open. App inputs match prior required checks; c814 standard CI is now
+running and the preceding f0 cohort failed. All four priorities/full audit remain.
+
+[Exact evidence and acceptance limits](contracts/2026-11-13-pipe-availability.md).
+
 ## 13 November 2026 - unique Chat targeting after measured Home failure
 
 A hash-verified 4f27df1 API26 transition failure now proves that 16 ready messages
