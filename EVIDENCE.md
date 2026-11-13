@@ -1,5 +1,29 @@
 # Evidence navigation
 
+## 13 November 2026 - full wrapper and client-only integration plan
+
+The full existing-broker wrapper is now versioned and source-tested, replacing
+the trial-only call substitution with a reproducible installation template.
+Each fresh projection observation first revalidates the exact protected caller
+policy; changed grants, foreign frame scope/project and malformed input refuse
+before native admission. Uncertain submitted outcomes remain submitted, with no
+retry. The SSH client reads only fixed protected local control metadata.
+
+Frozen checks pass **481 policy / 15 runtime-model / 72 Windows native cases**.
+Twelve new portable cases cover the full wrapper and pinned package validation;
+one new native case loads the actual immutable package and completes prepare,
+list and preview, then refuses a duplicate and a foreign project.
+
+A fresh full-wrapper Pi trial passes all five calls against the unchanged
+installed daemon, retaining registry/policy, owner/fixture, maintained sources,
+eight receipt rows and Pi services/stamp. AST comparison preserves the old host,
+policy/loader, server class, projection/parser and adapter. This supports a
+client-only integration plan without restarting the existing daemon. It is
+**not deployed** and does not establish native HTTP/PKCE/WebSocket operator
+binding, Android project/file access, NAS or final phone/release acceptance.
+
+[Exact proof and recovery plan](docs/contracts/2026-11-13-existing-host-client-integration.md).
+
 ## 13 November 2026 - fresh read admission and complete Android fixture gate
 
 A disposable Windows client now captures the Pi refusal exactly: list consumes a

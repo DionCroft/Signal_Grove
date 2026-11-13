@@ -5,32 +5,40 @@
 
 ## Latest evidence
 
-A disposable Windows client now captures the Pi refusal exactly: list consumes a
-fresh starting projection without an endpoint; no native connection is entered.
-The candidate waits only for fresh starting metadata before one admission, sharing
-one absolute deadline with native I/O. Held/stale/changed states and all replay
-boundaries remain strict. Full checks pass 469 policy, 15 runtime-model and 71
-Windows native cases, including 13 portable and two native counterexamples.
+The full existing-broker wrapper is now versioned and source-tested, replacing
+the trial-only call substitution with a reproducible installation template.
+Each fresh projection observation first revalidates the exact protected caller
+policy; changed grants, foreign frame scope/project and malformed input refuse
+before native admission. Uncertain submitted outcomes remain submitted, with no
+retry. The SSH client reads only fixed protected local control metadata.
 
-A candidate-only Pi trial completes status/prepare/list/preview plus duplicate
-refusal, with foreign subject/profile denied before SSH. Five traces include a
-real starting-to-ready wait. Installed sources, grants, registry, owner/fixture,
-Pi services/stamp and eight receipt rows stay unchanged; nothing is deployed.
+Frozen checks pass **481 policy / 15 runtime-model / 72 Windows native cases**.
+Twelve new portable cases cover the full wrapper and pinned package validation;
+one new native case loads the actual immutable package and completes prepare,
+list and preview, then refuses a duplicate and a foreign project.
 
-The complete c814 Android gate is independently reproduced: all four raw shards,
-hosted summary and actual same-run APK bytes bind 1,141 API26 / 1,142 API37 positives.
-External-model and final-head/phone acceptance remain separate. Original failures,
-upstream/shutdown and the full project/automation/integration audit remain open.
+A fresh full-wrapper Pi trial passes all five calls against the unchanged
+installed daemon, retaining registry/policy, owner/fixture, maintained sources,
+eight receipt rows and Pi services/stamp. AST comparison preserves the old host,
+policy/loader, server class, projection/parser and adapter. This supports a
+client-only integration plan without restarting the existing daemon. It is
+**not deployed** and does not establish native HTTP/PKCE/WebSocket operator
+binding, Android project/file access, NAS or final phone/release acceptance.
 
-[Exact evidence](docs/contracts/2026-11-13-fresh-workspace-readiness.md).
+The complete c814 standard gate remains 1,141 API26 / 1,142 API37 positives,
+with all four raw partitions, hosted summary and actual same-run APKs verified.
+Final-head and owner-phone acceptance remain separate.
+
+[Exact proof and recovery plan](docs/contracts/2026-11-13-existing-host-client-integration.md).
 
 ## Exact next action
 
-Prepare a reviewed component integration/cutover plan and recovery/idle proof,
-preserving maintained worker fixes and all grants/receipts; complete any required
-approval before live maintenance. Then verify native actor/profile/operator
-binding and actual Android chat/workspace/worker/file/NAS acceptance. Observe
-the new final-head CI handles; retain c814's complete gate separately.
+Create and decrypt-verify fresh encrypted component recovery material against
+the unchanged maintained host/daemon/task/policy/registry/receipt references;
+then perform the reviewed component-only atomic client update, preserving the
+running daemon and old runtime. Verify the normal Pi helper and adjacent health
+without replay. Continue native actor/profile/operator binding and actual Android
+chat/workspace/worker/file/NAS acceptance; observe existing CI handles separately.
 
 ## Remaining scope and safeguards
 

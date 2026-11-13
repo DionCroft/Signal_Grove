@@ -194,3 +194,21 @@ fresh-registry/operator policy and private SSH helper, preserving current jobs.
 The coordinator native-auth source extension has its own isolated acceptance;
 production auth, Android/phone files, NAS full-ID incompatibility, Surface and
 the rest of the audit remain open.
+
+## Complete existing-host installation template
+
+[host_integration.py](host_integration.py) versions the full fixed-action wrapper
+with protected policy revalidation before each fresh readiness observation. Its
+pinned seven-file package uses Git/LF bytes. Install the wrapper outside that
+package as `workspace_reads.py` beside the existing trusted worker, only through
+the owner's reviewed deployment procedure. Importing starts nothing; no phone
+may select the source, loader, policy, projection, scope or path.
+
+Twelve portable and one actual full-package native regression add coverage for
+caller/project fences, changed policy, malformed input, cached-import byte
+validation and exact submitted uncertainty. The complete staged wrapper passes
+a five-call Pi trial against the unchanged daemon. The current local totals are
+481 policy, 15 runtime-model and 72 Windows native cases. No component update is
+installed. See the [review and recovery plan](../../docs/contracts/2026-11-13-existing-host-client-integration.md)
+before live integration; native app authentication, Android workspace/file/NAS
+and the wider audit remain open.

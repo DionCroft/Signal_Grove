@@ -56,7 +56,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Stable native-auth/startup fixture | **87 / 87 cases** | Exact stable3b42157; real ASGI, loader helpers and start-entry/PM suppression with explicit adapters; not full backend, live Pi or complete socket acceptance |
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
 | Unmodified native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
-| Policy and Windows workspace checks | **469 policy / 15 runtime-model / 71 Windows native cases** | Bounded fresh-readiness admission; candidate-only Pi read passes with original receipts intact; full deployment/native-auth/phone acceptance remains open |
+| Policy and Windows workspace checks | **481 policy / 15 runtime-model / 72 Windows native cases** | Complete pinned wrapper passes native and staged Pi reads; reviewed client-only integration plan, deployment/native-auth/phone acceptance remains open |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
@@ -94,7 +94,9 @@ adds source-context guards without resetting the baseline, records paired
 The separate shutdown warning and final-current-head gate stay open; the complete
 c814 fixture gate is reconciled below.
 
-The [fresh workspace readiness evidence](docs/contracts/2026-11-13-fresh-workspace-readiness.md)
+The [complete wrapper and integration plan](docs/contracts/2026-11-13-existing-host-client-integration.md)
+binds full-package native/Pi checks to a component-only recovery procedure; it is
+not installed. The [fresh workspace readiness evidence](docs/contracts/2026-11-13-fresh-workspace-readiness.md)
 identifies the Pi refusal before native admission, validates the candidate through
 five actual private read calls and reconciles the complete c814 Android gate.
 The candidate remains undeployed; native authentication and phone/NAS workspace
