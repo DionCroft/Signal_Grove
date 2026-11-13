@@ -1,5 +1,24 @@
 # Signal Grove audit execution plan
 
+## 13 November 2026 - keyboard transitions pass; API37 Review guard retained
+
+Two actual-keyboard Home picker transitions pass through the original Chat
+selector: Apply saves the synthetic choice, Cancel preserves the default, and
+both render 16 messages. This does not reproduce or fix either original API26
+failure. All 14 focused native methods pass; required checks pass 1,011 JVM/97
+reports and lint 0 errors (51/50 warnings). New API26 inventory is 1,137; whole
+new-source device acceptance is pending. App main/live services/public APKs and
+owner data are unchanged.
+
+Separately b995a28's full hosted cohort fails one API37 Review geometry guard:
+538 starts/537 positives/one failure. Hash-verified raw output and its exact
+receipt confirm the failing tap was not attempted and consent was absent.
+Exact-source analysis infers native IME-window/inset disagreement; its direction
+is not observed. No common API26 cause, waiver, retap or complete gate is claimed.
+All four goal priorities and every original audit requirement stay active.
+
+[Exact transition, guard and validation evidence](contracts/2026-11-13-keyboard-transition-and-api37-review-guard.md).
+
 ## 13 November 2026 - rendered UI diagnostic counterexample passes
 
 Failure-only test snapshots now distinguish selected navigation, rendered
