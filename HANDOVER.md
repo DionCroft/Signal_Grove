@@ -1,5 +1,34 @@
 # Signal Grove handover
 
+## 13 November 2026 - helper passes; thinking-aware cancellation pending
+
+The unchanged source0ee debug app with the source1180 companion passes the
+actually offline six-topic helper/Chinese method (23.968 s). Six selected
+current-app native methods now have positive evidence; generation still fails
+because its fixture waits for visible output before requesting Stop. Exact
+controls show the long-list request emits no answer in512 tokens. A test-only
+correction checks Stop during thinking and a separate measured visible stream;
+new compilation/physical acceptance is pending. Product code/defaults/caps and
+old failures are preserved. The companion update retains23/23 metadata files,
+both models, UIDs and both app APKs. Original networking is fully restored;
+post-test retention remains separate.
+
+Source0ee's complete standard emulator gate is independently reproduced from
+five hash-verified artifacts:1,135 API26/1,136 API37 unique cases, no missing,
+duplicate, failed or skipped cases, exact source/APK binding and hosted-summary
+match. Five classes/twelve external methods stay outside this gate. New fixture
+source needs its own CI. Stable40/inspected-main101 semantic reviews and the
+entire original audit/final signed-release scope remain open. Beta.8 remains
+published; beta.9/code114 remains unpublished.
+
+One exact next action: compile and independently verify the corrected test
+companion, keeping the installed debug application unchanged. Then exercise
+the cancellation/recovery method alone with a new radio-window journal,
+restore original settings and check retained data. All earlier sections below
+are historical checkpoints; the full audit/goal remains active.
+
+[Exact contract](docs/contracts/2026-11-13-thinking-cancellation.md).
+
 13 November 2026. Continue the active full audit and optional local-AI goal.
 Main/source0ee08e3 is pushed. Beta.8/code111 is still the published preview;
 normal phone remains code112, debug/test code114 source0ee08e3 is installed.

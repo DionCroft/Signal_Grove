@@ -151,22 +151,48 @@ class LocalModelPhysicalTest {
             }
             assertEquals("Second native OK", reply.trim())
             stage("second-independent-native-reply-complete")
+            val thinkingText = java.util.concurrent.atomic.AtomicReference("")
+            // Natural reasoning need not produce answer bytes before the limit.
+            // UNDISPATCHED reserves the request before the first IO suspension;
+            // Stop must also work while no visible answer has arrived.
+            val thinking = async(start = CoroutineStart.UNDISPATCHED) {
+                engine.generate(listOf(LocalChatMessage("user", "Write a long numbered list of one thousand gardening tips.")), 512) {thinkingText.set(it)}
+            }
+            delay(250)
+            assertTrue("The thinking request must still be active before Stop", thinking.isActive)
+            assertTrue("This fixture must exercise Stop before visible output", thinkingText.get().isEmpty())
+            engine.cancel()
+            assertEquals(LocalGenerationEnd.CANCELLED, withTimeout(10_000) {thinking.await()})
+            assertFalse(thinkingText.get().contains("<think>")); assertFalse(thinkingText.get().contains("</think>"))
+            stage("explicit-generation-cancellation-complete")
+
+            // This measured literal reaches visible output within the existing
+            // 512-token cap. Keep a separate actual-stream cancellation check.
+            val streamingExpected = "Signal Grove streams this local test sentence, stops when asked, keeps local history, and can continue with a new request. This text is a bounded cancellation fixture."
             var cancelledText = ""
             val interrupted = withTimeout(30_000) {
-                engine.generate(listOf(LocalChatMessage("user", "Write a long numbered list of one thousand gardening tips.")), 512) {
-                    cancelledText = it; if (it.length > 100) engine.cancel()
+                engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: $streamingExpected")), 512) {
+                    assertTrue(it.startsWith(cancelledText)); cancelledText = it
+                    assertTrue(streamingExpected.startsWith(it))
+                    assertFalse(it.contains("<think>")); assertFalse(it.contains("</think>"))
+                    if (it.length > 100) engine.cancel()
                 }
             }
             assertEquals(LocalGenerationEnd.CANCELLED, interrupted); assertTrue(cancelledText.length > 100)
-            stage("explicit-generation-cancellation-complete")
+            assertTrue(streamingExpected.startsWith(cancelledText))
+            stage("visible-generation-cancellation-complete")
             reply = ""
             val recovered = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Recovered")), 48) { reply = it } }
             assertEquals("Recovery text: ${reply.take(512)}", LocalGenerationEnd.COMPLETE, recovered)
             assertEquals("Recovered", reply.trim())
             stage("generation-after-cancellation-complete")
-            val emitted = CompletableDeferred<Unit>()
-            val job = launch { engine.generate(listOf(LocalChatMessage("user", "Write one thousand gardening tips.")), 512) { if (it.length > 80) emitted.complete(Unit) } }
-            withTimeout(30_000) { emitted.await() }
+            val job = launch(start = CoroutineStart.UNDISPATCHED) {
+                engine.generate(listOf(LocalChatMessage("user", "Write one thousand gardening tips.")), 512) {
+                    assertFalse(it.contains("<think>")); assertFalse(it.contains("</think>"))
+                }
+            }
+            delay(250)
+            assertTrue("The coroutine request must still be active before cancellation", job.isActive)
             withTimeout(10_000) { job.cancelAndJoin() }
             assertTrue(job.isCancelled)
             stage("coroutine-generation-cancellation-complete")
