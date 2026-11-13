@@ -45,17 +45,16 @@ Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
 reboot or change live gateway/models/credentials without the existing applicable
 approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The complete wrapper and component-only integration/recovery plan are now
-source-tested. Frozen checks pass 481 policy / 15 runtime-model / 72 native
-Windows cases, and the full staged wrapper completes the five-call Pi trial
-against the unchanged daemon. Nothing is installed or restarted. The next
-bounded stage creates/decrypt-verifies fresh encrypted recovery material, then
-performs the reviewed atomic client update while preserving the running daemon,
-old runtime, maintained fixes, caller policy and receipts. Verify the normal
-helper and adjacent health without replay. Continue native caller/profile/
-operator binding and actual Android chat/workspace/worker/file/NAS, automation
-and integration acceptance. Observe final-head CI separately from c814's
-complete 1,141/1,142 standard gate. Stable42/main6da124 semantics, pristine SDK
-shutdown, original failure causes and final production phone/release checks stay
-open. See contracts/2026-11-13-existing-host-client-integration.md for the complete
-wrapper, full-package native/Pi proof, no-restart reasoning and recovery scope.
+and tooling remain on E:. The reviewed read-client correction is now live. Fresh before/after encrypted
+component recovery,32 path/ACL checks and five normal installed-helper Pi calls
+verify the atomic client update against the unchanged daemon/read instance,
+maintained worker/task, grants/registry and eight completed receipt files.
+Native app actor/profile/operator binding remains unproven; explicit admin
+context is not app login. Doctor/setup and graph identity/index findings remain.
+The next bounded stage verifies native coordinator operator/grant binding on
+the exact maintained runtime, followed by actual Android chat/workspace/worker/
+repository/file/NAS and automation/integration acceptance. Reconcile the now-
+green full source4444 Android raw artifacts; keep current-head/phone and external-
+model gates separate from c814's complete1,141/1,142 gate. Stable42/main6da124
+semantics, pristine SDK shutdown, original failure causes and final production
+upgrade/release checks remain open. See contracts/2026-11-13-live-read-client-update.md.

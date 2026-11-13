@@ -4,10 +4,12 @@ This read provider runs on the Windows execution owner inside its trusted
 interactive broker. The separately reviewed existing-daemon integration is now
 deployed. Earlier local/Pi private SSH reads passed at the documented revisions;
 see the [deployment scope](../../docs/contracts/2026-11-12-persistent-owner-read-bridge.md).
-The recorded snapshot-client trial refuses a fresh starting projection before
-directory-list submission. A candidate-only Pi trial now passes five read calls
-with bounded fresh-readiness admission; nothing is installed or restarted. See
-[current evidence and limits](../../docs/contracts/2026-11-13-fresh-workspace-readiness.md).
+The snapshot-client refusal and measured candidate trials are retained in the
+[readiness investigation](../../docs/contracts/2026-11-13-fresh-workspace-readiness.md).
+The fresh-readiness client correction is now live for new RPC processes against
+the same running daemon. Five normal-helper Pi reads, encrypted before/after
+component recovery and receipt/task/path/ACL checks verify that bounded scope;
+see [live commissioning](../../docs/contracts/2026-11-13-live-read-client-update.md).
 The optional [native coordinator extension](../coordinator_workspaces/README.md)
 is source-tested separately. Production native-auth/Android wiring and NAS file
 acceptance remain open. Importing these modules starts no listener, agent,
@@ -161,11 +163,12 @@ identity is separate from actor/profile/project authorization; the existing
 broker must supply fresh policy and actual interactive-owner checks. A service
 session in a disposable transport test is not production interactive acceptance.
 
-The candidate client makes one finite WaitNamedPipeW availability wait before
+The client makes one finite WaitNamedPipeW availability wait before
 its single CreateFileW attempt, sharing the original deadline. Readiness does
 not reserve the instance: a racing open can still refuse without retry.
 Caller/server identity checks and conservative submission state are preserved.
-This source change is not yet installed in the live worker component.
+This correction is installed for new RPC clients; the existing daemon retains
+its already-imported server runtime and read instance.
 
 For a protected projection that can briefly publish starting between exchanges,
 use call_current_projected(trusted_loader, frame, scope_id=..., device=...).
@@ -177,8 +180,8 @@ workers refuse; a native failure never triggers a second read or submission.
 An optional call_once absolute deadline can shorten, never extend, its budget;
 expiry during identity checks prevents the first request write. Authoritative
 registry/root checks remain on the interactive owner, not an SSH-side projection.
-The snapshot-only call_projected behavior remains unchanged. Live integration of
-this candidate still needs its reviewed component maintenance procedure.
+The snapshot-only call_projected behavior remains unchanged. The reviewed client-only integration now passes normal-helper Pi reads; native
+app operator binding and Android workspace/file/NAS acceptance remain separate.
 
 Each call has a finite 0.05–10 second deadline, bounded message I/O and an ACK over
 the exact reply hash. Pending local I/O is cancelled and drained; unread contents
@@ -208,7 +211,6 @@ Twelve portable and one actual full-package native regression add coverage for
 caller/project fences, changed policy, malformed input, cached-import byte
 validation and exact submitted uncertainty. The complete staged wrapper passes
 a five-call Pi trial against the unchanged daemon. The current local totals are
-481 policy, 15 runtime-model and 72 Windows native cases. No component update is
-installed. See the [review and recovery plan](../../docs/contracts/2026-11-13-existing-host-client-integration.md)
-before live integration; native app authentication, Android workspace/file/NAS
-and the wider audit remain open.
+481 policy, 15 runtime-model and 72 Windows native cases. The new-client update
+is now live without a daemon restart. See [live commissioning and recovery](../../docs/contracts/2026-11-13-live-read-client-update.md); native app authentication,
+Android workspace/file/NAS and the wider audit remain open.

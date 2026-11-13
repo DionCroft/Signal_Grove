@@ -1,5 +1,32 @@
 # Signal Grove audit execution plan
 
+## 13 November 2026 - live read-client commissioning
+
+The reviewed fresh-readiness client is now installed in the existing private
+Windows worker. New RPC clients load the pinned package; the same running daemon
+keeps its existing runtime and read instance. Only the immutable source package
+and atomic read-wrapper replacement changed. Maintained worker/daemon source,
+task, owner/policy/registry/ACLs, queue and all eight completed receipt files are
+retained. No service restart, grant/credential/model change or job replay occurs.
+
+The ordinary catalogued Pi helper now passes five new read-only calls: status,
+prepare, list, preview and duplicate refusal. Three fresh IDs return seven
+entries and the verified 302-byte fixture; foreign subject/profile denial occurs
+before SSH. This uses the installed normal helper, without a staging entry or
+call substitution. It still uses explicit administrative coordinator context;
+native HTTP/PKCE/WebSocket app operator binding and Android file/NAS acceptance
+remain open.
+
+Fresh before/after encrypted component recovery decrypts from disk, restores
+SQLite in memory with quick_check and retains all eight receipt bytes. Path and
+permission checks pass on32 actual paths; both packages remain. Doctor without
+fixes exits1 with two aggregate setup/key findings. Configured read-only graph
+status calls complete, but the application's different-project graph and the
+unindexed maintained source remain unhealthy and unrepaired. These findings,
+the original API26 causes, upstream/shutdown and the entire audit stay open.
+
+[Exact installed-source, recovery and scope evidence](contracts/2026-11-13-live-read-client-update.md).
+
 ## 13 November 2026 - hosted portable-fixture correction
 
 Hosted Windows-workspace workflow43516959720 at source9d1844 failed its Linux
