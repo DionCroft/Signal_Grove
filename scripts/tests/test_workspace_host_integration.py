@@ -92,7 +92,7 @@ class HostIntegrationPolicyTest(unittest.TestCase):
 
 class HostIntegrationPackageTest(unittest.TestCase):
     def test_pinned_package_loads_and_cached_import_does_not_hide_changed_bytes(self):
-        parent=Path(os.environ['TEMP']).resolve(strict=True)
+        parent=Path(os.environ['TEMP'] if os.name=='nt' else tempfile.gettempdir()).resolve(strict=True)
         if os.name=='nt':self.assertNotEqual('c:',parent.drive.lower())
         temporary=tempfile.TemporaryDirectory(prefix='wrapper-package-',dir=parent);base=Path(temporary.name).resolve(strict=True)
         prior=set(sys.modules)

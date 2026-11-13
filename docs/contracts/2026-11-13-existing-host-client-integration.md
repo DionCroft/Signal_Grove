@@ -101,3 +101,20 @@ original API26-cause questions remain. Current-head CI and physical production
 upgrade/live/offline checks remain separate from the complete c814 standard
 gate (1,141 API26 / 1,142 API37 cases, excluding 12 external-model methods).
 Beta.9 and its public APK, signing identity and assets are unchanged.
+
+## Hosted portable-fixture correction
+
+Hosted Windows-workspace workflow43516959720 at source9d1844 failed its Linux
+protocol prerequisite: the new package fixture accessed an unset `TEMP` and
+raised KeyError before the native job could run. Its raw failure is preserved;
+110 of 111 protocol cases passed. The correction uses the platform temporary
+directory on non-Windows and retains mandatory explicit TEMP/non-C enforcement
+on Windows. No wrapper, runtime package, policy, source guard or native assertion
+changes. All 481 portable cases pass again on 907 frozen inputs; every input of
+the previously passing 72-case native gate is byte-identical. That native suite
+was not rerun. Hosted Linux/current-head native acceptance remains pending until
+the new run is inspected. No live component or release update is performed.
+
+The corrected portable log SHA-256 is `f70dc72542e13ee303708698ed9375c28b970c9ec48613070add162d0d1f576e`.
+The original [failed protocol job](https://github.com/DionCroft/Signal_Grove/actions/runs/43516959720/job/132201251136)
+is retained as failed, with the native job skipped by its prerequisite.

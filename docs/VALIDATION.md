@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## 13 November 2026 - hosted portable-fixture correction
+
+Hosted Windows-workspace workflow43516959720 at source9d1844 failed its Linux
+protocol prerequisite: the new package fixture accessed an unset `TEMP` and
+raised KeyError before the native job could run. Its raw failure is preserved;
+110 of 111 protocol cases passed. The correction uses the platform temporary
+directory on non-Windows and retains mandatory explicit TEMP/non-C enforcement
+on Windows. No wrapper, runtime package, policy, source guard or native assertion
+changes. All 481 portable cases pass again on 907 frozen inputs; every input of
+the previously passing 72-case native gate is byte-identical. That native suite
+was not rerun. Hosted Linux/current-head native acceptance remains pending until
+the new run is inspected. No live component or release update is performed.
+
+[Complete wrapper evidence and limitations](contracts/2026-11-13-existing-host-client-integration.md).
+
 ## 13 November 2026 - full wrapper and client-only integration plan
 
 The full existing-broker wrapper is now versioned and source-tested, replacing
