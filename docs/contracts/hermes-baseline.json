@@ -15798,6 +15798,33 @@
       "web_signin",
       "auth_request_utils",
       "auth_middleware"
+    ],
+    "channel_env_loader:_apply_external_secret_sources": [
+      "channel_env_loader"
+    ],
+    "channel_env_loader:_publish_staged_env": [
+      "channel_env_loader"
+    ],
+    "channel_registry:PlatformRegistry._resolve": [
+      "channel_registry"
+    ],
+    "channel_registry:PlatformRegistry.configured_entries": [
+      "channel_registry"
+    ],
+    "model_catalog:_lap_bare_custom_row": [
+      "model_catalog"
+    ],
+    "model_catalog:_lap_custom_provider_rows": [
+      "model_catalog"
+    ],
+    "model_catalog:_lap_user_provider_rows": [
+      "model_catalog"
+    ],
+    "model_catalog:_save_discovered_models_to_config": [
+      "model_catalog"
+    ],
+    "pool_routes:add_credential_pool_entry": [
+      "pool_routes"
     ]
   }
 }

@@ -42,7 +42,7 @@ class HostedRoomSourceGuardsTest(unittest.TestCase):
         self.assertEqual(222,len(checker.SOURCES|checker.EXTRA_SOURCES));self.assertEqual(16,len(aliases))
         self.assertFalse(checker.compare(value,dict(commit=value['upstream']['commit'],contract=copy.deepcopy(value['upstream']['contract'])))['mobile_review_required'])
     def test_original_and_reviewed_room_modes_require_every_dependency(self):
-        value=self.baseline();guards={k:v for k,v in value['baseline_handler_source_guards'].items() if k not in HISTORY_WATCHES};self.assertEqual(14,len(guards))
+        value=self.baseline();guards={k:v for k,v in value['baseline_handler_source_guards'].items() if k.startswith('hosted_room_')};self.assertEqual(14,len(guards))
         key='hosted_room_store:consumed_module';required=set(checker.HOSTED_ROOM_CONTRACT_SOURCES)|{'gateway_ws','canonical_controls','auth_native_http'}
         self.assertEqual(required,set(guards[key]))
         for target,entries in value['reviewed_handler_variants'].items():

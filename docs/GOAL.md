@@ -45,10 +45,11 @@ Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
 reboot or change live gateway/models/credentials without the existing applicable
 approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The next bounded stage inspects current standard CI and the failed preceding
-cohort, retains the Pi pre-submission UNAVAILABLE, and verifies the undeployed
-bounded pipe-availability candidate before any guarded component cutover.
-Continue original Demo/rendering, delayed native-tap/caption, current stable/main
-semantic/shutdown and real authenticated workspace/worker/automation acceptance
-without replay or waivers. See contracts/2026-11-13-pipe-availability.md for the
-measured local BUSY race, candidate checks and separate Pi acceptance limits.
+and tooling remain on E:. The next bounded stage observes the live c814 API37 handles and independently
+reconciles the complete four-shard raw union once terminal. Keep failed cohorts
+separate and final-head CI open. Continue stable42/main124 semantic/transitive
+review, the original owner-runtime shutdown finding, Pi pre-submission
+UNAVAILABLE and real authenticated workspace/worker/automation acceptance.
+The nine additional source-context guards waive no baseline finding; paired
+50-case official shutdown cohorts are regression evidence for pristine and the
+undeployed candidate. See contracts/2026-11-13-transitive-review-and-shutdown.md.

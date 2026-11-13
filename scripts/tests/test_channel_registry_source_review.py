@@ -34,6 +34,14 @@ class ChannelRegistrySourceReviewTest(unittest.TestCase):
         contract['handlers'].update(HANDLERS)
         return baseline,dict(commit=COMMIT,contract=contract)
 
+    def assert_only_unreviewed_registry_context(self,report):
+        # The seven reviewed variants do not approve the unchanged parent bodies
+        # in a different full registry module. Keep those two new findings open.
+        self.assertTrue(report['mobile_review_required'])
+        findings=report['mobile_relevant_changes']['changed_used_handlers']
+        self.assertEqual({'channel_registry:PlatformRegistry._resolve','channel_registry:PlatformRegistry.configured_entries'},set(findings))
+        self.assertTrue(all(value['original_source_context_changed'] and value['before']==value['after'] for value in findings.values()))
+
     def test_exact_seven_variants_require_all_five_reviewed_complete_sources(self):
         baseline,current=self.fixture()
         entries={key:entry for key,values in baseline['reviewed_handler_variants'].items() if key in HANDLERS for entry in values if entry['commit']==COMMIT}
@@ -43,7 +51,7 @@ class ChannelRegistrySourceReviewTest(unittest.TestCase):
             self.assertEqual(GUARDS,entry['required_sources'])
             self.assertIn('2026-11-12-channel-registry-context-review.md',entry['reason'])
         report=checker.compare(baseline,current)
-        self.assertFalse(report['mobile_review_required'])
+        self.assert_only_unreviewed_registry_context(report)
         self.assertTrue(set(HANDLERS)<=set(report['reviewed_source_guarded_variants_applied']))
 
     def test_each_missing_or_changed_dependency_reopens_all_seven_findings(self):
@@ -73,10 +81,14 @@ class ChannelRegistrySourceReviewTest(unittest.TestCase):
     def test_commit_label_is_provenance_and_not_authorization(self):
         baseline,current=self.fixture()
         current['commit']='c'*40
-        self.assertFalse(checker.compare(baseline,current)['mobile_review_required'])
+        foreign_label=checker.compare(baseline,current)
+        self.assert_only_unreviewed_registry_context(foreign_label)
         current['commit']=COMMIT
+        self.assertEqual(foreign_label['mobile_relevant_changes'],checker.compare(baseline,current)['mobile_relevant_changes'])
         current['contract']['source_hashes']['env_config']='c'*64
-        self.assertTrue(checker.compare(baseline,current)['mobile_review_required'])
+        report=checker.compare(baseline,current)
+        self.assertTrue(report['mobile_review_required'])
+        self.assertTrue(set(HANDLERS)<=set(report['mobile_relevant_changes']['changed_used_handlers']))
 
     def test_unrelated_canonical_drift_stays_open_with_complete_channel_review(self):
         baseline,current=self.fixture()

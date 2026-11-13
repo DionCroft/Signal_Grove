@@ -1,5 +1,26 @@
 # Current development validation — audit follow-up
 
+## 13 November 2026 - transitive guards and paired shutdown regressions
+
+Nine existing model/channel/credential callers now require their original full
+module context, closing helper-only drift missed by a parent fingerprint. No
+upstream fingerprint, usage entry or acceptance decision changes. Nine old/new
+counterexamples prove the gap; final 456 policy and 15 runtime-model cases pass.
+Stable now retains 42 findings, inspected main6da 124; none are waived.
+
+Both exact stable and the undeployed heartbeat candidate pass the same 50
+official shutdown behavior cases across six canonical, no-retry file runs.
+All 23,586 tracked inputs stay unchanged in each cohort. This regression evidence
+does not reproduce or close the separate pristine owner-runtime shutdown warning.
+
+The f0 controlled Home/Chat failure is reconciled and retained. Source c814 now
+has an independently verified API26 union: 540 + 601 positives cover all 1,141
+standard cases, including original clarification/scroll and Apply/Cancel routing.
+API37 and the full final-head gate remain pending. All four priorities/full audit
+remain active; live components, app inputs, owner data and releases are unchanged.
+
+[Exact source, case identities and acceptance limits](contracts/2026-11-13-transitive-review-and-shutdown.md).
+
 ## 13 November 2026 - bounded pipe availability; Pi refusal retained
 
 A fresh RAM-only Pi coordinator trial reaches status/prepare, then refuses list
