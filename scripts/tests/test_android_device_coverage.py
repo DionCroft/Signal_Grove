@@ -97,7 +97,7 @@ class AndroidCoverageTest(unittest.TestCase):
             with self.assertRaises(ValueError):device.verified_installed_apks(native,app,test)
     def test_workflow_has_all_four_partitions_and_a_required_union_gate(self):
         text=(ROOT.parent/'.github/workflows/android-ci.yml').read_text();self.assertIn('api: [26, 37]',text);self.assertIn('shard: [0, 1]',text);self.assertIn('--shard-index "$DEVICE_SHARD"',text);self.assertIn('device-coverage:',text);self.assertIn('needs: device\n    if: always()',text);self.assertIn('scripts/verify_android_device_coverage.py',text);self.assertIn('timeout-minutes: 115',text)
-        self.assertEqual(5,len(device.EXTERNAL_MODEL_GATES));self.assertEqual(11,sum(len(x['methods']) for x in device.EXTERNAL_MODEL_GATES.values()))
+        self.assertEqual(5,len(device.EXTERNAL_MODEL_GATES));self.assertEqual(12,sum(len(x['methods']) for x in device.EXTERNAL_MODEL_GATES.values()))
 
 
 if __name__=='__main__':unittest.main()

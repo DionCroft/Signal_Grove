@@ -1,33 +1,5 @@
 # Current feature and validation matrix
 
-## 12 November 2026 - bounded reasoning and reviewed helper schema
-
-Code113 fully builds/signs (1,006 JVM cases, zero-error lint, all ABIs) but its
-helper diagnostic fails0/6 without a reasoning limit and5/6 with the budget alone.
-Code114 now implements the supported budget plus constrained unique reviewed-ID
-selections. Integrated native vocabulary coverage passes49 checks; all six public
-helper diagnostic topics pass at the original96-token total. Original48/96-token
-physical assertions are restored. These diagnostics are not final APK/JNI proof.
-Fresh build/CI/phone/upgrade/publication gates and all original audit work remain.
-[Exact failed stages, correction and scope](contracts/2026-11-12-bounded-helper-selections.md).
-
-## 12 November 2026 - native answer projection, fresh gates pending
-
-The pinned runtime diagnostic identifies the pre-closed reasoning prefill as the
-source of the observed marker/repetition. Code113 prepares one upstream session
-for template/sampling/parser and streams only its append-only answer channel.
-The physical vocabulary regression passes29 checks and one bounded native CLI
-turn produces a clean sentence. These do not certify the APK or helper. Fresh
-JVM/lint/all-ABI/standard-CI and physical JNI/helper/family/recovery gates remain.
-The helper shares a384-token reasoning/answer budget; strict reviewed-ID validation
-and approval boundaries remain. Old history and its observed defect are retained.
-[Correction and exact validation scope](contracts/2026-11-12-native-answer-projection.md).
-
-Production-phone update: upgrade, saved connection, live history and project
-metadata reads verify. Offline generation/history expose a reasoning-marker and
-repetition defect; the candidate stays unpublished pending correction.
-[Exact phone evidence and limits](contracts/2026-11-12-production-phone-offline-output.md).
-
 As of 12 November 2026. This describes `main`, whose planned beta.9/code 114 APK
 is still unpublished. Published beta.8/code 111 and stable 1.0.0 retain their own
 release notes. Implementation, fixture acceptance, live-system acceptance and
@@ -72,8 +44,8 @@ its separate offline generation exposes a reasoning-marker/repetition defect.
 | Qwen2.5-0.5B-Instruct Q4_K_M | 491,400,032 bytes; SHA-256 `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db` |
 | Three physical imports | 649, 685 and 1,438 ms |
 | Highest observed VmHWM | 2,608,447,488 bytes (2.43 GiB); short USB-charging observations, not minimum RAM or a complete peak/endurance benchmark |
-| Last built code113 APKs | Clean b297791 production 70,996,382 bytes; original-key debug 92,546,678 bytes; test 7,908,007 bytes; code114 fresh build pending; no model weights bundled |
-| Candidate JVM/lint | 1,006 cases / 96 reports; no failures/errors/skips; lint 0 errors, 51 debug/50 release warnings |
+| Last built code114 APKs | Clean0bb325e production71,052,646 bytes; original-key debug92,609,254 bytes; test7,909,383 bytes; unpublished; no model weights bundled |
+| Candidate JVM/lint | 1,011 cases / 97 reports; no failures/errors/skips; lint 0 errors, 51 debug/50 release warnings |
 | Physical lifecycle | Two original cold/post-reboot cases pass, 2.849/1.856s JUnit; one approved normal restart with no automatic load/replay and original data retained. Intentional preparation is not a positive test; earlier emulator boot remains unverified |
 | Keyboard CI preparation | Both reviewed fresh-tip/already-clear native states pass, plus four unchanged focused API26 methods/six exact native taps; full hosted union remains separate |
 | Earlier candidate native local-AI UI | API26: 10 distinct positive cases, no skips/failures |
@@ -91,3 +63,6 @@ publisher, native compatibility or safe memory requirements on another phone.
 [Fresh signed candidate](contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Physical evidence](contracts/2026-11-12-physical-offline-model-acceptance.md) ·
 [Physical restart retention](contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](contracts/2026-11-12-download-cancellation.md) · [Earlier candidate evidence](contracts/2026-11-12-uncompressed-dex-candidate.md) ·
 [On-device usage](ON_DEVICE_AI.md) · [Full audit](AUDIT_EXECUTION_PLAN.md).
+
+
+Current physical follow-up: two isolated code114 offline native cases pass helper/Chinese and generation/cancellation/recovery; garden formatting fails. The51-check source correction still needs a fresh APK. [Exact scope](contracts/2026-11-12-natural-chat-followup.md).

@@ -235,10 +235,10 @@ class ExplicitExternalModelGatesTest(unittest.TestCase):
     def test_manifest_requires_separate_acceptance_and_never_claims_execution_or_downloads(self):
         manifest=device_ci.external_model_gate_manifest()
         self.assertEqual('not_run',manifest['status']);self.assertTrue(manifest['separate_acceptance_required']);self.assertFalse(manifest['automatic_model_download'])
-        self.assertEqual(5,len(manifest['gates']));self.assertEqual(11,sum(len(g['methods']) for g in manifest['gates']))
+        self.assertEqual(5,len(manifest['gates']));self.assertEqual(12,sum(len(g['methods']) for g in manifest['gates']))
         for gate in manifest['gates']:
             self.assertEqual('not_run',gate['status']);self.assertTrue(gate['requires']);self.assertNotIn('LocalNativeBoundaryTest',gate['class_name']);self.assertTrue(gate['methods'])
-        manifest['gates'][0]['methods'].clear();self.assertEqual(3,len(device_ci.external_model_gate_manifest()['gates'][0]['methods']))
+        manifest['gates'][0]['methods'].clear();self.assertEqual(4,len(device_ci.external_model_gate_manifest()['gates'][0]['methods']))
     def test_exact_reviewed_gate_method_inventory_matches_sources(self):
         root=Path(__file__).resolve().parents[2]/'app/src/androidTest/java/org/hermesmobile/app'
         for name,gate in device_ci.EXTERNAL_MODEL_GATES.items():

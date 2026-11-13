@@ -85,16 +85,16 @@ int main(int argc, char ** argv) {
             require(refused); ++checks;
         }
         require(signal_grove::local_chat_inputs().json_schema.empty()); ++checks;
-        auto input = signal_grove::local_chat_inputs(); common_chat_msg user; user.role = "user"; user.content = "Hello"; input.messages.push_back(user);
+        auto input = signal_grove::local_chat_inputs(allowed); common_chat_msg user; user.role = "user"; user.content = "Hello"; input.messages.push_back(user);
         common_chat_session session(templates.get(), vocab, input, {}); common_params_sampling sampling;
         for (int total : {1, 48, 96, 384, 512}) {
-            signal_grove::apply_local_chat_sampling(session, vocab, sampling, total);
+            signal_grove::apply_local_chat_sampling(session, vocab, sampling, total, true);
             require(sampling.reasoning_budget_tokens == std::min(64, total / 4));
             require(sampling.generation_prompt == session.generation_prompt());
             require(!sampling.reasoning_budget_start.empty() && !sampling.reasoning_budget_end.empty());
             require(sampling.reasoning_budget_forced == sampling.reasoning_budget_end.front()); ++checks;
         }
-        signal_grove::apply_local_chat_sampling(session, vocab, sampling, 384);
+        signal_grove::apply_local_chat_sampling(session, vocab, sampling, 384, true);
         auto * budget = common_reasoning_budget_init(vocab, {sampling.reasoning_budget_start}, sampling.reasoning_budget_end,
             sampling.reasoning_budget_forced, sampling.reasoning_budget_tokens);
         for (auto token : common_tokenize(vocab, sampling.generation_prompt, false, true)) llama_sampler_accept(budget, token);
@@ -112,6 +112,16 @@ int main(int argc, char ** argv) {
         require(common_reasoning_budget_get_state(budget) == REASONING_BUDGET_DONE);
         require(common_reasoning_budget_get_end_match(budget) && *common_reasoning_budget_get_end_match(budget) == sampling.reasoning_budget_forced); ++checks;
         llama_sampler_free(budget);
+        auto ordinary = signal_grove::local_chat_inputs(); ordinary.messages.push_back(user);
+        common_chat_session ordinary_session(templates.get(), vocab, ordinary, {});
+        signal_grove::apply_local_chat_sampling(ordinary_session, vocab, sampling, 384);
+        require(sampling.reasoning_budget_tokens == -1 && sampling.reasoning_budget_start.empty()
+            && sampling.reasoning_budget_end.empty() && sampling.reasoning_budget_forced.empty());
+        require(common_grammar_value(sampling.grammar) == ordinary_session.grammar()); ++checks;
+        bool missing_helper_grammar_refused = false;
+        try { signal_grove::apply_local_chat_sampling(ordinary_session, vocab, sampling, 96, true); }
+        catch (const std::exception &) { missing_helper_grammar_refused = true; }
+        require(missing_helper_grammar_refused); ++checks;
         std::cout << "NATIVE_CHAT_OUTPUT_PASS checks=" << checks << " vocab_only=true" << std::endl;
         templates.reset(); llama_model_free(model); llama_backend_free(); return 0;
     } catch (const std::exception &) { std::cerr << "NATIVE_CHAT_OUTPUT_FAILED" << std::endl; return 1; }

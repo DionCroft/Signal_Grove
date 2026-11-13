@@ -24,7 +24,7 @@ import uuid
 # gate review. All other tests remain in the standard suite; skips still fail it.
 EXTERNAL_MODEL_GATES = {
     'org.hermesmobile.app.LocalModelPhysicalTest': {
-        'methods': ('verifiedLfm3MetadataScanIsBoundedAndCancellable', 'verifiedLfm3SelectsReviewedChecksAndGeneratesChineseText', 'verifiedLfm3GeneratesCancelsRecoversAndUnloads'),
+        'methods': ('verifiedLfm3MetadataScanIsBoundedAndCancellable', 'verifiedLfm3SelectsReviewedChecksAndGeneratesChineseText', 'verifiedLfm3StreamsOnlyAnswerTextForGardenPrompt', 'verifiedLfm3GeneratesCancelsRecoversAndUnloads'),
         'requires': ('actual Android phone', '64-bit process', 'explicitly staged verified licensed LFM3 model'),
     },
     'org.hermesmobile.app.LocalImportCommitIntegrationTest': {

@@ -159,7 +159,19 @@ class LocalModelPhysicalTest {
             withTimeout(90_000) { engine.load(model, context = 512, threads = 2) }
             stage("reload-complete")
             reply = ""
-            assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Reloaded")), 48) { reply = it } })
+            val shortReload = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Reloaded")), 48) { reply = it } }
+            assertTrue(shortReload in setOf(LocalGenerationEnd.COMPLETE, LocalGenerationEnd.TOKEN_LIMIT))
+            assertFalse(reply.contains("<think>")); assertFalse(reply.contains("</think>"))
+            if (shortReload == LocalGenerationEnd.TOKEN_LIMIT) {
+                // The limit includes natural reasoning. Keep the 48-token probe,
+                // then verify a separate bounded request after a known limit.
+                assertTrue("Reloaded".startsWith(reply.trim()))
+                stage("reload-short-budget-token-limit")
+                reply = ""
+                assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) {
+                    engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Reloaded")), 96) { reply = it }
+                })
+            }
             assertEquals("Reloaded", reply.trim())
             stage("reply-after-reload-complete")
         } finally { withContext(NonCancellable) { engine.unload() } }

@@ -45,11 +45,27 @@ inline common_chat_templates_inputs local_chat_inputs(const std::vector<std::str
     return input;
 }
 
-// Bound hidden reasoning within the caller's existing total token allowance.
-// Use the template's declared markers and upstream UTF-8-aware budget sampler.
+// Only schema-constrained helper selections can safely force a reasoning end.
+// Free-form chat follows the model's natural final-answer boundary; forcing it
+// early can turn unfinished reasoning and another close marker into answer text.
 inline void apply_local_chat_sampling(const common_chat_session & session, const llama_vocab * vocab,
-                                     common_params_sampling & sampling, int total_tokens) {
+                                     common_params_sampling & sampling, int total_tokens,
+                                     bool constrained_helper = false) {
+    // Keep format configuration request-local even if a caller reuses params.
+    sampling.grammar = common_grammar{};
+    sampling.grammar_lazy = false;
+    sampling.grammar_triggers.clear();
+    sampling.preserved_tokens.clear();
+    sampling.generation_prompt.clear();
+    sampling.reasoning_budget_tokens = -1;
+    sampling.reasoning_budget_start.clear();
+    sampling.reasoning_budget_end.clear();
+    sampling.reasoning_budget_forced.clear();
+    sampling.reasoning_budget_message.clear();
+    sampling.reasoning_control = false;
     session.apply_sampling(sampling);
+    if (!constrained_helper) return;
+    if (session.grammar().empty()) throw std::runtime_error("local helper requires output grammar");
     if (session.thinking_start_tag().empty() || session.thinking_end_tags().empty()) return;
     if (session.thinking_start_tag().size() > 4096) throw std::length_error("local reasoning marker bound");
     sampling.reasoning_budget_start = common_tokenize(vocab, session.thinking_start_tag(), false, true);

@@ -234,7 +234,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
         }
         auto sampling = engine->sampling;
-        signal_grove::apply_local_chat_sampling(session, vocab, sampling, limit);
+        signal_grove::apply_local_chat_sampling(session, vocab, sampling, limit, !helper_ids.empty());
         common_sampler_ptr sampler(common_sampler_init(engine->model, sampling));
         if (!sampler) return failed;
         for (const auto token : tokens) common_sampler_accept(sampler.get(), token, false);

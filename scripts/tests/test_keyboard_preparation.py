@@ -48,7 +48,7 @@ class KeyboardPreparationTest(unittest.TestCase):
     def test_other_api_is_unchanged_and_standard_suite_does_not_gain_exclusions(self):
         with tempfile.TemporaryDirectory() as path:
             native=Mock();self.assertIsNone(device.prepare_owned_keyboard(native,Path(path),37));native.assert_not_called();self.assertFalse(list(Path(path).iterdir()))
-        self.assertEqual(5,len(device.EXTERNAL_MODEL_GATES));self.assertEqual(11,sum(len(x['methods']) for x in device.EXTERNAL_MODEL_GATES.values()))
+        self.assertEqual(5,len(device.EXTERNAL_MODEL_GATES));self.assertEqual(12,sum(len(x['methods']) for x in device.EXTERNAL_MODEL_GATES.values()))
     def ready_receipt(self,nonce=None):
         value=self.receipt(nonce);value['before']=copy.deepcopy(value['reopened']);value['afterDismiss']=copy.deepcopy(value['reopened'])
         value.update(hintSeen=False,dismissAttempts=0,state='READY_EXISTING_KEYBOARD')

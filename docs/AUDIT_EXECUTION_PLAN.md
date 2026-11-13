@@ -1,5 +1,32 @@
 # Signal Grove audit execution plan
 
+## 12 November 2026 - actual helper/cancellation passes, garden fix pending APK
+
+Installed code114 retains20 protected metadata files, two original models and
+package identities. Separate offline JNI cases pass six helper topics/Chinese
+and generation/cancellation/recovery; the failed initial batch remains failed.
+Garden markers reproduce in a fresh case. Same-runtime/system/context comparison
+finds forced reasoning closure leaks text; natural completion is clean. Source
+restricts that budget to constrained helpers and passes51 native checks. The
+48-token reload probe remains; known truncation requires separate exact96 completion.
+No app replay or stored-history rewrite is added. Register the twelfth external
+method without exclusion expansion. Fresh source/build/CI/phone/release gates and
+all original audit work remain. [Exact evidence and correction](contracts/2026-11-12-natural-chat-followup.md).
+
+## 12 November 2026 - checked code114 and explicit garden model gate
+
+Clean0bb325e code114 independently verifies1,011 JVM cases/97 reports, zero-error
+lint, original signing and every ABI/DEX check. Production is71,052,646 bytes.
+Debug/test APKs are hash-verified in the reconnected phone's Downloads; actual
+installation/JNI/garden/helper/family/cancellation/upgrade acceptance is pending.
+CI caught the omitted new physical garden method. It is now explicitly registered
+as the twelfth external method in the same five classes; all eleven old methods,
+prerequisites and standard exclusions remain. Both the corrected copy and authoritative
+working tree pass all422 policies; the latter takes24.678s with no failures/skips.
+Historical eleven-method reports retain their old scope. Exact-source public CI,
+required compatibility review and publication remain separate, unresolved gates.
+[Build identities, policy failures and corrected scope](contracts/2026-11-12-external-garden-gate.md).
+
 ## 12 November 2026 - bounded reasoning and reviewed helper schema
 
 Code113 fully builds/signs (1,006 JVM cases, zero-error lint, all ABIs) but its

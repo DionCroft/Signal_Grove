@@ -1,34 +1,11 @@
 # Signal Grove
 
-## 12 November 2026 - bounded reasoning and reviewed helper schema
-
-Code113 fully builds/signs (1,006 JVM cases, zero-error lint, all ABIs) but its
-helper diagnostic fails0/6 without a reasoning limit and5/6 with the budget alone.
-Code114 now implements the supported budget plus constrained unique reviewed-ID
-selections. Integrated native vocabulary coverage passes49 checks; all six public
-helper diagnostic topics pass at the original96-token total. Original48/96-token
-physical assertions are restored. These diagnostics are not final APK/JNI proof.
-Fresh build/CI/phone/upgrade/publication gates and all original audit work remain.
-[Exact failed stages, correction and scope](docs/contracts/2026-11-12-bounded-helper-selections.md).
-
-## 12 November 2026 - native answer projection, fresh gates pending
-
-The pinned runtime diagnostic identifies the pre-closed reasoning prefill as the
-source of the observed marker/repetition. Code113 prepares one upstream session
-for template/sampling/parser and streams only its append-only answer channel.
-The physical vocabulary regression passes29 checks and one bounded native CLI
-turn produces a clean sentence. These do not certify the APK or helper. Fresh
-JVM/lint/all-ABI/standard-CI and physical JNI/helper/family/recovery gates remain.
-The helper shares a384-token reasoning/answer budget; strict reviewed-ID validation
-and approval boundaries remain. Old history and its observed defect are retained.
-[Correction and exact validation scope](docs/contracts/2026-11-12-native-answer-projection.md).
-
-Production-phone update: upgrade, saved connection, live history and project
-metadata reads verify. Offline generation/history expose a reasoning-marker and
-repetition defect; the candidate stays unpublished pending correction.
-[Exact phone evidence and limits](docs/contracts/2026-11-12-production-phone-offline-output.md).
-
 An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI in the next release candidate. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
+
+**Candidate status:** beta.8 remains the published preview. The checked code114
+phone build passes helper/cancellation cases but still fails free-form formatting.
+A source correction passes51 native component checks; a fresh APK and required
+CI/phone acceptance remain. [Current evidence and limits](docs/contracts/2026-11-12-natural-chat-followup.md).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
@@ -69,7 +46,7 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Candidate JVM tests | **1,006 cases / 96 reports** | Beta.9 candidate; no failures/errors/skips |
+| Candidate JVM tests | **1,011 cases / 97 reports** | Clean code114 source0bb325e; no failures/errors/skips |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |
 | Physical process/restart recovery | **2 positive cases; 2.849 / 1.856 s JUnit** | Original cold/post-reboot methods on the owner phone; one approved normal restart, no automatic load/replay, original data retained; preparation intentionally interrupted |
@@ -84,7 +61,7 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
-| Last built production APK (code113) | **71.0 MB** | 70,996,382 bytes from clean b297791; original signer, unpublished; helper follow-up code114 needs a fresh build |
+| Last built production APK (code114) | **71.1 MB** | 71,052,646 bytes from clean0bb325e; original signer; physical/final CI and publication gates pending |
 | Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 12 November; known-indexed coverage, not a full security certification |
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)

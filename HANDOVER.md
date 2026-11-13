@@ -1,100 +1,53 @@
 # Signal Grove handover
 
-Continue the same active full audit/on-device AI goal in `DionCroft/Signal_Grove`.
-Read [current state](PROJECT_STATE.md), the [full unresolved audit](docs/AUDIT_EXECUTION_PLAN.md)
-and [on-device plan](docs/ON_DEVICE_AI_PLAN.md). Do not replace the goal with a
-smaller release-only task or treat a fixture pass as live integration acceptance.
-
-## Current checkpoint
-
-- Native owner room reads verify 20 checks through real Windows SID/control
-  tickets/canonical sockets and synthetic room data; six rooms/18 events per
-  profile remain exact after reads and process exit. Empty mode also verifies.
-  Both still return 2 for the one-warning SDK shutdown finding; full lifecycle
-  stays open. Four preflight refusals and 422/15/checksum policies pass.
-  [Native owner room scope](docs/contracts/2026-11-12-native-owner-room-reads.md).
-
-- Current stable canonical authority passes 46 authority/wire and 13 attach-first
-  cases with 57 critical source guards and 532/520 loaded-module hashes. Existing
-  assertions and older variants remain. Three source/invocation controls and
-  422 portable/15 runtime/checksum policies pass. Actual dispatcher/store/event
-  behavior uses synthetic actors/transports; live socket/room/worker acceptance
-  stays separate. [Current-stable authority](docs/contracts/2026-11-12-current-stable-authority.md).
-
-The final stable 3b42157 real-source probe passes 87 distinct cases, 55 critical
-source guards and 949 loaded module hashes. All earlier 77 cases remain; actual
-loader helpers/import lock and public start-entry/PM behavior use explicit
-synthetic/stopping adapters. No actual package install, input read or listener
-starts. Three source/invocation controls and 422 portable/15 runtime/checksum
-policies pass. [Exact source/adapters](docs/contracts/2026-11-12-native-loader-startup.md).
-
-The independently verified d50518c complete standard Android gate passes1,132
-API26/1,133 API37 cases. The newer workspace test source 2970ffb also passes its complete 1,135/1,136
-gate; its focused API26 batch passes 31 cases/16 one-attempt native taps.
-The build passes 1,006 JVM/96 reports and zero-error lint 51/50 with original keys,
-all native ABIs/page alignment and uncompressed DEX. This Python/docs chunk
-changes no Android/native/build input. [Workspace evidence](docs/contracts/2026-11-12-native-workspace-review.md).
+Continue the active full audit/on-device AI goal. Read [state](PROJECT_STATE.md),
+[full audit](docs/AUDIT_EXECUTION_PLAN.md) and [on-device plan](docs/ON_DEVICE_AI_PLAN.md).
+Do not replace the goal with a release-only task or mark component evidence as
+live integration acceptance.
 
 ## Immediate continuation
 
-1. Installed b182ae8 production beta.9/code112 retains its identity and saved
-   connection. Current refreshed history and stored project details load. Offline
-   LFM3 generation/history work but leak a reasoning-close marker and repeat a
-   sentence. Preserve the saved answer. Code113 fully builds but its helper
-   diagnostic fails without a reasoning budget. Code114 adds bounded reasoning
-   and typed constrained selections;49 vocabulary checks and6/6 native helper
-   topics pass at96 total tokens. Fresh JVM/lint/APK/JNI/helper/family/cancellation
-   and increasing-version upgrade gates remain. Production private-file hash
-   retention is not claimed. Fresh b599 complete standard coverage independently
-   passes1,135/1,136 with543 identical Android inputs; external-model output and
-   compatibility remain separate. Normal phone networking is restored.
-2. Complete current-stable used-handler dependency closure and real canonical
-   socket/actor/profile/transport acceptance. Stable 40/inspected-main1773ba3 101 findings
-   remain; no handler/absence/cohort waiver is added by the component probe.
-3. Continue the Windows/Pi read-path root cause, actual worker/root/file/NAS and
-   reviewed action acceptance, preserving receipts and every original audit row.
-4. Finish final original-production-key phone upgrade/live retention and publish
-   the checked versioned APK/checksum/provenance assets from main, then verify the
-   public download and provide its direct link. Publication is already authorized.
+The last checked original-key code114 source is0bb325e. It passes1,011 JVM/97
+reports, lint0 errors51/50 warnings, all ABIs/page/DEX checks. Production APK is
+71,052,646 bytes; its exact identity is historical and must not be relabelled.
+Debug/test114 is installed. All20 protected metadata files, two original model
+hashes and package UIDs are retained; encrypted snapshots round-trip. The normal
+production APK remains code112; its private file hashes are inaccessible.
 
-## Retained phone, worker and recovery boundaries
+Actual isolated offline JNI cases pass six helper topics/Chinese and generation/
+cancellation/recovery. The first four-case batch fails three cases after lock/
+foreground loss; preserve it. Garden marker output is independently reproduced
+and is a real defect. The controlled comparison isolates forced reasoning closure.
+Source now restricts the budget to schema-constrained helpers;51 native component
+checks pass. Keep the48-token reload probe and require exact96 completion after
+a known limit. No product retry or history rewrite is added.
+[Exact evidence and limits](docs/contracts/2026-11-12-natural-chat-followup.md).
 
-Phone cold recovery and one approved normal restart pass with original models,
-history/settings/UIDs and production APK preserved; no automatic replay/load occurs.
-Do not reboot it again. Keep the owner's USB-awake setting unchanged. Full phone
-foreground LFM3 resume now passes 27,010 ms with full file hash/atomic install and
-3ms cancellation; old 300s failures/freezer observations remain historical. Six
-earlier physical offline model/helper cases retain their source scope; sustained
-throughput/thermal/battery and remaining physical methods are still open.
-[Phone retention](docs/contracts/2026-11-12-physical-restart-retention.md) ·
-[Download proof](docs/contracts/2026-11-12-foreground-model-download.md) ·
-[Offline model scope](docs/contracts/2026-11-12-physical-offline-model-acceptance.md).
+The omitted garden method is registered as the twelfth external method in the
+same five classes. No old method, prerequisite or standard exclusion is removed.
+422 policies pass in both the corrected copy and authoritative tree; commit
+and build the corrected clean source with original keys. Repeat actual garden/
+helper/Chinese/cancellation/recovery/family and retained-data production-upgrade
+gates. Public CI must pass at the exact release commit before publication.
 
-The reviewed optional Windows deadline component retains its daemon/task/source
-and eight completed receipts. The approved Pi in-memory read trial passes
-status/prepare but list fails before submission; later status is ready. Its cause
-remains open. Do not replay uncertain effects, restart the daemon or change live
-Pi/gateway/models/credentials/jobs. [Worker proof](docs/contracts/2026-11-12-pipe-exchange-deadline.md).
+## Continuing audit boundaries
 
-The two newly owned review emulators are normally stopped with disks/evidence
-retained. API37 guest boot was not verified and received no app instrumentation.
-Older unknown VMs/install outcomes remain untouched. Reconcile exact receipts,
-source/APK hashes and active handles before a deliberate new trial.
+Keep stable40/inspected-main101 review findings, native SDK cleanup warning and
+Pi/Windows read-path failure open. Auth87, authority46/13 and native owner-room20
+component scopes do not establish full live acceptance. Preserve every original
+audit row and all eight completed worker receipts. Inspect unknown outcomes before
+any retry; do not restart the worker daemon or replay uncertain project writes.
+Worker/root/NAS/file/dispatch, approvals/images/recovery, automation/rooms/config,
+phone background/audio/accessibility/performance and community gates remain.
 
-## Delivery and records
+Do not reboot the phone again: one approved normal restart already occurred.
+Awake setting15 was already15 and was not changed. Restore networking only from
+observed owner action; completed offline tests need not leave the phone offline.
+Keep app history/model files, signing/package identity and TLS/profile/approval
+boundaries. All scratch, models, caches, builds and private evidence stay on E.
+Never upload keys, credentials, models or private screenshots/transcripts.
 
-Published beta.8/code 111 and the phone's production package remain unchanged;
-beta.9/code 112 is unpublished. Fresh b182ae8 assets are verified/staged with
-183-component SBOM, 95 inputs and fresh 150-version/pinned-native advisory scope.
-Earlier f9e3835 assets retain their own source/hash identities.
-[Fresh signed inventory and phone stage](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md).
-
-Source pushes and temporary CI artifacts are not public APK delivery. Refresh
-[README figures](README.md) and [features](docs/FEATURES.md) at final publication.
-All project source stays in the chosen repository; tools, caches, models, build
-outputs and private evidence use E on this workstation. Keep credentials out of
-source/chat/helper context, preserve TLS/profile isolation and exact approvals,
-and never silently replay unknown remote work or use a cloud fallback.
-
-Historical detail remains in [validation](docs/VALIDATION.md), [evidence](EVIDENCE.md),
-dated contracts, sessions and Git; current state is deliberately concise.
+Publish the verified prerelease APK/checksum/certificate/provenance assets from
+the exact passing main commit; public delivery is already authorized. Beta.8 is
+still the public preview. No beta.9 release/tag/asset has been created here.
+[Release rules](docs/RELEASING.md) · [Validation](docs/VALIDATION.md) · [Evidence](EVIDENCE.md).

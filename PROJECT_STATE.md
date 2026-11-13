@@ -1,101 +1,63 @@
 # Signal Grove project state
 
-Last checkpoint: 12 November 2026, bounded-helper-selections source follow-up.
-The existing full audit/on-device AI goal remains active. Published APK is
-beta.8/code 111; planned beta.9/code 114 is unpublished. Code112 is installed
-locally and retains its observed offline-output defect. The owner authorizes regular
-tested commits/pushes to main and public original-key APK delivery after its gates.
+Last checkpoint:12 November 2026, natural-chat follow-up. The full audit/on-device
+AI goal is active. Published preview is beta.8/code111; beta.9/code114 remains
+unpublished. Normal phone app is code112; debug/test code114 is installed.
 
-## Current evidence
+## Current evidence and defect
 
-- Native owner room reads verify 20 checks through real Windows SID/control
-  tickets/canonical sockets and synthetic room data; six rooms/18 events per
-  profile remain exact after reads and process exit. Empty mode also verifies.
-  Both still return 2 for the one-warning SDK shutdown finding; full lifecycle
-  stays open. Four preflight refusals and 422/15/checksum policies pass.
-  [Native owner room scope](docs/contracts/2026-11-12-native-owner-room-reads.md).
-- Current stable canonical authority passes 46 authority/wire and 13 attach-first
-  cases with 57 critical source guards and 532/520 loaded-module hashes. Existing
-  assertions and older variants remain. Three source/invocation controls and
-  422 portable/15 runtime/checksum policies pass. Actual dispatcher/store/event
-  behavior uses synthetic actors/transports; live socket/room/worker acceptance
-  stays separate. [Current-stable authority](docs/contracts/2026-11-12-current-stable-authority.md).
-- Exact stable Hermes 3b42157 probe passes 87 unique cases with 55 critical Git-blob
-  guards and 949 loaded module hashes, retaining every prior 77 case. Three new
-  source/invocation refusals and 422 portable/15 runtime/checksum policies pass.
-  Loader/import-lock and start-entry/PM behavior are real; socket-module body,
-  runtime body and installer/input are explicit stopping adapters. No live server,
-  actual package operation or stdin read is certified. [Scope and reproduction](docs/contracts/2026-11-12-native-loader-startup.md).
-- Hosted d50518c passes the independently reproduced complete standard gate:
-  1,132 API26/1,133 API37 unique cases. The newer 2970ffb complete gate now also
-  independently passes 1,135/1,136, including the new workspace/outline cases;
-  later Python/docs changes retain 543 Android/native/build inputs. Its separate
-  local API26 batch passes 31 cases, 16 acknowledged
-  native taps and eight Review observations. [Native Review](docs/contracts/2026-11-12-native-workspace-review.md).
-- Latest frozen Android debug/test build passes 1,006 JVM cases/96 reports, both
-  lint variants with zero errors, 51/50 warnings, original signing identity, all
-  four native ABIs, 64-bit 16 KiB and uncompressed/aligned DEX. This Python/docs
-  chunk changes no Android/native/build input or existing APK source identity.
-- The phone passes cold recovery and one explicitly approved normal-restart
-  retention check with no automatic load/generation/replay. Original models,
-  protected history/settings/UIDs and the production APK remain. Do not reboot
-  it again. [Physical retention](docs/contracts/2026-11-12-physical-restart-retention.md).
-- Both model HTTPS methods have positive phone evidence, including full LFM3
-  foreground resume/hash/atomic installation in 27,010 ms and 3 ms cancellation.
-  Prior failed/time-out/frozen-process outcomes remain. [Download proof](docs/contracts/2026-11-12-foreground-model-download.md).
-- Six earlier physical offline LFM3/Qwen/helper/import/family cases pass within
-  their exact debug-source scope. 649–1,438ms imports and 2.43 GiB observed VmHWM
-  are short USB observations, not sustained throughput/thermal/battery acceptance.
-  [Physical model scope](docs/contracts/2026-11-12-physical-offline-model-acceptance.md).
-- Fresh clean b182ae8 original-key APKs verify: production 70,993,354 bytes,
-  1,006 JVM/96 reports, zero-error lint, all native ABIs/DEX alignment and matching
-  183-component inventory. Fresh 150-version/pinned-native OSV queries find no
-  known matching indexed advisory, within limited coverage. Original models/UIDs
-  and encrypted debug metadata verify. Its normal production installation, saved
-  connection, current live history and stored project details now verify. Offline
-  generation/history work, but exposed reasoning markup and a repeated sentence
-  block output acceptance and release. Earlier f9 artifacts keep their identities. [Fresh source and artifacts](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md).
+- Checked source0bb325e builds original-key production/debug/test APKs:1,011 JVM
+  cases/97 reports, lint0 errors (51/50 warnings), all four ABIs,64-bit16-KiB and
+  uncompressed/aligned DEX. Production71,052,646 bytes; debug92,609,254;
+  test7,909,383. These artifacts must keep their original source identity.
+- Debug114 upgrade retains all20 protected metadata files, both original model
+  hashes and all package UIDs. Encrypted snapshots round-trip. The normal APK is
+  unchanged; production-private file byte retention is not claimed.
+- Two isolated actual offline native cases pass: six reviewed helper topics and
+  exact Chinese; exact generation/cancellation/recovery/overflow/unload/reload.
+  The initial four-case batch remains failed. Garden output still exposes a
+  reasoning marker, including in a fresh foreground case.
+- Controlled same-runtime/system/context diagnosis reproduces the forced-budget
+  marker and gets a clean natural answer. Source now reserves forced reasoning
+  closure for constrained helper selections.51 native checks pass. App token
+  limits stay unchanged; the reload test retains48 and checks exact96 completion
+  after a known limit. Fresh APK acceptance is pending.
+- Register the new garden method explicitly: five external classes/twelve methods,
+  every original method and prerequisite retained.422 policies pass in the
+  corrected source copy and authoritative working tree. Fresh public CI is required.
+  The b297 compatibility workflow fails its parser inventory guard before the
+  upstream jobs; it is not a new40/101 upstream review.
 
-## Open acceptance
+[Current physical diagnosis/source scope](docs/contracts/2026-11-12-natural-chat-followup.md) ·
+[Checked build/garden inventory](docs/contracts/2026-11-12-external-garden-gate.md).
 
-Current compatibility retains 40 changed used-handler findings on stable 3b42157
-and 101 on inspected main1773ba3. Complete source-dependency/semantic review and
-actual canonical transport/actor/profile/private-channel/TCP/TLS/live Pi acceptance
-remain. Component fixtures add no source waiver. The production upgrade/read
-checks pass in their stated scope; native output formatting fails and must be
-fixed/retested before public APK download/checksum acceptance.
+## Original audit remains required
 
-The optional Windows deadline component has reviewed deployment/backup and 66-case
-native evidence. The approved read-only Pi trial passes status/prepare but its
-list call fails before submission; subsequent status is ready. Root cause remains
-open. Preserve all eight completed receipts and the daemon/task/source. Do not
-restart it or replay unknown effects. [Worker evidence](docs/contracts/2026-11-12-pipe-exchange-deadline.md).
+Stable3b42157/inspected-main1773ba3 retain40/101 used-handler review findings.
+Native auth87, authority46/13 and owner-room20 component scopes remain separate
+from live acceptance; actual SDK shutdown still emits a cleanup warning.
+[Compatibility](docs/COMPATIBILITY.md) · [Owner runtime](docs/contracts/2026-11-12-native-owner-room-reads.md).
 
-Worker identity/registered roots/files/NAS and reviewed dispatch, approvals/images/
-reconnect/integrations, advanced Kanban/jobs/rooms/configuration, notifications/
-multiple connections/background/audio/accessibility/performance, remaining physical
-model checks and community-release acceptance remain in the [full audit ledger](docs/AUDIT_EXECUTION_PLAN.md)
-and [on-device plan](docs/ON_DEVICE_AI_PLAN.md). Project metadata is not execution
-ownership. No original unresolved row is removed by this summary.
+The Pi/Windows read path remains intermittent; preserve all eight completed
+receipts and unknown work. Do not restart its daemon or replay requests.
+Project metadata does not verify workers, roots, repositories, files or NAS.
+Auth renewal/approvals/images/reconnect/integrations, advanced Kanban/jobs/rooms/
+configuration, notifications/multiple connections/background/audio/accessibility/
+performance, remaining model-family and community-release gates stay open.
+No original unresolved audit row is removed by this concise state.
+[Full audit](docs/AUDIT_EXECUTION_PLAN.md) · [On-device plan](docs/ON_DEVICE_AI_PLAN.md).
 
 ## One exact next action
 
-Build corrected code114 from clean committed source and verify fresh JVM/lint/
-all native ABIs and exact-source CI. The code113 full build passes but its helper
-diagnostic fails. Budget plus constrained selection now passes49 vocabulary
-checks and6/6 native helper topics at the original96-token total. Repeat actual
-JNI garden/helper/Chinese/cancellation/family and original-key upgrade checks;
-native diagnostics do not replace APK acceptance. Continue
-actual Pi/worker root cause and
-stable/main semantic/dependency acceptance using the 40 prepared exact diffs.
-Finish exact-source CI and public release/download gates; do not infer them from
-older input-equivalent scopes.
-The shutdown finding and every original audit row stay open until proven.
-Keep the source/fixture/advisory/physical scopes distinct. Both newly owned review
-emulators are normally stopped with disks/evidence retained; the new API37 boot
-remains unverified and older unknown fixtures are untouched. Preserve all original
-phone data, signing/package identity, TLS/profile/approval boundaries and no-replay
-behavior. All temporary work on the owner workstation stays on E.
+Validate and commit the corrected authoritative source for a clean signed build.
+Then verify the fresh APK's garden/helper/Chinese/cancellation/recovery/family
+behavior, retained-data production upgrade and exact passing public release CI.
+No APK/tag/release may be published while a required gate fails.
 
-Detailed history remains in [validation](docs/VALIDATION.md), [evidence](EVIDENCE.md),
-dated contracts, sessions and Git. [Handover](HANDOVER.md).
+Preserve original phone models/history, TLS/authentication/profile/approval
+boundaries and no-replay behavior. One approved normal phone restart already
+occurred; do not reboot it again. Awake setting15 was observed unchanged. The
+owner may restore normal networking after completed tests; don't infer radio
+state from a reply. Keep all workstation scratch/builds/private evidence on E.
+
+[Validation](docs/VALIDATION.md) · [Evidence](EVIDENCE.md) · [Handover](HANDOVER.md).
