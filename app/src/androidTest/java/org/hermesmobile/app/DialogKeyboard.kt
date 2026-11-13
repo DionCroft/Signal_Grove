@@ -61,10 +61,16 @@ fun tapFocusedDialogWindowPoint(x:Float,y:Float,action:NativeDialogTapAction,id:
 /** The real Android IME boundary, in screen coordinates, for a focused dialog. */
 data class FocusedDialogViewport(val visible:android.graphics.Rect,val screenOffsetX:Int,val screenOffsetY:Int,val imeBottom:Int,val displayHeight:Int,val keyboardVisible:Boolean=true)
 
-fun focusedDialogViewport(requireKeyboard:Boolean=true):FocusedDialogViewport? {
+/** Sequential native-window/inset observations, not an atomic keyboard state. */
+data class DialogImeDisagreement(val nativeImePresent:Boolean,val nativeImeTopPx:Int,
+    val deliveredImeVisible:Boolean,val deliveredImeBottomPx:Int,
+    val readSeparationMs:Long,val readSeparationCapped:Boolean)
+
+fun focusedDialogViewport(requireKeyboard:Boolean=true,onIncoherentIme:((DialogImeDisagreement)->Unit)?=null):FocusedDialogViewport? {
+    var nativeSampleAt=0L
     val nativeIme=withInteractiveWindows {windows->
         val bounds=windows.filter {it.type==android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD}.map {item->android.graphics.Rect().also {item.getBoundsInScreen(it)}}.filter {!it.isEmpty}
-        bounds.minOfOrNull {it.top}
+        bounds.minOfOrNull {it.top}.also {if(onIncoherentIme!=null) nativeSampleAt=android.os.SystemClock.uptimeMillis()}
     }
     if(requireKeyboard && nativeIme==null) return null // Insets can precede the native IME window.
     var result:FocusedDialogViewport?=null
@@ -77,7 +83,18 @@ fun focusedDialogViewport(requireKeyboard:Boolean=true):FocusedDialogViewport? {
         if(requireKeyboard) check(keyboardVisible) {"The real dialog keyboard must remain visible"}
         // A general action can be checked with or without an IME, but not during
         // disagreement between native windows and delivered insets.
-        if(keyboardVisible!=(nativeIme!=null)) return@check
+        if(keyboardVisible!=(nativeIme!=null)) {
+            // Failure-path metadata only: no new window query, waiting, input
+            // or acceptance. Observer errors cannot turn null into readiness.
+            onIncoherentIme?.let {observer ->
+                val elapsed=(android.os.SystemClock.uptimeMillis()-nativeSampleAt).coerceAtLeast(0)
+                val sample=DialogImeDisagreement(nativeIme!=null,nativeIme?.coerceIn(-100000,100000) ?: -1,
+                    keyboardVisible,insets.getInsets(WindowInsetsCompat.Type.ime()).bottom.coerceIn(0,100000),
+                    elapsed.coerceAtMost(10000),elapsed>10000)
+                runCatching {observer(sample)}
+            }
+            return@check
+        }
         val ime=if(keyboardVisible) insets.getInsets(WindowInsetsCompat.Type.ime()).bottom else 0
         val metrics=android.util.DisplayMetrics()
         @Suppress("DEPRECATION")

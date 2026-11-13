@@ -71,14 +71,13 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-The [keyboard transition and API37 Review evidence](docs/contracts/2026-11-13-keyboard-transition-and-api37-review-guard.md)
-records 14 passing focused methods and two actual-keyboard Apply/Cancel
-transitions through the original Chat selector. Neither original API26 failure
-is reproduced or fixed. A separate b995a28 API37 Review guard fails before its
-tap; its failing receipt and source-bound IME/inset inference are retained.
-The complete new-source device gate remains pending. The
-[experimental native SDK candidate](docs/contracts/2026-11-13-native-owner-candidate-and-ui-replay.md)
-remains separate from unmodified-upstream/deployed acceptance.
+The [IME/caption diagnostic evidence](docs/contracts/2026-11-13-ime-caption-diagnostics.md)
+retains the exact original API37 trials and a separate local large-text failure.
+Fresh API37 focused checks pass at both font sizes; API26 has 21/22 positives
+and one single-tap Cancel WARNING, preserved without retry. The original UI
+failures and complete new-source gate remain open. Required local build checks
+pass 1,011 JVM cases and zero-error lint. The experimental SDK candidate remains
+separate from unmodified-upstream/deployed acceptance.
 
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
 review (latest inspected stable40/main104), real project/workspace/worker,

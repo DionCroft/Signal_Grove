@@ -56,7 +56,18 @@ fun ComposeContentTestRule.assertDialogActionCaptionVisible(tag:String,outline:O
         if(value[i].isWhitespace() || Character.isLowSurrogate(value[i])) continue
         val glyph=layout.getBoundingBox(i)
         for(x in listOf(glyph.left+origin.x,glyph.right+origin.x)) for(y in listOf(glyph.top+origin.y,glyph.bottom+origin.y)) {
-            assertTrue("Caption glyph "+i+" clipped by "+(if(outline==null) "rounded action shape" else "supplied action outline")+" in "+tag,insideShape(x,y))
+            val inside=insideShape(x,y)
+            val geometry=if(inside) "" else {
+                val suppliedBounds=when(outline) {
+                    is Outline.Generic->outline.path.getBounds()
+                    is Outline.Rectangle->outline.rect
+                    is Outline.Rounded->androidx.compose.ui.geometry.Rect(outline.roundRect.left,outline.roundRect.top,outline.roundRect.right,outline.roundRect.bottom)
+                    null->null
+                }
+                "; glyph="+glyph+" at "+origin+"; visible="+visible+"; action="+button+
+                    "; suppliedOutlineBounds="+suppliedBounds+"; localPoint=("+(x-button.left)+","+(y-button.top)+")"
+            }
+            assertTrue("Caption glyph "+i+" clipped by "+(if(outline==null) "rounded action shape" else "supplied action outline")+" in "+tag+geometry,inside)
         }
         assertTrue("Caption glyph "+i+" clipped in "+tag+": "+glyph+" at "+origin+"; visible="+visible+"; action="+button,
             glyph.left+origin.x>=left-1f && glyph.right+origin.x<=right+1f && glyph.top+origin.y>=top-1f && glyph.bottom+origin.y<=bottom+1f)

@@ -1,5 +1,23 @@
 # Evidence navigation
 
+## 13 November 2026 - IME/caption diagnostics; connected failure retained
+
+Test-only observers preserve every original guard/action/wait and add bounded,
+explicitly sequential IME mismatch fields and failure-only caption geometry.
+The exact original b995 pair passes five API37/100% trials; its earlier local
+130% caption failure stays separate and unresolved. Fresh diagnostic scopes
+pass 3/3 methods at each API37 font setting. API26 has 21/22 positives and one
+Cancel single-tap WARNING (accepted DOWN/UP 1,264 ms apart); no retry occurs.
+No IME disagreement is observed in 14 review receipts. No original failure is
+claimed fixed and no complete new-source standard gate is claimed.
+
+Required build checks pass 1,011 JVM/97 reports, zero-error lint (51/50 warnings)
+and original-key/DEX/native packaging. App main/live services/public APKs and
+owner data are unchanged. All four priorities and the full original audit stay
+active. Later hosted 9744 API26/API37 failed-shard artifacts need review too.
+
+[Exact evidence, hashes, setup corrections and acceptance limits](docs/contracts/2026-11-13-ime-caption-diagnostics.md).
+
 ## 13 November 2026 - keyboard transitions pass; API37 Review guard retained
 
 Two actual-keyboard Home picker transitions pass through the original Chat

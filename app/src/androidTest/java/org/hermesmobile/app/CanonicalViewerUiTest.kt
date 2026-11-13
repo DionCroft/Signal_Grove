@@ -188,6 +188,16 @@ class CanonicalViewerUiTest {
         val id=java.util.UUID.randomUUID().toString();val samples=mutableListOf<JsonObject>()
         var ready:WorkspaceReviewGeometry?=null;var previous:WorkspaceReviewGeometry?=null;var stableAt=0L
         var dispatched=false;var primary:Throwable?=null
+        val imeDisagreements=mutableListOf<JsonObject>();var imeDisagreementCount=0;var viewportPhase="readiness"
+        fun observeImeDisagreement(value:DialogImeDisagreement) {
+            imeDisagreementCount=(imeDisagreementCount+1).coerceAtMost(1000)
+            if(imeDisagreements.size<16) imeDisagreements+=buildJsonObject {
+                put("phase",viewportPhase);put("atomic",false)
+                put("nativeImePresent",value.nativeImePresent);put("nativeImeTopPx",value.nativeImeTopPx)
+                put("deliveredImeVisible",value.deliveredImeVisible);put("deliveredImeBottomPx",value.deliveredImeBottomPx)
+                put("readSeparationMs",value.readSeparationMs);put("readSeparationCapped",value.readSeparationCapped)
+            }
+        }
         fun observation(value:WorkspaceReviewGeometry?)=buildJsonObject {
             put("nativeViewportReady",value!=null)
             value?.let {
@@ -200,7 +210,7 @@ class CanonicalViewerUiTest {
         }
         try {
             compose.waitUntil(5000) {
-                val viewport=focusedDialogViewport(requireKeyboard=false)
+                val viewport=focusedDialogViewport(requireKeyboard=false,onIncoherentIme=::observeImeDisagreement)
                 val value=viewport?.let {WorkspaceReviewGeometry(it,control.fetchSemanticsNode().boundsInWindow)}
                 val sample=observation(value);if(samples.lastOrNull()!=sample && samples.size<16) samples+=sample
                 val now=android.os.SystemClock.uptimeMillis()
@@ -216,7 +226,8 @@ class CanonicalViewerUiTest {
             val caption=Words.WorkspaceReview.localized(AppPreferences(chinese=large,pinyin=large))
             val native=focusedDialogCaptionScreenBounds(caption,caption)
             assertTrue("The complete native Review caption must fit the observed viewport",settled.viewport.visible.contains(native))
-            assertEquals("Review geometry changed before its only tap",settled.viewport,focusedDialogViewport(requireKeyboard=false))
+            viewportPhase="preTap"
+            assertEquals("Review geometry changed before its only tap",settled.viewport,focusedDialogViewport(requireKeyboard=false,onIncoherentIme=::observeImeDisagreement))
             val center=settled.control.center;dispatched=true
             tapFocusedDialogWindowPoint(center.x,center.y,NativeDialogTapAction.WorkspaceReview,id)
             compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
@@ -225,7 +236,9 @@ class CanonicalViewerUiTest {
         finally {
             val consentPresent=runCatching {compose.onAllNodesWithTag("workspace-consent").fetchSemanticsNodes().isNotEmpty()}.getOrNull()
             try {writeNativeTapDiagnostic("workspace-review-observation-$id",buildJsonObject {
-                put("schema",1);put("id",id);put("action","workspace-review");put("nativeTapAttempted",dispatched)
+                put("schema",2);put("id",id);put("action","workspace-review");put("nativeTapAttempted",dispatched)
+                put("imeDisagreements",JsonArray(imeDisagreements));put("imeDisagreementCount",imeDisagreementCount)
+                put("imeDisagreementsCapped",imeDisagreementCount>imeDisagreements.size)
                 put("samples",JsonArray(samples));put("ready",observation(ready))
                 put("consentPresent",consentPresent?.let(::JsonPrimitive) ?: JsonNull)
                 put("failureType",primary?.javaClass?.simpleName?.let(::JsonPrimitive) ?: JsonNull)

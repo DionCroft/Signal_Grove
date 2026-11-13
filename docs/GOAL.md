@@ -45,4 +45,6 @@ Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
 reboot or change live gateway/models/credentials without the existing applicable
 approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The next bounded stage is the API26 Demo transition.
+and tooling remain on E:. The next bounded stage reconciles the retained
+API26/API37 native failures and exact hosted artifacts before dependent work;
+the original API26 Demo transition remains unresolved.
