@@ -1,5 +1,8 @@
 # Signal Grove — paused implementation audit
 
+Current owner-requested pause: [13 November review](../2026-11-13/PAUSED_REVIEW.md).
+The original snapshot below is historical.
+
 Historical snapshot. The user resumed work on 5 November 2026; see the current
 [execution and acceptance ledger](../../AUDIT_EXECUTION_PLAN.md). The observations
 and still-running counts below describe the time of the paused review.

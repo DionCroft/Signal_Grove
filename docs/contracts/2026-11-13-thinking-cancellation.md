@@ -1,5 +1,31 @@
 # Thinking-aware phone cancellation and complete emulator evidence
 
+## 13 November 2026 - current check complete; owner-requested pause
+
+The final actually offline cancellation/recovery method passes in27.984 s:
+Stop during thinking and visible streaming, exact recovery, coroutine stop,
+overflow refusal, unload/reload and retained original short-limit probes.
+Seven selected native methods have positive evidence on the unchanged source0ee
+debug app across identified companions; this is not the full twelve-method
+external gate. The latest companion source6034/cdb0570164ff compiles and signs
+with the original key. App code/defaults/caps are unchanged. Both app APKs,
+models, UIDs and core rows are retained; only WorkManager's force-stop timestamp
+changes. Exact private SQLite copies are removed and original networking is
+restored. No phone test/model CLI/local build remains active.
+
+Source0ee's complete1,135 API26/1,136 API37 standard gate remains accepted.
+Source1180 has a retained one-case API26 Demo clarification failure, so its
+complete gate fails. Source6034 Android CI is in progress at observation,
+compatibility fails and worker CI passes; pending runs are not acceptance.
+Beta.8 remains published and beta.9/code114 remains unpublished. Full upstream,
+live project/worker/integration, phone and final-release audit rows stay open.
+Work stops after this checkpoint at the owner's request; resume only on request.
+
+[Paused evaluation and remaining work](../audits/2026-11-13/PAUSED_REVIEW.md).
+
+Earlier sections retain their original source/time scope.
+
+
 13 November 2026. This checkpoint changes only physical-test fixture code and
 documentation. Product inference, token limits, prompts, native libraries and
 retry behavior are unchanged. Beta.8 is the published preview; beta.9/code114
