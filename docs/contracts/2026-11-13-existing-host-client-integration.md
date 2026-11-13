@@ -112,9 +112,21 @@ directory on non-Windows and retains mandatory explicit TEMP/non-C enforcement
 on Windows. No wrapper, runtime package, policy, source guard or native assertion
 changes. All 481 portable cases pass again on 907 frozen inputs; every input of
 the previously passing 72-case native gate is byte-identical. That native suite
-was not rerun. Hosted Linux/current-head native acceptance remains pending until
-the new run is inspected. No live component or release update is performed.
+was not rerun. At the initial correction checkpoint, hosted acceptance was pending. The
+subsequent corrected-source workflow43517488808 now passes 111 Linux protocol
+and 72 distinct native Windows cases at source356d57c. Its raw native artifact
+matches the exact commit and complete local native inventory, with zero failures,
+errors or skips; every recorded native source hash matches its Git checkout.
+The failed source9d job remains failed and preserved. This adds hosted bridge
+acceptance, not app-auth/phone/NAS or full Hermes compatibility acceptance. No live component or release update is performed.
 
 The corrected portable log SHA-256 is `f70dc72542e13ee303708698ed9375c28b970c9ec48613070add162d0d1f576e`.
 The original [failed protocol job](https://github.com/DionCroft/Signal_Grove/actions/runs/43516959720/job/132201251136)
 is retained as failed, with the native job skipped by its prerequisite.
+
+Corrected-source hosted evidence: [workflow43517488808](https://github.com/DionCroft/Signal_Grove/actions/runs/43517488808),
+artifact14081860601 (5,944 bytes), archive SHA-256
+`ff4fa18b6bbde1d8d0bc9d4338b0bc709d1768f4183cb8f37ce99661f86fda86`,
+raw native JSON SHA-256
+`5e87c87a16343e1031562f8881e2dc275a0eb3628f9a812f542a1ed5713c578f`.
+This follow-up changes documentation only; code inputs remain source356d57c.
