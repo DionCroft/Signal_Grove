@@ -1,43 +1,53 @@
 # Signal Grove project state
 
-13 November 2026. The full audit/on-device AI goal stays **active**, retaining
-all four [priorities](docs/GOAL.md) and every original requirement.
+13 November 2026. The full audit/on-device AI goal stays **active**; every
+original requirement and all four [priorities](docs/GOAL.md) remain.
 
 ## Latest evidence
 
-The reviewed fresh-readiness client is now installed in the existing private
-Windows worker. New RPC clients load the pinned package; the same running daemon
-keeps its existing runtime and read instance. Only the immutable source package
-and atomic read-wrapper replacement changed. Maintained worker/daemon source,
-task, owner/policy/registry/ACLs, queue and all eight completed receipt files are
-retained. No service restart, grant/credential/model change or job replay occurs.
+The actual current-stable HTTP probe now reproduces an optional coordinator
+gap: successful PKCE/refresh and a consumed socket ticket produce a verified
+host-owner identity without native profile/instance fields. The repository
+adapter refuses describe before any worker call. All 20 inspected authentication/
+authority source modules on the running Pi match the exact pristine 3b target;
+this is a code-binding observation, not a production sign-in test.
 
-The ordinary catalogued Pi helper now passes five new read-only calls: status,
-prepare, list, preview and duplicate refusal. Three fresh IDs return seven
-entries and the verified 302-byte fixture; foreign subject/profile denial occurs
-before SSH. This uses the installed normal helper, without a staging entry or
-call substitution. It still uses explicit administrative coordinator context;
-native HTTP/PKCE/WebSocket app operator binding and Android file/NAS acceptance
-remain open.
+A disposable candidate binds an instance-less host-scoped login to the identical
+current registry authority, retaining owner/operator/profile/transport checks.
+Explicit instance claims, malformed native bootstrap, API-principal and foreign
+profile cases remain strict. It passes 16 actual credential/socket checks with a
+synthetic worker, plus 18 native authority/contract checks retaining all 12 original
+outcomes. The original and candidate HTTP probes both retain one real SDK exit
+warning; the supervisor's lifecycle verdict stays nonzero. No warning is hidden.
 
-Fresh before/after encrypted component recovery decrypts from disk, restores
-SQLite in memory with quick_check and retains all eight receipt bytes. Path and
-permission checks pass on32 actual paths; both packages remain. Doctor without
-fixes exits1 with two aggregate setup/key findings. Configured read-only graph
-status calls complete, but the application's different-project graph and the
-unindexed maintained source remain unhealthy and unrepaired. These findings,
-the original API26 causes, upstream/shutdown and the entire audit stay open.
+Automatic approval review rejected applying the persistent authentication policy
+change because its exact scope was not explicitly authorized. The reviewed
+source-and-test patch is proposed only; the repository adapter, deployed Pi,
+operator policy and grants are unchanged. Explicit approval is required before
+applying that fix. Authorized probe improvements pass 481 portable cases; all
+inputs of the prior 72-case native Windows gate remain byte-identical.
 
-[Live commissioning and recovery scope](docs/contracts/2026-11-13-live-read-client-update.md).
+The newer full Android source 4444 gate is independently reconciled: all four raw
+partitions reproduce the hosted summary and actual same-run APK hashes, with
+1,141 API26  / 1,142 API37 distinct positives. Original clarification/scrolling and
+the unique Chat-route counterexample are positive on both. The 12 external-model
+methods, final-current-head/phone gates and original failure causes stay separate.
+
+The read-client correction remains live and its before/after encrypted recovery,
+same daemon/read instance, normal-helper Pi trial and eight receipts stay verified.
+No persistent authentication-source change or Pi deployment is part of this checkpoint.
+
+[Proposal and exact evidence](docs/contracts/2026-11-13-http-operator-binding-review.md).
 
 ## Exact next action
 
-Verify the native actor/profile/operator grant binding against the exact
-maintained Hermes runtime before enabling the coordinator capability. Then
-complete real Android chat/workspace/worker/repository/file/NAS acceptance and
-the remaining automation/integration ledger. Independently reconcile the now-
-green full source4444 Android run's raw artifacts; keep final-head/phone and
-external-model gates separate. Preserve all unknown work and current data.
+Obtain explicit approval for the exact proposed authentication-source patch
+before applying it, then validate/commit the identical tested source and negative
+cases. No Pi deployment, operator enrollment or service restart is included in
+that source approval. Continue the separately reviewed native coordinator plan
+and actual Android workspace/worker/file/NAS acceptance. Independently finish
+stable/prior/main semantics, pristine SDK shutdown and the original integration/
+automation and final production-phone/release ledger. Preserve unknown work.
 
 ## Remaining scope and safeguards
 

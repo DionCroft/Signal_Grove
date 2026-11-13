@@ -21,12 +21,18 @@ p.add_argument('--source-commit', choices=REVIEWED_COMMITS, default=REVIEWED_COM
                help='Exact reviewed checkout; defaults to the original owner-runtime pin.')
 p.add_argument('--transport', choices=('native','http'), default='native',
                help='HTTP uses a local synthetic IdP through actual Hermes PKCE/refresh/WS-ticket routes.')
+p.add_argument('--coordinator-http-reads', action='store_true',
+               help='Explicit current-stable in-memory extension: actual PKCE/tickets/HTTP socket and synthetic worker grants; not production acceptance.')
 p.add_argument('--source-root', type=Path, required=True)
 p.add_argument('--dependency-site', type=Path, required=True)
 p.add_argument('--work-root', type=Path, required=True)
 p.add_argument('--owned-child', action='store_true', help=argparse.SUPPRESS)
 a = p.parse_args()
+if a.coordinator_http_reads and (a.source_commit!='3b421578588243f920886e6fe79a6faa87ea026e' or a.transport!='http'):
+    p.error('Coordinator HTTP reads require the exact current-stable source and --transport http.')
 source, site, root = a.source_root.resolve(), a.dependency_site.resolve(), a.work_root.resolve()
+site_alias=a.dependency_site.absolute()
+assert a.dependency_site.is_absolute() and site_alias.resolve()==site
 COMMIT = a.source_commit
 assert os.name == 'nt' and sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode
 assert source.is_dir() and site.is_dir() and not root.exists()
@@ -37,7 +43,8 @@ def supervise():
     receipt=root.with_suffix('.supervisor.json');log=root.with_suffix('.supervisor.log')
     assert not receipt.exists() and not log.exists()
     command=[sys.executable,'-I','-S','-B',str(Path(__file__).resolve()),'--owned-child',
-             '--source-commit',COMMIT,'--transport',a.transport,'--source-root',str(source),'--dependency-site',str(site),'--work-root',str(root)]
+             '--source-commit',COMMIT,'--transport',a.transport,'--source-root',str(source),'--dependency-site',str(site_alias),'--work-root',str(root)]
+    if a.coordinator_http_reads:command.append('--coordinator-http-reads')
     child_env={k:v for k,v in os.environ.items() if k.upper() in ('SYSTEMROOT','WINDIR','PATH','PATHEXT')}
     child_env.update(TEMP=str(root.parent),TMP=str(root.parent))
     observation=dict(state='OWNED_ATTEMPT_STARTING',command=command,sourceCommit=COMMIT,transport=a.transport,harnessSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -56,6 +63,9 @@ def supervise():
         observation['state']='FAILED_CHILD_RETAINED';save();return 1
     core=json.loads((root/'report.json').read_text(encoding='utf-8'))
     final=json.loads((root/'shutdown-diagnostics.json').read_text(encoding='utf-8'))
+    if a.coordinator_http_reads:
+        assert core['coordinatorAuth']['state']=='ACTUAL_HTTP_COORDINATOR_OPERATOR_BINDING_PASS'
+        assert core['coordinatorAuth']['cases']==16 and core['coordinatorAuth']['routeCalls']==6
     assert core['harnessSha256']==observation['harnessSha256']
     assert core['state']=='PASS_REAL_OWNER_WORKSPACE_TRANSPORT' and core['importedModules']
     assert not core['denied'] and not final['denied']
@@ -126,8 +136,11 @@ os.environ.update(TEMP=str(temp),TMP=str(temp),TMPDIR=str(temp),USERPROFILE=str(
     HERMES_DISABLE_LAZY_INSTALLS='1',HERMES_TEST_ISOLATION='1',HERMES_STARTUP_WARMUP_TIMEOUT='0',
     PYTHONDONTWRITEBYTECODE='1',NO_PROXY='127.0.0.1,localhost',
     GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL=os.devnull,GIT_OPTIONAL_LOCKS='0',GIT_NO_LAZY_FETCH='1',GIT_TERMINAL_PROMPT='0')
-os.chdir(root);sys.path[:0]=[str(source),str(site)]
+os.chdir(root);sys.path[:0]=[str(source),str(site_alias)]
 reads=[root,source,site,Path(sys.base_prefix).resolve(),Path(__file__).resolve()]
+coordinator_helper=Path(__file__).resolve().with_name('coordinator_auth_fixture.py')
+coordinator_extensions=Path(__file__).resolve().parents[1]/'server_extensions/coordinator_workspaces'
+if a.coordinator_http_reads:reads.extend([coordinator_helper,coordinator_extensions])
 denied=[]; bound=weakref.WeakSet(); sockets=[]; version_probes=[]
 def inside(value, roots):return any(value.is_relative_to(x) for x in roots)
 def path_of(value):return Path(os.fsdecode(value)).resolve() if isinstance(value,(str,bytes,os.PathLike)) else None
@@ -221,6 +234,15 @@ def phase(name,**details):
     print(name,flush=True)
 
 async def run():
+    coordinator_fixture=None
+    if a.coordinator_http_reads:
+        import types
+        fixture_module=types.ModuleType('signal_grove_coordinator_auth_fixture');fixture_module.__file__=str(coordinator_helper)
+        sys.modules[fixture_module.__name__]=fixture_module
+        exec(compile(coordinator_helper.read_bytes(),str(coordinator_helper),'exec'),fixture_module.__dict__)
+        coordinator_fixture=fixture_module.CoordinatorHttpFixture(source,coordinator_extensions,launch)
+        record['coordinatorHelperSha256']=hashlib.sha256(coordinator_helper.read_bytes()).hexdigest()
+        record['explicitCoordinatorSourceAdapter']=coordinator_fixture.binding
     from hermes_cli.config import atomic_config_write
     for profile_home in (launch,secondary):
         atomic_config_write(profile_home/'config.yaml',{'gateway':{'multiplex_profiles':True,'loop_watchdog':False},
@@ -247,6 +269,7 @@ async def run():
     runner=None;control=None;api=None
     try:
         runner=GatewayRunner(config)
+        if coordinator_fixture is not None:coordinator_fixture.runner=runner
         phase('OFFICIAL_RUNNER_CONSTRUCTED')
         await runtime.initialize_gateway_runtime(runner)
         assert len(runner.session_authorities.served_profiles())==2
@@ -349,6 +372,28 @@ async def run():
                         assert desc['instance_id']==runner.session_runtime_descriptor['instance_id']
                         assert desc['authority_epoch']==runner.session_authorities.require(launch).epoch
                         yield client
+                if coordinator_fixture is not None and not getattr(coordinator_fixture,'http_ticket_replay_checked',False):
+                    try:
+                        async with connect(url,subprotocols=[GATEWAY_WS_PROTOCOL,'hermes-gateway-ticket.'+ticket],open_timeout=10,proxy=None):
+                            raise AssertionError('A consumed HTTP socket ticket was accepted twice')
+                    except InvalidStatus as exc:assert exc.response.status_code==403
+                    coordinator_fixture.http_ticket_replay_checked=True
+                    coordinator_fixture.completed('actual-http-socket-ticket-replay-refused')
+        if coordinator_fixture is not None:
+            sibling=(await asyncio.to_thread(discover_gateway_endpoint,secondary,timeout=5)).endpoint
+            async with connect_owner(secondary,sibling) as client:
+                await coordinator_fixture.exercise_native_denial(client,'actual-profile-bound-native-sibling-without-grant-denied')
+            from gateway.session_identity import authenticated_subject
+            api_subject=authenticated_subject({'provider':'local','user_id':'api'})
+            for label,options in [('actual-issued-api-subject-ticket-denied',{'subject':api_subject}),('actual-issued-worker-adoption-nonoperator-ticket-denied',{'purpose':'worker-adoption'})]:
+                issued=await asyncio.to_thread(_session_ticket,launch,endpoint,**options)
+                native_url,native_protocols=gateway_ws_target(endpoint,issued)
+                async with connect(native_url,subprotocols=native_protocols,open_timeout=10,proxy=None) as ws:
+                    async with GatewayClient(ws) as client:
+                        await coordinator_fixture.exercise_native_denial(client,label)
+            async with web_owner() as client:await coordinator_fixture.exercise_http(client)
+            record['coordinatorAuth']=coordinator_fixture.report()
+            phase('ACTUAL_HTTP_COORDINATOR_OPERATOR_AND_GRANT_BOUNDARIES_VERIFIED',cases=len(coordinator_fixture.outcomes))
         workspace_channel=web_owner if a.transport=='http' else lambda:connect_owner(launch,endpoint)
         # The ordinary authenticated host-owner path; never seed a trusted Actor/runner.
         start,target=workspace_cwds

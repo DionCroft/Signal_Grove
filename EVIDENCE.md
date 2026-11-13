@@ -1,5 +1,37 @@
 # Evidence navigation
 
+## 13 November 2026 - actual HTTP binding gap and full Android raw gate
+
+The actual current-stable HTTP probe now reproduces an optional coordinator
+gap: successful PKCE/refresh and a consumed socket ticket produce a verified
+host-owner identity without native profile/instance fields. The repository
+adapter refuses describe before any worker call. All 20 inspected authentication/
+authority source modules on the running Pi match the exact pristine 3b target;
+this is a code-binding observation, not a production sign-in test.
+
+A disposable candidate binds an instance-less host-scoped login to the identical
+current registry authority, retaining owner/operator/profile/transport checks.
+Explicit instance claims, malformed native bootstrap, API-principal and foreign
+profile cases remain strict. It passes 16 actual credential/socket checks with a
+synthetic worker, plus 18 native authority/contract checks retaining all 12 original
+outcomes. The original and candidate HTTP probes both retain one real SDK exit
+warning; the supervisor's lifecycle verdict stays nonzero. No warning is hidden.
+
+Automatic approval review rejected applying the persistent authentication policy
+change because its exact scope was not explicitly authorized. The reviewed
+source-and-test patch is proposed only; the repository adapter, deployed Pi,
+operator policy and grants are unchanged. Explicit approval is required before
+applying that fix. Authorized probe improvements pass 481 portable cases; all
+inputs of the prior 72-case native Windows gate remain byte-identical.
+
+The newer full Android source 4444 gate is independently reconciled: all four raw
+partitions reproduce the hosted summary and actual same-run APK hashes, with
+1,141 API26  / 1,142 API37 distinct positives. Original clarification/scrolling and
+the unique Chat-route counterexample are positive on both. The 12 external-model
+methods, final-current-head/phone gates and original failure causes stay separate.
+
+[Exact proposal, evidence and approval scope](docs/contracts/2026-11-13-http-operator-binding-review.md).
+
 ## 13 November 2026 - live read-client commissioning
 
 The reviewed fresh-readiness client is now installed in the existing private

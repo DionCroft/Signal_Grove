@@ -1,0 +1,50 @@
+--- a/server_extensions/coordinator_workspaces/native_adapter.py
++++ b/server_extensions/coordinator_workspaces/native_adapter.py
+@@ -40,0 +41,19 @@
++def _identity_instance_matches(connection):
++    """Bind a verified HTTP identity to the actual current served authority.
++
++    Explicit claims and native bootstrap grants never use the missing-field
++    path. Owner/operator/profile/transport checks still apply before/after I/O.
++    """
++    identity = connection._identity
++    if 'instance_id' in identity:
++        return identity['instance_id'] == connection.authority.instance_id
++    if identity.get('native_bootstrap') is True or identity.get('profile_scope') != 'host':
++        return False
++    from gateway.owner_identity import host_owner_subject, principal_subject
++    if principal_subject(identity) != host_owner_subject():
++        return False
++    registry = getattr(connection.authority.runner, 'session_authorities', None)
++    return (registry is not None
++            and registry.require(Path(connection.authority.profile_id)) is connection.authority)
++
++
+@@ -49 +68 @@
+-                or connection._identity.get('instance_id') != connection.authority.instance_id
++                or not _identity_instance_matches(connection)
+--- a/scripts/probe_workspace_coordinator.py
++++ b/scripts/probe_workspace_coordinator.py
+@@ -85 +85 @@
+-def connect(*,operator_gate=True,**changes):
++def connect(*,operator_gate=True,omit_instance=False,authority_override=None,**changes):
+@@ -88 +88,2 @@
+-    return controls.AuthorityConnection(owner,types.SimpleNamespace(),identity,operator=operator_gate)
++    if omit_instance:identity.pop('instance_id',None)
++    return controls.AuthorityConnection(authority_override or owner,types.SimpleNamespace(),identity,operator=operator_gate)
+@@ -100,0 +102,2 @@
++    no_instance=connect(omit_instance=True)
++    good=await call(no_instance,adapter.DESCRIBE,dict(device=DEVICE));assert good['result']['state']=='ok';outcomes.append('actual-host-login-without-instance-uses-current-authority')
+@@ -101,0 +105,12 @@
++    for name,foreign in [('explicit-null-instance',connect(instance_id=None)),
++                         ('native-bootstrap-without-instance',connect(omit_instance=True,native_bootstrap=True)),
++                         ('profile-bound-login-without-instance',connect(omit_instance=True,profile_scope='profile'))]:
++        result=await call(foreign,adapter.DESCRIBE,dict(device=DEVICE));assert result['result']['code']=='DENIED',(name,result)
++        assert len(calls)==count;outcomes.append(name+'-denied-before-route')
++    orphan_home=root/'orphan';orphan_home.mkdir();orphan_db=SessionDB(db_path=orphan_home/'state.db');databases.append(orphan_db)
++    orphan_epoch=begin_runtime_epoch(orphan_db,instance_id='fixture-orphan')
++    orphan=SessionAuthority(runner,profile_id=str(home),instance_id='fixture-orphan',db=orphan_db,epoch=orphan_epoch)
++    foreign=connect(omit_instance=True,authority_override=orphan)
++    result=await call(foreign,adapter.DESCRIBE,dict(device=DEVICE));assert result['result']['code']=='DENIED';assert len(calls)==count;outcomes.append('missing-instance-unregistered-authority-denied-before-route')
++    owner.events.pop(no_instance.actor.transport_id)
++    result=await call(no_instance,adapter.DESCRIBE,dict(device=DEVICE));assert result['result']['code']=='DENIED';assert len(calls)==count;outcomes.append('missing-instance-closed-transport-denied-before-route')

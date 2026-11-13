@@ -57,6 +57,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
 | Unmodified native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
 | Policy and Windows workspace checks | **481 policy / 15 runtime-model / 72 Windows native cases** | Pinned client correction is live; five normal Pi reads and same daemon/receipts verified; native app-auth/phone/NAS acceptance remains open |
+| Proposed HTTP coordinator correction | **16 transport / 18 native authority cases** | Disposable candidate only; actual PKCE/tickets/TCP with synthetic worker; persistent auth change awaits explicit approval; SDK shutdown finding remains |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
@@ -64,7 +65,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current selected offline methods | **7 have positive evidence** | Unchanged code114 source0ee app, separately identified companions; garden/metadata/helper/generation/Qwen/switch/import; not the full external-model gate; old failures retained |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
-| Latest complete standard device gate | **1,141 API26 / 1,142 API37 cases** | Independently reproduced source `c814d743`, four disjoint raw partitions, hosted summary and actual build APK hashes; external-model/final-head/phone gates remain separate |
+| Latest complete standard device gate | **1,141 API26 / 1,142 API37 cases** | Independently reproduced source `4444c308`, four disjoint raw partitions, hosted summary and actual build APK hashes; external-model/final-head/phone gates remain separate |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
@@ -103,6 +104,10 @@ the subsequent atomic client update without a daemon restart. The
 [fresh readiness investigation](docs/contracts/2026-11-13-fresh-workspace-readiness.md)
 preserves the measured refusal before native admission and c814 gate evidence.
 Doctor and graph findings, native app login, phone/NAS and the wider audit remain.
+
+The [HTTP operator binding review](docs/contracts/2026-11-13-http-operator-binding-review.md)
+records the real valid-login refusal, tested unapplied proposal, retained SDK
+shutdown warning and complete source 4444 Android raw/APK reconciliation.
 
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
 review (inspected stable42/main124), real project/workspace/worker,

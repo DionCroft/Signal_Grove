@@ -87,3 +87,19 @@ in `docs/contracts/2026-11-12-persistent-owner-read-bridge.md`. NAS full 128-bit
 file-identity support remains unresolved; UNSUPPORTED must remain explicit.
 Phone files, the broader audit, physical/model gates and the signed downloadable
 GitHub APK remain open. This source chunk does not publish a new application.
+
+## Actual HTTP-owner investigation — 13 November 2026
+
+The new opt-in --coordinator-http-reads mode on the owner-workspace probe uses
+actual PKCE/refresh, issued tickets, TCP WebSocket and the official runner. With
+the current unchanged adapter it reproduces a legitimate signed-in HTTP identity
+that lacks native instance fields and is refused before worker access. A tested
+proposal binds that identity to the identical current registry authority while
+retaining every owner/operator/profile/transport and supplied-instance fence.
+It is not applied: automatic approval review requires explicit authorization of
+the persistent authentication change. No Pi policy/grant/deployment is included.
+
+The disposable candidate passes 16 credential/socket cases and18 native authority cases; the
+actual worker remains synthetic, and the original SDK exit warning remains
+nonzero. The original12 constructor outcomes and all earlier failures are retained.
+See the [exact review and proposed patch](../../docs/contracts/2026-11-13-http-operator-binding-review.md).

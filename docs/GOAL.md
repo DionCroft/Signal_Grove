@@ -45,16 +45,18 @@ Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
 reboot or change live gateway/models/credentials without the existing applicable
 approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The reviewed read-client correction is now live. Fresh before/after encrypted
-component recovery,32 path/ACL checks and five normal installed-helper Pi calls
-verify the atomic client update against the unchanged daemon/read instance,
-maintained worker/task, grants/registry and eight completed receipt files.
-Native app actor/profile/operator binding remains unproven; explicit admin
-context is not app login. Doctor/setup and graph identity/index findings remain.
-The next bounded stage verifies native coordinator operator/grant binding on
-the exact maintained runtime, followed by actual Android chat/workspace/worker/
-repository/file/NAS and automation/integration acceptance. Reconcile the now-
-green full source4444 Android raw artifacts; keep current-head/phone and external-
-model gates separate from c814's complete1,141/1,142 gate. Stable42/main6da124
-semantics, pristine SDK shutdown, original failure causes and final production
-upgrade/release checks remain open. See contracts/2026-11-13-live-read-client-update.md.
+and tooling remain on E:. The read-client correction remains live with exact-source, same-daemon,
+receipt/ACL and encrypted recovery proof. Real current-stable PKCE/ticket/TCP
+acceptance now reproduces a valid HTTP-operator identity rejected by the optional
+adapter. The exact proposed source/test fix passes 16 credential/socket and18 constructor cases
+only in a disposable fixture; the repository adapter and production auth/grants
+are unchanged. Automatic approval review requires explicit approval before
+applying that persistent authentication policy change. Preserve this hold.
+After approval, apply only the identical reviewed patch and revalidate/commit;
+no Pi deployment/enrollment/restart is included in that source approval. Continue
+the reviewed native coordinator plan and real Android workspace/worker/file/NAS,
+automation/integration acceptance. Source4444 now has fully reconciled1,141 / 1,142
+raw standard device cases and actual APKs; external-model/current-head/phone gates
+stay separate. Stable42/main6da124 semantics, pristine SDK shutdown, original
+failure causes, doctor/graph findings and final production upgrade/release checks
+remain open. See contracts/2026-11-13-http-operator-binding-review.md.
