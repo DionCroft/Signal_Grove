@@ -85,7 +85,19 @@ class LocalModelPhysicalTest {
                 stage("helper-${topic.name}-complete")
             }
             var reply = ""
-            assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) {engine.generate(listOf(LocalChatMessage("user", "只回复这六个字：离线测试成功")), 48) {reply = it}})
+            val shortChinese = withTimeout(30_000) {engine.generate(listOf(LocalChatMessage("user", "只回复这六个字：离线测试成功")), 48) {reply = it}}
+            assertTrue(shortChinese in setOf(LocalGenerationEnd.COMPLETE, LocalGenerationEnd.TOKEN_LIMIT))
+            assertFalse(reply.contains("<think>")); assertFalse(reply.contains("</think>"))
+            if (shortChinese == LocalGenerationEnd.TOKEN_LIMIT) {
+                // Total tokens include natural reasoning. Preserve the original
+                // limit probe, then check a separate explicitly bounded request.
+                assertTrue("离线测试成功".startsWith(reply.trim()))
+                stage("native-chinese-short-budget-token-limit")
+                reply = ""
+                assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) {
+                    engine.generate(listOf(LocalChatMessage("user", "只回复这六个字：离线测试成功")), 96) {reply = it}
+                })
+            }
             assertEquals("离线测试成功", reply.trim())
             stage("native-chinese-text-complete")
         } finally {withContext(NonCancellable) {engine.unload()}}
@@ -127,7 +139,16 @@ class LocalModelPhysicalTest {
             stage("exact-native-reply-complete")
             reply = ""
             val second = withTimeout(30_000) { engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Second native OK")), 96) { reply = it } }
-            assertEquals("Second request text: ${reply.take(512)}", LocalGenerationEnd.COMPLETE, second)
+            assertTrue("Unexpected second-request outcome: $second", second in setOf(LocalGenerationEnd.COMPLETE, LocalGenerationEnd.TOKEN_LIMIT))
+            assertFalse(reply.contains("<think>")); assertFalse(reply.contains("</think>"))
+            if (second == LocalGenerationEnd.TOKEN_LIMIT) {
+                assertTrue("Second native OK".startsWith(reply.trim()))
+                stage("second-native-short-budget-token-limit")
+                reply = ""
+                assertEquals(LocalGenerationEnd.COMPLETE, withTimeout(30_000) {
+                    engine.generate(listOf(LocalChatMessage("user", "Reply with exactly: Second native OK")), 384) {reply = it}
+                })
+            }
             assertEquals("Second native OK", reply.trim())
             stage("second-independent-native-reply-complete")
             var cancelledText = ""

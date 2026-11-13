@@ -1,6 +1,6 @@
 # Current feature and validation matrix
 
-As of 12 November 2026. This describes `main`, whose planned beta.9/code 114 APK
+As of 13 November 2026. This describes `main`, whose planned beta.9/code 114 APK
 is still unpublished. Published beta.8/code 111 and stable 1.0.0 retain their own
 release notes. Implementation, fixture acceptance, live-system acceptance and
 release inclusion are separate. The [latest real-source startup and complete
@@ -14,7 +14,7 @@ source scope; newer final-head and live release gates remain open. [Release stat
 | Canonical viewer | Read-only canonical conversation browsing and separately reviewed native attachment/resume | [Viewer](contracts/2026-11-08-canonical-viewer.md); [current-stable46/13 component flows](contracts/2026-11-12-current-stable-authority.md); [31-case native workspace Review regression](contracts/2026-11-12-native-workspace-review.md); fresh full CI and production actor/profile/recovery acceptance remain open |
 | Hosted rooms | Explicit read-only room inventory/history browsing | [Room contract](contracts/2026-11-08-hosted-rooms.md); [20 actual native-owner read checks](contracts/2026-11-12-native-owner-room-reads.md); HTTP/Pi and forwarding/membership/grants/delivery remain in the audit |
 | Serving models | Verified serving identity, freshness/errors, server default and requested/session model shown separately; Automatic for new turns; reasoning/service presets | Live owner setup was exercised; model choices do not load/evict server weights by themselves |
-| Phone inference | Optional CPU-native LFM3 text chat, streaming, cancellation, context limits, load/unload/delete and model-bound local history | Six physical native cases across LFM3/helper and Qwen/import/family behavior; production upgrade/offline history verify; reasoning-marker/repetition output defect blocks release |
+| Phone inference | Optional CPU-native LFM3 text chat, streaming, cancellation, context limits, load/unload/delete and model-bound local history | Fresh code114 garden/metadata/Qwen/switch/import pass; helper/generation combined cases fail at short completion limits; measured test-only follow-up and final release acceptance remain |
 | Model management | Pinned LFM3 download, explicit resume/discard, Android picker import, hash/size/licence/template checks and private atomic installation | Eight metadata architecture names, not eight universally supported model families; real HTTPS cancel/discard and full foreground resume have physical passes; earlier failures remain |
 | Setup helper | Static guide plus six topics; model selects eligible IDs and UI renders exact versioned English/Chinese/pinyin sources | All six topics have physical native evidence; selected redacted observations require opt-in; no settings/tool/approval execution |
 | Local/remote handoff | Review a new unsent text-only question into a separate phone draft; review local advice before copying | Credentials, remote history, images, approvals and attempted/unknown work are excluded; sending remains explicit |
@@ -44,7 +44,7 @@ its separate offline generation exposes a reasoning-marker/repetition defect.
 | Qwen2.5-0.5B-Instruct Q4_K_M | 491,400,032 bytes; SHA-256 `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db` |
 | Three physical imports | 649, 685 and 1,438 ms |
 | Highest observed VmHWM | 2,608,447,488 bytes (2.43 GiB); short USB-charging observations, not minimum RAM or a complete peak/endurance benchmark |
-| Last built code114 APKs | Clean0bb325e production71,052,646 bytes; original-key debug92,609,254 bytes; test7,909,383 bytes; unpublished; no model weights bundled |
+| Last built code114 APKs | Clean0ee08e3 production71,052,938 bytes; original-key debug92,608,818 bytes; test7,912,059 bytes; unpublished; no model weights bundled |
 | Candidate JVM/lint | 1,011 cases / 97 reports; no failures/errors/skips; lint 0 errors, 51 debug/50 release warnings |
 | Physical lifecycle | Two original cold/post-reboot cases pass, 2.849/1.856s JUnit; one approved normal restart with no automatic load/replay and original data retained. Intentional preparation is not a positive test; earlier emulator boot remains unverified |
 | Keyboard CI preparation | Both reviewed fresh-tip/already-clear native states pass, plus four unchanged focused API26 methods/six exact native taps; full hosted union remains separate |
@@ -53,7 +53,7 @@ its separate offline generation exposes a reasoning-marker/repetition defect.
 | Current transfer gate | Physical cancel/discard pass; full foreground phone resume/hash/install passes in 27,010 ms; earlier frozen-phone/emulator timeouts and their partials remain |
 | Stable native-auth fixture | 87 distinct real-source auth/loader/start-entry cases,55 critical source guards and949 loaded module hashes; synthetic identity/peer/downstream, not live Pi/TLS/full canonical socket |
 | Local runtime inventory | Schema-valid CycloneDX1.6:150 Maven components,95 verified inputs,32 packaged native files and pinned native source; release assets remain local/unpublished |
-| Advisory query | 150 resolved Maven versions, zero known matching OSV advisories on 12 November; pinned native commit query also returned none, with known-indexed coverage limits |
+| Advisory query | 150 resolved Maven versions, zero known matching OSV advisories on 13 November; pinned native commit query also returned none, with known-indexed coverage limits |
 
 Import numbers are individual observations, not a model/storage performance
 promise. No exact sustained token throughput or battery endurance is claimed for
@@ -65,4 +65,4 @@ publisher, native compatibility or safe memory requirements on another phone.
 [On-device usage](ON_DEVICE_AI.md) · [Full audit](AUDIT_EXECUTION_PLAN.md).
 
 
-Current physical follow-up: two isolated code114 offline native cases pass helper/Chinese and generation/cancellation/recovery; garden formatting fails. The51-check source correction still needs a fresh APK. [Exact scope](contracts/2026-11-12-natural-chat-followup.md).
+Current physical follow-up: five isolated code114 offline cases pass, including the garden fix and both model families. Two combined completion cases remain failed at short total-token limits; the test-only correction preserves those probes and needs a fresh companion. Owner rows/models are retained with framework bookkeeping reconciled. [Current exact scope](contracts/2026-11-13-natural-output-phone.md).

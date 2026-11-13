@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## 13 November 2026 - clean output and model-family passes; completion probes open
+
+Source0ee08e3 is pushed and builds with1,011 JVM/97 reports, zero-error lint51/50
+warnings and original signing/native/DEX identities. Five isolated actual offline
+cases pass: garden, metadata, Qwen import/history, model switching and atomic
+import. Combined helper/Chinese and generation cases remain failed at48/96 token
+limits. Six helper stages finish; exact-context controls complete Chinese at75
+tokens and the second reply at108. A test-only follow-up retains the original
+limits and adds separate bounded exact-completion checks; fresh acceptance remains.
+
+Upgrade preserves20/20 files exactly. After tests16 are identical; profile and
+WorkManager bookkeeping are separately reconciled, with core rows/schema/work
+tables preserved and only last_force_stop_ms advancing. Both original models,
+package UIDs and encrypted snapshots verify; temporary private DB copies are
+removed. Fresh150-version/native advisory queries return no known indexed
+matches. Local release assets and183-component SBOM verify; no public release.
+
+Exact-source parser/registry/sidecar/worker/Android verification passes; complete
+API26/API37 union remains running. Stable40/main101 findings remain open, with
+latest inspected main415fa33. All original audit and final production-release
+requirements remain. [Full source, artifact, failure and retention scope](contracts/2026-11-13-natural-output-phone.md).
+
+
 ## 12 November 2026 - actual helper/cancellation passes, garden fix pending APK
 
 Installed code114 retains20 protected metadata files, two original models and

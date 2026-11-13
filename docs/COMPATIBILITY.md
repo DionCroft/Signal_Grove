@@ -1,5 +1,21 @@
 # Compatibility and protocol scope
 
+## 13 November 2026 - current source inspection and phone-output scope
+
+Exact-source0ee08e3 parser/registry/sidecar and worker CI jobs pass. Four artifact
+ZIP hashes verify. Stable3b42157 retains40 changed-used-handler review findings;
+inspected main415fa335b4d98ecf00e29e88625bb478dc63fb67 retains101. No used routes
+are removed. These remain semantic/transitive review work; no waiver or baseline
+reset is added. The prior main1773 pin remains historical evidence.
+
+Fresh original-key code114 passes five actual offline cases, including clean
+garden output and LFM3/Qwen model switching. Two completion-fixture cases hit
+their short total-token limits; measured test-only corrections await acceptance.
+Complete standard-device union, final production upgrade/live integration and
+all original compatibility/audit requirements stay open.
+[Current exact scope](contracts/2026-11-13-natural-output-phone.md).
+
+
 ## 12 November 2026 - fresh upstream main pin advances
 
 The independently hash-verified b182 compatibility artifacts inspect stable

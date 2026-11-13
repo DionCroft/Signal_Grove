@@ -2,10 +2,10 @@
 
 An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI in the next release candidate. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
 
-**Candidate status:** beta.8 remains the published preview. The checked code114
-phone build passes helper/cancellation cases but still fails free-form formatting.
-A source correction passes51 native component checks; a fresh APK and required
-CI/phone acceptance remain. [Current evidence and limits](docs/contracts/2026-11-12-natural-chat-followup.md).
+**Candidate status:** beta.8 remains the published preview. The signed code114
+candidate passes offline garden and model-family checks. Two short-completion
+fixture cases hit token limits; a measured test-only correction awaits acceptance.
+[Current evidence and release limits](docs/contracts/2026-11-13-natural-output-phone.md).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
@@ -42,11 +42,11 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Checked **12 November 2026**. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Checked **13 November 2026**. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Candidate JVM tests | **1,011 cases / 97 reports** | Clean code114 source0bb325e; no failures/errors/skips |
+| Candidate JVM tests | **1,011 cases / 97 reports** | Clean code114 source0ee08e3; no failures/errors/skips |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |
 | Physical process/restart recovery | **2 positive cases; 2.849 / 1.856 s JUnit** | Original cold/post-reboot methods on the owner phone; one approved normal restart, no automatic load/replay, original data retained; preparation intentionally interrupted |
@@ -56,17 +56,24 @@ Checked **12 November 2026**. Counts describe their stated builds and test scope
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
+| Current isolated offline cases | **5 passed / 2 failed** | Code114 source0ee08e3; garden/metadata/Qwen/switch/import pass; two short-limit completion failures and their measured fixture follow-up remain explicit |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
 | Latest complete standard device gate | **1,135 API26 / 1,136 API37 cases** | Independently verified raw source `b599e88`; historical coverage before the native output correction, which needs fresh checks |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
-| Last built production APK (code114) | **71.1 MB** | 71,052,646 bytes from clean0bb325e; original signer; physical/final CI and publication gates pending |
-| Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 12 November; known-indexed coverage, not a full security certification |
+| Last built production APK (code114) | **71.1 MB** | 71,052,938 bytes from clean0ee08e3; original signer; physical/final CI and publication gates pending |
+| Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 13 November; known-indexed coverage, not a full security certification |
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
 
-**Still open:** both HTTPS methods now have positive physical evidence, including full foreground resume; earlier emulator/frozen-phone failures are retained. Physical cold/restart recovery now passes; the older emulator guest reboot remains unverified. Both API26 keyboard-preparation paths and focused native cases pass; the 2970ffb complete standard gate is now independently verified. Production upgrade, saved connection, refreshed live history and stored project details now pass. Production offline generation/history reveal a reasoning-marker/repetition defect; output acceptance, remaining compatibility and publication checks remain. Current upstream inspection flags 40 changed used handlers on stable Hermes and 101 on inspected `main` 1773ba3; these require review. The broader worker/project/automation/integration audit continues. Failed outcomes are retained in the evidence above.
+**Still open:** the new native source needs fresh complete hosted acceptance and
+the measured companion follow-up. Earlier production code112 upgrade, saved
+connection, current history and stored-project reads passed; final production
+code114 acceptance remains. Fresh upstream inspection flags40/101 changed used
+handlers on stable/inspected main415fa33. Complete semantic/dependency, live
+worker/project/automation/integration and publication checks remain in the
+[full audit](docs/AUDIT_EXECUTION_PLAN.md). Failed outcomes retain their scope.
 
 ## Interface figures
 
