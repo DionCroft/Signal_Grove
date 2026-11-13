@@ -1,5 +1,25 @@
 # Compatibility and protocol scope
 
+## 13 November 2026 - heartbeat candidate verified; second API26 failure retained
+
+An exact-pin experimental two-file SDK patch closes heartbeat admission and
+drains its single cleanup before database closure. The canonical source tools
+verify all 23,586 files and pass eight real-helper/SQLite regressions. Separate
+private native owner trials pass empty, seeded and actual held-SQLite scopes;
+the close fence returns in 1.224 s with both profile DBs open, then closes them
+after drain. Those trials exit 0 without late reopen. Unmodified upstream still
+retains its warning/exit 2; public native candidate-mode integration is pending.
+
+The full local suites pass 438 policy + 15 runtime-model cases and the required
+Android build passes 1,011 JVM/97 reports and zero-error lint (51/50 warnings).
+Android source, production APKs and live services are unchanged. The preceding
+b5433027 API26 shard 0 now retains a separate scroll-preservation failure:
+`RuntimeSelectionTest` cannot find `chat-messages`. Its raw artifact/log hashes
+verify; no common cause with the original Demo failure or full gate is claimed.
+All original audit and production/live/worker requirements remain active.
+
+[Exact candidate provenance, tests and limits](contracts/2026-11-13-heartbeat-lifecycle-candidate.md).
+
 ## 13 November 2026 - original Demo shard passes; shutdown cause traced
 
 The original source1180 API26 shard1/2 passes all 598 cases locally after15

@@ -49,13 +49,14 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Candidate JVM tests | **1,011 cases / 97 reports** | Clean code114 source0ee08e3; no failures/errors/skips |
+| Candidate JVM tests | **1,011 cases / 97 reports** | Clean code114 source 0ee08e3; no failures/errors/skips |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |
 | Physical process/restart recovery | **2 positive cases; 2.849 / 1.856 s JUnit** | Original cold/post-reboot methods on the owner phone; one approved normal restart, no automatic load/replay, original data retained; preparation intentionally interrupted |
 | Stable native-auth/startup fixture | **87 / 87 cases** | Exact stable3b42157; real ASGI, loader helpers and start-entry/PM suppression with explicit adapters; not full backend, live Pi or complete socket acceptance |
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
 | Native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
+| Experimental heartbeat candidate | **8 helper cases; 3 private owner trials** | Exact 3b42157 + two-file patch; actual SQLite close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
@@ -69,6 +70,11 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Runtime advisory query | **150 Maven versions; 0 known matching advisories** | OSV query on 13 November; known-indexed coverage, not a full security certification |
 
 [Fresh reviewed-main signed candidate](docs/contracts/2026-11-12-reviewed-main-beta9-candidate.md) · [Native owner rooms and complete Android freeze](docs/contracts/2026-11-12-native-owner-room-reads.md) · [Current-stable canonical authority](docs/contracts/2026-11-12-current-stable-authority.md) · [Real loader/start-entry and complete hosted gate](docs/contracts/2026-11-12-native-loader-startup.md) · [Native workspace Review and preserved CI failure](docs/contracts/2026-11-12-native-workspace-review.md) · [Current stable auth/clean release inventory](docs/contracts/2026-11-12-current-stable-auth-release-inventory.md) · [Physical restart retention](docs/contracts/2026-11-12-physical-restart-retention.md) · [Both keyboard states](docs/contracts/2026-11-12-ready-keyboard.md) · [Earlier emulator cold recovery](docs/contracts/2026-11-12-native-cold-recovery.md) · [Full foreground phone download](docs/contracts/2026-11-12-foreground-model-download.md) · [Cancellation/build evidence](docs/contracts/2026-11-12-download-cancellation.md) · [Earlier packaging/UI evidence](docs/contracts/2026-11-12-uncompressed-dex-candidate.md) · [Physical offline evidence](docs/contracts/2026-11-12-physical-offline-model-acceptance.md) · [Prior standard gate](docs/contracts/2026-11-12-complete-standard-android-gate.md) · [Full validation history](docs/VALIDATION.md)
+
+The [experimental SDK heartbeat candidate](docs/contracts/2026-11-13-heartbeat-lifecycle-candidate.md)
+now has source-bound helper and separate native owner evidence. It is maintenance
+test tooling; the app and live server are unchanged. A second retained API26
+scroll-preservation failure also needs investigation.
 
 **Still open:** source1180 retains one hosted API26 Demo clarification failure;
 its unchanged 598-case shard now passes locally, but its cause remains unresolved.

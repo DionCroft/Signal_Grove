@@ -1,49 +1,52 @@
 # Signal Grove project state
 
-13 November 2026. The existing full audit/on-device AI goal is **active**.
-Preserve all four [explicit priorities](docs/GOAL.md) and every original
+13 November 2026. The existing full audit/on-device AI goal remains **active**.
+Keep all four [explicit priorities](docs/GOAL.md) and every original
 [audit requirement](docs/AUDIT_EXECUTION_PLAN.md).
 
-## Latest tested chunk
+## Latest maintenance chunk
 
-- Original source 1180 API26 shard1/2 passes 598 unchanged cases after15 original
-  class-trial passes. The hosted Demo failure is still unreproduced/unfixed.
-- Failure-only safe Demo snapshots preserve interactions, assertions and waits.
-  Fresh original-key debug/test APKs pass5 focused predecessor/Demo cases.
-- Required build checks pass 1,011 JVM/97 reports,422 policy and15 runtime-model
-  cases; both lints have 0 errors and 51/50 warnings. All4 ABIs/original signer,
-  DEX and 64-bit 16KiB native packaging verify. No product behavior changed.
-- Default/optional native owner probes preserve the real shutdown warning and
-  exit 2. Actual trace: shared DB closes before heartbeat cleanup reopens it.
-  Traced seeded mode retains 20 room checks. No SDK/live correction applied.
-- Fresh stable 3b42157/main 0e72e8a static scans retain 40/104 findings. The3 newly
-  flagged model/profile handlers were inspected without accepting new variants.
-- [Exact input hashes, native logs and limits](docs/contracts/2026-11-13-demo-shutdown-diagnostics.md).
-
-## Delivery
-
-Beta.9/code114 remains the published experimental preview from source 0ee08e3,
-with original production signer and all 6 public download hashes verified.
-Stable 1.0.0 and the released APK are unchanged. The prior a2a3dd2 hosted Android
-run is green; raw complete-gate verification was not repeated for that source.
-This diagnostic chunk still requires final clean-head standard CI.
+- Exact Hermes 3b42157 two-file heartbeat candidate: close writer admission,
+  bounded drain/one cleanup, then DB close; blocked/failed cleanup keeps DBs open.
+  No base SDK, live gateway, model, credential, job or Android source is changed.
+- Canonical preparation verifies 23,586 exact source files; all eight actual
+  helper/SQLite tests and 438 policy + 15 runtime-model cases pass. The source
+  bytes match three separately identified private native owner trials.
+- Empty, seeded and held-SQLite native trials exit 0 without late reopen.
+  Seeded cases retain 20 room checks. The actual held-write fence returns in
+  1.224 s with both DB connections open and closes them only after drain.
+- Unmodified owner probe is byte-unchanged and retains its original warning/
+  exit 2. A public explicit candidate mode remains to integrate. No upstream
+  handler/pin/baseline waiver is added. Stable/main last inspected: 40/104 findings.
+- Fresh required Android checks: 1,011 JVM/97 reports, lint 0 errors/51 and 50
+  warnings, original debug signing and all four ABIs/DEX/native packaging.
+  Frozen source is c9c0718 plus seven maintenance files; APKs are test outputs.
+- [Exact evidence and failure history](docs/contracts/2026-11-13-heartbeat-lifecycle-candidate.md).
 
 ## Exact next action
 
-Reconcile the diagnostic commit's hosted Android artifacts and safe failure
-snapshots, if any. Determine the Demo failure's actual cause before changing
-product readiness. Separately prepare/test an idempotent heartbeat lifecycle
-correction; preserve the failing cleanup evidence until complete acceptance.
+Reproduce the retained b5433027 API26 scroll-test failure from its exact source,
+raw artifact and predecessor/navigation context. The initial chat-messages node
+is missing after its VM readiness wait; cause is unproven. Do not change a wait
+or claim a fix without evidence. Original source1180 Demo failure also remains
+open despite 15 isolated passes and its unchanged 598-case shard pass.
 
-No physical phone is visible over USB; the production beta.9 upgrade state is
-unknown. A pending owner question requests its current installation/connection.
-Resume the in-place production retention/live/offline gates when available;
-never repeat the earlier approved normal reboot or clear owner data.
+Keep the SDK candidate's public native owner-probe integration queued as its
+next separate stage. The canonical eight-case helper runner does not replace
+whole-owner/deployed acceptance. Preserve original failing baseline evidence.
 
-Real project/workspace/worker, automation/integration, approvals/images/recovery,
-notifications/background/audio/accessibility/performance and final release
-checks remain required. Preserve unknown worker receipts; never replay or
-restart that daemon blindly. No new live Pi/gateway/model/credential change is
-part of this diagnostic stage. All scratch/builds/private evidence stay on E:;
-source remains on the canonical requested share. Historical checkpoints remain
-in validation/audit records and Git history.
+## Delivery and remaining gates
+
+Public beta.9/code114 remains the experimental source 0ee08e3 preview with its
+original production signer and six download hashes verified. Stable 1.0.0 and
+the published APKs are unchanged. No complete new hosted standard gate or
+production-phone upgrade acceptance is claimed. Last USB inventory has only
+the owned emulator; the pending phone installation/connection question remains.
+
+Real project/workspace/worker, automation/integration, approval/image/recovery,
+background/notification/audio/accessibility/performance and final release gates
+remain required. Never replay unknown worker receipts, restart that daemon or
+repeat the earlier authorized normal phone reboot. No live Pi/gateway/model/
+credential change is part of these fixtures. Source stays on the requested
+canonical share; all scratch/builds/models/AVDs/private evidence remain on E:.
+Historical records and all original audit rows remain intact.

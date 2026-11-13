@@ -4,3 +4,4 @@ gradlew text eol=lf
 *.bat text eol=crlf
 *.png binary
 *.jar binary
+upstream_patches/*.patch text eol=lf
