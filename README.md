@@ -39,7 +39,9 @@ Before-cleanup observations are now [validated by a controlled native case](docs
 the first API26 cohort passes all 541 cases; the complementary 601-case cohort
 (including the original Demo test) is running. Historical causes remain open.
 Current local checks pass 1,011 JVM
-cases and both lint variants; 605 portable cases include three existing POSIX skips.
+cases and both lint variants; 623 portable cases include three existing POSIX skips.
+The deployment [single-socket HTTP component](docs/contracts/2026-11-14-pinned-retirement-http.md)
+passes 18 real TCP safety tests; native ownership/sign-in and activation remain pending.
 
 ## Download and release status
 

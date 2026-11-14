@@ -40,8 +40,12 @@ upgrade remain unaccepted; non-recurrence is not a historical cause.
 
 Pi staging remains isolated. Verify current live references again before any
 deployment; previous source/facts/service observations are dated evidence.
-Complete supported username/password provider sign-in, pinned HTTP and bounded
-executor/rollback. Separately review both old-stop/new-start canonical PM facts,
+The existing-socket HTTP component a36e75b passes 18 real TCP methods and the
+623-case portable suite (three existing POSIX skips); a wrong-working-directory
+import failure remains retained. These use synthetic owner/provider seams.
+Complete actual kernel socket ownership, supported provider sign-in and bounded
+executor/rollback. [Exact transport scope](docs/contracts/2026-11-14-pinned-retirement-http.md).
+Separately review both old-stop/new-start canonical PM facts,
 seven named mode changes, one reviewed policy, source/CLI/drop-ins, fresh encrypted
 pre/post backups and exact idle fences. The owner-token 401 is not a bypass.
 Do not activate from staging approval or restore old DBs over new conversations.

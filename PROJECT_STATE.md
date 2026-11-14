@@ -40,8 +40,12 @@ Pi deployment boundary:
 - The private one-existing-grant policy validates but stays uninstalled; the
   anchored reader still refuses unsafe ancestry. Current native/HTTP/worker/phone
   content and execution adoption are not accepted by those fixtures.
-- Finish supported provider sign-in, pinned native HTTP transport and the full
-  bounded transaction/rollback before separate live approval. The last live
+- Single-socket HTTP source a36e75b passes 18 real TCP safety cases; portable
+  suite now runs 623 cases with three existing POSIX skips. Native ownership and
+  provider-session seams are synthetic in those tests. Finish kernel socket
+  ownership, supported sign-in and full bounded transaction/rollback before
+  separate live approval. [Transport scope](docs/contracts/2026-11-14-pinned-retirement-http.md).
+  The last live
   public provider read offers username/password; the local owner token gets 401.
 - Canonical-home PM readiness is required for **both the old loaded stop/cleanup
   launcher and the new startup launcher**. Seven exact named directory modes,

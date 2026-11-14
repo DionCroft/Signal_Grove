@@ -113,3 +113,10 @@ phone/model/release acceptance remain in `docs/AUDIT_EXECUTION_PLAN.md`.
 | ASGI source/module report | 20a3c936d90d8081d11257f088df0c8837a0c0eeff81a6a81cfb75a2afeae887 |
 | Native credential-free journal | fd1e8f9c776356f0a514dea3d6e329f67dae0fb1f4f9f78a5c47e2fb5128826f |
 | Live public provider read | 5dec7e99881eecc849b594a6b64b9bb136eacd71888db6f5d810a2e25d5107b2 |
+
+The [subsequent single-socket HTTP component](2026-11-14-pinned-retirement-http.md)
+adds a tested existing-connection adapter with no reconnect/retry/login/refresh.
+Its 18 real TCP cases and 623-case portable suite use synthetic native-owner and
+provider seams. Actual kernel socket ownership, supported provider sign-in and
+the complete bounded executor/rollback remain prerequisites. No live action is
+authorized or performed by that source/test addition.

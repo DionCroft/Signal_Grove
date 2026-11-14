@@ -1,5 +1,20 @@
 # Signal Grove audit execution plan
 
+## 14 November 2026 - tested single-socket retirement HTTP component
+
+Source a36e75b adds an existing-loopback-socket adapter to the retirement guard.
+It never connects/reconnects, signs in, refreshes, redirects or retries; only the
+fixed bounded protocol is accepted. An absolute watchdog interrupts trickling
+responses. Eighteen actual TCP safety methods pass with synthetic owner/provider
+seams; full portable coverage is 623 cases, 620 pass/three existing POSIX skips.
+A preceding wrong-working-directory import failure remains recorded. Native
+kernel ownership, actual provider sign-in and full transaction/rollback remain
+required before separate live approval. No Android input, live Pi/phone or APK
+release change. First Android cohort is independently positive at 541 methods;
+its complementary 601-case command remains live, including the original Demo.
+Every original audit requirement and historical failure stays open as applicable.
+[Scope and evidence](contracts/2026-11-14-pinned-retirement-http.md).
+
 ## 14 November 2026 - first navigation cohort independently verified
 
 The one first-shard API26 reproduction passes all 541 methods, preserving all

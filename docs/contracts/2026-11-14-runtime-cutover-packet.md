@@ -151,3 +151,10 @@ requirements. Neither this parser packet nor a single fixture grant closes them.
 | Existing private backup receipt/asset reconciliation | 35c0f1db0238469982228921a579f46528df36147f8065eb142bd0212ea3a0d6 |
 | Declared current worker variant review | 6199029bd4261bdb1e21b80182b81338a75d80b8f2de4bda5436370b3f62e1f3 |
 | Fresh current worker preflight | 2638896bfd699d8261384842e226b492864a8a0759927383c6a3af27aa2afd97 |
+
+The [subsequent single-socket HTTP component](2026-11-14-pinned-retirement-http.md)
+adds a tested existing-connection adapter with no reconnect/retry/login/refresh.
+Its 18 real TCP cases and 623-case portable suite use synthetic native-owner and
+provider seams. Actual kernel socket ownership, supported provider sign-in and
+the complete bounded executor/rollback remain prerequisites. No live action is
+authorized or performed by that source/test addition.
