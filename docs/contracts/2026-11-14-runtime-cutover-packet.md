@@ -104,6 +104,11 @@ execution, NAS identity support, a new grant or a successful phone workspace rea
 
 ## Next concrete stage
 
+The subsequent guarded-client route check passes independently in isolated
+staging; it does not prove the still-required provider session/pinned native
+connection or complete transaction. Current API26 navigation failures are
+retained separately and keep final phone/release acceptance open.
+
 The [guarded client and old-stop PM review](2026-11-14-retirement-client.md)
 adds a canonical-home PM prerequisite for the old loaded stop/cleanup launcher.
 Its explicit-interpreter start does not establish those facts. The full executor

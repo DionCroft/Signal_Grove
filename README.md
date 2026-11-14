@@ -30,9 +30,11 @@ pass at that source; device jobs are pending at observation. The published
 **beta.9 APK is unchanged**.
 [Full goal](docs/GOAL.md) · [Runtime packet](docs/contracts/2026-11-14-runtime-cutover-packet.md).
 
-The deployment retirement client also passes 29 safety cases in the 605-case
-Windows portable run (three existing POSIX skips). Native route/provider and
-complete transaction acceptance remain open. [Scope](docs/contracts/2026-11-14-retirement-client.md).
+The deployment retirement component also passes 41 actual-Pi unit cases and six
+unchanged SDK ASGI outcomes. Provider-session/TCP/complete-transaction acceptance
+remains open. [Scope](docs/contracts/2026-11-14-retirement-client.md).
+Fresh API26 device validation has [two retained navigation failures](docs/contracts/2026-11-14-api26-cea-failures.md);
+full final-source device acceptance is not claimed.
 
 ## Download and release status
 

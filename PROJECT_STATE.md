@@ -3,6 +3,20 @@
 14 November 2026. The full goal is **active**; all original scope and all four
 [priorities](docs/GOAL.md) remain.
 
+The Pi retirement component is independently accepted for its exact scope:
+41 native unit cases/no skips, six actual SDK ASGI outcomes and 12 exchanges;
+source/module/PM/live conservation and child exit verify. Live provider sign-in,
+pinned TCP and the complete cutover/rollback remain open. The live provider list
+offers username/password sign-in; no credentials/login/live action occur.
+
+Fresh cea0cbf API26 shard 0 fails two missing-navigation-node cases (540 starts,
+538 positives, two failures). Original ZIP/raw evidence verifies; no retry/waiver.
+The exact next action is to add before-cleanup native lifecycle/window/Compose
+failure capture, then reproduce those transitions without weakening assertions.
+The original Demo cause and every original priority remain open.
+[Native result](docs/contracts/2026-11-14-retirement-client.md) ·
+[API26 evidence](docs/contracts/2026-11-14-api26-cea-failures.md).
+
 The guarded retirement client now passes 29 safety tests within 605 Windows
 portable cases (602 pass, three existing POSIX skips). The renderer also requires
 canonical-home readiness for the old loaded unit's stop launcher. Neither change

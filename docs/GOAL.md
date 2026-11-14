@@ -341,3 +341,28 @@ The renderer now records this additional gate, without changing any generated
 wrapper/unit bytes. No PM/live service/policy/permission/credential/model/APK
 change occurs. All original requirements and four priorities stay active.
 [Exact scope and next native check](contracts/2026-11-14-retirement-client.md).
+
+## 14 November 2026 - native retirement evidence accepted; fresh API26 failures retained
+
+The actual Pi independently verifies 41 unit cases with no skips and six
+unchanged-SDK ASGI outcomes across 12 exchanges. Native admission hold/cancel/
+commit, no spent-permit replay, 28 credential-free journal rows, 742 loaded SDK
+modules and 0 child exit verify. Whole 23,628-input/mode/41-cache, PM and live
+reference/permission conservation pass. The initial argv-limit failure remains;
+only its metadata handoff changes, with no unit replay or SDK/assertion change.
+This is in-process loopback-token route acceptance, not live provider/TCP proof.
+The live public provider list confirms username/password sign-in, without a
+credential read, login or mutation. [Native scope](contracts/2026-11-14-retirement-client.md).
+
+Fresh API26 cea0cbf shard 0 fails two navigation-node cases in phone-draft
+cancellation and setup guide. Original ZIP digest and raw 540-start/538-positive/
+two-failure result verify; adb exit 0 is not success. No retry/waiver is issued.
+Sibling job statuses and run-source metadata do not complete raw/APK/cohort
+acceptance. The original source1180 Demo cause stays open separately.
+[Retained failures and next diagnostic action](contracts/2026-11-14-api26-cea-failures.md).
+
+No live service, PM, policy, mode, credential, model or APK changes. All original
+requirements and four priorities stay active. Next: capture before-cleanup
+native lifecycle/window/Compose failure state and reproduce the demonstrated
+API26 transitions; finish supported sign-in, pinned transport and complete
+cutover/rollback preparation before separate live approval.

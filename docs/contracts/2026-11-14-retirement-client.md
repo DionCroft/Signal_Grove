@@ -55,20 +55,39 @@ before draining/stopping anything. Old loaded units must still stop before
 reload or reference changes. The read-only renderer's new required gate changes
 no wrapper/unit bytes; the updated packet must be rendered/verified before use.
 
-## Planned isolated route check
+## Isolated route check and accepted native outcome
 
-`scripts/native/retirement_route_fixture.py` is prepared and syntax-checked, not
-yet executed. It will use the exact candidate application's unchanged ASGI routes,
+At source 22dcd76, `scripts/native/retirement_route_fixture.py` now passes on the
+actual Pi using the exact candidate application's unchanged ASGI routes,
 a fresh fenced home and in-memory fixture authentication, actual kernel process
 identity and fsynced journal. Real SDK admission acquire/release calls cover
-work arriving after a diagnostic, prepare/cancel and prepare/commit. It must
-not patch an SDK callback, start a listener/lifespan or touch live host state.
+work arriving after a diagnostic, prepare/cancel and prepare/commit. No SDK callback is patched, listener/lifespan started or live host state changed.
 
-This planned check is in-process ASGI with the loopback token seam. It does not
+This check is in-process ASGI with the loopback token seam. It does not
 prove native TCP connection ownership, live provider sign-in or full server
 startup/shutdown. HTTPX explicitly leaves lifespan events outside its ASGI
 transport; that is why this route-only scope is stated separately.
 [HTTPX transport reference](https://www.python-httpx.org/advanced/transports/).
+
+Independent raw recovery verifies all 41 native unit cases (29 guard and 12
+renderer cases, no skips), six separate ASGI outcomes, 12 exchanges and a 28-row
+fsynced credential-free journal. Actual SDK admission is held after work arrives,
+closed by prepare, reopened by cancel and closed permanently by commit. A spent
+permit causes no additional HTTP exchange. The child exits 0 without pytest;
+742 loaded SDK module identities match the complete unchanged 23,628-input/native
+mode map. All 41 native bytecode outputs, selected PM facts, live references and
+permissions verify. All owned check processes have ended.
+
+The first controller fails with Linux E2BIG after the unit suite passes and
+before an ASGI child starts. That failed receipt and empty child logs remain.
+Only the controller metadata handoff changes from a too-large argv value to a
+private file. The original unit suite is not repeated, and no SDK or committed
+fixture assertion changes. The ASGI child runs once. This positive component
+result does not prove a live provider session or a pinned native TCP connection.
+
+A separate verified-listener GET reads the live public provider list: it offers
+username/password sign-in. It reads no credential and requests no login, token,
+retirement permit or mutation. A normal supported sign-in remains necessary.
 
 The live dashboard's earlier read-only owner-token request still returns 401
 under its active provider gate. No native ticket/browser credential is substituted.
@@ -88,3 +107,9 @@ phone/model/release acceptance remain in `docs/AUDIT_EXECUTION_PLAN.md`.
 | Guard source | fc30f1e7013dd10f1904d1554b86e85f4326b3814cc7e7edbf98624f65082f71 |
 | 29-case client suite | 7f00b5fd56d1af06d8c3b4d3c168f6a83fac39946104884c321a964eefbbc96d |
 | Planned ASGI fixture source | 148b93626f3d2f130624740d160c83386408e5b8263c19c8277b3ec7eac3af25 |
+| Independent native raw/source review | 1524f6cc0d605a7145448e93fefb568a6b205978671bd55ea4e36be3533819b2 |
+| Native 41-case unit log | 7eec315174cbea95676f77d70a1ad4173030e5eaadde740dfc3a95395fac705d |
+| Actual SDK ASGI result | 67c56833ba6831d0d43e0bfb37a3e8e3e3f12bd699228019a810c148556dd043 |
+| ASGI source/module report | 20a3c936d90d8081d11257f088df0c8837a0c0eeff81a6a81cfb75a2afeae887 |
+| Native credential-free journal | fd1e8f9c776356f0a514dea3d6e329f67dae0fb1f4f9f78a5c47e2fb5128826f |
+| Live public provider read | 5dec7e99881eecc849b594a6b64b9bb136eacd71888db6f5d810a2e25d5107b2 |
