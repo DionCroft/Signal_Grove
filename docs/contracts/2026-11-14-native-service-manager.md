@@ -1,5 +1,11 @@
 # Actual native user-manager service adapter
 
+This retains the initial source/evidence checkpoint. Failure-path review finds
+and fixes a journal-owner replay gap in the [current one-use dispatch source](2026-11-14-one-use-native-dispatch.md).
+Use that source and its 122-method Pi/764-case Windows evidence for further
+acceptance; the initial happy lifecycle alone did not expose this boundary.
+No live action uses the initial component.
+
 14 November 2026. `scripts/native_service_manager.py` implements the concrete
 Linux user-D-Bus start/stop component for the fixed cutover coordinator. Its
 actual owned-service trial passes on the Pi. It has no live CLI/default approval,

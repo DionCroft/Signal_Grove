@@ -5,17 +5,17 @@
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
 The exact next action is to test **actual native service failure/unknown paths
-in owned isolated fixtures**, then complete the remaining PM/backup/admission/
-publication/reload/health adapters for the reviewed cutover packet. The concrete
-pinned user-D-Bus service component passes all 23 methods on Pi/no skips and an
-actual six-job owned lifecycle; eight payload incarnations end and eight helpers
-succeed. Independent source/raw/journal/package/process review passes. Its
-non-service prerequisites remain synthetic; it is not a production cutover.
-[Service-adapter evidence](docs/contracts/2026-11-14-native-service-manager.md).
-The separate fixed coordinator/journal cohort remains 95 Pi passes/no skips.
-Full Windows suite: 760 cases, 697 pass/63 POSIX skips; 60 coordinator/journal/
-watchdog platform methods pass in their actual Pi cohorts. Complete the entire
-native packet before separate live approval.
+and adapter/reopen replay refusal in owned isolated fixtures**, then complete
+PM/backup/admission/publication/reload/health adapters. The journal now claims
+native dispatch once on its original live PID/operation owner; replacement,
+fork and reopening cannot replay pending intents. All 122 related Pi methods
+pass/no skips (99 coordinator/journal +23 service boundary), including four new
+actual POSIX claim regressions. A fresh six-job owned lifecycle and independent
+source/raw/journal/package/process cleanup review pass. Non-service prerequisites
+are synthetic; this is not a production cutover. Windows: 764 cases, 697 pass/
+67 platform skips; 64 pass on Pi, three older skips retain scope.
+[Current native evidence](docs/contracts/2026-11-14-one-use-native-dispatch.md).
+Complete the entire native packet before separate live approval.
 Supported PM repaired the five declared
 tool dependencies in isolated staging; independent doctor/digest/probe review
 and a fresh normal SDK provider/native-retirement/lifespan fixture now pass,
@@ -23,8 +23,9 @@ without a PM warning or fence refusal. All owned checks are terminal. Preserve
 the earlier failed/held receipts. Canonical old-stop/new-start PM, seven named
 modes, policy/source/units/CLI references, fresh encrypted backups and exact work
 fences remain unactivated. Finish the concrete final packet before separate live
-approval. Hosted source3ccc788 Android matrix passes; later push runs are separate
-queued/active checks and upstream compatibility review still fails.
+approval. Hosted source654d839 Android matrix now passes with independent raw/
+actual APK/JVM/lint recovery; later pushes are separate checks. Upstream used/
+transitive compatibility review remains open.
 
 Current Android investigation:
 
@@ -33,8 +34,8 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 760 cases, 697 pass/63 POSIX skips. All 60
-  coordinator/journal/watchdog platform methods pass in their actual Pi cohorts;
+  The latest Windows suite runs 764 cases, 697 pass/67 POSIX skips. All 64
+  coordinator/journal/watchdog platform methods pass on the actual Pi;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production
   release follows these debug/component checks.
@@ -43,9 +44,9 @@ Current Android investigation:
   verified. The complementary 601-case cohort also passes, including the original
   Demo case. Independent raw/source/APK review verifies the complete disjoint
   1,142-method standard API26 union. All historical causes remain unproven;
-  The existing source3ccc788 hosted run now also passes all 1,142 API26 and
-  1,143 API37 standard methods, independently verified from raw identities with
-  no failures/skips. Twelve external-model and final production-phone gates
+  The later source654d839 hosted run also passes all 1,142 API26 and
+  1,143 API37 standard methods, independently raw/actual APK/JVM/lint verified,
+  with no failures/skips. Lint warnings remain 52 debug / 51 release. Twelve external-model and final production-phone gates
   remain open. [Hosted matrix](docs/contracts/2026-11-14-hosted-standard-matrix.md).
   [Current evidence](docs/contracts/2026-11-14-navigation-failure-observation.md) ·
   [Original recent failures](docs/contracts/2026-11-14-api26-cea-failures.md).

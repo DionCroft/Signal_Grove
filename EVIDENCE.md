@@ -1,5 +1,20 @@
 # Evidence navigation
 
+## 14 November 2026 - native dispatch replay refusal and hosted matrix
+
+Failure-path review finds and fixes the initial adapter's journal-owner gap.
+Native dispatch now claims an exact authorized pending intent once on its
+original live journal/PID; adapter replacement, reopening and fork cannot replay
+it. All 122 related methods pass on Pi/no skips, including four new actual POSIX
+regressions. The fresh owned six-job lifecycle and independent source/raw/native
+cleanup/package review pass, preserving the earlier controller-metadata failure.
+Windows: 764 cases, 697 pass/67 platform skips. Source654d839 hosted Android raw
+and actual APK/JVM/lint recovery verifies 1,142 API26 / 1,143 API37 methods, 1,011
+JVM cases and zero-error lint (52/51 warnings). Original failure causes, all
+external-model/phone/production and full native/live audit gates remain open.
+No live activation or published APK change; the full goal stays active.
+[Exact source, retained failure and evidence](docs/contracts/2026-11-14-one-use-native-dispatch.md).
+
 ## 14 November 2026 - concrete native service-manager component
 
 The pinned Linux user-D-Bus adapter now verifies exact journal authorization,

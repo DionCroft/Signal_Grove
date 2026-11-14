@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import threading
 
 
 MAX_BYTES = 1024 * 1024
@@ -163,6 +164,9 @@ class CutoverJournal:
         self._closed = False
         self._poisoned = False
         self._owns_operation = False
+        self._owner_pid = os.getpid()
+        self._dispatch_claims = set()
+        self._claim_lock = threading.Lock()
         if (type(expected_identity) is not tuple or len(expected_identity) != 2
                 or any(type(n) is not int for n in expected_identity)
                 or expected_identity[0] < 0 or expected_identity[1] <= 0):
@@ -286,6 +290,33 @@ class CutoverJournal:
             if not isinstance(exc, Exception):
                 raise
             raise Unknown('Journal ownership or history is unproven') from None
+
+    def claim_dispatch(self, operation, step, authorization_sha256):
+        """Spend one pending intent, only on its original live journal owner.
+
+        The durable intent exists before this in-memory claim. Opening unfinished
+        bytes never owns that operation; a replacement adapter sharing this exact
+        live journal cannot reclaim the step either. A crash/closed/reopened/forked
+        owner permits inspection or separately approved recovery, never replay.
+        Claim before any native effect; failure after claiming does not release it.
+        This method does not issue approval or verify a service/work preimage.
+        """
+        if not self._claim_lock.acquire(False):
+            raise Refused('Another native dispatch claim is active')
+        try:
+            self.assert_current()
+            if (os.getpid()!=self._owner_pid or not self._owns_operation
+                    or self._view['state']!='pending' or operation!=self._view['operation']
+                    or step!=self._view['pending'] or type(authorization_sha256) is not str
+                    or not HASH.fullmatch(authorization_sha256)
+                    or authorization_sha256!=self._view['authorization_sha256']):
+                raise Refused('Only the original live owner may claim its exact authorized pending intent')
+            key=(operation,step)
+            if key in self._dispatch_claims:
+                raise Refused('This native dispatch intent has already been spent')
+            self._dispatch_claims.add(key)
+        finally:
+            self._claim_lock.release()
 
     def begin_recovery(self, operation, plan_sha256, *, original_operation,
                        original_plan_sha256, history_sha256, evidence_sha256, authorization_sha256=None):

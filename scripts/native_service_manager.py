@@ -415,6 +415,7 @@ class NativeServiceManager:
             if key in self._spent: raise Refused('This native service action has already been spent')
             binding=self.bindings[role]; current=self._snapshot(role)
             validate_preimage(binding,action,execution.scope,current,expected)
+            self.journal.claim_dispatch(execution.operation,step,execution.binding_sha256)
             self._signals.clear(); self._spent.add(key); dispatched=True
             if binding.unit not in self._pinned:
                 self._manager('RefUnit','s',(binding.unit,),'',execution.deadline); self._pinned.add(binding.unit)

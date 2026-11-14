@@ -50,3 +50,18 @@ The full audit, on-device plan, all four resumed priorities and signed-release
 requirements remain active. Published beta.9 is unchanged. The isolated PM tool
 install completed with zero drift; its independent doctor/readiness and fresh SDK
 probe are still separate work, with no live deployment authorized by this result.
+
+## Later source654d839: independently verified complete matrix
+
+The already-started [run43609260527](https://github.com/DionCroft/Signal_Grove/actions/runs/43609260527)
+also completes verify, four shards and final aggregation. Six archived receipts/
+raw/build ZIPs match published sizes/digests. Actual raw method identities prove
+the exact disjoint 1,142 API26 (541+601) and 1,143 API37 (542+601) unions, with
+zero failures/skips. Actual extracted APK bytes bind to the same per-shard pair;
+97 JVM reports total 1,011 zero-failure/error/skip cases, and both lint variants
+have zero errors with 52 debug/51 release warnings. No job is rerun or cancelled.
+Android/build inputs remain unchanged through the current administration-only
+checkpoint. Original failure causes, twelve external-model methods, phone/live/
+production upgrade and upstream used/transitive compatibility remain separate.
+The earlier evidence and compatibility failures stay preserved.
+[Exact latest hashes and acceptance scope](2026-11-14-one-use-native-dispatch.md).

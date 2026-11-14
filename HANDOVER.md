@@ -6,16 +6,18 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** test actual native service failure/unknown outcomes in owned
-isolated fixtures, then finish the other PM/backup/admission/publication/reload/
-health adapters. The concrete pinned service-manager component passes all 23
-methods on Pi/no skips and six real owned service jobs; eight payload processes
-end, eight helpers succeed and both units unload. Independent source/raw/journal/
-package/native cleanup review passes. Non-service prerequisites are synthetic;
-this is not a live cutover. Windows: 760 cases, 697 pass/63 platform skips. The
-separate coordinator/journal cohort remains 95 Pi passes/no skips. All canonical
-PM/backup/work/policy/mode/health/recovery gates remain before live approval.
-[Current native scope](docs/contracts/2026-11-14-native-service-manager.md).
+**Next action:** test actual native service failures/unknown outcomes and
+adapter/reopen refusal in owned isolated fixtures, then finish the remaining
+PM/backup/admission/publication/reload/health adapters. The journal's new one-use
+claim excludes adapter replacement, reopening and a real forked child. All 122
+related Pi methods pass/no skips (99 coordinator/journal +23 service boundary).
+A fresh six-job actual owned lifecycle and independent raw/source/process/
+journal/package cleanup review pass. Non-service prerequisites stay synthetic;
+full cutover is open. Windows: 764 cases, 697 pass/67 skips; 64 platform cases
+pass on Pi, three older skips retain scope. Canonical PM/work/backups/policy/
+modes/health/recovery remain before live approval. Preserve the initial native
+unit-only controller-metadata failure and terminal/no-service recovery receipt.
+[Current native scope](docs/contracts/2026-11-14-one-use-native-dispatch.md).
 Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence
@@ -23,8 +25,8 @@ refusal; all owned children ended. Preserve both prior observer failures and the
 earlier held full probe. Canonical old-stop/new-start PM, named modes, policy,
 units/CLI/source references, fresh backups and exact idle fences remain before a
 concrete final live approval. No live change is authorized by isolated staging.
-Hosted source3ccc788 standard CI is complete on both APIs; later push-triggered
-runs remain separate. Reconcile unknown operations rather than replaying them.
+Hosted source654d839 standard CI is independently raw/actual APK/JVM/lint
+verified on both APIs; later push-triggered runs remain separate. Reconcile unknown operations rather than replaying them.
 [Latest staged evidence](docs/contracts/2026-11-14-staged-pm-readiness-and-sdk-pass.md).
 
 The code checkpoint is 827c6c0: four test-source files only. The failing phone-

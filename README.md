@@ -13,21 +13,22 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
 Current Android evidence: **1,011 JVM cases** and both lint variants pass with
-zero errors. The source3ccc788 hosted run passes all **1,142 standard API26** and
+zero errors (52 debug / 51 release warnings). The source654d839 hosted run
+passes all **1,142 standard API26** and
 **1,143 API37 methods**, with no failures/skips and independently verified disjoint
 shards. The original Demo and two retained navigation cases pass; historical
 causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **760 cases: 697 pass, 63 POSIX skips**.
-The fixed coordinator/journal passes **95 Pi methods**; the concrete pinned
-service-manager component separately passes **23 Pi methods** and six actual
-owned service jobs. Native process/cgroup/helper cleanup and exact journal/
-source/package evidence verify. Sixty platform methods pass in those actual Pi
-cohorts; three older skips retain separate scope. Non-service fixture prerequisites
-are synthetic; remaining adapters, fault/recovery gates and full live cutover
-acceptance stay open. [Native service scope](docs/contracts/2026-11-14-native-service-manager.md).
+The latest Windows Python suite runs **764 cases: 697 pass, 67 POSIX skips**.
+All **122 related methods pass on Pi**: 99 coordinator/journal and 23 service
+boundary methods. Native dispatch claims prevent adapter/reopen/fork replay;
+six actual owned service jobs and native process/cgroup/helper cleanup verify.
+Sixty-four platform methods run on Pi; three older skips retain scope. Non-service
+fixture prerequisites are synthetic; remaining adapters, actual fault/recovery
+and full live cutover acceptance stay open.
+[Native scope and evidence](docs/contracts/2026-11-14-one-use-native-dispatch.md).
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
 ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,
@@ -88,7 +89,7 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Candidate JVM tests | **1,011 cases / 97 reports** | Clean code114 source 0ee08e3; no failures/errors/skips |
+| Current hosted JVM tests | **1,011 cases / 97 reports** | Source654d839; actual XML, no failures/errors/skips |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |
 | Physical process/restart recovery | **2 positive cases; 2.849 / 1.856 s JUnit** | Original cold/post-reboot methods on the owner phone; one approved normal restart, no automatic load/replay, original data retained; preparation intentionally interrupted |
@@ -103,12 +104,12 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 | Current Pi source preservation | **79 live paths unchanged / 18 native authority outcomes** | Isolated ARM64 PM candidate built with only vendor-path rebase; same cases pass on Windows/Pi. Live activation and both permission prerequisites remain open; [exact scope](docs/contracts/2026-11-14-native-arm64-staged-candidate.md) |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
-| Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
+| Current hosted lint | **0 errors**; 52 debug / 51 release warnings | Source654d839, both actual XML reports; warnings retained |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current selected offline methods | **7 have positive evidence** | Unchanged code114 source0ee app, separately identified companions; garden/metadata/helper/generation/Qwen/switch/import; not the full external-model gate; old failures retained |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
-| Latest complete standard device gate | **1,141 API26 / 1,142 API37 cases** | Independently reproduced source `ed2c996`, four disjoint raw partitions, hosted summary and actual build APK hashes; external-model/final-head/phone gates remain separate |
+| Latest complete standard device gate | **1,142 API26 / 1,143 API37 cases** | Source `654d839`, four independently checked disjoint raw partitions and actual build APK hashes; external-model/final-head/phone gates remain separate |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |

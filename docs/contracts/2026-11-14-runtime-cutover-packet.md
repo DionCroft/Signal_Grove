@@ -217,3 +217,14 @@ PM, admission, publication/reload or full production cutover. Actual native
 fault/unknown paths, remaining concrete adapters, all original work/data/fresh
 backup/canonical PM gates and a final separate live review remain required.
 [Exact native adapter scope](2026-11-14-native-service-manager.md).
+
+## Current one-use dispatch claim
+
+The original native adapter's own spent set did not exclude a replacement
+adapter/reopened pending intent. The current journal-owned claim requires the
+original live PID/operation and exact authorization, and refuses reuse, fork
+and reopen. All 122 related Pi methods plus a fresh actual owned lifecycle pass;
+source/raw/native cleanup independently verify. Real manager error/unknown paths
+and all remaining adapters/fresh canonical PM/work/backup/health/recovery gates
+remain before a separate complete live approval.
+[Current source and exact evidence](2026-11-14-one-use-native-dispatch.md).

@@ -176,6 +176,56 @@ class JournalParserTests(unittest.TestCase):
 
 @unittest.skipUnless(os.name == 'posix', 'Actual POSIX flock/inode/durability checks require the native Linux cohort')
 class NativeJournalTests(unittest.TestCase):
+    def test_dispatch_claim_is_shared_by_replacement_adapters_and_never_released(self):
+        journal=self.opened();journal.begin(OP,PLAN,authorization_sha256=PROOF);journal.intent('stop_gateway')
+        before=(self.root/'journal.jsonl').read_bytes()
+        journal.claim_dispatch(OP,'stop_gateway',PROOF)
+        other_adapter_journal=journal
+        with self.assertRaises(Refused):other_adapter_journal.claim_dispatch(OP,'stop_gateway',PROOF)
+        self.assertEqual((self.root/'journal.jsonl').read_bytes(),before)
+        journal.verified('stop_gateway',PROOF);journal.intent('stop_serve')
+        journal.claim_dispatch(OP,'stop_serve',PROOF)
+        with self.assertRaises(Refused):journal.claim_dispatch(OP,'stop_serve',PROOF)
+
+    def test_reopened_pending_intent_cannot_dispatch_even_if_original_never_claimed(self):
+        with self.opened() as journal:
+            journal.begin(OP,PLAN,authorization_sha256=PROOF);journal.intent('stop_gateway')
+        before=(self.root/'journal.jsonl').read_bytes()
+        with self.opened() as journal:
+            with self.assertRaises(Refused):journal.claim_dispatch(OP,'stop_gateway',PROOF)
+            self.assertEqual(journal.view['pending'],'stop_gateway')
+        self.assertEqual((self.root/'journal.jsonl').read_bytes(),before)
+
+    def test_dispatch_claim_requires_exact_authorization_operation_and_current_step(self):
+        journal=self.opened();journal.begin(OP,PLAN,authorization_sha256=PROOF);journal.intent('stop_gateway')
+        for args in ((OP,'stop_gateway',None),(OP,'stop_gateway',True),(OP,'stop_gateway','d'*64),
+                     ('d'*32,'stop_gateway',PROOF),(OP,'stop_serve',PROOF)):
+            with self.subTest(args=args),self.assertRaises(Refused):journal.claim_dispatch(*args)
+        journal.claim_dispatch(OP,'stop_gateway',PROOF);journal.unknown()
+        with self.assertRaises(Refused):journal.claim_dispatch(OP,'stop_gateway',PROOF)
+
+    def test_forked_native_process_cannot_claim_original_parent_intent(self):
+        journal=self.opened();journal.begin(OP,PLAN,authorization_sha256=PROOF);journal.intent('stop_gateway')
+        read_fd,write_fd=os.pipe();child=os.fork()
+        if child==0:
+            os.close(read_fd)
+            try:
+                try:journal.claim_dispatch(OP,'stop_gateway',PROOF)
+                except Refused:os.write(write_fd,b'refused')
+                else:os.write(write_fd,b'unsafe')
+            finally:
+                os.close(write_fd);os._exit(0)
+        os.close(write_fd)
+        try:
+            import select
+            self.assertTrue(select.select([read_fd],[],[],3)[0])
+            self.assertEqual(os.read(read_fd,32),b'refused')
+        finally:
+            os.close(read_fd)
+            _,status=os.waitpid(child,0)
+        self.assertEqual(status,0)
+        journal.claim_dispatch(OP,'stop_gateway',PROOF)
+
     def test_explicit_recovery_op_can_only_append_recovery_evidence(self):
         with self.opened() as journal:
             journal.begin(OP, PLAN); journal.intent('stop_old')
