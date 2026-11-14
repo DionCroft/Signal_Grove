@@ -128,7 +128,8 @@ exec {launcher} serve --host "$HERMES_DASHBOARD_HOST" --port "${{HERMES_DASHBOAR
                      *[fleet / key for key in artifacts], home / 'signal-grove-control/workspace-read-policy.json']
                     for parent in path.parents}),
                 required_gates=['exact-source-and-runtime-inventory', 'exact-existing-units-and-links',
-                    'protected-config-and-credential-conservation', 'supported-canonical-home-pm',
+                    'protected-config-and-credential-conservation', 'supported-old-stop-launcher-pm',
+                    'supported-canonical-home-pm',
                     'profile-and-operator-policy-review', 'explicit-named-permission-approval',
                     'fresh-encrypted-backup-and-supplement-verification', 'gateway-drain-and-zero-work',
                     'serve-retirement-prepare-and-commit', 'explicit-live-cutover-approval',

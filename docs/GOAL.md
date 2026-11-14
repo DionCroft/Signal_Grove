@@ -324,3 +324,20 @@ No idle or retirement permit is requested. A supported provider sign-in is a
 remaining executor prerequisite; local record/token possession is not a bypass.
 Initial legacy-home/DNS preflight failures remain, with no HTTP sent by those
 attempts. No live change occurs; the full goal stays active.
+
+## 14 November 2026 - guarded retirement client and old-stop PM gate
+
+The standalone retirement client adds 29 meaningful safety cases: no retry or
+auth fallback, exact native owner/opaque permit/deadline checks, intent before
+dispatch and uncertainty preservation on transport, journal or operator failure.
+The complete Windows portable suite runs 605 cases: 602 pass, three existing
+actual-POSIX skips. No new client test skips. The in-process SDK ASGI companion
+is prepared/syntax-checked; native route execution and live provider/TCP acceptance
+are not claimed. The full deployment executor/rollback is still being completed.
+
+The current old loaded unit's stop/cleanup launcher also requires canonical-home
+PM readiness; its explicit-interpreter start does not prove that readiness.
+The renderer now records this additional gate, without changing any generated
+wrapper/unit bytes. No PM/live service/policy/permission/credential/model/APK
+change occurs. All original requirements and four priorities stay active.
+[Exact scope and next native check](contracts/2026-11-14-retirement-client.md).

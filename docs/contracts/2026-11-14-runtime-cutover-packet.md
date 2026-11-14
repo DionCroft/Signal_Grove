@@ -104,6 +104,11 @@ execution, NAS identity support, a new grant or a successful phone workspace rea
 
 ## Next concrete stage
 
+The [guarded client and old-stop PM review](2026-11-14-retirement-client.md)
+adds a canonical-home PM prerequisite for the old loaded stop/cleanup launcher.
+Its explicit-interpreter start does not establish those facts. The full executor
+and supported provider-session connection remain open; no live action is approved.
+
 The subsequent [native helper and private-policy check](2026-11-14-native-systemd-and-policy.md)
 now passes in isolated staging. Its current inventory has 41 validated native
 caches. The earlier 29-cache observation above remains historical. These results

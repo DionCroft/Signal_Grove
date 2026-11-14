@@ -55,6 +55,7 @@ class PiRuntimePlanTests(unittest.TestCase):
         self.assertFalse(result['rollback']['replay_work'])
         self.assertIn('explicit-live-cutover-approval', result['required_gates'])
         self.assertIn('serve-retirement-prepare-and-commit', result['required_gates'])
+        self.assertIn('supported-old-stop-launcher-pm', result['required_gates'])
 
     def test_permission_observations_cover_every_entry_ancestor(self):
         result = m.render(self.layout)

@@ -3,6 +3,15 @@
 14 November 2026. The full goal is **active**; all original scope and all four
 [priorities](docs/GOAL.md) remain.
 
+The guarded retirement client now passes 29 safety tests within 605 Windows
+portable cases (602 pass, three existing POSIX skips). The renderer also requires
+canonical-home readiness for the old loaded unit's stop launcher. Neither change
+performs a live action. The next exact action is to run the committed guard and
+unchanged candidate ASGI retirement routes in a fresh fenced native fixture,
+then finish the authenticated pinned-connection executor/rollback and live packet.
+Full provider, remote/phone, original API26/upstream and release scope remains.
+[Retirement-client review](docs/contracts/2026-11-14-retirement-client.md).
+
 The isolated native systemd stop-helper check now independently passes:
 unchanged SDK marker/cleanup commands exit 0/0, native process identities and
 planned marker match, and the test unit/cgroup/processes are gone. All 23,628
