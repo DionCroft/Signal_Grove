@@ -56,14 +56,19 @@ scopes; the app dependency trial does not run the HTTP/IdP branch.
 [Paired proof](docs/contracts/2026-11-14-paired-canonical-shutdown.md) ·
 [App environment proof](docs/contracts/2026-11-14-native-app-environment.md).
 
+Read-only final-source PM preflight now exposes a real staging condition:
+the relative tools stamp is CWD-sensitive, and the lifecycle sibling has no
+own facts. A source-only preparer for a fresh, explicitly bound metadata variant
+passes all 544 portable checks. No prior snapshot or live state is changed.
+[Binding evidence](docs/contracts/2026-11-14-runtime-source-binding.md).
+
 ## Exact next action
 
-Inspect supported PM source binding and prepare a concrete, reversible
-activation review for the verified derivative, preserving the frozen base and
-existing app facts. Determine the exact source/PM/launcher/unit/policy and
-recovery transaction before requesting separate live activation approval.
-The completed app dependency fixture does not select production source or
-establish real worker/project execution binding.
+Materialize the new source-only metadata variant inside the approved isolated
+generation, verify the whole source/modes and store resolution across CWDs,
+then run supported PM sync into its own source-keyed facts/environment. Preserve
+the frozen base/lifecycle trees and their facts. Verify the selected native
+entry point and default/borrowed profile-home behavior before live review.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,

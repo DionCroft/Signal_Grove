@@ -198,3 +198,13 @@ All failures stay intact. Next: inspect supported PM derivative source binding
 and prepare the exact reversible activation review. No live activation is
 approved. All four original priorities and every unresolved audit row remain.
 [Native app scope](contracts/2026-11-14-native-app-environment.md).
+
+
+## 14 November progress - explicit staged source/store binding required
+
+Native read-only PM preflight finds a CWD-sensitive relative tools stamp and
+an absent source-keyed environment for the lifecycle sibling. The new source-only
+metadata preparer passes 544 portable cases; its fresh native materialization,
+own supported PM facts and actual entry/runtime gates remain next. Every prior
+gate/failure and all four original priorities remain. No live change is approved.
+[Binding scope](contracts/2026-11-14-runtime-source-binding.md).

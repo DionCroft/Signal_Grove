@@ -12,7 +12,7 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The latest hosted portable gate passes **532 checks**, plus **15 runtime-model
+The latest local portable gate passes **544 checks**, plus **15 runtime-model
 checks**. Both Linux SDK shutdown cohorts independently pass the same **50
 canonical cases**. The Pi application dependency environment also passes its
 native cleanup trial without pytest. These are separate validation scopes;

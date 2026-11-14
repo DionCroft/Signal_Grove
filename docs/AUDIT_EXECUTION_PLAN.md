@@ -1,5 +1,19 @@
 # Signal Grove audit execution plan
 
+## 14 November 2026 - final-source PM preflight identifies CWD-sensitive metadata
+
+Actual read-only Pi checks prove the lifecycle sibling needs its own PM facts
+and that its relative store stamp resolves differently outside the SDK CWD.
+No wrong store or PM state is created; live references and source remain.
+A new source-only preparer binds only that metadata field in a fresh sibling,
+preserving all runtime/dependency/provenance bytes and modes. All 544 portable
+checks pass, including twelve new source/identity/store/refusal cases.
+Native materialization, own-PM and final entry/runtime gates remain next.
+The accepted 50-case Linux pair and app-dependency fixture retain their scopes;
+all original requirements remain. No live service, permission, credential,
+worker grant, model or APK changes are authorized by this source preparation.
+[Exact source binding and limits](contracts/2026-11-14-runtime-source-binding.md).
+
 ## 14 November 2026 - paired Linux regression and app-dependency native gates accepted
 
 Independent original archives/raw JUnit/whole Git source/native mode review
