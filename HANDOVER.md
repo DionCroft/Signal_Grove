@@ -82,15 +82,27 @@ All 23,628 source inputs/modes and 12 separate bytecode outputs verify. The new
 three actual-POSIX skips. The live home has no new source-keyed PM facts.
 [Published launcher scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
 
+The PM-prepared borrowed-home launcher now passes: first actual child exits
+zero with exact home facts/source/dependency selection, Python 3.14.9,
+ContextGraph 0.8.1/PyYAML 6.0.3 and no pytest. The earlier pre-child DEVNULL fence
+failure remains; PM sync is not repeated and the fence is unchanged. Independent
+23,628-input/29-cache/facts/live conservation passes; all owned processes stop.
+Hosted cc894824 passes 564+15 portable/runtime-model cases without skips, plus
+pinned registry/sidecar and Windows worker checks. Android is pending at that
+observation. Upstream stable/main still require 40/144 used-handler reviews.
+[Exact prepared-home and fresh CI scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
+
 ## Exact next action
 
-Provision one fresh isolated borrowed home through supported PM, then use the
-unchanged published launcher to verify that home's exact selected dependencies.
-Observe the existing operation before any repeat. Preserve source-only copy
-purity; runtime-generated caches require the separate strict inventory. Then
-complete actual start/stop/cleanup and serve, home/profile/PM ownership, protected
-policy/ancestor permissions, idle and encrypted recovery/rollback review.
-No live service or canonical home change is authorized by these finite tests.
+Prepare the complete reversible production transaction: both effective unit
+chains, gateway start/stop/post-stop and serve wrapper, explicit canonical home
+and supported home-specific PM ownership, profile/auth, protected-policy
+ancestors and scoped worker grants, fresh idle checks and verified encrypted
+backup/recovery. Stage/review concrete deltas before requesting live approval.
+Retain source-only preparation and separate strict runtime-output inventory.
+Continue upstream used/transitive review, original API26 cause investigation,
+real worker/NAS/project/automation/integration and final signed-phone gates.
+No cutover, home selection, ancestor mode or policy change is authorized yet.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,

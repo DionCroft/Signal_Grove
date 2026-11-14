@@ -28,6 +28,9 @@ production launcher/HTTP/worker acceptance remains open.
 The actual published launcher also passes isolated owner-home startup and refuses
 an unprepared home; 20 native bytecode-verifier tests pass. Live activation remains
 open. [Launcher scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
+Its PM-prepared borrowed-home launch also passes. Hosted Linux verifies all
+564 portable and 15 runtime-model tests; upstream stable/main review remains
+open (40/144 used-handler changes). No new APK or live cutover is claimed.
 
 ## Download and release status
 

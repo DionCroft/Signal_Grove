@@ -80,3 +80,76 @@ Live activation and any permission changes require their separate approval.
 | Actual unprepared-home refusal log | f87c2dfbbf9d91efdbd9f7e4cef5c666315f4f1c728e8fb9d76c1acf7ee379a6 |
 | Independent raw/input/bytecode/live review | f273c5130c17e7835806759e156c9827fb7c077969ea34822f1a8bf20e17eceb |
 | Published executable | 6e4292d196bb17a0487d63877d78b8acac4d70f6d9687d7b81a4f69b9b0d3700 |
+
+
+## Prepared borrowed home: supported PM and actual launcher accepted
+
+Supported `pm.sync_venv` provisions one fresh isolated fixture home for this exact
+source using its declared all/Discord/ContextGraph extras. The SDK sync receipt
+has outcome ok, exit zero and successful dependency rebuild; `venv_is_current`
+confirms the new home-specific selection. Existing owner/live facts stay exact.
+
+The first wrapper stops after successful sync/readiness and before creating its
+published-launcher child: Python opens `/dev/null` read/write for DEVNULL, which
+the wrapper's approved-staging-only write fence refuses. The complete traceback,
+failed operation and empty child log are retained. No child PID/start exists.
+The PM sync is not repeated and the fence is not broadened. A new observation
+uses an empty stdin file inside approved staging for the first actual child.
+
+The unchanged saved SDK executable runs its real normal branch with explicit
+borrowed HERMES_HOME and `--run-module pm.environments --format json`. It exits
+zero and reports that home's exact source-keyed facts and application dependency
+path. A separate selected-interpreter observation verifies Linux/aarch64 Python
+3.14.9, ContextGraph 0.8.1, PyYAML 6.0.3, exact dependency origin and no pytest.
+All child/supervisor processes terminate. The isolated home has no real identity,
+model configuration, credentials, project content or production sign-in.
+
+Independent recovery checks the original PM receipt/facts, both failed and
+successful operations, exact child log, dependency observation and complete
+runtime inventory. All 23,628 source input hashes/native modes and the now 29
+generated native bytecode files verify. The initial unprepared refusal home's
+new-source facts remain absent. Old/base sources, original/new owner facts,
+selected live sources, services, vendor inputs and ancestor modes are unchanged.
+This accepts the finite prepared-home launcher case. It does not accept real
+gateway/serve, host identity/TLS/login, protected policy, workers or Android.
+
+| Prepared-home artifact | SHA-256 |
+| --- | --- |
+| Exact published-launcher environment log | 77b6d3530a672b7209c8352021f9e33194577bc17fbdc2bec252a9fafb21b3f7 |
+| Home-specific PM facts | 9ce01f97a9de7e9572efe655d633c00f06fabb95a4a6c3cb6993d0dc4b62e018 |
+| Original SDK sync receipt | 02ab4167cdf540a0c180ab924fe00b5d86cfdd80e5e3f0ace739611c1c1cd55c |
+| Selected dependency observation | 26b78601088b56dfc365098b01ad1b3a9bbf612191f1855b616e061411b1994b |
+| Retained pre-child wrapper failure | 273526e15be2fcfbfe03a4e786012a522f9c1eb035f96b360ebbc816ae7d1f82 |
+| Independent raw/source/cache/live review | 3a5d910f15a0545a49fcca4471335c0f18240b2e57093be9299a63e0f93d4820 |
+
+## Hosted source checks and fresh upstream findings
+
+For source cc894824, [compatibility run 43581487163](https://github.com/DionCroft/Signal_Grove/actions/runs/43581487163)
+passes all 564 portable cases and 15 runtime-model cases on actual hosted Linux,
+with no skips. Pinned registry-module and response-sidecar jobs also succeed.
+The Windows worker workflow succeeds. The separate Android workflow is pending
+at this observation; no new full Android or exact-production acceptance is made.
+
+The upstream job remains red. Its original size/hash-verified report archives
+retain 40 changed used handlers for stable 3b421578 and 144 for main 0f05ab7f,
+against the existing f0d94882 baseline. These are changes requiring semantic
+review, not 184 proven app defects. The other tracked used-contract change
+categories are empty. The 115/151 changed-source-module counts are not additional
+accepted behavior tests. No baseline, source guard, test assertion or exception
+allowance changes to obtain success.
+
+| Upstream report | Bytes | SHA-256 |
+| --- | --- | --- |
+| latest | 1759087 | 19426c9353c74fa3945a736c350a79accc0cdb4d3524b5e621e4c300f7642443 |
+| main | 1798906 | 88502509810179b47331384f672f7eaf7618783a2d9908a0ceeb650a4e61ce47 |
+
+## Next deployment boundary
+
+The published launcher now has owner, refused-unprepared and PM-prepared-home
+evidence. Next build the concrete reversible production transaction covering
+both effective unit chains, gateway start/stop/post-stop, serve wrapper, explicit
+canonical home and supported home-specific PM ownership. Review profile/auth,
+protected-policy ancestors, narrowly scoped grants, current idle state and
+verified encrypted backup/recovery before requesting live activation. No live
+service, canonical-home PM selection, ancestor mode or policy is changed here.
+Continue the full upstream used/transitive review and all other original gates.

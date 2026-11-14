@@ -1,5 +1,26 @@
 # Signal Grove audit execution plan
 
+## 14 November 2026 - prepared-home launcher and fresh hosted review
+
+Supported PM provisions a fresh borrowed fixture home; its receipt/currentness
+and exact facts are verified. A wrapper's DEVNULL fence refusal occurs before
+child creation and is retained. Without repeating PM sync or weakening the
+fence, the first actual saved-launcher child uses staged empty stdin, exits zero
+and reports that home's exact PM facts/source/dependency path. Native Python
+3.14.9/ContextGraph 0.8.1/PyYAML 6.0.3 and absence of pytest verify. Independent
+raw/source/cache/live checks pass: 23,628 inputs, 29 separate native caches,
+unchanged old/new owner facts/services/permissions and all owned processes gone.
+
+Hosted cc894824 passes 564 portable and 15 runtime-model cases with no skips;
+pinned registry/sidecar and Windows worker jobs pass. Android is pending at this
+observation. Fresh upstream reports stay red: 40 stable and 144 main used-handler
+changes require review, with all baselines/guards unchanged. These are review
+findings, not a count of proven defects. The full goal/all four priorities remain.
+Next: complete exact production home/PM, both effective command chains, protected
+policy/permissions, idle and encrypted recovery/rollback review before any live
+approval. No live service/home/credential/model/grant/mode or APK change.
+[Prepared-home evidence and next review](contracts/2026-11-14-published-launcher-inventory.md).
+
 ## 14 November 2026 - actual published launcher and bytecode separation
 
 The unchanged SDK publishes the exact source/store-bound shell launcher, ignoring
