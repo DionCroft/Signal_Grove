@@ -38,15 +38,23 @@ tool paths verify. Only the two reviewed lifecycle files differ. All 513 portabl
 tests pass. The first native mode refusal and first helper gate's caught reads
 remain rejected; runtime/canonical acceptance is still pending. [Source proof](docs/contracts/2026-11-14-snapshot-heartbeat-preparer.md).
 
+The maintained derivative now passes actual Pi eight-helper and normal/held
+owner lifecycle gates: 0/0 exits, zero target reopen warnings/fence refusals,
+physical closure of both profile DBs and cleared heartbeats. The held real
+SQLite writer keeps both DBs open across 1.491 seconds, then drains without
+replay. Independent full-source/mode/module/store and live conservation checks
+pass. The frozen original warning remains. [Native candidate evidence](docs/contracts/2026-11-14-maintained-heartbeat-native.md).
+
 ## Exact next action
 
-Finish the fresh actual Pi eight-helper gate with exact metadata observations,
-then run the complete native/HTTP finite-exit flow and actual held-SQLite close
-fence against the verified sibling derivative. Keep the immutable base, all
-source/mode checks, original assertions and failed receipts. Do not suppress
-callbacks or warnings; held writes must keep DBs open until cleanup finishes.
-Then finish applicable canonical Linux regressions, independently validate
-native exits/SQLite and prepare the exact activation review only after gates.
+Run the six unchanged canonical SDK shutdown files on real Linux against exact
+pristine stable3b and the two-file candidate. The exact inventory (5+17+10+2+2+14)
+and source scopes are in the native contract. Use the official runner, zero
+retries, fail-on-skip and unique JUnit artifacts; compare all raw case IDs and
+source inputs. Preserve every old warning/failure and all maintained custom
+bytes. Then validate the exact final app environment without test-only package
+assumptions before the separate activation/PM/source/permission/units/recovery
+review. Both prior native owner trials used the PM side test environment.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,

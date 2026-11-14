@@ -1,5 +1,14 @@
 # Decisions
 
+## 14 November 2026 - finite native candidate proof stays separate from cutover
+
+Accept the maintained two-file candidate's actual Pi normal/held and helper
+results only after independent raw source/mode/receipt/exit checks. Keep the
+original warning and rejected fixtures. Native finite success does not waive
+canonical Linux regression or final app-environment verification, broad SDK
+review or the separate production activation/permission/recovery decision.
+Do not infer runtime dependency completeness from the side test environment.
+
 ## 14 November 2026 - native protocol acceptance does not clear cleanup
 
 Accept the actual Pi core only after raw outcome/source/receipt verification

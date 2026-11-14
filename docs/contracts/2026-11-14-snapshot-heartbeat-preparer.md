@@ -91,3 +91,9 @@ is adopted and verified. Live activation still needs its own exact review.
 
 [Existing two-file lifecycle review](2026-11-13-heartbeat-lifecycle-candidate.md)
 and [actual base Pi HTTP result](2026-11-14-actual-pi-owner-http.md).
+
+## Subsequent native acceptance
+
+The corrected actual Pi helper and normal/held owner gates are now independently
+accepted within their finite experimental scopes. The earlier held/red entries
+above remain historical. [Exact native results and remaining canonical/app-environment gates](2026-11-14-maintained-heartbeat-native.md). Live activation remains unapproved.

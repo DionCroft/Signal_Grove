@@ -1,5 +1,23 @@
 # Evidence navigation
 
+## 14 November 2026 - maintained candidate native finite/held gates accepted
+
+Actual Pi eight-helper cases and two complete native/HTTP owner trials pass
+independent raw/source/store verification. Each owner trial retains all 16
+outcomes and 50 protocol assertions plus six cleanup checks, exits 0/0 and has
+zero target reopen warnings or fence refusals. The held actual SQLite writer
+keeps both DBs open across a 1.491-second close gate, then drains and closes
+without replay. Every original base warning and failed fixture is retained.
+
+The full base/derivative source maps and native modes, all 124 executables,
+291 helper/1,422 owner module identities and four profile stores verify; live
+services/facts/stamp/79 source paths/vendor/permissions remain unchanged.
+Hosted source 05326e5 passes 513 portable and 15 runtime-model cases on Linux.
+Canonical Linux paired regression and final app-environment gates remain next;
+this is finite experimental acceptance, not live activation or full upstream.
+
+[Exact native evidence and next canonical scope](docs/contracts/2026-11-14-maintained-heartbeat-native.md).
+
 ## 14 November 2026 - exact maintained lifecycle source derivative
 
 A new default-off snapshot preparer preserves the full maintained SDK while

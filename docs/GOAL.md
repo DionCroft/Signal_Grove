@@ -151,3 +151,17 @@ bytes and relative tool path. All 513 portable cases pass. Failed mode/suite/
 helper-gate attempts remain. Finish native helper, owner finite-exit, held-writer
 and applicable canonical gates next; no activation is approved. All four
 priorities and every original requirement above remain. [Source proof](contracts/2026-11-14-snapshot-heartbeat-preparer.md).
+
+
+## 14 November progress - maintained candidate native cleanup verified
+
+The reviewed two-file derivative independently passes actual Pi eight-helper,
+normal owner and held-SQLite owner finite gates. Owner children/supervisors exit
+0/0 with zero target reopen warnings/fence refusals; both profile DBs stay open
+during the held writer and close only after drainage. Exact sources/modes,
+module IDs, cleared heartbeats, receipts and unchanged live state verify. The
+old base warning/failures stay intact. Source 05326e5 passes 513 portable and 15
+runtime-model cases on hosted Linux. Next: the six canonical SDK files paired
+on Linux, then final app-environment and exact separate activation review.
+All four priorities and every original requirement remain; no live cutover is
+approved. [Native proof and scope](contracts/2026-11-14-maintained-heartbeat-native.md).

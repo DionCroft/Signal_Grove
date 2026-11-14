@@ -175,3 +175,5 @@ Latest source acceptance: [pristine canonical Linux RPC, current Android cohort 
 [Actual staged Pi transport result and held lifecycle gate](docs/contracts/2026-11-14-actual-pi-owner-http.md).
 
 [Guarded whole-snapshot lifecycle preparer](docs/contracts/2026-11-14-snapshot-heartbeat-preparer.md): exact maintained source/mode preservation is verified; native runtime gates remain separate.
+
+[Actual Pi lifecycle candidate](docs/contracts/2026-11-14-maintained-heartbeat-native.md): eight helpers and normal/held owner exits pass; canonical Linux/final app-environment and live activation gates remain.
