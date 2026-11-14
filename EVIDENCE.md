@@ -1,5 +1,32 @@
 # Evidence navigation
 
+## 14 November 2026 - one-use PM install and activation component
+
+A journal-bound PM preparation actor now dispatches one supported full install
+inside an exact finite native maintenance unit. It binds reviewed source/home/
+store, the manager/controller incarnation and protected inputs, retains bounded
+logs and receipts, then independently verifies currency, committed facts and all
+four activation stamps. Actor/replacement reuse cannot replay a claimed step.
+All **48 Pi cohort methods pass/no skips**, followed by one actual candidate
+install in a fresh private home and an ARM64 dependency probe. Independent raw/
+native/source review passes; both owned units are stopped with empty cgroups.
+Windows: **883 cases, 733 pass/150 platform skips**. Thirteen new Linux methods
+run in this cohort; the 25 service cases overlap earlier evidence.
+
+The first actual sync committed dependencies and passed SDK currency, but left
+activation stamps missing. Its outer attempt remains failed/held, reconciled
+read-only without replay or manufactured stamps. The corrected command uses
+Hermes' supported full-install path in a different fresh acceptance home. Two
+earlier pre-dispatch fixture failures remain recorded. The source inventory,
+41 SDK caches, existing facts, seven modes and live service incarnations conserve.
+Both canonical-home selections remain unprepared. Full operational ancestry,
+fresh encrypted backups, admission/retirement/reload, authenticated health/
+history/graph and complete runtime-only forward/recovery acceptance remain before
+the concrete final packet and separate live approval. Every original audit,
+phone/local-model/security/release requirement stays active. APK/build inputs
+are unchanged.
+[Source, failures and exact scope](docs/contracts/2026-11-14-native-pm-preparation.md).
+
 ## 14 November 2026 - exact PM home/selection gate observed
 
 A fresh no-site, source-bound observer now distinguishes exact PM home/store/

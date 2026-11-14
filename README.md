@@ -21,14 +21,14 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **860 cases: 723 pass, 137 POSIX skips**.
+The latest Windows Python suite runs **883 cases: 733 pass, 150 POSIX skips**.
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,
 eight actual stages, original CLI restoration and preserved newer data. Its
 descriptor guard tracks actual named mode/new-parent transitions. Independent
 raw/native/state review passes. A real-root read-only preflight captures twenty
 existing directories/three missing parents and correctly refuses publication
-while the seven real modes remain 0775. Of the platform cases, 134 run on Pi;
+while the seven real modes remain 0775. Of the platform cases, 147 run on Pi;
 three older cases retain scope. The separate service/journal cohort has 124 Pi
 passes and five native error scenarios. Non-file fixture prerequisites remain
 synthetic; full PM/backup/admission/reload/authenticated health/cutover/recovery
@@ -41,6 +41,15 @@ are missing, while both owning homes have committed selections. This confirms
 the two preparation prerequisites; it does not establish normal-launcher or PM
 readiness. The outer-wrapper failure is preserved and recovered read-only.
 [Exact PM contexts and scope](docs/contracts/2026-11-14-pm-home-selection.md).
+
+The one-use native PM preparation cohort has **48 Pi passes/no skips** (including
+25 existing service cases). A separate real supported install in a fresh private
+home verifies committed facts, currency, four activation stamps and ARM64 native
+imports. Independent raw/native/source review passes; both owned units stopped
+with empty cgroups. The earlier dependency-only attempt is preserved as held
+because activation stamps were missing; it was recovered without replay. Both
+canonical home contexts and the full bounded transaction still require work.
+[PM preparation evidence and limits](docs/contracts/2026-11-14-native-pm-preparation.md).
 
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
@@ -114,6 +123,7 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 | Actual staged Pi owner transport | **16 coordinator outcomes / 50 protocol assertions** | Native UID + synthetic-IdP HTTP PKCE/refresh/tickets/WS and exact workspace receipts; zero fence refusals, lifecycle warning holds the overall gate; no live activation |
 | Exact upstream plugin install | **17 canonical cases / 4 files** | Pristine v0.23.1; reviewed source moves/commit/catalog/exists refusals. Separate full RPC file now has six canonical Linux positives, including POSIX host; exact source/artifact verified |
 | Optional protected operator binding | **8 portable / 8 Linux native policy cases** | Explicit grants, fixed routes and fresh file-generation checks. Exact-source Linux/Windows artifacts verified; no Pi deployment |
+| Native PM preparation component | **48 Pi cases + one actual install** | Separate fresh private home, supported full install/currency, four activation inputs and ARM64 imports; independently verified. Includes 25 overlapping service cases; canonical provisioning and full cutover remain open |
 | Current Pi source preservation | **79 live paths unchanged / 18 native authority outcomes** | Isolated ARM64 PM candidate built with only vendor-path rebase; same cases pass on Windows/Pi. Live activation and both permission prerequisites remain open; [exact scope](docs/contracts/2026-11-14-native-arm64-staged-candidate.md) |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |

@@ -4,15 +4,17 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to **implement one-use supported PM preparation for
-the two actual canonical contexts and compose the full bounded transaction and
-runtime-only recovery**. The new source-bound observer verifies both canonical
-selections are missing and both owning selections exist. All 14 methods pass on
-Pi/no skips; independent read-only recovery authenticates four actual SDK
-contexts. Selection is not normal-launcher/PM-readiness proof. The outer wrapper
-failed after all phases through inventory-variable shadowing; retain that failed
-receipt. No action is replayed. Full source/facts/modes/services conserve.
-[Exact PM context evidence](docs/contracts/2026-11-14-pm-home-selection.md).
+The next action is to **compose the full bounded native transaction and
+runtime-only recovery**, including operational ancestry, encrypted backups,
+admission/retirement/reload and authenticated health/history/graph. One-use PM
+preparation now passes its exact 48-method native cohort and a real supported
+install in a fresh private home, including activation stamps and ARM64 imports.
+Independent review passes and all owned units are stopped. The earlier direct
+sync succeeded for dependencies but lacked activation stamps; its failed/held
+attempt stays preserved, reconciled read-only without replay. Both canonical
+home contexts are still unprepared and require separate approval with the final
+concrete packet. Full cutover acceptance remains open; live state is unchanged.
+[Current PM source and scope](docs/contracts/2026-11-14-native-pm-preparation.md).
 Bind native publication ancestry and independently protect journal/PM/other
 inputs. Complete real backups/admission/reload/authenticated health/history/graph,
 full isolated forward/recovery acceptance and the concrete packet before separate
@@ -26,7 +28,7 @@ and correctly refuses publication while seven actual modes remain 0775. Live
 files/permissions/services/source/facts remain conserved. Non-file fixture stages
 remain synthetic; full operational ancestry and cutover/recovery stay open.
 [Current source/evidence](docs/contracts/2026-11-14-publication-ancestry.md).
-Windows: 860 cases, 723 pass/137 skips; 134 platform methods run in Pi cohorts,
+Windows: 883 cases, 733 pass/150 skips; 147 platform methods run in Pi cohorts,
 three older skips retain scope. The separate service/journal 124-method cohort
 and five native error cases retain scope. Android/build inputs are unchanged.
 Supported PM repaired the five declared
@@ -47,8 +49,8 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 860 cases, 723 pass/137 POSIX skips. All 134
-  coordinator/journal/watchdog/file/catalog methods pass in actual Pi cohorts;
+  The latest Windows suite runs 883 cases, 733 pass/150 POSIX skips. All 147
+  platform methods pass in actual Pi cohorts;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production
   release follows these debug/component checks.

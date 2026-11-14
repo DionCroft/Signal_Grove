@@ -136,6 +136,52 @@ def invocation_id(value):
 
 
 @dataclass(frozen=True)
+class NativeExecutionScope:
+    """Observed own finite maintenance unit; no permission or replay capability."""
+    operation:str
+    unit:str
+    owner:Owner
+    invocation:str
+    cgroup:str
+    configuration_sha256:str
+    active_enter_usec:int
+    runtime_max_usec:int
+    stop_timeout_usec:int
+
+    def __post_init__(self):
+        if (type(self.operation) is not str or not OPERATION.fullmatch(self.operation)
+                or self.unit not in ('signal-grove-cutover-'+self.operation+'.service','signal-grove-acceptance-'+self.operation+'-pm.service') or type(self.owner) is not Owner
+                or type(self.invocation) is not str or not re.fullmatch('[a-f0-9]{32}',self.invocation)
+                or not _path(self.cgroup) or PurePosixPath(self.cgroup).name!=self.unit or not _hash(self.configuration_sha256)
+                or not _uint(self.active_enter_usec) or not self.active_enter_usec
+                or not _uint(self.runtime_max_usec) or not 0<self.runtime_max_usec<=1800_000_000
+                or not _uint(self.stop_timeout_usec) or not 0<self.stop_timeout_usec<=10_000_000):
+            raise ValueError('Exact own finite native maintenance unit required')
+
+    @property
+    def sha256(self):return _digest(asdict(self))
+
+    def require_window(self,execution,owner,now):
+        end=(self.active_enter_usec+self.runtime_max_usec+self.stop_timeout_usec)/1_000_000
+        if (type(execution) is not ApprovedExecution or execution.operation!=self.operation or self.owner!=owner
+                or type(now) not in (int,float) or not math.isfinite(now) or not now<end<=execution.deadline):
+            raise Refused('Native scope lifetime/owner is outside the exact approval')
+
+
+SCOPE_COMMANDS=('ExecCondition','ExecStartPre','ExecStart','ExecStartPost','ExecReload','ExecStop','ExecStopPost')
+
+
+def execution_configuration(unit,service_type,commands):
+    if (type(unit) is not str or not re.fullmatch(r'signal-grove-(?:cutover-[a-f0-9]{32}|acceptance-[a-f0-9]{32}-pm)\.service',unit)
+            or service_type not in ('simple','exec') or type(commands) is not dict or set(commands)!=set(SCOPE_COMMANDS)):
+        raise Unknown('Closed maintenance execution configuration required')
+    normalized={name:command_rows(commands[name]) for name in SCOPE_COMMANDS}
+    if len(normalized['ExecStart'])!=1 or any(normalized[name] for name in SCOPE_COMMANDS if name!='ExecStart'):
+        raise Refused('Maintenance scope may run only its one reviewed start command')
+    return _digest(dict(unit=unit,service_type=service_type,commands=normalized))
+
+
+@dataclass(frozen=True)
 class NativeAttempt:
     """Last observed dispatch phase, not completion, permission or a replay key.
 
@@ -417,6 +463,50 @@ class NativeServiceManager:
             if not isinstance(exc,Exception): raise
             raise Unknown('Native service observation is unproven') from None
         finally: self._busy.release()
+
+    def execution_scope(self,operation,*,owned_fixture=False):
+        """Read only: prove this PID is the sole main process in a finite unit.
+
+        Uses documented systemd1 Unit/Service properties over the same pinned
+        manager connection. It never creates a unit or changes its lifetime.
+        """
+        if type(operation) is not str or not OPERATION.fullmatch(operation) or type(owned_fixture) is not bool or not self._busy.acquire(False):
+            raise Refused('One exact owned maintenance-scope observation required')
+        try:
+            self._native();deadline=time.monotonic()+5;unit=('signal-grove-acceptance-'+operation+'-pm.service') if owned_fixture else ('signal-grove-cutover-'+operation+'.service')
+            row=self._manager('GetUnit','s',(unit,),'o',deadline)
+            if len(row)!=1 or not _path(row[0]):raise Unknown('Maintenance unit path is unproven')
+            path=row[0]
+            def get(name,signature,interface=SERVICE):return self._get(path,interface,name,signature,deadline)
+            pid=get('MainPID','u');group=get('ControlGroup','s');invocation=invocation_id(get('InvocationID','ay',UNIT))
+            if (get('Id','s',UNIT)!=unit or get('LoadState','s',UNIT)!='loaded' or get('ActiveState','s',UNIT)!='active'
+                    or get('SubState','s',UNIT)!='running' or pid!=os.getpid() or get('ControlPID','u')!=0
+                    or get('Job','(uo)',UNIT)!=(0,'/') or get('KillMode','s')!='control-group'
+                    or get('Restart','s')!='no' or get('RuntimeRandomizedExtraUSec','t')!=0
+                    or get('Delegate','b') is not False or get('SendSIGKILL','b') is not True
+                    or get('KillSignal','i')!=15 or get('FinalKillSignal','i')!=9
+                    or get('OnFailure','as',UNIT) or get('OnSuccess','as',UNIT)
+                    or get('FailureAction','s',UNIT)!='none' or get('SuccessAction','s',UNIT)!='none'):
+                raise Refused('Dedicated finite non-restarting maintenance scope required')
+            owner=read_process_owner(pid)
+            if owner is None or Path('/proc',str(pid)).stat().st_uid!=self.authority.uid or not _path(group):
+                raise Unknown('Maintenance main process is unproven')
+            control=Path('/sys/fs/cgroup')/group.lstrip('/')
+            if (control.resolve()!=control or Path('/proc/self/cgroup').read_text().splitlines()!=['0::'+group]
+                    or (control/'cgroup.procs').stat().st_size>65536):
+                raise Unknown('Maintenance cgroup identity is unproven')
+            members=(control/'cgroup.procs').read_bytes()
+            if len(members)>65536 or members.split()!=[str(pid).encode()]:raise Refused('Maintenance unit has another process')
+            service_type=get('Type','s');commands={name:get(name,'a(sasbttttuii)') for name in SCOPE_COMMANDS}
+            result=NativeExecutionScope(operation,unit,owner,invocation,group,execution_configuration(unit,service_type,commands),
+                get('ActiveEnterTimestampMonotonic','t',UNIT),get('RuntimeMaxUSec','t'),get('TimeoutStopUSec','t'))
+            if get('MainPID','u')!=pid or invocation_id(get('InvocationID','ay',UNIT))!=invocation or read_process_owner(pid)!=owner:
+                raise Unknown('Maintenance incarnation changed during observation')
+            self._native();self._remaining(deadline);return result
+        except BaseException as exc:
+            if not isinstance(exc,Exception) or isinstance(exc,(Refused,Unknown)):raise
+            raise Unknown('Maintenance scope observation is unproven') from None
+        finally:self._busy.release()
 
     def _stage(self,role,action,execution):
         if type(execution) is not ApprovedExecution or execution.authority_sha256!=self.plan.authority_sha256:
