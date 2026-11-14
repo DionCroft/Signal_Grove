@@ -1,5 +1,24 @@
 # Evidence navigation
 
+## 14 November 2026 - dormant protected operator binding
+
+The missing operator-binding source is implemented but not deployed. A trusted
+operator supplies fixed routes and the enrolled authority; phone fields cannot
+select policy, identity or commands. Closed bounded policy rows grant only exact
+subject/profile/device/project IDs. Each admission and post-I/O check rereads a
+protected observation. Content and native file generation enter the revision;
+revocation, replacement or revoke/restore discard in-flight replies while
+preserving submitted state. Empty/missing/invalid policy grants no access.
+
+All 493 portable cases pass on 919 frozen inputs, including eight new behavior
+cases. The native authentication gate and all inputs of the earlier 72-case
+Windows gate remain unchanged. Windows explicitly refuses POSIX protection.
+The Linux runner declares eight real filesystem cases and refuses skips, missing
+positives or source drift. Its hosted native result is pending at this source
+checkpoint; no Linux/Pi file-protection acceptance is claimed yet.
+
+[Exact policy contract and native gate boundary](docs/contracts/2026-11-14-protected-operator-policy.md).
+
 ## 14 November 2026 - guarded plugin review and native preflight
 
 The latest stable release was rechecked as Hermes v0.23.1. Two exact plugin

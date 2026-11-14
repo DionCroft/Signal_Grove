@@ -1,66 +1,54 @@
 # Signal Grove project state
 
-14 November 2026. The full goal stays **active**, retaining every original
-requirement and all four [priorities](docs/GOAL.md).
+14 November 2026. The full goal stays **active**, with every original requirement
+and all four [priorities](docs/GOAL.md) preserved.
 
-The latest stable release was rechecked as Hermes v0.23.1. Two exact plugin
-install/refusal findings are now reviewed under ten complete-module guards;
-the original F0 baseline, every previous watch/review and the exact other 40
-stable findings remain. All 485 portable cases pass, including four new tests.
-Two behavioral counterexamples failed on the original checker: declared guarded
-replacements were incorrectly rejected on older snapshots. Metadata validity is
-now separate from current-context selection; missing/drifted/hybrid modes still
-refuse. Every original assertion and historical digest is retained.
+The missing operator-binding source is implemented but not deployed. A trusted
+operator supplies fixed routes and the enrolled authority; phone fields cannot
+select policy, identity or commands. Closed bounded policy rows grant only exact
+subject/profile/device/project IDs. Each admission and post-I/O check rereads a
+protected observation. Content and native file generation enter the revision;
+revocation, replacement or revoke/restore discard in-flight replies while
+preserving submitted state. Empty/missing/invalid policy grants no access.
 
-Seventeen official plugin-install cases across four canonical file runs pass on
-pristine3b source. Three initial Windows long-path failures remain; only the
-affected/unexecuted checks used a new shorter E: fixture, without source/assertion
-or Git/OS policy changes. A separate plugin RPC file has 5 positives and 1 POSIX-only
-skip, canonical exit 1; it is not accepted as a whole file. All 23,586 tracked SDK
-inputs remain unchanged. Pristine shutdown and full interoperability stay open.
+All 493 portable cases pass on 919 frozen inputs, including eight new behavior
+cases. The native authentication gate and all inputs of the earlier 72-case
+Windows gate remain unchanged. Windows explicitly refuses POSIX protection.
+The Linux runner declares eight real filesystem cases and refuses skips, missing
+positives or source drift. Its hosted native result is pending at this source
+checkpoint; no Linux/Pi file-protection acceptance is claimed yet.
 
-Fresh read-only Pi preflight binds ten runtime modules to pristine3b, confirms
-both the native extension and operator module are absent, and retains services/
-stamp. Supported plugin RPC does not expose the native owner/transport context
-required by the workspace grant. The managed source adapter remains a separate,
-undeployed integration; it must not be presented as a public plugin API.
-
-The owner-approved HTTP binding source remains applied at its exact tested bytes,
-with 16 credential/socket and 18 authority checks. It is not installed on Pi.
-The earlier Windows read-client correction remains installed; its 13 November
-same-daemon/receipt and encrypted recovery evidence is historical, not a fresh
-worker observation in this checkpoint. No new production action was taken.
-
-[Current evidence and native implementation plan](docs/contracts/2026-11-14-plugin-refusal-and-native-plan.md).
-[Approved authentication source](docs/contracts/2026-11-14-approved-http-owner-binding.md).
+[Current source and acceptance scope](docs/contracts/2026-11-14-protected-operator-policy.md).
 
 ## Exact next action
 
-Implement and validate the protected Pi operator binding against the existing
-worker enrollment and fixed catalogued SSH route, then prepare its exact runtime
-bundle, encrypted recovery and idle maintenance plan. Do not deploy or restart
-under the earlier source-only approval. Validate real native HTTPS/Android reads
-and independent chat/worker adoption afterwards; read access alone is not an
-execution binding. Preserve every original automation/integration and final
-phone/release acceptance item.
+Run the new Linux policy lane on this exact feature source and reconcile the
+raw report/log and every source hash before promoting it to main. After it passes,
+prepare the exact maintained-runtime bundle and private policy for the already
+reviewed worker enrollment, plus current encrypted recovery and idle checks.
+The previous authentication approval covers source only: do not install the Pi
+operator, create/expand live grants or restart services under that approval.
+Real native HTTPS/Android/worker content, independent chat/execution adoption,
+NAS, original automation/integration and final phone/release acceptance remain.
 
-## Outstanding acceptance and recovery
 
-- Preserve the full [audit ledger](docs/AUDIT_EXECUTION_PLAN.md), including original
-  API26 causes, stable/main semantic and pristine shutdown review, real projects/
-  workers, Kanban/jobs/rooms/grants/delivery and plugin/channel/configuration checks.
-- Keep TLS/auth/profile/approvals strict. Never replay unknown work, infer worker
-  execution from an ACK or move project material onto Pi. No cloud fallback.
-- Recheck USB before final production-phone work; the last observation had only
-  emulators. Preserve production/debug identities, signing keys, UID, connection,
-  chats, model files/history and every failed/unknown outcome. Do not repeat the
-  already used one normal-restart authorization.
-- Beta.9/code114 is published; it does not close final upgrade/live/offline,
-  external-model, battery/background/audio/accessibility or exact-source gates.
-  Keep its assets until a higher-code, same-signer update passes release checks.
-- Doctor setup/key and graph identity/index findings, NAS full-identity support
-  and the separate POSIX plugin RPC case remain unresolved.
+## Retained requirements and recovery boundaries
 
-The previous complete checkpoint/history remains in [Git](https://github.com/DionCroft/Signal_Grove/blob/e5a42973615f43b722669dc44f8d7dcd033f8ef8/PROJECT_STATE.md).
-Earlier details remain in EVIDENCE.md, docs/VALIDATION.md and linked contracts.
-This current state is concise; no requirement or historical evidence is deleted.
+- Preserve the full [audit](docs/AUDIT_EXECUTION_PLAN.md): original API26 causes,
+  forty stable findings/main semantics, pristine SDK shutdown, real project/worker/
+  workspace execution, Kanban/jobs/rooms/grants/delivery and integrations/config.
+- The owner-approved HTTP source fix remains applied (16 credential/socket and 18
+  authority checks); it is not installed on Pi. The Windows read-client correction
+  remains separate, with its 13 November same-daemon/receipts/encrypted proof.
+  No fresh live-worker or Pi deployment claim is made by these source tests.
+- Recheck USB for final device work. Preserve package/signers, UID, connection,
+  chats/projects, models/history and all failed/unknown outcomes. Do not reuse
+  the already consumed one normal-restart approval or replay unknown operations.
+- Beta.9/code114 is public. External-model, physical/live/offline/lifecycle/audio/
+  background/battery/accessibility and exact-source final release gates stay open.
+- Doctor setup/key, graph identity/index, NAS full-file identity and the separate
+  POSIX plugin-RPC test remain open. Project files stay on their execution owner;
+  no credential transfer, public endpoint, model change or cloud fallback follows.
+
+[Previous complete checkpoint/history](https://github.com/DionCroft/Signal_Grove/blob/98132314b75589fc1f1d9313b3769ad5ca62076d/PROJECT_STATE.md).
+Earlier evidence remains in EVIDENCE.md, docs/VALIDATION.md and linked contracts.

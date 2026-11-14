@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    paths: ['server_extensions/worker_workspaces/**', 'scripts/run_workspace_provider_tests.py', 'scripts/tests/test_workspace_provider_policy.py', 'scripts/tests/test_workspace_native_gate.py', 'scripts/tests/test_workspace_broker_protocol.py', 'scripts/tests/test_workspace_local_pipe_policy.py', 'scripts/tests/test_workspace_enrollment_policy.py', 'scripts/tests/test_workspace_read_host_policy.py', 'scripts/tests/test_workspace_pipe_deadline.py', '.github/workflows/worker-workspaces.yml']
+    paths: ['server_extensions/worker_workspaces/**', 'server_extensions/coordinator_workspaces/**', 'scripts/run_coordinator_posix_tests.py', 'scripts/tests/test_workspace_operator_policy.py', 'scripts/run_workspace_provider_tests.py', 'scripts/tests/test_workspace_provider_policy.py', 'scripts/tests/test_workspace_native_gate.py', 'scripts/tests/test_workspace_broker_protocol.py', 'scripts/tests/test_workspace_local_pipe_policy.py', 'scripts/tests/test_workspace_enrollment_policy.py', 'scripts/tests/test_workspace_read_host_policy.py', 'scripts/tests/test_workspace_pipe_deadline.py', '.github/workflows/worker-workspaces.yml']
 permissions:
   contents: read
 concurrency:
@@ -46,5 +46,26 @@ jobs:
           path: |
             ${{ runner.temp }}/worker-workspace-native.json
             ${{ runner.temp }}/worker-workspace-native.log
+          if-no-files-found: warn
+          retention-days: 7
+  coordinator-posix:
+    needs: protocol
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Verify native protected coordinator policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          policy_scratch="${HOME}/signal-grove-policy-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          python3 -B scripts/run_coordinator_posix_tests.py --work-root "$policy_scratch" --output "$RUNNER_TEMP/coordinator-policy-native.json" 2>&1 | tee "$RUNNER_TEMP/coordinator-policy-native.log"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: linux-coordinator-policy
+          path: |
+            ${{ runner.temp }}/coordinator-policy-native.json
+            ${{ runner.temp }}/coordinator-policy-native.log
           if-no-files-found: warn
           retention-days: 7

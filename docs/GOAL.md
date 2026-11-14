@@ -41,31 +41,32 @@ none of the original audit, local-AI, security or delivery requirements.
    reconcile release assets, notes, README and support evidence. Any subsequent
    published update needs the correct higher version code and matching signer.
 
-Continue in tested chunks with regular commits/pushes to main. Preserve unknown
-work and all existing user data. Source remains in its authoritative root;
-all tools, temporary material and private evidence remain on E:. The owner-approved
-HTTP binding source remains applied and tested; no deployment, grant change or
-restart follows from that source-only approval. The installed Windows read client
-and its earlier recovery/receipt proof remain separate from native app acceptance.
+Continue in tested chunks with regular commits/pushes to main. Preserve user data,
+unknown operations and every original audit requirement. Source stays in the
+authoritative root; tools, temporary material and private evidence stay on E:.
+The approved HTTP auth source remains applied without Pi deployment authorization.
+The Windows read-client correction and its recovery/receipt evidence are separate.
 
-On 14 November two exact plugin refusal findings were reviewed under ten complete
-source guards, retaining the original F0 baseline, every old metadata value and
-all 40 other stable findings. The guarded-retirement checker fix passes four new
-counterexamples/real-review cases within 485 portable cases; all old assertions
-and historical golden digests remain. Seventeen canonical plugin-install cases
-pass. A separate RPC file has 5 positives and 1 POSIX skip with nonzero exit; no
-full RPC, SDK lifecycle or Hermes compatibility acceptance is inferred.
+The dormant operator binding now passes 493 portable cases, including eight new
+policy behavior cases. It accepts only explicit owner/profile/device/project
+rows observed through a protected reader and fixed operator routes. Native file
+generation and contents both enter the revision; changed/revoked in-flight reads
+drop contents and preserve submitted state. No policy, grant or service is created.
+Windows refuses POSIX protection; eight real Linux filesystem cases and their
+strict source-bound gate are prepared, with hosted native acceptance pending.
 
-Next: Implement and validate the protected Pi operator binding against the existing
-worker enrollment and fixed catalogued SSH route, then prepare its exact runtime
-bundle, encrypted recovery and idle maintenance plan. Do not deploy or restart
-under the earlier source-only approval. Validate real native HTTPS/Android reads
-and independent chat/worker adoption afterwards; read access alone is not an
-execution binding. Preserve every original automation/integration and final
-phone/release acceptance item.
+Next: Run the new Linux policy lane on this exact feature source and reconcile the
+raw report/log and every source hash before promoting it to main. After it passes,
+prepare the exact maintained-runtime bundle and private policy for the already
+reviewed worker enrollment, plus current encrypted recovery and idle checks.
+The previous authentication approval covers source only: do not install the Pi
+operator, create/expand live grants or restart services under that approval.
+Real native HTTPS/Android/worker content, independent chat/execution adoption,
+NAS, original automation/integration and final phone/release acceptance remain.
 
-The full original goal and four priorities above remain. Source 4444 retains the
-independently reconciled 1,141 / 1,142 standard device positives and actual APKs.
-Original API26 causes, main semantics, pristine shutdown, actual integrations/
-automation, doctor/graph and final production-phone/release acceptance stay open.
-See [the exact checkpoint](contracts/2026-11-14-plugin-refusal-and-native-plan.md).
+
+Forty stable findings/main semantics, pristine shutdown, original API26 causes,
+actual integrations/automation, doctor/graph, external-model/final-source/device
+and signed production-upgrade/release acceptance remain open. Source 4444's
+1,141/1,142 raw standard positives and beta.9 publication do not replace those
+gates. See [the exact source checkpoint](contracts/2026-11-14-protected-operator-policy.md).

@@ -10,7 +10,8 @@ import os
 from pathlib import Path
 import stat
 
-FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py')
+FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
+         'operator_policy.py','policy_file.py')
 
 
 def patch_source(source):

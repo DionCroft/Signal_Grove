@@ -1,5 +1,13 @@
 # Optional native coordinator workspace reads
 
+**Protected operator binding, 14 November:** operator_policy.py accepts only
+explicit fresh grants and fixed server-owned routes. policy_file.py supplies
+native no-follow owner-protected POSIX observations; Windows returns UNSUPPORTED.
+All 493 portable cases pass. Eight native Linux methods and their strict gate are
+prepared; hosted native acceptance remains pending. No operator module, live
+policy/grant or deployment is created. See the
+[configuration and acceptance contract](../../docs/contracts/2026-11-14-protected-operator-policy.md).
+
 **Native deployment preflight, 14 November:** ten selected running Pi source
 modules match immutable 3b; extension and operator modules are absent. Supported
 plugin RPC supplies no native owner/transport context, so it cannot replace this
