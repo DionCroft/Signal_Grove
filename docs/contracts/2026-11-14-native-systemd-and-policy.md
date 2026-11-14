@@ -82,6 +82,30 @@ project/workspace/worker/NAS/adoption, jobs/Kanban/rooms/integrations, phone/mod
 lifecycle and exact-source signed-production acceptance remain in the full ledger.
 The successful isolated fixture does not close them.
 
+## Live dashboard authentication preflight
+
+A separate read-only survey binds the current standalone dashboard to its actual
+systemd PID/start identity, native process home, private token file and kernel
+listener before sending an authenticated GET. Its legacy owner record has no
+home field and names a Tailscale DNS host. Initial overly narrow home/IP-only
+preflights remain failed; neither sent HTTP. The final survey requires the native
+process environment's exact home and resolves only private addresses owned by
+that same listener, with proxy use disabled and a write/foreign-network refusal
+fence. Credentials stay in memory on the Pi and are not copied to the workstation.
+
+The health read confirms that authentication is required. The owner-token
+identity read returns HTTP 401. No idle read, POST, retirement permit, drain,
+service action, credential change or permission change follows. No browser
+credential or phone bearer is extracted, and no auth provider/gate is changed.
+The eventual executor needs a supported signed-in provider session to request
+the process-owned retirement fence. A local record/token or idle snapshot is
+not substituted for that authorization. This preflight is a deployment
+prerequisite, not a failed app conversation or a live cutover attempt.
+
+The full bounded executor, fresh backup and rollback review remains necessary
+before separate live approval. The approved isolated PM/native stage is complete;
+all remaining original audit and production acceptance requirements stay active.
+
 ## Evidence identities
 
 | Evidence | SHA-256 |
@@ -96,3 +120,4 @@ The successful isolated fixture does not close them.
 | Final observer source | 471521a11d1ae8662ae952cf91d13d255907b09bb92372b01e9a8f0688370bb1 |
 | Independent policy review | d07de85fc0e65b883bda0bdb7474af86d91ada08c75ebd51367c40ed605987cf |
 | Native policy validation report | cea98b147cf7acd19073d305827ffd32957483a9f2701cbf87a2eb9ff88785c0 |
+| Live dashboard read-only authentication review | b51532c3b6bb7206465c0723bc01649c14b84d0dd9402a5f0c2141d7bc900c94 |

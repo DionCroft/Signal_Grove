@@ -317,3 +317,10 @@ gates. Upstream remains red; Android verify passes while device jobs are pending
 No live activation, mode/grant/credential/model change, phone upgrade or new APK.
 The complete executor/fence/rollback review and every original priority remain.
 [Native evidence and exact limits](contracts/2026-11-14-native-systemd-and-policy.md).
+
+The live dashboard read-only preflight verifies native owner/home/listener
+identity, then gets HTTP 401 for the local owner token under its active auth gate.
+No idle or retirement permit is requested. A supported provider sign-in is a
+remaining executor prerequisite; local record/token possession is not a bypass.
+Initial legacy-home/DNS preflight failures remain, with no HTTP sent by those
+attempts. No live change occurs; the full goal stays active.
