@@ -6,19 +6,25 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** compose actual canonical old-stop/new-start PM, encrypted
-backups, gateway drain/serve retirement, manager reload and authenticated health/
-history/graph into the native forward/recovery backend. Require the reviewed
-publication ancestry guard and independently bind journal/PM/other input paths.
-Finish full isolated acceptance/concrete packet before separate live approval.
+**Next action:** implement journal-bound once-only supported PM preparation,
+then compose the full native forward/recovery backend and concrete final packet.
+The new read-only observer independently verifies both canonical selections are
+missing; both owning selections are observed. All 14 Pi methods pass/no skips
+and all four real context phases ended zero. Preserve the failed outer wrapper:
+its facts loop shadowed the source-inventory variable after those phases. Separate
+raw/source/facts/native recovery conserves live state without probe replay.
+Selection does not establish full PM or normal-launcher readiness.
+[Exact contexts and failure recovery](docs/contracts/2026-11-14-pm-home-selection.md).
+Keep required backups/admission/retirement/reload/authenticated health/history/
+graph, operational ancestry and full isolated acceptance before live approval.
 The guarded owned fixture verifies eight actual file/mode stages, five parents,
 five retained entries, original CLI restoration and newer-data preservation.
 All 80 cohort methods pass on Pi/no skips; independent raw/native/source/state
 review passes. Fresh real-root preflight captures 20 directories/three missing
 parents and refuses publication while seven modes remain 0775. Live source/facts/
 files/permissions/services remain unchanged. Non-file fixture stages stay
-synthetic; full operational acceptance remains open. Windows: 846 cases, 719 pass/
-127 platform skips; 124 platform cases run in Pi cohorts, three older skips keep
+synthetic; full operational acceptance remains open. Windows: 860 cases, 723 pass/
+137 platform skips; 134 platform cases run in Pi cohorts, three older skips keep
 scope. Separate service/journal 124-method/five-error scope and every original
 audit/on-device/security/release requirement remain. Preserve all failed/unknown
 receipts and no-replay boundaries; Android/build inputs are unchanged.

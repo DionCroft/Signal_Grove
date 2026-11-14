@@ -21,20 +21,27 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **846 cases: 719 pass, 127 POSIX skips**.
+The latest Windows Python suite runs **860 cases: 723 pass, 137 POSIX skips**.
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,
 eight actual stages, original CLI restoration and preserved newer data. Its
 descriptor guard tracks actual named mode/new-parent transitions. Independent
 raw/native/state review passes. A real-root read-only preflight captures twenty
 existing directories/three missing parents and correctly refuses publication
-while the seven real modes remain 0775. Of the platform cases, 124 run on Pi;
+while the seven real modes remain 0775. Of the platform cases, 134 run on Pi;
 three older cases retain scope. The separate service/journal cohort has 124 Pi
 passes and five native error scenarios. Non-file fixture prerequisites remain
 synthetic; full PM/backup/admission/reload/authenticated health/cutover/recovery
 and journal/other operational ancestry gates remain open.
 [Publication ancestry scope](docs/contracts/2026-11-14-publication-ancestry.md) ·
 [Service scope](docs/contracts/2026-11-14-native-service-error-paths.md).
+The read-only PM selection observer has **14 Pi passes without skips** and four
+independently verified actual contexts: both canonical-home dependency selections
+are missing, while both owning homes have committed selections. This confirms
+the two preparation prerequisites; it does not establish normal-launcher or PM
+readiness. The outer-wrapper failure is preserved and recovered read-only.
+[Exact PM contexts and scope](docs/contracts/2026-11-14-pm-home-selection.md).
+
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
 ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,

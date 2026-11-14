@@ -585,3 +585,20 @@ Journal/PM/input ancestry needs its own backend binding; this publication guard
 does not attest every operational path. No live change or APK change. Every
 original audit/on-device/security/release requirement remains active.
 [Exact source and scope](contracts/2026-11-14-publication-ancestry.md).
+
+## Exact PM home selection checkpoint - 14 November 2026
+
+A fresh no-site, source-bound observer now distinguishes exact PM home/store/
+owner and committed selection from fallback interpreter paths. It executes only
+six verified SDK module snapshots, binds the install stamp and expected facts,
+detects native input/facts drift and refuses effects or unknown SDK imports.
+All 14 Pi methods pass/no skips. Independent recovery verifies four actual
+contexts: both canonical-home selections are missing; both owning homes have
+committed selections. This confirms both canonical preparation prerequisites;
+it is not PM currency, normal launcher or full readiness acceptance. Windows:
+860 cases, 723 pass/137 platform skips. The native wrapper's final comparison
+failed through private-variable shadowing after all five phases ended zero;
+original failure stays failed, with component evidence recovered read-only.
+No probe replay, PM action, live write or service change. Every original audit/
+phone/security/release requirement remains active.
+[Actual contexts and evidence](contracts/2026-11-14-pm-home-selection.md).
