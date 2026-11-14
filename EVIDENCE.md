@@ -1,5 +1,17 @@
 # Evidence navigation
 
+## 14 November 2026 - current Pi prerequisites and private draft
+
+Fresh read-only observations verify all 79 selected maintained Pi source paths,
+current authority/service/stamp identity and the existing one-project Windows
+read enrollment with eight completed receipts. A private nine-file overlay draft
+is staged on the execution host; it is not a full generation or deployment.
+All six policy ancestors were observed: two existing directories are 0775, so
+the strict protected reader refuses. Both proposed 0755 changes require review;
+no permission, policy, grant, service, model, credential or APK changed.
+
+[Exact scope, current CI and next action](docs/contracts/2026-11-14-pi-policy-preflight.md).
+
 ## 14 November 2026 - exact-byte native operator acceptance
 
 The protected operator binding now has source-bound native acceptance on

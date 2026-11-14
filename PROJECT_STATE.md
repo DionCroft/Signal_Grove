@@ -15,28 +15,36 @@ failed LF-only verifier and temporary-link HTTP failure remain retained.
 The 493-case portable operator gate remains applicable to unchanged runtime/test
 code; 119 is its CI protocol subset, not an additional 493 cases. Python checkouts
 are now pinned to LF. The six-module installer preview retains the same guarded
-anchors and leaves pristine SDK source unchanged. The source is ready to promote;
+anchors and leaves pristine SDK source unchanged. The source is on main at f65ae83;
 no live operator module, policy/grant, Pi service, model, credential or APK changes.
 
 [Current operator contract and exact evidence](docs/contracts/2026-11-14-protected-operator-policy.md).
 
+Fresh read-only observations verify all 79 selected maintained Pi source paths,
+current authority/service/stamp identity and the existing one-project Windows
+read enrollment with eight completed receipts. A private nine-file overlay draft
+is staged on the execution host; it is not a full generation or deployment.
+All six policy ancestors were observed: two existing directories are 0775, so
+the strict protected reader refuses. Both proposed 0755 changes require review;
+no permission, policy, grant, service, model, credential or APK changed.
+
+[Current Pi prerequisites and private draft](docs/contracts/2026-11-14-pi-policy-preflight.md).
+
 ## Exact next action
 
-Prepare a private operator/bootstrap policy and exact maintained-runtime bundle
-on the execution host, using the existing protected worker enrollment and fixed
-catalogued SSH route. Revalidate current Pi identity/parent protections, worker
-scope and source/recovery manifests, then verified encrypted backup and idle/
-receipt state. Obtain the separate concrete deployment/grant/restart approval
-before any live switch; the earlier authentication approval was source-only.
-After deployment, verify real native HTTPS/Android/worker content and independent
-chat/execution adoption. NAS, integrations/automation, upstream/shutdown and final
-production phone/release requirements remain part of the full goal.
-
+Reconstruct and validate the full private maintained PM generation on the
+execution host, retaining all 79 selected source paths and the tested workspace
+overlay. Review the two exact ancestor permission prerequisites and operational
+effect. Finish truthful provenance, fresh verified encrypted recovery and live
+idle/receipt checks, then obtain separate concrete permission/policy/deployment/
+restart approval. The source-only approval does not cover those actions.
+After a reviewed switch, test native HTTPS/Android/live-worker reads and separate
+chat/execution adoption; every original integration and release gate remains.
 
 ## Remaining scope and safeguards
 
 - Preserve the complete [audit](docs/AUDIT_EXECUTION_PLAN.md): original API26 causes,
-  forty stable findings/main semantics, pristine SDK shutdown and the separate
+  40 stable and 140 inspected-main handler review findings, pristine SDK shutdown and the separate
   POSIX plugin-RPC case, real projects/workers, Kanban/jobs/rooms/grants/delivery
   and remaining integrations/configuration.
 - The owner-approved HTTP source gate remains unchanged (16 credential/socket

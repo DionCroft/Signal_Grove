@@ -60,6 +60,7 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 | Repository HTTP coordinator binding | **16 transport / 18 native authority cases** | Owner-approved source fix; actual PKCE/tickets/TCP with synthetic worker; Pi/native Android deployment acceptance and SDK shutdown remain open |
 | Exact upstream plugin install | **17 canonical cases / 4 files** | Pristine v0.23.1; reviewed source moves/commit/catalog/exists refusals. Separate RPC file has 5 positives and 1 POSIX skip; incomplete |
 | Optional protected operator binding | **8 portable / 8 Linux native policy cases** | Explicit grants, fixed routes and fresh file-generation checks. Exact-source Linux/Windows artifacts verified; no Pi deployment |
+| Current Pi source preservation | **79 selected source paths** | Exact maintained base/follow-up bytes match; private one-project overlay draft, two permission prerequisites; [deployment remains pending](docs/contracts/2026-11-14-pi-policy-preflight.md) |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
@@ -112,7 +113,7 @@ records the real valid-login refusal, tested unapplied proposal, retained SDK
 shutdown warning and complete source 4444 Android raw/APK reconciliation.
 
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
-review (40 remaining stable findings; main remains under review), real project/workspace/worker,
+review (40 stable and 140 inspected-main handler changes awaiting review), real project/workspace/worker,
 automation/integration and final production code114 phone acceptance. Earlier
 production code112 upgrade, connection/history and stored-project reads passed.
 Public beta.9 remains the separately identified experimental source0ee preview.

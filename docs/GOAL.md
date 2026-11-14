@@ -55,19 +55,27 @@ hashes match exact committed bytes. Initial CRLF-only evidence and verifier/
 download failures are retained; no checksum rule was weakened. No policy, grant,
 Pi service, credential, model or APK changed.
 
-Next: Prepare a private operator/bootstrap policy and exact maintained-runtime bundle
-on the execution host, using the existing protected worker enrollment and fixed
-catalogued SSH route. Revalidate current Pi identity/parent protections, worker
-scope and source/recovery manifests, then verified encrypted backup and idle/
-receipt state. Obtain the separate concrete deployment/grant/restart approval
-before any live switch; the earlier authentication approval was source-only.
-After deployment, verify real native HTTPS/Android/worker content and independent
-chat/execution adoption. NAS, integrations/automation, upstream/shutdown and final
-production phone/release requirements remain part of the full goal.
+Fresh read-only observations verify all 79 selected maintained Pi source paths,
+current authority/service/stamp identity and the existing one-project Windows
+read enrollment with eight completed receipts. A private nine-file overlay draft
+is staged on the execution host; it is not a full generation or deployment.
+All six policy ancestors were observed: two existing directories are 0775, so
+the strict protected reader refuses. Both proposed 0755 changes require review;
+no permission, policy, grant, service, model, credential or APK changed.
 
+Next: Reconstruct and validate the full private maintained PM generation on the
+execution host, retaining all 79 selected source paths and the tested workspace
+overlay. Review the two exact ancestor permission prerequisites and operational
+effect. Finish truthful provenance, fresh verified encrypted recovery and live
+idle/receipt checks, then obtain separate concrete permission/policy/deployment/
+restart approval. The source-only approval does not cover those actions.
+After a reviewed switch, test native HTTPS/Android/live-worker reads and separate
+chat/execution adoption; every original integration and release gate remains.
 
 The original four priorities/full audit stay active: forty stable findings/main
 review, pristine shutdown, original API26 causes, real integration/automation,
 doctor/graph, external-model/final-source/physical-phone and production upgrade/
 release acceptance remain. Native policy fixture success does not close those
 requirements. See [the current contract](contracts/2026-11-14-protected-operator-policy.md).
+
+[Current Pi preflight and private proposal](contracts/2026-11-14-pi-policy-preflight.md).
