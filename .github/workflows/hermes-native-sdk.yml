@@ -1,0 +1,77 @@
+name: Pinned Hermes native SDK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py']
+  pull_request:
+    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py']
+permissions:
+  contents: read
+concurrency:
+  group: hermes-native-sdk-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  canonical-linux-plugin-rpc:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: client
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: NousResearch/hermes-agent
+          ref: 3b421578588243f920886e6fe79a6faa87ea026e
+          path: sdk
+          persist-credentials: false
+      - name: Verify pristine pinned SDK before provisioning
+        run: |
+          # This disposable checkout uses exact Git blob bytes, including PS1.
+          # The SDK declares PS1 CRLF by default; no tracked attribute is edited.
+          test ! -e sdk/.git/info/attributes
+          printf '%s\n' '*.ps1 text eol=lf' > sdk/.git/info/attributes
+          git -C sdk -c core.autocrlf=false checkout-index --all --force
+          mkdir "$RUNNER_TEMP/canonical-plugin-rpc"
+          python3 -I -B client/scripts/verify_canonical_rpc.py before --source sdk --evidence "$RUNNER_TEMP/canonical-plugin-rpc"
+          python3 -B -m unittest discover -s client/scripts/tests -p test_verify_canonical_rpc.py -v
+      - name: Build the supported PM side test environment
+        id: pm
+        uses: ./sdk/.github/actions/setup-pm
+        with:
+          toolchain: python
+          extras: '["all"]'
+          test-environment: 'true'
+          archive-inputs: 'false'
+          cache: 'false'
+          cache-python: 'false'
+          cache-node: 'false'
+      - name: Run the complete canonical RPC file on Linux
+        working-directory: sdk
+        env:
+          HERMES_PYTHON: ${{ steps.pm.outputs.python-path }}
+        run: |
+          "$HERMES_PYTHON" -I -B - <<'PY'
+          import json,os,platform,sys
+          from pathlib import Path
+          from importlib.metadata import version
+          record=dict(role='supported-pm-side-test-environment',system=platform.system(),machine=platform.machine(),python=sys.version,pytest=version('pytest'),executable=sys.executable,prefix=sys.prefix)
+          (Path(os.environ['RUNNER_TEMP'])/'canonical-plugin-rpc/test-environment.json').write_text(json.dumps(record,indent=2)+'\n')
+          PY
+          set +e
+          set -o pipefail
+          scripts/run_tests.sh tests/gateway/test_session_plugin_rpc.py -j 1 --file-retries 0 --file-timeout 240 -- -v --junitxml="$RUNNER_TEMP/canonical-plugin-rpc/canonical.xml" 2>&1 | tee "$RUNNER_TEMP/canonical-plugin-rpc/canonical.log"
+          status=${PIPESTATUS[0]}
+          printf '%s\n' "$status" > "$RUNNER_TEMP/canonical-plugin-rpc/canonical-exit-code.txt"
+          exit "$status"
+      - name: Verify all six positives and unchanged SDK source
+        if: ${{ !cancelled() }}
+        run: python3 -I -B client/scripts/verify_canonical_rpc.py after --source sdk --evidence "$RUNNER_TEMP/canonical-plugin-rpc"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pristine-linux-canonical-plugin-rpc
+          path: ${{ runner.temp }}/canonical-plugin-rpc
+          if-no-files-found: error
+          retention-days: 30

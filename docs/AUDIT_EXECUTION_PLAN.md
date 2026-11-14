@@ -1,5 +1,21 @@
 # Signal Grove audit execution plan
 
+## 14 November 2026 - verified Android cohort and native side environment
+
+The ed2c996 hosted Android run is independently accepted from all six original
+ZIPs, complete raw disjoint partitions, the reproduced summary and actual APK
+hashes: API26 1,141/1,141 and API37 1,142/1,142 standard positives. Twelve external
+model methods, original failure causes and final signed/physical gates remain.
+
+Supported native Pi PM side-test setup succeeds while preserving all 23,628
+candidate source files, selected app facts, 79 checked live source paths,
+service identities and ancestor modes. A separate pristine Linux canonical
+six-case RPC lane is implemented; its hosted acceptance is pending. All 499
+local portable tests pass, including six new evidence-refusal checks. No SDK
+assertion, live Pi service/policy/grant, production APK or original goal changes.
+
+[Exact evidence and limits](contracts/2026-11-14-canonical-linux-and-device-gates.md).
+
 ## 14 November 2026 - approved native staging, exact graph and real Pi authority
 
 The owner approved isolated Pi staging/PM/native checks. The exact private packet

@@ -23,7 +23,16 @@ and policy remain absent; no live switch, grant, model, credential or APK change
 
 [Exact native result and limits](docs/contracts/2026-11-14-native-arm64-staged-candidate.md).
 
+The independently reviewed ed2c996 Android cohort passes 1,141/1,142 standard
+cases, with raw partition and actual APK hashes verified. The supported Pi side
+test environment is built with complete candidate/live conservation. A pristine
+Linux canonical six-case RPC workflow is prepared; its hosted acceptance is
+pending. The local portable suite passes 499 tests. [Evidence and limits](docs/contracts/2026-11-14-canonical-linux-and-device-gates.md).
+
 ## Exact next action
+
+Verify the newly added pinned Linux canonical workflow and its raw artifact,
+then continue the isolated Pi HTTP/ticket exchange.
 
 Finish isolated native HTTP/ticket transport and canonical platform coverage
 against the staged generation before preparing the exact activation transaction.
