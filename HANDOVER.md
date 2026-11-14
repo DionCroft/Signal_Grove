@@ -6,16 +6,23 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** perform a read-only catalog capture for the actual reviewed Pi
-generation using its existing private policy/launcher review; reconcile current
-path/type differences without writes. Then compose the complete native backend
-with actual canonical PM/backups/admission/reload/live-user health/history/graph
-and runtime-only recovery before a final separate live approval. Current file/
+**Next action:** compose the complete native backend with protected ancestry,
+canonical PM/backups/admission/reload/authenticated health/history/graph and
+explicit runtime-only recovery before the final separate live approval. Actual
+generation catalog capture now passes independent native reconciliation: ten
+exact preimages, matching wrappers, original literal CLI symlink and three
+missing publication parents. The separate 23-entry ancestry inventory has only
+the seven reviewed writable directories; it does not prove an installed reader
+or race-resistant guard. All source/facts/live files/modes/service incarnations
+remain unchanged.
+[Actual catalog scope](docs/contracts/2026-11-14-actual-publication-catalog.md).
+Current file and
 renderer source passes 62 Pi methods/no skips; the retained owned fixture has
 eight actual file/mode stages, five publication parents and five retained entries.
 Independent native/source/raw/history/policy review proves old CLI restoration,
 newer-data preservation and unchanged live state. Non-file prerequisites remain
-synthetic; actual full protected ancestry/live catalog/cutover are unaccepted.
+synthetic; actual full protected ancestry/cutover remain unaccepted. The actual
+catalog review above is a separate dated observation.
 Windows: 828 cases, 716 pass/112 skips; 109 platform methods run on Pi, three
 older skips retain scope. The separate service/journal 124-method cohort and
 five errors retain scope. Preserve the combined native hook-detachment failure,

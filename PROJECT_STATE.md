@@ -4,18 +4,23 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to **capture the actual reviewed Pi generation's
-renderer catalog read-only**, using the existing private policy/launcher review,
-and reconcile current path/type differences without writes. Then compose the
-complete native backend with real canonical PM/backups/admission/reload/live-user
-health/history/graph and all runtime-only recovery gates before live approval.
+The exact next action is to **compose the complete native backend and explicit
+runtime-only recovery**, binding protected ancestry and actual canonical PM/
+backups/admission/reload/authenticated health/history/graph evidence before a
+final separate live approval. The actual reviewed generation's read-only catalog
+now passes independent native reconciliation: ten preimages, exact staged
+wrappers, the original literal CLI symlink and three new-parent plans. Its
+23-entry ancestry inventory has exactly the seven reviewed writable directories
+and no additional projected blocker. Installed-reader and descriptor-guard acceptance remain open. All live files/modes/services and source/facts are conserved.
+[Actual catalog scope](docs/contracts/2026-11-14-actual-publication-catalog.md).
 The renderer now binds ten exact targets; one-level parent creation witnesses
 new inodes under the same authorized stage claim. The retained owned fixture
 verifies eight actual file/mode forward/recovery stages, five publication parents,
 five retained entries, old CLI restoration and newer-data preservation. All 62
 related Pi methods pass/no skips; independent source/raw/native/history/policy
 review conserves live state. Non-file stages are explicit synthetic; full actual
-protected ancestry, live catalog and complete cutover remain unaccepted.
+protected ancestry and complete cutover remain unaccepted. The actual catalog
+review above is separate from that owned fixture.
 [Current scope](docs/contracts/2026-11-14-rendered-publication-recovery.md).
 Windows: 828 cases, 716 pass/112 skips; 109 platform methods run in actual Pi
 cohorts, three older skips retain scope. The separate service/journal 124-method

@@ -269,3 +269,18 @@ admission/reload/live-user/health/graph and complete forward/recovery acceptance
 All protected ancestry, original audit/phone/release and separate live approval
 requirements remain; no live path or permission is changed by this checkpoint.
 [Current exact source and evidence](2026-11-14-rendered-publication-recovery.md).
+
+## Actual publication catalog reconciled read-only
+
+The actual reviewed Pi generation now passes native read-only catalog capture
+and independent reconciliation: ten exact paths/preimages, matching staged
+wrappers, the existing literal CLI symlink and three missing publication parents.
+All seven reviewed 0775 directory identities remain unchanged. A separate
+23-entry ancestry inventory has no additional projected blocker beyond those
+seven proposed mode changes; it is not a protected-reader or descriptor-guard
+acceptance. Source/facts/live service incarnations are conserved; zero live
+writes, service actions, worker requests or inference calls. Full protected
+ancestry, canonical PM/backups/admission/reload/authenticated health and complete
+runtime-only recovery remain. The full goal and every original requirement stay
+active; no APK change.
+[Actual path/preimage and ancestry inventory](2026-11-14-actual-publication-catalog.md).

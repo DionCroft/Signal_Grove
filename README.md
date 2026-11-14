@@ -27,8 +27,13 @@ scenarios. The renderer/file/mode cohort has **62 Pi passes** plus a retained
 owned forward/recovery fixture: ten exact targets, five publication parents,
 eight actual file/mode stages and preserved newer data. Of the platform methods,
 109 run in actual Pi cohorts; three older skips retain scope. Non-file fixture
-prerequisites are synthetic; actual protected ancestry/live catalog and the full
-PM/backup/admission/reload/health/cutover/recovery gates remain open.
+prerequisites are synthetic. The actual generation now separately passes a
+read-only ten-target catalog capture and independent native reconciliation,
+with three missing publication parents. Its 23-entry ancestry inventory has
+only the seven already reviewed writable directories; live modes remain 0775.
+Actual protected-reader/descriptor guards and the full PM/backup/admission/
+reload/health/cutover/recovery gates remain open.
+[Actual Pi catalog](docs/contracts/2026-11-14-actual-publication-catalog.md).
 [Renderer/file scope](docs/contracts/2026-11-14-rendered-publication-recovery.md) ·
 [Service scope](docs/contracts/2026-11-14-native-service-error-paths.md).
 In isolated Pi staging, **59 retirement-component unit methods** pass without
