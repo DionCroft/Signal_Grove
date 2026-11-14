@@ -1,5 +1,18 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - tested exclusive durable journal component
+
+The source-only journal binds a previously observed private directory identity,
+uses actual POSIX flock/no-follow inode checks and fsynced closed-schema records,
+and preserves interrupted/unknown work without resume or replay authority.
+Independent native recovery verifies all 39 methods/no skips and exact sources;
+the full Windows suite runs 681 cases: 654 pass, 27 POSIX skips (24 new journal
+methods run on Pi, three existing skips). Earlier import/cwd failures and the
+37-method snapshot remain. SDK inputs/caches/facts, parent modes and live state
+conserve. The complete coordinator, native effects/reconciliation/rollback,
+canonical PM and every original audit/phone/release requirement remain open.
+[Component scope and evidence](contracts/2026-11-14-exclusive-cutover-journal.md).
+
 ## 14 November 2026 - staged PM repaired, fresh full SDK probe passes
 
 Supported PM installs exactly five missing declared pinned tools; independent

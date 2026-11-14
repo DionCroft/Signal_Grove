@@ -20,7 +20,12 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest portable suite runs **642 cases: 639 pass, three existing POSIX skips**.
+The latest Windows Python suite runs **681 cases: 654 pass, 27 POSIX skips**.
+The exclusive durable cutover journal passes **all 39 focused methods on Pi**,
+including its 24 POSIX methods skipped on Windows; three older platform skips
+retain separate scope. The journal records evidence and blocks unknown-work
+replay; the complete cutover coordinator and live activation remain open.
+[Journal scope](docs/contracts/2026-11-14-exclusive-cutover-journal.md).
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
 ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,

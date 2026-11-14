@@ -4,8 +4,12 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to implement and test the **exclusive bounded cutover
-executor/journal/recovery and rollback**. Supported PM repaired the five declared
+The exact next action is to wire the **tested exclusive durable journal into
+the fixed cutover coordinator**, with native effect verification, explicit
+unknown-outcome reconciliation and runtime-only rollback. The journal passes
+all 39 methods on the actual Pi/no skips; the full Windows suite runs 681 cases,
+654 pass/27 POSIX skips. [Journal evidence](docs/contracts/2026-11-14-exclusive-cutover-journal.md).
+Supported PM repaired the five declared
 tool dependencies in isolated staging; independent doctor/digest/probe review
 and a fresh normal SDK provider/native-retirement/lifespan fixture now pass,
 without a PM warning or fence refusal. All owned checks are terminal. Preserve
@@ -22,7 +26,9 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest portable suite runs 642 cases, 639 pass/three existing POSIX skips.
+  The latest Windows suite runs 681 cases, 654 pass/27 POSIX skips. All 24 new
+  journal-specific POSIX methods actually pass within the 39-case Pi cohort;
+  the three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production
   release follows these debug/component checks.
 - The first disposable-API26 cohort passes all 541 methods: the original 540

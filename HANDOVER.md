@@ -6,8 +6,12 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** implement/test the exclusive bounded cutover executor, durable
-journal, unknown-outcome recovery and rollback. Supported PM installed exactly
+**Next action:** wire the tested exclusive durable journal into the fixed cutover
+coordinator with native effect verifiers, explicit unknown-outcome reconciliation
+and runtime-only rollback. The journal passes all 39 methods on Pi/no skips;
+the full Windows suite runs 681 cases, 654 pass/27 POSIX skips. It has no service,
+replay, repair or resume effect. [Journal scope](docs/contracts/2026-11-14-exclusive-cutover-journal.md).
+Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence
 refusal; all owned children ended. Preserve both prior observer failures and the

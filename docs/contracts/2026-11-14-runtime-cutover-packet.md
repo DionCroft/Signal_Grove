@@ -184,3 +184,13 @@ selection or authorize live installation/service/permission/policy actions.
 Implement/test the exclusive bounded executor, journal, recovery and rollback
 before the concrete final live approval; retain all gates in this packet.
 [Current evidence](2026-11-14-staged-pm-readiness-and-sdk-pass.md).
+
+## Exclusive journal component tested; coordinator still open
+
+The new source-only durable journal passes all 39 methods on the actual Pi,
+including native lock contention and directory/inode/partial-write recovery
+boundaries. It binds a previously observed directory identity and grants no
+resume authority when reopened. It executes no service, permission, policy,
+restore or replay action. Wire it into the fixed coordinator/native effect
+verifiers and explicit reconciliation/rollback before final live review.
+[Component evidence](2026-11-14-exclusive-cutover-journal.md).
