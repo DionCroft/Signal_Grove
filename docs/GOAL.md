@@ -42,27 +42,30 @@ none of the original audit, local-AI, security or delivery requirements.
    published update needs the correct higher version code and matching signer.
 
 Continue in tested chunks with regular commits/pushes to main. Preserve unknown
-work and existing user data; do not repeat the already completed normal phone
-reboot or change live gateway/models/credentials without applicable approval.
-Source stays in its authoritative project root; temporary work stays on E:.
-The read-client correction remains live with same-daemon, receipt/ACL and
-encrypted recovery evidence. On 14 November the owner explicitly approved the
-exact reviewed coordinator source fix. It is applied and passes 481 portable,
-16 credential/socket and 18 native authority functional checks, retaining all 12
-original authority outcomes. The actual HTTP supervisor still exits with code 2 with one
-pristine SDK shutdown warning; full lifecycle acceptance remains open. The
-source approval includes no Pi deployment, operator/grant change or restart.
+work and all existing user data. Source remains in its authoritative root;
+all tools, temporary material and private evidence remain on E:. The owner-approved
+HTTP binding source remains applied and tested; no deployment, grant change or
+restart follows from that source-only approval. The installed Windows read client
+and its earlier recovery/receipt proof remain separate from native app acceptance.
 
-Next: Review the supported native coordinator integration against the existing Pi
-operator/enrollment policy and recovery process before any separate deployment.
-Then verify native HTTPS/Android workspace adoption, actual authenticated worker
-file replies and NAS boundaries. The source approval includes no Pi installation,
-operator/grant change or restart. Continue the full original automation/integration,
-upstream semantic/shutdown and final production-phone/release ledger; preserve
-unknown work and do not replay it.
+On 14 November two exact plugin refusal findings were reviewed under ten complete
+source guards, retaining the original F0 baseline, every old metadata value and
+all 40 other stable findings. The guarded-retirement checker fix passes four new
+counterexamples/real-review cases within 485 portable cases; all old assertions
+and historical golden digests remain. Seventeen canonical plugin-install cases
+pass. A separate RPC file has 5 positives and 1 POSIX skip with nonzero exit; no
+full RPC, SDK lifecycle or Hermes compatibility acceptance is inferred.
 
-Source4444 retains independently reconciled 1,141 / 1,142 raw standard device
-positives and actual APKs. External-model/current-head/phone gates stay separate.
-Stable42/main6da124 semantics, original API26 failure causes, doctor/graph findings
-and final production upgrade/release acceptance remain open. See
-[the approved-source checkpoint](contracts/2026-11-14-approved-http-owner-binding.md).
+Next: Implement and validate the protected Pi operator binding against the existing
+worker enrollment and fixed catalogued SSH route, then prepare its exact runtime
+bundle, encrypted recovery and idle maintenance plan. Do not deploy or restart
+under the earlier source-only approval. Validate real native HTTPS/Android reads
+and independent chat/worker adoption afterwards; read access alone is not an
+execution binding. Preserve every original automation/integration and final
+phone/release acceptance item.
+
+The full original goal and four priorities above remain. Source 4444 retains the
+independently reconciled 1,141 / 1,142 standard device positives and actual APKs.
+Original API26 causes, main semantics, pristine shutdown, actual integrations/
+automation, doctor/graph and final production-phone/release acceptance stay open.
+See [the exact checkpoint](contracts/2026-11-14-plugin-refusal-and-native-plan.md).

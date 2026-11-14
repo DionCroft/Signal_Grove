@@ -1,5 +1,12 @@
 # Optional native coordinator workspace reads
 
+**Native deployment preflight, 14 November:** ten selected running Pi source
+modules match immutable 3b; extension and operator modules are absent. Supported
+plugin RPC supplies no native owner/transport context, so it cannot replace this
+explicitly maintained source integration by trusting phone params. No deployment,
+policy/grant change or restart occurred. See the
+[implementation and recovery plan](../../docs/contracts/2026-11-14-plugin-refusal-and-native-plan.md).
+
 **14 November update:** the owner approved the exact source fix; it is now applied
 and passes 481 portable, 16 credential/socket and 18 authority functional checks.
 The pristine SDK shutdown warning and separate Pi/Android acceptance remain open.

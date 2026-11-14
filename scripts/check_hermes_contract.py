@@ -713,6 +713,10 @@ def reviewed_handler_replacements(baseline: dict, current: dict, accepted: dict)
         raise ValueError('Invalid reviewed handler replacements')
     old, new = baseline['upstream']['contract'], current['contract']
     watched = set(baseline.get('mobile_used_handlers', []))
+    # Variants were schema-checked before this call. Their declared digests stay
+    # valid metadata on older snapshots; source context decides selection below.
+    declared = {key: {entry['sha256'] for entry in entries}
+                for key, entries in baseline.get('reviewed_handler_variants', {}).items()}
     applied, incomplete = set(), set()
     for key, entries in evidence.items():
         source = key.split(':', 1)[0] if isinstance(key, str) else ''
@@ -738,7 +742,7 @@ def reviewed_handler_replacements(baseline: dict, current: dict, accepted: dict)
             for replacement, digest in entry['replacements'].items():
                 if (replacement not in watched or replacement == key
                         or not isinstance(digest, str) or not re.fullmatch(r'[a-f0-9]{64}', digest)
-                        or digest not in ({old.get('handlers', {}).get(replacement)} | accepted.get(replacement, set()))):
+                        or digest not in ({old.get('handlers', {}).get(replacement)} | declared.get(replacement, set()))):
                     raise ValueError('Replacement dependencies must be selected and reviewed')
                 if replacement.startswith(source + ':') and old.get('handlers', {}).get(replacement) is None:
                     markers.add(replacement)
@@ -747,7 +751,9 @@ def reviewed_handler_replacements(baseline: dict, current: dict, accepted: dict)
             local_markers.update(markers)
             if (new.get('handlers', {}).get(key) is None
                     and new.get('source_hashes', {}).get(source) == entry['source_sha256']
-                    and all(new.get('handlers', {}).get(k) == digest for k, digest in entry['replacements'].items())):
+                    and all(new.get('handlers', {}).get(k) == digest
+                            and digest in ({old.get('handlers', {}).get(k)} | accepted.get(k, set()))
+                            for k, digest in entry['replacements'].items())):
                 matched = True
         if matched:
             applied.add(key)

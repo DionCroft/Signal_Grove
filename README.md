@@ -56,8 +56,9 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 | Stable native-auth/startup fixture | **87 / 87 cases** | Exact stable3b42157; real ASGI, loader helpers and start-entry/PM suppression with explicit adapters; not full backend, live Pi or complete socket acceptance |
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
 | Unmodified native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
-| Policy and Windows workspace checks | **481 policy / 15 runtime-model / 72 Windows native cases** | Pinned client correction is live; five normal Pi reads and same daemon/receipts verified; native app-auth/phone/NAS acceptance remains open |
+| Policy and Windows workspace checks | **485 policy / 15 runtime-model / 72 Windows native cases** | Pinned client correction is live; five normal Pi reads and same daemon/receipts verified; native app-auth/phone/NAS acceptance remains open |
 | Repository HTTP coordinator binding | **16 transport / 18 native authority cases** | Owner-approved source fix; actual PKCE/tickets/TCP with synthetic worker; Pi/native Android deployment acceptance and SDK shutdown remain open |
+| Exact upstream plugin install | **17 canonical cases / 4 files** | Pristine v0.23.1; reviewed source moves/commit/catalog/exists refusals. Separate RPC file has 5 positives and 1 POSIX skip; incomplete |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |
@@ -110,7 +111,7 @@ records the real valid-login refusal, tested unapplied proposal, retained SDK
 shutdown warning and complete source 4444 Android raw/APK reconciliation.
 
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
-review (inspected stable42/main124), real project/workspace/worker,
+review (40 remaining stable findings; main remains under review), real project/workspace/worker,
 automation/integration and final production code114 phone acceptance. Earlier
 production code112 upgrade, connection/history and stored-project reads passed.
 Public beta.9 remains the separately identified experimental source0ee preview.

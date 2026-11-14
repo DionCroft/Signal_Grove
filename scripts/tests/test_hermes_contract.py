@@ -137,6 +137,12 @@ def complete_replacement_fixture(value, contract):
         contract['handlers'].pop(retired, None)
         contract['source_hashes'][retired.split(':', 1)[0]] = entry['source_sha256']
         contract['handlers'].update(entry['replacements'])
+        # Complete each selected replacement's guarded source mode. Mutations in
+        # the actual tests occur afterwards and must still trigger review.
+        for replacement,digest in entry['replacements'].items():
+            for variant in value.get('reviewed_handler_variants',{}).get(replacement,[]):
+                if variant['sha256']==digest:
+                    contract['source_hashes'].update(variant.get('required_sources',{}))
 
     # Room guards bind their original and later source contexts. Complete the
     # synthetic valid fixture with one whole reviewed room mode; never mix F0
@@ -167,6 +173,28 @@ def project_sessions_historical_projection(value):
     projected['mobile_used_handlers']=[k for k in projected['mobile_used_handlers'] if k.split(':',1)[0] not in aliases]
     for section in ('baseline_handler_source_guards','reviewed_handler_variants','reviewed_handler_absences'):
         if section in projected:projected[section]={k:v for k,v in projected[section].items() if k.split(':',1)[0] not in aliases}
+    return projected
+
+
+def plugin_refusal_historical_projection(value):
+    """Only the additive 14-Nov plugin review is absent from older golden vectors.
+
+    Production never calls this. Dedicated real-entry tests check the extended
+    metadata and every guard; all older digests remain unchanged.
+    """
+    projected=copy.deepcopy(value)
+    old='gateway_rpc:_source_moved_data';new='gateway_rpc:_refusal_data'
+    caller='gateway_rpc:_plugins_install';commit='3b421578588243f920886e6fe79a6faa87ea026e'
+    projected['mobile_used_handlers'].remove(new)
+    for key in (new,caller):
+        entries=projected['reviewed_handler_variants'].pop(key)
+        assert len(entries)==1 and entries[0]['commit']==commit
+        assert len(entries[0]['required_sources'])==10
+    entries=projected['reviewed_handler_replacements'].pop(old)
+    assert len(entries)==1 and entries[0]['commit']==commit
+    assert set(entries[0]['replacements'])=={new,caller}
+    entries=projected['reviewed_handler_absences'].pop(new)
+    assert len(entries)==1 and entries[0]['commit']=='2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19'
     return projected
 
 
@@ -1162,3 +1190,50 @@ class RuntimePresetCapabilityWatchTests(unittest.TestCase):
             result=checker.compare(value,{'commit':'e'*40,'contract':changed})
             self.assertTrue(result['mobile_review_required'])
             self.assertIn(key,result['mobile_relevant_changes']['changed_used_handlers'])
+
+
+class GuardedReplacementContextTest(unittest.TestCase):
+    def fixture(self):
+        old_sources=sources()
+        old_sources['gateway_rpc']='def retired(value):\n    return value\n'
+        new_sources=copy.deepcopy(old_sources)
+        new_sources['gateway_rpc']='def replacement(value):\n    return {"reason": value}\n'
+        new_sources['plugin_core']='# reviewed dependency context\n'
+        old=checker.extract(old_sources);new=checker.extract(new_sources)
+        value=baseline(old);retired='gateway_rpc:retired';replacement='gateway_rpc:replacement'
+        value['mobile_used_handlers'] += [retired,replacement]
+        value['reviewed_handler_variants']={replacement:[{
+            'sha256':new['handlers'][replacement],'commit':'b'*40,'reason':'Exact guarded replacement fixture',
+            'required_sources':{k:new['source_hashes'][k] for k in ('gateway_rpc','plugin_core')}}]}
+        value['reviewed_handler_replacements']={retired:[{
+            'commit':'b'*40,'reason':'Retired only in the exact replacement source and dependency context',
+            'source_sha256':new['source_hashes']['gateway_rpc'],
+            'replacements':{replacement:new['handlers'][replacement]}}]}
+        value['reviewed_handler_absences']={replacement:[{'commit':'c'*40,'reason':'Explicitly reviewed older fixture'}]}
+        return value,old,new,retired,replacement
+
+    def test_guarded_retirement_keeps_exact_original_and_reviewed_older_modes_usable(self):
+        value,old,new,_,_=self.fixture()
+        for commit in ('a'*40,'c'*40):
+            with self.subTest(commit=commit):
+                self.assertFalse(checker.compare(value,{'commit':commit,'contract':old})['mobile_review_required'])
+        current=checker.compare(value,{'commit':'b'*40,'contract':new})
+        self.assertFalse(current['mobile_review_required'])
+        self.assertEqual(['gateway_rpc:retired'],current['reviewed_handler_replacements_applied'])
+
+    def test_context_drift_and_hybrids_refuse_without_corrupting_declared_review_metadata(self):
+        value,old,new,retired,replacement=self.fixture()
+        for mode in ('source-drift','dependency-drift','missing-dependency','hybrid'):
+            changed=copy.deepcopy(new)
+            if mode=='source-drift':changed['source_hashes']['gateway_rpc']='d'*64
+            elif mode=='dependency-drift':changed['source_hashes']['plugin_core']='d'*64
+            elif mode=='missing-dependency':changed['source_hashes'].pop('plugin_core')
+            else:changed['handlers'][retired]=old['handlers'][retired]
+            with self.subTest(mode=mode):
+                result=checker.compare(value,{'commit':'e'*40,'contract':changed})
+                self.assertTrue(result['mobile_review_required'])
+                self.assertIn(retired,result['mobile_relevant_changes']['changed_used_handlers'])
+                self.assertNotIn(retired,result['reviewed_handler_replacements_applied'])
+        invalid=copy.deepcopy(value)
+        invalid['reviewed_handler_replacements'][retired][0]['replacements'][replacement]='f'*64
+        with self.assertRaises(ValueError):checker.compare(invalid,{'commit':'b'*40,'contract':new})

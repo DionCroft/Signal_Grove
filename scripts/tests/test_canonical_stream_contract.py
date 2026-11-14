@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import unittest
-from test_hermes_contract import checker, sources, profile_ticket_historical_projection, project_sessions_historical_projection
+from test_hermes_contract import checker, sources, profile_ticket_historical_projection, project_sessions_historical_projection, plugin_refusal_historical_projection
 
 # Exclude only explicitly added workspace and history watches from historical projections.
 HISTORY_WATCHES={'api:_project_client_message','api:APIServerAdapter._message_response'}
@@ -15,7 +15,7 @@ OLD_F0_CONTRACT_SHA256='3bf0ff78e20bc88da8ded497caea02b0e09752ce627f985f946f90fa
 OLD_MOBILE_SCOPE_SHA256='3d4ade32df8379b55912aadeeb2e9d0366a24abdd5a9bbc7347feb5193d0f0cd'
 
 class CanonicalStreamContractTest(unittest.TestCase):
-    def baseline(self):return profile_ticket_historical_projection(project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text())))
+    def baseline(self):return plugin_refusal_historical_projection(profile_ticket_historical_projection(project_sessions_historical_projection(json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text()))))
     def digest(self,value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()).hexdigest()
 
     def test_every_original_f0_entry_and_mobile_scope_is_preserved(self):

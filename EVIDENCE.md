@@ -1,5 +1,31 @@
 # Evidence navigation
 
+## 14 November 2026 - guarded plugin review and native preflight
+
+The latest stable release was rechecked as Hermes v0.23.1. Two exact plugin
+install/refusal findings are now reviewed under ten complete-module guards;
+the original F0 baseline, every previous watch/review and the exact other 40
+stable findings remain. All 485 portable cases pass, including four new tests.
+Two behavioral counterexamples failed on the original checker: declared guarded
+replacements were incorrectly rejected on older snapshots. Metadata validity is
+now separate from current-context selection; missing/drifted/hybrid modes still
+refuse. Every original assertion and historical digest is retained.
+
+Seventeen official plugin-install cases across four canonical file runs pass on
+pristine3b source. Three initial Windows long-path failures remain; only the
+affected/unexecuted checks used a new shorter E: fixture, without source/assertion
+or Git/OS policy changes. A separate plugin RPC file has 5 positives and 1 POSIX-only
+skip, canonical exit 1; it is not accepted as a whole file. All 23,586 tracked SDK
+inputs remain unchanged. Pristine shutdown and full interoperability stay open.
+
+Fresh read-only Pi preflight binds ten runtime modules to pristine3b, confirms
+both the native extension and operator module are absent, and retains services/
+stamp. Supported plugin RPC does not expose the native owner/transport context
+required by the workspace grant. The managed source adapter remains a separate,
+undeployed integration; it must not be presented as a public plugin API.
+
+[Exact review, failures and native integration plan](docs/contracts/2026-11-14-plugin-refusal-and-native-plan.md).
+
 ## 14 November 2026 - approved HTTP owner source correction
 
 The owner approved the exact reviewed HTTP-owner source correction. The

@@ -149,6 +149,8 @@ class HandlerReplacementTest(unittest.TestCase):
 
     def test_real_baseline_retains_original_engine_and_selects_transitive_guards(self):
         value = json.loads((Path(__file__).resolve().parents[2] / 'docs/contracts/hermes-baseline.json').read_text(encoding='utf-8'))
+        from test_hermes_contract import plugin_refusal_historical_projection
+        value = plugin_refusal_historical_projection(value)
         self.assertEqual('f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab', value['upstream']['commit'])
         self.assertEqual('agent/provider_registry.py', checker.RUNTIME_GUARD_CONTRACT_SOURCES['signin_registry_engine'])
         self.assertEqual('c799942889fddcb69851f2872c30fe439b6903b337ea2bcbeab56245fc4a5b7a', value['upstream']['contract']['handlers']['signin_registry_engine:ProviderRegistry.__init__'])

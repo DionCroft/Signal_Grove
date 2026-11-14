@@ -11291,7 +11291,8 @@
     "project_session_config:consumed_module",
     "project_session_methods:consumed_module",
     "project_session_tree:consumed_module",
-    "project_session_wire:consumed_module"
+    "project_session_wire:consumed_module",
+    "gateway_rpc:_refusal_data"
   ],
   "mobile_used_request_fields": [
     "auth:_NativeRefreshBody.provider",
@@ -15007,6 +15008,44 @@
           "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da"
         }
       }
+    ],
+    "gateway_rpc:_plugins_install": [
+      {
+        "sha256": "c23ee8d074267e5cb74d710b27a0b8caded13e89a262f17d539dac4768ca4af4",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Exact stable plugin install/refusal review: source_moved precedence is retained; exists is an additive typed refusal, with unchanged inspected_sha, force=false and review/no-replay client behavior. Bound complete direct/transitive context; 17 official plugin cases pass. No whole-runtime, unattended-update, deployment or lifecycle acceptance. See docs/contracts/2026-11-14-plugin-refusal-and-native-plan.md.",
+        "required_sources": {
+          "gateway_rpc": "7c6c0bf9106979bb4065b28687543a7ba93b29ac1b7a6a5dfe5b6ea91d611350",
+          "plugin_core": "0a556d44b3afb26cd0a52573edd50874a1158e42c2e1f99f53805fb37be2602c",
+          "plugin_install": "256142670b7e2cc59d6b0e8402c8dedea6029e2f8ad3779e43963c4ff7aac24c",
+          "plugin_catalog_gate": "907ee43556510695abda150b033f696250891f9837fd115296266d7a657f946f",
+          "plugin_catalog_loader": "8bd878172be6b5ad6f4bc45fffa4bee54c815f38b59e8f3bf13c836de66d26ef",
+          "plugin_transaction": "aff8feb3c4604626fd9ca4b5792907d84e47bf9dd6beeecafe9ff5f1200f91f3",
+          "plugin_isolation": "57b9d5eca0e7828d2302274c023c3440d16b056c7ef41bdefbb0e326de281f1e",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da",
+          "plugin_auto_update": "f753e2b4ef27e8d027381b0df4056d531ad7d834215281fe46f19b009f28d39e",
+          "plugin_git": "e0a71fad2f8a3fc33b80ecff9e6afff00f59df60b57504e4b317927412588f38"
+        }
+      }
+    ],
+    "gateway_rpc:_refusal_data": [
+      {
+        "sha256": "8935ef7ad5779b1de840cbcbda410af793427d68b0fc49d872e9e0fd79663dfa",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Exact stable plugin install/refusal review: source_moved precedence is retained; exists is an additive typed refusal, with unchanged inspected_sha, force=false and review/no-replay client behavior. Bound complete direct/transitive context; 17 official plugin cases pass. No whole-runtime, unattended-update, deployment or lifecycle acceptance. See docs/contracts/2026-11-14-plugin-refusal-and-native-plan.md.",
+        "required_sources": {
+          "gateway_rpc": "7c6c0bf9106979bb4065b28687543a7ba93b29ac1b7a6a5dfe5b6ea91d611350",
+          "plugin_core": "0a556d44b3afb26cd0a52573edd50874a1158e42c2e1f99f53805fb37be2602c",
+          "plugin_install": "256142670b7e2cc59d6b0e8402c8dedea6029e2f8ad3779e43963c4ff7aac24c",
+          "plugin_catalog_gate": "907ee43556510695abda150b033f696250891f9837fd115296266d7a657f946f",
+          "plugin_catalog_loader": "8bd878172be6b5ad6f4bc45fffa4bee54c815f38b59e8f3bf13c836de66d26ef",
+          "plugin_transaction": "aff8feb3c4604626fd9ca4b5792907d84e47bf9dd6beeecafe9ff5f1200f91f3",
+          "plugin_isolation": "57b9d5eca0e7828d2302274c023c3440d16b056c7ef41bdefbb0e326de281f1e",
+          "plugin_legacy": "9e04fcd9a118c9a386c694ad72195e28253bfe2aac349cc6978d1cf3b6aa53da",
+          "plugin_auto_update": "f753e2b4ef27e8d027381b0df4056d531ad7d834215281fe46f19b009f28d39e",
+          "plugin_git": "e0a71fad2f8a3fc33b80ecff9e6afff00f59df60b57504e4b317927412588f38"
+        }
+      }
     ]
   },
   "reviewed_source_introductions": {
@@ -15314,6 +15353,12 @@
         "commit": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
         "reason": "Official immutable Git tree proves gateway/hosted_room_context.py is absent; no invented room fallback or unknown-ref absence."
       }
+    ],
+    "gateway_rpc:_refusal_data": [
+      {
+        "commit": "2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19",
+        "reason": "The exact reviewed prior source has _source_moved_data and no _refusal_data; original F0 already permits its own absence. Future disappearance requires review."
+      }
     ]
   },
   "reviewed_handler_replacements": {
@@ -15371,6 +15416,17 @@
           "signin_registry_engine:ProviderRegistry._target": "2957a7abaf1945841cefd40837f0d17a2b9d4b98f4ed010e58ac6f756b614f88",
           "signin_registry_engine:ProviderRegistry._bump": "ed08d03f32f076b6c3de03d06082ef0729cc762072d58379a1efaa01cf740506",
           "signin_registry_engine:exact_key": "5d08498b36593426e18f4b26385cb8b8f3ba0091ed396fe16a7aa5937a162d7e"
+        }
+      }
+    ],
+    "gateway_rpc:_source_moved_data": [
+      {
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Exact stable plugin install/refusal review: source_moved precedence is retained; exists is an additive typed refusal, with unchanged inspected_sha, force=false and review/no-replay client behavior. Bound complete direct/transitive context; 17 official plugin cases pass. No whole-runtime, unattended-update, deployment or lifecycle acceptance. See docs/contracts/2026-11-14-plugin-refusal-and-native-plan.md.",
+        "source_sha256": "7c6c0bf9106979bb4065b28687543a7ba93b29ac1b7a6a5dfe5b6ea91d611350",
+        "replacements": {
+          "gateway_rpc:_refusal_data": "8935ef7ad5779b1de840cbcbda410af793427d68b0fc49d872e9e0fd79663dfa",
+          "gateway_rpc:_plugins_install": "c23ee8d074267e5cb74d710b27a0b8caded13e89a262f17d539dac4768ca4af4"
         }
       }
     ]
