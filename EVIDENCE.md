@@ -1,5 +1,27 @@
 # Evidence navigation
 
+## 14 November 2026 - paired Linux regression and app-dependency native gates accepted
+
+Independent original archives/raw JUnit/whole Git source/native mode review
+accepts the same 50 canonical SDK shutdown cases in pristine and two-file
+candidate Linux cohorts, with zero skips/failures/errors/retries. All 23,586
+inputs and 124 executable identities match; both original rejected jobs stay.
+Hosted source c6077892 also passes 532 portable and 15 runtime-model cases.
+
+The actual Pi application dependency environment, with pytest absent, passes
+the native owner transport/finite cleanup trial and independent read-only
+source/module/store/live checks: child/supervisor 0/0, 1,413 imported modules,
+both DB handles closed, empty heartbeats and zero target reopen warnings/fence
+refusals. All 23,628 maintained source files/modes, live state, facts, permissions
+and vendor source remain. This is native-only proof, not the HTTP/IdP branch.
+The original base warning, pre-case and reviewer failures remain preserved.
+
+Next: inspect supported PM binding of the exact derivative and prepare a
+concrete reversible activation/permission/units/protected-policy/recovery
+review. Live activation remains unapproved. All four priorities, every open
+audit row and production/phone/real worker/integration acceptance remain.
+[Paired canonical evidence](docs/contracts/2026-11-14-paired-canonical-shutdown.md) · [App environment scope](docs/contracts/2026-11-14-native-app-environment.md).
+
 ## 14 November 2026 - raw paired positives retained; SDK output guard corrected
 
 The original two Linux jobs each produced the exact 50 positive shutdown cases

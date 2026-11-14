@@ -185,3 +185,16 @@ gate admits only the exact fingerprint/clean result, retaining all assertions
 and full refusal observations. All 532 portable checks pass. Fresh paired
 source-after and app-runtime acceptance remain next; all four priorities and
 the full original objective stay active. No live activation is approved.
+
+
+## 14 November progress - paired Linux and native app dependency gates accepted
+
+Exact raw artifacts verify the same 50 canonical cases in both Linux cohorts,
+all source/native modes and no retries/skips/errors. Hosted c6077892 passes
+532 portable and 15 runtime-model cases. The actual Pi app dependency runtime
+has no pytest and passes native owner/finite cleanup with 0/0 exits, verified
+1,413 modules, cleared heartbeats and preserved source/stores/live state.
+All failures stay intact. Next: inspect supported PM derivative source binding
+and prepare the exact reversible activation review. No live activation is
+approved. All four original priorities and every unresolved audit row remain.
+[Native app scope](contracts/2026-11-14-native-app-environment.md).

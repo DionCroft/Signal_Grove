@@ -45,24 +45,25 @@ SQLite writer keeps both DBs open across 1.491 seconds, then drains without
 replay. Independent full-source/mode/module/store and live conservation checks
 pass. The frozen original warning remains. [Native candidate evidence](docs/contracts/2026-11-14-maintained-heartbeat-native.md).
 
-The paired Linux workflow and raw-evidence verifier are now implemented.
-All 532 portable checks pass. The first hosted run independently has 50 raw
-positives in each cohort, but stays rejected at an omitted SDK-generated cache.
-The corrected exact-fingerprint output guard awaits fresh whole-source-after
-and aggregate acceptance. The Pi app preflight/binding failures are retained;
-final app-runtime acceptance remains open.
-[Gate and limits](docs/contracts/2026-11-14-paired-canonical-shutdown.md).
+The paired Linux canonical regression is now independently accepted: the same
+50 exact cases in both cohorts, no retries/skips/errors and complete 23,586-file
+Git/source/native-mode reconciliation. Hosted c6077892 passes 532 portable and
+15 runtime-model cases. The actual Pi app dependency environment has no pytest
+and passes native owner/finite cleanup with 0/0 exits, 1,413 imported modules,
+cleared heartbeats and independent full source/store/live conservation.
+The prior cache/binding/reviewer failures remain. These are separate finite
+scopes; the app dependency trial does not run the HTTP/IdP branch.
+[Paired proof](docs/contracts/2026-11-14-paired-canonical-shutdown.md) ·
+[App environment proof](docs/contracts/2026-11-14-native-app-environment.md).
 
 ## Exact next action
 
-Run the six unchanged canonical SDK shutdown files on real Linux against exact
-pristine stable3b and the two-file candidate. The exact inventory (5+17+10+2+2+14)
-and source scopes are in the native contract. Use the official runner, zero
-retries, fail-on-skip and unique JUnit artifacts; compare all raw case IDs and
-source inputs. Preserve every old warning/failure and all maintained custom
-bytes. Then validate the exact final app environment without test-only package
-assumptions before the separate activation/PM/source/permission/units/recovery
-review. Both prior native owner trials used the PM side test environment.
+Inspect supported PM source binding and prepare a concrete, reversible
+activation review for the verified derivative, preserving the frozen base and
+existing app facts. Determine the exact source/PM/launcher/unit/policy and
+recovery transaction before requesting separate live activation approval.
+The completed app dependency fixture does not select production source or
+establish real worker/project execution binding.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,

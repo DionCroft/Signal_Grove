@@ -1,8 +1,8 @@
 # Paired canonical Linux shutdown gate
 
-14 November 2026. The full audit goal stays active. This checkpoint implements
-the next regression gate; hosted results have not yet been accepted. The
-previous actual Pi finite/held results and original failures remain intact.
+14 November 2026. The full audit goal stays active. The exact paired Linux
+shutdown gate is now independently accepted as recorded below. The original
+rejected run, actual Pi finite/held results and all wider requirements remain.
 
 The new [workflow](../../.github/workflows/hermes-shutdown.yml) uses two fresh
 Ubuntu 24.04 jobs, each checking out exact SDK commit
@@ -92,3 +92,41 @@ and refusal-observation counterexamples. The first hosted run also passed the
 original 16 verifier checks on actual Linux, including the real symlink branch.
 No old result is erased. Fresh whole-source-after and aggregate acceptance are
 still required before closing the paired regression gate.
+
+## Independently accepted paired Linux result
+
+[Source c6077892](https://github.com/DionCroft/Signal_Grove/commit/c6077892dcbd8bcf9b5e1ccc5556bc72da9283ec)
+[run 43569839773](https://github.com/DionCroft/Signal_Grove/actions/runs/43569839773)
+passes pristine, candidate and aggregate jobs on actual Linux/x86_64 with
+supported-PM Python 3.14.9/pytest 9.1.1. Each complete canonical cohort has the
+same 50 raw positive identities across six files, zero failures/errors/skips
+and no retries. These are 50 shared identities, not 100 unique tests.
+
+The original API archive sizes/digests are checked against actual downloaded
+bytes. Both complete before/after source maps and all native file modes match
+the exact 23,586 pinned Git objects/index entries; all 124 executable identities
+are unchanged. The candidate has only the two hash-pinned lifecycle changes.
+Generated outputs are separately inventoried; the adapter cache has the exact
+current fingerprint and literal clean result. The SDK runner/assertions and
+source-only preparer remain unchanged. The aggregate is independently rebuilt
+from both raw JUnit/log cohorts and compared to the published aggregate artifact.
+
+The independent reviewer initially refused Windows working-tree PS1 newline
+conversion; the successful review reads raw pinned Git objects without changing
+that working copy. Raw tuple/JSON-list identities are normalized only for
+structural comparison. Both reviewer refusals and the original failed CI run
+remain; no SDK assertion or failed result is removed.
+
+| Accepted original archive | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Pristine artifact 14104471252 | 6,233,575 | 65e45a4848ef2afdd21c6ea9aeca9e44c36984f51bbbf96f331161f9e689dd6d |
+| Candidate artifact 14103686516 | 6,236,407 | ddc1c9b747c9ebce869bf06522a8958c44d91a36c36b7203b621b1cf646df933 |
+| Aggregate artifact 14103691590 | 3,340 | b817f5e0a343f434a0a12cdaf0506b1ada7e62ea6d7bfc2186d350d8072ba534 |
+
+Independent raw/source review SHA-256: `2e6fa8090ba8ad7a0e1ff09d38ac63672f461e6cfa8b076d0c8cd37e6f125ab0`.
+
+This closes the finite six-file paired Linux regression gate. Source c6077892
+also passes all 532 portable and 15 runtime-model checks on hosted Linux.
+The [application environment gate](2026-11-14-native-app-environment.md) has its
+own native scope. Neither result closes broad upstream/transitive review or
+authorizes live activation, project/worker dispatch or a new APK release.
