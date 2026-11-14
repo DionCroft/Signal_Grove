@@ -11,8 +11,10 @@ readiness. The normal CLI reports ffmpeg, node, npm, pnpm and ripgrep missing or
 outdated. The full SDK gate is terminal/held by `pm_readiness_warning`; auth and
 lifespan observations do not waive it. Use supported provisioning, never facts
 copying, environment aliases or fake install kind. Then revalidate after an
-actual readiness change and finish bounded executor/journal/rollback. All local/
-isolated checks have ended. Do not repeat green Android/protocol cohorts merely
+actual readiness change and finish bounded executor/journal/rollback. The exact
+staged tool install completed with zero drift; independent doctor/readiness is
+under review. Hosted Android CI is terminal/green on both APIs. Do not repeat
+green Android/protocol cohorts merely
 to obtain acceptance; reconcile unknown operations from authoritative state.
 
 The code checkpoint is 827c6c0: four test-source files only. The failing phone-
@@ -37,8 +39,11 @@ including Demo. Installed APKs and original mapped executable inputs match the
 827c6c0 build snapshot. New Python administration files are outside that snapshot.
 The pre-test inventory verifier failure/continuation and external model gates
 remain recorded. No test is retried and no extra reset occurs. Existing AVDs and
-phone are untouched. Historical causes, full matrix and production upgrade remain
-unaccepted; non-recurrence is not a historical cause.
+phone are untouched. The existing hosted source3ccc788 run also passes the full
+standard API26/API37 matrix: 1,142/1,143 distinct methods, no failures/skips,
+independent raw/artifact verification. Historical causes, external-model/physical
+phone and production upgrade remain unaccepted; non-recurrence is not a cause.
+[Current hosted evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
 Pi staging remains isolated. Verify current live references again before any
 deployment; previous source/facts/service observations are dated evidence.

@@ -13,11 +13,12 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
 Current Android evidence: **1,011 JVM cases** and both lint variants pass with
-zero errors. The reviewed 827c6c0 debug/test pair passes **all 1,142 standard API26
-methods** in two independently verified, disjoint cohorts. The original Demo and
-two retained navigation cases pass; historical causes remain unproven. Current
-API37, external phone/model and original-key production-upgrade gates remain open.
-[Android evidence](docs/contracts/2026-11-14-navigation-failure-observation.md).
+zero errors. The source3ccc788 hosted run passes all **1,142 standard API26** and
+**1,143 API37 methods**, with no failures/skips and independently verified disjoint
+shards. The original Demo and two retained navigation cases pass; historical
+causes remain unproven. Twelve external-model methods, physical phone and
+original-key production-upgrade gates require separate acceptance.
+[Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
 The latest portable suite runs **642 cases: 639 pass, three existing POSIX skips**.
 In isolated Pi staging, **59 retirement-component unit methods** pass without

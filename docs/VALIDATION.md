@@ -1,5 +1,17 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - complete hosted API26/API37 standard matrix
+
+The existing source3ccc788 run passes verify, all four device shards and coverage
+aggregation. Independent raw-method recovery verifies 1,142 standard API26 cases
+and 1,143 API37 cases, no failures/skips, exact disjoint unions and one shared
+debug APK pair. All seven evidence ZIP sizes/hashes match GitHub metadata. The
+twelve external-model methods, original failure causes, physical production
+upgrade and full live interoperability remain separate and open. Upstream review
+still fails: forty stable/152 inspected-main used-handler changes require review.
+No rerun, cancellation, new APK, baseline reset or live activation follows.
+[Exact source, hashes and limits](contracts/2026-11-14-hosted-standard-matrix.md).
+
 ## 14 November 2026 - normal SDK provider flow observed, PM readiness held
 
 Source 1da9973 passes 642 portable cases (639 pass/three existing POSIX skips)

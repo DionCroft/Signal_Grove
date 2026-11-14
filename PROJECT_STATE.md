@@ -9,8 +9,10 @@ supported PM/artifact/tool readiness**. The normal CLI reports ffmpeg, node, npm
 pnpm and ripgrep missing/outdated; the full SDK gate is terminal and held by that
 warning despite successful provider/retirement/lifespan observations. Do not copy
 facts, alias environments, fake install kind or repeat a green protocol without
-a readiness change. Finish bounded transaction/rollback before separate live
-approval. All current local/isolated checks are terminal; hosted CI is separate.
+a readiness change. The approved exact tool install now completed with no drift;
+independent doctor/readiness review is underway before a fresh SDK probe. Finish
+bounded transaction/rollback before separate live approval. The existing hosted
+Android matrix has ended successfully; upstream compatibility review still fails.
 
 Current Android investigation:
 
@@ -27,7 +29,10 @@ Current Android investigation:
   verified. The complementary 601-case cohort also passes, including the original
   Demo case. Independent raw/source/APK review verifies the complete disjoint
   1,142-method standard API26 union. All historical causes remain unproven;
-  API37/current-pair and final production-phone gates remain open.
+  The existing source3ccc788 hosted run now also passes all 1,142 API26 and
+  1,143 API37 standard methods, independently verified from raw identities with
+  no failures/skips. Twelve external-model and final production-phone gates
+  remain open. [Hosted matrix](docs/contracts/2026-11-14-hosted-standard-matrix.md).
   [Current evidence](docs/contracts/2026-11-14-navigation-failure-observation.md) ·
   [Original recent failures](docs/contracts/2026-11-14-api26-cea-failures.md).
 

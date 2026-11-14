@@ -419,3 +419,15 @@ refusals; earlier harness failures and native failure exits remain. Resolve the
 staged supported PM/artifact/tool setup rather than copying facts or masking the
 warning. No live user session, deployment, app input/phone/APK or grant change.
 All original goal requirements remain active. [Scope and evidence](contracts/2026-11-14-sdk-provider-lifespan-pm-hold.md).
+
+## 14 November 2026 - complete hosted API26/API37 standard matrix
+
+The existing source3ccc788 run passes verify, all four device shards and coverage
+aggregation. Independent raw-method recovery verifies 1,142 standard API26 cases
+and 1,143 API37 cases, no failures/skips, exact disjoint unions and one shared
+debug APK pair. All seven evidence ZIP sizes/hashes match GitHub metadata. The
+twelve external-model methods, original failure causes, physical production
+upgrade and full live interoperability remain separate and open. Upstream review
+still fails: forty stable/152 inspected-main used-handler changes require review.
+No rerun, cancellation, new APK, baseline reset or live activation follows.
+[Exact source, hashes and limits](contracts/2026-11-14-hosted-standard-matrix.md).
