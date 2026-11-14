@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - actual published launcher and bytecode separation
+
+The unchanged SDK publishes the exact source/store-bound shell launcher, ignoring
+transient publication overrides. Its actual owner-home invocation exits zero;
+the unprepared fixture home exits one with the SDK dependency refusal. A wrapper
+expecting an internal exception name fails and is retained; raw logs/statuses
+are reviewed without replay. All 23,628 input hashes/native modes and 12 retained
+native caches verify independently. The new read-only output verifier recompiles
+each cache from reviewed input without executing it; source-only preparation and
+protected policy checks stay strict. Twenty new counterexamples pass on actual
+Pi with no skips. Windows runs 564 portable cases, with three POSIX-only skips.
+Live home has no new source-keyed PM facts; prepared borrowed-home PM/startup is
+next. All prior failures, four priorities and every unresolved requirement remain.
+No live activation, production home, grant, mode, model, credential or APK change.
+[Launcher evidence and remaining deployment scope](contracts/2026-11-14-published-launcher-inventory.md).
+
 ## 14 November 2026 - exact bound-source native owner flow accepted
 
 The complete existing native owner/control/workspace/cleanup fixture passes on

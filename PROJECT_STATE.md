@@ -74,14 +74,23 @@ effective drop-in review identifies distinct start and stop/cleanup entry forms;
 the command chain must be reviewed as a whole before any live cutover.
 [Exact source native proof](docs/contracts/2026-11-14-bound-source-native-owner.md).
 
+The actual SDK-published launcher now passes isolated owner-home startup and
+refuses an unprepared home. Its wrapper's exception-name expectation fails and
+is retained; independent raw review verifies actual 0/1 statuses without replay.
+All 23,628 source inputs/modes and 12 separate bytecode outputs verify. The new
+20-case verifier suite passes natively; 564 portable cases run on Windows with
+three actual-POSIX skips. The live home has no new source-keyed PM facts.
+[Published launcher scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
+
 ## Exact next action
 
-Stage the supported permanent source-bound launcher in a fresh isolated command
-directory, verify its source/store interpreter binding and prepared/unprepared
-explicit home behavior. Preserve all source trees/facts and original failures.
-Then prepare exact start/stop/cleanup and serve wrapper/profile/policy/permission/
-idle/recovery deltas. No published service launcher or actual HTTP/phone/worker
-acceptance is inferred from the successful native owner fixture.
+Provision one fresh isolated borrowed home through supported PM, then use the
+unchanged published launcher to verify that home's exact selected dependencies.
+Observe the existing operation before any repeat. Preserve source-only copy
+purity; runtime-generated caches require the separate strict inventory. Then
+complete actual start/stop/cleanup and serve, home/profile/PM ownership, protected
+policy/ancestor permissions, idle and encrypted recovery/rollback review.
+No live service or canonical home change is authorized by these finite tests.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,

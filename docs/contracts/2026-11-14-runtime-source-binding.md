@@ -143,3 +143,11 @@ on this exact metadata variant and its own application environment, with all
 1,413 imported module identities, stores and unchanged live state reconciled.
 HTTP and production launcher acceptance remain separate. See the
 [exact native owner evidence](2026-11-14-bound-source-native-owner.md).
+
+
+## Actual published launcher boundary
+
+The exact SDK-published executable now passes isolated owner-home startup and
+refuses an unprepared home. Source-only copying stays strict; generated native
+bytecode has a separate recompilation verifier. Prepared home and production
+command-chain acceptance remain. [Exact launcher evidence](2026-11-14-published-launcher-inventory.md).

@@ -233,3 +233,20 @@ Effective units require start/stop/cleanup and both wrappers reviewed together.
 Next: supported published-launcher/home behavior, then the complete reversible
 live review. HTTP/worker/phone and every original priority remain; no cutover
 is approved. [Native scope](contracts/2026-11-14-bound-source-native-owner.md).
+
+
+## 14 November progress - real published launcher exercised
+
+The unchanged SDK publishes the exact source/store-bound shell launcher, ignoring
+transient publication overrides. Its actual owner-home invocation exits zero;
+the unprepared fixture home exits one with the SDK dependency refusal. A wrapper
+expecting an internal exception name fails and is retained; raw logs/statuses
+are reviewed without replay. All 23,628 input hashes/native modes and 12 retained
+native caches verify independently. The new read-only output verifier recompiles
+each cache from reviewed input without executing it; source-only preparation and
+protected policy checks stay strict. Twenty new counterexamples pass on actual
+Pi with no skips. Windows runs 564 portable cases, with three POSIX-only skips.
+Live home has no new source-keyed PM facts; prepared borrowed-home PM/startup is
+next. All prior failures, four priorities and every unresolved requirement remain.
+No live activation, production home, grant, mode, model, credential or APK change.
+[Exact gate and limits](contracts/2026-11-14-published-launcher-inventory.md).

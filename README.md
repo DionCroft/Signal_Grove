@@ -25,6 +25,9 @@ verified bootstrap home binding; production activation remains pending.
 Its exact-source native owner and clean-shutdown flow is independently verified;
 production launcher/HTTP/worker acceptance remains open.
 [Native owner scope](docs/contracts/2026-11-14-bound-source-native-owner.md).
+The actual published launcher also passes isolated owner-home startup and refuses
+an unprepared home; 20 native bytecode-verifier tests pass. Live activation remains
+open. [Launcher scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
 
 ## Download and release status
 
