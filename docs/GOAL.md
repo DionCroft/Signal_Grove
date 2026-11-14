@@ -221,3 +221,15 @@ owner/control/cleanup on this exact source, then concrete service/profile/policy
 permission/recovery review. Full gateway/HTTP/phone activation and every original
 priority remain open; no live cutover is approved.
 [Source binding proof](contracts/2026-11-14-runtime-source-binding.md).
+
+
+## 14 November progress - exact bound-source native owner accepted
+
+The existing native owner/control/cleanup fixture passes on the exact explicit-
+store source and its own PM app environment: 0/0 exits, no pytest, closed DBs,
+cleared heartbeats and independently verified 1,413 modules/source/modes/stores/
+facts/live conservation. All fixture methods/assertions and old failures remain.
+Effective units require start/stop/cleanup and both wrappers reviewed together.
+Next: supported published-launcher/home behavior, then the complete reversible
+live review. HTTP/worker/phone and every original priority remain; no cutover
+is approved. [Native scope](contracts/2026-11-14-bound-source-native-owner.md).

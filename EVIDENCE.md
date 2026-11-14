@@ -1,5 +1,24 @@
 # Evidence navigation
 
+## 14 November 2026 - exact bound-source native owner flow accepted
+
+The complete existing native owner/control/workspace/cleanup fixture passes on
+actual Pi using source map 96f58bd4 and its own selected PM app environment:
+0/0 exits, no pytest, 1,413 independently verified SDK module identities, both
+DB handles closed, cleared heartbeats and zero target warnings/fence refusals.
+All fixture methods/assertions remain AST-identical; only metadata is rebound.
+The local pre-case label refusal is retained. No HTTP coordinator or real worker
+case is claimed. Full source/native modes, stores, old/new facts and live
+conservation pass independently; original warnings/failures remain.
+
+Read-only effective unit/drop-in review proves start and stop/cleanup currently
+use different entry forms. A proposed cutover must review all those commands
+and both service wrappers. No unit, administrative link, protected environment,
+policy/grant, mode, credential, model or APK is changed. Next is a real supported
+published-launcher check, followed by exact production/rollback review.
+All four priorities and every original open audit requirement remain active.
+[Exact native scope and next command-chain gate](docs/contracts/2026-11-14-bound-source-native-owner.md).
+
 ## 14 November 2026 - explicit-store source, own PM and bootstrap contexts verified
 
 Actual Pi verifies the fresh 23,628-file explicit-store variant, original native

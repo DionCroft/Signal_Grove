@@ -134,3 +134,12 @@ permanent service/CLI launcher commands, explicit production profile binding,
 both units/wrappers, protected policy, permission prerequisites, idle/receipt
 state and verified encrypted recovery. Published service launcher and actual
 gateway/HTTP acceptance are still open. No live activation is authorized yet.
+
+
+## Subsequent exact-source owner gate
+
+The full existing native owner/control/cleanup fixture now independently passes
+on this exact metadata variant and its own application environment, with all
+1,413 imported module identities, stores and unchanged live state reconciled.
+HTTP and production launcher acceptance remain separate. See the
+[exact native owner evidence](2026-11-14-bound-source-native-owner.md).

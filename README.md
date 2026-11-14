@@ -22,6 +22,9 @@ the published beta.9 APK and live gateway are unchanged.
 The staged explicit-store source also has its own current PM environment and
 verified bootstrap home binding; production activation remains pending.
 [Source/environment proof](docs/contracts/2026-11-14-runtime-source-binding.md).
+Its exact-source native owner and clean-shutdown flow is independently verified;
+production launcher/HTTP/worker acceptance remains open.
+[Native owner scope](docs/contracts/2026-11-14-bound-source-native-owner.md).
 
 ## Download and release status
 

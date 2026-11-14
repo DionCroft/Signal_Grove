@@ -66,14 +66,22 @@ Independent raw/source/facts/live checks pass. Hosted 9b7568db passes all 544
 portable and 15 runtime-model checks. No live source or unit changes.
 [Native source binding proof](docs/contracts/2026-11-14-runtime-source-binding.md).
 
+The exact bound-source native owner/control/cleanup fixture now passes using
+its own PM app environment: 0/0 exits, no pytest, 1,413 verified modules, closed
+DBs, empty heartbeats and zero target warnings/fence refusals. Independent whole
+source/modes/store/facts/live checks pass. All old failures remain. Read-only
+effective drop-in review identifies distinct start and stop/cleanup entry forms;
+the command chain must be reviewed as a whole before any live cutover.
+[Exact source native proof](docs/contracts/2026-11-14-bound-source-native-owner.md).
+
 ## Exact next action
 
-Run the complete native owner/control/cleanup fixture against the explicit-store
-source map 96f58bd4 and its own selected application environment. Rebind only
-fixture/source/IPC metadata, retain every protocol assertion and keep failures.
-Then review permanent service/CLI launchers, production home binding and the
-exact policy/permission/idle/encrypted-recovery transaction. Bootstrap descriptor
-checks do not prove the published launcher or real gateway/HTTP path.
+Stage the supported permanent source-bound launcher in a fresh isolated command
+directory, verify its source/store interpreter binding and prepared/unprepared
+explicit home behavior. Preserve all source trees/facts and original failures.
+Then prepare exact start/stop/cleanup and serve wrapper/profile/policy/permission/
+idle/recovery deltas. No published service launcher or actual HTTP/phone/worker
+acceptance is inferred from the successful native owner fixture.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,
