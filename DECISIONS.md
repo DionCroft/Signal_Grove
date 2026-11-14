@@ -1,5 +1,16 @@
 # Decisions
 
+## 14 November 2026 - native protocol acceptance does not clear cleanup
+
+Accept the actual Pi core only after raw outcome/source/receipt verification
+with zero fence refusals. Keep supervisor exit 2 for the observed closed-DB
+atexit heartbeat write; do not suppress callbacks or diagnostics. Use a separate
+complete maintained-source derivative for the existing two-file lifecycle
+candidate, preserving the frozen base and every custom file. Live activation
+and the two ancestor permission changes still require their exact separate
+review. OS IPC/metadata exceptions are narrowly documented; live grants and
+project execution authority do not follow from fixture protocol acceptance.
+
 ## 14 November 2026 - isolated native Pi staging approved
 
 The owner approved the reviewed private source packet and candidate-only PM

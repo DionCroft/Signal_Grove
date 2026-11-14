@@ -127,3 +127,16 @@ evidence retain their exact scopes. All four priorities and original requirement
 above remain. Continue the isolated actual Pi HTTP/ticket fixture next; no live
 activation, permission/grant, model, credential or APK change is authorized by
 this milestone. See [accepted evidence](contracts/2026-11-14-canonical-linux-and-device-gates.md).
+
+
+## 14 November progress - real Pi HTTP core, lifecycle still open
+
+All 16 coordinator outcomes and the 50-assertion native/HTTP owner flow now run
+on actual Pi ARM64 with zero fence refusals, exact receipts and independently
+verified source/stores/live conservation. The child exits 0; supervisor exit 2
+retains the genuine atexit heartbeat/database warning. Earlier fixture refusals
+remain. This closes the staged core-transport prerequisite only; all four
+priorities and original requirements above remain. Next is the separate full
+maintained derivative/native test of the existing two-file lifecycle candidate.
+No activation, live policy/grant, existing permission, model, credential or APK
+change is approved by this result. [Evidence](contracts/2026-11-14-actual-pi-owner-http.md).

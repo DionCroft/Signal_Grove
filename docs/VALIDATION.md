@@ -1,5 +1,22 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - actual Pi HTTP core accepted; cleanup gate held
+
+The actual staged Linux/aarch64 candidate completes native kernel-UID and HTTP
+PKCE/refresh/one-use ticket/WebSocket checks, all 16 coordinator outcomes and
+fresh-attachment/exact-receipt workspace checks. All 50 protocol assertions
+remain (SID adapts to actual UID). Final core child exits 0 with zero fence
+refusals; the supervisor returns 2 for one real heartbeat/database exit warning.
+
+Independent raw reports, exact outcome labels, 1,422 imported source hashes,
+the full 23,628-file source map, 61 vendor files and read-only SQLite receipts/
+empty admission/worker stores verify. Live services/facts/stamp/79 source paths,
+candidate app facts and ancestor permissions remain unchanged. Earlier vendor
+and native metadata refusals are preserved. Next: a separate maintained-source
+derivative of the existing two-file lifecycle candidate; no live activation.
+
+[Exact native evidence and remaining scope](contracts/2026-11-14-actual-pi-owner-http.md).
+
 ## 14 November 2026 - pristine canonical Linux RPC file accepted
 
 Run 43557755078 at client source 94b3ff5 passes the full unmodified stable3b

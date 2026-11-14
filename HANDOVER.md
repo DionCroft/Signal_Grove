@@ -25,14 +25,22 @@ cases from raw disjoint partitions and actual APK hashes. The portable suite
 passes 501 tests. Beta.9/code114, signer, production app and retained data are
 unchanged. [Accepted evidence and limits](docs/contracts/2026-11-14-canonical-linux-and-device-gates.md).
 
+The actual Pi native/HTTP core now independently passes all 16 coordinator
+outcomes, PKCE/refresh/replay and exact workspace receipt checks, with all 50
+protocol assertions retained and zero fence refusals. The child exits 0; its
+supervisor remains nonzero (2) for the real atexit heartbeat/database warning.
+Full source/live conservation and read-only stores verify. Earlier preparation
+and metadata failures remain. [Exact result](docs/contracts/2026-11-14-actual-pi-owner-http.md).
+
 ## Exact next action
 
-Prepare and run the isolated staged Pi native/HTTP ticket, PKCE/refresh and
-WebSocket fixture, retaining all 16 existing coordinator outcomes. Use actual
-Linux UID/profile/authority and the already patched candidate source. Resolve
-the exact OS-owned short IPC path/documentation and audit fence first; ordinary
-scratch stays inside the approved generation. Keep the public pristine-SDK
-probes, source snapshots, every original assertion and all old failure records.
+Prepare a separate derivative of the full maintained snapshot with the existing
+default-off two-file heartbeat candidate, retaining all custom files. Both
+target inputs (tui_gateway/session_reaper.py and gateway/run_shutdown.py) exactly
+match its reviewed stable3b base. Keep the original 23,628-file candidate frozen;
+verify the complete derivative and only those two deltas. Run native finite-exit,
+held-writer and applicable canonical gates without suppressing warnings or
+callbacks. The maintained hermes_state.py is different and stays unchanged.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,
