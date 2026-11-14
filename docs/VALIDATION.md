@@ -1,5 +1,19 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - concrete native service-manager component
+
+The pinned Linux user-D-Bus adapter now verifies exact journal authorization,
+loaded command/process preimages, JobRemoved completion and actual native
+start/stop/cgroup/helper outcomes. All 23 boundary methods pass on Pi/no skips;
+the owned lifecycle completes six distinct jobs, refuses six spent actions and
+ends eight main/child incarnations with eight successful helpers. Independent
+read-only source/raw/journal/process/package review passes. Live references,
+modes, app/tool facts and SDK content conserve. Non-service fixture prerequisites
+are explicitly synthetic; PM/backups/admission/publication/reload/live-user and
+native fault/recovery acceptance remain. Windows: 760 cases, 697 pass/63 platform
+skips. All original goal tasks remain active; no live activation or APK change.
+[Source, exact scope, retained failures and evidence](contracts/2026-11-14-native-service-manager.md).
+
 ## 14 November 2026 - fixed coordinator and explicit separate recovery
 
 The native exclusive journal now carries durable execution-approval bindings

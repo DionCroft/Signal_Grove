@@ -4,16 +4,18 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to implement the **concrete native operations for the
-reviewed Pi cutover packet**: canonical PM, verified encrypted backups, actual
-gateway/serve fences, service/file/reference outcomes and supported live-user
-health/history/graph verification. The fixed coordinator and explicit separate
-recovery ledger pass all 95 methods on Pi/no skips, using real journal/files and
-synthetic SDK/manager seams. This is not an actual two-service cutover.
-[Coordinator evidence](docs/contracts/2026-11-14-fixed-cutover-coordinator.md).
-Test concrete adapters in owned isolated fixtures and finish the complete packet
-before separate live approval. The full Windows suite runs 737 cases,
-676 pass/61 POSIX skips; all 58 coordinator/journal platform methods run on Pi.
+The exact next action is to test **actual native service failure/unknown paths
+in owned isolated fixtures**, then complete the remaining PM/backup/admission/
+publication/reload/health adapters for the reviewed cutover packet. The concrete
+pinned user-D-Bus service component passes all 23 methods on Pi/no skips and an
+actual six-job owned lifecycle; eight payload incarnations end and eight helpers
+succeed. Independent source/raw/journal/package/process review passes. Its
+non-service prerequisites remain synthetic; it is not a production cutover.
+[Service-adapter evidence](docs/contracts/2026-11-14-native-service-manager.md).
+The separate fixed coordinator/journal cohort remains 95 Pi passes/no skips.
+Full Windows suite: 760 cases, 697 pass/63 POSIX skips; 60 coordinator/journal/
+watchdog platform methods pass in their actual Pi cohorts. Complete the entire
+native packet before separate live approval.
 Supported PM repaired the five declared
 tool dependencies in isolated staging; independent doctor/digest/probe review
 and a fresh normal SDK provider/native-retirement/lifespan fixture now pass,
@@ -31,8 +33,8 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 737 cases, 676 pass/61 POSIX skips. All 58
-  coordinator/journal POSIX methods actually pass within the 95-case Pi cohort;
+  The latest Windows suite runs 760 cases, 697 pass/63 POSIX skips. All 60
+  coordinator/journal/watchdog platform methods pass in their actual Pi cohorts;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production
   release follows these debug/component checks.

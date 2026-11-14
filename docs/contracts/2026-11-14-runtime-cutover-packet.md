@@ -205,3 +205,15 @@ the concrete native PM/backup/drain/retirement/service/publication/health adapte
 before final live packet review; all canonical, permission, credential/data,
 work-fence and original audit/release gates remain.
 [Current coordinator scope](2026-11-14-fixed-cutover-coordinator.md).
+
+## Actual service-manager component, without live activation
+
+The pinned native user-D-Bus adapter now passes 23 Pi boundary methods and an
+actual owned-service lifecycle with six exact job completions, six spent-action
+refusals and eight verified payload/helper outcomes. All disposable units and
+processes end; independent recovery conserves live state. This fixture seeds
+non-service prerequisites explicitly, so it proves no real backups, canonical
+PM, admission, publication/reload or full production cutover. Actual native
+fault/unknown paths, remaining concrete adapters, all original work/data/fresh
+backup/canonical PM gates and a final separate live review remain required.
+[Exact native adapter scope](2026-11-14-native-service-manager.md).

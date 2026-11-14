@@ -6,14 +6,16 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** implement the concrete native Pi operations for PM/backups,
-gateway/serve fences, exact service/file/reference effects and supported live-
-user health/history/graph checks. The fixed coordinator and separate recovery
-ledger pass all 95 methods on Pi/no skips (real journal/files, synthetic SDK/
-manager seams). The full Windows suite runs 737 cases, 676 pass/61 POSIX skips;
-58 coordinator/journal platform methods run on Pi. Actual production adapters
-and full cutover acceptance remain before the concrete separate live approval.
-[Coordinator scope](docs/contracts/2026-11-14-fixed-cutover-coordinator.md).
+**Next action:** test actual native service failure/unknown outcomes in owned
+isolated fixtures, then finish the other PM/backup/admission/publication/reload/
+health adapters. The concrete pinned service-manager component passes all 23
+methods on Pi/no skips and six real owned service jobs; eight payload processes
+end, eight helpers succeed and both units unload. Independent source/raw/journal/
+package/native cleanup review passes. Non-service prerequisites are synthetic;
+this is not a live cutover. Windows: 760 cases, 697 pass/63 platform skips. The
+separate coordinator/journal cohort remains 95 Pi passes/no skips. All canonical
+PM/backup/work/policy/mode/health/recovery gates remain before live approval.
+[Current native scope](docs/contracts/2026-11-14-native-service-manager.md).
 Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence

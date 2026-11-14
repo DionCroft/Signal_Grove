@@ -20,13 +20,14 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **737 cases: 676 pass, 61 POSIX skips**.
-The fixed cutover coordinator/journal passes **all 95 focused methods on Pi**,
-including 58 platform methods skipped on Windows; three older platform skips
-retain separate scope. Tests use actual journal/files/locks with synthetic SDK/
-manager observations. Explicit separate recovery preserves unknown forward work;
-concrete live adapters and full cutover acceptance remain open.
-[Coordinator scope](docs/contracts/2026-11-14-fixed-cutover-coordinator.md).
+The latest Windows Python suite runs **760 cases: 697 pass, 63 POSIX skips**.
+The fixed coordinator/journal passes **95 Pi methods**; the concrete pinned
+service-manager component separately passes **23 Pi methods** and six actual
+owned service jobs. Native process/cgroup/helper cleanup and exact journal/
+source/package evidence verify. Sixty platform methods pass in those actual Pi
+cohorts; three older skips retain separate scope. Non-service fixture prerequisites
+are synthetic; remaining adapters, fault/recovery gates and full live cutover
+acceptance stay open. [Native service scope](docs/contracts/2026-11-14-native-service-manager.md).
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
 ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,
