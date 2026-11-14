@@ -175,3 +175,13 @@ independent archive/case/source reconciliation remain next. The original
 four priorities, entire objective and all unresolved audit rows stay active.
 Then validate the final app environment before the separate live activation
 review. [Gate scope](contracts/2026-11-14-paired-canonical-shutdown.md).
+
+
+## 14 November progress - first paired raw positives, strict output correction
+
+Both first Linux cohorts independently have the exact 50 raw positives but
+remain rejected at the missing SDK adapter-guard output admission. The corrected
+gate admits only the exact fingerprint/clean result, retaining all assertions
+and full refusal observations. All 532 portable checks pass. Fresh paired
+source-after and app-runtime acceptance remain next; all four priorities and
+the full original objective stay active. No live activation is approved.

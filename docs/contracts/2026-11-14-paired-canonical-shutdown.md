@@ -61,3 +61,34 @@ a new Android release. Those requirements and all original audit rows remain.
 After raw paired Linux acceptance, validate the exact application environment
 without test-only packages, then prepare the separate source/PM/permission/unit
 and encrypted-recovery activation review. No live activation is approved here.
+
+## First hosted execution and output correction
+
+Source 7af0d7e runs both complete canonical cohorts on real Linux. Original
+artifact archives are independently downloaded through the repository API;
+their API sizes/digests match actual bytes. Both raw inventories have the same
+50 positive classname/name pairs, zero skips/errors/failures and six successful
+unretried canonical exits. Before-source maps and native modes match review.
+The complete source-after check did not finish, so both jobs stay rejected.
+[Original failed run](https://github.com/DionCroft/Signal_Grove/actions/runs/43569001301).
+
+The unmodified tests/gateway/conftest.py writes an adapter anti-pattern scan
+cache named from gateway test mtimes/sizes. The output verifier originally
+omitted that cache. The correction independently computes the exact unchanged
+fixture fingerprint, accepts only its literal clean result and optional empty
+lock, and records hashes/modes. No cache is preseeded; pytest must perform its
+own scan. Stale fingerprints, incomplete/dirty results and arbitrary files
+remain refusals. Full source/output observations are now saved before inventory
+verdicts. The SDK runner, all 50 case identities/assertions and lifecycle patch
+bytes remain unchanged. The strict source-only preparer is unchanged.
+
+| Original archive | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Pristine artifact 14104125596 | 2,426,565 | ee5c0b7f310c0f8b27bc1a42b6204b0efe5e91f50118899f9eaae853337f84f0 |
+| Candidate artifact 14102584723 | 2,429,390 | 3ac03f882a541be09cb467397dd2c2eb224ccc26e6e3076362276c9987636a5c |
+
+The corrected local portable suite passes **532 checks**, adding three cache
+and refusal-observation counterexamples. The first hosted run also passed the
+original 16 verifier checks on actual Linux, including the real symlink branch.
+No old result is erased. Fresh whole-source-after and aggregate acceptance are
+still required before closing the paired regression gate.

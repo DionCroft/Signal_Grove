@@ -157,6 +157,45 @@ class ShutdownEvidenceTests(unittest.TestCase):
         self.assertEqual(after['source'], expected)
         self.assertEqual(after['generated']['pkg/__pycache__/task.cpython-314.pyc']['sha256'], gate.snapshot.digest(path.read_bytes()))
 
+    def test_real_adapter_guard_result_and_empty_lock_are_inventoried(self):
+        root, expected, modes = self.fixture()
+        cache = root / '.pytest-cache'
+        cache.mkdir()
+        fp = gate.guard_fingerprint(root)
+        (cache / f'gw-adapter-guard-{fp}').write_bytes(b'clean')
+        (cache / f'.gw-adapter-guard-{fp}.lock').write_bytes(b'')
+        after = gate.inspect_source(root, expected, modes, generated=True)
+        self.assertEqual(len(after['generated']), 2)
+        with self.assertRaises(ValueError):
+            gate.inspect_source(root, expected, modes)
+
+    def test_stale_or_unsuccessful_adapter_guard_cannot_be_accepted(self):
+        root, expected, modes = self.fixture()
+        cache = root / '.pytest-cache'
+        cache.mkdir()
+        fp = gate.guard_fingerprint(root)
+        path = cache / ('gw-adapter-guard-' + ('0' if fp[0] != '0' else '1') + fp[1:])
+        path.write_bytes(b'clean')
+        with self.assertRaises(ValueError):
+            gate.inspect_source(root, expected, modes, generated=True)
+        path.unlink()
+        path = cache / f'gw-adapter-guard-{fp}'
+        for raw in (b'', b'clean\n', b'violation'):
+            path.write_bytes(raw)
+            with self.assertRaises(ValueError):
+                gate.inspect_source(root, expected, modes, generated=True)
+
+    def test_refused_unknown_outputs_keep_full_observations(self):
+        root, expected, modes = self.fixture()
+        (root / 'shadow.py').write_bytes(b'pass\n')
+        observation = root.parent / (root.name + '-observed.json')
+        self.addCleanup(lambda: observation.unlink(missing_ok=True))
+        with self.assertRaises(ValueError):
+            gate.inspect_source(root, expected, modes, generated=True, observations=observation)
+        result = gate.read_json(observation)
+        self.assertEqual(result['source'], expected)
+        self.assertEqual(set(result['unexpected']), {'shadow.py'})
+
 
 if __name__ == '__main__':
     unittest.main()

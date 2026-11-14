@@ -162,22 +162,38 @@ def expected_map(base, variant):
     return result
 
 
-def generated_path(name, sources):
+def generated_path(name, sources, guard=None):
     """Allow only cache output names tied to reviewed source or known runners."""
     path = PurePosixPath(name)
     if name == 'test_durations.json':
         return True
     if name.startswith('.pytest_cache/'):
         return name.removeprefix('.pytest_cache/') in PYTEST_CACHE
+    if guard and re.fullmatch('[a-f0-9]{16}', guard):
+        if name in (f'.pytest-cache/gw-adapter-guard-{guard}',
+                    f'.pytest-cache/.gw-adapter-guard-{guard}.lock'):
+            return True
     if path.parent.name != '__pycache__':
         return False
     match = re.fullmatch(r'(.+)\.cpython-(312|314)(?:\.opt-[12]|-pytest-9\.1\.1)?\.pyc', path.name)
     return bool(match and (path.parent.parent / (match[1] + '.py')).as_posix() in sources)
 
 
-def inspect_source(source, expected, modes=None, *, generated=False):
+def guard_fingerprint(source):
+    # Same stat-only fingerprint as the unchanged SDK tests/gateway/conftest.py.
+    # No cache is seeded: canonical pytest must create its own successful scan.
+    import hashlib
+    checksum = hashlib.sha256()
+    for path in sorted((source / 'tests/gateway').rglob('test_*.py')):
+        info = path.stat()
+        checksum.update(f'{path.name}:{info.st_mtime_ns}:{info.st_size}'.encode())
+    return checksum.hexdigest()[:16]
+
+
+def inspect_source(source, expected, modes=None, *, generated=False, observations=None):
     """Verify every source byte/mode and reject new executable namespaces."""
-    hashes, actual_modes, extras, directories = {}, {}, {}, set()
+    hashes, actual_modes, extras, directories, unexpected = {}, {}, {}, set(), {}
+    guard = guard_fingerprint(source)
     total = 0
     for directory, dirs, files in os.walk(source, followlinks=False):
         root = Path(directory)
@@ -205,7 +221,11 @@ def inspect_source(source, expected, modes=None, *, generated=False):
             if rel in expected:
                 hashes[rel] = snapshot.digest(raw)
                 actual_modes[rel] = mode
-            elif generated and generated_path(rel, expected) and not mode & 0o111:
+            elif generated and generated_path(rel, expected, guard) and not mode & 0o111:
+                if rel.startswith('.pytest-cache/'):
+                    wanted = b'' if rel.endswith('.lock') else b'clean'
+                    if raw != wanted:
+                        raise ValueError('Adapter-guard output is not the exact successful result')
                 if rel == 'test_durations.json':
                     durations = read_json(path)
                     if (type(durations) is not dict or not set(durations) <= set(CASES) or
@@ -213,7 +233,12 @@ def inspect_source(source, expected, modes=None, *, generated=False):
                         raise ValueError('Unexpected canonical duration output')
                 extras[rel] = dict(sha256=snapshot.digest(raw), bytes=size, mode=mode)
             else:
-                raise ValueError('Unexpected SDK source/output: ' + rel)
+                unexpected[rel] = dict(sha256=snapshot.digest(raw), bytes=size, mode=mode)
+    result = dict(source=hashes, modes=actual_modes, generated=extras, guardFingerprint=guard)
+    if observations is not None:
+        write_new(observations, dict(**result, unexpected=unexpected, directories=sorted(directories)))
+    if unexpected:
+        raise ValueError('Unexpected SDK source/output: ' + ', '.join(sorted(unexpected)[:20]))
     all_names = set(hashes) | set(extras)
     allowed_dirs = {p.as_posix() for n in all_names for p in PurePosixPath(n).parents if p.as_posix() != '.'}
     if directories != allowed_dirs or hashes != expected:
@@ -223,7 +248,7 @@ def inspect_source(source, expected, modes=None, *, generated=False):
     names = sorted(n for n, mode in actual_modes.items() if mode & 0o111)
     if len(expected) == 23586 and (len(names), snapshot.digest(('\n'.join(names) + '\n').encode())) != snapshot.EXECUTABLES:
         raise ValueError('SDK executable identities changed')
-    return dict(source=hashes, modes=actual_modes, generated=extras)
+    return result
 
 
 def source_index(source):
@@ -337,9 +362,10 @@ def accepted_evidence(evidence):
             before['patchSha256'] != (pinned.PATCH_SHA256 if variant == 'candidate' else None) or before['generated']):
         raise ValueError('Preparation evidence mismatch')
     after = read_json(evidence / 'after.json')
-    if after['source'] != expected or after['modes'] != before['modes']:
+    if (after['source'] != expected or after['modes'] != before['modes'] or
+            after['guardFingerprint'] != before['guardFingerprint']):
         raise ValueError('Source changed during PM/canonical execution')
-    if any(not generated_path(name, expected) for name in after['generated']):
+    if any(not generated_path(name, expected, after['guardFingerprint']) for name in after['generated']):
         raise ValueError('Unexpected generated output in evidence')
     runtime = read_json(evidence / 'runtime.json')
     if runtime['system'] != 'Linux' or runtime['pytest'] != '9.1.1':
@@ -381,7 +407,8 @@ def verify(source, evidence):
     before = read_json(evidence / 'before.json')
     expected = expected_map(read_json(evidence / 'base-map.json'), before['variant'])
     source_index(source)
-    actual = inspect_source(source, expected, before['modes'], generated=True)
+    actual = inspect_source(source, expected, before['modes'], generated=True,
+                            observations=evidence / 'observed-tree.json')
     write_new(evidence / 'after.json', actual)
     result = accepted_evidence(evidence)
     result['state'] = 'NATIVE_LINUX_CANONICAL_SHUTDOWN_FIFTY_PASS'

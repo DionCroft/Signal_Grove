@@ -1,5 +1,23 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - raw paired positives retained; SDK output guard corrected
+
+The original two Linux jobs each produced the exact 50 positive shutdown cases
+through six canonical unretried files. Independent original archive size/hash,
+raw identities and before-source/mode reconciliation pass. Both jobs remain
+rejected because complete source-after validation stopped at the SDK fixture's
+own adapter-guard cache. No whole paired acceptance is claimed from that run.
+
+The gate now admits only the exact current test-tree fingerprint's literal
+clean result and optional empty lock; stale/dirty/arbitrary outputs still fail.
+It does not preseed the cache or alter SDK tests/assertions/runner. Full observed
+source/output inventories are retained on inventory refusal. All 532 portable
+checks pass, with three additional guard/refusal counterexamples. Fresh hosted
+execution and independent source-after acceptance remain required. The failed
+Pi app preflight and fixture binding are retained; app-runtime acceptance is
+still open. No live services, facts, permissions, credentials or APK changes.
+[Raw evidence and correction scope](contracts/2026-11-14-paired-canonical-shutdown.md).
+
 ## 14 November 2026 - paired Linux shutdown gate implemented, execution pending
 
 The new read-only-permission CI workflow runs the same six complete upstream

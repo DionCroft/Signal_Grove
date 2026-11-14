@@ -46,8 +46,11 @@ replay. Independent full-source/mode/module/store and live conservation checks
 pass. The frozen original warning remains. [Native candidate evidence](docs/contracts/2026-11-14-maintained-heartbeat-native.md).
 
 The paired Linux workflow and raw-evidence verifier are now implemented.
-All 529 portable checks pass, including 16 additional counterexamples. Hosted
-execution, archive integrity and exact paired positives are still pending.
+All 532 portable checks pass. The first hosted run independently has 50 raw
+positives in each cohort, but stays rejected at an omitted SDK-generated cache.
+The corrected exact-fingerprint output guard awaits fresh whole-source-after
+and aggregate acceptance. The Pi app preflight/binding failures are retained;
+final app-runtime acceptance remains open.
 [Gate and limits](docs/contracts/2026-11-14-paired-canonical-shutdown.md).
 
 ## Exact next action
