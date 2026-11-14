@@ -55,6 +55,13 @@ class PhoneDraftRoutingTest {
         }
         return value.get()
     }
+    private fun openChatNavigation() {
+        try {compose.onNodeWithTag("nav-chat").performClick()}
+        catch(original:AssertionError) {
+            throw retainUiFixtureFailure(compose,compose.activity,vm,original,
+                FixtureFailureKind.PhoneDraftNavigation,null,0,0)
+        }
+    }
     private fun ready() {
         compose.waitUntil(10000) {!vm.connecting.value && vm.preferences.value.demo}
         compose.runOnUiThread {vm.newChat()}
@@ -93,7 +100,7 @@ class PhoneDraftRoutingTest {
         ready();val before=history();language=vm.preferences.value.let {it.chinese to it.pinyin}
         compose.runOnUiThread {vm.updatePreferences(vm.preferences.value.copy(chinese=true,pinyin=true))}
         compose.waitUntil(10000) {vm.preferences.value.chinese && vm.preferences.value.pinyin}
-        compose.onNodeWithTag("nav-chat").performClick()
+        openChatNavigation()
         compose.runOnUiThread {vm.changeDraft("Fresh unsent question")}
         compose.onNodeWithTag("phone-draft-open").performClick()
         snapshot("review-top")
@@ -120,7 +127,7 @@ class PhoneDraftRoutingTest {
     }
     @Test fun editedReviewOpensOnlyANewPhoneDraftWithoutSubmittingOrLosingHistory() {
         ready();seedPhoneHistory();val before=history()
-        compose.onNodeWithTag("nav-chat").performClick()
+        openChatNavigation()
         compose.runOnUiThread {vm.changeDraft("Remote draft remains")}
         compose.onNodeWithTag("phone-draft-open").performClick()
         compose.onNodeWithTag("phone-draft-text").performTextReplacement("Reviewed phone question")

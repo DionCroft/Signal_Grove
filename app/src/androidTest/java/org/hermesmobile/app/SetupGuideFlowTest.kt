@@ -19,7 +19,11 @@ class SetupGuideFlowTest {
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private fun open() {
         compose.waitUntil(15000) {!vm.connecting.value}
-        compose.onNodeWithContentDescription(Words.Settings.localized(vm.preferences.value),useUnmergedTree=true).performClick()
+        try {compose.onNodeWithContentDescription(Words.Settings.localized(vm.preferences.value),useUnmergedTree=true).performClick()}
+        catch(original:AssertionError) {
+            throw retainUiFixtureFailure(compose,compose.activity,vm,original,
+                FixtureFailureKind.SetupGuideNavigation,null,0,0)
+        }
         compose.onNodeWithTag("setup-guide-open").performScrollTo().performClick()
     }
     private fun capture(name:String) {

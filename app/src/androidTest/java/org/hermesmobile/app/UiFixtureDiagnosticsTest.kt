@@ -3,6 +3,7 @@ package org.hermesmobile.app
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.ui.*
@@ -165,5 +166,54 @@ class UiFixtureDiagnosticsTest {
             compose.runOnUiThread {vm.updatePreferences(vm.preferences.value.copy(chinese=previous.chinese,pinyin=previous.pinyin))}
             compose.waitUntil(5000) {vm.preferences.value.chinese==previous.chinese && vm.preferences.value.pinyin==previous.pinyin}
         }
+    }
+
+    @Test fun failureSnapshotPrecedesCallerCleanupAndIdentifiesTheForegroundLocalActivity() {
+        compose.waitUntil(10000) {!vm.connecting.value}
+        val instrumentation=InstrumentationRegistry.getInstrumentation()
+        fun resumedLocal():LocalAiActivity? {
+            val result=java.util.concurrent.atomic.AtomicReference<LocalAiActivity?>()
+            instrumentation.runOnMainSync {
+                result.set(androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(androidx.test.runner.lifecycle.Stage.RESUMED).filterIsInstance<LocalAiActivity>().singleOrNull())
+            }
+            return result.get()
+        }
+        var local:LocalAiActivity?=null
+        val original=AssertionError("Controlled navigation observation")
+        var retained:AssertionError?=null
+        try {
+            compose.runOnUiThread {compose.activity.startActivity(android.content.Intent(app,LocalAiActivity::class.java))}
+            compose.waitUntil(10000) {resumedLocal()!=null};local=resumedLocal()!!
+            compose.waitUntil(10000) {compose.onAllNodesWithTag("phone-draft").fetchSemanticsNodes().size==1}
+            try {
+                throw retainUiFixtureFailure(compose,compose.activity,vm,original,
+                    FixtureFailureKind.ControlledCounterexample,null,0,0)
+            } catch(captured:AssertionError) {retained=captured}
+        } finally {
+            // This cleanup happens after the snapshot; the assertion is retained,
+            // never rerun or converted into a successful navigation action.
+            instrumentation.runOnMainSync {local?.finish()}
+        }
+        val wrapped=checkNotNull(retained);assertSame(original,wrapped.cause)
+        val observed=JSONObject(wrapped.message!!.substringAfter("safe fixture snapshot="))
+        assertFalse(observed.optBoolean("snapshotUnavailable"));assertFalse(observed.getBoolean("ruleActivityIsResumed"))
+        assertEquals(1,observed.getInt("resumedLocalAiActivityCount"));assertEquals(0,observed.getInt("resumedMainActivityCount"))
+        assertEquals(1,observed.getInt("localPhoneDraftNodes"));assertEquals(0,observed.getJSONObject("navigationNodes").getInt("Chat"))
+        val nativeWindows=observed.getJSONObject("nativeWindows")
+        assertTrue(nativeWindows.getBoolean("readCompleted"))
+        if(nativeWindows.getInt("reportedWindowCount")==0) {
+            // Enabling native window reporting need not populate its first read.
+            // An empty read is indeterminate, never proof of an absent IME.
+            assertFalse(nativeWindows.getBoolean("available"))
+            for(field in listOf("inputMethodCount","focusedApplicationCount","activeApplicationCount","inputMethodTopPx")) assertEquals(-1,nativeWindows.getInt(field))
+        } else {
+            assertTrue(nativeWindows.getBoolean("available"))
+            assertTrue(nativeWindows.getInt("reportedWindowCount")>0)
+            assertTrue(nativeWindows.getInt("focusedApplicationCount") in 0..nativeWindows.getInt("reportedWindowCount"))
+        }
+        compose.waitUntil(10000) {compose.activity.lifecycle.currentState==androidx.lifecycle.Lifecycle.State.RESUMED}
+        val after=captureUiFixtureSnapshot(compose,compose.activity,vm)
+        assertTrue(after.getBoolean("ruleActivityIsResumed"));assertEquals(0,after.getInt("resumedLocalAiActivityCount"))
     }
 }
