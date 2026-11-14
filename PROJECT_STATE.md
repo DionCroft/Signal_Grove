@@ -4,11 +4,13 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to prepare and verify a **fresh isolated full SDK
-listener/lifespan and supported provider sign-in**, using the tested native socket
-observer and existing-connection adapter. Finish the bounded transaction/rollback
-before any separate live approval. All current local/isolated check commands are
-terminal; do not repeat the completed Android cohorts or native fixture.
+The exact next action is to inspect and resolve the **isolated candidate's
+supported PM/artifact/tool readiness**. The normal CLI reports ffmpeg, node, npm,
+pnpm and ripgrep missing/outdated; the full SDK gate is terminal and held by that
+warning despite successful provider/retirement/lifespan observations. Do not copy
+facts, alias environments, fake install kind or repeat a green protocol without
+a readiness change. Finish bounded transaction/rollback before separate live
+approval. All current local/isolated checks are terminal; hosted CI is separate.
 
 Current Android investigation:
 
@@ -17,7 +19,7 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest portable suite runs 635 cases, 632 pass/three existing POSIX skips.
+  The latest portable suite runs 642 cases, 639 pass/three existing POSIX skips.
   Source, debug signer, APK contents and native alignment verify. No production
   release follows these debug/component checks.
 - The first disposable-API26 cohort passes all 541 methods: the original 540
@@ -43,13 +45,15 @@ Pi deployment boundary:
 - The private one-existing-grant policy validates but stays uninstalled; the
   anchored reader still refuses unsafe ancestry. Current native/HTTP/worker/phone
   content and execution adoption are not accepted by those fixtures.
-- Source cfe41ba now proves the native kernel socket component on the Pi: 59
-  native unit methods/no skips and four guarded TCP exchanges on one connection.
-  Wrong real parent/stale ticks refuse, the credential-free journal verifies and
-  all owned check children end. Provider/protocol are synthetic; full SDK
-  listener/lifespan, actual supported sign-in and bounded transaction/rollback
-  remain before separate live approval. [Current evidence](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
-  The last live public provider read offers username/password; owner token gets 401.
+- Source 1da9973 completes the normal isolated SDK CLI's bundled Basic-provider
+  PKCE/code replay refusal/refresh and guarded retirement on one kernel-verified
+  socket. Twelve events observe real startup/finalization; the owned child exits
+  normally on SIGTERM. All 66 native component unit methods pass with no skips.
+  Final fences have zero refusals and 1,098 loaded SDK modules bind to reviewed
+  bytes at both phases. Overall gate remains **held by PM readiness**, not green.
+  [Current evidence](docs/contracts/2026-11-14-sdk-provider-lifespan-pm-hold.md).
+  Generated test credentials prove no actual live-user/phone session acceptance.
+  The last live public provider offers username/password; owner token gets 401.
 - Canonical-home PM readiness is required for **both the old loaded stop/cleanup
   launcher and the new startup launcher**. Seven exact named directory modes,
   policy/source/drop-ins/CLI references, fresh encrypted pre/post backups and

@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - normal SDK provider flow observed, PM readiness held
+
+Source 1da9973 passes 642 portable cases (639 pass/three existing POSIX skips)
+and all 66 native component methods/no skips. The normal isolated serve CLI
+completes real bundled-provider S256 login/code replay refusal/refresh, four
+guarded retirement exchanges on the same kernel-verified socket, and observed
+startup/finalization/owned SIGTERM. Independent source/raw/journal recovery
+verifies 1,098 loaded SDK modules at both phases and unchanged runtime/live state.
+
+Overall acceptance stays held by a real PM warning for ffmpeg/node/npm/pnpm/
+ripgrep resolution. Zero final fence
+refusals; earlier harness failures and native failure exits remain. Resolve the
+staged supported PM/artifact/tool setup rather than copying facts or masking the
+warning. No live user session, deployment, app input/phone/APK or grant change.
+All original goal requirements remain active. [Scope and evidence](contracts/2026-11-14-sdk-provider-lifespan-pm-hold.md).
+
 ## 14 November 2026 - native kernel socket proof and complete API26 cohort
 
 Code cfe41ba adds a bounded read-only Linux observer of the exact reverse TCP

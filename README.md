@@ -19,7 +19,7 @@ two retained navigation cases pass; historical causes remain unproven. Current
 API37, external phone/model and original-key production-upgrade gates remain open.
 [Android evidence](docs/contracts/2026-11-14-navigation-failure-observation.md).
 
-The latest portable suite runs **635 cases: 632 pass, three existing POSIX skips**.
+The latest portable suite runs **642 cases: 639 pass, three existing POSIX skips**.
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
 ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,
@@ -27,9 +27,16 @@ canonical shutdown and real systemd-helper checks remain separately scoped;
 they do not establish complete deployment or fleet interoperability.
 [Native evidence and limits](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
 
-The candidate has its own supported PM environment and reviewed launcher/units.
-Full SDK listener/lifespan, supported provider sign-in and the bounded cutover/
-rollback still require verification before separate live approval. Upstream
+The normal isolated SDK CLI now completes bundled-provider PKCE login/refresh,
+kernel-fenced retirement and observed startup/shutdown; all 66 component unit
+methods pass without skips. **Overall SDK acceptance remains held by a PM tool
+readiness warning** for ffmpeg, Node, npm, pnpm and ripgrep. It uses generated
+test credentials and proves no actual live-user/phone session acceptance.
+[Evidence and next setup work](docs/contracts/2026-11-14-sdk-provider-lifespan-pm-hold.md).
+
+The candidate has its own PM environment and reviewed launcher/units. PM/artifact
+readiness and the bounded cutover/rollback still require verification before
+separate live approval. Upstream
 used/transitive/shutdown, real project/worker/NAS/integration and final signed-
 production acceptance remain open. **The published beta.9 APK is unchanged.**
 [Full goal](docs/GOAL.md) · [Runtime packet](docs/contracts/2026-11-14-runtime-cutover-packet.md).

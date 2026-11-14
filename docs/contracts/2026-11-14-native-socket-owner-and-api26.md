@@ -114,3 +114,10 @@ requirements in the [full ledger](../AUDIT_EXECUTION_PLAN.md). Beta.9 is unchang
 | Independent complete API26 review | 537c35dbcf3953acd0ab0b52be99cdc8c76d7cb6f2385b79ff88c264a6b07191 |
 | 541-method raw stream | 56d5c432a9003609b5a634e11bc31cf3a2c69b1af2e3d84a73294c2db67fdcee |
 | 601-method raw stream | 6b83bd353511e13a4010dab6ca93e23140b9f6ef65dfe90e74a1bd03a928637e |
+
+The [normal SDK provider/lifespan checkpoint](2026-11-14-sdk-provider-lifespan-pm-hold.md)
+now verifies real bundled-provider PKCE/refresh and guarded SDK retirement over
+one native-owned socket, with observed finalization and ended children. Its
+overall gate remains held by a PM readiness warning for five tools. Supported
+PM/artifact provisioning and complete transaction/live/phone acceptance remain;
+no warning is suppressed and staging is not live approval.

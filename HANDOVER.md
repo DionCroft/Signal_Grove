@@ -6,12 +6,14 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** prepare and verify a fresh isolated full SDK listener/lifespan
-and supported provider session using the native socket observer and single
-connection. Then finish the bounded exclusive journal/executor and rollback.
-All current local/isolated commands have ended; do not repeat either green
-Android cohort or the completed native kernel fixture. Future unknown operations
-still require authoritative reconciliation before any retry.
+**Next action:** resolve the isolated candidate's supported PM/artifact/tool
+readiness. The normal CLI reports ffmpeg, node, npm, pnpm and ripgrep missing or
+outdated. The full SDK gate is terminal/held by `pm_readiness_warning`; auth and
+lifespan observations do not waive it. Use supported provisioning, never facts
+copying, environment aliases or fake install kind. Then revalidate after an
+actual readiness change and finish bounded executor/journal/rollback. All local/
+isolated checks have ended. Do not repeat green Android/protocol cohorts merely
+to obtain acceptance; reconcile unknown operations from authoritative state.
 
 The code checkpoint is 827c6c0: four test-source files only. The failing phone-
 draft and setup-guide interactions reverse exactly to cea0cbf's original code;
@@ -40,14 +42,17 @@ unaccepted; non-recurrence is not a historical cause.
 
 Pi staging remains isolated. Verify current live references again before any
 deployment; previous source/facts/service observations are dated evidence.
-Source cfe41ba adds actual kernel socket ownership: the isolated Pi passes all
-59 component unit methods/no skips and four guarded TCP exchanges over one
-connection. Independent recovery verifies source hashes, real wrong-parent/stale-
-tick refusal, ten credential-free journal rows, ended children and conserved
-runtime/PM/live state. The provider/server are synthetic; deployed SDK/native
-provider/full-lifespan acceptance remains open. Windows portable coverage is
-635 cases with three existing POSIX skips. Preserve earlier verifier/import
-failures. [Exact native scope](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
+Source 1da9973 adds the normal serve CLI/provider/lifespan probe. It observes
+actual bundled Basic PKCE/code replay refusal/refresh, four SDK retirement
+exchanges over the same native-verified socket and twelve startup/finalization
+events; owned SIGTERM exits -15 and all children end. Independent recovery checks
+66 exact native unit methods, 1,098 SDK source-module identities at both phases,
+ten credential-free journal rows, zero final fence refusals and conserved state.
+The overall fixture remains held for PM tool readiness. It uses generated test
+credentials, consumes the returned callback URI directly and proves no actual
+live-user/browser/phone sign-in. Windows portable coverage is 642 cases, three
+existing POSIX skips. Preserve all earlier preparation/entrypoint/diagnostic/
+review failures. [Exact scope](docs/contracts/2026-11-14-sdk-provider-lifespan-pm-hold.md).
 Separately review both old-stop/new-start canonical PM facts,
 seven named mode changes, one reviewed policy, source/CLI/drop-ins, fresh encrypted
 pre/post backups and exact idle fences. The owner-token 401 is not a bypass.

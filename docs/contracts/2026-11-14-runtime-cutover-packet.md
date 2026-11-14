@@ -166,3 +166,10 @@ Provider/protocol are synthetic; normal provider/full SDK listener/lifespan and
 the complete transaction still require acceptance. All owned checks are terminal.
 Its separate Android review also verifies the completed 1,142-method standard
 API26 union. Historical causes, full matrix and signed-production gates remain.
+
+The [normal SDK provider/lifespan checkpoint](2026-11-14-sdk-provider-lifespan-pm-hold.md)
+now verifies real bundled-provider PKCE/refresh and guarded SDK retirement over
+one native-owned socket, with observed finalization and ended children. Its
+overall gate remains held by a PM readiness warning for five tools. Supported
+PM/artifact provisioning and complete transaction/live/phone acceptance remain;
+no warning is suppressed and staging is not live approval.
