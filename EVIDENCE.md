@@ -1,5 +1,24 @@
 # Evidence navigation
 
+## 14 November 2026 - approved HTTP owner source correction
+
+The owner approved the exact reviewed HTTP-owner source correction. The
+repository adapter now binds a missing native instance field only for a verified
+host-scoped OS-owner identity on the identical current registered authority.
+Explicit instance claims, native bootstrap, profile/operator/live-transport and
+fresh worker-grant checks remain strict. The original real-login refusal and all
+earlier failed attempts remain preserved. No Pi deployment or enrollment occurs.
+
+On the applied repository source, 481 portable cases, 16 actual credential/socket
+checks with a synthetic worker and 18 native authority checks pass their functional
+assertions. All 12 original authority outcomes remain. The actual HTTP supervisor
+still exits with code 2 with the same one pristine SDK shutdown warning; full lifecycle
+acceptance remains open. Every input of the prior 72-case native Windows gate is
+byte-identical; that suite was not rerun. Android source/build inputs, signing,
+production package, owner data and published beta.9 assets are unchanged.
+
+[Exact source, approval and acceptance limits](docs/contracts/2026-11-14-approved-http-owner-binding.md).
+
 ## 13 November 2026 - actual HTTP binding gap and full Android raw gate
 
 The actual current-stable HTTP probe now reproduces an optional coordinator

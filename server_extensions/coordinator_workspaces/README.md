@@ -1,5 +1,12 @@
 # Optional native coordinator workspace reads
 
+**14 November update:** the owner approved the exact source fix; it is now applied
+and passes 481 portable, 16 credential/socket and 18 authority functional checks.
+The pristine SDK shutdown warning and separate Pi/Android acceptance remain open.
+[Current source status and unchanged deployment boundary](../../docs/contracts/2026-11-14-approved-http-owner-binding.md).
+
+The checkpoint below records the earlier proposal and its original approval hold.
+
 This is an opt-in extension of Hermes' existing authenticated authority socket,
 not another agent backend or public service. It forwards only registered-worker
 prepare/list/text-preview reads. Windows handles and file contents remain on the

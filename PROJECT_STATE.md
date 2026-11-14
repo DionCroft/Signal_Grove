@@ -1,5 +1,39 @@
 # Signal Grove project state
 
+14 November 2026. The full goal remains **active**, retaining every original
+requirement and all four [priorities](docs/GOAL.md).
+
+## Current checkpoint
+
+The owner approved the exact reviewed HTTP-owner source correction. The
+repository adapter now binds a missing native instance field only for a verified
+host-scoped OS-owner identity on the identical current registered authority.
+Explicit instance claims, native bootstrap, profile/operator/live-transport and
+fresh worker-grant checks remain strict. The original real-login refusal and all
+earlier failed attempts remain preserved. No Pi deployment or enrollment occurs.
+
+On the applied repository source, 481 portable cases, 16 actual credential/socket
+checks with a synthetic worker and 18 native authority checks pass their functional
+assertions. All 12 original authority outcomes remain. The actual HTTP supervisor
+still exits with code 2 with the same one pristine SDK shutdown warning; full lifecycle
+acceptance remains open. Every input of the prior 72-case native Windows gate is
+byte-identical; that suite was not rerun. Android source/build inputs, signing,
+production package, owner data and published beta.9 assets are unchanged.
+
+[Exact approved-source evidence](docs/contracts/2026-11-14-approved-http-owner-binding.md).
+
+## Exact next action
+
+Review the supported native coordinator integration against the existing Pi
+operator/enrollment policy and recovery process before any separate deployment.
+Then verify native HTTPS/Android workspace adoption, actual authenticated worker
+file replies and NAS boundaries. The source approval includes no Pi installation,
+operator/grant change or restart. Continue the full original automation/integration,
+upstream semantic/shutdown and final production-phone/release ledger; preserve
+unknown work and do not replay it.
+
+## Preserved 13 November checkpoint
+
 13 November 2026. The full audit/on-device AI goal stays **active**; every
 original requirement and all four [priorities](docs/GOAL.md) remain.
 

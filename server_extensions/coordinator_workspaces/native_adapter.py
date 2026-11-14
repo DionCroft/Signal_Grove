@@ -38,6 +38,25 @@ canonical_method(READ, params=ReadParams, result=ReadResult,
                  doc='One fixed prepare/list/preview over the enrolled owner route; never creates an execution admission or retries.')
 
 
+def _identity_instance_matches(connection):
+    """Bind a verified HTTP identity to the actual current served authority.
+
+    Explicit claims and native bootstrap grants never use the missing-field
+    path. Owner/operator/profile/transport checks still apply before/after I/O.
+    """
+    identity = connection._identity
+    if 'instance_id' in identity:
+        return identity['instance_id'] == connection.authority.instance_id
+    if identity.get('native_bootstrap') is True or identity.get('profile_scope') != 'host':
+        return False
+    from gateway.owner_identity import host_owner_subject, principal_subject
+    if principal_subject(identity) != host_owner_subject():
+        return False
+    registry = getattr(connection.authority.runner, 'session_authorities', None)
+    return (registry is not None
+            and registry.require(Path(connection.authority.profile_id)) is connection.authority)
+
+
 def native_context(connection):
     from gateway.session_authorities import require_serving
     from gateway.owner_identity import host_owner_subject
@@ -46,7 +65,7 @@ def native_context(connection):
         actor = connection.actor
         if (connection._operator is not True or actor.subject != host_owner_subject()
                 or actor.profile_id != connection.authority.profile_id
-                or connection._identity.get('instance_id') != connection.authority.instance_id
+                or not _identity_instance_matches(connection)
                 or connection.authority.events.get(actor.transport_id) is not connection.transport
                 or getattr(connection.authority,'retiring',False)
                 or not {'session:read','session:operator'} <= actor.capabilities):

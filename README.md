@@ -45,7 +45,7 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Checked **13 November 2026**. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Checked **14 November 2026**. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
@@ -57,7 +57,7 @@ Checked **13 November 2026**. Counts describe their stated builds and test scope
 | Current stable canonical authority | **46 authority/wire +13 attach-first cases** | Separate real-source flows with synthetic actors/transports; strict schemas and replay/no-replay guards, not full socket/live acceptance |
 | Unmodified native owner room reads | **20 checks** | Real Windows owner tickets/sockets, synthetic room data; original empty mode retained; both report the open shutdown finding |
 | Policy and Windows workspace checks | **481 policy / 15 runtime-model / 72 Windows native cases** | Pinned client correction is live; five normal Pi reads and same daemon/receipts verified; native app-auth/phone/NAS acceptance remains open |
-| Proposed HTTP coordinator correction | **16 transport / 18 native authority cases** | Disposable candidate only; actual PKCE/tickets/TCP with synthetic worker; persistent auth change awaits explicit approval; SDK shutdown finding remains |
+| Repository HTTP coordinator binding | **16 transport / 18 native authority cases** | Owner-approved source fix; actual PKCE/tickets/TCP with synthetic worker; Pi/native Android deployment acceptance and SDK shutdown remain open |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
 | Candidate lint | **0 errors**; 51 debug / 50 release warnings | Both variants; warnings remain documented |

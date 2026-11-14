@@ -82,10 +82,11 @@ async def route(payload):
 operator=types.ModuleType('gateway.signal_grove_workspace_operator')
 operator.service=c.CoordinatorReadService('fixture-authority',{DEVICE:route},grant=grant)
 sys.modules[operator.__name__]=operator
-def connect(*,operator_gate=True,**changes):
+def connect(*,operator_gate=True,omit_instance=False,authority_override=None,**changes):
     identity=dict(provider='basic',user_id='fixture-login',profile_id=str(home),instance_id=owner.instance_id,profile_scope='host')
     identity.update(changes)
-    return controls.AuthorityConnection(owner,types.SimpleNamespace(),identity,operator=operator_gate)
+    if omit_instance:identity.pop('instance_id',None)
+    return controls.AuthorityConnection(authority_override or owner,types.SimpleNamespace(),identity,operator=operator_gate)
 def request(**changes):
     body=dict(schema=1,request_id='a'*32,worker_instance=INSTANCE,operation='prepare',project_id='fixture-project');body.update(changes);return body
 async def call(connection,method,params):
@@ -98,7 +99,21 @@ async def main():
     outcomes=[];peer=connect()
     good=await call(peer,adapter.DESCRIBE,dict(device=DEVICE));assert good['result']['state']=='ok';outcomes.append('actual-owner-describe')
     good=await call(peer,adapter.READ,dict(device=DEVICE,request=request()));assert good['result']['payload']['status']=='ok';outcomes.append('actual-owner-prepare')
+    no_instance=connect(omit_instance=True)
+    good=await call(no_instance,adapter.DESCRIBE,dict(device=DEVICE));assert good['result']['state']=='ok';outcomes.append('actual-host-login-without-instance-uses-current-authority')
     count=len(calls)
+    for name,foreign in [('explicit-null-instance',connect(instance_id=None)),
+                         ('native-bootstrap-without-instance',connect(omit_instance=True,native_bootstrap=True)),
+                         ('profile-bound-login-without-instance',connect(omit_instance=True,profile_scope='profile'))]:
+        result=await call(foreign,adapter.DESCRIBE,dict(device=DEVICE));assert result['result']['code']=='DENIED',(name,result)
+        assert len(calls)==count;outcomes.append(name+'-denied-before-route')
+    orphan_home=root/'orphan';orphan_home.mkdir();orphan_db=SessionDB(db_path=orphan_home/'state.db');databases.append(orphan_db)
+    orphan_epoch=begin_runtime_epoch(orphan_db,instance_id='fixture-orphan')
+    orphan=SessionAuthority(runner,profile_id=str(home),instance_id='fixture-orphan',db=orphan_db,epoch=orphan_epoch)
+    foreign=connect(omit_instance=True,authority_override=orphan)
+    result=await call(foreign,adapter.DESCRIBE,dict(device=DEVICE));assert result['result']['code']=='DENIED';assert len(calls)==count;outcomes.append('missing-instance-unregistered-authority-denied-before-route')
+    owner.events.pop(no_instance.actor.transport_id)
+    result=await call(no_instance,adapter.DESCRIBE,dict(device=DEVICE));assert result['result']['code']=='DENIED';assert len(calls)==count;outcomes.append('missing-instance-closed-transport-denied-before-route')
     sys.modules.pop(operator.__name__)
     unavailable=await call(peer,adapter.DESCRIBE,dict(device=DEVICE))
     assert unavailable['result']==dict(schema=1,state='error',code='UNAVAILABLE',request_submitted=False)

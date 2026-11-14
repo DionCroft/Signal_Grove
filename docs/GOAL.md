@@ -43,20 +43,26 @@ none of the original audit, local-AI, security or delivery requirements.
 
 Continue in tested chunks with regular commits/pushes to main. Preserve unknown
 work and existing user data; do not repeat the already completed normal phone
-reboot or change live gateway/models/credentials without the existing applicable
-approval. Source stays in its authoritative project root; all temporary work
-and tooling remain on E:. The read-client correction remains live with exact-source, same-daemon,
-receipt/ACL and encrypted recovery proof. Real current-stable PKCE/ticket/TCP
-acceptance now reproduces a valid HTTP-operator identity rejected by the optional
-adapter. The exact proposed source/test fix passes 16 credential/socket and18 constructor cases
-only in a disposable fixture; the repository adapter and production auth/grants
-are unchanged. Automatic approval review requires explicit approval before
-applying that persistent authentication policy change. Preserve this hold.
-After approval, apply only the identical reviewed patch and revalidate/commit;
-no Pi deployment/enrollment/restart is included in that source approval. Continue
-the reviewed native coordinator plan and real Android workspace/worker/file/NAS,
-automation/integration acceptance. Source4444 now has fully reconciled1,141 / 1,142
-raw standard device cases and actual APKs; external-model/current-head/phone gates
-stay separate. Stable42/main6da124 semantics, pristine SDK shutdown, original
-failure causes, doctor/graph findings and final production upgrade/release checks
-remain open. See contracts/2026-11-13-http-operator-binding-review.md.
+reboot or change live gateway/models/credentials without applicable approval.
+Source stays in its authoritative project root; temporary work stays on E:.
+The read-client correction remains live with same-daemon, receipt/ACL and
+encrypted recovery evidence. On 14 November the owner explicitly approved the
+exact reviewed coordinator source fix. It is applied and passes 481 portable,
+16 credential/socket and 18 native authority functional checks, retaining all 12
+original authority outcomes. The actual HTTP supervisor still exits with code 2 with one
+pristine SDK shutdown warning; full lifecycle acceptance remains open. The
+source approval includes no Pi deployment, operator/grant change or restart.
+
+Next: Review the supported native coordinator integration against the existing Pi
+operator/enrollment policy and recovery process before any separate deployment.
+Then verify native HTTPS/Android workspace adoption, actual authenticated worker
+file replies and NAS boundaries. The source approval includes no Pi installation,
+operator/grant change or restart. Continue the full original automation/integration,
+upstream semantic/shutdown and final production-phone/release ledger; preserve
+unknown work and do not replay it.
+
+Source4444 retains independently reconciled 1,141 / 1,142 raw standard device
+positives and actual APKs. External-model/current-head/phone gates stay separate.
+Stable42/main6da124 semantics, original API26 failure causes, doctor/graph findings
+and final production upgrade/release acceptance remain open. See
+[the approved-source checkpoint](contracts/2026-11-14-approved-http-owner-binding.md).
