@@ -31,3 +31,27 @@ an empty newly created private directory can remain for OS-session cleanup.
 The maintained fleet path registry records the same exception. It authorizes
 no live activation, service restart, ancestor permission change, policy/grant
 change, worker/project action, credential transfer or model change.
+
+
+## Planned isolated systemd helper acceptance
+
+Positive ExecStop/ExecStopPost acceptance requires the real systemd parent and
+a dedicated cgroup. A fixture may use one uniquely named user transient unit,
+`signal-grove-acceptance-<unique-id>.service`; the OS user manager owns its
+runtime definition under `/run/user/<uid>/systemd/transient/` and its corresponding
+kernel cgroup below `/sys/fs/cgroup/`. These are OS control metadata, not project
+files. Source, native fixture homes/PM facts, sentinel readiness/identities,
+logs and ordinary temporary files stay inside approved control-plane staging.
+
+Before use, verify the named unit is absent and capture the current live service
+identities. Start only the fixture's fixed command with its isolated credential-
+free home. Verify actual manager parent, exact new cgroup and owned PID/start
+identities before requesting that unit's stop. Never invoke the cgroup reaper in
+an agent/shared cgroup, fake systemd parentage, touch production unit membership,
+or replay an unknown run. Retain terminal/unknown evidence. Completion requires
+the fixture's unit/processes gone and unchanged live services/source/facts.
+
+Source/template: pinned `gateway/systemd_stop_mark.py`, `gateway/cgroup_cleanup.py`
+and the reviewed renderer packet. This records a planned native test boundary;
+it does not claim that such a unit has run or authorize a production cutover,
+policy/grant, credential, model or existing-directory permission change.

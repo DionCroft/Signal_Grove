@@ -92,17 +92,28 @@ pinned registry/sidecar and Windows worker checks. Android is pending at that
 observation. Upstream stable/main still require 40/144 used-handler reviews.
 [Exact prepared-home and fresh CI scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
 
+The concrete review-only command/unit packet passes 12 native Pi tests,
+three shell syntax checks and real systemd verification. Full portable suite:
+576 Windows cases, three actual-POSIX skips. Complete source/tool/raw evidence
+verifies 23,628 inputs and 29 caches with old services/facts/modes preserved.
+Seven named 0775 ancestors need separately approved tightening. Existing full
+and supplemental encrypted backup receipts/private assets reconcile despite the
+retained failed unit status. The current worker's exact maintained observer
+additions are reviewed; six tests and fresh no-request enrollment pass, with
+unchanged workspace/daemon, one fixture grant and eight completed receipts.
+[Exact packet/recovery/current-worker scope](docs/contracts/2026-11-14-runtime-cutover-packet.md).
+
 ## Exact next action
 
-Prepare the complete reversible production transaction: both effective unit
-chains, gateway start/stop/post-stop and serve wrapper, explicit canonical home
-and supported home-specific PM ownership, profile/auth, protected-policy
-ancestors and scoped worker grants, fresh idle checks and verified encrypted
-backup/recovery. Stage/review concrete deltas before requesting live approval.
-Retain source-only preparation and separate strict runtime-output inventory.
-Continue upstream used/transitive review, original API26 cause investigation,
-real worker/NAS/project/automation/integration and final signed-phone gates.
-No cutover, home selection, ancestor mode or policy change is authorized yet.
+Build the exact private policy and bounded transaction/rollback executor from
+the fresh current worker metadata. Exercise the unchanged stop helpers through
+one explicitly owned isolated systemd acceptance cgroup, keeping all ordinary
+files in approved staging. Finish canonical-home PM/config conservation, actual
+gateway drain and serve retirement, named permission and backup gates before
+requesting separate live approval. Do not invoke the cgroup reaper directly in
+an agent/shared cgroup or promote the existing parser packet as a live permit.
+Retain the full original API26/upstream/project/worker/NAS/automation/integration/
+doctor/graph/final-source/phone/release scope. No production change is approved.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,

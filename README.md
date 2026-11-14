@@ -31,6 +31,9 @@ open. [Launcher scope](docs/contracts/2026-11-14-published-launcher-inventory.md
 Its PM-prepared borrowed-home launch also passes. Hosted Linux verifies all
 564 portable and 15 runtime-model tests; upstream stable/main review remains
 open (40/144 used-handler changes). No new APK or live cutover is claimed.
+A concrete review-only Pi command/unit packet passes 12 native cases, shell syntax
+and real systemd verification; 576 portable cases run on Windows (three POSIX-only
+skips). [Packet and recovery scope](docs/contracts/2026-11-14-runtime-cutover-packet.md).
 
 ## Download and release status
 

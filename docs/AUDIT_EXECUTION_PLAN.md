@@ -1,5 +1,28 @@
 # Signal Grove audit execution plan
 
+## 14 November 2026 - isolated command/unit packet and recovery reconciled
+
+A review-only renderer produces the complete start/stop/post-stop/serve/client
+chain with no activation capability. Its 12 cases pass on actual Pi; all three
+shell syntax checks and real systemd verification pass. Windows runs 576 portable
+cases with three POSIX-only skips. Independent raw/source/helper provenance
+checks verify every 23,628 input and 29 cache files; old facts/units/permissions
+remain. Seven named 0775 ancestry prerequisites are observed, not changed.
+
+The last backup unit failure is retained. Existing full/supplement receipts and
+four current private assets reconcile with local encrypted checksums, without
+any new backup/upload/cleanup. Current worker source differs only by its maintained
+passive observer additions; six observer tests and fresh no-request enrollment
+preflight pass. Workspace provider/daemon, one old fixture grant and eight completed
+receipts remain. Original preflight/partial-review/weak helper-guard observations
+are retained; the separate complete provenance check supplies the missing proof.
+
+Next: exact private policy, actual isolated stop-helper cgroup proof and complete
+bounded transaction/rollback review before separate live approval. No canonical
+PM, mode, policy/grant, link, unit, model, credential or APK change occurs. All
+four original priorities and every unresolved goal/acceptance row stay active.
+[Concrete packet and remaining boundary](contracts/2026-11-14-runtime-cutover-packet.md).
+
 ## 14 November 2026 - prepared-home launcher and fresh hosted review
 
 Supported PM provisions a fresh borrowed fixture home; its receipt/currentness

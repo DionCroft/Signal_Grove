@@ -153,3 +153,11 @@ protected-policy ancestors, narrowly scoped grants, current idle state and
 verified encrypted backup/recovery before requesting live activation. No live
 service, canonical-home PM selection, ancestor mode or policy is changed here.
 Continue the full upstream used/transitive review and all other original gates.
+
+
+## Concrete command/unit packet
+
+The complete proposed command chain now has native renderer, shell and assembled
+systemd syntax evidence. Backup and current worker variant are reconciled read-only.
+Private policy, actual stop-helper cgroup proof and the bounded live transaction
+remain before live approval. [Exact packet and limits](2026-11-14-runtime-cutover-packet.md).
