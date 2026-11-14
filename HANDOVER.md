@@ -6,10 +6,11 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** observe the already running **navigation-shard1839** command,
+**Next action:** observe the already running **navigation-complement1845** command,
 inspect its exact host adb process/native instrumentation and original stream,
-then recover its terminal result and before-cleanup diagnostics. Do not restart
-because a query timed out or a receipt says running. Inspect actual state first.
+then recover its terminal result and before-cleanup diagnostics. The first cohort
+is already terminal/independently verified; do not repeat it. Inspect actual state
+before reacting to a stale receipt, timeout or lost reply.
 
 The code checkpoint is 827c6c0: four test-source files only. The failing phone-
 draft and setup-guide interactions reverse exactly to cea0cbf's original code;
@@ -26,13 +27,16 @@ Retain the missing-import build failure, incorrect initial native-window
 assumption and getconf verification failure; the emulator was reconciled from
 actual kernel auxv without restarting. [Evidence](docs/contracts/2026-11-14-navigation-failure-observation.md).
 
-The running fresh API26 shard includes all 540 original cases in the same order
-plus the new control, 541 total. Its installed pair and full 1,142-case standard
-inventory bind to the reviewed snapshot. External model gates remain explicit.
-Only the new disposable fixture's two control artifacts/data were retained and
-reset for fresh-suite conditions. Existing AVDs and physical phone are untouched.
-No terminal result, original cause, complete matrix or final production upgrade
-is accepted yet. Even non-recurrence does not prove a historical cause.
+The first API26 shard passes 541 methods, retaining all original 540 in order;
+independent raw envelopes, exact case inventory, executable sources and installed
+APK hashes verify. The complementary 601-case shard now runs with the same pair
+after retaining all first-shard QA and resetting only that disposable fixture's
+synthetic data. Its inventory includes the original Demo case and is disjoint;
+the complete union is 1,142 standard methods. A private dict/set verifier fails
+before test execution; the corrected continuation starts the test only once and
+does not reset again. External model gates and original failures stay recorded.
+Existing AVDs/phone are untouched. Original causes, full matrix and production
+upgrade remain unaccepted; non-recurrence is not a historical cause.
 
 Pi staging remains isolated. Verify current live references again before any
 deployment; previous source/facts/service observations are dated evidence.

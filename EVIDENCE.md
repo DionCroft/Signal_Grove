@@ -1,5 +1,18 @@
 # Evidence navigation
 
+## 14 November 2026 - first navigation cohort independently verified
+
+The one first-shard API26 reproduction passes all 541 methods, preserving all
+540 original failed-run cases in order plus the new control. Independent raw
+envelopes/inventory/source/installed-APK review verifies both target positives,
+zero failure snapshots and no remaining instrumentation. Original causes remain
+unproven. One complementary 601-case cohort is verified live; it includes the
+original Demo case and its inventory completes the disjoint 1,142-case union.
+An inventory-format verifier fails before test execution; correction uses retained
+inputs and starts the native test only once without another reset. No product,
+phone, live service or APK-release change. Full audit remains active.
+[Scope and evidence](docs/contracts/2026-11-14-navigation-failure-observation.md).
+
 ## 14 November 2026 - tested pre-cleanup navigation observations and one live reproduction
 
 Code 827c6c0 adds safe non-atomic capture to the two API26 navigation failure

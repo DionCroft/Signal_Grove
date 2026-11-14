@@ -58,27 +58,41 @@ but the existing emulator is not restarted. A separate observer verifies the
 same boot/AVD/API/ABI and reads actual cat-process auxv AT_PAGESZ: 4,096 bytes.
 No platform or kernel result is faked and no utility is installed to pass.
 
-## Preplanned reproduction, currently running
+## Completed first cohort and one complementary run
 
-After retaining both control artifacts, only that newly created disposable
-fixture's synthetic app data is reset for the normal fresh-suite conditions.
-Existing AVDs, physical phone and real app history are not reset. The standard
-keyboard preparation passes with one reviewed first-use hint dismissal.
+After retaining both control artifacts, only the newly created disposable
+fixture's synthetic data was reset. Standard keyboard preparation passed with
+one reviewed first-use hint dismissal. Existing AVDs and the phone are untouched.
 
-The installed APKs inventory 1,142 standard API26 methods. The selected shard
-preserves all 540 original failed-run cases in exactly their original order,
-with only the new controlled case added, for 541 cases. Both failed methods are
-included. Existing external model gates remain explicitly not run; no new case
-is excluded. There is one actual test command and no failure-triggered retry.
-Its recorded host adb process is independently verified live at observation.
-No terminal, full-cohort or original-cause acceptance is inferred from progress.
+The one first-shard reproduction completed all 541 cases: all 540 cases from
+the failed hosted shard in exactly the same order plus the new controlled case.
+An independent observer verifies every raw start/positive pair, exact inventory,
+one positive terminal envelope, both target positives, unchanged executable
+inputs and both installed APK hashes. No failure snapshot exists and no native
+instrumentation remains. Original failures stay failed and their causes remain
+unproven; non-recurrence is not a fix. The original Demo case is in the other shard.
 
-The exact next action is to observe that existing navigation-shard1839 operation
-to terminal and inspect its original stream and before-cleanup diagnostics before
-any dependent work. A non-recurrence would not prove the old cause. The original
-source1180 Demo failure remains a separate unresolved investigation; its case is
-not in this shard. Both recent failures and all wider Hermes/project/worker/
-automation/integration/phone/release requirements remain in the full ledger.
+One complementary cohort is now running with those same installed APKs. Its
+601 selected methods include the original Demo clarification case. The two
+inventories are disjoint and their union equals all 1,142 standard API26 methods.
+All first-shard QA files were retained and hash matched before resetting only
+that owned disposable fixture's synthetic data. The existing keyboard is checked
+by hide/reopen geometry without another first-use dismissal. Existing external
+model prerequisites remain; none is newly excluded.
+
+An initial private inventory verifier incorrectly tried to put dictionary rows
+in a set. It failed before any test command or body ran. The failure and original
+script are retained. A separate continuation checks explicit class/method tuple
+identities using the existing inventory, verifies the owned idle emulator and
+installed pair, then issues the first and only complementary test command.
+It performs no additional reset, inventory execution or failure-triggered retry.
+The exact recorded adb process is independently verified live at this checkpoint.
+
+Observe navigation-complement1845 to its actual terminal and inspect raw failures
+and before-cleanup diagnostics. A running cohort is not acceptance. Both recent
+causes, the original source1180 Demo cause, complete final-source/API37 device
+gates and all broader Hermes/project/worker/automation/integration/phone/release
+requirements remain open. No product source, live Pi, phone or release changes.
 
 ## Evidence identities
 
@@ -94,3 +108,6 @@ automation/integration/phone/release requirements remain in the full ledger.
 | Existing running-operation observation | b90ca730647595e0e77cd9e09dd65122d8fe4e56782737c7ade2b43ba5b4d8f0 |
 | Debug APK | c3550e4f30bb18abfa3e5711f9b405f28eec72d83c32d06dab0651ff790d4973 |
 | Instrumentation APK | f2cb1611eae907f800b968e1dde26fad3ef621cac436c1523af8a5c58ff0027a |
+
+| Completed 541-case raw stream | 56d5c432a9003609b5a634e11bc31cf3a2c69b1af2e3d84a73294c2db67fdcee |
+| Independent terminal/source/APK review | b63aa7102776794abe4879fdbaf51a665f131083b668abd4a4ecc1671371feca |

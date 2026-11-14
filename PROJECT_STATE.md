@@ -4,10 +4,10 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to observe the **existing navigation-shard1839** native
-test to terminal, then inspect its raw stream and before-cleanup diagnostics.
-Its host adb process was independently verified live at this checkpoint.
-Do not start another run from a stale receipt, observation timeout or lost reply.
+The exact next action is to observe the **existing navigation-complement1845**
+native test to terminal and inspect its raw stream and before-cleanup diagnostics.
+Its exact adb process is independently verified live. The first cohort is terminal
+and independently accepted within its 541-case scope; do not run it again.
 
 Current Android investigation:
 
@@ -18,9 +18,11 @@ Current Android investigation:
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
   Portable: 605 cases, 602 pass/three existing POSIX skips. Source, debug signer,
   APK contents and native alignment verify. No production release follows.
-- The live disposable-API26 reproduction selects 541 cases: all 540 original
-  cea0cbf shard cases in the same order plus the new control. No result is yet
-  accepted. Both recent failures and the original source1180 Demo cause remain.
+- The first disposable-API26 cohort passes all 541 methods: the original 540
+  failed-run cases in order plus the new control, independently raw/source/APK
+  verified. The complementary 601-case cohort is running and includes the original
+  Demo case; their inventories cover all 1,142 standard cases without overlap.
+  Both recent causes and the original source1180 Demo cause remain unproven.
   [Current evidence](docs/contracts/2026-11-14-navigation-failure-observation.md) ·
   [Original recent failures](docs/contracts/2026-11-14-api26-cea-failures.md).
 

@@ -36,7 +36,9 @@ remains open. [Scope](docs/contracts/2026-11-14-retirement-client.md).
 Fresh API26 device validation has [two retained navigation failures](docs/contracts/2026-11-14-api26-cea-failures.md);
 full final-source device acceptance is not claimed.
 Before-cleanup observations are now [validated by a controlled native case](docs/contracts/2026-11-14-navigation-failure-observation.md);
-the 541-case API26 reproduction is running. Current local checks pass 1,011 JVM
+the first API26 cohort passes all 541 cases; the complementary 601-case cohort
+(including the original Demo test) is running. Historical causes remain open.
+Current local checks pass 1,011 JVM
 cases and both lint variants; 605 portable cases include three existing POSIX skips.
 
 ## Download and release status
