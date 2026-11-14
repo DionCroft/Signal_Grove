@@ -1,184 +1,73 @@
 # Signal Grove project state
 
-14 November 2026. The full goal is **active**; all original scope and all four
-[priorities](docs/GOAL.md) remain.
+14 November 2026. The full goal is **active**. Every unresolved requirement in
+[GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
+[on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The Pi retirement component is independently accepted for its exact scope:
-41 native unit cases/no skips, six actual SDK ASGI outcomes and 12 exchanges;
-source/module/PM/live conservation and child exit verify. Live provider sign-in,
-pinned TCP and the complete cutover/rollback remain open. The live provider list
-offers username/password sign-in; no credentials/login/live action occur.
+The exact next action is to observe the **existing navigation-shard1839** native
+test to terminal, then inspect its raw stream and before-cleanup diagnostics.
+Its host adb process was independently verified live at this checkpoint.
+Do not start another run from a stale receipt, observation timeout or lost reply.
 
-Fresh cea0cbf API26 shard 0 fails two missing-navigation-node cases (540 starts,
-538 positives, two failures). Original ZIP/raw evidence verifies; no retry/waiver.
-The exact next action is to add before-cleanup native lifecycle/window/Compose
-failure capture, then reproduce those transitions without weakening assertions.
-The original Demo cause and every original priority remain open.
-[Native result](docs/contracts/2026-11-14-retirement-client.md) ·
-[API26 evidence](docs/contracts/2026-11-14-api26-cea-failures.md).
+Current Android investigation:
 
-The guarded retirement client now passes 29 safety tests within 605 Windows
-portable cases (602 pass, three existing POSIX skips). The renderer also requires
-canonical-home readiness for the old loaded unit's stop launcher. Neither change
-performs a live action. The next exact action is to run the committed guard and
-unchanged candidate ASGI retirement routes in a fresh fenced native fixture,
-then finish the authenticated pinned-connection executor/rollback and live packet.
-Full provider, remote/phone, original API26/upstream and release scope remains.
-[Retirement-client review](docs/contracts/2026-11-14-retirement-client.md).
+- Tested code 827c6c0 captures the two navigation failures before caller/JUnit
+  cleanup. Original selectors/assertions and the Demo test remain. A controlled
+  real-activity case verifies the observer; empty native-window reads remain
+  indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
+- Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
+  Portable: 605 cases, 602 pass/three existing POSIX skips. Source, debug signer,
+  APK contents and native alignment verify. No production release follows.
+- The live disposable-API26 reproduction selects 541 cases: all 540 original
+  cea0cbf shard cases in the same order plus the new control. No result is yet
+  accepted. Both recent failures and the original source1180 Demo cause remain.
+  [Current evidence](docs/contracts/2026-11-14-navigation-failure-observation.md) ·
+  [Original recent failures](docs/contracts/2026-11-14-api26-cea-failures.md).
 
-The isolated native systemd stop-helper check now independently passes:
-unchanged SDK marker/cleanup commands exit 0/0, native process identities and
-planned marker match, and the test unit/cgroup/processes are gone. All 23,628
-source inputs/modes, 41 caches, own PM facts and live identities/modes verify.
-The private one-grant policy schema/fixed-route check also passes without a
-worker/model call; unsafe-ancestry refusal and absent live policy are preserved.
-Earlier harness failures remain. The next exact action is to finish the bounded
-live executor/rollback and authenticated drain/retirement-fence review before
-separate live approval. Full audit scope remains active; no live switch or APK.
-[Native evidence](docs/contracts/2026-11-14-native-systemd-and-policy.md).
+Published beta.9/code114 is unchanged and available from the
+[release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.9).
+Main's newer work does not establish a final-source, original-key production
+upgrade or complete release acceptance. Debug and production identities differ.
 
-The live dashboard read-only preflight verifies native owner/home/listener
-identity, then gets HTTP 401 for the local owner token under its active auth gate.
-No idle or retirement permit is requested. A supported provider sign-in is a
-remaining executor prerequisite; local record/token possession is not a bypass.
-Initial legacy-home/DNS preflight failures remain, with no HTTP sent by those
-attempts. No live change occurs; the full goal stays active.
+Pi deployment boundary:
 
-The approved isolated Pi candidate is staged and native PM lock/sync plus the
-separate dev/test environment are ready. The complete dependency graph changes
-only through the exact reviewed vendor-path rebase. Actual Linux/aarch64 Python
-3.14.9, ContextGraph 0.8.1 and PyYAML 6.0.3 load. All 18 constructor outcomes/24
-behavior assertions pass on the actual Pi with synthetic routes and empty
-admission/worker/session/message tables. All 23,628 candidate files, selected app
-facts, 79 checked live source paths, service identities and parent modes remain.
-Live policy/extension remain absent; activation and permission changes are not
-approved. Earlier extraction/pre-case failures remain recorded.
+- The reviewed isolated candidate has verified PM environments/source binding,
+  23,628 immutable inputs/native modes and 41 separately verified bytecode outputs.
+  Finite owner/cleanup, actual systemd stop-helper and guarded ASGI results pass
+  within their documented separate scopes; the pristine warning remains recorded.
+- The private one-existing-grant policy validates but stays uninstalled; the
+  anchored reader still refuses unsafe ancestry. Current native/HTTP/worker/phone
+  content and execution adoption are not accepted by those fixtures.
+- Finish supported provider sign-in, pinned native HTTP transport and the full
+  bounded transaction/rollback before separate live approval. The last live
+  public provider read offers username/password; the local owner token gets 401.
+- Canonical-home PM readiness is required for **both the old loaded stop/cleanup
+  launcher and the new startup launcher**. Seven exact named directory modes,
+  policy/source/drop-ins/CLI references, fresh encrypted pre/post backups and
+  idle-only gateway drain/serve retirement still require that live review.
+  Do not copy facts, weaken auth/readers or invoke a reaper in a shared cgroup.
+  [Packet](docs/contracts/2026-11-14-runtime-cutover-packet.md) ·
+  [Native component scope](docs/contracts/2026-11-14-retirement-client.md).
 
-The full pristine stable3b canonical plugin-RPC file now passes all six cases
-on real Linux CI, including its POSIX host case, with exit 0 and no retries.
-Original artifact bytes, JUnit identities and the whole 23,586-file map are
-independently verified against exact pinned Git blobs. Both initial pre-test
-CI failures remain. This closes that narrow POSIX file gap, not the separate
-owner-runtime shutdown finding or broad compatibility review.
+Remaining full acceptance includes the four explicit resumed priorities:
 
-The ed2c996 Android cohort independently passes 1,141 API26/1,142 API37 standard
-cases from raw disjoint partitions and actual APK hashes. The portable suite
-passes 501 tests. Beta.9/code114, signer, production app and retained data are
-unchanged. [Accepted evidence and limits](docs/contracts/2026-11-14-canonical-linux-and-device-gates.md).
+1. Original Demo and recent API26 causes, demonstrated fixes and final-source
+   complete standard device gates; passing subsets cannot waive failures.
+2. Full used/transitive upstream compatibility (last reviewed 40 stable/144 main
+   used-handler changes) and operational shutdown. Keep all frozen failures.
+3. Actual authenticated project/workspace/worker/NAS access and execution adoption,
+   jobs/Kanban/rooms/grants/delivery, remaining integrations/configuration and
+   doctor/graph validation on correct owners. Metadata alone is not execution.
+4. Final phone/local-model/lifecycle/audio/background/notification/accessibility/
+   battery/thermal and signed-production retention/release/security/support gates.
+   Twelve external-model methods retain their own prerequisites and evidence.
 
-The actual Pi native/HTTP core now independently passes all 16 coordinator
-outcomes, PKCE/refresh/replay and exact workspace receipt checks, with all 50
-protocol assertions retained and zero fence refusals. The child exits 0; its
-supervisor remains nonzero (2) for the real atexit heartbeat/database warning.
-Full source/live conservation and read-only stores verify. Earlier preparation
-and metadata failures remain. [Exact result](docs/contracts/2026-11-14-actual-pi-owner-http.md).
+Preserve package/signing/UID, saved connections/chats/projects/models/history,
+the owner's on-device-only dictation choice and all unknown work. Do not repeat
+the consumed phone restart. No automatic cloud fallback, unknown-work replay,
+credential transfer, public exposure or user-project material on Pi.
 
-The separate lifecycle derivative is now prepared: all 23,628 files and modes,
-124 executable identities, unchanged custom/dependency/stamp bytes and relative
-tool paths verify. Only the two reviewed lifecycle files differ. All 513 portable
-tests pass. The first native mode refusal and first helper gate's caught reads
-remain rejected; runtime/canonical acceptance is still pending. [Source proof](docs/contracts/2026-11-14-snapshot-heartbeat-preparer.md).
-
-The maintained derivative now passes actual Pi eight-helper and normal/held
-owner lifecycle gates: 0/0 exits, zero target reopen warnings/fence refusals,
-physical closure of both profile DBs and cleared heartbeats. The held real
-SQLite writer keeps both DBs open across 1.491 seconds, then drains without
-replay. Independent full-source/mode/module/store and live conservation checks
-pass. The frozen original warning remains. [Native candidate evidence](docs/contracts/2026-11-14-maintained-heartbeat-native.md).
-
-The paired Linux canonical regression is now independently accepted: the same
-50 exact cases in both cohorts, no retries/skips/errors and complete 23,586-file
-Git/source/native-mode reconciliation. Hosted c6077892 passes 532 portable and
-15 runtime-model cases. The actual Pi app dependency environment has no pytest
-and passes native owner/finite cleanup with 0/0 exits, 1,413 imported modules,
-cleared heartbeats and independent full source/store/live conservation.
-The prior cache/binding/reviewer failures remain. These are separate finite
-scopes; the app dependency trial does not run the HTTP/IdP branch.
-[Paired proof](docs/contracts/2026-11-14-paired-canonical-shutdown.md) ·
-[App environment proof](docs/contracts/2026-11-14-native-app-environment.md).
-
-The fresh explicit-store metadata variant now passes native whole-source/mode
-and multi-CWD checks. Its own supported PM application facts are committed and
-current; actual dependencies load without pytest. A wrapper's unsupported
-shell-stamp expectation stays failed; sync is not repeated. Two supported
-bootstrap descriptor commands preserve the owning/explicit data homes and
-selected source/environment, exit 0 and make no network/process attempts.
-Independent raw/source/facts/live checks pass. Hosted 9b7568db passes all 544
-portable and 15 runtime-model checks. No live source or unit changes.
-[Native source binding proof](docs/contracts/2026-11-14-runtime-source-binding.md).
-
-The exact bound-source native owner/control/cleanup fixture now passes using
-its own PM app environment: 0/0 exits, no pytest, 1,413 verified modules, closed
-DBs, empty heartbeats and zero target warnings/fence refusals. Independent whole
-source/modes/store/facts/live checks pass. All old failures remain. Read-only
-effective drop-in review identifies distinct start and stop/cleanup entry forms;
-the command chain must be reviewed as a whole before any live cutover.
-[Exact source native proof](docs/contracts/2026-11-14-bound-source-native-owner.md).
-
-The actual SDK-published launcher now passes isolated owner-home startup and
-refuses an unprepared home. Its wrapper's exception-name expectation fails and
-is retained; independent raw review verifies actual 0/1 statuses without replay.
-All 23,628 source inputs/modes and 12 separate bytecode outputs verify. The new
-20-case verifier suite passes natively; 564 portable cases run on Windows with
-three actual-POSIX skips. The live home has no new source-keyed PM facts.
-[Published launcher scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
-
-The PM-prepared borrowed-home launcher now passes: first actual child exits
-zero with exact home facts/source/dependency selection, Python 3.14.9,
-ContextGraph 0.8.1/PyYAML 6.0.3 and no pytest. The earlier pre-child DEVNULL fence
-failure remains; PM sync is not repeated and the fence is unchanged. Independent
-23,628-input/29-cache/facts/live conservation passes; all owned processes stop.
-Hosted cc894824 passes 564+15 portable/runtime-model cases without skips, plus
-pinned registry/sidecar and Windows worker checks. Android is pending at that
-observation. Upstream stable/main still require 40/144 used-handler reviews.
-[Exact prepared-home and fresh CI scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
-
-The concrete review-only command/unit packet passes 12 native Pi tests,
-three shell syntax checks and real systemd verification. Full portable suite:
-576 Windows cases, three actual-POSIX skips. Complete source/tool/raw evidence
-verifies 23,628 inputs and 29 caches with old services/facts/modes preserved.
-Seven named 0775 ancestors need separately approved tightening. Existing full
-and supplemental encrypted backup receipts/private assets reconcile despite the
-retained failed unit status. The current worker's exact maintained observer
-additions are reviewed; six tests and fresh no-request enrollment pass, with
-unchanged workspace/daemon, one fixture grant and eight completed receipts.
-[Exact packet/recovery/current-worker scope](docs/contracts/2026-11-14-runtime-cutover-packet.md).
-
-## Exact next action
-
-Build the exact private policy and bounded transaction/rollback executor from
-the fresh current worker metadata. Exercise the unchanged stop helpers through
-one explicitly owned isolated systemd acceptance cgroup, keeping all ordinary
-files in approved staging. Finish canonical-home PM/config conservation, actual
-gateway drain and serve retirement, named permission and backup gates before
-requesting separate live approval. Do not invoke the cgroup reaper directly in
-an agent/shared cgroup or promote the existing parser packet as a live permit.
-Retain the full original API26/upstream/project/worker/NAS/automation/integration/
-doctor/graph/final-source/phone/release scope. No production change is approved.
-
-Then prepare the exact live activation transaction: the two group-write
-prerequisites, real protected-policy positive, launcher/unit/source references,
-verified encrypted recovery and current idle status need explicit review and
-separate activation approval. After activation, verify real native HTTPS,
-Android and worker content, independent chat/execution adoption and the full
-original integration/release scope.
-
-## Remaining scope and safeguards
-
-- Retain the [complete audit ledger](docs/AUDIT_EXECUTION_PLAN.md): original API26
-  causes, 40 stable/140 inspected-main handler reviews, pristine owner shutdown,
-  real projects/workspaces/workers/NAS and execution adoption, Kanban/jobs/rooms/
-  grants/delivery, remaining integrations/configuration, doctor/graph and support.
-- Canonical Linux six, Pi constructor 18, earlier synthetic-IdP HTTP 16, portable
-  501, Linux policy eight, Windows native 72 and the overlapping 119 protocol
-  subset keep their separate scopes. No summed full-fleet acceptance claim.
-- Twelve external-model methods, physical/final-source/signed upgrade retention,
-  live/offline lifecycle/audio/battery/background/accessibility gates remain.
-  Preserve package/signing/UID/connections/chats/projects/models/history and the
-  owner's on-device-only dictation preference. Never repeat the consumed restart.
-- Live grants/models/credentials/services/permissions stay unchanged. No replay
-  of unknown writes or jobs, no automatic cloud fallback and no user-project
-  content on Pi. The existing one-project worker grant does not cover all roots.
-
-[Previous state](https://github.com/DionCroft/Signal_Grove/blob/94b3ff5c5778f27833e1cfc9193983c979dcd86c/PROJECT_STATE.md).
-Full historical evidence remains in EVIDENCE.md and docs/VALIDATION.md.
+This concise state replaces stale duplicate next actions. Historical results,
+including initial native refusals and failed wrappers, remain in EVIDENCE.md,
+docs/VALIDATION.md, linked contracts and the
+[previous checkpoint](https://github.com/DionCroft/Signal_Grove/blob/79933f137c6125bfb44807b5be4c72c47500b4a1/PROJECT_STATE.md).

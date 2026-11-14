@@ -1,5 +1,24 @@
 # Evidence navigation
 
+## 14 November 2026 - tested pre-cleanup navigation observations and one live reproduction
+
+Code 827c6c0 adds safe non-atomic capture to the two API26 navigation failure
+paths before cleanup. Independent reversal restores the exact failed-CI
+interactions; no existing selector/assertion/pass-path wait, production or
+original Demo-test change. Empty native window reads remain indeterminate.
+Required build, 1,011 JVM cases/no skips and both lint variants/zero errors pass;
+605 portable cases run with three existing POSIX skips. Whole source, original
+debug signing, APK contents and native alignment verify. One controlled native
+case proves capture precedes caller cleanup; earlier import/control/boot-check
+failures remain. It does not prove an original cause or a production upgrade.
+
+The existing navigation-shard1839 test is verified live: 541 planned cases retain
+the original 540 in the same order plus the new control. Both failures remain
+included and no new model gate is excluded. No terminal/full-cohort pass or
+failure fix is claimed. Observe that exact operation before any retry. All
+original scope stays active; live Pi/phone/models/credentials/APK release are
+unchanged by this chunk. [Scope and evidence](docs/contracts/2026-11-14-navigation-failure-observation.md).
+
 ## 14 November 2026 - native retirement evidence accepted; fresh API26 failures retained
 
 The actual Pi independently verifies 41 unit cases with no skips and six

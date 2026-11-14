@@ -49,3 +49,8 @@ project/worker/integration and signed-production requirements remain active.
 | Original instrumentation result | 7fe512c57f3fbe8eb5e49fa5d3e3cdd6f2327674fda2c323ad5294348d9a1ade |
 | Retained runner log | d414867e40ca1bad21e86f78c07874179b373126826db5bf72e7842b7f82611f |
 | Original device state | afae7ba484b614fc5afd640c5b6112570dfe9fc5ee69fe72fd25f3d4d7eebed9 |
+
+The [subsequent observation checkpoint](2026-11-14-navigation-failure-observation.md)
+adds tested before-cleanup metadata while preserving the failed interactions.
+Its one new reproduction command retains the original 540-case order and is
+still running at that checkpoint; no historical cause/failure fix is claimed.
