@@ -1,5 +1,21 @@
 # Signal Grove audit execution plan
 
+## 14 November 2026 - exact maintained lifecycle source derivative
+
+A new default-off snapshot preparer preserves the full maintained SDK while
+admitting only the existing two hash-pinned lifecycle changes. Actual Pi source
+preparation verifies all 23,628 files, all modes and all 124 executable identities;
+the sibling keeps relative runtime/vendor paths and unchanged dependency/stamp
+bytes. Original source, live services/facts and permissions remain unchanged.
+
+The first umask mode refusal and outside-root suite invocation are retained.
+All 513 portable tests now pass, including twelve new integrity/no-replay cases.
+Native runtime/helper/held-writer/canonical gates are separate and pending;
+the first eight-helper run remains rejected for caught reads despite zero test
+errors. No SDK execution/activation is implied by the preparation proof.
+
+[Exact source proof and remaining gates](contracts/2026-11-14-snapshot-heartbeat-preparer.md).
+
 ## 14 November 2026 - actual Pi HTTP core accepted; cleanup gate held
 
 The actual staged Linux/aarch64 candidate completes native kernel-UID and HTTP

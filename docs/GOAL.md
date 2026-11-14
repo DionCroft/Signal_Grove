@@ -140,3 +140,14 @@ priorities and original requirements above remain. Next is the separate full
 maintained derivative/native test of the existing two-file lifecycle candidate.
 No activation, live policy/grant, existing permission, model, credential or APK
 change is approved by this result. [Evidence](contracts/2026-11-14-actual-pi-owner-http.md).
+
+
+## 14 November progress - maintained lifecycle derivative prepared
+
+The new default-off tool admits only exact reviewed snapshots and the existing
+two lifecycle deltas. The full maintained Pi copy verifies 23,628 files/modes
+and 124 executable identities, preserving its custom database, dependency/stamp
+bytes and relative tool path. All 513 portable cases pass. Failed mode/suite/
+helper-gate attempts remain. Finish native helper, owner finite-exit, held-writer
+and applicable canonical gates next; no activation is approved. All four
+priorities and every original requirement above remain. [Source proof](contracts/2026-11-14-snapshot-heartbeat-preparer.md).

@@ -74,3 +74,11 @@ The patch is derived from Nous Research's MIT-licensed Hermes Agent source.
 See [the upstream notice](NOUS_RESEARCH_LICENSE) and the repository's
 [original-code licence](../LICENSE). No upstream issue, PR or deployment is
 performed by these tools.
+
+
+The [whole-snapshot preparer](../docs/contracts/2026-11-14-snapshot-heartbeat-preparer.md)
+can preserve an explicitly reviewed maintained tree when its two target inputs
+match this patch. It retains all other bytes and native modes, requires a fresh
+sibling source/evidence root, and rejects any unreviewed map or extra delta.
+It performs no SDK execution, PM change or deployment. The original pristine
+preparer and original failure/compatibility gates remain independent.

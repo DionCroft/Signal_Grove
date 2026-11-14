@@ -32,15 +32,21 @@ supervisor remains nonzero (2) for the real atexit heartbeat/database warning.
 Full source/live conservation and read-only stores verify. Earlier preparation
 and metadata failures remain. [Exact result](docs/contracts/2026-11-14-actual-pi-owner-http.md).
 
+The separate lifecycle derivative is now prepared: all 23,628 files and modes,
+124 executable identities, unchanged custom/dependency/stamp bytes and relative
+tool paths verify. Only the two reviewed lifecycle files differ. All 513 portable
+tests pass. The first native mode refusal and first helper gate's caught reads
+remain rejected; runtime/canonical acceptance is still pending. [Source proof](docs/contracts/2026-11-14-snapshot-heartbeat-preparer.md).
+
 ## Exact next action
 
-Prepare a separate derivative of the full maintained snapshot with the existing
-default-off two-file heartbeat candidate, retaining all custom files. Both
-target inputs (tui_gateway/session_reaper.py and gateway/run_shutdown.py) exactly
-match its reviewed stable3b base. Keep the original 23,628-file candidate frozen;
-verify the complete derivative and only those two deltas. Run native finite-exit,
-held-writer and applicable canonical gates without suppressing warnings or
-callbacks. The maintained hermes_state.py is different and stays unchanged.
+Finish the fresh actual Pi eight-helper gate with exact metadata observations,
+then run the complete native/HTTP finite-exit flow and actual held-SQLite close
+fence against the verified sibling derivative. Keep the immutable base, all
+source/mode checks, original assertions and failed receipts. Do not suppress
+callbacks or warnings; held writes must keep DBs open until cleanup finishes.
+Then finish applicable canonical Linux regressions, independently validate
+native exits/SQLite and prepare the exact activation review only after gates.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,
