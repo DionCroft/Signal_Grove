@@ -15,7 +15,7 @@ import sys
 
 from plan_pi_runtime import render, COMMAND_DIRECTORY
 from native_file_publication import (DirectoryAnchor,DirectoryCreation,FileImage,FileBinding,ModeBinding,
-    FILE_ROLES,MODE_ROLES,STAGE_ROLES,anchor,observe,digest,_hash,_path,_open_directory,_image,MAX_FILE)
+    FILE_ROLES,MODE_ROLES,STAGE_ROLES,NativeAncestry,anchor,observe,digest,_hash,_path,_open_directory,_image,MAX_FILE)
 from cutover_journal import Refused,Unknown
 
 FIXTURE_LAYOUT=(('account_home','/home/fixture'),('fleet_root','/home/fixture/Projects/fleet'),
@@ -147,6 +147,14 @@ class CapturedCatalog:
     command_parent:DirectoryAnchor
     launcher_image:FileImage
     original_values:tuple[tuple[str,bytes|str|None],...]=field(repr=False)
+
+    def capture_ancestry(self,reviewed_capture_sha256):
+        if reviewed_capture_sha256!=self.sha256:raise Refused('Exact reviewed renderer capture required for ancestry')
+        packet=self.definition.packet()
+        source=packet['canonical_home']+'/runtime-generations/'+packet['layout']['generation']+'/'+packet['layout']['source_name']
+        endpoints=tuple(sorted({str(Path(s.path).parent) for s in self.definition.specs()}|{source,self.command_parent.path}))
+        creations=tuple(dict.fromkeys(b.parent for b in self.bindings if type(b.parent) is DirectoryCreation))
+        return NativeAncestry.capture(self.definition.scope,self.definition.owned_root or '/',endpoints,self.modes,creations,self.sha256)
 
     def for_stage(self,stage):
         if stage=='secure_modes':return self.modes

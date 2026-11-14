@@ -32,13 +32,15 @@ def run(home):
     review=PolicyReview('fixture-authority',('FIXTURE',),hashlib.sha256(policy).hexdigest())
     definition=RenderedCatalog.for_owned_fixture(root,review,policy,hashlib.sha256(launcher).hexdigest());packet=definition.packet()
     commands=Path(packet['command_directory']);commands.mkdir(parents=True,mode=0o700);(commands/'hermes').write_bytes(launcher);(commands/'hermes').chmod(0o755)
+    (commands.parent/packet['layout']['source_name']).mkdir(mode=0o700) # Inert source-root scaffold, not SDK source acceptance.
     client=account/'.local/bin';client.mkdir(parents=True,mode=0o700);(client/'hermes').write_bytes(old_client);(client/'hermes').chmod(0o755)
     (account/'.config/systemd/user').mkdir(parents=True,mode=0o700)
     for _,path in definition.mode_paths():
         directory=Path(path);directory.mkdir(parents=True,exist_ok=True,mode=0o700);directory.chmod(0o775)
     datafile=fleet/'hermes/newer-history-fixture';datafile.write_bytes(b'newer-owned-data-before-forward')
     captured=capture_native(definition,definition.sha256);snapshot=captured.sha256
-    plan=Plan(digest(dict(scope='owned_rendered_files_only',definition=definition.sha256,capture=snapshot)),
+    ancestry=captured.capture_ancestry(snapshot);ancestry_hash=ancestry.sha256
+    plan=Plan(digest(dict(scope='owned_rendered_files_only',definition=definition.sha256,capture=snapshot,ancestry=ancestry_hash)),
         digest(dict(scope=definition.scope,root=asdict(anchor(root)))),digest(dict(scope='synthetic_non_file_preflight')),digest(dict(scope='explicit_owned_runtime_only_recovery')))
     ledger=home/'ledger';ledger.mkdir(mode=0o700);identity=(ledger.stat().st_dev,ledger.stat().st_ino)
     actual=[];synthetic=[];effects={};created={};receipts=[]
@@ -46,13 +48,13 @@ def run(home):
         journal.intent(stage);journal.verified(stage,digest(dict(scope='synthetic_non_file_prerequisite',stage=stage,operation=execution.operation)))
         synthetic.append(dict(operation=execution.operation,stage=stage))
     def verify_known():
-        captured.assert_launcher()
+        ancestry.check();captured.assert_launcher()
         for role,row in effects.items():
             current=observe(DirectoryAnchor(**row['parent']),role)
             if asdict(current)!=row['image']:raise AssertionError('An earlier owned effect changed before the next stage')
     def perform(journal,execution,stage,bindings):
         verify_known();journal.intent(stage);catalog=digest([b.evidence() for b in bindings])
-        actor=NativeFilePublication(plan,journal,stage,bindings,catalog);result=actor.run(execution);observed=[]
+        actor=NativeFilePublication(plan,journal,stage,bindings,catalog,ancestry=ancestry,expected_ancestry_sha256=ancestry_hash);result=actor.run(execution);observed=[]
         if stage=='secure_modes':
             for b in bindings:
                 after=anchor(b.directory.path)
@@ -114,7 +116,8 @@ def run(home):
         definition=definition.metadata(),definitionSha256=definition.sha256,captureSha256=snapshot,actualStages=actual,syntheticStages=synthetic,
         createdParents=list(created.values()),receipts=receipts,finalEffects=effects,forwardHistorySha256=forward_history_sha,journalSha256=history,
         preservedDataPath=str(datafile),preservedDataSha256=preserved_data_sha,launcherPath=str(commands/'hermes'),launcherSha256=definition.launcher_sha256,
-        modeDisposition='keep_0755_after_policy_retirement',canonicalPolicySchemaValidated=True,protectedAncestryAccepted=False,
+        modeDisposition='keep_0755_after_policy_retirement',canonicalPolicySchemaValidated=True,protectedAncestryAccepted=False,ownedPublicationAncestryAccepted=True,
+        ancestry=ancestry.metadata(),ancestrySha256=ancestry_hash,ancestryStateSha256=ancestry.state_sha256,
         actualServicesBackupsPmAdmissionAccepted=False,fullCutoverAccepted=False,liveChanges=False)
     with (home/'fixture-result.json').open('x') as output:json.dump(result,output,indent=2);output.write('\n');output.flush();os.fsync(output.fileno())
     return result

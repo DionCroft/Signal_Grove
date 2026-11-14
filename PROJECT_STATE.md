@@ -4,27 +4,23 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to **compose the complete native backend and explicit
-runtime-only recovery**, binding protected ancestry and actual canonical PM/
-backups/admission/reload/authenticated health/history/graph evidence before a
-final separate live approval. The actual reviewed generation's read-only catalog
-now passes independent native reconciliation: ten preimages, exact staged
-wrappers, the original literal CLI symlink and three new-parent plans. Its
-23-entry ancestry inventory has exactly the seven reviewed writable directories
-and no additional projected blocker. Installed-reader and descriptor-guard acceptance remain open. All live files/modes/services and source/facts are conserved.
-[Actual catalog scope](docs/contracts/2026-11-14-actual-publication-catalog.md).
-The renderer now binds ten exact targets; one-level parent creation witnesses
-new inodes under the same authorized stage claim. The retained owned fixture
-verifies eight actual file/mode forward/recovery stages, five publication parents,
-five retained entries, old CLI restoration and newer-data preservation. All 62
-related Pi methods pass/no skips; independent source/raw/native/history/policy
-review conserves live state. Non-file stages are explicit synthetic; full actual
-protected ancestry and complete cutover remain unaccepted. The actual catalog
-review above is separate from that owned fixture.
-[Current scope](docs/contracts/2026-11-14-rendered-publication-recovery.md).
-Windows: 828 cases, 716 pass/112 skips; 109 platform methods run in actual Pi
-cohorts, three older skips retain scope. The separate service/journal 124-method
-cohort and five native error cases remain within their original scope.
+The exact next action is to **compose actual canonical PM/backup/admission/
+reload/authenticated health/history/graph operations into the bounded native
+backend and explicit runtime-only recovery**. Bind the new publication ancestry
+guard and independently protect journal/PM/other inputs. Complete isolated full
+forward/recovery acceptance and the concrete packet before separate live approval.
+Publication now uses descriptor ancestry and recorded actual mode/new-parent
+transitions. All 80 related Pi methods pass/no skips. The guarded owned fixture
+verifies eight actual stages, five parents, five retained entries, original CLI
+restoration and newer-data preservation. Independent raw/native/state review
+passes. Real preflight captures 20 existing directories/three missing parents
+and correctly refuses publication while seven actual modes remain 0775. Live
+files/permissions/services/source/facts remain conserved. Non-file fixture stages
+remain synthetic; full operational ancestry and cutover/recovery stay open.
+[Current source/evidence](docs/contracts/2026-11-14-publication-ancestry.md).
+Windows: 846 cases, 719 pass/127 skips; 124 platform methods run in Pi cohorts,
+three older skips retain scope. The separate service/journal 124-method cohort
+and five native error cases retain scope. Android/build inputs are unchanged.
 Supported PM repaired the five declared
 tool dependencies in isolated staging; independent doctor/digest/probe review
 and a fresh normal SDK provider/native-retirement/lifespan fixture now pass,
@@ -43,7 +39,7 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 828 cases, 716 pass/112 POSIX skips. All 109
+  The latest Windows suite runs 846 cases, 719 pass/127 POSIX skips. All 124
   coordinator/journal/watchdog/file/catalog methods pass in actual Pi cohorts;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production

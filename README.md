@@ -21,20 +21,19 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **828 cases: 716 pass, 112 POSIX skips**.
-The separate service/journal cohort has **124 Pi passes** and five native error
-scenarios. The renderer/file/mode cohort has **62 Pi passes** plus a retained
-owned forward/recovery fixture: ten exact targets, five publication parents,
-eight actual file/mode stages and preserved newer data. Of the platform methods,
-109 run in actual Pi cohorts; three older skips retain scope. Non-file fixture
-prerequisites are synthetic. The actual generation now separately passes a
-read-only ten-target catalog capture and independent native reconciliation,
-with three missing publication parents. Its 23-entry ancestry inventory has
-only the seven already reviewed writable directories; live modes remain 0775.
-Actual protected-reader/descriptor guards and the full PM/backup/admission/
-reload/health/cutover/recovery gates remain open.
-[Actual Pi catalog](docs/contracts/2026-11-14-actual-publication-catalog.md).
-[Renderer/file scope](docs/contracts/2026-11-14-rendered-publication-recovery.md) ·
+The latest Windows Python suite runs **846 cases: 719 pass, 127 POSIX skips**.
+The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
+guarded owned forward/recovery fixture: ten targets, five publication parents,
+eight actual stages, original CLI restoration and preserved newer data. Its
+descriptor guard tracks actual named mode/new-parent transitions. Independent
+raw/native/state review passes. A real-root read-only preflight captures twenty
+existing directories/three missing parents and correctly refuses publication
+while the seven real modes remain 0775. Of the platform cases, 124 run on Pi;
+three older cases retain scope. The separate service/journal cohort has 124 Pi
+passes and five native error scenarios. Non-file fixture prerequisites remain
+synthetic; full PM/backup/admission/reload/authenticated health/cutover/recovery
+and journal/other operational ancestry gates remain open.
+[Publication ancestry scope](docs/contracts/2026-11-14-publication-ancestry.md) ·
 [Service scope](docs/contracts/2026-11-14-native-service-error-paths.md).
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket

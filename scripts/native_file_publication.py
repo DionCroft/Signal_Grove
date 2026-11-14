@@ -254,6 +254,161 @@ class _Receipt:
         if self.fd is not None:os.close(self.fd);self.fd=None
 
 
+@dataclass(frozen=True)
+class AncestryNode:
+    path:str
+    device:int
+    inode:int
+    uid:int
+    gid:int
+    mode:int
+
+    def __post_init__(self):
+        if ((self.path!='/' and not _path(self.path)) or any(not _uint(v) for v in (self.device,self.inode,self.uid,self.gid))
+                or not self.inode or type(self.mode) is not int or not 0<=self.mode<=0o777):
+            raise ValueError('Exact native directory ancestry identity required')
+
+
+class NativeAncestry:
+    """Read-only path witness; never permission, publication or approval issuer.
+
+    Production walks begin at /. Owned fixtures name an explicit private root;
+    ancestors above that root are no security acceptance. The original catalog
+    stays immutable; only actual actor-observed mode/parent transitions advance
+    the in-memory witness. A crash needs explicit read-only reconciliation.
+    """
+    @classmethod
+    def capture(cls,scope,root,endpoints,modes,creations,capture_sha256):
+        if (sys.platform!='linux' or os.geteuid()==0 or scope not in ('production_review_only','owned_fixture_only')
+                or type(endpoints) is not tuple or not 1<=len(endpoints)<=32 or tuple(sorted(set(endpoints)))!=endpoints
+                or type(modes) is not tuple or len(modes)!=len(MODE_ROLES) or any(type(m) is not ModeBinding for m in modes)
+                or {m.role for m in modes}!=set(MODE_ROLES) or type(creations) is not tuple
+                or any(type(c) is not DirectoryCreation for c in creations) or len(set(creations))!=len(creations)
+                or not _hash(capture_sha256)):
+            raise ValueError('Exact native closed ancestry inputs required')
+        if (scope=='production_review_only' and root!='/') or (scope=='owned_fixture_only' and (
+                not _path(root) or not re.fullmatch(r'signal-grove-catalog-[a-f0-9]{32}',PurePosixPath(root).name))):
+            raise ValueError('Production root or explicit private owned fixture root required')
+        base=PurePosixPath(root)
+        if any(not _path(p) or not PurePosixPath(p).is_relative_to(base) for p in endpoints):
+            raise ValueError('Every exact endpoint must be within the bound root')
+        mode_paths={m.directory.path:m for m in modes}
+        missing={c.path:c for c in creations}
+        if len(mode_paths)!=len(modes) or any(p not in endpoints for p in missing):
+            raise ValueError('Unique named mode paths and endpoint creations required')
+        self=cls();self.scope,self.root,self.endpoints,self.modes,self.creations,self.capture_sha256=scope,root,endpoints,modes,creations,capture_sha256
+        self._secured=set();self._created={};self._nodes={};self._missing=set(missing)
+        self._capture=True
+        try:
+            for endpoint in endpoints:self._walk(endpoint)
+            if set(mode_paths)-set(self._nodes):raise Refused('A named mode role is outside the protected ancestry')
+            for path,binding in mode_paths.items():
+                if asdict(self._nodes[path])!=asdict(binding.directory):raise Refused('Named mode identity differs from the captured renderer')
+            for path,creation in missing.items():
+                node=self._nodes.get(creation.parent.path)
+                if node is None or asdict(node)!=dict(asdict(creation.parent),mode=mode_paths[creation.parent.path].directory.mode if creation.parent.path in mode_paths else creation.parent.mode):
+                    raise Refused('Creation parent differs from the captured renderer')
+            if scope=='owned_fixture_only' and (self._nodes[root].uid!=os.geteuid() or self._nodes[root].mode!=0o700):
+                raise Refused('Owned fixture ancestry root must be private')
+        finally:self._capture=False
+        self.check();return self
+
+    def metadata(self):
+        return dict(scope=self.scope,root=self.root,endpoints=self.endpoints,capture_sha256=self.capture_sha256,
+            directories=[asdict(self._nodes[p]) for p in sorted(self._nodes)],
+            modes=[m.evidence() for m in self.modes],missing=sorted(self._missing))
+
+    @property
+    def sha256(self):return digest(self.metadata())
+    @property
+    def state_sha256(self):return digest(dict(catalog_sha256=self.sha256,secured=sorted(self._secured),created=[asdict(self._created[p]) for p in sorted(self._created)]))
+
+    def _expected(self,path):
+        if path in self._created:return AncestryNode(**asdict(self._created[path]))
+        node=self._nodes.get(path)
+        if node is not None and any(m.role in self._secured and m.directory.path==path for m in self.modes):return replace(node,mode=0o755)
+        return node
+
+    def _node(self,fd,path):
+        st=os.fstat(fd)
+        if not stat.S_ISDIR(st.st_mode):raise Refused('Protected ancestry requires native directories')
+        try:node=AncestryNode(path,st.st_dev,st.st_ino,st.st_uid,st.st_gid,stat.S_IMODE(st.st_mode))
+        except ValueError:raise Refused('Unsupported protected-directory native mode') from None
+        if self._capture:
+            allowed=next((m.directory for m in self.modes if m.directory.path==path),None)
+            if (node.uid not in (0,os.geteuid()) or (node.mode&0o022 and (allowed is None or asdict(node)!=asdict(allowed)))):
+                raise Refused('Unreviewed writable or foreign ancestry refused')
+            if path in self._nodes and self._nodes[path]!=node:raise Unknown('Ancestry changed during native capture')
+            self._nodes[path]=node
+        elif node!=self._expected(path):raise Unknown('Bound protected ancestry changed')
+        return node
+
+    def _root_fd(self):
+        flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC
+        fd=os.open('/',flags)
+        try:
+            if self.root!='/':
+                for part in PurePosixPath(self.root).parts[1:]:
+                    child=os.open(part,flags,dir_fd=fd);os.close(fd);fd=child
+            self._node(fd,self.root);return fd
+        except BaseException:os.close(fd);raise
+
+    def _walk(self,path,*,keep=False):
+        fd=None
+        try:
+            fd=self._root_fd();current=PurePosixPath(self.root)
+            parts=PurePosixPath(path).relative_to(current).parts
+            for index,part in enumerate(parts):
+                candidate=str(current/part)
+                if candidate in self._missing and candidate not in self._created:
+                    if index!=len(parts)-1:raise Refused('Recursive missing protected ancestors refused')
+                    try:os.stat(part,dir_fd=fd,follow_symlinks=False)
+                    except FileNotFoundError:return None
+                    raise Refused('A declared absent ancestry parent arrived; never adopt it')
+                child=os.open(part,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC,dir_fd=fd)
+                try:self._node(child,candidate)
+                except BaseException:os.close(child);raise
+                os.close(fd);fd=child;current=current/part
+            if keep:result=fd;fd=None;return result
+            return self._expected(path) if not self._capture else self._nodes[path]
+        except (OSError,ValueError):raise Refused('Protected descriptor traversal refused') from None
+        finally:
+            if fd is not None:os.close(fd)
+
+    def check(self):
+        for endpoint in self.endpoints:self._walk(endpoint)
+        return self.state_sha256
+
+    def bind_stage(self,stage,bindings):
+        self.check()
+        if stage=='secure_modes':
+            if self._secured or tuple(bindings)!=self.modes:raise Refused('Exact initial seven-mode ancestry catalog required')
+        else:
+            if self._secured!=set(MODE_ROLES):raise Refused('All seven protected modes must be observed before publication')
+            for binding in bindings:
+                parent=binding.parent
+                if parent.path not in self.endpoints:raise Refused('Publication parent is outside the closed ancestry catalog')
+                if type(parent) is DirectoryCreation:
+                    if parent not in self.creations or parent.path in self._created:raise Refused('Exact unspent parent-creation witness required')
+                elif self._expected(parent.path)!=AncestryNode(**asdict(parent)):
+                    raise Refused('Publication parent differs from the protected ancestry')
+
+    def open_directory(self,expected):
+        if type(expected) is not DirectoryAnchor or self._expected(expected.path)!=AncestryNode(**asdict(expected)):
+            raise Refused('Exact currently bound publication directory required')
+        self.check();return self._walk(expected.path,keep=True)
+
+    def _mode_observed(self,binding):
+        if binding not in self.modes or binding.role in self._secured:raise Refused('Mode witness is not an unspent reviewed role')
+        self._secured.add(binding.role);self.check()
+
+    def _parent_observed(self,creation,actual):
+        if (creation not in self.creations or creation.path in self._created or type(actual) is not DirectoryAnchor
+                or actual.path!=creation.path or (actual.uid,actual.gid,actual.mode)!=(creation.uid,creation.gid,0o700)):
+            raise Refused('Exact newly witnessed native parent required')
+        self._created[creation.path]=actual;self.check()
+
+
 class NativeFilePublication:
     """Exact parent/one-level creation effects; no step is marked verified here.
 
@@ -262,7 +417,7 @@ class NativeFilePublication:
     class validates that binding, the original live journal claim and native
     effects. It does not manufacture approval or attest those other gates.
     """
-    def __init__(self,plan,journal,stage,bindings,expected_catalog_sha256):
+    def __init__(self,plan,journal,stage,bindings,expected_catalog_sha256,*,ancestry=None,expected_ancestry_sha256=None):
         if (sys.platform!='linux' or os.geteuid()==0 or type(plan) is not Plan or type(journal) is not CutoverJournal
                 or type(stage) is not str or stage not in STAGE_ROLES or type(bindings) is not tuple or not bindings or not _hash(expected_catalog_sha256)):
             raise ValueError('Exact Linux stage, journal, plan and reviewed catalog required')
@@ -282,6 +437,12 @@ class NativeFilePublication:
         self.plan,self.journal,self.stage,self.bindings=plan,journal,stage,bindings
         self.catalog=digest([b.evidence() for b in bindings])
         if self.catalog!=expected_catalog_sha256:raise Refused('Actual catalog differs from the reviewed binding')
+        if ancestry is None:
+            if expected_ancestry_sha256 is not None:raise ValueError('A hash without a native ancestry witness is insufficient')
+        elif type(ancestry) is not NativeAncestry or ancestry.sha256!=expected_ancestry_sha256:
+            raise Refused('Exact reviewed native ancestry binding required')
+        if ancestry is not None:ancestry.bind_stage(stage,bindings)
+        self.ancestry=ancestry
         self.used=False;self.state='ready';self.last_receipt=None;self.resolved_bindings=()
     def _authorize(self,execution):
         if (type(execution) is not ApprovedExecution or execution.authority_sha256!=self.plan.authority_sha256
@@ -299,6 +460,7 @@ class NativeFilePublication:
         if ([r['step'] for r in rows if r['kind']=='intent']!=list(stages[:index+1])
                 or [r['step'] for r in rows if r['kind']=='verified']!=list(stages[:index])):
             raise Refused('Fixed native file stage prefix has not been verified')
+        if self.ancestry is not None:self.ancestry.check()
     def _prepare_parent(self,creation,fd,execution,receipt):
         self._authorize(execution);receipt.check();_directory(fd,creation.parent)
         temporary='.signal-grove-'+execution.operation+'-'+uuid.uuid4().hex[:16]+'.directory'
@@ -318,6 +480,7 @@ class NativeFilePublication:
             actual=replace(prepared,path=creation.path);_directory(opened,actual)
             if os.listdir(opened):raise Unknown('New parent changed before file publication')
             receipt.append('parent_observed',dict(image=asdict(actual),temporary=temporary,name=creation.name))
+            if self.ancestry is not None:self.ancestry._parent_observed(creation,actual)
             self._authorize(execution);result=(opened,actual);opened=None;return result
         finally:
             if opened is not None:os.close(opened)
@@ -330,7 +493,7 @@ class NativeFilePublication:
                 parent=b.directory if type(b) is ModeBinding else b.parent
                 directory=parent.parent if type(parent) is DirectoryCreation else parent
                 key=(directory.device,directory.inode)
-                if key not in fds:fds[key]=_open_directory(directory)
+                if key not in fds:fds[key]=self.ancestry.open_directory(directory) if self.ancestry is not None else _open_directory(directory)
                 if type(parent) is DirectoryCreation:
                     try:os.stat(parent.name,dir_fd=fds[key],follow_symlinks=False)
                     except FileNotFoundError:pass
@@ -340,6 +503,7 @@ class NativeFilePublication:
             self._authorize(execution);self.journal.claim_dispatch(execution.operation,self.stage,execution.binding_sha256)
             claimed=True;self.used=True;self.state='running'
             receipt=_Receipt(self.journal,execution,self.stage,self.catalog);self.last_receipt=receipt.name
+            if self.ancestry is not None:receipt.append('ancestry_bound',dict(catalog_sha256=self.ancestry.sha256,state_sha256=self.ancestry.check()))
             resolved={}
             for creation in dict.fromkeys(b.parent for b in self.bindings if type(b) is FileBinding and type(b.parent) is DirectoryCreation):
                 fd,actual=self._prepare_parent(creation,fds[(creation.parent.device,creation.parent.inode)],execution,receipt)
@@ -364,6 +528,7 @@ class NativeFilePublication:
                     os.fchmod(fd,0o755);os.fsync(fd)
                     after=DirectoryAnchor(directory.path,directory.device,directory.inode,directory.uid,directory.gid,0o755)
                     _directory(fd,after);receipt.append('mode_observed',dict(role=b.role,after=asdict(after)))
+                    if self.ancestry is not None:self.ancestry._mode_observed(b)
                     self._authorize(execution);continue
                 if _image(fd,b.name,directory.uid)!=b.before:raise Unknown('Native file changed after intent')
                 temporary='.signal-grove-'+execution.operation+'-'+b.role+'-'+uuid.uuid4().hex[:16]+'.incoming'
@@ -404,7 +569,7 @@ class NativeFilePublication:
                 if not valid:raise Unknown('Atomic effect differs; retain both names without automatic compensation')
                 self._authorize(execution)
             receipt.append('catalog_effects_observed',dict(catalog_sha256=self.catalog,roles=[b.role for b in self.bindings]));self._authorize(execution)
-            self.state='effects_observed';return dict(state=self.state,stage=self.stage,catalog_sha256=self.catalog,receipt=receipt.name,receipt_sha256=hashlib.sha256(receipt.data).hexdigest())
+            self.state='effects_observed';return dict(state=self.state,stage=self.stage,catalog_sha256=self.catalog,receipt=receipt.name,receipt_sha256=hashlib.sha256(receipt.data).hexdigest(),ancestry_sha256=self.ancestry.sha256 if self.ancestry is not None else None,ancestry_state_sha256=self.ancestry.check() if self.ancestry is not None else None)
         except BaseException as exc:
             if claimed:
                 self.state='unknown'

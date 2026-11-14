@@ -6,29 +6,23 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** compose the complete native backend with protected ancestry,
-canonical PM/backups/admission/reload/authenticated health/history/graph and
-explicit runtime-only recovery before the final separate live approval. Actual
-generation catalog capture now passes independent native reconciliation: ten
-exact preimages, matching wrappers, original literal CLI symlink and three
-missing publication parents. The separate 23-entry ancestry inventory has only
-the seven reviewed writable directories; it does not prove an installed reader
-or race-resistant guard. All source/facts/live files/modes/service incarnations
-remain unchanged.
-[Actual catalog scope](docs/contracts/2026-11-14-actual-publication-catalog.md).
-Current file and
-renderer source passes 62 Pi methods/no skips; the retained owned fixture has
-eight actual file/mode stages, five publication parents and five retained entries.
-Independent native/source/raw/history/policy review proves old CLI restoration,
-newer-data preservation and unchanged live state. Non-file prerequisites remain
-synthetic; actual full protected ancestry/cutover remain unaccepted. The actual
-catalog review above is a separate dated observation.
-Windows: 828 cases, 716 pass/112 skips; 109 platform methods run on Pi, three
-older skips retain scope. The separate service/journal 124-method cohort and
-five errors retain scope. Preserve the combined native hook-detachment failure,
-object-bound correction and every earlier unknown/failed receipt. All original
-audit/on-device/phone/security/release requirements remain active.
-[Current file/renderer scope](docs/contracts/2026-11-14-rendered-publication-recovery.md).
+**Next action:** compose actual canonical old-stop/new-start PM, encrypted
+backups, gateway drain/serve retirement, manager reload and authenticated health/
+history/graph into the native forward/recovery backend. Require the reviewed
+publication ancestry guard and independently bind journal/PM/other input paths.
+Finish full isolated acceptance/concrete packet before separate live approval.
+The guarded owned fixture verifies eight actual file/mode stages, five parents,
+five retained entries, original CLI restoration and newer-data preservation.
+All 80 cohort methods pass on Pi/no skips; independent raw/native/source/state
+review passes. Fresh real-root preflight captures 20 directories/three missing
+parents and refuses publication while seven modes remain 0775. Live source/facts/
+files/permissions/services remain unchanged. Non-file fixture stages stay
+synthetic; full operational acceptance remains open. Windows: 846 cases, 719 pass/
+127 platform skips; 124 platform cases run in Pi cohorts, three older skips keep
+scope. Separate service/journal 124-method/five-error scope and every original
+audit/on-device/security/release requirement remain. Preserve all failed/unknown
+receipts and no-replay boundaries; Android/build inputs are unchanged.
+[Current source and evidence](docs/contracts/2026-11-14-publication-ancestry.md).
 Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence

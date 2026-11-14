@@ -1,5 +1,23 @@
 # Evidence navigation
 
+## 14 November 2026 - guarded descriptor ancestry and retained recovery
+
+The renderer now captures descriptor-anchored publication ancestry and the
+selected source-root identity. The publisher binds its reviewed ancestry hash,
+checks it throughout each claimed stage, records state transitions and accepts
+only the seven actual named mode effects and witnessed new parents. The guarded
+owned fixture completes eight forward/recovery stages, preserving five retired
+entries, the original CLI and newer data. All 80 Pi methods pass/no skips;
+Windows: 846 cases, 719 pass/127 platform skips. Independent raw/native/source/
+history/policy review passes. Real preflight captures 20 existing directories
+and three missing parents; publication correctly refuses before the seven
+unchanged 0775 modes are secured. Full PM/backup/admission/reload/authenticated
+health/history/graph and complete runtime-only cutover/recovery remain open.
+Journal/PM/input ancestry needs its own backend binding; this publication guard
+does not attest every operational path. No live change or APK change. Every
+original audit/on-device/security/release requirement remains active.
+[Source, scope and evidence](docs/contracts/2026-11-14-publication-ancestry.md).
+
 ## 14 November 2026 - actual Pi catalog captured read-only
 
 The actual reviewed Pi generation now passes native read-only catalog capture
