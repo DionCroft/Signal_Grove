@@ -1,5 +1,24 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - exact-byte native operator acceptance
+
+The protected operator binding now has source-bound native acceptance on
+[run 43544033739](https://github.com/DionCroft/Signal_Grove/actions/runs/43544033739),
+source 058d8c0: 8 Linux policy cases, 72 Windows provider cases and 119 protocol
+cases pass. Both original ZIP digests verify. Raw distinct starts/positive finishes,
+zero failures/errors/skips and every source hash verify against exact committed
+bytes: 9 Linux and 15 Windows inputs. No line-ending normalization or checksum
+waiver is used. The first functional cohort, its 15 CRLF-only Windows inputs,
+failed LF-only verifier and temporary-link HTTP failure remain retained.
+
+The 493-case portable operator gate remains applicable to unchanged runtime/test
+code; 119 is its CI protocol subset, not an additional 493 cases. Python checkouts
+are now pinned to LF. The six-module installer preview retains the same guarded
+anchors and leaves pristine SDK source unchanged. The source is ready to promote;
+no live operator module, policy/grant, Pi service, model, credential or APK changes.
+
+[Exact evidence and deployment boundary](contracts/2026-11-14-protected-operator-policy.md).
+
 ## Native checkout follow-up - 14 November 2026
 
 Initial feature [run 43541485509](https://github.com/DionCroft/Signal_Grove/actions/runs/43541485509)

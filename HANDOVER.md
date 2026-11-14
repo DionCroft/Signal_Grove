@@ -1,73 +1,57 @@
 # Signal Grove handover
 
-## Native checkout follow-up - 14 November 2026
+14 November 2026. The full goal remains **active**, with every original
+requirement and all four [priorities](docs/GOAL.md) preserved.
 
-Initial feature [run 43541485509](https://github.com/DionCroft/Signal_Grove/actions/runs/43541485509)
-passes all three jobs: 119 protocol cases, 8 Linux native policy cases and 72 Windows
-native provider cases. Both original ZIP digests verify. Linux's eight distinct
-raw starts/finishes and all nine committed source hashes verify. Windows has 72
-raw positives and zero failures/errors/skips; all 15 source hashes match exactly
-the CRLF form of the committed files. No other source difference exists.
+The protected operator binding now has source-bound native acceptance on
+[run 43544033739](https://github.com/DionCroft/Signal_Grove/actions/runs/43544033739),
+source 058d8c0: 8 Linux policy cases, 72 Windows provider cases and 119 protocol
+cases pass. Both original ZIP digests verify. Raw distinct starts/positive finishes,
+zero failures/errors/skips and every source hash verify against exact committed
+bytes: 9 Linux and 15 Windows inputs. No line-ending normalization or checksum
+waiver is used. The first functional cohort, its 15 CRLF-only Windows inputs,
+failed LF-only verifier and temporary-link HTTP failure remain retained.
 
-The LF-only source verifier stopped on that checkout difference; its failure is
-retained. Python files are now explicitly checked out as LF for reproducible
-source/package hashes. No Python body, test assertion, source checksum rule or
-live policy changes. A new native cohort for this source revision must verify
-exact Git-byte identity before main promotion. The temporary-link HTTP failure
-and successful authenticated-CLI archive retrieval remain recorded. No job was
-retried and no hash mismatch was waived.
+The 493-case portable operator gate remains applicable to unchanged runtime/test
+code; 119 is its CI protocol subset, not an additional 493 cases. Python checkouts
+are now pinned to LF. The six-module installer preview retains the same guarded
+anchors and leaves pristine SDK source unchanged. The source is ready to promote;
+no live operator module, policy/grant, Pi service, model, credential or APK changes.
 
-The initial source checkpoint below is retained with its original pending state.
-
-14 November 2026. The full goal stays **active**, with every original requirement
-and all four [priorities](docs/GOAL.md) preserved.
-
-The missing operator-binding source is implemented but not deployed. A trusted
-operator supplies fixed routes and the enrolled authority; phone fields cannot
-select policy, identity or commands. Closed bounded policy rows grant only exact
-subject/profile/device/project IDs. Each admission and post-I/O check rereads a
-protected observation. Content and native file generation enter the revision;
-revocation, replacement or revoke/restore discard in-flight replies while
-preserving submitted state. Empty/missing/invalid policy grants no access.
-
-All 493 portable cases pass on 919 frozen inputs, including eight new behavior
-cases. The native authentication gate and all inputs of the earlier 72-case
-Windows gate remain unchanged. Windows explicitly refuses POSIX protection.
-The Linux runner declares eight real filesystem cases and refuses skips, missing
-positives or source drift. Its hosted native result is pending at this source
-checkpoint; no Linux/Pi file-protection acceptance is claimed yet.
-
-[Current source and acceptance scope](docs/contracts/2026-11-14-protected-operator-policy.md).
+[Current operator contract and exact evidence](docs/contracts/2026-11-14-protected-operator-policy.md).
 
 ## Exact next action
 
-Run the new Linux policy lane on this exact feature source and reconcile the
-raw report/log and every source hash before promoting it to main. After it passes,
-prepare the exact maintained-runtime bundle and private policy for the already
-reviewed worker enrollment, plus current encrypted recovery and idle checks.
-The previous authentication approval covers source only: do not install the Pi
-operator, create/expand live grants or restart services under that approval.
-Real native HTTPS/Android/worker content, independent chat/execution adoption,
-NAS, original automation/integration and final phone/release acceptance remain.
+Prepare a private operator/bootstrap policy and exact maintained-runtime bundle
+on the execution host, using the existing protected worker enrollment and fixed
+catalogued SSH route. Revalidate current Pi identity/parent protections, worker
+scope and source/recovery manifests, then verified encrypted backup and idle/
+receipt state. Obtain the separate concrete deployment/grant/restart approval
+before any live switch; the earlier authentication approval was source-only.
+After deployment, verify real native HTTPS/Android/worker content and independent
+chat/execution adoption. NAS, integrations/automation, upstream/shutdown and final
+production phone/release requirements remain part of the full goal.
 
 
-## Retained requirements and recovery boundaries
+## Remaining scope and safeguards
 
-- Preserve the full [audit](docs/AUDIT_EXECUTION_PLAN.md): original API26 causes,
-  forty stable findings/main semantics, pristine SDK shutdown, real project/worker/
-  workspace execution, Kanban/jobs/rooms/grants/delivery and integrations/config.
-- The owner-approved HTTP source fix remains applied (16 credential/socket and 18
-  authority checks); it is not installed on Pi. The Windows read-client correction
-  remains separate, with its 13 November same-daemon/receipts/encrypted proof.
-  No fresh live-worker or Pi deployment claim is made by these source tests.
-- Recheck USB for final device work. Preserve package/signers, UID, connection,
-  chats/projects, models/history and all failed/unknown outcomes. Do not reuse
-  the already consumed one normal-restart approval or replay unknown operations.
-- Beta.9/code114 is public. External-model, physical/live/offline/lifecycle/audio/
-  background/battery/accessibility and exact-source final release gates stay open.
-- Doctor setup/key, graph identity/index, NAS full-file identity and the separate
-  POSIX plugin-RPC test remain open. Project files stay on their execution owner;
-  no credential transfer, public endpoint, model change or cloud fallback follows.
+- Preserve the complete [audit](docs/AUDIT_EXECUTION_PLAN.md): original API26 causes,
+  forty stable findings/main semantics, pristine SDK shutdown and the separate
+  POSIX plugin-RPC case, real projects/workers, Kanban/jobs/rooms/grants/delivery
+  and remaining integrations/configuration.
+- The owner-approved HTTP source gate remains unchanged (16 credential/socket
+  and 18 authority checks), and remains undeployed. Existing Windows read-client
+  commissioning and 13 November same-daemon/receipt/encrypted proof are separate;
+  do not infer fresh live-worker readiness from these CI fixtures.
+- Recheck USB for final physical work. Preserve package/signers/UID, saved
+  connections/chats/projects, models/history and failed/unknown outcomes. Never
+  replay uncertain work or repeat the already consumed normal-restart approval.
+- Source 4444's 1,141/1,142 standard positives and published beta.9/code114 do not
+  close external-model, final-source, live/offline/device/lifecycle/audio/battery/
+  background/accessibility or signed-upgrade/release requirements.
+- Doctor setup/key, graph identity/index and NAS full-file identity remain open.
+  Project files stay on the execution owner; no credential transfer, public
+  endpoint, model change or cloud fallback is authorized by this checkpoint.
 
-[Previous complete checkpoint/history](https://github.com/DionCroft/Signal_Grove/blob/98132314b75589fc1f1d9313b3769ad5ca62076d/HANDOVER.md).
+[Previous checkpoint and full history](https://github.com/DionCroft/Signal_Grove/blob/058d8c0e087cba7df963817e7b158a6e9272ffd3/HANDOVER.md).
 Earlier evidence remains in EVIDENCE.md, docs/VALIDATION.md and linked contracts.

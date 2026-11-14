@@ -42,33 +42,32 @@ none of the original audit, local-AI, security or delivery requirements.
    published update needs the correct higher version code and matching signer.
 
 Continue in tested chunks with regular commits/pushes to main. Preserve user data,
-unknown operations and every original audit requirement. Source stays in the
-authoritative root; tools, temporary material and private evidence stay on E:.
-The approved HTTP auth source remains applied without Pi deployment authorization.
-The Windows read-client correction and its recovery/receipt evidence are separate.
+unknown work and every original requirement. Source stays in its authoritative
+root; tools, temporary material and private evidence stay on E:. The owner-approved
+HTTP auth source is unchanged and does not authorize Pi deployment, grants or
+restart. Existing Windows read-client commissioning remains separate.
 
-The dormant operator binding now passes 493 portable cases, including eight new
-policy behavior cases. It accepts only explicit owner/profile/device/project
-rows observed through a protected reader and fixed operator routes. Native file
-generation and contents both enter the revision; changed/revoked in-flight reads
-drop contents and preserve submitted state. No policy, grant or service is created.
-Windows refuses POSIX protection; eight real Linux filesystem cases and their
-strict source-bound gate are prepared. Initial Linux8/Windows72/protocol119
-functional gates pass; Windows source bytes are verified as the exact CRLF form.
-Python checkouts are now pinned to LF, with a new exact-byte native gate pending.
+The dormant protected operator binding passes 493 portable cases. The exact LF
+source at 058d8c0 has independently verified 8 Linux native policy cases, 72 Windows
+native provider cases and 119 CI protocol cases (a subset of the portable suite).
+Both original ZIP digests, raw positive finishes and all 24 native source-file
+hashes match exact committed bytes. Initial CRLF-only evidence and verifier/
+download failures are retained; no checksum rule was weakened. No policy, grant,
+Pi service, credential, model or APK changed.
 
-Next: Run the new Linux policy lane on this exact feature source and reconcile the
-raw report/log and every source hash before promoting it to main. After it passes,
-prepare the exact maintained-runtime bundle and private policy for the already
-reviewed worker enrollment, plus current encrypted recovery and idle checks.
-The previous authentication approval covers source only: do not install the Pi
-operator, create/expand live grants or restart services under that approval.
-Real native HTTPS/Android/worker content, independent chat/execution adoption,
-NAS, original automation/integration and final phone/release acceptance remain.
+Next: Prepare a private operator/bootstrap policy and exact maintained-runtime bundle
+on the execution host, using the existing protected worker enrollment and fixed
+catalogued SSH route. Revalidate current Pi identity/parent protections, worker
+scope and source/recovery manifests, then verified encrypted backup and idle/
+receipt state. Obtain the separate concrete deployment/grant/restart approval
+before any live switch; the earlier authentication approval was source-only.
+After deployment, verify real native HTTPS/Android/worker content and independent
+chat/execution adoption. NAS, integrations/automation, upstream/shutdown and final
+production phone/release requirements remain part of the full goal.
 
 
-Forty stable findings/main semantics, pristine shutdown, original API26 causes,
-actual integrations/automation, doctor/graph, external-model/final-source/device
-and signed production-upgrade/release acceptance remain open. Source 4444's
-1,141/1,142 raw standard positives and beta.9 publication do not replace those
-gates. See [the exact source checkpoint](contracts/2026-11-14-protected-operator-policy.md).
+The original four priorities/full audit stay active: forty stable findings/main
+review, pristine shutdown, original API26 causes, real integration/automation,
+doctor/graph, external-model/final-source/physical-phone and production upgrade/
+release acceptance remain. Native policy fixture success does not close those
+requirements. See [the current contract](contracts/2026-11-14-protected-operator-policy.md).

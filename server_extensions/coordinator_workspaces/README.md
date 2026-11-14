@@ -1,5 +1,12 @@
 # Optional native coordinator workspace reads
 
+**Native source gate accepted, 14 November:** exact-source 493 portable, 8 Linux
+policy, 72 Windows provider and 119 CI protocol cases are verified; the protocol
+cases are a portable subset. All native source hashes match committed LF bytes.
+The optional binding remains undeployed and creates no policy/grant/service.
+[Accepted evidence and next deployment boundary](../../docs/contracts/2026-11-14-protected-operator-policy.md).
+The preparation records below retain their original pending states.
+
 **Protected operator binding, 14 November:** operator_policy.py accepts only
 explicit fresh grants and fixed server-owned routes. policy_file.py supplies
 native no-follow owner-protected POSIX observations; Windows returns UNSUPPORTED.

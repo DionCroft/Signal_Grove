@@ -1,5 +1,56 @@
 # Protected operator policy - 14 November 2026
 
+## Accepted current source gate - 14 November 2026
+
+The protected operator binding now has source-bound native acceptance on
+[run 43544033739](https://github.com/DionCroft/Signal_Grove/actions/runs/43544033739),
+source 058d8c0: 8 Linux policy cases, 72 Windows provider cases and 119 protocol
+cases pass. Both original ZIP digests verify. Raw distinct starts/positive finishes,
+zero failures/errors/skips and every source hash verify against exact committed
+bytes: 9 Linux and 15 Windows inputs. No line-ending normalization or checksum
+waiver is used. The first functional cohort, its 15 CRLF-only Windows inputs,
+failed LF-only verifier and temporary-link HTTP failure remain retained.
+
+The 493-case portable operator gate remains applicable to unchanged runtime/test
+code; 119 is its CI protocol subset, not an additional 493 cases. Python checkouts
+are now pinned to LF. The six-module installer preview retains the same guarded
+anchors and leaves pristine SDK source unchanged. The source is ready to promote;
+no live operator module, policy/grant, Pi service, model, credential or APK changes.
+
+| Accepted artifact | Bytes | ZIP SHA-256 |
+| --- | ---: | --- |
+| Linux policy (8 cases, 9 source inputs) | 1,903 | `074600f7098e8fdec59c6267ab76d25d56883d098acf0e8d3af802a8d232f76b` |
+| Windows provider (72 cases, 15 source inputs) | 5,949 | `39e98e4f3607a71a6cbfd1204c60da1bf0df262507ba1c71911415848f96c766` |
+
+Linux report SHA-256: `3a1a7d12f3f5b66be4f40075a274473106c58f010caada4f3f81663f8ffdb03c`.
+Windows report: `2919fb8ac3dd88e8f1ca06838637cc0b9ccda3b4d55aa8a46e87bfb66daf92f2`.
+Raw protocol log: `710fb65b881229ce295867f179d0c761a459247fe7f27e4c994bdf1ff4a5a59d`.
+
+The 8 native Linux methods cover actual private observations, permissions,
+symlinks, hardlinks/FIFO/directories, changing/oversized reads, revocation,
+replacement/in-place ABA and descriptor cleanup. Worker replies remain synthetic;
+this does not certify Pi deployment, native HTTP sign-in, live SSH/worker/project/
+NAS content or final phone/release behavior. The 72-case Windows gate is freshly
+hosted on this source. Its tests and runtime source match exact Git bytes.
+No production policy was created and no SDK shutdown warning was waived.
+
+## Current next action
+
+Prepare a private operator/bootstrap policy and exact maintained-runtime bundle
+on the execution host, using the existing protected worker enrollment and fixed
+catalogued SSH route. Revalidate current Pi identity/parent protections, worker
+scope and source/recovery manifests, then verified encrypted backup and idle/
+receipt state. Obtain the separate concrete deployment/grant/restart approval
+before any live switch; the earlier authentication approval was source-only.
+After deployment, verify real native HTTPS/Android/worker content and independent
+chat/execution adoption. NAS, integrations/automation, upstream/shutdown and final
+production phone/release requirements remain part of the full goal.
+
+
+The preparation and first-cohort records below retain their original pending
+states. The accepted evidence above supersedes only the native-source gate;
+every broader acceptance limit and original goal requirement stays in force.
+
 ## Native checkout follow-up - 14 November 2026
 
 Initial feature [run 43541485509](https://github.com/DionCroft/Signal_Grove/actions/runs/43541485509)
