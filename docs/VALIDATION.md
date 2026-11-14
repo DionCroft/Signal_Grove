@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - native file publication and named modes
+
+The new exact file/mode component enforces complete closed-role catalogs,
+native directory/file preimages, one-use journal claims, private durable effect
+receipts and actual postimages. Atomic no-replace/exchange preserves concurrent
+and displaced entries; seven named 0775-to-0755 descriptor changes are nonrecursive.
+Separate recovery retains retired entries and restores old link/regular CLI
+forms without data/history/model effects. All 37 methods pass on Pi/no skips,
+including 29 Linux methods; independent source/raw/process/scratch/runtime/live
+review passes. Windows: 803 cases, 707 pass/96 skips. Non-file prerequisites are
+synthetic and temporary unit files are cleaned; exact renderer/live catalogs,
+missing-parent creation and composed retained packet acceptance remain. No live
+path, permission, policy, service or APK changes; the entire original goal stays.
+[Exact scope, native cases and evidence](contracts/2026-11-14-native-file-publication.md).
+
 ## 14 November 2026 - actual native errors, late completion and replay refusal
 
 Immutable native attempt evidence now distinguishes claimed/accepted/job_done/

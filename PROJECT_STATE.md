@@ -4,19 +4,20 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to implement the **reviewed native artifact/reference
-publisher and named mode changes**, preserving exact preimages/displaced data
-and testing failure outcomes in owned directories. All 124 related Pi methods
-pass/no skips (99 coordinator/journal +25 service boundary). Five actual owned
-scenarios verify adapter/reopen refusal, stop/post-helper failures and late job
-completion while all original intents remain pending. Independent source/raw/
-job/journal/native/package review passes; eighteen payload incarnations end and
-all owned units unload. Non-service prerequisites are synthetic; full native
-forward/recovery, other fault paths and production cutover remain open.
-Windows: 766 cases, 699 pass/67 platform skips; 64 pass on Pi, three older skips
-retain scope. [Current native evidence](docs/contracts/2026-11-14-native-service-error-paths.md).
-Complete the remaining PM/backups/admission/publication/reload/health and entire
-runtime-only recovery packet before separate live approval.
+The exact next action is to **bind the renderer's ten exact targets and payloads
+to the native publisher, prepare missing parents explicitly, and retain composed
+publication/recovery evidence in owned isolation**. The new native file/mode
+component passes all 37 methods on Pi/no skips, including 29 Linux cases. Exact
+preimages, atomic no-replace/exchange, retained displaced data, durable receipts,
+seven nonrecursive named mode changes and old link/regular-CLI recovery verify.
+Independent source/raw/process/scratch/runtime/live review passes. Its generic
+catalogs/existing test parents are not the final live layout or a full cutover.
+[File/mode scope](docs/contracts/2026-11-14-native-file-publication.md).
+The separate service/journal 124-method cohort and five native error scenarios
+remain accepted within their original component scope. Windows: 803 cases,
+707 pass/96 skips; 93 platform methods run in actual Pi cohorts, three older
+skips retain scope. Complete canonical PM/backups/admission/publication/reload/
+health and all runtime-only recovery/live gates before separate approval.
 Supported PM repaired the five declared
 tool dependencies in isolated staging; independent doctor/digest/probe review
 and a fresh normal SDK provider/native-retirement/lifespan fixture now pass,
@@ -35,8 +36,8 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 766 cases, 699 pass/67 POSIX skips. All 64
-  coordinator/journal/watchdog platform methods pass on the actual Pi;
+  The latest Windows suite runs 803 cases, 707 pass/96 POSIX skips. All 93
+  coordinator/journal/watchdog/file platform methods pass in actual Pi cohorts;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production
   release follows these debug/component checks.

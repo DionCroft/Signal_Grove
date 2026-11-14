@@ -6,19 +6,20 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** implement the reviewed native artifact/reference publisher and
-named mode changes with exact preimages, retained displaced data and actual
-owned-directory failure tests. Current service evidence passes all 124 related
-Pi methods/no skips and five actual adapter/reopen/helper-error/late-job cases.
-Nine exact jobs and eighteen payload/helper outcomes verify; original uncertain
-intents stay pending. Independent source/raw/job/journal/native/package review
-conserves live state. Windows: 766 cases, 699 pass/67 skips; 64 platform cases
-run on Pi, three older skips retain scope. Preserve the first natural-transition
-observer failure, all original receipts and terminal readback. Other service
-faults, canonical PM/work/backups/policy/modes/reload/health and complete native
-runtime-only recovery remain before separate live approval. Non-service fixture
-prerequisites are synthetic; the full original goal is unchanged.
-[Current native scope](docs/contracts/2026-11-14-native-service-error-paths.md).
+**Next action:** bind the renderer's ten exact targets/payloads to the native
+file/mode component, implement explicit missing-parent preparation and retain
+composed native publication/recovery files for independent readback. The new
+component passes 37 Pi methods/no skips (29 Linux); real atomic preservation,
+durable receipts, seven nonrecursive mode roles and old link/regular-CLI recovery
+verify. Generic catalogs and existing unit-test parents do not prove live layout.
+Independent source/raw/process/scratch/runtime/live review passes. Windows:
+803 cases, 707 pass/96 skips; 93 platform methods run in actual Pi cohorts,
+three older skips retain scope. The separate service/journal 124-method cohort
+and five actual errors remain scoped as before. Preserve all older failed and
+unknown receipts. Canonical PM/backups/admission/policy/refs/reload/live-user/
+health/graph and full runtime-only recovery remain before separate live approval.
+All original audit/on-device/phone/security/release requirements stay active.
+[Current file/mode scope](docs/contracts/2026-11-14-native-file-publication.md).
 Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence

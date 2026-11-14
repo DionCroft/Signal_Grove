@@ -240,3 +240,17 @@ replayed. This remains component-only; actual PM/backups/admission/artifact/
 reference/mode/reload/live-user/health and complete forward/recovery gates stay
 open before a separate live approval. No live operation is authorized here.
 [Exact current evidence](2026-11-14-native-service-error-paths.md).
+
+## Native file/mode primitives tested, live catalog/preparation still open
+
+The exact native file/mode component passes all 37 Pi methods/no skips and
+independent source/raw/process/scratch/runtime/live review. It uses complete
+role catalogs, original live journal claims, retained atomic exchanges and
+durable effect receipts. Named modes are descriptor-bound/nonrecursive; explicit
+runtime/policy recovery preserves retired entries and both old CLI forms.
+It requires existing parents. Bind the renderer's ten exact paths/payloads,
+prepare missing parents explicitly and retain composed packet evidence next.
+These owned unit tests seed non-file gates and do not validate the actual live
+path catalog, policy grants, full ancestry, PM/backups/admission/reload/live-user/
+health or full forward/recovery. All those gates and separate live approval stay.
+[Exact current component scope](2026-11-14-native-file-publication.md).
