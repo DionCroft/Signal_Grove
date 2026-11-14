@@ -1,5 +1,24 @@
 # Signal Grove audit execution plan
 
+## 14 November 2026 - pristine canonical Linux RPC file accepted
+
+Run 43557755078 at client source 94b3ff5 passes the full unmodified stable3b
+canonical plugin-RPC file on actual Linux: all six cases, including in_process
+and POSIX host, no skips/failures and runner exit 0 with no file retries.
+The original artifact size/digest, exact raw JUnit identities and all 23,586
+source-file hashes independently match pinned upstream Git blobs. The two
+earlier pre-test preparation failures and 39 unchanged PS1 Git-status
+observations remain; exact HEAD/index/working-byte proof accepts no byte drift.
+
+This closes the specific canonical POSIX file gap. It does not close pristine
+owner-runtime shutdown, the 40 stable/140 inspected-main handler reviews, actual
+Pi HTTP/policy/worker/phone acceptance or the original integration/release scope.
+The portable suite passes 501 tests. Android ed2c996's 1,141/1,142 standard
+positives and the approved Pi PM/testenv/native-18 conservation remain verified.
+No live service/launcher/permission/policy/grant/model/credential or APK changes.
+
+[Accepted evidence and remaining boundaries](contracts/2026-11-14-canonical-linux-and-device-gates.md).
+
 ## 14 November 2026 - verified Android cohort and native side environment
 
 The ed2c996 hosted Android run is independently accepted from all six original

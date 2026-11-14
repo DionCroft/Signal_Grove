@@ -120,3 +120,51 @@ Wrong index blobs/modes, duplicate/unmerged paths and every raw working-byte
 change remain refusals. Two additional evidence tests cover these cases, bringing
 the portable suite to 501 positives. All SDK tests/assertions and the pinned SHA
 remain unchanged; hosted acceptance is still pending.
+
+## Accepted pristine canonical Linux result
+
+[Run 43557755078](https://github.com/DionCroft/Signal_Grove/actions/runs/43557755078),
+client source `94b3ff5c5778f27833e1cfc9193983c979dcd86c`, is independently accepted.
+Actual Linux/x86_64 Python 3.14.9 and pytest 9.1.1 use the supported PM side
+environment. The unchanged canonical runner exits 0 with six positives, zero
+skips/failures/errors and zero retries. Both in_process and POSIX host plugin
+frontend cases run, alongside session verbs, events, namespace and profile checks.
+The full original SDK file and its assertions are unchanged.
+
+The downloaded original artifact is 1,119,115 bytes, matching API-reported
+SHA-256 `625c3750595cb115230359048c55c98dc01bfeed5d86f3aba28bb82ccb25025c`.
+Independent verification reads its raw JUnit, canonical exit/log and native
+environment identity. It then derives all 23,586 expected SHA-256 values from
+the immutable local pinned SDK's Git blobs: the entire hosted before/after
+source map equals that independently derived map. The HEAD/index/working-byte
+guard is unchanged by any hosted observation. The original Git-status data
+reports 39 PS1 paths before and after; all their bytes/modes/index entries match
+the pinned tree. This observation is preserved rather than treated as source
+drift or silently removed.
+
+| Verified evidence | SHA-256 |
+| --- | --- |
+| Canonical full source map | `52a2dddf97a3fa39251a666fa8819f05b3185d249f9e14005f66247ba217fbf2` |
+| Raw six-case JUnit | `768d3ba94a526ba000b8c0635d65407e606b5e04003c16a53a7b263f52a838ed` |
+| Full canonical log | `e2773b43e546240919611988362f547b7dd6038cb21b693a4887b25eed2c6a6f` |
+| Native accepted report | `8e4b8f6ed27680690222a4c20818389d0c9e063aca6c7a4a77ee333124dffe3a` |
+
+This closes only the previously incomplete canonical plugin-RPC POSIX file at
+stable3b. It does not turn earlier Windows skips/failures into successes and does
+not close the different owner-runtime process-exit shutdown finding, broad
+upstream compatibility review, Pi activation or any original integration gate.
+The canonical file ran on its real Linux CI host, not on Pi ARM64. Pi's current
+18 constructor cases and separate PM/testenv acceptance retain their own scope.
+
+A fresh independent Pi read-only postcheck after the side build still verifies
+both live services, old stamp/facts, 79 selected live source paths, candidate
+facts, absent live policy/extension and existing ancestor modes. Its result
+matches the earlier conservation digest exactly; no activation occurs.
+
+Next: complete isolated actual Pi native/HTTP ticket, PKCE/refresh/WebSocket and
+the existing 16 coordinator outcomes with a reviewed real-Linux IPC fence.
+Keep source/runtime/profile/UID checks and all assertions. Resolve the short
+OS-owned IPC path documentation before creating that fixture; do not place
+ordinary maintenance scratch outside the approved generation. Then prepare the
+exact separate activation/permission/unit/launcher/idle/recovery review, followed
+by actual HTTPS/Android/worker/execution and the full original release gates.

@@ -114,3 +114,16 @@ requirements. See [the current contract](contracts/2026-11-14-protected-operator
 [Complete maintained source and native staging review](contracts/2026-11-14-maintained-pi-source-candidate.md).
 
 [Actual native ARM64 staging and outstanding activation gates](contracts/2026-11-14-native-arm64-staged-candidate.md).
+
+
+## 14 November progress - canonical POSIX file closed, full goal active
+
+The exact stable3b canonical plugin-RPC file is now accepted on real Linux:
+six raw positive cases, no skips/failures, no retry, original artifact verified
+and all 23,586 source hashes matched independently to pinned Git blobs. Both
+pre-test CI failures remain. The portable suite passes 501 tests; Android
+ed2c996's full standard 1,141/1,142 cases and the approved Pi PM/side-test/native-18
+evidence retain their exact scopes. All four priorities and original requirements
+above remain. Continue the isolated actual Pi HTTP/ticket fixture next; no live
+activation, permission/grant, model, credential or APK change is authorized by
+this milestone. See [accepted evidence](contracts/2026-11-14-canonical-linux-and-device-gates.md).
