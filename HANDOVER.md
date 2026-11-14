@@ -6,11 +6,14 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** wire the tested exclusive durable journal into the fixed cutover
-coordinator with native effect verifiers, explicit unknown-outcome reconciliation
-and runtime-only rollback. The journal passes all 39 methods on Pi/no skips;
-the full Windows suite runs 681 cases, 654 pass/27 POSIX skips. It has no service,
-replay, repair or resume effect. [Journal scope](docs/contracts/2026-11-14-exclusive-cutover-journal.md).
+**Next action:** implement the concrete native Pi operations for PM/backups,
+gateway/serve fences, exact service/file/reference effects and supported live-
+user health/history/graph checks. The fixed coordinator and separate recovery
+ledger pass all 95 methods on Pi/no skips (real journal/files, synthetic SDK/
+manager seams). The full Windows suite runs 737 cases, 676 pass/61 POSIX skips;
+58 coordinator/journal platform methods run on Pi. Actual production adapters
+and full cutover acceptance remain before the concrete separate live approval.
+[Coordinator scope](docs/contracts/2026-11-14-fixed-cutover-coordinator.md).
 Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence

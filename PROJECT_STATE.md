@@ -4,11 +4,16 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to wire the **tested exclusive durable journal into
-the fixed cutover coordinator**, with native effect verification, explicit
-unknown-outcome reconciliation and runtime-only rollback. The journal passes
-all 39 methods on the actual Pi/no skips; the full Windows suite runs 681 cases,
-654 pass/27 POSIX skips. [Journal evidence](docs/contracts/2026-11-14-exclusive-cutover-journal.md).
+The exact next action is to implement the **concrete native operations for the
+reviewed Pi cutover packet**: canonical PM, verified encrypted backups, actual
+gateway/serve fences, service/file/reference outcomes and supported live-user
+health/history/graph verification. The fixed coordinator and explicit separate
+recovery ledger pass all 95 methods on Pi/no skips, using real journal/files and
+synthetic SDK/manager seams. This is not an actual two-service cutover.
+[Coordinator evidence](docs/contracts/2026-11-14-fixed-cutover-coordinator.md).
+Test concrete adapters in owned isolated fixtures and finish the complete packet
+before separate live approval. The full Windows suite runs 737 cases,
+676 pass/61 POSIX skips; all 58 coordinator/journal platform methods run on Pi.
 Supported PM repaired the five declared
 tool dependencies in isolated staging; independent doctor/digest/probe review
 and a fresh normal SDK provider/native-retirement/lifespan fixture now pass,
@@ -26,9 +31,9 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 681 cases, 654 pass/27 POSIX skips. All 24 new
-  journal-specific POSIX methods actually pass within the 39-case Pi cohort;
-  the three existing platform skips keep their original separate scope.
+  The latest Windows suite runs 737 cases, 676 pass/61 POSIX skips. All 58
+  coordinator/journal POSIX methods actually pass within the 95-case Pi cohort;
+  three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production
   release follows these debug/component checks.
 - The first disposable-API26 cohort passes all 541 methods: the original 540
@@ -79,8 +84,9 @@ Remaining full acceptance includes the four explicit resumed priorities:
 
 1. Original Demo and recent API26 causes, demonstrated fixes and final-source
    complete standard device gates; passing subsets cannot waive failures.
-2. Full used/transitive upstream compatibility (last reviewed 40 stable/144 main
-   used-handler changes) and operational shutdown. Keep all frozen failures.
+2. Full used/transitive upstream compatibility (40 stable/152 used-handler
+   differences at inspected main cd582ed) and operational shutdown. These are
+   observed differences, not completed reviews. Keep all frozen failures.
 3. Actual authenticated project/workspace/worker/NAS access and execution adoption,
    jobs/Kanban/rooms/grants/delivery, remaining integrations/configuration and
    doctor/graph validation on correct owners. Metadata alone is not execution.

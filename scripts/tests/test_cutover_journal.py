@@ -1,5 +1,6 @@
 from pathlib import Path
 import importlib.util
+import hashlib
 import json
 import os
 import subprocess
@@ -28,6 +29,14 @@ def encoded(*events):
     return b''.join(result)
 
 
+def recovery_event(prefix, **changes):
+    row = dict(kind='recovery_begin', operation='d'*32, plan_sha256='e'*64,
+               original_operation=OP, original_plan_sha256=PLAN,
+               history_sha256=hashlib.sha256(prefix).hexdigest(), evidence_sha256=PROOF)
+    row.update(changes)
+    return row
+
+
 BEGIN = dict(kind='begin')
 INTENT = dict(kind='intent', step='preflight')
 VERIFIED = dict(kind='verified', step='preflight', evidence_sha256=PROOF)
@@ -35,6 +44,64 @@ COMPLETE = dict(kind='complete', evidence_sha256=PROOF)
 
 
 class JournalParserTests(unittest.TestCase):
+    def test_authorization_binding_survives_separate_recovery_without_replacing_root(self):
+        before = encoded(dict(BEGIN, authorization_sha256='f'*64), INTENT)
+        view = inspect_bytes(before + encoded(recovery_event(before, seq=3, authorization_sha256='a'*64)))
+        self.assertEqual(view['authorization_sha256'], 'a'*64)
+        self.assertEqual(view['root_authorization_sha256'], 'f'*64)
+
+    def test_optional_authorization_field_refuses_nonhash_values(self):
+        for value in (True, None, 'private', 'f'*63):
+            with self.subTest(value=value), self.assertRaises(Unknown):
+                inspect_bytes(encoded(dict(BEGIN, authorization_sha256=value)))
+
+    def test_authorization_cannot_be_switched_mid_operation(self):
+        with self.assertRaises(Unknown):
+            inspect_bytes(encoded(dict(BEGIN, authorization_sha256='f'*64), dict(INTENT, authorization_sha256='a'*64)))
+    def test_explicit_recovery_binds_exact_original_history_and_root(self):
+        before = encoded(BEGIN, INTENT)
+        view = inspect_bytes(before + encoded(recovery_event(before, seq=3)))
+        self.assertEqual(view['mode'], 'recovery')
+        self.assertEqual(view['root_operation'], OP)
+        self.assertEqual(view['root_plan_sha256'], PLAN)
+        self.assertEqual(view['recovery_origin']['history_sha256'], hashlib.sha256(before).hexdigest())
+
+    def test_recovery_refuses_stale_history_or_wrong_original_identity(self):
+        before = encoded(BEGIN, INTENT)
+        for change in (dict(history_sha256='f'*64), dict(original_operation='f'*32), dict(original_plan_sha256='f'*64), dict(evidence_sha256='private')):
+            with self.subTest(change=change), self.assertRaises(Unknown):
+                inspect_bytes(before + encoded(recovery_event(before, seq=3, **change)))
+
+    def test_recovery_cannot_replace_empty_or_completed_history(self):
+        for before in (b'', encoded(BEGIN, INTENT, VERIFIED, COMPLETE)):
+            with self.subTest(before=before), self.assertRaises(Unknown):
+                inspect_bytes(before + encoded(recovery_event(before, seq=len(before.splitlines())+1)))
+
+    def test_recovery_never_reenables_forward_steps(self):
+        before = encoded(BEGIN, INTENT)
+        row = recovery_event(before, seq=3)
+        with self.assertRaises(Unknown):
+            inspect_bytes(before + encoded(row) + encoded(dict(INTENT, seq=4, operation='d'*32, plan_sha256='e'*64)))
+
+    def test_forward_operation_cannot_dispatch_recovery_steps(self):
+        with self.assertRaises(Unknown):
+            inspect_bytes(encoded(BEGIN, dict(INTENT, step='rollback_runtime')))
+
+    def test_recovery_bytes_hash_preserves_crlf_in_original_receipt(self):
+        before = encoded(BEGIN, INTENT).replace(b'\n', b'\r\n')
+        self.assertEqual(inspect_bytes(before + encoded(recovery_event(before, seq=3)))['mode'], 'recovery')
+
+    def test_second_explicit_recovery_retains_the_original_root(self):
+        before = encoded(BEGIN, INTENT)
+        first = before + encoded(recovery_event(before, seq=3)) + encoded(dict(kind='unknown', seq=4, operation='d'*32, plan_sha256='e'*64))
+        second = recovery_event(first, seq=5, operation='f'*32, plan_sha256='a'*64, original_operation='d'*32, original_plan_sha256='e'*64)
+        view = inspect_bytes(first + encoded(second))
+        self.assertEqual(view['root_operation'], OP)
+        self.assertEqual(view['recovery_origin']['operation'], 'd'*32)
+
+    def test_recovery_cannot_reuse_any_prior_operation_identity(self):
+        before = encoded(BEGIN, INTENT)
+        with self.assertRaises(Unknown): inspect_bytes(before + encoded(recovery_event(before, seq=3, operation=OP)))
     def test_empty_does_not_claim_external_acceptance(self):
         self.assertEqual(inspect_bytes(b'')['state'], 'empty')
 
@@ -109,6 +176,39 @@ class JournalParserTests(unittest.TestCase):
 
 @unittest.skipUnless(os.name == 'posix', 'Actual POSIX flock/inode/durability checks require the native Linux cohort')
 class NativeJournalTests(unittest.TestCase):
+    def test_explicit_recovery_op_can_only_append_recovery_evidence(self):
+        with self.opened() as journal:
+            journal.begin(OP, PLAN); journal.intent('stop_old')
+        with self.opened() as journal:
+            before = (self.root/'journal.jsonl').read_bytes()
+            journal.begin_recovery('d'*32, 'e'*64, original_operation=OP, original_plan_sha256=PLAN,
+                                   history_sha256=hashlib.sha256(before).hexdigest(), evidence_sha256=PROOF)
+            journal.intent('recovery_preflight'); journal.verified('recovery_preflight', PROOF)
+            journal.complete(PROOF)
+            self.assertTrue((self.root/'journal.jsonl').read_bytes().startswith(before))
+            self.assertEqual(journal.view['mode'], 'recovery')
+
+    def test_recovery_does_not_bypass_current_inode_or_content_fence(self):
+        journal = self.opened(); journal.begin(OP, PLAN); journal.intent('stop_old')
+        digest = journal.history_sha256
+        with (self.root/'journal.jsonl').open('ab') as f: f.write(b'changed\n')
+        with self.assertRaises(Unknown): journal.begin_recovery('d'*32, 'e'*64,
+            original_operation=OP, original_plan_sha256=PLAN, history_sha256=digest, evidence_sha256=PROOF)
+
+    def test_recovery_with_wrong_history_preserves_original_bytes(self):
+        with self.opened() as journal:
+            journal.begin(OP, PLAN); journal.intent('stop_old')
+        before = (self.root/'journal.jsonl').read_bytes()
+        with self.opened() as journal:
+            with self.assertRaises(Unknown): journal.begin_recovery('d'*32, 'e'*64,
+                original_operation=OP, original_plan_sha256=PLAN, history_sha256='f'*64, evidence_sha256=PROOF)
+        self.assertEqual((self.root/'journal.jsonl').read_bytes(), before)
+
+    def test_assert_current_detects_external_change_and_poison(self):
+        journal = self.opened(); journal.begin(OP, PLAN); journal.assert_current()
+        with (self.root/'journal.jsonl').open('ab') as f: f.write(b'changed\n')
+        with self.assertRaises(Unknown): journal.assert_current()
+        self.assertTrue(journal.view['durability_uncertain'])
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='signal-grove-journal-')
         self.addCleanup(self.temp.cleanup)

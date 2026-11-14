@@ -8,6 +8,7 @@ the supplied private directory and every named inode are checked before writes.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -17,9 +18,17 @@ import stat
 
 MAX_BYTES = 1024 * 1024
 MAX_RECORDS = 512
-STEPS = frozenset({'preflight', 'backup_pre', 'pm_old', 'pm_new',
+FORWARD_STEPS = frozenset({'preflight', 'backup_pre', 'pm_old', 'pm_new',
     'gateway_drain', 'serve_retirement', 'stop_old', 'install_reviewed',
-    'start_new', 'verify_new', 'backup_post', 'rollback_runtime', 'verify_rollback'})
+    'start_new', 'verify_new', 'backup_post', 'stop_gateway', 'stop_serve',
+    'secure_modes', 'publish_reviewed', 'install_policy', 'bind_gateway',
+    'bind_serve', 'bind_cli', 'reload_units', 'start_gateway', 'start_serve'})
+RECOVERY_STEPS = frozenset({'recovery_preflight', 'recovery_backup',
+    'rollback_gateway_drain', 'rollback_serve_retirement',
+    'rollback_stop_gateway', 'rollback_stop_serve', 'rollback_policy',
+    'rollback_runtime', 'rollback_reload', 'rollback_start_gateway',
+    'rollback_start_serve', 'verify_rollback', 'recovery_backup_post'})
+STEPS = FORWARD_STEPS | RECOVERY_STEPS
 HASH = re.compile(r'[a-f0-9]{64}')
 OPERATION = re.compile(r'[a-f0-9]{32}')
 
@@ -49,11 +58,14 @@ def inspect_bytes(data):
     """
     if type(data) is not bytes or len(data) > MAX_BYTES or (data and not data.endswith(b'\n')):
         raise Unknown('Journal bytes are incomplete or outside bounds')
-    lines = data.splitlines()
+    lines = data.split(b'\n')[:-1] if data else []
     if len(lines) > MAX_RECORDS or any(not line or len(line) > 1024 for line in lines):
         raise Unknown('Journal record bounds are invalid')
     records = []
     state, operation, plan, pending = 'empty', None, None, None
+    mode, root_operation, root_plan, recovery_origin = None, None, None, None
+    authorization, root_authorization = None, None
+    prefix = hashlib.sha256()
     seen, steps = set(), set()
     try:
         for seq, line in enumerate(lines, 1):
@@ -66,6 +78,10 @@ def inspect_bytes(data):
                 keys.add('step')
             if kind in ('verified', 'complete'):
                 keys.add('evidence_sha256')
+            if kind == 'recovery_begin':
+                keys.update(('original_operation', 'original_plan_sha256', 'history_sha256', 'evidence_sha256'))
+            if kind in ('begin', 'recovery_begin') and 'authorization_sha256' in row:
+                keys.add('authorization_sha256')
             if (set(row) != keys or type(row['schema']) is not int or row['schema'] != 1
                     or type(row['seq']) is not int or row['seq'] != seq
                     or type(row['operation']) is not str or not OPERATION.fullmatch(row['operation'])
@@ -74,17 +90,33 @@ def inspect_bytes(data):
             if 'evidence_sha256' in row and (type(row['evidence_sha256']) is not str
                     or not HASH.fullmatch(row['evidence_sha256'])):
                 raise ValueError()
+            if 'authorization_sha256' in row and (type(row['authorization_sha256']) is not str
+                    or not HASH.fullmatch(row['authorization_sha256'])):
+                raise ValueError()
             if kind == 'begin':
                 if state not in ('empty', 'complete') or row['operation'] in seen:
                     raise ValueError()
                 operation, plan = row['operation'], row['plan_sha256']
                 seen.add(operation); steps = set(); state = 'active'; pending = None
+                mode = 'forward'; root_operation, root_plan = operation, plan
+                recovery_origin = None
+                authorization = row.get('authorization_sha256'); root_authorization = authorization
+            elif kind == 'recovery_begin':
+                if (state not in ('active', 'pending', 'unknown') or row['operation'] in seen
+                        or row['original_operation'] != operation or row['original_plan_sha256'] != plan
+                        or row['history_sha256'] != prefix.hexdigest()):
+                    raise ValueError()
+                recovery_origin = dict(operation=operation, plan_sha256=plan, history_sha256=prefix.hexdigest())
+                operation, plan = row['operation'], row['plan_sha256']
+                seen.add(operation); steps = set(); state = 'active'; pending = None; mode = 'recovery'
+                authorization = row.get('authorization_sha256')
             else:
                 if row['operation'] != operation or row['plan_sha256'] != plan:
                     raise ValueError()
                 if kind == 'intent':
                     step = row['step']
-                    if state != 'active' or type(step) is not str or step not in STEPS or step in steps:
+                    allowed = RECOVERY_STEPS if mode == 'recovery' else FORWARD_STEPS
+                    if state != 'active' or type(step) is not str or step not in allowed or step in steps:
                         raise ValueError()
                     steps.add(step); pending = step; state = 'pending'
                 elif kind == 'verified':
@@ -102,10 +134,14 @@ def inspect_bytes(data):
                 else:
                     raise ValueError()
             records.append(row)
+            prefix.update(line + b'\n')
     except (ValueError, TypeError, KeyError, UnicodeError, RecursionError):
         raise Unknown('Journal schema/order is unproven; preserve it without repair') from None
     return dict(state=state, operation=operation, plan_sha256=plan,
-                pending=pending, records=records, recovery_required=state not in ('empty', 'complete'))
+                pending=pending, mode=mode, root_operation=root_operation, root_plan_sha256=root_plan,
+                authorization_sha256=authorization, root_authorization_sha256=root_authorization,
+                recovery_origin=recovery_origin, records=records,
+                recovery_required=state not in ('empty', 'complete'))
 
 
 class CutoverJournal:
@@ -192,7 +228,7 @@ class CutoverJournal:
         return result
 
     def _append(self, kind, **fields):
-        if self._closed or self._poisoned or (kind != 'begin' and not self._owns_operation):
+        if self._closed or self._poisoned or (kind not in ('begin', 'recovery_begin') and not self._owns_operation):
             raise Unknown('Journal instance is closed or needs recovery')
         try:
             row = dict(schema=1, seq=len(self._view['records']) + 1,
@@ -218,19 +254,50 @@ class CutoverJournal:
                 raise
             raise Unknown('Journal durability or identity is unproven; preserve without replay') from None
         self._data, self._view = candidate, view
-        if kind == 'begin':
+        if kind in ('begin', 'recovery_begin'):
             self._owns_operation = True
         elif kind in ('unknown', 'complete'):
             self._owns_operation = False
 
-    def begin(self, operation, plan_sha256):
+    def begin(self, operation, plan_sha256, *, authorization_sha256=None):
         if self._view['recovery_required']:
             raise Unknown('An unfinished cutover must be reconciled before new work')
         # Begin uses a new operation/plan in the record, never mutates prior rows.
-        self._append('begin', operation=operation, plan_sha256=plan_sha256)
+        fields = {} if authorization_sha256 is None else dict(authorization_sha256=authorization_sha256)
+        self._append('begin', operation=operation, plan_sha256=plan_sha256, **fields)
 
     def intent(self, step):
         self._append('intent', step=step)
+
+    @property
+    def history_sha256(self):
+        return hashlib.sha256(self._data).hexdigest()
+
+    def assert_current(self):
+        """Recheck the held names/content; a snapshot alone grants no dispatch."""
+        if self._closed or self._poisoned:
+            raise Unknown('Journal instance is closed or needs recovery')
+        try:
+            self._check_names()
+            if os.pread(self._journal, MAX_BYTES + 1, 0) != self._data:
+                raise Unknown('Journal content changed')
+        except BaseException as exc:
+            self._poisoned = True
+            if not isinstance(exc, Exception):
+                raise
+            raise Unknown('Journal ownership or history is unproven') from None
+
+    def begin_recovery(self, operation, plan_sha256, *, original_operation,
+                       original_plan_sha256, history_sha256, evidence_sha256, authorization_sha256=None):
+        """Record a separate explicitly reviewed recovery, never resume old steps.
+
+        The coordinator must verify fresh native effects and matching approval
+        before calling. This ledger does not validate or manufacture approval.
+        """
+        fields = {} if authorization_sha256 is None else dict(authorization_sha256=authorization_sha256)
+        self._append('recovery_begin', operation=operation, plan_sha256=plan_sha256,
+                     original_operation=original_operation, original_plan_sha256=original_plan_sha256,
+                     history_sha256=history_sha256, evidence_sha256=evidence_sha256, **fields)
 
     def verified(self, step, evidence_sha256):
         self._append('verified', step=step, evidence_sha256=evidence_sha256)

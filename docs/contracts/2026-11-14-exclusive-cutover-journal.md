@@ -1,5 +1,10 @@
 # Exclusive durable cutover journal component
 
+This preserves the earlier 39-method source checkpoint. The
+[fixed coordinator/current journal](2026-11-14-fixed-cutover-coordinator.md)
+adds explicit separate recovery records and durable authorization bindings; it
+never resumes unknown forward steps. The earlier source/evidence is unchanged.
+
 14 November 2026. `scripts/cutover_journal.py` implements the first persistent
 transaction component. It executes no cutover or recovery action. There is no
 service, network, policy, permission-change, database restore or replay API.

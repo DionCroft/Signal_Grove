@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## 14 November 2026 - fixed coordinator and explicit separate recovery
+
+The native exclusive journal now carries durable execution-approval bindings
+and new recovery operations tied to exact prior bytes, without resuming forward
+steps. The coordinator enforces nineteen forward/thirteen recovery stages,
+fresh native observation contracts, post-intent work/deadline/journal checks
+and verified effects. Failures hold without retry or automatic compensation.
+All 95 focused methods pass on Pi/no skips, with actual journal/files/locks and
+explicit synthetic SDK/manager seams. The full Windows suite runs 737 cases:
+676 pass/61 POSIX skips; 58 coordinator/journal platform cases run on Pi and
+three pre-existing skips retain scope. Independent raw/source/termination review
+passes, with runtime/facts/modes/live state conserved. Concrete production native
+adapters, their end-to-end gates and separate live approval remain before cutover;
+every original audit/phone/release requirement stays active. No APK change.
+[Source, exact scope and evidence](contracts/2026-11-14-fixed-cutover-coordinator.md).
+
 ## 14 November 2026 - tested exclusive durable journal component
 
 The source-only journal binds a previously observed private directory identity,

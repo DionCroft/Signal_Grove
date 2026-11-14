@@ -194,3 +194,14 @@ resume authority when reopened. It executes no service, permission, policy,
 restore or replay action. Wire it into the fixed coordinator/native effect
 verifiers and explicit reconciliation/rollback before final live review.
 [Component evidence](2026-11-14-exclusive-cutover-journal.md).
+
+## Fixed coordinator now tested; concrete native operations still open
+
+The fixed nineteen-stage forward/thirteen-stage separate recovery coordinator
+and durable authorization/history bindings pass all 95 focused methods on Pi.
+Actual journal/files/locks are used with synthetic SDK/manager observations.
+No failure retries or automatic compensation are introduced. Implement and test
+the concrete native PM/backup/drain/retirement/service/publication/health adapters
+before final live packet review; all canonical, permission, credential/data,
+work-fence and original audit/release gates remain.
+[Current coordinator scope](2026-11-14-fixed-cutover-coordinator.md).
