@@ -21,14 +21,14 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **905 cases: 737 pass, 168 POSIX skips**.
+The latest Windows Python suite runs **927 cases: 757 pass, 170 POSIX skips**.
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,
 eight actual stages, original CLI restoration and preserved newer data. Its
 descriptor guard tracks actual named mode/new-parent transitions. Independent
 raw/native/state review passes. A real-root read-only preflight captures twenty
 existing directories/three missing parents and correctly refuses publication
-while the seven real modes remain 0775. Of the platform cases, 165 run on Pi;
+while the seven real modes remain 0775. Of the platform cases, 167 run on Pi;
 three older cases retain scope. The separate service/journal cohort has 124 Pi
 passes and five native error scenarios. Non-file fixture prerequisites remain
 synthetic; full PM/backup/admission/reload/authenticated health/cutover/recovery
@@ -58,6 +58,14 @@ review passes, with both owned units stopped and live state unchanged. Productio
 PM refuses a missing/mismatched boundary. Full backup, admission, reload, health
 and bounded recovery acceptance remain open.
 [Operational ancestry and current scope](docs/contracts/2026-11-14-operational-ancestry.md).
+
+Backup archive verification has **22 Pi passes/no skips** and a separate actual
+SDK/age fixture: eleven selected members, seven exclusions, two committed WAL
+rows and an identical encryption/decryption ZIP hash. A reproduced empty-SQLite
+counterexample is fixed before publication. Independent raw/ZIP/SQL/crypto review
+passes. The live home is untouched; journal-bound production backup and private
+Release publication still need implementation and acceptance.
+[Backup source, evidence and limits](docs/contracts/2026-11-14-backup-archive-verification.md).
 
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
@@ -131,6 +139,7 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 | Actual staged Pi owner transport | **16 coordinator outcomes / 50 protocol assertions** | Native UID + synthetic-IdP HTTP PKCE/refresh/tickets/WS and exact workspace receipts; zero fence refusals, lifecycle warning holds the overall gate; no live activation |
 | Exact upstream plugin install | **17 canonical cases / 4 files** | Pristine v0.23.1; reviewed source moves/commit/catalog/exists refusals. Separate full RPC file now has six canonical Linux positives, including POSIX host; exact source/artifact verified |
 | Optional protected operator binding | **8 portable / 8 Linux native policy cases** | Explicit grants, fixed routes and fresh file-generation checks. Exact-source Linux/Windows artifacts verified; no Pi deployment |
+| Backup archive content component | **22 Pi methods + one SDK/age fixture** | Exact members/hash/CRC, SQLite header/pages/integrity, two WAL rows and crypto round-trip using generated data/key; full backup transaction/private publication remain open |
 | Shared operational directory boundary | **208 Pi methods + one actual guarded install** | Ten roles, guarded journal and PM, shared actual mode/parent witnesses; independent raw/native review. Component cohorts overlap; canonical provisioning and full transaction remain open |
 | Native PM preparation component | **48 Pi cases + one actual install** | Separate fresh private home, supported full install/currency, four activation inputs and ARM64 imports; independently verified. Includes 25 overlapping service cases; canonical provisioning and full cutover remain open |
 | Current Pi source preservation | **79 live paths unchanged / 18 native authority outcomes** | Isolated ARM64 PM candidate built with only vendor-path rebase; same cases pass on Windows/Pi. Live activation and both permission prerequisites remain open; [exact scope](docs/contracts/2026-11-14-native-arm64-staged-candidate.md) |

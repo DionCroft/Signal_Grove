@@ -6,27 +6,28 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-The next action is to **implement/test the fresh encrypted-backup adapter**
-against supported Hermes archive selection rules, then complete admission,
-reload, authenticated health/history/graph and full bounded runtime recovery.
-The shared operational boundary now protects journal and PM directory ancestry
-alongside publication. Production PM requires the exact guarded journal and
-role catalog. All 208 affected native methods pass/no skips; a separate actual
-SDK install uses that shared real-root guard in a fresh private home. Independent
-raw/native/source review passes and both owned units are stopped. Ten existing
-actual operational roots were separately observed read-only, all 0700.
-Both canonical PM contexts remain unprepared, seven modes stay 0775 and live
-state is unchanged. Backup contents/file inputs, admission/reload/health and the
-full transaction remain before the concrete packet and separate live approval.
-[Current source and evidence](docs/contracts/2026-11-14-operational-ancestry.md).
+The next action is to **implement the journal-bound one-use backup transaction
+and private Release upload/download verification** around the verified archive/
+SDK/age path, then finish admission/reload/health and bounded runtime recovery.
+The new content verifier and actual SDK/age fixture pass all 22 native methods
+without skips. Eleven selected members, seven exclusions, two committed WAL
+rows, identical encryption round-trip and retained source data verify. A
+reproduced zero-byte SQLite counterexample is fixed before publication through
+header/page checks. Independent raw/ZIP/SQL/crypto readback passes; both owned
+units are stopped. Windows: 927 cases, 757 pass/170 platform skips.
+This is a fixture/content gate; the full backup transaction, private publication
+and operational restore are unaccepted. Both canonical PM contexts remain
+unprepared, seven modes stay 0775 and live state is unchanged. Every original
+audit/local-AI/phone/security/release gate remains active before final live review.
+[Current source and evidence](docs/contracts/2026-11-14-backup-archive-verification.md).
 The guarded owned fixture verifies eight actual file/mode stages, five parents,
 five retained entries, original CLI restoration and newer-data preservation.
 All 80 cohort methods pass on Pi/no skips; independent raw/native/source/state
 review passes. Fresh real-root preflight captures 20 directories/three missing
 parents and refuses publication while seven modes remain 0775. Live source/facts/
 files/permissions/services remain unchanged. Non-file fixture stages stay
-synthetic; full operational acceptance remains open. Windows: 905 cases, 737 pass/
-168 platform skips; 165 platform cases run in Pi cohorts, three older skips keep
+synthetic; full operational acceptance remains open. Windows: 927 cases, 757 pass/
+170 platform skips; 167 platform cases run in Pi cohorts, three older skips keep
 scope. Separate service/journal 124-method/five-error scope and every original
 audit/on-device/security/release requirement remain. Preserve all failed/unknown
 receipts and no-replay boundaries; Android/build inputs are unchanged.

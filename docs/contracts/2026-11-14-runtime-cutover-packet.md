@@ -375,3 +375,31 @@ before separate live approval. All original API26, upstream, project/worker/NAS,
 automation/integration, phone/local-AI/security and signed-release tasks remain
 active. Android/build inputs and the published beta.9 APK are unchanged.
 [Source and acceptance scope](2026-11-14-operational-ancestry.md).
+
+## Backup archive checkpoint - 14 November 2026
+
+The backup content component now verifies the exact pinned SDK-selected member
+set, streamed CRC/hash/size bounds and SQLite integrity in fresh private images.
+It rejects duplicates, extras/missing files, unsafe ZIP types, corrupt content,
+empty/truncated SQLite images and attempts to classify a `.db` as a byte copy.
+A reproduced pre-publication counterexample confirms SQLite accepted zero bytes
+as an empty database; strict header/page checks now refuse it.
+
+All **22 Pi methods pass/no skips**. A separate actual SDK/age fixture verifies
+11 selected state members, seven exclusions, two committed uncheckpointed WAL
+rows, matching encrypted/decrypted ZIP hashes and retained source data. Only
+generated fixture data and a disposable private key are used. Successful fixture
+plaintext is removed by exact native identity. Independent raw/source/ZIP/SQL/
+crypto readback passes; both owned units stopped. Windows: **927 cases, 757 pass/
+170 platform skips**; 167 platform methods have scoped Pi evidence and three
+older cases retain scope. All 23,628 source inputs, 41 SDK caches, existing facts,
+seven real modes and live service incarnations conserve.
+
+This is content verification plus a native fixture, not the production backup
+transaction, private Release publication, fleet freeze or operational restore.
+Next implement the journal-bound one-use backup transaction and private upload/
+download verification around this path, then finish admission/reload/health and
+the full bounded runtime recovery packet before separate live approval. Every
+original audit, local-AI/phone/security and signed-release requirement stays
+active. Android/build inputs and the beta.9 APK are unchanged.
+[Exact source and scope](2026-11-14-backup-archive-verification.md).
