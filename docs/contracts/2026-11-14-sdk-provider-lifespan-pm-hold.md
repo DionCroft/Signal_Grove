@@ -1,5 +1,9 @@
 # Normal SDK provider/lifespan evidence, PM readiness held
 
+This is the preserved earlier held checkpoint. A supported five-tool install
+and [fresh independent SDK pass](2026-11-14-staged-pm-readiness-and-sdk-pass.md)
+now resolve the finite staged gate; this original failed receipt is unchanged.
+
 14 November 2026. Tested source 1da9973 adds a fenced full SDK acceptance probe
 and seven boundary methods. The probe makes real progress through the normal
 serve CLI but **does not pass its overall gate**: PM readiness remains held.

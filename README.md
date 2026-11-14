@@ -28,16 +28,18 @@ canonical shutdown and real systemd-helper checks remain separately scoped;
 they do not establish complete deployment or fleet interoperability.
 [Native evidence and limits](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
 
-The normal isolated SDK CLI now completes bundled-provider PKCE login/refresh,
-kernel-fenced retirement and observed startup/shutdown; all 66 component unit
-methods pass without skips. **Overall SDK acceptance remains held by a PM tool
-readiness warning** for ffmpeg, Node, npm, pnpm and ripgrep. It uses generated
-test credentials and proves no actual live-user/phone session acceptance.
-[Evidence and next setup work](docs/contracts/2026-11-14-sdk-provider-lifespan-pm-hold.md).
+The isolated candidate's five missing declared tool pins are installed through
+supported PM. Independent seven-tool identity/digest/probe checks and PM doctor
+pass with no drift or startup warning. A fresh normal SDK CLI fixture completes
+bundled-provider PKCE login/refresh, kernel-fenced retirement and observed
+startup/shutdown; all 66 component methods pass without skips. Its finite
+isolated gate passes; it uses generated test credentials and proves no actual
+live-user/phone session acceptance. Earlier failed/held evidence remains.
+[Evidence and remaining deployment work](docs/contracts/2026-11-14-staged-pm-readiness-and-sdk-pass.md).
 
-The candidate has its own PM environment and reviewed launcher/units. PM/artifact
-readiness and the bounded cutover/rollback still require verification before
-separate live approval. Upstream
+The candidate has its own PM environment and reviewed launcher/units. Canonical
+home readiness and the bounded cutover/rollback remain before separate live
+approval. Upstream
 used/transitive/shutdown, real project/worker/NAS/integration and final signed-
 production acceptance remain open. **The published beta.9 APK is unchanged.**
 [Full goal](docs/GOAL.md) · [Runtime packet](docs/contracts/2026-11-14-runtime-cutover-packet.md).

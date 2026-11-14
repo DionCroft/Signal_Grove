@@ -431,3 +431,19 @@ upgrade and full live interoperability remain separate and open. Upstream review
 still fails: forty stable/152 inspected-main used-handler changes require review.
 No rerun, cancellation, new APK, baseline reset or live activation follows.
 [Exact source, hashes and limits](contracts/2026-11-14-hosted-standard-matrix.md).
+
+## 14 November 2026 - staged PM repaired, fresh full SDK probe passes
+
+Supported PM installs exactly five missing declared pinned tools; independent
+seven-tool identity/tree/probe checks and normal doctor pass, with zero drift
+and no startup warning. A fresh unchanged-source SDK fixture passes 66 native
+component methods/no skips, eight real auth exchanges and four retirement
+exchanges over one kernel-verified socket. Independent raw review confirms ten
+credential-free journal rows, twelve lifespan events, normal owned SIGTERM,
+1,098 loaded module identities at both phases and ended children. No final
+warning/fence refusal; source, application facts, live references and modes
+conserve. Earlier failed/held probes remain unchanged. Live-user/phone, canonical
+PM, full transaction and every broader audit/release requirement stay open.
+Next: bounded exclusive cutover executor/journal/recovery and rollback, with a
+concrete separate live approval only after its final packet is ready.
+[Exact scope, pins and evidence](contracts/2026-11-14-staged-pm-readiness-and-sdk-pass.md).

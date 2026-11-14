@@ -173,3 +173,14 @@ one native-owned socket, with observed finalization and ended children. Its
 overall gate remains held by a PM readiness warning for five tools. Supported
 PM/artifact provisioning and complete transaction/live/phone acceptance remain;
 no warning is suppressed and staging is not live approval.
+
+## Staged readiness gate now closed, live transaction still open
+
+The supported exact five-tool PM install and independent seven-tool doctor/hash/
+probe review pass. A fresh normal SDK provider/native-retirement/lifespan fixture
+now passes with no PM warning or fence refusal and ended owned children. The
+earlier held receipt remains. This does not establish either canonical-home PM
+selection or authorize live installation/service/permission/policy actions.
+Implement/test the exclusive bounded executor, journal, recovery and rollback
+before the concrete final live approval; retain all gates in this packet.
+[Current evidence](2026-11-14-staged-pm-readiness-and-sdk-pass.md).

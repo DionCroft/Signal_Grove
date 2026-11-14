@@ -4,15 +4,16 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to inspect and resolve the **isolated candidate's
-supported PM/artifact/tool readiness**. The normal CLI reports ffmpeg, node, npm,
-pnpm and ripgrep missing/outdated; the full SDK gate is terminal and held by that
-warning despite successful provider/retirement/lifespan observations. Do not copy
-facts, alias environments, fake install kind or repeat a green protocol without
-a readiness change. The approved exact tool install now completed with no drift;
-independent doctor/readiness review is underway before a fresh SDK probe. Finish
-bounded transaction/rollback before separate live approval. The existing hosted
-Android matrix has ended successfully; upstream compatibility review still fails.
+The exact next action is to implement and test the **exclusive bounded cutover
+executor/journal/recovery and rollback**. Supported PM repaired the five declared
+tool dependencies in isolated staging; independent doctor/digest/probe review
+and a fresh normal SDK provider/native-retirement/lifespan fixture now pass,
+without a PM warning or fence refusal. All owned checks are terminal. Preserve
+the earlier failed/held receipts. Canonical old-stop/new-start PM, seven named
+modes, policy/source/units/CLI references, fresh encrypted backups and exact work
+fences remain unactivated. Finish the concrete final packet before separate live
+approval. Hosted source3ccc788 Android matrix passes; later push runs are separate
+queued/active checks and upstream compatibility review still fails.
 
 Current Android investigation:
 
@@ -54,9 +55,10 @@ Pi deployment boundary:
   PKCE/code replay refusal/refresh and guarded retirement on one kernel-verified
   socket. Twelve events observe real startup/finalization; the owned child exits
   normally on SIGTERM. All 66 native component unit methods pass with no skips.
-  Final fences have zero refusals and 1,098 loaded SDK modules bind to reviewed
-  bytes at both phases. Overall gate remains **held by PM readiness**, not green.
-  [Current evidence](docs/contracts/2026-11-14-sdk-provider-lifespan-pm-hold.md).
+  After the supported five-tool PM repair, a fresh probe and independent raw
+  review pass the finite isolated gate with zero PM warnings/fence refusals and
+  1,098 loaded SDK modules bound to reviewed bytes at both phases. The earlier
+  held receipt is preserved. [Current evidence](docs/contracts/2026-11-14-staged-pm-readiness-and-sdk-pass.md).
   Generated test credentials prove no actual live-user/phone session acceptance.
   The last live public provider offers username/password; owner token gets 401.
 - Canonical-home PM readiness is required for **both the old loaded stop/cleanup

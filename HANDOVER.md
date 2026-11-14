@@ -6,16 +6,17 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** resolve the isolated candidate's supported PM/artifact/tool
-readiness. The normal CLI reports ffmpeg, node, npm, pnpm and ripgrep missing or
-outdated. The full SDK gate is terminal/held by `pm_readiness_warning`; auth and
-lifespan observations do not waive it. Use supported provisioning, never facts
-copying, environment aliases or fake install kind. Then revalidate after an
-actual readiness change and finish bounded executor/journal/rollback. The exact
-staged tool install completed with zero drift; independent doctor/readiness is
-under review. Hosted Android CI is terminal/green on both APIs. Do not repeat
-green Android/protocol cohorts merely
-to obtain acceptance; reconcile unknown operations from authoritative state.
+**Next action:** implement/test the exclusive bounded cutover executor, durable
+journal, unknown-outcome recovery and rollback. Supported PM installed exactly
+the five missing declared pins. Independent doctor/tree/probe verification and
+a fresh full SDK native provider/lifespan probe pass with no PM warning or fence
+refusal; all owned children ended. Preserve both prior observer failures and the
+earlier held full probe. Canonical old-stop/new-start PM, named modes, policy,
+units/CLI/source references, fresh backups and exact idle fences remain before a
+concrete final live approval. No live change is authorized by isolated staging.
+Hosted source3ccc788 standard CI is complete on both APIs; later push-triggered
+runs remain separate. Reconcile unknown operations rather than replaying them.
+[Latest staged evidence](docs/contracts/2026-11-14-staged-pm-readiness-and-sdk-pass.md).
 
 The code checkpoint is 827c6c0: four test-source files only. The failing phone-
 draft and setup-guide interactions reverse exactly to cea0cbf's original code;
@@ -53,7 +54,8 @@ exchanges over the same native-verified socket and twelve startup/finalization
 events; owned SIGTERM exits -15 and all children end. Independent recovery checks
 66 exact native unit methods, 1,098 SDK source-module identities at both phases,
 ten credential-free journal rows, zero final fence refusals and conserved state.
-The overall fixture remains held for PM tool readiness. It uses generated test
+A fresh fixture now passes after supported PM tool provisioning and independent
+doctor/readiness review; the earlier held fixture stays unchanged. It uses generated test
 credentials, consumes the returned callback URI directly and proves no actual
 live-user/browser/phone sign-in. Windows portable coverage is 642 cases, three
 existing POSIX skips. Preserve all earlier preparation/entrypoint/diagnostic/
