@@ -76,16 +76,32 @@ unused destination and free space verify read-only. The exact isolated native
 staging/PM plan is ready for separate approval; no Pi file, live policy/grant,
 ancestor permission, service, model, credential or APK has changed.
 
-Next: Obtain approval for the reviewed isolated native source/PM staging scope, then
-stage only the new generation, rebase its ContextGraph path through supported PM
-lock/sync and require all other dependency graph/artifact values to remain equal.
-Refuse occupied paths or drift and preserve partial/unknown results without
-replay. Live units, profile policy, worker enrollment and both existing ancestor
-modes remain unchanged during staging. Native ARM64 acceptance, truthful runtime
-provenance, reviewed permission effects, verified encrypted recovery/current idle
-checks and exact activation approval remain required before a live switch.
-Real HTTPS/Android/worker content and independent execution adoption follow;
-every original audit, automation/integration and phone/release gate remains.
+The owner approved isolated Pi staging/PM/native checks. The exact private packet
+is staged with all 23,691 members verified. Standard 0644/0755 new source modes
+retain all 124 Git executable bits; existing parent modes remain 0775. The initial
+header-mode refusal was reconciled before extraction (zero source files), and
+the received packet was reused without retransmission. Its receipt is retained.
+
+Native Linux/aarch64 PM lock/sync succeeds with only the exact local vendor-path
+rebase; the complete remaining dependency/artifact graph is equal. Actual Python
+3.14.9, ContextGraph 0.8.1 and PyYAML 6.0.3 load in the new isolated generation.
+Truthful local/dirty/external provenance is written there. All 18 constructor
+outcomes/24 behavior assertions pass on the actual Pi with four synthetic routes,
+no network/execution and empty admission/worker/session/message tables. The first
+pre-case missing-parent fixture failure is retained; a fresh fixture passes.
+
+Independent postcheck retains live gateway/serve identity, old stamp/PM facts,
+all 79 selected live source paths and existing parent modes. The live extension
+and policy remain absent; no live switch, grant, model, credential or APK change.
+
+Next: Finish isolated native HTTP/ticket transport and canonical platform coverage
+against the staged generation before preparing the exact activation transaction.
+Keep the public pristine-SDK probes and all old assertions/failures; use approved
+scratch boundaries and no automatic replay. The two group-write prerequisites,
+real protected-policy positive, launchers/unit/source references, independent
+chat/execution adoption, verified encrypted recovery/current idle and separate
+exact live-activation approval remain. After activation, verify actual native
+HTTPS/Android/worker content and the full original integration/release scope.
 
 The original four priorities/full audit stay active: forty stable findings/main
 review, pristine shutdown, original API26 causes, real integration/automation,
@@ -96,3 +112,5 @@ requirements. See [the current contract](contracts/2026-11-14-protected-operator
 [Current Pi preflight and private proposal](contracts/2026-11-14-pi-policy-preflight.md).
 
 [Complete maintained source and native staging review](contracts/2026-11-14-maintained-pi-source-candidate.md).
+
+[Actual native ARM64 staging and outstanding activation gates](contracts/2026-11-14-native-arm64-staged-candidate.md).

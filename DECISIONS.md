@@ -1,5 +1,15 @@
 # Decisions
 
+## 14 November 2026 - isolated native Pi staging approved
+
+The owner approved the reviewed private source packet and candidate-only PM
+lock/sync/native checks. The new generation has its own home/tools/cache/facts;
+only the candidate vendor-path rebase is accepted in the full locked graph.
+Live units/launchers, profile policy, worker grants, existing ancestor modes,
+models/credentials and project dispatch remain excluded. Activation needs its
+own concrete reviewed transaction, native acceptance and recovery/idle gates.
+[Actual staged result and retained failures](docs/contracts/2026-11-14-native-arm64-staged-candidate.md).
+
 ## 2026-11-12: keep the existing audit and explicit APK delivery
 
 The optional phone LLM extends the original audit. Neither native engine proof

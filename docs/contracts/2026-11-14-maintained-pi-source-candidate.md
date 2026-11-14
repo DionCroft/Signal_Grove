@@ -1,5 +1,27 @@
 # Maintained Pi source candidate - 14 November 2026
 
+## 14 November 2026 - approved native staging, exact graph and real Pi authority
+
+The owner approved isolated Pi staging/PM/native checks. The exact private packet
+is staged with all 23,691 members verified. Standard 0644/0755 new source modes
+retain all 124 Git executable bits; existing parent modes remain 0775. The initial
+header-mode refusal was reconciled before extraction (zero source files), and
+the received packet was reused without retransmission. Its receipt is retained.
+
+Native Linux/aarch64 PM lock/sync succeeds with only the exact local vendor-path
+rebase; the complete remaining dependency/artifact graph is equal. Actual Python
+3.14.9, ContextGraph 0.8.1 and PyYAML 6.0.3 load in the new isolated generation.
+Truthful local/dirty/external provenance is written there. All 18 constructor
+outcomes/24 behavior assertions pass on the actual Pi with four synthetic routes,
+no network/execution and empty admission/worker/session/message tables. The first
+pre-case missing-parent fixture failure is retained; a fresh fixture passes.
+
+Independent postcheck retains live gateway/serve identity, old stamp/PM facts,
+all 79 selected live source paths and existing parent modes. The live extension
+and policy remain absent; no live switch, grant, model, credential or APK change.
+
+[Native evidence and remaining boundary](2026-11-14-native-arm64-staged-candidate.md).
+
 The [full goal](../GOAL.md) and all four explicit acceptance priorities remain
 active. This checkpoint prepares a complete source candidate for native staging;
 it does not deploy, activate policy or close interoperability/release acceptance.
