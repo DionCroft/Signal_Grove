@@ -59,8 +59,8 @@ or an Android release check.
 The source-only `Pinned Hermes native SDK` workflow checks out the complete
 unmodified SDK at `3b421578588243f920886e6fe79a6faa87ea026e`, independently from
 this app. Its fresh disposable checkout uses a local Git info attribute to
-materialize PS1 as exact LF Git bytes, overriding only the SDK's default PS1
-CRLF checkout representation. No tracked attribute or source content changes.
+materialize PS1 as exact Git blob bytes, overriding only the SDK's default PS1
+checkout conversion. No tracked attribute or source content changes.
 It verifies all 23,586 source-file bytes against Git blobs and native
 executable bits before setup and after the run. Official pinned SDK PM setup
 builds its separate dev/test environment. No deployment credentials are supplied.
@@ -95,3 +95,14 @@ Prepare the exact activation/permission/unit/launcher/recovery transaction only
 after those gates; live activation still requires its own reviewed approval.
 Keep the full integration, project/execution adoption, worker grants, automation,
 phone lifecycle, doctor/graph and signed-release requirements in the audit ledger.
+
+## Initial hosted preparation failure retained
+
+[Run 43557182054](https://github.com/DionCroft/Signal_Grove/actions/runs/43557182054),
+source e9f9f010, stops at the strict activate.ps1 Git-blob check, before PM setup
+or any canonical test. Its SDK default PS1 checkout conversion was not removed
+by the first checkout-index preparation. No test positive is claimed. The
+corrected fresh-checkout preparation uses Git info attributes to disable only
+PS1 text conversion and materializes those paths directly from their exact
+pinned Git blobs. The whole-source guard and six canonical assertions remain
+unchanged. A new source run, rather than replay of that failed run, is required.

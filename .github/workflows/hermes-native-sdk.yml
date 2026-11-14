@@ -31,8 +31,15 @@ jobs:
           # This disposable checkout uses exact Git blob bytes, including PS1.
           # The SDK declares PS1 CRLF by default; no tracked attribute is edited.
           test ! -e sdk/.git/info/attributes
-          printf '%s\n' '*.ps1 text eol=lf' > sdk/.git/info/attributes
-          git -C sdk -c core.autocrlf=false checkout-index --all --force
+          printf '%s\n' '*.ps1 -text' > sdk/.git/info/attributes
+          python3 -I -B - <<'PY'
+          from pathlib import Path
+          import subprocess
+          for raw in subprocess.check_output(['git','-C','sdk','ls-files','-z','*.ps1']).split(b'\0'):
+              if raw:
+                  name=raw.decode('utf8')
+                  (Path('sdk')/name).write_bytes(subprocess.check_output(['git','-C','sdk','show','HEAD:'+name]))
+          PY
           mkdir "$RUNNER_TEMP/canonical-plugin-rpc"
           python3 -I -B client/scripts/verify_canonical_rpc.py before --source sdk --evidence "$RUNNER_TEMP/canonical-plugin-rpc"
           python3 -B -m unittest discover -s client/scripts/tests -p test_verify_canonical_rpc.py -v
