@@ -4,10 +4,11 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The exact next action is to observe the **existing navigation-complement1845**
-native test to terminal and inspect its raw stream and before-cleanup diagnostics.
-Its exact adb process is independently verified live. The first cohort is terminal
-and independently accepted within its 541-case scope; do not run it again.
+The exact next action is to prepare and verify a **fresh isolated full SDK
+listener/lifespan and supported provider sign-in**, using the tested native socket
+observer and existing-connection adapter. Finish the bounded transaction/rollback
+before any separate live approval. All current local/isolated check commands are
+terminal; do not repeat the completed Android cohorts or native fixture.
 
 Current Android investigation:
 
@@ -16,13 +17,15 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  Portable: 605 cases, 602 pass/three existing POSIX skips. Source, debug signer,
-  APK contents and native alignment verify. No production release follows.
+  The latest portable suite runs 635 cases, 632 pass/three existing POSIX skips.
+  Source, debug signer, APK contents and native alignment verify. No production
+  release follows these debug/component checks.
 - The first disposable-API26 cohort passes all 541 methods: the original 540
   failed-run cases in order plus the new control, independently raw/source/APK
-  verified. The complementary 601-case cohort is running and includes the original
-  Demo case; their inventories cover all 1,142 standard cases without overlap.
-  Both recent causes and the original source1180 Demo cause remain unproven.
+  verified. The complementary 601-case cohort also passes, including the original
+  Demo case. Independent raw/source/APK review verifies the complete disjoint
+  1,142-method standard API26 union. All historical causes remain unproven;
+  API37/current-pair and final production-phone gates remain open.
   [Current evidence](docs/contracts/2026-11-14-navigation-failure-observation.md) ·
   [Original recent failures](docs/contracts/2026-11-14-api26-cea-failures.md).
 
@@ -40,13 +43,13 @@ Pi deployment boundary:
 - The private one-existing-grant policy validates but stays uninstalled; the
   anchored reader still refuses unsafe ancestry. Current native/HTTP/worker/phone
   content and execution adoption are not accepted by those fixtures.
-- Single-socket HTTP source a36e75b passes 18 real TCP safety cases; portable
-  suite now runs 623 cases with three existing POSIX skips. Native ownership and
-  provider-session seams are synthetic in those tests. Finish kernel socket
-  ownership, supported sign-in and full bounded transaction/rollback before
-  separate live approval. [Transport scope](docs/contracts/2026-11-14-pinned-retirement-http.md).
-  The last live
-  public provider read offers username/password; the local owner token gets 401.
+- Source cfe41ba now proves the native kernel socket component on the Pi: 59
+  native unit methods/no skips and four guarded TCP exchanges on one connection.
+  Wrong real parent/stale ticks refuse, the credential-free journal verifies and
+  all owned check children end. Provider/protocol are synthetic; full SDK
+  listener/lifespan, actual supported sign-in and bounded transaction/rollback
+  remain before separate live approval. [Current evidence](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
+  The last live public provider read offers username/password; owner token gets 401.
 - Canonical-home PM readiness is required for **both the old loaded stop/cleanup
   launcher and the new startup launcher**. Seven exact named directory modes,
   policy/source/drop-ins/CLI references, fresh encrypted pre/post backups and

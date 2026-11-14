@@ -98,3 +98,11 @@ staging approval does not authorize activation. See the
 | Complete 623-case portable log | b82bf9978cf07a84cf17a1558779d017e2a1b4bf0da436ae3bec82a12980196f |
 | Preserved wrong-working-directory failure | 3953d65250fa5117295dca1124232abcc583f8225b3bc9ddf1c7213ba592456a |
 | Independent Android terminal/source/APK review | b63aa7102776794abe4879fdbaf51a665f131083b668abd4a4ecc1671371feca |
+
+The subsequent [native socket-owner checkpoint](2026-11-14-native-socket-owner-and-api26.md)
+adds a real procfs observer and verifies it on the isolated Pi: 59 component unit
+methods/no skips and four guarded TCP exchanges on one fixture-owned connection.
+Provider/protocol are synthetic; normal provider/full SDK listener/lifespan and
+the complete transaction still require acceptance. All owned checks are terminal.
+Its separate Android review also verifies the completed 1,142-method standard
+API26 union. Historical causes, full matrix and signed-production gates remain.

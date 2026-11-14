@@ -158,3 +158,11 @@ Its 18 real TCP cases and 623-case portable suite use synthetic native-owner and
 provider seams. Actual kernel socket ownership, supported provider sign-in and
 the complete bounded executor/rollback remain prerequisites. No live action is
 authorized or performed by that source/test addition.
+
+The subsequent [native socket-owner checkpoint](2026-11-14-native-socket-owner-and-api26.md)
+adds a real procfs observer and verifies it on the isolated Pi: 59 component unit
+methods/no skips and four guarded TCP exchanges on one fixture-owned connection.
+Provider/protocol are synthetic; normal provider/full SDK listener/lifespan and
+the complete transaction still require acceptance. All owned checks are terminal.
+Its separate Android review also verifies the completed 1,142-method standard
+API26 union. Historical causes, full matrix and signed-production gates remain.

@@ -72,27 +72,25 @@ inputs and both installed APK hashes. No failure snapshot exists and no native
 instrumentation remains. Original failures stay failed and their causes remain
 unproven; non-recurrence is not a fix. The original Demo case is in the other shard.
 
-One complementary cohort is now running with those same installed APKs. Its
-601 selected methods include the original Demo clarification case. The two
-inventories are disjoint and their union equals all 1,142 standard API26 methods.
-All first-shard QA files were retained and hash matched before resetting only
-that owned disposable fixture's synthetic data. The existing keyboard is checked
-by hide/reopen geometry without another first-use dismissal. Existing external
-model prerequisites remain; none is newly excluded.
+The one complementary cohort is now terminal: all 601 methods pass, including
+the original Demo clarification case. Independent raw start/finish/terminal and
+inventory review proves a disjoint union of all 1,142 standard API26 methods,
+including both recent historical failures. Both installed APKs and original
+mapped executable inputs still match the reviewed build. No failure snapshot or
+active instrumentation remains. The twelve external-model prerequisites stay open.
 
-An initial private inventory verifier incorrectly tried to put dictionary rows
-in a set. It failed before any test command or body ran. The failure and original
-script are retained. A separate continuation checks explicit class/method tuple
-identities using the existing inventory, verifies the owned idle emulator and
-installed pair, then issues the first and only complementary test command.
-It performs no additional reset, inventory execution or failure-triggered retry.
-The exact recorded adb process is independently verified live at this checkpoint.
+All first-shard QA files were retained/hash matched before resetting only that
+owned disposable fixture's synthetic data for the complement. The existing
+keyboard passes hide/reopen geometry without another first-use dismissal.
+The private dict/set inventory verifier failure occurs before any test body.
+Its corrected continuation uses retained inputs and starts the test only once,
+without another reset. No assertion/selector/pass-path wait is changed.
 
-Observe navigation-complement1845 to its actual terminal and inspect raw failures
-and before-cleanup diagnostics. A running cohort is not acceptance. Both recent
-causes, the original source1180 Demo cause, complete final-source/API37 device
-gates and all broader Hermes/project/worker/automation/integration/phone/release
-requirements remain open. No product source, live Pi, phone or release changes.
+All historical causes remain unproven. Complete standard API26 evidence for this
+pair is not a full API26/API37/current-source matrix, physical model prerequisite
+or original-key production upgrade. Do not repeat green cohorts solely to obtain
+a cause. Preserve failure observers and the full remaining ledger.
+[Independent completion and native follow-up](2026-11-14-native-socket-owner-and-api26.md).
 
 ## Evidence identities
 
@@ -111,3 +109,6 @@ requirements remain open. No product source, live Pi, phone or release changes.
 
 | Completed 541-case raw stream | 56d5c432a9003609b5a634e11bc31cf3a2c69b1af2e3d84a73294c2db67fdcee |
 | Independent terminal/source/APK review | b63aa7102776794abe4879fdbaf51a665f131083b668abd4a4ecc1671371feca |
+
+| Complementary 601-case raw stream | 6b83bd353511e13a4010dab6ca93e23140b9f6ef65dfe90e74a1bd03a928637e |
+| Independent full API26 union/source/APK review | 537c35dbcf3953acd0ab0b52be99cdc8c76d7cb6f2385b79ff88c264a6b07191 |

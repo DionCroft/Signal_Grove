@@ -12,36 +12,27 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-At reviewed source cea0cbf, hosted Linux passes **576 portable checks** and
-**15 runtime-model checks**. Both earlier Linux SDK shutdown cohorts independently
-pass the same **50 canonical cases**. On the actual Pi, the isolated real systemd
-unit now passes unchanged SDK stop-marker/cleanup commands with **0/0 exits**;
-its exact unit, cgroup and processes are gone. Whole-source/native-mode, PM and
-live-service conservation are independently verified. The private read-policy
-proposal also passes native validation; it is not installed.
-[Native results and limits](docs/contracts/2026-11-14-native-systemd-and-policy.md).
+Current Android evidence: **1,011 JVM cases** and both lint variants pass with
+zero errors. The reviewed 827c6c0 debug/test pair passes **all 1,142 standard API26
+methods** in two independently verified, disjoint cohorts. The original Demo and
+two retained navigation cases pass; historical causes remain unproven. Current
+API37, external phone/model and original-key production-upgrade gates remain open.
+[Android evidence](docs/contracts/2026-11-14-navigation-failure-observation.md).
 
-The staged source has its own supported PM environment and a tested published
-launcher. The complete command/unit packet is review-only; live activation needs
-its remaining bounded work-fence and rollback review. Upstream used/transitive
-compatibility, original API26 failure cause, real project/worker/integration and
-final signed-production acceptance remain open. Android build/unit/lint checks
-pass at that source; device jobs are pending at observation. The published
-**beta.9 APK is unchanged**.
+The latest portable suite runs **635 cases: 632 pass, three existing POSIX skips**.
+In isolated Pi staging, **59 retirement-component unit methods** pass without
+skips, and four guarded TCP exchanges use one connection with real kernel socket
+ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,
+canonical shutdown and real systemd-helper checks remain separately scoped;
+they do not establish complete deployment or fleet interoperability.
+[Native evidence and limits](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
+
+The candidate has its own supported PM environment and reviewed launcher/units.
+Full SDK listener/lifespan, supported provider sign-in and the bounded cutover/
+rollback still require verification before separate live approval. Upstream
+used/transitive/shutdown, real project/worker/NAS/integration and final signed-
+production acceptance remain open. **The published beta.9 APK is unchanged.**
 [Full goal](docs/GOAL.md) · [Runtime packet](docs/contracts/2026-11-14-runtime-cutover-packet.md).
-
-The deployment retirement component also passes 41 actual-Pi unit cases and six
-unchanged SDK ASGI outcomes. Provider-session/TCP/complete-transaction acceptance
-remains open. [Scope](docs/contracts/2026-11-14-retirement-client.md).
-Fresh API26 device validation has [two retained navigation failures](docs/contracts/2026-11-14-api26-cea-failures.md);
-full final-source device acceptance is not claimed.
-Before-cleanup observations are now [validated by a controlled native case](docs/contracts/2026-11-14-navigation-failure-observation.md);
-the first API26 cohort passes all 541 cases; the complementary 601-case cohort
-(including the original Demo test) is running. Historical causes remain open.
-Current local checks pass 1,011 JVM
-cases and both lint variants; 623 portable cases include three existing POSIX skips.
-The deployment [single-socket HTTP component](docs/contracts/2026-11-14-pinned-retirement-http.md)
-passes 18 real TCP safety tests; native ownership/sign-in and activation remain pending.
 
 ## Download and release status
 

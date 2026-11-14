@@ -385,3 +385,21 @@ included and no new model gate is excluded. No terminal/full-cohort pass or
 failure fix is claimed. Observe that exact operation before any retry. All
 original scope stays active; live Pi/phone/models/credentials/APK release are
 unchanged by this chunk. [Scope and evidence](contracts/2026-11-14-navigation-failure-observation.md).
+
+## 14 November 2026 - native kernel socket proof and complete API26 cohort
+
+Code cfe41ba adds a bounded read-only Linux observer of the exact reverse TCP
+tuple/inode/FD plus process incarnation, UID and namespace. All 635 portable
+cases run with three existing POSIX skips. The actual isolated Pi passes all 59
+component unit methods with no skips and four guarded TCP exchanges over one
+connection, using real kernel ownership and synthetic provider/protocol seams.
+Independent raw/source/journal review verifies children ended and runtime inputs,
+41 caches, PM facts, permissions and live references are unchanged. Deployed SDK
+TCP/lifespan, supported provider sign-in and full transaction remain open.
+
+Both existing API26 commands are terminal and independently verified: 541 plus
+601 equals the exact disjoint 1,142-method standard inventory. The original Demo
+and both recent failure cases pass; historical causes remain unproven. API37,
+external phone/model, original-key upgrade and every other audit gate remain.
+No running local/isolated check, live activation or new APK follows this result.
+[Scope and evidence](contracts/2026-11-14-native-socket-owner-and-api26.md).

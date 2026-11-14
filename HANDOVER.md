@@ -6,11 +6,12 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** observe the already running **navigation-complement1845** command,
-inspect its exact host adb process/native instrumentation and original stream,
-then recover its terminal result and before-cleanup diagnostics. The first cohort
-is already terminal/independently verified; do not repeat it. Inspect actual state
-before reacting to a stale receipt, timeout or lost reply.
+**Next action:** prepare and verify a fresh isolated full SDK listener/lifespan
+and supported provider session using the native socket observer and single
+connection. Then finish the bounded exclusive journal/executor and rollback.
+All current local/isolated commands have ended; do not repeat either green
+Android cohort or the completed native kernel fixture. Future unknown operations
+still require authoritative reconciliation before any retry.
 
 The code checkpoint is 827c6c0: four test-source files only. The failing phone-
 draft and setup-guide interactions reverse exactly to cea0cbf's original code;
@@ -27,24 +28,26 @@ Retain the missing-import build failure, incorrect initial native-window
 assumption and getconf verification failure; the emulator was reconciled from
 actual kernel auxv without restarting. [Evidence](docs/contracts/2026-11-14-navigation-failure-observation.md).
 
-The first API26 shard passes 541 methods, retaining all original 540 in order;
-independent raw envelopes, exact case inventory, executable sources and installed
-APK hashes verify. The complementary 601-case shard now runs with the same pair
-after retaining all first-shard QA and resetting only that disposable fixture's
-synthetic data. Its inventory includes the original Demo case and is disjoint;
-the complete union is 1,142 standard methods. A private dict/set verifier fails
-before test execution; the corrected continuation starts the test only once and
-does not reset again. External model gates and original failures stay recorded.
-Existing AVDs/phone are untouched. Original causes, full matrix and production
-upgrade remain unaccepted; non-recurrence is not a historical cause.
+Both API26 cohorts are terminal/independently verified: 541 plus 601 distinct
+positive methods equals the exact disjoint standard inventory of 1,142. Original
+540-case order is retained in the first; all three historical failed cases pass,
+including Demo. Installed APKs and original mapped executable inputs match the
+827c6c0 build snapshot. New Python administration files are outside that snapshot.
+The pre-test inventory verifier failure/continuation and external model gates
+remain recorded. No test is retried and no extra reset occurs. Existing AVDs and
+phone are untouched. Historical causes, full matrix and production upgrade remain
+unaccepted; non-recurrence is not a historical cause.
 
 Pi staging remains isolated. Verify current live references again before any
 deployment; previous source/facts/service observations are dated evidence.
-The existing-socket HTTP component a36e75b passes 18 real TCP methods and the
-623-case portable suite (three existing POSIX skips); a wrong-working-directory
-import failure remains retained. These use synthetic owner/provider seams.
-Complete actual kernel socket ownership, supported provider sign-in and bounded
-executor/rollback. [Exact transport scope](docs/contracts/2026-11-14-pinned-retirement-http.md).
+Source cfe41ba adds actual kernel socket ownership: the isolated Pi passes all
+59 component unit methods/no skips and four guarded TCP exchanges over one
+connection. Independent recovery verifies source hashes, real wrong-parent/stale-
+tick refusal, ten credential-free journal rows, ended children and conserved
+runtime/PM/live state. The provider/server are synthetic; deployed SDK/native
+provider/full-lifespan acceptance remains open. Windows portable coverage is
+635 cases with three existing POSIX skips. Preserve earlier verifier/import
+failures. [Exact native scope](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
 Separately review both old-stop/new-start canonical PM facts,
 seven named mode changes, one reviewed policy, source/CLI/drop-ins, fresh encrypted
 pre/post backups and exact idle fences. The owner-token 401 is not a bypass.
