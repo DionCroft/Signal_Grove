@@ -45,6 +45,11 @@ SQLite writer keeps both DBs open across 1.491 seconds, then drains without
 replay. Independent full-source/mode/module/store and live conservation checks
 pass. The frozen original warning remains. [Native candidate evidence](docs/contracts/2026-11-14-maintained-heartbeat-native.md).
 
+The paired Linux workflow and raw-evidence verifier are now implemented.
+All 529 portable checks pass, including 16 additional counterexamples. Hosted
+execution, archive integrity and exact paired positives are still pending.
+[Gate and limits](docs/contracts/2026-11-14-paired-canonical-shutdown.md).
+
 ## Exact next action
 
 Run the six unchanged canonical SDK shutdown files on real Linux against exact

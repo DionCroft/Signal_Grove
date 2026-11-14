@@ -1,0 +1,97 @@
+name: Pinned Hermes shutdown
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch']
+  pull_request:
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch']
+permissions:
+  contents: read
+concurrency:
+  group: hermes-shutdown-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  canonical-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [pristine, candidate]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: client
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: NousResearch/hermes-agent
+          ref: 3b421578588243f920886e6fe79a6faa87ea026e
+          path: sdk
+          persist-credentials: false
+      - name: Verify exact inputs and prepare the selected variant
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          test ! -e sdk/.git/info/attributes
+          printf '%s\n' '*.ps1 -text' > sdk/.git/info/attributes
+          python3 -I -B - <<'PY'
+          from pathlib import Path
+          import subprocess
+          for raw in subprocess.check_output(['git','-C','sdk','ls-files','-z','*.ps1']).split(b'\0'):
+              if raw:
+                  name=raw.decode('utf8')
+                  (Path('sdk')/name).write_bytes(subprocess.check_output(['git','-C','sdk','show','HEAD:'+name]))
+          PY
+          python3 -I -B client/scripts/canonical_shutdown_gate.py prepare --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" --variant "$VARIANT"
+          python3 -B -m unittest discover -s client/scripts/tests -p test_canonical_shutdown_gate.py -v
+      - name: Build the supported PM side test environment
+        id: pm
+        uses: ./sdk/.github/actions/setup-pm
+        with:
+          toolchain: python
+          extras: '["all"]'
+          test-environment: 'true'
+          archive-inputs: 'false'
+          cache: 'false'
+          cache-python: 'false'
+          cache-node: 'false'
+      - name: Run six unchanged upstream shutdown files without retries
+        env:
+          VARIANT: ${{ matrix.variant }}
+          PM_PYTHON: ${{ steps.pm.outputs.python-path }}
+        run: python3 -I -B client/scripts/canonical_shutdown_gate.py run --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" --python "$PM_PYTHON"
+      - name: Verify raw case identities and all SDK bytes and modes
+        if: ${{ !cancelled() }}
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: python3 -I -B client/scripts/canonical_shutdown_gate.py verify --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: canonical-linux-shutdown-${{ matrix.variant }}
+          path: ${{ runner.temp }}/shutdown-${{ matrix.variant }}
+          if-no-files-found: error
+          retention-days: 30
+  compare:
+    needs: canonical-linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: canonical-linux-shutdown-*
+          path: ${{ runner.temp }}/shutdown-pair
+      - name: Independently compare both raw cohorts
+        run: python3 -I -B scripts/canonical_shutdown_gate.py compare --pristine "$RUNNER_TEMP/shutdown-pair/canonical-linux-shutdown-pristine" --candidate "$RUNNER_TEMP/shutdown-pair/canonical-linux-shutdown-candidate" --output "$RUNNER_TEMP/paired-shutdown.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: canonical-linux-shutdown-pair
+          path: ${{ runner.temp }}/paired-shutdown.json
+          if-no-files-found: error
+          retention-days: 30

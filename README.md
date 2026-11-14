@@ -12,6 +12,11 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
+The latest local portable gate passes **529 checks**. The new paired Linux SDK
+shutdown workflow is implemented; its raw results remain pending. This changes
+validation tooling, not the published beta.9 APK or live gateway.
+[Exact gate scope](docs/contracts/2026-11-14-paired-canonical-shutdown.md).
+
 ## Download and release status
 
 | Version | Status | Install |

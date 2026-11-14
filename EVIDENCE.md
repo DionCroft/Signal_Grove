@@ -1,5 +1,17 @@
 # Evidence navigation
 
+## 14 November 2026 - paired Linux shutdown gate implemented, execution pending
+
+The new read-only-permission CI workflow runs the same six complete upstream
+shutdown files against separate pristine/candidate stable3b checkouts. Exact
+50 case identities, whole source bytes/modes, unique raw artifacts, zero retries
+and no skips are required. Generated caches are inventoried separately; the
+strict source-only preparer remains unchanged. All 529 portable tests pass,
+including 16 new evidence/source counterexamples. Hosted execution and original
+artifact acceptance remain pending. No live Pi or Android release changes.
+All four priorities and original requirements remain active.
+[Gate and acceptance limits](docs/contracts/2026-11-14-paired-canonical-shutdown.md).
+
 ## 14 November 2026 - maintained candidate native finite/held gates accepted
 
 Actual Pi eight-helper cases and two complete native/HTTP owner trials pass
