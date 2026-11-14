@@ -135,6 +135,10 @@ def main(argv):
         replacement=NativePmPreparation(self.plan,self.journal,self.manager,'pm_new',current,current.sha256)
         with self.assertRaises(Refused):replacement.run(e)
         self.assertEqual((self.home/'sync-count').read_text(),'1')
+    def test_production_context_refuses_without_its_native_operational_boundary(self):
+        actor,e=self.begin();production=replace(self.spec,owned_root=None)
+        with self.assertRaises(Refused):NativePmPreparation(self.plan,self.journal,self.manager,'pm_new',production,production.sha256)
+        self.assertFalse((self.home/'cache').exists());self.assertEqual(list(self.ledger.glob('native-files-*')),[])
     def test_changed_source_refuses_before_dispatch_or_cache_creation(self):
         actor,e=self.begin();(self.source/'setup.py').write_text('changed')
         with self.assertRaises(Refused):actor.run(e)

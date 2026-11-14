@@ -6,27 +6,27 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-The next action is to **compose the full bounded native transaction and
-runtime-only recovery**, including operational ancestry, encrypted backups,
-admission/retirement/reload and authenticated health/history/graph. One-use PM
-preparation now passes its exact 48-method native cohort and a real supported
-install in a fresh private home, including activation stamps and ARM64 imports.
-Independent review passes and all owned units are stopped. The earlier direct
-sync succeeded for dependencies but lacked activation stamps; its failed/held
-attempt stays preserved, reconciled read-only without replay. Both canonical
-home contexts are still unprepared and require separate approval with the final
-concrete packet. Full cutover acceptance remains open; live state is unchanged.
-[Current PM source and scope](docs/contracts/2026-11-14-native-pm-preparation.md).
-Keep required backups/admission/retirement/reload/authenticated health/history/
-graph, operational ancestry and full isolated acceptance before live approval.
+The next action is to **implement/test the fresh encrypted-backup adapter**
+against supported Hermes archive selection rules, then complete admission,
+reload, authenticated health/history/graph and full bounded runtime recovery.
+The shared operational boundary now protects journal and PM directory ancestry
+alongside publication. Production PM requires the exact guarded journal and
+role catalog. All 208 affected native methods pass/no skips; a separate actual
+SDK install uses that shared real-root guard in a fresh private home. Independent
+raw/native/source review passes and both owned units are stopped. Ten existing
+actual operational roots were separately observed read-only, all 0700.
+Both canonical PM contexts remain unprepared, seven modes stay 0775 and live
+state is unchanged. Backup contents/file inputs, admission/reload/health and the
+full transaction remain before the concrete packet and separate live approval.
+[Current source and evidence](docs/contracts/2026-11-14-operational-ancestry.md).
 The guarded owned fixture verifies eight actual file/mode stages, five parents,
 five retained entries, original CLI restoration and newer-data preservation.
 All 80 cohort methods pass on Pi/no skips; independent raw/native/source/state
 review passes. Fresh real-root preflight captures 20 directories/three missing
 parents and refuses publication while seven modes remain 0775. Live source/facts/
 files/permissions/services remain unchanged. Non-file fixture stages stay
-synthetic; full operational acceptance remains open. Windows: 883 cases, 733 pass/
-150 platform skips; 147 platform cases run in Pi cohorts, three older skips keep
+synthetic; full operational acceptance remains open. Windows: 905 cases, 737 pass/
+168 platform skips; 165 platform cases run in Pi cohorts, three older skips keep
 scope. Separate service/journal 124-method/five-error scope and every original
 audit/on-device/security/release requirement remain. Preserve all failed/unknown
 receipts and no-replay boundaries; Android/build inputs are unchanged.

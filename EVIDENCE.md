@@ -1,5 +1,34 @@
 # Evidence navigation
 
+## 14 November 2026 - shared operational ancestry and guarded PM
+
+The journal and production PM actor now bind one reviewed descriptor ancestry
+with the publisher. Ten explicit roles cover journal, canonical-home context,
+old/new sources and stores, backup output/program/identity parents and executor.
+Every journal check revalidates that boundary. Production PM refuses a missing
+boundary, an unguarded/different journal or a different role/path; hashes alone
+do not substitute for native witnesses. The publisher advances a witness only
+after observing its actual mode/parent effect, before writing a guarded receipt.
+
+All **208 affected Pi methods pass/no skips**, including 21 operational boundary
+cases and the existing journal/publication/PM/service cohorts. A separate actual
+SDK install shares the real-root guard with its journal in a fresh isolated home;
+currency, four activation inputs, ARM64 imports and retained data verify.
+Independent raw/source/native review passes. A read-only actual-path observation
+also verifies ten existing operational roots. Windows: **905 cases, 737 pass/168
+platform skips**; 165 platform methods have scoped Pi evidence, three older cases
+retain scope. Both owned units stopped with empty cgroups; source, 41 SDK caches,
+existing facts, seven real modes and live service incarnations are unchanged.
+
+Parent ancestry does not verify backup contents, a decrypt/restore, program/key
+file inputs, admission, reload or authenticated health. Both canonical-home PM
+selections remain unprepared. Next implement the fresh encrypted-backup adapter,
+then finish the full bounded transaction/recovery and concrete final packet
+before separate live approval. All original API26, upstream, project/worker/NAS,
+automation/integration, phone/local-AI/security and signed-release tasks remain
+active. Android/build inputs and the published beta.9 APK are unchanged.
+[Source and exact acceptance scope](docs/contracts/2026-11-14-operational-ancestry.md).
+
 ## 14 November 2026 - one-use PM install and activation component
 
 A journal-bound PM preparation actor now dispatches one supported full install

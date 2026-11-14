@@ -28,6 +28,7 @@ from native_file_publication import _Receipt,digest,DirectoryAnchor,anchor
 from native_service_manager import NativeServiceManager
 from native_pm_selection import PmSelectionContext,_hash
 from native_retirement_owner import read_process_owner
+from native_operational_paths import NativeOperationalPaths
 
 DEPENDENCY_INPUTS=('pyproject.toml','uv.lock','setup.py','pm/lock.json','install-stamp.json')
 REQUIRED_SOURCE=frozenset((*DEPENDENCY_INPUTS,'pm/__init__.py','pm/client.py','pm/runtime.py','pm/cli.py','pm/launch.py','pm/environments.py','pm/paths.py',
@@ -106,11 +107,18 @@ def _blob(path,*,optional=False,limit=MAX_SOURCE_FILE):
 
 
 class NativePmPreparation:
-    def __init__(self,plan,journal,manager,stage,spec,reviewed_spec_sha256):
+    def __init__(self,plan,journal,manager,stage,spec,reviewed_spec_sha256,*,operational_paths=None,expected_operational_sha256=None):
         if (sys.platform!='linux' or os.geteuid()==0 or type(plan) is not Plan or type(journal) is not CutoverJournal
                 or type(manager) is not NativeServiceManager or manager.plan!=plan or manager.journal is not journal
                 or stage not in ('pm_old','pm_new') or type(spec) is not PmPreparationSpec or spec.sha256!=reviewed_spec_sha256):
             raise Refused('Exact reviewed native PM stage, manager, journal and source context required')
+        if operational_paths is None:
+            if spec.owned_root is None or expected_operational_sha256 is not None:
+                raise Refused('Production PM preparation requires its native operational path boundary')
+        elif (type(operational_paths) is not NativeOperationalPaths or operational_paths.sha256!=expected_operational_sha256
+                or journal._operational_paths is not operational_paths):
+            raise Refused('PM and journal must share the exact reviewed operational path boundary')
+        self.operational_paths=operational_paths
         self.plan,self.journal,self.manager,self.stage,self.spec=plan,journal,manager,stage,spec
         if len(json.dumps(asdict(spec)).encode())>8*1024*1024:raise Refused('Bounded PM specification required')
         self.used=False;self.state='ready';self.last_receipt=None;self.child_process=None;self.last_child_owner=None
@@ -118,6 +126,13 @@ class NativePmPreparation:
     def _authorize(self,execution):
         if (type(execution) is not ApprovedExecution or execution.scope!='forward' or execution.packet_sha256!=self.plan.packet_sha256
                 or execution.authority_sha256!=self.plan.authority_sha256):raise Refused('Exact PM preparation approval required')
+        if self.operational_paths is not None:
+            paths=self.operational_paths;paths.require('journal',self.journal._directory);paths.require('hermes_home',self.spec.selection.home)
+            label='old' if self.stage=='pm_old' else 'new'
+            paths.require(label+'_source',self.spec.selection.source);paths.require(label+'_store',self.spec.selection.store)
+            if self.spec.owned_root is None:
+                if paths.scope!='production_review_only':raise Refused('Owned path evidence cannot authorize a production PM home')
+                paths.contains('executor',Path(__file__).resolve().parent)
         now=time.monotonic()
         if not math.isfinite(now) or now>=execution.deadline:raise Unknown('PM preparation deadline elapsed')
         self.journal.assert_current();view=self.journal.view;rows=[r for r in view['records'] if r['operation']==execution.operation];index=FORWARD.index(self.stage)
@@ -183,6 +198,7 @@ class NativePmPreparation:
             report_name='native-pm-report-'+execution.operation+'-'+self.stage+'.json'
             report_fd=os.open(report_name,os.O_RDWR|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=self.journal._root)
             report_identity=self.journal._check(report_fd);os.fsync(self.journal._root)
+            if self.operational_paths is not None:receipt.append('operational_paths_bound',dict(sha256=self.operational_paths.sha256,state_sha256=self.operational_paths.check()))
             receipt.append('pm_intent',dict(spec_sha256=self.spec.sha256,scope_sha256=scope.sha256,source_files=len(before_source),
                 source_inventory_sha256=digest(self.spec.source_files),facts_before_sha256=selection.expected_facts_sha256,extras=list(self.spec.extras),
                 report=report_name,operation='install',repair=False,evict_incompatible_plugins=False))

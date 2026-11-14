@@ -4,22 +4,20 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The next action is to **compose the full bounded native transaction and
-runtime-only recovery**, including operational ancestry, encrypted backups,
-admission/retirement/reload and authenticated health/history/graph. One-use PM
-preparation now passes its exact 48-method native cohort and a real supported
-install in a fresh private home, including activation stamps and ARM64 imports.
-Independent review passes and all owned units are stopped. The earlier direct
-sync succeeded for dependencies but lacked activation stamps; its failed/held
-attempt stays preserved, reconciled read-only without replay. Both canonical
-home contexts are still unprepared and require separate approval with the final
-concrete packet. Full cutover acceptance remains open; live state is unchanged.
-[Current PM source and scope](docs/contracts/2026-11-14-native-pm-preparation.md).
-Bind native publication ancestry and independently protect journal/PM/other
-inputs. Complete real backups/admission/reload/authenticated health/history/graph,
-full isolated forward/recovery acceptance and the concrete packet before separate
-live approval. No current canonical provisioning or live change is approved.
-Publication now uses descriptor ancestry and recorded actual mode/new-parent
+The next action is to **implement/test the fresh encrypted-backup adapter**
+against supported Hermes archive selection rules, then complete admission,
+reload, authenticated health/history/graph and full bounded runtime recovery.
+The shared operational boundary now protects journal and PM directory ancestry
+alongside publication. Production PM requires the exact guarded journal and
+role catalog. All 208 affected native methods pass/no skips; a separate actual
+SDK install uses that shared real-root guard in a fresh private home. Independent
+raw/native/source review passes and both owned units are stopped. Ten existing
+actual operational roots were separately observed read-only, all 0700.
+Both canonical PM contexts remain unprepared, seven modes stay 0775 and live
+state is unchanged. Backup contents/file inputs, admission/reload/health and the
+full transaction remain before the concrete packet and separate live approval.
+[Current source and evidence](docs/contracts/2026-11-14-operational-ancestry.md).
+The publication component uses descriptor ancestry and recorded actual mode/new-parent
 transitions. All 80 related Pi methods pass/no skips. The guarded owned fixture
 verifies eight actual stages, five parents, five retained entries, original CLI
 restoration and newer-data preservation. Independent raw/native/state review
@@ -28,7 +26,7 @@ and correctly refuses publication while seven actual modes remain 0775. Live
 files/permissions/services/source/facts remain conserved. Non-file fixture stages
 remain synthetic; full operational ancestry and cutover/recovery stay open.
 [Current source/evidence](docs/contracts/2026-11-14-publication-ancestry.md).
-Windows: 883 cases, 733 pass/150 skips; 147 platform methods run in Pi cohorts,
+Windows: 905 cases, 737 pass/168 skips; 165 platform methods run in Pi cohorts,
 three older skips retain scope. The separate service/journal 124-method cohort
 and five native error cases retain scope. Android/build inputs are unchanged.
 Supported PM repaired the five declared
@@ -49,7 +47,7 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 883 cases, 733 pass/150 POSIX skips. All 147
+  The latest Windows suite runs 905 cases, 737 pass/168 POSIX skips. All 165
   platform methods pass in actual Pi cohorts;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production

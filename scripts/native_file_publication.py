@@ -479,8 +479,10 @@ class NativeFilePublication:
             _renameat2(fd,temporary,creation.name,1);os.fsync(opened);os.fsync(fd)
             actual=replace(prepared,path=creation.path);_directory(opened,actual)
             if os.listdir(opened):raise Unknown('New parent changed before file publication')
-            receipt.append('parent_observed',dict(image=asdict(actual),temporary=temporary,name=creation.name))
+            # The guarded journal rechecks this same witness on receipt writes.
+            # Advance only after observing the actual inode, before that write.
             if self.ancestry is not None:self.ancestry._parent_observed(creation,actual)
+            receipt.append('parent_observed',dict(image=asdict(actual),temporary=temporary,name=creation.name))
             self._authorize(execution);result=(opened,actual);opened=None;return result
         finally:
             if opened is not None:os.close(opened)
@@ -527,8 +529,9 @@ class NativeFilePublication:
                     receipt.append('mode_intent',b.evidence());self._authorize(execution);_directory(fd,directory)
                     os.fchmod(fd,0o755);os.fsync(fd)
                     after=DirectoryAnchor(directory.path,directory.device,directory.inode,directory.uid,directory.gid,0o755)
-                    _directory(fd,after);receipt.append('mode_observed',dict(role=b.role,after=asdict(after)))
+                    _directory(fd,after)
                     if self.ancestry is not None:self.ancestry._mode_observed(b)
+                    receipt.append('mode_observed',dict(role=b.role,after=asdict(after)))
                     self._authorize(execution);continue
                 if _image(fd,b.name,directory.uid)!=b.before:raise Unknown('Native file changed after intent')
                 temporary='.signal-grove-'+execution.operation+'-'+b.role+'-'+uuid.uuid4().hex[:16]+'.incoming'

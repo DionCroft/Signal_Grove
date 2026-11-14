@@ -155,7 +155,7 @@ class CutoverJournal:
     accepted. No files, facts, databases or lock names are deleted or replaced.
     """
 
-    def __init__(self, directory, *, expected_identity):
+    def __init__(self, directory, *, expected_identity, operational_paths=None, expected_operational_sha256=None):
         if os.name != 'posix':
             raise Refused('Native POSIX journal is required')
         import fcntl
@@ -175,8 +175,18 @@ class CutoverJournal:
         if (not self._directory.is_absolute() or self._directory.resolve() != self._directory
                 or '..' in self._directory.parts):
             raise Refused('One normalized native directory is required')
+        self._operational_paths = operational_paths
+        if operational_paths is None:
+            if expected_operational_sha256 is not None:
+                raise Refused('An operational hash without its native path boundary is insufficient')
+        else:
+            from native_operational_paths import NativeOperationalPaths
+            if type(operational_paths) is not NativeOperationalPaths or operational_paths.sha256 != expected_operational_sha256:
+                raise Refused('Exact reviewed operational path boundary required')
+            operational_paths.require('journal', self._directory)
         try:
-            self._root = os.open(self._directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+            self._root = (operational_paths.open_directory('journal') if operational_paths is not None else
+                os.open(self._directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC))
             self._fds.append(self._root)
             self._root_identity = self._check(self._root, directory=True)
             if self._root_identity != expected_identity:
@@ -215,6 +225,8 @@ class CutoverJournal:
         return fd
 
     def _check_names(self):
+        if self._operational_paths is not None:
+            self._operational_paths.require('journal', self._directory)
         current = os.stat(self._directory, follow_symlinks=False)
         if ((current.st_dev, current.st_ino) != self._root_identity
                 or self._check(self._root, directory=True) != self._root_identity):
