@@ -21,14 +21,14 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **764 cases: 697 pass, 67 POSIX skips**.
-All **122 related methods pass on Pi**: 99 coordinator/journal and 23 service
-boundary methods. Native dispatch claims prevent adapter/reopen/fork replay;
-six actual owned service jobs and native process/cgroup/helper cleanup verify.
-Sixty-four platform methods run on Pi; three older skips retain scope. Non-service
-fixture prerequisites are synthetic; remaining adapters, actual fault/recovery
-and full live cutover acceptance stay open.
-[Native scope and evidence](docs/contracts/2026-11-14-one-use-native-dispatch.md).
+The latest Windows Python suite runs **766 cases: 699 pass, 67 POSIX skips**.
+All **124 related methods pass on Pi**: 99 coordinator/journal and 25 service
+boundary methods. Five actual owned scenarios verify adapter/reopen refusal,
+stop/post-helper failures and late completion without replay. Nine job identities
+and native process/cgroup/helper outcomes independently verify. Sixty-four
+platform methods run on Pi; three older skips retain scope. Non-service fixture
+prerequisites are synthetic; other adapters, fault/recovery and full live cutover
+acceptance stay open. [Exact native scope](docs/contracts/2026-11-14-native-service-error-paths.md).
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
 ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,

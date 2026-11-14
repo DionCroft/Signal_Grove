@@ -228,3 +228,15 @@ source/raw/native cleanup independently verify. Real manager error/unknown paths
 and all remaining adapters/fresh canonical PM/work/backup/health/recovery gates
 remain before a separate complete live approval.
 [Current source and exact evidence](2026-11-14-one-use-native-dispatch.md).
+
+## Actual owned error/unknown component cases
+
+The current adapter retains immutable last-attempt ACK/completion/effect phases.
+All 124 related methods and five actual owned replacement/reopen/helper-error/
+late-completion cases pass on Pi. Independent raw/native/journal review verifies
+nine job identities and all owned cleanup, preserving the first observer-race
+failure. Uncertain original intents are never verified by later observation or
+replayed. This remains component-only; actual PM/backups/admission/artifact/
+reference/mode/reload/live-user/health and complete forward/recovery gates stay
+open before a separate live approval. No live operation is authorized here.
+[Exact current evidence](2026-11-14-native-service-error-paths.md).

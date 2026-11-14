@@ -505,3 +505,19 @@ JVM cases and zero-error lint (52/51 warnings). Original failure causes, all
 external-model/phone/production and full native/live audit gates remain open.
 No live activation or published APK change; the full goal stays active.
 [Exact source, retained failure and evidence](contracts/2026-11-14-one-use-native-dispatch.md).
+
+## 14 November 2026 - actual native errors, late completion and replay refusal
+
+Immutable native attempt evidence now distinguishes claimed/accepted/job_done/
+verified and survives actor close without becoming replay authority. All 124
+related Pi methods pass/no skips. Five actual owned scenarios verify replacement/
+reopen refusal, stop/post-helper errors and completion after the caller deadline;
+each original intent stays pending. The normal lifecycle plus error scenarios
+verify nine unique jobs, eighteen ended main/child incarnations and eighteen
+helper executions, including two injected nonzero exits. Independent raw/source/
+job/journal/native/package review passes with live state conserved. Preserve the
+first observer-transition failure and terminal readback; production guards are
+unchanged. Windows: 766 cases, 699 pass/67 platform skips. Other native adapters,
+remaining error/recovery and the entire original audit/phone/release goal stay
+open. No live activation or APK change.
+[Exact acceptance, retained failure and evidence](contracts/2026-11-14-native-service-error-paths.md).

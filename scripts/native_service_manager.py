@@ -11,7 +11,7 @@ configuration write, credential read, fallback, reconnect or action retry exists
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 import hashlib
 import importlib.metadata
 import json
@@ -27,7 +27,7 @@ import threading
 import time
 
 from cutover_coordinator import ApprovedExecution, Plan, FORWARD, RECOVERY
-from cutover_journal import CutoverJournal, HASH, Refused, Unknown
+from cutover_journal import CutoverJournal, HASH, OPERATION, Refused, Unknown
 from native_retirement_owner import read_process_owner
 from retirement_guard import Owner
 
@@ -133,6 +133,37 @@ def invocation_id(value):
         raise Unknown('Native invocation type refused')
     if len(raw) not in (0,16): raise Unknown('Native invocation length refused')
     return raw.hex()
+
+
+@dataclass(frozen=True)
+class NativeAttempt:
+    """Last observed dispatch phase, not completion, permission or a replay key.
+
+    Kept after close/uncertainty so the caller can persist exact job identity.
+    A missing ACK is not proof that no command reached the manager. The durable
+    pending journal remains authoritative across process loss and forbids replay.
+    """
+    operation: str
+    authorization_sha256: str
+    step: str
+    unit: str
+    preimage_sha256: str
+    phase: str
+    job_path: str
+
+    def __post_init__(self):
+        step=re.fullmatch(r'(?:rollback_)?(?:start|stop)_(gateway|serve)',self.step) if type(self.step) is str else None
+        fixture=ACCEPTANCE.fullmatch(self.unit) if type(self.unit) is str else None
+        if (type(self.operation) is not str or not OPERATION.fullmatch(self.operation)
+                or not _hash(self.authorization_sha256) or not _hash(self.preimage_sha256) or not step
+                or not (self.unit=='hermes-'+step[1]+'.service' or (fixture and fixture[2]==step[1]))
+                or self.phase not in ('claimed','accepted','job_done','verified')
+                or type(self.job_path) is not str
+                or (self.job_path!='' if self.phase=='claimed' else not JOB.fullmatch(self.job_path))):
+            raise ValueError('Exact closed native attempt evidence required')
+
+    @property
+    def sha256(self):return _digest(asdict(self))
 
 
 @dataclass(frozen=True)
@@ -261,7 +292,7 @@ class NativeServiceManager:
         self.authority, self.plan, self.journal = authority, plan, journal
         self.bindings = {b.role:b for b in bindings}; self.state = 'connecting'
         self._busy = threading.Lock(); self._spent = set(); self._pinned = set(); self._filters = []
-        self._raw = None; self._conn = None; self._signals = _Signals()
+        self._raw = None; self._conn = None; self._signals = _Signals(); self._attempt = None
         self._bus = Path('/run/user',str(authority.uid),'bus'); self._stamp = None
         try:
             self._native()
@@ -405,6 +436,11 @@ class NativeServiceManager:
         self._remaining(execution.deadline)
         return step
 
+    @property
+    def last_attempt(self):
+        """Immutable observation only; unknown/pending work is never resumable."""
+        return self._attempt
+
     def change(self,role,action,expected,execution):
         if role not in self.bindings or action not in ('start','stop') or type(expected) is not UnitSnapshot:
             raise Refused('One exact bound start/stop request is required')
@@ -416,6 +452,7 @@ class NativeServiceManager:
             binding=self.bindings[role]; current=self._snapshot(role)
             validate_preimage(binding,action,execution.scope,current,expected)
             self.journal.claim_dispatch(execution.operation,step,execution.binding_sha256)
+            self._attempt=NativeAttempt(execution.operation,execution.binding_sha256,step,binding.unit,expected.sha256,'claimed','')
             self._signals.clear(); self._spent.add(key); dispatched=True
             if binding.unit not in self._pinned:
                 self._manager('RefUnit','s',(binding.unit,),'',execution.deadline); self._pinned.add(binding.unit)
@@ -424,7 +461,7 @@ class NativeServiceManager:
             deadline=min(execution.deadline,time.monotonic()+30)
             body=self._manager('StartUnit' if action=='start' else 'StopUnit','ss',(binding.unit,'fail'),'o',deadline)
             if len(body)!=1 or type(body[0]) is not str or not JOB.fullmatch(body[0]): raise Unknown('Native job acceptance is unproven')
-            job_path=body[0]; completed=False
+            job_path=body[0]; self._attempt=replace(self._attempt,phase='accepted',job_path=job_path); completed=False
             while not completed:
                 self._native(); self._remaining(deadline)
                 while len(self._signals):
@@ -434,6 +471,7 @@ class NativeServiceManager:
                     if completed: break
                 if not completed:
                     with _Deadline(self._raw,deadline): self._conn.recv_messages(timeout=self._remaining(deadline))
+            self._attempt=replace(self._attempt,phase='job_done')
             after=self._snapshot(role); self._stage(role,action,execution)
             if after.job_id or after.control_pid or after.result!='success': raise Unknown('Native service job outcome is not ready')
             if action=='stop':
@@ -450,6 +488,7 @@ class NativeServiceManager:
                         or not after.invocation or after.invocation==expected.invocation
                         or after.configuration_sha256!=config or after.executable!=exe):
                     raise Unknown('Native start process/configuration outcome is unproven')
+            self._attempt=replace(self._attempt,phase='verified')
             return dict(state='native_service_effect_verified',step=step,unit=binding.unit,job_path=job_path,
                         before_sha256=expected.sha256,after_sha256=after.sha256,owner=asdict(after.owner) if after.owner else None)
         except BaseException as exc:

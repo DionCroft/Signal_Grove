@@ -1,5 +1,10 @@
 # One-use native dispatch claims and current hosted evidence
 
+This retains the earlier one-use claim checkpoint. The
+[current owned error-path evidence](2026-11-14-native-service-error-paths.md)
+adds immutable attempt observations, 124 Pi methods and five actual native
+error/replay cases. The earlier source/receipts remain unchanged.
+
 14 November 2026. Failure-path review identifies a no-replay gap in the initial
 service adapter: its own in-memory spent set cannot exclude a newly constructed
 adapter, while `assert_current` proves journal bytes but does not grant an

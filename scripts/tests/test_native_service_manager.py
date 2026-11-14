@@ -11,7 +11,7 @@ for name in ('retirement_guard','native_retirement_owner','cutover_journal','cut
     module=importlib.util.module_from_spec(spec);sys.modules[name]=module;spec.loader.exec_module(module)
 from retirement_guard import Owner
 from cutover_journal import Refused,Unknown
-from native_service_manager import BusAuthority,UnitBinding,UnitSnapshot,command_rows,invocation_id,job_result,validate_preimage,_Deadline,_LimitedSocket,_Signals
+from native_service_manager import BusAuthority,UnitBinding,UnitSnapshot,NativeAttempt,command_rows,invocation_id,job_result,validate_preimage,_Deadline,_LimitedSocket,_Signals
 
 BOOT='00000000-0000-4000-8000-000000000001'
 OWNER=Owner(4000,500,BOOT)
@@ -31,6 +31,22 @@ def inactive(**changes):
 
 
 class NativeServiceBoundaryTests(unittest.TestCase):
+    def test_attempt_phase_never_claims_a_job_without_an_exact_ack(self):
+        claimed=NativeAttempt('a'*32,OLD,'stop_gateway',BIND.unit,NEW,'claimed','')
+        self.assertEqual(claimed.phase,'claimed')
+        for phase in ('accepted','job_done','verified'):
+            with self.subTest(phase=phase),self.assertRaises(ValueError):replace(claimed,phase=phase)
+            observed=replace(claimed,phase=phase,job_path='/org/freedesktop/systemd1/job/123')
+            self.assertNotEqual(observed.sha256,claimed.sha256)
+        with self.assertRaises(ValueError):replace(claimed,job_path='/org/freedesktop/systemd1/job/123')
+
+    def test_attempt_refuses_foreign_roles_operations_and_unbounded_job_identity(self):
+        accepted=NativeAttempt('a'*32,OLD,'rollback_stop_gateway',BIND.unit,NEW,'accepted','/org/freedesktop/systemd1/job/123')
+        for change in (dict(operation=True),dict(authorization_sha256='private'),dict(preimage_sha256='private'),
+                       dict(step='restart_gateway'),dict(unit='ssh.service'),dict(unit='hermes-serve.service'),
+                       dict(phase='complete'),dict(job_path='/org/freedesktop/systemd1/job/0')):
+            with self.subTest(change=change),self.assertRaises(ValueError):replace(accepted,**change)
+
     def test_native_bus_authority_requires_nonroot_uid_and_exact_incarnations(self):
         good=BusAuthority(1000,44,45,OWNER,':1.1',OWNER)
         for change in (dict(uid=True),dict(uid=0),dict(bus_inode=0),dict(manager_unique='org.freedesktop.systemd1'),dict(peer_owner=None)):

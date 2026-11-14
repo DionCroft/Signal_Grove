@@ -6,18 +6,19 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** test actual native service failures/unknown outcomes and
-adapter/reopen refusal in owned isolated fixtures, then finish the remaining
-PM/backup/admission/publication/reload/health adapters. The journal's new one-use
-claim excludes adapter replacement, reopening and a real forked child. All 122
-related Pi methods pass/no skips (99 coordinator/journal +23 service boundary).
-A fresh six-job actual owned lifecycle and independent raw/source/process/
-journal/package cleanup review pass. Non-service prerequisites stay synthetic;
-full cutover is open. Windows: 764 cases, 697 pass/67 skips; 64 platform cases
-pass on Pi, three older skips retain scope. Canonical PM/work/backups/policy/
-modes/health/recovery remain before live approval. Preserve the initial native
-unit-only controller-metadata failure and terminal/no-service recovery receipt.
-[Current native scope](docs/contracts/2026-11-14-one-use-native-dispatch.md).
+**Next action:** implement the reviewed native artifact/reference publisher and
+named mode changes with exact preimages, retained displaced data and actual
+owned-directory failure tests. Current service evidence passes all 124 related
+Pi methods/no skips and five actual adapter/reopen/helper-error/late-job cases.
+Nine exact jobs and eighteen payload/helper outcomes verify; original uncertain
+intents stay pending. Independent source/raw/job/journal/native/package review
+conserves live state. Windows: 766 cases, 699 pass/67 skips; 64 platform cases
+run on Pi, three older skips retain scope. Preserve the first natural-transition
+observer failure, all original receipts and terminal readback. Other service
+faults, canonical PM/work/backups/policy/modes/reload/health and complete native
+runtime-only recovery remain before separate live approval. Non-service fixture
+prerequisites are synthetic; the full original goal is unchanged.
+[Current native scope](docs/contracts/2026-11-14-native-service-error-paths.md).
 Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence
