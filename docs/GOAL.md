@@ -53,7 +53,9 @@ rows observed through a protected reader and fixed operator routes. Native file
 generation and contents both enter the revision; changed/revoked in-flight reads
 drop contents and preserve submitted state. No policy, grant or service is created.
 Windows refuses POSIX protection; eight real Linux filesystem cases and their
-strict source-bound gate are prepared, with hosted native acceptance pending.
+strict source-bound gate are prepared. Initial Linux8/Windows72/protocol119
+functional gates pass; Windows source bytes are verified as the exact CRLF form.
+Python checkouts are now pinned to LF, with a new exact-byte native gate pending.
 
 Next: Run the new Linux policy lane on this exact feature source and reconcile the
 raw report/log and every source hash before promoting it to main. After it passes,

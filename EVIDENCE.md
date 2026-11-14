@@ -1,5 +1,24 @@
 # Evidence navigation
 
+## Native checkout follow-up - 14 November 2026
+
+Initial feature [run 43541485509](https://github.com/DionCroft/Signal_Grove/actions/runs/43541485509)
+passes all three jobs: 119 protocol cases, 8 Linux native policy cases and 72 Windows
+native provider cases. Both original ZIP digests verify. Linux's eight distinct
+raw starts/finishes and all nine committed source hashes verify. Windows has 72
+raw positives and zero failures/errors/skips; all 15 source hashes match exactly
+the CRLF form of the committed files. No other source difference exists.
+
+The LF-only source verifier stopped on that checkout difference; its failure is
+retained. Python files are now explicitly checked out as LF for reproducible
+source/package hashes. No Python body, test assertion, source checksum rule or
+live policy changes. A new native cohort for this source revision must verify
+exact Git-byte identity before main promotion. The temporary-link HTTP failure
+and successful authenticated-CLI archive retrieval remain recorded. No job was
+retried and no hash mismatch was waived.
+
+The initial source checkpoint below is retained with its original pending state.
+
 ## 14 November 2026 - dormant protected operator binding
 
 The missing operator-binding source is implemented but not deployed. A trusted
