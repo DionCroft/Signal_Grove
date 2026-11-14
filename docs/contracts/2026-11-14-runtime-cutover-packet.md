@@ -254,3 +254,18 @@ These owned unit tests seed non-file gates and do not validate the actual live
 path catalog, policy grants, full ancestry, PM/backups/admission/reload/live-user/
 health or full forward/recovery. All those gates and separate live approval stay.
 [Exact current component scope](2026-11-14-native-file-publication.md).
+
+## Exact rendered catalog and owned composed recovery now verified
+
+The renderer's ten exact outputs bind to native preimages/payload hashes and the
+maintained policy parser. One-level parent preparation occurs under the same
+original stage claim, recording witnessed new inodes before file publication.
+All 62 Pi methods and a retained owned fixture pass: eight actual file/mode
+stages, five publication parents, five retained entries, original CLI restoration
+and newer-data preservation. Independent source/raw/native/history/policy review
+conserves live state. Non-file stages are explicitly synthetic. Next capture the
+actual reviewed Pi catalog read-only, then finish real canonical PM/backups/
+admission/reload/live-user/health/graph and complete forward/recovery acceptance.
+All protected ancestry, original audit/phone/release and separate live approval
+requirements remain; no live path or permission is changed by this checkpoint.
+[Current exact source and evidence](2026-11-14-rendered-publication-recovery.md).

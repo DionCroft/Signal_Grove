@@ -6,20 +6,22 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-**Next action:** bind the renderer's ten exact targets/payloads to the native
-file/mode component, implement explicit missing-parent preparation and retain
-composed native publication/recovery files for independent readback. The new
-component passes 37 Pi methods/no skips (29 Linux); real atomic preservation,
-durable receipts, seven nonrecursive mode roles and old link/regular-CLI recovery
-verify. Generic catalogs and existing unit-test parents do not prove live layout.
-Independent source/raw/process/scratch/runtime/live review passes. Windows:
-803 cases, 707 pass/96 skips; 93 platform methods run in actual Pi cohorts,
-three older skips retain scope. The separate service/journal 124-method cohort
-and five actual errors remain scoped as before. Preserve all older failed and
-unknown receipts. Canonical PM/backups/admission/policy/refs/reload/live-user/
-health/graph and full runtime-only recovery remain before separate live approval.
-All original audit/on-device/phone/security/release requirements stay active.
-[Current file/mode scope](docs/contracts/2026-11-14-native-file-publication.md).
+**Next action:** perform a read-only catalog capture for the actual reviewed Pi
+generation using its existing private policy/launcher review; reconcile current
+path/type differences without writes. Then compose the complete native backend
+with actual canonical PM/backups/admission/reload/live-user health/history/graph
+and runtime-only recovery before a final separate live approval. Current file/
+renderer source passes 62 Pi methods/no skips; the retained owned fixture has
+eight actual file/mode stages, five publication parents and five retained entries.
+Independent native/source/raw/history/policy review proves old CLI restoration,
+newer-data preservation and unchanged live state. Non-file prerequisites remain
+synthetic; actual full protected ancestry/live catalog/cutover are unaccepted.
+Windows: 828 cases, 716 pass/112 skips; 109 platform methods run on Pi, three
+older skips retain scope. The separate service/journal 124-method cohort and
+five errors retain scope. Preserve the combined native hook-detachment failure,
+object-bound correction and every earlier unknown/failed receipt. All original
+audit/on-device/phone/security/release requirements remain active.
+[Current file/renderer scope](docs/contracts/2026-11-14-rendered-publication-recovery.md).
 Supported PM installed exactly
 the five missing declared pins. Independent doctor/tree/probe verification and
 a fresh full SDK native provider/lifespan probe pass with no PM warning or fence

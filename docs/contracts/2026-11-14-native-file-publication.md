@@ -1,5 +1,10 @@
 # Native file publication and named mode component
 
+This preserves the earlier 37-method existing-parent source checkpoint. The
+[current renderer/parent/recovery checkpoint](2026-11-14-rendered-publication-recovery.md)
+adds exact target binding, one-level parent intents and retained composed files;
+it has 62 Pi methods. The earlier source/evidence below remains unchanged.
+
 14 November 2026. `scripts/native_file_publication.py` implements exact native
 file/link publication, retained-entry recovery and the seven named mode roles.
 All 37 methods pass on the actual Pi with no skips. The component requires

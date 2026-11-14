@@ -1,13 +1,12 @@
 """Exact native file/mode effects under a separately approved cutover stage.
 
-No CLI, service action, directory creation, recursive chmod, delete, fallback or
-automatic rollback. Callers bind the exact catalog digest to the reviewed packet
-and supply real admission/backup/source/ancestry gates. Existing parent dirs are
-required. Owned fixtures test this component; they do not approve live paths.
+No CLI, service action, recursive chmod, delete, fallback or automatic rollback.
+Callers bind exact existing parents or explicit one-level creation intents to the
+reviewed packet and supply real admission/backup/source/ancestry gates. Owned fixtures test this component; they do not approve live paths.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, asdict, field, replace
 import ctypes
 import hashlib
 import json
@@ -69,6 +68,27 @@ class DirectoryAnchor:
 
 
 @dataclass(frozen=True)
+class DirectoryCreation:
+    """One reviewed absent child; no recursive mkdir or adoption of an arrival."""
+    parent:DirectoryAnchor
+    name:str
+
+    def __post_init__(self):
+        if (type(self.parent) is not DirectoryAnchor or self.parent.mode not in (0o700,0o755)
+                or type(self.name) is not str or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}',self.name)
+                or self.name in ('.','..')):
+            raise ValueError('Exact safe parent and one ordinary child component required')
+    @property
+    def path(self):return self.parent.path+'/'+self.name
+    @property
+    def uid(self):return self.parent.uid
+    @property
+    def gid(self):return self.parent.gid
+    @property
+    def mode(self):return 0o700
+
+
+@dataclass(frozen=True)
 class FileImage:
     kind:str
     device:int=0
@@ -101,15 +121,16 @@ class FileImage:
 @dataclass(frozen=True)
 class FileBinding:
     role:str
-    parent:DirectoryAnchor
+    parent:DirectoryAnchor|DirectoryCreation
     before:FileImage
     kind:str
     value:bytes|str|None=field(repr=False)
 
     def __post_init__(self):
-        if (type(self.role) is not str or self.role not in FILE_ROLES or type(self.parent) is not DirectoryAnchor
+        if (type(self.role) is not str or self.role not in FILE_ROLES or type(self.parent) not in (DirectoryAnchor,DirectoryCreation)
                 or self.parent.mode not in (0o700,0o755) or type(self.before) is not FileImage
                 or (self.before.kind!='absent' and self.before.uid!=self.parent.uid)
+                or (type(self.parent) is DirectoryCreation and self.before.kind!='absent')
                 or self.kind not in ('file','link','absent')):raise ValueError('One exact role/parent/preimage required')
         if self.kind=='absent':valid=self.value is None
         elif self.role.endswith('_link'):valid=(self.kind=='link' and _path(self.value)) or (
@@ -234,7 +255,7 @@ class _Receipt:
 
 
 class NativeFilePublication:
-    """Exact existing-parent effects only; no step is marked verified here.
+    """Exact parent/one-level creation effects; no step is marked verified here.
 
     The external caller must bind expected_catalog_sha256 to the actual reviewed
     packet and enforce real source/work/backup/native ancestry observations. This
@@ -249,16 +270,19 @@ class NativeFilePublication:
         if any(type(b) is not expected_type for b in bindings) or {b.role for b in bindings}!=STAGE_ROLES[stage] or len(bindings)!=len(STAGE_ROLES[stage]):
             raise ValueError('Complete closed role catalog required for this stage')
         locations=[(b.directory.device,b.directory.inode) if stage=='secure_modes' else
-                   (b.parent.device,b.parent.inode,b.name) for b in bindings]
+                   (('new',b.parent.parent.device,b.parent.parent.inode,b.parent.name,b.name) if type(b.parent) is DirectoryCreation
+                    else ('existing',b.parent.device,b.parent.inode,b.name)) for b in bindings]
         if len(set(locations))!=len(locations):raise ValueError('Duplicate native mutation targets refused')
         if stage not in ('rollback_policy','rollback_runtime') and any(type(b) is FileBinding and b.kind=='absent' for b in bindings):
             raise ValueError('Only separately approved recovery may retire a reference')
         if stage not in ('rollback_policy','rollback_runtime') and any(type(b) is FileBinding and b.role.endswith('_link') and b.kind!='link' for b in bindings):
             raise ValueError('Forward reference publication requires the reviewed literal link')
+        if stage in ('rollback_policy','rollback_runtime') and any(type(b.parent) is DirectoryCreation for b in bindings):
+            raise ValueError('Recovery requires observed existing parents; absent-parent reconciliation is read only')
         self.plan,self.journal,self.stage,self.bindings=plan,journal,stage,bindings
         self.catalog=digest([b.evidence() for b in bindings])
         if self.catalog!=expected_catalog_sha256:raise Refused('Actual catalog differs from the reviewed binding')
-        self.used=False;self.state='ready';self.last_receipt=None
+        self.used=False;self.state='ready';self.last_receipt=None;self.resolved_bindings=()
     def _authorize(self,execution):
         if (type(execution) is not ApprovedExecution or execution.authority_sha256!=self.plan.authority_sha256
                 or (execution.scope=='forward')!=(self.stage in FORWARD)):
@@ -275,20 +299,63 @@ class NativeFilePublication:
         if ([r['step'] for r in rows if r['kind']=='intent']!=list(stages[:index+1])
                 or [r['step'] for r in rows if r['kind']=='verified']!=list(stages[:index])):
             raise Refused('Fixed native file stage prefix has not been verified')
+    def _prepare_parent(self,creation,fd,execution,receipt):
+        self._authorize(execution);receipt.check();_directory(fd,creation.parent)
+        temporary='.signal-grove-'+execution.operation+'-'+uuid.uuid4().hex[:16]+'.directory'
+        receipt.append('parent_intent',dict(parent=asdict(creation.parent),name=creation.name,mode=0o700,temporary=temporary))
+        self._authorize(execution);_directory(fd,creation.parent);opened=None
+        try:
+            # A unique private child is opened/bound before its final name exists.
+            os.mkdir(temporary,0o700,dir_fd=fd);os.fsync(fd)
+            prepared=anchor(Path(creation.parent.path)/temporary)
+            if prepared.mode!=0o700 or prepared.uid!=creation.uid or prepared.gid!=creation.gid or prepared.device!=creation.parent.device:
+                raise Unknown('Prepared parent identity differs from reviewed owner/mode')
+            opened=_open_directory(prepared)
+            if os.listdir(opened):raise Unknown('Prepared private parent is not empty')
+            receipt.append('parent_prepared',dict(image=asdict(prepared),name=creation.name,temporary=temporary))
+            self._authorize(execution);_directory(fd,creation.parent);_directory(opened,prepared)
+            _renameat2(fd,temporary,creation.name,1);os.fsync(opened);os.fsync(fd)
+            actual=replace(prepared,path=creation.path);_directory(opened,actual)
+            if os.listdir(opened):raise Unknown('New parent changed before file publication')
+            receipt.append('parent_observed',dict(image=asdict(actual),temporary=temporary,name=creation.name))
+            self._authorize(execution);result=(opened,actual);opened=None;return result
+        finally:
+            if opened is not None:os.close(opened)
+
     def run(self,execution):
         if self.used:raise Refused('This native publication instance is spent')
         self._authorize(execution);fds={};receipt=None;claimed=False
         try:
             for b in self.bindings:
-                directory=b.directory if type(b) is ModeBinding else b.parent
+                parent=b.directory if type(b) is ModeBinding else b.parent
+                directory=parent.parent if type(parent) is DirectoryCreation else parent
                 key=(directory.device,directory.inode)
                 if key not in fds:fds[key]=_open_directory(directory)
-                if type(b) is FileBinding and _image(fds[key],b.name,directory.uid)!=b.before:
+                if type(parent) is DirectoryCreation:
+                    try:os.stat(parent.name,dir_fd=fds[key],follow_symlinks=False)
+                    except FileNotFoundError:pass
+                    else:raise Refused('A declared absent parent already exists; never adopt it')
+                elif type(b) is FileBinding and _image(fds[key],b.name,directory.uid)!=b.before:
                     raise Refused('Exact native file preimage changed')
             self._authorize(execution);self.journal.claim_dispatch(execution.operation,self.stage,execution.binding_sha256)
             claimed=True;self.used=True;self.state='running'
             receipt=_Receipt(self.journal,execution,self.stage,self.catalog);self.last_receipt=receipt.name
-            for b in self.bindings:
+            resolved={}
+            for creation in dict.fromkeys(b.parent for b in self.bindings if type(b) is FileBinding and type(b.parent) is DirectoryCreation):
+                fd,actual=self._prepare_parent(creation,fds[(creation.parent.device,creation.parent.inode)],execution,receipt)
+                if (actual.device,actual.inode) in fds:
+                    os.close(fd);raise Unknown('New parent aliases an existing bound directory')
+                fds[(actual.device,actual.inode)]=fd;resolved[creation]=actual
+            self.resolved_bindings=tuple(replace(b,parent=resolved[b.parent]) if type(b) is FileBinding and type(b.parent) is DirectoryCreation else b for b in self.bindings)
+            if self.stage!='secure_modes':
+                receipt.append('resolved_catalog',dict(intent_catalog_sha256=self.catalog,
+                    native_catalog_sha256=digest([b.evidence() for b in self.resolved_bindings])))
+                # All old/new file preimages remain checked before the first file effect.
+                for b in self.resolved_bindings:
+                    _directory(fds[(b.parent.device,b.parent.inode)],b.parent)
+                    if _image(fds[(b.parent.device,b.parent.inode)],b.name,b.parent.uid)!=b.before:
+                        raise Unknown('Native file preimage changed after parent preparation')
+            for b in self.resolved_bindings:
                 self._authorize(execution);receipt.check()
                 directory=b.directory if type(b) is ModeBinding else b.parent;fd=fds[(directory.device,directory.inode)]
                 _directory(fd,directory)

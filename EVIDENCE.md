@@ -1,5 +1,21 @@
 # Evidence navigation
 
+## 14 November 2026 - exact renderer catalog and retained publication/recovery
+
+The renderer binds ten exact paths/payloads to native preimages, reviewed hashes
+and the existing policy parser. Explicit one-level parent creation is part of
+the original stage claim; witnessed new inodes and resolved catalogs enter the
+durable receipts before file effects. The retained owned fixture verifies eight
+actual forward/recovery file/mode stages, five publication parents, five retained
+entries, original CLI restoration and newer-data preservation. Independent raw/
+native/source/history/policy review passes with live state conserved. All 62 Pi
+methods pass/no skips; Windows: 828 cases, 716 pass/112 platform skips. Preserve
+the combined fault-hook failure and corrected object-bound injection, without
+changing assertions. Non-file fixture stages remain explicit synthetic; full
+protected ancestry, actual live paths and complete PM/backup/admission/reload/
+health/recovery acceptance remain. No live activation or APK change; full goal stays.
+[Exact scope, retained files/failures and evidence](docs/contracts/2026-11-14-rendered-publication-recovery.md).
+
 ## 14 November 2026 - native file publication and named modes
 
 The new exact file/mode component enforces complete closed-role catalogs,

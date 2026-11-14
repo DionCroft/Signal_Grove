@@ -17,13 +17,20 @@ for name in ('cutover_journal','cutover_coordinator','native_file_publication'):
 from cutover_journal import CutoverJournal,Refused,Unknown
 from cutover_coordinator import Plan,ApprovedExecution,FORWARD,RECOVERY
 import native_file_publication as native
-from native_file_publication import DirectoryAnchor,FileImage,FileBinding,ModeBinding,NativeFilePublication,anchor,observe,digest,FILE_ROLES,MODE_ROLES
+from native_file_publication import DirectoryAnchor,DirectoryCreation,FileImage,FileBinding,ModeBinding,NativeFilePublication,anchor,observe,digest,FILE_ROLES,MODE_ROLES
 
 P,A,S,R=['a'*64,'b'*64,'c'*64,'d'*64]
 DUMMY=DirectoryAnchor('/home/fixture/parent',10,20,1000,1000,0o700)
 
 
 class PublicationSchemaTests(unittest.TestCase):
+    def test_new_parent_requires_one_literal_child_and_an_absent_file_preimage(self):
+        new=DirectoryCreation(DUMMY,'reviewed-generation')
+        for name in ('../outside','a/b','.','..',True,'/home/other'):
+            with self.subTest(name=name),self.assertRaises(ValueError):replace(new,name=name)
+        image=FileImage('file',10,20,0o600,1000,1000,1,3,1,2,'a'*64)
+        with self.assertRaises(ValueError):FileBinding('policy',new,image,'file',b'{}')
+
     def test_directory_identity_refuses_boolean_root_uid_or_ambiguous_paths(self):
         for change in (dict(inode=True),dict(uid=0),dict(mode=0o777),dict(path='/home/fixture/../outside'),dict(path='/home/fixture\nfile')):
             with self.subTest(change=change),self.assertRaises(ValueError):replace(DUMMY,**change)
@@ -153,20 +160,20 @@ class NativePublicationTests(unittest.TestCase):
         b=self.binding();read=os.pread;inode=b.before.inode
         def short(fd,size,offset):
             value=read(fd,size,offset);return value[:-1] if os.fstat(fd).st_ino==inode else value
-        with patch('native_file_publication.os.pread',side_effect=short),self.assertRaises(Unknown):observe(b.parent,b.role)
+        with patch.object(native.os,'pread',side_effect=short),self.assertRaises(Unknown):observe(b.parent,b.role)
 
     def test_concurrent_creation_wins_no_replace_and_both_contents_are_retained(self):
         b=self.binding(old=None);c,e=self.begin('install_policy',(b,));rename=native._renameat2
         def race(fd,source,target,flags):
             self.target(b).write_bytes(b'concurrent-owner-created');rename(fd,source,target,flags)
-        with patch('native_file_publication._renameat2',side_effect=race),self.assertRaises(Unknown):c.run(e)
+        with patch.object(native,'_renameat2',side_effect=race),self.assertRaises(Unknown):c.run(e)
         self.assertEqual(self.target(b).read_bytes(),b'concurrent-owner-created');self.assertEqual(next(Path(b.parent.path).glob('*.incoming')).read_bytes(),b'new-reviewed');self.assert_pending('install_policy')
 
     def test_exchange_race_preserves_displaced_concurrent_content_and_holds(self):
         b=self.binding();c,e=self.begin('install_policy',(b,));rename=native._renameat2
         def race(fd,source,target,flags):
             foreign=Path(b.parent.path)/'concurrent';foreign.write_bytes(b'concurrent-unique');foreign.chmod(0o600);os.replace(foreign,self.target(b));rename(fd,source,target,flags)
-        with patch('native_file_publication._renameat2',side_effect=race),self.assertRaises(Unknown):c.run(e)
+        with patch.object(native,'_renameat2',side_effect=race),self.assertRaises(Unknown):c.run(e)
         self.assertEqual(self.target(b).read_bytes(),b'new-reviewed');self.assertEqual(next(Path(b.parent.path).glob('*.incoming')).read_bytes(),b'concurrent-unique')
         self.assertEqual(c.state,'unknown');self.assert_pending('install_policy')
 
@@ -177,7 +184,7 @@ class NativePublicationTests(unittest.TestCase):
                 calls.append(fd)
                 if len(calls)==2:raise OSError('injected native storage error')
             sync(fd)
-        with patch('native_file_publication.os.fsync',side_effect=fail),self.assertRaises(Unknown):c.run(e)
+        with patch.object(native.os,'fsync',side_effect=fail),self.assertRaises(Unknown):c.run(e)
         self.assertEqual(self.target(b).read_bytes(),b'new-reviewed');self.assertEqual(next(Path(b.parent.path).glob('*.incoming')).read_bytes(),b'old-reviewed')
         self.assertNotIn('entry_observed',[r['phase'] for r in self.rows(c)]);self.assert_pending('install_policy')
         with self.assertRaises(Refused):c.run(e)
@@ -188,7 +195,7 @@ class NativePublicationTests(unittest.TestCase):
             name=os.readlink('/proc/self/fd/'+str(fd))
             if '/native-files-' in name:raise OSError('injected receipt storage error')
             sync(fd)
-        with patch('native_file_publication.os.fsync',side_effect=fail),self.assertRaises(Unknown):c.run(e)
+        with patch.object(native.os,'fsync',side_effect=fail),self.assertRaises(Unknown):c.run(e)
         self.assertEqual(self.target(b).read_bytes(),b'old-reviewed');self.assertEqual(before,len(list(Path('/proc/self/fd').iterdir())))
         self.assert_pending('install_policy');self.assertEqual(len(list(self.ledger.glob('native-files-*.jsonl'))),1)
         replacement=NativeFilePublication(self.plan,self.journal,'install_policy',(b,),c.catalog)
@@ -228,7 +235,7 @@ class NativePublicationTests(unittest.TestCase):
         b=self.binding();c,e=self.begin('install_policy',(b,));rename=native._renameat2;clock=time.monotonic;effect=[]
         def commit(fd,source,target,flags):rename(fd,source,target,flags);effect.append(True)
         def now():return e.deadline+1 if effect else clock()
-        with patch('native_file_publication._renameat2',side_effect=commit),patch('native_file_publication.time.monotonic',side_effect=now),self.assertRaises(Unknown):c.run(e)
+        with patch.object(native,'_renameat2',side_effect=commit),patch.object(native.time,'monotonic',side_effect=now),self.assertRaises(Unknown):c.run(e)
         self.assertEqual(self.target(b).read_bytes(),b'new-reviewed');self.assertEqual(next(Path(b.parent.path).glob('*.incoming')).read_bytes(),b'old-reviewed');self.assert_pending('install_policy')
         self.assertNotIn('catalog_effects_observed',[r['phase'] for r in self.rows(c)])
 
@@ -267,7 +274,7 @@ class NativePublicationTests(unittest.TestCase):
     def test_failure_after_first_chmod_preserves_partial_native_outcome(self):
         bindings=self.modes();c,e=self.begin('secure_modes',bindings);chmod=os.fchmod;effects=[]
         def fail(fd,mode):chmod(fd,mode);effects.append(True);raise OSError('injected post-chmod failure')
-        with patch('native_file_publication.os.fchmod',side_effect=fail),self.assertRaises(Unknown):c.run(e)
+        with patch.object(native.os,'fchmod',side_effect=fail),self.assertRaises(Unknown):c.run(e)
         self.assertEqual(len(effects),1);self.assertEqual(Path(bindings[0].directory.path).stat().st_mode&0o777,0o755)
         for b in bindings[1:]:self.assertEqual(Path(b.directory.path).stat().st_mode&0o777,0o775)
         self.assert_pending('secure_modes')
@@ -301,6 +308,73 @@ class NativePublicationTests(unittest.TestCase):
         self.assertFalse(self.target(client).is_symlink());self.assertEqual(self.target(client).read_bytes(),b'original-reviewed-wrapper')
         self.assertEqual(self.target(client).stat().st_mode&0o777,0o755);self.assertEqual(os.readlink(next(Path(client.parent.path).glob('*.incoming'))),new)
         self.assert_pending('rollback_runtime')
+
+
+    def missing(self,role='policy',*,kind='file',value=b'new-reviewed'):
+        root=self.root/'existing-parent';root.mkdir(mode=0o700)
+        return FileBinding(role,DirectoryCreation(anchor(root),'reviewed-child'),FileImage('absent'),kind,value)
+
+    def test_new_parent_is_bound_and_published_before_its_exact_file(self):
+        b=self.missing();c,e=self.begin('install_policy',(b,));c.run(e)
+        self.assertEqual(self.target(b).read_bytes(),b'new-reviewed');self.assertEqual(Path(b.parent.path).stat().st_mode&0o777,0o700)
+        self.assertIs(type(c.resolved_bindings[0].parent),DirectoryAnchor)
+        phases=[r['phase'] for r in self.rows(c)];self.assertLess(phases.index('parent_observed'),phases.index('entry_intent'))
+        self.assert_pending('install_policy')
+
+    def test_arrived_parent_is_never_adopted_even_when_it_is_empty(self):
+        b=self.missing();Path(b.parent.path).mkdir(mode=0o700);c,e=self.begin('install_policy',(b,))
+        with self.assertRaises(Refused):c.run(e)
+        self.assertEqual(list(Path(b.parent.path).iterdir()),[]);self.assertIsNone(c.last_receipt)
+
+    def test_parent_creation_race_preserves_both_directories_without_file_writes(self):
+        b=self.missing();c,e=self.begin('install_policy',(b,));rename=native._renameat2
+        def race(fd,source,target,flags):
+            if target==b.parent.name:
+                path=Path(b.parent.path);path.mkdir(mode=0o700);(path/'unique').write_bytes(b'concurrent-directory-data')
+            rename(fd,source,target,flags)
+        with patch.object(native,'_renameat2',side_effect=race),self.assertRaises(Unknown):c.run(e)
+        self.assertEqual((Path(b.parent.path)/'unique').read_bytes(),b'concurrent-directory-data');self.assertFalse(self.target(b).exists())
+        retained=list(Path(b.parent.parent.path).glob('*.directory'));self.assertEqual(len(retained),1);self.assertEqual(list(retained[0].iterdir()),[])
+        self.assert_pending('install_policy')
+
+    def test_parent_symlink_arrival_does_not_redirect_file_creation(self):
+        b=self.missing();protected=self.root/'protected';protected.mkdir(mode=0o700);c,e=self.begin('install_policy',(b,));rename=native._renameat2
+        def race(fd,source,target,flags):
+            if target==b.parent.name:Path(b.parent.path).symlink_to(protected,target_is_directory=True)
+            rename(fd,source,target,flags)
+        with patch.object(native,'_renameat2',side_effect=race),self.assertRaises(Unknown):c.run(e)
+        self.assertEqual(list(protected.iterdir()),[]);self.assertTrue(Path(b.parent.path).is_symlink())
+
+    def test_failure_after_parent_rename_retains_the_new_directory_and_pending_intent(self):
+        b=self.missing();c,e=self.begin('install_policy',(b,));rename=native._renameat2
+        def fail(fd,source,target,flags):rename(fd,source,target,flags);raise OSError('injected post-directory-rename error')
+        with patch.object(native,'_renameat2',side_effect=fail),self.assertRaises(Unknown):c.run(e)
+        self.assertTrue(Path(b.parent.path).is_dir());self.assertEqual(list(Path(b.parent.path).iterdir()),[])
+        self.assertNotIn('parent_observed',[r['phase'] for r in self.rows(c)]);self.assert_pending('install_policy')
+        replacement=NativeFilePublication(self.plan,self.journal,'install_policy',(b,),c.catalog)
+        with self.assertRaises(Refused):replacement.run(e)
+
+    def test_shared_new_parents_are_created_once_for_the_six_artifact_roles(self):
+        root=self.root/'artifact-root';root.mkdir(mode=0o700);runtime=self.root/'runtime';runtime.mkdir(mode=0o700)
+        systemd=DirectoryCreation(anchor(root),'systemd-generation');binary=DirectoryCreation(anchor(root),'bin-generation');bindings=[]
+        for role in tuple(FILE_ROLES)[:6]:
+            parent=systemd if role in ('source_gateway','source_serve') else binary if role.startswith('source_') else anchor(runtime)
+            bindings.append(FileBinding(role,parent,FileImage('absent'),'file',b'reviewed-artifact'))
+        c,e=self.begin('publish_reviewed',tuple(bindings));c.run(e)
+        self.assertEqual(len([r for r in self.rows(c) if r['phase']=='parent_observed']),2)
+        for b in bindings:self.assertEqual(self.target(b).read_bytes(),b'reviewed-artifact')
+        self.assertTrue(all(type(b.parent) is DirectoryAnchor for b in c.resolved_bindings))
+
+    def test_planned_safe_parent_mode_does_not_replace_actual_native_permission_proof(self):
+        b=self.missing();root=Path(b.parent.parent.path);root.chmod(0o775)
+        c,e=self.begin('install_policy',(b,))
+        with self.assertRaises(Unknown):c.run(e)
+        self.assertFalse(Path(b.parent.path).exists());self.assertEqual(root.stat().st_mode&0o777,0o775)
+
+    def test_recovery_cannot_create_a_missing_parent_as_an_absence_shortcut(self):
+        b=self.missing(kind='absent',value=None)
+        with self.assertRaises(ValueError):NativeFilePublication(self.plan,self.journal,'rollback_policy',(b,),digest([b.evidence()]))
+        self.assertFalse(Path(b.parent.path).exists())
 
 
 if __name__=='__main__':unittest.main()

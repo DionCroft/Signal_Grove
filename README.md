@@ -21,14 +21,15 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **803 cases: 707 pass, 96 POSIX skips**.
-The separate service/journal cohort has **124 Pi passes** and five actual native
-error scenarios. The new file/mode component has **37 Pi passes**, including real
-atomic no-replace/exchange, displaced-data retention and seven nonrecursive mode
-roles. Ninety-three platform methods run in actual Pi cohorts; three older skips
-retain scope. Non-file prerequisites are synthetic; renderer/live path binding,
-missing-parent creation, remaining adapters and full cutover/recovery stay open.
-[File/mode scope](docs/contracts/2026-11-14-native-file-publication.md) ·
+The latest Windows Python suite runs **828 cases: 716 pass, 112 POSIX skips**.
+The separate service/journal cohort has **124 Pi passes** and five native error
+scenarios. The renderer/file/mode cohort has **62 Pi passes** plus a retained
+owned forward/recovery fixture: ten exact targets, five publication parents,
+eight actual file/mode stages and preserved newer data. Of the platform methods,
+109 run in actual Pi cohorts; three older skips retain scope. Non-file fixture
+prerequisites are synthetic; actual protected ancestry/live catalog and the full
+PM/backup/admission/reload/health/cutover/recovery gates remain open.
+[Renderer/file scope](docs/contracts/2026-11-14-rendered-publication-recovery.md) ·
 [Service scope](docs/contracts/2026-11-14-native-service-error-paths.md).
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
