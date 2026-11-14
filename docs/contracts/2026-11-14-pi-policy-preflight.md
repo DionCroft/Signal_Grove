@@ -1,5 +1,22 @@
 # Pi policy preflight and private proposal - 14 November 2026
 
+## 14 November 2026 - complete maintained source and native staging scope
+
+A complete private Pi source candidate is reconstructed and verified: all 23,586
+original upstream paths remain; 23,627 runtime source files contain only 89
+declared maintained/workspace/PM input changes. Its 61 clean ContextGraph source
+files preserve version 0.8.1 and the locked PyYAML 6.0.3 requirement. The existing
+18 native authority outcomes/24 behavior assertions pass on actual Windows,
+with four synthetic routes and empty admission/worker/conversation tables.
+
+The 92,827,561-byte private packet has all 23,691 members hash-verified. It is
+source, not a built ARM64 environment. Current Pi PM input/facts, aarch64 identity,
+unused destination and free space verify read-only. The exact isolated native
+staging/PM plan is ready for separate approval; no Pi file, live policy/grant,
+ancestor permission, service, model, credential or APK has changed.
+
+[Exact packet, proof and approval boundary](2026-11-14-maintained-pi-source-candidate.md).
+
 The tested source and native acceptance evidence are on
 [main at f65ae83](https://github.com/DionCroft/Signal_Grove/commit/f65ae83d6e4409faa33872c65c9b0844cb3b1d2f).
 The [full goal](../GOAL.md), including all four original priorities, remains active.

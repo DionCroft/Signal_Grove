@@ -63,14 +63,29 @@ All six policy ancestors were observed: two existing directories are 0775, so
 the strict protected reader refuses. Both proposed 0755 changes require review;
 no permission, policy, grant, service, model, credential or APK changed.
 
-Next: Reconstruct and validate the full private maintained PM generation on the
-execution host, retaining all 79 selected source paths and the tested workspace
-overlay. Review the two exact ancestor permission prerequisites and operational
-effect. Finish truthful provenance, fresh verified encrypted recovery and live
-idle/receipt checks, then obtain separate concrete permission/policy/deployment/
-restart approval. The source-only approval does not cover those actions.
-After a reviewed switch, test native HTTPS/Android/live-worker reads and separate
-chat/execution adoption; every original integration and release gate remains.
+A complete private Pi source candidate is reconstructed and verified: all 23,586
+original upstream paths remain; 23,627 runtime source files contain only 89
+declared maintained/workspace/PM input changes. Its 61 clean ContextGraph source
+files preserve version 0.8.1 and the locked PyYAML 6.0.3 requirement. The existing
+18 native authority outcomes/24 behavior assertions pass on actual Windows,
+with four synthetic routes and empty admission/worker/conversation tables.
+
+The 92,827,561-byte private packet has all 23,691 members hash-verified. It is
+source, not a built ARM64 environment. Current Pi PM input/facts, aarch64 identity,
+unused destination and free space verify read-only. The exact isolated native
+staging/PM plan is ready for separate approval; no Pi file, live policy/grant,
+ancestor permission, service, model, credential or APK has changed.
+
+Next: Obtain approval for the reviewed isolated native source/PM staging scope, then
+stage only the new generation, rebase its ContextGraph path through supported PM
+lock/sync and require all other dependency graph/artifact values to remain equal.
+Refuse occupied paths or drift and preserve partial/unknown results without
+replay. Live units, profile policy, worker enrollment and both existing ancestor
+modes remain unchanged during staging. Native ARM64 acceptance, truthful runtime
+provenance, reviewed permission effects, verified encrypted recovery/current idle
+checks and exact activation approval remain required before a live switch.
+Real HTTPS/Android/worker content and independent execution adoption follow;
+every original audit, automation/integration and phone/release gate remains.
 
 The original four priorities/full audit stay active: forty stable findings/main
 review, pristine shutdown, original API26 causes, real integration/automation,
@@ -79,3 +94,5 @@ release acceptance remain. Native policy fixture success does not close those
 requirements. See [the current contract](contracts/2026-11-14-protected-operator-policy.md).
 
 [Current Pi preflight and private proposal](contracts/2026-11-14-pi-policy-preflight.md).
+
+[Complete maintained source and native staging review](contracts/2026-11-14-maintained-pi-source-candidate.md).
