@@ -56,19 +56,24 @@ scopes; the app dependency trial does not run the HTTP/IdP branch.
 [Paired proof](docs/contracts/2026-11-14-paired-canonical-shutdown.md) ·
 [App environment proof](docs/contracts/2026-11-14-native-app-environment.md).
 
-Read-only final-source PM preflight now exposes a real staging condition:
-the relative tools stamp is CWD-sensitive, and the lifecycle sibling has no
-own facts. A source-only preparer for a fresh, explicitly bound metadata variant
-passes all 544 portable checks. No prior snapshot or live state is changed.
-[Binding evidence](docs/contracts/2026-11-14-runtime-source-binding.md).
+The fresh explicit-store metadata variant now passes native whole-source/mode
+and multi-CWD checks. Its own supported PM application facts are committed and
+current; actual dependencies load without pytest. A wrapper's unsupported
+shell-stamp expectation stays failed; sync is not repeated. Two supported
+bootstrap descriptor commands preserve the owning/explicit data homes and
+selected source/environment, exit 0 and make no network/process attempts.
+Independent raw/source/facts/live checks pass. Hosted 9b7568db passes all 544
+portable and 15 runtime-model checks. No live source or unit changes.
+[Native source binding proof](docs/contracts/2026-11-14-runtime-source-binding.md).
 
 ## Exact next action
 
-Materialize the new source-only metadata variant inside the approved isolated
-generation, verify the whole source/modes and store resolution across CWDs,
-then run supported PM sync into its own source-keyed facts/environment. Preserve
-the frozen base/lifecycle trees and their facts. Verify the selected native
-entry point and default/borrowed profile-home behavior before live review.
+Run the complete native owner/control/cleanup fixture against the explicit-store
+source map 96f58bd4 and its own selected application environment. Rebind only
+fixture/source/IPC metadata, retain every protocol assertion and keep failures.
+Then review permanent service/CLI launchers, production home binding and the
+exact policy/permission/idle/encrypted-recovery transaction. Bootstrap descriptor
+checks do not prove the published launcher or real gateway/HTTP path.
 
 Then prepare the exact live activation transaction: the two group-write
 prerequisites, real protected-policy positive, launcher/unit/source references,

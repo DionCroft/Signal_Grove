@@ -12,13 +12,16 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The latest local portable gate passes **544 checks**, plus **15 runtime-model
+The latest hosted portable gate passes **544 checks**, plus **15 runtime-model
 checks**. Both Linux SDK shutdown cohorts independently pass the same **50
 canonical cases**. The Pi application dependency environment also passes its
 native cleanup trial without pytest. These are separate validation scopes;
 the published beta.9 APK and live gateway are unchanged.
 [Canonical evidence](docs/contracts/2026-11-14-paired-canonical-shutdown.md) ·
 [Pi app environment scope](docs/contracts/2026-11-14-native-app-environment.md).
+The staged explicit-store source also has its own current PM environment and
+verified bootstrap home binding; production activation remains pending.
+[Source/environment proof](docs/contracts/2026-11-14-runtime-source-binding.md).
 
 ## Download and release status
 

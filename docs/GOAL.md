@@ -208,3 +208,16 @@ metadata preparer passes 544 portable cases; its fresh native materialization,
 own supported PM facts and actual entry/runtime gates remain next. Every prior
 gate/failure and all four original priorities remain. No live change is approved.
 [Binding scope](contracts/2026-11-14-runtime-source-binding.md).
+
+
+## 14 November progress - own source PM and bootstrap identity verified
+
+The explicit-store source passes full native source/modes and multi-CWD checks.
+Its own PM app facts/readiness/dependencies and two explicit-home supported
+bootstrap commands verify, with no pytest and preserved old facts/live state.
+The failed wrapper's shell-stamp assumption remains; sync is not replayed.
+Hosted 9b7568db passes 544 portable and 15 runtime-model cases. Next: full native
+owner/control/cleanup on this exact source, then concrete service/profile/policy/
+permission/recovery review. Full gateway/HTTP/phone activation and every original
+priority remain open; no live cutover is approved.
+[Source binding proof](contracts/2026-11-14-runtime-source-binding.md).

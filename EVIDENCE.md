@@ -1,5 +1,27 @@
 # Evidence navigation
 
+## 14 November 2026 - explicit-store source, own PM and bootstrap contexts verified
+
+Actual Pi verifies the fresh 23,628-file explicit-store variant, original native
+modes/124 executable identities and only one metadata-field change. Its own
+source-keyed PM application environment has a successful SDK receipt, current
+readiness, Python 3.14.9/ContextGraph 0.8.1/PyYAML 6.0.3 and no pytest. The sync
+is not replayed after a follow-up wrapper's unpromised shell-stamp assumption.
+Both original failed checks and successful raw receipts remain independent.
+
+Supported bootstrap descriptor commands pass owning and explicitly supplied
+home contexts using the selected interpreter: 0/0 exits, exact source/home/
+dependencies and no network/process attempts. Raw child identities/logs and
+full source/modes/facts/live conservation verify independently. Source 9b7568db
+passes 544 portable and 15 runtime-model checks on hosted Linux. These are finite
+predeployment gates, not full CLI/gateway/HTTP, permission or phone acceptance.
+
+Next: full native owner/control/cleanup on this exact source/environment, then
+concrete permanent launcher/profile/policy/permission/idle/recovery review.
+Live services, credentials, models, grants, existing modes and APKs stay unchanged.
+Every original priority and audit requirement remains active.
+[Exact native source/environment scope](docs/contracts/2026-11-14-runtime-source-binding.md).
+
 ## 14 November 2026 - final-source PM preflight identifies CWD-sensitive metadata
 
 Actual read-only Pi checks prove the lifecycle sibling needs its own PM facts
