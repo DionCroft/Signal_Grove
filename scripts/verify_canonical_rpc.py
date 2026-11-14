@@ -52,22 +52,39 @@ def positive_cases(raw: bytes) -> list[dict[str, str]]:
     return sorted((dict(name=row.get('name'), classname=row.get('classname')) for row in rows), key=lambda row: row['name'])
 
 
+def reviewed_entries(head: bytes, index: bytes) -> dict[bytes, tuple[bytes, bytes]]:
+    expected = {}
+    actual = {}
+    for raw in head.split(b'\0'):
+        if raw:
+            header, name = raw.split(b'\t', 1)
+            mode, kind, blob = header.split()
+            if kind != b'blob' or name in expected:
+                raise ValueError('Invalid pinned SDK tree')
+            expected[name] = (mode, blob)
+    for raw in index.split(b'\0'):
+        if raw:
+            header, name = raw.split(b'\t', 1)
+            mode, blob, stage = header.split()
+            if stage != b'0' or name in actual:
+                raise ValueError('Unmerged or duplicate SDK index entry')
+            actual[name] = (mode, blob)
+    if not expected or actual != expected:
+        raise ValueError('SDK index differs from the pinned HEAD tree')
+    return expected
+
+
 def source_snapshot(source: Path) -> dict[str, str]:
     def git(*args: str) -> bytes:
         return subprocess.check_output(['git', '--no-optional-locks', '-C', str(source), *args], stderr=subprocess.PIPE)
     if git('rev-parse', 'HEAD').decode().strip() != PIN:
         raise ValueError('Wrong pinned SDK revision')
-    if git('status', '--porcelain', '--untracked-files=no'):
-        raise ValueError('Tracked SDK source changed')
     result = {}
-    for entry in git('ls-files', '--stage', '-z').split(b'\0'):
-        if not entry:
-            continue
-        header, name = entry.split(b'\t', 1)
-        mode, blob, stage = header.split()
+    entries = reviewed_entries(git('ls-tree', '-r', '-z', 'HEAD'), git('ls-files', '--stage', '-z'))
+    for name, (mode, blob) in entries.items():
         relative = name.decode('utf8')
         path = source / relative
-        if mode not in (b'100644', b'100755') or stage != b'0' or path.is_symlink() or not path.resolve(strict=True).is_relative_to(source):
+        if mode not in (b'100644', b'100755') or path.is_symlink() or not path.resolve(strict=True).is_relative_to(source):
             raise ValueError('Unexpected SDK tree entry')
         data = path.read_bytes()
         if hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest().encode() != blob:
@@ -90,6 +107,11 @@ def main() -> None:
         raise ValueError('Canonical POSIX acceptance requires the actual Linux host')
     source = args.source.resolve(strict=True)
     evidence = args.evidence.resolve(strict=True)
+    status = subprocess.check_output(['git', '--no-optional-locks', '-C', str(source), 'status', '--porcelain', '--untracked-files=no']).decode('utf8')
+    # Keep filter/stat observations, but accept source only through exact
+    # HEAD -> index -> working-byte/mode equality, independent of Git filters.
+    with (evidence / (args.phase + '-git-status.json')).open('x', encoding='utf8') as stream:
+        json.dump(dict(status=status, sourceCommit=PIN), stream, indent=2)
     snapshot = source_snapshot(source)
     map_path = evidence / 'source-map.json'
     before_path = evidence / 'before.json'
@@ -115,7 +137,7 @@ def main() -> None:
                   nativeSystem=platform.system(), nativeMachine=platform.machine(),
                   cases=cases, junitSha256=sha(junit), runtime=runtime,
                   canonicalLogSha256=sha((evidence / 'canonical.log').read_bytes()),
-                  allTrackedSourceUnchanged=True, piActivationAccepted=False,
+                  allTrackedSourceUnchanged=True, exactHeadIndexAndWorkingBytes=True, piActivationAccepted=False,
                   completeUpstreamLifecycleAccepted=False)
     with (evidence / 'result.json').open('x', encoding='utf8', newline='\n') as stream:
         stream.write(json.dumps(report, indent=2) + '\n')

@@ -53,6 +53,21 @@ class CanonicalRpcEvidenceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             verifier.positive_cases(b'<!DOCTYPE x [<!ENTITY x "content">]><testsuites/>')
 
+    def test_index_must_match_exact_head_blob_and_mode(self):
+        head = b'100644 blob ' + b'1' * 40 + b'\tmodule.py\0'
+        index = b'100644 ' + b'1' * 40 + b' 0\tmodule.py\0'
+        self.assertEqual(verifier.reviewed_entries(head, index)[b'module.py'], (b'100644', b'1' * 40))
+        for changed in (index.replace(b'1', b'2'), index.replace(b'100644', b'100755'), b''):
+            with self.assertRaises(ValueError):
+                verifier.reviewed_entries(head, changed)
+
+    def test_duplicate_and_unmerged_index_cannot_supply_source_proof(self):
+        head = b'100644 blob ' + b'1' * 40 + b'\tmodule.py\0'
+        index = b'100644 ' + b'1' * 40 + b' 0\tmodule.py\0'
+        for changed in (index + index, index.replace(b' 0\t', b' 2\t')):
+            with self.assertRaises(ValueError):
+                verifier.reviewed_entries(head, changed)
+
 
 if __name__ == '__main__':
     unittest.main()

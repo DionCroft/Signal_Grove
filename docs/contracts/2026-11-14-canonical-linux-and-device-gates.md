@@ -106,3 +106,17 @@ corrected fresh-checkout preparation uses Git info attributes to disable only
 PS1 text conversion and materializes those paths directly from their exact
 pinned Git blobs. The whole-source guard and six canonical assertions remain
 unchanged. A new source run, rather than replay of that failed run, is required.
+
+## Second pre-test refusal and stronger source proof
+
+[Run 43557440768](https://github.com/DionCroft/Signal_Grove/actions/runs/43557440768),
+source bf8798b7, refuses at the initial Git-status gate, before PM/test execution.
+It is retained without a test-positive claim. That status-only result does not
+establish which SDK byte changed. The revised guard records raw Git status and
+requires the complete pinned HEAD tree to equal the exact index path/mode/blob
+map, then every working file to equal that pinned blob and native executable
+mode. This explicit three-way proof is independent of text-filter/stat summaries.
+Wrong index blobs/modes, duplicate/unmerged paths and every raw working-byte
+change remain refusals. Two additional evidence tests cover these cases, bringing
+the portable suite to 501 positives. All SDK tests/assertions and the pinned SHA
+remain unchanged; hosted acceptance is still pending.
