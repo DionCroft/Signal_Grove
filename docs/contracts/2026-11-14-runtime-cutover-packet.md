@@ -104,9 +104,13 @@ execution, NAS identity support, a new grant or a successful phone workspace rea
 
 ## Next concrete stage
 
-Prepare the exact private policy from that current enrollment and the bounded
-live transaction/executor with no-replay rollback. Exercise the stop helpers in
-an actual isolated systemd cgroup before claiming their positive service path;
+The subsequent [native helper and private-policy check](2026-11-14-native-systemd-and-policy.md)
+now passes in isolated staging. Its current inventory has 41 validated native
+caches. The earlier 29-cache observation above remains historical. These results
+do not activate this packet or complete its bounded transaction review.
+
+Complete the bounded live transaction/executor with no-replay rollback. Preserve
+the accepted exact private policy and real isolated systemd stop-helper evidence;
 never invoke the cgroup reaper directly in an agent/shared cgroup. Only an
 explicitly owned transient acceptance unit may contain disposable sentinel
 processes; ordinary fixture files stay in approved control-plane staging.

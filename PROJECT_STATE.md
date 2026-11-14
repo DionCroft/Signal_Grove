@@ -3,6 +3,17 @@
 14 November 2026. The full goal is **active**; all original scope and all four
 [priorities](docs/GOAL.md) remain.
 
+The isolated native systemd stop-helper check now independently passes:
+unchanged SDK marker/cleanup commands exit 0/0, native process identities and
+planned marker match, and the test unit/cgroup/processes are gone. All 23,628
+source inputs/modes, 41 caches, own PM facts and live identities/modes verify.
+The private one-grant policy schema/fixed-route check also passes without a
+worker/model call; unsafe-ancestry refusal and absent live policy are preserved.
+Earlier harness failures remain. The next exact action is to finish the bounded
+live executor/rollback and authenticated drain/retirement-fence review before
+separate live approval. Full audit scope remains active; no live switch or APK.
+[Native evidence](docs/contracts/2026-11-14-native-systemd-and-policy.md).
+
 The approved isolated Pi candidate is staged and native PM lock/sync plus the
 separate dev/test environment are ready. The complete dependency graph changes
 only through the exact reviewed vendor-path rebase. Actual Linux/aarch64 Python

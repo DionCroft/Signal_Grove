@@ -296,3 +296,24 @@ bounded transaction/rollback review before separate live approval. No canonical
 PM, mode, policy/grant, link, unit, model, credential or APK change occurs. All
 four original priorities and every unresolved goal/acceptance row stay active.
 [Evidence and unchanged full scope](contracts/2026-11-14-runtime-cutover-packet.md).
+
+## 14 November 2026 - real systemd stop helpers and private policy validation
+
+The actual Pi user manager's isolated unit passes unchanged SDK stop-marker and
+cleanup commands with native CLD_EXITED/status 0. Exact PID/start ticks, planned
+marker, exclusive cgroup and two sentinel deaths verify; the unit/cgroup/processes
+are gone. Independent raw recovery authenticates source, fixture and all five
+verifiers, all 23,628 source inputs/modes, 41 separately validated caches and PM
+facts, with live services and permissions conserved. Earlier busctl/controller/
+observer failures remain failed; no source or callback is weakened.
+
+Native private-policy schema/fixed-route checks and independent 0600 byte/source
+review pass for one existing enrolled validation grant, with zero worker/model
+requests. The anchored reader still refuses unsafe ancestry; the live policy
+stays absent. This is not authenticated production workspace acceptance.
+
+Hosted cea0cbf passes 576 portable +15 runtime-model cases and pinned/Windows
+gates. Upstream remains red; Android verify passes while device jobs are pending.
+No live activation, mode/grant/credential/model change, phone upgrade or new APK.
+The complete executor/fence/rollback review and every original priority remain.
+[Native evidence and exact limits](contracts/2026-11-14-native-systemd-and-policy.md).

@@ -12,28 +12,23 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The latest hosted portable gate passes **544 checks**, plus **15 runtime-model
-checks**. Both Linux SDK shutdown cohorts independently pass the same **50
-canonical cases**. The Pi application dependency environment also passes its
-native cleanup trial without pytest. These are separate validation scopes;
-the published beta.9 APK and live gateway are unchanged.
-[Canonical evidence](docs/contracts/2026-11-14-paired-canonical-shutdown.md) ·
-[Pi app environment scope](docs/contracts/2026-11-14-native-app-environment.md).
-The staged explicit-store source also has its own current PM environment and
-verified bootstrap home binding; production activation remains pending.
-[Source/environment proof](docs/contracts/2026-11-14-runtime-source-binding.md).
-Its exact-source native owner and clean-shutdown flow is independently verified;
-production launcher/HTTP/worker acceptance remains open.
-[Native owner scope](docs/contracts/2026-11-14-bound-source-native-owner.md).
-The actual published launcher also passes isolated owner-home startup and refuses
-an unprepared home; 20 native bytecode-verifier tests pass. Live activation remains
-open. [Launcher scope](docs/contracts/2026-11-14-published-launcher-inventory.md).
-Its PM-prepared borrowed-home launch also passes. Hosted Linux verifies all
-564 portable and 15 runtime-model tests; upstream stable/main review remains
-open (40/144 used-handler changes). No new APK or live cutover is claimed.
-A concrete review-only Pi command/unit packet passes 12 native cases, shell syntax
-and real systemd verification; 576 portable cases run on Windows (three POSIX-only
-skips). [Packet and recovery scope](docs/contracts/2026-11-14-runtime-cutover-packet.md).
+At reviewed source cea0cbf, hosted Linux passes **576 portable checks** and
+**15 runtime-model checks**. Both earlier Linux SDK shutdown cohorts independently
+pass the same **50 canonical cases**. On the actual Pi, the isolated real systemd
+unit now passes unchanged SDK stop-marker/cleanup commands with **0/0 exits**;
+its exact unit, cgroup and processes are gone. Whole-source/native-mode, PM and
+live-service conservation are independently verified. The private read-policy
+proposal also passes native validation; it is not installed.
+[Native results and limits](docs/contracts/2026-11-14-native-systemd-and-policy.md).
+
+The staged source has its own supported PM environment and a tested published
+launcher. The complete command/unit packet is review-only; live activation needs
+its remaining bounded work-fence and rollback review. Upstream used/transitive
+compatibility, original API26 failure cause, real project/worker/integration and
+final signed-production acceptance remain open. Android build/unit/lint checks
+pass at that source; device jobs are pending at observation. The published
+**beta.9 APK is unchanged**.
+[Full goal](docs/GOAL.md) · [Runtime packet](docs/contracts/2026-11-14-runtime-cutover-packet.md).
 
 ## Download and release status
 

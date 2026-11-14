@@ -55,3 +55,9 @@ Source/template: pinned `gateway/systemd_stop_mark.py`, `gateway/cgroup_cleanup.
 and the reviewed renderer packet. This records a planned native test boundary;
 it does not claim that such a unit has run or authorize a production cutover,
 policy/grant, credential, model or existing-directory permission change.
+
+The planned systemd boundary above has now been exercised and independently
+verified in the [native stop-helper check](contracts/2026-11-14-native-systemd-and-policy.md).
+Its exact unit/cgroup/processes are gone; all ordinary files remain in approved
+staging. The [committed fixture companions](../scripts/native/systemd_stop_fixture/README.md)
+record the test scope. No production permissions or service actions are implied.
