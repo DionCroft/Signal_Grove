@@ -217,6 +217,32 @@ class NativeServeRetirementTests(unittest.TestCase):
         actor,e=self.prepare();p=self.paths['journal']/('native-files-'+e.operation+'-'+self.stage+'.jsonl');p.write_bytes(b'preserve earlier outcome\n')
         with self.assertRaises(self.errors.Unknown):actor.run(e)
         self.assertTrue(actor.used);self.assertEqual(b'preserve earlier outcome\n',p.read_bytes());self.assertEqual([],self.observations()['requests'])
+    def test_large_inventory_fully_verifies_with_a_bounded_identity_digest_receipt(self):
+        actor,e=self.prepare();root=self.paths['old_source']
+        for n in range(1000):
+            p=root/('reviewed-extra-module-'+str(n).zfill(4)+'-'+'x'*40+'.py');p.write_bytes(b'# Reviewed additional code.\n')
+        rows=tuple(sorted((p.relative_to(root).as_posix(),hashlib.sha256(p.read_bytes()).hexdigest()) for p in root.rglob('*.py')))
+        inventory=self.r.SourceInventory(self.core['native_file_publication'].anchor(root),rows);observed=inventory.observe()
+        self.assertGreater(len(json.dumps(observed).encode()),65536)
+        spec=replace(self.spec,sdk=inventory)
+        actor=self.r.NativeServeRetirement(self.plan,self.j,self.manager,self.guard,self.stage,spec,spec.sha256,self.adapter)
+        result=actor.run(e);self.assertEqual('effects_observed',result['state']);self.assertTrue(self.observations()['committed'])
+        raw=(self.paths['journal']/result['receipt']).read_bytes();self.assertLess(len(raw),65536)
+        receipt=[json.loads(line) for line in raw.splitlines()];witness=receipt[1]['evidence']['inputs']['sdk']
+        self.assertEqual({'inventory_sha256':inventory.sha256,'files':len(rows),'identities_sha256':self.core['native_file_publication'].digest(observed)},witness)
+        self.assertEqual('serve_retirement',self.j.view['pending']);self.assertEqual(4,len(self.observations()['requests']))
+
+    def test_same_content_native_identity_change_after_commit_stays_unknown(self):
+        actor,e=self.prepare();original=self.r.PinnedRetirementHttp.__call__;p=self.paths['old_source']/sorted(self.r.SDK_REQUIRED)[0];before=p.stat()
+        def request(adapter,method,path,body):
+            result=original(adapter,method,path,body)
+            if method=='POST' and body.get('action')=='commit':
+                p.write_bytes(p.read_bytes());self.assertNotEqual(before.st_ctime_ns,p.stat().st_ctime_ns)
+            return result
+        with patch.object(self.r.PinnedRetirementHttp,'__call__',request),self.assertRaises(self.errors.Unknown):actor.run(e)
+        self.assertTrue(self.observations()['committed']);self.assertEqual('unknown',actor.state);self.assertEqual(4,len(self.observations()['requests']))
+        with self.assertRaises(self.errors.Refused):actor.run(e)
+
     def test_synthetic_socket_observer_cannot_substitute_for_native_proof(self):
         actor,e=self.prepare();self.adapter._observe=lambda sock:self.spec.before.owner
         with self.assertRaises(self.errors.Refused):actor.run(e)

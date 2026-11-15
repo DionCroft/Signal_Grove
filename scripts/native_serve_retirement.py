@@ -104,7 +104,13 @@ class NativeServeRetirement:
         return scope
 
     def _inputs(self):
-        return dict(sdk=self.spec.sdk.observe(),executor=self.spec.executor.observe())
+        # Verify every bound file and all native identity fields, then retain a
+        # deterministic witness. Full SDK identity maps exceed the fixed receipt
+        # row limit; compact evidence must not reduce verification to content alone.
+        def witness(inventory):
+            identities=inventory.observe()
+            return dict(inventory_sha256=inventory.sha256,files=len(identities),identities_sha256=digest(identities))
+        return dict(sdk=witness(self.spec.sdk),executor=witness(self.spec.executor))
 
     def _current(self):
         before=self.spec.before;binding=self.manager.bindings['serve']

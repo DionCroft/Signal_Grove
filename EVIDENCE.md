@@ -1,5 +1,21 @@
 # Evidence navigation
 
+## SDK inventory receipt fix and real socket timing hold - 15 November 2026
+
+Full-inventory receipt handling is fixed: **83 Pi methods/no skips**, including
+19 retirement cases; Windows **1,039 cases, 806 pass/233 platform skips**. The
+original 160,736-byte identity-map failure is preserved; the 1,006-file case now
+uses a 3,682-byte receipt while verifying every content/native identity. An
+identical-byte rewrite after commit still holds unknown without replay.
+
+The actual SDK/native-role trial reaches generated-provider PKCE login/refresh
+but refuses the pinned socket before dispatch. Full 23,628-file verification
+measures **14.663 s**, while the unchanged SDK HTTP keep-alive is **5 s**. This
+supports the ordering diagnosis; original-call timing was not instrumented.
+Keep the real SDK actor/executor gate open. All 44 inspected temporary units
+are stopped; four original failures remain. Live state, owner data and beta.9
+are unchanged. [Exact source, failures and next stage](docs/contracts/2026-11-15-sdk-retirement-inventory-and-timing.md).
+
 ## Hosted retirement proof and upstream drift - 15 November 2026
 
 Source876's full hosted policy gate now passes **1,037 Linux methods/no skips**,

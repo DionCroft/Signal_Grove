@@ -1,5 +1,10 @@
 # Hosted retirement checks and newly inspected upstream drift
 
+Later full-inventory work passes 83 controlled Pi methods and 1,039 Windows
+cases (806 positive / 233 platform skips). Actual SDK login succeeds, but its
+retirement actor exposes a preclaim socket-timing hold; that real gate remains
+open. [Current failure, exact proof and next implementation](2026-11-15-sdk-retirement-inventory-and-timing.md).
+
 15 November 2026. Source `87615c44a100804605b7fe6a6b0ea467b4cdb6fd` passes
 the [hosted full policy job](https://github.com/DionCroft/Signal_Grove/actions/runs/43671597650):
 **1,037 positive Linux methods without skips**. Independent published-ZIP digest,

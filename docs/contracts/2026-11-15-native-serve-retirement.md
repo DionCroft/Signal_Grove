@@ -1,5 +1,10 @@
 # Journal-bound native standalone-serve retirement
 
+Later full-inventory work passes 83 controlled Pi methods and 1,039 Windows
+cases (806 positive / 233 platform skips). Actual SDK login succeeds, but its
+retirement actor exposes a preclaim socket-timing hold; that real gate remains
+open. [Current failure, exact proof and next implementation](2026-11-15-sdk-retirement-inventory-and-timing.md).
+
 Subsequent hosted proof: source876 passes all 1,037 Linux methods/no skips;
 source8d's build artifact independently verifies. Upstream main has advanced to
 b2c6bc4 with 171 findings, retaining the earlier f578714/169 record below.

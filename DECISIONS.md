@@ -1,5 +1,17 @@
 # Decisions
 
+## 15 November 2026 - full input proof must fit receipts and connection lifetime
+
+Verify all bound content and native identities, then persist the complete-map
+digest/count in bounded receipts. Keep ctime-sensitive drift refusal. Preserve
+the original oversized-row error and real SDK startup/socket failures. Use the
+committed venv entry for normal SDK startup. Prepare expensive content proof
+before authentication and require fresh native identity proof around the claimed
+exchange; do not make an expired socket valid by reconnecting, replaying,
+extending the SDK timeout or reducing the bound source inventory. The actual SDK
+actor remains unaccepted until that boundary is implemented and tested.
+[Exact evidence and required stage](docs/contracts/2026-11-15-sdk-retirement-inventory-and-timing.md).
+
 ## 15 November 2026 - retirement is one claimed native exchange
 
 Bind the exact original journal, approval, finite native controller, source/home

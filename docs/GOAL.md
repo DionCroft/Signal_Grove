@@ -832,3 +832,28 @@ The same full goal remains active, with no live changes or new APK release.
 Retain the two newly observed main findings in the same full goal. Next run the
 actual SDK/native-role actor trial, then complete gateway drain and the unified
 executor; every original requirement and uncertain outcome remains.
+
+## Full inventory and actual SDK timing checkpoint - 15 November 2026
+
+Full-inventory receipt handling is fixed: **83 Pi methods/no skips**, including
+19 retirement cases; Windows **1,039 cases, 806 pass/233 platform skips**. The
+original 160,736-byte identity-map failure is preserved; the 1,006-file case now
+uses a 3,682-byte receipt while verifying every content/native identity. An
+identical-byte rewrite after commit still holds unknown without replay.
+
+The actual SDK/native-role trial reaches generated-provider PKCE login/refresh
+but refuses the pinned socket before dispatch. Full 23,628-file verification
+measures **14.663 s**, while the unchanged SDK HTTP keep-alive is **5 s**. This
+supports the ordering diagnosis; original-call timing was not instrumented.
+Keep the real SDK actor/executor gate open. All 44 inspected temporary units
+are stopped; four original failures remain. Live state, owner data and beta.9
+are unchanged. [Exact source, failures and next stage](contracts/2026-11-15-sdk-retirement-inventory-and-timing.md).
+
+The next action is to **fix source-verification/connection ordering without
+weakening full source or native-owner checks**, then prove the actual SDK actor
+and complete gateway drain and the unified executor/reload/health/runtime recovery.
+Continue the remaining 37 stable / 171 inspected-main findings, existing CI jobs
+and every original audit, phone and release gate.
+
+This concrete runtime defect remains in the same full objective. No original
+requirement, historical failure, security boundary or release gate is removed.
