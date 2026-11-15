@@ -154,6 +154,21 @@ class NativeBackupTransactionTests(unittest.TestCase):
         actor,e=self.prepare();self.omit_member=True
         with self.assertRaises(self.jmodule.Unknown):self.run_actor(actor,e)
         self.assertEqual(self.server.requests,[]);self.assertFalse(list(self.output().glob('*.zip.age')))
+    def test_wrong_child_executable_retains_scoped_failure_without_feeding_input(self):
+        actor,e=self.prepare();self.j.claim_dispatch(e.operation,self.stage,e.binding_sha256)
+        receipt=self.core['native_file_publication']._Receipt(self.j,e,self.stage,self.spec.sha256)
+        child=subprocess.Popen([sys.executable,'-I','-B','-c','import sys;sys.stdin.buffer.read()'],stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        try:
+            with self.assertRaises(self.jmodule.Unknown):actor._owner(child,self.spec.age,self.scope,receipt,'decrypt')
+            self.assertIs(actor.child_process,child);self.assertIsNone(actor.last_child_owner);self.assertEqual(actor.child_history,[])
+            row=json.loads(receipt.data.splitlines()[-1]);self.assertEqual(row['phase'],'child_observation_held')
+            proof=row['evidence'];self.assertEqual(proof['pid'],child.pid);self.assertIsNone(proof['returncode'])
+            self.assertEqual(proof['checks'],dict(incarnation_observed=True,uid_matches=True,executable_matches=False,inode_matches=False,cgroup_matches=True))
+            self.assertEqual(self.server.requests,[]);self.assertEqual(self.snapshot_calls,0);self.assertFalse(self.output().exists())
+            self.assertNotIn('fixture_secret_',receipt.data.decode());self.assertNotIn(self.spec.identity.path,receipt.data.decode())
+        finally:
+            child.stdin.close();child.wait(timeout=5);receipt.close()
+        self.assertEqual(child.returncode,0)
     def test_changed_program_has_no_claimed_effect_or_output(self):
         actor,e=self.prepare();Path(self.spec.age.path).write_bytes(b'changed reviewed program')
         with self.assertRaises(self.jmodule.Refused):self.run_actor(actor,e)

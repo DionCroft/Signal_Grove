@@ -1,5 +1,27 @@
 # Signal Grove audit execution plan
 
+## Strict backup-child observation checkpoint - 15 November 2026
+
+Strict backup-child diagnostics now retain the exact Popen handle and a
+credential-free per-check hold receipt. A wrong-executable regression verifies
+that no input or backup/publication effect is permitted. The fresh complete
+controlled cohort passes **100 native methods/no skips**; Windows passes **824
+of 1,074 cases, with 250 platform skips**. The prior 99-method failed run remains.
+
+A separate generated-data diagnostic reproduces **three holds in 100 fresh
+decryptor starts**: incarnation, UID and cgroup pass, while executable path and
+inode do not match the reviewed program. All three receive **zero ciphertext
+bytes** and every child ends. The other 97 generated round trips verify. This
+narrows the failure to executable observation; the exact cause and safe fix are
+still unproven. No check is relaxed and no held backup is replayed.
+
+Previous source `97db9f3` independently passes **1,073 hosted Linux policy
+methods/no skips**, including all 26 gateway cases. Current-source hosted checks
+remain separate. Source8d retains **1,142 API26 / 1,143 API37** standard methods;
+all original UI, upstream (37 stable / 171 inspected-main findings), real project/
+worker/integration, local-AI/physical-phone and original-key release gates remain.
+Live services and beta.9 are unchanged. [Exact source, reproduction and scope](contracts/2026-11-15-backup-child-observation.md).
+
 ## Native gateway observation and retained backup regression - 15 November 2026
 
 The new read-only gateway observer has **26 focused cases: 18 portable and

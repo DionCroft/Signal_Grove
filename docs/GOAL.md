@@ -917,3 +917,36 @@ seven real modes remain unactivated. Prepare the full separate live approval
 packet only after these gates; retain every original audit and release task.
 
 No original requirement is removed; the full goal remains active.
+
+## Strict backup-child observation checkpoint - 15 November 2026
+
+Strict backup-child diagnostics now retain the exact Popen handle and a
+credential-free per-check hold receipt. A wrong-executable regression verifies
+that no input or backup/publication effect is permitted. The fresh complete
+controlled cohort passes **100 native methods/no skips**; Windows passes **824
+of 1,074 cases, with 250 platform skips**. The prior 99-method failed run remains.
+
+A separate generated-data diagnostic reproduces **three holds in 100 fresh
+decryptor starts**: incarnation, UID and cgroup pass, while executable path and
+inode do not match the reviewed program. All three receive **zero ciphertext
+bytes** and every child ends. The other 97 generated round trips verify. This
+narrows the failure to executable observation; the exact cause and safe fix are
+still unproven. No check is relaxed and no held backup is replayed.
+
+Previous source `97db9f3` independently passes **1,073 hosted Linux policy
+methods/no skips**, including all 26 gateway cases. Current-source hosted checks
+remain separate. Source8d retains **1,142 API26 / 1,143 API37** standard methods;
+all original UI, upstream (37 stable / 171 inspected-main findings), real project/
+worker/integration, local-AI/physical-phone and original-key release gates remain.
+Live services and beta.9 are unchanged. [Exact source, reproduction and scope](contracts/2026-11-15-backup-child-observation.md).
+
+The next action is to **identify the executable transition in the same original
+spawned backup child**, then implement and validate a bounded native handoff
+without accepting an arbitrary image, widening trust or replaying the held
+operation. Preserve its artifacts and failed unit. Continue journal-bound gateway
+drain, normal GatewayRunner/all-profile/worker coverage, the unified executor,
+reload/authenticated health and runtime-only recovery afterward. Both canonical
+PM contexts, the seven real modes and the separate final live approval remain.
+Every original audit, phone, integration and production-release requirement stays.
+
+No original requirement or historical failed/unknown outcome is removed.

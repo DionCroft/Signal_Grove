@@ -170,11 +170,22 @@ class NativeBackupTransaction:
             except subprocess.TimeoutExpired:pass
         if child.returncode!=0:raise Unknown('Backup child failed; inspect retained evidence without replay')
     def _owner(self,child,program,scope,receipt,phase):
-        owner=read_process_owner(child.pid)
-        if (owner is None or Path('/proc',str(child.pid)).stat().st_uid!=os.geteuid() or os.readlink('/proc/'+str(child.pid)+'/exe')!=program.path
-            or (os.stat('/proc/'+str(child.pid)+'/exe').st_dev,os.stat('/proc/'+str(child.pid)+'/exe').st_ino)!=program.identity[:2]
-            or Path('/proc',str(child.pid),'cgroup').read_text().splitlines()!=['0::'+scope.cgroup]):raise Unknown('Backup child native identity/scope unproven')
-        self.child_process=child;self.last_child_owner=owner;self.child_history.append(dict(phase=phase,owner=asdict(owner),program_sha256=program.sha256))
+        # Retain the exact Popen handle even when kernel identity is inconclusive.
+        # This is observation only: it grants no input, signal, retry or replay.
+        self.child_process=child;owner=None
+        checks=dict(incarnation_observed=None,uid_matches=None,executable_matches=None,inode_matches=None,cgroup_matches=None)
+        try:
+            owner=read_process_owner(child.pid);checks['incarnation_observed']=owner is not None
+            checks['uid_matches']=Path('/proc',str(child.pid)).stat().st_uid==os.geteuid()
+            checks['executable_matches']=os.readlink('/proc/'+str(child.pid)+'/exe')==program.path
+            checks['inode_matches']=(os.stat('/proc/'+str(child.pid)+'/exe').st_dev,os.stat('/proc/'+str(child.pid)+'/exe').st_ino)==program.identity[:2]
+            checks['cgroup_matches']=Path('/proc',str(child.pid),'cgroup').read_text().splitlines()==['0::'+scope.cgroup]
+        except OSError:
+            pass
+        if not all(value is True for value in checks.values()):
+            receipt.append('child_observation_held',dict(phase=phase,pid=child.pid,checks=checks,returncode=child.poll(),program_sha256=program.sha256))
+            raise Unknown('Backup child native identity/scope unproven')
+        self.last_child_owner=owner;self.child_history.append(dict(phase=phase,owner=asdict(owner),program_sha256=program.sha256))
         receipt.append('child_owned',self.child_history[-1]);return owner
     def _snapshot(self,e,scope,receipt,directory,raw):
         request=dict(sdk=asdict(self.spec.sdk),dependencies=asdict(self.spec.dependencies),home=asdict(self.spec.home),output=str(raw));request_hash=digest(request);request['request_sha256']=request_hash

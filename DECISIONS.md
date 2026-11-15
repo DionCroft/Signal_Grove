@@ -1,5 +1,14 @@
 # Decisions
 
+## 15 November 2026 - explain held child identity without relaxing admission
+
+Keep the original spawned handle and per-check native hold metadata; require
+all five facts before input. Preserve the failed backup and the three zero-input
+reproductions even when the complete fresh cohort passes. Prove the actual
+executable transition before accepting a new observation policy. Never replay
+the held operation or treat a mismatched image as the requested tool.
+[Source, evidence and open cause](docs/contracts/2026-11-15-backup-child-observation.md).
+
 ## 15 November 2026 - registered gateway work is observation, never fleet permission
 
 Require exact kernel peer identity, strict bounded one-use SDK framing and complete

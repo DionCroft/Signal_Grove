@@ -12,16 +12,19 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Last independently verified hosted source `09306e6` passes **1,047 Linux policy
-tests/no skips**. Current Windows checks pass **824 of 1,073 cases, with 249
-platform skips**. The new gateway observer's **18 portable / eight native cases**
-and four isolated real-SDK control peers pass. These verify registered-work
-observation; normal GatewayRunner, drain and fleet-switch acceptance remain.
-The final broad native rerun is **held: 58 pass, one failure, 40 errors/no skips**
-in its 99-method cohort. The existing backup stage holds before proving its
-decryption child; its receipt and failed unit are preserved for diagnosis.
-Live services and beta.9 remain unchanged.
-[Current evidence and limits](docs/contracts/2026-11-15-native-gateway-observation.md).
+Last independently verified hosted source `97db9f3` passes **1,073 Linux policy
+tests/no skips**, including all 26 gateway cases. Current Windows checks pass
+**824 of 1,074 cases, with 250 platform skips**; the fresh controlled Pi cohort
+passes **100 methods/no skips**. Strict backup-child hold diagnostics and a
+wrong-executable test preserve the identity boundary.
+
+A separate generated-data probe reproduces **three executable/inode observation
+holds in 100 fresh decryptor starts**. Those children receive no ciphertext;
+the cause remains open despite the fresh cohort's pass. The earlier failed
+native run and all unknown receipts are retained. Normal GatewayRunner/drain,
+fleet acceptance, production deployment and final phone/release checks remain.
+Live services and beta.9 are unchanged.
+[Current evidence and limits](docs/contracts/2026-11-15-backup-child-observation.md).
 
 Source8d's complete hosted standard Android gate independently verifies **1,142
 API26 / 1,143 API37 methods**, exact disjoint raw unions and actual build APK
