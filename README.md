@@ -12,10 +12,14 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Current audit checks: **829 Windows passes / 254 platform skips**, **104 Pi
-cohort passes**, and a four-mode real SDK control trial. The gateway status
-reader preserves and validates admission-fence ownership. The last independently
-verified hosted policy source (`1a07bf6`) passes **1,078 Linux methods/no skips**.
+The current isolated SDK trial verifies actual GatewayRunner startup, generated
+admission freeze/refusal, an external drain marker and normal native shutdown.
+**Quiescence remains held:** six fresh drain responses still report executor/
+periodic work. The fixture preserves those counts and its failed outcome.
+Current Windows checks pass **839 of 1,093 cases**, with **254 platform skips**;
+all **ten new boundary cases** also pass on Pi. Parent source `75d0167` passes
+**1,083 independently reconciled hosted Linux methods/no skips**.
+[Current runtime finding and remaining work](docs/contracts/2026-11-15-normal-gateway-drain-hold.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,
@@ -61,9 +65,11 @@ Checked **15 November 2026**. Counts describe their stated builds and test scope
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Current Windows policy suite | **829 passes / 254 platform skips** | 1,083 cases; 31 focused gateway cases split into 23 portable and eight native |
-| Current controlled Pi cohort | **104 methods / no skips** | Eight native gateway cases plus existing PM/backup/retirement coverage; four-mode SDK trial separately verifies eight requests |
-| Last independently reviewed hosted policy suite | **1,078 methods / no skips** | Source1a07bf6; exact positive raw inventory, stopped native unit and Windows/native inventory match |
+| Actual normal-gateway fixture | **Startup/freeze/marker/native stop verified; quiescence held** | Generated home/ledger, eight recomputed replies, 1,139 SDK origins and full dependency baseline; no production/all-profile acceptance |
+| New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |
+| Current Windows policy suite | **839 passes / 254 platform skips** | 1,093 cases; ten new gateway fixture boundary methods |
+| Previous controlled Pi cohort | **104 methods / no skips** | Eight native gateway cases plus existing PM/backup/retirement coverage; four-mode SDK trial separately verifies eight requests |
+| Last independently reviewed hosted policy suite | **1,083 methods / no skips** | Source75d0167; exact positive raw inventory, stopped native unit and Windows/native inventory match |
 | Current hosted JVM tests | **1,011 cases / 97 reports** | Source09306e6; actual XML, no failures/errors/skips |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |

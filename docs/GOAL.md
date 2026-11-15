@@ -10,40 +10,43 @@ APK delivery explicitly requested 12 November 2026: after the applicable release
 
 ## Current checkpoint - 15 November 2026
 
-The native gateway status reader now preserves the SDK admission fence's owner
-and rejects impossible initial/positive-epoch ownership combinations. Five new
-portable regressions cover initial, frozen, released, malformed and foreign-owner
-states. Observing another owner's fence gives no permission to adopt it.
+The new fixture runs the maintained SDK's actual `gateway.run.start_gateway`
+facade and real GatewayRunner in a fresh home and separate finite native unit.
+It verifies ready state, the real SDK ledger freeze, refusal of new generated
+turn/tool admission, an exact boot/PID1 drain marker and normal native SIGINT
+shutdown. No SDK function is replaced. The CLI `main` entrypoint is not exercised.
 
-Current checks pass **829 Windows methods in 1,083 cases, with 254 platform
-skips**, **104 Pi cohort methods/no skips**, and eight real SDK Unix requests
-across four generated-home modes. Independent raw/SQLite/native readback verifies
-the exact fence owner/epoch, ended peers and stopped inspected units. The SDK
-runner and ledgers are synthetic; normal GatewayRunner and real drain remain open.
+**Quiescence remains held.** Of seven fresh status samples, the initial one is
+idle and six after the freeze report executor/periodic jobs active. Ledger work
+counts stay zero. The five-second observation window expires without an idle
+drain observation; the gate stays closed. There is no counter exclusion, marker
+refresh, thaw or replay. The SDK process later exits normally; its controller's
+failed acceptance outcome and all persistent fixture state remain preserved.
 
-Parent source `1a07bf6` independently passes **1,078 hosted Linux policy methods
-with no skips**. Source `09306e6` now has a reconciled full standard Android gate:
-**1,011 JVM methods, 1,142 API26 / 1,143 API37 device methods**, exact disjoint raw
-unions, recomputed summary and matching actual APK hashes. Both lint variants
-have zero errors (52 debug / 51 release warnings). These exact-source results do
-not close original UI causes, twelve external-model or final production-phone gates.
+Independent raw/native/SQLite readback verifies eight wire replies, 1,139 loaded
+SDK source origins, all 23,628 SDK files and the 5,033-file dependency baseline.
+The SDK's derived native stop budget is 70 seconds. One root configuration file
+is explicitly unreadable; its permissions are preserved and no complete SSH
+posture assessment is claimed. All inspected trial owners/units have ended.
 
-The latest inspected upstream reports retain **37 stable / 172 main changed-
-handler findings**; main is now `d1b46d7`. Those are review findings, not accepted
-compatibility. Source inspection covers 1,724 staged admission/drain-related
-Python files. It establishes specific call sites, not whole-fleet enforcement.
-Live services and published beta.9 remain unchanged. The full goal stays active.
-[Exact source, artifacts and limits](contracts/2026-11-15-gateway-fence-owner-and-android-review.md).
+Current Windows checks pass **839 of 1,093 cases, with 254 platform skips**.
+All **ten new boundary methods** also pass on Pi without skips. Parent source
+`75d0167` independently passes **1,083 hosted Linux policy methods/no skips**,
+including the previous 1,078 and five owner regressions. Current-source hosted
+checks remain separate. The original UI, upstream, project/worker/integration,
+phone/local-model and signed-production release requirements all remain.
+Live Pi services and published beta.9 are unchanged. The full goal stays active.
+[Exact source, evidence and limits](contracts/2026-11-15-normal-gateway-drain-hold.md).
 
-Implement the original-journal native gateway drain using reviewed existing
-per-profile admission ledgers and a fresh, exclusively owned marker; qualify
-normal GatewayRunner in a finite isolated unit. Bind exact native owners, source,
-ancestry, approval and expiry. Preserve any existing/uncertain fence or marker
-without adoption, replay or automatic release. Then compose all-profile/worker
-admission, the unified executor, reload/authenticated health and bounded runtime-
-only recovery. Both canonical PM contexts, seven real modes, policy/launcher
-references, real private GitHub/live-home backup and separate final live approval
-remain unactivated. Continue all four original acceptance priorities.
+Identify the actual SDK work owners behind the executor/periodic counts during
+external drain, including startup/housekeeping scheduling and any observation
+effect. Obtain bounded source/stack ownership evidence and an uninstrumented
+comparison; preserve the counters and every held receipt. Resolve and requalify
+quiescence before composing the original-journal native drain actor. Then finish
+all-profile/worker admission, the unified executor, reload/authenticated health
+and bounded runtime-only recovery. Both canonical PM contexts, seven real modes,
+policy/launcher references, real private GitHub/live-home backup and separate
+final live approval remain unactivated. Every original acceptance priority stays.
 
 ## Explicit acceptance priorities resumed 13 November 2026
 

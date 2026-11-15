@@ -1,5 +1,15 @@
 # Decisions
 
+## 15 November 2026 - preserve actual busy work during gateway drain
+
+Use the real SDK startup/ledger/marker/native-stop path in a fresh isolated
+fixture. Keep valid busy observations busy and require fresh idle evidence
+within the original bounded window. Do not remove executor/periodic counts,
+refresh/thaw a fence or retry a mutation to pass. The measured quiescence hold
+requires ownership diagnosis before the journal actor or live packet can be
+accepted. Preserve opaque root configuration and all earlier failures without
+changing permissions. [Evidence and scope](docs/contracts/2026-11-15-normal-gateway-drain-hold.md).
+
 ## 15 November 2026 - retain and validate the native fence owner
 
 Preserve the SDK owner/epoch in read-only observations and reject combinations
