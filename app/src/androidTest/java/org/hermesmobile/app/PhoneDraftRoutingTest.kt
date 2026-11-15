@@ -56,7 +56,7 @@ class PhoneDraftRoutingTest {
         return value.get()
     }
     private fun openChatNavigation() {
-        try {compose.onNodeWithTag("nav-chat").performClick()}
+        try {compose.openChatRouteOnce()}
         catch(original:AssertionError) {
             throw retainUiFixtureFailure(compose,compose.activity,vm,original,
                 FixtureFailureKind.PhoneDraftNavigation,null,0,0)

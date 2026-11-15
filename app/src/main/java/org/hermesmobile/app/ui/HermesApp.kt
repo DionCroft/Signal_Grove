@@ -39,7 +39,24 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
     val busy by vm.busy.collectAsStateWithLifecycle()
     val reduced=LocalReducedMotion.current
     val keyboardOpen=WindowInsets.ime.getBottom(androidx.compose.ui.platform.LocalDensity.current)>0
-    fun go(route: String) { nav.navigate(route) { launchSingleTop=true; restoreState=true; popUpTo(nav.graph.startDestinationId) { saveState=true } } }
+    DisposableEffect(nav) {
+        val owner=System.identityHashCode(nav)
+        UiRouteObservation.record(AppRouteEvent.CompositionEntered,owner,nav.currentDestination?.route)
+        val listener=androidx.navigation.NavController.OnDestinationChangedListener {_,destination,_->
+            UiRouteObservation.record(AppRouteEvent.RouteChanged,owner,destination.route)
+        }
+        nav.addOnDestinationChangedListener(listener)
+        onDispose {
+            nav.removeOnDestinationChangedListener(listener)
+            UiRouteObservation.record(AppRouteEvent.CompositionDisposed,owner,nav.currentDestination?.route)
+        }
+    }
+    fun go(route: String) {
+        val owner=System.identityHashCode(nav)
+        UiRouteObservation.record(AppRouteEvent.NavigationRequested,owner,route)
+        nav.navigate(route) { launchSingleTop=true; restoreState=true; popUpTo(nav.graph.startDestinationId) { saveState=true } }
+        UiRouteObservation.record(AppRouteEvent.NavigationReturned,owner,nav.currentDestination?.route)
+    }
     LaunchedEffect(requestedRoute) {if(requestedRoute in setOf("Tasks","Chat")) {go(requestedRoute!!);handled()}}
     sharedImages?.let {ImageShareReview(vm,it,shareHandled) {go("Chat")}}
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).pixelPaper(MaterialTheme.colorScheme.onBackground)) {

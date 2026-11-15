@@ -19,6 +19,40 @@ class UiFixtureDiagnosticsTest {
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
 
+    @Test fun routeTraceObservesTheActualHomeCallbackWithoutAnExtraClick() {
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(10000) {!vm.connecting.value && vm.preferences.value.demo}
+        compose.onNodeWithTag("nav-home").performClick();compose.onNodeWithTag("nav-home").assertIsSelected()
+        var trace:AppRouteTrace?=null
+        var result:JSONObject?=null
+        compose.runOnUiThread {trace=AppRouteTrace(compose.activity);trace!!.mark("route-contract")}
+        try {
+            compose.onNodeWithText("New conversation").performScrollTo().performClick()
+            compose.onNodeWithTag("nav-chat").assertIsSelected()
+        } finally {compose.runOnUiThread {trace!!.close();result=trace!!.snapshot("routeTraceObservesTheActualHomeCallbackWithoutAnExtraClick")}}
+        val record=checkNotNull(result)
+        assertTrue(record.getBoolean("originalObserverRestored"));assertEquals(0,record.getInt("observationFailures"));assertEquals(0,record.getInt("omitted"))
+        val array=record.getJSONArray("entries");val events=(0 until array.length()).map {array.getJSONObject(it)}
+        for(event in listOf("HomeNewChat","HomeNewChatCleared","NavigationRequested","NavigationReturned","RouteChanged"))
+            assertEquals(event,1,events.count {it.getString("event")==event && it.getString("route")=="Chat"})
+        assertEquals(1,events.filter {it.getString("event") in setOf("NavigationRequested","NavigationReturned","RouteChanged")}.map {it.getInt("owner")}.distinct().size)
+    }
+    @Test fun aRouteObserverFailureCannotChangeTheActualNavigation() {
+        compose.waitUntil(10000) {!vm.connecting.value}
+        compose.runOnUiThread {vm.setDemo(true)}
+        compose.waitUntil(10000) {!vm.connecting.value && vm.preferences.value.demo}
+        compose.onNodeWithTag("nav-home").performClick();compose.onNodeWithTag("nav-home").assertIsSelected()
+        compose.runOnUiThread {
+            check(UiRouteObservation.observer==null)
+            UiRouteObservation.observer={_,_,_->throw IllegalStateException("Synthetic observer failure")}
+        }
+        try {
+            compose.onNodeWithText("New conversation").performScrollTo().performClick()
+            compose.onNodeWithTag("nav-chat").assertIsSelected()
+        } finally {compose.runOnUiThread {UiRouteObservation.observer=null}}
+    }
+
     @Test fun readyMessagesOnHomeDoNotProveChatIsRenderedAndSnapshotsExcludePrivateValues()=runBlocking {
         compose.waitUntil(10000) {!vm.connecting.value}
         compose.runOnUiThread {vm.setDemo(true)}

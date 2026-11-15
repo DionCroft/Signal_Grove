@@ -8,12 +8,15 @@ import kotlinx.coroutines.runBlocking
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.ui.*
 import org.junit.Assert.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class Milestone03Test {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule val caseName=org.junit.rules.TestName()
+    private var inputTrace:AppRouteTrace?=null
     private val app get()=compose.activity.application as HermesApplication
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     @Before fun reset() {runBlocking {app.preferences.update(AppPreferences());app.database.dao().clearChats()}
@@ -21,12 +24,25 @@ class Milestone03Test {
         compose.runOnUiThread {vm.setDemo(true)}
         compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="demo" && vm.preferences.value.demo}
         compose.waitForIdle()
+        compose.runOnUiThread {inputTrace=AppRouteTrace(compose.activity)}
+    }
+    @After fun retainInputTrace() {
+        val trace=inputTrace ?: return
+        var captured:org.json.JSONObject?=null
+        compose.runOnUiThread {trace.close();captured=trace.snapshot(caseName.methodName)}
+        val record=checkNotNull(captured);val text=record.toString()
+        check(text.toByteArray(Charsets.UTF_8).size<=65536)
+        val file=java.io.File(compose.activity.getExternalFilesDir(null),"qa/app-route-trace-"+java.util.UUID.randomUUID()+".json")
+        file.parentFile!!.mkdirs();file.writeText(text)
+        assertTrue("The original route observer must be restored",record.getBoolean("originalObserverRestored"))
+        assertEquals(0,record.getInt("observationFailures"))
     }
     private fun go(w:Words)=compose.onAllNodesWithContentDescription(w.localized(AppPreferences()),useUnmergedTree=true).onLast().performClick()
     private fun demoExercise(word:Words) {
         // Keep the original interaction and assertion timing. On failure capture
         // safe fixture state so a transient missing node can be distinguished
         // from a language, connection or message-list mismatch. Never retry it.
+        inputTrace?.mark("demo-exercise")
         try {
             compose.onNodeWithText(word.localized(AppPreferences())).performScrollTo().performClick()
         } catch(original:AssertionError) {
@@ -60,7 +76,9 @@ class Milestone03Test {
         }
     }
     @Test fun demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure() {
+        inputTrace?.mark("home-new-chat")
         compose.onNodeWithText("New conversation").performScrollTo().performClick()
+        inputTrace?.mark("after-home-new-chat")
         demoExercise(Words.DemoApproval)
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}
         assertTrue(vm.busy.value);assertEquals("pending",vm.controls.value.single().state)
@@ -73,7 +91,9 @@ class Milestone03Test {
         compose.onNodeWithText("The simulated action was denied.").assertExists()
     }
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {
+        inputTrace?.mark("home-new-chat")
         compose.onNodeWithText("New conversation").performScrollTo().performClick()
+        inputTrace?.mark("after-home-new-chat")
         demoExercise(Words.DemoClarification)
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}
         compose.onNodeWithText("Brief").performClick();assertTrue(vm.busy.value)

@@ -33,7 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
                 Word(Words.Greeting,heading=true)
                 Text(label(Words.GreetingBody),style=MaterialTheme.typography.bodyLarge)
                 Row(horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
-                    PixelPrimaryButton({vm.newChat();go("Chat")},enabled=!busy,modifier=Modifier.weight(1f,fill=false)) { Icon(Icons.Outlined.Add,null); Spacer(Modifier.width(8.dp));Text(Words.NewChat.en) }
+                    PixelPrimaryButton({UiRouteObservation.record(AppRouteEvent.HomeNewChat,0,"Chat");vm.newChat();UiRouteObservation.record(AppRouteEvent.HomeNewChatCleared,0,"Chat");go("Chat")},enabled=!busy,modifier=Modifier.weight(1f,fill=false)) { Icon(Icons.Outlined.Add,null); Spacer(Modifier.width(8.dp));Text(Words.NewChat.en) }
                     IconButton({go("Voice")},Modifier.size(48.dp).testTag("home-voice-action")) { Icon(Icons.Outlined.MicNone,label(Words.Voice)) }
                 }
             }
