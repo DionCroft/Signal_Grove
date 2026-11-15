@@ -784,3 +784,32 @@ services, owner data and published beta.9 are unchanged.
 Every unresolved original requirement remains. Continue current job observation,
 remaining used/transitive/shutdown review and journal-bound native admission/
 executor integration before the separate complete live/release gates.
+
+## Native retirement and hosted acceptance checkpoint - 15 November 2026
+
+Journal-bound standalone-serve retirement now passes **81 Pi methods/no skips**,
+including 17 new native cases; Windows: **1,037 cases, 806 pass/231 platform skips**.
+Independent raw/source/receipt/native identity review confirms all 19 inspected
+temporary units are stopped and live state is conserved. The server fixture is
+synthetic; actual SDK actor integration, gateway drain and the unified native
+executor/reload/health/runtime recovery remain required.
+
+Parent source8d01e9 passes all **1,015 hosted Linux policy methods/no skips**.
+Source7e1bd25's complete standard Android gate now passes **1,142 API26 / 1,143
+API37 methods** with independently verified raw disjoint unions, matching actual
+APK hashes, 1,011 JVM cases and both lint variants. All three retained historical
+methods pass on both APIs; their original causes remain unproven. Twelve external
+model methods and final phone/production-release gates remain. Newer source8d's
+build reports success; its four device shards and artifact acceptance are pending.
+Stable/main compatibility still has **37 / 169 used-handler findings** requiring
+review. The full original goal, owner data, live services and beta.9 remain.
+[Exact implementation, evidence and next stage](contracts/2026-11-15-native-serve-retirement.md).
+
+The next action is to **exercise the journal-bound retirement actor against the
+actual normal SDK in an owned native role**, then complete gateway drain and the
+unified executor/reload/health/runtime recovery while reviewing the remaining
+37 stable / 169 inspected-main findings. Observe existing hosted jobs; retain all
+original audit and final phone/release gates.
+
+This checkpoint changes no objective or acceptance requirement. The same full
+goal stays active; component success does not authorize live deployment.

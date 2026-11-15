@@ -29,6 +29,7 @@ NATIVE_CLASSES = (
     'test_native_pm_preparation.NativePmPreparationTests',
     'test_private_backup_release.NativeBackupPublicationTests',
     'test_native_backup_transaction.NativeBackupTransactionTests',
+    'test_native_serve_retirement.NativeServeRetirementTests',
 )
 PROPERTIES = ('Type=exec', 'RuntimeMaxSec=900', 'TimeoutStopSec=5',
               'KillMode=control-group', 'Restart=no', 'UMask=0077', 'TasksMax=512')

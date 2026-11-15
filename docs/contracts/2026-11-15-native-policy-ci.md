@@ -1,5 +1,10 @@
 # Native policy CI fixture setup
 
+Subsequent checkpoint: source8d01e9's full 1,015-method hosted policy suite
+passes without skips; source7e1bd25's complete standard API26/API37 gate is now
+independently verified at 1,142 / 1,143 methods. The original checkpoint below
+retains its then-pending status. [Later raw/source proof and remaining scope](2026-11-15-native-serve-retirement.md).
+
 15 November 2026. Hosted Ubuntu discovery was running controlled native tests
 without their required finite user-manager unit and generated fixture inputs.
 At source `59f43b3`, the parser/Android prerequisite fails before Android checks;

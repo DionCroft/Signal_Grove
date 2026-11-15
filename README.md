@@ -12,23 +12,25 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Hosted source `7e1bd25` passes all **1,008 Linux policy tests** without skips,
-plus Android build/JVM/lint checks. Four device shards remain in progress. The
-newer auth/PM source policy passes Windows validation; its hosted checks and full
-release acceptance remain open. [Current evidence and limits](docs/contracts/2026-11-15-auth-pm-source-fence.md).
+Hosted source `8d01e9` passes all **1,015 Linux policy tests** without skips.
+The latest Windows Python suite runs **1,037 cases: 806 pass, 231 POSIX skips**.
+The journal-bound retirement component adds **81 Pi passes/no skips**, including
+17 native retirement cases, with independent raw/receipt/native identity review.
+Its synthetic server fixture is separately scoped from actual SDK/native
+executor and live deployment acceptance; all temporary units are stopped and
+live services remain unchanged.
+[Current evidence and limits](docs/contracts/2026-11-15-native-serve-retirement.md).
 
-Current Android evidence: **1,011 JVM cases** and both lint variants pass with
-zero errors (52 debug / 51 release warnings). The source654d839 hosted run
-passes all **1,142 standard API26** and
-**1,143 API37 methods**, with no failures/skips and independently verified disjoint
-shards. The original Demo and two retained navigation cases pass; historical
-causes remain unproven. Twelve external-model methods, physical phone and
-original-key production-upgrade gates require separate acceptance.
-[Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
+Current source7e1bd25 Android evidence: **1,011 JVM cases** and both lint variants
+pass with zero errors (52 debug / 51 release warnings). Its complete hosted gate
+passes **1,142 standard API26** and **1,143 API37 methods**, with no failures/skips
+and independently verified raw disjoint shards and actual APK hashes. The Demo
+and two retained navigation cases pass; historical causes remain unproven.
+Twelve external-model methods, physical phone and original-key production-upgrade
+gates require separate acceptance. The newer source8d build reports success; its
+four device shards and full artifact acceptance remain pending. Upstream
+compatibility still requires review of **37 stable / 169 inspected-main findings**.
 
-The latest Windows Python suite runs **1,015 cases: 801 pass, 214 POSIX skips**.
-The CI driver's controlled cohort adds **64 Pi passes/no skips** with exact
-method accounting and generated age fixtures; live services remain unchanged.
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,
 eight actual stages, original CLI restoration and preserved newer data. Its

@@ -1,5 +1,16 @@
 # Decisions
 
+## 15 November 2026 - retirement is one claimed native exchange
+
+Bind the exact original journal, approval, finite native controller, source/home
+and running incarnation before any retirement effect. Require a real kernel-tied
+single socket, exclusive secret-free receipts and at most one dispatch. Busy
+responses hold; uncertain responses or changed identity remain unknown without
+reconnect, replay, cancel or service action. Expose the source-bound cooperative
+SDK assumption explicitly, and keep synthetic protocol tests separate from the
+normal SDK/native executor and final live acceptance.
+[Implementation and verified limits](docs/contracts/2026-11-15-native-serve-retirement.md).
+
 ## 15 November 2026 - complete backup evidence has explicit boundaries
 
 Only the complete claimed snapshot/content/crypto/download stage can supply its
