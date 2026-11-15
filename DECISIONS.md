@@ -1,5 +1,17 @@
 # Decisions
 
+## 15 November 2026 - preserve SDK drain effects separately from failed lifecycle acceptance
+
+Accept only the independently observed generated-home drain component. Its
+successful freeze/marker/idle cannot turn a gateway exit-code failure into a
+normal stop. Preserve blocked network attempts and require a fresh configured
+fixture; use supported offline settings, never suppress refusals or patch SDK
+callbacks. The finite fixture lifetime may cover full source verification while
+the original observation and native stop budgets remain fixed. Keep the
+controller's native group sole-process and retain its unit reference through
+shutdown. Source-only status correction and fleet admission remain separate gates.
+[Evidence](docs/contracts/2026-11-15-actual-sdk-journal-drain-and-held-shutdown.md).
+
 ## 15 November 2026 - keep original-journal drain source unactivated until SDK qualification
 
 Bind a one-use drain to the original approval, live journal owner, fixed stage

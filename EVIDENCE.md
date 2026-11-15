@@ -1,5 +1,38 @@
 # Evidence navigation
 
+## Actual SDK journal drain; native lifecycle held - 15 November 2026
+
+The original-journal controller has now exercised the actual staged Hermes SDK
+in a generated private home. Independent readback verifies **one SDK freeze**,
+exclusive marker publication, three actor replies matched to original SDK wire
+bytes, zero final registered/unbound ledger counts and the exact retained frozen
+epoch/owner. A second call is refused; the broader journal stage remains pending.
+This qualifies the observed registered-home effects, **not the full lifecycle**.
+
+The run fails its final native exit gate. Fourteen outbound HTTPS attempts were
+blocked by the fixture, and the gateway exits with status 1. No network boundary
+is relaxed and no failure is waived. Both owned groups ended. The preceding
+three-minute trial is preserved separately: unknown before SDK freeze, epoch zero,
+no marker and ended groups. Its pending journal was not reused or replayed.
+
+The fixture now supports a sole-process native controller and retains its unit
+reference through stop. Its actor run has a finite ten-minute gateway lifetime
+for full source verification; ordinary fixtures retain three minutes. The
+five-second observation windows and supported seventy-second stop budget stay
+unchanged. All **39 focused Pi methods pass/no skips**. Windows completes
+**1,158 cases: 885 positive, 273 platform skips**. Parent `967638d` independently
+passes **1,154 hosted Linux methods/no skips**, including all 36 drain regressions.
+
+Both generated SDK copies, all 23,628 original SDK files, 5,033 dependency code
+files, PM facts, existing modes and live services verify unchanged. The staged
+source exposes supported catalog/plugin network controls for the next isolated
+trial; exact attribution of the recorded connections remains open. The unbound
+status-count correction is prepared privately but unapplied and unqualified.
+The 37 stable / 172 recorded-main semantic findings and every original audit,
+phone, worker/integration and release gate remain open. Beta.9 and live services
+are unchanged; the full goal stays active.
+[Exact evidence and remaining gates](docs/contracts/2026-11-15-actual-sdk-journal-drain-and-held-shutdown.md).
+
 ## Original-journal drain source and native refusals - 15 November 2026
 
 The original-journal gateway-drain controller is now implemented as an

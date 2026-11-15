@@ -84,3 +84,24 @@ class GatewayFixtureBoundaryTests(unittest.TestCase):
         facade=mock.Mock()
         with mock.patch.object(sys,'getprofile',return_value=object()),self.assertRaises(ValueError):m.run_gateway_facade(facade,lambda *args:None,'none')
         facade.assert_not_called()
+
+
+class GatewayActorFixtureIdentityTests(unittest.TestCase):
+    def test_explicit_native_operation_is_preserved_without_a_second_identity(self):
+        operation='a'*32
+        self.assertEqual(operation,m.checked_trial_operation(operation))
+    def test_malformed_operation_is_refused_before_a_trial_can_create_a_unit(self):
+        for operation in ('',False,123,'A'*32,'a'*31,'../'+'a'*32,'a'*33,[]):
+            with self.subTest(operation=operation),self.assertRaises(ValueError):m.checked_trial_operation(operation)
+    def test_absent_operation_generates_a_fresh_native_identity(self):
+        first=m.checked_trial_operation(None);second=m.checked_trial_operation(None)
+        self.assertRegex(first,r'^[a-f0-9]{32}$');self.assertRegex(second,r'^[a-f0-9]{32}$');self.assertNotEqual(first,second)
+
+
+class GatewayFixtureRuntimeBudgetTests(unittest.TestCase):
+    def test_unknown_or_unbounded_native_lifetime_is_refused_before_service_io(self):
+        unit='signal-grove-acceptance-'+('a'*32)+'-gateway.service'
+        for seconds in (True,0,179,181,599,601,900,float('inf'),'600'):
+            with self.subTest(seconds=seconds),mock.patch.object(m.subprocess,'run') as call:
+                with self.assertRaises(ValueError):m.unit_snapshot(unit,runtime_seconds=seconds)
+                call.assert_not_called()

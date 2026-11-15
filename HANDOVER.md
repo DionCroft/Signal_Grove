@@ -6,53 +6,53 @@ source/evidence. No original requirement or failed/unknown receipt is removed.
 
 ## Current runtime finding
 
-The original-journal gateway-drain controller is now implemented as an
-unactivated, one-use source component. It binds the original approval, pending
-stage and dispatch claim to reviewed SDK/executor, home, ledger, native gateway
-and controller identities. It prepares inventories without SDK imports or a
-SQLite connection; import and mutation require the original claim. A successful
-path is designed to freeze once and publish a new drain marker without replacing
-an arrival. **A successful actual-SDK controller run is not yet qualified.**
+The original-journal controller has now exercised the actual staged Hermes SDK
+in a generated private home. Independent readback verifies **one SDK freeze**,
+exclusive marker publication, three actor replies matched to original SDK wire
+bytes, zero final registered/unbound ledger counts and the exact retained frozen
+epoch/owner. A second call is refused; the broader journal stage remains pending.
+This qualifies the observed registered-home effects, **not the full lifecycle**.
 
-All **36 focused methods pass on Pi without skips**. Native refusal checks use
-the real journal, user service manager and kernel peer, with synthetic gateway
-responses and SDK placeholders. They dispatch no SDK freeze; an uncertain ready
-reply remains pending/unknown and cannot be replayed. Separate primitives verify
-exclusive marker publication and source-checked imports. The maintained native
-suite also passes **123 methods/no skips**, retaining its prior 104 and adding
-19. Those 19 overlap the focused 36 and are not additional unique methods.
+The run fails its final native exit gate. Fourteen outbound HTTPS attempts were
+blocked by the fixture, and the gateway exits with status 1. No network boundary
+is relaxed and no failure is waived. Both owned groups ended. The preceding
+three-minute trial is preserved separately: unknown before SDK freeze, epoch zero,
+no marker and ended groups. Its pending journal was not reused or replayed.
 
-Current Windows coverage is **881 of 1,154 cases, with 273 platform skips**.
-Parent `f0795c3` independently passes **1,118 hosted Linux methods/no skips**;
-that is parent-source coverage. Two earlier harness setup failures are retained.
-Independent readback verifies their cleanup and all 19 observed native groups
-ended, plus conservation of 23,628 SDK and 5,033 dependency files, PM facts,
-existing modes and live services.
+The fixture now supports a sole-process native controller and retains its unit
+reference through stop. Its actor run has a finite ten-minute gateway lifetime
+for full source verification; ordinary fixtures retain three minutes. The
+five-second observation windows and supported seventy-second stop budget stay
+unchanged. All **39 focused Pi methods pass/no skips**. Windows completes
+**1,158 cases: 885 positive, 273 platform skips**. Parent `967638d` independently
+passes **1,154 hosted Linux methods/no skips**, including all 36 drain regressions.
 
-Reviewed staged SDK source exposes a further gap: `inspect_home` omits active
-unbound turns that `Ledger.fence_status` includes. The controller implements a
-final direct ledger guard; the SDK status contract is **not fixed**, and active
-unbound end-to-end acceptance is open. Actual-SDK success, all-profile/worker
-admission, unified executor and every original audit/release gate remain open.
-The 37 stable / 172 recorded-main semantic findings remain unaccepted. Published
-beta.9 and live services are unchanged. The full goal stays active.
-[Evidence and limits](docs/contracts/2026-11-15-original-journal-gateway-drain-source.md).
+Both generated SDK copies, all 23,628 original SDK files, 5,033 dependency code
+files, PM facts, existing modes and live services verify unchanged. The staged
+source exposes supported catalog/plugin network controls for the next isolated
+trial; exact attribution of the recorded connections remains open. The unbound
+status-count correction is prepared privately but unapplied and unqualified.
+The 37 stable / 172 recorded-main semantic findings and every original audit,
+phone, worker/integration and release gate remain open. Beta.9 and live services
+are unchanged; the full goal stays active.
+[Evidence and limits](docs/contracts/2026-11-15-actual-sdk-journal-drain-and-held-shutdown.md).
 
 ## One next action
 
-Qualify this exact controller against the actual staged Hermes SDK in a fresh,
-isolated original-journal process using its reviewed PM Python and pinned native
-bus support. Exercise real SDK freeze, exclusive marker publication, native
-idle/stop and independent ledger/marker/receipt readback. Cover active unbound
-work, marker arrival, expiry/source/owner changes and retained unknowns. Correct
-and verify the SDK status-count omission without treating registered-home idle
-as fleet exclusion. Do not activate the controller from these refusal tests.
+Retain both ended trials and their pending/frozen journals. Attribute the SDK
+background network attempts and qualify a fresh generated home with the supported
+offline catalog/plugin settings, keeping socket refusal and all lifecycle checks.
+Retain native gateway stdout/stderr directly in its private fixture so failed
+shutdown logs remain available without a waiting child in the controller group.
+Do not replay, thaw, refresh or overwrite either earlier operation.
 
-Then finish all-profile/worker admission, unified executor, reload/authenticated
-health and bounded runtime-only recovery before preparing final live approval.
-Canonical PM contexts, seven real modes, policy/launcher changes and real
-private GitHub/live-home backup remain unactivated. Every original audit,
-local-model, phone and original-key release requirement remains required.
+Then qualify the minimal SDK status-count correction against actual active
+unbound work, incomplete schema and read-only snapshots. Complete marker/expiry/
+source/owner races, all-profile/worker admission, unified execution, authenticated
+health and bounded runtime-only recovery before preparing a final live packet.
+Canonical PM contexts, seven real modes, policy/launcher changes and private
+GitHub/live-home backup stay unactivated. Preserve the full original audit,
+local-model, physical-phone and original-key APK delivery requirements.
 
 ## Preserve and finish
 

@@ -12,15 +12,15 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The runtime audit adds an unactivated controller for one original-journal
-gateway drain. **36 focused Pi checks** and the **123-method native suite** pass
-without skips (19 methods overlap). Current Windows coverage is **881 of 1,154
-cases**, with **273 platform skips**. Parent `f0795c3` independently passes
-**1,118 hosted Linux methods/no skips**. These checks qualify native refusal and
-publication/import primitives; successful actual-SDK controller execution,
-active-unbound status coverage and fleet deployment remain open. Live services
-and the published APK are unchanged.
-[Current evidence and remaining work](docs/contracts/2026-11-15-original-journal-gateway-drain-source.md).
+The runtime audit now verifies an actual SDK freeze and exclusive drain marker
+through the original journal in a generated home. **Full lifecycle acceptance
+remains held**: the fixture blocked 14 outbound HTTPS attempts and the gateway
+exited with status 1. No live deployment occurred. Current Windows coverage is
+**885 of 1,158 cases**, with **273 platform skips**; **39 focused Pi methods**
+pass without skips. Parent `967638d` independently passes **1,154 hosted Linux
+methods/no skips**. Fleet admission, SDK status-count correction and release
+acceptance remain open; the published APK is unchanged.
+[Current evidence and next work](docs/contracts/2026-11-15-actual-sdk-journal-drain-and-held-shutdown.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,

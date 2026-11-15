@@ -342,7 +342,8 @@ def serve(root,source):
         profiles_unset_at_entry_and_exit=marker['observer_mode']=='none',normal_gateway_facade=True,cli_main=False,sdk_functions_patched=False,live_changes=False))
 
 
-def unit_snapshot(unit,owner=None,argv=None,stop_seconds=None):
+def unit_snapshot(unit,owner=None,argv=None,stop_seconds=None,runtime_seconds=180):
+    if type(runtime_seconds) is not int or runtime_seconds not in (180,600):raise ValueError('Exact finite owned gateway budget required')
     if not re.fullmatch(r'signal-grove-acceptance-[a-f0-9]{32}-gateway\.service',unit):raise ValueError('Exact owned gateway unit required')
     p=subprocess.run(['systemctl','--user','show',unit,'--property=LoadState,ActiveState,SubState,MainPID,ControlPID,NRestarts,ControlGroup,Type,KillMode,KillSignal,Restart,RuntimeMaxUSec,TimeoutStopUSec,Result,ExecMainCode,ExecMainStatus'],capture_output=True,timeout=8)
     values=dict(line.split('=',1) for line in p.stdout.decode().splitlines() if '=' in line)
@@ -354,7 +355,7 @@ def unit_snapshot(unit,owner=None,argv=None,stop_seconds=None):
         if owner is not None and current!=owner:raise RuntimeError('Original gateway incarnation changed')
         if current is None:raise RuntimeError('Native fixture process is unproven')
         if values['ActiveState']!='active' or values['SubState']!='running' or Path(values['ControlGroup']).name!=unit:raise RuntimeError('Native gateway unit is not running')
-        if (values['Type'],values['KillMode'],values['KillSignal'],values['Restart'],values['RuntimeMaxUSec'])!=('exec','control-group','2','no','3min'):raise RuntimeError('Finite native gateway configuration differs')
+        if (values['Type'],values['KillMode'],values['KillSignal'],values['Restart'])!=('exec','control-group','2','no') or duration_seconds(values['RuntimeMaxUSec'])!=runtime_seconds:raise RuntimeError('Finite native gateway configuration differs')
         if owner is not None and duration_seconds(values['TimeoutStopUSec'])!=stop_seconds:raise RuntimeError('Supported native stop budget differs')
         if argv is not None:
             actual=Path('/proc')/str(current.pid)
@@ -363,11 +364,20 @@ def unit_snapshot(unit,owner=None,argv=None,stop_seconds=None):
     return values
 
 
-def run_trial(root,source,python,*,observer_mode='profile'):
-    observer_mode=checked_observer_mode(observer_mode)
+def checked_trial_operation(operation):
+    if operation is None:return os.urandom(16).hex()
+    if type(operation) is not str or not re.fullmatch('[a-f0-9]{32}',operation):
+        raise ValueError('Exact generated native trial operation required')
+    return operation
+
+
+def run_trial(root,source,python,*,observer_mode='profile',operation=None,drain_actor=None):
+    observer_mode=checked_observer_mode(observer_mode);operation=checked_trial_operation(operation)
+    if drain_actor is not None and not callable(drain_actor):raise ValueError('Explicit callable fixture drain actor required')
+    runtime_seconds=600 if drain_actor is not None else 180
     root,source=Path(root).resolve(),Path(source).resolve();python=Path(python).absolute();os.umask(0o077)
     if sys.platform!='linux' or os.geteuid()==0 or root.exists() or not source.is_dir() or not python.is_file():raise ValueError('Fresh actual SDK gateway trial required')
-    root.mkdir(mode=0o700);operation=os.urandom(16).hex();runtime=Path('/run/user')/str(os.geteuid())/('hermes-gw-'+hashlib.sha256(os.path.normcase(str(root/'hermes-home')).encode()).hexdigest()[:16])
+    root.mkdir(mode=0o700);runtime=Path('/run/user')/str(os.geteuid())/('hermes-gw-'+hashlib.sha256(os.path.normcase(str(root/'hermes-home')).encode()).hexdigest()[:16])
     if runtime.exists():raise ValueError('Fresh private runtime root required')
     unit='signal-grove-acceptance-'+operation+'-gateway.service'
     write_new(root/'fixture-operation.json',dict(operation=operation,unit=unit,runtime=str(runtime),source=str(source),python=str(python),phase='before_runtime_and_system_observation'))
@@ -375,7 +385,7 @@ def run_trial(root,source,python,*,observer_mode='profile'):
     for n in ('account','config','cache','state','data','scratch','locks','hermes-home'):(root/n).mkdir(mode=0o700)
     marker=dict(scope='isolated-normal-gateway',observer_mode=observer_mode,operation=operation,runtime=str(runtime),source=str(source),unit=unit,read_only_system_inputs=system_metadata())
     write_new(root/'fixture-marker.json',marker);write_new(root/'hermes-home/config.yaml',fixture_configuration())
-    env=fixture_environment(root,runtime);script=Path(__file__).resolve();record=dict(state='NORMAL_GATEWAY_TRIAL_INTENT',observer_mode=observer_mode,operation=operation,unit=unit,root=str(root),source=str(source),python=str(python),started=time.time(),samples=[],live_changes=False)
+    env=fixture_environment(root,runtime);script=Path(__file__).resolve();record=dict(state='NORMAL_GATEWAY_TRIAL_INTENT',runtime_seconds=runtime_seconds,observer_mode=observer_mode,operation=operation,unit=unit,root=str(root),source=str(source),python=str(python),started=time.time(),samples=[],live_changes=False)
     def save():
         with (root/'trial.json').open('w',encoding='utf-8') as out:json.dump(record,out,indent=2);out.write('\n');out.flush();os.fsync(out.fileno())
     def ledger(phase):
@@ -386,37 +396,47 @@ def run_trial(root,source,python,*,observer_mode='profile'):
         if process.returncode!=0:raise RuntimeError('Original SDK ledger phase failed; no redispatch')
         return json.loads((root/(phase+'-result.json')).read_text())
     save();record['seed']=ledger('seed');stop_seconds=record['seed']['stop_seconds'];save()
-    if unit_snapshot(unit)['LoadState']!='not-found':raise ValueError('Never adopt an existing native unit')
+    if unit_snapshot(unit,runtime_seconds=runtime_seconds)['LoadState']!='not-found':raise ValueError('Never adopt an existing native unit')
     argv=[str(python),'-I','-B',str(script),'serve',str(root),str(source)]
-    command=['systemd-run','--user','--quiet','--wait','--pipe','--unit='+unit,'--property=Type=exec','--property=RuntimeMaxSec=180','--property=TimeoutStopSec='+str(stop_seconds),
+    command=['systemd-run','--user','--quiet','--wait','--pipe','--unit='+unit,'--property=Type=exec','--property=RuntimeMaxSec='+str(runtime_seconds),'--property=TimeoutStopSec='+str(stop_seconds),
         '--property=KillMode=control-group','--property=KillSignal=SIGINT','--property=Restart=no','--property=UMask=0077','--property=MemoryMax=1G','--property=TasksMax=128','--working-directory='+str(root)]
+    if drain_actor is not None:
+        # The original-journal actor requires a sole-process controller scope.
+        # The fixture caller retains a native unit reference through shutdown.
+        command.remove('--wait');command.remove('--pipe')
     command+=['--setenv='+k+'='+v for k,v in env.items()]+argv
     record.update(state='NORMAL_GATEWAY_DISPATCH_INTENT',argv=argv,command=command);save();owner=None;launcher=None;stopping=False
     try:
         with (root/'gateway.stdout').open('xb') as out,(root/'gateway.stderr').open('xb') as err:
             launcher=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=out,stderr=err);record['launcher_pid']=launcher.pid;save()
+        if drain_actor is not None:
+            launcher.wait(timeout=15)
+            if launcher.returncode!=0:raise RuntimeError('Original owned gateway launch is unproven; no redispatch')
+        def launcher_unavailable():
+            status=launcher.poll()
+            return status is not None and (drain_actor is None or status!=0)
         deadline=time.monotonic()+90
         while owner is None:
-            native=unit_snapshot(unit)
+            native=unit_snapshot(unit,runtime_seconds=runtime_seconds)
             if native.get('ActiveState')=='active' and native.get('SubState')=='running' and int(native.get('MainPID','0')):owner=read_process_owner(int(native['MainPID']))
-            if launcher.poll() is not None or time.monotonic()>=deadline:raise RuntimeError('Original gateway failed to start; inspect without retry')
+            if launcher_unavailable() or time.monotonic()>=deadline:raise RuntimeError('Original gateway failed to start; inspect without retry')
             if owner is None:time.sleep(.05)
-        record['owner']=dict(pid=owner.pid,start_ticks=owner.start_ticks,boot_id=owner.boot_id);record['native_start']=unit_snapshot(unit,owner,argv,stop_seconds);save()
+        record['owner']=dict(pid=owner.pid,start_ticks=owner.start_ticks,boot_id=owner.boot_id);record['native_start']=unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds);save()
         pointer=root/'hermes-home/gateway.sock.path'
         while not pointer.is_file():
-            unit_snapshot(unit,owner,argv,stop_seconds)
-            if launcher.poll() is not None or time.monotonic()>=deadline:raise RuntimeError('Original gateway socket never became available')
+            unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds)
+            if launcher_unavailable() or time.monotonic()>=deadline:raise RuntimeError('Original gateway socket never became available')
             time.sleep(.05)
         address=pointer.read_text().strip()
         if not Path(address).resolve().is_relative_to(runtime) or len(os.fsencode(address))>103:raise RuntimeError('Gateway escaped its exact private runtime')
         record['socket']=address;save()
         while observer_mode=='profile' and not (root/'ready-source.json').is_file():
-            unit_snapshot(unit,owner,argv,stop_seconds)
-            if launcher.poll() is not None or time.monotonic()>=deadline:raise RuntimeError('Actual SDK did not publish readiness')
+            unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds)
+            if launcher_unavailable() or time.monotonic()>=deadline:raise RuntimeError('Actual SDK did not publish readiness')
             time.sleep(.05)
         def sample(verb,phase):
             if phase not in ('readiness','startup_idle','drain'):raise ValueError('Exact observation phase required')
-            unit_snapshot(unit,owner,argv,stop_seconds);sock=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM);sock.settimeout(2);sock.connect(address)
+            unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds);sock=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM);sock.settimeout(2);sock.connect(address)
             control=NativeGatewayControl(owner,sock);started=time.time();item=dict(verb=verb,observation_phase=phase,earliest=started,started_monotonic=time.monotonic(),state='intent');record['samples'].append(item);save()
             try:body=control.exchange(verb)
             except BaseException as error:
@@ -425,7 +445,7 @@ def run_trial(root,source,python,*,observer_mode='profile'):
             if verb=='status':
                 from native_gateway_control import project_registered_status
                 item['projection']=project_registered_status(body,owner.pid,hashlib.sha256(os.path.normcase(str(root/'hermes-home')).encode()).hexdigest(),started,finished)
-            save();unit_snapshot(unit,owner,argv,stop_seconds);return item
+            save();unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds);return item
         while True:
             identity=sample('identify','readiness')['body']
             if time.monotonic()>=deadline:raise RuntimeError('Original readiness observation window expired')
@@ -438,15 +458,27 @@ def run_trial(root,source,python,*,observer_mode='profile'):
             observed,accepted=wait_for_status(lambda:sample('status',name)['projection'],predicate,started=started,deadline=started+5)
             record[name+'_accepted_monotonic']=accepted;save();return observed
         record['startup_idle']=observe_phase('startup_idle',startup_is_idle);save()
-        record['freeze']=ledger('freeze');save()
+        if drain_actor is None:record['freeze']=ledger('freeze')
+        else:
+            record['state']='ORIGINAL_JOURNAL_ACTOR_DISPATCH_INTENT';save()
+            record['freeze']=drain_actor(dict(root=str(root),source=str(source),operation=operation,unit=unit,
+                owner=record['owner'],argv=argv,socket=address))
+        save()
         record['drain_idle']=observe_phase('drain',lambda row:drain_is_settled(row,operation));save()
-        record['native_before_stop']=unit_snapshot(unit,owner,argv,stop_seconds);record['state']='NORMAL_GATEWAY_DRAIN_OBSERVED';save();stopping=True
+        record['native_before_stop']=unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds);record['state']='NORMAL_GATEWAY_DRAIN_OBSERVED';save();stopping=True
         stop=subprocess.run(['systemctl','--user','stop',unit],stdin=subprocess.DEVNULL,capture_output=True,timeout=stop_seconds+15)
         write_new(root/'stop-result.json',dict(exit_code=stop.returncode,stdout=stop.stdout.decode(),stderr=stop.stderr.decode(),owner=record['owner']))
         if stop.returncode!=0:raise RuntimeError('Original fixture stop job failed; do not retry')
-        launcher.wait(timeout=10);terminal=unit_snapshot(unit)
+        launcher.wait(timeout=10);terminal=unit_snapshot(unit,runtime_seconds=runtime_seconds)
         if (launcher.returncode!=0 or terminal.get('MainPID')!='0' or terminal.get('ControlPID')!='0' or terminal.get('NRestarts')!='0'
             or terminal.get('ControlGroup')!='' or terminal.get('ActiveState') not in ('inactive','failed') or read_process_owner(owner.pid)==owner):raise RuntimeError('Native gateway termination is unproven')
+        if drain_actor is not None:
+            if (terminal.get('Result'),terminal.get('ExecMainCode'),terminal.get('ExecMainStatus'))!=('success','1','0'):
+                raise RuntimeError('Retained native SDK exit status is unproven')
+            journal=subprocess.run(['journalctl','--user','--unit='+unit,'--no-pager','--output=json','-n','160'],
+                stdin=subprocess.DEVNULL,capture_output=True,timeout=8)
+            if journal.returncode!=0 or len(journal.stdout)>4*1024*1024:raise RuntimeError('Bounded owned gateway logs unavailable')
+            with (root/'gateway-journal.private.jsonl').open('xb') as out:out.write(journal.stdout)
         result=json.loads((root/'gateway-terminal.json').read_text());assert result['result'] and result['pid']==owner.pid and not result['fence_refusals'] and result['normal_gateway_facade'] and not result['sdk_functions_patched']
         events=[json.loads(line) for line in (root/'lifecycle.jsonl').read_text().splitlines()]
         if observer_mode=='profile' and not any(e['function']=='_enter_external_drain' and e['event']=='call' for e in events):raise RuntimeError('Actual external-drain callback was not observed')
@@ -455,14 +487,14 @@ def run_trial(root,source,python,*,observer_mode='profile'):
         if system_metadata()!=marker['read_only_system_inputs']:raise RuntimeError('Native observation inputs changed')
         record.update(state='ACTUAL_NORMAL_GATEWAY_AND_GENERATED_ADMISSION_DRAIN_VERIFIED',native_terminal=terminal,owner_ended=True,launcher_exit_code=launcher.returncode,
             gateway_result=result,lifecycle_events=len(events),normal_gateway_facade=True,cli_main=False,sdk_functions_patched=False,
-            production_journal_actor_accepted=False,all_profile_worker_admission_accepted=False,live_changes=False,finished=time.time());save();return record
+            original_journal_drain_actor_exercised=drain_actor is not None,production_journal_actor_accepted=False,all_profile_worker_admission_accepted=False,live_changes=False,finished=time.time());save();return record
     except BaseException as error:
         record.update(state='NORMAL_GATEWAY_FAILED_OR_UNKNOWN',error_type=type(error).__name__);save();raise
     finally:
         # Only the exact owned fixture may be stopped on failed qualification.
         # Persistent ledger/marker/data are never cancelled, thawed or removed.
         if owner is not None and not stopping and read_process_owner(owner.pid)==owner:
-            unit_snapshot(unit,owner,argv,stop_seconds);record['failure_cleanup_stop_intent']=True;save()
+            unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds);record['failure_cleanup_stop_intent']=True;save()
             cleanup=subprocess.run(['systemctl','--user','stop',unit],stdin=subprocess.DEVNULL,capture_output=True,timeout=stop_seconds+15)
             record['failure_cleanup_stop_exit']=cleanup.returncode;save()
 
