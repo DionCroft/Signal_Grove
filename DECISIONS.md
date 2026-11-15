@@ -1,5 +1,17 @@
 # Decisions
 
+## 14 November 2026 - publication cannot certify a fresh backup
+
+Require the original claimed backup stage, finite native owner and shared path
+guard before any private publication. Exclusive receipts prevent replacement
+replay; collisions, unknown uploads and partial downloads remain for review.
+The component verifies transport bytes but cannot verify snapshot/encryption
+provenance or complete the journal stage. Actual GitHub and the full one-use
+backup transaction remain separate acceptance gates. Use explicit Windows birth
+time for private archive-image identity, retaining POSIX change time and every
+other native/content check. Preserve the reproduced counterexample and all
+failed runs. [Evidence and next implementation](docs/contracts/2026-11-14-private-backup-publication.md).
+
 ## 14 November 2026 - finite native candidate proof stays separate from cutover
 
 Accept the maintained two-file candidate's actual Pi normal/held and helper

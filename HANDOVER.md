@@ -6,28 +6,31 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-The next action is to **implement the journal-bound one-use backup transaction
-and private Release upload/download verification** around the verified archive/
-SDK/age path, then finish admission/reload/health and bounded runtime recovery.
-The new content verifier and actual SDK/age fixture pass all 22 native methods
-without skips. Eleven selected members, seven exclusions, two committed WAL
-rows, identical encryption round-trip and retained source data verify. A
-reproduced zero-byte SQLite counterexample is fixed before publication through
-header/page checks. Independent raw/ZIP/SQL/crypto readback passes; both owned
-units are stopped. Windows: 927 cases, 757 pass/170 platform skips.
-This is a fixture/content gate; the full backup transaction, private publication
-and operational restore are unaccepted. Both canonical PM contexts remain
-unprepared, seven modes stay 0775 and live state is unchanged. Every original
-audit/local-AI/phone/security/release gate remains active before final live review.
-[Current source and evidence](docs/contracts/2026-11-14-backup-archive-verification.md).
+The next action is to **compose the complete one-use backup stage**: pinned SDK
+snapshot/selection, encryption/decryption and content verification, then the new
+private publication segment. Only the complete stage can verify a fresh backup.
+The publisher now binds the already claimed journal/manager/operational guard,
+refuses collisions/oversize assets, uploads once and verifies downloaded bytes.
+The final Pi cohort passes 58 methods/no skips (32 publication, 26 archive).
+Publication uses loopback protocol fixtures, including unchanged earlier SDK/age
+ciphertext; real private GitHub interoperability remains open. A reproduced
+Windows timestamp mismatch is fixed through explicit birth time, with four
+regressions and 250 fresh-image checks. Windows: 963 cases, 774 pass/189 skips.
+Independent raw/native/source readback passes and every owned unit is stopped.
+Earlier failures stay recorded. Live source/facts/modes/services are conserved.
+Both canonical PM contexts remain unprepared and seven real modes stay 0775.
+Full backup/admission/reload/health/runtime recovery and every original audit/
+phone/local-AI/security/release gate remain before final live review/approval.
+[Current source and evidence](docs/contracts/2026-11-14-private-backup-publication.md).
+
 The guarded owned fixture verifies eight actual file/mode stages, five parents,
 five retained entries, original CLI restoration and newer-data preservation.
 All 80 cohort methods pass on Pi/no skips; independent raw/native/source/state
 review passes. Fresh real-root preflight captures 20 directories/three missing
 parents and refuses publication while seven modes remain 0775. Live source/facts/
 files/permissions/services remain unchanged. Non-file fixture stages stay
-synthetic; full operational acceptance remains open. Windows: 927 cases, 757 pass/
-170 platform skips; 167 platform cases run in Pi cohorts, three older skips keep
+synthetic; full operational acceptance remains open. Windows: 963 cases, 774 pass/
+189 platform skips; 186 platform cases run in Pi cohorts, three older skips keep
 scope. Separate service/journal 124-method/five-error scope and every original
 audit/on-device/security/release requirement remain. Preserve all failed/unknown
 receipts and no-replay boundaries; Android/build inputs are unchanged.

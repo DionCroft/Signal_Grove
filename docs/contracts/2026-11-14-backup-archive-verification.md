@@ -1,5 +1,10 @@
 # Exact backup archive verification and native SDK/age evidence
 
+Follow-up: the [private publication component and Windows identity fix](2026-11-14-private-backup-publication.md)
+now have final 58-method combined native evidence. This contract preserves its
+original 22-method/SDK/age source scope and hashes. The complete production
+backup stage, real GitHub interoperability and operational restore remain open.
+
 14 November 2026. The streaming archive verifier and an isolated actual SDK/age
 fixture pass. The production backup transaction and private Release publication
 remain unimplemented/unaccepted; no live home is archived.

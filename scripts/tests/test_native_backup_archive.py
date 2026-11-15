@@ -11,6 +11,8 @@ import sys
 import tempfile
 import unittest
 import zipfile
+from types import SimpleNamespace
+from unittest.mock import patch
 
 spec=importlib.util.spec_from_file_location('native_backup_archive',Path(__file__).resolve().parents[1]/'native_backup_archive.py');m=importlib.util.module_from_spec(spec);sys.modules['native_backup_archive']=m;spec.loader.exec_module(m)
 from native_backup_archive import ArchiveLimits,BackupMember,ArchiveRejected,selection_sha256,verify_archive
@@ -39,6 +41,27 @@ class BackupArchiveSchemaTests(unittest.TestCase):
     def test_selection_digest_binds_paths_types_sizes_and_content(self):
         one=selection_sha256((file('a',b'a'),))
         self.assertNotEqual(one,selection_sha256((file('a',b'b'),)));self.assertNotEqual(one,selection_sha256((file('b',b'a'),)))
+
+
+class BackupNativeIdentityTests(unittest.TestCase):
+    def observation(self,**changes):
+        fields=dict(st_dev=1,st_ino=2,st_mode=stat.S_IFREG|0o600,st_uid=1000,st_gid=1000,st_nlink=1,st_size=8192,st_mtime_ns=30,st_ctime_ns=20,st_birthtime_ns=10)
+        fields.update(changes);return SimpleNamespace(**fields)
+    def test_windows_creation_stamp_matches_across_deprecated_ctime_disagreement(self):
+        # Actual Windows 3.14 observation: path ctime=birth, fd ctime=change.
+        with patch.object(m.os,'name','nt'):
+            self.assertEqual(m._identity(self.observation(st_ctime_ns=10)),m._identity(self.observation(st_ctime_ns=30)))
+    def test_windows_without_explicit_creation_stamp_is_refused(self):
+        fields=vars(self.observation()).copy();del fields['st_birthtime_ns']
+        with patch.object(m.os,'name','nt'),self.assertRaises(ArchiveRejected):m._identity(SimpleNamespace(**fields))
+    def test_windows_creation_identity_still_binds_native_file_and_content_metadata(self):
+        with patch.object(m.os,'name','nt'):
+            baseline=m._identity(self.observation())
+            for change in (dict(st_ino=3),dict(st_dev=3),dict(st_mode=stat.S_IFLNK|0o600),dict(st_nlink=2),dict(st_size=0),dict(st_mtime_ns=31),dict(st_birthtime_ns=11)):
+                with self.subTest(change=change):self.assertNotEqual(baseline,m._identity(self.observation(**change)))
+    def test_posix_still_requires_identical_metadata_change_time(self):
+        with patch.object(m.os,'name','posix'):
+            self.assertNotEqual(m._identity(self.observation()),m._identity(self.observation(st_ctime_ns=21)))
 
 
 class BackupArchiveTests(unittest.TestCase):

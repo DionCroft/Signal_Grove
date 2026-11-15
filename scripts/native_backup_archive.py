@@ -62,7 +62,15 @@ def selection_sha256(members):
     return hashlib.sha256(json.dumps([asdict(m) for m in members],sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
-def _identity(s):return (s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+def _identity(s):
+    # Windows path/fd APIs can disagree about deprecated st_ctime_ns (creation
+    # versus change time). Use the explicit creation timestamp on Windows 3.12+;
+    # retain metadata-change time on POSIX and all other native/content fields.
+    stamp=s.st_ctime_ns
+    if os.name=='nt':
+        try:stamp=s.st_birthtime_ns
+        except AttributeError:raise ArchiveRejected('scratch_creation_time_unavailable') from None
+    return (s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,stamp)
 
 
 class _DatabaseImage:

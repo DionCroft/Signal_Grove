@@ -686,3 +686,28 @@ the full bounded runtime recovery packet before separate live approval. Every
 original audit, local-AI/phone/security and signed-release requirement stays
 active. Android/build inputs and the beta.9 APK are unchanged.
 [Exact source and scope](contracts/2026-11-14-backup-archive-verification.md).
+
+## 14 November 2026 - private publication component and Windows identity fix
+
+The one-use private Release publisher binds the already claimed backup stage,
+native journal/manager and operational paths. It refuses collisions and oversize
+assets, sends each asset once, verifies downloaded bytes and holds uncertain
+effects without overwrite or replay. The final combined Pi cohort passes **58
+methods/no skips**: 32 publication cases and 26 archive cases. Publication uses
+loopback protocol fixtures; the earlier SDK/age ciphertext is unchanged after
+transfer. Real GitHub authentication/TLS/publication remains unaccepted.
+
+A reproduced Windows path/handle `ctime` disagreement now uses explicit birth
+time on Windows while preserving native/content fields and POSIX change time.
+Four regressions and 250 fresh native images pass. Final Windows: **963 cases,
+774 pass/189 platform skips**; 186 platform cases have scoped Pi evidence, three
+older cases retain scope. Independent raw/native/source readback passes; all
+owned units are stopped. Existing source/facts/modes/live services conserve.
+Earlier failures remain recorded.
+
+Next compose the complete one-use snapshot/encryption/verification/publication
+backup stage; this component cannot supply `fresh_backup_verified`. Admission,
+reload, authenticated health and full runtime recovery remain before the final
+live packet/approval. Every original audit, phone/local-AI/security and signed
+release requirement stays active. Android inputs and beta.9 are unchanged.
+[Current evidence](contracts/2026-11-14-private-backup-publication.md).

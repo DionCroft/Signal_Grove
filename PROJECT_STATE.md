@@ -4,20 +4,23 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The next action is to **implement the journal-bound one-use backup transaction
-and private Release upload/download verification** around the verified archive/
-SDK/age path, then finish admission/reload/health and bounded runtime recovery.
-The new content verifier and actual SDK/age fixture pass all 22 native methods
-without skips. Eleven selected members, seven exclusions, two committed WAL
-rows, identical encryption round-trip and retained source data verify. A
-reproduced zero-byte SQLite counterexample is fixed before publication through
-header/page checks. Independent raw/ZIP/SQL/crypto readback passes; both owned
-units are stopped. Windows: 927 cases, 757 pass/170 platform skips.
-This is a fixture/content gate; the full backup transaction, private publication
-and operational restore are unaccepted. Both canonical PM contexts remain
-unprepared, seven modes stay 0775 and live state is unchanged. Every original
-audit/local-AI/phone/security/release gate remains active before final live review.
-[Current source and evidence](docs/contracts/2026-11-14-backup-archive-verification.md).
+The next action is to **compose the complete one-use backup stage**: pinned SDK
+snapshot/selection, encryption/decryption and content verification, then the new
+private publication segment. Only the complete stage can verify a fresh backup.
+The publisher now binds the already claimed journal/manager/operational guard,
+refuses collisions/oversize assets, uploads once and verifies downloaded bytes.
+The final Pi cohort passes 58 methods/no skips (32 publication, 26 archive).
+Publication uses loopback protocol fixtures, including unchanged earlier SDK/age
+ciphertext; real private GitHub interoperability remains open. A reproduced
+Windows timestamp mismatch is fixed through explicit birth time, with four
+regressions and 250 fresh-image checks. Windows: 963 cases, 774 pass/189 skips.
+Independent raw/native/source readback passes and every owned unit is stopped.
+Earlier failures stay recorded. Live source/facts/modes/services are conserved.
+Both canonical PM contexts remain unprepared and seven real modes stay 0775.
+Full backup/admission/reload/health/runtime recovery and every original audit/
+phone/local-AI/security/release gate remain before final live review/approval.
+[Current source and evidence](docs/contracts/2026-11-14-private-backup-publication.md).
+
 The publication component uses descriptor ancestry and recorded actual mode/new-parent
 transitions. All 80 related Pi methods pass/no skips. The guarded owned fixture
 verifies eight actual stages, five parents, five retained entries, original CLI
@@ -27,7 +30,7 @@ and correctly refuses publication while seven actual modes remain 0775. Live
 files/permissions/services/source/facts remain conserved. Non-file fixture stages
 remain synthetic; full operational ancestry and cutover/recovery stay open.
 [Current source/evidence](docs/contracts/2026-11-14-publication-ancestry.md).
-Windows: 927 cases, 757 pass/170 skips; 167 platform methods run in Pi cohorts,
+Windows: 963 cases, 774 pass/189 skips; 186 platform methods run in Pi cohorts,
 three older skips retain scope. The separate service/journal 124-method cohort
 and five native error cases retain scope. Android/build inputs are unchanged.
 Supported PM repaired the five declared
@@ -48,7 +51,7 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 927 cases, 757 pass/170 POSIX skips. All 167
+  The latest Windows suite runs 963 cases, 774 pass/189 POSIX skips. All 186
   platform methods pass in actual Pi cohorts;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production
