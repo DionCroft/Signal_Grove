@@ -9,26 +9,26 @@ remain. This handover is not a reduced completion definition.
 The next action is to **exercise the journal-bound retirement actor against the
 actual normal SDK in an owned native role**, then complete gateway drain and the
 unified executor/reload/health/runtime recovery while reviewing the remaining
-37 stable / 169 inspected-main findings. Observe existing hosted jobs; retain all
+37 stable / 171 currently inspected-main findings. Observe existing hosted jobs; retain all
 original audit and final phone/release gates.
 
-Journal-bound standalone-serve retirement now passes **81 Pi methods/no skips**,
-including 17 new native cases; Windows: **1,037 cases, 806 pass/231 platform skips**.
-Independent raw/source/receipt/native identity review confirms all 19 inspected
-temporary units are stopped and live state is conserved. The server fixture is
-synthetic; actual SDK actor integration, gateway drain and the unified native
-executor/reload/health/runtime recovery remain required.
+Journal-bound standalone-serve retirement passes **81 Pi methods/no skips**;
+Windows: **1,037 cases, 806 pass/231 platform skips**. All 19 inspected temporary
+units are stopped; live state is conserved. The protocol fixture remains synthetic;
+actual SDK actor integration, gateway drain and the unified executor remain.
 
-Parent source8d01e9 passes all **1,015 hosted Linux policy methods/no skips**.
-Source7e1bd25's complete standard Android gate now passes **1,142 API26 / 1,143
-API37 methods** with independently verified raw disjoint unions, matching actual
-APK hashes, 1,011 JVM cases and both lint variants. All three retained historical
-methods pass on both APIs; their original causes remain unproven. Twelve external
-model methods and final phone/production-release gates remain. Newer source8d's
-build reports success; its four device shards and artifact acceptance are pending.
-Stable/main compatibility still has **37 / 169 used-handler findings** requiring
-review. The full original goal, owner data, live services and beta.9 remain.
-[Exact implementation, evidence and next stage](docs/contracts/2026-11-15-native-serve-retirement.md).
+Source876's full hosted policy gate now passes **1,037 Linux methods/no skips**,
+independently verified against raw logs, the exact driver and Windows inventory.
+All 17 native retirement and five portable retirement cases pass. Source8d's
+1,011-case JVM/lint/actual-APK artifact is independently verified; its four
+device shards remain live. Source7e's completed 1,142 / 1,143 API26/API37 gate
+retains its source-specific scope. Final phone and production acceptance remain.
+
+Upstream main moved from f578714 (**169 findings**) to b2c6bc4 (**171**): the new
+entries are WebSocket dispatch and implicit profile binding. Stable remains
+**37**. The required review gate stays failed; no baseline/finding is waived.
+The same full goal remains active, with no live changes or new APK release.
+[Raw/source proof and remaining scope](docs/contracts/2026-11-15-retirement-hosted-followup.md).
 
 The complete backup-stage implementation now passes 97 Pi methods/no skips and
 one actual SDK/age trial with generated data and loopback publication. Independent

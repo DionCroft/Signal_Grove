@@ -12,14 +12,14 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Hosted source `8d01e9` passes all **1,015 Linux policy tests** without skips.
+Hosted source `87615c4` passes all **1,037 Linux policy tests** without skips.
 The latest Windows Python suite runs **1,037 cases: 806 pass, 231 POSIX skips**.
 The journal-bound retirement component adds **81 Pi passes/no skips**, including
 17 native retirement cases, with independent raw/receipt/native identity review.
 Its synthetic server fixture is separately scoped from actual SDK/native
 executor and live deployment acceptance; all temporary units are stopped and
 live services remain unchanged.
-[Current evidence and limits](docs/contracts/2026-11-15-native-serve-retirement.md).
+[Current evidence and limits](docs/contracts/2026-11-15-retirement-hosted-followup.md).
 
 Current source7e1bd25 Android evidence: **1,011 JVM cases** and both lint variants
 pass with zero errors (52 debug / 51 release warnings). Its complete hosted gate
@@ -27,9 +27,10 @@ passes **1,142 standard API26** and **1,143 API37 methods**, with no failures/sk
 and independently verified raw disjoint shards and actual APK hashes. The Demo
 and two retained navigation cases pass; historical causes remain unproven.
 Twelve external-model methods, physical phone and original-key production-upgrade
-gates require separate acceptance. The newer source8d build reports success; its
-four device shards and full artifact acceptance remain pending. Upstream
-compatibility still requires review of **37 stable / 169 inspected-main findings**.
+gates require separate acceptance. Source8d's JVM/lint/actual-APK artifact now
+independently verifies; its four device shards remain running. Upstream main
+moved to b2c6bc4 during observation: compatibility requires review of **37 stable /
+171 currently inspected-main findings** (169 on the earlier f578714 source).
 
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,

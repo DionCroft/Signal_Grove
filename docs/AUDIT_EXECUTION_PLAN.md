@@ -1,5 +1,20 @@
 # Signal Grove audit execution plan
 
+## Hosted retirement proof and upstream drift - 15 November 2026
+
+Source876's full hosted policy gate now passes **1,037 Linux methods/no skips**,
+independently verified against raw logs, the exact driver and Windows inventory.
+All 17 native retirement and five portable retirement cases pass. Source8d's
+1,011-case JVM/lint/actual-APK artifact is independently verified; its four
+device shards remain live. Source7e's completed 1,142 / 1,143 API26/API37 gate
+retains its source-specific scope. Final phone and production acceptance remain.
+
+Upstream main moved from f578714 (**169 findings**) to b2c6bc4 (**171**): the new
+entries are WebSocket dispatch and implicit profile binding. Stable remains
+**37**. The required review gate stays failed; no baseline/finding is waived.
+The same full goal remains active, with no live changes or new APK release.
+[Raw/source proof and remaining scope](contracts/2026-11-15-retirement-hosted-followup.md).
+
 ## Native serve retirement and completed hosted gates - 15 November 2026
 
 Journal-bound standalone-serve retirement now passes **81 Pi methods/no skips**,

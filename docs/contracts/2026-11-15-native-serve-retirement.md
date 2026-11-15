@@ -1,5 +1,10 @@
 # Journal-bound native standalone-serve retirement
 
+Subsequent hosted proof: source876 passes all 1,037 Linux methods/no skips;
+source8d's build artifact independently verifies. Upstream main has advanced to
+b2c6bc4 with 171 findings, retaining the earlier f578714/169 record below.
+[Exact hosted result and new drift](2026-11-15-retirement-hosted-followup.md).
+
 15 November 2026. The retirement component now binds a single cooperative
 retirement exchange to the original live journal owner, reviewed source/home,
 finite native controller and exact native serve incarnation. This is a
