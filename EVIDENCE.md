@@ -1,5 +1,38 @@
 # Evidence navigation
 
+## Offline-configured original-journal SDK lifecycle - 15 November 2026
+
+A fresh, offline-configured actual SDK trial now passes the original-journal
+drain **and normal native shutdown** in one generated private home. Independent
+readback verifies one SDK freeze, exclusive marker identity/content, three actor
+replies matched among six original SDK wire replies, zero final registered/
+unbound ledger counts and two ended native groups. The frozen ledger, marker
+and pending broader stage remain; the spent actor refuses replay.
+
+The fixture uses the supported `model_catalog.enabled: false` and
+`plugins.auto_update_check_hours: 0` controls. It records zero blocked socket
+connection events without relaxing the audit boundary. Actual gateway stdout/
+stderr go to private files; their native descriptors, inodes, ownership and modes
+verify. Five-second startup/drain windows, the seventy-second SDK stop budget
+and the finite ten-minute actor fixture lifetime remain unchanged. All 23,628
+SDK files, 5,033 dependency code files, PM facts, existing modes and live services
+are conserved. Both earlier held/failed trials remain unchanged.
+
+All **39 focused Pi methods pass/no skips**. Current Windows coverage is
+**885 of 1,158 cases, with 273 platform skips**. Parent `4e66626` independently
+passes **1,158 hosted Linux methods/no skips**, including all four added fixture
+boundary methods. This qualifies the profiled generated-home component; an
+unprofiled original-journal run, actual unbound-work/status correction, hostile
+races, fleet admission and full compatibility/release remain open. It does not
+prove the separately retained original owner shutdown warning's cause.
+
+The API37 shard's exact artifact identifies a pre-input native-IME/inset mismatch
+in `CanonicalViewerUiTest`: no Review tap was attempted. A bounded resampling
+fix and late-keyboard regression are drafted privately, not yet applied or
+qualified. The original API26 causes and all other audit requirements remain.
+Published beta.9 and live Hermes are unchanged. The full goal stays active.
+[Exact evidence and limits](docs/contracts/2026-11-15-offline-configured-sdk-journal-lifecycle.md).
+
 ## Actual SDK journal drain; native lifecycle held - 15 November 2026
 
 The original-journal controller has now exercised the actual staged Hermes SDK

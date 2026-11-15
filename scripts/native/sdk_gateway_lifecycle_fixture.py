@@ -170,6 +170,7 @@ def run_gateway_facade(start_gateway,observer,mode):
 def fixture_configuration():
     return dict(model=dict(provider='custom',default='fixture-no-inference',base_url='http://127.0.0.1:9/v1',api_key='fixture-no-inference'),
         fallback_model=[],local_runtime=dict(enabled=False),mcp_servers={},
+        model_catalog=dict(enabled=False),plugins=dict(auto_update_check_hours=0),
         agent=dict(environment_probe=False,gateway_startup_warmup_timeout=0),
         project_control=dict(enabled=True,enrollment_mode='all'),gateway=dict(multiplex_profiles=False),
         memory=dict(memory_enabled=False,user_profile_enabled=False))
@@ -364,6 +365,24 @@ def unit_snapshot(unit,owner=None,argv=None,stop_seconds=None,runtime_seconds=18
     return values
 
 
+def observe_gateway_outputs(root,owner):
+    """Read-only proof of the actual owned gateway's two retained output files."""
+    root=Path(root)
+    if root.resolve()!=root or read_process_owner(owner.pid)!=owner:raise RuntimeError('Original gateway output owner is unproven')
+    result={}
+    for channel,number in (('stdout',1),('stderr',2)):
+        path=root/('gateway.'+channel);descriptor=Path('/proc')/str(owner.pid)/'fd'/str(number)
+        original=path.lstat();current=descriptor.stat()
+        def identity(info):return (info.st_dev,info.st_ino,info.st_uid,info.st_gid,stat.S_IMODE(info.st_mode),info.st_nlink)
+        if (not stat.S_ISREG(original.st_mode) or identity(original)!=identity(current)
+            or original.st_uid!=os.geteuid() or stat.S_IMODE(original.st_mode)!=0o600 or original.st_nlink!=1
+            or os.readlink(descriptor)!=str(path) or identity(path.lstat())!=identity(original)):
+            raise RuntimeError('Actual SDK output descriptor differs from its private file')
+        result[channel]=dict(path=str(path),descriptor=number,identity=identity(original))
+    if read_process_owner(owner.pid)!=owner:raise RuntimeError('Gateway output owner changed during observation')
+    return result
+
+
 def checked_trial_operation(operation):
     if operation is None:return os.urandom(16).hex()
     if type(operation) is not str or not re.fullmatch('[a-f0-9]{32}',operation):
@@ -404,10 +423,14 @@ def run_trial(root,source,python,*,observer_mode='profile',operation=None,drain_
         # The original-journal actor requires a sole-process controller scope.
         # The fixture caller retains a native unit reference through shutdown.
         command.remove('--wait');command.remove('--pipe')
+        for channel in ('stdout','stderr'):
+            path=root/('gateway.'+channel);path.touch(mode=0o600,exist_ok=False)
+            command.append('--property=Standard'+('Output' if channel=='stdout' else 'Error')+'=append:'+str(path))
     command+=['--setenv='+k+'='+v for k,v in env.items()]+argv
     record.update(state='NORMAL_GATEWAY_DISPATCH_INTENT',argv=argv,command=command);save();owner=None;launcher=None;stopping=False
     try:
-        with (root/'gateway.stdout').open('xb') as out,(root/'gateway.stderr').open('xb') as err:
+        launcher_names=('gateway-launcher.stdout','gateway-launcher.stderr') if drain_actor is not None else ('gateway.stdout','gateway.stderr')
+        with (root/launcher_names[0]).open('xb') as out,(root/launcher_names[1]).open('xb') as err:
             launcher=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=out,stderr=err);record['launcher_pid']=launcher.pid;save()
         if drain_actor is not None:
             launcher.wait(timeout=15)
@@ -422,6 +445,7 @@ def run_trial(root,source,python,*,observer_mode='profile',operation=None,drain_
             if launcher_unavailable() or time.monotonic()>=deadline:raise RuntimeError('Original gateway failed to start; inspect without retry')
             if owner is None:time.sleep(.05)
         record['owner']=dict(pid=owner.pid,start_ticks=owner.start_ticks,boot_id=owner.boot_id);record['native_start']=unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds);save()
+        if drain_actor is not None:record['gateway_output_descriptors']=observe_gateway_outputs(root,owner);save()
         pointer=root/'hermes-home/gateway.sock.path'
         while not pointer.is_file():
             unit_snapshot(unit,owner,argv,stop_seconds,runtime_seconds)

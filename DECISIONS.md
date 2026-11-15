@@ -1,5 +1,16 @@
 # Decisions
 
+## 15 November 2026 - use supported offline fixture policy and retain native output
+
+Set the isolated fixture's supported catalog/plugin polling controls explicitly;
+retain the network refusal boundary and the original failed trial. This qualifies
+one operational configuration, not full SDK feature coverage or the cause of
+every historical attempt. Capture actual gateway output directly through native
+private append files, verify descriptors before readiness, and keep the controller
+sole-process. Accept normal stop only with SDK terminal success and original
+native exit evidence. No live configuration, callback or service is changed.
+[Evidence](docs/contracts/2026-11-15-offline-configured-sdk-journal-lifecycle.md).
+
 ## 15 November 2026 - preserve SDK drain effects separately from failed lifecycle acceptance
 
 Accept only the independently observed generated-home drain component. Its

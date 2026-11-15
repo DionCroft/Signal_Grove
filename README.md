@@ -12,15 +12,15 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The runtime audit now verifies an actual SDK freeze and exclusive drain marker
-through the original journal in a generated home. **Full lifecycle acceptance
-remains held**: the fixture blocked 14 outbound HTTPS attempts and the gateway
-exited with status 1. No live deployment occurred. Current Windows coverage is
-**885 of 1,158 cases**, with **273 platform skips**; **39 focused Pi methods**
-pass without skips. Parent `967638d` independently passes **1,154 hosted Linux
-methods/no skips**. Fleet admission, SDK status-count correction and release
-acceptance remain open; the published APK is unchanged.
-[Current evidence and next work](docs/contracts/2026-11-15-actual-sdk-journal-drain-and-held-shutdown.md).
+An offline-configured generated-home trial now verifies actual SDK freeze,
+exclusive journal-bound drain and normal native shutdown. The fixture retains
+private native output and its network guard; earlier failures remain preserved.
+Current Windows checks pass **885 of 1,158 cases**, with **273 platform skips**;
+**39 focused Pi methods** pass without skips. Parent `4e66626` independently
+passes **1,158 hosted Linux methods/no skips**. The API37 pre-input IME race,
+SDK unbound-status correction, fleet admission and full release gates remain
+open. Live Hermes and the published APK are unchanged.
+[Current evidence and next work](docs/contracts/2026-11-15-offline-configured-sdk-journal-lifecycle.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,

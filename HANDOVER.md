@@ -6,53 +6,52 @@ source/evidence. No original requirement or failed/unknown receipt is removed.
 
 ## Current runtime finding
 
-The original-journal controller has now exercised the actual staged Hermes SDK
-in a generated private home. Independent readback verifies **one SDK freeze**,
-exclusive marker publication, three actor replies matched to original SDK wire
-bytes, zero final registered/unbound ledger counts and the exact retained frozen
-epoch/owner. A second call is refused; the broader journal stage remains pending.
-This qualifies the observed registered-home effects, **not the full lifecycle**.
+A fresh, offline-configured actual SDK trial now passes the original-journal
+drain **and normal native shutdown** in one generated private home. Independent
+readback verifies one SDK freeze, exclusive marker identity/content, three actor
+replies matched among six original SDK wire replies, zero final registered/
+unbound ledger counts and two ended native groups. The frozen ledger, marker
+and pending broader stage remain; the spent actor refuses replay.
 
-The run fails its final native exit gate. Fourteen outbound HTTPS attempts were
-blocked by the fixture, and the gateway exits with status 1. No network boundary
-is relaxed and no failure is waived. Both owned groups ended. The preceding
-three-minute trial is preserved separately: unknown before SDK freeze, epoch zero,
-no marker and ended groups. Its pending journal was not reused or replayed.
+The fixture uses the supported `model_catalog.enabled: false` and
+`plugins.auto_update_check_hours: 0` controls. It records zero blocked socket
+connection events without relaxing the audit boundary. Actual gateway stdout/
+stderr go to private files; their native descriptors, inodes, ownership and modes
+verify. Five-second startup/drain windows, the seventy-second SDK stop budget
+and the finite ten-minute actor fixture lifetime remain unchanged. All 23,628
+SDK files, 5,033 dependency code files, PM facts, existing modes and live services
+are conserved. Both earlier held/failed trials remain unchanged.
 
-The fixture now supports a sole-process native controller and retains its unit
-reference through stop. Its actor run has a finite ten-minute gateway lifetime
-for full source verification; ordinary fixtures retain three minutes. The
-five-second observation windows and supported seventy-second stop budget stay
-unchanged. All **39 focused Pi methods pass/no skips**. Windows completes
-**1,158 cases: 885 positive, 273 platform skips**. Parent `967638d` independently
-passes **1,154 hosted Linux methods/no skips**, including all 36 drain regressions.
+All **39 focused Pi methods pass/no skips**. Current Windows coverage is
+**885 of 1,158 cases, with 273 platform skips**. Parent `4e66626` independently
+passes **1,158 hosted Linux methods/no skips**, including all four added fixture
+boundary methods. This qualifies the profiled generated-home component; an
+unprofiled original-journal run, actual unbound-work/status correction, hostile
+races, fleet admission and full compatibility/release remain open. It does not
+prove the separately retained original owner shutdown warning's cause.
 
-Both generated SDK copies, all 23,628 original SDK files, 5,033 dependency code
-files, PM facts, existing modes and live services verify unchanged. The staged
-source exposes supported catalog/plugin network controls for the next isolated
-trial; exact attribution of the recorded connections remains open. The unbound
-status-count correction is prepared privately but unapplied and unqualified.
-The 37 stable / 172 recorded-main semantic findings and every original audit,
-phone, worker/integration and release gate remain open. Beta.9 and live services
-are unchanged; the full goal stays active.
-[Evidence and limits](docs/contracts/2026-11-15-actual-sdk-journal-drain-and-held-shutdown.md).
+The API37 shard's exact artifact identifies a pre-input native-IME/inset mismatch
+in `CanonicalViewerUiTest`: no Review tap was attempted. A bounded resampling
+fix and late-keyboard regression are drafted privately, not yet applied or
+qualified. The original API26 causes and all other audit requirements remain.
+Published beta.9 and live Hermes are unchanged. The full goal stays active.
+[Evidence and limits](docs/contracts/2026-11-15-offline-configured-sdk-journal-lifecycle.md).
 
 ## One next action
 
-Retain both ended trials and their pending/frozen journals. Attribute the SDK
-background network attempts and qualify a fresh generated home with the supported
-offline catalog/plugin settings, keeping socket refusal and all lifecycle checks.
-Retain native gateway stdout/stderr directly in its private fixture so failed
-shutdown logs remain available without a waiting child in the controller group.
-Do not replay, thaw, refresh or overwrite either earlier operation.
+Apply and validate the reviewed API37 pre-input synchronization correction,
+retaining the original five-second observation deadline, native single-tap
+guard, complete caption/viewport checks and fresh consent. Exercise the captured
+transition plus a real late-keyboard regression on API26/API37, preserve original
+failed artifacts and finish required builds/checks before its separate commit.
 
-Then qualify the minimal SDK status-count correction against actual active
-unbound work, incomplete schema and read-only snapshots. Complete marker/expiry/
-source/owner races, all-profile/worker admission, unified execution, authenticated
-health and bounded runtime-only recovery before preparing a final live packet.
-Canonical PM contexts, seven real modes, policy/launcher changes and private
-GitHub/live-home backup stay unactivated. Preserve the full original audit,
-local-model, physical-phone and original-key APK delivery requirements.
+Then qualify the minimal SDK status-count correction with actual active unbound
+work, incomplete schema and read-only snapshots. Complete unprofiled original-
+journal behavior, marker/expiry/source/owner races, all-profile/worker admission,
+unified execution, authenticated health and runtime-only recovery before a final
+live packet. Canonical PM contexts, seven real modes, policy/launcher changes and
+private GitHub/live-home backup remain unactivated. Preserve the full original
+audit, local-model, physical-phone and original-key APK delivery requirements.
 
 ## Preserve and finish
 
