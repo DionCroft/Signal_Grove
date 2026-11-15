@@ -8,56 +8,21 @@ Validate applicable unit/policy/native checks plus representative emulator and p
 
 APK delivery explicitly requested 12 November 2026: after the applicable release checks pass, publish the exact-source, original-production-key signed APK as a public versioned GitHub Release asset so the owner can download and update directly on the phone. Preserve the production package/signing identity, increase the Android version code, and retain the updater-compatible `hermes-agent-mobile-<version>.apk` filename convention. Include release notes, SHA256SUMS, the public signing certificate and reviewed SBOM/provenance; keep model weights and credentials out of the APK/release. Verify the public download matches the reviewed APK hash and confirm an in-place upgrade retains the saved Hermes connection/history and applicable local data. Return the direct APK download link. A source push or a temporary CI artifact alone does not fulfil this delivery requirement. Existing publication authorization covers this release; do not request it again.
 
-## Current checkpoint - 15 November 2026
+## Owner-requested pause - 15 November 2026
 
-The maintained Pi SDK now has a source-bound correction for two actual findings:
-its ordinary turn path referenced a missing peer-context module, and its status
-observer omitted active unbound turns. A fresh immutable SDK copy adds the exact
-86-line maintained peer module and includes the existing unbound counter inside
-the same read-only database snapshot. The original staged SDK is unchanged.
+The full goal is **paused**. All four acceptance priorities and every original
+audit/local-AI/release requirement remain. Reviewed SDK source is already on
+main at 62c8bbe. Unfinished route diagnostics are saved/pushed only to the feature
+branch at a2a67b2. The final focused run has 16/16 API26 positives and 15/16
+API37 positives with a retained phone-draft Cancel/keyboard viewport failure.
+This does not qualify a newer stable APK. Beta.9/code114 remains publicly
+downloadable; fresh anonymous production APK/checksum downloads verify.
+No implementation or deployment continues while paused.
 
-The corrected SDK passes **16 read-only status checks using two real native turn
-receipts**. The original observer reports zero while the correction reports one
-active outer turn and two during nesting. Checks retain strict peer-context
-routing, profile separation, freeze/new-admission and active-thaw refusals,
-completion while frozen, and five expected UNKNOWN outcomes for incomplete,
-missing or locked ledgers. Every status observation leaves generated files
-unchanged. Independent readback verifies both finished receipts, the retained
-frozen fence, ended native groups and all source/dependency/PM/live baselines.
+[Completed/incomplete inventory](audits/2026-11-15/PAUSED_REVIEW.md).
 
-The exact patch postimages verify. Windows completes **1,158 policy cases:
-885 positive / 273 platform skips**, matching the earlier distinct inventory.
-The 16 native observations are separate component checks, not additional policy
-methods. Android sources still match the previously verified build snapshot:
-1,011 JVM tests, 27 focused methods per API26/API37 and zero lint errors, with
-51 debug / 50 release warnings. No new Android build or production APK is claimed.
-
-Both failed native preparations remain preserved: the first exposed the missing
-module; the next hit a fixture assumption about cold configuration initialization.
-The final probe accounts separately for the SDK's default SOUL/config backup,
-then verifies read-only status behavior. No SDK function or counter is mocked.
-The original SDK's prior configured freeze/drain/native-stop result remains
-separate. The corrected SDK still needs actual gateway-wire/original-journal
-qualification, concurrent snapshot races and a final PM generation. Upstream,
-API26 original/navigation, fleet/worker/integration and production gates remain
-open. Live Hermes, the owner's phone and published beta.9 are unchanged.
-[Evidence and limits](contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
-
-Exercise the declared corrected SDK through actual normal-gateway status and
-the original-journal drain with owned unbound work. Verify known-busy reporting,
-bounded completion, one freeze/exclusive marker and normal native stop without
-relaxing the original observation/expiry, native owner or no-replay checks.
-Qualify concurrent snapshots and unprofiled behavior; prepare a final PM context
-only from the reviewed declared source. The existing staged candidate stays intact.
-
-Then reproduce and fix the retained API26 phone-draft navigation and original
-Demo/history causes; finish exact-source standard device coverage and supported
-used/transitive upstream compatibility. Complete marker/source/owner races,
-all-profile/worker admission, unified execution, authenticated health and runtime
-recovery before a concrete final live packet. Canonical PM contexts, seven real
-modes, policy/launcher changes and private GitHub/live-home backup remain
-unactivated. Preserve every original audit, local-model, physical-phone and
-original-key APK delivery requirement. The full goal remains active.
+Resume only when requested. Historical progress entries below retain their
+original dates and do not override this current paused state.
 
 ## Explicit acceptance priorities resumed 13 November 2026
 

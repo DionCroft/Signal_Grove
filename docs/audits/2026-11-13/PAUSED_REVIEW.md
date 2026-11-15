@@ -1,5 +1,13 @@
 # Signal Grove paused review - 13 November 2026
 
+## Current-status pointer - 15 November 2026
+
+The goal is paused again. The dated evaluation below is historical.
+Beta.9 is public, reviewed SDK source is on main and unfinished route
+diagnostics remain on the feature branch with an API37 failure.
+
+[Complete paused inventory and release status](../2026-11-15/PAUSED_REVIEW.md).
+
 Resume follow-up: the owner subsequently resumed the existing goal with four
 explicit [acceptance priorities](../../GOAL.md). The pause/publication entries
 below are historical; [current investigation evidence](../../contracts/2026-11-13-resumed-acceptance.md)
