@@ -12,15 +12,16 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-An offline-configured generated-home trial now verifies actual SDK freeze,
-exclusive journal-bound drain and normal native shutdown. The fixture retains
-private native output and its network guard; earlier failures remain preserved.
-Current Windows checks pass **885 of 1,158 cases**, with **273 platform skips**;
-**39 focused Pi methods** pass without skips. Parent `4e66626` independently
-passes **1,158 hosted Linux methods/no skips**. The API37 pre-input IME race,
-SDK unbound-status correction, fleet admission and full release gates remain
-open. Live Hermes and the published APK are unchanged.
-[Current evidence and next work](docs/contracts/2026-11-15-offline-configured-sdk-journal-lifecycle.md).
+The workspace-review keyboard race is corrected and verified by **27 focused
+native methods on each of API26 and API37**. The exact build passes **1,011 JVM
+tests** and both lint variants (zero errors; 51 debug / 50 release warnings).
+The isolated Pi SDK freeze/drain/normal-stop checkpoint remains verified for its
+generated offline-configured home. Windows policy coverage is **885 positive /
+273 platform skips in 1,158 cases**; **39 focused Pi methods** and the separately
+reviewed parent `4e66626`'s **1,158 hosted Linux methods** pass without skips.
+API26 navigation/original UI causes, SDK unbound status, upstream compatibility,
+fleet and final production acceptance remain open. Live Hermes and beta.9 are
+unchanged. [Current evidence and next work](docs/contracts/2026-11-15-bounded-workspace-review-preinput.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,
@@ -68,10 +69,11 @@ Checked **15 November 2026**. Counts describe their stated builds and test scope
 | --- | ---: | --- |
 | Actual normal-gateway fixture | **Startup/freeze/marker/native stop verified; quiescence held** | Generated home/ledger, eight recomputed replies, 1,139 SDK origins and full dependency baseline; no production/all-profile acceptance |
 | New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |
-| Current Windows policy suite | **839 passes / 254 platform skips** | 1,093 cases; ten new gateway fixture boundary methods |
+| Current Windows policy suite | **885 passes / 273 platform skips** | 1,158 cases; exact source `6e1325b`, unchanged by the Android test-only correction |
 | Previous controlled Pi cohort | **104 methods / no skips** | Eight native gateway cases plus existing PM/backup/retirement coverage; four-mode SDK trial separately verifies eight requests |
-| Last independently reviewed hosted policy suite | **1,083 methods / no skips** | Source75d0167; exact positive raw inventory, stopped native unit and Windows/native inventory match |
-| Current hosted JVM tests | **1,011 cases / 97 reports** | Source09306e6; actual XML, no failures/errors/skips |
+| Last independently reviewed hosted policy suite | **1,158 methods / no skips** | Source `4e66626`; exact positive raw inventory, stopped native unit and Windows/native inventory match |
+| Current local JVM tests | **1,011 cases / 97 reports** | Snapshot `b117ab22dba47ca6`; actual XML, no failures/errors/skips; hosted `09306e6` separately retained |
+| Focused workspace/native-tap device checks | **27 methods on each API / no skips** | API26 + API37, same verified APKs; actual late-keyboard transition and single native input, not full device acceptance |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |
 | Physical process/restart recovery | **2 positive cases; 2.849 / 1.856 s JUnit** | Original cold/post-reboot methods on the owner phone; one approved normal restart, no automatic load/replay, original data retained; preparation intentionally interrupted |

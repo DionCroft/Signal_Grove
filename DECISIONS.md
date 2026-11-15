@@ -1,5 +1,16 @@
 # Decisions
 
+## 15 November 2026 - re-observe changed geometry before the sole native input
+
+Native windows and delivered IME insets are sequential observations. A changed or
+incoherent pre-input sample invalidates readiness; re-observe inside the original
+five-second deadline before dispatch. Preserve exact geometry/caption containment,
+the single native DOWN/UP attempt, fresh consent and one workspace mutation.
+Do not retry an attempted input or increase the original observation budget.
+Exercise a real late-keyboard transition with the same fixture on both supported
+Android APIs. Keep the independent API26 navigation and upstream failures open.
+[Evidence](docs/contracts/2026-11-15-bounded-workspace-review-preinput.md).
+
 ## 15 November 2026 - use supported offline fixture policy and retain native output
 
 Set the isolated fixture's supported catalog/plugin polling controls explicitly;

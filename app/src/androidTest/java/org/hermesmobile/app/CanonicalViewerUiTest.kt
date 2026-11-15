@@ -183,11 +183,13 @@ class CanonicalViewerUiTest {
             androidx.compose.ui.geometry.Size(bounds.width,bounds.height),style.direction,style.density))
     }
     private data class WorkspaceReviewGeometry(val viewport:FocusedDialogViewport,val control:androidx.compose.ui.geometry.Rect)
-    private fun reviewWorkspace(large:Boolean=false,keyboardExpected:Boolean?=null) {
+    private fun reviewWorkspace(large:Boolean=false,keyboardExpected:Boolean?=null,beforePreTapObservation:(()->Unit)?=null) {
         val control=compose.onNodeWithTag("workspace-review").assertIsDisplayed().assertIsEnabled()
         val id=java.util.UUID.randomUUID().toString();val samples=mutableListOf<JsonObject>()
         var ready:WorkspaceReviewGeometry?=null;var previous:WorkspaceReviewGeometry?=null;var stableAt=0L
         var dispatched=false;var primary:Throwable?=null
+        var preTapResamples=0;var preTapHookUsed=false;var checkedBeforeTap:WorkspaceReviewGeometry?=null
+        val began=android.os.SystemClock.uptimeMillis();val deadline=began+5000
         val imeDisagreements=mutableListOf<JsonObject>();var imeDisagreementCount=0;var viewportPhase="readiness"
         fun observeImeDisagreement(value:DialogImeDisagreement) {
             imeDisagreementCount=(imeDisagreementCount+1).coerceAtMost(1000)
@@ -208,26 +210,46 @@ class CanonicalViewerUiTest {
                 put("screenOffsetX",it.viewport.screenOffsetX);put("screenOffsetY",it.viewport.screenOffsetY)
             }
         }
+        fun geometry(phase:String):WorkspaceReviewGeometry? {
+            viewportPhase=phase
+            val viewport=focusedDialogViewport(requireKeyboard=false,onIncoherentIme=::observeImeDisagreement)
+            val value=viewport?.let {WorkspaceReviewGeometry(it,control.fetchSemanticsNode().boundsInWindow)}
+            val sample=observation(value);if(samples.lastOrNull()!=sample && samples.size<16) samples+=sample
+            return value
+        }
         try {
             compose.waitUntil(5000) {
-                val viewport=focusedDialogViewport(requireKeyboard=false,onIncoherentIme=::observeImeDisagreement)
-                val value=viewport?.let {WorkspaceReviewGeometry(it,control.fetchSemanticsNode().boundsInWindow)}
-                val sample=observation(value);if(samples.lastOrNull()!=sample && samples.size<16) samples+=sample
+                if(android.os.SystemClock.uptimeMillis()>=deadline) return@waitUntil false
+                val value=geometry("readiness")
                 val now=android.os.SystemClock.uptimeMillis()
                 val contained=value?.let {g->val v=g.viewport;val b=g.control
                     b.left+v.screenOffsetX>=v.visible.left && b.right+v.screenOffsetX<=v.visible.right &&
                     b.top+v.screenOffsetY>=v.visible.top && b.bottom+v.screenOffsetY<=v.visible.bottom &&
                     (keyboardExpected==null || v.keyboardVisible==keyboardExpected)}==true
                 if(!contained || value!=previous) {previous=value;stableAt=now;false}
-                else (now-stableAt>=250).also {if(it) ready=value}
+                else if(now-stableAt<250) false
+                else {
+                    val candidate=checkNotNull(value)
+                    assertWorkspaceActionCaption("workspace-review")
+                    val caption=Words.WorkspaceReview.localized(AppPreferences(chinese=large,pinyin=large))
+                    val native=focusedDialogCaptionScreenBounds(caption,caption)
+                    if(!preTapHookUsed) {preTapHookUsed=true;beforePreTapObservation?.invoke()}
+                    // Native windows and delivered insets are sequential reads.
+                    // A changed/incoherent pre-input sample invalidates readiness;
+                    // observe again inside the original deadline, without a tap.
+                    val fresh=geometry("preTap")
+                    if(fresh!=candidate) {
+                        preTapResamples=(preTapResamples+1).coerceAtMost(1000)
+                        previous=fresh;stableAt=android.os.SystemClock.uptimeMillis();false
+                    } else {
+                        assertTrue("The complete native Review caption must fit the observed viewport",candidate.viewport.visible.contains(native))
+                        (android.os.SystemClock.uptimeMillis()<deadline).also {if(it) {ready=candidate;checkedBeforeTap=fresh}}
+                    }
+                }
             }
             val settled=checkNotNull(ready)
-            assertWorkspaceActionCaption("workspace-review")
-            val caption=Words.WorkspaceReview.localized(AppPreferences(chinese=large,pinyin=large))
-            val native=focusedDialogCaptionScreenBounds(caption,caption)
-            assertTrue("The complete native Review caption must fit the observed viewport",settled.viewport.visible.contains(native))
-            viewportPhase="preTap"
-            assertEquals("Review geometry changed before its only tap",settled.viewport,focusedDialogViewport(requireKeyboard=false,onIncoherentIme=::observeImeDisagreement))
+            assertEquals("Review geometry changed before its only tap",settled,checkedBeforeTap)
+            check(android.os.SystemClock.uptimeMillis()<deadline) {"Original Review observation deadline expired before input"}
             val center=settled.control.center;dispatched=true
             tapFocusedDialogWindowPoint(center.x,center.y,NativeDialogTapAction.WorkspaceReview,id)
             compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
@@ -236,7 +258,8 @@ class CanonicalViewerUiTest {
         finally {
             val consentPresent=runCatching {compose.onAllNodesWithTag("workspace-consent").fetchSemanticsNodes().isNotEmpty()}.getOrNull()
             try {writeNativeTapDiagnostic("workspace-review-observation-$id",buildJsonObject {
-                put("schema",2);put("id",id);put("action","workspace-review");put("nativeTapAttempted",dispatched)
+                put("schema",3);put("id",id);put("action","workspace-review");put("nativeTapAttempted",dispatched)
+                put("preTapResamples",preTapResamples);put("observationElapsedMs",android.os.SystemClock.uptimeMillis()-began)
                 put("imeDisagreements",JsonArray(imeDisagreements));put("imeDisagreementCount",imeDisagreementCount)
                 put("imeDisagreementsCapped",imeDisagreementCount>imeDisagreements.size)
                 put("samples",JsonArray(samples));put("ready",observation(ready))
@@ -316,6 +339,26 @@ class CanonicalViewerUiTest {
         compose.onNodeWithTag("canonical-close").performClick()
         compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Closed}
         assertFalse(guard.active.value)
+    }
+
+    @Test fun lateKeyboardBeforeWorkspaceReviewIsObservedBeforeItsOnlyNativeTap() {
+        render();open();editWorkspace()
+        closeDialogKeyboard();compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
+        var keyboardRequests=0
+        reviewWorkspace(beforePreTapObservation={
+            keyboardRequests++
+            compose.onNodeWithTag("workspace-directory").performScrollTo().performClick()
+            compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+        })
+        assertEquals(1,keyboardRequests)
+        compose.onNodeWithTag("workspace-confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("workspace-consent").performScrollTo().assertIsOff()
+        assertEquals(0,repo.workspaceChanges)
+        grantWorkspaceConsent()
+        compose.onNodeWithTag("workspace-confirm").assertIsEnabled().performClick()
+        compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Closed}
+        assertEquals(1,repo.workspaceChanges);assertEquals(1,repo.link.closes)
+        assertNull(viewer.state.value.workspaceSnapshot)
     }
 
     @Test fun checkedWorkspaceReviewSendsOnceAndRequiresAFreshAttachmentAfterAcknowledgement() {

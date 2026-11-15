@@ -10,48 +10,49 @@ APK delivery explicitly requested 12 November 2026: after the applicable release
 
 ## Current checkpoint - 15 November 2026
 
-A fresh, offline-configured actual SDK trial now passes the original-journal
-drain **and normal native shutdown** in one generated private home. Independent
-readback verifies one SDK freeze, exclusive marker identity/content, three actor
-replies matched among six original SDK wire replies, zero final registered/
-unbound ledger counts and two ended native groups. The frozen ledger, marker
-and pending broader stage remain; the spent actor refuses replay.
+The API37 workspace-review pre-input race is corrected in the test fixture.
+Actual keyboard/inset transitions are re-observed within the original five-second
+deadline before input. Native single-tap protection, full caption/viewport checks,
+fresh consent and the one workspace change remain required. A real late-keyboard
+regression and the originally failing case pass among **27 focused methods on
+each of API26 and API37**, without skips. Original diagnostics verify nine Review
+actions and twelve single DOWN/UP pairs per API, with no input retry.
 
-The fixture uses the supported `model_catalog.enabled: false` and
-`plugins.auto_update_check_hours: 0` controls. It records zero blocked socket
-connection events without relaxing the audit boundary. Actual gateway stdout/
-stderr go to private files; their native descriptors, inodes, ownership and modes
-verify. Five-second startup/drain windows, the seventy-second SDK stop budget
-and the finite ten-minute actor fixture lifetime remain unchanged. All 23,628
-SDK files, 5,033 dependency code files, PM facts, existing modes and live services
-are conserved. Both earlier held/failed trials remain unchanged.
+The exact E-drive build passes **1,011 JVM tests**, both lint variants with zero
+errors/fatals, and both debug APK assembly tasks. Lint retains 51 debug / 50 release
+warnings. This is focused test-fixture acceptance; final full device and phone
+acceptance remain open. The source snapshot, installed APK hashes and native
+method inventories independently agree; no production APK is published here.
 
-All **39 focused Pi methods pass/no skips**. Current Windows coverage is
-**885 of 1,158 cases, with 273 platform skips**. Parent `4e66626` independently
-passes **1,158 hosted Linux methods/no skips**, including all four added fixture
-boundary methods. This qualifies the profiled generated-home component; an
-unprofiled original-journal run, actual unbound-work/status correction, hostile
-races, fleet admission and full compatibility/release remain open. It does not
-prove the separately retained original owner shutdown warning's cause.
+The prior isolated Pi checkpoint still verifies offline-configured actual SDK
+freeze, exclusive original-journal drain and normal native shutdown in one
+generated home. All 39 focused Pi methods pass; Windows coverage remains
+885 positive / 273 platform skips in 1,158 cases. Parent `4e66626` independently
+passes 1,158 hosted Linux methods/no skips. Full unprofiled/unbound/fleet behavior
+and the original owner shutdown warning's cause remain open.
 
-The API37 shard's exact artifact identifies a pre-input native-IME/inset mismatch
-in `CanonicalViewerUiTest`: no Review tap was attempted. A bounded resampling
-fix and late-keyboard regression are drafted privately, not yet applied or
-qualified. The original API26 causes and all other audit requirements remain.
-Published beta.9 and live Hermes are unchanged. The full goal stays active.
-[Evidence and limits](contracts/2026-11-15-offline-configured-sdk-journal-lifecycle.md).
+The retained `4e66626` CI artifact separately identifies an API26 phone-draft
+navigation failure: 541 methods started, 540 positive, one missing `nav-chat`
+node before input. Its cause and the original Demo/history failures remain
+unresolved. Current `6e1325b` hosted upstream inspection still fails stable/main
+semantic review; its Android run was in progress at this checkpoint. Failed CI
+artifacts and timed-out QA installations are preserved. The latter were reconciled
+after owned-emulator cold recovery before any test dispatch or further install.
+Live Hermes, the owner's phone and published beta.9 are unchanged. The full goal
+remains active with every original acceptance priority retained.
+[Evidence and limits](contracts/2026-11-15-bounded-workspace-review-preinput.md).
 
-Apply and validate the reviewed API37 pre-input synchronization correction,
-retaining the original five-second observation deadline, native single-tap
-guard, complete caption/viewport checks and fresh consent. Exercise the captured
-transition plus a real late-keyboard regression on API26/API37, preserve original
-failed artifacts and finish required builds/checks before its separate commit.
+Qualify the minimal SDK status-count correction with actual active unbound
+work, incomplete schema and read-only snapshots. Keep SDK source provenance and
+the original staged candidate immutable; use a fresh declared candidate for any
+SDK change. Component checks alone do not qualify an actual gateway/unbound drain.
 
-Then qualify the minimal SDK status-count correction with actual active unbound
-work, incomplete schema and read-only snapshots. Complete unprofiled original-
-journal behavior, marker/expiry/source/owner races, all-profile/worker admission,
-unified execution, authenticated health and runtime-only recovery before a final
-live packet. Canonical PM contexts, seven real modes, policy/launcher changes and
+Then reproduce and fix the retained API26 phone-draft navigation and original
+Demo/history causes; finish exact-source standard device coverage and supported
+upstream used/transitive compatibility. Complete unprofiled original-journal
+behavior, marker/expiry/source/owner races, all-profile/worker admission, unified
+execution, authenticated health and runtime-only recovery before a final live
+packet. Canonical PM contexts, seven real modes, policy/launcher changes and
 private GitHub/live-home backup remain unactivated. Preserve the full original
 audit, local-model, physical-phone and original-key APK delivery requirements.
 
