@@ -1,5 +1,22 @@
 # Signal Grove audit execution plan
 
+## Actual SDK retirement with prepared source evidence - 15 November 2026
+
+Source preparation before login now passes the actual normal SDK/native-role
+retirement trial with **all 23,628 SDK / 32 executor files** bound. Fresh native
+file/directory checks remain before dispatch and after commit. The same socket
+carries login/refresh and the four retirement requests; one SDK commit, a
+3,894-byte receipt, 1,098 loaded-module origins and 12 lifecycle events verify.
+The journal remains pending; full executor/production acceptance stays open.
+
+Final native cohort: **91 methods/no skips**, including 27 retirement cases.
+Windows: **1,047 cases, 806 pass/241 platform skips**. All 104 reconciled temporary
+units are stopped; five original failures remain. Parent sourceb3's hosted
+1,039-method suite and source8d's full **1,142 API26 / 1,143 API37** gate are
+independently verified. The new source's hosted checks, original UI failure causes,
+external-model/phone/production gates and all other original audit requirements
+remain. Live state and beta.9 are unchanged. [Exact source, proof and scope](contracts/2026-11-15-prelogin-source-witness.md).
+
 ## SDK inventory receipt fix and real socket timing hold - 15 November 2026
 
 Full-inventory receipt handling is fixed: **83 Pi methods/no skips**, including

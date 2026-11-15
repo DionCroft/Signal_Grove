@@ -1,5 +1,10 @@
 # Full-inventory retirement receipts and actual SDK socket timing
 
+Later source-preparation implementation now passes an independently verified
+actual normal-SDK/native-role exchange with all 23,628 SDK inputs, one commit and
+normal shutdown. The original failures below remain. Full executor/live acceptance
+stays open. [Current exact proof and next stage](2026-11-15-prelogin-source-witness.md).
+
 15 November 2026. The receipt-size defect is fixed and verified in the native
 cohort. The new actual normal-SDK/native-service trial exposes a separate socket
 lifetime problem before dispatch. The full SDK actor and executor remain

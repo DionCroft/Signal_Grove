@@ -857,3 +857,29 @@ and every original audit, phone and release gate.
 
 This concrete runtime defect remains in the same full objective. No original
 requirement, historical failure, security boundary or release gate is removed.
+
+## Actual SDK prepared-source retirement checkpoint - 15 November 2026
+
+Source preparation before login now passes the actual normal SDK/native-role
+retirement trial with **all 23,628 SDK / 32 executor files** bound. Fresh native
+file/directory checks remain before dispatch and after commit. The same socket
+carries login/refresh and the four retirement requests; one SDK commit, a
+3,894-byte receipt, 1,098 loaded-module origins and 12 lifecycle events verify.
+The journal remains pending; full executor/production acceptance stays open.
+
+Final native cohort: **91 methods/no skips**, including 27 retirement cases.
+Windows: **1,047 cases, 806 pass/241 platform skips**. All 104 reconciled temporary
+units are stopped; five original failures remain. Parent sourceb3's hosted
+1,039-method suite and source8d's full **1,142 API26 / 1,143 API37** gate are
+independently verified. The new source's hosted checks, original UI failure causes,
+external-model/phone/production gates and all other original audit requirements
+remain. Live state and beta.9 are unchanged. [Exact source, proof and scope](contracts/2026-11-15-prelogin-source-witness.md).
+
+The next action is to **implement native gateway drain and compose the unified
+executor**, then prove reload/authenticated health and bounded runtime-only recovery
+before the separate complete live approval packet. Continue the remaining
+37 stable / 171 inspected-main findings and every original audit, phone and
+release gate; observe existing hosted jobs without replaying unknown work.
+
+No original requirement or prior unknown/failure is removed. The same full goal
+remains active; no live deployment or production release follows this component.

@@ -197,15 +197,19 @@ def run(root,operation,service_operation,authority,definition,source,source_file
             if owner is None or before.configuration_sha256!=role_configuration or before.executable!=executable:raise AssertionError('Actual SDK native role differs')
             manager._manager('RefUnit','s',(unit,),'')
             _write(root/'native-start.json',asdict(before));record.update(state='NORMAL_SDK_PROVIDER_LOGIN',owner=asdict(owner),port=port);save()
-            adapter=_authenticate(home,owner,port,password,record,save,secrets_seen)
             spec=ServeRetirementSpec(sdk,executor,anchor(home/'hermes-home'),before,port,scope_configuration_sha256,'new_source')
             execution=ApprovedExecution(operation,plan.packet_sha256,plan.authority_sha256,'forward',approval_receipt_sha256,
                 (scope.active_enter_usec+scope.runtime_max_usec+scope.stop_timeout_usec)/1e6+5)
             journal.begin(operation,plan.packet_sha256,authorization_sha256=execution.binding_sha256)
             for step in FORWARD[:FORWARD.index('serve_retirement')]:
                 journal.intent(step);journal.verified(step,digest(dict(scope='synthetic_non_retirement_prerequisite',step=step)))
-            journal.intent('serve_retirement');actor=NativeServeRetirement(plan,journal,manager,boundary,'serve_retirement',spec,spec.sha256,adapter)
-            result=actor.run(execution)
+            journal.intent('serve_retirement');actor=NativeServeRetirement(plan,journal,manager,boundary,'serve_retirement',spec,spec.sha256,None)
+            started=time.monotonic();prepared=actor.prepare_inputs(execution)
+            record.update(state='NORMAL_SDK_INPUTS_PREPARED_BEFORE_LOGIN',prepared_inputs=prepared,content_preparation_seconds=time.monotonic()-started);save()
+            adapter=_authenticate(home,owner,port,password,record,save,secrets_seen)
+            started=time.monotonic();actor.bind_transport(execution,adapter);record['transport_binding_seconds']=time.monotonic()-started;save()
+            started=time.monotonic();result=actor.run(execution);record['retirement_run_seconds']=time.monotonic()-started
+
             if result['state']!='effects_observed' or result['proof']['checks']!={'serve_admission_closed':True} or result['proof']['protocol_requests']!=4:raise AssertionError('Normal SDK actor result unproven')
             if journal.view['pending']!='serve_retirement' or manager.snapshot('serve')!=before:raise AssertionError('Actor changed its journal stage or service')
             try:actor.run(execution)

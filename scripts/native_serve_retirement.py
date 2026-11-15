@@ -1,7 +1,7 @@
 """One original-journal standalone-serve retirement exchange.
 
-An already connected, kernel-owner-verified local socket and supported signed-in
-provider bearer are supplied by the caller. No discovery/login, reconnect,
+Full content preparation runs before login. The caller then supplies one
+kernel-owner-verified local socket and supported signed-in provider bearer. No discovery/login, reconnect,
 replay, cancellation, service action or automatic recovery is provided here.
 The supported SDK's cooperative fence semantics remain a source-bound trust
 assumption; complete deployment/worker/runtime acceptance is separate.
@@ -24,6 +24,7 @@ from native_retirement_owner import LinuxSocketOwner,read_process_owner
 from pinned_retirement_http import PinnedRetirementHttp
 from retirement_guard import RetirementGuard
 from backup_sdk_snapshot import SourceInventory
+from native_verified_inventory import VerifiedInventory
 
 STAGES={'serve_retirement':'serve_admission_closed','rollback_serve_retirement':'serve_fenced_or_absent'}
 SDK_REQUIRED=frozenset({'hermes_cli/backend_retirement.py','hermes_cli/web_routers/status.py',
@@ -32,7 +33,7 @@ SDK_REQUIRED=frozenset({'hermes_cli/backend_retirement.py','hermes_cli/web_route
 EXECUTOR_REQUIRED=frozenset({'native_serve_retirement.py','pinned_retirement_http.py','retirement_guard.py',
  'native_retirement_owner.py','native_service_manager.py','native_operational_paths.py',
  'native_file_publication.py','cutover_journal.py','cutover_coordinator.py','backup_sdk_snapshot.py','native_backup_archive.py',
- 'plan_pi_runtime.py','rendered_publication_catalog.py'})
+ 'plan_pi_runtime.py','rendered_publication_catalog.py','native_verified_inventory.py'})
 
 
 @dataclass(frozen=True)
@@ -62,6 +63,15 @@ class ServeRetirementSpec:
     def sha256(self):return digest(asdict(self))
 
 
+@dataclass(frozen=True)
+class _PreparedInputs:
+    actor:object
+    execution:ApprovedExecution
+    pid:int
+    sdk:VerifiedInventory
+    executor:VerifiedInventory
+
+
 class NativeServeRetirement:
     def __init__(self,plan,journal,manager,paths,stage,spec,reviewed_spec_sha256,transport):
         if (sys.platform!='linux' or os.geteuid()==0 or type(plan) is not Plan or type(journal) is not CutoverJournal
@@ -69,10 +79,10 @@ class NativeServeRetirement:
                 or type(paths) is not NativeOperationalPaths or journal._operational_paths is not paths
                 or stage not in STAGES or type(spec) is not ServeRetirementSpec or spec.sha256!=reviewed_spec_sha256
                 or (spec.before.owner is None and transport is not None)
-                or (spec.before.owner is not None and type(transport) is not PinnedRetirementHttp)):
+                or (spec.before.owner is not None and transport is not None and type(transport) is not PinnedRetirementHttp)):
             raise Refused('Exact original-journal native serve retirement actor required')
         self.plan,self.journal,self.manager,self.paths,self.stage,self.spec,self.transport=plan,journal,manager,paths,stage,spec,transport
-        self.used=False;self.state='ready';self.last_receipt=None;self.protocol_events=[]
+        self.used=False;self.state='ready';self.last_receipt=None;self.protocol_events=[];self._prepared=None;self._prepare_attempted=False
 
     def _authorize(self,e,*,claimed=False):
         if type(e) is not ApprovedExecution or e.authority_sha256!=self.plan.authority_sha256:
@@ -103,14 +113,46 @@ class NativeServeRetirement:
         if scope.configuration_sha256!=self.spec.scope_configuration_sha256:raise Refused('Native controller configuration differs')
         return scope
 
+    def prepare_inputs(self,e):
+        """One full-content read before login; no claim, HTTP or service effect."""
+        if self.used or self._prepare_attempted or self._prepared is not None:raise Refused('Input preparation is spent')
+        self._prepare_attempted=True
+        try:
+            self._authorize(e);before=self._current()
+            if before.owner is None and self.stage!='rollback_serve_retirement':raise Refused('Forward retirement requires its running owner')
+            sdk=VerifiedInventory.capture(self.spec.sdk,self.paths,self.spec.source_role)
+            executor=VerifiedInventory.capture(self.spec.executor,self.paths,'executor')
+            self._authorize(e);self._current()
+            self._prepared=_PreparedInputs(self,e,os.getpid(),sdk,executor);self.state='inputs_prepared'
+            return dict(sdk=sdk.summary(),executor=executor.summary())
+        except BaseException:
+            self.state='preflight_refused'
+            if self.transport is not None:self.transport.close()
+            raise
+
+    def _prepared_for(self,e):
+        p=self._prepared
+        if (type(p) is not _PreparedInputs or p.actor is not self or p.execution!=e or p.pid!=os.getpid()
+            or type(p.sdk) is not VerifiedInventory or type(p.executor) is not VerifiedInventory):
+            raise Refused('Exact original-actor input preparation required')
+        return p
+
+    def bind_transport(self,e,transport):
+        """Bind one socket; fresh source identities are checked in run before claim."""
+        try:
+            if self.used or self.transport is not None or self.spec.before.owner is None or type(transport) is not PinnedRetirementHttp:
+                raise Refused('One original prepared serve transport required')
+            self._prepared_for(e);self._authorize(e);self._current();self._socket(transport)
+            self.transport=transport;self.state='transport_bound'
+        except BaseException:
+            if type(transport) is PinnedRetirementHttp and transport is not self.transport:transport.close()
+            raise
+
     def _inputs(self):
-        # Verify every bound file and all native identity fields, then retain a
-        # deterministic witness. Full SDK identity maps exceed the fixed receipt
-        # row limit; compact evidence must not reduce verification to content alone.
-        def witness(inventory):
-            identities=inventory.observe()
-            return dict(inventory_sha256=inventory.sha256,files=len(identities),identities_sha256=digest(identities))
-        return dict(sdk=witness(self.spec.sdk),executor=witness(self.spec.executor))
+        p=self._prepared
+        if type(p) is not _PreparedInputs or p.actor is not self or p.pid!=os.getpid():raise Refused('Original prepared inventory required')
+        p.sdk.check(self.spec.sdk,self.paths,self.spec.source_role);p.executor.check(self.spec.executor,self.paths,'executor')
+        return dict(sdk=p.sdk.summary(),executor=p.executor.summary())
 
     def _current(self):
         before=self.spec.before;binding=self.manager.bindings['serve']
@@ -129,8 +171,8 @@ class NativeServeRetirement:
             raise Unknown('Native serve owner/executable is unproven')
         return current
 
-    def _socket(self):
-        t=self.transport;owner=self.spec.before.owner
+    def _socket(self,transport=None):
+        t=self.transport if transport is None else transport;owner=self.spec.before.owner
         if (type(t) is not PinnedRetirementHttp or t._owner!=owner or type(t._observe) is not LinuxSocketOwner
                 or t._observe._expected!=owner or t._observe._uid!=os.geteuid()
                 or not t._usable or t._connection.sock is not t._socket
@@ -153,7 +195,8 @@ class NativeServeRetirement:
         if self.used:raise Refused('Serve retirement actor is spent')
         receipt=None;claimed=False;checkpoint='preflight'
         try:
-            self._authorize(e);inputs=self._inputs();before=self._current()
+            if self._prepared is None:self.prepare_inputs(e)
+            self._prepared_for(e);self._authorize(e);inputs=self._inputs();before=self._current()
             if before.owner is not None:self._socket()
             elif self.stage!='rollback_serve_retirement':raise Refused('Forward retirement requires its actual running serve owner')
             self.journal.claim_dispatch(e.operation,self.stage,e.binding_sha256);claimed=True;self.used=True;self.state='claimed'
@@ -199,6 +242,7 @@ class NativeServeRetirement:
             raise Refused('Serve retirement preflight refused without HTTP dispatch') from None
         finally:
             if self.transport is not None:self.transport.close()
+            self._prepared=None
             if receipt is not None:receipt.close()
 
     def _result(self,receipt,verified,outcome):

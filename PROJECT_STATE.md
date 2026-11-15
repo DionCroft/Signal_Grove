@@ -4,31 +4,26 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The next action is to **fix source-verification/connection ordering without
-weakening full source or native-owner checks**, then prove the actual SDK actor
-and complete gateway drain and the unified executor/reload/health/runtime recovery.
-Continue the remaining 37 stable / 171 inspected-main findings, existing CI jobs
-and every original audit, phone and release gate.
+The next action is to **implement native gateway drain and compose the unified
+executor**, then prove reload/authenticated health and bounded runtime-only recovery
+before the separate complete live approval packet. Continue the remaining
+37 stable / 171 inspected-main findings and every original audit, phone and
+release gate; observe existing hosted jobs without replaying unknown work.
 
-Full-inventory receipt handling is fixed: **83 Pi methods/no skips**, including
-19 retirement cases; Windows **1,039 cases, 806 pass/233 platform skips**. The
-original 160,736-byte identity-map failure is preserved; the 1,006-file case now
-uses a 3,682-byte receipt while verifying every content/native identity. An
-identical-byte rewrite after commit still holds unknown without replay.
+Source preparation before login now passes the actual normal SDK/native-role
+retirement trial with **all 23,628 SDK / 32 executor files** bound. Fresh native
+file/directory checks remain before dispatch and after commit. The same socket
+carries login/refresh and the four retirement requests; one SDK commit, a
+3,894-byte receipt, 1,098 loaded-module origins and 12 lifecycle events verify.
+The journal remains pending; full executor/production acceptance stays open.
 
-The actual SDK/native-role trial reaches generated-provider PKCE login/refresh
-but refuses the pinned socket before dispatch. Full 23,628-file verification
-measures **14.663 s**, while the unchanged SDK HTTP keep-alive is **5 s**. This
-supports the ordering diagnosis; original-call timing was not instrumented.
-Keep the real SDK actor/executor gate open. All 44 inspected temporary units
-are stopped; four original failures remain. Live state, owner data and beta.9
-are unchanged. [Exact source, failures and next stage](docs/contracts/2026-11-15-sdk-retirement-inventory-and-timing.md).
-
-Last independent hosted policy: source876, 1,037 Linux positives/no skips.
-Source8d API26 jobs report success; its API37 jobs remain live and full raw union
-acceptance is pending. Source7e's complete standard gate retains scope. The
-remaining stable/main review is 37 / 171 at the inspected sources. All original
-requirements remain; no new source is accepted by an older source's result.
+Final native cohort: **91 methods/no skips**, including 27 retirement cases.
+Windows: **1,047 cases, 806 pass/241 platform skips**. All 104 reconciled temporary
+units are stopped; five original failures remain. Parent sourceb3's hosted
+1,039-method suite and source8d's full **1,142 API26 / 1,143 API37** gate are
+independently verified. The new source's hosted checks, original UI failure causes,
+external-model/phone/production gates and all other original audit requirements
+remain. Live state and beta.9 are unchanged. [Exact source, proof and scope](docs/contracts/2026-11-15-prelogin-source-witness.md).
 
 The complete backup-stage implementation now passes 97 Pi methods/no skips and
 one actual SDK/age trial with generated data and loopback publication. Independent

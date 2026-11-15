@@ -12,30 +12,21 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Last independently verified hosted source `87615c4` passes **1,037 Linux policy
-tests** without skips. The latest Windows suite runs **1,039 cases: 806 pass /
-233 POSIX skips**. The native retirement cohort passes **83 methods/no skips**,
-including 19 retirement cases. Full content/native identity verification now
-uses bounded digest receipts, with the original size failure preserved.
+Last independently verified hosted source `b3c492d` passes **1,039 Linux policy
+tests** without skips. The latest Windows suite runs **1,047 cases: 806 pass /
+241 POSIX skips**. The prepared-source native cohort passes **91 methods/no skips**,
+including 27 retirement cases. An actual normal SDK/native-role trial verifies
+all 23,628 SDK files, supported generated-provider login/refresh, one retirement
+commit and normal shutdown. Full executor and live deployment acceptance remain.
+[Current evidence and limits](docs/contracts/2026-11-15-prelogin-source-witness.md).
 
-The actual SDK/native-role trial reaches supported generated-provider login and
-refresh, then refuses the pinned socket before dispatch. Full source verification
-measures 14.663 s against the SDK's unchanged 5 s HTTP keep-alive. Fixing that
-ordering and proving the complete real SDK/executor remains required. All 44
-inspected temporary units are stopped; live services and beta.9 remain unchanged.
-[Current evidence and limits](docs/contracts/2026-11-15-sdk-retirement-inventory-and-timing.md).
-
-Current source7e1bd25 Android evidence: **1,011 JVM cases** and both lint variants
-pass with zero errors (52 debug / 51 release warnings). Its complete hosted gate
-passes **1,142 standard API26** and **1,143 API37 methods**, with no failures/skips
-and independently verified raw disjoint shards and actual APK hashes. The Demo
-and two retained navigation cases pass; historical causes remain unproven.
-Twelve external-model methods, physical phone and original-key production-upgrade
-gates require separate acceptance. Source8d's JVM/lint/actual-APK artifact now
-independently verifies; both API26 jobs report success and both API37 jobs remain
-running. The new full raw union is pending. Upstream main
-moved to b2c6bc4 during observation: compatibility requires review of **37 stable /
-171 currently inspected-main findings** (169 on the earlier f578714 source).
+Source8d's complete hosted standard Android gate independently verifies **1,142
+API26 / 1,143 API37 methods**, exact disjoint raw unions and actual build APK
+hashes. Its **1,011 JVM cases** and both lint variants pass (zero errors;
+52 debug / 51 release warnings). Original UI failure causes, twelve external-model
+methods, final physical-phone/original-key production-upgrade and release gates
+remain. Upstream review retains **37 stable / 171 inspected-main findings** at
+the recorded sources. Live services and published beta.9 are unchanged.
 
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,

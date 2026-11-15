@@ -1,5 +1,16 @@
 # Decisions
 
+## 15 November 2026 - prepare content before the single authenticated connection
+
+Keep complete content verification before login and fresh descriptor-relative
+file/directory identity checks before dispatch and after commit. Bind preparation
+to the original actor, journal, approval, process and native service. Use no
+external cached witness, reconnect, retry, SDK timeout extension or reduced source
+inventory. Retain the intermediate unknown receipt. Accept the verified normal
+SDK component only within its private generated context, with other transaction
+gates synthetic and the journal still pending. Full executor/live acceptance remains.
+[Verified implementation and scope](docs/contracts/2026-11-15-prelogin-source-witness.md).
+
 ## 15 November 2026 - full input proof must fit receipts and connection lifetime
 
 Verify all bound content and native identities, then persist the complete-map

@@ -1,5 +1,10 @@
 # Journal-bound native standalone-serve retirement
 
+Later source-preparation implementation now passes an independently verified
+actual normal-SDK/native-role exchange with all 23,628 SDK inputs, one commit and
+normal shutdown. The original failures below remain. Full executor/live acceptance
+stays open. [Current exact proof and next stage](2026-11-15-prelogin-source-witness.md).
+
 Later full-inventory work passes 83 controlled Pi methods and 1,039 Windows
 cases (806 positive / 233 platform skips). Actual SDK login succeeds, but its
 retirement actor exposes a preclaim socket-timing hold; that real gate remains

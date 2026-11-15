@@ -14,7 +14,7 @@ import uuid
 from unittest.mock import patch
 
 scripts=Path(__file__).resolve().parents[1];sys.path.insert(0,str(scripts))
-for module_name in ('retirement_guard','native_retirement_owner','cutover_journal','cutover_coordinator','plan_pi_runtime','native_file_publication','rendered_publication_catalog','native_operational_paths','native_service_manager','pinned_retirement_http','native_backup_archive','backup_sdk_snapshot','native_serve_retirement'):
+for module_name in ('retirement_guard','native_retirement_owner','cutover_journal','cutover_coordinator','plan_pi_runtime','native_file_publication','rendered_publication_catalog','native_operational_paths','native_service_manager','pinned_retirement_http','native_backup_archive','backup_sdk_snapshot','native_verified_inventory','native_serve_retirement'):
     module_spec=importlib.util.spec_from_file_location(module_name,scripts/(module_name+'.py'));module=importlib.util.module_from_spec(module_spec);sys.modules[module_name]=module;module_spec.loader.exec_module(module)
 schema=sys.modules['native_serve_retirement'];SchemaOwner=sys.modules['retirement_guard'].Owner
 
@@ -54,7 +54,7 @@ class NativeServeRetirementTests(unittest.TestCase):
             self.load(name,scripts/(name+'.py'))
         helper=self.load('operational_paths_fixture',scripts/'native/operational_paths_fixture.py')
         self.fixture=helper.build(Path(os.environ['SIGNAL_GROVE_TRANSACTION_RETAIN_ROOT']));self.core=self.fixture['modules'];self.paths=self.fixture['paths'];self.root=self.fixture['root'];self.guard=self.fixture['guard']
-        for name in ('native_service_manager','pinned_retirement_http','backup_sdk_snapshot','native_serve_retirement'):
+        for name in ('native_service_manager','pinned_retirement_http','backup_sdk_snapshot','native_verified_inventory','native_serve_retirement'):
             self.load(name,scripts/(name+'.py'))
         self.r=sys.modules['native_serve_retirement'];self.service=sys.modules['native_service_manager'];self.c=self.core['cutover_coordinator'];self.errors=self.core['cutover_journal']
         self.operation=re.search(r'signal-grove-acceptance-([a-f0-9]{32})-pm\.service$',Path('/proc/self/cgroup').read_text().strip().split('::',1)[-1])[1]
@@ -229,7 +229,8 @@ class NativeServeRetirementTests(unittest.TestCase):
         result=actor.run(e);self.assertEqual('effects_observed',result['state']);self.assertTrue(self.observations()['committed'])
         raw=(self.paths['journal']/result['receipt']).read_bytes();self.assertLess(len(raw),65536)
         receipt=[json.loads(line) for line in raw.splitlines()];witness=receipt[1]['evidence']['inputs']['sdk']
-        self.assertEqual({'inventory_sha256':inventory.sha256,'files':len(rows),'identities_sha256':self.core['native_file_publication'].digest(observed)},witness)
+        self.assertEqual({'inventory_sha256':inventory.sha256,'files':len(rows),'identities_sha256':self.core['native_file_publication'].digest(observed)},{k:witness[k] for k in ('inventory_sha256','files','identities_sha256')})
+        self.assertGreater(witness['directories'],1);self.assertRegex(witness['directories_sha256'],r'^[a-f0-9]{64}$')
         self.assertEqual('serve_retirement',self.j.view['pending']);self.assertEqual(4,len(self.observations()['requests']))
 
     def test_same_content_native_identity_change_after_commit_stays_unknown(self):
@@ -242,6 +243,67 @@ class NativeServeRetirementTests(unittest.TestCase):
         with patch.object(self.r.PinnedRetirementHttp,'__call__',request),self.assertRaises(self.errors.Unknown):actor.run(e)
         self.assertTrue(self.observations()['committed']);self.assertEqual('unknown',actor.state);self.assertEqual(4,len(self.observations()['requests']))
         with self.assertRaises(self.errors.Refused):actor.run(e)
+
+    def deferred(self):
+        _,e=self.prepare();self.adapter.close()
+        actor=self.r.NativeServeRetirement(self.plan,self.j,self.manager,self.guard,self.stage,self.spec,self.spec.sha256,None)
+        return actor,e
+
+    def test_content_preparation_before_socket_claims_nothing_then_runs_one_exchange(self):
+        actor,e=self.deferred();inputs=actor.prepare_inputs(e)
+        self.assertEqual('inputs_prepared',actor.state);self.assertFalse(actor.used);self.assertEqual([],self.observations()['requests']);self.assertNotIn((e.operation,self.stage),self.j._dispatch_claims)
+        self.assertEqual(len(self.r.SDK_REQUIRED),inputs['sdk']['files'])
+        adapter=self.transport(self.spec.before);actor.bind_transport(e,adapter);result=actor.run(e)
+        self.assertEqual('effects_observed',result['state']);self.assertEqual(4,len(self.observations()['requests']))
+
+    def test_prepared_content_rejects_identical_byte_rewrite_before_dispatch(self):
+        actor,e=self.deferred();actor.prepare_inputs(e);p=self.paths['old_source']/sorted(self.r.SDK_REQUIRED)[0];p.write_bytes(p.read_bytes())
+        adapter=self.transport(self.spec.before)
+        actor.bind_transport(e,adapter)
+        with self.assertRaises(self.errors.Unknown):actor.run(e)
+        self.assertFalse(adapter._usable);self.assertFalse(actor.used);self.assertEqual([],self.observations()['requests'])
+
+    def test_prepared_directory_symlink_cannot_redirect_unchanged_files(self):
+        actor,e=self.deferred();actor.prepare_inputs(e);root=self.paths['old_source'];folder=root/'hermes_cli';saved=root/'retained-original-folder';folder.rename(saved);folder.symlink_to(saved,target_is_directory=True)
+        adapter=self.transport(self.spec.before)
+        actor.bind_transport(e,adapter)
+        with self.assertRaises(self.errors.Unknown):actor.run(e)
+        self.assertFalse(adapter._usable);self.assertFalse(actor.used);self.assertEqual([],self.observations()['requests'])
+
+    def test_prepared_executor_identity_drift_refuses_before_http(self):
+        actor,e=self.deferred();actor.prepare_inputs(e);p=self.paths['executor']/'native_verified_inventory.py';p.write_bytes(p.read_bytes())
+        adapter=self.transport(self.spec.before)
+        actor.bind_transport(e,adapter)
+        with self.assertRaises(self.errors.Unknown):actor.run(e)
+        self.assertFalse(adapter._usable);self.assertFalse(actor.used);self.assertEqual([],self.observations()['requests'])
+
+    def test_prepared_authorization_changes_and_deadline_refuse_transport(self):
+        actor,e=self.deferred();actor.prepare_inputs(e)
+        for bad in (replace(e,approval_receipt_sha256='0'*64),replace(e,scope='recovery'),replace(e,deadline=time.monotonic()-1)):
+            adapter=self.transport(self.spec.before)
+            with self.assertRaises((self.errors.Refused,self.errors.Unknown)):actor.bind_transport(bad,adapter)
+            self.assertFalse(adapter._usable)
+        self.assertFalse(actor.used);self.assertEqual([],self.observations()['requests'])
+
+    def test_prepared_inputs_cannot_outlive_their_native_serve_owner(self):
+        actor,e=self.deferred();actor.prepare_inputs(e);adapter=self.transport(self.spec.before);self.stop_owned_service()
+        with self.assertRaises(self.errors.Unknown):actor.bind_transport(e,adapter)
+        self.assertFalse(adapter._usable);self.assertFalse(actor.used);self.assertEqual([],self.observations()['requests'])
+
+    def test_replacement_cannot_adopt_another_actors_prepared_witness(self):
+        actor,e=self.deferred();actor.prepare_inputs(e)
+        other=self.r.NativeServeRetirement(self.plan,self.j,self.manager,self.guard,self.stage,self.spec,self.spec.sha256,None);other._prepared=actor._prepared
+        adapter=self.transport(self.spec.before)
+        with self.assertRaises(self.errors.Refused):other.bind_transport(e,adapter)
+        self.assertFalse(adapter._usable);self.assertFalse(other.used);self.assertEqual([],self.observations()['requests'])
+
+    def test_repeated_preparation_and_binding_cannot_replace_the_owned_socket(self):
+        actor,e=self.deferred();actor.prepare_inputs(e)
+        with self.assertRaises(self.errors.Refused):actor.prepare_inputs(e)
+        first=self.transport(self.spec.before);actor.bind_transport(e,first);other=self.transport(self.spec.before)
+        with self.assertRaises(self.errors.Refused):actor.bind_transport(e,other)
+        self.assertFalse(other._usable);self.assertIs(first,actor.transport);self.assertTrue(first._usable)
+        actor.run(e);self.assertEqual(4,len(self.observations()['requests']))
 
     def test_synthetic_socket_observer_cannot_substitute_for_native_proof(self):
         actor,e=self.prepare();self.adapter._observe=lambda sock:self.spec.before.owner
