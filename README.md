@@ -12,14 +12,13 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The current isolated SDK trial verifies actual GatewayRunner startup, generated
-admission freeze/refusal, an external drain marker and normal native shutdown.
-**Quiescence remains held:** six fresh drain responses still report executor/
-periodic work. The fixture preserves those counts and its failed outcome.
-Current Windows checks pass **839 of 1,093 cases**, with **254 platform skips**;
-all **ten new boundary cases** also pass on Pi. Parent source `75d0167` passes
-**1,083 independently reconciled hosted Linux methods/no skips**.
-[Current runtime finding and remaining work](docs/contracts/2026-11-15-normal-gateway-drain-hold.md).
+The current runtime audit adds content-free work diagnostics and a profiler-free
+comparison. One intermediate profiled drain settles; final-source startup still
+reports periodic work and correctly holds before any freeze. Full rollout remains
+unaccepted. Current Windows checks pass **852 of 1,106 cases**, with **254 platform
+skips**; **23 focused methods** pass on Pi. Parent source `1a401da` independently
+passes **1,093 hosted Linux methods/no skips**.
+[Current evidence and remaining work](docs/contracts/2026-11-15-gateway-work-diagnostics.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,

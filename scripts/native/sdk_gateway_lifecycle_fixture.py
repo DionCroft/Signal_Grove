@@ -112,6 +112,29 @@ def drain_is_settled(project,operation):
     return project['lifecycle']=='draining' and project['busy'] is False
 
 
+def checked_observer_mode(mode):
+    if type(mode) is not str or mode not in ('profile','none'):
+        raise ValueError('An explicit reviewed observer mode is required')
+    return mode
+
+
+def run_gateway_facade(start_gateway,observer,mode):
+    mode=checked_observer_mode(mode)
+    if sys.getprofile() is not None or threading.getprofile() is not None:
+        raise ValueError('The fixture cannot adopt or replace an existing profiler')
+    if mode=='profile':
+        sys.setprofile(observer);threading.setprofile(observer)
+    try:
+        result=asyncio.run(start_gateway())
+        expected=observer if mode=='profile' else None
+        if sys.getprofile() is not expected or threading.getprofile() is not expected:
+            raise RuntimeError('SDK lifecycle observer state changed')
+        return result
+    finally:
+        if mode=='profile':
+            sys.setprofile(None);threading.setprofile(None)
+
+
 def fixture_configuration():
     return dict(model=dict(provider='custom',default='fixture-no-inference',base_url='http://127.0.0.1:9/v1',api_key='fixture-no-inference'),
         fallback_model=[],local_runtime=dict(enabled=False),mcp_servers={},
@@ -126,7 +149,7 @@ def checked_context(root,source):
         or not (root/'fixture-marker.json').is_file() or root.is_symlink() or source.is_symlink()):
         raise ValueError('Fresh private isolated SDK gateway fixture required')
     marker=json.loads((root/'fixture-marker.json').read_text(encoding='utf-8'))
-    operation=marker['operation'];runtime=Path(marker['runtime'])
+    operation=marker['operation'];runtime=Path(marker['runtime']);checked_observer_mode(marker['observer_mode'])
     if (not re.fullmatch('[a-f0-9]{32}',operation) or marker['source']!=str(source)
         or marker['scope']!='isolated-normal-gateway' or marker['unit']!='signal-grove-acceptance-'+operation+'-gateway.service'
         or runtime!=Path('/run/user')/str(os.geteuid())/('hermes-gw-'+hashlib.sha256(os.path.normcase(str(root/'hermes-home')).encode()).hexdigest()[:16])
@@ -251,13 +274,23 @@ def serve(root,source):
     from gateway.shutdown_forensics import _async_diagnostic_script
     if shutil.which('timeout')!='/usr/bin/timeout':raise ValueError('Reviewed bounded diagnostic tool required')
     allowed_processes['diagnostic']=('/usr/bin/timeout','5','bash','-c',_async_diagnostic_script('SIGINT',os.getpid()))
-    trace.touch(mode=0o600,exist_ok=False);count=0
+    trace.touch(mode=0o600,exist_ok=False);count=0;diagnostic_count=0
     watched={('gateway/run_startup.py','_start_spawn_background_watchers'),('gateway/run_shutdown.py','_enter_external_drain'),
         ('gateway/run_runtime.py','publish_gateway_runtime_ready'),('gateway/run.py','_resolve_gateway_exit_verdict')}
     def profile(frame,event,arg):
-        nonlocal count
+        nonlocal count,diagnostic_count
         if event not in ('call','return') or not frame.f_code.co_filename.startswith(str(source)+'/'):return
         key=(frame.f_code.co_filename[len(str(source))+1:],frame.f_code.co_name)
+        if key==('gateway/run_activity_status.py','snapshot') and event=='return' and type(arg) is dict and arg.get('busy') is True:
+            diagnostic_count+=1
+            if diagnostic_count<=8:
+                from native.sdk_work_diagnostics import observe_work
+                observation=observe_work(frame.f_locals['runner'],source,arg)
+                encoded=json.dumps(observation)
+                if len(encoded.encode())>512*1024:raise RuntimeError('Bounded work diagnostics exceeded their limit')
+                with (root/'work-diagnostics.private.jsonl').open('a',encoding='utf-8') as out:
+                    out.write(encoded+'\n');out.flush();os.fsync(out.fileno())
+            return
         if key==('gateway/control_socket.py','handle_request_line') and event=='return' and type(arg) is bytes:
             request=frame.f_locals.get('request',{})
             if request.get('verb') in ('identify','status') and re.fullmatch('[a-f0-9]{32}',str(request.get('id',''))) and len(arg)<=512*1024:
@@ -269,16 +302,12 @@ def serve(root,source):
         if count>512:raise RuntimeError('Finite lifecycle trace exceeded its bound')
         with trace.open('a',encoding='utf-8') as out:out.write(json.dumps(dict(event=event,module=key[0],function=key[1],monotonic=time.monotonic()))+'\n');out.flush();os.fsync(out.fileno())
         if key[1]=='publish_gateway_runtime_ready' and event=='return':write_new(root/'ready-source.json',source_origins(source))
-    if sys.getprofile() is not None:raise ValueError('Unmodified native profile observer required')
-    sys.setprofile(profile)
-    threading.setprofile(profile)
     from gateway.run import start_gateway
-    result=asyncio.run(start_gateway())
-    sys.setprofile(None)
-    threading.setprofile(None)
+    result=run_gateway_facade(start_gateway,profile,marker['observer_mode'])
     if result is not True or refusals:raise AssertionError('Normal SDK gateway lifecycle did not complete cleanly')
     write_new(root/'gateway-terminal.json',dict(pid=os.getpid(),result=result,cgroup=cgroup[0],
-        sdk_module_origins=source_origins(source),fence_refusals=refusals,normal_gateway_facade=True,cli_main=False,sdk_functions_patched=False,live_changes=False))
+        sdk_module_origins=source_origins(source),fence_refusals=refusals,observer_mode=marker['observer_mode'],
+        profiles_unset_at_entry_and_exit=marker['observer_mode']=='none',normal_gateway_facade=True,cli_main=False,sdk_functions_patched=False,live_changes=False))
 
 
 def unit_snapshot(unit,owner=None,argv=None,stop_seconds=None):
@@ -302,7 +331,8 @@ def unit_snapshot(unit,owner=None,argv=None,stop_seconds=None):
     return values
 
 
-def run_trial(root,source,python):
+def run_trial(root,source,python,*,observer_mode='profile'):
+    observer_mode=checked_observer_mode(observer_mode)
     root,source=Path(root).resolve(),Path(source).resolve();python=Path(python).absolute();os.umask(0o077)
     if sys.platform!='linux' or os.geteuid()==0 or root.exists() or not source.is_dir() or not python.is_file():raise ValueError('Fresh actual SDK gateway trial required')
     root.mkdir(mode=0o700);operation=os.urandom(16).hex();runtime=Path('/run/user')/str(os.geteuid())/('hermes-gw-'+hashlib.sha256(os.path.normcase(str(root/'hermes-home')).encode()).hexdigest()[:16])
@@ -311,9 +341,9 @@ def run_trial(root,source,python):
     write_new(root/'fixture-operation.json',dict(operation=operation,unit=unit,runtime=str(runtime),source=str(source),python=str(python),phase='before_runtime_and_system_observation'))
     runtime.mkdir(mode=0o700)
     for n in ('account','config','cache','state','data','scratch','locks','hermes-home'):(root/n).mkdir(mode=0o700)
-    marker=dict(scope='isolated-normal-gateway',operation=operation,runtime=str(runtime),source=str(source),unit=unit,read_only_system_inputs=system_metadata())
+    marker=dict(scope='isolated-normal-gateway',observer_mode=observer_mode,operation=operation,runtime=str(runtime),source=str(source),unit=unit,read_only_system_inputs=system_metadata())
     write_new(root/'fixture-marker.json',marker);write_new(root/'hermes-home/config.yaml',fixture_configuration())
-    env=fixture_environment(root,runtime);script=Path(__file__).resolve();record=dict(state='NORMAL_GATEWAY_TRIAL_INTENT',operation=operation,unit=unit,root=str(root),source=str(source),python=str(python),started=time.time(),samples=[],live_changes=False)
+    env=fixture_environment(root,runtime);script=Path(__file__).resolve();record=dict(state='NORMAL_GATEWAY_TRIAL_INTENT',observer_mode=observer_mode,operation=operation,unit=unit,root=str(root),source=str(source),python=str(python),started=time.time(),samples=[],live_changes=False)
     def save():
         with (root/'trial.json').open('w',encoding='utf-8') as out:json.dump(record,out,indent=2);out.write('\n');out.flush();os.fsync(out.fileno())
     def ledger(phase):
@@ -348,7 +378,7 @@ def run_trial(root,source,python):
         address=pointer.read_text().strip()
         if not Path(address).resolve().is_relative_to(runtime) or len(os.fsencode(address))>103:raise RuntimeError('Gateway escaped its exact private runtime')
         record['socket']=address;save()
-        while not (root/'ready-source.json').is_file():
+        while observer_mode=='profile' and not (root/'ready-source.json').is_file():
             unit_snapshot(unit,owner,argv,stop_seconds)
             if launcher.poll() is not None or time.monotonic()>=deadline:raise RuntimeError('Actual SDK did not publish readiness')
             time.sleep(.05)
@@ -386,7 +416,8 @@ def run_trial(root,source,python):
             or terminal.get('ControlGroup')!='' or terminal.get('ActiveState') not in ('inactive','failed') or read_process_owner(owner.pid)==owner):raise RuntimeError('Native gateway termination is unproven')
         result=json.loads((root/'gateway-terminal.json').read_text());assert result['result'] and result['pid']==owner.pid and not result['fence_refusals'] and result['normal_gateway_facade'] and not result['sdk_functions_patched']
         events=[json.loads(line) for line in (root/'lifecycle.jsonl').read_text().splitlines()]
-        if not any(e['function']=='_enter_external_drain' and e['event']=='call' for e in events):raise RuntimeError('Actual external-drain callback was not observed')
+        if observer_mode=='profile' and not any(e['function']=='_enter_external_drain' and e['event']=='call' for e in events):raise RuntimeError('Actual external-drain callback was not observed')
+        if observer_mode=='none' and (events or (root/'ready-source.json').exists() or (root/'wire-replies.private.jsonl').exists() or (root/'work-diagnostics.private.jsonl').exists()):raise RuntimeError('Profiler-free comparison unexpectedly produced profiler evidence')
         if (root/'fence-refusals.json').exists():raise RuntimeError('Boundary refusal retained; qualification held')
         if system_metadata()!=marker['read_only_system_inputs']:raise RuntimeError('Native observation inputs changed')
         record.update(state='ACTUAL_NORMAL_GATEWAY_AND_GENERATED_ADMISSION_DRAIN_VERIFIED',native_terminal=terminal,owner_ended=True,launcher_exit_code=launcher.returncode,

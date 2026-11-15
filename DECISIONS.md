@@ -1,5 +1,15 @@
 # Decisions
 
+## 15 November 2026 - distinguish readiness, startup work and drain quiescence
+
+Keep native work counters authoritative. Use bounded code-only diagnostics for
+generated fixtures, retain all earlier holds and compare an explicit mode with
+no fixture profiler. A ready descriptor does not authorize freezing or stopping
+a busy process. Qualify a bounded initial-idle phase independently from the
+unchanged drain deadline; do not infer causality from timing differences between
+two source scopes. Keep all real rollout and full-audit gates open.
+[Evidence and scope](docs/contracts/2026-11-15-gateway-work-diagnostics.md).
+
 ## 15 November 2026 - preserve actual busy work during gateway drain
 
 Use the real SDK startup/ledger/marker/native-stop path in a fresh isolated

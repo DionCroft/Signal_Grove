@@ -1,5 +1,35 @@
 # Evidence navigation
 
+## Work diagnostics and profiler-free startup hold - 15 November 2026
+
+The isolated gateway fixture now captures bounded code-only thread/coroutine
+stacks and native future states beside actual busy replies. It serializes no
+arguments, local values, task names or object representations. Five intermediate
+profiled busy snapshots include delegation schema reconciliation, handoff store
+reads and Kanban polling. These non-atomic observations correlate work; they do
+not map each future to a callable or prove the old timeout's cause.
+
+That intermediate profiled trial reaches zero registered counts within the
+unchanged five-second drain window and stops normally. Its eight raw replies,
+seven status samples and persistent frozen ledger/marker are independently
+verified. It does not retrospectively pass the original held trial.
+
+The final-source profiler-free comparison reports ready, then observes one
+periodic job at its first status. The existing initial-idle gate holds **before
+any freeze or drain**. Normal native stop succeeds; the ledger remains unfrozen
+and no marker exists. This establishes that readiness is distinct from idle;
+final-source startup-idle/drain acceptance remains open. No counters are removed.
+
+Current Windows checks pass **852 of 1,106 cases, with 254 platform skips**.
+All **23 focused boundary/privacy/observer methods** pass on Pi without skips.
+Parent source `1a401da` independently passes **1,093 hosted Linux methods/no
+skips**. Its upstream reports retain **37 stable / 172 inspected-main findings**
+at recorded main `fd8a6c4`; compatibility remains unaccepted. Both isolated trials
+preserve all 23,628 SDK files, 5,033 dependency files, native facts/modes and live
+services; all inspected owners ended. Published beta.9 is unchanged. Every full
+audit, phone/local-model and original-key release requirement remains active.
+[Exact source, evidence and limits](docs/contracts/2026-11-15-gateway-work-diagnostics.md).
+
 ## Actual GatewayRunner and held quiescence - 15 November 2026
 
 The new fixture runs the maintained SDK's actual `gateway.run.start_gateway`

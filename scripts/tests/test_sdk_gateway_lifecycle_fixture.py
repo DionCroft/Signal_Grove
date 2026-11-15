@@ -60,3 +60,27 @@ class GatewayFixtureBoundaryTests(unittest.TestCase):
         sample=dict(fence_owner='fixture-operation',fence_epoch=1,admission_frozen=True,busy=True,lifecycle='draining',coverage='REGISTERED_WORK_ONLY',fleet_ready_to_switch=False)
         for field,value in (('fence_owner','foreign-operation'),('fence_epoch',True),('fence_epoch',2),('admission_frozen',False),('busy',0),('lifecycle','stopped'),('coverage','FLEET'),('fleet_ready_to_switch',True)):
             with self.subTest(field=field),self.assertRaises(RuntimeError):m.drain_is_settled({**sample,field:value},'fixture-operation')
+
+    def test_unknown_observer_mode_cannot_silently_disable_diagnostics(self):
+        for mode in (None,False,'','off','NONE',[]):
+            with self.subTest(mode=mode),self.assertRaises(ValueError):m.checked_observer_mode(mode)
+    def test_profiler_free_facade_runs_without_invoking_an_observer(self):
+        calls=[]
+        async def facade():
+            self.assertIsNone(sys.getprofile());self.assertIsNone(m.threading.getprofile());return True
+        self.assertTrue(m.run_gateway_facade(facade,lambda *args:calls.append(True),'none'));self.assertEqual([],calls)
+    def test_profile_facade_observes_and_restores_its_own_hooks(self):
+        calls=[]
+        def observer(*args):calls.append(True)
+        async def facade():
+            self.assertIs(observer,sys.getprofile());self.assertIs(observer,m.threading.getprofile());return True
+        self.assertTrue(m.run_gateway_facade(facade,observer,'profile'));self.assertTrue(calls)
+        self.assertIsNone(sys.getprofile());self.assertIsNone(m.threading.getprofile())
+    def test_profile_hooks_are_released_when_the_sdk_facade_fails(self):
+        async def facade():raise RuntimeError('generated fixture failure')
+        with self.assertRaises(RuntimeError):m.run_gateway_facade(facade,lambda *args:None,'profile')
+        self.assertIsNone(sys.getprofile());self.assertIsNone(m.threading.getprofile())
+    def test_foreign_profiler_cannot_be_adopted_or_replaced(self):
+        facade=mock.Mock()
+        with mock.patch.object(sys,'getprofile',return_value=object()),self.assertRaises(ValueError):m.run_gateway_facade(facade,lambda *args:None,'none')
+        facade.assert_not_called()
