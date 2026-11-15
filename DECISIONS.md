@@ -1,5 +1,19 @@
 # Decisions
 
+## 15 November 2026 - complete the native dependency and use the SDK unbound counter
+
+Restore the exact maintained peer-context module to a declared fresh SDK copy;
+never skip its check, fabricate a replacement ContextVar, switch to a remote
+route to avoid it, or alter the original staged candidate. Count unbound turns
+with the SDK's own helper inside the status observer's existing read transaction.
+Retain UNKNOWN for incomplete/locked schema and keep status free of migrations.
+Cold configuration initialization is a separate supported SDK action; its
+readonly loader name describes the returned object, not absence of disk writes.
+Keep all default SOUL/config-backup creation inside generated fixture homes.
+Accept the observed component only; actual gateway/drain, concurrent snapshots,
+peer transport, final PM and fleet/production acceptance remain separate.
+[Evidence](docs/contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
+
 ## 15 November 2026 - re-observe changed geometry before the sole native input
 
 Native windows and delivered IME insets are sequential observations. A changed or

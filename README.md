@@ -12,16 +12,18 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The workspace-review keyboard race is corrected and verified by **27 focused
-native methods on each of API26 and API37**. The exact build passes **1,011 JVM
-tests** and both lint variants (zero errors; 51 debug / 50 release warnings).
-The isolated Pi SDK freeze/drain/normal-stop checkpoint remains verified for its
-generated offline-configured home. Windows policy coverage is **885 positive /
-273 platform skips in 1,158 cases**; **39 focused Pi methods** and the separately
-reviewed parent `4e66626`'s **1,158 hosted Linux methods** pass without skips.
-API26 navigation/original UI causes, SDK unbound status, upstream compatibility,
-fleet and final production acceptance remain open. Live Hermes and beta.9 are
-unchanged. [Current evidence and next work](docs/contracts/2026-11-15-bounded-workspace-review-preinput.md).
+The maintained SDK correction now passes **16 read-only status checks with two
+real native turn receipts**: active general-chat turns are counted, and the
+missing peer-context module is restored in a separate declared source copy.
+Windows coverage remains **885 positive / 273 platform skips in 1,158 cases**.
+The original SDK's configured freeze/drain/native-stop checkpoint remains
+separate; corrected gateway-wire, concurrent snapshot and final PM checks are open.
+
+Android sources retain **1,011 JVM tests**, **27 focused methods on each API26/
+API37**, and zero lint errors (51 debug / 50 release warnings) at their recorded
+snapshot. Full upstream, original API26/navigation, worker/integration and final
+production acceptance remain open. Live Hermes and beta.9 are unchanged.
+[Current evidence and next work](docs/contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,
@@ -67,9 +69,10 @@ Checked **15 November 2026**. Counts describe their stated builds and test scope
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Actual normal-gateway fixture | **Startup/freeze/marker/native stop verified; quiescence held** | Generated home/ledger, eight recomputed replies, 1,139 SDK origins and full dependency baseline; no production/all-profile acceptance |
+| Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
+| Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |
 | New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |
-| Current Windows policy suite | **885 passes / 273 platform skips** | 1,158 cases; exact source `6e1325b`, unchanged by the Android test-only correction |
+| Current Windows policy suite | **885 passes / 273 platform skips** | 1,158 distinct cases in this chunk; new native component observations are separate |
 | Previous controlled Pi cohort | **104 methods / no skips** | Eight native gateway cases plus existing PM/backup/retirement coverage; four-mode SDK trial separately verifies eight requests |
 | Last independently reviewed hosted policy suite | **1,158 methods / no skips** | Source `4e66626`; exact positive raw inventory, stopped native unit and Windows/native inventory match |
 | Current local JVM tests | **1,011 cases / 97 reports** | Snapshot `b117ab22dba47ca6`; actual XML, no failures/errors/skips; hosted `09306e6` separately retained |

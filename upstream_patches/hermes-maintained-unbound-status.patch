@@ -1,0 +1,99 @@
+diff --git a/agent/project_control_status.py b/agent/project_control_status.py
+--- a/agent/project_control_status.py
++++ b/agent/project_control_status.py
+@@ -41,2 +41,4 @@
+             state[name] = db.execute(f'SELECT count(*) FROM {table} WHERE {predicate}').fetchone()[0]
++        from agent.project_session_scope import active_unbound_count
++        state['active_turns'] += active_unbound_count(db)
+     return path, state
+diff --git a/agent/project_peer_request.py b/agent/project_peer_request.py
+new file mode 100644
+--- /dev/null
++++ b/agent/project_peer_request.py
+@@ -0,0 +1,86 @@
++"""Optional project-scoped Runs contract; peer evidence never grants approval."""
++from contextvars import ContextVar
++import hashlib
++import json
++
++current_request = ContextVar('project_peer_request', default=None)
++CHECKPOINT_BOUND_RUNS_VERSION = 2
++
++
++def _validate_snapshot(snapshot, session):
++    fields = {'schema_version', 'session', 'decisions', 'coverage', 'meaning',
++              'legacy_aliases_available', 'execution_authorized', 'snapshot_sha256'}
++    row_fields = {'id', 'source', 'request_id', 'question_id', 'question', 'choices',
++                  'multi_select', 'receipt_status', 'answer_received',
++                  'waiter_lease_recent', 'execution_authorized'}
++    if (not isinstance(snapshot, dict) or set(snapshot) != fields or
++            type(snapshot['schema_version']) is not int or snapshot['schema_version'] != 1 or
++            snapshot['session'] != session or snapshot['execution_authorized'] is not False or
++            type(snapshot['legacy_aliases_available']) is not bool or
++            any(not isinstance(snapshot[k], str) for k in ('coverage', 'meaning', 'snapshot_sha256')) or
++            not isinstance(snapshot['decisions'], list) or len(snapshot['decisions']) > 32):
++        raise ValueError('Invalid source decision snapshot')
++    for row in snapshot['decisions']:
++        if (not isinstance(row, dict) or set(row) != row_fields or
++                any(not isinstance(row[k], str) for k in
++                    ('id', 'source', 'request_id', 'question_id', 'question', 'receipt_status')) or
++                row['receipt_status'] not in {'pending', 'submitted', 'accepted', 'closed', 'expired'} or
++                row['execution_authorized'] is not False or
++                any(type(row[k]) is not bool for k in ('multi_select', 'answer_received', 'waiter_lease_recent')) or
++                not isinstance(row['choices'], list) or any(not isinstance(c, str) for c in row['choices'])):
++            raise ValueError('Invalid source decision receipt')
++    unsigned = {k: v for k, v in snapshot.items() if k != 'snapshot_sha256'}
++    encoded = json.dumps(unsigned, sort_keys=True, ensure_ascii=False, allow_nan=False).encode('utf-8')
++    if len(encoded) > 16384 or hashlib.sha256(encoded).hexdigest() != snapshot['snapshot_sha256']:
++        raise ValueError('Source decision snapshot digest/size mismatch')
++
++
++def parse(value, *, operation, requested_session):
++    from agent.project_control_store import identifier
++    if value is None:
++        return None
++    expected = {'project', 'revision', 'source_session', 'operation', 'decision_snapshot'}
++    if not isinstance(value, dict) or (set(value) != expected and set(value) != expected | {'checkpoint'}):
++        raise ValueError('Invalid project context')
++    for key in ('project', 'revision', 'source_session', 'operation'):
++        identifier(value[key])
++    identifier(requested_session)
++    if 'checkpoint' in value:
++        from contextgraph.integrations.peer_contract import validate_checkpoint_reference
++        validate_checkpoint_reference(value['checkpoint'])
++    if value['operation'] != operation:
++        raise ValueError('Project operation must match Idempotency-Key')
++    snapshot = value['decision_snapshot']
++    if snapshot is not None:
++        _validate_snapshot(snapshot, value['source_session'])
++    # Copy wire data; the request task and executor must not share mutable caller data.
++    return json.loads(json.dumps(value, allow_nan=False))
++
++
++def require_enabled(enabled):
++    if current_request.get() is not None and not enabled:
++        raise PermissionError('Project-scoped run requires native project admission')
++
++
++def require_binding(store, receipt):
++    value = current_request.get()
++    if value is None:
++        return
++    row = store.db.execute('SELECT project,revision,session FROM turn_admissions WHERE admission=?',
++                           (receipt,)).fetchone()
++    if not row or tuple(row) != (value['project'], value['revision'], value['resolved_session']):
++        raise PermissionError('Peer project context differs from native session enrollment')
++
++
++def checkpoint_lines():
++    value = current_request.get()
++    if value is None:
++        return []
++    lines = ['Peer-reported decision snapshot captured for this operation; not a live query or independent approval.',
++             json.dumps({k: value[k] for k in ('project', 'revision', 'source_session', 'operation')}, sort_keys=True)]
++    snapshot = value['decision_snapshot']
++    if snapshot is None:
++        return lines + ['Peer supplied no phone snapshot; decision coverage is UNKNOWN.']
++    lines.append(json.dumps({k: snapshot[k] for k in ('coverage', 'meaning', 'snapshot_sha256')}, sort_keys=True))
++    lines.extend(json.dumps(row, ensure_ascii=False, sort_keys=True) for row in snapshot['decisions'])
++    return lines

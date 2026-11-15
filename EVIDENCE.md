@@ -1,5 +1,40 @@
 # Evidence navigation
 
+## Maintained SDK unbound dependency/status component - 15 November 2026
+
+The maintained Pi SDK now has a source-bound correction for two actual findings:
+its ordinary turn path referenced a missing peer-context module, and its status
+observer omitted active unbound turns. A fresh immutable SDK copy adds the exact
+86-line maintained peer module and includes the existing unbound counter inside
+the same read-only database snapshot. The original staged SDK is unchanged.
+
+The corrected SDK passes **16 read-only status checks using two real native turn
+receipts**. The original observer reports zero while the correction reports one
+active outer turn and two during nesting. Checks retain strict peer-context
+routing, profile separation, freeze/new-admission and active-thaw refusals,
+completion while frozen, and five expected UNKNOWN outcomes for incomplete,
+missing or locked ledgers. Every status observation leaves generated files
+unchanged. Independent readback verifies both finished receipts, the retained
+frozen fence, ended native groups and all source/dependency/PM/live baselines.
+
+The exact patch postimages verify. Windows completes **1,158 policy cases:
+885 positive / 273 platform skips**, matching the earlier distinct inventory.
+The 16 native observations are separate component checks, not additional policy
+methods. Android sources still match the previously verified build snapshot:
+1,011 JVM tests, 27 focused methods per API26/API37 and zero lint errors, with
+51 debug / 50 release warnings. No new Android build or production APK is claimed.
+
+Both failed native preparations remain preserved: the first exposed the missing
+module; the next hit a fixture assumption about cold configuration initialization.
+The final probe accounts separately for the SDK's default SOUL/config backup,
+then verifies read-only status behavior. No SDK function or counter is mocked.
+The original SDK's prior configured freeze/drain/native-stop result remains
+separate. The corrected SDK still needs actual gateway-wire/original-journal
+qualification, concurrent snapshot races and a final PM generation. Upstream,
+API26 original/navigation, fleet/worker/integration and production gates remain
+open. Live Hermes, the owner's phone and published beta.9 are unchanged.
+[Exact evidence and limits](docs/contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
+
 ## Bounded workspace-review pre-input synchronization - 15 November 2026
 
 The API37 workspace-review pre-input race is corrected in the test fixture.

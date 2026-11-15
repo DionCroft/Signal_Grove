@@ -6,53 +6,56 @@ source/evidence. No original requirement or failed/unknown receipt is removed.
 
 ## Current runtime finding
 
-The API37 workspace-review pre-input race is corrected in the test fixture.
-Actual keyboard/inset transitions are re-observed within the original five-second
-deadline before input. Native single-tap protection, full caption/viewport checks,
-fresh consent and the one workspace change remain required. A real late-keyboard
-regression and the originally failing case pass among **27 focused methods on
-each of API26 and API37**, without skips. Original diagnostics verify nine Review
-actions and twelve single DOWN/UP pairs per API, with no input retry.
+The maintained Pi SDK now has a source-bound correction for two actual findings:
+its ordinary turn path referenced a missing peer-context module, and its status
+observer omitted active unbound turns. A fresh immutable SDK copy adds the exact
+86-line maintained peer module and includes the existing unbound counter inside
+the same read-only database snapshot. The original staged SDK is unchanged.
 
-The exact E-drive build passes **1,011 JVM tests**, both lint variants with zero
-errors/fatals, and both debug APK assembly tasks. Lint retains 51 debug / 50 release
-warnings. This is focused test-fixture acceptance; final full device and phone
-acceptance remain open. The source snapshot, installed APK hashes and native
-method inventories independently agree; no production APK is published here.
+The corrected SDK passes **16 read-only status checks using two real native turn
+receipts**. The original observer reports zero while the correction reports one
+active outer turn and two during nesting. Checks retain strict peer-context
+routing, profile separation, freeze/new-admission and active-thaw refusals,
+completion while frozen, and five expected UNKNOWN outcomes for incomplete,
+missing or locked ledgers. Every status observation leaves generated files
+unchanged. Independent readback verifies both finished receipts, the retained
+frozen fence, ended native groups and all source/dependency/PM/live baselines.
 
-The prior isolated Pi checkpoint still verifies offline-configured actual SDK
-freeze, exclusive original-journal drain and normal native shutdown in one
-generated home. All 39 focused Pi methods pass; Windows coverage remains
-885 positive / 273 platform skips in 1,158 cases. Parent `4e66626` independently
-passes 1,158 hosted Linux methods/no skips. Full unprofiled/unbound/fleet behavior
-and the original owner shutdown warning's cause remain open.
+The exact patch postimages verify. Windows completes **1,158 policy cases:
+885 positive / 273 platform skips**, matching the earlier distinct inventory.
+The 16 native observations are separate component checks, not additional policy
+methods. Android sources still match the previously verified build snapshot:
+1,011 JVM tests, 27 focused methods per API26/API37 and zero lint errors, with
+51 debug / 50 release warnings. No new Android build or production APK is claimed.
 
-The retained `4e66626` CI artifact separately identifies an API26 phone-draft
-navigation failure: 541 methods started, 540 positive, one missing `nav-chat`
-node before input. Its cause and the original Demo/history failures remain
-unresolved. Current `6e1325b` hosted upstream inspection still fails stable/main
-semantic review; its Android run was in progress at this checkpoint. Failed CI
-artifacts and timed-out QA installations are preserved. The latter were reconciled
-after owned-emulator cold recovery before any test dispatch or further install.
-Live Hermes, the owner's phone and published beta.9 are unchanged. The full goal
-remains active with every original acceptance priority retained.
-[Evidence and limits](docs/contracts/2026-11-15-bounded-workspace-review-preinput.md).
+Both failed native preparations remain preserved: the first exposed the missing
+module; the next hit a fixture assumption about cold configuration initialization.
+The final probe accounts separately for the SDK's default SOUL/config backup,
+then verifies read-only status behavior. No SDK function or counter is mocked.
+The original SDK's prior configured freeze/drain/native-stop result remains
+separate. The corrected SDK still needs actual gateway-wire/original-journal
+qualification, concurrent snapshot races and a final PM generation. Upstream,
+API26 original/navigation, fleet/worker/integration and production gates remain
+open. Live Hermes, the owner's phone and published beta.9 are unchanged.
+[Evidence and limits](docs/contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
 
 ## One next action
 
-Qualify the minimal SDK status-count correction with actual active unbound
-work, incomplete schema and read-only snapshots. Keep SDK source provenance and
-the original staged candidate immutable; use a fresh declared candidate for any
-SDK change. Component checks alone do not qualify an actual gateway/unbound drain.
+Exercise the declared corrected SDK through actual normal-gateway status and
+the original-journal drain with owned unbound work. Verify known-busy reporting,
+bounded completion, one freeze/exclusive marker and normal native stop without
+relaxing the original observation/expiry, native owner or no-replay checks.
+Qualify concurrent snapshots and unprofiled behavior; prepare a final PM context
+only from the reviewed declared source. The existing staged candidate stays intact.
 
 Then reproduce and fix the retained API26 phone-draft navigation and original
 Demo/history causes; finish exact-source standard device coverage and supported
-upstream used/transitive compatibility. Complete unprofiled original-journal
-behavior, marker/expiry/source/owner races, all-profile/worker admission, unified
-execution, authenticated health and runtime-only recovery before a final live
-packet. Canonical PM contexts, seven real modes, policy/launcher changes and
-private GitHub/live-home backup remain unactivated. Preserve the full original
-audit, local-model, physical-phone and original-key APK delivery requirements.
+used/transitive upstream compatibility. Complete marker/source/owner races,
+all-profile/worker admission, unified execution, authenticated health and runtime
+recovery before a concrete final live packet. Canonical PM contexts, seven real
+modes, policy/launcher changes and private GitHub/live-home backup remain
+unactivated. Preserve every original audit, local-model, physical-phone and
+original-key APK delivery requirement. The full goal remains active.
 
 ## Preserve and finish
 
