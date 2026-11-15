@@ -1,5 +1,21 @@
 # Signal Grove audit execution plan
 
+## Exact stable auth/PM source fence - 15 November 2026
+
+Exact stable auth/PM review now admits three entries with 18-source fences:
+stable findings **40 → 37**; inspected main f578714 retains **169**. All original
+baseline data and earlier reviews remain exact. A fresh unchanged auth/loader
+probe passes 87 cases/949 loaded-module hashes; all 54 dependency counterexamples
+refuse drift. Windows: **1,015 cases, 801 pass/214 platform skips**. Earlier
+historical-vector failures remain, with original golden hashes preserved.
+
+The source7e1bd25 hosted policy setup passes all 1,008 Linux methods/no skips.
+Its Android build passes 1,011 JVM cases and both lint variants; actual artifact,
+raw XML and APK hashes independently verify. Four device shards remain live.
+New PM policy cases and the full device union need exact new results. Live
+services, owner data and published beta.9 are unchanged.
+[Exact source, tests and remaining scope](contracts/2026-11-15-auth-pm-source-fence.md).
+
 ## Native policy CI fixture repair - 15 November 2026
 
 The native CI fixture repair is implemented: a finite user-manager unit,

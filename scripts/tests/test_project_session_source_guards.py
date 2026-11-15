@@ -38,7 +38,7 @@ class ProjectSessionSourceTest(unittest.TestCase):
         with self.assertRaises(ValueError):self.compare(value,data)
     def production(self):return json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text())
     def test_production_modes_bind_every_metadata_and_auth_dependency(self):
-        value=self.production();self.assertEqual(set(self.aliases),set(checker.PROJECT_SESSION_CONTRACT_SOURCES));self.assertEqual(222,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        value=self.production();self.assertEqual(set(self.aliases),set(checker.PROJECT_SESSION_CONTRACT_SOURCES));self.assertEqual(228,len(checker.SOURCES|checker.EXTRA_SOURCES))
         keys={a+':consumed_module' for a in self.aliases}
         for pin in ['2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19','3b421578588243f920886e6fe79a6faa87ea026e']:
             contract=copy.deepcopy(value['upstream']['contract'])

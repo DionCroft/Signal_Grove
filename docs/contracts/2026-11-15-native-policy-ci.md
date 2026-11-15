@@ -71,11 +71,12 @@ syntax check initially found no installed YAML parser/pip; a SHA-256-verified
 PyYAML 6.0.3 source archive supplies only its Python parser files in scratch.
 All three changed YAML files parse. No package setup script runs.
 
-The composite action still needs its actual GitHub-hosted execution. Pi's
-existing manager and tools do not prove apt, runner user-manager bootstrapping,
-the complete Linux policy union, downstream Android/upstream checks or final
-release acceptance. Push this tested source, inspect the resulting exact jobs
-and preserve any new failures. The full audit goal remains active.
+Subsequent source `7e1bd25` passes the actual hosted composite action and all
+1,008 policy methods without skips. Independent raw/artifact verification binds
+the exact method union and stopped unit; the 15 runtime-model cases pass too.
+Android build/JVM/lint passes, with four device shards still live. Upstream
+compatibility and final release remain open. [Exact hosted proof and later policy
+work](2026-11-15-auth-pm-source-fence.md). The full goal remains active.
 
 ## Exact evidence
 

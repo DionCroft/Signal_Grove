@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import unittest
-from test_hermes_contract import checker, plugin_refusal_historical_projection
+from test_hermes_contract import checker, plugin_refusal_historical_projection, auth_pm_historical_projection
 
 OLD='gateway_rpc:_source_moved_data'
 NEW='gateway_rpc:_refusal_data'
@@ -20,7 +20,7 @@ class PluginRefusalReviewTest(unittest.TestCase):
         return json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/hermes-baseline.json').read_text(encoding='utf8'))
 
     def test_additive_review_preserves_the_entire_original_metadata_vector(self):
-        value=self.value();before=plugin_refusal_historical_projection(value)
+        value=self.value();before=plugin_refusal_historical_projection(auth_pm_historical_projection(value))
         digest=hashlib.sha256(json.dumps(before,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()).hexdigest()
         self.assertEqual('635d2dec0c793d2379c332ab954c0eabf44706574430f1d6f48b89153502f9f2',digest)
         self.assertEqual(before['upstream'],value['upstream'])

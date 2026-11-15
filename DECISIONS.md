@@ -75,3 +75,12 @@ ciphertext provenance keeps protocol tests distinct from actual SDK backup
 acceptance. Six result-accounting regressions, the full Windows suite and 64
 controlled native methods pass; actual hosted bootstrapping remains a required
 next check. [Evidence](docs/contracts/2026-11-15-native-policy-ci.md).
+
+## 15 November 2026: source-bound auth/PM compatibility review
+
+Track the six previously untracked PM modules and append only three reviewed
+stable auth variants with 18 complete source guards. Preserve the original
+upstream object, prior variants and historical golden hashes. The 87-case
+runtime boundary proof and 54 drift refusals support this scoped acceptance;
+37 stable and 169 inspected-main findings remain. This grants no deployment or
+package-operation approval. [Evidence](docs/contracts/2026-11-15-auth-pm-source-fence.md).

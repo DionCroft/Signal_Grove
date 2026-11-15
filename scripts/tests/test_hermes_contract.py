@@ -10,7 +10,7 @@ checker=importlib.util.module_from_spec(spec);spec.loader.exec_module(checker)
 
 def sources():
     route="def _http_routes():\n    return [('POST','/v1/runs',handler)]\n"
-    return {**{key:'' for key in checker.PROJECT_SESSION_CONTRACT_SOURCES},**{key:'' for key in checker.MAIN_AUTHORITY_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_ATTACHMENT_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_NEGOTIATION_CONTRACT_SOURCES},**{key:'' for key in checker.RUNTIME_GUARD_CONTRACT_SOURCES},**{key:'' for key in checker.AUTH_BOUNDARY_CONTRACT_SOURCES},**{key:'' for key in checker.PLUGIN_UPDATE_CONTRACT_SOURCES},**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
+    return {**{key:'' for key in checker.PM_STARTUP_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_SESSION_CONTRACT_SOURCES},**{key:'' for key in checker.MAIN_AUTHORITY_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_ATTACHMENT_CONTRACT_SOURCES},**{key:'' for key in checker.CANONICAL_NEGOTIATION_CONTRACT_SOURCES},**{key:'' for key in checker.RUNTIME_GUARD_CONTRACT_SOURCES},**{key:'' for key in checker.AUTH_BOUNDARY_CONTRACT_SOURCES},**{key:'' for key in checker.PLUGIN_UPDATE_CONTRACT_SOURCES},**{key:'' for key in checker.CHANNEL_CONTRACT_SOURCES},**{key:'' for key in checker.PROJECT_CONTRACT_SOURCES},**{key:'' for key in checker.KANBAN_CONTRACT_SOURCES},
         'api':"_STATIC_FEATURE_FLAGS={'enabled':True}\n_MAX_NAME_LENGTH=160\n_MAX_PROMPT_LENGTH=5000\n_UPDATE_ALLOWED_FIELDS={'enabled'}\ndef _http_route_table():\n    return [('GET','/v1/kept',handler)]\n",
         'runs':route,'rooms':route,
         'cron':"@router.get('/api/cron/jobs')\ndef list_cron_jobs():\n    return []\n",
@@ -156,6 +156,20 @@ def complete_replacement_fixture(value, contract):
             if selected is not None:
                 contract['handlers'][target]=selected['sha256']
                 contract['source_hashes'].update(selected['required_sources'])
+
+
+def auth_pm_historical_projection(value):
+    """Remove only the three additive stable auth/PM entries from older goldens.
+
+    No upstream datum, usage, earlier review or production comparison changes.
+    The dedicated PM tests independently bind all current entries and old data.
+    """
+    projected=copy.deepcopy(value)
+    for key in ('auth_middleware:_GATE_PUBLIC_PREFIXES','auth_middleware:gated_auth_middleware','auth_native_run_api:GatewayRuntimeAPI._serve'):
+        entry=projected['reviewed_handler_variants'][key].pop()
+        assert entry['commit']=='3b421578588243f920886e6fe79a6faa87ea026e'
+        assert len(entry['required_sources'])==18 and set(checker.PM_STARTUP_CONTRACT_SOURCES)<=set(entry['required_sources'])
+    return projected
 
 
 def project_sessions_historical_projection(value):

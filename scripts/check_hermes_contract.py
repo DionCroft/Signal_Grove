@@ -154,6 +154,11 @@ EXTRA_SOURCES = {
 
 
 }
+# Startup suppression imports PM before the dashboard runtime body. Track the
+# complete reviewed PM helper cohort without rewriting the historical snapshot.
+PM_STARTUP_CONTRACT_SOURCES = {'pm_init': 'pm/__init__.py', 'pm_extras': 'pm/extras.py', 'pm_environments': 'pm/environments.py', 'pm_environments_adopt': 'pm/environments_adopt.py', 'pm_package': 'pm/package.py', 'pm_paths': 'pm/paths.py', 'pm_client': 'pm/client.py'}
+EXTRA_SOURCES.update(PM_STARTUP_CONTRACT_SOURCES)
+
 # Direct auth/import dependencies reviewed at pinned sources; upstream is parsed only.
 RUNTIME_GUARD_CONTRACT_SOURCES = {'web_signin': 'hermes_cli/webapp_sign_in.py', 'plugin_isolation': 'hermes_cli/plugin_isolation.py', 'signin_entry': 'hermes_cli/dashboard_auth/__init__.py', 'signin_registry': 'hermes_cli/dashboard_auth/registry.py', 'session_token_provider': 'plugins/dashboard_auth/session_token/__init__.py', 'session_token_loader': 'hermes_cli/web_server_session_token.py', 'auth_request_utils': 'hermes_cli/dashboard_auth/request_utils.py', 'signin_shared': 'plugins/dashboard_auth/_shared.py', 'signin_registry_engine': 'agent/provider_registry.py', 'gateway_server_requests': 'tui_gateway/server_requests.py'}
 EXTRA_SOURCES.update(RUNTIME_GUARD_CONTRACT_SOURCES)
@@ -774,7 +779,9 @@ def reviewed_handler_variants(baseline: dict, current: dict) -> tuple[dict, set]
     if not isinstance(variants, dict):
         raise ValueError('Invalid reviewed handler variants')
     old, new = baseline['upstream']['contract'], current['contract']
-    known_sources = old.get('source_hashes', {})
+    # Additional declared PM dependencies must match actual snapshot bytes. An
+    # absent/new/changed helper cannot select a variant; old snapshots stay intact.
+    known_sources = set(old.get('source_hashes', {})) | set(PM_STARTUP_CONTRACT_SOURCES)
     accepted, applied = {}, set()
     for key, entries in variants.items():
         if key not in baseline.get('mobile_used_handlers', []) or not isinstance(entries, list):

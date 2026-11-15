@@ -12272,6 +12272,31 @@
           "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008"
         },
         "reason": "Reviewed saved-gateway error mapper export rename (_http_error to http_error), with unchanged callback/auth gate behavior. Preserve the full private-grant/callback dependency fence and every earlier baseline entry."
+      },
+      {
+        "sha256": "5ff3d0cc19a106827c8f06654e0d13b3cbe739fd41a5f7eab229d0a02948c862",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Exact stable auth fence: only run_api off-loop loader/client accounting and web_server start-entry PM suppression changed from the prior ten-source review. The unchanged 87-case real auth/loader/start-entry probe passes at this source with 949 loaded-module hashes; reviewed source deltas and all seven PM modules are now bound. Synthetic downstream/runtime/installer boundaries remain; canonical socket, live deployment, models and project execution are separately unaccepted. See docs/contracts/2026-11-15-auth-pm-source-fence.md.",
+        "required_sources": {
+          "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841",
+          "auth_native_bootstrap": "1c1b50581275266133df687d625c066a7095fcbbb78b878eb7b770866dd58308",
+          "auth_native_http": "608abee247b8e1c6f8641b619d9eb6bddd053a85ee3bd758b31f769b075713b8",
+          "auth_native_run_api": "e02f8840af46e7661b944a11d248ceeb88bc976f11642b94311df98993516da4",
+          "saved_gateway_normalize": "3e3e9c80717146017792b2b2c914ed002abbbcca7cee35a3f73530a25c5666e7",
+          "saved_gateway_oauth": "c72c6c5a84ce003379e69d7710beac1b819614a97d01400d298be25f69fcf771",
+          "saved_gateway_routes": "d6493fa0313b3a92cc355dc4e0a277cb60133b9ef86881416f58572a0e1a8ae7",
+          "saved_gateway_store": "a209eb630050075529f4d02d06ab4eb5842f8c0d15b4c36180ab20037286aa7c",
+          "web_bootstrap": "450289d43bb48e0df8906881ca4760fc8e4d92cf6e9b63e8fc5890a7231ce047",
+          "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
+          "pm_init": "67adcba1f0e4db2b2967d07e6b630aca4214b1fac9bd8649dcf221b4bf3fcfac",
+          "pm_extras": "6fb20076e8b0c6f880da77ca60f3ae395bd0af429919a6eae20270b405bbb39f",
+          "pm_environments": "9cbcc0583da807d71e877790fac5d6bd995136a05cd6c6f41d97c1cf4e84c828",
+          "pm_environments_adopt": "ed7fb9adad2be27094d9248d18f92db2a337313f4d29481536563176c4c44b25",
+          "pm_package": "e9d9cbd20deddce9a96ba2f57a0f921350bfb4c919a0272cae09042b9200b921",
+          "pm_paths": "8f15860b82f443a424186317dc361ea6063e0e7c3113af9b56a76f6b89e97737",
+          "pm_client": "8dcca7cd9ecce89f43122c89aa273dfdf6c8e6775e4a36c0ae5f3e5f815d46f1",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92"
+        }
       }
     ],
     "model_config:_AUX_TASK_SLOTS": [
@@ -13124,6 +13149,31 @@
           "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008"
         },
         "reason": "Reviewed saved-gateway error mapper export rename (_http_error to http_error), with unchanged callback/auth gate behavior. Preserve the full private-grant/callback dependency fence and every earlier baseline entry."
+      },
+      {
+        "sha256": "ec20d5e45143a0ab0d9671e9263c6fcfd920c45b02934c67f86e8bfa2bcd79fc",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Exact stable auth fence: only run_api off-loop loader/client accounting and web_server start-entry PM suppression changed from the prior ten-source review. The unchanged 87-case real auth/loader/start-entry probe passes at this source with 949 loaded-module hashes; reviewed source deltas and all seven PM modules are now bound. Synthetic downstream/runtime/installer boundaries remain; canonical socket, live deployment, models and project execution are separately unaccepted. See docs/contracts/2026-11-15-auth-pm-source-fence.md.",
+        "required_sources": {
+          "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841",
+          "auth_native_bootstrap": "1c1b50581275266133df687d625c066a7095fcbbb78b878eb7b770866dd58308",
+          "auth_native_http": "608abee247b8e1c6f8641b619d9eb6bddd053a85ee3bd758b31f769b075713b8",
+          "auth_native_run_api": "e02f8840af46e7661b944a11d248ceeb88bc976f11642b94311df98993516da4",
+          "saved_gateway_normalize": "3e3e9c80717146017792b2b2c914ed002abbbcca7cee35a3f73530a25c5666e7",
+          "saved_gateway_oauth": "c72c6c5a84ce003379e69d7710beac1b819614a97d01400d298be25f69fcf771",
+          "saved_gateway_routes": "d6493fa0313b3a92cc355dc4e0a277cb60133b9ef86881416f58572a0e1a8ae7",
+          "saved_gateway_store": "a209eb630050075529f4d02d06ab4eb5842f8c0d15b4c36180ab20037286aa7c",
+          "web_bootstrap": "450289d43bb48e0df8906881ca4760fc8e4d92cf6e9b63e8fc5890a7231ce047",
+          "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
+          "pm_init": "67adcba1f0e4db2b2967d07e6b630aca4214b1fac9bd8649dcf221b4bf3fcfac",
+          "pm_extras": "6fb20076e8b0c6f880da77ca60f3ae395bd0af429919a6eae20270b405bbb39f",
+          "pm_environments": "9cbcc0583da807d71e877790fac5d6bd995136a05cd6c6f41d97c1cf4e84c828",
+          "pm_environments_adopt": "ed7fb9adad2be27094d9248d18f92db2a337313f4d29481536563176c4c44b25",
+          "pm_package": "e9d9cbd20deddce9a96ba2f57a0f921350bfb4c919a0272cae09042b9200b921",
+          "pm_paths": "8f15860b82f443a424186317dc361ea6063e0e7c3113af9b56a76f6b89e97737",
+          "pm_client": "8dcca7cd9ecce89f43122c89aa273dfdf6c8e6775e4a36c0ae5f3e5f815d46f1",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92"
+        }
       }
     ],
     "auth_native_run_api:GatewayRuntimeAPI._serve": [
@@ -13135,6 +13185,31 @@
           "auth_native_http": "608abee247b8e1c6f8641b619d9eb6bddd053a85ee3bd758b31f769b075713b8",
           "auth_native_bootstrap": "1c1b50581275266133df687d625c066a7095fcbbb78b878eb7b770866dd58308",
           "auth_native_run_api": "47c5a85200941dc7e9501661f27010a35885b1e4d934cb556cc4a2be7242732a",
+          "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92"
+        }
+      },
+      {
+        "sha256": "f14f47779230dbbb4813d1579e052c40bf562fe8d18399cdcb8c14e6f33c3d7c",
+        "commit": "3b421578588243f920886e6fe79a6faa87ea026e",
+        "reason": "Exact stable auth fence: only run_api off-loop loader/client accounting and web_server start-entry PM suppression changed from the prior ten-source review. The unchanged 87-case real auth/loader/start-entry probe passes at this source with 949 loaded-module hashes; reviewed source deltas and all seven PM modules are now bound. Synthetic downstream/runtime/installer boundaries remain; canonical socket, live deployment, models and project execution are separately unaccepted. See docs/contracts/2026-11-15-auth-pm-source-fence.md.",
+        "required_sources": {
+          "auth_middleware": "e8dc60f2e3b6d746cb61b81533399e1e4ae147d81cdbdd9b9428de7cf4321841",
+          "auth_native_bootstrap": "1c1b50581275266133df687d625c066a7095fcbbb78b878eb7b770866dd58308",
+          "auth_native_http": "608abee247b8e1c6f8641b619d9eb6bddd053a85ee3bd758b31f769b075713b8",
+          "auth_native_run_api": "e02f8840af46e7661b944a11d248ceeb88bc976f11642b94311df98993516da4",
+          "saved_gateway_normalize": "3e3e9c80717146017792b2b2c914ed002abbbcca7cee35a3f73530a25c5666e7",
+          "saved_gateway_oauth": "c72c6c5a84ce003379e69d7710beac1b819614a97d01400d298be25f69fcf771",
+          "saved_gateway_routes": "d6493fa0313b3a92cc355dc4e0a277cb60133b9ef86881416f58572a0e1a8ae7",
+          "saved_gateway_store": "a209eb630050075529f4d02d06ab4eb5842f8c0d15b4c36180ab20037286aa7c",
+          "web_bootstrap": "450289d43bb48e0df8906881ca4760fc8e4d92cf6e9b63e8fc5890a7231ce047",
+          "web_signin": "b97f4ce71d5e9c8104026dd09071ae2a1e3b6645e1918d74ec38ab7a05d20008",
+          "pm_init": "67adcba1f0e4db2b2967d07e6b630aca4214b1fac9bd8649dcf221b4bf3fcfac",
+          "pm_extras": "6fb20076e8b0c6f880da77ca60f3ae395bd0af429919a6eae20270b405bbb39f",
+          "pm_environments": "9cbcc0583da807d71e877790fac5d6bd995136a05cd6c6f41d97c1cf4e84c828",
+          "pm_environments_adopt": "ed7fb9adad2be27094d9248d18f92db2a337313f4d29481536563176c4c44b25",
+          "pm_package": "e9d9cbd20deddce9a96ba2f57a0f921350bfb4c919a0272cae09042b9200b921",
+          "pm_paths": "8f15860b82f443a424186317dc361ea6063e0e7c3113af9b56a76f6b89e97737",
+          "pm_client": "8dcca7cd9ecce89f43122c89aa273dfdf6c8e6775e4a36c0ae5f3e5f815d46f1",
           "ws_boundary": "b3fd44eabca7f5446e4b3350d34d761bee2d4d8b5472659707ed970138096c92"
         }
       }

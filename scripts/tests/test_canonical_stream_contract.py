@@ -29,7 +29,7 @@ class CanonicalStreamContractTest(unittest.TestCase):
         self.assertEqual(OLD_MOBILE_SCOPE_SHA256,self.digest(scope))
 
     def test_expanded_baseline_compares_to_itself_and_watches_all_four_helpers(self):
-        b=self.baseline();self.assertEqual(222,len(checker.SOURCES|checker.EXTRA_SOURCES))
+        b=self.baseline();self.assertEqual(228,len(checker.SOURCES|checker.EXTRA_SOURCES))
         self.assertFalse(checker.compare(b,{'commit':b['upstream']['commit'],'contract':copy.deepcopy(b['upstream']['contract'])})['mobile_review_required'])
         for alias in STREAM_ALIASES:self.assertIn(alias+':consumed_module',b['mobile_used_handlers'])
 
