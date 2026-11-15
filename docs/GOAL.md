@@ -8,6 +8,43 @@ Validate applicable unit/policy/native checks plus representative emulator and p
 
 APK delivery explicitly requested 12 November 2026: after the applicable release checks pass, publish the exact-source, original-production-key signed APK as a public versioned GitHub Release asset so the owner can download and update directly on the phone. Preserve the production package/signing identity, increase the Android version code, and retain the updater-compatible `hermes-agent-mobile-<version>.apk` filename convention. Include release notes, SHA256SUMS, the public signing certificate and reviewed SBOM/provenance; keep model weights and credentials out of the APK/release. Verify the public download matches the reviewed APK hash and confirm an in-place upgrade retains the saved Hermes connection/history and applicable local data. Return the direct APK download link. A source push or a temporary CI artifact alone does not fulfil this delivery requirement. Existing publication authorization covers this release; do not request it again.
 
+## Current checkpoint - 15 November 2026
+
+The native gateway status reader now preserves the SDK admission fence's owner
+and rejects impossible initial/positive-epoch ownership combinations. Five new
+portable regressions cover initial, frozen, released, malformed and foreign-owner
+states. Observing another owner's fence gives no permission to adopt it.
+
+Current checks pass **829 Windows methods in 1,083 cases, with 254 platform
+skips**, **104 Pi cohort methods/no skips**, and eight real SDK Unix requests
+across four generated-home modes. Independent raw/SQLite/native readback verifies
+the exact fence owner/epoch, ended peers and stopped inspected units. The SDK
+runner and ledgers are synthetic; normal GatewayRunner and real drain remain open.
+
+Parent source `1a07bf6` independently passes **1,078 hosted Linux policy methods
+with no skips**. Source `09306e6` now has a reconciled full standard Android gate:
+**1,011 JVM methods, 1,142 API26 / 1,143 API37 device methods**, exact disjoint raw
+unions, recomputed summary and matching actual APK hashes. Both lint variants
+have zero errors (52 debug / 51 release warnings). These exact-source results do
+not close original UI causes, twelve external-model or final production-phone gates.
+
+The latest inspected upstream reports retain **37 stable / 172 main changed-
+handler findings**; main is now `d1b46d7`. Those are review findings, not accepted
+compatibility. Source inspection covers 1,724 staged admission/drain-related
+Python files. It establishes specific call sites, not whole-fleet enforcement.
+Live services and published beta.9 remain unchanged. The full goal stays active.
+[Exact source, artifacts and limits](contracts/2026-11-15-gateway-fence-owner-and-android-review.md).
+
+Implement the original-journal native gateway drain using reviewed existing
+per-profile admission ledgers and a fresh, exclusively owned marker; qualify
+normal GatewayRunner in a finite isolated unit. Bind exact native owners, source,
+ancestry, approval and expiry. Preserve any existing/uncertain fence or marker
+without adoption, replay or automatic release. Then compose all-profile/worker
+admission, the unified executor, reload/authenticated health and bounded runtime-
+only recovery. Both canonical PM contexts, seven real modes, policy/launcher
+references, real private GitHub/live-home backup and separate final live approval
+remain unactivated. Continue all four original acceptance priorities.
+
 ## Explicit acceptance priorities resumed 13 November 2026
 
 The owner resumed the existing goal and explicitly retained these four tasks.

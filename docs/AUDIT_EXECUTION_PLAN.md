@@ -1,5 +1,32 @@
 # Signal Grove audit execution plan
 
+## Gateway fence ownership and Android artifact checkpoint - 15 November 2026
+
+The native gateway status reader now preserves the SDK admission fence's owner
+and rejects impossible initial/positive-epoch ownership combinations. Five new
+portable regressions cover initial, frozen, released, malformed and foreign-owner
+states. Observing another owner's fence gives no permission to adopt it.
+
+Current checks pass **829 Windows methods in 1,083 cases, with 254 platform
+skips**, **104 Pi cohort methods/no skips**, and eight real SDK Unix requests
+across four generated-home modes. Independent raw/SQLite/native readback verifies
+the exact fence owner/epoch, ended peers and stopped inspected units. The SDK
+runner and ledgers are synthetic; normal GatewayRunner and real drain remain open.
+
+Parent source `1a07bf6` independently passes **1,078 hosted Linux policy methods
+with no skips**. Source `09306e6` now has a reconciled full standard Android gate:
+**1,011 JVM methods, 1,142 API26 / 1,143 API37 device methods**, exact disjoint raw
+unions, recomputed summary and matching actual APK hashes. Both lint variants
+have zero errors (52 debug / 51 release warnings). These exact-source results do
+not close original UI causes, twelve external-model or final production-phone gates.
+
+The latest inspected upstream reports retain **37 stable / 172 main changed-
+handler findings**; main is now `d1b46d7`. Those are review findings, not accepted
+compatibility. Source inspection covers 1,724 staged admission/drain-related
+Python files. It establishes specific call sites, not whole-fleet enforcement.
+Live services and published beta.9 remain unchanged. The full goal stays active.
+[Exact source, artifacts and limits](contracts/2026-11-15-gateway-fence-owner-and-android-review.md).
+
 ## Original-child exec handoff checkpoint - 15 November 2026
 
 The backup actor now observes the **same original child** through the known

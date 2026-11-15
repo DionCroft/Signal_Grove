@@ -65,10 +65,32 @@ class GatewayRegisteredStatusTests(unittest.TestCase):
             live_activity=dict(contract='gateway_live_work_v1',state='OBSERVED',responding_pid=4000,fleet_ready_to_switch=False,
                 coverage='REGISTERED_WORK_ONLY',observed_at=when,busy=False,lifecycle='draining',adapter_instances_observed=1,secondary_profile_maps_observed=0,counters={k:0 for k in m.LIVE_COUNTERS}),
             project_admission=dict(contract='native_admission_snapshot_v1',state='OBSERVED',responding_pid=4000,fleet_ready_to_switch=False,
-                observed_at=when,home_digest='a'*64,fence=dict(epoch=2,owner=None,frozen=False,**{k:0 for k in m.LEDGER_COUNTERS})))
+                observed_at=when,home_digest='a'*64,fence=dict(epoch=0,owner=None,frozen=False,**{k:0 for k in m.LEDGER_COUNTERS})))
     def project(self,body):return m.project_registered_status(body,4000,'a'*64,99,101)
     def test_observed_registered_idle_never_becomes_fleet_permission(self):
         result=self.project(self.status());self.assertFalse(result['busy']);self.assertFalse(result['fleet_ready_to_switch']);self.assertFalse(result['admission_frozen']);self.assertEqual('REGISTERED_WORK_ONLY',result['coverage'])
+    def test_initial_sdk_fence_preserves_zero_epoch_and_no_owner(self):
+        result=self.project(self.status())
+        self.assertEqual(0,result['fence_epoch']);self.assertIsNone(result['fence_owner']);self.assertFalse(result['admission_frozen'])
+    def test_frozen_and_released_fences_retain_exact_sdk_owner(self):
+        for frozen in (True,False):
+            body=self.status();body['project_admission']['fence'].update(epoch=2,owner='mode-coordinator:7',frozen=frozen)
+            result=self.project(body)
+            self.assertEqual('mode-coordinator:7',result['fence_owner']);self.assertEqual(2,result['fence_epoch']);self.assertIs(frozen,result['admission_frozen']);self.assertFalse(result['fleet_ready_to_switch'])
+    def test_positive_fence_epoch_requires_valid_sdk_transaction_owner(self):
+        for owner in (None,'',' invalid','invalid/owner','owner\n','a'*129,False,17):
+            for frozen in (True,False):
+                with self.subTest(owner=owner,frozen=frozen):
+                    body=self.status();body['project_admission']['fence'].update(epoch=1,owner=owner,frozen=frozen)
+                    with self.assertRaises(m.Unknown):self.project(body)
+    def test_zero_fence_epoch_cannot_be_owned_or_frozen(self):
+        for owner,frozen in ((None,True),('other-owner',False),('other-owner',True)):
+            body=self.status();body['project_admission']['fence'].update(epoch=0,owner=owner,frozen=frozen)
+            with self.assertRaises(m.Unknown):self.project(body)
+    def test_foreign_fence_is_observed_without_adopting_its_authority(self):
+        body=self.status();body['project_admission']['fence'].update(epoch=3,owner='unrelated-operation',frozen=True)
+        result=self.project(body)
+        self.assertEqual('unrelated-operation',result['fence_owner']);self.assertFalse(result['fleet_ready_to_switch']);self.assertEqual('REGISTERED_WORK_ONLY',result['coverage'])
     def test_each_live_and_ledger_work_source_remains_busy(self):
         for key in m.LIVE_COUNTERS:
             body=self.status();body['live_activity']['counters'][key]=1;body['live_activity']['busy']=True;self.assertTrue(self.project(body)['busy'],key)

@@ -12,96 +12,17 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Last independently verified hosted source `51fb573` passes **1,074 Linux policy
-tests/no skips**. Current Windows checks pass **824 of 1,078 cases, with 254
-platform skips**; the controlled Pi cohort passes **104 methods/no skips**.
-The backup actor now observes the original child through exec while requiring
-the reviewed image before input and respecting approval/receipt-write expiry.
+Current audit checks: **829 Windows passes / 254 platform skips**, **104 Pi
+cohort passes**, and a four-mode real SDK control trial. The gateway status
+reader preserves and validates admission-fence ownership. The last independently
+verified hosted policy source (`1a07bf6`) passes **1,078 Linux methods/no skips**.
 
-All **600 fresh decryptor starts** complete, including five same-incarnation
-handoffs. A fresh actual SDK/age/loopback backup independently verifies twelve
-members and two committed WAL rows. Historical failures remain preserved;
-real GitHub/live-home backup, gateway drain, fleet/executor and phone/release
-acceptance remain. Live services and beta.9 are unchanged.
-[Current source and evidence](docs/contracts/2026-11-15-original-child-exec-handoff.md).
-
-Source8d's complete hosted standard Android gate independently verifies **1,142
-API26 / 1,143 API37 methods**, exact disjoint raw unions and actual build APK
-hashes. Its **1,011 JVM cases** and both lint variants pass (zero errors;
-52 debug / 51 release warnings). Original UI failure causes, twelve external-model
-methods, final physical-phone/original-key production-upgrade and release gates
-remain. Upstream review retains **37 stable / 171 inspected-main findings** at
-the recorded sources. Live services and published beta.9 are unchanged.
-
-The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
-guarded owned forward/recovery fixture: ten targets, five publication parents,
-eight actual stages, original CLI restoration and preserved newer data. Its
-descriptor guard tracks actual named mode/new-parent transitions. Independent
-raw/native/state review passes. A real-root read-only preflight captures twenty
-existing directories/three missing parents and correctly refuses publication
-while the seven real modes remain 0775. Of the platform cases, 211 run on Pi;
-three older cases retain scope. The separate service/journal cohort has 124 Pi
-passes and five native error scenarios. Non-file fixture prerequisites remain
-synthetic; full PM/backup/admission/reload/authenticated health/cutover/recovery
-and remaining operational file-input gates remain open.
-[Publication ancestry scope](docs/contracts/2026-11-14-publication-ancestry.md) ·
-[Service scope](docs/contracts/2026-11-14-native-service-error-paths.md).
-The read-only PM selection observer has **14 Pi passes without skips** and four
-independently verified actual contexts: both canonical-home dependency selections
-are missing, while both owning homes have committed selections. This confirms
-the two preparation prerequisites; it does not establish normal-launcher or PM
-readiness. The outer-wrapper failure is preserved and recovered read-only.
-[Exact PM contexts and scope](docs/contracts/2026-11-14-pm-home-selection.md).
-
-The one-use native PM preparation cohort has **48 Pi passes/no skips** (including
-25 existing service cases). A separate real supported install in a fresh private
-home verifies committed facts, currency, four activation stamps and ARM64 native
-imports. Independent raw/native/source review passes; both owned units stopped
-with empty cgroups. The earlier dependency-only attempt is preserved as held
-because activation stamps were missing; it was recovered without replay. Both
-canonical home contexts and the full bounded transaction still require work.
-[PM preparation evidence and limits](docs/contracts/2026-11-14-native-pm-preparation.md).
-
-The journal, PM actor and publisher now share a ten-role native operational path
-boundary. All **208 affected Pi methods pass/no skips**; a separate actual SDK
-install uses that boundary in a fresh private home. Independent raw/native/state
-review passes, with both owned units stopped and live state unchanged. Production
-PM refuses a missing/mismatched boundary. Full backup, admission, reload, health
-and bounded recovery acceptance remain open.
-[Operational ancestry and current scope](docs/contracts/2026-11-14-operational-ancestry.md).
-
-The complete one-use backup stage passes **97 Pi methods/no skips** and one
-actual SDK/age trial with generated state and loopback publication. Independent
-specification/receipt/crypto/SQL readback verifies 12 members, two committed WAL
-rows, both downloaded assets, retained source and removal of verified plaintext.
-PM code hardlinks/modes stay unchanged; keys/programs/artifacts retain exclusive
-file rules. All four owned units are stopped and live state is unchanged.
-Current support requires file-backed built-in memory; external providers/linked
-profiles hold for explicit review. Actual private GitHub/live-home backup and
-operational restore remain unaccepted. [Backup source, evidence and limits](docs/contracts/2026-11-15-backup-transaction.md).
-
-In isolated Pi staging, **59 retirement-component unit methods** pass without
-skips, and four guarded TCP exchanges use one connection with real kernel socket
-ownership. Provider/protocol data are synthetic. Earlier unchanged SDK ASGI,
-canonical shutdown and real systemd-helper checks remain separately scoped;
-they do not establish complete deployment or fleet interoperability.
-[Native evidence and limits](docs/contracts/2026-11-14-native-socket-owner-and-api26.md).
-
-The isolated candidate's five missing declared tool pins are installed through
-supported PM. Independent seven-tool identity/digest/probe checks and PM doctor
-pass with no drift or startup warning. A fresh normal SDK CLI fixture completes
-bundled-provider PKCE login/refresh, kernel-fenced retirement and observed
-startup/shutdown; all 66 component methods pass without skips. Its finite
-isolated gate passes; it uses generated test credentials and proves no actual
-live-user/phone session acceptance. Earlier failed/held evidence remains.
-[Evidence and remaining deployment work](docs/contracts/2026-11-14-staged-pm-readiness-and-sdk-pass.md).
-
-The candidate has its own PM environment and reviewed launcher/units. Canonical
-home readiness and the bounded cutover/rollback remain before separate live
-approval. Upstream
-used/transitive/shutdown, real project/worker/NAS/integration and final signed-
-production acceptance remain open. **The published beta.9 APK is unchanged.**
-[Full goal](docs/GOAL.md) · [Runtime packet](docs/contracts/2026-11-14-runtime-cutover-packet.md).
+Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
+standard device tests** and both lint variants (zero errors). Raw method unions,
+summary and actual APK hashes match. Original UI causes, external-model/final
+phone gates and wider interoperability remain open. Upstream review retains
+**37 stable / 172 inspected-main findings** at its recorded revisions.
+[Current evidence and remaining work](docs/contracts/2026-11-15-gateway-fence-owner-and-android-review.md).
 
 ## Download and release status
 
@@ -136,11 +57,14 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Checked **14 November 2026**. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Checked **15 November 2026**. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Current hosted JVM tests | **1,011 cases / 97 reports** | Source654d839; actual XML, no failures/errors/skips |
+| Current Windows policy suite | **829 passes / 254 platform skips** | 1,083 cases; 31 focused gateway cases split into 23 portable and eight native |
+| Current controlled Pi cohort | **104 methods / no skips** | Eight native gateway cases plus existing PM/backup/retirement coverage; four-mode SDK trial separately verifies eight requests |
+| Last independently reviewed hosted policy suite | **1,078 methods / no skips** | Source1a07bf6; exact positive raw inventory, stopped native unit and Windows/native inventory match |
+| Current hosted JVM tests | **1,011 cases / 97 reports** | Source09306e6; actual XML, no failures/errors/skips |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |
 | Physical process/restart recovery | **2 positive cases; 2.849 / 1.856 s JUnit** | Original cold/post-reboot methods on the owner phone; one approved normal restart, no automatic load/replay, original data retained; preparation intentionally interrupted |
@@ -154,18 +78,18 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 | Optional protected operator binding | **8 portable / 8 Linux native policy cases** | Explicit grants, fixed routes and fresh file-generation checks. Exact-source Linux/Windows artifacts verified; no Pi deployment |
 | Backup archive content component | **26 Pi methods; earlier SDK/age fixture** | Exact members/hash/CRC and SQLite integrity; Windows creation-time fix plus 250 fresh images. Earlier fixture verifies two WAL rows and crypto round-trip; full transaction remains open |
 | Private backup publication component | **32 Pi methods** | Actual journal/manager/path boundary with loopback GitHub protocol and prior SDK/age ciphertext; once-only effects and downloaded bytes verified, real private GitHub acceptance remains open |
-| Complete backup-stage implementation | **97 Pi cohort methods + one actual SDK/age stage** | Generated state/disposable key, two WAL rows and loopback private publication; independently reconstructed specification and crypto/SQL readback. Real private GitHub/live-home/external-provider acceptance remains open |
+| Earlier backup-stage implementation | **97 Pi cohort methods + one actual SDK/age stage** | Generated state/disposable key, two WAL rows and loopback private publication; independently reconstructed specification and crypto/SQL readback. Real private GitHub/live-home/external-provider acceptance remains open |
 | Shared operational directory boundary | **208 Pi methods + one actual guarded install** | Ten roles, guarded journal and PM, shared actual mode/parent witnesses; independent raw/native review. Component cohorts overlap; canonical provisioning and full transaction remain open |
 | Native PM preparation component | **48 Pi cases + one actual install** | Separate fresh private home, supported full install/currency, four activation inputs and ARM64 imports; independently verified. Includes 25 overlapping service cases; canonical provisioning and full cutover remain open |
 | Current Pi source preservation | **79 live paths unchanged / 18 native authority outcomes** | Isolated ARM64 PM candidate built with only vendor-path rebase; same cases pass on Windows/Pi. Live activation and both permission prerequisites remain open; [exact scope](docs/contracts/2026-11-14-native-arm64-staged-candidate.md) |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
-| Current hosted lint | **0 errors**; 52 debug / 51 release warnings | Source654d839, both actual XML reports; warnings retained |
+| Current hosted lint | **0 errors**; 52 debug / 51 release warnings | Source09306e6, both actual XML reports; warnings retained |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current selected offline methods | **7 have positive evidence** | Unchanged code114 source0ee app, separately identified companions; garden/metadata/helper/generation/Qwen/switch/import; not the full external-model gate; old failures retained |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
-| Latest complete standard device gate | **1,142 API26 / 1,143 API37 cases** | Source `654d839`, four independently checked disjoint raw partitions and actual build APK hashes; external-model/final-head/phone gates remain separate |
+| Latest complete standard device gate | **1,142 API26 / 1,143 API37 cases** | Source `09306e6`, four independently checked disjoint raw partitions and actual build APK hashes; external-model/final-head/phone gates remain separate |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
@@ -210,7 +134,7 @@ records the real valid-login refusal, tested unapplied proposal, retained SDK
 shutdown warning and complete source 4444 Android raw/APK reconciliation.
 
 **Still open:** final-source hosted checks, wider upstream semantic/dependency
-review (40 stable and 140 inspected-main handler changes awaiting review), real project/workspace/worker,
+review (37 stable and 172 inspected-main handler changes awaiting review), real project/workspace/worker,
 automation/integration and final production code114 phone acceptance. Earlier
 production code112 upgrade, connection/history and stored-project reads passed.
 Public beta.9 remains the separately identified experimental source0ee preview.

@@ -1,5 +1,14 @@
 # Decisions
 
+## 15 November 2026 - retain and validate the native fence owner
+
+Preserve the SDK owner/epoch in read-only observations and reject combinations
+the existing ledger cannot produce. A positive foreign fence gives no permission
+to adopt it. Keep real marker publication/freeze, normal GatewayRunner and fleet
+acceptance separate. Attribute hosted/device results only to their verified
+source; current upstream main has 172 findings, while the older 171 result keeps
+its historical scope. [Evidence and implementation boundary](docs/contracts/2026-11-15-gateway-fence-owner-and-android-review.md).
+
 ## 15 November 2026 - observe only the original child through exec
 
 Keep the original spawned handle, native incarnation, parent, user and cgroup.

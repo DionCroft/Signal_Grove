@@ -142,7 +142,9 @@ def run_trial(root,source,python):
                     except Unknown:sample['projection_unknown']=True
                     if mode in ('idle','busy'):
                         projected=sample['projection']
-                        if projected['busy']!=(mode=='busy') or projected['fleet_ready_to_switch'] is not False or projected['admission_frozen'] is not True:raise AssertionError('Real registered scope differs')
+                        if (projected['busy']!=(mode=='busy') or projected['fleet_ready_to_switch'] is not False
+                            or projected['admission_frozen'] is not True or projected['fence_epoch']!=1
+                            or projected['fence_owner']!='fixture-owner'):raise AssertionError('Real registered scope/fence owner differs')
                     elif sample.get('projection_unknown') is not True:raise AssertionError('Unknown source incorrectly became idle')
             row['state']='REAL_SDK_CONTROL_OBSERVED'
         finally:

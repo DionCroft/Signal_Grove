@@ -58,11 +58,12 @@ def project_registered_status(body,owner_pid,home_digest,earliest,latest):
         ledger_counts=counts({k:fence[k] for k in LEDGER_COUNTERS},LEDGER_COUNTERS)
         if (type(live['busy']) is not bool or live['busy']!=any(live_counts.values()) or live['lifecycle'] not in ('running','draining')
             or type(fence['frozen']) is not bool or type(fence['epoch']) is not int or fence['epoch']<0
-            or (fence['owner'] is not None and type(fence['owner']) is not str)
+            or (fence['epoch']==0 and (fence['owner'] is not None or fence['frozen']))
+            or (fence['epoch']>0 and (type(fence['owner']) is not str or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}',fence['owner'])))
             or any(type(live[k]) is not int or live[k]<0 for k in ('adapter_instances_observed','secondary_profile_maps_observed'))):raise ValueError('Invalid native lifecycle/fence')
         return dict(coverage='REGISTERED_WORK_ONLY',home_digest=home_digest,pid=owner_pid,lifecycle=live['lifecycle'],
             busy=live['busy'] or any(ledger_counts.values()),live_counters=live_counts,ledger_counters=ledger_counts,
-            admission_frozen=fence['frozen'],fence_epoch=fence['epoch'],adapter_instances=live['adapter_instances_observed'],
+            admission_frozen=fence['frozen'],fence_epoch=fence['epoch'],fence_owner=fence['owner'],adapter_instances=live['adapter_instances_observed'],
             secondary_profile_maps=live['secondary_profile_maps_observed'],fleet_ready_to_switch=False)
     except (KeyError,ValueError,TypeError,OverflowError,AttributeError):
         raise Unknown('Registered gateway work observation is unproven; no idle permission') from None
