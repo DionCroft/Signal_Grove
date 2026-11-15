@@ -1,5 +1,14 @@
 # Decisions
 
+## 15 November 2026 - registered gateway work is observation, never fleet permission
+
+Require exact kernel peer identity, strict bounded one-use SDK framing and complete
+known counter sets. Preserve unknown states and the first cold fixture failure.
+Qualify the real SDK wire separately from synthetic runner/ledger state and normal
+GatewayRunner startup. Preserve the final broad backup failure and strict native
+process isolation; do not substitute earlier passes or replay its held operation.
+[Implementation, evidence and remaining gates](docs/contracts/2026-11-15-native-gateway-observation.md).
+
 ## 15 November 2026 - prepare content before the single authenticated connection
 
 Keep complete content verification before login and fresh descriptor-relative

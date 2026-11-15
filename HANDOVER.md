@@ -6,26 +6,35 @@
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-The next action is to **implement native gateway drain and compose the unified
-executor**, then prove reload/authenticated health and bounded runtime-only recovery
-before the separate complete live approval packet. Continue the remaining
-37 stable / 171 inspected-main findings and every original audit, phone and
-release gate; observe existing hosted jobs without replaying unknown work.
+The next action is to **instrument and diagnose the native backup decryption
+child hold**, preserving its artifacts and strict single-process admission.
+Then complete journal-bound gateway drain, normal GatewayRunner qualification,
+all-profile/worker work coverage and the unified executor, reload/authenticated
+health and bounded runtime-only recovery. Both canonical PM contexts and the
+seven real modes remain unactivated. Prepare the full separate live approval
+packet only after these gates; retain every original audit and release task.
 
-Source preparation before login now passes the actual normal SDK/native-role
-retirement trial with **all 23,628 SDK / 32 executor files** bound. Fresh native
-file/directory checks remain before dispatch and after commit. The same socket
-carries login/refresh and the four retirement requests; one SDK commit, a
-3,894-byte receipt, 1,098 loaded-module origins and 12 lifecycle events verify.
-The journal remains pending; full executor/production acceptance stays open.
+The new read-only gateway observer has **26 focused cases: 18 portable and
+eight actual Linux peer/framing cases**. The final Windows suite passes **824 of
+1,073 cases, with 249 platform skips**. Four fresh maintained-SDK peers verify
+eight real Unix requests, the native PID/start/boot/UID binding and idle/busy/
+unknown/unenrolled projections. The runner and ledger are generated fixtures;
+normal GatewayRunner startup, real admission freeze, drain and fleet switching
+are not accepted by this component.
 
-Final native cohort: **91 methods/no skips**, including 27 retirement cases.
-Windows: **1,047 cases, 806 pass/241 platform skips**. All 104 reconciled temporary
-units are stopped; five original failures remain. Parent sourceb3's hosted
-1,039-method suite and source8d's full **1,142 API26 / 1,143 API37** gate are
-independently verified. The new source's hosted checks, original UI failure causes,
-external-model/phone/production gates and all other original audit requirements
-remain. Live state and beta.9 are unchanged. [Exact source, proof and scope](docs/contracts/2026-11-15-prelogin-source-witness.md).
+The final broad native rerun is **held: 99 methods, 58 pass, one failure and 40
+errors, no skips**. All eight gateway cases pass. The first existing backup case
+encrypts successfully, then holds before proving its decryption child; no upload
+occurs. Later cases refuse the extra maintenance-unit process. The original
+receipt and failed unit are preserved; the cause is unproven. The earlier
+99-method positive cohort has its own source scope and does not erase this run.
+
+Previous source `09306e6` independently passes **1,047 hosted Linux policy
+methods/no skips**. Source8d retains its full **1,142 API26 / 1,143 API37** gate.
+The current source's hosted/full-native acceptance, original UI failure causes,
+37 stable / 171 inspected-main findings, real project/worker/integration and
+physical-phone/original-key release gates remain. Live services and beta.9 are
+unchanged. [Exact implementation, failed checks and evidence](docs/contracts/2026-11-15-native-gateway-observation.md).
 
 The complete backup-stage implementation now passes 97 Pi methods/no skips and
 one actual SDK/age trial with generated data and loopback publication. Independent

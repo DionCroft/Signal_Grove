@@ -12,13 +12,16 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Last independently verified hosted source `b3c492d` passes **1,039 Linux policy
-tests** without skips. The latest Windows suite runs **1,047 cases: 806 pass /
-241 POSIX skips**. The prepared-source native cohort passes **91 methods/no skips**,
-including 27 retirement cases. An actual normal SDK/native-role trial verifies
-all 23,628 SDK files, supported generated-provider login/refresh, one retirement
-commit and normal shutdown. Full executor and live deployment acceptance remain.
-[Current evidence and limits](docs/contracts/2026-11-15-prelogin-source-witness.md).
+Last independently verified hosted source `09306e6` passes **1,047 Linux policy
+tests/no skips**. Current Windows checks pass **824 of 1,073 cases, with 249
+platform skips**. The new gateway observer's **18 portable / eight native cases**
+and four isolated real-SDK control peers pass. These verify registered-work
+observation; normal GatewayRunner, drain and fleet-switch acceptance remain.
+The final broad native rerun is **held: 58 pass, one failure, 40 errors/no skips**
+in its 99-method cohort. The existing backup stage holds before proving its
+decryption child; its receipt and failed unit are preserved for diagnosis.
+Live services and beta.9 remain unchanged.
+[Current evidence and limits](docs/contracts/2026-11-15-native-gateway-observation.md).
 
 Source8d's complete hosted standard Android gate independently verifies **1,142
 API26 / 1,143 API37 methods**, exact disjoint raw unions and actual build APK

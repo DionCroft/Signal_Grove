@@ -30,6 +30,7 @@ NATIVE_CLASSES = (
     'test_private_backup_release.NativeBackupPublicationTests',
     'test_native_backup_transaction.NativeBackupTransactionTests',
     'test_native_serve_retirement.NativeServeRetirementTests',
+    'test_native_gateway_control.NativeGatewayControlTests',
 )
 PROPERTIES = ('Type=exec', 'RuntimeMaxSec=900', 'TimeoutStopSec=5',
               'KillMode=control-group', 'Restart=no', 'UMask=0077', 'TasksMax=512')
@@ -261,7 +262,7 @@ def main():
     parser.add_argument('--age',type=Path,default=Path('/usr/bin/age'))
     parser.add_argument('--keygen',type=Path,default=Path('/usr/bin/age-keygen'))
     parser.add_argument('--inside-unit',action='store_true')
-    parser.add_argument('--native-only',action='store_true',help='Run only the four controlled native classes; not full policy acceptance')
+    parser.add_argument('--native-only',action='store_true',help='Run only the controlled native classes; not full policy acceptance')
     args=parser.parse_args();os.umask(0o077)
     return inside_unit(args.work_root,args.native_only) if args.inside_unit else run(args.work_root,args.age,args.keygen,args.native_only)
 

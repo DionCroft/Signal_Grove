@@ -1,5 +1,29 @@
 # Evidence navigation
 
+## Native gateway observation and retained backup regression - 15 November 2026
+
+The new read-only gateway observer has **26 focused cases: 18 portable and
+eight actual Linux peer/framing cases**. The final Windows suite passes **824 of
+1,073 cases, with 249 platform skips**. Four fresh maintained-SDK peers verify
+eight real Unix requests, the native PID/start/boot/UID binding and idle/busy/
+unknown/unenrolled projections. The runner and ledger are generated fixtures;
+normal GatewayRunner startup, real admission freeze, drain and fleet switching
+are not accepted by this component.
+
+The final broad native rerun is **held: 99 methods, 58 pass, one failure and 40
+errors, no skips**. All eight gateway cases pass. The first existing backup case
+encrypts successfully, then holds before proving its decryption child; no upload
+occurs. Later cases refuse the extra maintenance-unit process. The original
+receipt and failed unit are preserved; the cause is unproven. The earlier
+99-method positive cohort has its own source scope and does not erase this run.
+
+Previous source `09306e6` independently passes **1,047 hosted Linux policy
+methods/no skips**. Source8d retains its full **1,142 API26 / 1,143 API37** gate.
+The current source's hosted/full-native acceptance, original UI failure causes,
+37 stable / 171 inspected-main findings, real project/worker/integration and
+physical-phone/original-key release gates remain. Live services and beta.9 are
+unchanged. [Exact implementation, failed checks and evidence](docs/contracts/2026-11-15-native-gateway-observation.md).
+
 ## Actual SDK retirement with prepared source evidence - 15 November 2026
 
 Source preparation before login now passes the actual normal SDK/native-role
