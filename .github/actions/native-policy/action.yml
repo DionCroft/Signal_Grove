@@ -1,0 +1,60 @@
+name: Complete native policy tests
+description: Prepare real user-manager and generated age fixtures on a disposable hosted Linux runner.
+runs:
+  using: composite
+  steps:
+    - name: Prepare disposable hosted user manager
+      shell: bash
+      run: |
+        set -euo pipefail
+        test "$GITHUB_ACTIONS" = true
+        test "$RUNNER_ENVIRONMENT" = github-hosted
+        test "$(uname -s)" = Linux
+        test "$(id -u)" != 0
+        sudo apt-get update -qq
+        sudo apt-get install -y age dbus-user-session python3-venv
+        sudo loginctl enable-linger "$(id -un)"
+        sudo systemctl start "user@$(id -u).service"
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+        export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+        systemctl --user start dbus.socket
+        systemctl --user show-environment >/dev/null
+    - name: Prepare pinned native test interpreter
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 -B - <<'PY'
+        import os, pathlib, subprocess, venv
+        root=pathlib.Path(os.environ['RUNNER_TEMP'])/'signal-grove-policy-tools'
+        root.mkdir(mode=0o700)
+        # The native PM cohort verifies an owned, actual interpreter under tools/.
+        environment=root/'tools/python'
+        venv.EnvBuilder(with_pip=True,symlinks=False).create(environment)
+        requirements=root/'requirements.txt'
+        requirements.write_text('jeepney==0.9.0 --hash=sha256:97e5714520c16fc0a45695e5365a2e11b81ea79bba796e26f9f1d178cb182683\n')
+        subprocess.run([str(environment/'bin/python'),'-I','-m','pip','install','--disable-pip-version-check','--only-binary=:all:','--require-hashes','-r',str(requirements)],check=True)
+        PY
+    - name: Execute complete policy suite in its finite native unit
+      shell: bash
+      run: |
+        set -euo pipefail
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+        export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+        "$RUNNER_TEMP/signal-grove-policy-tools/tools/python/bin/python" -I -B scripts/ci_native_policy.py --work-root "$RUNNER_TEMP/signal-grove-policy-tests"
+    - name: Retain native test inventory, results and unit evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: native-policy-evidence
+        path: |
+          ${{ runner.temp }}/signal-grove-policy-tests/input.json
+          ${{ runner.temp }}/signal-grove-policy-tests/authority.json
+          ${{ runner.temp }}/signal-grove-policy-tests/cipher-proof.json
+          ${{ runner.temp }}/signal-grove-policy-tests/inventory.json
+          ${{ runner.temp }}/signal-grove-policy-tests/result.json
+          ${{ runner.temp }}/signal-grove-policy-tests/summary.json
+          ${{ runner.temp }}/signal-grove-policy-tests/stdout.log
+          ${{ runner.temp }}/signal-grove-policy-tests/stderr.log
+          ${{ runner.temp }}/signal-grove-policy-tests/unit-observation.log
+        if-no-files-found: warn
+        retention-days: 7

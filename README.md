@@ -12,9 +12,9 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The latest hosted source09a0c8a checks fail during native-fixture setup before
-Android verification. Local/Pi results below retain their stated scope; hosted
-CI and final release acceptance remain open. [Recorded failure and next repair](docs/contracts/2026-11-15-backup-transaction.md#hosted-ci-follow-up).
+Hosted source `59f43b3` fails before Android verification because native test
+fixtures are missing. A tested fixture setup is now implemented; its hosted run
+and final release acceptance remain pending. [CI repair, results and limits](docs/contracts/2026-11-15-native-policy-ci.md).
 
 Current Android evidence: **1,011 JVM cases** and both lint variants pass with
 zero errors (52 debug / 51 release warnings). The source654d839 hosted run
@@ -25,7 +25,9 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **1,002 cases: 788 pass, 214 POSIX skips**.
+The latest Windows Python suite runs **1,008 cases: 794 pass, 214 POSIX skips**.
+The CI driver's controlled cohort adds **64 Pi passes/no skips** with exact
+method accounting and generated age fixtures; live services remain unchanged.
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,
 eight actual stages, original CLI restoration and preserved newer data. Its

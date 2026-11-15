@@ -4,14 +4,23 @@
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The next action is to **repair and verify the hosted native-fixture setup**
-for the existing Ubuntu policy/parser jobs, preserving required native coverage.
-Then implement journal-bound admission/retirement and the full executor.
+The next action is to **verify the exact hosted jobs for the native-fixture CI
+repair**, then implement journal-bound admission/retirement and the full executor.
+
+The native CI fixture repair is implemented: a finite user-manager unit,
+pinned Jeepney, generated age fixture and exact positive-method accounting.
+Windows: **1,008 cases, 794 pass/214 platform skips**. The final controlled Pi
+cohort passes **64 methods/no skips**, independently raw/source/crypto/manager
+verified. The first failed import-root run remains; both units are stopped and
+live state is unchanged. Actual hosted setup/full Linux/Android acceptance is
+pending the new source's jobs. [Evidence and scope](docs/contracts/2026-11-15-native-policy-ci.md).
+
 The complete backup-stage implementation now passes 97 Pi methods/no skips and
 one actual SDK/age trial with generated data and loopback publication. Independent
 exact-specification/receipt/crypto/SQL readback verifies 12 members, two committed
 WAL rows, downloaded bytes, retained source and removal of verified plaintext.
-All four involved units are stopped/unloaded; earlier failures remain recorded.
+All four involved backup units are stopped with empty cgroups; the successful
+units are unloaded and the failed units remain failed.
 Windows: 1,002 cases, 788 pass/214 skips. Source/dependency/facts/modes/live services
 conserve. The code binds actual PM hardlinks/modes without changing them, while
 keys/programs/backup artifacts remain single-link inputs. File-backed built-in

@@ -66,3 +66,12 @@ See docs/GOAL.md and docs/AUDIT_EXECUTION_PLAN.md.
 Initialize missing lifecycle metadata without replacing existing instructions or
 state. ContextGraph stays beside this verified checkout, ignored by public Git;
 private host paths and runtime configuration are not public project metadata.
+
+## 15 November 2026: supply native CI prerequisites
+
+Use a real finite unit, pinned manager protocol and generated crypto fixture in
+hosted CI; retain native assertions and fail incomplete method coverage. Explicit
+ciphertext provenance keeps protocol tests distinct from actual SDK backup
+acceptance. Six result-accounting regressions, the full Windows suite and 64
+controlled native methods pass; actual hosted bootstrapping remains a required
+next check. [Evidence](docs/contracts/2026-11-15-native-policy-ci.md).

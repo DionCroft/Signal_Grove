@@ -235,9 +235,11 @@ class NativeBackupPublicationTests(unittest.TestCase):
         actor,e=self.prepare()
         with patch.object(self.r.time,'monotonic',return_value=e.deadline+1),self.assertRaises(self.jmodule.Refused):actor.publish(e)
         self.assertEqual(self.server.requests,[]);self.assertIsNone(actor.last_receipt)
-    def test_previously_verified_sdk_age_ciphertext_survives_publication(self):
+    def test_preverified_age_ciphertext_survives_publication(self):
         # Only the generated fixture ciphertext is supplied, never its private
         # key or the live Hermes home. This proves transport, not a new backup.
+        kind=os.environ.get('SIGNAL_GROVE_VERIFIED_FIXTURE_KIND','sdk-age')
+        self.assertIn(kind,('sdk-age','generated-age-protocol'))
         source=Path(os.environ['SIGNAL_GROVE_VERIFIED_FIXTURE_CIPHER']);expected=os.environ['SIGNAL_GROVE_VERIFIED_FIXTURE_CIPHER_SHA256']
         before=source.lstat();self.assertTrue(source.is_file());self.assertFalse(source.is_symlink())
         self.assertEqual(before.st_uid,os.geteuid());self.assertEqual(before.st_nlink,1);self.assertEqual(before.st_mode&0o777,0o600)
@@ -250,9 +252,10 @@ class NativeBackupPublicationTests(unittest.TestCase):
         result=actor.publish(e);self.assertEqual(len(self.server.posts),2);self.assertEqual(self.server.assets[name]['body'],cipher)
         for row in result['assets']:self.assertEqual((directory/row['downloaded_name']).read_bytes(),self.server.assets[row['name']]['body'])
         self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(),expected);self.assertEqual(self.r._stamp(source.lstat()),self.r._stamp(before))
-        report=dict(state='PRIOR_SDK_AGE_CIPHERTEXT_LOOPBACK_PUBLICATION_VERIFIED',directory=str(directory),receipt=str(self.ledger/actor.last_receipt),
+        report=dict(state='PRIOR_SDK_AGE_CIPHERTEXT_LOOPBACK_PUBLICATION_VERIFIED' if kind=='sdk-age' else 'GENERATED_AGE_CIPHERTEXT_LOOPBACK_PUBLICATION_VERIFIED',source_kind=kind,directory=str(directory),receipt=str(self.ledger/actor.last_receipt),
             encrypted_bytes=len(cipher),encrypted_sha256=expected,posts=len(self.server.posts),result=result,real_github_used=False,
             new_snapshot_created=False,live_home_read=False,fixture_key_read=False,synthetic_non_publication_prerequisites=True)
-        with (self.root/'sdk-cipher-publication-result.json').open('x') as out:json.dump(report,out,indent=2)
+        report_name='sdk-cipher-publication-result.json' if kind=='sdk-age' else 'generated-cipher-publication-result.json'
+        with (self.root/report_name).open('x') as out:json.dump(report,out,indent=2)
 
 if __name__=='__main__':unittest.main()

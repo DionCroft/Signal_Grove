@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## Native policy CI fixture repair - 15 November 2026
+
+The native CI fixture repair is implemented: a finite user-manager unit,
+pinned Jeepney, generated age fixture and exact positive-method accounting.
+Windows: **1,008 cases, 794 pass/214 platform skips**. The final controlled Pi
+cohort passes **64 methods/no skips**, independently raw/source/crypto/manager
+verified. The first failed import-root run remains; both units are stopped and
+live state is unchanged. Actual hosted setup/full Linux/Android acceptance is
+pending the new source's jobs. [Evidence and scope](contracts/2026-11-15-native-policy-ci.md).
+
 Hosted follow-up: source09a0c8a's [parser job](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148154)
 fails with 14 failures/36 errors because ordinary Ubuntu discovery lacks the
 required native maintenance unit/fixture context. [Android CI](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148181)

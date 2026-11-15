@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['scripts/check_hermes_contract.py', 'scripts/compatibility_probe_dashboard_registry.py', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
+    paths: ['scripts/check_hermes_contract.py', 'scripts/compatibility_probe_dashboard_registry.py', 'scripts/ci_native_policy.py', '.github/actions/native-policy/**', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
   pull_request:
-    paths: ['scripts/check_hermes_contract.py', 'scripts/compatibility_probe_dashboard_registry.py', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
+    paths: ['scripts/check_hermes_contract.py', 'scripts/compatibility_probe_dashboard_registry.py', 'scripts/ci_native_policy.py', '.github/actions/native-policy/**', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
 permissions:
   contents: read
 concurrency:
@@ -16,12 +16,13 @@ concurrency:
 jobs:
   parser-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Run complete policy suite with native fixtures
+        uses: ./.github/actions/native-policy
       - run: |
           python3 --version
-          python3 -B -m unittest discover -s scripts/tests -v
           python3 -B -m unittest discover -s server_extensions/runtime_models -v
   upstream:
     if: github.event_name != 'pull_request'
