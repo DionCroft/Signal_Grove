@@ -10,6 +10,7 @@ import asyncio
 import base64
 import hashlib
 import json
+import math
 import os
 import re
 import signal
@@ -100,6 +101,37 @@ def checked_instantiation_epoch(boot,pid1_start):
 
 def native_instantiation_epoch():
     return checked_instantiation_epoch(Path('/proc/sys/kernel/random/boot_id').read_text().strip(),Path('/proc/1/stat').read_text().rsplit(')',1)[1].split()[19])
+
+
+def startup_is_idle(project):
+    if (type(project) is not dict or project.get('fence_owner') is not None
+        or type(project.get('fence_epoch')) is not int or project['fence_epoch']!=0
+        or project.get('admission_frozen') is not False or type(project.get('busy')) is not bool
+        or project.get('lifecycle')!='running' or project.get('coverage')!='REGISTERED_WORK_ONLY'
+        or project.get('fleet_ready_to_switch') is not False):
+        raise RuntimeError('Original SDK unfrozen startup state is unproven')
+    return project['busy'] is False
+
+
+def wait_for_status(sample,predicate,*,started,deadline,clock=None,pause=None):
+    """Observe fresh known-busy replies; expiry or unknown never renews a window."""
+    if (any(type(t) not in (int,float) or not math.isfinite(t) for t in (started,deadline))
+        or not 0<=started<deadline or deadline-started>5):
+        raise ValueError('An original finite observation window of at most five seconds is required')
+    clock=time.monotonic if clock is None else clock;pause=time.sleep if pause is None else pause;last=started
+    def checked_now():
+        nonlocal last
+        value=clock()
+        if type(value) not in (int,float) or not math.isfinite(value) or value<last:
+            raise RuntimeError('Monotonic observation time is unproven')
+        last=value
+        if value>=deadline:raise RuntimeError('Original SDK observation window expired; inspect without replay')
+        return value
+    while True:
+        checked_now();observed=sample();qualified=predicate(observed);current=checked_now()
+        if type(qualified) is not bool:raise RuntimeError('Exact known observation verdict required')
+        if qualified:return observed,current
+        pause(min(.2,deadline-current))
 
 
 def drain_is_settled(project,operation):
@@ -382,31 +414,32 @@ def run_trial(root,source,python,*,observer_mode='profile'):
             unit_snapshot(unit,owner,argv,stop_seconds)
             if launcher.poll() is not None or time.monotonic()>=deadline:raise RuntimeError('Actual SDK did not publish readiness')
             time.sleep(.05)
-        def sample(verb):
+        def sample(verb,phase):
+            if phase not in ('readiness','startup_idle','drain'):raise ValueError('Exact observation phase required')
             unit_snapshot(unit,owner,argv,stop_seconds);sock=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM);sock.settimeout(2);sock.connect(address)
-            control=NativeGatewayControl(owner,sock);started=time.time();item=dict(verb=verb,earliest=started,state='intent');record['samples'].append(item);save()
+            control=NativeGatewayControl(owner,sock);started=time.time();item=dict(verb=verb,observation_phase=phase,earliest=started,started_monotonic=time.monotonic(),state='intent');record['samples'].append(item);save()
             try:body=control.exchange(verb)
             except BaseException as error:
                 item.update(state=control.state,events=control.events,error_type=type(error).__name__,latest=time.time());save();raise
-            finished=time.time();item.update(latest=finished,body=body,events=control.events,state=control.state)
+            finished=time.time();item.update(latest=finished,finished_monotonic=time.monotonic(),body=body,events=control.events,state=control.state)
             if verb=='status':
                 from native_gateway_control import project_registered_status
                 item['projection']=project_registered_status(body,owner.pid,hashlib.sha256(os.path.normcase(str(root/'hermes-home')).encode()).hexdigest(),started,finished)
             save();unit_snapshot(unit,owner,argv,stop_seconds);return item
         while True:
-            identity=sample('identify')['body']
+            identity=sample('identify','readiness')['body']
+            if time.monotonic()>=deadline:raise RuntimeError('Original readiness observation window expired')
             if identity.get('state')=='ready':break
             if identity.get('state')!='starting' or time.monotonic()>=deadline:raise RuntimeError('Normal gateway readiness is unproven')
             time.sleep(.2)
-        before=sample('status')['projection']
-        if before['busy'] or before['lifecycle']!='running' or before['fence_epoch']!=0 or before['fence_owner'] is not None or before['admission_frozen']:raise RuntimeError('Initial actual gateway/ledger was not idle and unfrozen')
-        record['freeze']=ledger('freeze');save();drain_deadline=time.monotonic()+5
-        while True:
-            status=sample('status')['projection']
-            settled=drain_is_settled(status,operation)
-            if time.monotonic()>=drain_deadline:raise RuntimeError('Actual GatewayRunner drain did not settle within its observation window')
-            if settled:break
-            time.sleep(.2)
+        def observe_phase(name,predicate):
+            started=time.monotonic();window=dict(started_monotonic=started,deadline_monotonic=started+5,seconds=5)
+            record[name+'_window']=window;save()
+            observed,accepted=wait_for_status(lambda:sample('status',name)['projection'],predicate,started=started,deadline=started+5)
+            record[name+'_accepted_monotonic']=accepted;save();return observed
+        record['startup_idle']=observe_phase('startup_idle',startup_is_idle);save()
+        record['freeze']=ledger('freeze');save()
+        record['drain_idle']=observe_phase('drain',lambda row:drain_is_settled(row,operation));save()
         record['native_before_stop']=unit_snapshot(unit,owner,argv,stop_seconds);record['state']='NORMAL_GATEWAY_DRAIN_OBSERVED';save();stopping=True
         stop=subprocess.run(['systemctl','--user','stop',unit],stdin=subprocess.DEVNULL,capture_output=True,timeout=stop_seconds+15)
         write_new(root/'stop-result.json',dict(exit_code=stop.returncode,stdout=stop.stdout.decode(),stderr=stop.stderr.decode(),owner=record['owner']))

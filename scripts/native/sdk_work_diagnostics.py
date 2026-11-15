@@ -1,7 +1,7 @@
 """Content-free observations for the generated SDK gateway fixture only.
 
 These observations do not decide quiescence, change registries or cancel work.
-Only code locations, native thread IDs and work states are retained. No locals,
+Only code locations, interpreter thread identifiers and work states are retained. No locals,
 arguments, object representations, task names or exception text are serialized.
 """
 import asyncio

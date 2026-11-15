@@ -1,5 +1,16 @@
 # Decisions
 
+## 15 November 2026 - wait for fresh initial idle within a separate fixed budget
+
+Treat readiness and registered work independently. Give initial known-busy
+startup replies a separate five-second observation window without widening the
+original drain window. Include observation/persistence latency, reject exact or
+late expiry and unknown/foreign state, retain every reply and require a fresh
+idle response. Bind the acceptance timestamp to its checked monotonic instant.
+Two final-source modes qualify this generated single-home component; retain
+the production journal, exclusive publication and fleet admission gates.
+[Evidence and scope](docs/contracts/2026-11-15-bounded-gateway-startup-idle.md).
+
 ## 15 November 2026 - distinguish readiness, startup work and drain quiescence
 
 Keep native work counters authoritative. Use bounded code-only diagnostics for

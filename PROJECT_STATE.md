@@ -7,44 +7,47 @@ scratch, builds and private evidence stay on the selected temporary drive.
 
 ## Current verified checkpoint
 
-The isolated gateway fixture now captures bounded code-only thread/coroutine
-stacks and native future states beside actual busy replies. It serializes no
-arguments, local values, task names or object representations. Five intermediate
-profiled busy snapshots include delegation schema reconciliation, handoff store
-reads and Kanban polling. These non-atomic observations correlate work; they do
-not map each future to a callable or prove the old timeout's cause.
+Final-source fresh-home trials now pass startup-idle, actual SDK admission
+freeze/refusal, external drain and normal native shutdown in **both profiler
+modes**. Startup-idle has its own five-second window; drain keeps its original
+five-second window. Neither window renews, masks work nor accepts late/unknown
+observations. The SDK facade and real GatewayRunner run without SDK patches;
+the CLI `main` entrypoint is not exercised.
 
-That intermediate profiled trial reaches zero registered counts within the
-unchanged five-second drain window and stops normally. Its eight raw replies,
-seven status samples and persistent frozen ledger/marker are independently
-verified. It does not retrospectively pass the original held trial.
+Without profiling, four busy startup and three busy drain replies precede idle
+observations in 1.971 s and 1.368 s respectively. With profiling, startup is idle
+in 0.178 s and four busy drain replies precede idle in 3.439 s. All registered
+counts are zero at each accepted gate. These timings describe two generated
+fixtures; they do not establish the earlier timeout's cause or fleet readiness.
 
-The final-source profiler-free comparison reports ready, then observes one
-periodic job at its first status. The existing initial-idle gate holds **before
-any freeze or drain**. Normal native stop succeeds; the ledger remains unfrozen
-and no marker exists. This establishes that readiness is distinct from idle;
-final-source startup-idle/drain acceptance remains open. No counters are removed.
+Independent readback verifies 21 decoded replies, 15 status projections, seven
+original profiled wire replies, both frozen ledgers/markers, three ended native
+groups, all 23,628 SDK files and 5,033 dependency files. The SDK source-origin
+union is 1,139 and its native stop budget remains 70 seconds. Live source/facts,
+existing modes, services and every previous held outcome are preserved.
 
-Current Windows checks pass **852 of 1,106 cases, with 254 platform skips**.
-All **23 focused boundary/privacy/observer methods** pass on Pi without skips.
-Parent source `1a401da` independently passes **1,093 hosted Linux methods/no
-skips**. Its upstream reports retain **37 stable / 172 inspected-main findings**
-at recorded main `fd8a6c4`; compatibility remains unaccepted. Both isolated trials
-preserve all 23,628 SDK files, 5,033 dependency files, native facts/modes and live
-services; all inspected owners ended. Published beta.9 is unchanged. Every full
-audit, phone/local-model and original-key release requirement remains active.
-[Evidence and limits](docs/contracts/2026-11-15-gateway-work-diagnostics.md).
+Current Windows checks pass **864 of 1,118 cases, with 254 platform skips**.
+All **35 focused methods** pass on Pi without skips, including twelve new window
+regressions. Parent source `d1f8a75` independently passes **1,106 hosted Linux
+methods/no skips**; its 37 stable / 172 recorded-main semantic findings remain
+unaccepted. The original-journal drain actor, all-profile/worker admission,
+unified executor and full audit/release gates remain open. Published beta.9 and
+live services are unchanged. The full goal stays active.
+[Evidence and limits](docs/contracts/2026-11-15-bounded-gateway-startup-idle.md).
 
 ## Next action
 
-Add a separately bounded startup-idle observation phase which treats known
-busy as busy, validates the original unfrozen owner/fence on every fresh reply
-and holds on unknown, foreign state or expiry. Keep the existing five-second
-drain deadline unchanged. Requalify final-source profiled and profiler-free
-paths before composing the original-journal drain actor. Then finish all-profile/
-worker admission, unified executor, reload/authenticated health and runtime-only
-recovery. Canonical PM contexts, seven real modes, policy/launcher changes, real
-private GitHub/live-home backup and final live approval remain unactivated.
+Implement and qualify the original-journal native gateway-drain actor using
+reviewed source/home/manager identities, the original approval and dispatch
+claim, one SDK freeze and exclusive non-overwriting marker publication. Record
+the reviewed fence preimage, including valid released nonzero epochs; never
+adopt an existing frozen owner or treat SDK idempotence as retry permission.
+Use fresh owner-bound status reads with fixed expiry and preserved unknowns.
+Then qualify all-profile/worker admission, unified executor, reload/authenticated
+health and bounded runtime-only recovery before preparing final live approval.
+Canonical PM contexts, seven real modes, policy/launcher changes and real
+private GitHub/live-home backup remain unactivated. Every original audit,
+local-model, phone and original-key release requirement remains required.
 
 ## Remaining acceptance and operating boundaries
 

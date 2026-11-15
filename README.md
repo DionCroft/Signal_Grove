@@ -12,13 +12,14 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The current runtime audit adds content-free work diagnostics and a profiler-free
-comparison. One intermediate profiled drain settles; final-source startup still
-reports periodic work and correctly holds before any freeze. Full rollout remains
-unaccepted. Current Windows checks pass **852 of 1,106 cases**, with **254 platform
-skips**; **23 focused methods** pass on Pi. Parent source `1a401da` independently
-passes **1,093 hosted Linux methods/no skips**.
-[Current evidence and remaining work](docs/contracts/2026-11-15-gateway-work-diagnostics.md).
+The runtime audit now verifies fresh startup-idle, admission freeze, drain and
+normal shutdown in both profiler modes, each within separate fixed five-second
+observation windows. This qualifies the generated single-home component; the
+production journal actor and fleet rollout remain open. Current Windows checks
+pass **864 of 1,118 cases**, with **254 platform skips**; **35 focused methods**
+pass on Pi. Parent source `d1f8a75` independently passes **1,106 hosted Linux
+methods/no skips**.
+[Current evidence and remaining work](docs/contracts/2026-11-15-bounded-gateway-startup-idle.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,

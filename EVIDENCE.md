@@ -1,5 +1,35 @@
 # Evidence navigation
 
+## Bounded startup-idle and two-mode drain qualification - 15 November 2026
+
+Final-source fresh-home trials now pass startup-idle, actual SDK admission
+freeze/refusal, external drain and normal native shutdown in **both profiler
+modes**. Startup-idle has its own five-second window; drain keeps its original
+five-second window. Neither window renews, masks work nor accepts late/unknown
+observations. The SDK facade and real GatewayRunner run without SDK patches;
+the CLI `main` entrypoint is not exercised.
+
+Without profiling, four busy startup and three busy drain replies precede idle
+observations in 1.971 s and 1.368 s respectively. With profiling, startup is idle
+in 0.178 s and four busy drain replies precede idle in 3.439 s. All registered
+counts are zero at each accepted gate. These timings describe two generated
+fixtures; they do not establish the earlier timeout's cause or fleet readiness.
+
+Independent readback verifies 21 decoded replies, 15 status projections, seven
+original profiled wire replies, both frozen ledgers/markers, three ended native
+groups, all 23,628 SDK files and 5,033 dependency files. The SDK source-origin
+union is 1,139 and its native stop budget remains 70 seconds. Live source/facts,
+existing modes, services and every previous held outcome are preserved.
+
+Current Windows checks pass **864 of 1,118 cases, with 254 platform skips**.
+All **35 focused methods** pass on Pi without skips, including twelve new window
+regressions. Parent source `d1f8a75` independently passes **1,106 hosted Linux
+methods/no skips**; its 37 stable / 172 recorded-main semantic findings remain
+unaccepted. The original-journal drain actor, all-profile/worker admission,
+unified executor and full audit/release gates remain open. Published beta.9 and
+live services are unchanged. The full goal stays active.
+[Exact source and limits](docs/contracts/2026-11-15-bounded-gateway-startup-idle.md).
+
 ## Work diagnostics and profiler-free startup hold - 15 November 2026
 
 The isolated gateway fixture now captures bounded code-only thread/coroutine
