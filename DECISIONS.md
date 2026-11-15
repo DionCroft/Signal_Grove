@@ -1,5 +1,17 @@
 # Decisions
 
+## 15 November 2026 - complete backup evidence has explicit boundaries
+
+Only the complete claimed snapshot/content/crypto/download stage can supply its
+backup check; a filename, SDK success message or upload acknowledgment cannot.
+Preserve unknown effects without regeneration/replay. Match reviewed PM code
+link/mode semantics without relaxing exclusive keys/programs/artifacts. Require
+strict root/profile memory configuration: an external-provider error is never
+proof of empty state. The built-in-memory fixture does not establish the live
+Pi's configuration or actual private GitHub/operational-restore acceptance.
+Keep full admission/work/recovery and all original audit/release requirements.
+[Exact implementation and evidence](docs/contracts/2026-11-15-backup-transaction.md).
+
 ## 14 November 2026 - publication cannot certify a fresh backup
 
 Require the original claimed backup stage, finite native owner and shared path

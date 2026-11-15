@@ -1,5 +1,10 @@
 # Once-only private backup publication and Windows identity correction
 
+Follow-up: the [complete one-use backup stage](2026-11-15-backup-transaction.md)
+now composes this component with actual SDK/age evidence under isolated fixture
+scope. This contract retains its original publication-only scope and hashes.
+Real private GitHub/live-home/external-provider acceptance remains open.
+
 14 November 2026. The private Release publication component and archive verifier
 pass a combined **58 Pi methods without skips**: 32 publication/transport/schema
 cases and 26 archive cases. Windows: **963 cases, 774 pass/189 platform skips**.

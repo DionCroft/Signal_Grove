@@ -12,6 +12,10 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
+The latest hosted source09a0c8a checks fail during native-fixture setup before
+Android verification. Local/Pi results below retain their stated scope; hosted
+CI and final release acceptance remain open. [Recorded failure and next repair](docs/contracts/2026-11-15-backup-transaction.md#hosted-ci-follow-up).
+
 Current Android evidence: **1,011 JVM cases** and both lint variants pass with
 zero errors (52 debug / 51 release warnings). The source654d839 hosted run
 passes all **1,142 standard API26** and
@@ -21,14 +25,14 @@ causes remain unproven. Twelve external-model methods, physical phone and
 original-key production-upgrade gates require separate acceptance.
 [Android evidence](docs/contracts/2026-11-14-hosted-standard-matrix.md).
 
-The latest Windows Python suite runs **963 cases: 774 pass, 189 POSIX skips**.
+The latest Windows Python suite runs **1,002 cases: 788 pass, 214 POSIX skips**.
 The renderer/file/mode/ancestry cohort has **80 Pi passes without skips** and a
 guarded owned forward/recovery fixture: ten targets, five publication parents,
 eight actual stages, original CLI restoration and preserved newer data. Its
 descriptor guard tracks actual named mode/new-parent transitions. Independent
 raw/native/state review passes. A real-root read-only preflight captures twenty
 existing directories/three missing parents and correctly refuses publication
-while the seven real modes remain 0775. Of the platform cases, 186 run on Pi;
+while the seven real modes remain 0775. Of the platform cases, 211 run on Pi;
 three older cases retain scope. The separate service/journal cohort has 124 Pi
 passes and five native error scenarios. Non-file fixture prerequisites remain
 synthetic; full PM/backup/admission/reload/authenticated health/cutover/recovery
@@ -59,15 +63,15 @@ PM refuses a missing/mismatched boundary. Full backup, admission, reload, health
 and bounded recovery acceptance remain open.
 [Operational ancestry and current scope](docs/contracts/2026-11-14-operational-ancestry.md).
 
-The private backup publisher and archive verifier pass **58 Pi methods/no
-skips** (32 publication, 26 archive). Once-only uploads, exact downloaded bytes,
-collision/unknown/replay refusals and all four backup stages use real native
-journals/manager boundaries with loopback protocol fixtures. The earlier actual
-SDK/age ciphertext survives transfer unchanged. A reproduced Windows timestamp
-mismatch is fixed, with four regressions and 250 fresh-image checks. Independent
-raw/native/source review passes; live state is unchanged. The complete one-use
-snapshot/encryption/publication backup stage and real private GitHub acceptance
-remain open. [Current backup source, evidence and limits](docs/contracts/2026-11-14-private-backup-publication.md).
+The complete one-use backup stage passes **97 Pi methods/no skips** and one
+actual SDK/age trial with generated state and loopback publication. Independent
+specification/receipt/crypto/SQL readback verifies 12 members, two committed WAL
+rows, both downloaded assets, retained source and removal of verified plaintext.
+PM code hardlinks/modes stay unchanged; keys/programs/artifacts retain exclusive
+file rules. All four owned units are stopped and live state is unchanged.
+Current support requires file-backed built-in memory; external providers/linked
+profiles hold for explicit review. Actual private GitHub/live-home backup and
+operational restore remain unaccepted. [Backup source, evidence and limits](docs/contracts/2026-11-15-backup-transaction.md).
 
 In isolated Pi staging, **59 retirement-component unit methods** pass without
 skips, and four guarded TCP exchanges use one connection with real kernel socket
@@ -143,6 +147,7 @@ Checked **14 November 2026**. Counts describe their stated builds and test scope
 | Optional protected operator binding | **8 portable / 8 Linux native policy cases** | Explicit grants, fixed routes and fresh file-generation checks. Exact-source Linux/Windows artifacts verified; no Pi deployment |
 | Backup archive content component | **26 Pi methods; earlier SDK/age fixture** | Exact members/hash/CRC and SQLite integrity; Windows creation-time fix plus 250 fresh images. Earlier fixture verifies two WAL rows and crypto round-trip; full transaction remains open |
 | Private backup publication component | **32 Pi methods** | Actual journal/manager/path boundary with loopback GitHub protocol and prior SDK/age ciphertext; once-only effects and downloaded bytes verified, real private GitHub acceptance remains open |
+| Complete backup-stage implementation | **97 Pi cohort methods + one actual SDK/age stage** | Generated state/disposable key, two WAL rows and loopback private publication; independently reconstructed specification and crypto/SQL readback. Real private GitHub/live-home/external-provider acceptance remains open |
 | Shared operational directory boundary | **208 Pi methods + one actual guarded install** | Ten roles, guarded journal and PM, shared actual mode/parent witnesses; independent raw/native review. Component cohorts overlap; canonical provisioning and full transaction remain open |
 | Native PM preparation component | **48 Pi cases + one actual install** | Separate fresh private home, supported full install/currency, four activation inputs and ARM64 imports; independently verified. Includes 25 overlapping service cases; canonical provisioning and full cutover remain open |
 | Current Pi source preservation | **79 live paths unchanged / 18 native authority outcomes** | Isolated ARM64 PM candidate built with only vendor-path rebase; same cases pass on Windows/Pi. Live activation and both permission prerequisites remain open; [exact scope](docs/contracts/2026-11-14-native-arm64-staged-candidate.md) |

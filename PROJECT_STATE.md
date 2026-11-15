@@ -1,25 +1,37 @@
 # Signal Grove project state
 
-14 November 2026. The full goal is **active**. Every unresolved requirement in
+15 November 2026. The full goal is **active**. Every unresolved requirement in
 [GOAL](docs/GOAL.md), the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and the
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) remains; no narrower completion claim.
 
-The next action is to **compose the complete one-use backup stage**: pinned SDK
-snapshot/selection, encryption/decryption and content verification, then the new
-private publication segment. Only the complete stage can verify a fresh backup.
-The publisher now binds the already claimed journal/manager/operational guard,
-refuses collisions/oversize assets, uploads once and verifies downloaded bytes.
-The final Pi cohort passes 58 methods/no skips (32 publication, 26 archive).
-Publication uses loopback protocol fixtures, including unchanged earlier SDK/age
-ciphertext; real private GitHub interoperability remains open. A reproduced
-Windows timestamp mismatch is fixed through explicit birth time, with four
-regressions and 250 fresh-image checks. Windows: 963 cases, 774 pass/189 skips.
-Independent raw/native/source readback passes and every owned unit is stopped.
-Earlier failures stay recorded. Live source/facts/modes/services are conserved.
-Both canonical PM contexts remain unprepared and seven real modes stay 0775.
-Full backup/admission/reload/health/runtime recovery and every original audit/
-phone/local-AI/security/release gate remain before final live review/approval.
-[Current source and evidence](docs/contracts/2026-11-14-private-backup-publication.md).
+The next action is to **repair and verify the hosted native-fixture setup**
+for the existing Ubuntu policy/parser jobs, preserving required native coverage.
+Then implement journal-bound admission/retirement and the full executor.
+The complete backup-stage implementation now passes 97 Pi methods/no skips and
+one actual SDK/age trial with generated data and loopback publication. Independent
+exact-specification/receipt/crypto/SQL readback verifies 12 members, two committed
+WAL rows, downloaded bytes, retained source and removal of verified plaintext.
+All four involved units are stopped/unloaded; earlier failures remain recorded.
+Windows: 1,002 cases, 788 pass/214 skips. Source/dependency/facts/modes/live services
+conserve. The code binds actual PM hardlinks/modes without changing them, while
+keys/programs/backup artifacts remain single-link inputs. File-backed built-in
+memory is the current explicit precondition; external providers and linked
+profiles hold for review. No actual GitHub, live home or production key is used.
+Real private GitHub/live-home/external-provider backup acceptance remains, along
+with admission/reload/authenticated health/full runtime recovery. Both canonical
+PM contexts remain unprepared and seven real modes stay 0775. Every original
+audit/phone/local-AI/security/release gate remains before final live review.
+[Current source and evidence](docs/contracts/2026-11-15-backup-transaction.md).
+
+Hosted follow-up: source09a0c8a's [parser job](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148154)
+fails with 14 failures/36 errors because ordinary Ubuntu discovery lacks the
+required native maintenance unit/fixture context. [Android CI](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148181)
+therefore stops before Android validation; its device-summary job has no shard
+artifacts. The worker workflow passes. Those original logs remain unchanged.
+Local/Pi acceptance above does not close hosted CI. Repair and verify the native
+fixture setup before resuming downstream admission/release work; preserve the
+assertions and explicit native coverage rather than hiding these failures.
+
 
 The publication component uses descriptor ancestry and recorded actual mode/new-parent
 transitions. All 80 related Pi methods pass/no skips. The guarded owned fixture
@@ -30,7 +42,7 @@ and correctly refuses publication while seven actual modes remain 0775. Live
 files/permissions/services/source/facts remain conserved. Non-file fixture stages
 remain synthetic; full operational ancestry and cutover/recovery stay open.
 [Current source/evidence](docs/contracts/2026-11-14-publication-ancestry.md).
-Windows: 963 cases, 774 pass/189 skips; 186 platform methods run in Pi cohorts,
+Windows: 1,002 cases, 788 pass/214 skips; 211 platform methods run in Pi cohorts,
 three older skips retain scope. The separate service/journal 124-method cohort
 and five native error cases retain scope. Android/build inputs are unchanged.
 Supported PM repaired the five declared
@@ -51,7 +63,7 @@ Current Android investigation:
   real-activity case verifies the observer; empty native-window reads remain
   indeterminate and all snapshots are explicitly non-atomic and privacy bounded.
 - Required build: 1,011 JVM cases, no skips; both lint variants, zero errors.
-  The latest Windows suite runs 963 cases, 774 pass/189 POSIX skips. All 186
+  The latest Windows suite runs 1,002 cases, 788 pass/214 POSIX skips. All 211
   platform methods pass in actual Pi cohorts;
   three existing platform skips keep their original separate scope.
   Source, debug signer, APK contents and native alignment verify. No production

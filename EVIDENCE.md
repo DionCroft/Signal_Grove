@@ -1,5 +1,40 @@
 # Evidence navigation
 
+Hosted follow-up: source09a0c8a's [parser job](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148154)
+fails with 14 failures/36 errors because ordinary Ubuntu discovery lacks the
+required native maintenance unit/fixture context. [Android CI](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148181)
+therefore stops before Android validation; its device-summary job has no shard
+artifacts. The worker workflow passes. Those original logs remain unchanged.
+Local/Pi acceptance above does not close hosted CI. Repair and verify the native
+fixture setup before resuming downstream admission/release work; preserve the
+assertions and explicit native coverage rather than hiding these failures.
+
+## 15 November 2026 - complete isolated backup stage verified
+
+The journal-bound one-use stage now composes actual SDK snapshot/selection,
+archive/SQLite checks, age encryption/decryption and once-only private publication.
+All **97 Pi methods pass/no skips**, followed by one actual generated-state SDK/
+age stage with loopback publication. Independent exact-specification/receipt/
+crypto/SQL readback verifies 12 members, two committed WAL rows, both downloaded
+assets, preserved source and removal of verified plaintext. All four owned units
+are stopped/unloaded; earlier preflight/native failures remain recorded.
+
+Windows: **1,002 cases, 788 pass/214 platform skips**; 211 platform cases have scoped
+Pi evidence, three older cases retain scope. Code inputs now bind actual PM hard
+links and 0600/0711 modes without changing them; keys/programs/artifacts remain
+single-link inputs. All 23,628 SDK inputs, 41 caches, 5,033 dependency code files,
+existing facts/modes/live services conserve. The trial uses 256 pinned loaded
+source modules and a disposable fixture key, with no real GitHub or live home.
+
+Current completeness requires file-backed configuration and built-in memory;
+external providers/paths and linked profiles hold for review rather than disappear.
+Real private GitHub/live-home backup, external-provider support and operational
+restore remain unaccepted. Next implement journal-bound admission/retirement and
+full executor observations, then reload/authenticated health/runtime recovery
+before the final live packet/approval. Every original audit, local-AI/phone/
+security/signed-release requirement remains active. Android/beta.9 are unchanged.
+[Exact source, scope and preserved failures](docs/contracts/2026-11-15-backup-transaction.md).
+
 ## 14 November 2026 - private publication component and Windows identity fix
 
 The one-use private Release publisher binds the already claimed backup stage,

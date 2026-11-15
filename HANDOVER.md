@@ -1,27 +1,39 @@
 # Signal Grove handover
 
-14 November 2026. The full goal remains **active**. Recover current work from
+15 November 2026. The full goal remains **active**. Recover current work from
 [PROJECT_STATE](PROJECT_STATE.md), [GOAL](docs/GOAL.md), the complete
 [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and authoritative source/evidence.
 All four resumed priorities and all original on-device/security/release tasks
 remain. This handover is not a reduced completion definition.
 
-The next action is to **compose the complete one-use backup stage**: pinned SDK
-snapshot/selection, encryption/decryption and content verification, then the new
-private publication segment. Only the complete stage can verify a fresh backup.
-The publisher now binds the already claimed journal/manager/operational guard,
-refuses collisions/oversize assets, uploads once and verifies downloaded bytes.
-The final Pi cohort passes 58 methods/no skips (32 publication, 26 archive).
-Publication uses loopback protocol fixtures, including unchanged earlier SDK/age
-ciphertext; real private GitHub interoperability remains open. A reproduced
-Windows timestamp mismatch is fixed through explicit birth time, with four
-regressions and 250 fresh-image checks. Windows: 963 cases, 774 pass/189 skips.
-Independent raw/native/source readback passes and every owned unit is stopped.
-Earlier failures stay recorded. Live source/facts/modes/services are conserved.
-Both canonical PM contexts remain unprepared and seven real modes stay 0775.
-Full backup/admission/reload/health/runtime recovery and every original audit/
-phone/local-AI/security/release gate remain before final live review/approval.
-[Current source and evidence](docs/contracts/2026-11-14-private-backup-publication.md).
+The next action is to **repair and verify the hosted native-fixture setup**
+for the existing Ubuntu policy/parser jobs, preserving required native coverage.
+Then implement journal-bound admission/retirement and the full executor.
+The complete backup-stage implementation now passes 97 Pi methods/no skips and
+one actual SDK/age trial with generated data and loopback publication. Independent
+exact-specification/receipt/crypto/SQL readback verifies 12 members, two committed
+WAL rows, downloaded bytes, retained source and removal of verified plaintext.
+All four involved units are stopped/unloaded; earlier failures remain recorded.
+Windows: 1,002 cases, 788 pass/214 skips. Source/dependency/facts/modes/live services
+conserve. The code binds actual PM hardlinks/modes without changing them, while
+keys/programs/backup artifacts remain single-link inputs. File-backed built-in
+memory is the current explicit precondition; external providers and linked
+profiles hold for review. No actual GitHub, live home or production key is used.
+Real private GitHub/live-home/external-provider backup acceptance remains, along
+with admission/reload/authenticated health/full runtime recovery. Both canonical
+PM contexts remain unprepared and seven real modes stay 0775. Every original
+audit/phone/local-AI/security/release gate remains before final live review.
+[Current source and evidence](docs/contracts/2026-11-15-backup-transaction.md).
+
+Hosted follow-up: source09a0c8a's [parser job](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148154)
+fails with 14 failures/36 errors because ordinary Ubuntu discovery lacks the
+required native maintenance unit/fixture context. [Android CI](https://github.com/DionCroft/Signal_Grove/actions/runs/43656148181)
+therefore stops before Android validation; its device-summary job has no shard
+artifacts. The worker workflow passes. Those original logs remain unchanged.
+Local/Pi acceptance above does not close hosted CI. Repair and verify the native
+fixture setup before resuming downstream admission/release work; preserve the
+assertions and explicit native coverage rather than hiding these failures.
+
 
 The guarded owned fixture verifies eight actual file/mode stages, five parents,
 five retained entries, original CLI restoration and newer-data preservation.
@@ -29,8 +41,8 @@ All 80 cohort methods pass on Pi/no skips; independent raw/native/source/state
 review passes. Fresh real-root preflight captures 20 directories/three missing
 parents and refuses publication while seven modes remain 0775. Live source/facts/
 files/permissions/services remain unchanged. Non-file fixture stages stay
-synthetic; full operational acceptance remains open. Windows: 963 cases, 774 pass/
-189 platform skips; 186 platform cases run in Pi cohorts, three older skips keep
+synthetic; full operational acceptance remains open. Windows: 1,002 cases, 788 pass/
+214 platform skips; 211 platform cases run in Pi cohorts, three older skips keep
 scope. Separate service/journal 124-method/five-error scope and every original
 audit/on-device/security/release requirement remain. Preserve all failed/unknown
 receipts and no-replay boundaries; Android/build inputs are unchanged.
