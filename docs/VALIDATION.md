@@ -1,5 +1,34 @@
 # Current development validation — audit follow-up
 
+## Original-child exec handoff checkpoint - 15 November 2026
+
+The backup actor now observes the **same original child** through the known
+executor-to-reviewed-program transition. It requires matching incarnation,
+parent, UID, executable path/inode and cgroup before input, within the approval
+deadline and a 500ms/64-sample acceptance bound. Receipt-write expiry also holds.
+The original spawn is retained throughout; wrong images, exited children,
+changed owners and missing evidence remain unknown without redispatch.
+
+Final checks: **104 native methods/no skips** and **824 Windows passes in 1,078
+cases, with 254 platform skips**. All **600 fresh decryptor starts** complete;
+five require a second native observation of the unchanged incarnation. Five
+focused receipt scenarios verify successful handoff, timeout, wrong image, exit
+and receipt-write expiry. The clock/procfs stay real; one negative test injects
+receipt latency. A fresh actual SDK/age/loopback stage independently verifies
+**12 archive members, two committed WAL rows, 256 SDK module origins and 5,033
+dependency files**, exact bytes, retained source and removed verified plaintext.
+
+The Pi's kernel ordering and these native handoffs support the startup-window
+diagnosis. The original failure lacked image details, so its exact historical
+cause remains unproven; its failed unit/receipts and two reader failures stay.
+All inspected fixture owners/units have ended. Previous source `51fb573` passes
+**1,074 hosted Linux methods/no skips**; current-source hosted checks remain
+separate. Source8d retains its independently verified **1,142 API26 / 1,143 API37**
+gate. Source09306's standard Android jobs now report success; raw/APK review is
+pending. All original upstream, project/worker/integration, phone and release
+requirements remain. Live services and beta.9 are unchanged.
+[Exact source, evidence and limits](contracts/2026-11-15-original-child-exec-handoff.md).
+
 ## Strict backup-child observation checkpoint - 15 November 2026
 
 Strict backup-child diagnostics now retain the exact Popen handle and a

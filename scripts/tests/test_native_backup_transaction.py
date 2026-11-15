@@ -159,16 +159,71 @@ class NativeBackupTransactionTests(unittest.TestCase):
         receipt=self.core['native_file_publication']._Receipt(self.j,e,self.stage,self.spec.sha256)
         child=subprocess.Popen([sys.executable,'-I','-B','-c','import sys;sys.stdin.buffer.read()'],stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         try:
-            with self.assertRaises(self.jmodule.Unknown):actor._owner(child,self.spec.age,self.scope,receipt,'decrypt')
+            with self.assertRaises(self.jmodule.Unknown):actor._owner(child,self.spec.age,self.scope,receipt,'decrypt',deadline=self.deadline)
             self.assertIs(actor.child_process,child);self.assertIsNone(actor.last_child_owner);self.assertEqual(actor.child_history,[])
             row=json.loads(receipt.data.splitlines()[-1]);self.assertEqual(row['phase'],'child_observation_held')
             proof=row['evidence'];self.assertEqual(proof['pid'],child.pid);self.assertIsNone(proof['returncode'])
-            self.assertEqual(proof['checks'],dict(incarnation_observed=True,uid_matches=True,executable_matches=False,inode_matches=False,cgroup_matches=True))
+            self.assertEqual(proof['checks'],dict(incarnation_observed=True,parent_matches=True,uid_matches=True,executable_matches=False,inode_matches=False,cgroup_matches=True))
+            self.assertEqual(proof['observed_image'],'executor');self.assertEqual(proof['observed_owner']['pid'],child.pid)
+            self.assertEqual(set(proof['observed_owner']),{'pid','start_ticks','boot_id'})
+            self.assertGreater(proof['exec_observations'],1);self.assertLessEqual(proof['exec_observations'],64)
+            events=[json.loads(row) for row in receipt.data.splitlines()];self.assertEqual([row['phase'] for row in events],['begin','child_exec_observing','child_observation_held'])
             self.assertEqual(self.server.requests,[]);self.assertEqual(self.snapshot_calls,0);self.assertFalse(self.output().exists())
             self.assertNotIn('fixture_secret_',receipt.data.decode());self.assertNotIn(self.spec.identity.path,receipt.data.decode())
         finally:
             child.stdin.close();child.wait(timeout=5);receipt.close()
         self.assertEqual(child.returncode,0)
+    def child_transition(self,mode):
+        actor,e=self.prepare();self.j.claim_dispatch(e.operation,self.stage,e.binding_sha256)
+        receipt=self.core['native_file_publication']._Receipt(self.j,e,self.stage,self.spec.sha256)
+        receipt_path=self.paths['journal']/receipt.name
+        code="import os,select,sys,time\nfrom pathlib import Path\nlimit=time.monotonic()+2\n"
+        code+="while b'child_exec_observing' not in Path("+repr(str(receipt_path))+").read_bytes():\n if time.monotonic()>=limit:sys.exit(92)\n time.sleep(.001)\n"
+        code+="sys.exit(91) if select.select([sys.stdin],[],[],0)[0] else None\n"
+        if mode=='requested':code+='os.execve('+repr(self.spec.age.path)+','+repr([self.spec.age.path,'--encrypt','-r',self.recipient])+",{'PATH':'/usr/bin:/bin'})"
+        elif mode=='unexpected':code+="os.execve('/usr/bin/cat',['/usr/bin/cat'],{'PATH':'/usr/bin:/bin'})"
+        else:code+='sys.exit(7)'
+        child=subprocess.Popen([sys.executable,'-I','-B','-c',code],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        return actor,e,receipt,child
+    def close_transition(self,receipt,child):
+        if child.stdin and not child.stdin.closed:child.stdin.close()
+        child.wait(timeout=5)
+        for stream in (child.stdout,child.stderr):stream.close()
+        receipt.close()
+    def test_same_child_executor_transition_is_observed_before_any_input(self):
+        actor,e,receipt,child=self.child_transition('requested');self.addCleanup(self.close_transition,receipt,child)
+        owner=actor._owner(child,self.spec.age,self.scope,receipt,'encrypt',deadline=e.deadline)
+        self.assertEqual(child.pid,owner.pid);self.assertEqual(actor.last_child_owner,owner)
+        rows=[json.loads(row) for row in receipt.data.splitlines()];self.assertEqual([r['phase'] for r in rows],['begin','child_exec_observing','child_owned'])
+        self.assertEqual(rows[1]['evidence']['owner'],rows[2]['evidence']['owner']);self.assertEqual(rows[1]['evidence']['dispatches'],1)
+        self.assertGreater(rows[2]['evidence']['exec_observations'],1);self.assertLessEqual(rows[2]['evidence']['exec_observations'],64)
+        output,error=child.communicate(input=b'Bounded native child transition.',timeout=5);self.assertEqual(child.returncode,0);self.assertTrue(output.startswith(b'age-encryption.org/v1'))
+        self.assertEqual(self.server.requests,[]);self.assertEqual(self.snapshot_calls,0)
+    def test_unexpected_image_during_child_transition_is_held_without_input(self):
+        actor,e,receipt,child=self.child_transition('unexpected');self.addCleanup(self.close_transition,receipt,child)
+        with self.assertRaises(self.jmodule.Unknown):actor._owner(child,self.spec.age,self.scope,receipt,'encrypt',deadline=e.deadline)
+        rows=[json.loads(row) for row in receipt.data.splitlines()];self.assertEqual(rows[-1]['phase'],'child_observation_held');self.assertEqual(rows[-1]['evidence']['observed_image'],'other')
+        self.assertIsNone(actor.last_child_owner);self.assertEqual(actor.child_history,[]);self.assertEqual(self.server.requests,[]);self.assertEqual(self.snapshot_calls,0)
+    def test_exiting_preexec_child_is_not_replaced_or_fed_input(self):
+        actor,e,receipt,child=self.child_transition('exit');self.addCleanup(self.close_transition,receipt,child)
+        with self.assertRaises(self.jmodule.Unknown):actor._owner(child,self.spec.age,self.scope,receipt,'encrypt',deadline=e.deadline)
+        child.wait(timeout=5);self.assertEqual(child.returncode,7);self.assertIsNone(actor.last_child_owner);self.assertEqual(actor.child_history,[])
+        rows=[json.loads(row) for row in receipt.data.splitlines()];self.assertEqual(rows[-1]['phase'],'child_observation_held');self.assertTrue(any(r['phase']=='child_exec_observing' for r in rows))
+        self.assertEqual(self.server.requests,[]);self.assertEqual(self.snapshot_calls,0)
+    def test_late_receipt_write_does_not_authorize_input_after_approval_window(self):
+        actor,e=self.prepare();self.j.claim_dispatch(e.operation,self.stage,e.binding_sha256)
+        receipt=self.core['native_file_publication']._Receipt(self.j,e,self.stage,self.spec.sha256)
+        child=subprocess.Popen([sys.executable,'-I','-B','-c','import sys;sys.stdin.buffer.read()'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        self.addCleanup(self.close_transition,receipt,child);real_append=receipt.append;image=self.s.observe_input(Path(sys.executable).resolve())
+        def delayed_append(phase,evidence):
+            real_append(phase,evidence)
+            if phase=='child_owned':__import__('time').sleep(.3)
+        with patch.object(receipt,'append',side_effect=delayed_append):
+            with self.assertRaises(self.jmodule.Unknown):actor._owner(child,image,self.scope,receipt,'snapshot',deadline=__import__('time').monotonic()+.2)
+        self.assertIsNone(actor.last_child_owner);self.assertEqual(actor.child_history,[])
+        rows=[json.loads(row) for row in receipt.data.splitlines()];self.assertEqual([r['phase'] for r in rows],['begin','child_owned','child_observation_held'])
+        self.assertTrue(all(value is True for value in rows[-1]['evidence']['checks'].values()))
+        self.assertEqual(self.server.requests,[]);self.assertEqual(self.snapshot_calls,0);self.assertFalse(self.output().exists())
     def test_changed_program_has_no_claimed_effect_or_output(self):
         actor,e=self.prepare();Path(self.spec.age.path).write_bytes(b'changed reviewed program')
         with self.assertRaises(self.jmodule.Refused):self.run_actor(actor,e)

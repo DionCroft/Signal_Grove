@@ -169,24 +169,49 @@ class NativeBackupTransaction:
             try:child.wait(timeout=0.2)
             except subprocess.TimeoutExpired:pass
         if child.returncode!=0:raise Unknown('Backup child failed; inspect retained evidence without replay')
-    def _owner(self,child,program,scope,receipt,phase):
-        # Retain the exact Popen handle even when kernel identity is inconclusive.
-        # This is observation only: it grants no input, signal, retry or replay.
-        self.child_process=child;owner=None
-        checks=dict(incarnation_observed=None,uid_matches=None,executable_matches=None,inode_matches=None,cgroup_matches=None)
+    def _owner(self,child,program,scope,receipt,phase,*,deadline):
+        # CLOEXEC notification can precede the new /proc image on supported
+        # kernels. Observe only this original child; never dispatch it again.
+        self.child_process=child;owner=None;original=None;observations=0;observing=False;observed_image='unavailable'
+        started=time.monotonic();bound=min(float(deadline),started+0.5) if type(deadline) in (int,float) and math.isfinite(deadline) else started
+        checks=dict(incarnation_observed=None,parent_matches=None,uid_matches=None,executable_matches=None,inode_matches=None,cgroup_matches=None)
         try:
-            owner=read_process_owner(child.pid);checks['incarnation_observed']=owner is not None
-            checks['uid_matches']=Path('/proc',str(child.pid)).stat().st_uid==os.geteuid()
-            checks['executable_matches']=os.readlink('/proc/'+str(child.pid)+'/exe')==program.path
-            checks['inode_matches']=(os.stat('/proc/'+str(child.pid)+'/exe').st_dev,os.stat('/proc/'+str(child.pid)+'/exe').st_ino)==program.identity[:2]
-            checks['cgroup_matches']=Path('/proc',str(child.pid),'cgroup').read_text().splitlines()==['0::'+scope.cgroup]
-        except OSError:
+            if type(child) is not subprocess.Popen or not child._child_created or type(child.pid) is not int:raise ValueError('Original spawned handle required')
+            executor=os.readlink('/proc/self/exe');executor_image=os.stat('/proc/self/exe')
+            while observations<64 and time.monotonic()<bound:
+                observations+=1;observed_image='unavailable'
+                checks={k:None for k in checks};owner=read_process_owner(child.pid)
+                checks['incarnation_observed']=owner is not None
+                text=Path('/proc',str(child.pid),'stat').read_text();fields=text.rpartition(')')[2].split()
+                checks['parent_matches']=len(text)<=8192 and len(fields)>=2 and fields[1]==str(os.getpid())
+                checks['uid_matches']=Path('/proc',str(child.pid)).stat().st_uid==os.geteuid()
+                executable=os.readlink('/proc/'+str(child.pid)+'/exe');image=os.stat('/proc/'+str(child.pid)+'/exe')
+                checks['executable_matches']=executable==program.path
+                checks['inode_matches']=(image.st_dev,image.st_ino)==program.identity[:2]
+                checks['cgroup_matches']=Path('/proc',str(child.pid),'cgroup').read_text().splitlines()==['0::'+scope.cgroup]
+                observed_image='requested' if checks['executable_matches'] and checks['inode_matches'] else 'other'
+                if executable==executor and (image.st_dev,image.st_ino)==(executor_image.st_dev,executor_image.st_ino):observed_image='executor'
+                if owner is None or child.poll() is not None or (original is not None and owner!=original):break
+                if original is None:original=owner
+                if all(value is True for value in checks.values()):
+                    if read_process_owner(child.pid)!=original or time.monotonic()>=bound:break
+                    event=dict(phase=phase,owner=asdict(owner),program_sha256=program.sha256,exec_observations=observations)
+                    receipt.append('child_owned',event)
+                    if time.monotonic()>=bound:break
+                    self.last_child_owner=owner;self.child_history.append(event);return owner
+                # Only the unchanged executor preimage may be pending. Missing
+                # identity, another parent/user/cgroup/image or a dead child holds.
+                if observed_image!='executor' or not all(checks[k] is True for k in ('incarnation_observed','parent_matches','uid_matches','cgroup_matches')):break
+                if not observing:
+                    receipt.append('child_exec_observing',dict(phase=phase,owner=asdict(original),program_sha256=program.sha256,max_observations=64,max_milliseconds=500,dispatches=1));observing=True
+                remaining=bound-time.monotonic()
+                if remaining<=0:break
+                time.sleep(min(.01,remaining))
+        except (OSError,ValueError,IndexError):
             pass
-        if not all(value is True for value in checks.values()):
-            receipt.append('child_observation_held',dict(phase=phase,pid=child.pid,checks=checks,returncode=child.poll(),program_sha256=program.sha256))
-            raise Unknown('Backup child native identity/scope unproven')
-        self.last_child_owner=owner;self.child_history.append(dict(phase=phase,owner=asdict(owner),program_sha256=program.sha256))
-        receipt.append('child_owned',self.child_history[-1]);return owner
+        receipt.append('child_observation_held',dict(phase=phase,pid=child.pid,checks=checks,returncode=child.poll(),program_sha256=program.sha256,
+            observed_image=observed_image,observed_owner=asdict(owner) if owner is not None else None,original_owner=asdict(original) if original is not None else None,exec_observations=observations))
+        raise Unknown('Backup child native identity/scope unproven')
     def _snapshot(self,e,scope,receipt,directory,raw):
         request=dict(sdk=asdict(self.spec.sdk),dependencies=asdict(self.spec.dependencies),home=asdict(self.spec.home),output=str(raw));request_hash=digest(request);request['request_sha256']=request_hash
         report_name='native-backup-report-'+e.operation+'-'+self.stage+'.json';report_fd=os.open(report_name,os.O_RDWR|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=self.journal._root)
@@ -197,7 +222,7 @@ class NativeBackupTransaction:
             env=dict(PATH='/usr/bin:/bin',HOME=self.spec.home.path,HERMES_HOME=self.spec.home.path,LANG='C.UTF-8',PYTHONDONTWRITEBYTECODE='1',
                 TMPDIR=str(directory/'scratch'),TMP=str(directory/'scratch'),TEMP=str(directory/'scratch'),HERMES_DISABLE_LAZY_INSTALLS='1',HERMES_CONFIG_BACKEND='file')
             child=subprocess.Popen([self.spec.python.path,'-I','-B','-S','-c',code],cwd=directory,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,pass_fds=(report_fd,))
-            owner=self._owner(child,self.spec.python,scope,receipt,'snapshot')
+            owner=self._owner(child,self.spec.python,scope,receipt,'snapshot',deadline=e.deadline)
             for suffix,stream in (('stdout',child.stdout),('stderr',child.stderr)):
                 capture=_Capture(self.journal,'native-backup-'+e.operation+'-'+self.stage+'-snapshot.'+suffix,stream);captures.append(capture);capture.start()
             data=json.dumps(request).encode()
@@ -239,7 +264,7 @@ class NativeBackupTransaction:
             receipt.append('age_intent',dict(phase=phase,output=destination.name,native_identity=list(native[:2]),program_sha256=self.spec.age.sha256,identity_sha256=self.spec.identity.sha256,recipient_sha256=hashlib.sha256(self.spec.recipient.encode()).hexdigest()))
             env=dict(PATH='/usr/bin:/bin',HOME=self.spec.home.path,LANG='C.UTF-8',TMPDIR=str(destination.parent/'scratch'))
             child=subprocess.Popen(argv,cwd=destination.parent,env=env,stdin=subprocess.PIPE,stdout=fd,stderr=subprocess.PIPE,pass_fds=(key,) if key is not None else ())
-            owner=self._owner(child,self.spec.age,scope,receipt,phase)
+            owner=self._owner(child,self.spec.age,scope,receipt,phase,deadline=e.deadline)
             capture=_Capture(self.journal,'native-backup-'+e.operation+'-'+self.stage+'-'+phase+'.stderr',child.stderr);captures.append(capture);capture.start()
             with source.open('rb') as input_stream:
                 pump=_Pump(input_stream,child.stdin);pump.start();self._wait(child,e);pump.finish()

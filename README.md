@@ -12,19 +12,18 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-Last independently verified hosted source `97db9f3` passes **1,073 Linux policy
-tests/no skips**, including all 26 gateway cases. Current Windows checks pass
-**824 of 1,074 cases, with 250 platform skips**; the fresh controlled Pi cohort
-passes **100 methods/no skips**. Strict backup-child hold diagnostics and a
-wrong-executable test preserve the identity boundary.
+Last independently verified hosted source `51fb573` passes **1,074 Linux policy
+tests/no skips**. Current Windows checks pass **824 of 1,078 cases, with 254
+platform skips**; the controlled Pi cohort passes **104 methods/no skips**.
+The backup actor now observes the original child through exec while requiring
+the reviewed image before input and respecting approval/receipt-write expiry.
 
-A separate generated-data probe reproduces **three executable/inode observation
-holds in 100 fresh decryptor starts**. Those children receive no ciphertext;
-the cause remains open despite the fresh cohort's pass. The earlier failed
-native run and all unknown receipts are retained. Normal GatewayRunner/drain,
-fleet acceptance, production deployment and final phone/release checks remain.
-Live services and beta.9 are unchanged.
-[Current evidence and limits](docs/contracts/2026-11-15-backup-child-observation.md).
+All **600 fresh decryptor starts** complete, including five same-incarnation
+handoffs. A fresh actual SDK/age/loopback backup independently verifies twelve
+members and two committed WAL rows. Historical failures remain preserved;
+real GitHub/live-home backup, gateway drain, fleet/executor and phone/release
+acceptance remain. Live services and beta.9 are unchanged.
+[Current source and evidence](docs/contracts/2026-11-15-original-child-exec-handoff.md).
 
 Source8d's complete hosted standard Android gate independently verifies **1,142
 API26 / 1,143 API37 methods**, exact disjoint raw unions and actual build APK

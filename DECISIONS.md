@@ -1,5 +1,15 @@
 # Decisions
 
+## 15 November 2026 - observe only the original child through exec
+
+Keep the original spawned handle, native incarnation, parent, user and cgroup.
+Allow the verified executor preimage to remain pending in a bounded observation
+window; require the exact reviewed program before input and recheck expiry after
+receipt I/O. Preserve wrong-image/exit/timeout and original unknown outcomes.
+Qualify native behavior, injected write latency and SDK/crypto/SQL integration
+with separate evidence scopes. Continue the full audit after this component.
+[Implementation, primary sources and verification](docs/contracts/2026-11-15-original-child-exec-handoff.md).
+
 ## 15 November 2026 - explain held child identity without relaxing admission
 
 Keep the original spawned handle and per-check native hold metadata; require
