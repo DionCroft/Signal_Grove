@@ -31,6 +31,9 @@ NATIVE_CLASSES = (
     'test_native_backup_transaction.NativeBackupTransactionTests',
     'test_native_serve_retirement.NativeServeRetirementTests',
     'test_native_gateway_control.NativeGatewayControlTests',
+    'test_native_gateway_drain.DrainActorNativeRefusalTests',
+    'test_native_gateway_drain.DrainMarkerNativeTests',
+    'test_native_gateway_drain.DrainSdkImportNativeTests',
 )
 PROPERTIES = ('Type=exec', 'RuntimeMaxSec=900', 'TimeoutStopSec=5',
               'KillMode=control-group', 'Restart=no', 'UMask=0077', 'TasksMax=512')

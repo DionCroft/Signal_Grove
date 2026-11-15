@@ -1,5 +1,39 @@
 # Evidence navigation
 
+## Original-journal drain source and native refusals - 15 November 2026
+
+The original-journal gateway-drain controller is now implemented as an
+unactivated, one-use source component. It binds the original approval, pending
+stage and dispatch claim to reviewed SDK/executor, home, ledger, native gateway
+and controller identities. It prepares inventories without SDK imports or a
+SQLite connection; import and mutation require the original claim. A successful
+path is designed to freeze once and publish a new drain marker without replacing
+an arrival. **A successful actual-SDK controller run is not yet qualified.**
+
+All **36 focused methods pass on Pi without skips**. Native refusal checks use
+the real journal, user service manager and kernel peer, with synthetic gateway
+responses and SDK placeholders. They dispatch no SDK freeze; an uncertain ready
+reply remains pending/unknown and cannot be replayed. Separate primitives verify
+exclusive marker publication and source-checked imports. The maintained native
+suite also passes **123 methods/no skips**, retaining its prior 104 and adding
+19. Those 19 overlap the focused 36 and are not additional unique methods.
+
+Current Windows coverage is **881 of 1,154 cases, with 273 platform skips**.
+Parent `f0795c3` independently passes **1,118 hosted Linux methods/no skips**;
+that is parent-source coverage. Two earlier harness setup failures are retained.
+Independent readback verifies their cleanup and all 19 observed native groups
+ended, plus conservation of 23,628 SDK and 5,033 dependency files, PM facts,
+existing modes and live services.
+
+Reviewed staged SDK source exposes a further gap: `inspect_home` omits active
+unbound turns that `Ledger.fence_status` includes. The controller implements a
+final direct ledger guard; the SDK status contract is **not fixed**, and active
+unbound end-to-end acceptance is open. Actual-SDK success, all-profile/worker
+admission, unified executor and every original audit/release gate remain open.
+The 37 stable / 172 recorded-main semantic findings remain unaccepted. Published
+beta.9 and live services are unchanged. The full goal stays active.
+[Exact source and limits](docs/contracts/2026-11-15-original-journal-gateway-drain-source.md).
+
 ## Bounded startup-idle and two-mode drain qualification - 15 November 2026
 
 Final-source fresh-home trials now pass startup-idle, actual SDK admission

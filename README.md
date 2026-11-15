@@ -12,14 +12,15 @@ production-phone acceptance remain disclosed. The wider audit is active again wi
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
-The runtime audit now verifies fresh startup-idle, admission freeze, drain and
-normal shutdown in both profiler modes, each within separate fixed five-second
-observation windows. This qualifies the generated single-home component; the
-production journal actor and fleet rollout remain open. Current Windows checks
-pass **864 of 1,118 cases**, with **254 platform skips**; **35 focused methods**
-pass on Pi. Parent source `d1f8a75` independently passes **1,106 hosted Linux
-methods/no skips**.
-[Current evidence and remaining work](docs/contracts/2026-11-15-bounded-gateway-startup-idle.md).
+The runtime audit adds an unactivated controller for one original-journal
+gateway drain. **36 focused Pi checks** and the **123-method native suite** pass
+without skips (19 methods overlap). Current Windows coverage is **881 of 1,154
+cases**, with **273 platform skips**. Parent `f0795c3` independently passes
+**1,118 hosted Linux methods/no skips**. These checks qualify native refusal and
+publication/import primitives; successful actual-SDK controller execution,
+active-unbound status coverage and fleet deployment remain open. Live services
+and the published APK are unchanged.
+[Current evidence and remaining work](docs/contracts/2026-11-15-original-journal-gateway-drain-source.md).
 
 Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
 standard device tests** and both lint variants (zero errors). Raw method unions,

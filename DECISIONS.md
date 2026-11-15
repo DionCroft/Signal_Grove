@@ -1,5 +1,20 @@
 # Decisions
 
+## 15 November 2026 - keep original-journal drain source unactivated until SDK qualification
+
+Bind a one-use drain to the original approval, live journal owner, fixed stage
+prefix, exact native gateway/controller and reviewed ledger preimage. Prepare
+source inventories before dispatch; defer SDK imports and constructors until
+the claim. Freeze once, exclusively publish a new supported marker and preserve
+unknown receipts, temporary files and arrivals. Source-checked imports must not
+trust unchecked bytecode or fall through to unreviewed SDK modules.
+
+Native refusal/primitive success does not qualify an actual SDK success path.
+Keep the controller unactivated while that path and races are tested. The staged
+SDK status helper omits active unbound turns; the final direct ledger guard does
+not fix that server contract or establish all-profile/worker admission closure.
+[Exact evidence and remaining gate](docs/contracts/2026-11-15-original-journal-gateway-drain-source.md).
+
 ## 15 November 2026 - wait for fresh initial idle within a separate fixed budget
 
 Treat readiness and registered work independently. Give initial known-busy
