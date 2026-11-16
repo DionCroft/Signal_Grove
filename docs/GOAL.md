@@ -8,6 +8,20 @@ Validate applicable unit/policy/native checks plus representative emulator and p
 
 APK delivery explicitly requested 12 November 2026: after the applicable release checks pass, publish the exact-source, original-production-key signed APK as a public versioned GitHub Release asset so the owner can download and update directly on the phone. Preserve the production package/signing identity, increase the Android version code, and retain the updater-compatible `hermes-agent-mobile-<version>.apk` filename convention. Include release notes, SHA256SUMS, the public signing certificate and reviewed SBOM/provenance; keep model weights and credentials out of the APK/release. Verify the public download matches the reviewed APK hash and confirm an in-place upgrade retains the saved Hermes connection/history and applicable local data. Return the direct APK download link. A source push or a temporary CI artifact alone does not fulfil this delivery requirement. Existing publication authorization covers this release; do not request it again.
 
+## Planning extension - 16 November 2026
+
+Add the ten planned offline-LLM packages OF-01 through OF-10 from
+[ON_DEVICE_AI_BACKLOG](ON_DEVICE_AI_BACKLOG.md) to the remaining scope:
+daily chat editing/regeneration/branching, history organization/portability,
+visible context limits, supported performance presets, guided model management,
+reliable transfers, local-document Q&A, writing actions, opt-in personal context
+and compatible offline voice/guided help. The backlog defines staged acceptance
+and preserves all existing boundaries and failures.
+
+The goal stays **paused**; implementation resumes only when requested.
+This extension replaces none of the full original audit, Hermes integration,
+offline-model, phone, security or signed-release acceptance requirements.
+
 ## Owner-requested pause - 15 November 2026
 
 The full goal is **paused**. All four acceptance priorities and every original

@@ -1,5 +1,19 @@
 # On-device AI delivery and acceptance
 
+## Offline feature extension - 16 November 2026
+
+The owner requested more local-LLM features following positive user feedback.
+The [new phased backlog](ON_DEVICE_AI_BACKLOG.md) adds ten planned work packages:
+editable/branched chat; searchable history/backup; context management; performance
+presets; model discovery/local-first setup; transfers/lifecycle; local documents;
+writing tools; opt-in personal profiles/memory/temporary chats; and offline voice/
+guided help. Each has explicit acceptance criteria and dependencies.
+
+This is a planning-only scope extension. The full goal remains **paused**.
+No new app feature, model support, APK, live service or physical test is claimed.
+The original four priorities, twelve-method external-model gate and final
+production/upgrade/security requirements remain; fix retained UI failures first.
+
 ## Owner-requested pause - 15 November 2026
 
 The full goal is **paused**. All four acceptance priorities and every original

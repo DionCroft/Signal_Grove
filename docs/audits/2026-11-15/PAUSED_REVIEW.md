@@ -89,6 +89,15 @@ b0b78c2002ee14770f903493457d704b96570c14498c4fac07929869703f0952.
 API37 failed raw log:
 fc2754c7ea4d4266d2957a82ebb7849bd6e46ccdc6d62ddff29811b2330356c2.
 
+## Planning follow-up - 16 November 2026
+
+At the owner's request, [ten planned offline-LLM feature packages](../../ON_DEVICE_AI_BACKLOG.md)
+are added to the remaining scope. These cover richer chat/history/context,
+performance/model management, selected local documents, writing actions,
+optional personal context, and compatible offline voice/guided help.
+The dated results above are unchanged; this follow-up does not resume the goal,
+implement features or qualify a new APK.
+
 ## Incomplete tasks retained in the goal
 
 | Area | Still required |
@@ -102,6 +111,7 @@ fc2754c7ea4d4266d2957a82ebb7849bd6e46ccdc6d62ddff29811b2330356c2.
 | Integrations/configuration | Remaining plugin update policies/bundles, channel/webhook pairing, typed memory/persona/context/reset, representative MCP/provider/skill integration and doctor/ContextGraph acceptance |
 | Remote end-to-end | Real auth renewal, approvals/clarifications, reconnect/recovery, images, multi-connection/profile isolation and integrations against supported Hermes versions and owner setup |
 | Offline models/helper | Complete twelve-method external-model/prerequisite gate; final-production import/download/resume/Stop/recovery/history binding/helper behavior, compatible user-model/template limits and full lifecycle acceptance |
+| Offline feature expansion | Deliver planned OF-01 through OF-10 in the [phased backlog](../../ON_DEVICE_AI_BACKLOG.md), each with its own offline/retention/device acceptance; all remain incomplete |
 | Phone experience | Exact notification targeting, background/reboot/battery/OEM behavior, sustained thermal/endurance, Bluetooth/audio, multi-connection, accessibility/scalable layout and performance; retain installed-recognizer dictation limit |
 | Production upgrade | Exact higher-version original-key APK in-place upgrade; signing/UID/schema/settings/data retention; current Pi chats/projects and applicable local models/history/live/offline behavior on normal package |
 | Release/maintenance | Consolidate qualified branches, final-source complete CI/compatibility/device gates, refreshed dependency/advisory/SBOM/provenance review, support/community docs, Mermaid/math assessment, version/notes/README reconciliation and signed public-download/in-app update verification |

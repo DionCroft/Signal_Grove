@@ -1,5 +1,13 @@
 # Signal Grove handover
 
+## Planning update - 16 November 2026
+
+The remaining scope now includes [OF-01 through OF-10](docs/ON_DEVICE_AI_BACKLOG.md)
+for richer offline chat/history/context, performance, models/transfers, selected
+documents, writing, opt-in personal context and supported offline voice/help.
+All are planned. Preserve the pause; do not begin implementation without resume.
+Existing UI failures and all earlier acceptance requirements stay open.
+
 15 November 2026: **paused at the owner's request**, confirmed by the goal API.
 Resume only when asked. Read [PROJECT_STATE](PROJECT_STATE.md),
 [GOAL](docs/GOAL.md), the [full audit](docs/AUDIT_EXECUTION_PLAN.md) and

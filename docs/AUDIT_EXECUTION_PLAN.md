@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Offline feature scope extension - 16 November 2026
+
+The [offline-LLM backlog](ON_DEVICE_AI_BACKLOG.md) adds ten planned acceptance
+packages, OF-01 through OF-10, to the remaining audit scope at the owner's request.
+Deliver everyday chat/history/context/performance improvements first, then model
+discovery/transfers and selected-document/writing/personal-context/voice features.
+Every package is planned, not delivered. The goal remains paused. Existing UI
+failures and all remote/SDK/worker/production requirements remain unchanged.
+
 ## Owner-requested pause - 15 November 2026
 
 The full goal is **paused**. All four acceptance priorities and every original

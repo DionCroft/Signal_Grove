@@ -1,5 +1,13 @@
 # Signal Grove project state
 
+## Planning update - 16 November 2026
+
+The owner added [ten planned offline-LLM features](docs/ON_DEVICE_AI_BACKLOG.md)
+to the remaining scope. Prioritize everyday chat, history, context and supported
+performance settings, then models/transfers and personal offline tools.
+The goal remains **paused**. This is documentation only; existing failed gates,
+the unfinished feature branch and current APK/source evidence are unchanged.
+
 15 November 2026. The goal API confirms **paused at the owner's request**.
 The [objective](docs/GOAL.md), [audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [on-device plan](docs/ON_DEVICE_AI_PLAN.md) retain every unresolved requirement.

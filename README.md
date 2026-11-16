@@ -51,6 +51,11 @@ The table below describes current `main`; release notes define what is included 
 
 Independent community project; not affiliated with or endorsed by NousResearch. Original pixel art and system fonts; no copied game assets.
 
+The [offline-LLM feature backlog](docs/ON_DEVICE_AI_BACKLOG.md) now includes
+planned chat editing/branching, searchable history, context/performance controls,
+model-library improvements and personal offline tools. These additions are
+planned while the goal is paused; they are not features of the current APK.
+
 ## Features on main
 
 | Area | What is implemented | Details |

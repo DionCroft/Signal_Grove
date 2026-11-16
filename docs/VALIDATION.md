@@ -1,5 +1,19 @@
 # Current development validation — audit follow-up
 
+## Offline feature planning only - 16 November 2026
+
+The owner requested more phone-local LLM features. The ten packages in
+[ON_DEVICE_AI_BACKLOG](ON_DEVICE_AI_BACKLOG.md) are planned/incomplete and linked
+from the goal, audit, roadmap, state/handover and paused inventory. Each defines
+acceptance; none is counted as implemented by this update. The goal remains paused.
+
+This chunk changes Markdown only. Validation checks new relative links, unique
+OF-01 through OF-10 identifiers/statuses, preservation of the original goal and
+priorities, Git formatting and the repository secret review. No Android code,
+APK, model/runtime, dependency, device or server changes; no fresh runtime tests
+or release qualification are claimed. Prior failed and pending results retain
+their exact scope.
+
 ## Owner-requested pause - 15 November 2026
 
 The full goal is **paused**. All four acceptance priorities and every original
