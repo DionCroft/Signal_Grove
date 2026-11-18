@@ -9,7 +9,7 @@ import java.util.concurrent.CancellationException
 import kotlinx.serialization.json.*
 
 enum class LocalReplyState { GENERATING, COMPLETE, CANCELLED, TOKEN_LIMIT, FAILED, INTERRUPTED }
-data class LocalExchange(val question: String, val reply: String = "", val state: LocalReplyState)
+data class LocalExchange(val question: String, val reply: String = "", val state: LocalReplyState, val generation: LocalGenerationSettings? = null)
 enum class LocalBranchKind { FORK, REGENERATE, EDIT }
 data class LocalBranchOrigin(val parentId: String, val parentUpdatedAt: Long, val exchangeIndex: Int,
     val kind: LocalBranchKind, val sourceSha256: String)
@@ -59,23 +59,26 @@ class LocalConversationStore(directory: File) {
             val text = Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes)).toString()
             val json = Json.parseToJsonElement(text).jsonObject
             val schema = json.getValue("schema").jsonPrimitive
-            require(!schema.isString && schema.int in 1..2 && json["id"]?.jsonPrimitive?.content == id)
+            require(!schema.isString && schema.int in 1..3 && json["id"]?.jsonPrimitive?.content == id)
             // Refuse unknown extensions rather than dropping them during a later save.
             require(json.keys == if (schema.int == 1) ROOT_KEYS else ROOT_KEYS + "origin")
-            val origin = if (schema.int == 2) json.getValue("origin").jsonObject.let { row ->
+            val originJson = if (schema.int >= 2) json.getValue("origin") else JsonNull
+            require(schema.int != 2 || originJson != JsonNull)
+            val origin = originJson.takeUnless { it == JsonNull }?.jsonObject?.let { row ->
                 require(row.keys == ORIGIN_KEYS)
                 require(!row.getValue("updated").jsonPrimitive.isString && !row.getValue("exchange").jsonPrimitive.isString)
                 LocalBranchOrigin(row.getValue("parent").jsonPrimitive.content, row.getValue("updated").jsonPrimitive.long,
                     row.getValue("exchange").jsonPrimitive.int, LocalBranchKind.valueOf(row.getValue("kind").jsonPrimitive.content),
                     row.getValue("source").jsonPrimitive.content)
-            } else null
+            }
             val value = LocalConversation(id, json.getValue("model").jsonPrimitive.content,
                 json.getValue("updated").jsonPrimitive.long, json.getValue("exchanges").jsonArray.map { item ->
                     val row = item.jsonObject
-                    require(row.keys == setOf("question", "reply", "state"))
-                    require(row.values.all { it is JsonPrimitive && it.isString })
+                    require(row.keys == if (schema.int < 3) ROW_KEYS else ROW_KEYS + "generation")
+                    require(ROW_KEYS.all { row.getValue(it) is JsonPrimitive && row.getValue(it).jsonPrimitive.isString })
                     LocalExchange(row.getValue("question").jsonPrimitive.content, row.getValue("reply").jsonPrimitive.content,
-                        LocalReplyState.valueOf(row.getValue("state").jsonPrimitive.content))
+                        LocalReplyState.valueOf(row.getValue("state").jsonPrimitive.content),
+                        if (schema.int == 3) row.getValue("generation").takeUnless { it == JsonNull }?.let(::readGeneration) else null)
                 }, origin)
             require(json.getValue("model").jsonPrimitive.isString && json.getValue("id").jsonPrimitive.isString &&
                 !json.getValue("updated").jsonPrimitive.isString)
@@ -91,23 +94,23 @@ class LocalConversationStore(directory: File) {
      * The one application controller serializes writes; this is not a multi-process database.
      * Parent files are never changed, including cancelled/failed/partially generated replies. */
     @Synchronized fun createBranch(expected: LocalConversation, exchangeIndex: Int, kind: LocalBranchKind,
-        now: Long, editedQuestion: String? = null): LocalConversation {
+        now: Long, editedQuestion: String? = null, generation: LocalGenerationSettings? = null): LocalConversation {
         val (source, bytes) = readSnapshot(expected.id)
         require(source == expected && source.exchanges.none { it.state == LocalReplyState.GENERATING })
         require(exchangeIndex in source.exchanges.indices && now >= 0)
         val selected = source.exchanges[exchangeIndex]
         val rows = when (kind) {
             LocalBranchKind.FORK -> {
-                require(editedQuestion == null && selected.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT))
+                require(editedQuestion == null && generation == null && selected.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT))
                 source.exchanges.take(exchangeIndex + 1)
             }
             LocalBranchKind.REGENERATE -> {
                 require(editedQuestion == null)
-                source.exchanges.take(exchangeIndex) + LocalExchange(selected.question, state = LocalReplyState.GENERATING)
+                source.exchanges.take(exchangeIndex) + LocalExchange(selected.question, state = LocalReplyState.GENERATING, generation = generation)
             }
             LocalBranchKind.EDIT -> {
                 require(editedQuestion != null)
-                source.exchanges.take(exchangeIndex) + LocalExchange(editedQuestion, state = LocalReplyState.GENERATING)
+                source.exchanges.take(exchangeIndex) + LocalExchange(editedQuestion, state = LocalReplyState.GENERATING, generation = generation)
             }
         }
         val origin = LocalBranchOrigin(source.id, source.updatedAt, exchangeIndex, kind,
@@ -138,14 +141,17 @@ class LocalConversationStore(directory: File) {
         validate(value)
         val target = file(value.id)
         if (!target.exists() && (directory.listFiles()?.count { it.name.endsWith(".json") } ?: throw LocalHistoryException()) >= MAX_CHATS) throw LocalHistoryException()
+        val schema = if (value.exchanges.any { it.generation != null }) 3 else if (value.origin != null) 2 else 1
         val json = buildJsonObject {
-            put("schema", if (value.origin == null) 1 else 2); put("id", value.id); put("model", value.modelSha256); put("updated", value.updatedAt)
+            put("schema", schema); put("id", value.id); put("model", value.modelSha256); put("updated", value.updatedAt)
+            if (schema == 3 && value.origin == null) put("origin", JsonNull)
             value.origin?.let { origin -> putJsonObject("origin") {
                 put("parent", origin.parentId); put("updated", origin.parentUpdatedAt); put("exchange", origin.exchangeIndex)
                 put("kind", origin.kind.name); put("source", origin.sourceSha256)
             } }
             putJsonArray("exchanges") { value.exchanges.forEach { row -> add(buildJsonObject {
                 put("question", row.question); put("reply", row.reply); put("state", row.state.name)
+                if (schema == 3) put("generation", row.generation?.let(::writeGeneration) ?: JsonNull)
             }) } }
         }.toString().toByteArray(Charsets.UTF_8)
         require(json.size <= MAX_BYTES)
@@ -170,13 +176,33 @@ class LocalConversationStore(directory: File) {
             require(it.parentId != value.id && it.parentUpdatedAt >= 0 && it.exchangeIndex in 0 until MAX_TURNS &&
                 it.sourceSha256.matches(Regex("[a-f0-9]{64}")))
         }
+        value.exchanges.forEach { it.generation?.validate() }
         require(value.exchanges.all { it.question.isNotBlank() && it.question.toByteArray().size <= 8192 && it.reply.toByteArray().size <= 131072 })
         require(value.exchanges.withIndex().all { (i, row) -> row.state != LocalReplyState.GENERATING || i == value.exchanges.lastIndex })
+    }
+    private fun readGeneration(element: JsonElement): LocalGenerationSettings {
+        val row = element.jsonObject
+        require(row.keys == setOf("context", "threads", "output", "runtime"))
+        require(listOf("context", "threads", "output").all { !row.getValue(it).jsonPrimitive.isString })
+        val runtime = row.getValue("runtime").takeUnless { it == JsonNull }?.jsonObject?.let {
+            require(it.keys == setOf("source", "sampling") && it.values.all { value -> value is JsonPrimitive && value.isString })
+            LocalRuntimePolicy(it.getValue("source").jsonPrimitive.content,
+                LocalSamplingPolicy.valueOf(it.getValue("sampling").jsonPrimitive.content))
+        }
+        return LocalGenerationSettings(row.getValue("context").jsonPrimitive.int, row.getValue("threads").jsonPrimitive.int,
+            row.getValue("output").jsonPrimitive.int, runtime).also { it.validate() }
+    }
+    private fun writeGeneration(value: LocalGenerationSettings) = buildJsonObject {
+        put("context", value.contextTokens); put("threads", value.threads); put("output", value.maxOutputTokens)
+        put("runtime", value.runtime?.let { runtime -> buildJsonObject {
+            put("source", runtime.sourceSha256); put("sampling", runtime.sampling.name)
+        } } ?: JsonNull)
     }
     companion object {
         const val MAX_CHATS = 50
         const val MAX_TURNS = 30
         private const val MAX_BYTES = 4 * 1024 * 1024
+        private val ROW_KEYS = setOf("question", "reply", "state")
         private val ROOT_KEYS = setOf("schema", "id", "model", "updated", "exchanges")
         private val ORIGIN_KEYS = setOf("parent", "updated", "exchange", "kind", "source")
     }

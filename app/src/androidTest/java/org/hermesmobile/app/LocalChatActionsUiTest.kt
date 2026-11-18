@@ -92,7 +92,41 @@ class LocalChatActionsUiTest {
     @Test fun parentNavigationIsReadOnlyAndUsesTheRecordedParentId() {
         val child = original.copy(id = java.util.UUID.randomUUID().toString(), origin = LocalBranchOrigin(original.id, 1, 0, LocalBranchKind.FORK, "b".repeat(64)))
         state = state.copy(chat = child, history = listOf(LocalConversationSummary(original.id, hash, 1, "Original", LocalReplyState.COMPLETE)))
-        show(); compose.onNodeWithTag("phone-open-parent").performClick()
+        show(); compose.onNodeWithTag("phone-open-parent").performScrollTo().performClick()
         assertEquals(listOf(original.id), opened); assertTrue(requests.isEmpty()); assertEquals(0, sends)
+    }
+
+    @Test fun olderRepliesShowUnknownSettingsWithoutInventingValues() {
+        show(); compose.onNodeWithTag("phone-generation-0").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-generation-unknown").assertExists()
+        compose.onNodeWithTag("phone-generation-context").assertDoesNotExist()
+        compose.onNodeWithTag("phone-runtime-source").assertDoesNotExist()
+        compose.onNodeWithTag("phone-generation-close").assertIsDisplayed().performClick()
+        assertTrue(requests.isEmpty()); assertEquals(0, sends)
+    }
+    @Test fun recordedSettingsRemainReadableWithoutLoadingAModel() {
+        val recorded = LocalGenerationSettings(1024, 2, 384, LocalRuntimePolicy("b".repeat(64), LocalSamplingPolicy.GREEDY_MODEL_METADATA_V1))
+        state = state.copy(loaded = null, chat = original.copy(exchanges = listOf(original.exchanges.single().copy(generation = recorded))))
+        show(bilingual = true)
+        // The unloaded-model notice can fill the viewport; materialize this message through the list first.
+        compose.onNodeWithTag("phone-messages").performScrollToNode(hasTestTag("phone-generation-0"))
+        compose.onNodeWithTag("phone-generation-0").performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-generation-context").performScrollTo().assertIsDisplayed().assertTextEquals(
+            listOf(Words.PhoneGenerationContext.en, Words.PhoneGenerationContext.zh, Words.PhoneGenerationContext.pin)
+                .joinToString("\n").replace("{number}", "1024"))
+        compose.onNodeWithTag("phone-runtime-source").performScrollTo().assertIsDisplayed().assertTextEquals("b".repeat(64))
+        compose.onNodeWithTag("phone-generation-close").assertIsDisplayed().performClick()
+        assertNull(state.loaded); assertTrue(requests.isEmpty()); assertEquals(0, sends)
+    }
+    @Test fun bilingualBranchOriginScrollsWithHistoryAndLeavesTheComposerReachable() {
+        val child = original.copy(id = java.util.UUID.randomUUID().toString(), origin = LocalBranchOrigin(original.id, 1, 0, LocalBranchKind.FORK, "b".repeat(64)))
+        state = state.copy(loaded = null, chat = child, history = listOf(LocalConversationSummary(original.id, hash, 1, "Original", LocalReplyState.COMPLETE)))
+        show(bilingual = true)
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed(); compose.onNodeWithTag("phone-send").assertIsDisplayed().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-open-parent").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-messages").performScrollToNode(hasTestTag("phone-branch-0"))
+        compose.onNodeWithTag("phone-branch-0").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+        compose.onNodeWithTag("phone-branch-cancel").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed(); assertTrue(requests.isEmpty()); assertEquals(0, sends)
     }
 }

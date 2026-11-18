@@ -31,7 +31,7 @@ This order is not a new release promise, version assignment or separate goal.
 
 ## OF-01: Edit, regenerate and branch conversations
 
-**Status: in progress (storage, reviewed controls and scoped drafts).** [The tested increment](contracts/2026-11-18-local-chat-actions.md) preserves original chats, generates once per explicit action and retains unsent drafts. Native/phone acceptance, generation settings, formatting and accessibility remain. Add edit-and-send, explicitly requested regeneration and
+**Status: in progress (reviewed actions, scoped drafts and request provenance).** [The tested increment](contracts/2026-11-18-local-request-provenance.md) retains original chats and records per-turn request limits/runtime source identity without inventing legacy data. Native-model/phone acceptance, formatting and accessibility remain. Add edit-and-send, explicitly requested regeneration and
 branch-from-message. Keep original exchanges accessible and record parentage,
 model fingerprint and generation settings. Add readable Markdown/code blocks,
 code copying, clear progress/completion-limit messages and usable long replies.

@@ -16,6 +16,10 @@ import org.junit.rules.TemporaryFolder
 class LocalAiControllerTest {
     @get:Rule val temp = TemporaryFolder()
     private class Engine : LocalInference {
+        var runtime: LocalRuntimePolicy? = null
+        override val runtimePolicy: LocalRuntimePolicy? get() = runtime
+        val loadedSettings = mutableListOf<Pair<Int, Int>>()
+        val outputCaps = mutableListOf<Int>()
         var loads = 0; var unloads = 0; var cancels = 0
         var blockGeneration = false
         var reply = "Phone reply"
@@ -23,9 +27,9 @@ class LocalAiControllerTest {
         var unloadGate: CompletableDeferred<Unit>? = null
         val requests = mutableListOf<List<LocalChatMessage>>()
         val helperChoices = mutableListOf<List<String>>()
-        override suspend fun load(file: File, context: Int, threads: Int) { assertTrue(file.isFile); loads++ }
+        override suspend fun load(file: File, context: Int, threads: Int) { assertTrue(file.isFile); loadedSettings.add(context to threads); loads++ }
         override suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int, onText: (String) -> Unit): LocalGenerationEnd {
-            requests.add(messages.toList()); failure?.let { throw it }; onText(reply)
+            outputCaps.add(maxTokens); requests.add(messages.toList()); failure?.let { throw it }; onText(reply)
             if (blockGeneration) awaitCancellation()
             return LocalGenerationEnd.COMPLETE
         }
@@ -382,6 +386,31 @@ class LocalAiControllerTest {
             assertEquals(value, LocalConversationStore(history).load(value.id)); published++
         }; advanceUntilIdle()
         assertEquals(1, published); assertEquals(1, engine.requests.size)
+        c.leave(); advanceUntilIdle()
+    }
+
+    @Test fun requestSettingsMatchTheLoadAndGenerationAndRegenerationRecordsTheNewLoad() = runTest {
+        val root = temp.newFolder(); val item = model(root); val history = temp.newFolder(); val engine = Engine()
+        engine.runtime = LocalRuntimePolicy("b".repeat(64), LocalSamplingPolicy.GREEDY_MODEL_METADATA_V1)
+        val c = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(item, 512); advanceUntilIdle(); c.send("Original"); advanceUntilIdle()
+        val parent = c.state.value.chat!!; val original = parent.exchanges.single().generation!!
+        assertEquals(512, original.contextTokens); assertEquals(engine.loadedSettings.first().second, original.threads)
+        assertEquals(engine.outputCaps.single(), original.maxOutputTokens); assertEquals(engine.runtime, original.runtime)
+        c.load(item, 1024); advanceUntilIdle(); c.branch(parent, 0, LocalBranchKind.REGENERATE); advanceUntilIdle()
+        val child = c.state.value.chat!!; val current = child.exchanges.single().generation!!
+        assertEquals(1024, current.contextTokens); assertEquals(engine.loadedSettings.last().second, current.threads)
+        assertEquals(engine.outputCaps.last(), current.maxOutputTokens); assertEquals(engine.runtime, current.runtime)
+        assertEquals(original, LocalConversationStore(history).load(parent.id).exchanges.single().generation)
+        assertEquals(current, LocalConversationStore(history).load(child.id).exchanges.single().generation)
+        c.leave(); advanceUntilIdle()
+    }
+    @Test fun unidentifiedEngineDoesNotClaimTheNativeSamplingPolicy() = runTest {
+        val root = temp.newFolder(); val item = model(root); val engine = Engine()
+        val c = controller(root, temp.newFolder(), engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(item, 512); advanceUntilIdle(); c.send("Unknown runtime"); advanceUntilIdle()
+        val record = c.state.value.chat!!.exchanges.single().generation!!
+        assertEquals(512, record.contextTokens); assertNull(record.runtime)
         c.leave(); advanceUntilIdle()
     }
 }

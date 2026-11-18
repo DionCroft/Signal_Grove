@@ -204,6 +204,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 
 @Composable private fun ColumnScope.PhoneChat(state: LocalAiState, draft: String, change: (String) -> Unit, actions: LocalAiActions, review: (String) -> Unit) {
     var branchReview by remember { mutableStateOf<PhoneBranchReview?>(null) }
+    var generationReview by remember { mutableStateOf<PhoneGenerationReview?>(null) }
     val loaded = state.loaded
     val mismatch = loaded != null && state.chat?.let {it.modelSha256 != loaded.sha256} == true
     val full = (state.chat?.exchanges?.size ?: 0) >= 30
@@ -211,13 +212,15 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         Text(loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"), style = MaterialTheme.typography.labelMedium)
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
     }
-    state.chat?.origin?.let { origin ->
-        Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()), style = MaterialTheme.typography.labelSmall)
-        if (state.history.any { it.id == origin.parentId }) TextButton({actions.openChat(origin.parentId)}, enabled = !state.busy,
-            modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
-    }
     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val exchanges = state.chat?.exchanges.orEmpty()
+        state.chat?.origin?.let { origin -> item {
+            Column {
+                Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()), style = MaterialTheme.typography.labelSmall)
+                if (state.history.any { it.id == origin.parentId }) TextButton({actions.openChat(origin.parentId)}, enabled = !state.busy,
+                    modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
+            }
+        } }
         if (loaded == null) item {Text(label(Words.PhoneNotLoaded))}
         if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
         if (exchanges.isEmpty()) item {Text(label(Words.PhoneEmpty))}
@@ -229,6 +232,10 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 SelectionContainer {Text(row.reply)}
                 Text(label(phoneReplyState(row.state)), style = MaterialTheme.typography.labelSmall)
                 if (row.reply.isNotBlank() && row.state != LocalReplyState.GENERATING) TextButton({review(row.reply)}) {Text(label(Words.PhoneReview))}
+                TextButton({generationReview = PhoneGenerationReview(state.chat!!.modelSha256, row.generation)},
+                    modifier = Modifier.testTag("phone-generation-$index")) {Text(label(Words.PhoneGenerationSettings))}
+                if (row.state !in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT, LocalReplyState.GENERATING))
+                    Text(label(Words.PhoneForkNeedsReply), style = MaterialTheme.typography.bodySmall)
                 val source = state.chat!!
                 val allowed = !state.busy && row.state != LocalReplyState.GENERATING && state.history.size < LocalConversationStore.MAX_CHATS
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -243,6 +250,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }
         }
     }
+    generationReview?.let { PhoneGenerationDialog(it) { generationReview = null } }
     branchReview?.let { selected ->
         PhoneBranchDialog(selected, state, { edited ->
             branchReview = null
@@ -254,6 +262,35 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         OutlinedTextField(draft, change, Modifier.weight(1f).testTag("phone-draft"), placeholder = {Text(label(Words.PhoneMessage))}, maxLines = 4, enabled = !state.busy)
         IconButton(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && draft.isNotBlank() && draft.toByteArray().size <= 8192,
             modifier = Modifier.testTag("phone-send")) {Icon(Icons.AutoMirrored.Outlined.Send, label(Words.Send))}
+    }
+}
+
+private data class PhoneGenerationReview(val modelSha256: String, val settings: LocalGenerationSettings?)
+
+@Composable private fun PhoneGenerationDialog(review: PhoneGenerationReview, close: () -> Unit) {
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(label(Words.PhoneGenerationSettings), style = MaterialTheme.typography.headlineSmall)
+                    Text(label(Words.PhoneHelperModel).replace("{sha}", review.modelSha256))
+                    val settings = review.settings
+                    if (settings == null) Text(label(Words.PhoneGenerationUnknown), Modifier.testTag("phone-generation-unknown"))
+                    else {
+                        Text(label(Words.PhoneGenerationRequestHelp))
+                        Text(label(Words.PhoneGenerationContext).replace("{number}", settings.contextTokens.toString()), Modifier.testTag("phone-generation-context"))
+                        Text(label(Words.PhoneGenerationThreads).replace("{number}", settings.threads.toString()))
+                        Text(label(Words.PhoneGenerationOutput).replace("{number}", settings.maxOutputTokens.toString()))
+                        settings.runtime?.let { runtime ->
+                            Text(label(Words.PhoneGreedyPolicy))
+                            Text(label(Words.PhoneRuntimeSource))
+                            SelectionContainer {Text(runtime.sourceSha256, Modifier.testTag("phone-runtime-source"))}
+                        } ?: Text(label(Words.PhoneRuntimeUnknown))
+                    }
+                }
+                TextButton(close, Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("phone-generation-close")) {Text(label(Words.Close))}
+            }
+        }
     }
 }
 

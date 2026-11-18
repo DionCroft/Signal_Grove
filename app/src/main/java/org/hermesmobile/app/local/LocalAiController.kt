@@ -27,6 +27,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     private val conversations = LocalConversationStore(historyRoot)
     private val downloads = LocalModelDownload(store, ioDispatcher = ioDispatcher)
     private var engine: LocalInference? = null
+    private var loadedConfiguration: Pair<Int, Int>? = null
     private var job: Job? = null
     private var leaving = false
     private var recovered = false
@@ -68,18 +69,21 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     fun load(model: InstalledLocalModel, context: Int = 2048) = action("loading") {
         check(supported)
         require(context in 512..4096 && context <= model.metadata.trainedContext)
+        loadedConfiguration = null
         engine?.unload(); mutable.update { it.copy(loaded = null) }
         // Measure after releasing the old weights so a switch can reclaim their RAM.
         // This conservative estimate cannot guarantee that native allocation will succeed.
         if (freeMemory() < model.metadata.bytes * 2 + 256L * 1024 * 1024) throw LocalModelStorageException("insufficient_memory")
         val file = io { val current = currentCoroutineContext(); store.verifiedFile(model.sha256) { current.ensureActive() } }
         val target = engine ?: engineFactory().also { engine = it }
-        target.load(file, context, minOf(4, Runtime.getRuntime().availableProcessors().coerceAtLeast(1)))
+        val threads = minOf(4, Runtime.getRuntime().availableProcessors().coerceAtLeast(1))
+        target.load(file, context, threads)
+        loadedConfiguration = context to threads
         mutable.update { it.copy(loaded = model) }
     }
-    fun unload() = action("unloading") { engine?.unload(); mutable.update { it.copy(loaded = null) } }
+    fun unload() = action("unloading") { engine?.unload(); loadedConfiguration = null; mutable.update { it.copy(loaded = null) } }
     fun deleteModel(model: InstalledLocalModel) = action("deleting") {
-        if (mutable.value.loaded?.sha256 == model.sha256) { engine?.unload(); mutable.update { it.copy(loaded = null) } }
+        if (mutable.value.loaded?.sha256 == model.sha256) { engine?.unload(); loadedConfiguration = null; mutable.update { it.copy(loaded = null) } }
         io { store.delete(model.sha256) }; refresh()
     }
     /** Select a fresh unsent question without deleting history, loading or generating. */
@@ -110,7 +114,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         require(prior.modelSha256 == model.sha256 && prior.exchanges.size < LocalConversationStore.MAX_TURNS)
         runGeneration({
             val pending = prior.copy(updatedAt = System.currentTimeMillis(),
-                exchanges = prior.exchanges + LocalExchange(question, state = LocalReplyState.GENERATING))
+                exchanges = prior.exchanges + LocalExchange(question, state = LocalReplyState.GENERATING, generation = generationSettings()))
             conversations.save(pending)
             pending
         }, onPublished)
@@ -133,7 +137,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             } else {
                 val loaded = mutable.value.loaded ?: throw LocalEngineException(4)
                 require(loaded.sha256 == expected.modelSha256)
-                runGeneration({conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis(), editedQuestion)}, onSelected)
+                runGeneration({conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis(), editedQuestion, generationSettings())}, onSelected)
             }
         }
 
@@ -158,7 +162,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             }
             if (messages.sumOf {it.text.toByteArray().size} > 65_536) throw LocalEngineException(2)
             currentCoroutineContext().ensureActive()
-            terminal = when (engine!!.generate(messages) { text ->
+            terminal = when (engine!!.generate(messages, active.exchanges.last().generation!!.maxOutputTokens) { text ->
                 reply = text
                 mutable.update { it.copy(chat = active.copy(exchanges = active.exchanges.dropLast(1) + active.exchanges.last().copy(reply = text))) }
             }) {
@@ -178,6 +182,11 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 }
             }
         }
+    }
+
+    private fun generationSettings(): LocalGenerationSettings {
+        val (context, threads) = checkNotNull(loadedConfiguration)
+        return LocalGenerationSettings(context, threads, 384, engine?.runtimePolicy).also { it.validate() }
     }
 
     fun help(topic: LocalHelpTopic, observations: LocalHelpObservations?) = action("generating") {
@@ -213,6 +222,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             lock.withLock {
                 try { engine?.unload() }
                 finally {
+                    loadedConfiguration = null
                     mutable.update { it.copy(loaded = null, busy = false, status = "idle", transfer = null, helper = null) }
                     leaving = false; guard.set(owner, false)
                 }

@@ -5,6 +5,15 @@ Fix UI blockers first, then OF-01 through OF-10, with tested commits/pushes.
 The [full goal](docs/GOAL.md), [audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain every original requirement.
 
+## OF-01 request provenance — 18 November 2026
+
+New turns record request settings and native source identity; legacy replies
+explicitly show unknown. Regeneration and recovery retain each turn's metadata.
+1,045 JVM cases and zero-error lint pass, with 24 selected native UI/filesystem
+methods on each API26/API37. Failed test-navigation/label attempts remain bound
+to their original source. Formatting, accessibility and real-model/phone gates
+remain before OF-01 is complete. [Evidence](docs/contracts/2026-11-18-local-request-provenance.md).
+
 ## OF-01 reviewed controls — 18 November 2026
 
 Edit/send, regenerate and branch now require review and preserve the original.

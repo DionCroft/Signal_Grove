@@ -16,11 +16,12 @@ regressions. Full audit and final release acceptance remain open.
 [Current UI evidence](docs/contracts/2026-11-18-ui-readiness-and-phone-draft-viewport.md).
 
 Unreleased `feat/offline-chat-actions` adds reviewed edit/send, regeneration and
-branches with separate chat drafts. It passes **1,036 JVM cases** and **21 selected
-local UI/filesystem methods on each API26/API37**, with zero lint errors (51/50
-warnings). OF-01 still needs reply provenance/formatting and final phone gates;
-these controls are not in the published APK or `main` yet.
-[Feature-branch evidence](docs/contracts/2026-11-18-local-chat-actions.md).
+branches with separate chat drafts and recorded request settings. It passes
+**1,045 JVM cases** and **24 selected local UI/filesystem methods on each API26/
+API37**, with zero lint errors (51/50 warnings). OF-01 still needs reply formatting,
+accessibility and final model/phone gates; these controls are not in the published
+APK or `main` yet.
+[Feature-branch evidence](docs/contracts/2026-11-18-local-request-provenance.md).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 

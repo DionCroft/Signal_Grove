@@ -1,9 +1,20 @@
 import java.io.File
+import java.security.MessageDigest
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
+// Bind the recorded native policy to its reviewed sources and Android build configuration.
+// This is a source fingerprint, not an APK/binary digest or a runtime performance claim.
+val localRuntimeSourceDigest = MessageDigest.getInstance("SHA-256").apply {
+    val inputs = fileTree("src/main/cpp") { include("**/*.cpp", "**/*.h", "CMakeLists.txt") }.files + file("build.gradle.kts")
+    inputs.sortedBy { it.relativeTo(projectDir).invariantSeparatorsPath }.forEach {
+        update(it.relativeTo(projectDir).invariantSeparatorsPath.toByteArray(Charsets.UTF_8))
+        update(0.toByte()); update(it.readBytes()); update(0.toByte())
+    }
+}.digest().joinToString("") { "%02x".format(it) }
+
 android {
     namespace = "org.hermesmobile.app"
     compileSdk = 37
@@ -15,6 +26,7 @@ android {
         versionCode = providers.gradleProperty("hermesVersionCode").orNull?.toInt()?.also {require(it>0)} ?: 114
         versionName = providers.gradleProperty("hermesVersionName").orNull ?: "1.1.0-beta.9"
         require(versionName!!.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?")))
+        buildConfigField("String", "LOCAL_RUNTIME_SOURCE_SHA256", "\"$localRuntimeSourceDigest\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64") }
         externalNativeBuild { cmake { arguments += listOf("-DCMAKE_BUILD_TYPE=Release", "-DANDROID_STL=c++_shared") } }

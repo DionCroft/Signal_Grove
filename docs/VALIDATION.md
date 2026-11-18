@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## OF-01 request provenance — 18 November 2026
+
+1,045 distinct JVM cases/100 XML reports pass, zero skips/errors/failures. Required
+APK builds and zero-error lint pass (51 debug/50 release warnings). The same APK
+pair passes 24 selected native synthetic UI/real filesystem methods on each
+API26/API37. Runtime source hashing is independently reproduced. Initial 22/24
+and test-only 23/24 failures remain preserved; visible-control and complete-label
+assertions pass after correcting test navigation/matching. No model inference or
+physical acceptance is claimed. [Bindings and limits](contracts/2026-11-18-local-request-provenance.md).
+
 ## OF-01 reviewed controls — 18 November 2026
 
 1,036 distinct JVM cases/99 reports pass without skips/errors/failures, including

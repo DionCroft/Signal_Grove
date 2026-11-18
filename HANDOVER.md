@@ -5,6 +5,12 @@ Read [PROJECT_STATE](PROJECT_STATE.md), [GOAL](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [ordered offline backlog](docs/ON_DEVICE_AI_BACKLOG.md).
 
+OF-01 request provenance is tested: 1,045 JVM cases, zero-error lint and 24
+selected native methods on each API26/API37. Source fingerprint and request
+limits are stored per new turn; older replies stay unknown. Failed intermediate
+test navigation/matching results are retained. Continue passive reply formatting,
+long replies, real-model/phone and accessibility gates. [Evidence](docs/contracts/2026-11-18-local-request-provenance.md).
+
 OF-01 reviewed controls and scoped drafts are implemented on the feature branch:
 1,036 JVM cases, zero-error lint and 21 selected synthetic UI/actual filesystem
 methods on each API26/API37. No physical/model inference acceptance or new APK

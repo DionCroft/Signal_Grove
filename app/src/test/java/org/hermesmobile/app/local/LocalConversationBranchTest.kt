@@ -104,7 +104,7 @@ class LocalConversationBranchTest {
         val root = temp.newFolder(); val store = LocalConversationStore(root); val parent = source(); store.save(parent)
         val child = store.createBranch(parent, 0, LocalBranchKind.FORK, 200); val valid = String(bytes(root, child), Charsets.UTF_8)
         val file = File(root, "${child.id}.json")
-        val invalid = listOf(valid.replace("\"schema\":2", "\"schema\":3"),
+        val invalid = listOf(valid.replace("\"schema\":2", "\"schema\":4"),
             valid.replace("\"schema\":2", "\"schema\":\"2\""), valid.replace("\"origin\":", "\"future\":true,\"origin\":"),
             valid.replace("\"exchange\":0", "\"exchange\":30"), valid.replace("\"exchange\":0", "\"exchange\":\"0\""),
             valid.replace("\"parent\":\"${parent.id}\"", "\"parent\":\"../remote\""),
