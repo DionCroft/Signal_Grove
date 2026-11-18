@@ -229,7 +229,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             HermesCard {
                 SelectionContainer {Text(row.question)}
                 HorizontalDivider()
-                SelectionContainer {Text(row.reply)}
+                PhoneReply(row.reply, row.state, index)
                 Text(label(phoneReplyState(row.state)), style = MaterialTheme.typography.labelSmall)
                 if (row.reply.isNotBlank() && row.state != LocalReplyState.GENERATING) TextButton({review(row.reply)}) {Text(label(Words.PhoneReview))}
                 TextButton({generationReview = PhoneGenerationReview(state.chat!!.modelSha256, row.generation)},

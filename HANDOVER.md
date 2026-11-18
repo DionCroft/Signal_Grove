@@ -1,46 +1,34 @@
 # Signal Grove handover
 
-18 November 2026. The owner resumed the goal; **keep it active**.
-Read [PROJECT_STATE](PROJECT_STATE.md), [GOAL](docs/GOAL.md),
-[full audit](docs/AUDIT_EXECUTION_PLAN.md) and
-[ordered offline backlog](docs/ON_DEVICE_AI_BACKLOG.md).
+18 November 2026. The full goal is **active**. Read [PROJECT_STATE](PROJECT_STATE.md),
+[GOAL](docs/GOAL.md), [audit](docs/AUDIT_EXECUTION_PLAN.md) and the ordered
+[offline backlog](docs/ON_DEVICE_AI_BACKLOG.md). Do not drop original requirements.
 
-OF-01 request provenance is tested: 1,045 JVM cases, zero-error lint and 24
-selected native methods on each API26/API37. Source fingerprint and request
-limits are stored per new turn; older replies stay unknown. Failed intermediate
-test navigation/matching results are retained. Continue passive reply formatting,
-long replies, real-model/phone and accessibility gates. [Evidence](docs/contracts/2026-11-18-local-request-provenance.md).
+Main `a992cf4` contains the UI readiness/native-viewport fixes. Exact-tree PR
+evidence independently verifies 1,149/1,150 standard API26/API37 cases; both main
+Android and Windows runs pass. Main's upstream scan fails closed: official stable
+v0.23.2/current-main source trees lack tracked modules. Review moved/replaced
+contracts before adjusting the checker/baseline; retain all prior findings.
 
-OF-01 reviewed controls and scoped drafts are implemented on the feature branch:
-1,036 JVM cases, zero-error lint and 21 selected synthetic UI/actual filesystem
-methods on each API26/API37. No physical/model inference acceptance or new APK
-release is claimed. Next finish generation settings, passive Markdown/code,
-long-reply/accessibility and native/phone gates. [Evidence](docs/contracts/2026-11-18-local-chat-actions.md).
+The unreleased feature branch implements OF-01 storage, reviewed actions, scoped
+drafts, request/source identity and passive selectable Markdown/code/full-text
+readers. Latest source-bound build: 1,053 JVM cases/101 reports, zero-error lint
+(51/50 warnings), app/test APKs; 36 exact selected native methods on each API26/
+API37, no skips. Read the [reader contract](docs/contracts/2026-11-18-local-reply-reader.md)
+and linked earlier contracts. Keep old failed/unknown evidence and strict
+single-input/readiness assertions. Ordinary isolated-emulator restarts preceded
+the latest run after boot-time System UI ANRs; this does not prove every old cause.
 
-OF-01 storage foundation is tested: 1,023 JVM cases, zero-error lint and required
-APK builds. Parent bytes are preserved; children record origin and model hash.
-UI controls, controller/draft integration, generation settings, rendering and
-native/phone acceptance remain. [Exact scope](docs/contracts/2026-11-18-local-branch-storage.md).
+Next: final OF-01 phone/native model branch/edit/regenerate/cancel/no-replay and
+accessibility gates; then OF-02. Owner phone is connected, normal code112 app
+untouched; debug package was absent at preflight. Re-verify exact package/UID/
+signer/model/history before installation and keep production data separate.
+The existing reviewed 1,049,615,680-byte LFM3 file in Downloads matches its pinned
+SHA-256. A debug install is not an upgrade-retention proof. Do not reset data,
+rewrite histories, replay uncertain work or install CI-signed APKs on that phone.
 
-The UI readiness/native-viewport chunk passes 1,011 JVM tests, zero-error lint
-(51 debug/50 release warnings) and the same 27 selected native methods on each
-API26/API37. New guards observe enabled/stable Home and fresh complete native
-footer geometry, then dispatch once. Actual late keyboard resampling preserves
-draft/history. [Exact snapshots, receipts and failures](docs/contracts/2026-11-18-ui-readiness-and-phone-draft-viewport.md).
-
-Next: exact-head hosted standard CI, then OF-01 before the rest of the backlog.
-Preserve all original failures and cause uncertainty; fresh27-method passes are
-not complete standard, real-server, physical-device or model acceptance. Old
-images retain Google Search crash-dialog and API37 framework/System UI faults;
-they are stopped normally after evidence capture, without reset or suppression.
-The final exact pair is verified on new isolated images.
-
-No new offline feature or APK release is claimed here. Complete the original
-Hermes/shutdown, corrected SDK/PM/fleet, real project/workspace/worker/automation/
-integration, physical phone/external-model/security and signed-upgrade gates.
-Inspect exact receipts before any retry. No uncertain work is auto-replayed.
-
-No physical phone is currently enrolled by this stage. Preserve all original
-package/signing keys, connection/history/models and prior approved boundaries.
-Isolated Pi staging does not authorize live cutover, canonical contexts/policy/
-launcher/grant changes, private live backup or restart.
+Full Hermes/shutdown, corrected SDK/PM/fleet, project/workspace/worker/automation/
+integration and final model/lifecycle/security/original-key release gates remain.
+Beta.9 is unchanged; no new release, Pi deployment, credential/model/default/
+grant change. Original isolated Pi scope does not authorize live cutover, canonical
+policy/PM/launcher/private backup or restart changes.

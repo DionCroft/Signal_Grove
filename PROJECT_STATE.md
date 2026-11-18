@@ -1,72 +1,46 @@
 # Signal Grove project state
 
 18 November 2026. The full goal is **active**, explicitly resumed by the owner.
-Fix UI blockers first, then OF-01 through OF-10, with tested commits/pushes.
-The [full goal](docs/GOAL.md), [audit](docs/AUDIT_EXECUTION_PLAN.md) and
+Fix UI blockers first, then OF-01 through OF-10; commit and push tested chunks.
+The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain every original requirement.
 
-## OF-01 request provenance — 18 November 2026
+## Current source and validation
 
-New turns record request settings and native source identity; legacy replies
-explicitly show unknown. Regeneration and recovery retain each turn's metadata.
-1,045 JVM cases and zero-error lint pass, with 24 selected native UI/filesystem
-methods on each API26/API37. Failed test-navigation/label attempts remain bound
-to their original source. Formatting, accessibility and real-model/phone gates
-remain before OF-01 is complete. [Evidence](docs/contracts/2026-11-18-local-request-provenance.md).
+UI readiness/native-viewport fixes are on main at `a992cf4`. The reviewed head,
+actual PR checkout and main merge have identical trees. Independent raw PR
+evidence verifies 1,149 API26 / 1,150 API37 standard methods, no skips, 1,011 JVM
+cases and zero-error hosted lint (52 debug/51 release warnings). Main's Android
+and Windows runs pass. Original failures and cause uncertainty remain preserved.
 
-## OF-01 reviewed controls — 18 November 2026
+Unreleased `feat/offline-chat-actions` now adds reviewed edit/send, regeneration
+and branches, per-chat unsent drafts, parent/model/request provenance and a
+passive Markdown/code/full-text reader. Original histories remain accessible;
+legacy settings stay unknown. The same source-bound APK pair passes 36 focused
+native methods on each API26/API37, 1,053 JVM cases/101 reports, required builds
+and zero-error lint (51 debug/50 release warnings). Earlier reader/keyboard and
+emulator System UI failures remain documented. These are synthetic UI and real
+filesystem checks; physical model/UI/accessibility acceptance is still open.
+[Exact behavior and evidence](docs/contracts/2026-11-18-local-reply-reader.md).
 
-Edit/send, regenerate and branch now require review and preserve the original.
-Unsent drafts follow each phone chat and clear after durable publication.
-1,036 JVM cases and zero-error lint pass; the same APK pair passes 21 selected
-methods on each API26/API37 (synthetic UI and real private-file storage).
-This is unreleased feature-branch work. Generation settings, passive formatting,
-long replies and final native/phone/accessibility gates remain for OF-01.
-
-[Exact evidence](docs/contracts/2026-11-18-local-chat-actions.md).
-
-## OF-01 storage increment — 18 November 2026
-
-Branch storage now preserves the exact parent and records child provenance,
-with legacy read-only compatibility and no automatic replay. All 1,023 JVM
-cases pass; lint has zero errors (51 debug/50 release warnings), and required
-APKs build. This internal increment does not expose the actions or complete
-OF-01. Next implement reviewed controls, one generation per action, scoped
-drafts, reply provenance/formatting and device gates.
-
-[Scope and evidence](docs/contracts/2026-11-18-local-branch-storage.md).
-
-## Resumed UI checkpoint - 18 November 2026
-
-The full goal is active at the owner's request. UI navigation now observes the
-actual enabled Home action and requires Chat after one click. Phone-draft Cancel
-uses fresh complete-control/native-caption geometry within the original bounded
-readiness budget. Four new regressions include an actual late keyboard; no input
-retry or submission/retention assertion is removed.
-
-The same final APK pair passes 27/27 selected UI/history methods on each API26/
-API37, plus 1,011 JVM cases/97 reports and zero-error lint (51 debug/50 release
-warnings). Earlier failures, emulator framework/overlay faults and historical
-cause uncertainty remain preserved; full standard/physical/release gates are
-separate. OF-01 is next, followed by the remaining offline backlog. No new offline
-feature or APK release is claimed by this UI checkpoint.
-
-[Exact evidence and limits](docs/contracts/2026-11-18-ui-readiness-and-phone-draft-viewport.md).
+Main upstream run 44384185499 fails closed on missing tracked source modules.
+Fresh official trees reproduce one missing unreviewed file at Hermes v0.23.2
+and nine at current main. Review replacements before adjusting the checker;
+prior semantic/transitive and shutdown findings remain. No compatibility pass
+or live runtime cutover is claimed.
 
 ## Next action
 
-Consolidate the tested UI chunk through exact-head hosted standard CI, preserving
-old failed/unknown evidence. Implement OF-01: edit-and-send, explicit regeneration,
-branches, model/settings provenance and readable local replies without rewriting
-the original chat or replaying unknown work.
+Finish OF-01 actual-phone/native-model edit/regenerate/fork, cancellation,
+retention and accessibility checks, preserving the normal app and existing
+model/history/connection data. Then implement OF-02 in the backlog order.
 
-Remaining: historical UI cause review/full final-source gates; upstream Hermes
-semantic/transitive and original shutdown-warning review; corrected SDK gateway/
-unbound drain/concurrency/PM/fleet/recovery; real workspace/worker/files/NAS,
-automation/rooms/integrations/configuration; external-model/phone/lifecycle/
-security and final original-key upgrade/release acceptance.
+Remaining original scope: upstream/shutdown review; corrected SDK gateway,
+unbound drain/concurrency/PM/fleet/recovery; real project/workspace/worker/files/
+NAS, automation/rooms/integrations/configuration; model/lifecycle/security and
+final original-key upgrade/release acceptance. Each still needs its own evidence.
 
-No new release or live Pi/model/credential/grant change occurs. The original
-isolated Pi staging scope does not authorize live cutover or canonical PM/
-policy/launcher/private-backup/restart changes. Current release evidence retains
-its own original source and the owner's phone data is outside this UI stage.
+Published beta.9 is unchanged. The connected owner phone's normal app is code112;
+no phone APK or data changes occur in the reader chunk. No Pi service, gateway,
+credential, model/default or grant changes. Isolated Pi staging does not authorize
+live cutover, canonical PM/policy/launcher/private-backup or restart changes.

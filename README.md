@@ -10,18 +10,19 @@ production-phone acceptance remain disclosed. The owner resumed the audit on 18 
 · [Published evidence and limitations](docs/contracts/2026-11-13-beta9-public-preview.md)
 · [Active goal](docs/GOAL.md) · [Completed and incomplete tasks](docs/audits/2026-11-15/PAUSED_REVIEW.md).
 
-Current development verifies 27 selected UI/history methods on each API26/API37:
-enabled Home navigation and fresh native phone-draft controls have explicit
-regressions. Full audit and final release acceptance remain open.
-[Current UI evidence](docs/contracts/2026-11-18-ui-readiness-and-phone-draft-viewport.md).
+UI readiness/native-viewport fixes are now on `main` at `a992cf4`, with
+independently verified exact-tree PR coverage of **1,149 API26 / 1,150 API37
+standard device methods**, no skips. Main Android and Windows runs pass.
+Upstream compatibility remains open: the source checker fails closed on removed
+tracked modules in Hermes v0.23.2/current main.
 
-Unreleased `feat/offline-chat-actions` adds reviewed edit/send, regeneration and
-branches with separate chat drafts and recorded request settings. It passes
-**1,045 JVM cases** and **24 selected local UI/filesystem methods on each API26/
-API37**, with zero lint errors (51/50 warnings). OF-01 still needs reply formatting,
-accessibility and final model/phone gates; these controls are not in the published
-APK or `main` yet.
-[Feature-branch evidence](docs/contracts/2026-11-18-local-request-provenance.md).
+Unreleased `feat/offline-chat-actions` adds reviewed edit/send, regeneration,
+branches, separate drafts, request provenance and passive Markdown/code/full-text
+readers. It passes **1,053 JVM cases** and **36 selected local UI/filesystem
+methods on each API26/API37**, with zero lint errors (51/50 warnings). Physical
+model/UI/accessibility and final release gates remain; these offline additions
+are not in `main` or the published APK yet.
+[Current development evidence and limits](docs/contracts/2026-11-18-local-reply-reader.md).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
@@ -83,18 +84,19 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Updated **18 November 2026** for the UI checkpoint; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Updated **18 November 2026** for merged UI and unreleased offline readers; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| UI navigation/native phone-draft cohort | **27 methods per API26/API37** | Snapshot 1f46186; exact raw inventory, actual late keyboard and one native Cancel per case; separate from full standard/physical gates |
+| Merged UI standard device cohort | **1,149 API26 / 1,150 API37 methods** | Identical reviewed-head/PR/main trees; independent raw four-shard union, no skips; external models remain separate |
+| Unreleased offline actions/readers | **1,053 JVM / 36 focused methods per API** | Exact source/APKs; synthetic UI and actual filesystem; phone/model/accessibility gates remain |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |
 | New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |
 | Current Windows policy suite | **885 passes / 273 platform skips** | 1,158 distinct cases in this chunk; new native component observations are separate |
 | Previous controlled Pi cohort | **104 methods / no skips** | Eight native gateway cases plus existing PM/backup/retirement coverage; four-mode SDK trial separately verifies eight requests |
 | Last independently reviewed hosted policy suite | **1,158 methods / no skips** | Source `4e66626`; exact positive raw inventory, stopped native unit and Windows/native inventory match |
-| Current local JVM tests | **1,011 cases / 97 reports** | UI snapshot 1f46186; actual XML, no failures/errors/skips; previous hosted scopes retained separately |
+| Merged UI local JVM baseline | **1,011 cases / 97 reports** | UI snapshot 1f46186; actual XML, no failures/errors/skips; previous hosted scopes retained separately |
 | Focused workspace/native-tap device checks | **27 methods on each API / no skips** | API26 + API37, same verified APKs; actual late-keyboard transition and single native input, not full device acceptance |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |
 | Full foreground LFM3 resume | **27,010 ms** | One physical phone case: explicit resume, full 1,049,615,680-byte hash/metadata check and atomic install; not a speed guarantee |

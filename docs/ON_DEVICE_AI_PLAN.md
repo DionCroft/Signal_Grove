@@ -1,5 +1,19 @@
 # On-device AI delivery and acceptance
 
+## OF-01 passive reader — 18 November 2026
+
+1,053 distinct JVM cases/101 reports, required APK builds and zero-error lint
+(51 debug/50 release warnings) pass. The same exact APK pair passes 36 selected
+native methods on each API26/API37 without skips, including five reader/copy/
+keyboard checks and seven original draft-routing checks. Retained failed runs,
+boot-time emulator System UI ANRs and ordinary process-restoration boundaries
+are disclosed. No physical-model/accessibility/release acceptance is inferred.
+
+UI fixes are merged into main at a992cf4 after independently verified exact-tree
+PR standard coverage: 1,149/1,150 API26/API37 methods, no skips. Main's upstream
+scan fails closed on removed tracked modules at stable v0.23.2/current main;
+compatibility review remains required. [Details](contracts/2026-11-18-local-reply-reader.md).
+
 ## Resumed UI checkpoint - 18 November 2026
 
 The full goal is active at the owner's request. UI navigation now observes the
