@@ -1,5 +1,22 @@
 # Signal Grove audit execution plan
 
+## Resumed UI checkpoint - 18 November 2026
+
+The full goal is active at the owner's request. UI navigation now observes the
+actual enabled Home action and requires Chat after one click. Phone-draft Cancel
+uses fresh complete-control/native-caption geometry within the original bounded
+readiness budget. Four new regressions include an actual late keyboard; no input
+retry or submission/retention assertion is removed.
+
+The same final APK pair passes 27/27 selected UI/history methods on each API26/
+API37, plus 1,011 JVM cases/97 reports and zero-error lint (51 debug/50 release
+warnings). Earlier failures, emulator framework/overlay faults and historical
+cause uncertainty remain preserved; full standard/physical/release gates are
+separate. OF-01 is next, followed by the remaining offline backlog. No new offline
+feature or APK release is claimed by this UI checkpoint.
+
+[Source-bound checks and retained failures](contracts/2026-11-18-ui-readiness-and-phone-draft-viewport.md).
+
 ## Offline feature scope extension - 16 November 2026
 
 The [offline-LLM backlog](ON_DEVICE_AI_BACKLOG.md) adds ten planned acceptance

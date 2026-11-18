@@ -2,8 +2,7 @@
 
 Planning extension requested 16 November 2026 following the owner's report that
 users enjoy running a local LLM on their phones. **All features below are planned,
-not implemented or released by this document.** The full audit goal remains
-paused. This extends the remaining work without replacing any original Hermes,
+not implemented or released by this document.** The owner resumed the full audit goal on 18 November 2026. This extends the remaining work without replacing any original Hermes,
 offline-model, device, security or release requirement.
 
 [Existing implementation and limits](ON_DEVICE_AI.md) ·
@@ -19,7 +18,7 @@ recommended-model download/resume, a static guide and a constrained setup helper
 History currently has open/delete controls; local chat binds to the model hash.
 These existing controls are not counted as newly delivered backlog features.
 
-When resumed, first fix the retained API26 and API37 UI failures and preserve the
+After the resumed UI checkpoint, finish the retained UI gates and preserve the
 existing native/no-replay/upgrade gates. Then deliver one bounded feature at a
 time in the order below. Each feature needs implementation, meaningful tests,
 actual offline device evidence and documentation before its status changes.

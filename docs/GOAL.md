@@ -1,5 +1,22 @@
 # Expanded Signal Grove goal
 
+## Resumed UI checkpoint - 18 November 2026
+
+The full goal is active at the owner's request. UI navigation now observes the
+actual enabled Home action and requires Chat after one click. Phone-draft Cancel
+uses fresh complete-control/native-caption geometry within the original bounded
+readiness budget. Four new regressions include an actual late keyboard; no input
+retry or submission/retention assertion is removed.
+
+The same final APK pair passes 27/27 selected UI/history methods on each API26/
+API37, plus 1,011 JVM cases/97 reports and zero-error lint (51 debug/50 release
+warnings). Earlier failures, emulator framework/overlay faults and historical
+cause uncertainty remain preserved; full standard/physical/release gates are
+separate. OF-01 is next, followed by the remaining offline backlog. No new offline
+feature or APK release is claimed by this UI checkpoint.
+
+[Exact evidence](contracts/2026-11-18-ui-readiness-and-phone-draft-viewport.md).
+
 Complete the existing Signal Grove/Hermes audit in tested, regularly committed and pushed chunks, retaining every unresolved requirement in docs/AUDIT_EXECUTION_PLAN.md and preserving current data, package/signing identity, TLS/authentication, profile isolation, approvals and exact no-replay recovery.
 
 Priority extension authorized 10 November 2026: first test LiquidAI LFM3-1.7B QAD Q4_0 on the owner's actual Android phone, verifying source/hash/native compatibility, offline generation, memory, latency/throughput, cancellation/lifecycle and bounded thermal/battery observations. Then implement optional native offline chat with separate local/server identity and history, explicit opt-in fallback for new unsent messages only, and reviewed handoff back to Hermes. Implement user-controlled verified model downloads/import, compatible architecture/chat-template checks, licence/storage/context and load/unload/delete management. Implement an offline onboarding/troubleshooting helper grounded in versioned setup documentation and redacted observed diagnostics; keep credentials out of model context and all actions behind existing review/approval controls.
