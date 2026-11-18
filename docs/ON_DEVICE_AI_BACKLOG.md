@@ -45,7 +45,7 @@ answers and code/text cannot execute actions.
 
 ## OF-02: Searchable, organized and portable phone history
 
-**Status: planned.** Add local title/content search, rename, pin, archive and
+**Status: in progress (internal read-only search foundation).** [Eleven new cases](contracts/2026-11-18-local-history-search-foundation.md) cover bounded file reads, filters and cancellation; UI/device/organization/transfer acceptance remains. Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,
 encryption and where Android will save/share them. Models remain separate.

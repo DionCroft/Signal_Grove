@@ -1,5 +1,13 @@
 # Current development validation — audit follow-up
 
+## OF-02 internal search foundation — 18 November 2026
+
+The read-only helper passes 11 new cases, for 1,064 JVM cases/102 reports,
+required builds and zero-error lint (51/50 warnings). It supports literal local
+title/body, model and date filtering with cancellation and byte-preserving reads.
+It is not yet wired into UI; no phone/model/OF-02 acceptance is claimed. OF-01
+phone installation/testing remains pending. [Evidence](contracts/2026-11-18-local-history-search-foundation.md).
+
 ## Explicit phone branch gate — 18 November 2026
 
 One new external-model method verifies real native edit/regenerate/fork,

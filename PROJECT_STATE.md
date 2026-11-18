@@ -1,5 +1,11 @@
 # Signal Grove project state
 
+OF-02 has a tested internal read-only search foundation: 1,064 JVM cases/102
+reports, required builds and zero-error lint (51/50 warnings). Controller/UI,
+organization, transfers/encryption and real offline UX remain. This independent
+increment proceeds while OF-01 phone installation/testing waits; it does not
+close or replace that gate. [Evidence](docs/contracts/2026-11-18-local-history-search-foundation.md).
+
 18 November 2026. The full goal is **active**, explicitly resumed by the owner.
 Fix UI blockers first, then OF-01 through OF-10; commit and push tested chunks.
 The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and

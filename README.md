@@ -24,6 +24,12 @@ model/UI/accessibility and final release gates remain; these offline additions
 are not in `main` or the published APK yet.
 [Current development evidence and limits](docs/contracts/2026-11-18-local-reply-reader.md).
 
+The next internal history-search foundation passes **1,064 JVM cases / 102
+reports** and required builds with zero lint errors. Its UI and physical search
+acceptance are pending; the earlier 36-method reader cohort retains its own
+recorded source/APKs. This does not add a search control to the published app.
+[Search scope and next steps](docs/contracts/2026-11-18-local-history-search-foundation.md).
+
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
 The maintained SDK correction now passes **16 read-only status checks with two

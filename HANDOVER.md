@@ -1,5 +1,11 @@
 # Signal Grove handover
 
+OF-02 has a tested internal read-only search foundation: 1,064 JVM cases/102
+reports, required builds and zero-error lint (51/50 warnings). Controller/UI,
+organization, transfers/encryption and real offline UX remain. This independent
+increment proceeds while OF-01 phone installation/testing waits; it does not
+close or replace that gate. [Evidence](docs/contracts/2026-11-18-local-history-search-foundation.md).
+
 18 November 2026. The full goal is **active**. Read [PROJECT_STATE](PROJECT_STATE.md),
 [GOAL](docs/GOAL.md), [audit](docs/AUDIT_EXECUTION_PLAN.md) and the ordered
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md). Do not drop original requirements.
