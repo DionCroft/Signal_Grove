@@ -4,7 +4,7 @@ package org.hermesmobile.app.local
 data class LocalHistoryQuery(val text: String = "", val modelSha256: String? = null,
     val fromInclusive: Long? = null, val untilExclusive: Long? = null) {
     init {
-        require(text.toByteArray(Charsets.UTF_8).size <= 1024 && !text.contains('\u0000'))
+        require(text.toByteArray(Charsets.UTF_8).size <= 1024 && !text.contains('\u0000') && Charsets.UTF_8.newEncoder().canEncode(text))
         require(modelSha256 == null || modelSha256.matches(Regex("[a-f0-9]{64}")))
         require(fromInclusive == null || fromInclusive >= 0)
         require(untilExclusive == null || untilExclusive >= 0)

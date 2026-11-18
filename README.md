@@ -2,62 +2,24 @@
 
 An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI in the beta.9 preview. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
 
-**Beta.9 is available:** the experimental prerelease includes optional offline
-AI, model management and the grounded setup helper. Its seven selected native
-phone methods have positive evidence; incomplete compatibility and final
-production-phone acceptance remain disclosed. The owner resumed the audit on 18 November, prioritizing UI guards and then the offline feature backlog.
-[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)
-· [Published evidence and limitations](docs/contracts/2026-11-13-beta9-public-preview.md)
-· [Active goal](docs/GOAL.md) · [Completed and incomplete tasks](docs/audits/2026-11-15/PAUSED_REVIEW.md).
+**[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)** — experimental preview with optional offline AI, model management and a grounded setup helper. Full compatibility and production-phone acceptance remain open. [Published scope](docs/contracts/2026-11-13-beta9-public-preview.md) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
 
-UI readiness/native-viewport fixes are now on `main` at `a992cf4`, with
-independently verified exact-tree PR coverage of **1,149 API26 / 1,150 API37
-standard device methods**, no skips. Main Android and Windows runs pass.
-Upstream compatibility remains open: the source checker fails closed on removed
-tracked modules in Hermes v0.23.2/current main.
+Unreleased `feat/offline-chat-actions` adds reviewed edit/regenerate/branch,
+separate drafts, request provenance, passive Markdown/code readers and history
+text/model/date search. Latest checks pass **1,071 JVM tests** and **40 selected
+native methods on each API26/API37**, with zero lint errors (51/50 warnings).
+One actual offline phone method plus separate real app branching checks verify
+the earlier phone pairing. Final-source device/accessibility/lifecycle and
+release gates remain; these additions are not in the public APK or main yet.
+[Current behavior, figures and limitations](docs/contracts/2026-11-18-phone-history-search-controls.md).
 
-Unreleased `feat/offline-chat-actions` adds reviewed edit/send, regeneration,
-branches, separate drafts, request provenance and passive Markdown/code/full-text
-readers. It passes **1,053 JVM cases** and **36 selected local UI/filesystem
-methods on each API26/API37**, with zero lint errors (51/50 warnings). Physical
-model/UI/accessibility and final release gates remain; these offline additions
-are not in `main` or the published APK yet.
-[Current development evidence and limits](docs/contracts/2026-11-18-local-reply-reader.md).
-
-The next internal history-search foundation passes **1,064 JVM cases / 102
-reports** and required builds with zero lint errors. Its UI and physical search
-acceptance are pending; the earlier 36-method reader cohort retains its own
-recorded source/APKs. This does not add a search control to the published app.
-[Search scope and next steps](docs/contracts/2026-11-18-local-history-search-foundation.md).
-
-One actual ARM64 phone method now verifies offline edit/regenerate/fork/Stop
-and five retained QA histories, with about2.4 GiB highest observed process memory.
-Phone settings/networking restore; real app UI, lifecycle/accessibility and
-release acceptance remain. Latest JVM/build/lint source has **1,065 cases / 102
-reports**; this does not qualify all13 external-model methods or a new APK.
-[Physical evidence and limits](docs/contracts/2026-11-18-offline-phone-branches.md).
+UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
+verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device
+methods**, no skips. Main Android and Windows pass. Upstream compatibility stays
+open: the source checker fails closed on moved/missing tracked modules at Hermes
+v0.23.2/current main; prior semantic and shutdown findings remain unresolved.
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
-
-The maintained SDK correction now passes **16 read-only status checks with two
-real native turn receipts**: active general-chat turns are counted, and the
-missing peer-context module is restored in a separate declared source copy.
-Windows coverage remains **885 positive / 273 platform skips in 1,158 cases**.
-The original SDK's configured freeze/drain/native-stop checkpoint remains
-separate; corrected gateway-wire, concurrent snapshot and final PM checks are open.
-
-Android sources retain **1,011 JVM tests**, **27 focused methods on each API26/
-API37**, and zero lint errors (51 debug / 50 release warnings) at their recorded
-snapshot. Full upstream, original API26/navigation, worker/integration and final
-production acceptance remain open. Live Hermes and beta.9 are unchanged.
-[Current evidence and next work](docs/contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
-
-Source `09306e6` independently passes **1,011 JVM tests, 1,142 API26 / 1,143 API37
-standard device tests** and both lint variants (zero errors). Raw method unions,
-summary and actual APK hashes match. Original UI causes, external-model/final
-phone gates and wider interoperability remain open. Upstream review retains
-**37 stable / 172 inspected-main findings** at its recorded revisions.
-[Current evidence and remaining work](docs/contracts/2026-11-15-gateway-fence-owner-and-android-review.md).
 
 ## Download and release status
 
@@ -74,7 +36,7 @@ The table below describes current `main`; release notes define what is included 
 Independent community project; not affiliated with or endorsed by NousResearch. Original pixel art and system fonts; no copied game assets.
 
 The [offline-LLM feature backlog](docs/ON_DEVICE_AI_BACKLOG.md) now includes
-planned chat editing/branching, searchable history, context/performance controls,
+unreleased chat editing/branching and searchable history, plus planned context/performance controls,
 model-library improvements and personal offline tools. These additions are
 queued under the resumed goal; they are not features of the current APK.
 
@@ -97,12 +59,13 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Updated **18 November 2026** for merged UI and unreleased offline readers; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Updated **18 November 2026** for merged UI and unreleased offline actions/search; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
 | Merged UI standard device cohort | **1,149 API26 / 1,150 API37 methods** | Identical reviewed-head/PR/main trees; independent raw four-shard union, no skips; external models remain separate |
-| Unreleased offline actions/readers | **1,053 JVM / 36 focused methods per API** | Exact source/APKs; synthetic UI and actual filesystem; phone/model/accessibility gates remain |
+| Unreleased offline actions/readers/search | **1,071 JVM / 40 focused methods per API** | Exact source/APKs; synthetic UI/real filesystem, no skips; newer physical search and final gates remain |
+| Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Earlier explicit app pairing; five native QA histories and four real UI histories; unchanged parents, no aggregate phone/OF-01 acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |
 | New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |

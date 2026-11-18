@@ -442,4 +442,100 @@ class LocalAiControllerTest {
         assertFalse(controller.state.value.busy); assertFalse(guard.active.value)
         controller.leave(); advanceUntilIdle()
     }
+
+    private fun searchFixture(question: String, reply: String, updated: Long = 1) =
+        LocalConversation(modelSha256 = "a".repeat(64), updatedAt = updated,
+            exchanges = listOf(LocalExchange(question, reply, LocalReplyState.COMPLETE)))
+    private fun searchFileSnapshot(root: File) = root.listFiles()!!.associate {it.name to it.readBytes().toList()}
+
+    @Test fun historySearchKeepsTheUnfilteredInventoryAndNeverLoadsOrGenerates() = runTest {
+        val history = temp.newFolder(); val store = LocalConversationStore(history)
+        val a = searchFixture("First", "A peaceful garden"); val b = searchFixture("Other", "A forest", 2)
+        store.saveNew(a); store.saveNew(b); val before = searchFileSnapshot(history)
+        val engine = Engine(); val guard = UpdateWorkGuard()
+        val controller = controller(temp.newFolder(), history, engine, guard, StandardTestDispatcher(testScheduler))
+        advanceUntilIdle(); val query = LocalHistoryQuery("garden", "a".repeat(64))
+        controller.searchHistory(query); advanceUntilIdle()
+        assertEquals(query, controller.state.value.historyQuery)
+        assertEquals(listOf(a.id), controller.state.value.historyMatches.map {it.id})
+        assertEquals(setOf(a.id, b.id), controller.state.value.history.map {it.id}.toSet())
+        assertNull(controller.state.value.loaded); assertNull(controller.state.value.chat)
+        controller.openChat(a.id); advanceUntilIdle(); assertEquals(a, controller.state.value.chat)
+        assertEquals(0, engine.loads); assertTrue(engine.requests.isEmpty()); assertFalse(guard.active.value)
+        assertEquals(before, searchFileSnapshot(history)); controller.leave(); advanceUntilIdle()
+    }
+    @Test fun clearingHistorySearchPreservesTheOpenConversationAndEveryFile() = runTest {
+        val history = temp.newFolder(); val store = LocalConversationStore(history)
+        val a = searchFixture("Garden", "reply"); val b = searchFixture("Forest", "reply", 2)
+        store.saveNew(a); store.saveNew(b); val before = searchFileSnapshot(history)
+        val engine = Engine(); val controller = controller(temp.newFolder(), history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle(); controller.openChat(a.id); advanceUntilIdle()
+        controller.searchHistory(LocalHistoryQuery("Garden")); advanceUntilIdle(); controller.clearHistorySearch()
+        assertNull(controller.state.value.historyQuery); assertTrue(controller.state.value.historyMatches.isEmpty())
+        assertEquals(a, controller.state.value.chat); assertEquals(2, controller.state.value.history.size)
+        assertEquals(before, searchFileSnapshot(history)); assertTrue(engine.requests.isEmpty())
+        controller.leave(); advanceUntilIdle()
+    }
+    @Test fun cancelledQueuedSearchRetainsTheLastAppliedFilterWithoutAnyDeferredReplay() = runTest {
+        val history = temp.newFolder(); val a = searchFixture("Garden", "reply")
+        LocalConversationStore(history).saveNew(a); val before = searchFileSnapshot(history)
+        val engine = Engine(); val guard = UpdateWorkGuard()
+        val controller = controller(temp.newFolder(), history, engine, guard, StandardTestDispatcher(testScheduler))
+        advanceUntilIdle(); val applied = LocalHistoryQuery("Garden")
+        controller.searchHistory(applied); advanceUntilIdle()
+        controller.searchHistory(LocalHistoryQuery("Forest")); assertTrue(controller.state.value.busy); assertTrue(guard.active.value)
+        controller.searchHistory(LocalHistoryQuery("Ignored while busy")); controller.cancel(); advanceUntilIdle()
+        assertEquals(applied, controller.state.value.historyQuery)
+        assertEquals(listOf(a.id), controller.state.value.historyMatches.map {it.id})
+        assertFalse(controller.state.value.busy); assertFalse(guard.active.value)
+        assertEquals(before, searchFileSnapshot(history)); assertEquals(0, engine.loads); assertTrue(engine.requests.isEmpty())
+        controller.leave(); advanceUntilIdle()
+    }
+    @Test fun failedSearchPreservesThePreviousResultsAndMalformedSourceWithoutAPartialReplacement() = runTest {
+        val history = temp.newFolder(); val store = LocalConversationStore(history)
+        val a = searchFixture("Garden", "reply"); val b = searchFixture("Forest", "reply", 2)
+        store.saveNew(a); store.saveNew(b); val engine = Engine()
+        val controller = controller(temp.newFolder(), history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle(); val applied = LocalHistoryQuery("Garden")
+        controller.searchHistory(applied); advanceUntilIdle()
+        File(history, "${b.id}.json").writeText("{broken"); val damaged = searchFileSnapshot(history)
+        controller.searchHistory(LocalHistoryQuery("Forest")); advanceUntilIdle()
+        assertEquals("history_search", controller.state.value.error)
+        assertEquals(applied, controller.state.value.historyQuery)
+        assertEquals(listOf(a.id), controller.state.value.historyMatches.map {it.id})
+        assertEquals(damaged, searchFileSnapshot(history)); assertTrue(engine.requests.isEmpty())
+        controller.clearHistorySearch(); assertNull(controller.state.value.error)
+        assertEquals(damaged, searchFileSnapshot(history)); controller.leave(); advanceUntilIdle()
+    }
+    @Test fun filteredHistoryRefreshesAfterExplicitDeletionAndLibraryRefresh() = runTest {
+        val history = temp.newFolder(); val store = LocalConversationStore(history)
+        val a = searchFixture("Garden", "reply"); val b = searchFixture("Forest", "reply", 2)
+        store.saveNew(a); store.saveNew(b); val forest = File(history, "${b.id}.json").readBytes()
+        val engine = Engine(); val controller = controller(temp.newFolder(), history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle(); val query = LocalHistoryQuery("Garden")
+        controller.searchHistory(query); advanceUntilIdle(); controller.deleteChat(a.id); advanceUntilIdle()
+        assertEquals(query, controller.state.value.historyQuery); assertTrue(controller.state.value.historyMatches.isEmpty())
+        val newer = searchFixture("Another Garden", "new reply", 3); store.saveNew(newer)
+        controller.refreshLibrary(); advanceUntilIdle()
+        assertEquals(listOf(newer.id), controller.state.value.historyMatches.map {it.id})
+        assertEquals(2, controller.state.value.history.size); assertArrayEquals(forest, File(history, "${b.id}.json").readBytes())
+        assertTrue(engine.requests.isEmpty()); assertEquals(0, engine.loads); controller.leave(); advanceUntilIdle()
+    }
+    @Test fun aSearchFilterNeverChangesWhichGeneratedBranchIsOpenOrItsHistoryLimitInventory() = runTest {
+        val root = temp.newFolder(); val model = model(root); val history = temp.newFolder(); val engine = Engine()
+        val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle(); controller.load(model); advanceUntilIdle(); engine.reply = "Garden answer"
+        controller.send("Garden question"); advanceUntilIdle(); val parent = controller.state.value.chat!!
+        val original = File(history, "${parent.id}.json").readBytes()
+        val query = LocalHistoryQuery("Garden", model.sha256); controller.searchHistory(query); advanceUntilIdle()
+        engine.reply = "Forest answer"; controller.branch(parent, 0, LocalBranchKind.EDIT, "Forest question"); advanceUntilIdle()
+        val child = controller.state.value.chat!!
+        assertNotEquals(parent.id, child.id); assertEquals(LocalBranchKind.EDIT, child.origin!!.kind)
+        assertEquals(query, controller.state.value.historyQuery)
+        assertEquals(listOf(parent.id), controller.state.value.historyMatches.map {it.id})
+        assertEquals(2, controller.state.value.history.size); assertEquals(2, engine.requests.size)
+        assertEquals(model.sha256, controller.state.value.loaded!!.sha256)
+        assertArrayEquals(original, File(history, "${parent.id}.json").readBytes())
+        assertNull(controller.state.value.error); controller.leave(); advanceUntilIdle()
+    }
 }

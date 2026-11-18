@@ -11,7 +11,7 @@ question), copies one fork without generation and starts/stops one more native
 generation on its first visible chunk. It asserts exactly four native calls.
 The immutable parent, separate child IDs/origins and exact source hashes persist.
 New requested context is 2,048 for the parent and 1,024 for regenerated/edited/
-cancelled children, with four threads, output cap384 and the recorded native
+cancelled children, with four threads, output cap 384 and the recorded native
 source policy. Forked replies retain their original request metadata.
 
 Unloaded parent/child/cancelled reads and a reopened store's recovery operation
@@ -32,11 +32,11 @@ into a positive. [Its exact refusal/correction and model-transfer observation](2
 
 ## Bounded resource observations
 
-The whole outer native observation lasts19.884 s, including setup/model/file
+The whole outer native observation lasts 19.884 s, including setup/model/file
 work; it is not per-token throughput or time to first answer. Three memory
-observations at a five-second cadence report highest observed RSS2,559,258,624
-bytes and high-water2,591,977,472 bytes (about2.4 GiB). USB charging remains on;
-battery76% at both ends and sensor temperature28.5→28.7°C. These short points
+observations at a five-second cadence report highest observed RSS 2,559,258,624
+bytes and high-water 2,591,977,472 bytes (about 2.4 GiB). USB charging remains on;
+battery 76% at both ends and sensor temperature 28.5→28.7°C. These short points
 do not qualify sustained thermal, battery endurance, low-memory or background
 behavior, nor predict other phones/contexts/models.
 
@@ -46,21 +46,33 @@ The installed app is retained; only its original-key companion is updated.
 Existing main source/assets/configuration are compared; the later unused search
 helper is not referenced by instrumentation. The paired app and companion have
 distinct source snapshots and are recorded explicitly below. Required build/JVM/
-lint evidence is1,065 cases/102 reports and zero-error lint (51/50 warnings).
+lint evidence is 1,065 cases/102 reports and zero-error lint (51/50 warnings).
 
-Physical actual-app UI and accessibility remain. For that separate next check,
-one complete generated QA parent is explicitly copied into the initially empty
-debug chat folder without changing its bytes. Only the verified idle debug app
-is restarted to refresh its controller. This deliberate UI fixture follows the
-native gate and does not falsify its earlier empty-folder retention assertion.
-The resolved launcher is used after a wrong suffix component fails to launch.
-One verified USB Settings tap leaves the exact accessibility tree unchanged;
-no tap retry or app-UI pass is claimed. The owner is asked to open the fixture.
+For the separate real UI check, one complete generated QA parent is copied into
+the initially empty debug chat folder without changing its bytes. Only the idle
+debug app is restarted to refresh its controller. This deliberate fixture follows
+the native gate and does not alter its earlier empty-folder assertion. A wrong
+suffix launcher fails before the resolved component is used. One verified USB
+Settings tap leaves the exact tree unchanged; no retry is used. The owner then
+operates the app while read-only inspection checks actual UI and stored files.
 
-Full final-head standard CI, real app/model UI and TalkBack/large-font/keyboard,
+Actual UI fork review shows the garden question and copy-only behavior; one
+confirmation adds one byte-equivalent fork without loaded weights. Edit review
+shows the quiet-forest question and reachable confirmation/Cancel above the
+actual IME. One confirmation completes an edited child. Regenerate review shows
+that same forest question; one confirmation completes one further child. All
+three earlier chat files retain their exact hashes. Each child has the expected
+parent/hash/kind, model binding and completed reply; no template markers appear.
+Edit/regenerate record the owner's selected 4,096 context, four threads, output
+cap 384 and existing source-policy identity. Identical greedy replies can occur;
+a new ID/origin and preserved files establish the separate regeneration.
+
+These actual app UI checks use normal networking, separately from the sampled
+offline native proof. They qualify these interactions on this exact earlier
+phone pairing, not the newer search APKs. Full final-head CI, TalkBack/large-font,
 process/reboot/lifecycle, sustained-resource/security and original-key signed
-upgrade/release gates remain open. OF-02 search is an internal helper awaiting
-controller/UI, organization and transfer acceptance. All original remote audit,
+upgrade/release gates remain open. [New search controls have their own source
+and evidence](2026-11-18-phone-history-search-controls.md). All original remote
 upstream/shutdown/project/worker/integration requirements remain unchanged.
 
 Subject source snapshot: `638e73f7cb33810196d98524ead1d1bbe1eb57b7d90f9e5cc42a1a232b42d0bc`.

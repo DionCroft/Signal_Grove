@@ -31,7 +31,11 @@ This order is not a new release promise, version assignment or separate goal.
 
 ## OF-01: Edit, regenerate and branch conversations
 
-**Status: in progress (reviewed actions, drafts, provenance and passive reply readers).** [The tested increment](contracts/2026-11-18-local-reply-reader.md) verifies 1,053 JVM cases and 36 focused native methods on each API26/API37. [One actual offline native branch method now passes](contracts/2026-11-18-offline-phone-branches.md); real app UI, lifecycle, accessibility and full external-model acceptance remain. Add edit-and-send, explicitly requested regeneration and
+**Status: in progress (reviewed actions, drafts, provenance and passive readers).**
+[The current source-bound cohort](contracts/2026-11-18-phone-history-search-controls.md)
+passes 1,071 JVM cases and 40 selected native methods on each API26/API37.
+[One actual offline native method and separate real app UI branching](contracts/2026-11-18-offline-phone-branches.md)
+verify the earlier phone pairing; final-source/accessibility/lifecycle gates stay open. Add edit-and-send, explicitly requested regeneration and
 branch-from-message. Keep original exchanges accessible and record parentage,
 model fingerprint and generation settings. Add readable Markdown/code blocks,
 code copying, clear progress/completion-limit messages and usable long replies.
@@ -45,7 +49,10 @@ answers and code/text cannot execute actions.
 
 ## OF-02: Searchable, organized and portable phone history
 
-**Status: in progress (internal read-only search foundation).** [Eleven new cases](contracts/2026-11-18-local-history-search-foundation.md) cover bounded file reads, filters and cancellation; UI/device/organization/transfer acceptance remains. Add local title/content search, rename, pin, archive and
+**Status: in progress (text/model/date search controls implemented and emulator-tested).**
+[Current checks](contracts/2026-11-18-phone-history-search-controls.md) include
+read-only filtering/cancellation, six controller regressions and four native UI
+cases. Physical search, rename/pin/archive and transfer acceptance remain open. Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,
 encryption and where Android will save/share them. Models remain separate.

@@ -71,7 +71,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val acceptImport: () -> Unit, val cancelImport: () -> Unit, val openChat: (String) -> Unit,
     val deleteChat: (String) -> Unit, val dismissError: () -> Unit, val refresh: () -> Unit = {},
     val help: (LocalHelpTopic, Boolean) -> Unit = {_, _ ->},
-    val branch: (LocalConversation, Int, LocalBranchKind, String?) -> Unit = {_, _, _, _ ->})
+    val branch: (LocalConversation, Int, LocalBranchKind, String?) -> Unit = {_, _, _, _ ->},
+    val searchHistory: (LocalHistoryQuery) -> Unit = {}, val clearHistorySearch: () -> Unit = {})
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -91,7 +92,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         LocalAiActions(vm::send, c::cancel, vm::newChat, c::load, c::unload, c::deleteModel,
             {c.download(true)}, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
             {vm.pendingImport.value = null}, vm::openChat, vm::deleteChat, c::dismissError, c::refreshLibrary,
-            {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch), close, observations, handoff)
+            {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch, searchHistory = c::searchHistory, clearHistorySearch = c::clearHistorySearch), close, observations, handoff)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
@@ -151,16 +152,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     }
                     state.models.forEach { model -> PhoneModel(model, state, supported, actions) {deleteModel = model} }
                 }
-                2 -> LazyColumn(Modifier.weight(1f).testTag("phone-history"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (state.history.isEmpty()) item {Text(label(Words.PhoneNoHistory))}
-                    items(state.history, key = {it.id}) { item -> HermesCard {
-                        Text(item.title)
-                        Text("SHA-256: ${item.modelSha256}", style = MaterialTheme.typography.labelSmall)
-                        item.lastState?.let {Text(label(phoneReplyState(it)), style = MaterialTheme.typography.labelSmall)}
-                        TextButton({actions.openChat(item.id); tab = 0}, enabled = !state.busy) {Text(label(Words.Chat))}
-                        TextButton({deleteChat = item.id}, enabled = !state.busy) {Text(label(Words.Delete))}
-                    } }
-                }
+                2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
             }
             Row {
                 TextButton({guide = true}, Modifier.weight(1f).testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
@@ -378,6 +370,7 @@ internal fun phoneReplyState(state: LocalReplyState) = when(state) {
 private fun phoneStatus(state: LocalAiState) = when(state.status) {
     "downloading" -> if(state.transfer?.phase == LocalTransferPhase.DOWNLOADING) Words.PhoneDownloading else Words.PhoneVerifying
     "reading" -> Words.PhoneReading
+    "searching" -> Words.PhoneHistorySearching
     "loading" -> Words.PhoneLoading
     "unloading" -> Words.PhoneUnloading
     "generating" -> Words.PhoneGenerating
@@ -385,6 +378,7 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     else -> Words.PhoneWorking
 }
 internal fun phoneError(code: String) = when {
+    code == "history_search" -> Words.PhoneHistorySearchError
     code == "helper_unverified" -> Words.PhoneHelperRejected
     code == "insufficient_memory" -> Words.PhoneMemoryError
     code == "engine_2" -> Words.PhoneContextError

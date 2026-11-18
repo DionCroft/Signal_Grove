@@ -13,7 +13,8 @@ import org.hermesmobile.app.updates.UpdateWorkGuard
 data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val history: List<LocalConversationSummary> = emptyList(),
     val chat: LocalConversation? = null, val loaded: InstalledLocalModel? = null, val busy: Boolean = false,
     val status: String = "idle", val error: String? = null, val partialBytes: Long = 0, val transfer: LocalTransferProgress? = null,
-    val helper: LocalHelpResult? = null)
+    val helper: LocalHelpResult? = null, val historyQuery: LocalHistoryQuery? = null,
+    val historyMatches: List<LocalConversationSummary> = emptyList())
 
 /** One instance per application process, shared across activity recreation. No Hermes client or credential store. */
 class LocalAiController(private val modelRoot: File, historyRoot: File, private val nativeDirectory: String,
@@ -38,6 +39,22 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     fun dismissError() { mutable.update { it.copy(error = null) } }
     fun cancel() { engine?.cancel(); job?.cancel() }
     fun refreshLibrary() = action("reading") { refresh() }
+    /** Explicit read-only search. Keep unfiltered history for parent navigation and limits. */
+    fun searchHistory(query: LocalHistoryQuery) = action("searching") {
+        val result = io {
+            val context = currentCoroutineContext()
+            val all = conversations.list { context.ensureActive() }
+            val matches = LocalHistorySearch(conversations).find(query) { context.ensureActive() }
+            all to matches
+        }
+        mutable.update { it.copy(history = result.first, historyQuery = query, historyMatches = result.second) }
+    }
+    fun clearHistorySearch() {
+        if (mutable.value.busy || leaving) return
+        mutable.update { it.copy(historyQuery = null, historyMatches = emptyList(),
+            error = it.error.takeUnless {code -> code == "history_search"}) }
+    }
+
     fun download(licenceReviewed: Boolean) = action("downloading") {
         check(supported)
         downloads.download(licenceReviewed) { value -> mutable.update { it.copy(transfer = value) } }
@@ -239,7 +256,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 catch (_: CancellationException) {
                     if (status == "downloading" || status == "importing") reconcileStoppedTransfer()
                 }
-                catch (e: Exception) { mutable.update { it.copy(error = failure(e)) } }
+                catch (e: Exception) { mutable.update { it.copy(error = if(status == "searching" && e is LocalHistoryException) "history_search" else failure(e)) } }
                 catch (_: LinkageError) { mutable.update { it.copy(error = "native_unavailable") } }
             }
         }
@@ -272,7 +289,12 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         val models = io { val context = currentCoroutineContext(); store.models { context.ensureActive() } }
         val history = io { val context = currentCoroutineContext(); conversations.list { context.ensureActive() } }
         val partial = downloads.partialBytes()
-        mutable.update { it.copy(models = models, history = history, partialBytes = partial) }
+        val query = mutable.value.historyQuery
+        val matches = if(query == null) emptyList() else io {
+            val context = currentCoroutineContext()
+            LocalHistorySearch(conversations).find(query) { context.ensureActive() }
+        }
+        mutable.update { it.copy(models = models, history = history, partialBytes = partial, historyMatches = matches) }
     }
     private suspend fun <T> io(block: suspend () -> T) = withContext(ioDispatcher) { block() }
 }

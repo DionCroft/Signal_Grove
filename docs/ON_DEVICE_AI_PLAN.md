@@ -1,5 +1,17 @@
 # On-device AI delivery and acceptance
 
+## History search controls and real app branching — 18 November 2026
+
+The unreleased feature branch passes 1,071 JVM cases/102 reports, required APK
+builds and zero-error lint (51/50 warnings). The same exact APK pair passes 40
+selected native methods on each API26/API37 without skips. Search is now exposed
+with text/model/date filters, review/Cancel, counts and Clear; no model/network or
+history write follows from searching. Physical search and the rest of OF-02
+remain open. Separately, owner-operated actual phone UI fork/edit/regenerate
+adds one child per confirmation and preserves all earlier chat bytes, using the
+earlier explicitly recorded app pairing. Full OF-01/lifecycle/accessibility and
+release acceptance remain open. [Exact scope and bindings](contracts/2026-11-18-phone-history-search-controls.md).
+
 ## Actual offline phone branch gate — 18 November 2026
 
 One selected native method passes: three completed native replies, one copied

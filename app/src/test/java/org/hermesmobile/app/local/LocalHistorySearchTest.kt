@@ -84,7 +84,7 @@ class LocalHistorySearchTest {
     }
     @Test fun rejectsOversizedQueriesInvalidModelsAndInvalidTimeWindows() {
         val invalid=listOf<()->Unit>({LocalHistoryQuery("x".repeat(1025))},{LocalHistoryQuery("你".repeat(342))},
-            {LocalHistoryQuery("nul\u0000")},{LocalHistoryQuery(modelSha256="../model")},
+            {LocalHistoryQuery("nul\u0000")},{LocalHistoryQuery("\uD800")},{LocalHistoryQuery("\uDC00")},{LocalHistoryQuery(modelSha256="../model")},
             {LocalHistoryQuery(fromInclusive=-1)},{LocalHistoryQuery(untilExclusive=-1)},
             {LocalHistoryQuery(fromInclusive=10,untilExclusive=10)},{LocalHistoryQuery(fromInclusive=11,untilExclusive=10)})
         invalid.forEach {f->try {f();fail("Expected invalid filter rejection")} catch (_: IllegalArgumentException) {}}

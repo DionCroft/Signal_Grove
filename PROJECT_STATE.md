@@ -1,27 +1,5 @@
 # Signal Grove project state
 
-The corrected actual offline phone gate passes: real edit/regenerate/fork/Stop,
-five independently verified histories, immutable parents/old failed-run files,
-requested settings/source identity and unloaded reads/store recovery. Original
-settings/networking restore; the normal app is untouched. This is one of13
-external methods, not all phone/lifecycle/OF-01 acceptance. A generated parent
-is copied into the initially empty debug history for the separate actual-app UI
-check; verified USB Settings input leaves the tree unchanged, so owner navigation
-is pending. [Proof and exact limits](docs/contracts/2026-11-18-offline-phone-branches.md).
-
-The actual phone gate retained a fixture failure: stale edit after a fork is
-correctly refused before generation. Original/regen/fork files are reconciled,
-model mappings released and original phone settings restored. The corrected
-companion and a JVM stale/reopen regression pass required builds, 1,065 JVM
-cases/102 reports and zero-error lint. The app is unchanged; corrected physical
-acceptance is pending. [Evidence](docs/contracts/2026-11-18-phone-branch-fixture-correction.md).
-
-OF-02 has a tested internal read-only search foundation: 1,064 JVM cases/102
-reports, required builds and zero-error lint (51/50 warnings). Controller/UI,
-organization, transfers/encryption and real offline UX remain. This independent
-increment proceeds while OF-01 phone installation/testing waits; it does not
-close or replace that gate. [Evidence](docs/contracts/2026-11-18-local-history-search-foundation.md).
-
 18 November 2026. The full goal is **active**, explicitly resumed by the owner.
 Fix UI blockers first, then OF-01 through OF-10; commit and push tested chunks.
 The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
@@ -29,40 +7,43 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 
 ## Current source and validation
 
-UI readiness/native-viewport fixes are on main at `a992cf4`. The reviewed head,
-actual PR checkout and main merge have identical trees. Independent raw PR
-evidence verifies 1,149 API26 / 1,150 API37 standard methods, no skips, 1,011 JVM
-cases and zero-error hosted lint (52 debug/51 release warnings). Main's Android
-and Windows runs pass. Original failures and cause uncertainty remain preserved.
+UI readiness/native-viewport fixes are on main at `a992cf4`. Independently
+verified identical-tree PR coverage has 1,149 API26 / 1,150 API37 standard device
+methods, no skips. Main Android and Windows pass. Upstream scan fails closed on
+missing tracked modules at v0.23.2/current main; moved/transitive contracts need
+review before changing its guard. Prior semantic/shutdown findings stay open.
 
-Unreleased `feat/offline-chat-actions` now adds reviewed edit/send, regeneration
-and branches, per-chat unsent drafts, parent/model/request provenance and a
-passive Markdown/code/full-text reader. Original histories remain accessible;
-legacy settings stay unknown. The same source-bound APK pair passes 36 focused
-native methods on each API26/API37, 1,053 JVM cases/101 reports, required builds
-and zero-error lint (51 debug/50 release warnings). Earlier reader/keyboard and
-emulator System UI failures remain documented. These are synthetic UI and real
-filesystem checks; physical model/UI/accessibility acceptance is still open.
-[Exact behavior and evidence](docs/contracts/2026-11-18-local-reply-reader.md).
+Unreleased `feat/offline-chat-actions` adds reviewed edit/send, regeneration,
+branches, scoped drafts, request provenance, passive reply/code readers and now
+local history text/model/date search. Required builds, 1,071 JVM cases/102 reports
+and zero-error lint (51/50 warnings) pass. Exactly 40 selected native methods pass
+on each API26/API37 with the same source-bound APKs and no skips. Search preserves
+the complete inventory/current chat and never loads weights or changes files.
+[Search behavior, bindings and limits](docs/contracts/2026-11-18-phone-history-search-controls.md).
 
-Main upstream run 44384185499 fails closed on missing tracked source modules.
-Fresh official trees reproduce one missing unreviewed file at Hermes v0.23.2
-and nine at current main. Review replacements before adjusting the checker;
-prior semantic/transitive and shutdown findings remain. No compatibility pass
-or live runtime cutover is claimed.
+One actual offline native phone method verifies real edit/regenerate/fork/Stop,
+five QA histories and no replay on unloaded reads/reopened-store recovery. The
+first stale-parent fixture refusal stays preserved. Separately, real app UI
+fork/edit/regenerate each creates one child and preserves all earlier JSON bytes.
+Edit/regenerate records the owner's 4,096-context/four-thread/384-output choice.
+These phone checks use the earlier explicitly paired app/companion, not the new
+search APKs. [Physical proof](docs/contracts/2026-11-18-offline-phone-branches.md).
 
 ## Next action
 
-Finish OF-01 actual-phone/native-model edit/regenerate/fork, cancellation,
-retention and accessibility checks, preserving the normal app and existing
-model/history/connection data. Then implement OF-02 in the backlog order.
+Finish unloaded real UI request-settings retention; install the matching tested
+search app/companion pair with exact data/model/package preflight and verify
+physical offline search. Preserve original history, normal app and connection.
+Continue remaining OF-01 accessibility/lifecycle gates and OF-02 organization,
+Markdown export and protected backup/import in bounded tested chunks.
 
-Remaining original scope: upstream/shutdown review; corrected SDK gateway,
-unbound drain/concurrency/PM/fleet/recovery; real project/workspace/worker/files/
-NAS, automation/rooms/integrations/configuration; model/lifecycle/security and
-final original-key upgrade/release acceptance. Each still needs its own evidence.
+Remaining original scope: upstream/shutdown; corrected SDK gateway/unbound drain/
+concurrency/PM/fleet/recovery; real project/workspace/worker/files/NAS, automation/
+rooms/integrations/configuration; model/resource/security and final original-key
+upgrade/release. Each requires its own evidence; no aggregate completion claim.
 
-Published beta.9 is unchanged. The connected owner phone's normal app is code112;
-no phone APK or data changes occur in the reader chunk. No Pi service, gateway,
-credential, model/default or grant changes. Isolated Pi staging does not authorize
-live cutover, canonical PM/policy/launcher/private-backup or restart changes.
+Published beta.9 is unchanged. The normal owner app remains code112, untouched;
+the earlier debug package was initially absent, so its first installation is not
+an upgrade-retention proof. No Pi service/gateway/credential/model/default/grant
+changes. Isolated staging does not authorize live cutover, canonical PM/policy/
+launcher/private backup or restart changes.
