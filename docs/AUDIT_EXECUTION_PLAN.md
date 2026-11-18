@@ -1,5 +1,27 @@
 # Signal Grove audit execution plan
 
+## Offline feature scope extension - 16 November 2026
+
+The [offline-LLM backlog](ON_DEVICE_AI_BACKLOG.md) adds ten planned acceptance
+packages, OF-01 through OF-10, to the remaining audit scope at the owner's request.
+Deliver everyday chat/history/context/performance improvements first, then model
+discovery/transfers and selected-document/writing/personal-context/voice features.
+Every package is planned, not delivered. The goal remains paused. Existing UI
+failures and all remote/SDK/worker/production requirements remain unchanged.
+
+## Owner-requested pause - 15 November 2026
+
+The full goal is **paused**. All four acceptance priorities and every original
+audit/local-AI/release requirement remain. Reviewed SDK source is already on
+main at 62c8bbe. Unfinished route diagnostics are saved/pushed only to the feature
+branch at a2a67b2. The final focused run has 16/16 API26 positives and 15/16
+API37 positives with a retained phone-draft Cancel/keyboard viewport failure.
+This does not qualify a newer stable APK. Beta.9/code114 remains publicly
+downloadable; fresh anonymous production APK/checksum downloads verify.
+No implementation or deployment continues while paused.
+
+[Complete paused inventory and release status](audits/2026-11-15/PAUSED_REVIEW.md).
+
 ## Maintained SDK unbound dependency/status component - 15 November 2026
 
 The maintained Pi SDK now has a source-bound correction for two actual findings:

@@ -1,5 +1,49 @@
 # Current development validation — audit follow-up
 
+## Offline feature planning only - 16 November 2026
+
+The owner requested more phone-local LLM features. The ten packages in
+[ON_DEVICE_AI_BACKLOG](ON_DEVICE_AI_BACKLOG.md) are planned/incomplete and linked
+from the goal, audit, roadmap, state/handover and paused inventory. Each defines
+acceptance; none is counted as implemented by this update. The goal remains paused.
+
+This chunk changes Markdown only. Validation checks new relative links, unique
+OF-01 through OF-10 identifiers/statuses, preservation of the original goal and
+priorities, Git formatting and the repository secret review. No Android code,
+APK, model/runtime, dependency, device or server changes; no fresh runtime tests
+or release qualification are claimed. Prior failed and pending results retain
+their exact scope.
+
+## Owner-requested pause - 15 November 2026
+
+The full goal is **paused**. All four acceptance priorities and every original
+audit/local-AI/release requirement remain. Reviewed SDK source is already on
+main at 62c8bbe. Unfinished route diagnostics are saved/pushed only to the feature
+branch at a2a67b2. The final focused run has 16/16 API26 positives and 15/16
+API37 positives with a retained phone-draft Cancel/keyboard viewport failure.
+This does not qualify a newer stable APK. Beta.9/code114 remains publicly
+downloadable; fresh anonymous production APK/checksum downloads verify.
+No implementation or deployment continues while paused.
+
+Investigation snapshot:
+1621114d106ecb40a4fab31c54ef5385e444b0b992d45d4004ca6fffbb3853d3.
+The seven source changes are saved only on feature commit a2a67b2, not main.
+Build review SHA-256:
+8709acad0f588ae7d41491bd8efb5ba242034e97e2dbea542820514871600817.
+Required tasks pass 1,011 JVM cases/97 reports and lint 0 errors/fatals with
+51 debug/50 release warnings. API26 raw log:
+b0b78c2002ee14770f903493457d704b96570c14498c4fac07929869703f0952.
+API37 failed raw log:
+fc2754c7ea4d4266d2957a82ebb7849bd6e46ccdc6d62ddff29811b2330356c2.
+The native command's zero exit does not override its JUnit failure.
+The strict parser refuses; the original operation remains intact and a separate
+read-only pause review reconciles all 16 starts/15 positives/one failure.
+These focused results do not qualify full standard or production acceptance.
+This main checkpoint changes documentation only. Historical sections below
+retain their original dates/scopes and do not override the current pause.
+
+[Complete paused inventory and release status](audits/2026-11-15/PAUSED_REVIEW.md).
+
 ## Maintained SDK unbound dependency/status component - 15 November 2026
 
 The maintained Pi SDK now has a source-bound correction for two actual findings:

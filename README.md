@@ -5,10 +5,15 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 **Beta.9 is available:** the experimental prerelease includes optional offline
 AI, model management and the grounded setup helper. Its seven selected native
 phone methods have positive evidence; incomplete compatibility and final
-production-phone acceptance remain disclosed. The wider audit is active again with four explicit acceptance priorities.
+production-phone acceptance remain disclosed. The wider audit is paused at the owner's request with every acceptance priority retained.
 [Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)
 · [Published evidence and limitations](docs/contracts/2026-11-13-beta9-public-preview.md)
-· [Resumed goal and next checks](docs/GOAL.md).
+· [Paused goal](docs/GOAL.md) · [Completed and incomplete tasks](docs/audits/2026-11-15/PAUSED_REVIEW.md).
+
+The latest investigation is saved on the feature branch with a failing API37
+keyboard-viewport check; it is not merged or published. Main has the reviewed
+SDK source fix and this paused documentation checkpoint. No newer stable APK
+is qualified. Beta.9's public production download/checksum were reverified.
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
@@ -45,6 +50,11 @@ The table below describes current `main`; release notes define what is included 
 [Brand and upgrade compatibility](docs/BRANDING.md) · [Changelog](CHANGELOG.md) · [Roadmap](ROADMAP.md) · [Full audit](docs/AUDIT_EXECUTION_PLAN.md)
 
 Independent community project; not affiliated with or endorsed by NousResearch. Original pixel art and system fonts; no copied game assets.
+
+The [offline-LLM feature backlog](docs/ON_DEVICE_AI_BACKLOG.md) now includes
+planned chat editing/branching, searchable history, context/performance controls,
+model-library improvements and personal offline tools. These additions are
+planned while the goal is paused; they are not features of the current APK.
 
 ## Features on main
 
@@ -96,7 +106,7 @@ Checked **15 November 2026**. Counts describe their stated builds and test scope
 | Current Pi source preservation | **79 live paths unchanged / 18 native authority outcomes** | Isolated ARM64 PM candidate built with only vendor-path rebase; same cases pass on Windows/Pi. Live activation and both permission prerequisites remain open; [exact scope](docs/contracts/2026-11-14-native-arm64-staged-candidate.md) |
 | Official shutdown regression cohorts | **50 cases each: pristine and candidate** | Exact stable3b plus the reviewed two-file candidate; six canonical no-retry file runs, identical cases, immutable sources; original owner-runtime warning stays open |
 | Experimental heartbeat candidate | **8 helper cases; 3 explicit native owner trials** | Exact 3b42157 + two-file patch, default-off reproducible mode; 1.219 s held-writer close fence; not deployed or accepted as unmodified upstream |
-| Current hosted lint | **0 errors**; 52 debug / 51 release warnings | Source09306e6, both actual XML reports; warnings retained |
+| Current hosted lint | **0 errors**; 52 debug / 51 release warnings | Source 09306e6, both actual XML reports; warnings retained |
 | Earlier candidate Android 8.0 UI | **10 / 10 passed** | Local-AI UI, consent/helper review and bilingual large text; synthetic state |
 | Physical offline model tests | **6 / 6 passed** | Earlier original-key debug candidate on an ARM64 Android 17 phone; LFM3, Qwen and grounded helper |
 | Current selected offline methods | **7 have positive evidence** | Unchanged code114 source0ee app, separately identified companions; garden/metadata/helper/generation/Qwen/switch/import; not the full external-model gate; old failures retained |

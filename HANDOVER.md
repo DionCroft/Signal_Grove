@@ -1,84 +1,45 @@
 # Signal Grove handover
 
-15 November 2026. Continue the **active full goal**, using [PROJECT_STATE](PROJECT_STATE.md),
-[GOAL](docs/GOAL.md), the [complete audit](docs/AUDIT_EXECUTION_PLAN.md) and exact
-source/evidence. No original requirement or failed/unknown receipt is removed.
+## Planning update - 16 November 2026
 
-## Current runtime finding
+The remaining scope now includes [OF-01 through OF-10](docs/ON_DEVICE_AI_BACKLOG.md)
+for richer offline chat/history/context, performance, models/transfers, selected
+documents, writing, opt-in personal context and supported offline voice/help.
+All are planned. Preserve the pause; do not begin implementation without resume.
+Existing UI failures and all earlier acceptance requirements stay open.
 
-The maintained Pi SDK now has a source-bound correction for two actual findings:
-its ordinary turn path referenced a missing peer-context module, and its status
-observer omitted active unbound turns. A fresh immutable SDK copy adds the exact
-86-line maintained peer module and includes the existing unbound counter inside
-the same read-only database snapshot. The original staged SDK is unchanged.
+15 November 2026: **paused at the owner's request**, confirmed by the goal API.
+Resume only when asked. Read [PROJECT_STATE](PROJECT_STATE.md),
+[GOAL](docs/GOAL.md), the [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
+[completed/incomplete inventory](docs/audits/2026-11-15/PAUSED_REVIEW.md).
 
-The corrected SDK passes **16 read-only status checks using two real native turn
-receipts**. The original observer reports zero while the correction reports one
-active outer turn and two during nesting. Checks retain strict peer-context
-routing, profile separation, freeze/new-admission and active-thaw refusals,
-completion while frozen, and five expected UNKNOWN outcomes for incomplete,
-missing or locked ledgers. Every status observation leaves generated files
-unchanged. Independent readback verifies both finished receipts, the retained
-frozen fence, ended native groups and all source/dependency/PM/live baselines.
+Reviewed SDK source62c8bbe is already on main; this handover changes docs only.
+The unfinished route investigation is saved/pushed only on feat/on-device-ai
+at a2a67b2ec55b04a9e1ede71e19b4d033487fd00e. Required JVM/lint/build pass,
+API26 passes 16/16 and API37 fails one of 16: Cancel is not entirely above the
+native keyboard. No proven fix, full release qualification or main merge is
+claimed. [Feature checkpoint](https://github.com/DionCroft/Signal_Grove/blob/a2a67b2ec55b04a9e1ede71e19b4d033487fd00e/docs/contracts/2026-11-15-route-diagnostics-investigation-checkpoint.md).
 
-The exact patch postimages verify. Windows completes **1,158 policy cases:
-885 positive / 273 platform skips**, matching the earlier distinct inventory.
-The 16 native observations are separate component checks, not additional policy
-methods. Android sources still match the previously verified build snapshot:
-1,011 JVM tests, 27 focused methods per API26/API37 and zero lint errors, with
-51 debug / 50 release warnings. No new Android build or production APK is claimed.
+Beta.9/code114 remains publicly downloadable as an experimental preview.
+Fresh anonymous production APK/checksum downloads verify. Install over the
+matching normal app without uninstalling. No newer stable APK is qualified.
+The [paused review](docs/audits/2026-11-15/PAUSED_REVIEW.md) has the direct link.
 
-Both failed native preparations remain preserved: the first exposed the missing
-module; the next hit a fixture assumption about cold configuration initialization.
-The final probe accounts separately for the SDK's default SOUL/config backup,
-then verifies read-only status behavior. No SDK function or counter is mocked.
-The original SDK's prior configured freeze/drain/native-stop result remains
-separate. The corrected SDK still needs actual gateway-wire/original-journal
-qualification, concurrent snapshot races and a final PM generation. Upstream,
-API26 original/navigation, fleet/worker/integration and production gates remain
-open. Live Hermes, the owner's phone and published beta.9 are unchanged.
-[Evidence and limits](docs/contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
+After explicit resume, inspect the exact failed API37 assertion, original API26
+receipts and feature changes before modifying code. Passing selected Demo cases
+do not explain or fix the original failure. Do not blindly retry unknown writes.
+Retain all four original priorities: UI diagnosis/full final-source gates;
+supported Hermes semantic/transitive and original shutdown-warning review;
+real project/workspace/worker/automation/integration acceptance; final
+original-key production upgrade/security/device/release checks.
 
-## One next action
+The corrected SDK still needs actual gateway-wire/unbound original-journal
+drain, concurrent snapshots, unprofiled behavior and final PM/fleet/recovery
+qualification. Live cutover, canonical PM/policy/launcher/grant changes,
+private GitHub/live-home backup and restart are not authorized by isolated
+staging approval. No such changes occur in this wrap-up.
 
-Exercise the declared corrected SDK through actual normal-gateway status and
-the original-journal drain with owned unbound work. Verify known-busy reporting,
-bounded completion, one freeze/exclusive marker and normal native stop without
-relaxing the original observation/expiry, native owner or no-replay checks.
-Qualify concurrent snapshots and unprofiled behavior; prepare a final PM context
-only from the reviewed declared source. The existing staged candidate stays intact.
-
-Then reproduce and fix the retained API26 phone-draft navigation and original
-Demo/history causes; finish exact-source standard device coverage and supported
-used/transitive upstream compatibility. Complete marker/source/owner races,
-all-profile/worker admission, unified execution, authenticated health and runtime
-recovery before a concrete final live packet. Canonical PM contexts, seven real
-modes, policy/launcher changes and private GitHub/live-home backup remain
-unactivated. Preserve every original audit, local-model, physical-phone and
-original-key APK delivery requirement. The full goal remains active.
-
-## Preserve and finish
-
-- Finish original API26 Demo/recent failure causes, full upstream used/transitive
-  compatibility and real operational shutdown; keep the original warning.
-- Finish real authenticated project/workspace/worker/NAS execution adoption,
-  automation/Kanban/rooms/grants/delivery, integrations/configuration/doctor/graph.
-- Finish twelve external-model, final physical phone/lifecycle/audio/background/
-  notification/accessibility/battery/thermal and original-key production upgrade,
-  security/support/exact-source release checks. Beta.9/code114 is unchanged.
-- Preserve production/debug signing separation, UID/schema and connections,
-  chats/projects/models/local history. Keep on-device-only dictation, no automatic
-  cloud fallback, no unknown-work replay, no credential transfer/public exposure.
-- Isolated staging approval does not authorize live cutover, canonical provisioning,
-  real-home backup or a gateway restart. Finish the concrete packet before its
-  separate final approval. The previous physical restart approval is consumed.
-- Source remains in the authoritative working copy; tools/cache/temp/build/private
-  evidence stay on the selected temporary drive. User projects and application
-  execution remain on their enrolled owners, not Pi.
-
-The prior backup component keeps its separately verified real SDK/age/loopback
-scope and generated-data native handoff evidence. Full cutover/runtime-only
-recovery and real private GitHub/live-home/external-provider backup stay open.
-Historical details remain in [EVIDENCE](EVIDENCE.md), [VALIDATION](docs/VALIDATION.md),
-linked contracts and the
-[previous handover](https://github.com/DionCroft/Signal_Grove/blob/1a07bf6ce67ba1f1847ceb983da742ce7af12733/HANDOVER.md).
+Source and scratch stay on their verified owner/storage. Phone/models/credentials/
+live Hermes and assets are unchanged. No final local build/instrumentation
+remains active. Automatically triggered GitHub jobs may continue independently;
+pending results must not be counted as acceptance.

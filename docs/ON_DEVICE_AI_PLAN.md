@@ -1,5 +1,32 @@
 # On-device AI delivery and acceptance
 
+## Offline feature extension - 16 November 2026
+
+The owner requested more local-LLM features following positive user feedback.
+The [new phased backlog](ON_DEVICE_AI_BACKLOG.md) adds ten planned work packages:
+editable/branched chat; searchable history/backup; context management; performance
+presets; model discovery/local-first setup; transfers/lifecycle; local documents;
+writing tools; opt-in personal profiles/memory/temporary chats; and offline voice/
+guided help. Each has explicit acceptance criteria and dependencies.
+
+This is a planning-only scope extension. The full goal remains **paused**.
+No new app feature, model support, APK, live service or physical test is claimed.
+The original four priorities, twelve-method external-model gate and final
+production/upgrade/security requirements remain; fix retained UI failures first.
+
+## Owner-requested pause - 15 November 2026
+
+The full goal is **paused**. All four acceptance priorities and every original
+audit/local-AI/release requirement remain. Reviewed SDK source is already on
+main at 62c8bbe. Unfinished route diagnostics are saved/pushed only to the feature
+branch at a2a67b2. The final focused run has 16/16 API26 positives and 15/16
+API37 positives with a retained phone-draft Cancel/keyboard viewport failure.
+This does not qualify a newer stable APK. Beta.9/code114 remains publicly
+downloadable; fresh anonymous production APK/checksum downloads verify.
+No implementation or deployment continues while paused.
+
+[Complete paused inventory and release status](audits/2026-11-15/PAUSED_REVIEW.md).
+
 ## 12 November 2026 - production upgrade/read checks and native output blocker
 
 The installed original-key beta.9/code112 retains its identity and saved
