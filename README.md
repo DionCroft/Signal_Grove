@@ -30,6 +30,13 @@ acceptance are pending; the earlier 36-method reader cohort retains its own
 recorded source/APKs. This does not add a search control to the published app.
 [Search scope and next steps](docs/contracts/2026-11-18-local-history-search-foundation.md).
 
+One actual ARM64 phone method now verifies offline edit/regenerate/fork/Stop
+and five retained QA histories, with about2.4 GiB highest observed process memory.
+Phone settings/networking restore; real app UI, lifecycle/accessibility and
+release acceptance remain. Latest JVM/build/lint source has **1,065 cases / 102
+reports**; this does not qualify all13 external-model methods or a new APK.
+[Physical evidence and limits](docs/contracts/2026-11-18-offline-phone-branches.md).
+
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
 The maintained SDK correction now passes **16 read-only status checks with two

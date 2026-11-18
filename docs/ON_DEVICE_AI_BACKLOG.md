@@ -31,7 +31,7 @@ This order is not a new release promise, version assignment or separate goal.
 
 ## OF-01: Edit, regenerate and branch conversations
 
-**Status: in progress (reviewed actions, drafts, provenance and passive reply readers).** [The tested increment](contracts/2026-11-18-local-reply-reader.md) verifies 1,053 JVM cases and 36 focused native methods on each API26/API37. Native-model/phone and accessibility acceptance remain. Add edit-and-send, explicitly requested regeneration and
+**Status: in progress (reviewed actions, drafts, provenance and passive reply readers).** [The tested increment](contracts/2026-11-18-local-reply-reader.md) verifies 1,053 JVM cases and 36 focused native methods on each API26/API37. [One actual offline native branch method now passes](contracts/2026-11-18-offline-phone-branches.md); real app UI, lifecycle, accessibility and full external-model acceptance remain. Add edit-and-send, explicitly requested regeneration and
 branch-from-message. Keep original exchanges accessible and record parentage,
 model fingerprint and generation settings. Add readable Markdown/code blocks,
 code copying, clear progress/completion-limit messages and usable long replies.

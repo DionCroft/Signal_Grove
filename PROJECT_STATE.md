@@ -1,5 +1,14 @@
 # Signal Grove project state
 
+The corrected actual offline phone gate passes: real edit/regenerate/fork/Stop,
+five independently verified histories, immutable parents/old failed-run files,
+requested settings/source identity and unloaded reads/store recovery. Original
+settings/networking restore; the normal app is untouched. This is one of13
+external methods, not all phone/lifecycle/OF-01 acceptance. A generated parent
+is copied into the initially empty debug history for the separate actual-app UI
+check; verified USB Settings input leaves the tree unchanged, so owner navigation
+is pending. [Proof and exact limits](docs/contracts/2026-11-18-offline-phone-branches.md).
+
 The actual phone gate retained a fixture failure: stale edit after a fork is
 correctly refused before generation. Original/regen/fork files are reconciled,
 model mappings released and original phone settings restored. The corrected

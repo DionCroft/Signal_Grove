@@ -1,5 +1,16 @@
 # Current development validation — audit follow-up
 
+## Actual offline phone branch gate — 18 November 2026
+
+One selected native method passes: three completed native replies, one copied
+fork and one explicitly stopped generation, with five exact QA histories and
+all three prior failed-run files retained. Requested context/thread/output/source
+metadata, unloaded reads and reopened-store no-replay recovery verify. The phone
+is actually offline during sampled checks; original settings and networking are
+restored. This does not close physical app UI, Android process/reboot, TalkBack,
+sustained-resource, all13 external-model methods or OF-01/release acceptance.
+[Exact pairing, metrics and UI boundary](contracts/2026-11-18-offline-phone-branches.md).
+
 ## Phone fixture navigation correction — 18 November 2026
 
 The first offline native method fails on a correctly rejected stale edit after
