@@ -286,4 +286,102 @@ class LocalAiControllerTest {
         }
     }
 
+
+    @Test fun explicitRegenerationPublishesOneChildAndKeepsTheOriginalBytes() = runTest {
+        val root = temp.newFolder(); val item = model(root); val history = temp.newFolder(); val engine = Engine()
+        val c = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(item); advanceUntilIdle(); c.send("First"); advanceUntilIdle(); c.send("Later"); advanceUntilIdle()
+        val parent = c.state.value.chat!!; val file = File(history, "${parent.id}.json"); val before = file.readBytes()
+        var selected = 0
+        c.branch(parent, 0, LocalBranchKind.REGENERATE, onSelected = { child ->
+            selected++; assertEquals(LocalReplyState.GENERATING, LocalConversationStore(history).load(child.id).exchanges.single().state)
+        })
+        // A second tap during the same action cannot create a second native request.
+        c.branch(parent, 0, LocalBranchKind.REGENERATE); advanceUntilIdle()
+        val child = c.state.value.chat!!
+        assertNotEquals(parent.id, child.id); assertEquals(1, selected); assertEquals(3, engine.requests.size)
+        assertEquals(listOf("First"), engine.requests.last().filter { it.role == "user" }.map { it.text })
+        assertEquals(LocalReplyState.COMPLETE, child.exchanges.single().state)
+        assertEquals(LocalBranchKind.REGENERATE, child.origin!!.kind); assertArrayEquals(before, file.readBytes())
+        c.leave(); advanceUntilIdle()
+    }
+    @Test fun explicitEditUsesTheReviewedQuestionWithoutReplayingLaterTurns() = runTest {
+        val root = temp.newFolder(); val item = model(root); val history = temp.newFolder(); val engine = Engine()
+        val c = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(item); advanceUntilIdle(); c.send("First"); advanceUntilIdle(); c.send("Old second"); advanceUntilIdle()
+        c.send("Unrelated later"); advanceUntilIdle()
+        val parent = c.state.value.chat!!; val before = File(history, "${parent.id}.json").readBytes()
+        c.branch(parent, 1, LocalBranchKind.EDIT, "Revised 你好 🌱"); advanceUntilIdle()
+        val child = c.state.value.chat!!
+        assertEquals(listOf("First", "Revised 你好 🌱"), engine.requests.last().filter {it.role == "user"}.map {it.text})
+        assertEquals(LocalBranchKind.EDIT, child.origin!!.kind); assertEquals(2, child.exchanges.size)
+        assertArrayEquals(before, File(history, "${parent.id}.json").readBytes())
+        c.leave(); advanceUntilIdle()
+    }
+    @Test fun branchBrowsingNeedsNoLoadedWeightsAndNeverCallsNativeGeneration() = runTest {
+        val root = temp.newFolder(); val item = model(root); val history = temp.newFolder(); val engine = Engine()
+        val c = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(item); advanceUntilIdle(); c.send("First"); advanceUntilIdle(); c.send("Later"); advanceUntilIdle()
+        val parent = c.state.value.chat!!; c.unload(); advanceUntilIdle()
+        c.branch(parent, 0, LocalBranchKind.FORK); advanceUntilIdle()
+        assertNull(c.state.value.loaded); assertEquals(1, c.state.value.chat!!.exchanges.size)
+        assertEquals(2, engine.requests.size); assertEquals(1, engine.loads)
+        val reopened = c.state.value.chat!!; c.openChat(parent.id); advanceUntilIdle(); c.openChat(reopened.id); advanceUntilIdle()
+        assertEquals(reopened, c.state.value.chat); assertEquals(2, engine.requests.size)
+    }
+    @Test fun changedOrWrongModelBranchesAreRefusedBeforePublishingOrCallingTheEngine() = runTest {
+        val root = temp.newFolder(); val first = model(root); val other = model(root, "Other"); val history = temp.newFolder(); val engine = Engine()
+        val c = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(first); advanceUntilIdle(); c.send("Original"); advanceUntilIdle()
+        val parent = c.state.value.chat!!; c.send("New turn"); advanceUntilIdle()
+        c.branch(parent, 0, LocalBranchKind.REGENERATE); advanceUntilIdle()
+        assertEquals(2, engine.requests.size); assertEquals(1, LocalConversationStore(history).list().size)
+        val latest = c.state.value.chat!!; c.load(other); advanceUntilIdle()
+        c.branch(latest, 0, LocalBranchKind.EDIT, "Wrong model"); advanceUntilIdle()
+        assertEquals(latest, c.state.value.chat); assertEquals(2, engine.requests.size)
+        assertEquals(1, LocalConversationStore(history).list().size)
+        c.leave(); advanceUntilIdle()
+    }
+    @Test fun cancelledPublishedRegenerationIsDurableWithoutASecondNativeDispatch() = runTest {
+        val root = temp.newFolder(); val item = model(root); val history = temp.newFolder(); val engine = Engine(); val guard = UpdateWorkGuard()
+        val ioScheduler = TestCoroutineScheduler()
+        val c = LocalAiController(root, history, "unused", true, {Long.MAX_VALUE}, guard,
+            StandardTestDispatcher(testScheduler), StandardTestDispatcher(ioScheduler)) { engine }
+        fun drain() { repeat(10) { testScheduler.runCurrent(); ioScheduler.runCurrent() } }
+        drain(); c.load(item); drain(); c.send("Original"); drain()
+        val parent = c.state.value.chat!!; val before = File(history, "${parent.id}.json").readBytes(); var selected = 0
+        c.branch(parent, 0, LocalBranchKind.REGENERATE, onSelected = { selected++ })
+        testScheduler.runCurrent(); ioScheduler.runCurrent()
+        assertEquals(2, LocalConversationStore(history).list().size); assertEquals(1, engine.requests.size)
+        c.cancel(); drain()
+        val child = c.state.value.chat!!
+        assertNotEquals(parent.id, child.id); assertEquals(1, selected)
+        assertEquals(LocalReplyState.CANCELLED, child.exchanges.single().state)
+        assertEquals(child, LocalConversationStore(history).load(child.id)); assertEquals(1, engine.requests.size)
+        assertArrayEquals(before, File(history, "${parent.id}.json").readBytes()); assertFalse(guard.active.value)
+        c.leave(); drain()
+    }
+    @Test fun failedRegenerationKeepsItsErrorAndLeavesTheParentReplyIntact() = runTest {
+        val root = temp.newFolder(); val item = model(root); val history = temp.newFolder(); val engine = Engine()
+        val c = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(item); advanceUntilIdle(); c.send("Original"); advanceUntilIdle()
+        val parent = c.state.value.chat!!; val before = File(history, "${parent.id}.json").readBytes()
+        engine.failure = LocalEngineException(2); c.branch(parent, 0, LocalBranchKind.REGENERATE); advanceUntilIdle()
+        assertEquals("engine_2", c.state.value.error); assertEquals(LocalReplyState.FAILED, c.state.value.chat!!.exchanges.single().state)
+        assertArrayEquals(before, File(history, "${parent.id}.json").readBytes()); assertEquals(2, engine.requests.size)
+        c.refreshLibrary(); advanceUntilIdle(); assertEquals(2, engine.requests.size)
+        c.leave(); advanceUntilIdle()
+    }
+    @Test fun unpublishedQuestionsKeepTheirDraftCallbackPendingUntilDurablePublication() = runTest {
+        val root = temp.newFolder(); val item = model(root); val history = temp.newFolder(); val engine = Engine()
+        val c = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler)); advanceUntilIdle()
+        c.load(item); advanceUntilIdle(); var published = 0
+        c.send("Never saved") { published++ }; c.cancel(); advanceUntilIdle()
+        assertEquals(0, published); assertTrue(LocalConversationStore(history).list().isEmpty()); assertTrue(engine.requests.isEmpty())
+        c.send("Saved") { value ->
+            assertEquals(value, LocalConversationStore(history).load(value.id)); published++
+        }; advanceUntilIdle()
+        assertEquals(1, published); assertEquals(1, engine.requests.size)
+        c.leave(); advanceUntilIdle()
+    }
 }

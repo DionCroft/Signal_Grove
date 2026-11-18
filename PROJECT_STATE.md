@@ -5,6 +5,17 @@ Fix UI blockers first, then OF-01 through OF-10, with tested commits/pushes.
 The [full goal](docs/GOAL.md), [audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain every original requirement.
 
+## OF-01 reviewed controls — 18 November 2026
+
+Edit/send, regenerate and branch now require review and preserve the original.
+Unsent drafts follow each phone chat and clear after durable publication.
+1,036 JVM cases and zero-error lint pass; the same APK pair passes 21 selected
+methods on each API26/API37 (synthetic UI and real private-file storage).
+This is unreleased feature-branch work. Generation settings, passive formatting,
+long replies and final native/phone/accessibility gates remain for OF-01.
+
+[Exact evidence](docs/contracts/2026-11-18-local-chat-actions.md).
+
 ## OF-01 storage increment — 18 November 2026
 
 Branch storage now preserves the exact parent and records child provenance,

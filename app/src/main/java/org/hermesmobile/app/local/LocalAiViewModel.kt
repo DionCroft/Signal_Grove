@@ -13,7 +13,15 @@ import org.hermesmobile.app.HermesApplication
 /** Drafts and picker results survive rotation in memory, never Android's saved-state bundle. */
 class LocalAiViewModel(application: Application) : AndroidViewModel(application) {
     val controller = (application as HermesApplication).localAi
-    val draft = MutableStateFlow("")
+    private val drafts = LocalConversationDrafts(controller.state.value.chat?.id)
+    val draft = drafts.text
+    fun changeDraft(value: String) { drafts.edit(value) }
+    fun newChat() { controller.newChat(); drafts.select(controller.state.value.chat?.id); handoffState.value = "" }
+    fun openChat(id: String) { controller.openChat(id) { drafts.select(controller.state.value.chat?.id); handoffState.value = "" } }
+    fun deleteChat(id: String) { controller.deleteChat(id) { drafts.forget(id); drafts.select(controller.state.value.chat?.id) } }
+    fun branch(source: LocalConversation, index: Int, kind: LocalBranchKind, edited: String?) {
+        controller.branch(source, index, kind, edited) { child -> drafts.select(child.id); handoffState.value = "" }
+    }
     val handoffState = MutableStateFlow("")
     private var receivedToken: String? = null
     fun receiveDraft(token: String?) {
@@ -24,8 +32,8 @@ class LocalAiViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 withTimeout(10_000) {controller.state.first {!it.busy}}
-                if(draft.value.isNotEmpty() || !controller.startDraft()) {handoffState.value = "unavailable";return@launch}
-                draft.value = text; handoffState.value = "received"
+                if(!drafts.canReceiveFresh() || !controller.startDraft()) {handoffState.value = "unavailable";return@launch}
+                drafts.select(null); drafts.edit(text); handoffState.value = "received"
             } catch(e:TimeoutCancellationException) {handoffState.value = "unavailable"}
         }
     }
@@ -35,7 +43,11 @@ class LocalAiViewModel(application: Application) : AndroidViewModel(application)
         val state = controller.state.value
         if (state.busy || state.loaded == null || text.isBlank() || text.toByteArray().size > 8192 ||
             state.chat?.let { it.modelSha256 != state.loaded.sha256 || it.exchanges.size >= 30 } == true) return
-        controller.send(text); draft.value = ""; handoffState.value = ""
+        val sourceId = drafts.selectedId
+        val submitted = draft.value
+        controller.send(text) { published ->
+            drafts.published(sourceId, submitted, published.id); handoffState.value = ""
+        }
     }
     fun importSelected() {
         if (controller.state.value.busy) return

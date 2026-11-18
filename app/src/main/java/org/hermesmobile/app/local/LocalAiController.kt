@@ -93,35 +93,74 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         val model = mutable.value.loaded ?: return
         mutable.update { it.copy(chat = LocalConversation(modelSha256 = model.sha256, updatedAt = System.currentTimeMillis()), error = null) }
     }
-    fun openChat(id: String) = action("reading") { val chat = io { conversations.load(id) }; mutable.update { it.copy(chat = chat) } }
-    fun deleteChat(id: String) = action("deleting") {
-        io { conversations.delete(id) }
-        mutable.update { if (it.chat?.id == id) it.copy(chat = null) else it }; refresh()
+    fun openChat(id: String) = openChat(id) {}
+    fun openChat(id: String, onSelected: () -> Unit) = action("reading") {
+        val chat = io { conversations.load(id) }; mutable.update { it.copy(chat = chat) }; onSelected()
     }
-    fun send(question: String) = action("generating") {
+    fun deleteChat(id: String) = deleteChat(id) {}
+    fun deleteChat(id: String, onDeleted: () -> Unit) = action("deleting") {
+        io { conversations.delete(id) }
+        mutable.update { if (it.chat?.id == id) it.copy(chat = null) else it }; onDeleted(); refresh()
+    }
+    fun send(question: String) = send(question) {}
+    fun send(question: String, onPublished: (LocalConversation) -> Unit) = action("generating") {
         require(question.isNotBlank() && question.toByteArray().size <= 8192)
         val model = mutable.value.loaded ?: throw LocalEngineException(4)
         val prior = mutable.value.chat ?: LocalConversation(modelSha256 = model.sha256, updatedAt = System.currentTimeMillis())
-        require(prior.modelSha256 == model.sha256 && prior.exchanges.size < 30)
-        val pending = prior.copy(updatedAt = System.currentTimeMillis(), exchanges = prior.exchanges + LocalExchange(question, state = LocalReplyState.GENERATING))
+        require(prior.modelSha256 == model.sha256 && prior.exchanges.size < LocalConversationStore.MAX_TURNS)
+        runGeneration({
+            val pending = prior.copy(updatedAt = System.currentTimeMillis(),
+                exchanges = prior.exchanges + LocalExchange(question, state = LocalReplyState.GENERATING))
+            conversations.save(pending)
+            pending
+        }, onPublished)
+    }
+
+    /** Each explicit action creates a child; no original reply is overwritten or retried. */
+    fun branch(expected: LocalConversation, exchangeIndex: Int, kind: LocalBranchKind,
+        editedQuestion: String? = null, onSelected: (LocalConversation) -> Unit = {}) =
+        action(if (kind == LocalBranchKind.FORK) "reading" else "generating") {
+            require(mutable.value.chat == expected)
+            if (kind == LocalBranchKind.FORK) {
+                var child: LocalConversation? = null
+                try { io { child = conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis()) } }
+                finally {
+                    // Publication may complete before cancellation reaches the main dispatcher.
+                    child?.let { published -> withContext(NonCancellable) {
+                        mutable.update { it.copy(chat = published) }; onSelected(published); refresh()
+                    } }
+                }
+            } else {
+                val loaded = mutable.value.loaded ?: throw LocalEngineException(4)
+                require(loaded.sha256 == expected.modelSha256)
+                runGeneration({conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis(), editedQuestion)}, onSelected)
+            }
+        }
+
+    /** Atomically publish the pending question before calling native inference, including branches. */
+    private suspend fun runGeneration(createPending: () -> LocalConversation, onPublished: (LocalConversation) -> Unit) {
+        var pending: LocalConversation? = null
+        var notified = false
         var reply = ""
         var terminal = LocalReplyState.FAILED
-        var persisted = false
         try {
-            // Cancellation can arrive after the atomic save but before dispatch back to Main.
-            io { conversations.save(pending); persisted = true }
-            mutable.update { it.copy(chat = pending) }
+            io { pending = createPending() }
+            currentCoroutineContext().ensureActive()
+            val active = checkNotNull(pending)
+            mutable.update { it.copy(chat = active) }
+            notified = true; onPublished(active)
             val messages = buildList {
                 add(LocalChatMessage("system", "You are an on-device text assistant in Signal Grove. You have no access to Hermes, servers, projects, credentials or tools. Never claim to have performed an action. Give advice as advice."))
-                prior.exchanges.filter { it.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT) }.forEach {
+                active.exchanges.dropLast(1).filter { it.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT) }.forEach {
                     add(LocalChatMessage("user", it.question)); if (it.reply.isNotBlank()) add(LocalChatMessage("assistant", it.reply))
                 }
-                add(LocalChatMessage("user", question))
+                add(LocalChatMessage("user", active.exchanges.last().question))
             }
             if (messages.sumOf {it.text.toByteArray().size} > 65_536) throw LocalEngineException(2)
+            currentCoroutineContext().ensureActive()
             terminal = when (engine!!.generate(messages) { text ->
                 reply = text
-                mutable.update { it.copy(chat = pending.copy(exchanges = pending.exchanges.dropLast(1) + pending.exchanges.last().copy(reply = text))) }
+                mutable.update { it.copy(chat = active.copy(exchanges = active.exchanges.dropLast(1) + active.exchanges.last().copy(reply = text))) }
             }) {
                 LocalGenerationEnd.COMPLETE -> LocalReplyState.COMPLETE
                 LocalGenerationEnd.CANCELLED -> LocalReplyState.CANCELLED
@@ -129,10 +168,14 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             }
         } catch (e: CancellationException) { terminal = LocalReplyState.CANCELLED; throw e }
         finally {
-            val completed = pending.copy(exchanges = pending.exchanges.dropLast(1) + LocalExchange(question, reply, terminal))
-            if (persisted) withContext(NonCancellable) {
-                io { conversations.save(completed) }
-                mutable.update { it.copy(chat = completed) }; refresh()
+            pending?.let { published ->
+                val completed = published.copy(exchanges = published.exchanges.dropLast(1) + published.exchanges.last().copy(reply = reply, state = terminal))
+                withContext(NonCancellable) {
+                    io { conversations.save(completed) }
+                    mutable.update { it.copy(chat = completed) }
+                    if (!notified) onPublished(completed)
+                    refresh()
+                }
             }
         }
     }

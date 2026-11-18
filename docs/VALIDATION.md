@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## OF-01 reviewed controls — 18 November 2026
+
+1,036 distinct JVM cases/99 reports pass without skips/errors/failures, including
+seven new controller and six draft-bank regressions. Required APK builds and
+zero-error lint pass (51 debug/50 release warnings). The same APKs independently
+pass 21 selected methods on each API26/API37, with exact dry/actual inventories:
+eight action UI cases, three filesystem cases and ten existing local UI cases.
+No model weights or real server are used; final phone/model/OF-01 gates remain.
+[Bindings, behavior and limits](contracts/2026-11-18-local-chat-actions.md).
+
 ## OF-01 storage increment — 18 November 2026
 
 1,023 distinct JVM cases/98 reports pass with no skips/errors/failures, including

@@ -70,7 +70,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val download: () -> Unit, val discard: () -> Unit, val chooseFile: () -> Unit,
     val acceptImport: () -> Unit, val cancelImport: () -> Unit, val openChat: (String) -> Unit,
     val deleteChat: (String) -> Unit, val dismissError: () -> Unit, val refresh: () -> Unit = {},
-    val help: (LocalHelpTopic, Boolean) -> Unit = {_, _ ->})
+    val help: (LocalHelpTopic, Boolean) -> Unit = {_, _ ->},
+    val branch: (LocalConversation, Int, LocalBranchKind, String?) -> Unit = {_, _, _, _ ->})
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -86,11 +87,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val licence = remember {context.assets.open("LFM3-LICENSE.txt").bufferedReader().use {it.readText()}}
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {vm.pendingImport.value = it}
     val c = vm.controller
-    LocalAiScreen(state, c.supported, draft, {vm.draft.value = it}, pending != null, licence,
-        LocalAiActions(vm::send, c::cancel, c::newChat, c::load, c::unload, c::deleteModel,
+    LocalAiScreen(state, c.supported, draft, vm::changeDraft, pending != null, licence,
+        LocalAiActions(vm::send, c::cancel, vm::newChat, c::load, c::unload, c::deleteModel,
             {c.download(true)}, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
-            {vm.pendingImport.value = null}, c::openChat, c::deleteChat, c::dismissError, c::refreshLibrary,
-            {topic, share -> c.help(topic, observations.takeIf {share})}), close, observations, handoff)
+            {vm.pendingImport.value = null}, vm::openChat, vm::deleteChat, c::dismissError, c::refreshLibrary,
+            {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch), close, observations, handoff)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
@@ -202,6 +203,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 }
 
 @Composable private fun ColumnScope.PhoneChat(state: LocalAiState, draft: String, change: (String) -> Unit, actions: LocalAiActions, review: (String) -> Unit) {
+    var branchReview by remember { mutableStateOf<PhoneBranchReview?>(null) }
     val loaded = state.loaded
     val mismatch = loaded != null && state.chat?.let {it.modelSha256 != loaded.sha256} == true
     val full = (state.chat?.exchanges?.size ?: 0) >= 30
@@ -209,11 +211,17 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         Text(loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"), style = MaterialTheme.typography.labelMedium)
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
     }
+    state.chat?.origin?.let { origin ->
+        Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()), style = MaterialTheme.typography.labelSmall)
+        if (state.history.any { it.id == origin.parentId }) TextButton({actions.openChat(origin.parentId)}, enabled = !state.busy,
+            modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
+    }
     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val exchanges = state.chat?.exchanges.orEmpty()
         if (loaded == null) item {Text(label(Words.PhoneNotLoaded))}
         if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
         if (exchanges.isEmpty()) item {Text(label(Words.PhoneEmpty))}
+        if (state.history.size >= LocalConversationStore.MAX_CHATS) item { Text(label(Words.PhoneBranchHistoryFull)) }
         items(exchanges.size) { index -> val row = exchanges[index]
             HermesCard {
                 SelectionContainer {Text(row.question)}
@@ -221,14 +229,70 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 SelectionContainer {Text(row.reply)}
                 Text(label(phoneReplyState(row.state)), style = MaterialTheme.typography.labelSmall)
                 if (row.reply.isNotBlank() && row.state != LocalReplyState.GENERATING) TextButton({review(row.reply)}) {Text(label(Words.PhoneReview))}
+                val source = state.chat!!
+                val allowed = !state.busy && row.state != LocalReplyState.GENERATING && state.history.size < LocalConversationStore.MAX_CHATS
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.EDIT)},
+                        enabled = allowed && loaded != null && !mismatch, modifier = Modifier.testTag("phone-edit-$index")) {Text(label(Words.PhoneEditSend))}
+                    TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.REGENERATE)},
+                        enabled = allowed && loaded != null && !mismatch, modifier = Modifier.testTag("phone-regenerate-$index")) {Text(label(Words.PhoneRegenerate))}
+                    TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.FORK)},
+                        enabled = allowed && row.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT),
+                        modifier = Modifier.testTag("phone-branch-$index")) {Text(label(Words.PhoneBranchHere))}
+                }
             }
         }
+    }
+    branchReview?.let { selected ->
+        PhoneBranchDialog(selected, state, { edited ->
+            branchReview = null
+            actions.branch(selected.source, selected.index, selected.kind, edited)
+        }) { branchReview = null }
     }
     if (draft.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
     Row {
         OutlinedTextField(draft, change, Modifier.weight(1f).testTag("phone-draft"), placeholder = {Text(label(Words.PhoneMessage))}, maxLines = 4, enabled = !state.busy)
         IconButton(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && draft.isNotBlank() && draft.toByteArray().size <= 8192,
             modifier = Modifier.testTag("phone-send")) {Icon(Icons.AutoMirrored.Outlined.Send, label(Words.Send))}
+    }
+}
+
+private data class PhoneBranchReview(val source: LocalConversation, val index: Int, val kind: LocalBranchKind)
+
+@Composable private fun PhoneBranchDialog(review: PhoneBranchReview, state: LocalAiState,
+    accept: (String?) -> Unit, close: () -> Unit) {
+    var question by remember(review) { mutableStateOf(review.source.exchanges[review.index].question) }
+    val editing = review.kind == LocalBranchKind.EDIT
+    val title = when(review.kind) {
+        LocalBranchKind.EDIT -> Words.PhoneEditSend
+        LocalBranchKind.REGENERATE -> Words.PhoneRegenerate
+        LocalBranchKind.FORK -> Words.PhoneBranchHere
+    }
+    val unchanged = state.chat == review.source
+    val compatible = review.kind == LocalBranchKind.FORK || state.loaded?.sha256 == review.source.modelSha256
+    val valid = !state.busy && unchanged && compatible && state.history.size < LocalConversationStore.MAX_CHATS &&
+        (!editing || (question.isNotBlank() && question.toByteArray().size <= 8192))
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(label(title), style = MaterialTheme.typography.headlineSmall)
+                    Text(label(if (review.kind == LocalBranchKind.FORK) Words.PhoneForkReviewHelp else Words.PhoneBranchReviewHelp))
+                    if (editing) OutlinedTextField(question, {question = it}, Modifier.fillMaxWidth().testTag("phone-edit-question"),
+                        label = {Text(label(Words.PhoneMessage))}, enabled = !state.busy, maxLines = 8)
+                    else SelectionContainer {Text(question)}
+                    if (!unchanged) Text(label(Words.PhoneBranchChanged), color = MaterialTheme.colorScheme.error)
+                    if (!compatible) Text(label(Words.PhoneMismatch))
+                    if (state.history.size >= LocalConversationStore.MAX_CHATS) Text(label(Words.PhoneBranchHistoryFull))
+                    if (editing && question.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
+                }
+                Button({accept(question.takeIf {editing})}, enabled = valid,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("phone-branch-confirm")) {
+                    Text(label(if (review.kind == LocalBranchKind.FORK) Words.PhoneCreateBranch else Words.PhoneCreateGenerate))
+                }
+                TextButton(close, Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("phone-branch-cancel")) { Text(label(Words.Cancel)) }
+            }
+        }
     }
 }
 
