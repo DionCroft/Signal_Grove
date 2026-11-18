@@ -1,5 +1,13 @@
 # Current development validation — audit follow-up
 
+## OF-01 storage increment — 18 November 2026
+
+1,023 distinct JVM cases/98 reports pass with no skips/errors/failures, including
+12 new branch-storage regressions. Required debug app/test APK builds and
+zero-error debug/release lint pass (51/50 warnings retained). This is an
+internal storage foundation; controls, generation provenance and actual native/
+phone branch acceptance remain. [Bindings and limits](contracts/2026-11-18-local-branch-storage.md).
+
 ## Resumed UI checkpoint - 18 November 2026
 
 The full goal is active at the owner's request. UI navigation now observes the

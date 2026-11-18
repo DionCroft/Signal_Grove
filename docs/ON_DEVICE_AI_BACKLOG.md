@@ -1,8 +1,7 @@
 # Offline LLM feature backlog
 
 Planning extension requested 16 November 2026 following the owner's report that
-users enjoy running a local LLM on their phones. **All features below are planned,
-not implemented or released by this document.** The owner resumed the full audit goal on 18 November 2026. This extends the remaining work without replacing any original Hermes,
+users enjoy running a local LLM on their phones. **Features below are planned or in progress; none is completed or newly released by this document.** The owner resumed the full audit goal on 18 November 2026. This extends the remaining work without replacing any original Hermes,
 offline-model, device, security or release requirement.
 
 [Existing implementation and limits](ON_DEVICE_AI.md) ·
@@ -32,7 +31,7 @@ This order is not a new release promise, version assignment or separate goal.
 
 ## OF-01: Edit, regenerate and branch conversations
 
-**Status: planned.** Add edit-and-send, explicitly requested regeneration and
+**Status: in progress (storage foundation only).** [The tested internal increment](contracts/2026-11-18-local-branch-storage.md) preserves parent files and records branches; controls, native/phone acceptance, generation settings and formatting remain. Add edit-and-send, explicitly requested regeneration and
 branch-from-message. Keep original exchanges accessible and record parentage,
 model fingerprint and generation settings. Add readable Markdown/code blocks,
 code copying, clear progress/completion-limit messages and usable long replies.

@@ -5,6 +5,11 @@ Read [PROJECT_STATE](PROJECT_STATE.md), [GOAL](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [ordered offline backlog](docs/ON_DEVICE_AI_BACKLOG.md).
 
+OF-01 storage foundation is tested: 1,023 JVM cases, zero-error lint and required
+APK builds. Parent bytes are preserved; children record origin and model hash.
+UI controls, controller/draft integration, generation settings, rendering and
+native/phone acceptance remain. [Exact scope](docs/contracts/2026-11-18-local-branch-storage.md).
+
 The UI readiness/native-viewport chunk passes 1,011 JVM tests, zero-error lint
 (51 debug/50 release warnings) and the same 27 selected native methods on each
 API26/API37. New guards observe enabled/stable Home and fresh complete native

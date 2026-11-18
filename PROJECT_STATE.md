@@ -5,6 +5,17 @@ Fix UI blockers first, then OF-01 through OF-10, with tested commits/pushes.
 The [full goal](docs/GOAL.md), [audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain every original requirement.
 
+## OF-01 storage increment — 18 November 2026
+
+Branch storage now preserves the exact parent and records child provenance,
+with legacy read-only compatibility and no automatic replay. All 1,023 JVM
+cases pass; lint has zero errors (51 debug/50 release warnings), and required
+APKs build. This internal increment does not expose the actions or complete
+OF-01. Next implement reviewed controls, one generation per action, scoped
+drafts, reply provenance/formatting and device gates.
+
+[Scope and evidence](docs/contracts/2026-11-18-local-branch-storage.md).
+
 ## Resumed UI checkpoint - 18 November 2026
 
 The full goal is active at the owner's request. UI navigation now observes the
