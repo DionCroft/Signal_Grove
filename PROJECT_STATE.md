@@ -1,5 +1,12 @@
 # Signal Grove project state
 
+The actual phone gate retained a fixture failure: stale edit after a fork is
+correctly refused before generation. Original/regen/fork files are reconciled,
+model mappings released and original phone settings restored. The corrected
+companion and a JVM stale/reopen regression pass required builds, 1,065 JVM
+cases/102 reports and zero-error lint. The app is unchanged; corrected physical
+acceptance is pending. [Evidence](docs/contracts/2026-11-18-phone-branch-fixture-correction.md).
+
 OF-02 has a tested internal read-only search foundation: 1,064 JVM cases/102
 reports, required builds and zero-error lint (51/50 warnings). Controller/UI,
 organization, transfers/encryption and real offline UX remain. This independent

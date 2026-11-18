@@ -307,6 +307,7 @@ class LocalModelPhysicalTest {
             val fork = idle().chat!!
             assertEquals(2, calls.get()); assertEquals(child.exchanges, fork.exchanges)
             assertEquals(LocalBranchKind.FORK, fork.origin!!.kind)
+            stage("of01-return-to-parent-for-edit"); controller.openChat(parent.id); idle()
             stage("of01-explicit-edited-child")
             val editedQuestion = "Write one short sentence about a quiet forest."
             controller.branch(parent, 0, LocalBranchKind.EDIT, editedQuestion)

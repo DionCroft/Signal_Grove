@@ -413,4 +413,33 @@ class LocalAiControllerTest {
         assertEquals(512, record.contextTokens); assertNull(record.runtime)
         c.leave(); advanceUntilIdle()
     }
+
+    @Test fun editingAnOlderParentAfterForkRequiresReopeningItBeforeAnyNewGeneration() = runTest {
+        val root = temp.newFolder(); val model = model(root); val history = temp.newFolder()
+        val engine = Engine(); val guard = UpdateWorkGuard()
+        val controller = controller(root, history, engine, guard, StandardTestDispatcher(testScheduler))
+        advanceUntilIdle(); controller.load(model); advanceUntilIdle()
+        controller.send("Original question"); advanceUntilIdle()
+        val parent = controller.state.value.chat!!
+        val parentFile = File(history, "${parent.id}.json"); val parentBytes = parentFile.readBytes()
+        controller.branch(parent, 0, LocalBranchKind.FORK); advanceUntilIdle()
+        val fork = controller.state.value.chat!!; val forkBytes = File(history, "${fork.id}.json").readBytes()
+        assertNotEquals(parent.id, fork.id); assertEquals(1, engine.requests.size)
+        controller.branch(parent, 0, LocalBranchKind.EDIT, "Reviewed edited question"); advanceUntilIdle()
+        assertEquals("operation_failed", controller.state.value.error)
+        assertEquals(fork, controller.state.value.chat); assertEquals(1, engine.requests.size)
+        assertEquals(2, LocalConversationStore(history).list().size)
+        assertArrayEquals(parentBytes, parentFile.readBytes())
+        controller.openChat(parent.id); advanceUntilIdle(); assertNull(controller.state.value.error)
+        controller.branch(parent, 0, LocalBranchKind.EDIT, "Reviewed edited question"); advanceUntilIdle()
+        val edited = controller.state.value.chat!!
+        assertNotEquals(parent.id, edited.id); assertEquals(LocalBranchKind.EDIT, edited.origin!!.kind)
+        assertEquals("Reviewed edited question", edited.exchanges.single().question)
+        assertEquals(2, engine.requests.size)
+        assertEquals(listOf("Reviewed edited question"), engine.requests.last().filter {it.role == "user"}.map {it.text})
+        assertArrayEquals(parentBytes, parentFile.readBytes())
+        assertArrayEquals(forkBytes, File(history, "${fork.id}.json").readBytes())
+        assertFalse(controller.state.value.busy); assertFalse(guard.active.value)
+        controller.leave(); advanceUntilIdle()
+    }
 }

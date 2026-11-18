@@ -1,5 +1,16 @@
 # Current development validation — audit follow-up
 
+## Phone fixture navigation correction — 18 November 2026
+
+The first offline native method fails on a correctly rejected stale edit after
+forking; no whole-method pass is claimed. Exact file review preserves the parent,
+regenerated reply and fork, empty global debug user history, released model maps
+and restored phone settings. The fixture now reopens its parent; a new JVM
+regression verifies both refusal and successful reopen/edit. 1,065 JVM cases/102
+reports, required builds and zero-error lint pass. Only a corrected companion is
+staged; actual corrected phone acceptance remains pending.
+[Exact scope and transfer observations](contracts/2026-11-18-phone-branch-fixture-correction.md).
+
 ## OF-02 internal search foundation — 18 November 2026
 
 The read-only helper passes 11 new cases, for 1,064 JVM cases/102 reports,

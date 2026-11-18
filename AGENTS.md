@@ -4,6 +4,8 @@ Build a native Android client for the documented Hermes API. Use Kotlin, Compose
 
 Keep all project files in the chosen repository. On the owner's Windows machine use **E:** for tools, caches, temporary files and emulator data; never C: for temporary work. `scripts/build-windows.ps1` enforces this. Do not commit machine paths or local credentials.
 
+For phone model staging, use raw ADB `exec-in` or verified sync transport; Windows shell stdin can stop at Ctrl+Z. Verify full target size and SHA-256 before publication. Do not infer a remote exit status from raw `exec-out`; use explicit shell-v2 status/markers. Preserve and reconcile partial files before a new transfer.
+
 Before changing networking, consult the official API reference and verify payloads. Preserve configured profile path prefixes, TLS validation, token isolation and explicit approvals. Never infer a terminal run from an assistant-finalisation event, a closed socket, a stop request or a chat-completion finish reason. Do not auto-replay unknown tool work with a new key.
 
 Keep English/Chinese/pinyin in the structured `Words` layer. Every control must act or be disabled with an explanation. Demo content must remain clearly labelled.
