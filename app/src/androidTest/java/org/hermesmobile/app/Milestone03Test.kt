@@ -77,7 +77,7 @@ class Milestone03Test {
     }
     @Test fun demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure() {
         inputTrace?.mark("home-new-chat")
-        compose.onNodeWithText("New conversation").performScrollTo().performClick()
+        compose.openHomeNewChatOnce()
         inputTrace?.mark("after-home-new-chat")
         demoExercise(Words.DemoApproval)
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}
@@ -92,7 +92,7 @@ class Milestone03Test {
     }
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {
         inputTrace?.mark("home-new-chat")
-        compose.onNodeWithText("New conversation").performScrollTo().performClick()
+        compose.openHomeNewChatOnce()
         inputTrace?.mark("after-home-new-chat")
         demoExercise(Words.DemoClarification)
         compose.waitUntil(5000) {vm.controls.value.isNotEmpty()}

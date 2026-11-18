@@ -1,5 +1,14 @@
 # Signal Grove paused review - 15 November 2026
 
+## Current-status follow-up - 18 November 2026
+
+The owner resumed the full goal: UI blockers first, then OF-01 through OF-10.
+The dated pause below remains historical. The tested UI guard checkpoint has
+27/27 selected methods per API26/API37, 1,011 JVM tests and zero-error lint.
+Original failed runs/cause uncertainty and the wider audit remain; no new local
+feature or public APK release is claimed.
+[Current evidence](../../contracts/2026-11-18-ui-readiness-and-phone-draft-viewport.md).
+
 The goal API confirms **paused at the owner's request**. Every original audit,
 local-AI and release requirement remains. Resume only when requested. This
 wrap-up saves existing work and verifies download availability; it starts no

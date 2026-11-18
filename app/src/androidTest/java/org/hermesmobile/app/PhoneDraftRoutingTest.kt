@@ -106,24 +106,39 @@ class PhoneDraftRoutingTest {
         snapshot("review-top")
         compose.onNodeWithTag("phone-draft-text").performScrollTo().performClick().assertTextEquals("Fresh unsent question")
         compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
-        var previous:FocusedDialogViewport?=null;var stableAt=0L
-        compose.waitUntil(5000) {
-            val current=focusedDialogViewport();val now=android.os.SystemClock.uptimeMillis()
-            if(current==null || previous!=current) {previous=current;stableAt=now;false} else now-stableAt>=250
-        }
-        val viewport=checkNotNull(previous)
-        for((tag,word) in listOf("phone-draft-confirm" to Words.PhoneDraftConfirm,"phone-draft-cancel" to Words.Cancel)) {
-            val control=compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInWindow
-            assertTrue("Entire control above native IME: $tag; $viewport",control.left+viewport.screenOffsetX>=viewport.visible.left && control.right+viewport.screenOffsetX<=viewport.visible.right && control.top+viewport.screenOffsetY>=viewport.visible.top && control.bottom+viewport.screenOffsetY<=viewport.visible.bottom)
-            val caption=word.localized(vm.preferences.value);val native=focusedDialogCaptionScreenBounds(caption,caption)
-            assertTrue("Complete native caption above IME: $tag; $native; $viewport",viewport.visible.contains(native))
-        }
+        // Capture before readiness; screenshots/accessibility queries may advance IME layout.
         snapshot("review-bottom")
-        val cancel=compose.onNodeWithTag("phone-draft-cancel").fetchSemanticsNode().boundsInWindow.center
-        tapFocusedDialogWindowPoint(cancel.x,cancel.y,NativeDialogTapAction.PhoneDraftCancel)
+        compose.cancelPhoneDraftOnce(vm.preferences.value,keyboardExpected=true)
         compose.waitUntil(5000) {compose.onAllNodesWithTag("phone-draft-review").fetchSemanticsNodes().isEmpty()}
         assertEquals("Fresh unsent question",vm.draft.value);assertNotNull(vm.reviewPhoneDraft());assertEquals(before,history())
         assertTrue(vm.selected.value.isBlank());assertNull(app.localAi.state.value.loaded)
+    }
+    @Test fun lateKeyboardInvalidatesTheOldCancelGeometryBeforeItsOnlyNativeTap() {
+        ready();val before=history();language=vm.preferences.value.let {it.chinese to it.pinyin}
+        compose.runOnUiThread {vm.updatePreferences(vm.preferences.value.copy(chinese=true,pinyin=true))}
+        compose.waitUntil(5000) {vm.preferences.value.chinese && vm.preferences.value.pinyin}
+        openChatNavigation()
+        compose.runOnUiThread {vm.changeDraft("Late keyboard question")}
+        compose.onNodeWithTag("phone-draft-open").performClick()
+        // API26 may finish opening the initial editor after an early hidden read.
+        // Establish an actual show/hide before the controlled late reopen.
+        compose.onNodeWithTag("phone-draft-text").performScrollTo().performClick()
+        compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+        closeFocusedKeyboard()
+        compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
+        assertFalse("Begin with the actual keyboard hidden",focusedDialogKeyboardVisible())
+        val observed=compose.cancelPhoneDraftOnce(vm.preferences.value,beforePreTapObservation={
+            compose.onNodeWithTag("phone-draft-text").performClick()
+        })
+        assertFalse(observed.firstCandidate.viewport.keyboardVisible)
+        assertTrue("The actual keyboard arrives before Cancel",observed.beforeTap.viewport.keyboardVisible)
+        assertTrue("Re-observe instead of tapping the stale coordinates",observed.preTapResamples>0)
+        val stale=observed.firstCandidate.controls.last()
+        assertTrue("The original Cancel location is covered by the new keyboard",
+            stale.bottom+observed.firstCandidate.viewport.screenOffsetY>observed.beforeTap.viewport.visible.bottom)
+        compose.waitUntil(5000) {compose.onAllNodesWithTag("phone-draft-review").fetchSemanticsNodes().isEmpty()}
+        assertEquals("Late keyboard question",vm.draft.value);assertNotNull(vm.reviewPhoneDraft())
+        assertEquals(before,history());assertTrue(vm.selected.value.isBlank());assertNull(app.localAi.state.value.loaded)
     }
     @Test fun editedReviewOpensOnlyANewPhoneDraftWithoutSubmittingOrLosingHistory() {
         ready();seedPhoneHistory();val before=history()

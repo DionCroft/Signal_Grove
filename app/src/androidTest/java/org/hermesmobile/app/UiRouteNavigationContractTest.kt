@@ -1,5 +1,7 @@
 package org.hermesmobile.app
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -42,5 +44,42 @@ class UiRouteNavigationContractTest {
         val failure=runCatching {compose.openChatRouteOnce()}.exceptionOrNull()
         assertTrue(failure is AssertionError)
         compose.runOnIdle {assertEquals(1,routeClicks);assertEquals(0,decoyClicks)}
+    }
+
+    @Test fun delayedEnabledHomeActionUsesItsTagAndNavigatesOnlyOnce() {
+        var clicks=0;var decoyClicks=0
+        val enabled=mutableStateOf(false)
+        compose.setContent {
+            var homeSelected by remember {mutableStateOf(false)}
+            MaterialTheme {Column(Modifier.verticalScroll(rememberScrollState())) {
+                Button({decoyClicks++}) {Text("New conversation")}
+                Button({clicks++;homeSelected=true},enabled=enabled.value,modifier=Modifier.testTag("home-new-chat")) {Text("New conversation")}
+                Text("Chat target",Modifier.testTag("nav-chat").semantics {selected=homeSelected})
+            }}
+        }
+        compose.onNodeWithTag("home-new-chat").assertIsNotEnabled()
+        compose.runOnUiThread {android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({enabled.value=true},250)}
+        compose.openHomeNewChatOnce()
+        compose.runOnIdle {assertEquals(1,clicks);assertEquals(0,decoyClicks)}
+    }
+    @Test fun aHomeCallbackWithoutNavigationFailsAfterOnlyOneClick() {
+        var clicks=0
+        compose.setContent {MaterialTheme {Column(Modifier.verticalScroll(rememberScrollState())) {
+            Button({clicks++},Modifier.testTag("home-new-chat")) {Text("New conversation")}
+            Text("Unselected",Modifier.testTag("nav-chat").semantics {selected=false})
+        }}}
+        val failure=runCatching {compose.openHomeNewChatOnce()}.exceptionOrNull()
+        assertNotNull(failure)
+        compose.runOnIdle {assertEquals(1,clicks)}
+    }
+    @Test fun aDisabledHomeActionNeverDispatchesInput() {
+        var clicks=0
+        compose.setContent {MaterialTheme {Column(Modifier.verticalScroll(rememberScrollState())) {
+            Button({clicks++},enabled=false,modifier=Modifier.testTag("home-new-chat")) {Text("New conversation")}
+            Text("Unselected",Modifier.testTag("nav-chat").semantics {selected=false})
+        }}}
+        compose.onNodeWithTag("home-new-chat").assertIsNotEnabled()
+        assertNotNull(runCatching {compose.openHomeNewChatOnce()}.exceptionOrNull())
+        compose.runOnIdle {assertEquals(0,clicks)}
     }
 }
