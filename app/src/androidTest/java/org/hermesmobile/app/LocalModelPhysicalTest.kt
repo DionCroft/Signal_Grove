@@ -7,6 +7,8 @@ import android.os.SystemClock
 import java.io.File
 import java.security.MessageDigest
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import org.hermesmobile.app.local.*
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -223,4 +225,121 @@ class LocalModelPhysicalTest {
             stage("reply-after-reload-complete")
         } finally { withContext(NonCancellable) { engine.unload() } }
     }
-}
+    /** Actual native controller gate; uses a reviewed existing model and separate QA histories. */
+    @Test fun verifiedLfm3BranchesRetainParentsSettingsAndNeverReplay() = runBlocking {
+        val (probeRoot, input) = modelInput()
+        require(InstrumentationRegistry.getArguments().getString("localModelLicenceReviewed") == "true")
+        val app = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as HermesApplication
+        val global = app.localAi
+        withTimeout(30_000) {global.state.first { !it.busy }}
+        assertNull("Close any existing debug model before this explicit gate", global.state.value.loaded)
+        val globalHistory = File(app.noBackupFilesDir, "local-ai/chats")
+        fun digest(file: File): String {
+            val value = MessageDigest.getInstance("SHA-256")
+            file.inputStream().use {stream -> val buffer = ByteArray(65536); while (true) {
+                val n = stream.read(buffer); if (n < 0) break; value.update(buffer, 0, n)
+            } }
+            return value.digest().joinToString("") {"%02x".format(it)}
+        }
+        fun histories(root: File) = root.listFiles().orEmpty().filter {it.isFile}.associate {it.name to digest(it)}
+        val globalBefore = histories(globalHistory)
+        val modelRoot = File(app.noBackupFilesDir, "local-ai/models")
+        val historyRoot = File(probeRoot, "branch-history-${java.util.UUID.randomUUID()}")
+        val native = NativeLocalInference(modelRoot, app.applicationInfo.nativeLibraryDir)
+        val calls = java.util.concurrent.atomic.AtomicInteger()
+        val limits = java.util.concurrent.ConcurrentLinkedQueue<Int>()
+        val loads = java.util.concurrent.ConcurrentLinkedQueue<Pair<Int, Int>>()
+        val stopOnText = java.util.concurrent.atomic.AtomicReference<(() -> Unit)?>(null)
+        val observed = object : LocalInference by native {
+            override suspend fun load(file: File, context: Int, threads: Int) {
+                native.load(file, context, threads); loads.add(context to threads)
+            }
+            override suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int, onText: (String) -> Unit): LocalGenerationEnd {
+                calls.incrementAndGet(); limits.add(maxTokens)
+                return native.generate(messages, maxTokens) {text -> onText(text); stopOnText.getAndSet(null)?.invoke()}
+            }
+        }
+        val controller = LocalAiController(modelRoot, historyRoot, app.applicationInfo.nativeLibraryDir,
+            android.os.Process.is64Bit(), {
+                android.app.ActivityManager.MemoryInfo().also {app.getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it)}.availMem
+            }, app.updateWorkGuard, engineFactory = {observed})
+        suspend fun idle(allowError: Boolean = false): LocalAiState {
+            val value = withTimeout(120_000) {
+                combine(controller.state, app.updateWorkGuard.active) {state, held -> state to held}
+                    .first { !it.first.busy && !it.second }.first
+            }
+            if (!allowError) assertNull("Native controller operation failed", value.error)
+            return value
+        }
+        fun terminal(value: LocalConversation) {
+            assertTrue(value.exchanges.last().state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT))
+            assertTrue(value.exchanges.last().reply.isNotBlank())
+            assertFalse(value.exchanges.last().reply.contains("<|"))
+            assertFalse(value.exchanges.last().reply.contains("<think>"))
+        }
+        try {
+            idle(); stage("of01-library-verify")
+            if (controller.state.value.models.none {it.sha256 == RecommendedLocalModel.SHA256}) {
+                stage("of01-import-existing-reviewed-model")
+                controller.importModel(true) {input.inputStream()}; idle()
+            }
+            val model = controller.state.value.models.single {it.sha256 == RecommendedLocalModel.SHA256}
+            stage("of01-load-context-2048"); controller.load(model, 2048); idle()
+            stage("of01-explicit-original-turn"); controller.send("Write one short sentence about a peaceful garden.")
+            val parent = idle().chat!!; terminal(parent)
+            assertEquals(1, calls.get()); assertEquals(model.sha256, parent.modelSha256)
+            val store = LocalConversationStore(historyRoot)
+            val parentFile = File(historyRoot, "${parent.id}.json"); val parentHash = digest(parentFile)
+            val parentSettings = parent.exchanges.single().generation!!
+            assertEquals(2048, parentSettings.contextTokens)
+            assertEquals(loads.first().second, parentSettings.threads)
+            assertEquals(384, parentSettings.maxOutputTokens)
+            assertEquals(BuildConfig.LOCAL_RUNTIME_SOURCE_SHA256, parentSettings.runtime!!.sourceSha256)
+            stage("of01-reload-context-1024"); controller.load(model, 1024); idle()
+            stage("of01-explicit-regeneration"); controller.branch(parent, 0, LocalBranchKind.REGENERATE)
+            val child = idle().chat!!; terminal(child)
+            assertNotEquals(parent.id, child.id); assertEquals(2, calls.get())
+            assertEquals(LocalBranchKind.REGENERATE, child.origin!!.kind)
+            assertEquals(1024, child.exchanges.single().generation!!.contextTokens)
+            assertEquals(parentHash, digest(parentFile)); assertEquals(parent, store.load(parent.id))
+            val childHash = digest(File(historyRoot, "${child.id}.json"))
+            stage("of01-fork-without-generation"); controller.branch(child, 0, LocalBranchKind.FORK)
+            val fork = idle().chat!!
+            assertEquals(2, calls.get()); assertEquals(child.exchanges, fork.exchanges)
+            assertEquals(LocalBranchKind.FORK, fork.origin!!.kind)
+            stage("of01-explicit-edited-child")
+            val editedQuestion = "Write one short sentence about a quiet forest."
+            controller.branch(parent, 0, LocalBranchKind.EDIT, editedQuestion)
+            val edited = idle().chat!!; terminal(edited)
+            assertEquals(3, calls.get()); assertEquals(editedQuestion, edited.exchanges.single().question)
+            assertEquals(LocalBranchKind.EDIT, edited.origin!!.kind)
+            assertEquals(1024, edited.exchanges.single().generation!!.contextTokens)
+            assertEquals(parentHash, digest(parentFile)); assertEquals(childHash, digest(File(historyRoot, "${child.id}.json")))
+            controller.openChat(parent.id); idle()
+            stage("of01-stop-on-first-visible-chunk")
+            stopOnText.set {controller.cancel()}
+            controller.branch(parent, 0, LocalBranchKind.REGENERATE)
+            val stopped = idle().chat!!
+            assertNotEquals(parent.id, stopped.id); assertEquals(4, calls.get())
+            assertEquals(LocalReplyState.CANCELLED, stopped.exchanges.single().state)
+            assertEquals(1024, stopped.exchanges.single().generation!!.contextTokens)
+            assertEquals(parentHash, digest(parentFile)); assertEquals(childHash, digest(File(historyRoot, "${child.id}.json")))
+            stage("of01-unload-and-read-without-replay"); controller.unload(); idle()
+            assertNull(controller.state.value.loaded)
+            controller.openChat(parent.id); assertEquals(parent, idle().chat)
+            controller.openChat(child.id); assertEquals(child, idle().chat)
+            controller.openChat(stopped.id); assertEquals(stopped, idle().chat)
+            val beforeRecovery = histories(historyRoot)
+            LocalConversationStore(historyRoot).recoverInterrupted()
+            assertEquals(beforeRecovery, histories(historyRoot)); assertEquals(5, store.list().size)
+            assertEquals(listOf(384, 384, 384, 384), limits.toList()); assertEquals(4, calls.get())
+            assertEquals(globalBefore, histories(globalHistory))
+            stage("of01-native-branches-parent-settings-cancellation-and-no-replay-complete")
+        } finally {
+            withContext(NonCancellable) {
+                controller.cancel(); controller.leave(); idle(allowError = true)
+                global.refreshLibrary(); withTimeout(30_000) {global.state.first {!it.busy}}
+            }
+            assertEquals(globalBefore, histories(globalHistory))
+        }
+    }}

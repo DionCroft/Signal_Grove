@@ -1,5 +1,15 @@
 # On-device AI delivery and acceptance
 
+## Explicit phone branch gate — 18 November 2026
+
+One new external-model method verifies real native edit/regenerate/fork,
+cancellation, request metadata and no-replay retention in separate QA histories.
+It compiles with all required builds, 1,053 JVM cases and zero-error lint; policy
+checks have 885 positives / 273 Windows skips. The external manifest now has
+13 methods in the same five classes, retaining all old cases. Actual phone
+execution remains pending at this source checkpoint; standard CI does not count
+these gates as accepted. [Scope and bindings](contracts/2026-11-18-physical-branch-gate.md).
+
 ## OF-01 passive reader — 18 November 2026
 
 1,053 distinct JVM cases/101 reports, required APK builds and zero-error lint
