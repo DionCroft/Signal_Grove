@@ -58,16 +58,18 @@ restores a connected VPN and private Pi ping. No API/model readiness is inferred
 The branch feat/offline-history-backup layers the version 1 archive reader and
 writer on the Markdown export branch. Its build passed 1,117 JVM tests, both
 lint variants and 63 selected device checks on each API 26 and API 37.
-The validated archive keeps selected transcripts and labels. Restore review,
-conflict handling, atomic publication, and protection are the next components.
+The restore review passed 1,123 JVM tests and both lint variants. It checks
+chat/label capacity, remaps collisions and resolves only included parents.
+Atomic publication, protection and the Android restore flow remain open.
 [Wire format and checks](docs/contracts/2026-11-19-phone-history-backup-archive.md).
 
 ## Exact next action
 
-Complete physical organization Save, Cancel, and unloaded archive reads.
-Verify the export branch with its physical app and companion pair, then
-implement versioned and encrypted backup/import. Keep the full hosted export
-run, OF-01 accessibility and lifecycle, and original audit gates open.
+Confirm Cancel on the physical label review and verify the export branch
+through the physical Android document picker. Save and unloaded archive reads
+are recorded from the organization build. Implement recoverable batch restore,
+then protected backups and the Android backup/import review. Keep the full
+hosted export run, OF-01 accessibility and lifecycle, and original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/

@@ -58,3 +58,23 @@ appeared in Archived and opened its saved reply with no GGUF mapped. All four
 original transcripts and both model files matched their pre-check hashes.
 This verifies label Save and archive read on the prior organization build.
 The physical Cancel and Android document-picker checks remain open.
+
+## Restore review on 19 November 2026
+
+The review retains an ordered list of source chats and their destination IDs.
+It assigns fresh IDs for collisions with phone chats or saved labels, including
+labels whose chat is missing. It checks capacity for both stores before
+allocating IDs. A branch can follow an included parent's destination ID.
+Parents outside the archive stay in the source provenance without a destination
+link. The review compares the current library and labels before use and only
+reads original records from its checked archive.
+
+The Android build passed 1,123 JVM tests in 106
+reports, including six restore-review regressions. Debug and release lint
+reported zero errors. Both debug APKs compiled from the same source snapshot.
+The restore review is ready for the next implementation layer. Publishing
+chats and labels as one recoverable operation, passphrase protection, and the
+Android import and backup flows are still open.
+
+- Build receipt `20261119-112259-b9794a42aa4740779fab0fedd9dc92da`
+- Source snapshot `de0fa6be3a296a79aaefd05a5c0485fc3654ffa88cc00c22f166791c41f13779`

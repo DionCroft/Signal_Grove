@@ -1,5 +1,12 @@
 # Current development validation — audit follow-up
 
+## Phone history restore review on 19 November 2026
+
+The read-only restore review passed 1,123 JVM cases and both lint
+variants. Six new regressions cover live chat and orphan-label collisions,
+parent remapping, destination capacity, stale reviews, and bounded allocation.
+[Restore review and build evidence](contracts/2026-11-19-phone-history-backup-archive.md).
+
 ## Versioned phone history archive on 19 November 2026
 
 The archive foundation passed 1,117 JVM tests and 63 focused Android tests on each API 26 and API 37. The suite verifies selected transcript bytes, labels, branch provenance, bounded parsing, staged-file changes and cancellation. Both lint variants reported zero errors. The backup picker, passphrase encryption, collision review and atomic restore remain open.
