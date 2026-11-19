@@ -58,7 +58,10 @@ retains its own pairing. Current app8bda upgrades with all data retained.
 MIUI test-host denial is reproduced; one matching foreground intent unblocks a
 label assertion failure, now corrected. Full c46 CI also catches a missed pin;
 fresh complete CI and physical organization acceptance remain open. Branch/date identification is implemented; the consolidated phone check,
-Markdown export and protected backup/import remain. Add local title/content search, rename, pin, archive and
+Markdown export and protected backup/import remain. The [frozen Markdown read/codec](contracts/2026-11-19-selected-markdown-foundation.md)
+is now internal and tested (1,107 JVM/58 selected methods per API); connect the
+review, one-shot picker/writer and actual phone/provider checks next. This is
+not an implemented export UI or encrypted/importable backup. Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,
 encryption and where Android will save/share them. Models remain separate.

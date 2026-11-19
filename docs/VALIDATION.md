@@ -1,5 +1,17 @@
 # Current development validation — audit follow-up
 
+## Frozen selected Markdown foundation — 19 November 2026
+
+An internal selected-chat read/codec now freezes exact saved source/hash,
+identity, text, states and recorded settings into bounded literal Markdown.
+It refuses stale/active/empty/corrupt/malformed data, preserves history and
+propagates partial output/cancellation without retry. No export UI/provider
+flow is connected yet. Required tasks pass1,107 JVM/104 reports, zero-error
+lint51/50 warnings and58 selected native methods on each API26/37 with the
+same fresh APKs and no skips: the earlier56 plus two real Android file cases.
+Fourteen new JVM cases cover content, boundaries and failure preservation.
+[Source, limits and pending gates](contracts/2026-11-19-selected-markdown-foundation.md).
+
 ## History native readiness and retained phone failures — 19 November 2026
 
 The full c46 run fails one API26 organization Save assertion (pin false); the

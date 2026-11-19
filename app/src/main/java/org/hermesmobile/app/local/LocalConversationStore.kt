@@ -91,6 +91,14 @@ class LocalConversationStore(directory: File) {
         catch (_: Exception) { throw LocalHistoryException() }
     }
 
+    /** Read one exact reviewed conversation; exporting never recovers, relabels or saves history. */
+    @Synchronized fun markdownExport(expected: LocalConversation, title: String? = null, checkpoint: () -> Unit = {}): LocalMarkdownExport {
+        val (actual, bytes) = readSnapshot(expected.id, checkpoint)
+        if (actual != expected) throw LocalMarkdownExportException(LocalMarkdownExportFailure.CHANGED)
+        val source = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {"%02x".format(it)}
+        return LocalMarkdownExport.create(actual, source, title, checkpoint)
+    }
+
     /** Explicit local action. Publish one independent child before its caller may generate.
      * The one application controller serializes writes; this is not a multi-process database.
      * Parent files are never changed, including cancelled/failed/partially generated replies. */
