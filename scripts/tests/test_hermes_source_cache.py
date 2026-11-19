@@ -1,5 +1,6 @@
 from pathlib import Path
-import ast,hashlib,importlib.util,tempfile,unittest
+import ast,hashlib,importlib.util,io,tempfile,unittest
+from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 
 spec=importlib.util.spec_from_file_location('cache_checker',Path(__file__).resolve().parents[1]/'check_hermes_contract.py');c=importlib.util.module_from_spec(spec);spec.loader.exec_module(c)
@@ -58,6 +59,35 @@ class SourceCacheTest(unittest.TestCase):
             with self.subTest(tree=tree),self.scope(),patch.object(c,'github',return_value=tree),patch.object(c,'github_source') as download:
                 with self.assertRaises(ValueError):c.source_identities(self.pin)
                 download.assert_not_called()
+    def test_missing_required_paths_report_the_pin_without_publishing_a_contract(self):
+        tree = self.tree()
+        tree['tree'].append({'path': 'upstream-untracked-sensitive-marker.py'})
+        output = self.cache.parent / 'report.json'
+        args = ['checker', '--ref', 'main', '--source-cache', str(self.cache), '--output', str(output)]
+        sources = {'first': self.path, 'third': 'old/z.py', 'second': 'old/a.py', 'alias': 'old/a.py'}
+        stderr, stdout = io.StringIO(), io.StringIO()
+        with (
+            patch.multiple(c, SOURCES=sources, EXTRA_SOURCES={}, _REQUEST_INTERVAL=0, _LAST_REQUEST_START=None),
+            patch.object(c.sys, 'argv', args),
+            patch.object(c, 'resolve', return_value=('main', self.pin)),
+            patch.object(c, 'github', return_value=tree),
+            patch.object(c, 'github_source') as download,
+            patch.object(c, 'extract') as parse,
+            redirect_stderr(stderr),
+            redirect_stdout(stdout),
+        ):
+            self.assertEqual(3, c.main())
+        self.assertEqual([
+            f'Contract check incomplete: Required source paths missing at {self.pin}.',
+            '  old/a.py',
+            '  old/z.py',
+        ], stderr.getvalue().splitlines())
+        self.assertEqual('', stdout.getvalue())
+        self.assertFalse(output.exists())
+        self.assertFalse(self.cache.exists())
+        download.assert_not_called()
+        parse.assert_not_called()
+
     def test_reviewed_cron_move_preserves_source_key_and_reads_only_relocated_path(self):
         old_path = c.LEGACY_CRON_FORMAT_PATH
         new_path = c.CRON_FORMAT_PATH

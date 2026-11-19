@@ -16,6 +16,17 @@ separate gate. The later reviewed-summary source has its own hosted run.
 [Complete checkpoint run](https://github.com/DionCroft/Signal_Grove/actions/runs/44560196101)
 · [Reviewed-summary run](https://github.com/DionCroft/Signal_Grove/actions/runs/44573654477).
 
+## Hermes main stored history checkpoint
+
+The stable hosted watcher produced the full status 2 review report. It
+matches the locally verified contract. At the pinned Hermes main revision,
+the watcher now identifies all eight missing required storage paths and
+still exits incomplete without producing a report. Source review traced
+authorization and local binding checks into the new storage layer and
+confirmed that normal recovery holds unknown admissions. Runtime tests
+still need to cover the new storage layer and shutdown.
+[Storage review and exact validation](contracts/2026-11-19-hermes-main-stored-history.md).
+
 ## Hermes cron source relocation on 19 November 2026
 
 The stable watcher now reads the moved cron source at the reviewed pin and

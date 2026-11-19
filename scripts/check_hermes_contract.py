@@ -449,6 +449,13 @@ class SourceReadError(ValueError):
         super().__init__('Pinned upstream module unavailable')
 
 
+class MissingSourcePaths(SourceReadError):
+    def __init__(self, commit: str, paths: set[str]):
+        super().__init__('source_tree', None)
+        self.commit = commit
+        self.paths = tuple(sorted(paths))
+
+
 class GitHubReadError(ValueError):
     def __init__(self, status: int | None):
         self.status = status
@@ -630,7 +637,9 @@ def source_identities(commit: str) -> dict:
             raise ValueError('Invalid upstream source identity')
         found[path]=(row['sha'],row['size'])
     allowed={path for name,path in paths.items() if reviewed_source_absence(name,path,commit)}
-    if wanted-set(found)-allowed:raise ValueError('Upstream source identity missing')
+    missing = wanted - found.keys() - allowed
+    if missing:
+        raise MissingSourcePaths(commit, missing)
     return found
 
 
@@ -685,8 +694,12 @@ def source_cache_publishable(cache: Path) -> bool:
 def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     resolved, sha = resolve(ref)
     paths = contract_source_paths(sha)
-    try:identities=source_identities(sha) if source_cache is not None else None
-    except (ValueError,KeyError,OSError,subprocess.TimeoutExpired) as exc:raise SourceReadError('source_tree',getattr(exc,'status',None)) from exc
+    try:
+        identities = source_identities(sha) if source_cache is not None else None
+    except SourceReadError:
+        raise
+    except (ValueError, KeyError, OSError, subprocess.TimeoutExpired) as exc:
+        raise SourceReadError('source_tree', getattr(exc, 'status', None)) from exc
     cache_counts={'verified_hits':0,'verified_downloads':0}
     failure=[]
     absences=[]
@@ -917,6 +930,11 @@ def main() -> int:
         else:
             print(text, end='')
         return 2 if result.get('mobile_review_required') else 0
+    except MissingSourcePaths as exc:
+        print(f'Contract check incomplete: Required source paths missing at {exc.commit}.', file=sys.stderr)
+        for path in exc.paths:
+            print(f'  {path}', file=sys.stderr)
+        return 3
     except (ValueError, KeyError, SyntaxError, OSError, subprocess.TimeoutExpired) as exc:
         context = f' Source module {exc.module}'+(f', HTTP {exc.status}' if exc.status is not None else '')+'.' if isinstance(exc, SourceReadError) else ''
         print(f'Contract check incomplete: {type(exc).__name__}.{context} Inspect upstream/network manually.', file=sys.stderr)
