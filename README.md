@@ -16,6 +16,8 @@ review/file-picker flow remains to implement. Full c46 CI caught one API26 misse
 the selected fix retains exact values and uses one native tap with the IME open.
 Fresh complete hosted checks and final-source device/accessibility/lifecycle and
 release gates remain; these additions are not in the public APK or main yet.
+The internal export component is layered on `feat/offline-markdown-export`;
+its separate branch preserves the earlier UI full run.
 [Current source and limitations](docs/contracts/2026-11-19-selected-markdown-foundation.md) · [Actual phone search](docs/contracts/2026-11-19-phone-history-search-physical.md).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently

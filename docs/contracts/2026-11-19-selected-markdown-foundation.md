@@ -10,7 +10,7 @@ settings. Older missing settings remain explicitly unrecorded. It never
 recovers an active generation, rewrites a transcript, changes labels, loads
 weights, inspects other conversations or reads server state/credentials.
 
-The format1 document uses fixed English field headings and UTF-8, plus an
+The format 1 document uses fixed English field headings and UTF-8, plus an
 optional literal display title. Each question/reply/title is kept inside a
 literal code block, including its original Unicode, line endings and Markdown.
 The delimiter exceeds every matching run in that body, so embedded fences,
@@ -21,9 +21,9 @@ question/title text or a local model path.
 
 Preparation refuses a changed expected snapshot, active/empty chat, corrupt
 source, malformed UTF-16/UTF-8 conversion or invalid title. Bounds retain the
-existing 30-turn/input/reply limits; the resulting document is capped at12MiB,
+existing 30-turn/input/reply limits; the resulting document is capped at 12 MiB,
 including delimiter expansion. Frozen private bytes survive later source
-changes and cannot be mutated by a consumer. Bounded8KiB writes have cancellation
+changes and cannot be mutated by a consumer. Bounded 8 KiB writes have cancellation
 checkpoints and propagate failure without another write attempt. The caller
 owns destination opening, flush and close acknowledgement; an output failure
 can leave a partial destination. The component never deletes such evidence or
@@ -32,17 +32,17 @@ claims that a destination was successfully published.
 ## Verification
 
 Required build/JVM/lint/APK tasks pass 1,107 distinct JVM cases/104 reports with
-no failures/errors/skips; lint has zero errors and retains51 debug/50 release
+no failures/errors/skips; lint has zero errors and retains 51 debug/50 release
 warnings. Fourteen new JVM cases exercise selected-only reads even beside a
 broken unrelated chat, exact content/fingerprints, malicious fences/HTML/links,
 recorded versus unknown settings, all non-generating states, frozen and stale
 snapshots/model identity, active/empty/corrupt/malformed refusals, cancellation,
-no-retry destination failure, consumer mutation, the full supported30-turn size
+no-retry destination failure, consumer mutation, the full supported 30-turn size
 and locale-independent bytes. The oversized malicious-title fixture is bounded
 before its first compilation; no failure/pass is inferred from that draft.
 
-The same new app/companion passes exactly58 selected methods on each API26/37
-without skips. All earlier56 remain. Two new methods use real Android private
+The same new app/companion passes exactly 58 selected methods on each API26/37
+without skips. All earlier 56 remain. Two new methods use real Android private
 QA files, verify Unicode/state/settings/source hash and cancellation with an
 8192-byte partial output, and prove unchanged history bytes/file inventory.
 These fixtures use no user histories, models, network or external destinations.
@@ -69,11 +69,12 @@ phone/provider checks. The planned picker uses Android's
 Versioned/encrypted backup/import remains a separate required OF-02 delivery;
 this readable plaintext document is not an importable or encrypted backup.
 
-The prior UI-only88a8d05 full run44496075372 has a successful build/policy job
+The prior UI-only 88a8d05 full run 44496075372 has a successful build/policy job
 and four live device shards at this checkpoint. Its build ZIP is independently
 verified: 1,093 JVM/103 reports, zero lint errors (52/51 hosted warnings), exact
-APK hashes and matching PR-head/merge tree3d36495. No complete device result is
-claimed. Preserve that run before pushing this component; its source predates
+APK hashes and matching PR-head/merge tree 3d36495. No complete device result is
+claimed. The component is pushed on a separate feat/offline-markdown-export branch
+layered on 88a8d05, so this earlier run is preserved. Its source predates
 the new codec/tests. Final-source complete coverage remains required.
 
 The owner phone is reconnected. Read-only observation verifies the retained
@@ -94,5 +95,5 @@ transitive/semantic or owner shutdown findings. No source guard/baseline, Pi
 service, credential, profile grant, server model/default, main or release changes.
 
 Every original audit and OF-01..OF-10 requirement remains active. Next: finish
-the current phone/UI gate and full88 run, push this tested component, then
+the current phone/UI gate and full 88 run, review this tested component, then
 connect the reviewed Markdown/file-picker flow and validate actual outcomes.

@@ -7,6 +7,10 @@ retain every original requirement.
 
 ## Current implementation and evidence
 
+The export component is on `feat/offline-markdown-export`, layered on
+`feat/offline-chat-actions` at 88a8d05. Push this branch independently to preserve
+PR2 full run 44496075372. Main stays at a992cf4.
+
 Main `a992cf4` has the UI readiness/viewport fixes; identical-tree PR evidence
 independently verifies 1,149 API26 / 1,150 API37 standard methods, no skips.
 Main Android/Windows pass. Upstream scanning fails closed on moved/missing
@@ -53,8 +57,8 @@ restores a connected VPN and private Pi ping. No API/model readiness is inferred
 
 Verify the owner-installed companion960 against retained app8bda, then run the
 single corrected identification case and finish reviewed organization/Cancel/
-unloaded archive reads. Preserve the live full88a8d05 run before pushing the
-tested Markdown component. Connect its selected-chat review, one-shot Android
+unloaded archive reads. Keep the live full 88a8d05 run intact; the
+tested Markdown component is pushed on its own feature branch. Connect its selected-chat review, one-shot Android
 file picker/writer and partial/recovery outcomes next, then versioned/encrypted
 backup/import. OF-01 accessibility/lifecycle and the full original audit remain.
 
