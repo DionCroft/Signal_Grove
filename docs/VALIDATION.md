@@ -1,5 +1,63 @@
 # Current development validation — audit follow-up
 
+## Installed model library and fixed licence controls
+
+Phone models shows the installed GGUF total, sampled free storage and
+saved download data. The search filters installed names, architecture
+names and SHA-256 values in memory. The Load model action is near the
+model name and still uses the same explicit load and verification flow.
+
+The previous normal-app Qwen review required nine scrolls at the
+emulator's enlarged bilingual text setting. The full licence and exact
+source details now scroll in a separate area. Consent, Cancel and
+Confirm remain in the footer. Consent starts unchecked for each file
+and Confirm stays disabled until consent is selected.
+
+The frozen build passed 1,158 JVM tests and both lint
+variants with zero errors. Android 8 and Android 17 each passed 87
+focused methods with zero skips. The new large-text bilingual case
+checks the footer before and after a licence scroll, then confirms
+Cancel dispatches nothing. The new library case checks storage
+labels, empty results, case-insensitive architecture search and the
+exact load callback after an explicit action. The original LFM3
+and Qwen consent cases still assert the selected file.
+
+The first large-font fixture failed before licence review because
+it could not find the Qwen catalogue action. The corrected fixture
+opens the same production review directly at 200% text scale.
+Catalogue routing is covered by the existing bilingual cases and
+the ordinary app check. The first installed search fixture expected
+1,024 context tokens for a 2,048-token model using the Balanced
+preset. The corrected assertion preserves the exact model and
+checks the 2,048-token request.
+
+The regular Android 8 app showed the storage summary with installed
+Qwen. Opening the LFM3 review showed unchecked consent, Confirm and
+Cancel in the first viewport. After the licence was scrolled and its
+checkbox selected, Cancel left the precise model and chat inventory
+unchanged. The normal-app run used a separately signed debug APK
+with the same application sources. Only the test fixture changed
+in the subsequent build. Normal-app receipt SHA-256
+`755e6344d12168c91c6b8b7acf895674f8e80d7977b2b8d6ceb32f5290578920`.
+
+A separate attempt to traverse the normal app at 200% system text
+stopped before the catalogue. The first launch timed out and the
+foreground trial showed an Android System UI warning. The emulator
+returned to its original 130% text setting and the app regained focus.
+The 200% licence-control test above remains the scoped evidence.
+
+| Frozen artifact | SHA-256 |
+| --- | --- |
+| Source snapshot | `f8e8aa2e01cedf2988ae425f6cb7b564ff6167a9cd63be4386d9efc756ab6230` |
+| Debug APK | `f0ab842d78e2da2a13ffff082013c912d6bd54e2fd0717ebc2eae1e93dff65de` |
+| Debug test companion | `5f155ccf98cc15cea1c44ced11c56cf6413eb31cd9ff3b3b46f365b1287a5cf0` |
+| Android 8 instrumentation | `30007fdb4bd59d727c9a3eae0572c6e2c26937910e450ea178c54ff3278631c4` |
+| Android 17 instrumentation | `7178ab3ce0987887542b2a63cbe434ed4e1e7e23cdd249e1bafd79320e6a8df4` |
+
+Build receipt `20261119-222252-c0990df7b0564fe7b054fd993e5d756a`. The commit trims one trailing blank line in the library UI. Physical accessibility and
+signed-upgrade checks, guided local setup and the local startup
+preference remain open.
+
 ## Offline catalogue and separate model downloads
 
 The development build packages the two reviewed entries. Opening the
@@ -97,7 +155,27 @@ in the hosted run.
 The corrected frozen build passed 1,157 JVM tests, both lint
 variants with zero errors, and 84 selected device methods on each of
 Android 8 and 17 with zero skips. This includes all four search cases.
-The full hosted run at the corrected revision is a separate gate.
+The original bounds case passed on both Android APIs in the
+corrected hosted run at `1eec6d6`. The raw device logs show its
+start and successful terminal record. The full hosted matrix failed
+with two other cases. Android 8 shard 1 could not find the model choice
+after entering the search text and tapping the selector. Android 17
+shard 0 timed out waiting for the keyboard in the Kanban status form,
+before the test's read-impact tap. The verified report also records
+1,161 passing policy cases, 1,157 JVM passes and zero lint errors.
+
+| Remaining hosted case | Instrumentation log SHA-256 |
+| --- | --- |
+| Phone history literal search, API 26 shard 1 | `6f696da417d508c74485c74bdb2bff3e3b43169f03ea4d3ef01685ab354a64fb` |
+| Kanban keyboard, API 37 shard 0 | `6cb1e16962bf70f0458939fdf1df559bf56f2b2088375dae3a6ffb978243c6c1` |
+
+[Corrected hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44617490182).
+
+The history model choice passed in the subsequent focused local suites
+on both Android APIs. The Kanban case also passed in an isolated
+Android 17 run on the library build. Its log SHA-256 is
+`30a30a836d13102b08d5cdcdebf42f2bf053b6b91e4a972cf850fa9cc7d9eb59`. The two original hosted failures remain
+recorded and require hosted follow-up.
 
 | Artifact | SHA-256 |
 | --- | --- |

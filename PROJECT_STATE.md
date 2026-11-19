@@ -5,6 +5,17 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest model library checkpoint
+
+The development app filters installed models by name, architecture or
+SHA-256, shows stored weights, saved download data and sampled free
+storage, and surfaces Load beside the model name. The licence scrolls
+independently of the consent footer. The debug pair passed 1,158 JVM
+and 87 focused checks per emulator API with zero lint errors. Continue
+with guided local setup and the startup preference. Physical,
+integration and signed-release gates remain active.
+[Library evidence](docs/VALIDATION.md#installed-model-library-and-fixed-licence-controls).
+
 ## Latest model catalogue checkpoint
 
 The development branch offers an offline comparison of the exact LFM3
@@ -133,7 +144,11 @@ fixture failure before its keyboard bounds assertions. The corrected
 fixture waits for a coherent native keyboard viewport and retains the
 original assertions. The frozen app and test pair passed all 84
 focused checks on each local Android 8 and Android 17 emulator.
-Verify [the corrected full hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/44617490182).
+The original bilingual search keyboard bounds passed in both hosted
+device logs. The full matrix exposed a separate history model-picker
+failure on Android 8 and a Kanban keyboard timeout on Android 17.
+Resolve both cases and verify the subsequent hosted matrix.
+[Exact hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44617490182).
 The prior run at 1590452 stopped before device jobs when one native
 backup child-identity fixture errored. Retain the failed run and resolve
 that case independently of the keyboard fixture.

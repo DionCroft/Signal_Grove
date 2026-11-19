@@ -49,7 +49,7 @@ class LocalAiFlowTest {
             })
         compose.setContent {
             val density = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(density.density, if(bilingual) 1.3f else density.fontScale)) {
+            CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
             HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
                 LocalAiScreen(state, supported, "Fresh local draft", {}, pending, actions, {},
                     LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "")
@@ -155,7 +155,7 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-download-review-LFM3").performScrollTo().performClick()
         compose.onNodeWithTag("phone-licence-confirm").assertIsNotEnabled()
         assertTrue(downloads.isEmpty())
-        compose.onNodeWithTag("phone-licence-consent").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-licence-consent").assertIsDisplayed().assertIsOff().performClick()
         compose.onNodeWithTag("phone-licence-confirm").performClick()
         assertEquals(listOf(CuratedPhoneModel.LFM3), downloads); assertEquals(0, sends)
     }
@@ -180,13 +180,63 @@ class LocalAiFlowTest {
         compose.runOnIdle { assertTrue(downloads.isEmpty()); assertTrue(discarded.isEmpty()); assertTrue(requestedLoads.isEmpty()) }
 
         compose.onNodeWithTag("phone-download-review-QWEN").performScrollTo().performClick()
-        compose.onNodeWithTag("phone-licence-consent").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-licence-consent").assertIsDisplayed().assertIsOff().performClick()
         compose.onNodeWithTag("phone-licence-confirm").performClick()
         compose.runOnIdle {
             assertEquals(listOf(qwen), downloads)
             assertTrue(requestedLoads.isEmpty())
             assertEquals(0, sends)
         }
+    }
+
+    @Test fun licenceConsentAndActionsRemainVisibleWhileTheLongTextScrolls() {
+        val qwen = CuratedPhoneModel.QWEN
+        val licence = InstrumentationRegistry.getInstrumentation().targetContext.assets
+            .open(qwen.licenceAsset).bufferedReader().use { it.readText() }
+        var shown by mutableStateOf(true)
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 2f)) {
+                HermesAppTheme(AppPreferences(chinese = true, pinyin = true)) {
+                    if (shown) PhoneLicence(licence, false, { downloads.add(qwen) }, { shown = false }, qwen)
+                }
+            }
+        }
+        val consent = compose.onNodeWithTag("phone-licence-consent")
+        val confirm = compose.onNodeWithTag("phone-licence-confirm")
+        val cancel = compose.onNodeWithTag("phone-licence-cancel")
+        val body = compose.onNodeWithTag("phone-licence-body")
+        consent.assertIsDisplayed().assertIsOff()
+        confirm.assertIsDisplayed().assertIsNotEnabled()
+        cancel.assertIsDisplayed()
+        body.performTouchInput { swipeUp() }
+        consent.assertIsDisplayed().assertIsOff()
+        confirm.assertIsDisplayed().assertIsNotEnabled()
+        consent.performClick()
+        confirm.assertIsDisplayed().assertIsEnabled()
+        cancel.assertIsDisplayed().performClick()
+        compose.runOnIdle { assertFalse(shown); assertTrue(downloads.isEmpty()) }
+    }
+
+    @Test fun installedModelSearchAndStorageKeepSelectionExplicit() {
+        val qwen = model.copy(sha256 = "b".repeat(64),
+            metadata = model.metadata.copy(name = "Small Qwen", architecture = "qwen2"))
+        state = state.copy(models = listOf(model, qwen),
+            downloadPartials = mapOf(CuratedPhoneModel.LFM3 to 1_048_576),
+            modelStorageAvailableBytes = 3_000_000_000)
+        show()
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        compose.onNodeWithTag("phone-model-storage").performScrollTo().assertTextContains("Free storage", substring = true)
+        compose.onNodeWithTag("phone-model-saved-downloads").performScrollTo().assertIsDisplayed()
+        val search = compose.onNodeWithTag("phone-model-search")
+        search.performScrollTo().performTextInput("no such model")
+        compose.onNodeWithTag("phone-model-no-matches").performScrollTo().assertIsDisplayed()
+        search.performScrollTo().performTextReplacement("QWEN2")
+        compose.onNodeWithTag("phone-installed-${model.sha256}").assertDoesNotExist()
+        compose.onNodeWithTag("phone-installed-${qwen.sha256}").performScrollTo().assertIsDisplayed()
+        compose.runOnIdle { assertTrue(requestedLoads.isEmpty()); assertTrue(downloads.isEmpty()) }
+        compose.onNodeWithTag("phone-load-${qwen.sha256.take(8)}").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(listOf(qwen.sha256 to 2048), requestedLoads); assertEquals(0, sends) }
     }
 
     @Test fun importIsExplicitAndCancelDoesNotDownload() {

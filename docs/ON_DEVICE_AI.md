@@ -12,10 +12,16 @@ check uses free RAM at the time you select the installed model.
 | Qwen2.5-0.5B Instruct Q4_K_M | 491,400,032 bytes | 1,194 MiB |
 
 Select **Review licence and download** to see the publisher, file revision,
-hash and licence for that entry. Review the licence and confirm when
-online. Each model keeps its own unfinished download. After installation,
-return to **Phone models → Load model**. The downloaded weights can then
-run offline. Use **Import GGUF file** for a file obtained elsewhere.
+hash and licence for that entry. Scroll to read the licence. Consent and
+confirmation stay visible below the text. Confirm the download when online.
+Each model keeps its own unfinished download. After installation, return
+to **Phone models → Load model**. The downloaded weights can then run
+offline. Use **Import GGUF file** for a file obtained elsewhere.
+
+With multiple installed models, search by model name, architecture or
+SHA-256. **Phone models** also shows the installed model total, sampled
+free storage and retained download data. Tap **Refresh** to recheck
+the figures. [Library and licence validation](VALIDATION.md#installed-model-library-and-fixed-licence-controls).
 [Catalogue validation](VALIDATION.md#offline-catalogue-and-separate-model-downloads).
 
 ## Choose settings for a phone model

@@ -160,15 +160,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }
             when (tab) {
                 0 -> PhoneChat(state, draft, changeDraft, actions) {review = it}
-                1 -> Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("phone-model-list"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(label(Words.PhoneLibraryHelp), style = MaterialTheme.typography.bodySmall)
-                    TextButton(actions.refresh, enabled = !state.busy) {Text(label(Words.Refresh))}
-                    Button(actions.chooseFile, enabled = supported && !state.busy, modifier = Modifier.testTag("phone-import")) {Text(label(Words.PhoneImport))}
-                    OutlinedButton({ catalogueOpen = true }, Modifier.testTag("phone-catalogue-open")) {
-                        Text(label(Words.PhoneCatalogue))
-                    }
-                    state.models.forEach { model -> PhoneModel(model, state, supported, actions) {deleteModel = model} }
-                }
+                1 -> PhoneModelLibrary(state, supported, actions, { catalogueOpen = true }, { deleteModel = it })
                 2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
             }
             Row {
@@ -459,80 +451,6 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
             }
         }
     }
-}
-
-@Composable private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supported: Boolean, actions: LocalAiActions, remove: () -> Unit) {
-    val next = state.modelPerformance[model.sha256] ?: LocalPerformancePreset.BALANCED.forModel(model.metadata.trainedContext)
-    val canLoad = supported && next.allowedBy(model.metadata.trainedContext)
-    val active = state.loadedSettings.takeIf { state.loaded?.sha256 == model.sha256 }
-    var editing by rememberSaveable(model.sha256) { mutableStateOf(false) }
-    val save = actions.saveModelPerformance
-    val benchmark = actions.benchmark
-    var diagnosticsOpen by remember(model.sha256, active != null) { mutableStateOf(false) }
-    HermesCard {
-        Text(model.metadata.name, style = MaterialTheme.typography.titleMedium)
-        Text("${model.metadata.architecture} · ${model.metadata.bytes / 1048576} MiB", style = MaterialTheme.typography.bodySmall)
-        Text("SHA-256: ${model.sha256}", style = MaterialTheme.typography.labelSmall)
-        val source = if (CuratedPhoneModel.entries.any { it.sha256 == model.sha256 }) Words.PhonePublisher else Words.PhoneImported
-        Text(label(source), style = MaterialTheme.typography.bodySmall)
-        val minimumMiB = (model.minimumLoadMemoryBytes + 1048575) / 1048576
-        Text(label(Words.PhoneModelFreeMemory).replace("{number}", minimumMiB.toString()), style = MaterialTheme.typography.bodySmall)
-        if (active != null) {
-            Text(label(Words.PhoneLoaded).replace("{model}", model.metadata.name))
-            Text(modelPerformanceLabel(Words.PhoneModelActiveLimits, active.contextTokens, active.threads, active.maxOutputTokens),
-                Modifier.testTag("phone-model-active-limits"), style = MaterialTheme.typography.bodySmall)
-            if (benchmark != null) {
-                TextButton({ diagnosticsOpen = true }, Modifier.testTag("phone-diagnostics-${model.sha256.take(8)}")) {
-                    Text(label(Words.PhoneDiagnostics))
-                }
-            }
-        }
-        if (canLoad) {
-            Text(modelPerformanceLabel(Words.PhoneModelNextLimits, next.contextTokens, next.threadCap, next.outputTokens),
-                Modifier.testTag("phone-model-next-limits"), style = MaterialTheme.typography.bodySmall)
-            if (save != null) TextButton({ editing = true }, enabled = !state.busy,
-                modifier = Modifier.testTag("phone-model-settings-${model.sha256.take(8)}")) { Text(label(Words.PhoneModelPerformance)) }
-        } else if (supported) {
-            Text(label(Words.PhoneModelContextTooSmall), style = MaterialTheme.typography.bodySmall)
-        }
-        Button({ actions.load(model, next.contextTokens) }, enabled = canLoad && !state.busy,
-            modifier = Modifier.testTag("phone-load-${model.sha256.take(8)}")) { Text(label(Words.PhoneLoad)) }
-        if (state.loaded?.sha256 == model.sha256) TextButton(actions.unload, enabled = !state.busy) { Text(label(Words.PhoneUnload)) }
-        TextButton(remove, enabled = !state.busy) { Text(label(Words.Delete)) }
-    }
-    if (diagnosticsOpen && active != null && benchmark != null) {
-        PhonePerformanceDiagnosticsDialog(state, { benchmark(model.sha256) }, actions.stop, { diagnosticsOpen = false })
-    }
-    if (editing && save != null && canLoad) {
-        PhonePerformanceSettings(model, next, state.busy, { editing = false }) { performance ->
-            save(model, performance)
-            editing = false
-        }
-    }
-}
-
-@Composable private fun PhoneLicence(
-    text: String,
-    busy: Boolean,
-    accept: () -> Unit,
-    close: () -> Unit,
-    model: CuratedPhoneModel? = null
-) {
-    var approved by remember {mutableStateOf(false)}
-    AlertDialog(onDismissRequest = close, title = {Text(label(Words.PhoneLicence))}, text = {
-        Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (model != null) {
-                Text(model.displayName, Modifier.testTag("phone-licence-model"), style = MaterialTheme.typography.titleMedium)
-                SelectionContainer {
-                    Text(model.catalogueFileDetails(), Modifier.testTag("phone-licence-source"), style = MaterialTheme.typography.bodySmall)
-                }
-                Text(label(Words.PhoneDownloadInfo), style = MaterialTheme.typography.bodySmall)
-            }
-            SelectionContainer {Text(text, style = MaterialTheme.typography.bodySmall)}
-            Row {Checkbox(approved, {approved = it}, modifier = Modifier.testTag("phone-licence-consent")); Text(label(Words.PhoneLicenceAccept))}
-        }
-    }, confirmButton = {TextButton(accept, enabled = approved && !busy, modifier = Modifier.testTag("phone-licence-confirm")) {Text(label(Words.Confirm))}},
-        dismissButton = {TextButton(close, Modifier.testTag("phone-licence-cancel")) {Text(label(Words.Cancel))}})
 }
 
 @Composable private fun PhoneConfirm(text: String, busy: Boolean, accept: () -> Unit, close: () -> Unit) {

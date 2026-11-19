@@ -116,8 +116,10 @@ class LocalModelStore(directory: File, private val availableBytes: () -> Long = 
         Files.deleteIfExists(owned("$sha256.performance").toPath())
     }
 
+    internal fun usableBytes(): Long = availableBytes().coerceAtLeast(0)
+
     internal fun ensureSpace(additional: Long) {
-        if (additional < 0 || availableBytes() < SPACE_RESERVE + additional) throw LocalModelStorageException("insufficient_space")
+        if (additional < 0 || usableBytes() < SPACE_RESERVE + additional) throw LocalModelStorageException("insufficient_space")
     }
 
     internal fun owned(name: String): File {

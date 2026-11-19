@@ -20,7 +20,8 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val historyMatches: List<LocalConversationSummary> = emptyList(),
     val modelPerformance: Map<String, LocalModelPerformance> = emptyMap(),
     val loadedSettings: LocalGenerationSettings? = null,
-    val performance: LocalPerformanceDiagnostics = LocalPerformanceDiagnostics()) {
+    val performance: LocalPerformanceDiagnostics = LocalPerformanceDiagnostics(),
+    val modelStorageAvailableBytes: Long? = null) {
     fun partialBytes(model: CuratedPhoneModel): Long = downloadPartials[model] ?: 0L
 }
 
@@ -551,9 +552,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     /** Cancellation can lose the return value after atomic publication. Read actual files before idle. */
     private suspend fun reconcileModelLibrary() = withContext(NonCancellable) {
         try {
-            val (models, performance) = readModelLibrary()
-            val partials = downloads.mapValues { (_, download) -> download.partialBytes() }
-            mutable.update { it.copy(models = models, modelPerformance = performance, downloadPartials = partials) }
+            val library = readModelLibrary()
+            mutable.update { library.applyTo(it) }
         } catch (e: Exception) {
             mutable.update { it.copy(error = failure(e)) }
         }
@@ -587,16 +587,24 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     }
 
     private suspend fun refresh() {
-        val (models, performance) = readModelLibrary()
+        val library = readModelLibrary()
         val history = io { val context = currentCoroutineContext(); organization.history { context.ensureActive() } }
-        val partials = downloads.mapValues { (_, download) -> download.partialBytes() }
         val query = mutable.value.historyQuery
         val matches = if(query == null) emptyList() else io {
             val context = currentCoroutineContext()
             LocalHistorySearch(conversations, organization).find(query) { context.ensureActive() }
         }
-        mutable.update { it.copy(models = models, modelPerformance = performance, history = history,
-            downloadPartials = partials, historyMatches = matches) }
+        mutable.update { library.applyTo(it).copy(history = history, historyMatches = matches) }
+    }
+
+    private data class ModelLibrary(
+        val models: List<InstalledLocalModel>,
+        val performance: Map<String, LocalModelPerformance>,
+        val partials: Map<CuratedPhoneModel, Long>,
+        val availableBytes: Long
+    ) {
+        fun applyTo(state: LocalAiState) = state.copy(models = models, modelPerformance = performance,
+            downloadPartials = partials, modelStorageAvailableBytes = availableBytes)
     }
 
     private suspend fun readModelLibrary() = io {
@@ -608,7 +616,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 store.performance(model)?.let { put(model.sha256, it) }
             }
         }
-        models to performance
+        val partials = downloads.mapValues { (_, download) -> download.partialBytes() }
+        ModelLibrary(models, performance, partials, store.usableBytes())
     }
 
     private suspend fun <T> io(block: suspend () -> T) = withContext(ioDispatcher) { block() }

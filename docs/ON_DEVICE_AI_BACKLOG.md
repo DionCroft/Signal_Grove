@@ -139,10 +139,14 @@ low-memory tests remain release gates. GPU/NPU acceleration is not promised.
 for the exact LFM3 QAD Q4_0 and Qwen2.5-0.5B Q4_K_M files. It shows the publisher,
 licence, file size, load-memory threshold and physical evidence. Review shows the
 pinned revision and hash before any download. Partials and discard are model-specific.
-Searchable installed models, storage visibility, quick explicit selection,
-first-run download/import/load/first-chat guidance and a saved local startup
-preference remain open.
-[Current catalogue checks](VALIDATION.md#offline-catalogue-and-separate-model-downloads).
+Installed models can be filtered by name, architecture or SHA-256. Phone
+models shows installed bytes, current free storage and saved partial download
+data. Load is explicit and appears near the model name. Licence consent and
+actions stay visible beside the scrollable source text. First-run download,
+import, load and first-chat guidance and a saved local startup preference
+remain open.
+[Catalogue checks](VALIDATION.md#offline-catalogue-and-separate-model-downloads) ·
+[Library and licence checks](VALIDATION.md#installed-model-library-and-fixed-licence-controls).
 
 Acceptance: catalogue browsing can use a packaged/cached version offline;
 refreshes/downloads need deliberate connectivity and cannot load weights.
