@@ -117,6 +117,14 @@ new chat is searchable and exportable before its first new question.
 
 ## Exact next action
 
+The hosted Android 17 shard at f46452b ran 572 tests with one search
+fixture failure before its keyboard bounds assertions. The corrected
+fixture waits for a coherent native keyboard viewport and retains the
+original assertions. The frozen app and test pair passed all 84
+focused checks on each local Android 8 and Android 17 emulator.
+Verify the corrected full hosted matrix.
+[Search fixture evidence](docs/VALIDATION.md#native-keyboard-viewport-in-phone-history-search).
+
 The complete hosted Android run 44560196101 passed at 3d2b24a. Verified
 raw partitions and APKs cover 1,203 Android 8 and 1,204 Android 17
 standard methods, including both corrected fixtures. The earlier policy

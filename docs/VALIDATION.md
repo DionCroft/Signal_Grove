@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Native keyboard viewport in phone-history search
+
+The Android 17 hosted shard at `f46452b` ran 572 standard methods with
+one failure. The bilingual phone-history search fixture observed
+keyboard insets, then its separate query found no native IME window,
+and failed on the missing viewport at line 75. The failure occurred
+before the two action-bound assertions. The original job completed
+instrumentation and retained the log and terminal record.
+
+The fixture now samples the focused dialog only when delivered insets
+agree with the native keyboard window and keeps the observed viewport
+after 250 ms of stable geometry. Both actions must still be displayed,
+enabled and entirely above the keyboard. Cancel must still leave the
+search and generation callbacks unused. The original failure remains
+in the hosted run.
+
+The corrected frozen build passed 1,157 JVM tests, both lint
+variants with zero errors, and 84 selected device methods on each of
+Android 8 and 17 with zero skips. This includes all four search cases.
+The full hosted run at the corrected revision is a separate gate.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Original Android 17 shard ZIP | `fb2c8aac35a32beb14aed840094b8e81afb65ce01ce075c8efecb3d68d0483ed` |
+| Original instrumentation log | `e19b26dbd15eb0ffc2444f615a7c10368662e00de262fed51c772403857828a1` |
+| Original command result | `e7c385afd3e59133c5ce1d99207ec960724336e142052df2510e08dd01da666f` |
+| Corrected source snapshot | `75928f03bb29c8bee5d1f1ff7a70919a16f842b65419bf2538898010863b5725` |
+| Debug APK | `20642f8d6b2d1e3c8c700974949e1a1b6f340cc105c308a60badda73965e61a6` |
+| Test companion | `f2f705913d0bec1ade884459a1b8ec2515aeeda1df1ec65204838517101ee455` |
+| Android 8 focused log | `9b033dba483414c7410cb9333d5e19bd0f89bf71294506b9e1b8f3bbfaf35444` |
+| Android 17 focused log | `b13c85777ed7e2652cccb388824471769895ab226d0207863d1ece1f5c8159a9` |
+
+Build receipt `20261119-210446-64011c289b504c1fbc73a16a6fc1fb96`.
+[Original hosted shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44599030906/job/135852463836).
+
 ## Offline low-memory refusal and smaller-model recovery
 
 The frozen copy-report debug build ran through the normal app on a

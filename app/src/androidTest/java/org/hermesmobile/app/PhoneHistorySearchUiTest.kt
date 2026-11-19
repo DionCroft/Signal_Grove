@@ -71,8 +71,18 @@ class PhoneHistorySearchUiTest {
     @Test fun bilingualLargeFontReviewKeepsBothActionsAboveTheActualKeyboard() {
         show(bilingual = true); compose.onNodeWithTag("phone-history-search-open").performClick()
         compose.onNodeWithTag("phone-history-search-text").performScrollTo().performClick().performTextInput("你好 Garden")
-        compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
-        val viewport = checkNotNull(focusedDialogViewport())
+        var stableViewport: FocusedDialogViewport? = null
+        var stableSince = android.os.SystemClock.uptimeMillis()
+        compose.waitUntil(5_000) {
+            val current = focusedDialogViewport(requireKeyboard = false)?.takeIf { it.keyboardVisible }
+            val now = android.os.SystemClock.uptimeMillis()
+            if (current != stableViewport) {
+                stableViewport = current
+                stableSince = now
+            }
+            current != null && now - stableSince >= 250
+        }
+        val viewport = checkNotNull(stableViewport)
         for (tag in listOf("phone-history-search-apply", "phone-history-search-cancel")) {
             val node = compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInRoot
             assertTrue("Complete action must remain above the native IME", node.bottom + viewport.screenOffsetY <= viewport.visible.bottom)
