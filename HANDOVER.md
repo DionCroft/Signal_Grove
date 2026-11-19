@@ -61,16 +61,16 @@ lint variants and 63 selected device checks on each API 26 and API 37.
 The restore review passed 1,123 JVM tests and both lint variants. It checks
 chat/label capacity, remaps collisions and resolves only included parents.
 Recoverable publication passed 1,132 JVM tests, both lint variants and 65
-focused checks on each API 26 and API 37. Protection and the Android backup
-and import flows remain open.
+focused checks on each API 26 and API 37. The protected backup build passed
+1,139 JVM tests, both lint variants and 67 device checks per API. The Android
+backup and import screens and physical verification remain open.
 [Wire format and checks](docs/contracts/2026-11-19-phone-history-backup-archive.md).
 
 ## Exact next action
 
-Confirm Cancel on the physical label review and verify the export branch
-through the physical Android document picker. Save and unloaded archive reads
-are recorded from the organization build. Implement passphrase protection
-and the Android backup/import review over the tested restore transaction. The
+Verify the export branch through the physical Android document picker.
+The physical label Save, Cancel and unloaded archive read are verified. Connect the Android backup and
+import workflows to the tested encrypted format and recoverable storage. The
 full hosted Markdown export matrix passed 1,187 API 26 and 1,188 API 37
 cases. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
 

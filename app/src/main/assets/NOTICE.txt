@@ -8,6 +8,8 @@ Kotlin / kotlinx.coroutines / kotlinx.serialization: Apache-2.0; Copyright JetBr
 OkHttp / Okio: Apache-2.0; Copyright Square and contributors.
 Markwon: Apache-2.0; Copyright Dimitry Ivanov and contributors.
 CommonMark Java (Markwon transitive): BSD-2-Clause; Copyright Atlassian Pty Ltd and contributors.
+Tink, Gson and Error Prone annotations: Apache-2.0; Copyright Google and contributors.
+JSR-305 annotations: Apache-2.0; Copyright their respective contributors.
 Material icons: Apache-2.0; Copyright Google and contributors.
 
 JUnit (test only): Eclipse Public License 1.0. Hamcrest (test only): BSD-3-Clause.

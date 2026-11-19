@@ -89,6 +89,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
     implementation("io.noties.markwon:core:4.6.2")
+    implementation("com.google.crypto.tink:tink-android:1.23.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")

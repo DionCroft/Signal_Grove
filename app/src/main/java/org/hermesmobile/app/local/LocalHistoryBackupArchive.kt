@@ -12,7 +12,10 @@ import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.concurrent.CancellationException
 
-internal enum class LocalHistoryBackupProblem { INVALID, UNSUPPORTED_VERSION, CHANGED, CAPACITY, IDENTIFIER_UNAVAILABLE }
+internal enum class LocalHistoryBackupProblem {
+    INVALID, UNSUPPORTED_VERSION, CHANGED, CAPACITY, IDENTIFIER_UNAVAILABLE,
+    INVALID_PASSPHRASE, AUTHENTICATION, CRYPTO_UNAVAILABLE
+}
 
 internal class LocalHistoryBackupException(val problem: LocalHistoryBackupProblem) :
     IllegalStateException("local_history_backup_" + problem.name.lowercase())

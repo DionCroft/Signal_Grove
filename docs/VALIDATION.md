@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## Passphrase-protected phone backups on 19 November 2026
+
+The protected backup build passed 1,139 JVM tests, both lint variants
+and 67 focused device methods on Android API 26 and 37. Tests cover Unicode
+interoperability, multi-segment archives, bad passphrases, authenticated inner
+corruption, state preservation, cleanup and failure to publish a final segment
+after a destination error. The physical title-edit Cancel check preserved
+the label index, four chats and both model files.
+[Protected backup contract](contracts/2026-11-19-protected-phone-history-backups.md).
+
 ## Recoverable phone history restore on 19 November 2026
 
 The tested restore build passed 1,132 JVM cases, both lint variants and

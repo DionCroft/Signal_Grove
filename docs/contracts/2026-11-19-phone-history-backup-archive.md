@@ -23,8 +23,9 @@ through 50 records. Each record contains these fields in order.
 
 The final 32 bytes are the SHA-256 digest of the preceding bytes. The file ends
 after that digest. This catches accidental corruption of the plain archive.
-The archive contains private plaintext. Passphrase protection remains a
-separate delivery and will need authenticated encryption.
+The archive contains private plaintext. The optional protected envelope
+authenticates and encrypts that archive.
+[Protected backup format](2026-11-19-protected-phone-history-backups.md).
 
 The inspection keeps one transcript in memory at a time and retains the
 reviewed metadata and transcript offsets. It rejects invalid sizes, duplicate
@@ -56,7 +57,10 @@ on the selected regenerated conversation on the Android 17 Xiaomi. The chat
 appeared in Archived and opened its saved reply with no GGUF mapped. All four
 original transcripts and both model files matched their pre-check hashes.
 This verifies label Save and archive read on the prior organization build.
-The physical Cancel and Android document-picker checks remain open.
+On the physical Android 17 phone, editing the title and choosing Cancel
+preserved the saved title, pin, archive flag and label index. Four transcript
+files and both model files matched their earlier hashes. The physical Markdown
+document-picker check remains open.
 
 ## Restore review on 19 November 2026
 
