@@ -30,9 +30,12 @@ independently verifies 1,149 API26 / 1,150 API37 standard methods, no skips.
 Main Android and Windows pass. The feature branch watcher follows the
 reviewed cron move and reports 177 stable v0.23.2 fingerprint changes.
 Main upstream still requires a review of eight replaced storage modules.
-Map the gateway callers against the persistence authority, conversation
-and runtime interfaces before adding their paths. Shutdown review remains
-open. [Source evidence](docs/contracts/2026-11-19-hermes-cron-source-relocation.md).
+Paired upstream tests pass all 163 selected main cases and 106 of 107
+stable cases. The stable inventory assertion fails after a read-only API
+history fixture and passes by itself. Continue mapping the persistence
+authority and mutation interfaces before updating watcher paths. Shutdown
+review remains open.
+[Paired test evidence](docs/contracts/2026-11-19-hermes-main-stored-history.md#paired-gateway-and-sqlite-tests). [Source evidence](docs/contracts/2026-11-19-hermes-cron-source-relocation.md).
 
 Unreleased `feat/offline-chat-actions` implements reviewed edit/regenerate/fork,
 scoped drafts, request provenance, passive reply/code readers, text/model/date

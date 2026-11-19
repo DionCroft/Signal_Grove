@@ -5,9 +5,9 @@
 The guarded two-step backup review passes all 82 focused cases on each
 local Android 8 and 17 emulator, including the two cases that failed
 in the earlier hosted run. The independently recomputed Android 17
-union for that earlier run passed 1,209 standard methods. The complete
-hosted result for the two-step review and the physical-device and signed
-release gates are pending.
+union for that earlier run passed 1,209 standard methods. The independently verified hosted Android 8 union passes all 1,209
+methods, including both original failed cases. Android 17, final physical
+and signed release gates remain pending.
 [Local build evidence](VALIDATION.md#separate-backup-selection-and-passphrase-steps).
 
 ## Hosted backup selection acceptance - 19 November 2026
@@ -37,8 +37,10 @@ sustained performance and low-memory checks remain open.
 The stable hosted watcher publishes a complete review report. Main names
 the eight retired required paths and stays incomplete. Stored-history
 authorization, SQLite binding checks and the hold on unknown admissions
-were traced in source. Runtime comparison and the remaining mutation
-and storage coverage are open. A controlled callback trial produced a
+were traced in source. The paired runtime comparison passes all 163 selected pinned-main cases
+and 106 of 107 stable cases. Stable reproduces an inventory assertion after
+a read-only legacy history case in the same process. Further mutation,
+storage, policy and deployed coverage remain open. A controlled callback trial produced a
 retained heartbeat row after DB close at both public pins. The real
 owner-runtime shutdown and original warning gate remain open.
 [Stored history evidence](contracts/2026-11-19-hermes-main-stored-history.md)

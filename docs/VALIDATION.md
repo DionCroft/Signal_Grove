@@ -71,8 +71,15 @@ The exact build passed 1,155 JVM tests, both lint variants with zero errors
 and 82 focused Android methods each on Android 8 and 17. The tests exercise
 real row taps, repeated Next input, clearing an entered passphrase when
 changing the selection, explicit plaintext review, protected export and
-restore, and bilingual keyboard bounds. The full hosted validation of
-this source is pending.
+restore, and bilingual keyboard bounds.
+
+The follow-up run's raw Android 8 artifacts cover all 1,209 standard
+methods in two disjoint shards of 571 and 638, using the verified hosted
+APK pair. Both previously failing backup methods passed. The artifact
+ZIP digests, log digests, command terminal envelopes and exact method
+inventory all matched. The hosted build passed 1,155 JVM tests with zero
+lint errors. Android 17 and aggregate coverage remain pending.
+[Follow-up run](https://github.com/DionCroft/Signal_Grove/actions/runs/44592187772).
 
 - Build receipt `20261119-184020-d7534530da5c4e4fa414a1e191837ec6`
 - Source snapshot SHA-256 `857c939b607cee636368807873e605d7ac45310c1e5f5cf13dc2f89bcdef4420`

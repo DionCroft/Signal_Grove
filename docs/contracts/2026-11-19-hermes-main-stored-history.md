@@ -86,6 +86,44 @@ acceptance remain open.
 [Stable storage code](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/hermes_state_runtime.py)
 · [Main SQLite admission store](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/persistence/sqlite/authority/_admission_store.py).
 
+## Paired gateway and SQLite tests
+
+The hash-verified public archives ran the upstream gateway tests for
+stored transcripts, cursor polling, snapshot reads, handoff ownership,
+stored history mounts and canonical inventory on isolated Windows
+profiles. The suite also ran the two SQLite snapshot tests on each pin.
+Main includes its relocated, expanded transcript repository suite.
+
+Main passed all 163 selected tests. Stable v0.23.2 passed 106 of 107.
+The single failure is the canonical inventory assertion for a lazy
+session with the profile constrained to file and terminal toolsets. The
+response advertised at least one unexpected group from the assertion's
+web, browser and image set. The fixture's stored-history reads themselves
+passed. The assertion concerns the reported inventory.
+
+On stable the inventory test passes in isolation. In a fresh process,
+putting the legacy read-only API history case immediately before it
+reproduces the failure. The API history case itself passes. Putting the
+API mount's session-info case first also reproduces it. The same legacy
+API sequence passes both cases on pinned main. A 22-case mount prefix and
+an 80-case transcript prefix each reproduce the stable failure.
+
+| Report | SHA-256 |
+| --- | --- |
+| Stable full selected suite | 4525e7a1d6dbc3f8e58a61fe32c75c0b3d62e2725a4b7c21cd4d08891ea413f6 |
+| Main full selected suite | 219eb16acc3f2b8ee607232d6a6af84e09e6ff4b37a60f7d775333786db404ab |
+| Stable isolated inventory | bf97a7bc6ccc658701af5617fac3a59b5a2902f8f50faae13e2e9309ef4d98d6 |
+| Stable legacy API then inventory | 305fe1931878d2ccef4df799149b10240899bf3b338e5fad75fbd40dd2cfc2f5 |
+| Main legacy API then inventory | e7a1ae21375fe81ffaba96f7cbcfff68207fca65ceb8a79512979bfd4d791735 |
+
+Keep the exact order in the remaining stable diagnosis. These trials
+exercise authority dispatch and SQLite through generated gateway
+fixtures. The original shutdown warning, deployed Pi, compatibility
+watcher baseline and real worker or integration acceptance remain open.
+[Stable legacy fixture](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/tests/gateway/test_stored_history_mount.py)
+· [Stable inventory fixture](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/tests/gateway/test_canonical_session_inventory.py)
+· [Main inventory fixture](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/tests/gateway/test_canonical_session_inventory.py).
+
 ## Watcher evidence
 
 [Hosted run 44575549490](https://github.com/DionCroft/Signal_Grove/actions/runs/44575549490)
