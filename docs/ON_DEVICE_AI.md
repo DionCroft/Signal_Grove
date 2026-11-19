@@ -11,12 +11,13 @@ if the model is already loaded. Tap **Load model** to apply the saved choice.
 | Preset | Context tokens | CPU thread cap | Reply token cap |
 | --- | ---: | ---: | ---: |
 | Balanced | 2,048 | 4 | 384 |
-| Fast | 1,024 | 4 | 256 |
-| Battery saver | 1,024 | 1 | 128 |
+| Fast | 1,024 | 4 | 384 |
+| Battery saver | 1,024 | 1 | 384 |
 
 The app caps preset context at the model's trained limit and CPU threads at
 the phone's available processor count. The reply cap covers reasoning and
-control tokens as well as visible text. A small cap can end a reply early.
+control tokens as well as visible text. Presets retain the 384-token
+cap. Lower advanced caps can end a turn before any reply text appears.
 Actual speed and energy use depend on the phone, model and prompt. The RAM
 figure on the model card is the minimum available-memory check before load.
 Generation stores the settings it actually requested with the reply. Open

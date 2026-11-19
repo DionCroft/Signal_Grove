@@ -1,5 +1,13 @@
 # Signal Grove audit execution plan
 
+## Hosted backup selection acceptance - 19 November 2026
+
+Two reviewed-summary API 26 shard cases failed before passphrase entry.
+Resolve the backup-list viewport and checkbox input checks on the full
+hosted matrix. Preserve both original outcomes, the successful protected
+round trip, and the physical backup restore evidence.
+[Raw outcomes and scope](VALIDATION.md#hosted-backup-selection-failures-on-android-8).
+
 ## Phone model performance checkpoint - 19 November 2026
 
 OF-04 now supports saved per-model presets and advanced context, CPU and

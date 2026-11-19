@@ -79,7 +79,7 @@ class LocalAiControllerTest {
         controller.load(first)
         advanceUntilIdle()
         val original = checkNotNull(controller.state.value.loadedSettings)
-        val battery = LocalPerformancePreset.BATTERY_SAVER.forModel(first.metadata.trainedContext)
+        val battery = LocalPerformancePreset.BATTERY_SAVER.forModel(first.metadata.trainedContext).copy(outputTokens = 128)
         controller.saveModelPerformance(first, battery)
         advanceUntilIdle()
         assertEquals(original, controller.state.value.loadedSettings)
@@ -152,7 +152,8 @@ class LocalAiControllerTest {
         assertEquals(LocalGenerationSettings(768, 2, 384), balanced.resolve(2))
         assertEquals(1, balanced.resolve(0).threads)
         assertEquals(4, balanced.resolve(32).threads)
-        assertEquals(LocalModelPerformance(1024, 4, 256), LocalPerformancePreset.FAST.forModel(2048))
+        assertEquals(LocalModelPerformance(1024, 4, 384), LocalPerformancePreset.FAST.forModel(2048))
+        assertEquals(LocalModelPerformance(1024, 1, 384), LocalPerformancePreset.BATTERY_SAVER.forModel(2048))
     }
 
     @Test fun cancellingBeforeDispatchReleasesBusyStateAndUpdateGuard() = runTest {

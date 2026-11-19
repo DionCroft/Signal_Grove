@@ -1,5 +1,18 @@
 # Current development validation — audit follow-up
 
+## Hosted backup selection failures on Android 8
+
+The reviewed-summary run at `1666374c1ee20c655cf9bbc7a68479bf524f0fc0` had
+two failures among 637 methods in API 26 shard 1. The summary-only backup
+test found its row outside the displayed region after scrolling. The
+multilingual test found its checkbox off after the selection tap, before
+password entry. The protected round trip between those two tests passed.
+Both failed tests passed in the later focused local emulator run. The hosted
+failure needs a controlled viewport and input reproduction before release.
+The retained failure log SHA-256 is
+`918a1b21fc7a0d7d2e00a4bf1acd0e68c5215db346f3b8935f0dadcabe237886`.
+[Exact hosted shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44573654477/job/135753686498).
+
 ## Per-model phone performance checkpoint
 
 The development build passes 1,155 JVM tests with zero errors in both lint
