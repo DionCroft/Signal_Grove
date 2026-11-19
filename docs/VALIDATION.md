@@ -78,8 +78,10 @@ methods in two disjoint shards of 571 and 638, using the verified hosted
 APK pair. Both previously failing backup methods passed. The artifact
 ZIP digests, log digests, command terminal envelopes and exact method
 inventory all matched. The hosted build passed 1,155 JVM tests with zero
-lint errors. Android 17 and aggregate coverage remain pending.
-[Follow-up run](https://github.com/DionCroft/Signal_Grove/actions/runs/44592187772).
+lint errors. The Android 17 shards ran 1,210 methods in partitions of
+572 and 638. All four raw shards reproduce the aggregate report for this
+exact source, with zero skips. The two backup regressions passed on
+both versions. [Follow-up run](https://github.com/DionCroft/Signal_Grove/actions/runs/44592187772).
 
 - Build receipt `20261119-184020-d7534530da5c4e4fa414a1e191837ec6`
 - Source snapshot SHA-256 `857c939b607cee636368807873e605d7ac45310c1e5f5cf13dc2f89bcdef4420`

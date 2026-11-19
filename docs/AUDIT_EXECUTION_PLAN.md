@@ -6,7 +6,8 @@ The guarded two-step backup review passes all 82 focused cases on each
 local Android 8 and 17 emulator, including the two cases that failed
 in the earlier hosted run. The independently recomputed Android 17
 union for that earlier run passed 1,209 standard methods. The independently verified hosted Android 8 union passes all 1,209
-methods, including both original failed cases. Android 17, final physical
+methods. The independent full matrix also passes 1,210 Android 17 methods,
+and both former backup failures passed on both versions. Final physical
 and signed release gates remain pending.
 [Local build evidence](VALIDATION.md#separate-backup-selection-and-passphrase-steps).
 

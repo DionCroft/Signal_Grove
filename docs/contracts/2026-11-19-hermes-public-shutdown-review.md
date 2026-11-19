@@ -53,3 +53,22 @@ two-file candidate targets the earlier SDK revision. Applying it to
 current stable or main requires a new reviewed port.
 [Stable heartbeat tests](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/tests/tui_gateway/test_backend_heartbeat.py)
 · [Main heartbeat tests](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/tests/tui_gateway/test_backend_heartbeat.py).
+
+## Current public pins, six-file Windows suite
+
+All 50 selected upstream cases passed on each exact archive using the
+upstream automatic isolated-home fixture and its original protection.
+Both pins exercised the six listed canonical files. A first run pointed
+the parent environment at a disposable custom home, which the upstream
+guard treated as protected. Each first run recorded two failures before
+the fixture's restart-count write. A fresh fixture removed that parent
+override and kept the guard and assertions in place.
+
+| Report | SHA-256 |
+| --- | --- |
+| Stable Windows shutdown JUnit | f791082727d6d4e98df238f5416afb251fbc709a38ccb56de1a526a5f8f737ef |
+| Main Windows shutdown JUnit | 7c467dd242fee57bf8359c3fc9a8f34db7de6e1703235c69f5834ee3067b0427 |
+
+The gateway shutdown suite and the controlled late-heartbeat behavior
+remain distinct checks. The earlier native owner cleanup warning and
+full public-pin owner lifecycle are still open.

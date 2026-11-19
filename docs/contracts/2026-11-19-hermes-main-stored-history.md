@@ -124,6 +124,30 @@ watcher baseline and real worker or integration acceptance remain open.
 · [Stable inventory fixture](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/tests/gateway/test_canonical_session_inventory.py)
 · [Main inventory fixture](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/tests/gateway/test_canonical_session_inventory.py).
 
+## Profile refresh directory and fresh fixture comparison
+
+The two-case diagnostic confirms that initial config resolution reads the
+generated profile on both pins. Stable then infers the profile directory
+from the database file's parent during policy refresh. That lookup targets
+a missing config in the failing fixture. The next inventory resolves 18
+enabled toolsets. Main uses the explicit persistence profile directory for
+refresh and resolves three enabled toolsets in the corresponding snapshot.
+
+Removing the wrapper's custom home override let upstream create its
+normal isolated test homes on E:. Stable still failed the original
+inventory assertion, with 106 passes. Main passed all 163 again.
+Live profile and dispatch acceptance remains open.
+
+| Report | SHA-256 |
+| --- | --- |
+| Stable path-match trace | 9c280d21014407788036b82a0d41ffa3a55fc1fe18cabdaf4a78ccaad3ddb96f |
+| Main path-match trace | 22936871262939fd84366c85b0606a7c9d4f08b6b21713dbe0ba1ea38133fb8c |
+| Stable automatic home transcript tests | a762660bca4f1fb5a49589f5a39380bcf3c4d3e7c5d5540752f9f15fc33ee7da |
+| Main automatic home transcript tests | 9feaa8ec0036e17c3c8e7a6863afe6b55daf481885393e69947b50668c30490c |
+
+[Stable refresh directory](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/gateway/session_policy_refresh.py)
+· [Main refresh directory](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/gateway/session_policy_refresh.py).
+
 ## Watcher evidence
 
 [Hosted run 44575549490](https://github.com/DionCroft/Signal_Grove/actions/runs/44575549490)
