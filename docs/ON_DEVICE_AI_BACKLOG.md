@@ -64,7 +64,9 @@ preserve selected transcript bytes and labels, map IDs and check capacity.
 Recoverable restore publishes reviewed chats and labels together and resolves
 interrupted publication before opening the catalog. The [protected backup format](contracts/2026-11-19-protected-phone-history-backups.md)
 passed portable Unicode, wrong-passphrase, tampering and restore checks.
-Android backup and import screens and physical restore remain open.
+Private staging now freezes export documents, checks a single imported
+copy and reclaims abandoned files when phone history opens. Android backup
+and import screens, document-picker wiring, and physical restore remain open.
 Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,

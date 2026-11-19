@@ -7,7 +7,7 @@ Original code is MIT. No upstream Hermes source/branding or third-party fonts ar
 - [OkHttp](https://github.com/square/okhttp), [Okio](https://github.com/square/okio) — Apache 2.0
 - [Markwon](https://github.com/noties/Markwon) — Apache 2.0
 - [CommonMark Java](https://github.com/commonmark/commonmark-java) — BSD 2-clause
-- [Tink](https://github.com/tink-crypto/tink-java/tree/v1.23.0), [Gson](https://github.com/google/gson), [Error Prone annotations](https://github.com/google/error-prone) and JSR-305 annotations — Apache 2.0
+- [Tink](https://github.com/tink-crypto/tink-java/tree/v1.24.0), [Gson](https://github.com/google/gson), [Error Prone annotations](https://github.com/google/error-prone) and JSR-305 annotations — Apache 2.0
 - [Material icons](https://github.com/google/material-design-icons) — Apache 2.0
 - [llama.cpp and GGML](https://github.com/ggml-org/llama.cpp/tree/940a30ee3b5593e1a66fe0aadc3b731989022552) — MIT; optional native local-inference engine. Its bundled common code uses nlohmann JSON (MIT), cpp-httplib (MIT), xxHash (BSD 2-clause), rotate-bits (MIT), public-domain SHA-1/SHA-256 implementations and sheredom subprocess headers (Unlicense). Their notices are included in the app and `docs/licenses/llama-cpp-dependencies.txt`. KleidiAI, OpenSSL and subprocess support are disabled in this build.
 - Android NDK r29 LLVM C++ runtime — Apache 2.0 with LLVM exceptions and included component notices, reproduced from the official NDK in the app and `docs/licenses/llvm-ndk-r29.txt`. Native libraries share one C++ runtime.

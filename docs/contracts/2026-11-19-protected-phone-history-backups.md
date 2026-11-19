@@ -50,8 +50,8 @@ and new transitive artifacts were independently checked against Google Maven and
 Maven Central. A scoped OSV query returned no records for the four checked Tink,
 Gson, Error Prone and JSR-305 versions on the validation date.
 Lint flagged the newer Tink 1.24.0. A scoped workstation probe passed with
-its dedicated streaming configuration. Android validation for that version is
-open. [Tink 1.24.0 release](https://github.com/tink-crypto/tink-java/releases/tag/v1.24.0).
+its dedicated streaming configuration. Follow-up Android validation appears
+below. [Tink 1.24.0 release](https://github.com/tink-crypto/tink-java/releases/tag/v1.24.0).
 
 [Tink 1.23.0 release](https://github.com/tink-crypto/tink-java/releases/tag/v1.23.0) ·
 [OSV query API](https://google.github.io/osv.dev/api/).
@@ -66,5 +66,40 @@ open. [Tink 1.24.0 release](https://github.com/tink-crypto/tink-java/releases/ta
 - API 37 instrumentation SHA-256 `4ee4763ae478b061dea2d92683ebf1c2410bc9563729de9d93f9dfbef826562b`
 
 The app-private format, authentication and storage restore are verified.
-Android document-picker screens, review lifecycle cleanup after a killed
-process, and a physical backup/restore remain open.
+Android document-picker screens and a physical backup/restore remain open.
+The private staging lifecycle is recorded below.
+
+## Private document staging
+
+The phone history controller owns a dedicated directory under the app's
+no-backup storage. Preparations freeze the selected chat records and label
+bindings into a bounded private file. The prepared file's digest is checked
+before its bytes reach an output stream. Imports recognize the fixed header
+before reading the body and apply the limit for that format. A restore
+review reads the selected private copy even if the original document changes.
+
+Closing a prepared document releases its staged copy. Closing a protected
+review releases its decrypted file. At startup, phone history reclaims
+recognized abandoned staging files before displaying the catalog. The
+cleanup stays within the owned directory and preserves unrecognized entries,
+chat transcripts, labels, models, and the restore journal.
+
+Tink 1.24.0 uses its dedicated streaming configuration with the same v1
+envelope. Both Android versions opened the independent earlier vector and
+passed authenticated round trips. Maven Central checksums were verified and
+a scoped OSV query returned no records for Tink 1.24.0 on the validation date.
+[Tink 1.24.0 release](https://github.com/tink-crypto/tink-java/releases/tag/v1.24.0) ·
+[OSV query API](https://google.github.io/osv.dev/api/).
+
+The strict build passed 1,146 JVM tests and both lint variants.
+The signed pair passed 69 focused checks on Android API 26 and API 37. Two
+Android checks cover the real file-descriptor path to the reviewed restore
+and the controller's cold staging cleanup. Backup selection screens,
+Android document-picker wiring, and physical backup and restore remain open.
+
+- Build receipt `20261119-131212-848f34f766c54d43b049685fbbd1b6b8`
+- Source snapshot `8a4e5a6121c07db05dfe27e5b524aef0d31aa632360876341d8d30cba2e0cd69`
+- Debug app SHA-256 `51c7fe4fcf5e2fc0585ade14ba172566dc0ad90e228f8c063ef42c9a34e1c117`
+- Test companion SHA-256 `898452411b893fe1e71e1344383c7bbe1fdc7be90468b70dad2fe83487411945`
+- API 26 instrumentation SHA-256 `5c08a7e39d7b467f389f0472f0ac34b296239e4a9b02ecab36e080247838a1e0`
+- API 37 instrumentation SHA-256 `5fca9c3fce2dd919a24b606446dc4f52838f8223919119bdf109cdee633bce8c`

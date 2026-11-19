@@ -75,6 +75,8 @@ internal data class LocalHistoryBackupItem(
 internal object LocalHistoryBackupArchive {
     const val FILE_EXTENSION = "sgbackup"
     private val MAGIC = byteArrayOf(0x53, 0x47, 0x48, 0x49, 0x53, 0x54, 0x4f, 0x52)
+    fun recognizesHeader(prefix: ByteArray): Boolean = prefix.contentEquals(MAGIC)
+
     private const val VERSION = 1
     private const val HEADER_BYTES = 16
     private const val ID_BYTES = 36
@@ -84,6 +86,7 @@ internal object LocalHistoryBackupArchive {
     private const val LABELS = 1
     private const val PINNED = 2
     private const val ARCHIVED = 4
+    const val MIN_BYTES = HEADER_BYTES + SHA_BYTES + 1
     const val MAX_BYTES = HEADER_BYTES +
         LocalConversationStore.MAX_CHATS * (RECORD_HEADER_BYTES + MAX_TITLE_BYTES + LocalConversationStore.MAX_BYTES) + SHA_BYTES
 
@@ -168,7 +171,7 @@ internal object LocalHistoryBackupArchive {
         try {
             val file = stagedArchive.canonicalFile
             val length = file.length()
-            require(file.isFile && length in (HEADER_BYTES + SHA_BYTES + 1L)..MAX_BYTES.toLong())
+            require(file.isFile && length in MIN_BYTES.toLong()..MAX_BYTES.toLong())
             val digest = MessageDigest.getInstance("SHA-256")
             val entries = linkedMapOf<String, Entry>()
             val checked = DigestInputStream(BufferedInputStream(file.inputStream()), digest)

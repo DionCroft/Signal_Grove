@@ -2,11 +2,10 @@ package org.hermesmobile.app.local
 
 import com.google.crypto.tink.InsecureSecretKeyAccess
 import com.google.crypto.tink.KeysetHandle
-import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.StreamingAead
 import com.google.crypto.tink.streamingaead.AesGcmHkdfStreamingKey
 import com.google.crypto.tink.streamingaead.AesGcmHkdfStreamingParameters
-import com.google.crypto.tink.streamingaead.StreamingAeadConfig
+import com.google.crypto.tink.streamingaead.StreamingAeadConfig2026
 import com.google.crypto.tink.util.SecretBytes
 import java.io.Closeable
 import java.io.DataInputStream
@@ -18,6 +17,7 @@ import java.nio.CharBuffer
 import java.nio.file.Files
 import java.security.GeneralSecurityException
 import java.security.SecureRandom
+import java.util.UUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
@@ -45,6 +45,7 @@ internal object LocalHistoryBackupProtection {
     private const val PAYLOAD_PER_SEGMENT = SEGMENT_BYTES - TAG_BYTES
     private const val MAX_PLAINTEXT = LocalHistoryBackupArchive.MAX_BYTES
     private const val MAX_SEGMENTS = (MAX_PLAINTEXT + TINK_HEADER_BYTES + PAYLOAD_PER_SEGMENT - 1) / PAYLOAD_PER_SEGMENT
+    const val MIN_BYTES = HEADER_BYTES + TINK_HEADER_BYTES + TAG_BYTES
     const val MAX_BYTES = HEADER_BYTES + TINK_HEADER_BYTES + MAX_PLAINTEXT + MAX_SEGMENTS * TAG_BYTES
     private val random by lazy { SecureRandom() }
     private val parameters by lazy {
@@ -55,10 +56,7 @@ internal object LocalHistoryBackupProtection {
             .setCiphertextSegmentSizeBytes(SEGMENT_BYTES)
             .build()
     }
-    private val config by lazy {
-        StreamingAeadConfig.register()
-        RegistryConfiguration.get()
-    }
+    private val config by lazy { StreamingAeadConfig2026.get() }
 
     /** The caller owns the destination stream and passphrase buffer. */
     fun write(
@@ -105,13 +103,13 @@ internal object LocalHistoryBackupProtection {
     ): LocalHistoryProtectedInspection {
         val ciphertext = source.canonicalFile
         val directory = privateDirectory.canonicalFile
-        val minBytes = HEADER_BYTES + TINK_HEADER_BYTES + TAG_BYTES
-        if (!ciphertext.isFile || ciphertext.length() !in minBytes.toLong()..MAX_BYTES.toLong()) {
+        if (!ciphertext.isFile || ciphertext.length() !in MIN_BYTES.toLong()..MAX_BYTES.toLong()) {
             throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
         }
         require(directory.isDirectory)
         checkpoint()
-        val stage = Files.createTempFile(directory.toPath(), "review-", ".part").toFile()
+        val stage = File(directory, "review-" + UUID.randomUUID() + ".part")
+        Files.createFile(stage.toPath())
         try {
             ciphertext.inputStream().buffered().use { input ->
                 val header = readHeader(input)
@@ -140,13 +138,18 @@ internal object LocalHistoryBackupProtection {
         } catch (_: IOException) {
             throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
         }
-        if (!header.copyOf(MAGIC_BYTES).contentEquals(magic)) {
-            val hasFamily = header.copyOf(6).contentEquals(magic.copyOf(6))
-            throw LocalHistoryBackupException(
-                if (hasFamily) LocalHistoryBackupProblem.UNSUPPORTED_VERSION else LocalHistoryBackupProblem.INVALID
-            )
+        if (!recognizesHeader(header.copyOf(MAGIC_BYTES))) {
+            throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
         }
         return header
+    }
+
+    fun recognizesHeader(prefix: ByteArray): Boolean {
+        if (prefix.contentEquals(magic)) return true
+        if (prefix.size == MAGIC_BYTES && prefix.copyOf(6).contentEquals(magic.copyOf(6))) {
+            throw LocalHistoryBackupException(LocalHistoryBackupProblem.UNSUPPORTED_VERSION)
+        }
+        return false
     }
 
     private fun copyAuthenticated(input: InputStream, output: OutputStream, checkpoint: () -> Unit) {

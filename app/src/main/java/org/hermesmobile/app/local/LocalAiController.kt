@@ -30,6 +30,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         File(it.parentFile, it.name + "-organization")
     }, conversations)
     private val historyRestore = LocalHistoryRestoreTransaction(conversations, organization)
+    internal val historyBackupFiles = LocalHistoryBackupFiles(
+        File(conversations.directory.parentFile, "history-backup-stages"), conversations, organization
+    )
     private val downloads = LocalModelDownload(store, ioDispatcher = ioDispatcher)
     private var engine: LocalInference? = null
     private var loadedConfiguration: Pair<Int, Int>? = null
@@ -368,6 +371,11 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         if (!recovered) {
             io {
                 val context = currentCoroutineContext()
+                try {
+                    historyBackupFiles.discardAbandonedDocuments()
+                } catch (_: java.io.IOException) {
+                    // Backup preparation reports staging errors. History remains readable.
+                }
                 conversations.recoverInterrupted { context.ensureActive() }
             }
             recovered = true

@@ -1,5 +1,13 @@
 # Current development validation — audit follow-up
 
+## Private phone backup staging on 19 November 2026
+
+The staging and Tink update passed 1,146 JVM tests, both lint variants
+and 69 focused device methods on each Android API 26 and 37. The new tests cover
+immutable export copies, pending encrypted imports, cancellation, stale
+selections, invalid headers, and cold cleanup of abandoned private files.
+[Protected backup and staging contract](contracts/2026-11-19-protected-phone-history-backups.md).
+
 ## Passphrase-protected phone backups on 19 November 2026
 
 The protected backup build passed 1,139 JVM tests, both lint variants
