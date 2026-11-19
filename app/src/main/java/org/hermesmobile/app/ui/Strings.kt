@@ -5,6 +5,22 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    PhoneMarkdownExport("Export Markdown", "导出 Markdown", "Dǎochū Markdown"),
+    PhoneMarkdownReview("Review chat export", "审阅对话导出", "Shěnyuè duìhuà dǎochū"),
+    PhoneMarkdownContents("This readable, unencrypted file includes the selected chat’s saved questions, replies and model details. Choose a local folder to keep it on this phone.", "此可读的未加密文件包含所选对话中已保存的问题、回复和模型详情。要将文件保存在此手机上，请选择本地文件夹。", "Cǐ kědú de wèi jiāmì wénjiàn bāohán suǒxuǎn duìhuà zhōng yǐ bǎocún de wèntí, huífù hé móxíng xiángqíng. Yào jiāng wénjiàn bǎocún zài cǐ shǒujī shàng, qǐng xuǎnzé běndì wénjiànjiā."),
+    PhoneMarkdownSize("{count} exchanges · {bytes} bytes", "{count} 轮对话 · {bytes} 字节", "{count} lún duìhuà · {bytes} zìjié"),
+    PhoneMarkdownChoose("Choose where to save", "选择保存位置", "Xuǎnzé bǎocún wèizhì"),
+    PhoneMarkdownChoosing("Waiting for Android’s file picker", "正在等待 Android 文件选择器", "Zhèngzài děngdài Android wénjiàn xuǎnzéqì"),
+    PhoneMarkdownPreparing("Preparing chat export", "正在准备对话导出", "Zhèngzài zhǔnbèi duìhuà dǎochū"),
+    PhoneMarkdownChanged("This chat changed. Refresh history, then review it again.", "此对话已更改。请刷新历史记录后重新审阅。", "Cǐ duìhuà yǐ gēnggǎi. Qǐng shuāxīn lìshǐ jìlù hòu chóngxīn shěnyuè."),
+    PhoneMarkdownPrepareError("The saved chat could not be prepared for export. Refresh phone history and check the chat.", "无法准备已保存的对话以供导出。请刷新手机历史记录并检查该对话。", "Wúfǎ zhǔnbèi yǐ bǎocún de duìhuà yǐ gōng dǎochū. Qǐng shuāxīn shǒujī lìshǐ jìlù bìng jiǎnchá gāi duìhuà."),
+    PhoneMarkdownWriting("Writing Markdown to the selected destination", "正在将 Markdown 写入所选位置", "Zhèngzài jiāng Markdown xiěrù suǒxuǎn wèizhì"),
+    PhoneMarkdownSaved("Android accepted the Markdown file. Find it in the location you chose.", "Android 已接收 Markdown 文件。请在所选位置查找。", "Android yǐ jiēshōu Markdown wénjiàn. Qǐng zài suǒxuǎn wèizhì cházhǎo."),
+    PhoneMarkdownCancelled("Export cancelled before writing.", "写入前已取消导出。", "Xiěrù qián yǐ qǔxiāo dǎochū."),
+    PhoneMarkdownPickerUnavailable("Android’s file picker could not open. Check that a file manager is available.", "无法打开 Android 文件选择器。请检查文件管理器是否可用。", "Wúfǎ dǎkāi Android wénjiàn xuǎnzéqì. Qǐng jiǎnchá wénjiàn guǎnlǐqì shìfǒu kěyòng."),
+    PhoneMarkdownStopped("Export stopped. Check the chosen location for a partial file.", "导出已停止。请检查所选位置是否有不完整的文件。", "Dǎochū yǐ tíngzhǐ. Qǐng jiǎnchá suǒxuǎn wèizhì shìfǒu yǒu bù wánzhěng de wénjiàn."),
+    PhoneMarkdownUncertain("Android could not confirm the export. Check the chosen location for a missing or partial file.", "Android 无法确认导出结果。请检查所选位置是否缺少文件或有不完整的文件。", "Android wúfǎ quèrèn dǎochū jiéguǒ. Qǐng jiǎnchá suǒxuǎn wèizhì shìfǒu quēshǎo wénjiàn huò yǒu bù wánzhěng de wénjiàn."),
+    PhoneMarkdownInterrupted("The export was interrupted. If you selected a location, check it before exporting again.", "导出已中断。如果已选择位置，请先检查该位置，然后再导出。", "Dǎochū yǐ zhōngduàn. Rúguǒ yǐ xuǎnzé wèizhì, qǐng xiān jiǎnchá gāi wèizhì, ránhòu zài dǎochū."),
     PhoneHistoryCopiedBranch("Copied branch", "复制分支", "Fùzhì fēnzhī"),
     PhoneHistoryEditedBranch("Edited branch", "编辑分支", "Biānjí fēnzhī"),
     PhoneHistoryRegeneratedBranch("Regenerated branch", "重新生成的分支", "Chóngxīn shēngchéng de fēnzhī"),

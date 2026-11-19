@@ -42,23 +42,29 @@ class PhoneHistoryOrganizationUiTest {
     }
     private data class ToggleFrame(val viewport:FocusedDialogViewport,val control:androidx.compose.ui.geometry.Rect,val caption:android.graphics.Rect)
     /** One real input after coherent/stable IME and complete native/Compose target observations. */
-    private fun toggleOnce(tag:String,word:Words,action:NativeDialogTapAction,bilingual:Boolean=false) {
+    private fun toggleOnce(tag:String,word:Words,action:NativeDialogTapAction,bilingual:Boolean=false,
+        filterChip:Boolean=false) {
+        fun unselected() = compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().let {
+            if(filterChip) it.assertIsNotSelected() else it.assertIsToggleable().assertIsOff()
+        }
+        val keyboardRequired = if (filterChip) null else true
         val started=android.os.SystemClock.uptimeMillis();val deadline=started+5000
         val caption=word.localized(AppPreferences(chinese=bilingual,pinyin=bilingual))
         var previousViewport:FocusedDialogViewport?=null;var viewportStableAt=started
         compose.waitUntil(5000) {
             val current=focusedDialogViewport(requireKeyboard=false)
             val now=android.os.SystemClock.uptimeMillis()
-            if(current==null || !current.keyboardVisible || current!=previousViewport) {
+            if(current==null || (keyboardRequired!=null && current.keyboardVisible!=keyboardRequired) || current!=previousViewport) {
                 previousViewport=current;viewportStableAt=now;false
             } else now-viewportStableAt>=250 && now<deadline
         }
-        compose.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().assertIsEnabled().assertIsToggleable().assertIsOff()
+        compose.onNodeWithTag(tag).performScrollTo()
+        unselected()
         var previous:ToggleFrame?=null;var stableAt=android.os.SystemClock.uptimeMillis();var ready:ToggleFrame?=null
         fun observe():ToggleFrame? {
             val viewport=focusedDialogViewport(requireKeyboard=false) ?: return null
-            if(!viewport.keyboardVisible) return null
-            val node=compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().assertIsToggleable().assertIsOff()
+            if(keyboardRequired!=null && viewport.keyboardVisible!=keyboardRequired) return null
+            val node=unselected()
             val bounds=node.fetchSemanticsNode().boundsInWindow
             val native=focusedDialogCaptionScreenBounds(caption,caption)
             val fresh=focusedDialogViewport(requireKeyboard=false) ?: return null
@@ -82,7 +88,7 @@ class PhoneHistoryOrganizationUiTest {
         val center=checked.control.center
         tapFocusedDialogWindowPoint(center.x,center.y,action)
         // No second input: a missed or double toggle fails here and at exact saved-value checks.
-        compose.onNodeWithTag(tag).assertIsOn()
+        if(filterChip) compose.onNodeWithTag(tag).assertIsSelected() else compose.onNodeWithTag(tag).assertIsOn()
     }
     @Test fun cancellingAnEditedOrganizationReviewPublishesNoLabelsOrGeneration() {
         show();open();compose.onNodeWithTag("phone-history-title").performScrollTo().performClick().performTextInput("Orchard 你好")
@@ -125,7 +131,7 @@ class PhoneHistoryOrganizationUiTest {
     }
     @Test fun searchReviewOffersExplicitActiveArchivedAndAllChoices() {
         show();compose.onNodeWithTag("phone-history-search-open").performClick()
-        compose.onNodeWithTag("phone-history-view-ALL").performScrollTo().performClick()
+        toggleOnce("phone-history-view-ALL",Words.PhoneHistoryAll,NativeDialogTapAction.PhoneHistorySearchAll,filterChip=true)
         assertTrue(searches.isEmpty());compose.onNodeWithTag("phone-history-search-apply").assertIsDisplayed().performClick()
         assertEquals(1,searches.size);assertEquals(LocalHistoryView.ALL,searches.single().view);assertEquals(0,sends)
     }

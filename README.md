@@ -4,18 +4,16 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 
 **[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)** — experimental preview with optional offline AI, model management and a grounded setup helper. Full compatibility and production-phone acceptance remain open. [Published scope](docs/contracts/2026-11-13-beta9-public-preview.md) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
 
-Unreleased `feat/offline-chat-actions` adds reviewed edit/regenerate/branch,
-separate drafts, request provenance, passive Markdown/code readers and history
-text/model/date search, plus reviewed title/pin/archive controls. Latest checks
-pass **1,093 JVM tests** and **56 selected
-native methods on each API26/API37**, with zero lint errors (51/50 warnings).
-One actual offline phone method plus real app branching/search/Clear/read checks
-verify their recorded phone pairings. Current organization controls still need
-their physical checkpoint. Full c46 CI caught one API26 missed-pin assertion;
-the selected fix retains exact values and uses one native tap with the IME open.
-Fresh complete hosted checks and final-source device/accessibility/lifecycle and
-release gates remain; these additions are not in the public APK or main yet.
-[Current source and limitations](docs/contracts/2026-11-19-history-native-readiness.md) · [Actual phone search](docs/contracts/2026-11-19-phone-history-search-physical.md).
+Unreleased history improvements add edit, regenerate, branch, separate drafts,
+passive Markdown and code readers, search, pin and archive. The layered export
+branch adds review and Markdown export through Android's file picker.
+Local validation passed **1,107 JVM tests** and **61
+selected tests each on API 26 and API 37**, with zero lint errors. The actual
+Android picker saved and verified a Unicode chat in Downloads.
+The preceding history branch passed **1,182 API 26** and
+**1,183 API 37** standard tests in GitHub. Physical export,
+encrypted backup/import and final release checks remain.
+[Validation](docs/contracts/2026-11-19-phone-markdown-export.md) · [Export guide](docs/ON_DEVICE_AI.md#export-a-phone-chat-to-markdown-on-the-unreleased-branch).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
 verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device
@@ -68,7 +66,7 @@ Updated **19 November 2026** for unreleased offline actions/search and organizat
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
 | Merged UI standard device cohort | **1,149 API26 / 1,150 API37 methods** | Identical reviewed-head/PR/main trees; independent raw four-shard union, no skips; external models remain separate |
-| Unreleased offline actions/readers/search | **1,093 JVM / 56 focused methods per API** | Exact source/APKs; eight new controller/three search cases, eight organization UI/two Android filesystem methods, plus six scripted input guards; no skips; current phone/final gates remain |
+| Unreleased offline actions/readers/search | **1,107 JVM / 58 focused methods per API** | Exact source/APKs; eight new controller/three search cases, eight organization UI/two Android filesystem methods, plus six scripted input guards; 14 new codec JVM/two Android file cases; no skips; export UI and phone/final gates remain |
 | Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Explicit app pairings; native branches plus actual UI branches/search/Clear/read; all four real UI histories unchanged, no whole-feature acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |

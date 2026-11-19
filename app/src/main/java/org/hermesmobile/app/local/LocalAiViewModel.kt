@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import android.os.CancellationSignal
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
@@ -11,8 +12,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.hermesmobile.app.HermesApplication
 
 /** Drafts and picker results survive rotation in memory, never Android's saved-state bundle. */
-class LocalAiViewModel(application: Application) : AndroidViewModel(application) {
-    val controller = (application as HermesApplication).localAi
+class LocalAiViewModel(application: Application, savedState: SavedStateHandle) : AndroidViewModel(application) {
+    private val app = application as HermesApplication
+    val controller = app.localAi
+    internal val markdownExport = PhoneMarkdownExport(app.contentResolver, app.updateWorkGuard, savedState, viewModelScope)
+
+    internal fun prepareMarkdownExport(summary: LocalConversationSummary) {
+        if (markdownExport.state.value != PhoneMarkdownExportState.Idle) return
+        controller.prepareMarkdownExport(summary) { document ->
+            markdownExport.review(document, summary.title)
+        }
+    }
     private val drafts = LocalConversationDrafts(controller.state.value.chat?.id)
     val draft = drafts.text
     fun changeDraft(value: String) { drafts.edit(value) }
@@ -59,5 +69,8 @@ class LocalAiViewModel(application: Application) : AndroidViewModel(application)
                 ?: throw LocalModelStorageException("import_unavailable")
         }
     }
-    override fun onCleared() { controller.leave() }
+    override fun onCleared() {
+        markdownExport.clear()
+        controller.leave()
+    }
 }

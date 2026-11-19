@@ -73,7 +73,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val help: (LocalHelpTopic, Boolean) -> Unit = {_, _ ->},
     val branch: (LocalConversation, Int, LocalBranchKind, String?) -> Unit = {_, _, _, _ ->},
     val searchHistory: (LocalHistoryQuery) -> Unit = {}, val clearHistorySearch: () -> Unit = {},
-    val organize: (LocalConversationSummary, LocalHistoryPreferences) -> Unit = {_, _ ->})
+    val organize: (LocalConversationSummary, LocalHistoryPreferences) -> Unit = {_, _ ->},
+    val exportMarkdown: ((LocalConversationSummary) -> Unit)? = null)
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -93,7 +94,10 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         LocalAiActions(vm::send, c::cancel, vm::newChat, c::load, c::unload, c::deleteModel,
             {c.download(true)}, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
             {vm.pendingImport.value = null}, vm::openChat, vm::deleteChat, c::dismissError, c::refreshLibrary,
-            {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch, searchHistory = c::searchHistory, clearHistorySearch = c::clearHistorySearch, organize = c::organizeChat), close, observations, handoff)
+            {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch,
+            searchHistory = c::searchHistory, clearHistorySearch = c::clearHistorySearch, organize = c::organizeChat,
+            exportMarkdown = vm::prepareMarkdownExport), close, observations, handoff)
+    PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
@@ -373,6 +377,7 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     "reading" -> Words.PhoneReading
     "searching" -> Words.PhoneHistorySearching
     "organizing" -> Words.PhoneHistoryOrganizing
+    "preparing_export" -> Words.PhoneMarkdownPreparing
     "loading" -> Words.PhoneLoading
     "unloading" -> Words.PhoneUnloading
     "generating" -> Words.PhoneGenerating
@@ -383,6 +388,8 @@ internal fun phoneError(code: String) = when {
     code == "history_search" -> Words.PhoneHistorySearchError
     code == "history_organization" -> Words.PhoneHistoryOrganizationError
     code == "history_organization_changed" -> Words.PhoneHistoryOrganizationChanged
+    code == "history_export_changed" -> Words.PhoneMarkdownChanged
+    code == "history_export_prepare" -> Words.PhoneMarkdownPrepareError
     code == "helper_unverified" -> Words.PhoneHelperRejected
     code == "insufficient_memory" -> Words.PhoneMemoryError
     code == "engine_2" -> Words.PhoneContextError
