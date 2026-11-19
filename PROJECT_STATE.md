@@ -91,16 +91,17 @@ new chat is searchable and exportable before its first new question.
 
 ## Exact next action
 
-Verify a full hosted Android run covering both fixture fixes and the external
-LFM3 boundary inventory correction. The earlier context run failed at policy
-and produced no device result. The physical protected restore and Markdown export are verified. The physical
+The complete hosted Android run 44560196101 passed at 3d2b24a. Verified
+raw partitions and APKs cover 1,203 Android 8 and 1,204 Android 17
+standard methods, including both corrected fixtures. The earlier policy
+failure remains recorded. Verify the independently queued
+[reviewed-summary run](https://github.com/DionCroft/Signal_Grove/actions/runs/44573654477). The physical protected restore and Markdown export are verified. The physical
 label Save, Cancel and unloaded archive read are verified. The full hosted
 Markdown export matrix passed 1,187 API 26 and 1,188 API 37
 cases. On the later backup branch, one hosted Android 8 shard failed before
 Home was ready. The other found Review backup disabled after fixture input.
 The current Home and protected-backup fixtures pass 14 focused checks on
-both APIs. Both historical hosted failures remain in the evidence. The new
-full matrix remains open.
+both APIs. Both historical hosted failures remain in the evidence.
 Finish physical OF-03 acceptance for selected context and reviewed summaries.
 Continue the ordered offline backlog with performance presets and diagnostics.
 Keep OF-01 accessibility, lifecycle and the original audit gates open.

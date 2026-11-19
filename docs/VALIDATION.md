@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## Complete Android standard suite for the context and fixture checkpoint
+
+Run 44560196101 passed at `3d2b24a958462d12f7519f3fb1f5c1512cfdf106`. Independent recomputation
+from all four raw inventories and device logs matched the hosted summary
+and the supplied debug APKs. Android 8 ran all 1,203 standard methods
+across shards of 570 and 633. Android 17 ran all 1,204 across shards of
+571 and 633. The original Home navigation and protected-backup regressions
+are included. The fourteen externally staged model methods remained a
+separate gate. The later reviewed-summary source has its own hosted run.
+
+- Debug APK SHA-256 `f88b289e28a1a8250989954da86cd0b2ac0e945e4e396614135d6b99db52abc5`
+- Test companion SHA-256 `a14899a3fbf71dca21014b758fd20dc3f2a19e006f268e1d73faa9bd62aa182d`
+
+[Complete checkpoint run](https://github.com/DionCroft/Signal_Grove/actions/runs/44560196101)
+· [Reviewed-summary run](https://github.com/DionCroft/Signal_Grove/actions/runs/44573654477).
+
 ## Hermes cron source relocation on 19 November 2026
 
 The stable watcher now reads the moved cron source at the reviewed pin and
