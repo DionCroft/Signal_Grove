@@ -231,6 +231,116 @@ class LocalAiControllerTest {
         advanceUntilIdle()
     }
 
+    @Test fun reviewedSummaryUsesOnlySelectedSourceAndCommitsOnlyEditedText() = runTest {
+        val root = temp.newFolder()
+        val model = model(root)
+        val history = temp.newFolder()
+        val store = LocalConversationStore(history)
+        val source = LocalConversation(modelSha256 = model.sha256, updatedAt = 10, exchanges = listOf(
+            LocalExchange("First selected question", "First answer", LocalReplyState.COMPLETE),
+            LocalExchange("Other private turn", "Another reply", LocalReplyState.COMPLETE),
+            LocalExchange("Third selected question", "Third answer", LocalReplyState.TOKEN_LIMIT)))
+        store.saveNew(source)
+        val before = store.file(source.id).readBytes()
+        val engine = Engine().apply { promptTokens = 80; reply = "Unreviewed suggestion" }
+        val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        controller.load(model)
+        advanceUntilIdle()
+        controller.openChat(source.id)
+        advanceUntilIdle()
+
+        val selected = mutableListOf(0, 2)
+        var proposed: LocalSummaryDraft? = null
+        controller.draftContinuationSummary(source, selected) { proposed = it }
+        selected.clear()
+        advanceUntilIdle()
+        assertEquals(LocalSummaryDraft("Unreviewed suggestion", false), proposed)
+        assertEquals(listOf(LOCAL_SUMMARY_OUTPUT_TOKENS), engine.outputCaps)
+        val summaryInput = engine.requests.single().last().text
+        assertTrue(summaryInput.contains("First selected question") && summaryInput.contains("Third answer"))
+        assertFalse(summaryInput.contains("Other private turn"))
+        assertEquals(listOf(source.id), store.list().map { it.id })
+        assertArrayEquals(before, store.file(source.id).readBytes())
+
+        val approved = "I checked the notes. Continue the garden work 🌱."
+        val next = "What should we do next?"
+        val preview = controller.previewSummaryPrompt(source, approved, next)
+        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(80, 2048, 384)), preview)
+        val reviewedPrompt = engine.measured.last()
+        var child: LocalConversation? = null
+        controller.continueWithReviewedSummary(source, listOf(0, 2), approved) { child = it }
+        advanceUntilIdle()
+        val created = checkNotNull(child)
+        assertTrue(created.exchanges.isEmpty())
+        assertEquals(LocalBranchKind.REVIEWED_SUMMARY, created.origin?.kind)
+        assertEquals(listOf(0, 2), created.reviewedSummary?.sourceTurns)
+        assertEquals(approved, created.reviewedSummary?.text)
+        assertEquals(created, LocalConversationStore(history).load(created.id))
+        assertEquals(1, engine.requests.size)
+
+        controller.send(next)
+        advanceUntilIdle()
+        assertEquals(reviewedPrompt, engine.requests.last())
+        assertEquals(listOf("system", "user"), engine.requests.last().map { it.role })
+        assertTrue(engine.requests.last().last().text.contains(approved))
+        assertFalse(engine.requests.last().last().text.contains("Unreviewed suggestion"))
+        val completed = store.load(created.id)
+        assertEquals(next, completed.exchanges.single().question)
+        assertEquals(created.reviewedSummary, completed.reviewedSummary)
+        assertArrayEquals(before, store.file(source.id).readBytes())
+
+        controller.branch(completed, 0, LocalBranchKind.REGENERATE)
+        advanceUntilIdle()
+        assertEquals(reviewedPrompt, engine.requests.last())
+        assertEquals(created.reviewedSummary, controller.state.value.chat?.reviewedSummary)
+        controller.leave()
+        advanceUntilIdle()
+    }
+
+    @Test fun cancelledOversizedAndInvalidSummariesNeverPublishAReviewOrChat() = runTest {
+        val root = temp.newFolder()
+        val model = model(root)
+        val history = temp.newFolder()
+        val store = LocalConversationStore(history)
+        val source = LocalConversation(modelSha256 = model.sha256, updatedAt = 10,
+            exchanges = listOf(LocalExchange("Question", "Reply", LocalReplyState.COMPLETE)))
+        store.saveNew(source)
+        val before = store.file(source.id).readBytes()
+        val engine = Engine().apply { promptTokens = 2000 }
+        val guard = UpdateWorkGuard()
+        val controller = controller(root, history, engine, guard, StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        controller.load(model)
+        advanceUntilIdle()
+        controller.openChat(source.id)
+        advanceUntilIdle()
+        var reviews = 0
+        controller.draftContinuationSummary(source, listOf(0)) { reviews++ }
+        advanceUntilIdle()
+        assertEquals("engine_2", controller.state.value.error)
+        assertTrue(engine.requests.isEmpty())
+        engine.promptTokens = 70
+        engine.blockGeneration = true
+        controller.draftContinuationSummary(source, listOf(0)) { reviews++ }
+        runCurrent()
+        assertTrue(guard.active.value)
+        controller.cancel()
+        advanceUntilIdle()
+        assertFalse(guard.active.value)
+        assertEquals(0, reviews)
+        for (bad in listOf("", "é".repeat(2049), "Bad\u0000text", "\ud800")) {
+            assertThrows(IllegalArgumentException::class.java) { store.createSummaryContinuation(source, listOf(0), bad, 12) }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            store.createSummaryContinuation(source.copy(updatedAt = 9), listOf(0), "Valid notes", 12)
+        }
+        assertEquals(listOf(source.id), store.list().map { it.id })
+        assertArrayEquals(before, store.file(source.id).readBytes())
+        controller.leave()
+        advanceUntilIdle()
+    }
+
     @Test fun selectedContinuationRejectsInvalidAndStaleSelectionsBeforeWriting() {
         val history = temp.newFolder()
         val store = LocalConversationStore(history)

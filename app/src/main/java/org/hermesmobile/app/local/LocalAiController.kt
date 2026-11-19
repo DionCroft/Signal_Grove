@@ -75,7 +75,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             val labels = organization.entries(checkpoint)[expected.id]
             if (conversation.updatedAt != expected.updatedAt || conversation.modelSha256 != expected.modelSha256 ||
                 conversation.origin != expected.origin || conversation.exchanges.lastOrNull()?.state != expected.lastState ||
-                labels != expected.organization) {
+                (conversation.reviewedSummary != null) != expected.hasReviewedSummary || labels != expected.organization) {
                 throw LocalMarkdownExportException(LocalMarkdownExportFailure.CHANGED)
             }
             conversations.markdownExport(conversation, labels?.preferences?.title, checkpoint)
@@ -206,7 +206,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         refresh()
     }
     internal suspend fun previewPrompt(expected: LocalConversation?, modelHash: String, question: String,
-        beforeExchange: Int? = null): LocalPromptPreview = previewPromptFor(expected, modelHash, question) {
+        beforeExchange: Int? = null): LocalPromptPreview =
+        previewPromptFor(expected, modelHash, question, expected?.reviewedSummary?.text) {
         val exchanges = expected?.exchanges.orEmpty()
         when {
             beforeExchange == null -> exchanges
@@ -218,15 +219,20 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     internal suspend fun previewSelectedPrompt(source: LocalConversation, selected: List<Int>, question: String): LocalPromptPreview =
         previewPromptFor(source, source.modelSha256, question) { source.selectedContext(selected) }
 
+    internal suspend fun previewSummaryPrompt(source: LocalConversation, summary: String, question: String): LocalPromptPreview =
+        previewPromptFor(source, source.modelSha256, question, summary) {
+            emptyList<LocalExchange>().takeIf { summary.isValidReviewedSummary() }
+        }
+
     private suspend fun previewPromptFor(expected: LocalConversation?, modelHash: String, question: String,
-        history: () -> List<LocalExchange>?): LocalPromptPreview = lock.withLock {
+        reviewedSummary: String? = null, history: () -> List<LocalExchange>?): LocalPromptPreview = lock.withLock {
         val state = mutable.value
         if (leaving || state.busy || state.chat != expected || state.loaded?.sha256 != modelHash ||
             expected?.let { it.modelSha256 != modelHash } == true ||
             question.isBlank() || question.toByteArray().size > 8192) return@withLock LocalPromptPreview.Unavailable
         try {
             val rows = history() ?: return@withLock LocalPromptPreview.Unavailable
-            val budget = measurePrompt(localChatPrompt(rows, question), generationSettings())
+            val budget = measurePrompt(localChatPrompt(rows, question, reviewedSummary), generationSettings())
             if (budget == null) LocalPromptPreview.Unavailable else LocalPromptPreview.Exact(budget)
         } catch (e: LocalEngineException) {
             if (e.code == 2) LocalPromptPreview.TooLarge else LocalPromptPreview.Unavailable
@@ -256,7 +262,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         val prior = mutable.value.chat ?: LocalConversation(modelSha256 = model.sha256, updatedAt = System.currentTimeMillis())
         require(prior.modelSha256 == model.sha256 && prior.exchanges.size < LocalConversationStore.MAX_TURNS)
         val settings = generationSettings()
-        val messages = localChatPrompt(prior.exchanges, question)
+        val messages = localChatPrompt(prior.exchanges, question, prior.reviewedSummary?.text)
         validatePrompt(messages, settings)
         runGeneration(messages, {
             val pending = prior.copy(updatedAt = System.currentTimeMillis(),
@@ -281,7 +287,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 val question = kind.generationQuestion(expected.exchanges[exchangeIndex], editedQuestion)
                 require(question.isNotBlank() && question.toByteArray().size <= 8192)
                 val settings = generationSettings()
-                val messages = localChatPrompt(expected.exchanges.take(exchangeIndex), question)
+                val messages = localChatPrompt(expected.exchanges.take(exchangeIndex), question, expected.reviewedSummary?.text)
                 validatePrompt(messages, settings)
                 runGeneration(messages, {
                     conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis(), editedQuestion, settings)
@@ -295,6 +301,42 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             require(mutable.value.chat == expected)
             publishCopiedBranch(onSelected) {
                 conversations.createSelectedContinuation(expected, snapshot, System.currentTimeMillis())
+            }
+        }
+    }
+
+    internal fun continueWithReviewedSummary(
+        expected: LocalConversation, selected: List<Int>, text: String, onSelected: (LocalConversation) -> Unit
+    ) {
+        val snapshot = selected.toList()
+        action("reading") {
+            require(mutable.value.chat == expected)
+            publishCopiedBranch(onSelected) {
+                conversations.createSummaryContinuation(expected, snapshot, text, System.currentTimeMillis())
+            }
+        }
+    }
+
+    internal fun draftContinuationSummary(
+        expected: LocalConversation, selected: List<Int>, onPrepared: (LocalSummaryDraft) -> Unit
+    ) {
+        val snapshot = selected.toList()
+        action("summarizing") {
+            require(mutable.value.chat == expected)
+            if (mutable.value.loaded?.sha256 != expected.modelSha256) throw LocalEngineException(4)
+            val source = io { conversations.load(expected.id) }
+            require(source == expected)
+            val messages = localSummaryDraftPrompt(source, snapshot)
+            val settings = generationSettings().copy(maxOutputTokens = LOCAL_SUMMARY_OUTPUT_TOKENS)
+            validatePrompt(messages, settings)
+            var text = ""
+            val end = checkNotNull(engine).generate(messages, settings.maxOutputTokens) { text = it }
+            currentCoroutineContext().ensureActive()
+            if (end == LocalGenerationEnd.CANCELLED) return@action
+            if (text.isValidReviewedSummary()) {
+                onPrepared(LocalSummaryDraft(text, end == LocalGenerationEnd.TOKEN_LIMIT))
+            } else {
+                mutable.update { it.copy(error = "summary_unusable") }
             }
         }
     }

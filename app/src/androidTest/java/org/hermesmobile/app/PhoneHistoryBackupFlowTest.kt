@@ -40,6 +40,8 @@ class PhoneHistoryBackupFlowTest {
     private lateinit var labels: LocalHistoryOrganization
     private lateinit var controller: LocalAiController
     private lateinit var backup: PhoneHistoryBackup
+    private var summaryChild: LocalConversation? = null
+    private var markdownRequested: LocalConversationSummary? = null
     private val preferences = LocalHistoryPreferences("Saved garden fixture", pinned = true, archived = true)
     private val seed = LocalConversation(modelSha256 = "a".repeat(64), updatedAt = 1000L,
         exchanges = listOf(LocalExchange("Garden fixture question", "Garden fixture answer", LocalReplyState.COMPLETE)))
@@ -57,7 +59,7 @@ class PhoneHistoryBackupFlowTest {
         override val activityResultRegistry = picker
     }
 
-    private fun show(multilingual: Boolean = false) {
+    private fun show(multilingual: Boolean = false, includeSummary: Boolean = false) {
         val activity = compose.activity
         fixture = File(activity.cacheDir, "phone-backup-test-" + UUID.randomUUID()).apply { check(mkdir()) }
         output = File(activity.filesDir, "updates/apks/backup-test-" + UUID.randomUUID() + ".sgbackup")
@@ -65,6 +67,7 @@ class PhoneHistoryBackupFlowTest {
         source = LocalConversationStore(File(fixture, "chats"))
         source.saveNew(seed)
         source.saveNew(excluded)
+        if (includeSummary) summaryChild = source.createSummaryContinuation(seed, listOf(0), "Reviewed garden notes", 1100)
         labels = LocalHistoryOrganization(File(fixture, "chats-organization"), source)
         labels.update(seed.id, seed.modelSha256, null, preferences)
         compose.runOnUiThread {
@@ -73,7 +76,8 @@ class PhoneHistoryBackupFlowTest {
             backup = PhoneHistoryBackup(activity.contentResolver, controller, guard, savedState, activity.lifecycleScope)
         }
         val actions = LocalAiActions({}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-            exportBackup = backup::selectExport, importBackup = backup::selectImport)
+            exportBackup = backup::selectExport, importBackup = backup::selectImport,
+            exportMarkdown = if (includeSummary) ({ selected: LocalConversationSummary -> markdownRequested = selected }) else null)
         compose.setContent {
             CompositionLocalProvider(LocalActivityResultRegistryOwner provides pickerOwner) {
                 val density = LocalDensity.current
@@ -86,7 +90,8 @@ class PhoneHistoryBackupFlowTest {
                 }
             }
         }
-        compose.waitUntil(15_000) { !controller.state.value.busy && controller.state.value.history.size == 2 }
+        val expected = if (includeSummary) 3 else 2
+        compose.waitUntil(15_000) { !controller.state.value.busy && controller.state.value.history.size == expected }
         compose.onNodeWithTag("phone-tab-2").performClick()
     }
 
@@ -179,15 +184,36 @@ class PhoneHistoryBackupFlowTest {
         assertTrue(File(fixture, "history-backup-stages").listFiles()!!.isEmpty())
     }
 
+    @Test fun phoneHistoryOffersMarkdownAndBackupForSummaryBeforeItsFirstQuestion() {
+        show(includeSummary = true)
+        val child = checkNotNull(summaryChild)
+        open("phone-history-export-" + child.id)
+        assertEquals(child.id, markdownRequested?.id)
+        assertTrue(markdownRequested?.hasReviewedSummary == true)
+        assertNull(markdownRequested?.lastState)
+        open("phone-history-backup-export")
+        val selected = backup.state.value as PhoneHistoryBackupState.Selection
+        val row = selected.rows.single { it.id == child.id }
+        assertTrue(row.hasReviewedSummary)
+        compose.onNodeWithTag("phone-backup-select-" + child.id).performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-backup-select-" + child.id).assertIsOn()
+        compose.onNodeWithTag("phone-backup-cancel").performClick()
+        assertTrue(picks.isEmpty())
+    }
+
     @Test fun multilingualBackupSelectionKeepsFieldsAndActionsAboveTheKeyboard() {
         show(multilingual = true)
         open("phone-history-backup-export")
-        compose.onNodeWithTag("phone-backup-select-" + seed.id).performScrollTo().assertIsToggleable().performClick()
-        compose.onNodeWithTag("phone-backup-password").performScrollTo().performClick().performTextInput("garden-fixture")
+        val selected = compose.onNodeWithTag("phone-backup-select-" + seed.id)
+        selected.performScrollTo().assertIsDisplayed().assertIsOff().performClick()
+        selected.assertIsOn()
+        compose.onNodeWithTag("phone-backup-password").performScrollTo().assertIsDisplayed().performClick()
+            .assertIsFocused().performTextReplacement("garden-fixture")
         compose.waitUntil(5_000) { focusedDialogKeyboardVisible() }
-        compose.onNodeWithTag("phone-backup-repeat").performScrollTo().assertIsDisplayed()
-            .performClick().performTextInput("garden-fixture")
-        val viewport = checkNotNull(focusedDialogViewport())
+        compose.onNodeWithTag("phone-backup-repeat").performScrollTo().assertIsDisplayed().performClick()
+            .assertIsFocused().performTextReplacement("garden-fixture")
+        compose.waitUntil(5_000) { focusedDialogKeyboardVisible() }
+        val viewport = checkNotNull(focusedDialogViewport(requireKeyboard = true))
         for (tag in listOf("phone-backup-prepare", "phone-backup-cancel")) {
             val bounds = compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInRoot
             assertTrue(bounds.top + viewport.screenOffsetY >= viewport.visible.top)

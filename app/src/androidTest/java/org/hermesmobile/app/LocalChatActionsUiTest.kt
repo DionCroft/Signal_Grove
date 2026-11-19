@@ -2,6 +2,7 @@ package org.hermesmobile.app
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
@@ -28,10 +29,13 @@ class LocalChatActionsUiTest {
     private fun show(bilingual: Boolean = false,
         preview: (suspend (LocalConversation?, String, String, Int?) -> LocalPromptPreview)? = null,
         copyDraft: (() -> Unit)? = null,
-        continuation: ((LocalConversation, List<Int>, String, Boolean) -> Unit)? = null) {
+        continuation: ((LocalConversation, List<Int>, String, Boolean) -> Unit)? = null,
+        summary: ((LocalConversation, List<Int>, String, String, Boolean) -> Unit)? = null,
+        draftSummary: ((LocalConversation, List<Int>, (LocalSummaryDraft) -> Unit) -> Unit)? = null) {
         val actions = LocalAiActions({sends++}, {}, {}, {_, _ ->}, {}, {}, {}, {}, {}, {}, {},
             {opened.add(it)}, {}, {}, branch = {source, index, kind, edited -> requests.add(Request(source, index, kind, edited))},
-            previewPrompt = preview, newChatWithDraft = copyDraft, continueWithSelectedTurns = continuation)
+            previewPrompt = preview, newChatWithDraft = copyDraft, continueWithSelectedTurns = continuation,
+            continueWithSummary = summary, draftSummary = draftSummary)
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
@@ -61,6 +65,25 @@ class LocalChatActionsUiTest {
         assertEquals(0, sends)
     }
 
+    @Test fun summaryOnlyOverflowCanCarryDraftToFreshChat() {
+        val summary = LocalReviewedSummary("Approved garden notes", original.id, original.updatedAt, hash, listOf(0))
+        val child = LocalConversation(modelSha256 = hash, updatedAt = 2, reviewedSummary = summary,
+            origin = LocalBranchOrigin(original.id, original.updatedAt, 0, LocalBranchKind.REVIEWED_SUMMARY, hash))
+        state = state.copy(chat = child)
+        var carried: String? = null
+        show(preview = { chat, _, question, _ ->
+            assertEquals(child, chat)
+            assertEquals("Unsent parent draft", question)
+            LocalPromptPreview.TooLarge
+        }, copyDraft = { carried = draft })
+        compose.waitUntil(5000) { compose.onAllNodesWithTag("phone-prompt-overflow").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("phone-send").assertIsNotEnabled()
+        compose.onNodeWithTag("phone-fresh-draft").performClick()
+        assertEquals("Unsent parent draft", carried)
+        assertEquals(child, state.chat)
+        assertEquals(0, sends)
+    }
+
     @Test fun reviewedSelectedTurnsStayInSourceOrderAndNeverSendTheDraft() {
         val source = original.copy(exchanges = original.exchanges + listOf(
             LocalExchange("Interrupted turn", "Partial", LocalReplyState.INTERRUPTED),
@@ -83,6 +106,82 @@ class LocalChatActionsUiTest {
         assertEquals(0, sends)
         assertEquals(source, state.chat)
         assertEquals("Unsent parent draft", draft)
+    }
+
+    @Test fun modelSummaryDraftCanBeEditedAndRequiresFinalConfirmation() {
+        val source = original.copy(exchanges = original.exchanges +
+            LocalExchange("Keep the second turn", "A second reply", LocalReplyState.COMPLETE))
+        state = state.copy(chat = source)
+        val proposed = "Check this draft against the source."
+        val approved = "My approved garden notes 你好 🌱"
+        var suggestions = 0
+        val confirmed = mutableListOf<String>()
+        show(continuation = { _, _, _, _ -> fail("Summary must not copy raw turns") },
+            draftSummary = { chat, indices, complete ->
+                assertEquals(source, chat)
+                assertEquals(listOf(0, 1), indices)
+                suggestions++
+                complete(LocalSummaryDraft(proposed, true))
+            },
+            summary = { chat, indices, text, carried, copy ->
+                assertEquals(source, chat)
+                assertEquals(listOf(0, 1), indices)
+                assertEquals("Unsent parent draft", carried)
+                assertTrue(copy)
+                confirmed.add(text)
+            })
+        compose.onNodeWithTag("phone-select-context").performClick()
+        val selection = compose.onNodeWithTag("phone-context-selection")
+        for (index in 0..1) {
+            val tag = "phone-context-turn-" + index
+            selection.performScrollToNode(hasTestTag(tag))
+            compose.onNodeWithTag(tag).performClick()
+        }
+        selection.performScrollToNode(hasTestTag("phone-context-summary-review"))
+        compose.onNodeWithTag("phone-context-summary-review").performClick()
+        compose.onNodeWithTag("phone-summary-source").assertTextEquals("Summary from source turns 1, 2")
+        compose.onNodeWithTag("phone-summary-confirm").assertIsNotEnabled()
+        assertEquals(0, suggestions)
+        // Dispatch the fixture's semantic action. The real LFM3 app test covers touch.
+        compose.onNodeWithTag("phone-summary-draft").performScrollTo().assertIsDisplayed().assertIsEnabled()
+            .assertHasClickAction().performSemanticsAction(SemanticsActions.OnClick)
+        compose.waitUntil(5000) {
+            compose.onAllNodesWithText(Words.PhoneSummaryDraftLimit.en).fetchSemanticsNodes().size == 1
+        }
+        compose.onNodeWithTag("phone-summary-draft").assertIsNotEnabled()
+        val field = compose.onNodeWithTag("phone-summary-text").performScrollTo()
+        field.assertTextContains(proposed)
+        field.performTextReplacement(approved)
+        compose.onNodeWithTag("phone-summary-confirm").assertIsDisplayed().assertIsEnabled()
+            .assertHasClickAction().performSemanticsAction(SemanticsActions.OnClick)
+        assertEquals(listOf(approved), confirmed)
+        assertEquals(1, suggestions)
+        assertEquals(0, sends)
+        assertEquals(source, state.chat)
+        assertEquals("Unsent parent draft", draft)
+    }
+
+    @Test fun manualSummaryWorksWithWeightsUnloadedAndCancelDiscardsReview() {
+        state = state.copy(loaded = null)
+        var confirmations = 0
+        show(bilingual = true, continuation = { _, _, _, _ -> fail("Unexpected copy") },
+            summary = { _, _, _, _, _ -> confirmations++ },
+            draftSummary = { _, _, _ -> fail("Unloaded models cannot draft") })
+        compose.onNodeWithTag("phone-select-context").performClick()
+        val selection = compose.onNodeWithTag("phone-context-selection")
+        selection.performScrollToNode(hasTestTag("phone-context-turn-0"))
+        compose.onNodeWithTag("phone-context-turn-0").performClick()
+        selection.performScrollToNode(hasTestTag("phone-context-summary-review"))
+        compose.onNodeWithTag("phone-context-summary-review").performClick()
+        val field = compose.onNodeWithTag("phone-summary-text").performScrollTo().assertIsEnabled()
+        field.performTextReplacement("Handwritten notes")
+        compose.onNodeWithTag("phone-summary-draft").assertIsNotEnabled()
+        compose.onNodeWithTag("phone-summary-confirm").assertIsDisplayed().assertIsEnabled()
+        compose.onNodeWithTag("phone-summary-cancel").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-context-confirm").assertIsEnabled()
+        compose.onNodeWithTag("phone-context-cancel").performClick()
+        assertEquals(0, confirmations)
+        assertEquals(0, sends)
     }
 
     @Test fun changedDraftCannotBeCopiedFromAnEarlierReviewAndCancelDoesNotCreateAChat() {

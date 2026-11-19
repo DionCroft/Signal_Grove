@@ -92,7 +92,10 @@ draft and history intact. Users can copy an unsent draft into a new chat or
 measure a branch with its reviewed earlier turns. **Earlier turns** can now
 copy a selected subset and optional unsent draft into a separate chat. Backup
 restore preserves its original turn references and links to the restored parent.
-Editable reviewed-summary continuations and physical acceptance remain open.
+Reviewed summaries now support manual editing and optional on-device drafting
+from the selected turns. The exact approved text is searchable, exportable
+and backup-ready. Physical continuation and the full release gates remain open.
+[Summary implementation and tests](contracts/2026-11-19-phone-reviewed-summaries.md).
 [Selected-turn implementation and tests](contracts/2026-11-19-phone-selected-turns.md).
 [Measured LFM3 boundary and test evidence](contracts/2026-11-19-phone-context-meter.md).
 

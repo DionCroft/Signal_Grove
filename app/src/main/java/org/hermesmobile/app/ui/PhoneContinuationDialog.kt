@@ -28,8 +28,7 @@ internal data class PhoneContinuationReview(val source: LocalConversation, val d
     review: PhoneContinuationReview,
     state: LocalAiState,
     currentDraft: String,
-    preview: (suspend (LocalConversation, List<Int>, String) -> LocalPromptPreview)?,
-    accept: (indices: List<Int>, copyDraft: Boolean) -> Unit,
+    actions: LocalAiActions,
     close: () -> Unit
 ) {
     val validSource = state.chat == review.source && !state.busy
@@ -38,6 +37,17 @@ internal data class PhoneContinuationReview(val source: LocalConversation, val d
     var expanded by remember(review) { mutableStateOf<Int?>(null) }
     var copyDraft by remember(review) { mutableStateOf(review.draft.isNotBlank()) }
     val indices = remember(selected) { selected.sorted() }
+    var summaryReview by remember(review) { mutableStateOf<List<Int>?>(null) }
+    summaryReview?.let { chosen ->
+        PhoneSummaryReview(review, chosen, copyDraft, currentDraft, state, actions,
+            accept = { summary ->
+                actions.continueWithSummary?.invoke(review.source, chosen, summary, review.draft, copyDraft)
+                close()
+            },
+            close = { summaryReview = null })
+        return
+    }
+    val preview = actions.previewSelectedPrompt
     val capacity = state.history.size < LocalConversationStore.MAX_CHATS
     val draftChanged = copyDraft && currentDraft != review.draft
     val question = review.draft.trim()
@@ -74,6 +84,11 @@ internal data class PhoneContinuationReview(val source: LocalConversation, val d
                             }
                         }
                         budget?.let { PhonePromptUse(it) }
+                        if (actions.continueWithSummary != null) TextButton({ summaryReview = indices },
+                            enabled = validSource && capacity && !draftChanged && indices.isNotEmpty(),
+                            modifier = Modifier.testTag("phone-context-summary-review")) {
+                            Text(label(Words.PhoneSummaryReview))
+                        }
                     }
                     items(rows, key = { it.index }) { (index, row) ->
                         HermesCard {
@@ -105,7 +120,10 @@ internal data class PhoneContinuationReview(val source: LocalConversation, val d
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton({ accept(indices, copyDraft) }, enabled = validSource && capacity && !draftChanged && indices.isNotEmpty(),
+                    TextButton({
+                        actions.continueWithSelectedTurns?.invoke(review.source, indices, review.draft, copyDraft)
+                        close()
+                    }, enabled = validSource && capacity && !draftChanged && indices.isNotEmpty(),
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("phone-context-confirm")) {
                         Text(label(Words.PhoneCreateContextBranch))
                     }

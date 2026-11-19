@@ -61,9 +61,7 @@ internal class PhoneHistoryBackup(
 
     fun selectExport() {
         if (!canStart()) return
-        val rows = controller.state.value.history.filter {
-            it.lastState != null && it.lastState != LocalReplyState.GENERATING
-        }
+        val rows = controller.state.value.history.filter { it.canExport }
         if (rows.isNotEmpty()) mutable.value = PhoneHistoryBackupState.Selection(rows)
     }
 

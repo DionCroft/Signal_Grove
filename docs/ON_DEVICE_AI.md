@@ -1,5 +1,22 @@
 # Using on-device AI (beta.9 preview)
 
+## Continue a phone chat with a reviewed summary
+
+In the development build, open a saved phone chat and choose **Earlier
+turns**. Select the turns to summarize and tap **Review a summary**. Write the
+notes yourself or choose **Draft with phone model** when that chat's model
+is loaded. Check the source turn numbers and edit the draft before approving
+it. The summary can contain up to 4 KiB of UTF-8 text.
+
+Choose **Create phone chat** to save the summary as context for a separate
+phone chat. If you selected **Copy the unsent draft too**, the new composer
+shows your draft. Review it and choose **Send** when you are ready to run a
+new turn. The token meter includes the saved summary. **Read saved summary**
+opens the approved text. Phone history can search, export or back it up
+before the first new question.
+
+[Saved format and checks](contracts/2026-11-19-phone-reviewed-summaries.md).
+
 ## Continue a phone chat with selected earlier turns
 
 In the development build, open a saved phone chat and choose the **Earlier
@@ -63,8 +80,9 @@ and suggested filename. Choose **Choose where to save** and select a location
 in Android's file picker. Choose Downloads or another local folder when you
 want the document to stay on your phone.
 
-The UTF-8 file includes only the selected chat's saved questions, replies,
-completion states, model fingerprint and any recorded generation settings.
+The UTF-8 file includes the selected chat's saved questions, replies,
+completion states, model fingerprint, recorded generation settings and
+any reviewed summary with its source references.
 Text inside messages is exported literally. The filename uses a short
 conversation ID. Keep sensitive chat exports in a location you trust, because
 Markdown is plaintext. A cloud document provider may sync files it receives.

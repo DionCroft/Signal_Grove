@@ -32,7 +32,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     fun newChatWithDraft() {
         val state = controller.state.value
         val text = draft.value
-        if (state.busy || state.loaded == null || state.chat?.exchanges.isNullOrEmpty() ||
+        if (state.busy || state.loaded == null || state.chat?.hasSavedContent != true ||
             state.history.size >= LocalConversationStore.MAX_CHATS || text.isBlank()) return
         controller.newChat()
         val fresh = controller.state.value.chat ?: return
@@ -49,11 +49,24 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     fun continueWithSelectedTurns(source: LocalConversation, indices: List<Int>, reviewedDraft: String, copyDraft: Boolean) {
         if (copyDraft && draft.value != reviewedDraft) return
         controller.continueWithSelectedTurns(source, indices) { child ->
-            drafts.select(child.id)
-            if (copyDraft) drafts.edit(reviewedDraft)
-            handoffState.value = ""
+            selectContinuation(child, reviewedDraft, copyDraft)
         }
     }
+
+    fun continueWithReviewedSummary(source: LocalConversation, indices: List<Int>, text: String,
+        reviewedDraft: String, copyDraft: Boolean) {
+        if (copyDraft && draft.value != reviewedDraft) return
+        controller.continueWithReviewedSummary(source, indices, text) { child ->
+            selectContinuation(child, reviewedDraft, copyDraft)
+        }
+    }
+
+    private fun selectContinuation(child: LocalConversation, reviewedDraft: String, copyDraft: Boolean) {
+        drafts.select(child.id)
+        if (copyDraft) drafts.edit(reviewedDraft)
+        handoffState.value = ""
+    }
+
     val handoffState = MutableStateFlow("")
     private var receivedToken: String? = null
     fun receiveDraft(token: String?) {

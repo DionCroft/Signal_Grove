@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Reviewed phone summary checkpoint - 19 November 2026
+
+OF-03 now supports editable summaries from selected turns, an optional local
+model draft and explicit creation of a separate phone chat. The exact prompt
+meter counts the approved text. Search, Markdown and backup support summary
+chats before the first new message. Physical context acceptance, the
+subsequent offline stages and the original audit and release gates remain
+open. [Exact validation](contracts/2026-11-19-phone-reviewed-summaries.md).
+
 ## Selected phone context checkpoint - 19 November 2026
 
 OF-03 now supports selecting earlier turns into a distinct phone chat with a

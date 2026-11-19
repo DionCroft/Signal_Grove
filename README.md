@@ -4,16 +4,13 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 
 **[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)** — experimental preview with optional offline AI, model management and a grounded setup helper. Full compatibility and production-phone acceptance remain open. [Published scope](docs/contracts/2026-11-13-beta9-public-preview.md) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
 
-Unreleased history improvements add edit, regenerate, branch, separate drafts,
-passive Markdown and code readers, search, pin and archive. The layered export
-branch adds review and Markdown export through Android's file picker.
-Local validation passed **1,107 JVM tests** and **61
-selected tests each on API 26 and API 37**, with zero lint errors. The actual
-Android picker saved and verified a Unicode chat in Downloads.
-The preceding history branch passed **1,182 API 26** and
-**1,183 API 37** standard tests in GitHub. Physical export,
-encrypted backup/import and final release checks remain.
-[Validation](docs/contracts/2026-11-19-phone-markdown-export.md) · [Export guide](docs/ON_DEVICE_AI.md#export-a-phone-chat-to-markdown-on-the-unreleased-branch).
+The development branch adds offline chat editing, regeneration, branching,
+search, labels, Markdown, protected backups and reviewed summaries. The
+owner's phone saved a protected archive and restored a reviewed copy
+offline. The latest focused build passes **1,152 JVM tests** and **81
+Android methods each on API 26 and API 37** with zero lint errors.
+[Reviewed summaries](docs/ON_DEVICE_AI.md#continue-a-phone-chat-with-a-reviewed-summary) ·
+[Phone backup evidence](docs/contracts/2026-11-19-phone-history-backup-ui.md).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
 verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device
@@ -38,7 +35,7 @@ The table below describes current `main`; release notes define what is included 
 Independent community project; not affiliated with or endorsed by NousResearch. Original pixel art and system fonts; no copied game assets.
 
 The [offline-LLM feature backlog](docs/ON_DEVICE_AI_BACKLOG.md) now includes
-unreleased chat editing/branching, searchable history and reviewed phone backups, plus planned context/performance controls,
+unreleased chat editing and branching, reviewed summaries, measurable context, searchable history and backups, plus planned performance controls,
 model-library improvements and personal offline tools. These additions are
 queued under the resumed goal; they are not features of the current APK.
 
@@ -61,14 +58,15 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Updated **19 November 2026** for unreleased offline chat actions, history and backup/restore; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Updated **19 November 2026** for unreleased offline chat, backups and reviewed summaries; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
 | Merged UI standard device cohort | **1,149 API26 / 1,150 API37 methods** | Identical reviewed-head/PR/main trees; independent raw four-shard union, no skips; external models remain separate |
-| Unreleased offline chat and phone backups | **1,146 JVM / 72 focused Android methods per API (26 and 37)** | Reviewed Markdown, plain and protected backup, and collision-aware restore. Physical Markdown save passed. Physical backup and final release gates remain. [Exact checks](docs/contracts/2026-11-19-phone-history-backup-ui.md) |
+| Unreleased offline chat and phone backups | **1,146 JVM / 72 focused Android methods per API (26 and 37)** | Reviewed Markdown, plain and protected backup, and collision-aware restore. Physical Markdown save and offline restore passed. Final release gates remain. [Exact checks](docs/contracts/2026-11-19-phone-history-backup-ui.md) |
 | Unreleased phone context meter | **1,148 JVM / 73 focused Android methods per API (26 and 37)** | Pinned LFM3 measured 489 prompt and 23 output tokens at the 512-token boundary on the Android 17 emulator. [Context checks](docs/contracts/2026-11-19-phone-context-meter.md) |
 | Unreleased selected-turn continuation | **1,150 JVM / 76 focused Android methods per API (26 and 37)** | Reviewed copying and backup restore preserve source chat bytes, draft and selected-turn provenance. [Exact checks](docs/contracts/2026-11-19-phone-selected-turns.md) |
+| Unreleased reviewed phone summaries | **1,152 JVM / 81 focused Android methods per API (26 and 37)** | Users can edit a local draft, start a separate chat from approved context, then search, export or back it up. [Exact checks](docs/contracts/2026-11-19-phone-reviewed-summaries.md) |
 | Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Explicit app pairings; native branches plus actual UI branches/search/Clear/read; all four real UI histories unchanged, no whole-feature acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |

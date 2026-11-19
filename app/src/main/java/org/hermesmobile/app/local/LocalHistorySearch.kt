@@ -31,13 +31,14 @@ class LocalHistorySearch(private val store: LocalConversationStore, private val 
             val chat = store.load(summary.id, checkpoint)
             if (summary.organization?.modelSha256?.let {it != chat.modelSha256} == true) throw LocalHistoryOrganizationException()
             if (!inScope(chat.modelSha256, chat.updatedAt, query)) continue
-            if (term.isNotEmpty() && !summary.title.contains(term, ignoreCase = true) && chat.exchanges.none {row ->
+            if (term.isNotEmpty() && !summary.title.contains(term, ignoreCase = true) &&
+                chat.reviewedSummary?.text?.contains(term, ignoreCase = true) != true && chat.exchanges.none {row ->
                     checkpoint()
                     row.question.contains(term, ignoreCase = true) || row.reply.contains(term, ignoreCase = true)
                 }) continue
             results.add(LocalConversationSummary(chat.id, chat.modelSha256, chat.updatedAt,
-                summary.organization?.preferences?.title ?: chat.exchanges.firstOrNull()?.question.orEmpty().filter { !it.isISOControl() }.take(80),
-                chat.exchanges.lastOrNull()?.state, chat.origin, summary.organization))
+                summary.organization?.preferences?.title ?: chat.historyTitle(),
+                chat.exchanges.lastOrNull()?.state, chat.origin, summary.organization, chat.reviewedSummary != null))
         }
         checkpoint()
         return results.sortedWith(localHistoryOrder)

@@ -105,6 +105,45 @@ class LocalHistoryBackupFilesAndroidTest {
         }
     }
 
+    @Test fun summaryOnlyChatSurvivesBackupRestoreAndExportsLiteralReviewedText() {
+        val root = root()
+        try {
+            val store = LocalConversationStore(File(root, "source"))
+            val labels = LocalHistoryOrganization(File(root, "labels"), store)
+            val stages = LocalHistoryBackupFiles(File(root, "stages"), store, labels)
+            val parent = chat().copy(exchanges = listOf(
+                LocalExchange("Earlier private text", "Reply 你好", LocalReplyState.COMPLETE)))
+            store.saveNew(parent)
+            val approved = "Reviewed garden notes 🌱\n" + "Budget information. ".repeat(5) + "\n<script>literal</script>"
+            val child = store.createSummaryContinuation(parent, listOf(0), approved, 200)
+            assertEquals(listOf(child.id), LocalHistorySearch(store, labels).find(LocalHistoryQuery("literal")).map { it.id })
+            val parentBytes = store.file(parent.id).readBytes()
+            val childBytes = store.file(child.id).readBytes()
+            val transaction = LocalHistoryRestoreTransaction(store, labels)
+            val restored = stages.export(labels.history().filter { it.id == child.id }, null).use { archive ->
+                archive.inspect(null).use { review ->
+                    val plan = transaction.prepare(review.archive)
+                    val copy = plan.items.single()
+                    assertTrue(copy.remapped && copy.parentOutsideArchive)
+                    transaction.restore(plan)
+                    store.load(copy.targetId)
+                }
+            }
+            assertEquals(child.reviewedSummary, restored.reviewedSummary)
+            assertNull(restored.origin?.linkedParentId)
+            assertTrue(restored.exchanges.isEmpty())
+            assertArrayEquals(parentBytes, store.file(parent.id).readBytes())
+            assertArrayEquals(childBytes, store.file(child.id).readBytes())
+            val markdown = java.io.ByteArrayOutputStream().also { store.markdownExport(restored).writeTo(it) }.toString("UTF-8")
+            assertTrue(markdown.contains("## Reviewed summary") && markdown.contains("Source turns: 1"))
+            assertTrue(markdown.contains("Source conversation ID: " + parent.id))
+            assertTrue(markdown.contains("text\n" + approved + "\n"))
+            assertFalse(markdown.contains("Earlier private text"))
+        } finally {
+            assertTrue(root.deleteRecursively())
+        }
+    }
+
     @Test fun androidColdHistoryReadReclaimsAbandonedStagesWithoutChangingTheLibrary() {
         val root = root()
         try {

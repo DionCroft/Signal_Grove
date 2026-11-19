@@ -51,7 +51,7 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
         if (actions.exportBackup != null && actions.importBackup != null) item {
             Row(Modifier.fillMaxWidth()) {
                 TextButton(actions.exportBackup,
-                    enabled = !state.busy && state.history.any { it.lastState != null && it.lastState != LocalReplyState.GENERATING },
+                    enabled = !state.busy && state.history.any { it.canExport },
                     modifier = Modifier.weight(1f).testTag("phone-history-backup-export")) {
                     Text(label(Words.PhoneBackupExport))
                 }
@@ -95,7 +95,7 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
             TextButton({open(item.id)}, enabled = !state.busy, modifier = Modifier.testTag("phone-history-open-${item.id}")) {Text(label(Words.Chat))}
             TextButton({organizing = item}, enabled = !state.busy, modifier = Modifier.testTag("phone-history-organize-${item.id}")) {Text(label(Words.PhoneHistoryOrganize))}
             actions.exportMarkdown?.let {export ->
-                if (item.lastState != null && item.lastState != LocalReplyState.GENERATING) {
+                if (item.canExport) {
                     TextButton({export(item)}, enabled = !state.busy,
                         modifier = Modifier.testTag("phone-history-export-${item.id}")) {
                         Text(label(Words.PhoneMarkdownExport))
@@ -116,6 +116,7 @@ internal fun historyBranchWord(kind: LocalBranchKind) = when(kind) {
     LocalBranchKind.EDIT -> Words.PhoneHistoryEditedBranch
     LocalBranchKind.REGENERATE -> Words.PhoneHistoryRegeneratedBranch
     LocalBranchKind.SELECTED_TURNS -> Words.PhoneHistorySelectedBranch
+    LocalBranchKind.REVIEWED_SUMMARY -> Words.PhoneHistorySummaryBranch
 }
 
 internal fun historyViewWord(view: LocalHistoryView) = when(view) {

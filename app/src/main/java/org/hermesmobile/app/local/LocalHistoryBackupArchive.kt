@@ -240,7 +240,7 @@ internal object LocalHistoryBackupArchive {
 
     private fun describe(value: LocalConversation, labels: LocalHistoryPreferences?) = LocalHistoryBackupItem(
         value.id, value.modelSha256, value.updatedAt,
-        labels?.title ?: value.exchanges.firstOrNull()?.question.orEmpty().filterNot(Char::isISOControl).take(80),
+        labels?.title ?: value.historyTitle(),
         labels, value.exchanges.size, value.origin
     )
 

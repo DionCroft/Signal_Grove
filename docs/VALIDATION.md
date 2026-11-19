@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Reviewed phone summaries on 19 November 2026
+
+The exact source build passes 1,152 JVM tests, zero-error lint and 81 focused
+methods each on Android 8 and 17. The editor requires explicit selection,
+review and confirmation, and a cancelled draft creates no chat. The real
+LFM3 flow displayed a partial draft warning and saved the edited version.
+Backup and Markdown checks cover a chat with only the approved summary and
+verify the source references survive restore. Physical context acceptance
+and the full release gates remain open.
+[Exact evidence](contracts/2026-11-19-phone-reviewed-summaries.md).
+
+## Hosted Android 8 fixture checks on 19 November 2026
+
+The Home navigation diagnostic and the protected backup round trip pass
+in the completed hosted API 26 shards. The exact logs contain 570 and
+633 successful cases. Full cross-version matrix verification remains open.
+[Home shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44560196101/job/135695821027) ·
+[Backup shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44560196101/job/135695820861).
+
+## Hermes upstream watcher on 19 November 2026
+
+The latest main-branch run failed on the stable and main source-tree reads
+before report publication. A separate read of complete public Git trees
+confirms stable v0.23.2 is missing tools/cronjob_job_args.py. The checked
+main revision is missing that path and eight state modules. The current
+cron parser lives at cron/job_args.py. All 21 function definitions match
+the v0.23.1 syntax trees in both revisions. The main compatibility shim
+points to persistence and persistence_assembly for the database interface.
+Follow the call paths and compare their behavior before accepting a new
+baseline. The parser, pinned registry and pinned sidecar jobs passed
+in the original run.
+[Signal Grove job](https://github.com/DionCroft/Signal_Grove/actions/runs/44384185499/job/135085469567) ·
+[Hermes stable](https://github.com/NousResearch/hermes-agent/tree/ae2a81ccc00e9b7c06301523e5bb09608397149c) ·
+[Hermes main revision](https://github.com/NousResearch/hermes-agent/tree/364aded7ee2a2888421fc7aec96adbe6c07748a5).
+
 ## External LFM3 boundary inventory on 19 November 2026
 
 The hosted context-meter run stopped in native policy because the real

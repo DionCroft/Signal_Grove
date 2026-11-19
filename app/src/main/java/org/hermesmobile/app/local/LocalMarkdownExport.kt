@@ -34,7 +34,7 @@ class LocalMarkdownExport private constructor(val chatId: String, val modelSha25
     companion object {
         const val MAX_BYTES = 12 * 1024 * 1024
         internal fun create(value: LocalConversation, sourceSha256: String, title: String?, checkpoint: () -> Unit): LocalMarkdownExport {
-            if (value.exchanges.isEmpty()) throw LocalMarkdownExportException(LocalMarkdownExportFailure.EMPTY)
+            if (!value.hasSavedContent) throw LocalMarkdownExportException(LocalMarkdownExportFailure.EMPTY)
             if (value.exchanges.any {it.state == LocalReplyState.GENERATING}) throw LocalMarkdownExportException(LocalMarkdownExportFailure.ACTIVE)
             require(sourceSha256.matches(Regex("[a-f0-9]{64}")))
             val output = ByteArrayOutputStream()
@@ -73,6 +73,13 @@ class LocalMarkdownExport private constructor(val chatId: String, val modelSha25
                 append("Source turns: ${indices.joinToString(", ") { (it + 1).toString() }}\n\n")
                 append("Source conversation snapshot SHA-256: ${origin.sourceSha256}\n\n")
             } }
+            value.reviewedSummary?.let { summary ->
+                append("## Reviewed summary\n\n")
+                append("Source conversation ID: " + summary.sourceId + "\n\n")
+                append("Source turns: " + summary.sourceTurns.joinToString(", ") { (it + 1).toString() } + "\n\n")
+                append("Source conversation snapshot SHA-256: " + summary.sourceSha256 + "\n\n")
+                literal(summary.text)
+            }
             value.exchanges.forEachIndexed {index, row ->
                 checkpoint()
                 append("## Exchange ${index + 1}\n\n### User\n\n"); literal(row.question)

@@ -81,7 +81,10 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val previewPrompt: (suspend (LocalConversation?, String, String, Int?) -> LocalPromptPreview)? = null,
     val newChatWithDraft: (() -> Unit)? = null,
     val continueWithSelectedTurns: ((LocalConversation, List<Int>, String, Boolean) -> Unit)? = null,
-    val previewSelectedPrompt: (suspend (LocalConversation, List<Int>, String) -> LocalPromptPreview)? = null)
+    val previewSelectedPrompt: (suspend (LocalConversation, List<Int>, String) -> LocalPromptPreview)? = null,
+    val continueWithSummary: ((LocalConversation, List<Int>, String, String, Boolean) -> Unit)? = null,
+    val draftSummary: ((LocalConversation, List<Int>, (LocalSummaryDraft) -> Unit) -> Unit)? = null,
+    val previewSummaryPrompt: (suspend (LocalConversation, String, String) -> LocalPromptPreview)? = null)
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -106,7 +109,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             exportMarkdown = vm::prepareMarkdownExport, exportBackup = vm.historyBackup::selectExport,
             importBackup = vm.historyBackup::selectImport, previewPrompt = c::previewPrompt,
             newChatWithDraft = vm::newChatWithDraft, continueWithSelectedTurns = vm::continueWithSelectedTurns,
-            previewSelectedPrompt = c::previewSelectedPrompt), close, observations, handoff)
+            previewSelectedPrompt = c::previewSelectedPrompt, continueWithSummary = vm::continueWithReviewedSummary,
+            draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt), close, observations, handoff)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -220,7 +224,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val budget = if (branchReview == null && continuation == null) rememberPhonePromptPreview(state, draft.trim(), actions) else null
     val contextFull = budget.blocksGeneration()
     val copyDraft = actions.newChatWithDraft?.takeIf {
-        !state.busy && loaded != null && !state.chat?.exchanges.isNullOrEmpty() &&
+        !state.busy && loaded != null && state.chat?.hasSavedContent == true &&
             state.history.size < LocalConversationStore.MAX_CHATS && draft.isNotBlank()
     }
     Row(Modifier.fillMaxWidth()) {
@@ -240,10 +244,10 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         state.chat?.origin?.let { origin -> item {
             Column {
                 val indices = origin.selectedExchanges
-                if (indices == null) {
+                if (indices == null && origin.kind != LocalBranchKind.REVIEWED_SUMMARY) {
                     Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()),
                         style = MaterialTheme.typography.labelSmall)
-                } else {
+                } else if (indices != null) {
                     val numbers = indices.joinToString(", ") { (it + 1).toString() }
                     Text(label(Words.PhoneContextFromTurns).replace("{turns}", numbers),
                         Modifier.testTag("phone-context-origin"), style = MaterialTheme.typography.labelSmall)
@@ -253,9 +257,12 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
             }
         } }
+        state.chat?.reviewedSummary?.let { summary -> item(key = "reviewed-summary") {
+            PhoneReviewedSummary(summary)
+        } }
         if (loaded == null) item {Text(label(Words.PhoneNotLoaded))}
         if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
-        if (exchanges.isEmpty()) item {Text(label(Words.PhoneEmpty))}
+        if (state.chat?.hasSavedContent != true) item {Text(label(Words.PhoneEmpty))}
         if (state.history.size >= LocalConversationStore.MAX_CHATS) item { Text(label(Words.PhoneBranchHistoryFull)) }
         items(exchanges.size) { index -> val row = exchanges[index]
             HermesCard {
@@ -283,10 +290,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         }
     }
     continuation?.let { selected ->
-        PhoneContinuationDialog(selected, state, draft, actions.previewSelectedPrompt, { indices, copyDraft ->
-            continuation = null
-            actions.continueWithSelectedTurns?.invoke(selected.source, indices, selected.draft, copyDraft)
-        }) { continuation = null }
+        PhoneContinuationDialog(selected, state, draft, actions) { continuation = null }
     }
     generationReview?.let { PhoneGenerationDialog(it) { generationReview = null } }
     branchReview?.let { selected ->
@@ -404,7 +408,7 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
         LocalBranchKind.EDIT -> Words.PhoneEditSend
         LocalBranchKind.REGENERATE -> Words.PhoneRegenerate
         LocalBranchKind.FORK -> Words.PhoneBranchHere
-        LocalBranchKind.SELECTED_TURNS -> error("Selected turns have a separate review")
+        LocalBranchKind.SELECTED_TURNS, LocalBranchKind.REVIEWED_SUMMARY -> error("This branch has a separate review")
     }
     val unchanged = state.chat == review.source
     val compatible = review.kind == LocalBranchKind.FORK || state.loaded?.sha256 == review.source.modelSha256
@@ -493,6 +497,7 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     "loading" -> Words.PhoneLoading
     "unloading" -> Words.PhoneUnloading
     "generating" -> Words.PhoneGenerating
+    "summarizing" -> Words.PhoneSummaryDrafting
     "importing" -> Words.PhoneImporting
     else -> Words.PhoneWorking
 }
@@ -503,6 +508,7 @@ internal fun phoneError(code: String) = when {
     code == "history_export_changed" -> Words.PhoneMarkdownChanged
     code == "history_export_prepare" -> Words.PhoneMarkdownPrepareError
     code == "helper_unverified" -> Words.PhoneHelperRejected
+    code == "summary_unusable" -> Words.PhoneSummaryUnusable
     code == "insufficient_memory" -> Words.PhoneMemoryError
     code == "engine_2" -> Words.PhoneContextError
     code == "engine_6" || code == "native_unavailable" -> Words.PhoneUnsupported

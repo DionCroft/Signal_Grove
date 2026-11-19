@@ -80,6 +80,12 @@ Selected-turn continuation passes 1,150 JVM cases, both lint variants and
 chat ID collisions. Source bytes and unsent drafts are preserved.
 [Selected-turn evidence](docs/contracts/2026-11-19-phone-selected-turns.md).
 
+Reviewed phone summaries pass 1,152 JVM tests, both lint variants and 80
+focused checks on each supported emulator API. Approval saves the edited
+summary and source references. The original chat stays readable, and the
+new chat is searchable and exportable before its first new question.
+[Summary evidence](docs/contracts/2026-11-19-phone-reviewed-summaries.md).
+
 ## Exact next action
 
 Verify a full hosted Android run covering both fixture fixes and the external
@@ -92,8 +98,9 @@ Home was ready. The other found Review backup disabled after fixture input.
 The current Home and protected-backup fixtures pass 14 focused checks on
 both APIs. Both historical hosted failures remain in the evidence. The new
 full matrix remains open.
-Continue OF-03 with editable reviewed summaries and physical acceptance
-for selected context. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
+Finish physical OF-03 acceptance for selected context and reviewed summaries.
+Continue the ordered offline backlog with performance presets and diagnostics.
+Keep OF-01 accessibility, lifecycle and the original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/
