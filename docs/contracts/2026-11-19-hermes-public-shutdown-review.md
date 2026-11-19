@@ -72,3 +72,42 @@ override and kept the guard and assertions in place.
 The gateway shutdown suite and the controlled late-heartbeat behavior
 remain distinct checks. The earlier native owner cleanup warning and
 full public-pin owner lifecycle are still open.
+
+## Real gateway stop with native process exit
+
+Four disposable Windows processes used the exact public archives, a
+constructed GatewayRunner, the native TUI heartbeat entry point and the
+normal gateway stop method. Each process registered its native heartbeat
+against its own state.db, then exited with code zero. A fresh read-only
+connection checked the table after exit. Each run observed one heartbeat
+row after the stop method returned and passed SQLite integrity checking
+after exit.
+
+| Pinned archive | Heartbeat | Rows after process exit | Reopen warning after stop |
+| --- | --- | ---: | --- |
+| v0.23.2 | Register once | 1 | Absent |
+| v0.23.2 | 0.5-second refresh | 0 | Present |
+| Main | Register once | 1 | Absent |
+| Main | 0.5-second refresh | 0 | Present |
+
+The periodic trace shows cleanup after the stop marker reopening the
+state database and clearing the heartbeat row. The register-once trace
+retains its row. These native findings preserve the ordering defect
+under the observed Windows conditions. In the controlled callback
+fixture above the closed handle instead leaves the row in place.
+
+Initial guarded native runs allowed the gateway to finish but recorded
+six refused open calls. A separate trace found an absent bundle manifest
+and an absent per-process Linux stat file. The final Windows boundary
+allowed only those exact absent reads and observed no refusals through
+the stop marker. All child writes used their private data directories.
+
+| Process log | SHA-256 |
+| --- | --- |
+| Stable register-once | d7df9a3fbc2e1edbe5a81ad67bd129366066cdbb09cb77738c5d955afdae1b19 |
+| Stable periodic | d84a0d6930fd15b9729ba40cd5acfd3112d54e6775269fd92343f7359292811f |
+| Main register-once | d7df9a3fbc2e1edbe5a81ad67bd129366066cdbb09cb77738c5d955afdae1b19 |
+| Main periodic | 239e1b10499176ccd75c5e29bb5951b01c04d61c8ed6e65fba92e8e2119c1833 |
+
+The test invokes heartbeat setup directly. Full owner bootstrap, live Pi
+shutdown, contention and the reviewed lifecycle correction remain open.

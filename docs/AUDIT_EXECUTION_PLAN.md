@@ -42,8 +42,11 @@ were traced in source. The paired runtime comparison passes all 163 selected pin
 and 106 of 107 stable cases. Stable reproduces an inventory assertion after
 a read-only legacy history case in the same process. Further mutation,
 storage, policy and deployed coverage remain open. A controlled callback trial produced a
-retained heartbeat row after DB close at both public pins. The real
-owner-runtime shutdown and original warning gate remain open.
+retained heartbeat row after DB close at both public pins. In the four
+separate native processes, periodic cleanup reopened the DB after
+gateway stop and cleared the row. Register-once left the row behind.
+All four stores passed integrity checks. The deployed owner runtime and
+reviewed lifecycle correction remain open.
 [Stored history evidence](contracts/2026-11-19-hermes-main-stored-history.md)
 · [Public shutdown evidence](contracts/2026-11-19-hermes-public-shutdown-review.md).
 
