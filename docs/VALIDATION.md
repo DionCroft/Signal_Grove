@@ -1,5 +1,18 @@
 # Current development validation — audit follow-up
 
+## External LFM3 boundary inventory on 19 November 2026
+
+The hosted context-meter run stopped in native policy because the real
+LFM3 context-boundary method was missing from its declared external test
+class. The run executed 1,158 policy tests with one failure. Device shards
+were skipped. It is retained as a failure.
+[Hosted policy job](https://github.com/DionCroft/Signal_Grove/actions/runs/44547882321/job/135680228300).
+
+The reviewed manifest now lists all 14 methods in the same five classes.
+The LFM3 boundary needs a staged verified model, so it remains separate from
+the standard no-model suite. All 61 directly affected policy tests pass.
+The full Linux policy and Android matrix are still required.
+
 ## Protected backup fixture on 19 November 2026
 
 Hosted Android 8 shard 1 reached Review backup while the button was still

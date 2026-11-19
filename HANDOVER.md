@@ -82,8 +82,9 @@ chat ID collisions. Source bytes and unsent drafts are preserved.
 
 ## Exact next action
 
-Run the full hosted Android matrix covering both tested fixture fixes
-after the earlier queued run begins. The physical protected restore and Markdown export are verified. The physical
+Verify a full hosted Android run covering both fixture fixes and the external
+LFM3 boundary inventory correction. The earlier context run failed at policy
+and produced no device result. The physical protected restore and Markdown export are verified. The physical
 label Save, Cancel and unloaded archive read are verified. The full hosted
 Markdown export matrix passed 1,187 API 26 and 1,188 API 37
 cases. On the later backup branch, one hosted Android 8 shard failed before
