@@ -49,8 +49,12 @@ storage, policy and deployed coverage remain open. A controlled callback trial p
 retained heartbeat row after DB close at both public pins. In the four
 separate native processes, periodic cleanup reopened the DB after
 gateway stop and cleared the row. Register-once left the row behind.
-All four stores passed integrity checks. The deployed owner runtime and
-reviewed lifecycle correction remain open.
+All four stores passed integrity checks. In an isolated v0.23.2 copy,
+the checked-in two-file patch cleared both heartbeat modes before gateway
+stop returned, kept SQLite healthy and passed all 50 selected upstream
+Windows tests. The public main pin rejected the patch at both changed files.
+Stable Linux, held-writer contention, the deployed owner lifecycle,
+and a separate main port remain open.
 [Stored history evidence](contracts/2026-11-19-hermes-main-stored-history.md)
 · [Public shutdown evidence](contracts/2026-11-19-hermes-public-shutdown-review.md).
 

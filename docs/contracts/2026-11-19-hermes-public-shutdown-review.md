@@ -48,9 +48,9 @@ starts, write-error handling, and startup from the entry point or
 WebSocket. None of those five exercises stopping the gateway and
 then executing captured cleanup. A native follow-up needs that full
 lifecycle in a generated private home, once for each public pin, including
-the register-once case and the retained original warning check. The prior
-two-file candidate targets the earlier SDK revision. Applying it to
-current stable or main requires a new reviewed port.
+the register-once case and the retained original warning check. The earlier
+SDK revision has a reviewed two-file candidate. Application and test results
+for the newer pins appear below.
 [Stable heartbeat tests](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/tests/tui_gateway/test_backend_heartbeat.py)
 · [Main heartbeat tests](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/tests/tui_gateway/test_backend_heartbeat.py).
 
@@ -110,4 +110,41 @@ the stop marker. All child writes used their private data directories.
 | Main periodic | 239e1b10499176ccd75c5e29bb5951b01c04d61c8ed6e65fba92e8e2119c1833 |
 
 The test invokes heartbeat setup directly. Full owner bootstrap, live Pi
-shutdown, contention and the reviewed lifecycle correction remain open.
+shutdown and contention remain open.
+
+## Verified v0.23.2 shutdown candidate
+
+The archived v0.23.2 source is pinned to
+`ae2a81ccc00e9b7c06301523e5bb09608397149c` (archive SHA-256
+`fe3481973fd7b4f78a4f716110e793b1474ec5eec9d44fc0332c6be40fa9b776`).
+The checked-in `hermes-3b42157-heartbeat-shutdown.patch` applied exactly
+to a fresh v0.23.2 copy. A full before/after manifest of 26,190 files
+found changes only in `gateway/run_shutdown.py` and
+`tui_gateway/session_reaper.py`. Both candidate file hashes matched
+again after the test runs. The existing patch and pristine sources
+retain their original bytes.
+
+Two disposable Windows processes used the same native gateway test as
+the pristine source above. Each registered one row. A normal gateway
+stop cleared it before returning, for both register-once and 0.5-second
+periodic refresh. Each process exited zero, and a new read-only SQLite
+connection found zero rows and returned integrity `ok`. Both logs were
+free of late database reopen warnings and recorded zero guard denials
+through the stop marker. The six-file Windows suite passed the identical
+set of 50 upstream cases on the pristine and patched trees with
+zero skips.
+
+| Verified artifact | SHA-256 |
+| --- | --- |
+| Checked-in patch | `21e42e06ebf1f1c7c2c6eda122a64894b76485d7b3a95c8640e164f057091190` |
+| Candidate file comparison | `cafd972cecff14d6de43fa859e6efcb84c0fba9584e987dbd830a90fe1eab0ce` |
+| Register-once receipt | `bca731348cd3582762a44913646b39aeec74a87f28452d2f3016304c329e4905` |
+| Periodic receipt | `fc5116ccfbb24a6b56c9c275076d77fe3891f2b066a5d6750d472e538df9b161` |
+| Candidate six-file Windows JUnit | `fe36f22fbd5b85c0f4898c849ea5fd11d48e844f0675c4e730ec3a56f2d1784a` |
+
+The same patch's apply check failed on both files at the paired
+public main pin `364aded7ee2a2888421fc7aec96adbe6c07748a5`. That pin
+requires a separate storage and shutdown review before a port.
+The stable Windows trial ran in disposable homes. Native Linux,
+held-writer contention, owner bootstrap and live Pi shutdown remain
+open for v0.23.2.

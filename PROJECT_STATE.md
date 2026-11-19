@@ -39,8 +39,11 @@ Main upstream still requires a review of eight replaced storage modules.
 Paired upstream tests pass all 163 selected main cases and 106 of 107
 stable cases. The stable inventory assertion fails after a read-only API
 history fixture and passes by itself. Continue mapping the persistence
-authority and mutation interfaces before updating watcher paths. Shutdown
-review remains open.
+authority and mutation interfaces before updating watcher paths. A reviewed
+patch cleared both isolated native Windows heartbeat modes on v0.23.2,
+and all 50 selected upstream cases passed. Main requires a separate port.
+Stable Linux, contention and owner runtime checks remain open.
+[Shutdown evidence](docs/contracts/2026-11-19-hermes-public-shutdown-review.md#verified-v0232-shutdown-candidate).
 [Paired test evidence](docs/contracts/2026-11-19-hermes-main-stored-history.md#paired-gateway-and-sqlite-tests). [Source evidence](docs/contracts/2026-11-19-hermes-cron-source-relocation.md).
 
 Unreleased `feat/offline-chat-actions` implements reviewed edit/regenerate/fork,
