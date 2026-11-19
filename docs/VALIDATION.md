@@ -16,6 +16,15 @@ separate gate. The later reviewed-summary source has its own hosted run.
 [Complete checkpoint run](https://github.com/DionCroft/Signal_Grove/actions/runs/44560196101)
 · [Reviewed-summary run](https://github.com/DionCroft/Signal_Grove/actions/runs/44573654477).
 
+## Hermes public heartbeat shutdown checkpoint
+
+Four bounded SQLite checks covered register-once and periodic cleanup on
+each public pin. With the close method called before exit cleanup, each
+case retained its registered row. The periodic callback attempted cleanup
+through the closed handle. Exact source provenance and runtime scope are
+recorded. Native process shutdown acceptance remains open.
+[Exact checks and limitations](contracts/2026-11-19-hermes-public-shutdown-review.md).
+
 ## Hermes main stored history checkpoint
 
 The stable hosted watcher produced the full status 2 review report. It

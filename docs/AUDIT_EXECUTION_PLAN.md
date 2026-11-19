@@ -1,5 +1,17 @@
 # Signal Grove audit execution plan
 
+## Hermes stored history and shutdown checkpoint - 19 November 2026
+
+The stable hosted watcher publishes a complete review report. Main names
+the eight retired required paths and stays incomplete. Stored-history
+authorization, SQLite binding checks and the hold on unknown admissions
+were traced in source. Runtime comparison and the remaining mutation
+and storage coverage are open. A controlled callback trial produced a
+retained heartbeat row after DB close at both public pins. The real
+owner-runtime shutdown and original warning gate remain open.
+[Stored history evidence](contracts/2026-11-19-hermes-main-stored-history.md)
+· [Public shutdown evidence](contracts/2026-11-19-hermes-public-shutdown-review.md).
+
 ## Hermes cron and storage checkpoint - 19 November 2026
 
 The watcher follows the reviewed cron path on the exact stable and main
