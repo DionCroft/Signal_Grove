@@ -59,14 +59,17 @@ identification. Full hosted history coverage passed 1,182 API 26 and 1,183
 API 37 cases. The [reviewed Markdown export](contracts/2026-11-19-phone-markdown-export.md)
 saved exact content through the Android picker on API 26. The physical phone
 saved labels and opened the archived reply with its model unloaded. Physical
-Cancel preserved the saved labels. Physical Markdown export remains open. The [version 1 archive and restore review](contracts/2026-11-19-phone-history-backup-archive.md)
+Cancel preserved the saved labels. The [version 1 archive and restore review](contracts/2026-11-19-phone-history-backup-archive.md)
 preserve selected transcript bytes and labels, map IDs and check capacity.
 Recoverable restore publishes reviewed chats and labels together and resolves
 interrupted publication before opening the catalog. The [protected backup format](contracts/2026-11-19-protected-phone-history-backups.md)
 passed portable Unicode, wrong-passphrase, tampering and restore checks.
 Private staging now freezes export documents, checks a single imported
 copy and reclaims abandoned files when phone history opens. Android backup
-and import screens, document-picker wiring, and physical restore remain open.
+and import screens now connect this staging to Android's document pickers.
+The [verified backup UI](contracts/2026-11-19-phone-history-backup-ui.md) passes
+72 focused Android methods on each API 26 and 37 and 1,146 JVM cases.
+Physical Markdown transfer now passes. Physical backup/restore remains open.
 Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,

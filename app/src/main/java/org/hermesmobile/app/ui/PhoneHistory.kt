@@ -48,6 +48,19 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
             modifier = Modifier.testTag("phone-history-search-clear")) {Text(label(Words.PhoneHistoryClear))}
     }
     LazyColumn(Modifier.weight(1f).testTag("phone-history"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (actions.exportBackup != null && actions.importBackup != null) item {
+            Row(Modifier.fillMaxWidth()) {
+                TextButton(actions.exportBackup,
+                    enabled = !state.busy && state.history.any { it.lastState != null && it.lastState != LocalReplyState.GENERATING },
+                    modifier = Modifier.weight(1f).testTag("phone-history-backup-export")) {
+                    Text(label(Words.PhoneBackupExport))
+                }
+                TextButton(actions.importBackup, enabled = !state.busy,
+                    modifier = Modifier.weight(1f).testTag("phone-history-backup-import")) {
+                    Text(label(Words.PhoneBackupImport))
+                }
+            }
+        }
         if(archivedCount > 0) item {
             TextButton({actions.searchHistory(LocalHistoryQuery(view = LocalHistoryView.ARCHIVED))}, enabled = !state.busy,
                 modifier = Modifier.testTag("phone-history-show-archived")) {

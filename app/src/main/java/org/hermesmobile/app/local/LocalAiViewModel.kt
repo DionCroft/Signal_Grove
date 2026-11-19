@@ -17,6 +17,8 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     val controller = app.localAi
     internal val markdownExport = PhoneMarkdownExport(app.contentResolver, app.updateWorkGuard, savedState, viewModelScope)
 
+    internal val historyBackup = PhoneHistoryBackup(app.contentResolver, controller, app.updateWorkGuard, savedState, viewModelScope)
+
     internal fun prepareMarkdownExport(summary: LocalConversationSummary) {
         if (markdownExport.state.value != PhoneMarkdownExportState.Idle) return
         controller.prepareMarkdownExport(summary) { document ->
@@ -71,6 +73,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     }
     override fun onCleared() {
         markdownExport.clear()
+        historyBackup.clear()
         controller.leave()
     }
 }

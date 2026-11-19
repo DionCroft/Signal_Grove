@@ -2,13 +2,8 @@ package org.hermesmobile.app.local
 
 import android.content.ContentResolver
 import android.net.Uri
-import android.os.CancellationSignal
-import android.os.ParcelFileDescriptor
 import androidx.annotation.MainThread
 import androidx.lifecycle.SavedStateHandle
-import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +38,7 @@ internal class PhoneMarkdownExport(
     )
     val state = mutable.asStateFlow()
     private var pending: LocalMarkdownExport? = null
-    private var write: DocumentWrite? = null
+    private var write: PhoneDocumentWrite? = null
 
     fun review(document: LocalMarkdownExport, displayTitle: String) {
         if (mutable.value == PhoneMarkdownExportState.Idle) {
@@ -82,15 +77,19 @@ internal class PhoneMarkdownExport(
             finish(MarkdownSaveResult.CANCELLED)
             return
         }
-        val operation = DocumentWrite()
+        val operation = PhoneDocumentWrite()
         write = operation
         mutable.value = PhoneMarkdownExportState.Writing
         scope.launch(start = CoroutineStart.UNDISPATCHED) {
             // Keep the guard until the single write closes, even when the activity finishes.
             withContext(NonCancellable) {
                 try {
-                    val result = withContext(Dispatchers.IO) { operation.save(resolver, uri, document) }
-                    finish(result)
+                    val result = withContext(Dispatchers.IO) { operation.save(resolver, uri, document::writeTo) }
+                    finish(when (result) {
+                        DocumentWriteResult.SAVED -> MarkdownSaveResult.SAVED
+                        DocumentWriteResult.STOPPED -> MarkdownSaveResult.STOPPED
+                        DocumentWriteResult.UNCERTAIN -> MarkdownSaveResult.UNCERTAIN
+                    })
                 } finally {
                     write = null
                     guard.set(this@PhoneMarkdownExport, false)
@@ -111,33 +110,6 @@ internal class PhoneMarkdownExport(
         savedState.remove<Boolean>(IN_FLIGHT)
         mutable.value = PhoneMarkdownExportState.Finished(result)
         guard.set(this, false)
-    }
-
-    private class DocumentWrite {
-        private val stopped = AtomicBoolean()
-        private val signal = CancellationSignal()
-
-        fun stop() {
-            if (stopped.compareAndSet(false, true)) runCatching { signal.cancel() }
-        }
-
-        fun save(resolver: ContentResolver, uri: Uri, document: LocalMarkdownExport): MarkdownSaveResult {
-            if (uri.scheme != ContentResolver.SCHEME_CONTENT) return MarkdownSaveResult.UNCERTAIN
-            fun checkpoint() {
-                if (stopped.get()) throw CancellationException("phone_markdown_write_stopped")
-            }
-            return try {
-                checkpoint()
-                val descriptor = resolver.openFileDescriptor(uri, "wt", signal) ?: throw IOException("no_document")
-                ParcelFileDescriptor.AutoCloseOutputStream(descriptor).use { output ->
-                    document.writeTo(output, ::checkpoint)
-                    output.flush()
-                }
-                MarkdownSaveResult.SAVED
-            } catch (_: Exception) {
-                if (stopped.get()) MarkdownSaveResult.STOPPED else MarkdownSaveResult.UNCERTAIN
-            }
-        }
     }
 
     private companion object { const val IN_FLIGHT = "phone_markdown_export_in_flight" }

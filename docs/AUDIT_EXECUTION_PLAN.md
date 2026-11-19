@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## Phone history portability checkpoint - 19 November 2026
+
+OF-02 now includes visible phone backup selection, optional passphrase
+protection, Android document pickers and reviewed restore with collision
+remapping. Physical Markdown export passed. The app and companion pass 1,146 JVM tests, both lint variants and
+72 focused Android cases per API 26 and 37. Physical backup/restore,
+OF-01 accessibility/lifecycle and the original Hermes integration and
+production release gates remain open.
+[Backup validation](contracts/2026-11-19-phone-history-backup-ui.md) ·
+[Ordered offline backlog](ON_DEVICE_AI_BACKLOG.md).
+
 ## Resumed UI checkpoint - 18 November 2026
 
 The full goal is active at the owner's request. UI navigation now observes the

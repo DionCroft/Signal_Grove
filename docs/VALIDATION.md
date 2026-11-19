@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## Phone history backup and restore controls on 19 November 2026
+
+Phone history can create passphrase-protected or plain backups and review
+restores from Android's document picker. The source-bound build passes 1,146
+JVM tests and both lint variants. The debug APK pair passes 72 focused checks
+on each Android API 26 and 37 with zero skips. Two new controlled picker
+tests cover actual files and private staging, including wrong passphrases,
+changed provider content, confirmed copies, cancelling review and interruption.
+A third new case checks the multilingual layout with the actual keyboard.
+A separate run used Android 8's actual DocumentsUI, saving a plain backup in Downloads, reopening it and restoring one copy. The original chat's hash matched and the restored record differed only in its reviewed ID. The app-private staging directory was empty.
+
+The owner saved Markdown on the physical Android 17 phone with the earlier
+exact debug pair. All 799 exported bytes match the independently reconstructed
+document. Four test chats, both model files and saved labels were retained,
+and the model was unloaded. Physical backup/restore remains open. [Exact source and APK evidence](contracts/2026-11-19-phone-history-backup-ui.md).
+
 ## Private phone backup staging on 19 November 2026
 
 The staging and Tink update passed 1,146 JVM tests, both lint variants

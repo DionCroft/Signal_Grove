@@ -1,5 +1,28 @@
 # Using on-device AI (beta.9 preview)
 
+## Back up and restore phone chats on the unreleased branch
+
+1. Open **On-device AI → Phone history → Back up chats**. Select the saved
+   chats you want. The list includes archived chats.
+2. Keep **Protect with a passphrase** on, enter the passphrase twice and keep
+   a copy of it somewhere safe. Turn protection off only when you want an
+   unencrypted file.
+3. Tap **Review backup → Choose where to save**. A local folder keeps the
+   backup on this phone. A cloud document provider can sync the chosen file.
+4. To restore, open **Phone history → Restore a backup** and select the file
+   in Android's picker. For protected files, enter the original passphrase.
+5. Review the chats, labels and any new IDs before tapping **Restore reviewed
+   chats**. Chats already on the phone keep their original IDs and contents.
+   A restored branch with a missing parent opens on its own.
+
+The backup contains selected phone chat transcripts, model IDs and saved
+labels. Model weights and Hermes conversations are stored separately. Phone
+history can restore without loading a model. If Android reports an
+interruption or cannot confirm a write, check the selected location and
+Phone history before trying again.
+
+[Exact build and validation](contracts/2026-11-19-phone-history-backup-ui.md).
+
 ## Export a phone chat to Markdown on the unreleased branch
 
 In **On-device AI → Phone history**, choose **Export Markdown** on a saved chat.

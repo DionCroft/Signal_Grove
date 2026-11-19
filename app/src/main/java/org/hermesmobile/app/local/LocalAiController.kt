@@ -10,6 +10,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.hermesmobile.app.updates.UpdateWorkGuard
 
+internal class LocalHistoryBackupBusyException : IllegalStateException()
+
 data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val history: List<LocalConversationSummary> = emptyList(),
     val chat: LocalConversation? = null, val loaded: InstalledLocalModel? = null, val busy: Boolean = false,
     val status: String = "idle", val error: String? = null, val partialBytes: Long = 0, val transfer: LocalTransferProgress? = null,
@@ -81,25 +83,43 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         onPrepared(document)
     }
 
-    internal fun prepareHistoryRestore(
+    internal suspend fun prepareHistoryRestore(
         archive: LocalHistoryBackupArchive.Inspection,
-        onPrepared: (LocalHistoryBackupRestorePlan) -> Unit
-    ) = action("preparing_restore") {
-        val plan = io {
-            val context = currentCoroutineContext()
-            historyRestore.prepare(archive) { context.ensureActive() }
-        }
-        onPrepared(plan)
+        checkpoint: () -> Unit
+    ): LocalHistoryBackupRestorePlan = historyBackupAction("preparing_restore") {
+        io { historyRestore.prepare(archive, checkpoint) }
     }
 
-    internal fun restoreHistory(plan: LocalHistoryBackupRestorePlan) = action("restoring_history") {
-        restoreRecoveryNeeded = true
-        io {
-            val context = currentCoroutineContext()
-            historyRestore.restore(plan) { context.ensureActive() }
+    /** A failed refresh after the transaction returns cannot turn a committed restore into a retry. */
+    internal suspend fun restoreHistory(plan: LocalHistoryBackupRestorePlan): Boolean =
+        historyBackupAction("restoring_history") {
+            restoreRecoveryNeeded = true
+            io { historyRestore.restore(plan) }
+            restoreRecoveryNeeded = false
+            try {
+                refresh()
+                true
+            } catch (e: Exception) {
+                mutable.update { it.copy(error = failure(e)) }
+                false
+            }
         }
-        ensureHistoryReady()
-        refresh()
+
+    private suspend fun <T> historyBackupAction(status: String, block: suspend () -> T): T {
+        if (mutable.value.busy || leaving) throw LocalHistoryBackupBusyException()
+        mutable.update { it.copy(busy = true, status = status, error = null) }
+        guard.set(owner, true)
+        return try {
+            lock.withLock {
+                ensureHistoryReady()
+                block()
+            }
+        } finally {
+            if (!leaving) {
+                mutable.update { it.copy(busy = false, status = "idle") }
+                guard.set(owner, false)
+            }
+        }
     }
 
     fun clearHistorySearch() {
@@ -320,7 +340,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 }
                 catch (_: CancellationException) {
                     if (status == "downloading" || status == "importing") reconcileStoppedTransfer()
-                    if (status == "organizing" || status == "restoring_history") withContext(NonCancellable) {
+                    if (status == "organizing") withContext(NonCancellable) {
                         // Cancellation can lose the return after publication.
                         try {
                             ensureHistoryReady()

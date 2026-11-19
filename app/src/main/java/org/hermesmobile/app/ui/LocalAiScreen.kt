@@ -74,7 +74,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val branch: (LocalConversation, Int, LocalBranchKind, String?) -> Unit = {_, _, _, _ ->},
     val searchHistory: (LocalHistoryQuery) -> Unit = {}, val clearHistorySearch: () -> Unit = {},
     val organize: (LocalConversationSummary, LocalHistoryPreferences) -> Unit = {_, _ ->},
-    val exportMarkdown: ((LocalConversationSummary) -> Unit)? = null)
+    val exportMarkdown: ((LocalConversationSummary) -> Unit)? = null,
+    val exportBackup: (() -> Unit)? = null, val importBackup: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -96,8 +97,10 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             {vm.pendingImport.value = null}, vm::openChat, vm::deleteChat, c::dismissError, c::refreshLibrary,
             {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch,
             searchHistory = c::searchHistory, clearHistorySearch = c::clearHistorySearch, organize = c::organizeChat,
-            exportMarkdown = vm::prepareMarkdownExport), close, observations, handoff)
+            exportMarkdown = vm::prepareMarkdownExport, exportBackup = vm.historyBackup::selectExport,
+            importBackup = vm.historyBackup::selectImport), close, observations, handoff)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
+    PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */

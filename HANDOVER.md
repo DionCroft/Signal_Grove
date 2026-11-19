@@ -33,7 +33,7 @@ Rows show recorded activity time and copied/edited/regenerated branch labels.
 [retained UI failures](docs/contracts/2026-11-19-history-native-readiness.md).
 Markdown review and file export work through the Android picker. The real API 26
 Downloads transfer matches the source. The full hosted Markdown export
-matrix passed. The physical picker and Android backup flows remain open.
+matrix passed. Physical Markdown export passed. Physical backup/restore remains open.
 
 Earlier phone pairings verify one actual offline native branch/Stop method and
 real UI fork/edit/regenerate. The matching search build upgrades in place with
@@ -64,16 +64,17 @@ Recoverable publication passed 1,132 JVM tests, both lint variants and 65
 focused checks on each API 26 and API 37. The protected backup build passed
 1,139 JVM tests, both lint variants and 67 device checks per API. The private
 staging and Tink 1.24.0 build passed 1,146 JVM tests, both lint variants and
-69 device checks per API. Android picker wiring and physical backup/restore
-remain open.
+69 device checks per API. The latest backup screens and picker wiring pass
+1,146 JVM tests, both lint variants and 72 focused Android checks per API.
+[Exact app and companion evidence](docs/contracts/2026-11-19-phone-history-backup-ui.md).
 [Wire format and checks](docs/contracts/2026-11-19-phone-history-backup-archive.md).
 
 ## Exact next action
 
-Verify the export branch through the physical Android document picker.
-The physical label Save, Cancel and unloaded archive read are verified. Connect the Android backup and import
-screens and picker callbacks to the tested private staging and restore workflow. The
-full hosted Markdown export matrix passed 1,187 API 26 and 1,188 API 37
+Verify an offline backup/restore on the exact backup UI build using selected
+test chats with an original and restored copy. Physical Markdown export is verified. The physical
+label Save, Cancel and unloaded archive read are verified. The full hosted
+Markdown export matrix passed 1,187 API 26 and 1,188 API 37
 cases. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/

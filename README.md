@@ -38,7 +38,7 @@ The table below describes current `main`; release notes define what is included 
 Independent community project; not affiliated with or endorsed by NousResearch. Original pixel art and system fonts; no copied game assets.
 
 The [offline-LLM feature backlog](docs/ON_DEVICE_AI_BACKLOG.md) now includes
-unreleased chat editing/branching and searchable history, plus planned context/performance controls,
+unreleased chat editing/branching, searchable history and reviewed phone backups, plus planned context/performance controls,
 model-library improvements and personal offline tools. These additions are
 queued under the resumed goal; they are not features of the current APK.
 
@@ -61,12 +61,12 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Updated **19 November 2026** for unreleased offline actions/search and organization storage; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Updated **19 November 2026** for unreleased offline chat actions, history and backup/restore; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
 | Merged UI standard device cohort | **1,149 API26 / 1,150 API37 methods** | Identical reviewed-head/PR/main trees; independent raw four-shard union, no skips; external models remain separate |
-| Unreleased offline actions/readers/search | **1,107 JVM / 58 focused methods per API** | Exact source/APKs; eight new controller/three search cases, eight organization UI/two Android filesystem methods, plus six scripted input guards; 14 new codec JVM/two Android file cases; no skips; export UI and phone/final gates remain |
+| Unreleased offline chat and phone backups | **1,146 JVM / 72 focused Android methods per API (26 and 37)** | Reviewed Markdown, plain and protected backup, and collision-aware restore. Physical Markdown save passed. Physical backup and final release gates remain. [Exact checks](docs/contracts/2026-11-19-phone-history-backup-ui.md) |
 | Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Explicit app pairings; native branches plus actual UI branches/search/Clear/read; all four real UI histories unchanged, no whole-feature acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |
