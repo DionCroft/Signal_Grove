@@ -23,9 +23,11 @@ round trip, and the physical backup restore evidence.
 OF-04 now supports saved per-model presets and advanced context, CPU and
 output limits. Saving a preset leaves any loaded model in use until the
 next explicit load. Chat preview, generation and the saved reply share the
-effective settings. Physical performance, diagnostics and benchmark
-acceptance remain open, along with the original audit and release gates.
-[Exact scope and validation](contracts/2026-11-19-phone-model-performance.md).
+effective settings. Performance details now show process memory, first-text
+time and sampled-token rate for the current load. The fixed-prompt LFM3
+benchmark passed offline through the normal Android 17 UI with all four
+fixture histories byte-identical. Physical sustained performance and
+low-memory checks remain open. [Exact validation](VALIDATION.md#on-device-performance-measurements-and-offline-benchmark).
 
 ## Hermes stored history and shutdown checkpoint - 19 November 2026
 

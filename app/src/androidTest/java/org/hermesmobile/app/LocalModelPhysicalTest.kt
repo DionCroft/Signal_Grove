@@ -144,15 +144,21 @@ class LocalModelPhysicalTest {
         try {
             withTimeout(90_000) { engine.load(model, context = 2048, threads = 4) }
             var reply = ""
-            val end = withTimeout(30_000) { engine.generate(listOf(
+            val result = withTimeout(30_000) { engine.generateMeasured(listOf(
                 LocalChatMessage("system", "You are an on-device text assistant in Signal Grove. You have no access to Hermes, servers, projects, credentials or tools. Never claim to have performed an action. Give advice as advice."),
                 LocalChatMessage("user", "Write a short sentence about a peaceful garden")
             ), 384) {
                 assertFalse(it.contains("<think>")); assertFalse(it.contains("</think>"))
                 assertTrue(it.startsWith(reply)); reply = it
             } }
-            assertEquals(LocalGenerationEnd.COMPLETE, end); assertTrue(reply.isNotBlank())
+            assertEquals(LocalGenerationEnd.COMPLETE, result.end); assertTrue(reply.isNotBlank())
             assertTrue(reply.contains("garden", ignoreCase = true))
+            val sample = checkNotNull(result.measurement)
+            assertTrue(sample.sampledTokens in 1..384)
+            assertTrue(sample.sampledTokensPerSecond > 0)
+            val firstAnswer = checkNotNull(sample.firstAnswerNanos)
+            assertTrue(firstAnswer > 0)
+            stage("native-measured-first-visible-answer", firstAnswer / 1_000_000)
             stage("native-answer-only-garden-complete")
         } finally { withContext(NonCancellable) { engine.unload() } }
     }

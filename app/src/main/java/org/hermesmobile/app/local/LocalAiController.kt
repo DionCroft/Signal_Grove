@@ -18,12 +18,14 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val helper: LocalHelpResult? = null, val historyQuery: LocalHistoryQuery? = null,
     val historyMatches: List<LocalConversationSummary> = emptyList(),
     val modelPerformance: Map<String, LocalModelPerformance> = emptyMap(),
-    val loadedSettings: LocalGenerationSettings? = null)
+    val loadedSettings: LocalGenerationSettings? = null,
+    val performance: LocalPerformanceDiagnostics = LocalPerformanceDiagnostics())
 
 /** One instance per application process, shared across activity recreation. No Hermes client or credential store. */
 class LocalAiController(private val modelRoot: File, historyRoot: File, private val nativeDirectory: String,
     val supported: Boolean, private val freeMemory: () -> Long, private val guard: UpdateWorkGuard,
     dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate, private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val readLoadPssKiB: () -> Int? = { null },
     private val engineFactory: () -> LocalInference = { NativeLocalInference(modelRoot, nativeDirectory) }) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val lock = Mutex()
@@ -182,7 +184,13 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             target.load(file, resolved.contextTokens, resolved.threads)
             currentCoroutineContext().ensureActive()
             val settings = resolved.copy(runtime = target.runtimePolicy).also { it.validate() }
-            mutable.update { it.copy(loaded = model, loadedSettings = settings) }
+            val pss = io {
+                try { readLoadPssKiB()?.takeIf { it > 0 } }
+                catch (e: CancellationException) { throw e }
+                catch (_: RuntimeException) { null }
+            }
+            mutable.update { it.copy(loaded = model, loadedSettings = settings,
+                performance = LocalPerformanceDiagnostics(loadPssKiB = pss)) }
         } finally {
             // A native load can finish just before cancellation reaches its caller.
             if (mutable.value.loaded == null) unloadModel()
@@ -193,7 +201,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         try {
             engine?.unload()
         } finally {
-            mutable.update { it.copy(loaded = null, loadedSettings = null) }
+            mutable.update { it.copy(loaded = null, loadedSettings = null, performance = LocalPerformanceDiagnostics()) }
         }
     }
 
@@ -391,32 +399,61 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         var notified = false
         var reply = ""
         var terminal = LocalReplyState.FAILED
+        var performance: LocalGenerationResult? = null
         try {
             io { pending = createPending() }
             currentCoroutineContext().ensureActive()
             val active = checkNotNull(pending)
-            mutable.update { it.copy(chat = active) }
+            mutable.update { it.copy(chat = active, performance = it.performance.copy(lastReply = null)) }
             notified = true; onPublished(active)
             currentCoroutineContext().ensureActive()
-            terminal = when (engine!!.generate(messages, active.exchanges.last().generation!!.maxOutputTokens) { text ->
+            val result = engine!!.generateMeasured(messages, active.exchanges.last().generation!!.maxOutputTokens) { text ->
                 reply = text
                 mutable.update { it.copy(chat = active.copy(exchanges = active.exchanges.dropLast(1) + active.exchanges.last().copy(reply = text))) }
-            }) {
+            }
+            terminal = when (result.end) {
                 LocalGenerationEnd.COMPLETE -> LocalReplyState.COMPLETE
                 LocalGenerationEnd.CANCELLED -> LocalReplyState.CANCELLED
                 LocalGenerationEnd.TOKEN_LIMIT -> LocalReplyState.TOKEN_LIMIT
             }
+            performance = result.takeIf { it.end != LocalGenerationEnd.CANCELLED && it.measurement != null }
         } catch (e: CancellationException) { terminal = LocalReplyState.CANCELLED; throw e }
         finally {
             pending?.let { published ->
                 val completed = published.copy(exchanges = published.exchanges.dropLast(1) + published.exchanges.last().copy(reply = reply, state = terminal))
                 withContext(NonCancellable) {
                     io { conversations.save(completed) }
-                    mutable.update { it.copy(chat = completed) }
+                    mutable.update { it.copy(chat = completed, performance = it.performance.copy(lastReply = performance)) }
                     if (!notified) onPublished(completed)
                     refresh()
                 }
             }
+        }
+    }
+
+    fun benchmark(modelSha256: String) = action("benchmarking") {
+        require(mutable.value.loaded?.sha256 == modelSha256)
+        val settings = generationSettings()
+        val output = minOf(settings.maxOutputTokens, LOCAL_BENCHMARK_OUTPUT_CAP)
+        val prompt = localChatPrompt(emptyList(), LOCAL_BENCHMARK_PROMPT)
+        mutable.update { it.copy(performance = it.performance.copy(benchmark = null)) }
+        var outcome = LocalBenchmarkResult(LocalBenchmarkEnd.FAILED)
+        try {
+            val sample = withTimeoutOrNull(LOCAL_BENCHMARK_TIMEOUT_MILLIS) {
+                validatePrompt(prompt, settings.copy(maxOutputTokens = output))
+                checkNotNull(engine).generateMeasured(prompt, output) {}
+            }
+            outcome = when (sample?.end) {
+                null -> LocalBenchmarkResult(LocalBenchmarkEnd.TIMED_OUT)
+                LocalGenerationEnd.CANCELLED -> LocalBenchmarkResult(LocalBenchmarkEnd.STOPPED)
+                LocalGenerationEnd.COMPLETE -> LocalBenchmarkResult(LocalBenchmarkEnd.COMPLETE, sample.measurement)
+                LocalGenerationEnd.TOKEN_LIMIT -> LocalBenchmarkResult(LocalBenchmarkEnd.TOKEN_LIMIT, sample.measurement)
+            }
+        } catch (e: CancellationException) {
+            outcome = LocalBenchmarkResult(LocalBenchmarkEnd.STOPPED)
+            throw e
+        } finally {
+            mutable.update { it.copy(performance = it.performance.copy(benchmark = outcome)) }
         }
     }
 

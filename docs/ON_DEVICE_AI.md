@@ -25,6 +25,25 @@ Generation stores the settings it actually requested with the reply. Open
 
 [Scope and validation](contracts/2026-11-19-phone-model-performance.md).
 
+## Measure performance on your phone
+
+Load a model and open **Phone models → Performance details**. App memory
+shows one sample of Android's proportional set size (PSS) after load, in
+MiB. It includes Signal Grove's process and its proportional share of
+shared pages. [Android Debug.MemoryInfo](https://developer.android.com/reference/android/os/Debug.MemoryInfo#getTotalPss()).
+
+After an ordinary chat reply, the panel shows how long it took to receive
+the first visible text and the rate of sampled tokens, where available.
+The first-text timer includes prompt processing. The sampling rate counts
+reasoning and control tokens and excludes prompt processing. A model can
+reach its reply cap before producing any visible text.
+
+Choose **Run benchmark** to measure a fixed garden prompt offline with the
+loaded settings. It uses up to 384 output tokens or the loaded cap if lower.
+The app requests cancellation after 60 seconds. You can also tap **Stop**.
+The benchmark creates no chat and shares no prompt or result with Hermes.
+Unload the model to clear the in-memory measurements.
+
 ## Continue a phone chat with a reviewed summary
 
 In the development build, open a saved phone chat and choose **Earlier

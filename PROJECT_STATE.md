@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest performance checkpoint
+
+The development branch `feat/offline-history-backup` now includes model
+performance presets and measured app memory, first visible text and
+sampled throughput. The explicit LFM3 benchmark passed offline through
+the Android 17 app. All four fixture chats matched their original hashes.
+The exact debug pair passes 1,157 JVM and 83 focused methods on each
+emulator API with zero lint errors.
+[Measurements and build evidence](docs/VALIDATION.md#on-device-performance-measurements-and-offline-benchmark).
+
 ## Current implementation and evidence
 
 The export component is on `feat/offline-markdown-export`, layered on
@@ -103,8 +113,9 @@ Home was ready. The other found Review backup disabled after fixture input.
 The current Home and protected-backup fixtures pass 14 focused checks on
 both APIs. Both historical hosted failures remain in the evidence.
 Finish physical OF-03 acceptance for selected context and reviewed summaries.
-Continue the ordered offline backlog with performance presets and diagnostics.
-Keep OF-01 accessibility, lifecycle and the original audit gates open.
+Verify the offline performance panel on the physical phone, including Stop,
+sustained thermal/battery and low-memory behavior. Keep OF-01 accessibility,
+lifecycle and the original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/

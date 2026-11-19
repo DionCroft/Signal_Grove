@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -246,9 +247,10 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_countPrompt(JNIEnv * env, jobj
 }
 
 extern "C" JNIEXPORT jint JNICALL
-Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject, jlong handle, jobjectArray roles, jobjectArray contents, jobjectArray helper_choices, jint limit, jlong operation, jobject sink) {
+Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject, jlong handle, jobjectArray roles, jobjectArray contents, jobjectArray helper_choices, jint limit, jlong operation, jobject sink, jlongArray measurement) {
     auto engine = get(handle);
-    if (!engine || !roles || !contents || !helper_choices || !sink || operation <= 0 || limit < 1 || limit > 512) return invalid;
+    if (!engine || !roles || !contents || !helper_choices || !sink || operation <= 0 || limit < 1 || limit > 512 ||
+        (measurement && env->GetArrayLength(measurement) != 2)) return invalid;
     std::unique_lock<std::mutex> lock(engine->operation_mutex, std::try_to_lock);
     if (!lock.owns_lock() || !engine->model || !engine->templates) return invalid;
     engine->active.store(operation);
@@ -293,6 +295,16 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             env->DeleteLocalRef(buffer);
             return env->ExceptionCheck() || !accepted || engine->stopped() ? cancelled : ok;
         };
+        using Clock = std::chrono::steady_clock;
+        const auto started = measurement ? Clock::now() : Clock::time_point{};
+        const auto finish = [&](int status, int count) {
+            if (measurement && (status == ok || status == token_limit)) {
+                const jlong sample[] = {count, static_cast<jlong>(
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - started).count())};
+                env->SetLongArrayRegion(measurement, 0, 2, sample);
+            }
+            return status;
+        };
         size_t generated_bytes = 0;
         for (int i = 0; i < limit; ++i) {
             if (engine->stopped()) return cancelled;
@@ -300,7 +312,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             common_sampler_accept(sampler.get(), token, true);
             if (llama_vocab_is_eog(vocab, token)) {
                 auto status = emit_answer(session.finish());
-                return status != ok ? status : answer.empty() ? failed : ok;
+                return finish(status != ok ? status : answer.empty() ? failed : ok, i + 1);
             }
             auto piece = common_token_to_piece(vocab, token, true);
             generated_bytes += piece.size();
@@ -312,7 +324,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
         }
         auto status = emit_answer(session.finish());
-        return status != ok ? status : token_limit;
+        return finish(status != ok ? status : token_limit, limit);
     } catch (int code) { return code; }
     catch (...) { return failed; }
 }

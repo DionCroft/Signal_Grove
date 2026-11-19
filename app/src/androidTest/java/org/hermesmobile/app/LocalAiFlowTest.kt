@@ -24,16 +24,23 @@ class LocalAiFlowTest {
     private var pending by mutableStateOf(false)
     private var state by mutableStateOf(LocalAiState())
     private val helperRequests = mutableListOf<Pair<LocalHelpTopic, Boolean>>()
+    private val benchmarks = mutableListOf<String>()
     private val performanceSaves = mutableListOf<LocalModelPerformance>()
     private val requestedLoads = mutableListOf<Pair<String, Int>>()
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
     private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false) {
-        val actions = LocalAiActions({sends++}, {stops++}, {}, { model, context -> requestedLoads.add(model.sha256 to context) },
+        val actions = LocalAiActions({sends++}, {
+                stops++
+                if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
+            }, {}, { model, context -> requestedLoads.add(model.sha256 to context) },
             {}, {}, {downloads++}, {}, {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {},
             help = {topic, share -> helperRequests.add(topic to share)}, saveModelPerformance = { item, settings ->
                 performanceSaves.add(settings)
                 state = state.copy(modelPerformance = state.modelPerformance + (item.sha256 to settings))
+            }, benchmark = { modelSha256 ->
+                benchmarks.add(modelSha256)
+                state = state.copy(busy = true, status = "benchmarking")
             })
         compose.setContent {
             val density = LocalDensity.current
@@ -67,6 +74,22 @@ class LocalAiFlowTest {
 
         compose.onNodeWithTag("phone-load-${sha.take(8)}").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(listOf(sha to 1024), requestedLoads) }
+    }
+
+    @Test fun performanceDetailsWaitForExplicitBenchmarkAndKeepStopReachable() {
+        state = LocalAiState(models = listOf(model), loaded = model,
+            loadedSettings = LocalGenerationSettings(2048, 3, 384),
+            performance = LocalPerformanceDiagnostics(loadPssKiB = 262_144))
+        show(bilingual = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        compose.onNodeWithTag("phone-diagnostics-aaaaaaaa").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-diagnostics-memory").performScrollTo().assertTextContains("256", substring = true)
+        compose.runOnIdle { assertTrue(benchmarks.isEmpty()); assertEquals(0, sends) }
+        compose.onNodeWithTag("phone-benchmark-run").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(listOf(sha), benchmarks) }
+        compose.onNodeWithTag("phone-benchmark-stop").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, stops); assertEquals(0, sends) }
+        compose.onNodeWithTag("phone-diagnostics-close").assertIsDisplayed().performClick()
     }
 
     @Test fun noLoadDisablesSendAndSetupGuideWorksWithoutModel() {

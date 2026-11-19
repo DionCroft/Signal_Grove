@@ -23,6 +23,7 @@ class LocalAiControllerTest {
         var loads = 0; var unloads = 0; var cancels = 0
         var blockGeneration = false
         var reply = "Phone reply"
+        var measurement: LocalGenerationMeasurement? = null
         var failure: Exception? = null
         var unloadGate: CompletableDeferred<Unit>? = null
         val requests = mutableListOf<List<LocalChatMessage>>()
@@ -39,6 +40,10 @@ class LocalAiControllerTest {
             if (blockGeneration) awaitCancellation()
             return LocalGenerationEnd.COMPLETE
         }
+        override suspend fun generateMeasured(
+            messages: List<LocalChatMessage>, maxTokens: Int, onText: (String) -> Unit
+        ) = LocalGenerationResult(generate(messages, maxTokens, onText), measurement)
+
         override suspend fun selectHelperChecks(messages: List<LocalChatMessage>, choices: LocalCheckChoices, maxTokens: Int,
             onText: (String) -> Unit): LocalGenerationEnd {
             helperChoices.add(choices.ids); return generate(messages, maxTokens, onText)
@@ -66,6 +71,75 @@ class LocalAiControllerTest {
     private fun controller(models: File, history: File, engine: Engine, guard: UpdateWorkGuard, dispatcher: CoroutineDispatcher,
         supported: Boolean = true, freeMemory: Long = Long.MAX_VALUE) = LocalAiController(models, history, "unused-test-library-directory", supported,
         { freeMemory }, guard, dispatcher, dispatcher) { engine }
+
+    @Test fun benchmarkUsesTheLoadedLimitsAndLeavesChatHistoryUntouched() = runTest {
+        val root = temp.newFolder()
+        val first = model(root)
+        val history = temp.newFolder()
+        val engine = Engine().apply { measurement = LocalGenerationMeasurement(4, 500_000_000, 900_000_000) }
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val controller = LocalAiController(root, history, "unused-test-library-directory", true,
+            { Long.MAX_VALUE }, UpdateWorkGuard(), dispatcher, dispatcher, readLoadPssKiB = { 262_144 }) { engine }
+        advanceUntilIdle()
+        controller.saveModelPerformance(first, LocalModelPerformance(1024, 1, 192))
+        advanceUntilIdle()
+        controller.load(first)
+        advanceUntilIdle()
+        assertEquals(262_144, controller.state.value.performance.loadPssKiB)
+        controller.send("A private question")
+        advanceUntilIdle()
+        val chat = checkNotNull(controller.state.value.chat)
+        val file = File(history, chat.id + ".json")
+        val before = file.readBytes()
+        val lastReply = checkNotNull(controller.state.value.performance.lastReply)
+        assertEquals(8.0, checkNotNull(lastReply.measurement).sampledTokensPerSecond, 0.01)
+
+        val benchmarkMeasurement = LocalGenerationMeasurement(6, 500_000_000, null)
+        engine.measurement = benchmarkMeasurement
+        controller.benchmark(first.sha256)
+        advanceUntilIdle()
+        assertEquals(localChatPrompt(emptyList(), LOCAL_BENCHMARK_PROMPT), engine.requests.last())
+        assertEquals(listOf(192, 192), engine.outputCaps)
+        assertEquals(lastReply, controller.state.value.performance.lastReply)
+        assertEquals(LocalBenchmarkResult(LocalBenchmarkEnd.COMPLETE, benchmarkMeasurement),
+            controller.state.value.performance.benchmark)
+        assertEquals(chat, controller.state.value.chat)
+        assertArrayEquals(before, file.readBytes())
+        assertEquals(listOf(chat.id), LocalConversationStore(history).list().map { it.id })
+
+        controller.unload()
+        advanceUntilIdle()
+        assertEquals(LocalPerformanceDiagnostics(), controller.state.value.performance)
+    }
+
+    @Test fun benchmarkTimeoutAndStopReleaseWorkGuardWithoutSavingAnExchange() = runTest {
+        val root = temp.newFolder()
+        val first = model(root)
+        val history = temp.newFolder()
+        val engine = Engine().apply { blockGeneration = true }
+        val guard = UpdateWorkGuard()
+        val controller = controller(root, history, engine, guard, StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        controller.load(first)
+        advanceUntilIdle()
+        controller.benchmark(first.sha256)
+        runCurrent()
+        assertTrue(guard.active.value)
+        advanceTimeBy(LOCAL_BENCHMARK_TIMEOUT_MILLIS)
+        runCurrent()
+        assertEquals(LocalBenchmarkResult(LocalBenchmarkEnd.TIMED_OUT), controller.state.value.performance.benchmark)
+        assertFalse(guard.active.value)
+
+        controller.benchmark(first.sha256)
+        runCurrent()
+        assertTrue(guard.active.value)
+        controller.cancel()
+        runCurrent()
+        assertEquals(LocalBenchmarkResult(LocalBenchmarkEnd.STOPPED), controller.state.value.performance.benchmark)
+        assertFalse(guard.active.value)
+        assertTrue(LocalConversationStore(history).list().isEmpty())
+        assertEquals(2, engine.requests.size)
+    }
 
     @Test fun savedPerformanceIsPerModelAndOnlyChangesGenerationAfterLoad() = runTest {
         val root = temp.newFolder()

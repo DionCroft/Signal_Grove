@@ -41,30 +41,46 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
     }
 
     suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int = 384, onText: (String) -> Unit): LocalGenerationEnd =
-        generateInternal(messages, maxTokens, emptyList(), onText)
+        generateInternal(messages, maxTokens, emptyList(), measure = false, onText).end
+
+    suspend fun generateMeasured(messages: List<LocalChatMessage>, maxTokens: Int, onText: (String) -> Unit): LocalGenerationResult =
+        generateInternal(messages, maxTokens, emptyList(), measure = true, onText)
 
     suspend fun selectHelperChecks(messages: List<LocalChatMessage>, choices: LocalCheckChoices, maxTokens: Int = 96,
-        onText: (String) -> Unit): LocalGenerationEnd = generateInternal(messages, maxTokens, choices.ids, onText)
+        onText: (String) -> Unit): LocalGenerationEnd = generateInternal(messages, maxTokens, choices.ids, measure = false, onText).end
 
     private suspend fun generateInternal(messages: List<LocalChatMessage>, maxTokens: Int, helperIds: List<String>,
-        onText: (String) -> Unit): LocalGenerationEnd = operation { id ->
+        measure: Boolean, onText: (String) -> Unit): LocalGenerationResult = operation { id ->
         require(maxTokens in 1..512)
         val request = encodeRequest(messages)
         val decoder = Utf8TokenDecoder()
+        val nativeSample = if (measure) LongArray(2) else null
+        var firstAnswerNanos: Long? = null
+        val started = if (measure) System.nanoTime() else 0L
         val callback = object : NativeTokenSink {
             override fun onBytes(bytes: ByteArray): Boolean {
                 if (current.get() != id) return false
-                decoder.append(bytes)?.let(onText)
+                decoder.append(bytes)?.let { text ->
+                    if (measure && firstAnswerNanos == null && text.isNotBlank()) {
+                        firstAnswerNanos = (System.nanoTime() - started).coerceAtLeast(0)
+                    }
+                    onText(text)
+                }
                 return true
             }
         }
-        val code = NativeLlmBindings.generate(handle.get(), request.roles, request.contents, helperIds.toTypedArray(), maxTokens, id, callback)
-        when (code) {
+        val code = NativeLlmBindings.generate(handle.get(), request.roles, request.contents, helperIds.toTypedArray(),
+            maxTokens, id, callback, nativeSample)
+        val end = when (code) {
             0 -> LocalGenerationEnd.COMPLETE
             1 -> LocalGenerationEnd.CANCELLED
             5 -> LocalGenerationEnd.TOKEN_LIMIT
             else -> throw LocalEngineException(code)
         }
+        val measurement = nativeSample?.takeIf {
+            end != LocalGenerationEnd.CANCELLED && it[0] in 1L..maxTokens.toLong() && it[1] > 0L
+        }?.let { LocalGenerationMeasurement(it[0].toInt(), it[1], firstAnswerNanos) }
+        LocalGenerationResult(end, measurement)
     }
 
     private data class EncodedRequest(val roles: Array<String>, val contents: Array<ByteArray>)
@@ -103,7 +119,7 @@ internal object NativeLlmBindings {
     external fun create(nativeLibraryDirectory: String): Long
     external fun load(handle: Long, path: String, context: Int, threads: Int, operation: Long): Int
     external fun countPrompt(handle: Long, roles: Array<String>, contents: Array<ByteArray>, operation: Long): Int
-    external fun generate(handle: Long, roles: Array<String>, contents: Array<ByteArray>, helperChoices: Array<String>, maxTokens: Int, operation: Long, sink: NativeTokenSink): Int
+    external fun generate(handle: Long, roles: Array<String>, contents: Array<ByteArray>, helperChoices: Array<String>, maxTokens: Int, operation: Long, sink: NativeTokenSink, measurement: LongArray? = null): Int
     external fun cancel(handle: Long, operation: Long)
     external fun dispose(handle: Long)
 }

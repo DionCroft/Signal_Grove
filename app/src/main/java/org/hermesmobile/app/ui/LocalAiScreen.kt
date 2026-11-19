@@ -85,7 +85,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val continueWithSummary: ((LocalConversation, List<Int>, String, String, Boolean) -> Unit)? = null,
     val draftSummary: ((LocalConversation, List<Int>, (LocalSummaryDraft) -> Unit) -> Unit)? = null,
     val previewSummaryPrompt: (suspend (LocalConversation, String, String) -> LocalPromptPreview)? = null,
-    val saveModelPerformance: ((InstalledLocalModel, LocalModelPerformance) -> Unit)? = null)
+    val saveModelPerformance: ((InstalledLocalModel, LocalModelPerformance) -> Unit)? = null,
+    val benchmark: ((String) -> Unit)? = null)
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -112,7 +113,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             newChatWithDraft = vm::newChatWithDraft, continueWithSelectedTurns = vm::continueWithSelectedTurns,
             previewSelectedPrompt = c::previewSelectedPrompt, continueWithSummary = vm::continueWithReviewedSummary,
             draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt,
-            saveModelPerformance = c::saveModelPerformance), close, observations, handoff)
+            saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark), close, observations, handoff)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -454,6 +455,8 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
     val active = state.loadedSettings.takeIf { state.loaded?.sha256 == model.sha256 }
     var editing by rememberSaveable(model.sha256) { mutableStateOf(false) }
     val save = actions.saveModelPerformance
+    val benchmark = actions.benchmark
+    var diagnosticsOpen by remember(model.sha256, active != null) { mutableStateOf(false) }
     HermesCard {
         Text(model.metadata.name, style = MaterialTheme.typography.titleMedium)
         Text("${model.metadata.architecture} · ${model.metadata.bytes / 1048576} MiB", style = MaterialTheme.typography.bodySmall)
@@ -465,6 +468,11 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
             Text(label(Words.PhoneLoaded).replace("{model}", model.metadata.name))
             Text(modelPerformanceLabel(Words.PhoneModelActiveLimits, active.contextTokens, active.threads, active.maxOutputTokens),
                 Modifier.testTag("phone-model-active-limits"), style = MaterialTheme.typography.bodySmall)
+            if (benchmark != null) {
+                TextButton({ diagnosticsOpen = true }, Modifier.testTag("phone-diagnostics-${model.sha256.take(8)}")) {
+                    Text(label(Words.PhoneDiagnostics))
+                }
+            }
         }
         if (canLoad) {
             Text(modelPerformanceLabel(Words.PhoneModelNextLimits, next.contextTokens, next.threadCap, next.outputTokens),
@@ -478,6 +486,9 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
             modifier = Modifier.testTag("phone-load-${model.sha256.take(8)}")) { Text(label(Words.PhoneLoad)) }
         if (state.loaded?.sha256 == model.sha256) TextButton(actions.unload, enabled = !state.busy) { Text(label(Words.PhoneUnload)) }
         TextButton(remove, enabled = !state.busy) { Text(label(Words.Delete)) }
+    }
+    if (diagnosticsOpen && active != null && benchmark != null) {
+        PhonePerformanceDiagnosticsDialog(state, { benchmark(model.sha256) }, actions.stop, { diagnosticsOpen = false })
     }
     if (editing && save != null && canLoad) {
         PhonePerformanceSettings(model, next, state.busy, { editing = false }) { performance ->
@@ -522,6 +533,7 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     "unloading" -> Words.PhoneUnloading
     "generating" -> Words.PhoneGenerating
     "summarizing" -> Words.PhoneSummaryDrafting
+    "benchmarking" -> Words.PhoneBenchmarkRunning
     "importing" -> Words.PhoneImporting
     else -> Words.PhoneWorking
 }

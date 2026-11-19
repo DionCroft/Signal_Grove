@@ -23,7 +23,8 @@ class HermesApplication : Application() {
             java.io.File(noBackupFilesDir,"local-ai/models"),java.io.File(noBackupFilesDir,"local-ai/chats"),
             applicationInfo.nativeLibraryDir,android.os.Process.is64Bit(),
             {android.app.ActivityManager.MemoryInfo().also {getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it)}.availMem},
-            updateWorkGuard)
+            updateWorkGuard,
+            readLoadPssKiB = { android.os.Debug.MemoryInfo().also { android.os.Debug.getMemoryInfo(it) }.totalPss })
     }
     val managementReady by lazy {appScope.async {database.dao().recoverManagementOperations()}}
     val database by lazy { Room.databaseBuilder(this,HermesDatabase::class.java,"hermes.db").addMigrations(*ALL_HERMES_MIGRATIONS).build() }

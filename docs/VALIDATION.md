@@ -1,5 +1,38 @@
 # Current development validation — audit follow-up
 
+## On-device performance measurements and offline benchmark
+
+The loaded model's Performance details show Android's process PSS, the
+latest completed or capped reply's time to first visible text and sampled
+token rate when available. Run benchmark uses a fixed prompt within the
+active output cap and requests cancellation at 60 seconds. Tests verify
+explicit Start and Stop, timeout, work-guard release and exact history
+preservation.
+
+The exact build passed 1,157 JVM methods and both lint
+variants with zero errors. Android 8 and Android 17 each passed all 83
+focused methods with zero skips. A separate native timing assertion with
+pinned LFM3 passed on Android 17.
+
+In the ordinary app on Android 17, the LFM3 benchmark completed with
+Airplane mode on, Wi-Fi off and no default network. The loaded settings
+were 1,024 context tokens, four CPU threads and a 384-token cap. After-load
+app memory was 1,249.33 MiB PSS. Visible text began at 5.52 seconds and the
+generation rate was 27.14 tokens/s over 127 sampled tokens. All four
+fixture chats matched their original hashes. The initial history checker
+used an overescaped filename pattern. A read-only comparison reconciled
+all four hashes after the same run. The original radio settings were
+restored. Physical sustained, battery and low-memory acceptance remain open.
+
+- Build receipt `20261119-190601-9bf7df8065f34d93a2909bb436ee8a5a`
+- Source snapshot SHA-256 `875b7f4d15e626e8d01db2d1dc259f142da096df2e3417a54fd605eac1f290f9`
+- Debug APK SHA-256 `1982bd14bdafd4d0a19f4fd56d6cae465fb1129aa4c62dccd7952ca377614cdc`
+- Test companion SHA-256 `6bd9fe8951b6daf70c63641220f3dfb280f88cf107617f5d8c35c791f8927b38`
+- API 26 instrumentation SHA-256 `5dba6f7b7e5c47acd02c7cc0cdecfb1777ee7646ee81c307c088e0a0e1cebbb7`
+- API 37 instrumentation SHA-256 `4c7d5145b18de798128d5fb838e36c94ec188dc0af533784bb7638c81ff52ac9`
+- Native timing log SHA-256 `88c671e2ae245152bdad30487a037aed7f50bc46501df1a62646753c0dba6094`
+- Benchmark result view SHA-256 `7d7bd4af37584ed220aaa6fb83c164f698c276d50ff5b77543a35aa0a12649dc`
+
 ## Separate backup selection and passphrase steps
 
 Chat selection now has its own step. A real tap selects a summary-only or
