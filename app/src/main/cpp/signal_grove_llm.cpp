@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -115,6 +116,58 @@ std::string bytes(JNIEnv * env, jbyteArray array) {
     if (env->ExceptionCheck()) throw failed;
     return result;
 }
+
+common_chat_templates_inputs read_chat_inputs(Engine & engine, JNIEnv * env, jobjectArray roles,
+                                              jobjectArray contents, jobjectArray helper_choices) {
+    const int count = env->GetArrayLength(roles);
+    if (count < 1 || count > 64 || count != env->GetArrayLength(contents)) throw invalid;
+    const int choice_count = helper_choices ? env->GetArrayLength(helper_choices) : 0;
+    if (choice_count > 5) throw invalid;
+    std::vector<std::string> helper_ids;
+    for (int i = 0; i < choice_count; ++i) {
+        auto ref = static_cast<jstring>(env->GetObjectArrayElement(helper_choices, i));
+        auto value = utf(env, ref); env->DeleteLocalRef(ref);
+        helper_ids.push_back(std::move(value));
+    }
+    auto input = signal_grove::local_chat_inputs(helper_ids);
+    size_t input_bytes = 0;
+    for (int i = 0; i < count; ++i) {
+        if (engine.stopped()) throw cancelled;
+        auto role_ref = static_cast<jstring>(env->GetObjectArrayElement(roles, i));
+        auto content_ref = static_cast<jbyteArray>(env->GetObjectArrayElement(contents, i));
+        auto role = utf(env, role_ref);
+        auto content = bytes(env, content_ref);
+        env->DeleteLocalRef(role_ref); env->DeleteLocalRef(content_ref);
+        if (role != "system" && role != "user" && role != "assistant") throw invalid;
+        if (i == count - 1 && role != "user") throw invalid;
+        input_bytes += content.size();
+        if (input_bytes > 65536) throw invalid;
+        common_chat_msg message; message.role = role; message.content = std::move(content);
+        input.messages.push_back(std::move(message));
+    }
+    return input;
+}
+
+std::vector<llama_token> tokenize_prompt(const Engine & engine, const common_chat_session & session,
+                                         const llama_vocab * vocab, size_t max_prompt_tokens) {
+    if (session.prompt().str().size() > 131072) throw context_full;
+    std::vector<llama_token> tokens;
+    // The upstream formatter removes automatic BOS/EOS from template text.
+    // Restore them exactly once, without parsing user-provided control tokens.
+    if (llama_vocab_get_add_bos(vocab)) tokens.push_back(llama_vocab_bos(vocab));
+    for (const auto & part : session.prompt().parts) {
+        if (engine.stopped()) throw cancelled;
+        // Template syntax may contain control tokens; user text is always plain text.
+        auto more = common_tokenize(vocab, part.text, false, !part.is_input);
+        tokens.insert(tokens.end(), more.begin(), more.end());
+        if (tokens.size() > max_prompt_tokens) throw context_full;
+    }
+    if (llama_vocab_get_add_eos(vocab)) tokens.push_back(llama_vocab_eos(vocab));
+    if (tokens.size() > max_prompt_tokens) throw context_full;
+    if (tokens.empty()) throw invalid;
+    return tokens;
+}
+
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -171,6 +224,27 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_load(JNIEnv * env, jobject, jl
     } catch (...) { engine->clear(); return failed; }
 }
 
+// Count the exact rendered user prompt without allocating a context or running a decoder.
+extern "C" JNIEXPORT jint JNICALL
+Java_org_hermesmobile_app_local_NativeLlmBindings_countPrompt(JNIEnv * env, jobject, jlong handle, jobjectArray roles,
+                                                          jobjectArray contents, jlong operation) {
+    auto engine = get(handle);
+    if (!engine || !roles || !contents || operation <= 0) return -invalid;
+    std::unique_lock<std::mutex> lock(engine->operation_mutex, std::try_to_lock);
+    if (!lock.owns_lock() || !engine->model || !engine->templates) return -invalid;
+    engine->active.store(operation);
+    if (engine->stopped()) return -cancelled;
+    try {
+        // The helper-choice array is specific to constrained setup advice.
+        auto input = read_chat_inputs(*engine, env, roles, contents, nullptr);
+        const auto * vocab = llama_model_get_vocab(engine->model);
+        common_chat_session session(engine->templates.get(), vocab, input, {});
+        auto tokens = tokenize_prompt(*engine, session, vocab, std::numeric_limits<size_t>::max());
+        return engine->stopped() ? -cancelled : static_cast<jint>(tokens.size());
+    } catch (int code) { return -code; }
+    catch (...) { return -failed; }
+}
+
 extern "C" JNIEXPORT jint JNICALL
 Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject, jlong handle, jobjectArray roles, jobjectArray contents, jobjectArray helper_choices, jint limit, jlong operation, jobject sink) {
     auto engine = get(handle);
@@ -180,47 +254,11 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
     engine->active.store(operation);
     if (engine->stopped()) return cancelled;
     try {
-        const int count = env->GetArrayLength(roles);
-        if (count < 1 || count > 64 || count != env->GetArrayLength(contents)) return invalid;
-        const int choice_count = env->GetArrayLength(helper_choices);
-        if (choice_count > 5) return invalid;
-        std::vector<std::string> helper_ids;
-        for (int i = 0; i < choice_count; ++i) {
-            auto ref = static_cast<jstring>(env->GetObjectArrayElement(helper_choices, i));
-            auto value = utf(env, ref); env->DeleteLocalRef(ref);
-            helper_ids.push_back(std::move(value));
-        }
-        auto input = signal_grove::local_chat_inputs(helper_ids);
-        size_t input_bytes = 0;
-        for (int i = 0; i < count; ++i) {
-            auto role_ref = static_cast<jstring>(env->GetObjectArrayElement(roles, i));
-            auto content_ref = static_cast<jbyteArray>(env->GetObjectArrayElement(contents, i));
-            auto role = utf(env, role_ref);
-            auto content = bytes(env, content_ref);
-            env->DeleteLocalRef(role_ref); env->DeleteLocalRef(content_ref);
-            if (role != "system" && role != "user" && role != "assistant") return invalid;
-            if (i == count - 1 && role != "user") return invalid;
-            input_bytes += content.size();
-            if (input_bytes > 65536) return invalid;
-            common_chat_msg message; message.role = role; message.content = std::move(content);
-            input.messages.push_back(std::move(message));
-        }
+        auto input = read_chat_inputs(*engine, env, roles, contents, helper_choices);
         const auto * vocab = llama_model_get_vocab(engine->model);
         common_chat_session session(engine->templates.get(), vocab, input, {});
-        if (session.prompt().str().size() > 131072) return context_full;
-        std::vector<llama_token> tokens;
-        // The upstream formatter removes automatic BOS/EOS from template text.
-        // Restore them exactly once, without parsing user-provided control tokens.
-        if (llama_vocab_get_add_bos(vocab)) tokens.push_back(llama_vocab_bos(vocab));
-        for (const auto & part : session.prompt().parts) {
-            // Template syntax may contain control tokens; user text is always plain text.
-            auto more = common_tokenize(vocab, part.text, false, !part.is_input);
-            tokens.insert(tokens.end(), more.begin(), more.end());
-            if (tokens.size() + limit > static_cast<size_t>(engine->context_size)) return context_full;
-        }
-        if (llama_vocab_get_add_eos(vocab)) tokens.push_back(llama_vocab_eos(vocab));
-        if (tokens.size() + limit > static_cast<size_t>(engine->context_size)) return context_full;
-        if (tokens.empty()) return invalid;
+        if (limit >= engine->context_size) return context_full;
+        auto tokens = tokenize_prompt(*engine, session, vocab, static_cast<size_t>(engine->context_size - limit));
         // Each request supplies its complete, explicit history. Rebuild all transient
         // state while retaining resident weights; an interrupted recurrent decode
         // must not influence the next request through a reused scheduler/context.
@@ -234,7 +272,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
         }
         auto sampling = engine->sampling;
-        signal_grove::apply_local_chat_sampling(session, vocab, sampling, limit, !helper_ids.empty());
+        signal_grove::apply_local_chat_sampling(session, vocab, sampling, limit, env->GetArrayLength(helper_choices) != 0);
         common_sampler_ptr sampler(common_sampler_init(engine->model, sampling));
         if (!sampler) return failed;
         for (const auto token : tokens) common_sampler_accept(sampler.get(), token, false);
@@ -275,7 +313,8 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
         }
         auto status = emit_answer(session.finish());
         return status != ok ? status : token_limit;
-    } catch (...) { return failed; }
+    } catch (int code) { return code; }
+    catch (...) { return failed; }
 }
 
 extern "C" JNIEXPORT void JNICALL

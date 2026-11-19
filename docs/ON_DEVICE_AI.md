@@ -1,5 +1,21 @@
 # Using on-device AI (beta.9 preview)
 
+## Check how much context your phone model has
+
+On the development branch, load a model and enter a draft. The chat composer
+shows the number of prompt tokens used and the loaded context capacity. Tap
+the count to see how many output tokens remain and how many the current request
+reserves. The count includes the model template, special tokens and eligible
+earlier turns. The output reservation covers both reasoning and the reply.
+
+If the prompt leaves too little room, shorten the question or open a larger
+supported context. **Use draft in new chat** copies the text into a new unsent
+chat and keeps the original chat and its draft. Edit and regenerate reviews
+measure the exact earlier turns for that branch. A request that exceeds context
+keeps the original history and any unsent question.
+
+[Validation and limits](contracts/2026-11-19-phone-context-meter.md).
+
 ## Back up and restore phone chats on the unreleased branch
 
 1. Open **On-device AI → Phone history → Back up chats**. Select the saved

@@ -1,5 +1,12 @@
 # Signal Grove audit execution plan
 
+## Local inference context checkpoint - 19 November 2026
+
+The OF-03 meter and overflow admission check share the native prompt builder and
+tokenizer with generation. The existing OF-02 physical backup/restore, reviewed
+continuation selection and summaries, and all original release and Hermes
+acceptance work remain active. [Exact context evidence](contracts/2026-11-19-phone-context-meter.md).
+
 ## Phone history portability checkpoint - 19 November 2026
 
 OF-02 now includes visible phone backup selection, optional passphrase

@@ -29,6 +29,18 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     val draft = drafts.text
     fun changeDraft(value: String) { drafts.edit(value) }
     fun newChat() { controller.newChat(); drafts.select(controller.state.value.chat?.id); handoffState.value = "" }
+    fun newChatWithDraft() {
+        val state = controller.state.value
+        val text = draft.value
+        if (state.busy || state.loaded == null || state.chat?.exchanges.isNullOrEmpty() ||
+            state.history.size >= LocalConversationStore.MAX_CHATS || text.isBlank()) return
+        controller.newChat()
+        val fresh = controller.state.value.chat ?: return
+        if (fresh.id == state.chat?.id) return
+        drafts.select(fresh.id)
+        drafts.edit(text)
+        handoffState.value = ""
+    }
     fun openChat(id: String) { controller.openChat(id) { drafts.select(controller.state.value.chat?.id); handoffState.value = "" } }
     fun deleteChat(id: String) { controller.deleteChat(id) { drafts.forget(id); drafts.select(controller.state.value.chat?.id) } }
     fun branch(source: LocalConversation, index: Int, kind: LocalBranchKind, edited: String?) {

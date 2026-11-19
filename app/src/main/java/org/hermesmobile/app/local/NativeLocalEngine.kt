@@ -32,6 +32,14 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
         checkResult(NativeLlmBindings.load(handle.get(), file.canonicalPath, context, threads, id))
     }
 
+    suspend fun countPromptTokens(messages: List<LocalChatMessage>): Int = operation { id ->
+        val request = encodeRequest(messages)
+        val count = NativeLlmBindings.countPrompt(handle.get(), request.roles, request.contents, id)
+        if (count < 0) checkResult(-count)
+        check(count > 0)
+        count
+    }
+
     suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int = 384, onText: (String) -> Unit): LocalGenerationEnd =
         generateInternal(messages, maxTokens, emptyList(), onText)
 
@@ -40,9 +48,8 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
 
     private suspend fun generateInternal(messages: List<LocalChatMessage>, maxTokens: Int, helperIds: List<String>,
         onText: (String) -> Unit): LocalGenerationEnd = operation { id ->
-        require(messages.isNotEmpty() && messages.size <= 64 && messages.last().role == "user")
-        require(messages.all { it.role in setOf("system", "user", "assistant") } && messages.sumOf { it.text.toByteArray().size } <= 65_536)
-        require(maxTokens in 1..512 && handle.get() != 0L)
+        require(maxTokens in 1..512)
+        val request = encodeRequest(messages)
         val decoder = Utf8TokenDecoder()
         val callback = object : NativeTokenSink {
             override fun onBytes(bytes: ByteArray): Boolean {
@@ -51,13 +58,23 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
                 return true
             }
         }
-        val code = NativeLlmBindings.generate(handle.get(), messages.map { it.role }.toTypedArray(), messages.map { it.text.toByteArray(Charsets.UTF_8) }.toTypedArray(), helperIds.toTypedArray(), maxTokens, id, callback)
+        val code = NativeLlmBindings.generate(handle.get(), request.roles, request.contents, helperIds.toTypedArray(), maxTokens, id, callback)
         when (code) {
             0 -> LocalGenerationEnd.COMPLETE
             1 -> LocalGenerationEnd.CANCELLED
             5 -> LocalGenerationEnd.TOKEN_LIMIT
             else -> throw LocalEngineException(code)
         }
+    }
+
+    private data class EncodedRequest(val roles: Array<String>, val contents: Array<ByteArray>)
+
+    private fun encodeRequest(messages: List<LocalChatMessage>): EncodedRequest {
+        require(handle.get() != 0L && messages.isNotEmpty() && messages.size <= 64 && messages.last().role == "user")
+        require(messages.all { it.role in setOf("system", "user", "assistant") })
+        val contents = messages.map { it.text.toByteArray(Charsets.UTF_8) }.toTypedArray()
+        require(contents.sumOf { it.size } <= LOCAL_PROMPT_BYTE_LIMIT)
+        return EncodedRequest(messages.map { it.role }.toTypedArray(), contents)
     }
 
     fun cancel() { val h = handle.get(); val id = current.get(); if (h != 0L && id > 0) NativeLlmBindings.cancel(h, id) }
@@ -85,6 +102,7 @@ internal object NativeLlmBindings {
     external fun available(): Boolean
     external fun create(nativeLibraryDirectory: String): Long
     external fun load(handle: Long, path: String, context: Int, threads: Int, operation: Long): Int
+    external fun countPrompt(handle: Long, roles: Array<String>, contents: Array<ByteArray>, operation: Long): Int
     external fun generate(handle: Long, roles: Array<String>, contents: Array<ByteArray>, helperChoices: Array<String>, maxTokens: Int, operation: Long, sink: NativeTokenSink): Int
     external fun cancel(handle: Long, operation: Long)
     external fun dispose(handle: Long)

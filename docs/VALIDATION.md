@@ -1,5 +1,15 @@
 # Current development validation — audit follow-up
 
+## Exact phone context meter on 19 November 2026
+
+The strict Windows build passed 1,148 JVM tests and both lint variants with
+zero errors. Both Android 8 and 17 emulators passed 73 focused checks without
+skips, including the context meter and unsent-draft control. On the owned
+Android 17 emulator, the pinned LFM3 model measured 489 prompt tokens in a
+512-token context. Reserving 23 tokens for generation was accepted and reserving
+24 was refused before output. The unchanged garden-answer case timed out with two virtual CPUs and passed with four.
+[Exact Android and LFM3 checks](contracts/2026-11-19-phone-context-meter.md).
+
 ## Phone history backup and restore controls on 19 November 2026
 
 Phone history can create passphrase-protected or plain backups and review

@@ -26,6 +26,12 @@ class LocalAiControllerTest {
         var failure: Exception? = null
         var unloadGate: CompletableDeferred<Unit>? = null
         val requests = mutableListOf<List<LocalChatMessage>>()
+        val measured = mutableListOf<List<LocalChatMessage>>()
+        var promptTokens: Int? = null
+        override suspend fun countPromptTokens(messages: List<LocalChatMessage>): Int? {
+            measured.add(messages)
+            return promptTokens
+        }
         val helperChoices = mutableListOf<List<String>>()
         override suspend fun load(file: File, context: Int, threads: Int) { assertTrue(file.isFile); loadedSettings.add(context to threads); loads++ }
         override suspend fun generate(messages: List<LocalChatMessage>, maxTokens: Int, onText: (String) -> Unit): LocalGenerationEnd {
@@ -102,6 +108,82 @@ class LocalAiControllerTest {
         assertEquals(second.sha256, controller.state.value.chat!!.modelSha256); assertEquals(2, engine.requests.size)
         controller.leave(); advanceUntilIdle()
     }
+    @Test fun exactPromptBudgetReservesOutputAndRejectsOverflowBeforePublishing() = runTest {
+        val root = temp.newFolder()
+        val model = model(root)
+        val history = temp.newFolder()
+        val engine = Engine()
+        val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        controller.load(model)
+        advanceUntilIdle()
+        engine.promptTokens = 2048 - 384 + 1
+        val rejected = controller.previewPrompt(null, model.sha256, "Preserve this draft")
+        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(1665, 2048, 384)), rejected)
+        assertFalse((rejected as LocalPromptPreview.Exact).budget.fits)
+        var published = 0
+        controller.send("Preserve this draft") { published++ }
+        advanceUntilIdle()
+        assertEquals("engine_2", controller.state.value.error)
+        assertNull(controller.state.value.chat)
+        assertTrue(LocalConversationStore(history).list().isEmpty())
+        assertTrue(engine.requests.isEmpty())
+        assertEquals(0, published)
+
+        engine.promptTokens = 2048 - 384
+        controller.send("Preserve this draft") { published++ }
+        advanceUntilIdle()
+        assertEquals(1, published)
+        assertEquals(engine.measured.last(), engine.requests.single())
+        assertEquals(384, engine.outputCaps.single())
+        assertEquals("Preserve this draft", controller.state.value.chat!!.exchanges.single().question)
+        controller.leave()
+        advanceUntilIdle()
+    }
+
+    @Test fun branchPreflightUsesOnlyTheReviewedPrefixAndKeepsTheParentOnOverflow() = runTest {
+        val root = temp.newFolder()
+        val model = model(root)
+        val history = temp.newFolder()
+        val store = LocalConversationStore(history)
+        val source = LocalConversation(modelSha256 = model.sha256, updatedAt = 1, exchanges = listOf(
+            LocalExchange("Earlier question", "Earlier answer", LocalReplyState.COMPLETE),
+            LocalExchange("Interrupted question", "Partial text", LocalReplyState.INTERRUPTED),
+            LocalExchange("Selected question", "Selected answer", LocalReplyState.COMPLETE),
+            LocalExchange("Later question", "Later answer", LocalReplyState.COMPLETE)))
+        store.save(source)
+        val sourceBytes = File(history, source.id + ".json").readBytes()
+        val engine = Engine()
+        val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        controller.load(model)
+        advanceUntilIdle()
+        controller.openChat(source.id)
+        advanceUntilIdle()
+        engine.promptTokens = 2000
+        val preview = controller.previewPrompt(source, model.sha256, "Edited question", beforeExchange = 2)
+        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(2000, 2048, 384)), preview)
+        controller.branch(source, 2, LocalBranchKind.EDIT, "Edited question") { error("Overflow published a child") }
+        advanceUntilIdle()
+        assertEquals("engine_2", controller.state.value.error)
+        assertEquals(source, controller.state.value.chat)
+        assertEquals(1, store.list().size)
+        assertTrue(engine.requests.isEmpty())
+
+        engine.promptTokens = 64
+        controller.branch(source, 2, LocalBranchKind.EDIT, "Edited question")
+        advanceUntilIdle()
+        val prompt = engine.requests.single()
+        assertEquals(engine.measured.last(), prompt)
+        assertEquals(listOf("Earlier question", "Edited question"), prompt.filter { it.role == "user" }.map { it.text })
+        assertEquals(listOf("Earlier answer"), prompt.filter { it.role == "assistant" }.map { it.text })
+        assertArrayEquals(sourceBytes, File(history, source.id + ".json").readBytes())
+        assertEquals(2, store.list().size)
+        assertEquals(LocalPromptPreview.Unavailable, controller.previewPrompt(source, model.sha256, "Stale draft"))
+        controller.leave()
+        advanceUntilIdle()
+    }
+
     @Test fun leavingHoldsTheUpdateGuardUntilUnloadingActuallyFinishes() = runTest {
         val root = temp.newFolder(); val model = model(root); val engine = Engine(); val guard = UpdateWorkGuard()
         val controller = controller(root, temp.newFolder(), engine, guard, StandardTestDispatcher(testScheduler)); advanceUntilIdle()

@@ -30,6 +30,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import org.hermesmobile.app.LocalAiActivity
 import org.hermesmobile.app.local.*
 
@@ -75,7 +76,9 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val searchHistory: (LocalHistoryQuery) -> Unit = {}, val clearHistorySearch: () -> Unit = {},
     val organize: (LocalConversationSummary, LocalHistoryPreferences) -> Unit = {_, _ ->},
     val exportMarkdown: ((LocalConversationSummary) -> Unit)? = null,
-    val exportBackup: (() -> Unit)? = null, val importBackup: (() -> Unit)? = null)
+    val exportBackup: (() -> Unit)? = null, val importBackup: (() -> Unit)? = null,
+    val previewPrompt: (suspend (LocalConversation?, String, String, Int?) -> LocalPromptPreview)? = null,
+    val newChatWithDraft: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -98,7 +101,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch,
             searchHistory = c::searchHistory, clearHistorySearch = c::clearHistorySearch, organize = c::organizeChat,
             exportMarkdown = vm::prepareMarkdownExport, exportBackup = vm.historyBackup::selectExport,
-            importBackup = vm.historyBackup::selectImport), close, observations, handoff)
+            importBackup = vm.historyBackup::selectImport, previewPrompt = c::previewPrompt,
+            newChatWithDraft = vm::newChatWithDraft), close, observations, handoff)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -207,7 +211,13 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     var generationReview by remember { mutableStateOf<PhoneGenerationReview?>(null) }
     val loaded = state.loaded
     val mismatch = loaded != null && state.chat?.let {it.modelSha256 != loaded.sha256} == true
-    val full = (state.chat?.exchanges?.size ?: 0) >= 30
+    val full = (state.chat?.exchanges?.size ?: 0) >= LocalConversationStore.MAX_TURNS
+    val budget = if (branchReview == null) rememberPhonePromptPreview(state, draft.trim(), actions) else null
+    val contextFull = budget.blocksGeneration()
+    val copyDraft = actions.newChatWithDraft?.takeIf {
+        !state.busy && loaded != null && !state.chat?.exchanges.isNullOrEmpty() &&
+            state.history.size < LocalConversationStore.MAX_CHATS && draft.isNotBlank()
+    }
     Row(Modifier.fillMaxWidth()) {
         Text(loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"), style = MaterialTheme.typography.labelMedium)
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
@@ -253,16 +263,78 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     }
     generationReview?.let { PhoneGenerationDialog(it) { generationReview = null } }
     branchReview?.let { selected ->
-        PhoneBranchDialog(selected, state, { edited ->
+        PhoneBranchDialog(selected, state, actions, { edited ->
             branchReview = null
             actions.branch(selected.source, selected.index, selected.kind, edited)
         }) { branchReview = null }
     }
     if (draft.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
+    if (budget != null || (!state.busy && state.error == "engine_2")) {
+        PhonePromptUse(budget, state.error == "engine_2")
+    }
+    if ((contextFull || full || state.error == "engine_2") && copyDraft != null) {
+        TextButton(copyDraft, modifier = Modifier.testTag("phone-fresh-draft")) { Text(label(Words.PhoneUseDraftInNewChat)) }
+    }
     Row {
         OutlinedTextField(draft, change, Modifier.weight(1f).testTag("phone-draft"), placeholder = {Text(label(Words.PhoneMessage))}, maxLines = 4, enabled = !state.busy)
-        IconButton(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && draft.isNotBlank() && draft.toByteArray().size <= 8192,
+        IconButton(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && !contextFull && draft.isNotBlank() && draft.toByteArray().size <= 8192,
             modifier = Modifier.testTag("phone-send")) {Icon(Icons.AutoMirrored.Outlined.Send, label(Words.Send))}
+    }
+}
+
+@Composable
+private fun rememberPhonePromptPreview(state: LocalAiState, question: String, actions: LocalAiActions,
+    beforeExchange: Int? = null): LocalPromptPreview? {
+    val model = state.loaded ?: return null
+    val preview = actions.previewPrompt ?: return null
+    if (state.busy || state.chat?.let { it.modelSha256 != model.sha256 } == true ||
+        question.isBlank() || question.toByteArray().size > 8192) return null
+    var result by remember(preview, state.chat, model, question, beforeExchange) {
+        mutableStateOf<LocalPromptPreview?>(null)
+    }
+    LaunchedEffect(preview, state.chat, model, question, beforeExchange) {
+        delay(300)
+        result = preview(state.chat, model.sha256, question, beforeExchange)
+    }
+    return result
+}
+
+private fun LocalPromptPreview?.blocksGeneration() = when (this) {
+    is LocalPromptPreview.Exact -> !budget.fits
+    LocalPromptPreview.TooLarge -> true
+    else -> false
+}
+
+@Composable
+private fun PhonePromptUse(preview: LocalPromptPreview?, fallbackOverflow: Boolean = false) {
+    var detail by remember { mutableStateOf(false) }
+    when (preview) {
+        is LocalPromptPreview.Exact -> {
+            val budget = preview.budget
+            TextButton({ detail = true }, modifier = Modifier.testTag("phone-prompt-budget")) {
+                Text(label(Words.PhoneContextMeter).replace("{prompt}", budget.promptTokens.toString())
+                    .replace("{context}", budget.contextTokens.toString()))
+            }
+            if (!budget.fits) Text(label(Words.PhoneContextWouldOverflow), Modifier.testTag("phone-prompt-overflow"),
+                color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            if (detail) AlertDialog(onDismissRequest = { detail = false },
+                title = { Text(label(Words.PhoneContextDetails)) },
+                text = {
+                    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(label(Words.PhoneContextMeter).replace("{prompt}", budget.promptTokens.toString())
+                            .replace("{context}", budget.contextTokens.toString()))
+                        Text(label(Words.PhoneContextRoom).replace("{remaining}", budget.remainingTokens.toString())
+                            .replace("{reserved}", budget.reservedTokens.toString()), Modifier.testTag("phone-prompt-output-room"))
+                        Text(label(Words.PhoneContextScope))
+                    }
+                },
+                confirmButton = { TextButton({ detail = false }) { Text(label(Words.Close)) } })
+        }
+        LocalPromptPreview.TooLarge -> Text(label(Words.PhonePromptFormatLimit), Modifier.testTag("phone-prompt-overflow"),
+            color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        LocalPromptPreview.Unavailable -> Text(label(Words.PhoneContextUnmeasured), style = MaterialTheme.typography.bodySmall)
+        null -> if (fallbackOverflow) Text(label(Words.PhoneContextWouldOverflow), Modifier.testTag("phone-prompt-overflow"),
+            color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -297,7 +369,7 @@ private data class PhoneGenerationReview(val modelSha256: String, val settings: 
 
 private data class PhoneBranchReview(val source: LocalConversation, val index: Int, val kind: LocalBranchKind)
 
-@Composable private fun PhoneBranchDialog(review: PhoneBranchReview, state: LocalAiState,
+@Composable private fun PhoneBranchDialog(review: PhoneBranchReview, state: LocalAiState, actions: LocalAiActions,
     accept: (String?) -> Unit, close: () -> Unit) {
     var question by remember(review) { mutableStateOf(review.source.exchanges[review.index].question) }
     val editing = review.kind == LocalBranchKind.EDIT
@@ -308,8 +380,14 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
     }
     val unchanged = state.chat == review.source
     val compatible = review.kind == LocalBranchKind.FORK || state.loaded?.sha256 == review.source.modelSha256
+    val checksContext = review.kind != LocalBranchKind.FORK && actions.previewPrompt != null
+    val validQuestion = question.isNotBlank() && question.toByteArray().size <= 8192
+    val budget = if (checksContext && unchanged && compatible && validQuestion) {
+        rememberPhonePromptPreview(state, question, actions, beforeExchange = review.index)
+    } else null
+    val pendingCheck = checksContext && validQuestion && unchanged && compatible && !state.busy && budget == null
     val valid = !state.busy && unchanged && compatible && state.history.size < LocalConversationStore.MAX_CHATS &&
-        (!editing || (question.isNotBlank() && question.toByteArray().size <= 8192))
+        (!editing || validQuestion) && !pendingCheck && !budget.blocksGeneration()
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -319,6 +397,8 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
                     if (editing) OutlinedTextField(question, {question = it}, Modifier.fillMaxWidth().testTag("phone-edit-question"),
                         label = {Text(label(Words.PhoneMessage))}, enabled = !state.busy, maxLines = 8)
                     else SelectionContainer {Text(question)}
+                    if (pendingCheck) Text(label(Words.PhoneContextChecking), style = MaterialTheme.typography.bodySmall)
+                    if (budget != null) PhonePromptUse(budget)
                     if (!unchanged) Text(label(Words.PhoneBranchChanged), color = MaterialTheme.colorScheme.error)
                     if (!compatible) Text(label(Words.PhoneMismatch))
                     if (state.history.size >= LocalConversationStore.MAX_CHATS) Text(label(Words.PhoneBranchHistoryFull))

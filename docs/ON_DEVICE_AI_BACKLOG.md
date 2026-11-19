@@ -84,10 +84,13 @@ behavior and older history migrate without data loss.
 
 ## OF-03: Context meter and controlled long conversations
 
-**Status: planned.** Show actual tokenizer/template-aware context use, remaining
-answer budget and an understandable full-context warning. Offer a new branch,
-explicit selection of earlier turns, or a reviewed local summary to continue.
-Retain the original full conversation and identify exactly what context is used.
+**Status: in progress.** The meter and preflight count exact prompt tokens
+using the loaded model's tokenizer and template. The composer shows capacity,
+remaining output room and the reasoning/reply reservation. Overflow leaves the
+draft and history intact. Users can copy an unsent draft into a new chat or
+measure a branch with its reviewed earlier turns. Explicit turn-selection and
+editable reviewed-summary continuations, plus device acceptance, remain open.
+[Measured LFM3 boundary and test evidence](contracts/2026-11-19-phone-context-meter.md).
 
 Acceptance: counts include applicable templates, special tokens and generation/
 reasoning reservations; estimates are labeled where exact counts are unavailable.

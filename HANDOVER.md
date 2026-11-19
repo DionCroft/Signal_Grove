@@ -69,13 +69,19 @@ staging and Tink 1.24.0 build passed 1,146 JVM tests, both lint variants and
 [Exact app and companion evidence](docs/contracts/2026-11-19-phone-history-backup-ui.md).
 [Wire format and checks](docs/contracts/2026-11-19-phone-history-backup-archive.md).
 
+The context meter and overflow admission check pass 1,148 JVM tests, both
+lint variants and 73 focused checks per emulator API. The pinned LFM3 boundary
+passes on the owned Android 17 emulator.
+[Context meter and limits](docs/contracts/2026-11-19-phone-context-meter.md).
+
 ## Exact next action
 
 Verify an offline backup/restore on the exact backup UI build using selected
 test chats with an original and restored copy. Physical Markdown export is verified. The physical
 label Save, Cancel and unloaded archive read are verified. The full hosted
 Markdown export matrix passed 1,187 API 26 and 1,188 API 37
-cases. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
+cases. Continue OF-03 with explicit earlier-turn selection and editable reviewed
+summaries. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/

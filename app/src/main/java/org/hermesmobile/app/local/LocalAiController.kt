@@ -205,15 +205,49 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
         refresh()
     }
+    internal suspend fun previewPrompt(expected: LocalConversation?, modelHash: String, question: String,
+        beforeExchange: Int? = null): LocalPromptPreview = lock.withLock {
+        val state = mutable.value
+        if (leaving || state.busy || state.chat != expected || state.loaded?.sha256 != modelHash ||
+            expected?.let { it.modelSha256 != modelHash } == true ||
+            question.isBlank() || question.toByteArray().size > 8192) return@withLock LocalPromptPreview.Unavailable
+        val exchanges = expected?.exchanges.orEmpty()
+        if (beforeExchange != null && beforeExchange !in exchanges.indices) return@withLock LocalPromptPreview.Unavailable
+        val history = if (beforeExchange == null) exchanges else exchanges.take(beforeExchange)
+        try {
+            val budget = measurePrompt(localChatPrompt(history, question), generationSettings())
+            if (budget == null) LocalPromptPreview.Unavailable else LocalPromptPreview.Exact(budget)
+        } catch (e: LocalEngineException) {
+            if (e.code == 2) LocalPromptPreview.TooLarge else LocalPromptPreview.Unavailable
+        } catch (_: LinkageError) {
+            LocalPromptPreview.Unavailable
+        }
+    }
+
+    private suspend fun measurePrompt(messages: List<LocalChatMessage>, settings: LocalGenerationSettings): LocalPromptBudget? {
+        if (messages.sumOf { it.text.toByteArray().size } > LOCAL_PROMPT_BYTE_LIMIT) throw LocalEngineException(2)
+        return checkNotNull(engine).countPromptTokens(messages)?.let {
+            LocalPromptBudget(it, settings.contextTokens, settings.maxOutputTokens)
+        }
+    }
+
+    private suspend fun validatePrompt(messages: List<LocalChatMessage>, settings: LocalGenerationSettings) {
+        if (measurePrompt(messages, settings)?.fits == false) throw LocalEngineException(2)
+        currentCoroutineContext().ensureActive()
+    }
+
     fun send(question: String) = send(question) {}
     fun send(question: String, onPublished: (LocalConversation) -> Unit) = action("generating") {
         require(question.isNotBlank() && question.toByteArray().size <= 8192)
         val model = mutable.value.loaded ?: throw LocalEngineException(4)
         val prior = mutable.value.chat ?: LocalConversation(modelSha256 = model.sha256, updatedAt = System.currentTimeMillis())
         require(prior.modelSha256 == model.sha256 && prior.exchanges.size < LocalConversationStore.MAX_TURNS)
-        runGeneration({
+        val settings = generationSettings()
+        val messages = localChatPrompt(prior.exchanges, question)
+        validatePrompt(messages, settings)
+        runGeneration(messages, {
             val pending = prior.copy(updatedAt = System.currentTimeMillis(),
-                exchanges = prior.exchanges + LocalExchange(question, state = LocalReplyState.GENERATING, generation = generationSettings()))
+                exchanges = prior.exchanges + LocalExchange(question, state = LocalReplyState.GENERATING, generation = settings))
             conversations.save(pending)
             pending
         }, onPublished)
@@ -236,12 +270,20 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             } else {
                 val loaded = mutable.value.loaded ?: throw LocalEngineException(4)
                 require(loaded.sha256 == expected.modelSha256)
-                runGeneration({conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis(), editedQuestion, generationSettings())}, onSelected)
+                val question = kind.generationQuestion(expected.exchanges[exchangeIndex], editedQuestion)
+                require(question.isNotBlank() && question.toByteArray().size <= 8192)
+                val settings = generationSettings()
+                val messages = localChatPrompt(expected.exchanges.take(exchangeIndex), question)
+                validatePrompt(messages, settings)
+                runGeneration(messages, {
+                    conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis(), editedQuestion, settings)
+                }, onSelected)
             }
         }
 
     /** Atomically publish the pending question before calling native inference, including branches. */
-    private suspend fun runGeneration(createPending: () -> LocalConversation, onPublished: (LocalConversation) -> Unit) {
+    private suspend fun runGeneration(messages: List<LocalChatMessage>, createPending: () -> LocalConversation,
+        onPublished: (LocalConversation) -> Unit) {
         var pending: LocalConversation? = null
         var notified = false
         var reply = ""
@@ -252,14 +294,6 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             val active = checkNotNull(pending)
             mutable.update { it.copy(chat = active) }
             notified = true; onPublished(active)
-            val messages = buildList {
-                add(LocalChatMessage("system", "You are an on-device text assistant in Signal Grove. You have no access to Hermes, servers, projects, credentials or tools. Never claim to have performed an action. Give advice as advice."))
-                active.exchanges.dropLast(1).filter { it.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT) }.forEach {
-                    add(LocalChatMessage("user", it.question)); if (it.reply.isNotBlank()) add(LocalChatMessage("assistant", it.reply))
-                }
-                add(LocalChatMessage("user", active.exchanges.last().question))
-            }
-            if (messages.sumOf {it.text.toByteArray().size} > 65_536) throw LocalEngineException(2)
             currentCoroutineContext().ensureActive()
             terminal = when (engine!!.generate(messages, active.exchanges.last().generation!!.maxOutputTokens) { text ->
                 reply = text

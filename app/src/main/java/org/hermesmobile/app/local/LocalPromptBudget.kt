@@ -1,0 +1,34 @@
+package org.hermesmobile.app.local
+
+internal const val LOCAL_PROMPT_BYTE_LIMIT = 65_536
+
+data class LocalPromptBudget(val promptTokens: Int, val contextTokens: Int, val reservedTokens: Int) {
+    init {
+        require(promptTokens > 0 && contextTokens > 0 && reservedTokens in 1..contextTokens)
+    }
+
+    val remainingTokens: Int get() = (contextTokens - promptTokens).coerceAtLeast(0)
+    val fits: Boolean get() = remainingTokens >= reservedTokens
+}
+
+sealed interface LocalPromptPreview {
+    data class Exact(val budget: LocalPromptBudget) : LocalPromptPreview
+    data object TooLarge : LocalPromptPreview
+    data object Unavailable : LocalPromptPreview
+}
+
+internal fun localChatPrompt(history: List<LocalExchange>, question: String): List<LocalChatMessage> = buildList {
+    add(LocalChatMessage("system", "You are an on-device text assistant in Signal Grove. You have no access to Hermes, servers, projects, credentials or tools. Never claim to have performed an action. Give advice as advice."))
+    for (exchange in history) {
+        if (exchange.state != LocalReplyState.COMPLETE && exchange.state != LocalReplyState.TOKEN_LIMIT) continue
+        add(LocalChatMessage("user", exchange.question))
+        if (exchange.reply.isNotBlank()) add(LocalChatMessage("assistant", exchange.reply))
+    }
+    add(LocalChatMessage("user", question))
+}
+
+internal fun LocalBranchKind.generationQuestion(selected: LocalExchange, editedQuestion: String?): String = when (this) {
+    LocalBranchKind.EDIT -> requireNotNull(editedQuestion)
+    LocalBranchKind.REGENERATE -> selected.question.also { require(editedQuestion == null) }
+    LocalBranchKind.FORK -> error("A copied branch does not generate")
+}

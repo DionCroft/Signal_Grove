@@ -101,13 +101,9 @@ class LocalConversationStore(directory: File) {
                 require(editedQuestion == null && generation == null && selected.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT))
                 source.exchanges.take(exchangeIndex + 1)
             }
-            LocalBranchKind.REGENERATE -> {
-                require(editedQuestion == null)
-                source.exchanges.take(exchangeIndex) + LocalExchange(selected.question, state = LocalReplyState.GENERATING, generation = generation)
-            }
-            LocalBranchKind.EDIT -> {
-                require(editedQuestion != null)
-                source.exchanges.take(exchangeIndex) + LocalExchange(editedQuestion, state = LocalReplyState.GENERATING, generation = generation)
+            LocalBranchKind.REGENERATE, LocalBranchKind.EDIT -> {
+                val question = kind.generationQuestion(selected, editedQuestion)
+                source.exchanges.take(exchangeIndex) + LocalExchange(question, state = LocalReplyState.GENERATING, generation = generation)
             }
         }
         val origin = LocalBranchOrigin(source.id, source.updatedAt, exchangeIndex, kind,

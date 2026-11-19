@@ -25,9 +25,12 @@ class LocalChatActionsUiTest {
     private val requests = mutableListOf<Request>()
     private val opened = mutableListOf<String>()
     private var sends = 0
-    private fun show(bilingual: Boolean = false) {
+    private fun show(bilingual: Boolean = false,
+        preview: (suspend (LocalConversation?, String, String, Int?) -> LocalPromptPreview)? = null,
+        copyDraft: (() -> Unit)? = null) {
         val actions = LocalAiActions({sends++}, {}, {}, {_, _ ->}, {}, {}, {}, {}, {}, {}, {},
-            {opened.add(it)}, {}, {}, branch = {source, index, kind, edited -> requests.add(Request(source, index, kind, edited))})
+            {opened.add(it)}, {}, {}, branch = {source, index, kind, edited -> requests.add(Request(source, index, kind, edited))},
+            previewPrompt = preview, newChatWithDraft = copyDraft)
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
@@ -37,6 +40,26 @@ class LocalChatActionsUiTest {
             }
         }
     }
+    @Test fun contextMeterReportsReservedOutputAndKeepsAnOverflowingDraft() {
+        var freshDraft: String? = null
+        show(preview = { chat, modelHash, question, index ->
+            assertEquals(original, chat)
+            assertEquals(hash, modelHash)
+            assertEquals("Unsent parent draft", question)
+            assertNull(index)
+            LocalPromptPreview.Exact(LocalPromptBudget(1792, 2048, 384))
+        }, copyDraft = { freshDraft = draft })
+        compose.waitUntil(5000) { compose.onAllNodesWithTag("phone-prompt-overflow").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("phone-send").assertIsNotEnabled()
+        compose.onNodeWithTag("phone-prompt-budget").performClick()
+        compose.onNodeWithTag("phone-prompt-output-room").assertTextEquals("256 tokens available for output. This request reserves 384.")
+        compose.onNodeWithText(Words.Close.en).performClick()
+        compose.onNodeWithTag("phone-fresh-draft").performClick()
+        assertEquals("Unsent parent draft", freshDraft)
+        assertEquals("Unsent parent draft", draft)
+        assertEquals(0, sends)
+    }
+
     @Test fun regenerationWaitsForReviewAndCancelPreservesEverything() {
         show(); compose.onNodeWithTag("phone-regenerate-0").performScrollTo().performClick()
         compose.onNodeWithTag("phone-branch-confirm").assertIsDisplayed().assertIsEnabled()

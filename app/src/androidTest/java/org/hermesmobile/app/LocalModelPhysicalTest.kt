@@ -104,6 +104,39 @@ class LocalModelPhysicalTest {
             stage("native-chinese-text-complete")
         } finally {withContext(NonCancellable) {engine.unload()}}
     }
+    @Test fun verifiedLfm3PromptCountMatchesTheGenerationBoundary() = runBlocking {
+        val (root, model) = modelInput()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val engine = NativeLocalEngine(root, context.applicationInfo.nativeLibraryDir)
+        try {
+            val capacity = 512
+            withTimeout(120_000) { engine.load(model, context = capacity, threads = 4) }
+            val short = localChatPrompt(emptyList(), "Reply with a dot.")
+            val shortCount = engine.countPromptTokens(short)
+            assertTrue(shortCount in 2 until capacity)
+            val (request, promptTokens) = (350..500 step 4).firstNotNullOf { words ->
+                val prompt = localChatPrompt(emptyList(), "garden ".repeat(words) + "Reply with a dot.")
+                val measured = engine.countPromptTokens(prompt)
+                (prompt to measured).takeIf { capacity - measured in 8..24 }
+            }
+            val room = capacity - promptTokens
+            assertEquals(promptTokens, engine.countPromptTokens(request))
+            var streamed = false
+            val refused = runCatching { engine.generate(request, room + 1) { streamed = true } }.exceptionOrNull()
+            assertTrue(refused is LocalEngineException && refused.code == 2)
+            assertFalse(streamed)
+            val end = withTimeout(120_000) { engine.generate(request, room) {} }
+            assertTrue(end in setOf(LocalGenerationEnd.COMPLETE, LocalGenerationEnd.TOKEN_LIMIT))
+            assertEquals(shortCount, engine.countPromptTokens(short))
+            InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {
+                putInt("context_capacity", capacity)
+                putInt("prompt_tokens", promptTokens)
+                putInt("output_room", room)
+                putInt("short_prompt_tokens", shortCount)
+            })
+            stage("native-prompt-count-boundary-complete")
+        } finally { withContext(NonCancellable) { engine.unload() } }
+    }
     @Test fun verifiedLfm3StreamsOnlyAnswerTextForGardenPrompt() = runBlocking {
         val (root, model) = modelInput()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
