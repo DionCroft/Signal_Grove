@@ -142,9 +142,11 @@ pinned revision and hash before any download. Partials and discard are model-spe
 Installed models can be filtered by name, architecture or SHA-256. Phone
 models shows installed bytes, current free storage and saved partial download
 data. Load is explicit and appears near the model name. Licence consent and
-actions stay visible beside the scrollable source text. First-run download,
-import, load and first-chat guidance and a saved local startup preference
+actions stay visible beside the scrollable source text. A first-run guide
+reads the library and routes explicitly through download or import, load and
+phone chat. The saved local startup preference and physical acceptance
 remain open.
+[Guide checks](VALIDATION.md#guided-offline-chat-setup).
 [Catalogue checks](VALIDATION.md#offline-catalogue-and-separate-model-downloads) ·
 [Library and licence checks](VALIDATION.md#installed-model-library-and-fixed-licence-controls).
 

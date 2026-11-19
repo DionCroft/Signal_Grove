@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest guided setup checkpoint
+
+The development app now guides users from phone model download or
+import through explicit load and first chat. It shows existing model
+and chat state. The signed debug pair passed 1,158 JVM tests and 89
+focused methods per emulator API with zero lint errors. Continue
+with the saved local startup preference, hosted and physical checks,
+and all remote integration and signed-release gates.
+[Guide evidence](docs/VALIDATION.md#guided-offline-chat-setup).
+
 ## Latest model library checkpoint
 
 The development app filters installed models by name, architecture or

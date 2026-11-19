@@ -22,6 +22,7 @@ internal fun ColumnScope.PhoneModelLibrary(
     supported: Boolean,
     actions: LocalAiActions,
     openCatalogue: () -> Unit,
+    openSetup: () -> Unit,
     remove: (InstalledLocalModel) -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -51,6 +52,7 @@ internal fun ColumnScope.PhoneModelLibrary(
                 .replace("{size}", Formatter.formatFileSize(context, partials)),
                 Modifier.testTag("phone-model-saved-downloads"), style = MaterialTheme.typography.bodySmall)
         }
+        TextButton(openSetup, Modifier.testTag("phone-offline-setup-models-entry")) { Text(label(Words.PhoneOfflineSetup)) }
         TextButton(actions.refresh, enabled = !state.busy) { Text(label(Words.Refresh)) }
         if (state.models.size > 1) {
             OutlinedTextField(

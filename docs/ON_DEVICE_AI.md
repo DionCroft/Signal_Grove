@@ -1,5 +1,25 @@
 # Using on-device AI (beta.9 preview)
 
+## Set up offline chat in the development build
+
+1. Open **Settings → On-device AI → Phone models → Set up offline
+   chat**. The same guide is available in local **Chat** when no model
+   is loaded.
+2. Choose **Compare downloadable models** to browse the offline
+   catalogue. Download a listed file when connected, or use **Import
+   GGUF file** to select a compatible file you already have. Review and
+   confirm its licence.
+3. Open **Phone models** and tap **Load model**. The model card shows
+   the minimum available RAM needed.
+4. Use **Open phone chat** in the guide, or open the **Chat** tab. Type
+   a message and tap Send. Use **New chat** first if the conversation
+   on screen is bound to a different model.
+
+The guide shows installed and saved chat counts and the loaded model.
+It works without a Hermes connection. Each download, load and message
+requires a separate action.
+[Guide validation](VALIDATION.md#guided-offline-chat-setup).
+
 ## Compare downloadable models in the development build
 
 Open **On-device AI → Phone models → Compare downloadable models**. Both

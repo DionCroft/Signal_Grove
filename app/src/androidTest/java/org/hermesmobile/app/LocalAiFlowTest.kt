@@ -26,6 +26,7 @@ class LocalAiFlowTest {
     private val downloads = mutableListOf<CuratedPhoneModel>()
     private val discarded = mutableListOf<CuratedPhoneModel>()
     private var imports = 0; private var sends = 0; private var stops = 0
+    private var newChats = 0
     private var pending by mutableStateOf(false)
     private var state by mutableStateOf(LocalAiState())
     private val helperRequests = mutableListOf<Pair<LocalHelpTopic, Boolean>>()
@@ -38,7 +39,7 @@ class LocalAiFlowTest {
         val actions = LocalAiActions({sends++}, {
                 stops++
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
-            }, {}, { model, context -> requestedLoads.add(model.sha256 to context) },
+            }, { newChats++ }, { model, context -> requestedLoads.add(model.sha256 to context) },
             {}, {}, { model -> downloads.add(model) }, { model -> discarded.add(model) }, {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {},
             help = {topic, share -> helperRequests.add(topic to share)}, saveModelPerformance = { item, settings ->
                 performanceSaves.add(settings)
@@ -237,6 +238,59 @@ class LocalAiFlowTest {
         compose.runOnIdle { assertTrue(requestedLoads.isEmpty()); assertTrue(downloads.isEmpty()) }
         compose.onNodeWithTag("phone-load-${qwen.sha256.take(8)}").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(listOf(qwen.sha256 to 2048), requestedLoads); assertEquals(0, sends) }
+    }
+
+    @Test fun offlineSetupRoutesToExistingCatalogueAndImportReview() {
+        show()
+        compose.onNodeWithTag("phone-messages").performScrollToNode(hasTestTag("phone-offline-setup-chat-entry"))
+        compose.onNodeWithTag("phone-offline-setup-chat-entry").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-offline-setup-models").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-offline-setup-catalogue").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-download-review-LFM3").performScrollTo().assertIsDisplayed()
+        compose.runOnIdle { assertTrue(downloads.isEmpty()); assertEquals(0, imports) }
+        compose.onNodeWithTag("phone-catalogue-close").performClick()
+
+        compose.onNodeWithTag("phone-offline-setup-models-entry").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-offline-setup-import").performScrollTo().performClick()
+        compose.onNodeWithText(Words.PhoneImportLicence.en).assertExists()
+        compose.onNodeWithTag("phone-licence-confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("phone-licence-cancel").performClick()
+        compose.runOnIdle {
+            assertFalse(pending)
+            assertEquals(1, imports)
+            assertTrue(downloads.isEmpty())
+            assertTrue(requestedLoads.isEmpty())
+            assertEquals(0, sends)
+        }
+    }
+
+    @Test fun offlineSetupReflectsLibraryAndOpensChatWithoutStartingWork() {
+        state = LocalAiState(models = listOf(model))
+        show()
+        compose.onNodeWithTag("phone-messages").performScrollToNode(hasTestTag("phone-offline-setup-chat-entry"))
+        compose.onNodeWithTag("phone-offline-setup-chat-entry").performClick()
+        compose.onNodeWithTag("phone-offline-setup-installed").performScrollTo().assertTextContains("1", substring = true)
+        compose.onNodeWithTag("phone-offline-setup-chat").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-offline-setup-models").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-model-list").assertExists()
+        compose.runOnIdle { assertTrue(requestedLoads.isEmpty()) }
+
+        compose.runOnIdle {
+            state = state.copy(loaded = model, history = listOf(LocalConversationSummary(
+                "11111111-1111-4111-8111-111111111111", model.sha256, 0, "Saved", LocalReplyState.COMPLETE
+            )))
+        }
+        compose.onNodeWithTag("phone-offline-setup-models-entry").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-offline-setup-loaded").performScrollTo().assertTextContains("Fixture", substring = true)
+        compose.onNodeWithTag("phone-offline-setup-saved").performScrollTo().assertTextContains("1", substring = true)
+        compose.onNodeWithTag("phone-offline-setup-chat").performScrollTo().assertIsEnabled().performClick()
+        compose.onNodeWithTag("phone-draft").assertTextContains("Fresh local draft")
+        compose.runOnIdle {
+            assertTrue(requestedLoads.isEmpty())
+            assertTrue(downloads.isEmpty())
+            assertEquals(0, newChats)
+            assertEquals(0, sends)
+        }
     }
 
     @Test fun importIsExplicitAndCancelDoesNotDownload() {

@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## Guided offline chat setup
+
+**Set up offline chat** is available from Phone models and unloaded
+phone Chat. The guide reads the existing library, loaded model and
+saved phone chat count. Its catalogue and picker actions use the
+existing separate licence reviews. Opening Phone models and returning
+to Chat are navigation actions. A download, model load or message
+still requires its own action.
+
+The frozen build passed 1,158 JVM tests and both Android lint variants
+with zero errors. Android 8 and Android 17 each passed 89 focused
+instrumentation methods with zero skips. The two added methods check
+catalogue and import review routing, unloaded/loaded readiness, saved
+chat count and draft retention. They assert that navigation starts no
+download, model load, chat creation or inference.
+
+The normal Android 8 app showed one installed model, an available
+catalogue and the disabled chat action with the model unloaded. Close
+remained visible after scrolling. The walkthrough retained all 5
+local model and chat files in its comparison.
+
+- Frozen source digest: d13916fce707da8158156e54d7ddd665a166d62242c97b0b289a167ff83d0d57
+- Debug APK SHA-256: 8329401fab9f4a032618aa4a584dc670dc7401bfe0e0f5be7bfeea860e3252fc
+- Debug test APK SHA-256: d85c5732a3e501a54831d57aba767f05ae9a8437884b5d77169b65ef7d62d500
+- API 26 native evidence SHA-256: e16e8d88d826d66a9a0a2e0ed037ba80943272cf798e3924263745421ec65c31
+- API 37 native evidence SHA-256: 33bbdddde731c3a7f0b68d6bc2dc8d65215411fb3054b8568ee3bb744c701a5d
+
+The initial Android 8 sweep recorded one failure in the existing
+summary-draft test. The draft button was outside its asserted
+viewport immediately after the modal transition. The test passed
+in isolation on the same APK pair. The full Android 8 rerun also
+passed. The first terminal record and isolated diagnostic were
+preserved.
+
+- Initial API 26 native evidence SHA-256: 78afc6e29d3996c2e8759da9b75da7fb8e1973a366127e2a0fabf7176115d24a
+- Isolated API 26 summary evidence SHA-256: 12abb0379b086e98a79fa3ba1e5f578a38d4707e8e78387b7a12cb35613ae582
+
+The saved startup preference and acceptance of this new guide on the
+physical phone are still open.
+
 ## Installed model library and fixed licence controls
 
 Phone models shows the installed GGUF total, sampled free storage and

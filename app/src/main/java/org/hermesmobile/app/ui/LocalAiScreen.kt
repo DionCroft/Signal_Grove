@@ -122,6 +122,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null, handoffState:String = "") {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
+    var offlineSetup by rememberSaveable { mutableStateOf(false) }
     var helper by remember {mutableStateOf(false)}
     var catalogueOpen by rememberSaveable { mutableStateOf(false) }
     var downloadReview by remember { mutableStateOf<CuratedPhoneModel?>(null) }
@@ -159,8 +160,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 TextButton({errorDetails = true}, Modifier.testTag("phone-error")) {Text(label(Words.PhoneIssue), color = MaterialTheme.colorScheme.error)}
             }
             when (tab) {
-                0 -> PhoneChat(state, draft, changeDraft, actions) {review = it}
-                1 -> PhoneModelLibrary(state, supported, actions, { catalogueOpen = true }, { deleteModel = it })
+                0 -> PhoneChat(state, draft, changeDraft, actions, { offlineSetup = true }) { review = it }
+                1 -> PhoneModelLibrary(state, supported, actions,
+                    openCatalogue = { catalogueOpen = true },
+                    openSetup = { offlineSetup = true },
+                    remove = { deleteModel = it })
                 2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
             }
             Row {
@@ -170,6 +174,31 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         }
     }
     if (guide) SetupGuide {guide = false}
+    if (offlineSetup) {
+        PhoneOfflineSetup(
+            state = state,
+            supported = supported,
+            openCatalogue = {
+                offlineSetup = false
+                tab = 1
+                catalogueOpen = true
+            },
+            chooseFile = {
+                offlineSetup = false
+                tab = 1
+                actions.chooseFile()
+            },
+            openModels = {
+                offlineSetup = false
+                tab = 1
+            },
+            openChat = {
+                offlineSetup = false
+                tab = 0
+            },
+            close = { offlineSetup = false }
+        )
+    }
     if (boundary) AlertDialog(onDismissRequest = {boundary = false}, title = {Text(label(Words.PhoneAi))},
         text = {Text(label(Words.PhoneBoundary) + "\n\n" + label(Words.PhoneEntry), Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()))},
         confirmButton = {TextButton({boundary = false}) {Text(label(Words.Close))}})
@@ -221,7 +250,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     }
 }
 
-@Composable private fun ColumnScope.PhoneChat(state: LocalAiState, draft: String, change: (String) -> Unit, actions: LocalAiActions, review: (String) -> Unit) {
+@Composable private fun ColumnScope.PhoneChat(
+    state: LocalAiState,
+    draft: String,
+    change: (String) -> Unit,
+    actions: LocalAiActions,
+    openSetup: () -> Unit,
+    review: (String) -> Unit
+) {
     var branchReview by remember { mutableStateOf<PhoneBranchReview?>(null) }
     var continuation by remember { mutableStateOf<PhoneContinuationReview?>(null) }
     var generationReview by remember { mutableStateOf<PhoneGenerationReview?>(null) }
@@ -267,7 +303,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         state.chat?.reviewedSummary?.let { summary -> item(key = "reviewed-summary") {
             PhoneReviewedSummary(summary)
         } }
-        if (loaded == null) item {Text(label(Words.PhoneNotLoaded))}
+        if (loaded == null) item {
+            Column {
+                Text(label(Words.PhoneNotLoaded))
+                TextButton(openSetup, Modifier.testTag("phone-offline-setup-chat-entry")) {
+                    Text(label(Words.PhoneOfflineSetup))
+                }
+            }
+        }
         if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
         if (state.chat?.hasSavedContent != true) item {Text(label(Words.PhoneEmpty))}
         if (state.history.size >= LocalConversationStore.MAX_CHATS) item { Text(label(Words.PhoneBranchHistoryFull)) }
