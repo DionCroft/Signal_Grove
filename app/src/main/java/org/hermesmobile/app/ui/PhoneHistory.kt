@@ -71,6 +71,10 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
         if(results.isEmpty()) item {Text(label(if(state.historyQuery != null) Words.PhoneHistoryNoMatches else if(archivedCount > 0) Words.PhoneHistoryNoActive else Words.PhoneNoHistory), Modifier.testTag("phone-history-empty"))}
         items(results, key = {it.id}) {item -> HermesCard {
             Text(item.title)
+            val activityFormat = remember {java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.MEDIUM)}
+            Text(activityFormat.format(java.util.Date(item.updatedAt)), Modifier.testTag("phone-history-time-${item.id}"),
+                style = MaterialTheme.typography.labelSmall)
+            item.origin?.let {Text(label(historyBranchWord(it.kind)), style = MaterialTheme.typography.labelSmall)}
             if(item.organization?.preferences?.pinned == true) Text(label(Words.PhoneHistoryPinned), style = MaterialTheme.typography.labelSmall)
             if(item.organization?.preferences?.archived == true) Text(label(Words.PhoneHistoryArchived), style = MaterialTheme.typography.labelSmall)
             Text("SHA-256: ${item.modelSha256}", style = MaterialTheme.typography.labelSmall)
@@ -84,6 +88,12 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
         {preferences -> actions.organize(selected, preferences); organizing = null}, {organizing = null}) }
     if(review) PhoneHistorySearchDialog(state, LocalHistoryView.valueOf(view), {view = it.name}, text, {text = it}, model, {model = it}, PhoneHistoryPeriod.valueOf(period),
         {period = it.name}, {query -> actions.searchHistory(query); review = false}, {review = false})
+}
+
+internal fun historyBranchWord(kind: LocalBranchKind) = when(kind) {
+    LocalBranchKind.FORK -> Words.PhoneHistoryCopiedBranch
+    LocalBranchKind.EDIT -> Words.PhoneHistoryEditedBranch
+    LocalBranchKind.REGENERATE -> Words.PhoneHistoryRegeneratedBranch
 }
 
 internal fun historyViewWord(view: LocalHistoryView) = when(view) {

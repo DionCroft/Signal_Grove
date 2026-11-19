@@ -5,6 +5,9 @@ import org.hermesmobile.app.data.AppPreferences
 
 /** Independent English, Simplified Chinese and accented Hanyu Pinyin entries. */
 enum class Words(val en: String, val zh: String, val pin: String) {
+    PhoneHistoryCopiedBranch("Copied branch", "复制分支", "Fùzhì fēnzhī"),
+    PhoneHistoryEditedBranch("Edited branch", "编辑分支", "Biānjí fēnzhī"),
+    PhoneHistoryRegeneratedBranch("Regenerated branch", "重新生成的分支", "Chóngxīn shēngchéng de fēnzhī"),
     PhoneHistoryOrganize("Organize chat", "整理对话", "Zhěnglǐ duìhuà"),
     PhoneHistoryOrganizeHelp("Change this phone's title, pin or archive status. Questions and replies stay unchanged; these labels are not sent to the model. Archived chats remain available through Search.", "更改此手机上的标题、置顶或归档状态。问题和回复保持不变；这些标签不会发送给模型。归档对话仍可通过搜索访问。", "Gēnggǎi cǐ shǒujī shàng de biāotí, zhìdǐng huò guīdàng zhuàngtài. Wèntí hé huífù bǎochí bú biàn; zhèxiē biāoqiān bú huì fāsòng gěi móxíng. Guīdàng duìhuà réng kě tōngguò sōusuǒ fǎngwèn."),
     PhoneHistoryTitle("Optional title", "可选标题", "Kěxuǎn biāotí"),

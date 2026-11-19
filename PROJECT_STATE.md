@@ -20,9 +20,10 @@ views. Labels live outside transcripts, stay out of prompts and preserve model/
 parent identity. Cancellation after publication reconciles files; exact explicit
 deletion cleans labels and corrupt indexes refuse deletion before data changes.
 Latest required builds pass 1,093 JVM cases/103 reports and zero-error lint
-(51/50 warnings). The same APK pair passes 49 selected native methods on each
-API26/API37 without skips, including seven new UI and two filesystem cases.
-[Exact source/APK bindings](docs/contracts/2026-11-19-phone-history-organization-controls.md).
+(51/50 warnings). The same APK pair passes 50 selected native methods on each
+API26/API37 without skips, including eight organization UI and two filesystem cases.
+Rows show recorded activity time and copied/edited/regenerated branch labels.
+[Exact source/APK bindings](docs/contracts/2026-11-19-phone-history-identification.md).
 
 Earlier phone pairings verify one actual offline native branch/Stop method and
 real UI fork/edit/regenerate. The matching search build upgrades in place with
@@ -39,11 +40,12 @@ restores a connected VPN and private Pi ping. No API/model readiness is inferred
 
 ## Exact next action
 
-Add last-activity/branch-kind history row details so identical-looking branches
-can be distinguished, then consolidate the checked original-key app/test pair
-for owner-phone organization/upgrade checks. Preserve all data; diagnose the
-stalled instrumentation startup before another native phone run. Continue OF-01
-accessibility/lifecycle gates and OF-02 Markdown export/protected backup/import.
+Stage the consolidated original-key app/test pair for owner-phone upgrade and
+organization checks. Preserve all data; diagnose the stalled instrumentation
+startup before another native phone run. Verify label/Cancel/pin/archive/unloaded
+reads, then continue OF-01 accessibility/lifecycle and OF-02 selected Markdown
+export/versioned protected backup/import. New row identification is implemented
+and covered by the current 50-method source-bound cohort.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/

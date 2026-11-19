@@ -1,5 +1,17 @@
 # Current development validation — audit follow-up
 
+## Distinguishable history rows — 19 November 2026
+
+Recorded activity time (including seconds) and copied/edited/regenerated labels
+now distinguish identical-looking branches before organization. No data/model
+operation follows from these display additions. Required tasks pass 1,093 JVM
+cases/103 reports, zero-error lint (51/50 warnings) and exactly 50 selected native
+methods on each API26/API37 with the same APKs and no skips. All 49 earlier cases
+remain; the new case compares actual times/kinds for three identical questions.
+The weak same-displayed-second fixture is superseded before native execution.
+Current phone/upgrade/accessibility/lifecycle/final-release gates remain open.
+[Exact source and limits](contracts/2026-11-19-phone-history-identification.md).
+
 ## Reviewed history organization controls — 19 November 2026
 
 Optional titles, pin/archive review and Active/Archived/All search views are wired

@@ -7,13 +7,13 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 Unreleased `feat/offline-chat-actions` adds reviewed edit/regenerate/branch,
 separate drafts, request provenance, passive Markdown/code readers and history
 text/model/date search, plus reviewed title/pin/archive controls. Latest checks
-pass **1,093 JVM tests** and **49 selected
+pass **1,093 JVM tests** and **50 selected
 native methods on each API26/API37**, with zero lint errors (51/50 warnings).
 One actual offline phone method plus real app branching/search/Clear/read checks
 verify their recorded phone pairings. Current organization controls still need
 their physical checkpoint. Final-source device/accessibility/lifecycle and
 release gates remain; these additions are not in the public APK or main yet.
-[Current source and limitations](docs/contracts/2026-11-19-phone-history-organization-controls.md) · [Actual phone search](docs/contracts/2026-11-19-phone-history-search-physical.md).
+[Current source and limitations](docs/contracts/2026-11-19-phone-history-identification.md) · [Actual phone search](docs/contracts/2026-11-19-phone-history-search-physical.md).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
 verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device
@@ -66,7 +66,7 @@ Updated **19 November 2026** for unreleased offline actions/search and organizat
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
 | Merged UI standard device cohort | **1,149 API26 / 1,150 API37 methods** | Identical reviewed-head/PR/main trees; independent raw four-shard union, no skips; external models remain separate |
-| Unreleased offline actions/readers/search | **1,093 JVM / 49 focused methods per API** | Exact source/APKs; eight new controller/three search cases, seven new UI/two Android filesystem methods; no skips; current phone/final gates remain |
+| Unreleased offline actions/readers/search | **1,093 JVM / 50 focused methods per API** | Exact source/APKs; eight new controller/three search cases, eight organization UI/two Android filesystem methods; no skips; current phone/final gates remain |
 | Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Explicit app pairings; native branches plus actual UI branches/search/Clear/read; all four real UI histories unchanged, no whole-feature acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |

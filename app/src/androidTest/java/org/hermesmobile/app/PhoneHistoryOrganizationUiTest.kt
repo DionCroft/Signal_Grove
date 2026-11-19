@@ -99,4 +99,19 @@ class PhoneHistoryOrganizationUiTest {
         }
         compose.onNodeWithTag("phone-history-organization-cancel").performClick();assertTrue(saves.isEmpty());assertEquals(0,sends)
     }
+
+    @Test fun identicalQuestionBranchesShowTheirRecordedActivityAndDistinctKindBeforeOrganization() {
+        val kinds=listOf(LocalBranchKind.FORK,LocalBranchKind.EDIT,LocalBranchKind.REGENERATE)
+        val words=listOf(Words.PhoneHistoryCopiedBranch,Words.PhoneHistoryEditedBranch,Words.PhoneHistoryRegeneratedBranch)
+        val rows=kinds.mapIndexed {i,kind -> first.copy(id=java.util.UUID(0,(i+1).toLong()).toString(),updatedAt=(i+1)*1000L,
+            origin=LocalBranchOrigin("00000000-0000-0000-0000-000000000099",0,0,kind,"b".repeat(64))) }
+        state=state.copy(history=rows);show()
+        val format=java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT,java.text.DateFormat.MEDIUM)
+        for ((index,row) in rows.withIndex()) {
+            compose.onNodeWithTag("phone-history").performScrollToNode(hasTestTag("phone-history-time-${row.id}"))
+            compose.onNodeWithTag("phone-history-time-${row.id}").assertIsDisplayed().assertTextEquals(format.format(java.util.Date(row.updatedAt)))
+            compose.onNodeWithText(words[index].en).assertIsDisplayed()
+        }
+        assertTrue(saves.isEmpty());assertTrue(searches.isEmpty());assertEquals(0,sends);assertEquals(rows,state.history)
+    }
 }
