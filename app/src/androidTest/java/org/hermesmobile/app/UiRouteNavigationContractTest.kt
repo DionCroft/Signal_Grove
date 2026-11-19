@@ -46,6 +46,42 @@ class UiRouteNavigationContractTest {
         compose.runOnIdle {assertEquals(1,routeClicks);assertEquals(0,decoyClicks)}
     }
 
+    @Test fun homeRouteWaitsForTheTaggedControlAndWindowBeforeOneClick() {
+        var clicks = 0
+        var decoyClicks = 0
+        val targetVisible = mutableStateOf(false)
+        val focused = mutableStateOf(false)
+        var focusedAtClick = false
+        compose.setContent {
+            var homeSelected by remember { mutableStateOf(false) }
+            MaterialTheme {
+                Column {
+                    Button({ decoyClicks++ }, Modifier.semantics { contentDescription = "Home" }) {
+                        Text("Home")
+                    }
+                    if (targetVisible.value) {
+                        Button(
+                            { focusedAtClick = focused.value; clicks++; homeSelected = true },
+                            Modifier.testTag("nav-home").semantics { selected = homeSelected }
+                        ) { Text("Home") }
+                    }
+                }
+            }
+        }
+        compose.onNodeWithTag("nav-home").assertDoesNotExist()
+        compose.runOnUiThread {
+            val handler = android.os.Handler(android.os.Looper.getMainLooper())
+            handler.postDelayed({ targetVisible.value = true }, 250)
+            handler.postDelayed({ focused.value = true }, 1000)
+        }
+        compose.openHomeRouteOnce { compose.runOnUiThread { focused.value } }
+        compose.runOnIdle {
+            assertTrue(focusedAtClick)
+            assertEquals(1, clicks)
+            assertEquals(0, decoyClicks)
+        }
+    }
+
     @Test fun delayedEnabledHomeActionUsesItsTagAndNavigatesOnlyOnce() {
         var clicks=0;var decoyClicks=0
         val enabled=mutableStateOf(false)

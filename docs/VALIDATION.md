@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Home navigation fixture readiness on 19 November 2026
+
+The hosted Android 8 diagnostic failed before the measured Home-to-Chat
+trace because the Home navigation target was absent at the first setup input.
+The fixture now waits for a unique displayed, enabled Home control and a
+focused, resumed MainActivity, then makes one click and requires Home
+selection. Failure retains a redacted snapshot. The route assertion still
+requires each of its five events once and a common navigation owner.
+
+The exact build passes 1,150 JVM methods and both lint variants with zero
+errors. Android 8 and 17 each pass 14 focused cases, including the original
+route trace, the delayed target and focus regression and the three backup
+UI cases. The protected backup test that failed in hosted shard 1 passed these
+focused runs without a source change to that case. The hosted result remains
+open until the full source-bound run.
+
+- Build receipt `20261119-152927-b815ec62ecc34f539107638c3d616271`
+- Source snapshot SHA-256 `e16448fa7edc5cd797ed26a4b37aea1d710462019953421d3a91048036491766`
+- Debug APK SHA-256 `e8a18be244d25c49eec36d86970afc4f7e6096f33973693136f306ec41b5bd61`
+- Test companion SHA-256 `c41ae249a8531b0c0162d3106e8513b3523616d306c063d20d1b418d1998719a`
+- Android 8 log SHA-256 `c9fa98bfeaa628dd6d7bbab7f406e6be1805c477ef929c8709d2498dd1c9560a`
+- Android 17 log SHA-256 `92689e92b67b5bee24949befe65e9779aa573fbbf9c9b4f56c593894b6199b7b`
+
 ## Selected-turn phone continuation on 19 November 2026
 
 The source-bound build passes 1,150 JVM cases and both lint variants with

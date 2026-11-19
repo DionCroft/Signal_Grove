@@ -82,13 +82,15 @@ chat ID collisions. Source bytes and unsent drafts are preserved.
 
 ## Exact next action
 
-Verify the hosted Android 8 failures with exact focused APKs, then run the
-full matrix. The physical protected restore and Markdown export are verified. The physical
+Harden the protected backup fixture's selection and password checks, then
+run the full hosted Android matrix. The physical protected restore and Markdown export are verified. The physical
 label Save, Cancel and unloaded archive read are verified. The full hosted
 Markdown export matrix passed 1,187 API 26 and 1,188 API 37
 cases. On the later backup branch, one hosted Android 8 shard failed before
 Home was ready. The other found Review backup disabled after fixture input.
-Retain both failures and check the exact UI state before sending input.
+The Home readiness change passes 14 focused checks on both APIs. The
+protected backup case also passes in those runs. Both hosted failures remain
+in the evidence until the full matrix is verified.
 Continue OF-03 with editable reviewed summaries and physical acceptance
 for selected context. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
 

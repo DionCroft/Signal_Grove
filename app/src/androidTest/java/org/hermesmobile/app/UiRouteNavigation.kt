@@ -1,5 +1,7 @@
 package org.hermesmobile.app
 
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 
@@ -13,6 +15,26 @@ fun ComposeContentTestRule.openChatRouteOnce() {
     onNodeWithTag("nav-chat").assertIsSelected()
 }
 
+
+/** Wait for the actual Home navigation target before dispatching a single setup click. */
+internal fun ComposeContentTestRule.openHomeRouteOnce(windowReady: () -> Boolean = { true }) {
+    val target = onNodeWithTag("nav-home")
+    try {
+        waitUntil(10000) {
+            val node = onAllNodesWithTag("nav-home").fetchSemanticsNodes().singleOrNull()
+            node != null &&
+                !node.config.contains(SemanticsProperties.Disabled) &&
+                node.config.contains(SemanticsActions.OnClick) &&
+                node.boundsInRoot.let { it.width > 0f && it.height > 0f } &&
+                target.isDisplayed() &&
+                windowReady()
+        }
+    } catch (timeout: ComposeTimeoutException) {
+        throw AssertionError("Home navigation control did not become ready", timeout)
+    }
+    target.assertIsDisplayed().assertIsEnabled().assertHasClickAction().performClick()
+    target.assertIsSelected()
+}
 
 /** Wait for the actual enabled Home action; never retry a click to obtain navigation. */
 fun ComposeContentTestRule.openHomeNewChatOnce() {

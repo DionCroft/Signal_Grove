@@ -2,6 +2,7 @@ package org.hermesmobile.app
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
@@ -19,11 +20,25 @@ class UiFixtureDiagnosticsTest {
     private val vm get()=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
     private val app get()=compose.activity.application as HermesApplication
 
+    private fun openHomeFixture() {
+        val activity = compose.activity
+        try {
+            compose.openHomeRouteOnce {
+                compose.runOnUiThread {
+                    activity.lifecycle.currentState == Lifecycle.State.RESUMED && activity.hasWindowFocus()
+                }
+            }
+        } catch (failure: AssertionError) {
+            throw retainUiFixtureFailure(compose, activity, vm, failure,
+                FixtureFailureKind.HomeNavigation, null, 0, 0)
+        }
+    }
+
     @Test fun routeTraceObservesTheActualHomeCallbackWithoutAnExtraClick() {
         compose.waitUntil(10000) {!vm.connecting.value}
         compose.runOnUiThread {vm.setDemo(true)}
         compose.waitUntil(10000) {!vm.connecting.value && vm.preferences.value.demo}
-        compose.onNodeWithTag("nav-home").performClick();compose.onNodeWithTag("nav-home").assertIsSelected()
+        openHomeFixture()
         var trace:AppRouteTrace?=null
         var result:JSONObject?=null
         compose.runOnUiThread {trace=AppRouteTrace(compose.activity);trace!!.mark("route-contract")}
@@ -42,7 +57,7 @@ class UiFixtureDiagnosticsTest {
         compose.waitUntil(10000) {!vm.connecting.value}
         compose.runOnUiThread {vm.setDemo(true)}
         compose.waitUntil(10000) {!vm.connecting.value && vm.preferences.value.demo}
-        compose.onNodeWithTag("nav-home").performClick();compose.onNodeWithTag("nav-home").assertIsSelected()
+        openHomeFixture()
         compose.runOnUiThread {
             check(UiRouteObservation.observer==null)
             UiRouteObservation.observer={_,_,_->throw IllegalStateException("Synthetic observer failure")}
@@ -60,7 +75,7 @@ class UiFixtureDiagnosticsTest {
         val previousAppearance=vm.preferences.value
         compose.runOnUiThread {vm.updatePreferences(vm.preferences.value.copy(chinese=true,pinyin=true))}
         compose.waitUntil(5000) {vm.preferences.value.chinese && vm.preferences.value.pinyin}
-        compose.onNodeWithTag("nav-home").performClick();compose.onNodeWithTag("nav-home").assertIsSelected()
+        openHomeFixture()
         val canary="private-fixture-canary-${UUID.randomUUID()}"
         val c=Conversation("key-$canary","demo","api-$canary",title="title-$canary",transport="demo")
         val messages=(0..15).map {ChatMessage("message-$it-$canary",c.key,if(it==15) "assistant" else "user","content-$canary",timestamp=it.toLong())}
@@ -137,8 +152,8 @@ class UiFixtureDiagnosticsTest {
                     app.database.dao().save(c);decoys.forEach {app.database.dao().save(it)}
                     compose.waitUntil(5000) {vm.conversations.value.count {it.key==c.key || decoys.any {d->d.key==it.key}}==5}
                     app.database.dao().saveMessages((0..15).map {ChatMessage("transition-$it",c.key,if(it==15) "assistant" else "user","Synthetic navigation note",timestamp=it.toLong())})
-                    compose.onNodeWithTag("nav-home").performClick()
-                    compose.onNodeWithTag("nav-home").assertIsSelected()
+                    stage="open-home-$action"
+                    openHomeFixture()
                     row.put("homeBeforePicker",captureUiFixtureSnapshot(compose,compose.activity,vm,c.key,16))
                     stage="open-picker-$action"
                     compose.onNodeWithTag("home-model-status").performScrollTo().performClick()

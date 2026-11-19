@@ -33,8 +33,9 @@ turn's contents. The actual Android 8 app also copied turns 1 and 3 with weights
 The earlier text-button build passed the scripted tests. At 1.3× text on the
 real Android 8 app it left too little room for the chat. The final build uses a
 compact branch icon with the localized Earlier turns label. The old result is
-retained. Physical backup and continuation acceptance and editable reviewed
-summaries remain open.
+retained. Physical selected-turn continuation and editable reviewed summaries
+remain open. The separate [physical backup proof](2026-11-19-phone-history-backup-ui.md)
+covers a chat created before this feature.
 
 - Build receipt `20261119-151121-51c1a59261a14130b461c44b387f9be0`
 - Source snapshot SHA-256 `9ba7a1f2ec9a700d2e305e9c7e53b3dce710733ed3f9924248666e633778fe31`

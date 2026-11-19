@@ -106,6 +106,7 @@ private fun captureNativeFixtureWindowCounts():JSONObject {
 }
 
 internal enum class FixtureFailureKind(val filePrefix:String,val label:String) {
+    HomeNavigation("home-navigation-failure","Home navigation fixture failed"),
     RuntimeMessages("runtime-message-list-failure","Message-list lookup failed"),
     PhoneDraftNavigation("phone-draft-navigation-failure","Phone draft navigation failed"),
     SetupGuideNavigation("setup-guide-navigation-failure","Setup guide navigation failed"),
