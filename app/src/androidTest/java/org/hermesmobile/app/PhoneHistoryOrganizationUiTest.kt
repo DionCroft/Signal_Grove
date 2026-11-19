@@ -40,17 +40,61 @@ class PhoneHistoryOrganizationUiTest {
         compose.onNodeWithTag("phone-history").performScrollToNode(hasTestTag("phone-history-organize-${first.id}"))
         compose.onNodeWithTag("phone-history-organize-${first.id}").assertIsDisplayed().performClick()
     }
+    private data class ToggleFrame(val viewport:FocusedDialogViewport,val control:androidx.compose.ui.geometry.Rect,val caption:android.graphics.Rect)
+    /** One real input after coherent/stable IME and complete native/Compose target observations. */
+    private fun toggleOnce(tag:String,word:Words,action:NativeDialogTapAction,bilingual:Boolean=false) {
+        val started=android.os.SystemClock.uptimeMillis();val deadline=started+5000
+        val caption=word.localized(AppPreferences(chinese=bilingual,pinyin=bilingual))
+        var previousViewport:FocusedDialogViewport?=null;var viewportStableAt=started
+        compose.waitUntil(5000) {
+            val current=focusedDialogViewport(requireKeyboard=false)
+            val now=android.os.SystemClock.uptimeMillis()
+            if(current==null || !current.keyboardVisible || current!=previousViewport) {
+                previousViewport=current;viewportStableAt=now;false
+            } else now-viewportStableAt>=250 && now<deadline
+        }
+        compose.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().assertIsEnabled().assertIsToggleable().assertIsOff()
+        var previous:ToggleFrame?=null;var stableAt=android.os.SystemClock.uptimeMillis();var ready:ToggleFrame?=null
+        fun observe():ToggleFrame? {
+            val viewport=focusedDialogViewport(requireKeyboard=false) ?: return null
+            if(!viewport.keyboardVisible) return null
+            val node=compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().assertIsToggleable().assertIsOff()
+            val bounds=node.fetchSemanticsNode().boundsInWindow
+            val native=focusedDialogCaptionScreenBounds(caption,caption)
+            val fresh=focusedDialogViewport(requireKeyboard=false) ?: return null
+            if(viewport!=fresh || node.fetchSemanticsNode().boundsInWindow!=bounds) return null
+            if(bounds.left+fresh.screenOffsetX<fresh.visible.left || bounds.right+fresh.screenOffsetX>fresh.visible.right ||
+                bounds.top+fresh.screenOffsetY<fresh.visible.top || bounds.bottom+fresh.screenOffsetY>fresh.visible.bottom || !fresh.visible.contains(native)) return null
+            return ToggleFrame(fresh,bounds,native)
+        }
+        compose.waitUntil((deadline-android.os.SystemClock.uptimeMillis()).coerceAtLeast(1)) {
+            if(android.os.SystemClock.uptimeMillis()>=deadline) return@waitUntil false
+            val current=observe();val now=android.os.SystemClock.uptimeMillis()
+            if(current==null || current!=previous) {previous=current;stableAt=now;false}
+            else if(now-stableAt<250) false
+            else {
+                val fresh=observe()
+                if(fresh==null || fresh!=current) {previous=fresh;stableAt=android.os.SystemClock.uptimeMillis();false}
+                else {ready=fresh;true}
+            }
+        }
+        val checked=checkNotNull(ready);check(android.os.SystemClock.uptimeMillis()<deadline)
+        val center=checked.control.center
+        tapFocusedDialogWindowPoint(center.x,center.y,action)
+        // No second input: a missed or double toggle fails here and at exact saved-value checks.
+        compose.onNodeWithTag(tag).assertIsOn()
+    }
     @Test fun cancellingAnEditedOrganizationReviewPublishesNoLabelsOrGeneration() {
-        show();open();compose.onNodeWithTag("phone-history-title").performScrollTo().performTextInput("Orchard 你好")
-        compose.onNodeWithTag("phone-history-pin").performScrollTo().performClick()
-        compose.onNodeWithTag("phone-history-archive").performScrollTo().performClick()
+        show();open();compose.onNodeWithTag("phone-history-title").performScrollTo().performClick().performTextInput("Orchard 你好")
+        toggleOnce("phone-history-pin",Words.PhoneHistoryPinned,NativeDialogTapAction.PhoneHistoryPin)
+        toggleOnce("phone-history-archive",Words.PhoneHistoryArchived,NativeDialogTapAction.PhoneHistoryArchive)
         compose.onNodeWithTag("phone-history-organization-cancel").assertIsDisplayed().performClick()
         assertTrue(saves.isEmpty());assertTrue(searches.isEmpty());assertEquals(0,sends);assertEquals(listOf(first),state.history)
     }
     @Test fun savingDispatchesOneExactReviewedTitlePinArchiveAndModelIdentity() {
-        show();open();compose.onNodeWithTag("phone-history-title").performScrollTo().performTextInput("  Quiet orchard 🌱  ")
-        compose.onNodeWithTag("phone-history-pin").performScrollTo().assertIsToggleable().performClick()
-        compose.onNodeWithTag("phone-history-archive").performScrollTo().assertIsToggleable().performClick()
+        show();open();compose.onNodeWithTag("phone-history-title").performScrollTo().performClick().performTextInput("  Quiet orchard 🌱  ")
+        toggleOnce("phone-history-pin",Words.PhoneHistoryPinned,NativeDialogTapAction.PhoneHistoryPin)
+        toggleOnce("phone-history-archive",Words.PhoneHistoryArchived,NativeDialogTapAction.PhoneHistoryArchive)
         assertTrue(saves.isEmpty());compose.onNodeWithTag("phone-history-organization-save").assertIsEnabled().performClick()
         assertEquals(listOf(first to LocalHistoryPreferences("Quiet orchard 🌱",true,true)),saves)
         compose.onNodeWithTag("phone-history-organization-save").assertDoesNotExist();assertEquals(0,sends)
@@ -91,6 +135,8 @@ class PhoneHistoryOrganizationUiTest {
         compose.onNodeWithTag("phone-history-archive").performScrollTo().assertIsToggleable()
         compose.onNodeWithTag("phone-history-title").performScrollTo().performClick().performTextInput("花园 Garden")
         compose.waitUntil(5000) {focusedDialogKeyboardVisible()}
+        toggleOnce("phone-history-pin",Words.PhoneHistoryPinned,NativeDialogTapAction.PhoneHistoryPin,true)
+        toggleOnce("phone-history-archive",Words.PhoneHistoryArchived,NativeDialogTapAction.PhoneHistoryArchive,true)
         val viewport=checkNotNull(focusedDialogViewport())
         for(tag in listOf("phone-history-organization-save","phone-history-organization-cancel")) {
             val bounds=compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInRoot
@@ -110,6 +156,7 @@ class PhoneHistoryOrganizationUiTest {
         for ((index,row) in rows.withIndex()) {
             compose.onNodeWithTag("phone-history").performScrollToNode(hasTestTag("phone-history-time-${row.id}"))
             compose.onNodeWithTag("phone-history-time-${row.id}").assertIsDisplayed().assertTextEquals(format.format(java.util.Date(row.updatedAt)))
+            compose.onNodeWithTag("phone-history").performScrollToNode(hasText(words[index].en))
             compose.onNodeWithText(words[index].en).assertIsDisplayed()
         }
         assertTrue(saves.isEmpty());assertTrue(searches.isEmpty());assertEquals(0,sends);assertEquals(rows,state.history)

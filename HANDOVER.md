@@ -20,19 +20,27 @@ views. Labels live outside transcripts, stay out of prompts and preserve model/
 parent identity. Cancellation after publication reconciles files; exact explicit
 deletion cleans labels and corrupt indexes refuse deletion before data changes.
 Latest required builds pass 1,093 JVM cases/103 reports and zero-error lint
-(51/50 warnings). The same APK pair passes 50 selected native methods on each
-API26/API37 without skips, including eight organization UI and two filesystem cases.
+(51/50 warnings). The fresh same-build APK pair passes 56 selected native methods on each
+API26/API37 without skips: the earlier 50 plus six scripted native-dispatch guards.
+Six real toggle inputs per API each have one accepted DOWN/UP, IME retained and
+no retry. The exact Save title/pin/archive/model assertion remains unchanged.
 Rows show recorded activity time and copied/edited/regenerated branch labels.
-[Exact source/APK bindings](docs/contracts/2026-11-19-phone-history-identification.md).
+[Exact source/APK bindings and retained failures](docs/contracts/2026-11-19-history-native-readiness.md).
 
 Earlier phone pairings verify one actual offline native branch/Stop method and
 real UI fork/edit/regenerate. The matching search build upgrades in place with
 all UIDs, 16 metadata files and both models retained. Actual offline/unloaded
 Search/Clear/garden read preserves all four chat files and both models. The normal
-code112 app is untouched. The newer organization app is not installed yet.
+code112 app is untouched. The organization app8bda/test2df upgrade now verifies
+all UIDs, 15 cold metadata files, both models and all four actual UI chats.
 
-One four-case synthetic phone run stalls before first render and is stopped;
-no method pass/retry is claimed. Startup needs diagnosis. SQLite main/WAL and
+One four-case synthetic phone run stalls before first render and is stopped.
+Two later bounded diagnostics confirm MIUI rejects the test-host start with
+result102; one exact matching foreground intent unblocks a real identification
+case, which fails on an adjacent label not scrolled into view. No case pass is
+claimed. The current companion fixes that scroll and waits for stable actual
+IME geometry before native toggles. Full c46 CI also fails one API26 Save
+assertion (pin false); the other three jobs succeed. Fresh full CI stays open. SQLite main/WAL and
 other data bytes match; transient SHM is separately reconciled with read-only
 integrity ok. Radio/wake settings restore; reopening configured Tailscale once
 restores a connected VPN and private Pi ping. No API/model readiness is inferred.
@@ -40,12 +48,12 @@ restores a connected VPN and private Pi ping. No API/model readiness is inferred
 
 ## Exact next action
 
-Stage the consolidated original-key app/test pair for owner-phone upgrade and
-organization checks. Preserve all data; diagnose the stalled instrumentation
-startup before another native phone run. Verify label/Cancel/pin/archive/unloaded
-reads, then continue OF-01 accessibility/lifecycle and OF-02 selected Markdown
-export/versioned protected backup/import. New row identification is implemented
-and covered by the current 50-method source-bound cohort.
+Push the tested history-readiness companion and inspect fresh complete hosted
+coverage. When the owner phone reconnects, first inspect the pending real-UI
+organization Save, then stage only the corrected companion against verified
+unchanged app8bda inputs. Preserve files and failures; finish label/Cancel/pin/
+archive/unloaded reads. Continue OF-01 accessibility/lifecycle and OF-02 selected
+Markdown export/versioned protected backup/import after the UI checkpoint.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/
@@ -56,14 +64,16 @@ policy/launcher/private-backup/restart changes.
 
 ## Device and continuation safeguards
 
-Owner phone retains the earlier search app d9a0fc372eba and test3594d52ad096;
-new consolidated app 8bdaf53ebc3f/test2dfc9fc16f89 are tested only on emulators.
-State/summary/callback ABI changed: install a matching app and companion together.
-Both model copies, four actual UI chat JSONs and old failed-run QA histories stay
-protected. Tailscale is the current phone foreground app after its saved VPN was
-restored; no phone test is active. Restore only observed original settings. No
-production app update, private-data reset or hosted CI-signed install is authorized
-by these test fixtures. Use owner navigation after verified USB taps fail.
+Owner phone retains the consolidated organization app8bdaf53ebc3f and
+companion2dfc9fc16f89. The new companion960fac43d1de changes only Android-test
+sources; all application/build inputs match the installed subject. Verify that
+subject and same original debug key before any companion-only update. Both
+models, four actual UI chat JSONs and failed-run histories stay protected. The
+owner's requested label/pin/archive Save is pending observation; do not repeat
+or assume it. USB is disconnected at this checkpoint. No phone test or model
+is running, and normal networking was never changed by the new diagnostics.
+Restore only observed original settings. Keep production untouched and never
+install the hosted CI signer. Use owner navigation after verified USB taps fail.
 
 Keep SQLite payload retention separate from volatile SHM. Record original VPN
 state and verify it/private route after offline tests. For binary model staging

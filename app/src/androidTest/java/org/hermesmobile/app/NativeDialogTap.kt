@@ -21,7 +21,8 @@ import java.util.UUID
 /** Fixed test actions only; no captions, paths, credentials or view text enter diagnostics. */
 enum class NativeDialogTapAction(val wire:String) {
     WorkspaceReview("workspace-review"),WorkspaceCancel("workspace-cancel"),HistoryMore("history-more"),HistoryClose("history-close"),
-    KanbanRead("kanban-read"),KanbanCancel("kanban-cancel"),PhoneDraftCancel("phone-draft-cancel")
+    KanbanRead("kanban-read"),KanbanCancel("kanban-cancel"),PhoneDraftCancel("phone-draft-cancel"),
+    PhoneHistoryPin("phone-history-pin"),PhoneHistoryArchive("phone-history-archive")
 }
 
 /** Espresso's MotionEvents.sendDown can retry internally. Refuse before a second DOWN reaches Android. */

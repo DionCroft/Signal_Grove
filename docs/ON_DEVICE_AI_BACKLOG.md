@@ -50,11 +50,14 @@ answers and code/text cannot execute actions.
 ## OF-02: Searchable, organized and portable phone history
 
 **Status: in progress (search and reviewed title/pin/archive controls implemented).**
-[Current controls and branch/time identification](contracts/2026-11-19-phone-history-identification.md)
-pass 1,093 JVM cases and 50 selected native methods on each API26/API37, including
-eight organization UI/two Android filesystem cases. [Earlier actual phone offline search](contracts/2026-11-19-phone-history-search-physical.md)
-retains its own pairing; current physical organization and the stalled native
-startup diagnosis remain open. Branch/date identification is implemented; the consolidated phone check,
+[Current controls and native readiness](contracts/2026-11-19-history-native-readiness.md)
+pass 1,093 JVM cases and 56 selected native methods on each API26/API37, including
+the earlier 50 and six scripted input guards. Actual toggle inputs retain the
+IME and use one DOWN/UP without retry; exact Save values remain asserted. [Earlier actual phone offline search](contracts/2026-11-19-phone-history-search-physical.md)
+retains its own pairing. Current app8bda upgrades with all data retained.
+MIUI test-host denial is reproduced; one matching foreground intent unblocks a
+label assertion failure, now corrected. Full c46 CI also catches a missed pin;
+fresh complete CI and physical organization acceptance remain open. Branch/date identification is implemented; the consolidated phone check,
 Markdown export and protected backup/import remain. Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,

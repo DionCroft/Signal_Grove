@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## History native readiness and retained phone failures — 19 November 2026
+
+The full c46 run fails one API26 organization Save assertion (pin false); the
+other three device jobs succeed. Two physical diagnostics preserve MIUI start
+result102 and a real adjacent-label visibility failure after one matching
+foreground intent. The test correction scrolls to each label and waits for
+coherent/stable actual IME geometry before one native toggle input, retaining
+the exact Save values. Required tasks pass 1,093 JVM/103 reports, zero-error lint
+(51/50 warnings), and 56 selected methods on each API26/API37. All earlier 50
+cases remain plus six scripted dispatch guards; each API also records six
+successful actual toggle DOWN/UP pairs with IME retained and no retry.
+The consolidated phone upgrade retains 15 cold metadata files, both models,
+four real chats and all UIDs; normal code112 is unchanged. Current organization/
+phone/full-hosted/production acceptance remains open.
+[Exact source, retained failures and limits](contracts/2026-11-19-history-native-readiness.md).
+
 ## Distinguishable history rows — 19 November 2026
 
 Recorded activity time (including seconds) and copied/edited/regenerated labels
