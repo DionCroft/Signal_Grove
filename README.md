@@ -6,12 +6,13 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 
 Unreleased `feat/offline-chat-actions` adds reviewed edit/regenerate/branch,
 separate drafts, request provenance, passive Markdown/code readers and history
-text/model/date search. Latest checks pass **1,071 JVM tests** and **40 selected
+text/model/date search. Latest checks pass **1,082 JVM tests** and **40 selected
 native methods on each API26/API37**, with zero lint errors (51/50 warnings).
-One actual offline phone method plus separate real app branching checks verify
-the earlier phone pairing. Final-source device/accessibility/lifecycle and
+One actual offline phone method plus real app branching/search/Clear/read checks
+verify their recorded phone pairings. The next rename/pin/archive store is tested
+but its controls are not connected yet. Final-source device/accessibility/lifecycle and
 release gates remain; these additions are not in the public APK or main yet.
-[Current behavior, figures and limitations](docs/contracts/2026-11-18-phone-history-search-controls.md).
+[Current source and limitations](docs/contracts/2026-11-19-history-organization-foundation.md) · [Actual phone search](docs/contracts/2026-11-19-phone-history-search-physical.md).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
 verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device
@@ -59,13 +60,13 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Updated **18 November 2026** for merged UI and unreleased offline actions/search; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Updated **19 November 2026** for unreleased offline actions/search and organization storage; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
 | Merged UI standard device cohort | **1,149 API26 / 1,150 API37 methods** | Identical reviewed-head/PR/main trees; independent raw four-shard union, no skips; external models remain separate |
-| Unreleased offline actions/readers/search | **1,071 JVM / 40 focused methods per API** | Exact source/APKs; synthetic UI/real filesystem, no skips; newer physical search and final gates remain |
-| Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Earlier explicit app pairing; five native QA histories and four real UI histories; unchanged parents, no aggregate phone/OF-01 acceptance |
+| Unreleased offline actions/readers/search | **1,082 JVM / 40 focused methods per API** | Exact new source/APKs; 11 new organization JVM cases; UI/filesystem regressions, no skips; organization controls/final gates remain |
+| Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Explicit app pairings; native branches plus actual UI branches/search/Clear/read; all four real UI histories unchanged, no whole-feature acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |
 | New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |

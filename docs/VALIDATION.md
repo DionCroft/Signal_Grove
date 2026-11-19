@@ -1,5 +1,22 @@
 # Current development validation — audit follow-up
 
+## Organization foundation and actual phone search — 19 November 2026
+
+The internal display-metadata store passes 11 new regressions, for 1,082 JVM
+cases/103 reports, required builds and zero-error lint (51/50 warnings). The same
+new APK pair passes 40 selected native regression methods on each API26/API37,
+no skips. Rename/pin/archive UI is not connected yet; no organization-specific
+Android/phone acceptance is claimed. [Exact foundation scope](contracts/2026-11-19-history-organization-foundation.md).
+
+The earlier matching search build upgrades in place with all package UIDs,
+16 metadata files and both models retained. Actual phone offline/unloaded text
+search shows two of four chats; Clear and saved garden read work without changing
+chat/model bytes. Original network/wake settings and default network restore.
+A separate stalled four-case instrumentation run is stopped/preserved, never
+counted positive. Main SQLite/WAL bytes and other metadata match; changed SHM is
+separately reconciled with hash-verified copies and read-only integrity `ok`.
+[Physical evidence and outstanding diagnosis](contracts/2026-11-19-phone-history-search-physical.md).
+
 ## History search controls and real app branching — 18 November 2026
 
 The unreleased feature branch passes 1,071 JVM cases/102 reports, required APK
