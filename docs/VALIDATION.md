@@ -33,6 +33,31 @@ restored. Physical sustained, battery and low-memory acceptance remain open.
 - Native timing log SHA-256 `88c671e2ae245152bdad30487a037aed7f50bc46501df1a62646753c0dba6094`
 - Benchmark result view SHA-256 `7d7bd4af37584ed220aaa6fb83c164f698c276d50ff5b77543a35aa0a12649dc`
 
+## Physical LFM3 benchmark with networking off
+
+The M098FE ran the signed debug app from the performance build above.
+After the model loaded, the app reported 2,370.47 MiB of process PSS.
+The phone ran the fixed prompt with a 384-token cap after the test
+verified Airplane mode on, Wi-Fi and mobile data off and no default
+network. The same radio and network state was verified at completion.
+
+LFM3 reached visible text in 3.06 seconds and completed at
+44.3 sampled tokens/s over 127 sampled tokens. Android reported a
+29.7 °C battery sensor and thermal status 0 at both observations.
+The battery was full and Android reported external power. This short
+sample does not establish sustained performance or battery drain.
+After the app went to the background, its process still ran and had
+no GGUF mappings.
+
+The original radio settings were restored. An initial private Pi ping
+failed after Wi-Fi returned. Opening the existing Tailscale app once
+restored the active tunnel and the private Pi ping. All six saved
+chats, both models, labels, package UIDs and the production package
+passed the post-run checks.
+
+- On-device result view SHA-256 5793a41fdc2e9cb6270cb73fb1800c8af69ed7bfa00517dadf94f255b722f728
+- After-load memory view SHA-256 9361727c19d93a70682e219672a0ad9f74589a2dd120a7e8c5a7cb6639e3e3ef
+
 ## Separate backup selection and passphrase steps
 
 Chat selection now has its own step. A real tap selects a summary-only or

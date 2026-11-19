@@ -26,8 +26,11 @@ next explicit load. Chat preview, generation and the saved reply share the
 effective settings. Performance details now show process memory, first-text
 time and sampled-token rate for the current load. The fixed-prompt LFM3
 benchmark passed offline through the normal Android 17 UI with all four
-fixture histories byte-identical. Physical sustained performance and
-low-memory checks remain open. [Exact validation](VALIDATION.md#on-device-performance-measurements-and-offline-benchmark).
+fixture histories byte-identical. The physical phone completed one
+offline LFM3 benchmark and retained all six chats. The original radios
+and private Pi route were verified after reopening Tailscale. Physical
+sustained performance and low-memory checks remain open.
+[Physical validation](VALIDATION.md#physical-lfm3-benchmark-with-networking-off).
 
 ## Hermes stored history and shutdown checkpoint - 19 November 2026
 
