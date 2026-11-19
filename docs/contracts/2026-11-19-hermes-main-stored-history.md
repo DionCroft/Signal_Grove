@@ -56,6 +56,36 @@ Shutdown, worker dispatch and live Pi acceptance remain open.
 · [Main SQLite query](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/persistence/sqlite/authority/_admission_store.py)
 · [Main recovery caller](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/gateway/session_local_recovery.py).
 
+## Disposable SQLite admission checks
+
+Separate fixtures exercised the reviewed v0.23.2 and main admission bodies
+against real SQLite transactions. Five source files matched their pinned
+Git blob identities. The fixture supplies a transaction holder, one
+physical segment per conversation and a controlled transcript-close
+callback. The exercised scope covers stored admission transitions.
+
+Both pins rejected recovery under the stale epoch. The current owner
+changed one stale started admission to unknown. Its own started
+admission stayed started. Recovery marked a stale worker unknown and
+ended the old steering receipt as interrupted. Both unknown branches
+refused the next claim and left its queue untouched.
+
+A mismatched generation refused acknowledgement. A forced boundary
+failure rolled back the marker and kept the admission unknown. A
+reviewed acknowledgement moved it to terminal interrupted. Re-reading
+that acknowledgement left the ledger and transcript marker unchanged.
+A mismatched FIFO head and a drain gate refused a fresh claim. An
+explicit claim with the correct head then started the separately queued
+item at generation 8. SQLite integrity passed for both fixtures.
+
+Evidence SHA-256 is
+`948c3a616f215df00e580bf483bc83287be5b2248a7b3208e5829210aa1aaf9f`.
+Native authority bootstrap, actual transcript boundary, user and
+profile authorization, worker recovery, contention and live Pi
+acceptance remain open.
+[Stable storage code](https://github.com/NousResearch/hermes-agent/blob/ae2a81ccc00e9b7c06301523e5bb09608397149c/hermes_state_runtime.py)
+· [Main SQLite admission store](https://github.com/NousResearch/hermes-agent/blob/364aded7ee2a2888421fc7aec96adbe6c07748a5/persistence/sqlite/authority/_admission_store.py).
+
 ## Watcher evidence
 
 [Hosted run 44575549490](https://github.com/DionCroft/Signal_Grove/actions/runs/44575549490)
