@@ -33,7 +33,8 @@ Rows show recorded activity time and copied/edited/regenerated branch labels.
 [retained UI failures](docs/contracts/2026-11-19-history-native-readiness.md).
 Markdown review and file export work through the Android picker. The real API 26
 Downloads transfer matches the source. The full hosted Markdown export
-matrix passed. Physical Markdown export passed. Physical backup/restore remains open.
+matrix passed. Physical Markdown export, protected save and offline restore
+with ID remapping are verified on the phone.
 
 Earlier phone pairings verify one actual offline native branch/Stop method and
 real UI fork/edit/regenerate. The matching search build upgrades in place with
@@ -81,13 +82,14 @@ chat ID collisions. Source bytes and unsent drafts are preserved.
 
 ## Exact next action
 
-Finish the physical protected-backup restore from the saved archive and verify
-the reviewed copy and original test chats. Physical Markdown export is verified. The physical
+Verify the hosted Android 8 failures with exact focused APKs, then run the
+full matrix. The physical protected restore and Markdown export are verified. The physical
 label Save, Cancel and unloaded archive read are verified. The full hosted
 Markdown export matrix passed 1,187 API 26 and 1,188 API 37
-cases. The later hosted backup-branch Android 8 shard reported one early Home
-fixture failure among 567 methods. Verify Home route readiness before input
-and retain the existing route-trace assertions. Continue OF-03 with editable reviewed summaries and physical acceptance
+cases. On the later backup branch, one hosted Android 8 shard failed before
+Home was ready. The other found Review backup disabled after fixture input.
+Retain both failures and check the exact UI state before sending input.
+Continue OF-03 with editable reviewed summaries and physical acceptance
 for selected context. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/

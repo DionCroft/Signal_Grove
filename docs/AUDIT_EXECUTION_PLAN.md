@@ -4,24 +4,24 @@
 
 OF-03 now supports selecting earlier turns into a distinct phone chat with a
 reviewed draft, exact prompt preview and restored provenance. Editable reviewed
-summaries, physical context and backup acceptance and the original audit and
-release gates remain open. [Selected-turn scope and evidence](contracts/2026-11-19-phone-selected-turns.md).
+summaries, physical context acceptance and the original audit and release
+gates remain open. [Selected-turn scope and evidence](contracts/2026-11-19-phone-selected-turns.md).
 
 ## Local inference context checkpoint - 19 November 2026
 
 The OF-03 meter and overflow admission check share the native prompt builder and
-tokenizer with generation. The existing OF-02 physical backup/restore, reviewed
-continuation selection and summaries, and all original release and Hermes
-acceptance work remain active. [Exact context evidence](contracts/2026-11-19-phone-context-meter.md).
+tokenizer with generation. Reviewed summaries, physical context acceptance
+and all original release and Hermes acceptance work remain active. [Exact context evidence](contracts/2026-11-19-phone-context-meter.md).
 
 ## Phone history portability checkpoint - 19 November 2026
 
 OF-02 now includes visible phone backup selection, optional passphrase
 protection, Android document pickers and reviewed restore with collision
 remapping. Physical Markdown export passed. The app and companion pass 1,146 JVM tests, both lint variants and
-72 focused Android cases per API 26 and 37. Physical backup/restore,
-OF-01 accessibility/lifecycle and the original Hermes integration and
-production release gates remain open.
+72 focused Android cases per API 26 and 37. The phone saved a protected
+archive and restored one reviewed copy offline, retaining the originals.
+OF-01 accessibility/lifecycle, the full hosted matrix and the original
+Hermes integration and production release gates remain open.
 [Backup validation](contracts/2026-11-19-phone-history-backup-ui.md) ·
 [Ordered offline backlog](ON_DEVICE_AI_BACKLOG.md).
 

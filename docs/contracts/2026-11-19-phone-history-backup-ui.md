@@ -43,7 +43,19 @@ debug pair and Android's actual Downloads picker. All 799
 bytes match the independently reconstructed export, and its SHA-256 is
 `1891103f7beb5b07478e43c4bee9e5c27d4f080cd12e8d014e48a810887636f9`. The four selected phone chats, both models and
 saved labels match their earlier hashes. The model was unloaded.
-Physical backup/restore, the full branch matrix and production release remain open.
+On the physical Android 17 phone, the exact backup build saved one selected
+test chat through Downloads. The 921-byte archive has the protected
+header and SHA-256
+`8f591644997770d4d430dfe7087831b7213250c87a5ca22dfc3d1fead64610db`.
+Wi-Fi was on when the saved file was verified. The subsequent restore review
+and confirmation were verified in Airplane mode with Wi-Fi disabled and no
+connected transport. Review found a collision and displayed a new ID.
+Confirmation created exactly that copy and preserved all four original chat
+files byte-for-byte, both model files and the original label index entries.
+The copy retained its title, pin and archive state. Its parent was outside
+the backup, so the copy opened independently. The model stayed unloaded,
+private staging was empty and all three installed package identities matched.
+The full branch matrix and production release remain open.
 
 - Build receipt `20261119-140421-e4d650280ab248ad9dd568803b1130d3`
 - Source snapshot SHA-256 `bc8de4ccf65bd9f5a9d8eb7b01ccb73d4b1570623d41ff15c6fa103505cd29f1`

@@ -69,7 +69,8 @@ copy and reclaims abandoned files when phone history opens. Android backup
 and import screens now connect this staging to Android's document pickers.
 The [verified backup UI](contracts/2026-11-19-phone-history-backup-ui.md) passes
 72 focused Android methods on each API 26 and 37 and 1,146 JVM cases.
-Physical Markdown transfer now passes. Physical backup/restore remains open.
+Physical Markdown transfer, protected backup save and offline collision
+restore pass. The full branch matrix and release checks remain open.
 Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,

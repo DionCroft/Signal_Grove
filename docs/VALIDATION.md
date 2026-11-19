@@ -17,7 +17,12 @@ For backup commit `c610cff0817c`, assembly passed. Android 8 shard 0 ran
 fixture setup because the Home navigation target was missing at first input.
 The raw result is retained. Verify Home route readiness before the one input,
 then rerun the unchanged route assertions.
-[Hosted job](https://github.com/DionCroft/Signal_Grove/actions/runs/44542744332/job/135638448466).
+[Hosted shard 0](https://github.com/DionCroft/Signal_Grove/actions/runs/44542744332/job/135638448466).
+Android 8 shard 1 ran 631 methods with 630 successful. The protected backup
+round-trip reached the Review backup control while it was disabled. The raw
+result is retained. Confirm one chat is selected and the two fixture fields
+accepted matching input before submitting the review once.
+[Hosted shard 1](https://github.com/DionCroft/Signal_Grove/actions/runs/44542744332/job/135638448390).
 
 ## Exact phone context meter on 19 November 2026
 
@@ -43,7 +48,11 @@ A separate run used Android 8's actual DocumentsUI, saving a plain backup in Dow
 The owner saved Markdown on the physical Android 17 phone with the earlier
 exact debug pair. All 799 exported bytes match the independently reconstructed
 document. Four test chats, both model files and saved labels were retained,
-and the model was unloaded. Physical backup/restore remains open. [Exact source and APK evidence](contracts/2026-11-19-phone-history-backup-ui.md).
+and the model was unloaded. The exact backup build on the same phone saved
+a 921-byte passphrase-protected archive of one chat. The phone then opened the
+restore review and restored the remapped copy offline. The original four
+transcripts, both models and all saved labels were retained.
+[Exact source and APK evidence](contracts/2026-11-19-phone-history-backup-ui.md).
 
 ## Private phone backup staging on 19 November 2026
 
