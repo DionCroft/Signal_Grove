@@ -114,11 +114,20 @@ class PhoneHistoryBackupFlowTest {
         val originals = listOf(seed, excluded).associate { it.id to source.file(it.id).readBytes() }
         val passphrase = "orchard-fixture-94"
         open("phone-history-backup-export")
-        compose.onNodeWithTag("phone-backup-prepare").assertIsDisplayed().assertIsNotEnabled()
-        compose.onNodeWithTag("phone-backup-select-" + seed.id).performScrollTo().performClick()
-        compose.onNodeWithTag("phone-backup-password").performScrollTo().performTextInput(passphrase)
-        compose.onNodeWithTag("phone-backup-repeat").performScrollTo().performTextInput(passphrase)
-        compose.onNodeWithTag("phone-backup-prepare").assertIsEnabled().performClick()
+        val review = compose.onNodeWithTag("phone-backup-prepare").assertIsDisplayed().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-backup-protect").performScrollTo().assertIsOn()
+        val selectedChat = compose.onNodeWithTag("phone-backup-select-" + seed.id)
+        selectedChat.performScrollTo().assertIsDisplayed().assertIsOff().performClick()
+        selectedChat.assertIsOn()
+        compose.onNodeWithTag("phone-backup-select-" + excluded.id).performScrollTo().assertIsOff()
+        val password = compose.onNodeWithTag("phone-backup-password").performScrollTo().assertIsDisplayed()
+        password.performTextReplacement(passphrase)
+        review.assertIsNotEnabled()
+        val repeated = compose.onNodeWithTag("phone-backup-repeat").performScrollTo().assertIsDisplayed()
+        repeated.performTextReplacement("mismatched-fixture-passphrase")
+        review.assertIsNotEnabled()
+        repeated.performTextReplacement(passphrase)
+        review.assertIsDisplayed().assertIsEnabled().performClick()
         waitForState { it is PhoneHistoryBackupState.ExportReview }
         compose.onNodeWithTag("phone-backup-choose-destination").performClick()
         compose.waitForIdle()
@@ -145,12 +154,12 @@ class PhoneHistoryBackupFlowTest {
         }
         deliverFile(read)
         waitForState { it is PhoneHistoryBackupState.Unlock }
-        compose.onNodeWithTag("phone-backup-unlock-password").performTextInput("wrong-fixture")
+        compose.onNodeWithTag("phone-backup-unlock-password").assertIsDisplayed().performTextReplacement("wrong-fixture")
         compose.onNodeWithTag("phone-backup-unlock").performClick()
         waitForState { it == PhoneHistoryBackupState.Unlock(rejected = true) }
         compose.onNodeWithText(Words.PhoneBackupRejected.en).assertIsDisplayed()
         assertEquals(originals.keys, source.list().map { it.id }.toSet())
-        compose.onNodeWithTag("phone-backup-unlock-password").performTextInput(passphrase)
+        compose.onNodeWithTag("phone-backup-unlock-password").assertIsDisplayed().performTextReplacement(passphrase)
         compose.onNodeWithTag("phone-backup-unlock").performClick()
         waitForState { it is PhoneHistoryBackupState.RestoreReview }
         val item = (backup.state.value as PhoneHistoryBackupState.RestoreReview).plan.items.single()

@@ -1,5 +1,26 @@
 # Current development validation — audit follow-up
 
+## Protected backup fixture on 19 November 2026
+
+Hosted Android 8 shard 1 reached Review backup while the button was still
+disabled. The test now verifies protection is on, selects one chat, checks
+both checkbox states and verifies the review stays disabled with an empty
+or mismatched confirmation. It uses exact fixture-field replacement before
+asserting readiness and submitting once. The real keyboard viewport test
+and the decrypt, original preservation and collision assertions still run.
+The full hosted result is pending.
+
+The exact build passes 1,150 JVM tests and both lint variants with zero
+errors. Android 8 and 17 each pass all 14 focused methods, including both
+previously failing hosted cases.
+
+- Build receipt `20261119-154138-debdb18e48374264a9f9bcc5d307f664`
+- Source snapshot SHA-256 `6d1eb0bea14d547aa749b8191e44b0c667a069aad9840f87f90b64ffb4723fa8`
+- Debug APK SHA-256 `35288d1e74e38fe8b283201e91a6d11a2572f6e9155a2f0960bcf9f2579c75b1`
+- Test companion SHA-256 `a4bd2641f8935ec90e988500a8520364bd4e2b771d28c175089d1334013b08f5`
+- Android 8 log SHA-256 `ebae25b3623ac494ad748953973014e0c973f10cbcc535f8dd1a64b13027a582`
+- Android 17 log SHA-256 `6370e7a0903469563beeac75ac7cb20dc3cb28f8ff06ff9aae34153065b76b18`
+
 ## Home navigation fixture readiness on 19 November 2026
 
 The hosted Android 8 diagnostic failed before the measured Home-to-Chat
