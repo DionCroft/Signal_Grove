@@ -7,9 +7,12 @@ two failures among 637 methods in API 26 shard 1. The summary-only backup
 test found its row outside the displayed region after scrolling. The
 multilingual test found its checkbox off after the selection tap, before
 password entry. The protected round trip between those two tests passed.
-Both failed tests passed in the later focused local emulator run. The hosted
-failure needs a controlled viewport and input reproduction before release.
-The retained failure log SHA-256 is
+Both failed tests passed in the later focused local emulator run. A separate
+one-shot Android 8 reproduction attempt ran the same six adjacent tests in
+the same order. It used 1080×1920 and 130% font scale, with unchanged backup
+screen and test source. All six passed. The local log SHA-256 is
+`3744bec8467d9cbf81200eab188f893a50157d2acf3f10ac2c075eab420fa8c5`. The isolated run leaves the hosted viewport and
+input behavior open. The retained hosted failure log SHA-256 is
 `918a1b21fc7a0d7d2e00a4bf1acd0e68c5215db346f3b8935f0dadcabe237886`.
 [Exact hosted shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44573654477/job/135753686498).
 
