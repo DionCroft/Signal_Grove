@@ -1,5 +1,17 @@
 # Current development validation — audit follow-up
 
+## Reviewed phone Markdown export and history check on 19 November 2026
+
+The selected-chat review now saves through Android's system picker.
+The real API 26 Downloads result matched all 502 expected bytes.
+The latest matching APKs pass 1,107 JVM tests and 61
+selected methods on each API 26 and API 37, with zero lint errors and zero
+skips. On the earlier history source, full hosted device totals were
+1,182 and 1,183. One corrected branch
+identification case passed on the physical phone with the retained app and
+updated companion. Physical organization and export verification remain open.
+[Exact validation and earlier failed runs](contracts/2026-11-19-phone-markdown-export.md).
+
 ## Frozen selected Markdown foundation — 19 November 2026
 
 An internal selected-chat read/codec now freezes exact saved source/hash,

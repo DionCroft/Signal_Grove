@@ -54,14 +54,12 @@ answers and code/text cannot execute actions.
 pass 1,093 JVM cases and 56 selected native methods on each API26/API37, including
 the earlier 50 and six scripted input guards. Actual toggle inputs retain the
 IME and use one DOWN/UP without retry; exact Save values remain asserted. [Earlier actual phone offline search](contracts/2026-11-19-phone-history-search-physical.md)
-retains its own pairing. Current app8bda upgrades with all data retained.
-MIUI test-host denial is reproduced; one matching foreground intent unblocks a
-label assertion failure, now corrected. Full c46 CI also catches a missed pin;
-fresh complete CI and physical organization acceptance remain open. Branch/date identification is implemented; the consolidated phone check,
-Markdown export and protected backup/import remain. The [frozen Markdown read/codec](contracts/2026-11-19-selected-markdown-foundation.md)
-is now internal and tested (1,107 JVM/58 selected methods per API); connect the
-review, one-shot picker/writer and actual phone/provider checks next. This is
-not an implemented export UI or encrypted/importable backup. Add local title/content search, rename, pin, archive and
+retains its own pairing. The updated companion passed physical branch
+identification. Full hosted history coverage passed 1,182 API 26 and 1,183
+API 37 cases. The [reviewed Markdown export](contracts/2026-11-19-phone-markdown-export.md)
+saved exact content through the Android picker on API 26. Physical organization
+and export checks, plus versioned and encrypted backup/import, remain open.
+Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,
 encryption and where Android will save/share them. Models remain separate.

@@ -8,8 +8,8 @@ retain every original requirement.
 ## Current implementation and evidence
 
 The export component is on `feat/offline-markdown-export`, layered on
-`feat/offline-chat-actions` at 88a8d05. Push this branch independently to preserve
-PR2 full run 44496075372. Main stays at a992cf4.
+`feat/offline-chat-actions` at 88a8d05. The earlier history branch passed full Android run 44496075372 with
+1,182 API 26 and 1,183 API 37 tests. Main stays at a992cf4.
 
 Main `a992cf4` has the UI readiness/viewport fixes; identical-tree PR evidence
 independently verifies 1,149 API26 / 1,150 API37 standard methods, no skips.
@@ -24,15 +24,16 @@ views. Labels live outside transcripts, stay out of prompts and preserve model/
 parent identity. Cancellation after publication reconciles files; exact explicit
 deletion cleans labels and corrupt indexes refuse deletion before data changes.
 Latest required builds pass 1,107 JVM cases/104 reports and zero-error lint
-(51/50 warnings). The fresh same-build APK pair passes 58 selected native methods on each
-API26/API37 without skips: the earlier 56 plus two real Android export-storage cases.
+(51/50 warnings). The fresh same-build APK pair passes 61 selected native methods on each
+API 26 and API 37 without skips, including three new export flow checks.
 Six real toggle inputs per API each have one accepted DOWN/UP, IME retained and
 no retry. The exact Save title/pin/archive/model assertion remains unchanged.
 Rows show recorded activity time and copied/edited/regenerated branch labels.
-[Current source/APK bindings](docs/contracts/2026-11-19-selected-markdown-foundation.md) and
+[Current source/APK bindings](docs/contracts/2026-11-19-phone-markdown-export.md) and
 [retained UI failures](docs/contracts/2026-11-19-history-native-readiness.md).
-The internal frozen Markdown codec is implemented; user review/provider flow
-and versioned/encrypted backup/import remain incomplete.
+Markdown review and file export work through the Android picker. The real API 26
+Downloads transfer matches the source. Versioned and encrypted backup/import
+remain open, along with full export CI and the phone export check.
 
 Earlier phone pairings verify one actual offline native branch/Stop method and
 real UI fork/edit/regenerate. The matching search build upgrades in place with
@@ -44,10 +45,10 @@ all UIDs, 15 cold metadata files, both models and all four actual UI chats.
 One four-case synthetic phone run stalls before first render and is stopped.
 Two later bounded diagnostics confirm MIUI rejects the test-host start with
 result102; one exact matching foreground intent unblocks a real identification
-case, which fails on an adjacent label not scrolled into view. No case pass is
-claimed. The current companion fixes that scroll and waits for stable actual
-IME geometry before native toggles. Full c46 CI also fails one API26 Save
-assertion (pin false); the other three jobs succeed. Fresh full CI stays open. SQLite main/WAL and
+case, which previously failed its adjacent branch label check. The corrected
+companion passes that identification case on the owner phone. Full Android CI
+for the history branch passes, including the corrected pin/archive assertion.
+SQLite main/WAL and
 other data bytes match; transient SHM is separately reconciled with read-only
 integrity ok. Radio/wake settings restore; reopening configured Tailscale once
 restores a connected VPN and private Pi ping. No API/model readiness is inferred.
@@ -55,12 +56,10 @@ restores a connected VPN and private Pi ping. No API/model readiness is inferred
 
 ## Exact next action
 
-Verify the owner-installed companion960 against retained app8bda, then run the
-single corrected identification case and finish reviewed organization/Cancel/
-unloaded archive reads. Keep the live full 88a8d05 run intact; the
-tested Markdown component is pushed on its own feature branch. Connect its selected-chat review, one-shot Android
-file picker/writer and partial/recovery outcomes next, then versioned/encrypted
-backup/import. OF-01 accessibility/lifecycle and the full original audit remain.
+Complete physical organization Save, Cancel, and unloaded archive reads.
+Verify the export branch with its physical app and companion pair, then
+implement versioned and encrypted backup/import. Keep the full hosted export
+run, OF-01 accessibility and lifecycle, and original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/
@@ -71,24 +70,11 @@ policy/launcher/private-backup/restart changes.
 
 ## Device and continuation safeguards
 
-Owner phone retains the consolidated organization app8bdaf53ebc3f and
-companion2dfc9fc16f89. The new companion960fac43d1de changes only Android-test
-sources; all application/build inputs match the installed subject. Verify that
-subject and same original debug key before any companion-only update. Both
-models, four actual UI chat JSONs and failed-run histories stay protected. The
-owner's earlier label/pin/archive Save is now observed absent. USB is connected;
-no debug process/model/test runs. Companion960 is staged but not verified
-installed yet. Thirteen non-database metadata files and both models match;
-database hashes remain separate. Never stage the newer foundation companion
-against old app8bda: that pair has a new export API and must be installed together.
-Normal networking was never changed by the new diagnostics.
-Restore only observed original settings. Keep production untouched and never
-install the hosted CI signer. Use owner navigation after verified USB taps fail.
-
-Keep SQLite payload retention separate from volatile SHM. Record original VPN
-state and verify it/private route after offline tests. For binary model staging
-use raw ADB exec-in or verified sync; shell stdin can truncate at Ctrl+Z. Reconcile
-partials and verify full size/hash before publication. Keep tools/evidence on E:.
-The prior temporary Python harness path disappeared; a fresh E-only stdlib
-harness is verified. That tool replacement starts no test by itself and changes
-no APK. Read AGENTS.md before continuing.
+The owner phone has the organization app 8bdaf53ebc3f and the verified
+companion 960fac43d1de. The corrected branch identification test passed.
+The tested upgrade retained 13 checked metadata files, both models, the
+observed database bytes and all four actual UI chats. The latest read of the
+organization index found it absent. Finish the pending review on the original
+debug pair. An export test needs a matching new app and companion pair.
+Use the original debug signer for physical tests. Use owner navigation when
+USB input is unavailable.

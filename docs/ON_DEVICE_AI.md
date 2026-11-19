@@ -1,5 +1,26 @@
 # Using on-device AI (beta.9 preview)
 
+## Export a phone chat to Markdown on the unreleased branch
+
+In **On-device AI → Phone history**, choose **Export Markdown** on a saved chat.
+The review shows the selected title, saved activity, exchange count, file size
+and suggested filename. Choose **Choose where to save** and select a location
+in Android's file picker. Choose Downloads or another local folder when you
+want the document to stay on your phone.
+
+The UTF-8 file includes only the selected chat's saved questions, replies,
+completion states, model fingerprint and any recorded generation settings.
+Text inside messages is exported literally. The filename uses a short
+conversation ID. Keep sensitive chat exports in a location you trust, because
+Markdown is plaintext. A cloud document provider may sync files it receives.
+
+Cancelling the review or Android picker leaves history untouched. Leaving the
+picker after choosing a destination may leave an empty document if the activity
+was interrupted. A stopped or unconfirmed write can leave a partial file.
+Check the destination before starting a fresh export.
+
+[Validation and provider behavior](contracts/2026-11-19-phone-markdown-export.md).
+
 ## 13 November 2026 - goal active; four acceptance priorities explicit
 
 The owner resumed the existing full audit goal. Its explicit priorities are

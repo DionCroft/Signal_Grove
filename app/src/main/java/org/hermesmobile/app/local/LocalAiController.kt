@@ -59,6 +59,23 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
         refresh()
     }
+    /** Prepare a read-only snapshot of the selected row before showing the document review. */
+    fun prepareMarkdownExport(expected: LocalConversationSummary, onPrepared: (LocalMarkdownExport) -> Unit) = action("preparing_export") {
+        val document = io {
+            val context = currentCoroutineContext()
+            val checkpoint = { context.ensureActive() }
+            val conversation = conversations.load(expected.id, checkpoint)
+            val labels = organization.entries(checkpoint)[expected.id]
+            if (conversation.updatedAt != expected.updatedAt || conversation.modelSha256 != expected.modelSha256 ||
+                conversation.origin != expected.origin || conversation.exchanges.lastOrNull()?.state != expected.lastState ||
+                labels != expected.organization) {
+                throw LocalMarkdownExportException(LocalMarkdownExportFailure.CHANGED)
+            }
+            conversations.markdownExport(conversation, labels?.preferences?.title, checkpoint)
+        }
+        onPrepared(document)
+    }
+
     fun clearHistorySearch() {
         if (mutable.value.busy || leaving) return
         mutable.update { it.copy(historyQuery = null, historyMatches = emptyList(),
@@ -280,6 +297,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     }
                 }
                 catch (e: Exception) { mutable.update { it.copy(error = when {
+                    e is LocalMarkdownExportException && e.reason == LocalMarkdownExportFailure.CHANGED -> "history_export_changed"
+                    status == "preparing_export" -> "history_export_prepare"
                     status == "searching" && e is LocalHistoryException -> "history_search"
                     e is LocalHistoryOrganizationChangedException -> "history_organization_changed"
                     else -> failure(e)

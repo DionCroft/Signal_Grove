@@ -27,8 +27,10 @@ internal data class PhoneDraftCancelObservation(
 internal fun ComposeContentTestRule.cancelPhoneDraftOnce(
     preferences:AppPreferences,
     keyboardExpected:Boolean?=null,
+    keyboardExpectedAfterHook:Boolean?=null,
     beforePreTapObservation:(()->Unit)?=null
 ):PhoneDraftCancelObservation {
+    require(keyboardExpectedAfterHook == null || beforePreTapObservation != null)
     val id=UUID.randomUUID().toString()
     val tags=listOf("phone-draft-confirm" to Words.PhoneDraftConfirm,"phone-draft-cancel" to Words.Cancel)
     val started=SystemClock.uptimeMillis();val deadline=started+5000
@@ -60,7 +62,9 @@ internal fun ComposeContentTestRule.cancelPhoneDraftOnce(
     }
     fun contained(g:PhoneDraftGeometry):Boolean {
         val v=g.viewport
-        return (keyboardExpected==null || v.keyboardVisible==keyboardExpected) &&
+        // A controlled late-keyboard fixture needs a new visible sample after it requests the IME.
+        val expected = if (hookUsed) keyboardExpectedAfterHook ?: keyboardExpected else keyboardExpected
+        return (expected==null || v.keyboardVisible==expected) &&
             g.controls.all {b->b.left+v.screenOffsetX>=v.visible.left && b.right+v.screenOffsetX<=v.visible.right &&
                 b.top+v.screenOffsetY>=v.visible.top && b.bottom+v.screenOffsetY<=v.visible.bottom} &&
             g.captions.all {v.visible.contains(it)}

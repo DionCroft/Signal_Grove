@@ -81,6 +81,14 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
             item.lastState?.let {Text(label(phoneReplyState(it)), style = MaterialTheme.typography.labelSmall)}
             TextButton({open(item.id)}, enabled = !state.busy, modifier = Modifier.testTag("phone-history-open-${item.id}")) {Text(label(Words.Chat))}
             TextButton({organizing = item}, enabled = !state.busy, modifier = Modifier.testTag("phone-history-organize-${item.id}")) {Text(label(Words.PhoneHistoryOrganize))}
+            actions.exportMarkdown?.let {export ->
+                if (item.lastState != null && item.lastState != LocalReplyState.GENERATING) {
+                    TextButton({export(item)}, enabled = !state.busy,
+                        modifier = Modifier.testTag("phone-history-export-${item.id}")) {
+                        Text(label(Words.PhoneMarkdownExport))
+                    }
+                }
+            }
             TextButton({remove(item.id)}, enabled = !state.busy) {Text(label(Words.Delete))}
         } }
     }
