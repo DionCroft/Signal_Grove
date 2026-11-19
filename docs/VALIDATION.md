@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Offline low-memory refusal and smaller-model recovery
+
+The frozen copy-report debug build ran through the normal app on a
+disposable API 26 x86_64 emulator configured with 2 GiB of RAM. Android
+reported 2,046,976 KiB of total memory. Airplane mode was on, Wi-Fi
+and the cellular data connection were off and Android reported no
+default network. The emulator held two verified models and one
+completed synthetic LFM3 chat.
+
+Load model on LFM3 1.7B QAD showed the insufficient-memory error.
+The displayed admission threshold was 2,258 MiB. The app had no
+GGUF mappings, and the original chat matched its original hash.
+After dismissing the error, the operator explicitly loaded
+Qwen2.5-0.5B Instruct Q4_K_M, whose threshold was 1,194 MiB. A new
+phone chat began empty. One send of `Reply with the word Grove`
+completed with `Grove` in the app and in the saved chat. The saved
+turn was bound to the Qwen file, which was the only mapped model.
+
+The final check found precisely two chats. The first was byte-identical,
+the second had one completed exchange, and both GGUF sizes and SHA-256
+digests matched their initial values. The guest still had no default
+network. Physical low-memory and sustained thermal/battery checks are
+pending.
+
+| Verified artifact | SHA-256 |
+| --- | --- |
+| Debug APK | `12207c163799f2d49715f2358e3c9a2ef631585a6349f890f1cc32d29a11c359` |
+| LFM3 GGUF, 1,049,615,680 bytes | `43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452` |
+| Qwen GGUF, 491,400,032 bytes | `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db` |
+| Retained original fixture | `4a621c36e401953caaa9cd9418f8e5abdd81e745214295becca0217da5614ba9` |
+| Saved smaller-model chat | `8a6c98189b0ecca5c0f6c4f6a5773d783a4fea5135288c1bdc4bbb859409b40a` |
+| Load-refusal receipt | `4bc1e16276ca06267fbe2158664c7a11812012723a9ca60a7608aaf08c0cc18b` |
+| Final offline retention receipt | `3055732c3e2e57acd8c808201daf841c70a170084db5aa485ae4db91c3175f7e` |
+
 ## Copy on-device performance details
 
 Copy performance report is an explicit clipboard action for the current

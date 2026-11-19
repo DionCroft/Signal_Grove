@@ -29,9 +29,13 @@ time and sampled-token rate for the current load. The fixed-prompt LFM3
 benchmark passed offline through the normal Android 17 UI with all four
 fixture histories byte-identical. The physical phone completed one
 offline LFM3 benchmark and retained all six chats. The original radios
-and private Pi route were verified after reopening Tailscale. Physical
-sustained performance and low-memory checks remain open.
-[Physical validation](VALIDATION.md#physical-lfm3-benchmark-with-networking-off).
+and private Pi route were verified after reopening Tailscale. The 2 GiB
+Android 8 guest refused LFM3 and completed one offline chat after an
+explicit load of the smaller Qwen model. The prior chat and model hashes
+were preserved. Physical sustained performance and low-memory checks
+remain open.
+[Physical validation](VALIDATION.md#physical-lfm3-benchmark-with-networking-off) ·
+[Low-memory validation](VALIDATION.md#offline-low-memory-refusal-and-smaller-model-recovery).
 
 ## Hermes stored history and shutdown checkpoint - 19 November 2026
 

@@ -17,6 +17,10 @@ the fixed LFM3 prompt with an independently verified disconnected state,
 then recovered the private route to Hermes. All six chats, models and
 labels retained their hashes. The copyable performance report passes
 all 84 focused checks per emulator API, including a real clipboard test.
+An offline 2 GiB Android 8 emulator refused LFM3, then loaded the smaller
+Qwen model on request and saved its reply. The earlier chat and both
+model hashes were preserved.
+[Low-memory evidence](docs/VALIDATION.md#offline-low-memory-refusal-and-smaller-model-recovery).
 [Report checks](docs/VALIDATION.md#copy-on-device-performance-details).
 [Physical measurements](docs/VALIDATION.md#physical-lfm3-benchmark-with-networking-off).
 [Measurements and build evidence](docs/VALIDATION.md#on-device-performance-measurements-and-offline-benchmark).

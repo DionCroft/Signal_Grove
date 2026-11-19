@@ -118,8 +118,13 @@ offline benchmark. Native sampling follows the reviewed greedy policy.
 Copy performance report copies only the active numerical settings, timing,
 memory and result status. The clipboard action passed native checks on
 Android 8 and 17. The physical phone passed one offline LFM3 benchmark
-and released the model mappings in the background. Sustained thermal/battery and low-memory
-checks remain open. [Physical evidence](VALIDATION.md#physical-lfm3-benchmark-with-networking-off).
+and released the model mappings in the background. An offline 2 GiB Android 8
+emulator refused LFM3 before mapping it, then completed and saved a chat after
+an explicit load of the smaller Qwen model. Both model hashes and the earlier
+chat were preserved. Physical low-memory and sustained thermal/battery checks
+remain open.
+[Physical evidence](VALIDATION.md#physical-lfm3-benchmark-with-networking-off) ·
+[Low-memory evidence](VALIDATION.md#offline-low-memory-refusal-and-smaller-model-recovery).
 
 Acceptance: every preset maps to documented supported settings, respects device/
 model limits and preserves responsiveness/Stop. Persist the settings used for
