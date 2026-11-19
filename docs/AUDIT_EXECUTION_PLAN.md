@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Hosted Android 8 Demo and keyboard recheck - 19 November 2026
+
+The catalogue build's hosted records now confirm the Android 8 Demo
+clarification and phone-history search cases passed. The previous
+Android 17 Kanban keyboard case also passed. This verifies the named
+regressions at that source. The newest-source device, physical,
+Hermes integration and signed-release checks remain open.
+[Verified records](VALIDATION.md#hosted-demo-and-keyboard-regression-recheck).
+
 ## Backup selection and protection review - 19 November 2026
 
 The guarded two-step backup review passes all 82 focused cases on each

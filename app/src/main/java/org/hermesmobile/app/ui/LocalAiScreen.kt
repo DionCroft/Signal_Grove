@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -88,7 +89,12 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val saveModelPerformance: ((InstalledLocalModel, LocalModelPerformance) -> Unit)? = null,
     val benchmark: ((String) -> Unit)? = null)
 
-@Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
+@Composable fun LocalAiRoute(
+    vm: LocalAiViewModel,
+    close: () -> Unit,
+    openHermes: (() -> Unit)? = null,
+    startupSetting: (@Composable () -> Unit)? = null
+) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
     val handoff by vm.handoffState.collectAsStateWithLifecycle()
@@ -112,14 +118,16 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             newChatWithDraft = vm::newChatWithDraft, continueWithSelectedTurns = vm::continueWithSelectedTurns,
             previewSelectedPrompt = c::previewSelectedPrompt, continueWithSummary = vm::continueWithReviewedSummary,
             draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt,
-            saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark), close, observations, handoff)
+            saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark),
+        close, observations, handoff, openHermes, startupSetting)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
 @Composable fun LocalAiScreen(state: LocalAiState, supported: Boolean, draft: String, changeDraft: (String) -> Unit,
-    pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null, handoffState:String = "") {
+    pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null,
+    handoffState: String = "", openHermes: (() -> Unit)? = null, startupSetting: (@Composable () -> Unit)? = null) {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
@@ -139,6 +147,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                 if(handoffState.isNotEmpty()) PhoneDraftNotice(handoffState)
                 else IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
+                if (openHermes != null) {
+                    IconButton(openHermes, Modifier.testTag("phone-open-hermes")) {
+                        Icon(Icons.Outlined.Home, label(Words.PhoneStartupOpenHermes))
+                    }
+                }
                 IconButton(close, Modifier.testTag("phone-close")) {Icon(Icons.Outlined.Close, label(Words.Close))}
             }
             Row(Modifier.fillMaxWidth()) {
@@ -196,7 +209,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 offlineSetup = false
                 tab = 0
             },
-            close = { offlineSetup = false }
+            close = { offlineSetup = false },
+            startupSetting = startupSetting
         )
     }
     if (boundary) AlertDialog(onDismissRequest = {boundary = false}, title = {Text(label(Words.PhoneAi))},

@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest offline startup checkpoint
+
+The development app can open On-device AI from the app icon using
+the switch in Set up offline chat. The debug pair passed 1,158 JVM
+tests and 94 focused methods per emulator API with zero lint errors,
+including launcher, draft retention, Hermes return and explicit
+destination coverage. Continue with physical acceptance, OF-06
+model transfers and the original Hermes and signed-release gates.
+[Startup evidence](docs/VALIDATION.md#optional-on-device-ai-startup).
+
 ## Latest guided setup checkpoint
 
 The development app now guides users from phone model download or

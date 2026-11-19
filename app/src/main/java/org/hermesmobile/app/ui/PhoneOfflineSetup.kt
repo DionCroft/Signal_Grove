@@ -20,7 +20,8 @@ internal fun PhoneOfflineSetup(
     chooseFile: () -> Unit,
     openModels: () -> Unit,
     openChat: () -> Unit,
-    close: () -> Unit
+    close: () -> Unit,
+    startupSetting: (@Composable () -> Unit)? = null
 ) {
     val readyToLoad = supported && !state.busy && state.models.isNotEmpty()
     val readyToChat = supported && !state.busy && state.loaded != null
@@ -70,6 +71,7 @@ internal fun PhoneOfflineSetup(
                             Text(label(Words.PhoneOfflineSetupOpenChat))
                         }
                     }
+                    startupSetting?.invoke()
                 }
                 TextButton(close, Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("phone-offline-setup-close")) {
                     Text(label(Words.Close))

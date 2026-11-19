@@ -57,7 +57,13 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
         nav.navigate(route) { launchSingleTop=true; restoreState=true; popUpTo(nav.graph.startDestinationId) { saveState=true } }
         UiRouteObservation.record(AppRouteEvent.NavigationReturned,owner,nav.currentDestination?.route)
     }
-    LaunchedEffect(requestedRoute) {if(requestedRoute in setOf("Tasks","Chat")) {go(requestedRoute!!);handled()}}
+    val navigationReady = back != null
+    LaunchedEffect(requestedRoute, navigationReady) {
+        if (navigationReady && (requestedRoute == "Tasks" || requestedRoute == "Chat")) {
+            go(requestedRoute)
+            handled()
+        }
+    }
     sharedImages?.let {ImageShareReview(vm,it,shareHandled) {go("Chat")}}
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).pixelPaper(MaterialTheme.colorScheme.onBackground)) {
         val wide=maxWidth>=840.dp

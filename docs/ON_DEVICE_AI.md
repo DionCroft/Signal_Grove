@@ -20,6 +20,20 @@ It works without a Hermes connection. Each download, load and message
 requires a separate action.
 [Guide validation](VALIDATION.md#guided-offline-chat-setup).
 
+### Choose which screen opens from the app icon
+
+In **Set up offline chat**, scroll to **App startup** and enable
+**Open On-device AI from the app icon**. A fresh launch opens
+On-device AI without loading a model. The **Home** icon at the top
+of that screen opens Hermes. Turn the same switch off to restore
+Hermes as the app-icon destination on a fresh launch.
+
+Returning to an open task resumes it. Notifications, the Tasks
+widget and shared images still open their Hermes destinations.
+Any separately enabled background reminders follow their own
+settings.
+[Startup validation](VALIDATION.md#optional-on-device-ai-startup).
+
 ## Compare downloadable models in the development build
 
 Open **On-device AI → Phone models → Compare downloadable models**. Both

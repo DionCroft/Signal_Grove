@@ -1,5 +1,57 @@
 # Current development validation — audit follow-up
 
+## Optional On-device AI startup
+
+The offline setup guide has a saved startup switch. The launcher
+checks it before creating the Hermes and updater view models.
+When enabled, a fresh launch opens the private on-device activity
+with its ordinary local library and chat state. Loading a model
+and sending a message still require separate actions. The Home
+button in the local title bar opens Hermes explicitly. If reading
+the preference fails, the app offers both destinations for the
+user to choose.
+
+The frozen build passed 1,158 JVM tests and both lint variants with
+zero errors. Android 8 and Android 17 passed 94 focused methods
+each. The five added methods cover default launch and Hermes
+recreation, saving the switch and returning to Hermes, preserving
+an unsent phone draft when the launcher returns to the current task,
+explicit Tasks and Chat PendingIntents, and the incoming-image
+review for single and multiple shared images. The fixture mirrors
+the notification/widget intent shapes. It uses demo credentials and
+keeps the synthetic images in review.
+
+The first Android 8 run received a Tasks intent before the navigation
+graph was initialized and recorded a crash. Hermes now dispatches a
+pending external destination after the first back-stack entry.
+The corrected build passed the focused launcher test on both APIs.
+
+- Initial Android 8 widget-route failure log SHA-256: fd01d23b2da8c4ec2a1253e4df6f233512ba0bf6fba5c31e46c0dde3e7e9b427
+
+- Frozen source digest: e559855bbb560d0fb24e52b3cd7f95fd6e72e78434a611f613bb4055cec00c66
+- Debug APK SHA-256: 15527aee0c75c0e90a611f59131d46947bac231c9e0c4a6af1af5e023f2c06eb
+- Debug test APK SHA-256: 3ee673280977e27c25b47e9e972a27e47025c77eecccc5c32f9bd41f95e36324
+- API 26 native evidence SHA-256: de7a7db8c0b8e8881cebe2197b94f3d178f70d45263df4fcba6bddfad22633ec
+- API 37 native evidence SHA-256: a00adade6eef10c23e266964638163e9b865aea1dc59c6dbb74945b5ccfc7bf1
+
+The normal Android 8 app was checked at 1.3 system text
+scale. A fresh process opened On-device AI with the model still
+unloaded, and the Home icon opened Hermes. Turning the switch off
+restored Hermes on the next fresh launch. All 5 compared
+local model and chat files were retained.
+
+Acceptance on the physical phone and final signed release remain open.
+
+## Hosted Demo and keyboard regression recheck
+
+The raw host records for catalogue source 6bc7ff0 show the prior
+Android 8 Demo clarification and history-search methods completed
+successfully in shard 1. Android 17 shard 0 includes a positive
+terminal record for the previously failing Kanban keyboard case.
+The failed earlier run remains recorded under its own source.
+The combined hosted gate was still open at review.
+[Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44625566131).
+
 ## Guided offline chat setup
 
 **Set up offline chat** is available from Phone models and unloaded

@@ -6,21 +6,38 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.withResumed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import java.io.IOException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import org.hermesmobile.app.data.AppPreferences
 import org.hermesmobile.app.ui.*
 
 class MainActivity : ComponentActivity() {
     private val destination=mutableStateOf<String?>(null)
     private val sharedImages=mutableStateOf<org.hermesmobile.app.data.SharedImages?>(null)
     private var shareConsumed=false
+    private var launcherRouting: Job? = null
+    private var hermesOpened = false
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (intent.isLauncherEntry()) return
+        setIntent(intent)
+        launcherRouting?.cancel()
         destination.value=intent.getStringExtra("destination")?.takeIf {it in setOf("Tasks","Chat")}
         org.hermesmobile.app.data.SharedImages.parse(intent)?.let {shareConsumed=false;sharedImages.value=it}
+        openHermes()
     }
+
     override fun onSaveInstanceState(outState:Bundle) {
+        outState.putBoolean("hermes_opened", hermesOpened)
         outState.putBoolean("image_share_consumed",shareConsumed)
         outState.putString("requested_destination",destination.value)
         sharedImages.value?.let {pending ->
@@ -42,6 +59,48 @@ class MainActivity : ComponentActivity() {
         }
         destination.value=(if(savedInstanceState?.containsKey("requested_destination")==true) savedInstanceState.getString("requested_destination") else intent.getStringExtra("destination"))?.takeIf {it in setOf("Tasks","Chat")}
         enableEdgeToEdge()
+        if (savedInstanceState?.getBoolean("hermes_opened") != true && intent.isLauncherEntry()) {
+            routeLauncher()
+        } else {
+            openHermes()
+        }
+    }
+
+    private fun Intent.isLauncherEntry(): Boolean =
+        action == Intent.ACTION_MAIN && hasCategory(Intent.CATEGORY_LAUNCHER) &&
+            data == null && type == null && clipData == null &&
+            !hasExtra("destination") && !hasExtra(Intent.EXTRA_STREAM)
+
+    private fun routeLauncher() {
+        launcherRouting = lifecycleScope.launch {
+            val preferences = (application as HermesApplication).preferences
+            val startOnPhone = try {
+                withTimeoutOrNull(5_000) { preferences.phoneStartup.first() }
+            } catch (_: IOException) {
+                null
+            }
+            lifecycle.withResumed {
+                when (startOnPhone) {
+                    true -> openPhone()
+                    false -> openHermes()
+                    null -> setContent {
+                        HermesAppTheme(AppPreferences()) { PhoneStartupUnavailable(::openPhone, ::openHermes) }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun openPhone() {
+        startActivity(Intent(this, LocalAiActivity::class.java)
+            .putExtra(LocalAiActivity.FROM_LAUNCHER, true)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+        finish()
+    }
+
+    private fun openHermes() {
+        if (hermesOpened) return
+        hermesOpened = true
         setContent {
             val vm: HermesViewModel=viewModel()
             val p by vm.preferences.collectAsStateWithLifecycle()

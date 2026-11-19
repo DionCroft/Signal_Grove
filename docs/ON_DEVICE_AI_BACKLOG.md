@@ -144,8 +144,10 @@ models shows installed bytes, current free storage and saved partial download
 data. Load is explicit and appears near the model name. Licence consent and
 actions stay visible beside the scrollable source text. A first-run guide
 reads the library and routes explicitly through download or import, load and
-phone chat. The saved local startup preference and physical acceptance
-remain open.
+phone chat. A saved, opt-in launch preference opens On-device AI from the
+app icon. Explicit Hermes destinations keep their existing routes. Physical
+acceptance remains open.
+[Startup checks](VALIDATION.md#optional-on-device-ai-startup).
 [Guide checks](VALIDATION.md#guided-offline-chat-setup).
 [Catalogue checks](VALIDATION.md#offline-catalogue-and-separate-model-downloads) ·
 [Library and licence checks](VALIDATION.md#installed-model-library-and-fixed-licence-controls).
