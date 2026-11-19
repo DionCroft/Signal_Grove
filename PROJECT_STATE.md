@@ -112,7 +112,10 @@ cases. On the later backup branch, one hosted Android 8 shard failed before
 Home was ready. The other found Review backup disabled after fixture input.
 The current Home and protected-backup fixtures pass 14 focused checks on
 both APIs. Both historical hosted failures remain in the evidence.
-Finish physical OF-03 acceptance for selected context and reviewed summaries.
+Physical manual reviewed-summary creation and selected-turn provenance are
+verified, with no model loaded. Confirm the separate copy-only selected-turn
+action and model-generated draft on the physical phone.
+[Evidence](docs/contracts/2026-11-19-phone-reviewed-summaries.md#physical-reviewed-summary-with-the-model-unloaded).
 Verify the offline performance panel on the physical phone, including Stop,
 sustained thermal/battery and low-memory behavior. Keep OF-01 accessibility,
 lifecycle and the original audit gates open.

@@ -59,3 +59,23 @@ chat had zero exchanges. Closing the app view released the model.
 - Real LFM3 trial debug APK SHA-256 `3f078dc4a486a7177f99130be52f5cb1f9be3495ca8b815b225912a888aafafc`
 - API 26 instrumentation SHA-256 `5bf4736991fe055242820ccb0d265616c5cc6cc3550597ec1531f9e9c4d2f988`
 - API 37 instrumentation SHA-256 `af230d198a6ff0d1b322a2ea31fcd87e09555962c3fe04ab1a566a642bb7f307`
+
+## Physical reviewed summary with the model unloaded
+
+The owner tested the exact debug and companion APKs above on Android 17.
+The normal production APK hash and all three package UIDs matched their
+pre-upgrade values. After the debug update, the original four transcripts,
+one restored copy, both model files and the labels matched their saved
+hashes.
+
+The owner selected turn 1 in Forest phone check, entered the summary by
+hand and confirmed Create phone chat once. The app added one schema-6 chat
+with the selected turn, its exact parent hash, a parent link and the same
+model identity. The stored wording had the sample sentence's final period
+omitted. No new exchange was present and the model was unloaded. The app
+showed Read saved summary. The five preceding chats, labels and both model
+files still matched. Network settings remained in their normal state.
+
+The summary transcript SHA-256 is f521ea0f4606c1afe28d2d2bac2d4b42140325f999ade77bf212f90a181877ba. Model-generated drafts and the
+copy-only selected-turn action still need physical acceptance. Earlier
+Android 17 emulator proof covers their normal app paths.
