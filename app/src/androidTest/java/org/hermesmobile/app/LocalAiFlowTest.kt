@@ -1,5 +1,8 @@
 package org.hermesmobile.app
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.os.Build
 import androidx.compose.runtime.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -90,6 +93,50 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-benchmark-stop").assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals(1, stops); assertEquals(0, sends) }
         compose.onNodeWithTag("phone-diagnostics-close").assertIsDisplayed().performClick()
+    }
+
+    @Test fun copiedPerformanceReportContainsOnlySettingsAndMeasurements() {
+        val custom = model.copy(metadata = model.metadata.copy(name = "Private model label"))
+        state = LocalAiState(models = listOf(custom), loaded = custom,
+            loadedSettings = LocalGenerationSettings(2048, 3, 384),
+            chat = LocalConversation(modelSha256 = sha, updatedAt = 1, exchanges = listOf(
+                LocalExchange("Private question marker", "Private answer marker", LocalReplyState.COMPLETE))))
+        show(bilingual = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        compose.onNodeWithTag("phone-diagnostics-aaaaaaaa").performScrollTo().performClick()
+        val copy = compose.onNodeWithTag("phone-diagnostics-copy")
+        copy.assertDoesNotExist()
+        val clipboard = compose.runOnIdle {
+            InstrumentationRegistry.getInstrumentation().targetContext.getSystemService(ClipboardManager::class.java)
+        }
+        val original = compose.runOnIdle { clipboard.primaryClip }
+        val sample = LocalGenerationMeasurement(20, 1_000_000_000, 2_000_000_000)
+        compose.runOnIdle {
+            state = state.copy(performance = LocalPerformanceDiagnostics(loadPssKiB = 262_144,
+                benchmark = LocalBenchmarkResult(LocalBenchmarkEnd.COMPLETE, sample)))
+            assertEquals(original?.getItemAt(0)?.text, clipboard.primaryClip?.getItemAt(0)?.text)
+        }
+        try {
+            copy.performScrollTo().assertIsDisplayed().performClick()
+            copy.assertTextContains(Words.Copied.en, substring = true)
+            compose.runOnIdle {
+                val clip = checkNotNull(clipboard.primaryClip)
+                val value = clip.getItemAt(0).text.toString()
+                assertTrue(value.contains("2048 context") && value.contains("CPU threads 3"))
+                assertTrue(value.contains("256 MiB") && value.contains("Time to first visible text · 2 s"))
+                assertTrue(value.contains("20 tokens/s (20 sampled)") && value.contains("Completed on phone"))
+                assertTrue(value.contains("Rate excludes prompt processing."))
+                assertTrue(listOf("Private model label", "Private question marker", "Private answer marker", sha)
+                    .none(value::contains))
+                assertTrue(benchmarks.isEmpty()); assertEquals(0, sends)
+            }
+        } finally {
+            compose.runOnIdle {
+                original?.let(clipboard::setPrimaryClip) ?: if (Build.VERSION.SDK_INT >= 28) {
+                    clipboard.clearPrimaryClip()
+                } else clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
+            }
+        }
     }
 
     @Test fun noLoadDisablesSendAndSetupGuideWorksWithoutModel() {

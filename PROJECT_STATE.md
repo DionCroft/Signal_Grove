@@ -15,7 +15,9 @@ The exact debug pair passes 1,157 JVM and 83 focused methods on each
 emulator API with zero lint errors. The physical Android 17 phone ran
 the fixed LFM3 prompt with an independently verified disconnected state,
 then recovered the private route to Hermes. All six chats, models and
-labels retained their hashes.
+labels retained their hashes. The copyable performance report passes
+all 84 focused checks per emulator API, including a real clipboard test.
+[Report checks](docs/VALIDATION.md#copy-on-device-performance-details).
 [Physical measurements](docs/VALIDATION.md#physical-lfm3-benchmark-with-networking-off).
 [Measurements and build evidence](docs/VALIDATION.md#on-device-performance-measurements-and-offline-benchmark).
 

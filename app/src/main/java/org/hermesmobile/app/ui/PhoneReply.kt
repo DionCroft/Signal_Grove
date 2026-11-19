@@ -128,7 +128,7 @@ internal fun phoneReplyMarkwon(context: Context): Markwon = Markwon.builder(cont
     read?.let {PhoneTextReader(it, false) {read = null}}
 }
 
-private fun copyPhoneText(context: Context, text: String) {
+internal fun copyPhoneText(context: Context, text: String) {
     val clip = ClipData.newPlainText("Signal Grove", text)
     // The compat key suppresses content previews on Android versions/IMEs that honor it.
     clip.description.extras = android.os.PersistableBundle().apply {putBoolean("android.content.extra.IS_SENSITIVE", true)}

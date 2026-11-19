@@ -1,5 +1,42 @@
 # Current development validation — audit follow-up
 
+## Copy on-device performance details
+
+Copy performance report is an explicit clipboard action for the current
+model load. The report contains active numeric settings, app memory,
+available timing measurements and the benchmark status. It reuses the
+phone clipboard handling. Opening the panel or finishing a benchmark
+leaves clipboard contents in place. The app presents Copy when
+measurements or a benchmark result are available and phone work is idle.
+
+The frozen build passes 1,157 JVM tests, both lint variants with zero
+errors and 84 focused native methods on each of Android 8 and Android 17.
+The bilingual test checks the clipboard payload, absence of model names
+and fingerprints and absence of question and answer text. The original
+Android 8 run had one fixture failure before these assertions because
+the test obtained the clipboard service off the UI thread. Obtaining it
+on the UI thread made the unchanged assertions pass. The original
+Android 17 run passed all 84 methods. In the next Android 8 run, the
+clipboard assertions passed and the protected-backup fixture scrolled
+before the password keyboard had settled. The final fixture focuses the
+password and waits for a coherent native keyboard viewport before
+scrolling to confirmation. The original wrong-passphrase, encrypted
+round-trip, immutable-source and restore assertions remain covered.
+
+The original Android 17 inventory, before any test body ran, ended in a
+process startup timeout after the APK update. A normal launch also timed
+out. A reboot reached a new boot ID. Dismissing the stuck Pixel Launcher recovered normal rendering, and the
+exact APK pair then passed the full test run.
+
+- Build receipt 20261119-201649-e044f3c034be4befb465fa4ec58d5830
+- Source snapshot SHA-256 a24c9d4df8886dafcda67f7317b3c1b6185d8d1da001a705cb38ea7e5eb6ea24
+- Debug APK SHA-256 12207c163799f2d49715f2358e3c9a2ef631585a6349f890f1cc32d29a11c359
+- Test companion SHA-256 52153f7ce99eb249f860b3038594ad28d2fe8b4e079444d79ee9e3bb7803a000
+- Android 8 native log SHA-256 004552c63d6b3b88257199aff8b8982ce37e5d0626ab9df5e98cfe7eb1ffe26c
+- Android 17 native log SHA-256 0f4f0c96c8942f42e0cc72d5f7f6bdf8dac1da2d1370cd543334e44118f64faa
+- Earlier Android 8 clipboard fixture log SHA-256 a37e66f916331911574b892c3efddda09a9573f88b4520428a65ebda444c061f
+- Earlier Android 8 backup viewport log SHA-256 0679f6dad8b9b0eb8c87bcf6c44c58b5ab53529422a4b8ad695bc5fe83656486
+
 ## On-device performance measurements and offline benchmark
 
 The loaded model's Performance details show Android's process PSS, the

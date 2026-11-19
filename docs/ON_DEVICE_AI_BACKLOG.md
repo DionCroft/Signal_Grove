@@ -115,8 +115,10 @@ explicit load. The app shows active and next-load settings separately, the
 load phase and its minimum free-memory check. Performance details show
 the app's after-load RAM sample, generation timings and a fixed-prompt
 offline benchmark. Native sampling follows the reviewed greedy policy.
-The physical phone passed one offline LFM3 benchmark and released the
-model mappings in the background. Sustained thermal/battery and low-memory
+Copy performance report copies only the active numerical settings, timing,
+memory and result status. The clipboard action passed native checks on
+Android 8 and 17. The physical phone passed one offline LFM3 benchmark
+and released the model mappings in the background. Sustained thermal/battery and low-memory
 checks remain open. [Physical evidence](VALIDATION.md#physical-lfm3-benchmark-with-networking-off).
 
 Acceptance: every preset maps to documented supported settings, respects device/

@@ -42,7 +42,9 @@ Choose **Run benchmark** to measure a fixed garden prompt offline with the
 loaded settings. It uses up to 384 output tokens or the loaded cap if lower.
 The app requests cancellation after 60 seconds. You can also tap **Stop**.
 The benchmark creates no chat and shares no prompt or result with Hermes.
-Unload the model to clear the in-memory measurements.
+**Copy performance report** puts the active settings, measurements and
+benchmark status on the clipboard. Unload the model to clear in-memory
+measurements.
 
 ## Continue a phone chat with a reviewed summary
 

@@ -194,6 +194,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     PhoneBenchmarkHelp("Runs a fixed prompt with the loaded settings and a {tokens}-token cap. The app requests a stop after {seconds} seconds. Unloading clears the results.",
         "用已加载的设置运行固定提示，上限为 {tokens} 个词元。应用在 {seconds} 秒后请求停止。卸载时清除结果。",
         "Yòng yǐ jiāzài de shèzhì yùnxíng gùdìng tíshì, shàngxiàn wéi {tokens} ge cíyuán. Yìngyòng zài {seconds} miǎo hòu qǐngqiú tíngzhǐ. Xièzài shí qīngchú jiéguǒ."),
+    PhoneCopyPerformance("Copy performance report", "复制性能报告", "Fùzhì xìngnéng bàogào"),
     PhoneBenchmarkStart("Run benchmark", "运行性能测试", "Yùnxíng xìngnéng cèshì"),
     PhoneBenchmarkRunning("Running offline benchmark", "正在运行离线性能测试", "Zhèngzài yùnxíng líxiàn xìngnéng cèshì"),
     PhoneBenchmarkTimedOut("Benchmark reached its time limit.", "性能测试已达到时间上限。", "Xìngnéng cèshì yǐ dádào shíjiān shàngxiàn."),

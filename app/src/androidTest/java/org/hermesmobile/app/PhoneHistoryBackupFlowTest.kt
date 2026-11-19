@@ -134,6 +134,9 @@ class PhoneHistoryBackupFlowTest {
         val review = compose.onNodeWithTag("phone-backup-prepare").assertIsDisplayed().assertIsNotEnabled()
         compose.onNodeWithTag("phone-backup-protect").performScrollTo().assertIsOn()
         val password = compose.onNodeWithTag("phone-backup-password").performScrollTo().assertIsDisplayed()
+        password.performClick().assertIsFocused()
+        // Complete the real keyboard transition before calculating the repeat field's scroll.
+        compose.waitUntil(5_000) { focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true }
         password.performTextReplacement(passphrase)
         review.assertIsNotEnabled()
         val repeated = compose.onNodeWithTag("phone-backup-repeat").performScrollTo().assertIsDisplayed()
