@@ -77,10 +77,11 @@ keeps the original history and any unsent question.
 ## Back up and restore phone chats on the unreleased branch
 
 1. Open **On-device AI → Phone history → Back up chats**. Select the saved
-   chats you want. The list includes archived chats.
+   chats you want, including archived chats, then tap **Set backup protection**.
 2. Keep **Protect with a passphrase** on, enter the passphrase twice and keep
    a copy of it somewhere safe. Turn protection off only when you want an
-   unencrypted file.
+   unencrypted file. **Change selected chats** returns to the list with
+   your selection intact and clears any passphrase you entered.
 3. Tap **Review backup → Choose where to save**. A local folder keeps the
    backup on this phone. A cloud document provider can sync the chosen file.
 4. To restore, open **Phone history → Restore a backup** and select the file

@@ -11,6 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
@@ -84,40 +86,74 @@ private fun BackupPicker(picking: PhoneHistoryBackupState.Picking, backup: Phone
 @Composable
 private fun BackupSelection(selection: PhoneHistoryBackupState.Selection, backup: PhoneHistoryBackup) {
     var selected by remember(selection) { mutableStateOf(emptySet<String>()) }
+    var choosingProtection by remember(selection) { mutableStateOf(false) }
     var protect by remember(selection) { mutableStateOf(true) }
     var passphrase by remember(selection) { mutableStateOf("") }
     var repeat by remember(selection) { mutableStateOf("") }
-    val ready = selected.isNotEmpty() && (!protect || (passphrase.isNotEmpty() && passphrase == repeat))
-    BackupReview(Words.PhoneBackupSelect, Words.PhoneBackupPrepare, backup::dismiss,
-        enabled = ready, tag = "phone-backup-prepare", confirm = {
-            val password = if (protect) passphrase.toCharArray() else null
+    val protectionStep = choosingProtection
+    val ready = selected.isNotEmpty() &&
+        (!protectionStep || !protect || (passphrase.isNotEmpty() && passphrase == repeat))
+    BackupReview(
+        if (protectionStep) Words.PhoneBackupProtection else Words.PhoneBackupSelect,
+        if (protectionStep) Words.PhoneBackupPrepare else Words.PhoneBackupContinue,
+        backup::dismiss, enabled = ready,
+        tag = if (protectionStep) "phone-backup-prepare" else "phone-backup-continue",
+        back = if (protectionStep) ({
             passphrase = ""
             repeat = ""
-            backup.prepareExport(selection, selected, password)
-        }) {
-        Text(label(Words.PhoneBackupScope))
-        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(protect, role = Role.Switch, onValueChange = {
-            protect = it
-            passphrase = ""
-            repeat = ""
-        }).testTag("phone-backup-protect"), verticalAlignment = Alignment.CenterVertically) {
-            Text(label(Words.PhoneBackupProtect), Modifier.weight(1f))
-            Switch(protect, onCheckedChange = null)
+            choosingProtection = false
+        }) else null,
+        confirm = {
+            // An input queued for the previous footer cannot submit this step.
+            if (protectionStep != choosingProtection || selected.isEmpty()) return@BackupReview
+            if (protectionStep) {
+                if (protect && (passphrase.isEmpty() || passphrase != repeat)) return@BackupReview
+                val password = if (protect) passphrase.toCharArray() else null
+                passphrase = ""
+                repeat = ""
+                backup.prepareExport(selection, selected, password)
+            } else {
+                choosingProtection = true
+            }
         }
-        if (protect) {
-            Text(label(Words.PhoneBackupKeepPassword))
-            BackupPassword(passphrase, { passphrase = it }, Words.PhoneBackupPassword, "phone-backup-password")
-            BackupPassword(repeat, { repeat = it }, Words.PhoneBackupRepeat, "phone-backup-repeat", repeat.isNotEmpty() && repeat != passphrase)
+    ) {
+        if (!protectionStep) Text(label(Words.PhoneBackupScope))
+        Text(label(Words.PhoneBackupSelected).replace("{count}", selected.size.toString()),
+            Modifier.testTag("phone-backup-selection-count"))
+        if (!protectionStep) {
+            BackupChatChoices(selection.rows, selected) { id, checked ->
+                selected = if (checked) selected + id else selected - id
+            }
         } else {
-            Text(label(Words.PhoneBackupPlainWarning), color = MaterialTheme.colorScheme.error)
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(protect, role = Role.Switch, onValueChange = {
+                protect = it
+                passphrase = ""
+                repeat = ""
+            }).testTag("phone-backup-protect"), verticalAlignment = Alignment.CenterVertically) {
+                Text(label(Words.PhoneBackupProtect), Modifier.weight(1f))
+                Switch(protect, onCheckedChange = null)
+            }
+            if (protect) {
+                Text(label(Words.PhoneBackupKeepPassword))
+                BackupPassword(passphrase, { passphrase = it }, Words.PhoneBackupPassword, "phone-backup-password")
+                BackupPassword(repeat, { repeat = it }, Words.PhoneBackupRepeat, "phone-backup-repeat",
+                    repeat.isNotEmpty() && repeat != passphrase)
+            } else {
+                Text(label(Words.PhoneBackupPlainWarning), color = MaterialTheme.colorScheme.error)
+            }
         }
-        Text(label(Words.PhoneBackupSelected).replace("{count}", selected.size.toString()), Modifier.testTag("phone-backup-selection-count"))
-        for (row in selection.rows) {
+    }
+}
+
+@Composable
+private fun BackupChatChoices(rows: List<LocalConversationSummary>, selected: Set<String>, change: (String, Boolean) -> Unit) {
+    for (row in rows) {
+        key(row.id) {
             val labels = row.organization?.preferences
             val checked = row.id in selected
             Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(checked, role = Role.Checkbox,
-                onValueChange = { selected = if (it) selected + row.id else selected - row.id })
-                .testTag("phone-backup-select-" + row.id), verticalAlignment = Alignment.CenterVertically) {
+                onValueChange = { change(row.id, it) }).testTag("phone-backup-select-" + row.id),
+                verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked, onCheckedChange = null)
                 Column(Modifier.padding(start = 8.dp)) {
                     Text(row.title, maxLines = 3, overflow = TextOverflow.Ellipsis)
@@ -174,13 +210,24 @@ private fun BackupPassword(value: String, change: (String) -> Unit, title: Words
 
 @Composable
 private fun BackupReview(title: Words, action: Words, cancel: () -> Unit, enabled: Boolean, tag: String,
-    confirm: () -> Unit, body: @Composable ColumnScope.() -> Unit) {
+    confirm: () -> Unit, back: (() -> Unit)? = null, body: @Composable ColumnScope.() -> Unit) {
     Dialog(onDismissRequest = cancel, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(label(title), style = MaterialTheme.typography.titleLarge)
-                    body()
+                key(title) {
+                    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(label(title), style = MaterialTheme.typography.titleLarge)
+                        if (back != null) {
+                            val focus = LocalFocusManager.current
+                            val keyboard = LocalSoftwareKeyboardController.current
+                            TextButton({
+                                focus.clearFocus()
+                                keyboard?.hide()
+                                back()
+                            }, Modifier.testTag("phone-backup-change-selection")) { Text(label(Words.PhoneBackupChangeSelection)) }
+                        }
+                        body()
+                    }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(confirm, enabled = enabled, modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag(tag)) {

@@ -6,7 +6,7 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 
 The development branch adds offline chat editing, regeneration, branching,
 search, labels, Markdown, protected backups, reviewed summaries and
-saved per-model performance presets. The owner's phone saved a protected
+saved per-model performance presets. Phone backups now guide chat selection and protection in two steps. The owner's phone saved a protected
 archive and restored a reviewed copy offline. The latest focused build
 passes **1,155 JVM tests** and **82 Android methods each on API 26 and API
 37** with zero lint errors.

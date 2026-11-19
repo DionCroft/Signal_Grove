@@ -114,17 +114,25 @@ class PhoneHistoryBackupFlowTest {
     private fun waitForState(predicate: (PhoneHistoryBackupState) -> Boolean) =
         compose.waitUntil(20_000) { predicate(backup.state.value) }
 
+    private fun selectBackupChat(id: String) {
+        compose.onNodeWithTag("phone-backup-password").assertDoesNotExist()
+        compose.waitUntil(5_000) { !focusedDialogKeyboardVisible() }
+        val row = compose.onNodeWithTag("phone-backup-select-" + id)
+        row.performScrollTo().assertIsDisplayed().assertIsOff().performTouchInput { click() }
+        row.assertIsOn()
+    }
+
     @Test fun protectedBackupMakesAReviewedCopyAndPreservesBothOriginals() {
         show()
         val originals = listOf(seed, excluded).associate { it.id to source.file(it.id).readBytes() }
         val passphrase = "orchard-fixture-94"
         open("phone-history-backup-export")
+        val next = compose.onNodeWithTag("phone-backup-continue").assertIsDisplayed().assertIsNotEnabled()
+        selectBackupChat(seed.id)
+        compose.onNodeWithTag("phone-backup-select-" + excluded.id).performScrollTo().assertIsOff()
+        next.assertIsEnabled().performTouchInput { click() }
         val review = compose.onNodeWithTag("phone-backup-prepare").assertIsDisplayed().assertIsNotEnabled()
         compose.onNodeWithTag("phone-backup-protect").performScrollTo().assertIsOn()
-        val selectedChat = compose.onNodeWithTag("phone-backup-select-" + seed.id)
-        selectedChat.performScrollTo().assertIsDisplayed().assertIsOff().performClick()
-        selectedChat.assertIsOn()
-        compose.onNodeWithTag("phone-backup-select-" + excluded.id).performScrollTo().assertIsOff()
         val password = compose.onNodeWithTag("phone-backup-password").performScrollTo().assertIsDisplayed()
         password.performTextReplacement(passphrase)
         review.assertIsNotEnabled()
@@ -195,18 +203,44 @@ class PhoneHistoryBackupFlowTest {
         val selected = backup.state.value as PhoneHistoryBackupState.Selection
         val row = selected.rows.single { it.id == child.id }
         assertTrue(row.hasReviewedSummary)
-        compose.onNodeWithTag("phone-backup-select-" + child.id).performScrollTo().assertIsDisplayed().performClick()
-        compose.onNodeWithTag("phone-backup-select-" + child.id).assertIsOn()
+        selectBackupChat(child.id)
+        val next = compose.onNodeWithTag("phone-backup-continue")
+        next.assertIsDisplayed().assertIsEnabled().performTouchInput {
+            click()
+            click()
+        }
+        compose.onNodeWithTag("phone-backup-select-" + child.id).assertDoesNotExist()
+        val review = compose.onNodeWithTag("phone-backup-prepare").assertIsNotEnabled()
+        compose.runOnIdle {
+            assertSame(selected, backup.state.value)
+            assertFalse(guard.active.value)
+        }
+        compose.onNodeWithTag("phone-backup-password").performScrollTo().performTextReplacement("discard-on-back")
+        compose.onNodeWithTag("phone-backup-repeat").performScrollTo().performTextReplacement("discard-on-back")
+        review.assertIsEnabled()
+        compose.onNodeWithTag("phone-backup-change-selection").performScrollTo().assertIsDisplayed().performTouchInput { click() }
+        compose.onNodeWithTag("phone-backup-password").assertDoesNotExist()
+        compose.onNodeWithTag("phone-backup-select-" + child.id).performScrollTo().assertIsDisplayed().assertIsOn()
+
+        next.assertIsEnabled().performTouchInput { click() }
+        review.assertIsNotEnabled()
+        val protect = compose.onNodeWithTag("phone-backup-protect").performScrollTo().assertIsOn()
+        protect.assertIsDisplayed().performTouchInput { click() }
+        protect.assertIsOff()
+        compose.onNodeWithText(Words.PhoneBackupPlainWarning.en).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-backup-password").assertDoesNotExist()
+        compose.onNodeWithTag("phone-backup-prepare").assertIsEnabled()
         compose.onNodeWithTag("phone-backup-cancel").performClick()
         assertTrue(picks.isEmpty())
+        assertFalse(guard.active.value)
     }
 
     @Test fun multilingualBackupSelectionKeepsFieldsAndActionsAboveTheKeyboard() {
         show(multilingual = true)
         open("phone-history-backup-export")
-        val selected = compose.onNodeWithTag("phone-backup-select-" + seed.id)
-        selected.performScrollTo().assertIsDisplayed().assertIsOff().performClick()
-        selected.assertIsOn()
+        selectBackupChat(seed.id)
+        compose.onNodeWithTag("phone-backup-continue").assertIsDisplayed().assertIsEnabled().performTouchInput { click() }
+        compose.onNodeWithTag("phone-backup-select-" + seed.id).assertDoesNotExist()
         compose.onNodeWithTag("phone-backup-password").performScrollTo().assertIsDisplayed().performClick()
             .assertIsFocused().performTextReplacement("garden-fixture")
         compose.waitUntil(5_000) { focusedDialogKeyboardVisible() }

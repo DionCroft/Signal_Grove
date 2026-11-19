@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Backup selection and protection review - 19 November 2026
+
+The guarded two-step backup review passes all 82 focused cases on each
+local Android 8 and 17 emulator, including the two cases that failed
+in the earlier hosted run. The independently recomputed Android 17
+union for that earlier run passed 1,209 standard methods. The complete
+hosted result for the two-step review and the physical-device and signed
+release gates are pending.
+[Local build evidence](VALIDATION.md#separate-backup-selection-and-passphrase-steps).
+
 ## Hosted backup selection acceptance - 19 November 2026
 
 Two reviewed-summary API 26 shard cases failed before passphrase entry.

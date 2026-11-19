@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Separate backup selection and passphrase steps
+
+Chat selection now has its own step. A real tap selects a summary-only or
+archived chat before the keyboard opens. The protection step retains the
+selected IDs and defaults to a passphrase. Returning to the list keeps the
+checked rows and clears entered passphrases. The footer verifies its step
+and passphrase state before preparing any archive. The existing review,
+destination picker, encryption and restore gates remain in use.
+
+The exact build passed 1,155 JVM tests, both lint variants with zero errors
+and 82 focused Android methods each on Android 8 and 17. The tests exercise
+real row taps, repeated Next input, clearing an entered passphrase when
+changing the selection, explicit plaintext review, protected export and
+restore, and bilingual keyboard bounds. The full hosted validation of
+this source is pending.
+
+- Build receipt `20261119-184020-d7534530da5c4e4fa414a1e191837ec6`
+- Source snapshot SHA-256 `857c939b607cee636368807873e605d7ac45310c1e5f5cf13dc2f89bcdef4420`
+- Debug APK SHA-256 `6db07ac3485246852dba997e6d9ebfac41f4198db6d08458b94b7c63cbbb91cc`
+- Test companion SHA-256 `a84b25caa2c5bffe8a3edcc921c62ff0ffb0679d2021a8ea7f73d9e8afbed10c`
+- API 26 instrumentation SHA-256 `347476887528104468a2aee16c0cda4e7f1c9c1164f1238872de608d8d47b7aa`
+- API 37 instrumentation SHA-256 `793dea3df9ba25b9df7d718e7d78fb1481b547834b93a861452218e353d75898`
+
 ## Hosted backup selection failures on Android 8
 
 The reviewed-summary run at `1666374c1ee20c655cf9bbc7a68479bf524f0fc0` had
