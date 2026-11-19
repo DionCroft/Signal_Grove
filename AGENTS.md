@@ -6,6 +6,8 @@ Keep all project files in the chosen repository. On the owner's Windows machine 
 
 For phone model staging, use raw ADB `exec-in` or verified sync transport; Windows shell stdin can stop at Ctrl+Z. Verify full target size and SHA-256 before publication. Do not infer a remote exit status from raw `exec-out`; use explicit shell-v2 status/markers. Preserve and reconcile partial files before a new transfer.
 
+Record the original phone VPN state before offline tests. Restore and verify that state along with radio preferences and private-host reachability; a Wi-Fi/default network alone is insufficient evidence of a restored tailnet connection.
+
 Before changing networking, consult the official API reference and verify payloads. Preserve configured profile path prefixes, TLS validation, token isolation and explicit approvals. Never infer a terminal run from an assistant-finalisation event, a closed socket, a stop request or a chat-completion finish reason. Do not auto-replay unknown tool work with a new key.
 
 Keep English/Chinese/pinyin in the structured `Words` layer. Every control must act or be disabled with an explanation. Demo content must remain clearly labelled.

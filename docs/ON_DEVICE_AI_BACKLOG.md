@@ -49,13 +49,13 @@ answers and code/text cannot execute actions.
 
 ## OF-02: Searchable, organized and portable phone history
 
-**Status: in progress (text/model/date search; separate organization storage).**
-[Actual phone offline search/Clear/read](contracts/2026-11-19-phone-history-search-physical.md)
-works with weights unloaded; the separate stalled four-case instrumentation run
-stays unsuccessful and needs diagnosis. [Organization foundation](contracts/2026-11-19-history-organization-foundation.md)
-passes 11 new JVM regressions, for 1,082 total/40 native regressions per API. Its
-rename/pin/archive controls and Android-specific checks are not connected yet.
-Model/date phone coverage, organization UI and transfers remain open. Add local title/content search, rename, pin, archive and
+**Status: in progress (search and reviewed title/pin/archive controls implemented).**
+[Current controls](contracts/2026-11-19-phone-history-organization-controls.md)
+pass 1,093 JVM cases and 49 selected native methods on each API26/API37, including
+seven new UI/two Android filesystem cases. [Earlier actual phone offline search](contracts/2026-11-19-phone-history-search-physical.md)
+retains its own pairing; current physical organization and the stalled native
+startup diagnosis remain open. Add branch/date identification before the next
+consolidated phone check. Markdown export and protected backup/import remain. Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,
 encryption and where Android will save/share them. Models remain separate.

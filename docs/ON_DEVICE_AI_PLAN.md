@@ -1,5 +1,24 @@
 # On-device AI delivery and acceptance
 
+## Reviewed history organization controls — 19 November 2026
+
+Optional titles, pin/archive review and Active/Archived/All search views are wired
+into the real controller. Labels preserve transcript/model/branch identity and
+stay out of generation context. Post-publication cancellation reconciles files;
+exact explicit deletion cleans labels, and corrupt indexes refuse deletion first.
+Required tasks pass 1,093 JVM cases/103 reports and zero-error lint (51/50 warnings).
+The same APK pair passes 49 selected native methods on each API26/API37 without
+skips: all previous 40 plus seven new UI and two actual filesystem cases.
+Current owner-phone/final-source/accessibility/lifecycle/release gates stay open.
+[Behavior, bindings and remaining work](contracts/2026-11-19-phone-history-organization-controls.md).
+
+Phone network follow-up: restored Wi-Fi/default network alone did not restore
+Tailscale. Opening its existing configured app once re-establishes a connected
+VPN agent and a successful private Pi ping. Credentials and route policy stay
+unchanged; this is not API authentication or model readiness. Record/restore VPN
+state explicitly during future offline tests. The earlier stalled phone run is
+still unsuccessful and preserved.
+
 ## Organization foundation and actual phone search — 19 November 2026
 
 The internal display-metadata store passes 11 new regressions, for 1,082 JVM

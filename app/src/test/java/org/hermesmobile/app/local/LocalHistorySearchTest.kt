@@ -89,4 +89,34 @@ class LocalHistorySearchTest {
             {LocalHistoryQuery(fromInclusive=10,untilExclusive=10)},{LocalHistoryQuery(fromInclusive=11,untilExclusive=10)})
         invalid.forEach {f->try {f();fail("Expected invalid filter rejection")} catch (_: IllegalArgumentException) {}}
     }
+
+    @Test fun customTitlesAreSearchableWithoutRewritingAnyOriginalQuestionOrReply() {
+        val target=chat("Original garden question","Unchanged reply"); val (store,root)=fixture(target)
+        val labels=LocalHistoryOrganization(temp.newFolder(),store);val before=bytes(root)
+        labels.update(target.id,model,null,LocalHistoryPreferences("My quiet orchard 🌱",pinned=true))
+        val search=LocalHistorySearch(store,labels)
+        assertEquals(listOf(target.id),search.find(LocalHistoryQuery("ORCHARD")).map {it.id})
+        assertEquals("My quiet orchard 🌱",search.find(LocalHistoryQuery("original garden")).single().title)
+        assertEquals(before,bytes(root));assertEquals(target,store.load(target.id))
+    }
+    @Test fun pinnedAndArchivedViewsUseOriginalActivityDatesAndRetainTheCompleteCatalog() {
+        val old=chat("Old","text",1);val recent=chat("Recent","text",3);val archived=chat("Archived","text",2)
+        val (store,root)=fixture(old,recent,archived);val before=bytes(root);val labels=LocalHistoryOrganization(temp.newFolder(),store)
+        labels.update(old.id,model,null,LocalHistoryPreferences(pinned=true))
+        labels.update(archived.id,model,null,LocalHistoryPreferences(archived=true))
+        val search=LocalHistorySearch(store,labels)
+        assertEquals(listOf(old.id,recent.id),search.find(LocalHistoryQuery()).map {it.id})
+        assertEquals(listOf(archived.id),search.find(LocalHistoryQuery(view=LocalHistoryView.ARCHIVED)).map {it.id})
+        assertEquals(listOf(old.id,recent.id,archived.id),search.find(LocalHistoryQuery(view=LocalHistoryView.ALL)).map {it.id})
+        assertEquals(listOf(recent.id,archived.id),search.find(LocalHistoryQuery(fromInclusive=2,view=LocalHistoryView.ALL)).map {it.id})
+        assertEquals(3,labels.history().size);assertEquals(before,bytes(root))
+    }
+    @Test fun anOrganizationBindingCannotBeAppliedToAReplacementWithADifferentModel() {
+        val target=chat("Question","reply");val (store,root)=fixture(target);val metadata=temp.newFolder();val labels=LocalHistoryOrganization(metadata,store)
+        labels.update(target.id,model,null,LocalHistoryPreferences("Bound title"))
+        store.save(target.copy(modelSha256="b".repeat(64)));val before=bytes(root);val index=File(metadata,"index.json").readBytes().toList()
+        try {LocalHistorySearch(store,labels).find(LocalHistoryQuery(view=LocalHistoryView.ALL));fail("Expected model-binding refusal")}
+        catch (_:LocalHistoryOrganizationException) {}
+        assertEquals(before,bytes(root));assertEquals(index,File(metadata,"index.json").readBytes().toList())
+    }
 }

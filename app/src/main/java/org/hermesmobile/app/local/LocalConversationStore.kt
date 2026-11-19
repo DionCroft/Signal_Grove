@@ -15,7 +15,8 @@ data class LocalBranchOrigin(val parentId: String, val parentUpdatedAt: Long, va
     val kind: LocalBranchKind, val sourceSha256: String)
 data class LocalConversation(val id: String = UUID.randomUUID().toString(), val modelSha256: String,
     val updatedAt: Long, val exchanges: List<LocalExchange> = emptyList(), val origin: LocalBranchOrigin? = null)
-data class LocalConversationSummary(val id: String, val modelSha256: String, val updatedAt: Long, val title: String, val lastState: LocalReplyState?, val origin: LocalBranchOrigin? = null)
+data class LocalConversationSummary(val id: String, val modelSha256: String, val updatedAt: Long, val title: String, val lastState: LocalReplyState?, val origin: LocalBranchOrigin? = null,
+    val organization: LocalHistoryOrganizationEntry? = null)
 class LocalHistoryException : IllegalStateException("local_history_unavailable")
 
 /** Deliberately independent of Hermes database/session IDs, receipts and profile history. */

@@ -26,6 +26,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     private val owner = Any()
     private val store = LocalModelStore(modelRoot)
     private val conversations = LocalConversationStore(historyRoot)
+    private val organization = LocalHistoryOrganization(historyRoot.canonicalFile.let {
+        File(it.parentFile, it.name + "-organization")
+    }, conversations)
     private val downloads = LocalModelDownload(store, ioDispatcher = ioDispatcher)
     private var engine: LocalInference? = null
     private var loadedConfiguration: Pair<Int, Int>? = null
@@ -43,11 +46,18 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     fun searchHistory(query: LocalHistoryQuery) = action("searching") {
         val result = io {
             val context = currentCoroutineContext()
-            val all = conversations.list { context.ensureActive() }
-            val matches = LocalHistorySearch(conversations).find(query) { context.ensureActive() }
+            val all = organization.history { context.ensureActive() }
+            val matches = LocalHistorySearch(conversations, organization).find(query) { context.ensureActive() }
             all to matches
         }
         mutable.update { it.copy(history = result.first, historyQuery = query, historyMatches = result.second) }
+    }
+    fun organizeChat(expected: LocalConversationSummary, preferences: LocalHistoryPreferences) = action("organizing") {
+        io {
+            val context = currentCoroutineContext()
+            organization.update(expected.id, expected.modelSha256, expected.organization, preferences) {context.ensureActive()}
+        }
+        refresh()
     }
     fun clearHistorySearch() {
         if (mutable.value.busy || leaving) return
@@ -120,8 +130,17 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     }
     fun deleteChat(id: String) = deleteChat(id) {}
     fun deleteChat(id: String, onDeleted: () -> Unit) = action("deleting") {
-        io { conversations.delete(id) }
-        mutable.update { if (it.chat?.id == id) it.copy(chat = null) else it }; onDeleted(); refresh()
+        val labels = io { val context = currentCoroutineContext(); organization.entries {context.ensureActive()}[id] }
+        currentCoroutineContext().ensureActive()
+        // Finish the bounded explicit deletion once committed; never replay it after interruption.
+        withContext(NonCancellable) {
+            io { conversations.delete(id) }
+            mutable.update { it.copy(chat = it.chat?.takeUnless {chat -> chat.id == id},
+                history = it.history.filterNot {row -> row.id == id}, historyMatches = it.historyMatches.filterNot {row -> row.id == id}) }
+            onDeleted()
+            if (labels != null) io {organization.reset(id, labels)}
+        }
+        refresh()
     }
     fun send(question: String) = send(question) {}
     fun send(question: String, onPublished: (LocalConversation) -> Unit) = action("generating") {
@@ -255,8 +274,16 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 try { block() }
                 catch (_: CancellationException) {
                     if (status == "downloading" || status == "importing") reconcileStoppedTransfer()
+                    if (status == "organizing") withContext(NonCancellable) {
+                        // Cancellation can lose the return after atomic metadata publication.
+                        try {refresh()} catch (e: Exception) {mutable.update {it.copy(error = failure(e))}}
+                    }
                 }
-                catch (e: Exception) { mutable.update { it.copy(error = if(status == "searching" && e is LocalHistoryException) "history_search" else failure(e)) } }
+                catch (e: Exception) { mutable.update { it.copy(error = when {
+                    status == "searching" && e is LocalHistoryException -> "history_search"
+                    e is LocalHistoryOrganizationChangedException -> "history_organization_changed"
+                    else -> failure(e)
+                }) } }
                 catch (_: LinkageError) { mutable.update { it.copy(error = "native_unavailable") } }
             }
         }
@@ -281,18 +308,19 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         is LocalModelFormatException -> e.reason
         is LocalEngineException -> "engine_${e.code}"
         is LocalHistoryException -> "history"
+        is LocalHistoryOrganizationException -> "history_organization"
         else -> "operation_failed"
     }
 
     private suspend fun refresh() {
         if (!recovered) { io { val context = currentCoroutineContext(); conversations.recoverInterrupted { context.ensureActive() } }; recovered = true }
         val models = io { val context = currentCoroutineContext(); store.models { context.ensureActive() } }
-        val history = io { val context = currentCoroutineContext(); conversations.list { context.ensureActive() } }
+        val history = io { val context = currentCoroutineContext(); organization.history { context.ensureActive() } }
         val partial = downloads.partialBytes()
         val query = mutable.value.historyQuery
         val matches = if(query == null) emptyList() else io {
             val context = currentCoroutineContext()
-            LocalHistorySearch(conversations).find(query) { context.ensureActive() }
+            LocalHistorySearch(conversations, organization).find(query) { context.ensureActive() }
         }
         mutable.update { it.copy(models = models, history = history, partialBytes = partial, historyMatches = matches) }
     }

@@ -45,6 +45,17 @@ leaving local AI. The UI shows the stored model hash, context 4,096 and four
 threads with no GGUF mappings; all four chat files remain unchanged. This is an
 unloaded metadata read, not process-death/reboot or performance qualification.
 
+## Network restoration follow-up
+
+Wi-Fi/radio preferences and a default network returned first, while Tailscale's
+VPN service was absent and a private Pi ping did not respond. Opening the already
+configured Tailscale launcher once restores a positively identified VPN CONNECTED
+network agent and successful private Pi ping. No Connect button, account,
+credential or route-policy edit is used. This follows the user's existing setup/
+full USB-control authorization and restores the saved connection. It does not
+prove API authentication or model readiness. Future offline checks must record
+and restore VPN state as well as the radio preferences.
+
 ## Pairing and remaining gates
 
 Search source snapshot: `1ce13080e320cd5b3875d1f0e36a91e27ebd25ee228cb63ccb809996bf7bcf50`.

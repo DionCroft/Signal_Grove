@@ -22,6 +22,7 @@ data class LocalHistoryPreferences(val title: String? = null, val pinned: Boolea
 data class LocalHistoryOrganizationEntry(val modelSha256: String, val preferences: LocalHistoryPreferences) {
     init { require(modelSha256.matches(Regex("[a-f0-9]{64}"))) }
 }
+class LocalHistoryOrganizationChangedException : IllegalArgumentException("local_history_organization_changed")
 class LocalHistoryOrganizationException : IllegalStateException("local_history_organization_unavailable")
 
 /** Separate bounded index so rename/pin/archive cannot invalidate branch source hashes.
@@ -72,6 +73,18 @@ class LocalHistoryOrganization(directory: File, private val conversations: Local
         catch (_: Exception) { throw LocalHistoryOrganizationException() }
     }
 
+    /** Validated display catalog, including archived chats for limits and parent access. */
+    @Synchronized fun history(checkpoint: () -> Unit = {}): List<LocalConversationSummary> {
+        val all = conversations.list(checkpoint)
+        val labels = entries(checkpoint)
+        return all.map { row ->
+            checkpoint()
+            val entry = labels[row.id]
+            if (entry != null && entry.modelSha256 != row.modelSha256) throw LocalHistoryOrganizationException()
+            row.copy(title = entry?.preferences?.title ?: row.title, organization = entry)
+        }.sortedWith(localHistoryOrder)
+    }
+
     /** Compare the exact reviewed metadata; a stale review cannot replace a newer rename.
      * Verify the current local conversation/model before publishing any association. */
     @Synchronized fun update(id: String, modelSha256: String, expected: LocalHistoryOrganizationEntry?,
@@ -79,9 +92,9 @@ class LocalHistoryOrganization(directory: File, private val conversations: Local
         validId(id)
         require(modelSha256.matches(Regex("[a-f0-9]{64}")))
         val chat = conversations.load(id, checkpoint)
-        require(chat.modelSha256 == modelSha256)
+        if (chat.modelSha256 != modelSha256) throw LocalHistoryOrganizationChangedException()
         val before = entries(checkpoint)
-        require(before[id] == expected && (expected == null || expected.modelSha256 == modelSha256))
+        if (before[id] != expected || expected?.modelSha256?.let {it != modelSha256} == true) throw LocalHistoryOrganizationChangedException()
         val next = if (preferences == LocalHistoryPreferences()) null else LocalHistoryOrganizationEntry(modelSha256, preferences)
         if (next == expected) return next
         val changed = before.toMutableMap()
@@ -123,3 +136,7 @@ class LocalHistoryOrganization(directory: File, private val conversations: Local
     private fun validId(id: String) { require(runCatching { UUID.fromString(id).toString() == id }.getOrDefault(false)) }
     companion object { private const val MAX_BYTES = 64 * 1024 }
 }
+
+/** Pin changes display order only; activity timestamps and transcript bytes stay authoritative. */
+internal val localHistoryOrder = compareByDescending<LocalConversationSummary> { it.organization?.preferences?.pinned == true }
+    .thenByDescending { it.updatedAt }.thenBy { it.id }

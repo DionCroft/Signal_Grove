@@ -538,4 +538,81 @@ class LocalAiControllerTest {
         assertArrayEquals(original, File(history, "${parent.id}.json").readBytes())
         assertNull(controller.state.value.error); controller.leave(); advanceUntilIdle()
     }
+
+    private fun labels(history:File)=LocalHistoryOrganization(File(history.canonicalFile.parentFile,history.name+"-organization"),LocalConversationStore(history))
+    private fun labeledChat(hash:String="a".repeat(64))=LocalConversation(modelSha256=hash,updatedAt=1,
+        exchanges=listOf(LocalExchange("Original garden question","Original reply",LocalReplyState.COMPLETE)))
+    @Test fun organizingWithoutWeightsKeepsTheOpenChatAndFullInventoryWhileArchivedSearchRemainsExplicit()=runTest {
+        val history=temp.newFolder();val chat=labeledChat();LocalConversationStore(history).saveNew(chat)
+        val engine=Engine();val c=controller(temp.newFolder(),history,engine,UpdateWorkGuard(),StandardTestDispatcher(testScheduler));advanceUntilIdle()
+        c.openChat(chat.id);advanceUntilIdle();val before=File(history,"${chat.id}.json").readBytes().toList()
+        c.organizeChat(c.state.value.history.single(),LocalHistoryPreferences("Personal orchard",pinned=true,archived=true));advanceUntilIdle()
+        assertEquals(chat,c.state.value.chat);assertEquals("Personal orchard",c.state.value.history.single().title)
+        assertTrue(c.state.value.history.single().organization!!.preferences.archived);assertEquals(1,c.state.value.history.size)
+        c.searchHistory(LocalHistoryQuery());advanceUntilIdle();assertTrue(c.state.value.historyMatches.isEmpty())
+        c.searchHistory(LocalHistoryQuery("orchard",view=LocalHistoryView.ARCHIVED));advanceUntilIdle();assertEquals(listOf(chat.id),c.state.value.historyMatches.map {it.id})
+        c.clearHistorySearch();assertNull(c.state.value.historyQuery);assertEquals(chat,c.state.value.chat)
+        assertEquals(before,File(history,"${chat.id}.json").readBytes().toList());assertEquals(0,engine.loads);assertTrue(engine.requests.isEmpty())
+    }
+    @Test fun staleOrganizationReviewKeepsTheNewerLabelsAndDoesNotRetryTheProposedChange()=runTest {
+        val history=temp.newFolder();val chat=labeledChat();LocalConversationStore(history).saveNew(chat);val engine=Engine()
+        val c=controller(temp.newFolder(),history,engine,UpdateWorkGuard(),StandardTestDispatcher(testScheduler));advanceUntilIdle();val review=c.state.value.history.single()
+        val newer=labels(history).update(chat.id,chat.modelSha256,null,LocalHistoryPreferences("Newer title",pinned=true))
+        c.organizeChat(review,LocalHistoryPreferences("Stale title",archived=true));advanceUntilIdle()
+        assertEquals("history_organization_changed",c.state.value.error);assertEquals(newer,labels(history).entries()[chat.id])
+        c.refreshLibrary();advanceUntilIdle();assertEquals("Newer title",c.state.value.history.single().title)
+        assertTrue(engine.requests.isEmpty());assertEquals(chat,LocalConversationStore(history).load(chat.id))
+    }
+    @Test fun cancellingQueuedOrganizationNeverPublishesOrReplaysIt()=runTest {
+        val history=temp.newFolder();val chat=labeledChat();LocalConversationStore(history).saveNew(chat);val engine=Engine();val guard=UpdateWorkGuard()
+        val c=controller(temp.newFolder(),history,engine,guard,StandardTestDispatcher(testScheduler));advanceUntilIdle()
+        c.organizeChat(c.state.value.history.single(),LocalHistoryPreferences("Cancelled title"));c.cancel();advanceUntilIdle()
+        assertTrue(labels(history).entries().isEmpty());assertEquals("Original garden question",c.state.value.history.single().title)
+        c.refreshLibrary();advanceUntilIdle();assertTrue(labels(history).entries().isEmpty());assertFalse(guard.active.value);assertTrue(engine.requests.isEmpty())
+    }
+    @Test fun cancellationAfterOrganizationPublicationReconcilesFilesBeforeReturningToIdle()=runTest {
+        val history=temp.newFolder();val chat=labeledChat();LocalConversationStore(history).saveNew(chat);val engine=Engine();val guard=UpdateWorkGuard()
+        val main=StandardTestDispatcher(testScheduler);lateinit var c:LocalAiController;var armed=false;var fired=false
+        val io=object:CoroutineDispatcher() {
+            override fun dispatch(context:kotlin.coroutines.CoroutineContext,block:Runnable) {
+                main.dispatch(context,Runnable {block.run();if(armed&&!fired&&File(history.parentFile,history.name+"-organization/index.json").isFile){fired=true;c.cancel()}})
+            }
+        }
+        c=LocalAiController(temp.newFolder(),history,"unused-test-library-directory",true,{Long.MAX_VALUE},guard,main,io){engine};advanceUntilIdle()
+        armed=true;c.organizeChat(c.state.value.history.single(),LocalHistoryPreferences("Published title",pinned=true));advanceUntilIdle()
+        assertTrue(fired);assertEquals("Published title",labels(history).entries().getValue(chat.id).preferences.title)
+        assertEquals("Published title",c.state.value.history.single().title);assertFalse(c.state.value.busy);assertFalse(guard.active.value)
+        assertTrue(engine.requests.isEmpty());assertEquals(chat,LocalConversationStore(history).load(chat.id))
+    }
+    @Test fun organizationLabelsNeverEnterGenerationContextOrReplaceStoredQuestions()=runTest {
+        val models=temp.newFolder();val model=model(models);val history=temp.newFolder();val chat=labeledChat(model.sha256);LocalConversationStore(history).saveNew(chat);val engine=Engine()
+        val c=controller(models,history,engine,UpdateWorkGuard(),StandardTestDispatcher(testScheduler));advanceUntilIdle();c.openChat(chat.id);advanceUntilIdle()
+        c.organizeChat(c.state.value.history.single(),LocalHistoryPreferences("Display-only instruction",archived=true));advanceUntilIdle()
+        c.load(model);advanceUntilIdle();c.send("A new real question");advanceUntilIdle()
+        assertEquals(1,engine.requests.size);assertEquals(listOf("Original garden question","A new real question"),engine.requests.single().filter {it.role=="user"}.map {it.text})
+        assertFalse(engine.requests.flatten().any {it.text.contains("Display-only instruction")});assertEquals("Original garden question",LocalConversationStore(history).load(chat.id).exchanges.first().question)
+        c.leave();advanceUntilIdle()
+    }
+    @Test fun explicitDeletionRemovesOnlyThatChatsLabelsAndCallsItsAcknowledgementOnce()=runTest {
+        val history=temp.newFolder();val store=LocalConversationStore(history);val parent=labeledChat();store.saveNew(parent);val child=store.createBranch(parent,0,LocalBranchKind.FORK,2)
+        labels(history).update(parent.id,parent.modelSha256,null,LocalHistoryPreferences("Parent label",archived=true));val engine=Engine()
+        val c=controller(temp.newFolder(),history,engine,UpdateWorkGuard(),StandardTestDispatcher(testScheduler));advanceUntilIdle();c.openChat(parent.id);advanceUntilIdle();var acknowledged=0
+        c.deleteChat(parent.id){acknowledged++};advanceUntilIdle();assertEquals(1,acknowledged);assertNull(c.state.value.chat)
+        assertEquals(listOf(child.id),c.state.value.history.map {it.id});assertTrue(labels(history).entries().isEmpty());assertEquals(child,store.load(child.id));assertTrue(engine.requests.isEmpty())
+    }
+    @Test fun corruptOrganizationIndexRefusesDeletionBeforeAnyTranscriptChange()=runTest {
+        val history=temp.newFolder();val store=LocalConversationStore(history);val chat=labeledChat();store.saveNew(chat);val engine=Engine()
+        val c=controller(temp.newFolder(),history,engine,UpdateWorkGuard(),StandardTestDispatcher(testScheduler));advanceUntilIdle();c.openChat(chat.id);advanceUntilIdle()
+        val index=File(history.parentFile,history.name+"-organization/index.json").apply {writeText("{future")};var acknowledged=0
+        c.deleteChat(chat.id){acknowledged++};advanceUntilIdle()
+        assertEquals(0,acknowledged);assertEquals("history_organization",c.state.value.error);assertEquals(chat,store.load(chat.id));assertEquals(chat,c.state.value.chat);assertEquals("{future",index.readText())
+    }
+    @Test fun aNewBranchKeepsItsOwnDefaultLabelsAndPreservesTheOrganizedParent()=runTest {
+        val history=temp.newFolder();val store=LocalConversationStore(history);val chat=labeledChat();store.saveNew(chat);val engine=Engine()
+        val c=controller(temp.newFolder(),history,engine,UpdateWorkGuard(),StandardTestDispatcher(testScheduler));advanceUntilIdle();c.openChat(chat.id);advanceUntilIdle()
+        c.organizeChat(c.state.value.history.single(),LocalHistoryPreferences("Parent only",pinned=true,archived=true));advanceUntilIdle()
+        c.branch(chat,0,LocalBranchKind.FORK);advanceUntilIdle();val child=c.state.value.chat!!
+        assertNull(c.state.value.history.single {it.id==child.id}.organization);assertEquals("Parent only",c.state.value.history.single {it.id==chat.id}.title)
+        assertEquals(chat,store.load(chat.id));assertTrue(labels(history).entries().keys==setOf(chat.id));assertTrue(engine.requests.isEmpty())
+    }
 }
