@@ -13,9 +13,12 @@ The export component is on `feat/offline-markdown-export`, layered on
 
 Main `a992cf4` has the UI readiness/viewport fixes; identical-tree PR evidence
 independently verifies 1,149 API26 / 1,150 API37 standard methods, no skips.
-Main Android/Windows pass. Upstream scanning fails closed on moved/missing
-tracked modules at recorded v0.23.2/main revisions; replacement/transitive
-contracts and prior semantic/shutdown findings remain to review.
+Main Android and Windows pass. The feature branch watcher follows the
+reviewed cron move and reports 177 stable v0.23.2 fingerprint changes.
+Main upstream still requires a review of eight replaced storage modules.
+Map the gateway callers against the persistence authority, conversation
+and runtime interfaces before adding their paths. Shutdown review remains
+open. [Source evidence](docs/contracts/2026-11-19-hermes-cron-source-relocation.md).
 
 Unreleased `feat/offline-chat-actions` implements reviewed edit/regenerate/fork,
 scoped drafts, request provenance, passive reply/code readers, text/model/date
@@ -80,7 +83,7 @@ Selected-turn continuation passes 1,150 JVM cases, both lint variants and
 chat ID collisions. Source bytes and unsent drafts are preserved.
 [Selected-turn evidence](docs/contracts/2026-11-19-phone-selected-turns.md).
 
-Reviewed phone summaries pass 1,152 JVM tests, both lint variants and 80
+Reviewed phone summaries pass 1,152 JVM tests, both lint variants and 81
 focused checks on each supported emulator API. Approval saves the edited
 summary and source references. The original chat stays readable, and the
 new chat is searchable and exportable before its first new question.

@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Hermes cron and storage checkpoint - 19 November 2026
+
+The watcher follows the reviewed cron path on the exact stable and main
+pins. Stable now produces a complete static report with 177 watched
+fingerprint changes for review. Main storage has new public interfaces
+and different gateway call paths. The previous eight modules remain an
+open comparison and live acceptance gate.
+[Static source evidence](contracts/2026-11-19-hermes-cron-source-relocation.md).
+
 ## Reviewed phone summary checkpoint - 19 November 2026
 
 OF-03 now supports editable summaries from selected turns, an optional local

@@ -58,6 +58,54 @@ class SourceCacheTest(unittest.TestCase):
             with self.subTest(tree=tree),self.scope(),patch.object(c,'github',return_value=tree),patch.object(c,'github_source') as download:
                 with self.assertRaises(ValueError):c.source_identities(self.pin)
                 download.assert_not_called()
+    def test_reviewed_cron_move_preserves_source_key_and_reads_only_relocated_path(self):
+        old_path = c.LEGACY_CRON_FORMAT_PATH
+        new_path = c.CRON_FORMAT_PATH
+        source = "_FORMAT_JOB_OPTIONAL_KEYS = ('script', 'timezone')\n"
+        oid, size = self.identity(source.encode())
+        tree = self.tree(path=new_path, sha=oid, size=size)
+        for pin in sorted(c.REVIEWED_CRON_FORMAT_MOVES):
+            with self.subTest(pin=pin), patch.multiple(c, SOURCES={}, EXTRA_SOURCES={'cron_format': old_path}), \
+                    patch.object(c, 'resolve', return_value=('main', pin)), \
+                    patch.object(c, 'github', return_value=tree) as tree_read, \
+                    patch.object(c, 'github_source', return_value=source) as download, \
+                    patch.object(c, 'extract', side_effect=lambda rows: dict(rows)):
+                direct = c.snapshot('main')
+                cached = c.snapshot('main', self.cache)
+                self.assertEqual({'cron_format': source}, direct['contract'])
+                self.assertEqual(direct['contract'], cached['contract'])
+                self.assertEqual([dict(source='cron_format', original_path=old_path, path=new_path, commit=pin)],
+                                 cached['reviewed_source_relocations'])
+                self.assertEqual([], cached['reviewed_source_absences'])
+                self.assertIn(new_path, tree_read.call_args.args[1])
+                self.assertNotIn(old_path, tree_read.call_args.args[1])
+                self.assertTrue(download.call_args_list)
+                self.assertTrue(all(call.args == (new_path, pin) for call in download.call_args_list))
+
+    def test_reviewed_cron_move_does_not_supply_missing_replacement_or_cover_newer_commits(self):
+        old_path = c.LEGACY_CRON_FORMAT_PATH
+        new_path = c.CRON_FORMAT_PATH
+        for pin, available, required in (
+            (min(c.REVIEWED_CRON_FORMAT_MOVES), old_path, new_path),
+            (self.pin, new_path, old_path),
+        ):
+            with self.subTest(pin=pin), patch.multiple(c, SOURCES={}, EXTRA_SOURCES={'cron_format': old_path}), \
+                    patch.object(c, 'resolve', return_value=('main', pin)), \
+                    patch.object(c, 'github', return_value=self.tree(path=available)) as tree_read, \
+                    patch.object(c, 'github_source', side_effect=c.GitHubReadError(404)) as download, \
+                    patch.object(c, 'extract') as parse:
+                with self.assertRaises(c.SourceReadError) as failure:
+                    c.snapshot('main', self.cache)
+                self.assertEqual('source_tree', failure.exception.module)
+                self.assertIn(required, tree_read.call_args.args[1])
+                download.assert_not_called()
+                with self.assertRaises(c.SourceReadError) as failure:
+                    c.snapshot('main')
+                self.assertEqual('cron_format', failure.exception.module)
+                self.assertEqual(404, failure.exception.status)
+                download.assert_called_once_with(required, pin)
+                parse.assert_not_called()
+
     def test_corrupt_cached_bytes_fail_without_redownload_or_parse(self):
         self.cache.mkdir();oid,size=self.identity();(self.cache/oid).write_bytes(b'x'*size)
         with patch.object(c,'github_source') as download:

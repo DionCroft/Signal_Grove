@@ -1,5 +1,16 @@
 # Current development validation — audit follow-up
 
+## Hermes cron source relocation on 19 November 2026
+
+The stable watcher now reads the moved cron source at the reviewed pin and
+produces a complete report. It returns status 2 with 177 changed watched
+handler or constant fingerprints and zero app-used route removals. The
+cron output field addition stays visible. The exact main revision still
+fails before comparison because its eight former storage modules require
+review against the persistence interfaces. Selected watcher regressions
+passed 134 tests and portable contract discovery passed 121.
+[Exact source and evidence](contracts/2026-11-19-hermes-cron-source-relocation.md).
+
 ## Reviewed phone summaries on 19 November 2026
 
 The exact source build passes 1,152 JVM tests, zero-error lint and 81 focused

@@ -25,6 +25,12 @@ import os
 import tempfile
 
 REPO = 'NousResearch/hermes-agent'
+LEGACY_CRON_FORMAT_PATH = 'tools/cronjob_job_args.py'
+CRON_FORMAT_PATH = 'cron/job_args.py'
+REVIEWED_CRON_FORMAT_MOVES = frozenset({
+    'ae2a81ccc00e9b7c06301523e5bb09608397149c',
+    '364aded7ee2a2888421fc7aec96adbe6c07748a5',
+})
 SOURCES = {
     'api': 'gateway/platforms/api_server.py',
     'runs': 'gateway/platforms/api_server_runs.py',
@@ -55,7 +61,7 @@ EXTRA_SOURCES = {
     'ws_tickets': 'hermes_cli/dashboard_auth/ws_tickets.py',
     'cron_cancel': 'cron/cancellation.py',
     'cron_tool': 'tools/cronjob_tools.py',
-    'cron_format': 'tools/cronjob_job_args.py',
+    'cron_format': LEGACY_CRON_FORMAT_PATH,
     'skills': 'hermes_cli/web_routers/skills.py',
     'skills_config': 'hermes_cli/skills_config.py',
     'skill_usage': 'tools/skill_usage.py',
@@ -597,11 +603,19 @@ def github_source(path: str, sha: str) -> str:
         raise ValueError('Upstream file is not UTF-8') from exc
 
 
+def contract_source_paths(commit: str) -> dict[str, str]:
+    paths = SOURCES | EXTRA_SOURCES
+    if commit in REVIEWED_CRON_FORMAT_MOVES and paths.get('cron_format') == LEGACY_CRON_FORMAT_PATH:
+        paths['cron_format'] = CRON_FORMAT_PATH
+    return paths
+
+
 def source_identities(commit: str) -> dict:
     """Fetch fresh identities for this exact commit; cached source is never its own authority."""
     require_sha = lambda value: isinstance(value,str) and re.fullmatch(r'[a-f0-9]{40}',value)
     if not require_sha(commit):raise ValueError('Invalid upstream commit')
-    wanted=set((SOURCES|EXTRA_SOURCES).values())
+    paths = contract_source_paths(commit)
+    wanted = set(paths.values())
     selector='{sha,truncated,tree:[.tree[] | select(.path as $p | '+json.dumps(sorted(wanted))+' | index($p)) | {path,mode,type,sha,size}]}'
     tree=github(f'repos/{REPO}/git/trees/{commit}?recursive=1',selector)
     if (not isinstance(tree,dict) or tree.get('truncated') is not False or not require_sha(tree.get('sha'))
@@ -615,7 +629,7 @@ def source_identities(commit: str) -> dict:
                 or not require_sha(row.get('sha')) or type(row.get('size')) is not int or not 0<=row['size']<=2_000_000):
             raise ValueError('Invalid upstream source identity')
         found[path]=(row['sha'],row['size'])
-    allowed={path for name,path in (SOURCES|EXTRA_SOURCES).items() if reviewed_source_absence(name,path,commit)}
+    allowed={path for name,path in paths.items() if reviewed_source_absence(name,path,commit)}
     if wanted-set(found)-allowed:raise ValueError('Upstream source identity missing')
     return found
 
@@ -670,6 +684,7 @@ def source_cache_publishable(cache: Path) -> bool:
 
 def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     resolved, sha = resolve(ref)
+    paths = contract_source_paths(sha)
     try:identities=source_identities(sha) if source_cache is not None else None
     except (ValueError,KeyError,OSError,subprocess.TimeoutExpired) as exc:raise SourceReadError('source_tree',getattr(exc,'status',None)) from exc
     cache_counts={'verified_hits':0,'verified_downloads':0}
@@ -701,8 +716,13 @@ def snapshot(ref: str, source_cache: Path | None = None) -> dict:
                 original=failure[0]
             raise original from exc
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        sources = dict(pool.map(download, (SOURCES | EXTRA_SOURCES).items()))
+        sources = dict(pool.map(download, paths.items()))
     result={'requested_ref':ref,'resolved_ref':resolved,'commit':sha,'contract':extract(sources),'reviewed_source_absences':sorted(absences,key=lambda entry:entry['source'])}
+    if paths.get('cron_format') == CRON_FORMAT_PATH and sha in REVIEWED_CRON_FORMAT_MOVES:
+        result['reviewed_source_relocations'] = [{
+            'source': 'cron_format', 'original_path': LEGACY_CRON_FORMAT_PATH,
+            'path': CRON_FORMAT_PATH, 'commit': sha,
+        }]
     if source_cache is not None:result['source_cache']=cache_counts
     return result
 
