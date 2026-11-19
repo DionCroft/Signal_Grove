@@ -127,9 +127,9 @@ class PhoneDraftRoutingTest {
         closeFocusedKeyboard()
         compose.waitUntil(5000) {!focusedDialogKeyboardVisible()}
         assertFalse("Begin with the actual keyboard hidden",focusedDialogKeyboardVisible())
-        val observed=compose.cancelPhoneDraftOnce(vm.preferences.value,keyboardExpected=false,keyboardExpectedAfterHook=true,beforePreTapObservation={
-            compose.onNodeWithTag("phone-draft-text").performClick()
-        })
+        compose.onNodeWithTag("phone-draft-text").assertIsFocused()
+        val observed=compose.cancelPhoneDraftOnce(vm.preferences.value,keyboardExpected=false,keyboardExpectedAfterHook=true,
+            beforePreTapObservation=::showFocusedDialogKeyboard)
         assertFalse(observed.firstCandidate.viewport.keyboardVisible)
         assertTrue("The actual keyboard arrives before Cancel",observed.beforeTap.viewport.keyboardVisible)
         assertTrue("Re-observe instead of tapping the stale coordinates",observed.preTapResamples>0)

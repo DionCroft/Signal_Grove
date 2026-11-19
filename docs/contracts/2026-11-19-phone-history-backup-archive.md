@@ -5,8 +5,8 @@ record keeps the saved transcript bytes, model fingerprint, optional title, pin,
 archive state and any recorded branch or generation provenance. The reader
 builds a review only after validating every record and the final checksum. When
 the review's caller retrieves a record, it verifies the staged transcript bytes
-again. The same transcript decoder reads the app's existing schema versions 1,
-2 and 3.
+again. The same transcript decoder reads the app's existing schema versions 1 through 3 and the
+imported-parent schema 4.
 
 ## Version 1 wire layout
 
@@ -34,9 +34,8 @@ branches. An unselected parent remains provenance for the restore planner to
 reconcile. Cancellation ends inspection without returning a review. A failed
 write may leave a partial file, which the reader rejects.
 
-The Android backup picker, collision review and atomic restore still need
-implementation. Restore will separately test interrupted publication and
-retention of existing phone chats and metadata.
+Restore review and publication are documented below. The Android backup
+picker and passphrase flow remain open.
 
 ## Validation on 19 November 2026
 
@@ -72,9 +71,54 @@ reads original records from its checked archive.
 The Android build passed 1,123 JVM tests in 106
 reports, including six restore-review regressions. Debug and release lint
 reported zero errors. Both debug APKs compiled from the same source snapshot.
-The restore review is ready for the next implementation layer. Publishing
-chats and labels as one recoverable operation, passphrase protection, and the
-Android import and backup flows are still open.
+The checked review feeds the recoverable publication described below.
 
 - Build receipt `20261119-112259-b9794a42aa4740779fab0fedd9dc92da`
 - Source snapshot `de0fa6be3a296a79aaefd05a5c0485fc3654ffa88cc00c22f166791c41f13779`
+
+## Recoverable restore on 19 November 2026
+
+The confirmed plan is checked again under the chat and label store locks.
+Each reviewed transcript is staged in private app storage. A separate link
+in schema 4 records the restored parent while keeping the original parent ID,
+timestamp and source digest. A branch whose parent was excluded remains
+detached through subsequent backups. Existing schema 1 through 3 files retain
+their current links and encoding.
+
+The journal contains hashes for the recognized new transcripts and both
+possible label-index states. A pending marker is durable before publication.
+New chats use atomic renames to confirmed absent destinations under the library
+locks. The label index uses atomic replacement. After syncing and verifying the new files, restore records a
+committed marker. Application startup resolves the journal before exposing
+history. Recovery rolls back a pending restore by removing only verified
+new files and restoring the original index bytes or absence. Unknown bytes
+halt recovery and remain available for inspection. A committed restore is
+verified and retained. Recovery does not import the archive again.
+
+The Windows build passed 1,132 JVM tests in 107
+reports, including nine restore cases. Debug and release lint passed with zero
+errors. The same signed debug pair passed 65 focused methods on each Android
+API 26 and 37. Two Android cases exercise actual private-file publication and
+roll back an injected interruption before the controller shows history.
+The first two lint runs caught API 27 and API 30 descriptor calls. The verified
+build opens directories read-only, checks the descriptor type, syncs and closes
+it using Android APIs available from API 21.
+[Android directory sync API](https://developer.android.com/reference/android/system/Os#fsync(java.io.FileDescriptor)).
+Android 8 passed 63 standard methods in the first device run and denied the two
+new restore cases at hard-link creation. The accepted path uses the atomic
+rename already used by chat storage. A regression injects an occupied
+destination after staging and verifies that recovery preserves its bytes.
+The first rename build passed both restore methods on Android 8 and retained
+a separate late-keyboard fixture timeout with no Cancel input. The fixture now
+uses one explicit keyboard request for the already-focused editor and still
+requires a real IME before its single Cancel tap.
+
+The test suite models interruption at storage boundaries. A physical device
+restore and the user-facing Android backup and import flows remain open.
+
+- Build receipt `20261119-121401-2ae71310383c4f7ea228fd3fa4260739`
+- Source snapshot `9ae6260e77284640ff48053240fadc1b0da77c87b0a54bd0362e6f24e87e75a0`
+- Debug app SHA-256 `5dd36b8d37c33710aa38255e722bec8d6f5780f3b3459866f64b75666d0c1288`
+- Test companion SHA-256 `8080c78ed43f98df726fb24bad9c193265f37bdc0c79069c2894f3fa96117764`
+- API 26 instrumentation SHA-256 `9fbdc5479c52c894ab29e6e63cb2e17cca974fc4c4091927bea2d12daf03b8e8`
+- API 37 instrumentation SHA-256 `8d485b0fa444619d05fbc6fd5c6fed8e0343c684290cf0c0b8d6562ba605f359`

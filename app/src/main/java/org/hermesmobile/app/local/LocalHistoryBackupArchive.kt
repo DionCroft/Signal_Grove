@@ -210,7 +210,7 @@ internal object LocalHistoryBackupArchive {
             }
             require(entries.values.all { entry ->
                 val item = entry.item
-                val parent = item.origin?.parentId?.let { entries[it]?.item }
+                val parent = item.origin?.linkedParentId?.let { entries[it]?.item }
                 parent == null || parent.modelSha256 == item.modelSha256
             })
             for (start in entries.keys) {
@@ -218,7 +218,7 @@ internal object LocalHistoryBackupArchive {
                 var next: String? = start
                 while (next != null) {
                     require(visited.add(next))
-                    next = entries[next]?.item?.origin?.parentId
+                    next = entries[next]?.item?.origin?.linkedParentId
                 }
             }
             checkpoint()

@@ -29,11 +29,13 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     private val organization = LocalHistoryOrganization(historyRoot.canonicalFile.let {
         File(it.parentFile, it.name + "-organization")
     }, conversations)
+    private val historyRestore = LocalHistoryRestoreTransaction(conversations, organization)
     private val downloads = LocalModelDownload(store, ioDispatcher = ioDispatcher)
     private var engine: LocalInference? = null
     private var loadedConfiguration: Pair<Int, Int>? = null
     private var job: Job? = null
     private var leaving = false
+    private var restoreRecoveryNeeded = true
     private var recovered = false
     private val mutable = MutableStateFlow(LocalAiState())
     val state = mutable.asStateFlow()
@@ -74,6 +76,27 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             conversations.markdownExport(conversation, labels?.preferences?.title, checkpoint)
         }
         onPrepared(document)
+    }
+
+    internal fun prepareHistoryRestore(
+        archive: LocalHistoryBackupArchive.Inspection,
+        onPrepared: (LocalHistoryBackupRestorePlan) -> Unit
+    ) = action("preparing_restore") {
+        val plan = io {
+            val context = currentCoroutineContext()
+            historyRestore.prepare(archive) { context.ensureActive() }
+        }
+        onPrepared(plan)
+    }
+
+    internal fun restoreHistory(plan: LocalHistoryBackupRestorePlan) = action("restoring_history") {
+        restoreRecoveryNeeded = true
+        io {
+            val context = currentCoroutineContext()
+            historyRestore.restore(plan) { context.ensureActive() }
+        }
+        ensureHistoryReady()
+        refresh()
     }
 
     fun clearHistorySearch() {
@@ -288,12 +311,18 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         mutable.update { it.copy(busy = true, status = status, error = null, transfer = null) }; guard.set(owner, true)
         val next = scope.launch(start = CoroutineStart.LAZY) {
             lock.withLock {
-                try { block() }
+                try {
+                    ensureHistoryReady()
+                    block()
+                }
                 catch (_: CancellationException) {
                     if (status == "downloading" || status == "importing") reconcileStoppedTransfer()
-                    if (status == "organizing") withContext(NonCancellable) {
-                        // Cancellation can lose the return after atomic metadata publication.
-                        try {refresh()} catch (e: Exception) {mutable.update {it.copy(error = failure(e))}}
+                    if (status == "organizing" || status == "restoring_history") withContext(NonCancellable) {
+                        // Cancellation can lose the return after publication.
+                        try {
+                            ensureHistoryReady()
+                            refresh()
+                        } catch (e: Exception) { mutable.update { it.copy(error = failure(e)) } }
                     }
                 }
                 catch (e: Exception) { mutable.update { it.copy(error = when {
@@ -326,13 +355,26 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         is LocalModelStorageException -> e.reason
         is LocalModelFormatException -> e.reason
         is LocalEngineException -> "engine_${e.code}"
-        is LocalHistoryException -> "history"
+        is LocalHistoryException, is LocalHistoryRestoreRecoveryException -> "history"
         is LocalHistoryOrganizationException -> "history_organization"
         else -> "operation_failed"
     }
 
+    private suspend fun ensureHistoryReady() {
+        if (restoreRecoveryNeeded) {
+            io { historyRestore.recover() }
+            restoreRecoveryNeeded = false
+        }
+        if (!recovered) {
+            io {
+                val context = currentCoroutineContext()
+                conversations.recoverInterrupted { context.ensureActive() }
+            }
+            recovered = true
+        }
+    }
+
     private suspend fun refresh() {
-        if (!recovered) { io { val context = currentCoroutineContext(); conversations.recoverInterrupted { context.ensureActive() } }; recovered = true }
         val models = io { val context = currentCoroutineContext(); store.models { context.ensureActive() } }
         val history = io { val context = currentCoroutineContext(); organization.history { context.ensureActive() } }
         val partial = downloads.partialBytes()

@@ -1,5 +1,13 @@
 # Current development validation — audit follow-up
 
+## Recoverable phone history restore on 19 November 2026
+
+The tested restore build passed 1,132 JVM cases, both lint variants and
+65 focused instrumentation methods on each API 26 and API 37. The new cases cover
+commit and rollback of new chats and labels, exact prior index bytes, archived
+parent provenance, stale reviews and refused recovery on unknown live files.
+[Restore contract and artifacts](contracts/2026-11-19-phone-history-backup-archive.md).
+
 ## Phone history restore review on 19 November 2026
 
 The read-only restore review passed 1,123 JVM cases and both lint

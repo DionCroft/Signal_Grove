@@ -72,3 +72,20 @@ matching foreground activity. The actual phone log SHA-256 is
 reads remain open, as do the physical export, encrypted backup/import and
 final release checks. See the [underlying format](2026-11-19-selected-markdown-foundation.md)
 and [earlier UI failures](2026-11-19-history-native-readiness.md).
+
+## Full GitHub device matrix
+
+The four shard inventories and raw instrumentation logs reconciled to
+1,187 Android API 26 and 1,188 Android API 37 tests, including all five
+Markdown export cases on both APIs. All ran without failures or skips.
+The GitHub merge checkout and reviewed source had identical trees.
+The artifact APK hashes match the device receipts. The same CI build
+passed 1,107 JVM tests and both lint variants. The physical picker
+and explicit external-model gates have separate acceptance records.
+[GitHub Android workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/44509581693).
+
+- Reviewed head `4632146868d555b6bd636dc80527512272fabfa8`
+- Merge checkout `3b2fa81503670d183f9952b9214d828759dd58e8`
+- Source tree `208332095083e8df9aa24554aeb80294aa22fb5a`
+- Debug app SHA-256 `fef9b6b0125ff45959bfb6be8938ef9b8b6664cec27150d68aea2c503f64f992`
+- Test companion SHA-256 `693447ef1220d63a50d184e4f597c04341c8a50b480b7a0685da52f623361b67`

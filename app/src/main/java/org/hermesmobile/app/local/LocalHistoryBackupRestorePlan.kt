@@ -59,13 +59,14 @@ internal class LocalHistoryBackupRestorePlan private constructor(
             source.forEach { row ->
                 reserved.add(row.id)
                 row.origin?.parentId?.let(reserved::add)
+                row.origin?.linkedParentId?.let(reserved::add)
             }
             val targetIds = source.associate { row ->
                 checkpoint()
                 row.id to if (row.id in occupied) allocate(reserved, newId, checkpoint) else row.id
             }
             val items = source.associate { row ->
-                row.id to LocalHistoryRestoreItem(row, targetIds.getValue(row.id), row.origin?.parentId?.let { targetIds[it] })
+                row.id to LocalHistoryRestoreItem(row, targetIds.getValue(row.id), row.origin?.linkedParentId?.let { targetIds[it] })
             }
             checkpoint()
             return LocalHistoryBackupRestorePlan(archive, destinationHistory, destinationLabels, items)

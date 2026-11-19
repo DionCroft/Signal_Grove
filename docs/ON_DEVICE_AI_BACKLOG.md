@@ -61,7 +61,9 @@ saved exact content through the Android picker on API 26. The physical phone
 saved labels and opened the archived reply with its model unloaded. Physical
 Cancel and export remain open. The [version 1 archive and restore review](contracts/2026-11-19-phone-history-backup-archive.md)
 preserve selected transcript bytes and labels, map IDs and check capacity.
-The Android backup flow, passphrase protection and atomic restore remain open.
+Recoverable restore publishes reviewed chats and labels together and resolves
+interrupted publication before opening the catalog. The Android backup and
+import flows, passphrase protection and physical restore remain open.
 Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,

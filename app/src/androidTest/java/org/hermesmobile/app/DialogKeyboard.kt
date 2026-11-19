@@ -7,6 +7,7 @@ import androidx.test.espresso.ViewAction
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import org.hamcrest.Matcher
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.matcher.RootMatchers.isDialog
@@ -35,6 +36,20 @@ fun closeFocusedKeyboard() {
 private fun focusedAppDialog()=object:TypeSafeMatcher<Root>() {
     override fun describeTo(description:Description) {description.appendText("the focused app dialog")}
     override fun matchesSafely(root:Root)=isDialog().matches(root) && root.decorView.hasWindowFocus()
+}
+
+/** Reopen the actual IME once for an editor that is already focused. */
+internal fun showFocusedDialogKeyboard() {
+    onView(isRoot()).inRoot(focusedAppDialog()).perform(object : ViewAction {
+        override fun getConstraints(): Matcher<View> = isRoot()
+        override fun getDescription() = "one keyboard request in the focused dialog"
+        override fun perform(controller: UiController, view: View) {
+            val editor = checkNotNull(view.findFocus()) { "Expected a focused dialog editor" }
+            val ime = checkNotNull(editor.context.getSystemService(InputMethodManager::class.java))
+            check(ime.isActive(editor)) { "The focused editor must retain its input connection" }
+            check(ime.showSoftInput(editor, InputMethodManager.SHOW_IMPLICIT)) { "The keyboard request was not sent" }
+        }
+    })
 }
 
 fun focusedDialogKeyboardVisible():Boolean {

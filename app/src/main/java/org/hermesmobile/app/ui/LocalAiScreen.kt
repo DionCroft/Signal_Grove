@@ -214,7 +214,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         state.chat?.origin?.let { origin -> item {
             Column {
                 Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()), style = MaterialTheme.typography.labelSmall)
-                if (state.history.any { it.id == origin.parentId }) TextButton({actions.openChat(origin.parentId)}, enabled = !state.busy,
+                val linkedParent = origin.linkedParentId
+                if (linkedParent != null && state.history.any { it.id == linkedParent }) TextButton({actions.openChat(linkedParent)}, enabled = !state.busy,
                     modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
             }
         } }

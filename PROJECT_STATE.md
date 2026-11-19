@@ -32,8 +32,8 @@ Rows show recorded activity time and copied/edited/regenerated branch labels.
 [Current source/APK bindings](docs/contracts/2026-11-19-phone-markdown-export.md) and
 [retained UI failures](docs/contracts/2026-11-19-history-native-readiness.md).
 Markdown review and file export work through the Android picker. The real API 26
-Downloads transfer matches the source. Versioned and encrypted backup/import
-remain open, along with full export CI and the phone export check.
+Downloads transfer matches the source. The full hosted Markdown export
+matrix passed. The physical picker and Android backup flows remain open.
 
 Earlier phone pairings verify one actual offline native branch/Stop method and
 real UI fork/edit/regenerate. The matching search build upgrades in place with
@@ -60,16 +60,19 @@ writer on the Markdown export branch. Its build passed 1,117 JVM tests, both
 lint variants and 63 selected device checks on each API 26 and API 37.
 The restore review passed 1,123 JVM tests and both lint variants. It checks
 chat/label capacity, remaps collisions and resolves only included parents.
-Atomic publication, protection and the Android restore flow remain open.
+Recoverable publication passed 1,132 JVM tests, both lint variants and 65
+focused checks on each API 26 and API 37. Protection and the Android backup
+and import flows remain open.
 [Wire format and checks](docs/contracts/2026-11-19-phone-history-backup-archive.md).
 
 ## Exact next action
 
 Confirm Cancel on the physical label review and verify the export branch
 through the physical Android document picker. Save and unloaded archive reads
-are recorded from the organization build. Implement recoverable batch restore,
-then protected backups and the Android backup/import review. Keep the full
-hosted export run, OF-01 accessibility and lifecycle, and original audit gates open.
+are recorded from the organization build. Implement passphrase protection
+and the Android backup/import review over the tested restore transaction. The
+full hosted Markdown export matrix passed 1,187 API 26 and 1,188 API 37
+cases. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/

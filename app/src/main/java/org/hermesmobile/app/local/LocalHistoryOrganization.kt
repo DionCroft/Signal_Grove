@@ -31,13 +31,16 @@ class LocalHistoryOrganizationException : IllegalStateException("local_history_o
 class LocalHistoryOrganization(directory: File, private val conversations: LocalConversationStore) {
     private val directory = directory.canonicalFile
     init { check(this.directory.isDirectory || this.directory.mkdirs()) }
-    private fun index() = File(directory, "index.json").also { require(it.canonicalFile == it.absoluteFile) }
+    internal fun index() = File(directory, "index.json").also { require(it.canonicalFile == it.absoluteFile) }
 
-    @Synchronized fun entries(checkpoint: () -> Unit = {}): Map<String, LocalHistoryOrganizationEntry> {
+    @Synchronized fun entries(checkpoint: () -> Unit = {}): Map<String, LocalHistoryOrganizationEntry> =
+        snapshot(checkpoint).first
+
+    @Synchronized internal fun snapshot(checkpoint: () -> Unit): Pair<Map<String, LocalHistoryOrganizationEntry>, ByteArray?> {
         try {
             checkpoint()
             val file = index()
-            if (!file.exists()) return emptyMap()
+            if (!file.exists()) return emptyMap<String, LocalHistoryOrganizationEntry>() to null
             require(file.isFile && file.length() in 1L..MAX_BYTES.toLong())
             val bytes = file.inputStream().use { input ->
                 val output = java.io.ByteArrayOutputStream()
@@ -68,7 +71,7 @@ class LocalHistoryOrganization(directory: File, private val conversations: Local
                 LocalHistoryOrganizationEntry(model, LocalHistoryPreferences(title, flag("pinned"), flag("archived")))
             }
             checkpoint()
-            return result
+            return result to bytes
         } catch (e: CancellationException) { throw e }
         catch (_: Exception) { throw LocalHistoryOrganizationException() }
     }
@@ -112,7 +115,8 @@ class LocalHistoryOrganization(directory: File, private val conversations: Local
         publish(before - id, checkpoint)
     }
 
-    private fun publish(rows: Map<String, LocalHistoryOrganizationEntry>, checkpoint: () -> Unit) {
+    internal fun encode(rows: Map<String, LocalHistoryOrganizationEntry>): ByteArray {
+        require(rows.size <= LocalConversationStore.MAX_CHATS)
         val bytes = buildJsonObject {
             put("schema", 1)
             putJsonObject("entries") { rows.toSortedMap().forEach { (id, entry) -> putJsonObject(id) {
@@ -122,6 +126,11 @@ class LocalHistoryOrganization(directory: File, private val conversations: Local
             } } }
         }.toString().toByteArray(Charsets.UTF_8)
         require(bytes.size <= MAX_BYTES)
+        return bytes
+    }
+
+    private fun publish(rows: Map<String, LocalHistoryOrganizationEntry>, checkpoint: () -> Unit) {
+        val bytes = encode(rows)
         checkpoint()
         val target = index()
         val partial = File(directory, "index.${UUID.randomUUID()}.part")
@@ -134,7 +143,7 @@ class LocalHistoryOrganization(directory: File, private val conversations: Local
     }
 
     private fun validId(id: String) { require(runCatching { UUID.fromString(id).toString() == id }.getOrDefault(false)) }
-    companion object { private const val MAX_BYTES = 64 * 1024 }
+    companion object { internal const val MAX_BYTES = 64 * 1024 }
 }
 
 /** Pin changes display order only; activity timestamps and transcript bytes stay authoritative. */
