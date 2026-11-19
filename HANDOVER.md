@@ -54,6 +54,14 @@ integrity ok. Radio/wake settings restore; reopening configured Tailscale once
 restores a connected VPN and private Pi ping. No API/model readiness is inferred.
 [Physical evidence and limits](docs/contracts/2026-11-19-phone-history-search-physical.md).
 
+
+The branch feat/offline-history-backup layers the version 1 archive reader and
+writer on the Markdown export branch. Its build passed 1,117 JVM tests, both
+lint variants and 63 selected device checks on each API 26 and API 37.
+The validated archive keeps selected transcripts and labels. Restore review,
+conflict handling, atomic publication, and protection are the next components.
+[Wire format and checks](docs/contracts/2026-11-19-phone-history-backup-archive.md).
+
 ## Exact next action
 
 Complete physical organization Save, Cancel, and unloaded archive reads.

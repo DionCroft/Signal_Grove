@@ -1,5 +1,10 @@
 # Current development validation — audit follow-up
 
+## Versioned phone history archive on 19 November 2026
+
+The archive foundation passed 1,117 JVM tests and 63 focused Android tests on each API 26 and API 37. The suite verifies selected transcript bytes, labels, branch provenance, bounded parsing, staged-file changes and cancellation. Both lint variants reported zero errors. The backup picker, passphrase encryption, collision review and atomic restore remain open.
+[Archive format and build evidence](contracts/2026-11-19-phone-history-backup-archive.md).
+
 ## Reviewed phone Markdown export and history check on 19 November 2026
 
 The selected-chat review now saves through Android's system picker.

@@ -58,7 +58,7 @@ retains its own pairing. The updated companion passed physical branch
 identification. Full hosted history coverage passed 1,182 API 26 and 1,183
 API 37 cases. The [reviewed Markdown export](contracts/2026-11-19-phone-markdown-export.md)
 saved exact content through the Android picker on API 26. Physical organization
-and export checks, plus versioned and encrypted backup/import, remain open.
+and export checks remain open. The [version 1 archive reader and writer](contracts/2026-11-19-phone-history-backup-archive.md) preserve selected transcript bytes and labels. User backup, encrypted transport, collision review and atomic restore remain in progress.
 Add local title/content search, rename, pin, archive and
 filters by model/date. Add reviewed selected-chat Markdown export and versioned
 backup/import with a protected encrypted-backup option. Explain export contents,
