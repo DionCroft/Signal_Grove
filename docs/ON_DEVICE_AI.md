@@ -1,5 +1,23 @@
 # Using on-device AI (beta.9 preview)
 
+## Compare downloadable models in the development build
+
+Open **On-device AI → Phone models → Compare downloadable models**. Both
+model descriptions and their licences are available offline. The load
+check uses free RAM at the time you select the installed model.
+
+| Model | Exact file size | Free RAM required by the load check |
+| --- | ---: | ---: |
+| LiquidAI LFM3-1.7B QAD Q4_0 | 1,049,615,680 bytes | 2,258 MiB |
+| Qwen2.5-0.5B Instruct Q4_K_M | 491,400,032 bytes | 1,194 MiB |
+
+Select **Review licence and download** to see the publisher, file revision,
+hash and licence for that entry. Review the licence and confirm when
+online. Each model keeps its own unfinished download. After installation,
+return to **Phone models → Load model**. The downloaded weights can then
+run offline. Use **Import GGUF file** for a file obtained elsewhere.
+[Catalogue validation](VALIDATION.md#offline-catalogue-and-separate-model-downloads).
+
 ## Choose settings for a phone model
 
 In a development build, open **On-device AI → Phone models → Model settings**
@@ -290,7 +308,7 @@ generation, unload/history, deletion and two-family switching on the owner's
 physical ARM64 phone. LFM3 and Qwen histories stay bound to their separate file
 hashes. These are native integration cases using explicitly staged inputs;
 normal Qwen document-picker and final beta.9 physical-upgrade acceptance remain
-separate. Qwen is not another built-in recommended download.
+separate. The development catalogue now offers the exact Qwen file as a pinned download.
 See [physical evidence and figures](contracts/2026-11-12-physical-offline-model-acceptance.md).
 
 ## Chat offline and manage memory

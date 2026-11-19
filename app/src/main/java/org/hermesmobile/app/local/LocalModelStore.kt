@@ -7,9 +7,11 @@ import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.UUID
 
+internal fun minimumModelLoadMemoryBytes(modelBytes: Long) = modelBytes * 2 + 256L * 1024 * 1024
+
 data class InstalledLocalModel(val sha256: String, val metadata: GgufModelMetadata) {
     internal val minimumLoadMemoryBytes: Long
-        get() = metadata.bytes * 2 + 256L * 1024 * 1024
+        get() = minimumModelLoadMemoryBytes(metadata.bytes)
 }
 class LocalModelStorageException(val reason: String) : IllegalStateException(reason)
 

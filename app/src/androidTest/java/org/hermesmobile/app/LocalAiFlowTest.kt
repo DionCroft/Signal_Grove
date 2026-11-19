@@ -23,7 +23,9 @@ import org.junit.Test
 /** Synthetic local state only: no downloads, real model load, credentials or server writes. */
 class LocalAiFlowTest {
     @get:Rule val compose = createComposeRule()
-    private var downloads = 0; private var imports = 0; private var sends = 0; private var stops = 0
+    private val downloads = mutableListOf<CuratedPhoneModel>()
+    private val discarded = mutableListOf<CuratedPhoneModel>()
+    private var imports = 0; private var sends = 0; private var stops = 0
     private var pending by mutableStateOf(false)
     private var state by mutableStateOf(LocalAiState())
     private val helperRequests = mutableListOf<Pair<LocalHelpTopic, Boolean>>()
@@ -37,7 +39,7 @@ class LocalAiFlowTest {
                 stops++
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
             }, {}, { model, context -> requestedLoads.add(model.sha256 to context) },
-            {}, {}, {downloads++}, {}, {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {},
+            {}, {}, { model -> downloads.add(model) }, { model -> discarded.add(model) }, {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {},
             help = {topic, share -> helperRequests.add(topic to share)}, saveModelPerformance = { item, settings ->
                 performanceSaves.add(settings)
                 state = state.copy(modelPerformance = state.modelPerformance + (item.sha256 to settings))
@@ -49,7 +51,7 @@ class LocalAiFlowTest {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if(bilingual) 1.3f else density.fontScale)) {
             HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
-                LocalAiScreen(state, supported, "Fresh local draft", {}, pending, "Separate model licence fixture", actions, {},
+                LocalAiScreen(state, supported, "Fresh local draft", {}, pending, actions, {},
                     LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "")
             }
             }
@@ -145,24 +147,55 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-setup-guide").performClick()
         compose.onNodeWithTag("setup-guide").assertExists()
         compose.onNodeWithText(Words.SetupHost.en).assertExists()
-        assertEquals(0, sends); assertEquals(0, downloads); assertEquals(0, imports)
+        assertEquals(0, sends); assertTrue(downloads.isEmpty()); assertEquals(0, imports)
     }
     @Test fun downloadWaitsForSeparateLicenceConsent() {
         show(); compose.onNodeWithTag("phone-tab-1").performClick()
-        compose.onNodeWithTag("phone-download-review").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-catalogue-open").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-download-review-LFM3").performScrollTo().performClick()
         compose.onNodeWithTag("phone-licence-confirm").assertIsNotEnabled()
-        assertEquals(0, downloads)
+        assertTrue(downloads.isEmpty())
         compose.onNodeWithTag("phone-licence-consent").performScrollTo().performClick()
         compose.onNodeWithTag("phone-licence-confirm").performClick()
-        assertEquals(1, downloads); assertEquals(0, sends)
+        assertEquals(listOf(CuratedPhoneModel.LFM3), downloads); assertEquals(0, sends)
     }
+    @Test fun curatedModelReviewDispatchesOnlyTheSelectedPin() {
+        val qwen = CuratedPhoneModel.QWEN
+        state = state.copy(downloadPartials = mapOf(qwen to 2L * 1024 * 1024))
+        show(bilingual = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        compose.onNodeWithTag("phone-catalogue-open").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-catalogue-LFM3").performScrollTo().assertTextContains(CuratedPhoneModel.LFM3.displayName)
+        compose.onNodeWithTag("phone-catalogue-QWEN").performScrollTo().assertTextContains(qwen.displayName)
+        compose.onNodeWithTag("phone-discard-LFM3").assertDoesNotExist()
+        compose.onNodeWithTag("phone-discard-QWEN").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-download-review-QWEN").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-licence-model").assertTextEquals(qwen.displayName)
+        val review = compose.onNodeWithTag("phone-licence-source")
+        listOf(qwen.repository, qwen.filename, qwen.revision, qwen.sha256, qwen.licence).forEach {
+            review.assertTextContains(it, substring = true)
+        }
+        compose.onNodeWithTag("phone-licence-confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("phone-licence-cancel").performClick()
+        compose.runOnIdle { assertTrue(downloads.isEmpty()); assertTrue(discarded.isEmpty()); assertTrue(requestedLoads.isEmpty()) }
+
+        compose.onNodeWithTag("phone-download-review-QWEN").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-licence-consent").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-licence-confirm").performClick()
+        compose.runOnIdle {
+            assertEquals(listOf(qwen), downloads)
+            assertTrue(requestedLoads.isEmpty())
+            assertEquals(0, sends)
+        }
+    }
+
     @Test fun importIsExplicitAndCancelDoesNotDownload() {
         show(); compose.onNodeWithTag("phone-tab-1").performClick()
         compose.onNodeWithTag("phone-import").performScrollTo().performClick()
         compose.onNodeWithText(Words.PhoneImportLicence.en).assertExists()
         compose.onNodeWithTag("phone-licence-confirm").assertIsNotEnabled()
         compose.onNodeWithText(Words.Cancel.en).performClick()
-        assertFalse(pending); assertEquals(1, imports); assertEquals(0, downloads)
+        assertFalse(pending); assertEquals(1, imports); assertTrue(downloads.isEmpty())
     }
     @Test fun wrongModelBlocksSendAndGenerationExposesStop() {
         state = LocalAiState(loaded = model, chat = LocalConversation(modelSha256 = "b".repeat(64), updatedAt = 1))
@@ -180,13 +213,13 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-handoff-draft").assertTextContains("Local advice")
         compose.onNodeWithText(Words.PhoneReviewHelp.en).assertExists()
         compose.onNodeWithText(Words.Cancel.en).performClick()
-        assertEquals(0, sends); assertEquals(0, downloads)
+        assertEquals(0, sends); assertTrue(downloads.isEmpty())
     }
     @Test fun helperSourcesRemainAvailableWithoutAModelOrServer() {
         show(false); compose.onNodeWithTag("phone-helper-open").performClick()
         compose.onNodeWithTag("phone-helper-run").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithText(Words.PhoneHelperSources.en, substring = true).performScrollTo().assertExists()
-        assertTrue(helperRequests.isEmpty()); assertEquals(0, downloads)
+        assertTrue(helperRequests.isEmpty()); assertTrue(downloads.isEmpty())
     }
     @Test fun helperObservationsRequireExplicitOptInForTheRequest() {
         state = LocalAiState(loaded = model)
@@ -196,7 +229,7 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-helper-observations").performScrollTo().performClick()
         compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
         assertEquals(LocalHelpTopic.FIRST_SETUP to true, helperRequests.last())
-        assertEquals(0, sends); assertEquals(0, downloads)
+        assertEquals(0, sends); assertTrue(downloads.isEmpty())
     }
     @Test fun bilingualLargeTextKeepsTheConversationAndComposerReachable() {
         state = LocalAiState(loaded = model)
@@ -223,7 +256,7 @@ class LocalAiFlowTest {
         compose.onNodeWithText(Words.HelpHostServe.pin, substring = true).assertExists()
         compose.onNodeWithText(listOf(Words.PhoneHelperOnHost.en, Words.PhoneHelperOnHost.zh,
             Words.PhoneHelperOnHost.pin).joinToString("\n")).assertExists()
-        assertEquals(0, sends); assertEquals(0, downloads)
+        assertEquals(0, sends); assertTrue(downloads.isEmpty())
     }
     @Test fun bilingualCopiedDraftKeepsComposerAndModelChoiceReachable() {
         show(bilingual=true,copied=true)
@@ -236,7 +269,7 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-draft-info-text").assertTextEquals(listOf(Words.PhoneDraftReceived.en,Words.PhoneDraftReceived.zh,Words.PhoneDraftReceived.pin).joinToString("\n"))
         compose.onNodeWithTag("phone-draft-info-close").assertIsDisplayed().performClick()
         compose.onNodeWithTag("phone-draft").assertIsDisplayed()
-        assertEquals(0,sends);assertEquals(0,downloads)
+        assertEquals(0,sends);assertTrue(downloads.isEmpty())
     }
 
 }

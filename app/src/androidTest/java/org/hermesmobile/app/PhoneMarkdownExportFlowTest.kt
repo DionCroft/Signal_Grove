@@ -75,7 +75,7 @@ class PhoneMarkdownExportFlowTest {
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
                     HermesAppTheme(AppPreferences(chinese = false, pinyin = false)) {
-                        LocalAiScreen(history, true, "", {}, false, "", actions, {})
+                        LocalAiScreen(history, true, "", {}, false, actions, {})
                         PhoneMarkdownExportFlow(export, busy = false)
                     }
                 }

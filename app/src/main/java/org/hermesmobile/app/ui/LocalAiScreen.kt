@@ -69,7 +69,7 @@ import org.hermesmobile.app.local.*
 
 data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newChat: () -> Unit,
     val load: (InstalledLocalModel, Int) -> Unit, val unload: () -> Unit, val remove: (InstalledLocalModel) -> Unit,
-    val download: () -> Unit, val discard: () -> Unit, val chooseFile: () -> Unit,
+    val download: (CuratedPhoneModel) -> Unit, val discard: (CuratedPhoneModel) -> Unit, val chooseFile: () -> Unit,
     val acceptImport: () -> Unit, val cancelImport: () -> Unit, val openChat: (String) -> Unit,
     val deleteChat: (String) -> Unit, val dismissError: () -> Unit, val refresh: () -> Unit = {},
     val help: (LocalHelpTopic, Boolean) -> Unit = {_, _ ->},
@@ -99,12 +99,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val observations = remember(preferences, state.loaded?.sha256) {preferences?.let {
         LocalHelpObservations.capture(it.demo, it.url, android.os.Process.is64Bit(), state.loaded != null, System.currentTimeMillis())
     }}
-    val licence = remember {context.assets.open("LFM3-LICENSE.txt").bufferedReader().use {it.readText()}}
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {vm.pendingImport.value = it}
     val c = vm.controller
-    LocalAiScreen(state, c.supported, draft, vm::changeDraft, pending != null, licence,
+    LocalAiScreen(state, c.supported, draft, vm::changeDraft, pending != null,
         LocalAiActions(vm::send, c::cancel, vm::newChat, c::load, c::unload, c::deleteModel,
-            {c.download(true)}, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
+            { model -> c.download(model, licenceReviewed = true) }, c::discardDownload, {picker.launch(arrayOf("*/*"))}, vm::importSelected,
             {vm.pendingImport.value = null}, vm::openChat, vm::deleteChat, c::dismissError, c::refreshLibrary,
             {topic, share -> c.help(topic, observations.takeIf {share})}, branch = vm::branch,
             searchHistory = c::searchHistory, clearHistorySearch = c::clearHistorySearch, organize = c::organizeChat,
@@ -120,14 +119,15 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
 @Composable fun LocalAiScreen(state: LocalAiState, supported: Boolean, draft: String, changeDraft: (String) -> Unit,
-    pendingImport: Boolean, licenceText: String, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null, handoffState:String = "") {
+    pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null, handoffState:String = "") {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
     var helper by remember {mutableStateOf(false)}
-    var downloadReview by remember {mutableStateOf(false)}
+    var catalogueOpen by rememberSaveable { mutableStateOf(false) }
+    var downloadReview by remember { mutableStateOf<CuratedPhoneModel?>(null) }
     var deleteModel by remember {mutableStateOf<InstalledLocalModel?>(null)}
     var deleteChat by remember {mutableStateOf<String?>(null)}
-    var discardReview by remember {mutableStateOf(false)}
+    var discardReview by remember { mutableStateOf<CuratedPhoneModel?>(null) }
     var review by remember {mutableStateOf<String?>(null)}
     var boundary by remember {mutableStateOf(false)}
     var errorDetails by remember {mutableStateOf(false)}
@@ -164,14 +164,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     Text(label(Words.PhoneLibraryHelp), style = MaterialTheme.typography.bodySmall)
                     TextButton(actions.refresh, enabled = !state.busy) {Text(label(Words.Refresh))}
                     Button(actions.chooseFile, enabled = supported && !state.busy, modifier = Modifier.testTag("phone-import")) {Text(label(Words.PhoneImport))}
-                    HermesCard {
-                        Text(RecommendedLocalModel.NAME, style = MaterialTheme.typography.titleMedium)
-                        Text(label(Words.PhoneDownloadInfo), style = MaterialTheme.typography.bodySmall)
-                        if (state.partialBytes > 0) {
-                            Text(label(Words.PhonePartial).replace("{bytes}", (state.partialBytes / 1048576).toString()))
-                            TextButton({discardReview = true}, enabled = !state.busy) {Text(label(Words.PhoneDiscard))}
-                        }
-                        Button({downloadReview = true}, enabled = supported && !state.busy, modifier = Modifier.testTag("phone-download-review")) {Text(label(Words.PhoneDownload))}
+                    OutlinedButton({ catalogueOpen = true }, Modifier.testTag("phone-catalogue-open")) {
+                        Text(label(Words.PhoneCatalogue))
                     }
                     state.models.forEach { model -> PhoneModel(model, state, supported, actions) {deleteModel = model} }
                 }
@@ -194,15 +188,33 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         helper = false
         if(state.busy && state.helper?.state == LocalReplyState.GENERATING) actions.stop()
     }
-    if (downloadReview || pendingImport) {
-        val importing = pendingImport
-        PhoneLicence(if(importing) label(Words.PhoneImportLicence) else licenceText, state.busy,
-            accept = {if(importing) actions.acceptImport() else {downloadReview = false; actions.download()}},
-            close = {if(importing) actions.cancelImport() else downloadReview = false})
+    if (catalogueOpen && downloadReview == null && discardReview == null && !pendingImport) {
+        PhoneModelCatalogue(state, supported, { downloadReview = it }, { discardReview = it }) {
+            catalogueOpen = false
+        }
     }
-    deleteModel?.let { model -> PhoneConfirm(Words.PhoneDeleteModel, state.busy, {actions.remove(model); deleteModel = null}) {deleteModel = null} }
-    deleteChat?.let { id -> PhoneConfirm(Words.PhoneDeleteChat, state.busy, {actions.deleteChat(id); deleteChat = null}) {deleteChat = null} }
-    if (discardReview) PhoneConfirm(Words.PhoneDiscard, state.busy, {actions.discard(); discardReview = false}) {discardReview = false}
+    if (pendingImport) {
+        PhoneLicence(label(Words.PhoneImportLicence), state.busy, actions.acceptImport, actions.cancelImport)
+    } else downloadReview?.let { model ->
+        val licence = remember(model, context) {
+            context.assets.open(model.licenceAsset).bufferedReader().use { it.readText() }
+        }
+        key(model) {
+            PhoneLicence(licence, state.busy, accept = {
+                downloadReview = null
+                catalogueOpen = false
+                actions.download(model)
+            }, close = { downloadReview = null }, model = model)
+        }
+    }
+    deleteModel?.let { model -> PhoneConfirm(label(Words.PhoneDeleteModel), state.busy, {actions.remove(model); deleteModel = null}) {deleteModel = null} }
+    deleteChat?.let { id -> PhoneConfirm(label(Words.PhoneDeleteChat), state.busy, {actions.deleteChat(id); deleteChat = null}) {deleteChat = null} }
+    discardReview?.let { model ->
+        PhoneConfirm(label(Words.PhoneDiscard) + "\n" + model.displayName, state.busy, {
+            discardReview = null
+            actions.discard(model)
+        }) { discardReview = null }
+    }
     review?.let { initial ->
         var text by remember(initial) {mutableStateOf(initial.take(8192))}
         val prefix = label(Words.PhoneReviewPrefix)
@@ -461,7 +473,8 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
         Text(model.metadata.name, style = MaterialTheme.typography.titleMedium)
         Text("${model.metadata.architecture} · ${model.metadata.bytes / 1048576} MiB", style = MaterialTheme.typography.bodySmall)
         Text("SHA-256: ${model.sha256}", style = MaterialTheme.typography.labelSmall)
-        Text(label(if(model.sha256 == RecommendedLocalModel.SHA256) Words.PhonePublisher else Words.PhoneImported), style = MaterialTheme.typography.bodySmall)
+        val source = if (CuratedPhoneModel.entries.any { it.sha256 == model.sha256 }) Words.PhonePublisher else Words.PhoneImported
+        Text(label(source), style = MaterialTheme.typography.bodySmall)
         val minimumMiB = (model.minimumLoadMemoryBytes + 1048575) / 1048576
         Text(label(Words.PhoneModelFreeMemory).replace("{number}", minimumMiB.toString()), style = MaterialTheme.typography.bodySmall)
         if (active != null) {
@@ -498,19 +511,32 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
     }
 }
 
-@Composable private fun PhoneLicence(text: String, busy: Boolean, accept: () -> Unit, close: () -> Unit) {
+@Composable private fun PhoneLicence(
+    text: String,
+    busy: Boolean,
+    accept: () -> Unit,
+    close: () -> Unit,
+    model: CuratedPhoneModel? = null
+) {
     var approved by remember {mutableStateOf(false)}
     AlertDialog(onDismissRequest = close, title = {Text(label(Words.PhoneLicence))}, text = {
-        Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+        Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (model != null) {
+                Text(model.displayName, Modifier.testTag("phone-licence-model"), style = MaterialTheme.typography.titleMedium)
+                SelectionContainer {
+                    Text(model.catalogueFileDetails(), Modifier.testTag("phone-licence-source"), style = MaterialTheme.typography.bodySmall)
+                }
+                Text(label(Words.PhoneDownloadInfo), style = MaterialTheme.typography.bodySmall)
+            }
             SelectionContainer {Text(text, style = MaterialTheme.typography.bodySmall)}
             Row {Checkbox(approved, {approved = it}, modifier = Modifier.testTag("phone-licence-consent")); Text(label(Words.PhoneLicenceAccept))}
         }
     }, confirmButton = {TextButton(accept, enabled = approved && !busy, modifier = Modifier.testTag("phone-licence-confirm")) {Text(label(Words.Confirm))}},
-        dismissButton = {TextButton(close) {Text(label(Words.Cancel))}})
+        dismissButton = {TextButton(close, Modifier.testTag("phone-licence-cancel")) {Text(label(Words.Cancel))}})
 }
 
-@Composable private fun PhoneConfirm(word: Words, busy: Boolean, accept: () -> Unit, close: () -> Unit) {
-    AlertDialog(onDismissRequest = close, text = {Text(label(word))}, confirmButton = {TextButton(accept, enabled = !busy) {Text(label(Words.Delete))}},
+@Composable private fun PhoneConfirm(text: String, busy: Boolean, accept: () -> Unit, close: () -> Unit) {
+    AlertDialog(onDismissRequest = close, text = {Text(text)}, confirmButton = {TextButton(accept, enabled = !busy) {Text(label(Words.Delete))}},
         dismissButton = {TextButton(close) {Text(label(Words.Cancel))}})
 }
 

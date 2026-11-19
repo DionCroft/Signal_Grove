@@ -135,12 +135,14 @@ low-memory tests remain release gates. GPU/NPU acceleration is not promised.
 
 ## OF-05: A guided model library and first-run local setup
 
-**Status: planned.** Extend the single recommended download into a curated
-compatible-model catalogue with publisher/source, license, exact file revision,
-hash/size, quantization, estimated resource needs and clear tested-versus-untested
-status. Add model comparison, searchable installed models, storage visibility,
-quick explicit selection and a first-run download/import/load/first-chat checklist.
-Offer a saved preference to open directly into local AI without configuring Hermes.
+**Status: in progress.** The development branch packages an offline comparison
+for the exact LFM3 QAD Q4_0 and Qwen2.5-0.5B Q4_K_M files. It shows the publisher,
+licence, file size, load-memory threshold and physical evidence. Review shows the
+pinned revision and hash before any download. Partials and discard are model-specific.
+Searchable installed models, storage visibility, quick explicit selection,
+first-run download/import/load/first-chat guidance and a saved local startup
+preference remain open.
+[Current catalogue checks](VALIDATION.md#offline-catalogue-and-separate-model-downloads).
 
 Acceptance: catalogue browsing can use a packaged/cached version offline;
 refreshes/downloads need deliberate connectivity and cannot load weights.

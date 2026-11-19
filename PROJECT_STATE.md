@@ -5,6 +5,17 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest model catalogue checkpoint
+
+The development branch offers an offline comparison of the exact LFM3
+and smaller Qwen files. Each download names its source, licence, hash and
+revision and requires separate confirmation. Partials and discard are
+scoped by model hash. The debug pair passes 1,158 JVM and 85 focused
+methods per Android emulator API with zero lint errors. Finish installed
+search and storage visibility, guided local setup and the startup
+preference. Physical resource and host/release gates remain active.
+[Catalogue evidence](docs/VALIDATION.md#offline-catalogue-and-separate-model-downloads).
+
 ## Latest performance checkpoint
 
 The development branch `feat/offline-history-backup` now includes model

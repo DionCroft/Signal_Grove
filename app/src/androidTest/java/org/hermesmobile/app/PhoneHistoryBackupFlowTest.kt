@@ -84,7 +84,7 @@ class PhoneHistoryBackupFlowTest {
                 CompositionLocalProvider(LocalDensity provides Density(density.density, if (multilingual) 1.3f else density.fontScale)) {
                     HermesAppTheme(AppPreferences(chinese = multilingual, pinyin = multilingual)) {
                         val state by controller.state.collectAsStateWithLifecycle()
-                        LocalAiScreen(state, false, "", {}, false, "", actions, {})
+                        LocalAiScreen(state, false, "", {}, false, actions, {})
                         PhoneHistoryBackupFlow(backup, state.busy)
                     }
                 }

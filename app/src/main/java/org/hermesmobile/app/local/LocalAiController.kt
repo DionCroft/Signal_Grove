@@ -14,12 +14,15 @@ internal class LocalHistoryBackupBusyException : IllegalStateException()
 
 data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val history: List<LocalConversationSummary> = emptyList(),
     val chat: LocalConversation? = null, val loaded: InstalledLocalModel? = null, val busy: Boolean = false,
-    val status: String = "idle", val error: String? = null, val partialBytes: Long = 0, val transfer: LocalTransferProgress? = null,
+    val status: String = "idle", val error: String? = null, val downloadPartials: Map<CuratedPhoneModel, Long> = emptyMap(),
+    val transfer: LocalTransferProgress? = null,
     val helper: LocalHelpResult? = null, val historyQuery: LocalHistoryQuery? = null,
     val historyMatches: List<LocalConversationSummary> = emptyList(),
     val modelPerformance: Map<String, LocalModelPerformance> = emptyMap(),
     val loadedSettings: LocalGenerationSettings? = null,
-    val performance: LocalPerformanceDiagnostics = LocalPerformanceDiagnostics())
+    val performance: LocalPerformanceDiagnostics = LocalPerformanceDiagnostics()) {
+    fun partialBytes(model: CuratedPhoneModel): Long = downloadPartials[model] ?: 0L
+}
 
 /** One instance per application process, shared across activity recreation. No Hermes client or credential store. */
 class LocalAiController(private val modelRoot: File, historyRoot: File, private val nativeDirectory: String,
@@ -39,7 +42,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     internal val historyBackupFiles = LocalHistoryBackupFiles(
         File(conversations.directory.parentFile, "history-backup-stages"), conversations, organization
     )
-    private val downloads = LocalModelDownload(store, ioDispatcher = ioDispatcher)
+    private val downloads = CuratedPhoneModel.entries.associateWith { model ->
+        LocalModelDownload(store, spec = model.spec, ioDispatcher = ioDispatcher)
+    }
     private var engine: LocalInference? = null
     private var job: Job? = null
     private var leaving = false
@@ -131,12 +136,18 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             error = it.error.takeUnless {code -> code == "history_search"}) }
     }
 
-    fun download(licenceReviewed: Boolean) = action("downloading") {
+    fun download(model: CuratedPhoneModel, licenceReviewed: Boolean) = action("downloading") {
         check(supported)
-        downloads.download(licenceReviewed) { value -> mutable.update { it.copy(transfer = value) } }
+        downloads.getValue(model).download(licenceReviewed) { value ->
+            mutable.update { it.copy(transfer = value) }
+        }
         refresh()
     }
-    fun discardDownload() = action("reading") { downloads.discardPartial(); refresh() }
+
+    fun discardDownload(model: CuratedPhoneModel) = action("reading") {
+        downloads.getValue(model).discardPartial()
+        refresh()
+    }
     fun importModel(licenceReviewed: Boolean, cancelOpen: () -> Unit = {}, open: () -> InputStream) = action("importing") {
         check(supported)
         require(licenceReviewed)
@@ -518,13 +529,16 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                         } catch (e: Exception) { mutable.update { it.copy(error = failure(e)) } }
                     }
                 }
-                catch (e: Exception) { mutable.update { it.copy(error = when {
-                    e is LocalMarkdownExportException && e.reason == LocalMarkdownExportFailure.CHANGED -> "history_export_changed"
-                    status == "preparing_export" -> "history_export_prepare"
-                    status == "searching" && e is LocalHistoryException -> "history_search"
-                    e is LocalHistoryOrganizationChangedException -> "history_organization_changed"
-                    else -> failure(e)
-                }) } }
+                catch (e: Exception) {
+                    if (status == "downloading") reconcileModelLibrary()
+                    mutable.update { it.copy(error = when {
+                        e is LocalMarkdownExportException && e.reason == LocalMarkdownExportFailure.CHANGED -> "history_export_changed"
+                        status == "preparing_export" -> "history_export_prepare"
+                        status == "searching" && e is LocalHistoryException -> "history_search"
+                        e is LocalHistoryOrganizationChangedException -> "history_organization_changed"
+                        else -> failure(e)
+                    }) }
+                }
                 catch (_: LinkageError) { mutable.update { it.copy(error = "native_unavailable") } }
             }
         }
@@ -538,8 +552,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     private suspend fun reconcileModelLibrary() = withContext(NonCancellable) {
         try {
             val (models, performance) = readModelLibrary()
-            val partial = downloads.partialBytes()
-            mutable.update { it.copy(models = models, modelPerformance = performance, partialBytes = partial) }
+            val partials = downloads.mapValues { (_, download) -> download.partialBytes() }
+            mutable.update { it.copy(models = models, modelPerformance = performance, downloadPartials = partials) }
         } catch (e: Exception) {
             mutable.update { it.copy(error = failure(e)) }
         }
@@ -575,14 +589,14 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     private suspend fun refresh() {
         val (models, performance) = readModelLibrary()
         val history = io { val context = currentCoroutineContext(); organization.history { context.ensureActive() } }
-        val partial = downloads.partialBytes()
+        val partials = downloads.mapValues { (_, download) -> download.partialBytes() }
         val query = mutable.value.historyQuery
         val matches = if(query == null) emptyList() else io {
             val context = currentCoroutineContext()
             LocalHistorySearch(conversations, organization).find(query) { context.ensureActive() }
         }
         mutable.update { it.copy(models = models, modelPerformance = performance, history = history,
-            partialBytes = partial, historyMatches = matches) }
+            downloadPartials = partials, historyMatches = matches) }
     }
 
     private suspend fun readModelLibrary() = io {

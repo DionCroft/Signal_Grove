@@ -73,6 +73,7 @@ Updated **19 November 2026** for unreleased offline chat, backups, reviewed summ
 | Unreleased selected-turn continuation | **1,150 JVM / 76 focused Android methods per API (26 and 37)** | Reviewed copying and backup restore preserve source chat bytes, draft and selected-turn provenance. [Exact checks](docs/contracts/2026-11-19-phone-selected-turns.md) |
 | Unreleased reviewed phone summaries | **1,152 JVM / 81 focused Android methods per API (26 and 37)** | Users can edit a local draft, start a separate chat from approved context, then search, export or back it up. [Exact checks](docs/contracts/2026-11-19-phone-reviewed-summaries.md) |
 | Unreleased phone performance presets | **1,155 JVM / 82 focused Android methods per API (26 and 37)** | Saved by model fingerprint. Presets and advanced context, thread, and reply caps apply at the next explicit load. [Exact checks](docs/contracts/2026-11-19-phone-model-performance.md) |
+| Unreleased phone model catalogue | **1,158 JVM / 85 focused Android methods per API (26 and 37)** | Two pinned publisher files, offline comparison and per-model partials. [Exact checks](docs/VALIDATION.md#offline-catalogue-and-separate-model-downloads) |
 | Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Explicit app pairings; native branches plus actual UI branches/search/Clear/read; all four real UI histories unchanged, no whole-feature acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |
@@ -178,6 +179,11 @@ Left: earlier Android 16 Demo capture. Right: exact beta.9 API26 component-test 
 [Complete setup guide](docs/SETUP_GUIDE.md) · [Connection details](docs/HERMES_CONNECTION.md) · [Official API reference](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/)
 
 ## Use on-device AI
+
+The development branch adds **Phone models → Compare downloadable models**.
+Compare LFM3 and the smaller Qwen2.5-0.5B model offline, then review
+the exact publisher file and its licence before downloading.
+[Catalogue, memory requirements and validation](docs/ON_DEVICE_AI.md#compare-downloadable-models-in-the-development-build).
 
 In beta.9, open **Chat → On-device AI** or **Settings → On-device AI**, review a model's licence, download/import it, choose a context and explicitly load it. Inference requires a 64-bit process and sufficient memory/storage. The metadata allowlist covers eight architecture names; actual compatibility is checked at load time. LFM3 and Qwen2.5-0.5B have physical native evidence; this does not certify arbitrary GGUF files.
 

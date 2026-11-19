@@ -35,7 +35,7 @@ class LocalImportCommitIntegrationTest {
         val inputRoot = File(context.noBackupFilesDir, directory)
         val source = File(inputRoot, "lfm3.gguf")
         assertEquals(inputRoot.canonicalFile, source.canonicalFile.parentFile)
-        assertEquals(RecommendedLocalModel.BYTES, source.length())
+        assertEquals(CuratedPhoneModel.LFM3.bytes, source.length())
         fun hash(file: File): String {
             val digest = MessageDigest.getInstance("SHA-256")
             file.inputStream().use {input ->
@@ -44,7 +44,7 @@ class LocalImportCommitIntegrationTest {
             }
             return digest.digest().joinToString("") {"%02x".format(it)}
         }
-        assertEquals(RecommendedLocalModel.SHA256, hash(source))
+        assertEquals(CuratedPhoneModel.LFM3.sha256, hash(source))
         val root = File(inputRoot, "commit-boundary-${UUID.randomUUID()}"); check(root.mkdir())
         val models = File(root, "models"); val chats = File(root, "chats")
         val guard = UpdateWorkGuard()
@@ -85,9 +85,9 @@ class LocalImportCommitIntegrationTest {
             })
             assertTrue(withContext(Dispatchers.IO) {mainHeld.await(5, TimeUnit.SECONDS)})
             releaseCopy.countDown()
-            val published = File(models, "${RecommendedLocalModel.SHA256}.gguf")
+            val published = File(models, "${CuratedPhoneModel.LFM3.sha256}.gguf")
             withTimeout(10_000) {while(!published.isFile) delay(2)}
-            assertEquals(RecommendedLocalModel.BYTES, published.length())
+            assertEquals(CuratedPhoneModel.LFM3.bytes, published.length())
             assertTrue(controller.state.value.busy); assertTrue(guard.active.value)
             assertTrue(controller.state.value.models.isEmpty())
             controller.cancel()
@@ -95,10 +95,10 @@ class LocalImportCommitIntegrationTest {
             releaseMain.countDown()
             val stopped = idle()
             assertNull(stopped.error); assertNull(stopped.loaded)
-            assertEquals(RecommendedLocalModel.SHA256, stopped.models.single().sha256)
+            assertEquals(CuratedPhoneModel.LFM3.sha256, stopped.models.single().sha256)
             assertEquals(1, opens); assertTrue(stopped.history.isEmpty())
-            assertEquals(0L, stopped.partialBytes)
-            assertEquals(RecommendedLocalModel.SHA256, hash(LocalModelStore(models).verifiedFile(RecommendedLocalModel.SHA256)))
+            assertEquals(0L, stopped.partialBytes(CuratedPhoneModel.LFM3))
+            assertEquals(CuratedPhoneModel.LFM3.sha256, hash(LocalModelStore(models).verifiedFile(CuratedPhoneModel.LFM3.sha256)))
             assertFalse(models.listFiles()!!.any {it.name.endsWith(".part")})
             instrumentation.sendStatus(2, Bundle().apply {
                 putString("local_import_stage", "committed-file-visible-after-stop-without-reopen-or-load")
@@ -106,7 +106,7 @@ class LocalImportCommitIntegrationTest {
             })
             controller.deleteModel(stopped.models.single())
             assertTrue(idle().models.isEmpty()); assertFalse(published.exists())
-            assertEquals(RecommendedLocalModel.SHA256, hash(source))
+            assertEquals(CuratedPhoneModel.LFM3.sha256, hash(source))
         } finally {
             releaseCopy.countDown(); releaseMain.countDown()
             withContext(NonCancellable) {controller.leave(); idle()}

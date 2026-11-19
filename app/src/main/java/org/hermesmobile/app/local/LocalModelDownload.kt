@@ -7,7 +7,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -18,16 +17,6 @@ internal data class ModelDownloadSpec(val url: HttpUrl, val bytes: Long, val sha
     }
 }
 
-object RecommendedLocalModel {
-    const val NAME = "LFM3-1.7B QAD Q4_0"
-    const val SHA256 = "43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452"
-    const val BYTES = 1_049_615_680L
-    const val REVISION = "cd0c74c575b5c416f3011b5b4c298077f26ca8c2"
-    const val MODEL_PAGE = "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF"
-    const val LICENCE = "LFM Open License v1.0"
-    internal val spec = ModelDownloadSpec("https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/resolve/$REVISION/LFM3-1.7B-QAD-Q4_0.gguf".toHttpUrl(), BYTES, SHA256)
-}
-
 enum class LocalTransferPhase { DOWNLOADING, VERIFYING, CHECKING, INSTALLING }
 data class LocalTransferProgress(val bytes: Long, val total: Long, val phase: LocalTransferPhase)
 
@@ -35,7 +24,7 @@ data class LocalTransferProgress(val bytes: Long, val total: Long, val phase: Lo
 internal class LocalModelDownload(private val store: LocalModelStore,
     private val client: OkHttpClient = OkHttpClient.Builder().retryOnConnectionFailure(false).followSslRedirects(false)
         .connectTimeout(30, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build(),
-    private val spec: ModelDownloadSpec = RecommendedLocalModel.spec,
+    private val spec: ModelDownloadSpec,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO) {
     private val mutex = Mutex()
     private fun partial() = store.owned("${spec.sha256}.part")

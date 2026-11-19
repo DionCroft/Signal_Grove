@@ -318,11 +318,11 @@ class LocalModelPhysicalTest {
         }
         try {
             idle(); stage("of01-library-verify")
-            if (controller.state.value.models.none {it.sha256 == RecommendedLocalModel.SHA256}) {
+            if (controller.state.value.models.none {it.sha256 == CuratedPhoneModel.LFM3.sha256}) {
                 stage("of01-import-existing-reviewed-model")
                 controller.importModel(true) {input.inputStream()}; idle()
             }
-            val model = controller.state.value.models.single {it.sha256 == RecommendedLocalModel.SHA256}
+            val model = controller.state.value.models.single {it.sha256 == CuratedPhoneModel.LFM3.sha256}
             stage("of01-load-context-2048"); controller.load(model, 2048); idle()
             stage("of01-explicit-original-turn"); controller.send("Write one short sentence about a peaceful garden.")
             val parent = idle().chat!!; terminal(parent)

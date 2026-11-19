@@ -1,5 +1,60 @@
 # Current development validation — audit follow-up
 
+## Offline catalogue and separate model downloads
+
+The development build packages the two reviewed entries. Opening the
+comparison reads local app state. Download review shows the selected
+name, publisher repository, exact revision, filename, byte size,
+SHA-256 and bundled full licence. Cancel dispatches nothing. Confirm
+dispatches only the selected file. Transfers, partials and discard
+are bound to that file's hash. Loading remains a separate action.
+
+The Qwen publisher manifest confirms the exact LFS size and digest.
+The packaged Apache 2.0 licence has SHA-256
+`832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e`.
+A bounded HTTPS range request returned HTTP 206 and a GGUF header
+from that same pinned revision. Both models were previously tested
+offline with the Android app on the owner's ARM64 phone.
+[Publisher licence](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/blob/9217f5db79a29953eb74d5343926648285ec7e67/LICENSE) ·
+[Physical inference results](contracts/2026-11-12-physical-offline-model-acceptance.md).
+
+The final frozen build passed 1,158 JVM tests, debug and release lint
+with zero errors, and 85 focused device methods on each of Android 8
+and 17 with zero skips. The new JVM case proves discarding Qwen preserves
+the LFM3 partial and installed model, with no load. The new bilingual
+device case verifies both entries, the Qwen pin, licence confirmation,
+cancel and the absence of generation or automatic load. The original
+LFM3 licence and import checks still pass. The first build caught a
+cold-resume fixture using the old download signature. Its correction
+binds that call to LFM3 and retains the prior assertions. The first
+Android 8 package path query returned exit 255 after Install reported
+success. An independent comparison verified both installed APK hashes
+and package service readiness. The first device runs exposed one
+copied-draft fixture that compared an empty download list to a numeric
+counter. Android 17 also exceeded the native cancel tap timing bound
+with one accepted DOWN and UP. The final build asserted the same
+zero-download expectation using the list. Separate sequential runs
+then passed the original native cancel assertions on both APIs.
+
+In the normal app on the owned Android 8 emulator, one approved Qwen
+download published all 491,400,032 bytes with the exact publisher hash.
+No partial remained. The app mapped no GGUF, and the four existing local
+file inventory matched the starting record. The enlarged bilingual
+licence view required nine scrolls to reach consent. Normal-app receipt SHA-256
+`5f5f6d2c6059911e85f51c2db49cd30fd0019a223fd55a3bd84910cd4a23650f`.
+
+| Frozen artifact | SHA-256 |
+| --- | --- |
+| Source snapshot | `2351597a3385271b5fdec43eb975174bed8e4cd7c75e7430bbd756604437733c` |
+| Debug app | `e939aeff4d096df409a0dc4c4b867ad14ffe3ac6aa0f2cebb331a5c436e3c5b2` |
+| Debug companion | `1d42ae771526e9e30826797c56c159a52e4b20ea5866b439850a66fb24b07671` |
+| Android 8 focused log | `5e18a3e55bd7b6eb7795094984df9fa07754840e2908172dbb560abc430d894f` |
+| Android 17 focused log | `675c8136170c19506a3115ddb185d329c5eb48d9c3d6f25671166c16c2349914` |
+
+Build receipt `20261119-214547-9a815bf3405645288aebcf51a420e723`. Local first-run setup, installed
+search and storage summary, final physical UI verification and release
+acceptance remain open.
+
 ## Hosted native backup child observation failure
 
 The GitHub policy job for `1590452` ran 1,161 native policy fixture

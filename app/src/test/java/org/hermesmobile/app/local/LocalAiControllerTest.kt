@@ -72,6 +72,34 @@ class LocalAiControllerTest {
         supported: Boolean = true, freeMemory: Long = Long.MAX_VALUE) = LocalAiController(models, history, "unused-test-library-directory", supported,
         { freeMemory }, guard, dispatcher, dispatcher) { engine }
 
+    @Test fun curatedDownloadsKeepSeparatePartialsAndDiscardOnlyTheSelectedFile() = runTest {
+        val root = temp.newFolder()
+        val existing = model(root)
+        val driver = Engine()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val lfm = CuratedPhoneModel.LFM3
+        val qwen = CuratedPhoneModel.QWEN
+        val lfmPart = File(root, "${lfm.sha256}.part").apply { writeText("first fixture") }
+        val qwenPart = File(root, "${qwen.sha256}.part").apply { writeText("second fixture") }
+        val firstBytes = lfmPart.readBytes()
+        val controller = controller(root, temp.newFolder(), driver, UpdateWorkGuard(), dispatcher)
+        advanceUntilIdle()
+
+        assertEquals(lfmPart.length(), controller.state.value.partialBytes(lfm))
+        assertEquals(qwenPart.length(), controller.state.value.partialBytes(qwen))
+        controller.discardDownload(qwen)
+        advanceUntilIdle()
+
+        assertFalse(qwenPart.exists())
+        assertArrayEquals(firstBytes, lfmPart.readBytes())
+        assertEquals(0L, controller.state.value.partialBytes(qwen))
+        assertEquals(lfmPart.length(), controller.state.value.partialBytes(lfm))
+        assertEquals(listOf(existing), controller.state.value.models)
+        assertNull(controller.state.value.loaded)
+        assertEquals(0, driver.loads)
+        assertTrue(driver.requests.isEmpty())
+    }
+
     @Test fun benchmarkUsesTheLoadedLimitsAndLeavesChatHistoryUntouched() = runTest {
         val root = temp.newFolder()
         val first = model(root)

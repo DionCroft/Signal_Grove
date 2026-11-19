@@ -40,7 +40,7 @@ class LocalChatActionsUiTest {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
                 HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
-                    LocalAiScreen(state, true, draft, {draft = it}, false, "Fixture licence", actions, {})
+                    LocalAiScreen(state, true, draft, {draft = it}, false, actions, {})
                 }
             }
         }
