@@ -122,7 +122,11 @@ fixture failure before its keyboard bounds assertions. The corrected
 fixture waits for a coherent native keyboard viewport and retains the
 original assertions. The frozen app and test pair passed all 84
 focused checks on each local Android 8 and Android 17 emulator.
-Verify the corrected full hosted matrix.
+Verify [the corrected full hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/44617490182).
+The prior run at 1590452 stopped before device jobs when one native
+backup child-identity fixture errored. Retain the failed run and resolve
+that case independently of the keyboard fixture.
+[Policy failure evidence](docs/VALIDATION.md#hosted-native-backup-child-observation-failure).
 [Search fixture evidence](docs/VALIDATION.md#native-keyboard-viewport-in-phone-history-search).
 
 The complete hosted Android run 44560196101 passed at 3d2b24a. Verified

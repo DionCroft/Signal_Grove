@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Hosted native backup child observation failure
+
+The GitHub policy job for `1590452` ran 1,161 native policy fixture
+methods. One case errored and zero skipped. In
+`test_same_child_executor_transition_is_observed_before_any_input`,
+the observer held the synthetic child at the identity check before
+the test's input dispatch. The outcome was
+`Backup child native identity/scope unproven`. The Android device
+matrix was skipped at this revision. The archived test result lacks
+the detailed child observation required to distinguish an image
+transition sample from an elapsed or unavailable observation. The
+original receipt and stderr are retained. The existing ownership
+requirements remain release gates.
+
+| Original policy artifact | SHA-256 |
+| --- | --- |
+| Native-policy evidence ZIP | `d36724ffec30f57d57d248d49b2607786002b8b7c85b4c7dea9eb4aeb4c34f72` |
+| Structured result | `3e9725dffc3f8c0739802ecc52a0bff9764137801b0dd77a0a6b5941ea7c7f16` |
+| Native suite stderr | `b55c94bf89d4b1f9f862374903b79ecb46e5db37bdd51de69bcbcb82f668ecae` |
+
+[Original policy job](https://github.com/DionCroft/Signal_Grove/actions/runs/44610591576/job/135886545750) ·
+[Next exact run, `1eec6d6`](https://github.com/DionCroft/Signal_Grove/actions/runs/44617490182).
+
 ## Native keyboard viewport in phone-history search
 
 The Android 17 hosted shard at `f46452b` ran 572 standard methods with
