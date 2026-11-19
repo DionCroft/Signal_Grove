@@ -16,7 +16,9 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val chat: LocalConversation? = null, val loaded: InstalledLocalModel? = null, val busy: Boolean = false,
     val status: String = "idle", val error: String? = null, val partialBytes: Long = 0, val transfer: LocalTransferProgress? = null,
     val helper: LocalHelpResult? = null, val historyQuery: LocalHistoryQuery? = null,
-    val historyMatches: List<LocalConversationSummary> = emptyList())
+    val historyMatches: List<LocalConversationSummary> = emptyList(),
+    val modelPerformance: Map<String, LocalModelPerformance> = emptyMap(),
+    val loadedSettings: LocalGenerationSettings? = null)
 
 /** One instance per application process, shared across activity recreation. No Hermes client or credential store. */
 class LocalAiController(private val modelRoot: File, historyRoot: File, private val nativeDirectory: String,
@@ -37,7 +39,6 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     )
     private val downloads = LocalModelDownload(store, ioDispatcher = ioDispatcher)
     private var engine: LocalInference? = null
-    private var loadedConfiguration: Pair<Int, Int>? = null
     private var job: Job? = null
     private var leaving = false
     private var restoreRecoveryNeeded = true
@@ -156,25 +157,54 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
         refresh()
     }
-    fun load(model: InstalledLocalModel, context: Int = 2048) = action("loading") {
+    fun saveModelPerformance(model: InstalledLocalModel, performance: LocalModelPerformance) = action("saving_model_settings") {
+        require(model in mutable.value.models)
+        withContext(NonCancellable) {
+            io { store.savePerformance(model, performance) }
+            mutable.update { it.copy(modelPerformance = it.modelPerformance + (model.sha256 to performance)) }
+        }
+    }
+
+    fun load(model: InstalledLocalModel, context: Int? = null) = action("loading") {
         check(supported)
-        require(context in 512..4096 && context <= model.metadata.trainedContext)
-        loadedConfiguration = null
-        engine?.unload(); mutable.update { it.copy(loaded = null) }
-        // Measure after releasing the old weights so a switch can reclaim their RAM.
-        // This conservative estimate cannot guarantee that native allocation will succeed.
-        if (freeMemory() < model.metadata.bytes * 2 + 256L * 1024 * 1024) throw LocalModelStorageException("insufficient_memory")
+        val saved = mutable.value.modelPerformance[model.sha256]
+            ?: LocalPerformancePreset.BALANCED.forModel(model.metadata.trainedContext)
+        val requested = context?.let { saved.copy(contextTokens = it) } ?: saved
+        require(requested.allowedBy(model.metadata.trainedContext))
+        val resolved = requested.resolve(Runtime.getRuntime().availableProcessors())
+        unloadModel()
+        currentCoroutineContext().ensureActive()
+        // Measure after reclaiming the old weights. This check cannot guarantee native allocation.
+        if (freeMemory() < model.minimumLoadMemoryBytes) throw LocalModelStorageException("insufficient_memory")
         val file = io { val current = currentCoroutineContext(); store.verifiedFile(model.sha256) { current.ensureActive() } }
         val target = engine ?: engineFactory().also { engine = it }
-        val threads = minOf(4, Runtime.getRuntime().availableProcessors().coerceAtLeast(1))
-        target.load(file, context, threads)
-        loadedConfiguration = context to threads
-        mutable.update { it.copy(loaded = model) }
+        try {
+            target.load(file, resolved.contextTokens, resolved.threads)
+            currentCoroutineContext().ensureActive()
+            val settings = resolved.copy(runtime = target.runtimePolicy).also { it.validate() }
+            mutable.update { it.copy(loaded = model, loadedSettings = settings) }
+        } finally {
+            // A native load can finish just before cancellation reaches its caller.
+            if (mutable.value.loaded == null) unloadModel()
+        }
     }
-    fun unload() = action("unloading") { engine?.unload(); loadedConfiguration = null; mutable.update { it.copy(loaded = null) } }
+
+    private suspend fun unloadModel() = withContext(NonCancellable) {
+        try {
+            engine?.unload()
+        } finally {
+            mutable.update { it.copy(loaded = null, loadedSettings = null) }
+        }
+    }
+
+    fun unload() = action("unloading") { unloadModel() }
     fun deleteModel(model: InstalledLocalModel) = action("deleting") {
-        if (mutable.value.loaded?.sha256 == model.sha256) { engine?.unload(); loadedConfiguration = null; mutable.update { it.copy(loaded = null) } }
-        io { store.delete(model.sha256) }; refresh()
+        if (mutable.value.loaded?.sha256 == model.sha256) unloadModel()
+        currentCoroutineContext().ensureActive()
+        withContext(NonCancellable) {
+            try { io { store.delete(model.sha256) } }
+            finally { reconcileModelLibrary() }
+        }
     }
     /** Select a fresh unsent question without deleting history, loading or generating. */
     fun startDraft():Boolean {
@@ -390,10 +420,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
     }
 
-    private fun generationSettings(): LocalGenerationSettings {
-        val (context, threads) = checkNotNull(loadedConfiguration)
-        return LocalGenerationSettings(context, threads, 384, engine?.runtimePolicy).also { it.validate() }
-    }
+    private fun generationSettings(): LocalGenerationSettings = checkNotNull(mutable.value.loadedSettings)
 
     fun help(topic: LocalHelpTopic, observations: LocalHelpObservations?) = action("generating") {
         val model = mutable.value.loaded ?: throw LocalEngineException(4)
@@ -426,10 +453,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         mutable.update { it.copy(busy = true, status = "unloading") }; cancel()
         scope.launch {
             lock.withLock {
-                try { engine?.unload() }
+                try { unloadModel() }
                 finally {
-                    loadedConfiguration = null
-                    mutable.update { it.copy(loaded = null, busy = false, status = "idle", transfer = null, helper = null) }
+                    mutable.update { it.copy(busy = false, status = "idle", transfer = null, helper = null) }
                     leaving = false; guard.set(owner, false)
                 }
             }
@@ -446,7 +472,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     block()
                 }
                 catch (_: CancellationException) {
-                    if (status == "downloading" || status == "importing") reconcileStoppedTransfer()
+                    if (status == "downloading" || status == "importing") reconcileModelLibrary()
                     if (status == "organizing") withContext(NonCancellable) {
                         // Cancellation can lose the return after publication.
                         try {
@@ -472,11 +498,11 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         next.start()
     }
     /** Cancellation can lose the return value after atomic publication. Read actual files before idle. */
-    private suspend fun reconcileStoppedTransfer() = withContext(NonCancellable) {
+    private suspend fun reconcileModelLibrary() = withContext(NonCancellable) {
         try {
-            val models = io { val context = currentCoroutineContext(); store.models { context.ensureActive() } }
+            val (models, performance) = readModelLibrary()
             val partial = downloads.partialBytes()
-            mutable.update { it.copy(models = models, partialBytes = partial) }
+            mutable.update { it.copy(models = models, modelPerformance = performance, partialBytes = partial) }
         } catch (e: Exception) {
             mutable.update { it.copy(error = failure(e)) }
         }
@@ -510,7 +536,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     }
 
     private suspend fun refresh() {
-        val models = io { val context = currentCoroutineContext(); store.models { context.ensureActive() } }
+        val (models, performance) = readModelLibrary()
         val history = io { val context = currentCoroutineContext(); organization.history { context.ensureActive() } }
         val partial = downloads.partialBytes()
         val query = mutable.value.historyQuery
@@ -518,7 +544,21 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             val context = currentCoroutineContext()
             LocalHistorySearch(conversations, organization).find(query) { context.ensureActive() }
         }
-        mutable.update { it.copy(models = models, history = history, partialBytes = partial, historyMatches = matches) }
+        mutable.update { it.copy(models = models, modelPerformance = performance, history = history,
+            partialBytes = partial, historyMatches = matches) }
     }
+
+    private suspend fun readModelLibrary() = io {
+        val context = currentCoroutineContext()
+        val models = store.models { context.ensureActive() }
+        val performance = buildMap {
+            for (model in models) {
+                context.ensureActive()
+                store.performance(model)?.let { put(model.sha256, it) }
+            }
+        }
+        models to performance
+    }
+
     private suspend fun <T> io(block: suspend () -> T) = withContext(ioDispatcher) { block() }
 }

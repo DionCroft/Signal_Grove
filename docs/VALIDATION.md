@@ -1,5 +1,14 @@
 # Current development validation — audit follow-up
 
+## Per-model phone performance checkpoint
+
+The development build passes 1,155 JVM tests with zero errors in both lint
+variants. All 82 focused methods passed on each owned Android 8 and 17
+emulator. Settings are isolated by model hash. Saving changes the next
+load, and the prompt meter and saved exchange use the loaded settings.
+Physical performance and the full release matrix remain open.
+[Exact evidence](contracts/2026-11-19-phone-model-performance.md).
+
 ## Complete Android standard suite for the context and fixture checkpoint
 
 Run 44560196101 passed at `3d2b24a958462d12f7519f3fb1f5c1512cfdf106`. Independent recomputation

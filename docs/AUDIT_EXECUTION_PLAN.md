@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Phone model performance checkpoint - 19 November 2026
+
+OF-04 now supports saved per-model presets and advanced context, CPU and
+output limits. Saving a preset leaves any loaded model in use until the
+next explicit load. Chat preview, generation and the saved reply share the
+effective settings. Physical performance, diagnostics and benchmark
+acceptance remain open, along with the original audit and release gates.
+[Exact scope and validation](contracts/2026-11-19-phone-model-performance.md).
+
 ## Hermes stored history and shutdown checkpoint - 19 November 2026
 
 The stable hosted watcher publishes a complete review report. Main names

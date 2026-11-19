@@ -7,7 +7,10 @@ import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.UUID
 
-data class InstalledLocalModel(val sha256: String, val metadata: GgufModelMetadata)
+data class InstalledLocalModel(val sha256: String, val metadata: GgufModelMetadata) {
+    internal val minimumLoadMemoryBytes: Long
+        get() = metadata.bytes * 2 + 256L * 1024 * 1024
+}
 class LocalModelStorageException(val reason: String) : IllegalStateException(reason)
 
 /** Owns model bytes only. No server credentials, conversations or external paths are stored. */
@@ -72,11 +75,43 @@ class LocalModelStore(directory: File, private val availableBytes: () -> Long = 
         return file
     }
 
+    @Synchronized internal fun performance(model: InstalledLocalModel): LocalModelPerformance? {
+        requireHash(model.sha256)
+        val file = owned("${model.sha256}.performance")
+        if (!file.isFile || file.length() !in 1..64) return null
+        val record = file.readText(Charsets.US_ASCII).trimEnd().split(' ')
+        if (record.size != 4 || record[0] != "1") return null
+        val context = record[1].toIntOrNull() ?: return null
+        val threads = record[2].toIntOrNull() ?: return null
+        val output = record[3].toIntOrNull() ?: return null
+        return LocalModelPerformance(context, threads, output).takeIf { it.allowedBy(model.metadata.trainedContext) }
+    }
+
+    @Synchronized internal fun savePerformance(model: InstalledLocalModel, performance: LocalModelPerformance) {
+        requireHash(model.sha256)
+        require(performance.allowedBy(model.metadata.trainedContext))
+        require(owned("${model.sha256}.gguf").isFile)
+        val target = owned("${model.sha256}.performance")
+        val partial = owned("${model.sha256}-${UUID.randomUUID()}.tmp")
+        check(partial.createNewFile())
+        try {
+            val line = "1 ${performance.contextTokens} ${performance.threadCap} ${performance.outputTokens}\n"
+            partial.outputStream().use { output ->
+                output.write(line.toByteArray(Charsets.US_ASCII))
+                output.fd.sync()
+            }
+            Files.move(partial.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+        } finally {
+            if (partial.exists() && !partial.delete()) throw LocalModelStorageException("partial_cleanup_failed")
+        }
+    }
+
     /** The caller must unload this model before offering its explicit Delete action. */
     @Synchronized fun delete(sha256: String) {
         requireHash(sha256)
         val file = owned("$sha256.gguf")
         if (file.exists() && !file.delete()) throw LocalModelStorageException("delete_failed")
+        Files.deleteIfExists(owned("$sha256.performance").toPath())
     }
 
     internal fun ensureSpace(additional: Long) {

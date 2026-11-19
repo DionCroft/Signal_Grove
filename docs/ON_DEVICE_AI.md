@@ -1,5 +1,29 @@
 # Using on-device AI (beta.9 preview)
 
+## Choose settings for a phone model
+
+In a development build, open **On-device AI → Phone models → Model settings**
+on the model you want to use. Select a preset or open **Advanced settings**
+to choose the context size, CPU thread cap and reply token cap. Tap **Save**.
+The model card shows the settings for its next load and the settings in use
+if the model is already loaded. Tap **Load model** to apply the saved choice.
+
+| Preset | Context tokens | CPU thread cap | Reply token cap |
+| --- | ---: | ---: | ---: |
+| Balanced | 2,048 | 4 | 384 |
+| Fast | 1,024 | 4 | 256 |
+| Battery saver | 1,024 | 1 | 128 |
+
+The app caps preset context at the model's trained limit and CPU threads at
+the phone's available processor count. The reply cap covers reasoning and
+control tokens as well as visible text. A small cap can end a reply early.
+Actual speed and energy use depend on the phone, model and prompt. The RAM
+figure on the model card is the minimum available-memory check before load.
+Generation stores the settings it actually requested with the reply. Open
+**Request settings** on a saved reply to read them later.
+
+[Scope and validation](contracts/2026-11-19-phone-model-performance.md).
+
 ## Continue a phone chat with a reviewed summary
 
 In the development build, open a saved phone chat and choose **Earlier

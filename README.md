@@ -5,18 +5,22 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 **[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)** — experimental preview with optional offline AI, model management and a grounded setup helper. Full compatibility and production-phone acceptance remain open. [Published scope](docs/contracts/2026-11-13-beta9-public-preview.md) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
 
 The development branch adds offline chat editing, regeneration, branching,
-search, labels, Markdown, protected backups and reviewed summaries. The
-owner's phone saved a protected archive and restored a reviewed copy
-offline. The latest focused build passes **1,152 JVM tests** and **81
-Android methods each on API 26 and API 37** with zero lint errors.
+search, labels, Markdown, protected backups, reviewed summaries and
+saved per-model performance presets. The owner's phone saved a protected
+archive and restored a reviewed copy offline. The latest focused build
+passes **1,155 JVM tests** and **82 Android methods each on API 26 and API
+37** with zero lint errors.
+[Phone model settings](docs/ON_DEVICE_AI.md#choose-settings-for-a-phone-model) ·
 [Reviewed summaries](docs/ON_DEVICE_AI.md#continue-a-phone-chat-with-a-reviewed-summary) ·
 [Phone backup evidence](docs/contracts/2026-11-19-phone-history-backup-ui.md).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
 verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device
-methods**, no skips. Main Android and Windows pass. Upstream compatibility stays
-open: the source checker fails closed on moved/missing tracked modules at Hermes
-v0.23.2/current main; prior semantic and shutdown findings remain unresolved.
+methods**, no skips. Main Android and Windows pass. The Hermes v0.23.2
+watcher now produces a complete static review report. The reviewed Hermes
+main revision remains incomplete with eight retired storage paths. Runtime
+compatibility and owner shutdown remain open.
+[Watcher and storage evidence](docs/contracts/2026-11-19-hermes-main-stored-history.md).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
@@ -58,7 +62,7 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Updated **19 November 2026** for unreleased offline chat, backups and reviewed summaries; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
+Updated **19 November 2026** for unreleased offline chat, backups, reviewed summaries and performance presets; other values retain their recorded source/scope. Counts describe their stated builds and test scopes; they are not combined into a single completion score.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
@@ -68,6 +72,7 @@ Updated **19 November 2026** for unreleased offline chat, backups and reviewed s
 | Hosted context and fixture checkpoint | **1,203 API 26 / 1,204 API 37 standard methods** | Verified four raw shards and matching APKs on commit 3d2b24a. [Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44560196101) |
 | Unreleased selected-turn continuation | **1,150 JVM / 76 focused Android methods per API (26 and 37)** | Reviewed copying and backup restore preserve source chat bytes, draft and selected-turn provenance. [Exact checks](docs/contracts/2026-11-19-phone-selected-turns.md) |
 | Unreleased reviewed phone summaries | **1,152 JVM / 81 focused Android methods per API (26 and 37)** | Users can edit a local draft, start a separate chat from approved context, then search, export or back it up. [Exact checks](docs/contracts/2026-11-19-phone-reviewed-summaries.md) |
+| Unreleased phone performance presets | **1,155 JVM / 82 focused Android methods per API (26 and 37)** | Saved by model fingerprint. Presets and advanced context, thread, and reply caps apply at the next explicit load. [Exact checks](docs/contracts/2026-11-19-phone-model-performance.md) |
 | Current physical branching checkpoint | **One offline native method; three separate real UI actions** | Explicit app pairings; native branches plus actual UI branches/search/Clear/read; all four real UI histories unchanged, no whole-feature acceptance |
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |

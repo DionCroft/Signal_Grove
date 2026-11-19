@@ -67,6 +67,94 @@ class LocalAiControllerTest {
         supported: Boolean = true, freeMemory: Long = Long.MAX_VALUE) = LocalAiController(models, history, "unused-test-library-directory", supported,
         { freeMemory }, guard, dispatcher, dispatcher) { engine }
 
+    @Test fun savedPerformanceIsPerModelAndOnlyChangesGenerationAfterLoad() = runTest {
+        val root = temp.newFolder()
+        val first = model(root)
+        val second = model(root, "Other")
+        val history = temp.newFolder()
+        val engine = Engine().apply { promptTokens = 40 }
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val controller = controller(root, history, engine, UpdateWorkGuard(), dispatcher)
+        advanceUntilIdle()
+        controller.load(first)
+        advanceUntilIdle()
+        val original = checkNotNull(controller.state.value.loadedSettings)
+        val battery = LocalPerformancePreset.BATTERY_SAVER.forModel(first.metadata.trainedContext)
+        controller.saveModelPerformance(first, battery)
+        advanceUntilIdle()
+        assertEquals(original, controller.state.value.loadedSettings)
+        assertEquals(mapOf(first.sha256 to battery), controller.state.value.modelPerformance)
+        assertEquals(1, engine.loads)
+
+        controller.send("Use the original request limits")
+        advanceUntilIdle()
+        assertEquals(384, engine.outputCaps.single())
+        val chat = checkNotNull(controller.state.value.chat)
+        controller.load(first)
+        advanceUntilIdle()
+        val preview = controller.previewPrompt(chat, first.sha256, "Use the saved limits") as LocalPromptPreview.Exact
+        assertEquals(LocalPromptBudget(40, 1024, 128), preview.budget)
+        controller.send("Use the saved limits")
+        advanceUntilIdle()
+        val completed = checkNotNull(controller.state.value.chat)
+        val recorded = LocalConversationStore(history).load(completed.id).exchanges.map { it.generation }
+        assertEquals(listOf(original, LocalGenerationSettings(1024, 1, 128)), recorded)
+        assertEquals(listOf(384, 128), engine.outputCaps)
+        assertEquals(1024 to 1, engine.loadedSettings.last())
+        controller.leave()
+        advanceUntilIdle()
+
+        val reopenedEngine = Engine()
+        val reopened = controller(root, history, reopenedEngine, UpdateWorkGuard(), dispatcher)
+        advanceUntilIdle()
+        assertEquals(mapOf(first.sha256 to battery), reopened.state.value.modelPerformance)
+        assertNull(reopened.state.value.loadedSettings)
+        assertEquals(0, reopenedEngine.loads)
+        reopened.load(second)
+        advanceUntilIdle()
+        assertEquals(384, reopened.state.value.loadedSettings?.maxOutputTokens)
+        reopened.load(first)
+        advanceUntilIdle()
+        assertEquals(1024 to 1, reopenedEngine.loadedSettings.last())
+        reopened.leave()
+        advanceUntilIdle()
+    }
+
+    @Test fun invalidPerformanceDoesNotReplaceSavedSettingsAndDeletingModelRemovesItsSettings() = runTest {
+        val root = temp.newFolder()
+        val first = model(root)
+        val engine = Engine()
+        val controller = controller(root, temp.newFolder(), engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        val store = LocalModelStore(root)
+        val saved = LocalModelPerformance(1024, 2, 192)
+        controller.saveModelPerformance(first, saved)
+        advanceUntilIdle()
+        for (invalid in listOf(saved.copy(contextTokens = 4096), saved.copy(threadCap = 5), LocalModelPerformance(512, 1, 512))) {
+            controller.saveModelPerformance(first, invalid)
+            advanceUntilIdle()
+            assertNotNull(controller.state.value.error)
+            assertEquals(saved, store.performance(first))
+            assertEquals(saved, controller.state.value.modelPerformance[first.sha256])
+        }
+        assertEquals(0, engine.loads)
+        controller.deleteModel(first)
+        advanceUntilIdle()
+        assertNull(store.performance(first))
+        assertTrue(controller.state.value.modelPerformance.isEmpty())
+        assertTrue(controller.state.value.models.isEmpty())
+    }
+
+    @Test fun presetLimitsRespectTheModelAndDeviceThreadCount() {
+        val balanced = LocalPerformancePreset.BALANCED.forModel(768)
+        assertTrue(balanced.allowedBy(768))
+        assertFalse(balanced.allowedBy(511))
+        assertEquals(LocalGenerationSettings(768, 2, 384), balanced.resolve(2))
+        assertEquals(1, balanced.resolve(0).threads)
+        assertEquals(4, balanced.resolve(32).threads)
+        assertEquals(LocalModelPerformance(1024, 4, 256), LocalPerformancePreset.FAST.forModel(2048))
+    }
+
     @Test fun cancellingBeforeDispatchReleasesBusyStateAndUpdateGuard() = runTest {
         val guard = UpdateWorkGuard(); val engine = Engine(); val dispatcher = StandardTestDispatcher(testScheduler)
         val controller = controller(temp.newFolder(), temp.newFolder(), engine, guard, dispatcher)

@@ -108,10 +108,14 @@ them; overflow preserves the draft/history and offers a usable next step.
 
 ## OF-04: Performance presets and useful on-device diagnostics
 
-**Status: planned.** Add Balanced, Fast and Battery saver presets plus optional
-advanced controls for supported sampling, output limits, context and threads.
-Remember preferences per model fingerprint; show loaded model, load/progress
-state, approximate memory and optional time-to-first-answer/token-rate statistics.
+**Status: in progress.** Balanced, Fast and Battery saver presets and advanced
+context, thread and reply caps are available on the development branch.
+Saved settings follow the installed model fingerprint and apply on the next
+explicit load. The app shows active and next-load settings separately, the
+load phase and its minimum free-memory check. Native sampling still follows
+the reviewed greedy policy. Add measured memory, time to first answer,
+token-rate statistics and an explicit offline benchmark.
+[Presets and validation](contracts/2026-11-19-phone-model-performance.md).
 
 Acceptance: every preset maps to documented supported settings, respects device/
 model limits and preserves responsiveness/Stop. Persist the settings used for

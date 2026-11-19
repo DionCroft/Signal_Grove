@@ -84,7 +84,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val previewSelectedPrompt: (suspend (LocalConversation, List<Int>, String) -> LocalPromptPreview)? = null,
     val continueWithSummary: ((LocalConversation, List<Int>, String, String, Boolean) -> Unit)? = null,
     val draftSummary: ((LocalConversation, List<Int>, (LocalSummaryDraft) -> Unit) -> Unit)? = null,
-    val previewSummaryPrompt: (suspend (LocalConversation, String, String) -> LocalPromptPreview)? = null)
+    val previewSummaryPrompt: (suspend (LocalConversation, String, String) -> LocalPromptPreview)? = null,
+    val saveModelPerformance: ((InstalledLocalModel, LocalModelPerformance) -> Unit)? = null)
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -110,7 +111,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             importBackup = vm.historyBackup::selectImport, previewPrompt = c::previewPrompt,
             newChatWithDraft = vm::newChatWithDraft, continueWithSelectedTurns = vm::continueWithSelectedTurns,
             previewSelectedPrompt = c::previewSelectedPrompt, continueWithSummary = vm::continueWithReviewedSummary,
-            draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt), close, observations, handoff)
+            draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt,
+            saveModelPerformance = c::saveModelPerformance), close, observations, handoff)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -447,20 +449,41 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
 }
 
 @Composable private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supported: Boolean, actions: LocalAiActions, remove: () -> Unit) {
-    var context by rememberSaveable(model.sha256) {mutableIntStateOf(minOf(2048, model.metadata.trainedContext))}
+    val next = state.modelPerformance[model.sha256] ?: LocalPerformancePreset.BALANCED.forModel(model.metadata.trainedContext)
+    val canLoad = supported && next.allowedBy(model.metadata.trainedContext)
+    val active = state.loadedSettings.takeIf { state.loaded?.sha256 == model.sha256 }
+    var editing by rememberSaveable(model.sha256) { mutableStateOf(false) }
+    val save = actions.saveModelPerformance
     HermesCard {
         Text(model.metadata.name, style = MaterialTheme.typography.titleMedium)
         Text("${model.metadata.architecture} · ${model.metadata.bytes / 1048576} MiB", style = MaterialTheme.typography.bodySmall)
         Text("SHA-256: ${model.sha256}", style = MaterialTheme.typography.labelSmall)
         Text(label(if(model.sha256 == RecommendedLocalModel.SHA256) Words.PhonePublisher else Words.PhoneImported), style = MaterialTheme.typography.bodySmall)
-        Text(label(Words.PhoneContext), style = MaterialTheme.typography.bodySmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { listOf(512, 1024, 2048, 4096).filter {it <= model.metadata.trainedContext}.forEach { size ->
-            FilterChip(context == size, {context = size}, label = {Text(size.toString())}, enabled = !state.busy)
-        } }
-        if (state.loaded?.sha256 == model.sha256) Text(label(Words.PhoneLoaded).replace("{model}", model.metadata.name))
-        Button({actions.load(model, context)}, enabled = supported && !state.busy, modifier = Modifier.testTag("phone-load-${model.sha256.take(8)}")) {Text(label(Words.PhoneLoad))}
-        if (state.loaded?.sha256 == model.sha256) TextButton(actions.unload, enabled = !state.busy) {Text(label(Words.PhoneUnload))}
-        TextButton(remove, enabled = !state.busy) {Text(label(Words.Delete))}
+        val minimumMiB = (model.minimumLoadMemoryBytes + 1048575) / 1048576
+        Text(label(Words.PhoneModelFreeMemory).replace("{number}", minimumMiB.toString()), style = MaterialTheme.typography.bodySmall)
+        if (active != null) {
+            Text(label(Words.PhoneLoaded).replace("{model}", model.metadata.name))
+            Text(modelPerformanceLabel(Words.PhoneModelActiveLimits, active.contextTokens, active.threads, active.maxOutputTokens),
+                Modifier.testTag("phone-model-active-limits"), style = MaterialTheme.typography.bodySmall)
+        }
+        if (canLoad) {
+            Text(modelPerformanceLabel(Words.PhoneModelNextLimits, next.contextTokens, next.threadCap, next.outputTokens),
+                Modifier.testTag("phone-model-next-limits"), style = MaterialTheme.typography.bodySmall)
+            if (save != null) TextButton({ editing = true }, enabled = !state.busy,
+                modifier = Modifier.testTag("phone-model-settings-${model.sha256.take(8)}")) { Text(label(Words.PhoneModelPerformance)) }
+        } else if (supported) {
+            Text(label(Words.PhoneModelContextTooSmall), style = MaterialTheme.typography.bodySmall)
+        }
+        Button({ actions.load(model, next.contextTokens) }, enabled = canLoad && !state.busy,
+            modifier = Modifier.testTag("phone-load-${model.sha256.take(8)}")) { Text(label(Words.PhoneLoad)) }
+        if (state.loaded?.sha256 == model.sha256) TextButton(actions.unload, enabled = !state.busy) { Text(label(Words.PhoneUnload)) }
+        TextButton(remove, enabled = !state.busy) { Text(label(Words.Delete)) }
+    }
+    if (editing && save != null && canLoad) {
+        PhonePerformanceSettings(model, next, state.busy, { editing = false }) { performance ->
+            save(model, performance)
+            editing = false
+        }
     }
 }
 
@@ -494,6 +517,7 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     "searching" -> Words.PhoneHistorySearching
     "organizing" -> Words.PhoneHistoryOrganizing
     "preparing_export" -> Words.PhoneMarkdownPreparing
+    "saving_model_settings" -> Words.PhoneModelSettingsSaving
     "loading" -> Words.PhoneLoading
     "unloading" -> Words.PhoneUnloading
     "generating" -> Words.PhoneGenerating

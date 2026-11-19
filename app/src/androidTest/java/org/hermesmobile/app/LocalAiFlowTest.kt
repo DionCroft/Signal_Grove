@@ -24,11 +24,17 @@ class LocalAiFlowTest {
     private var pending by mutableStateOf(false)
     private var state by mutableStateOf(LocalAiState())
     private val helperRequests = mutableListOf<Pair<LocalHelpTopic, Boolean>>()
+    private val performanceSaves = mutableListOf<LocalModelPerformance>()
+    private val requestedLoads = mutableListOf<Pair<String, Int>>()
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
     private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false) {
-        val actions = LocalAiActions({sends++}, {stops++}, {}, {_, _ ->}, {}, {}, {downloads++}, {},
-            {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {}, help = {topic, share -> helperRequests.add(topic to share)})
+        val actions = LocalAiActions({sends++}, {stops++}, {}, { model, context -> requestedLoads.add(model.sha256 to context) },
+            {}, {}, {downloads++}, {}, {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {},
+            help = {topic, share -> helperRequests.add(topic to share)}, saveModelPerformance = { item, settings ->
+                performanceSaves.add(settings)
+                state = state.copy(modelPerformance = state.modelPerformance + (item.sha256 to settings))
+            })
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if(bilingual) 1.3f else density.fontScale)) {
@@ -39,6 +45,30 @@ class LocalAiFlowTest {
             }
         }
     }
+    @Test fun modelPerformanceReviewsAndSavesTheNextLoadWithoutChangingTheActiveModel() {
+        state = LocalAiState(models = listOf(model), loaded = model, loadedSettings = LocalGenerationSettings(2048, 3, 384))
+        show(bilingual = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        val settings = compose.onNodeWithTag("phone-model-settings-${sha.take(8)}")
+        settings.performScrollTo().performClick()
+        compose.onNodeWithTag("phone-performance-preset-FAST").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-performance-cancel").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertTrue(performanceSaves.isEmpty()); assertTrue(requestedLoads.isEmpty()) }
+
+        settings.performScrollTo().performClick()
+        compose.onNodeWithTag("phone-performance-preset-BATTERY_SAVER").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-performance-preview").assertTextContains("thread cap 1", substring = true)
+        compose.onNodeWithTag("phone-performance-advanced").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-performance-output-192").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-performance-save").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-model-active-limits").performScrollTo().assertTextContains("CPU threads 3", substring = true)
+        compose.onNodeWithTag("phone-model-next-limits").performScrollTo().assertTextContains("192 reply tokens", substring = true)
+        compose.runOnIdle { assertEquals(listOf(LocalModelPerformance(1024, 1, 192)), performanceSaves); assertTrue(requestedLoads.isEmpty()) }
+
+        compose.onNodeWithTag("phone-load-${sha.take(8)}").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(listOf(sha to 1024), requestedLoads) }
+    }
+
     @Test fun noLoadDisablesSendAndSetupGuideWorksWithoutModel() {
         show(false)
         compose.onNodeWithTag("phone-send").assertIsNotEnabled()
