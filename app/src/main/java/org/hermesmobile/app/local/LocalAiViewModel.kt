@@ -46,6 +46,14 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     fun branch(source: LocalConversation, index: Int, kind: LocalBranchKind, edited: String?) {
         controller.branch(source, index, kind, edited) { child -> drafts.select(child.id); handoffState.value = "" }
     }
+    fun continueWithSelectedTurns(source: LocalConversation, indices: List<Int>, reviewedDraft: String, copyDraft: Boolean) {
+        if (copyDraft && draft.value != reviewedDraft) return
+        controller.continueWithSelectedTurns(source, indices) { child ->
+            drafts.select(child.id)
+            if (copyDraft) drafts.edit(reviewedDraft)
+            handoffState.value = ""
+        }
+    }
     val handoffState = MutableStateFlow("")
     private var receivedToken: String? = null
     fun receiveDraft(token: String?) {

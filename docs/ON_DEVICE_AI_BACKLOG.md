@@ -88,8 +88,11 @@ behavior and older history migrate without data loss.
 using the loaded model's tokenizer and template. The composer shows capacity,
 remaining output room and the reasoning/reply reservation. Overflow leaves the
 draft and history intact. Users can copy an unsent draft into a new chat or
-measure a branch with its reviewed earlier turns. Explicit turn-selection and
-editable reviewed-summary continuations, plus device acceptance, remain open.
+measure a branch with its reviewed earlier turns. **Earlier turns** can now
+copy a selected subset and optional unsent draft into a separate chat. Backup
+restore preserves its original turn references and links to the restored parent.
+Editable reviewed-summary continuations and physical acceptance remain open.
+[Selected-turn implementation and tests](contracts/2026-11-19-phone-selected-turns.md).
 [Measured LFM3 boundary and test evidence](contracts/2026-11-19-phone-context-meter.md).
 
 Acceptance: counts include applicable templates, special tokens and generation/

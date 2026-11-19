@@ -67,6 +67,12 @@ class LocalMarkdownExport private constructor(val chatId: String, val modelSha25
             append("Conversation ID: ${value.id}\n\nModel SHA-256: ${value.modelSha256}\n\n")
             append("Saved activity (UTC): ${Instant.ofEpochMilli(value.updatedAt)}\n\nSource snapshot SHA-256: $sourceSha256\n\n")
             title?.let {append("## Title\n\n"); literal(it)}
+            value.origin?.let { origin -> origin.selectedExchanges?.let { indices ->
+                append("## Selected context\n\n")
+                append("Source conversation ID: ${origin.parentId}\n\n")
+                append("Source turns: ${indices.joinToString(", ") { (it + 1).toString() }}\n\n")
+                append("Source conversation snapshot SHA-256: ${origin.sourceSha256}\n\n")
+            } }
             value.exchanges.forEachIndexed {index, row ->
                 checkpoint()
                 append("## Exchange ${index + 1}\n\n### User\n\n"); literal(row.question)

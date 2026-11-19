@@ -115,6 +115,7 @@ internal fun historyBranchWord(kind: LocalBranchKind) = when(kind) {
     LocalBranchKind.FORK -> Words.PhoneHistoryCopiedBranch
     LocalBranchKind.EDIT -> Words.PhoneHistoryEditedBranch
     LocalBranchKind.REGENERATE -> Words.PhoneHistoryRegeneratedBranch
+    LocalBranchKind.SELECTED_TURNS -> Words.PhoneHistorySelectedBranch
 }
 
 internal fun historyViewWord(view: LocalHistoryView) = when(view) {

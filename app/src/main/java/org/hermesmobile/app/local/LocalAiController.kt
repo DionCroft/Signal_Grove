@@ -206,19 +206,32 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         refresh()
     }
     internal suspend fun previewPrompt(expected: LocalConversation?, modelHash: String, question: String,
-        beforeExchange: Int? = null): LocalPromptPreview = lock.withLock {
+        beforeExchange: Int? = null): LocalPromptPreview = previewPromptFor(expected, modelHash, question) {
+        val exchanges = expected?.exchanges.orEmpty()
+        when {
+            beforeExchange == null -> exchanges
+            beforeExchange in exchanges.indices -> exchanges.take(beforeExchange)
+            else -> null
+        }
+    }
+
+    internal suspend fun previewSelectedPrompt(source: LocalConversation, selected: List<Int>, question: String): LocalPromptPreview =
+        previewPromptFor(source, source.modelSha256, question) { source.selectedContext(selected) }
+
+    private suspend fun previewPromptFor(expected: LocalConversation?, modelHash: String, question: String,
+        history: () -> List<LocalExchange>?): LocalPromptPreview = lock.withLock {
         val state = mutable.value
         if (leaving || state.busy || state.chat != expected || state.loaded?.sha256 != modelHash ||
             expected?.let { it.modelSha256 != modelHash } == true ||
             question.isBlank() || question.toByteArray().size > 8192) return@withLock LocalPromptPreview.Unavailable
-        val exchanges = expected?.exchanges.orEmpty()
-        if (beforeExchange != null && beforeExchange !in exchanges.indices) return@withLock LocalPromptPreview.Unavailable
-        val history = if (beforeExchange == null) exchanges else exchanges.take(beforeExchange)
         try {
-            val budget = measurePrompt(localChatPrompt(history, question), generationSettings())
+            val rows = history() ?: return@withLock LocalPromptPreview.Unavailable
+            val budget = measurePrompt(localChatPrompt(rows, question), generationSettings())
             if (budget == null) LocalPromptPreview.Unavailable else LocalPromptPreview.Exact(budget)
         } catch (e: LocalEngineException) {
             if (e.code == 2) LocalPromptPreview.TooLarge else LocalPromptPreview.Unavailable
+        } catch (_: IllegalArgumentException) {
+            LocalPromptPreview.Unavailable
         } catch (_: LinkageError) {
             LocalPromptPreview.Unavailable
         }
@@ -259,13 +272,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         action(if (kind == LocalBranchKind.FORK) "reading" else "generating") {
             require(mutable.value.chat == expected)
             if (kind == LocalBranchKind.FORK) {
-                var child: LocalConversation? = null
-                try { io { child = conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis()) } }
-                finally {
-                    // Publication may complete before cancellation reaches the main dispatcher.
-                    child?.let { published -> withContext(NonCancellable) {
-                        mutable.update { it.copy(chat = published) }; onSelected(published); refresh()
-                    } }
+                publishCopiedBranch(onSelected) {
+                    conversations.createBranch(expected, exchangeIndex, kind, System.currentTimeMillis())
                 }
             } else {
                 val loaded = mutable.value.loaded ?: throw LocalEngineException(4)
@@ -280,6 +288,29 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 }, onSelected)
             }
         }
+
+    internal fun continueWithSelectedTurns(expected: LocalConversation, selected: List<Int>, onSelected: (LocalConversation) -> Unit) {
+        val snapshot = selected.toList()
+        action("reading") {
+            require(mutable.value.chat == expected)
+            publishCopiedBranch(onSelected) {
+                conversations.createSelectedContinuation(expected, snapshot, System.currentTimeMillis())
+            }
+        }
+    }
+
+    private suspend fun publishCopiedBranch(onSelected: (LocalConversation) -> Unit, create: () -> LocalConversation) {
+        var child: LocalConversation? = null
+        try { io { child = create() } }
+        finally {
+            // Publication may complete before cancellation reaches the main dispatcher.
+            child?.let { published -> withContext(NonCancellable) {
+                mutable.update { it.copy(chat = published) }
+                onSelected(published)
+                refresh()
+            } }
+        }
+    }
 
     /** Atomically publish the pending question before calling native inference, including branches. */
     private suspend fun runGeneration(messages: List<LocalChatMessage>, createPending: () -> LocalConversation,

@@ -1,5 +1,12 @@
 # Signal Grove audit execution plan
 
+## Selected phone context checkpoint - 19 November 2026
+
+OF-03 now supports selecting earlier turns into a distinct phone chat with a
+reviewed draft, exact prompt preview and restored provenance. Editable reviewed
+summaries, physical context and backup acceptance and the original audit and
+release gates remain open. [Selected-turn scope and evidence](contracts/2026-11-19-phone-selected-turns.md).
+
 ## Local inference context checkpoint - 19 November 2026
 
 The OF-03 meter and overflow admission check share the native prompt builder and

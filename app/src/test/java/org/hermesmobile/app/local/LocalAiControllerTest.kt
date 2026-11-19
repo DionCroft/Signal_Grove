@@ -184,6 +184,82 @@ class LocalAiControllerTest {
         advanceUntilIdle()
     }
 
+    @Test fun selectedContinuationPublishesOnlyReviewedTurnsAndSendsOnlyOnExplicitRequest() = runTest {
+        val root = temp.newFolder()
+        val model = model(root)
+        val history = temp.newFolder()
+        val store = LocalConversationStore(history)
+        val source = LocalConversation(modelSha256 = model.sha256, updatedAt = 10, exchanges = listOf(
+            LocalExchange("Keep first", "First answer", LocalReplyState.COMPLETE),
+            LocalExchange("Interrupted", "Partial reply", LocalReplyState.INTERRUPTED),
+            LocalExchange("Keep third", "Limited answer", LocalReplyState.TOKEN_LIMIT),
+            LocalExchange("Omit fourth", "Fourth answer", LocalReplyState.COMPLETE)))
+        store.save(source)
+        val bytes = File(history, source.id + ".json").readBytes()
+        val engine = Engine().apply { promptTokens = 80 }
+        val controller = controller(root, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        controller.load(model)
+        advanceUntilIdle()
+        controller.openChat(source.id)
+        advanceUntilIdle()
+        val selection = mutableListOf(0, 2)
+        val preview = controller.previewSelectedPrompt(source, selection, "Unsent draft")
+        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(80, 2048, 384)), preview)
+        val reviewedMessages = engine.measured.single()
+        assertEquals(LocalPromptPreview.Unavailable,
+            controller.previewSelectedPrompt(source, listOf(1), "Unsent draft"))
+        var child: LocalConversation? = null
+        controller.continueWithSelectedTurns(source, selection) { child = it }
+        selection.clear()
+        advanceUntilIdle()
+        val continued = checkNotNull(child)
+        assertEquals(listOf(0, 2), continued.origin!!.selectedExchanges)
+        assertEquals(listOf(source.exchanges[0], source.exchanges[2]), continued.exchanges)
+        assertEquals(continued, LocalConversationStore(history).load(continued.id))
+        assertTrue(engine.requests.isEmpty())
+        assertArrayEquals(bytes, File(history, source.id + ".json").readBytes())
+
+        controller.send("Unsent draft")
+        advanceUntilIdle()
+        assertEquals(reviewedMessages, engine.requests.single())
+        assertEquals(listOf("Keep first", "Keep third", "Unsent draft"),
+            engine.requests.single().filter { it.role == "user" }.map { it.text })
+        assertEquals(continued.origin, store.load(continued.id).origin)
+        assertArrayEquals(bytes, File(history, source.id + ".json").readBytes())
+        controller.leave()
+        advanceUntilIdle()
+    }
+
+    @Test fun selectedContinuationRejectsInvalidAndStaleSelectionsBeforeWriting() {
+        val history = temp.newFolder()
+        val store = LocalConversationStore(history)
+        val source = LocalConversation(modelSha256 = "a".repeat(64), updatedAt = 5, exchanges = listOf(
+            LocalExchange("Keep", "Reply", LocalReplyState.COMPLETE),
+            LocalExchange("Failed", "", LocalReplyState.FAILED),
+            LocalExchange("Later", "Last", LocalReplyState.COMPLETE)))
+        store.save(source)
+        val original = File(history, source.id + ".json").readBytes()
+        for (selection in listOf(emptyList(), listOf(2, 0), listOf(0, 0), listOf(1), listOf(3))) {
+            assertThrows(IllegalArgumentException::class.java) { store.createSelectedContinuation(source, selection, 10) }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            store.createSelectedContinuation(source.copy(updatedAt = 4), listOf(0), 10)
+        }
+        assertEquals(listOf(source.id), store.list().map { it.id })
+        assertArrayEquals(original, File(history, source.id + ".json").readBytes())
+
+        val child = store.createSelectedContinuation(source, listOf(0, 2), 10)
+        val encoded = store.encode(child).toString(Charsets.UTF_8)
+        assertTrue(encoded.contains("\"schema\":5") && encoded.contains("\"selected\":[0,2]"))
+        for (replacement in listOf("[]", "[2,0]", "[0,0]", "[0,8]", "[\"0\",2]")) {
+            val modified = encoded.replace("\"selected\":[0,2]", "\"selected\":$replacement")
+            assertThrows(IllegalArgumentException::class.java) {
+                LocalConversationStore.decodeBackupTranscript(child.id, modified.toByteArray()) {}
+            }
+        }
+    }
+
     @Test fun leavingHoldsTheUpdateGuardUntilUnloadingActuallyFinishes() = runTest {
         val root = temp.newFolder(); val model = model(root); val engine = Engine(); val guard = UpdateWorkGuard()
         val controller = controller(root, temp.newFolder(), engine, guard, StandardTestDispatcher(testScheduler)); advanceUntilIdle()

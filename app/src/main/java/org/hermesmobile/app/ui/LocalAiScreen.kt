@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
@@ -78,7 +79,9 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val exportMarkdown: ((LocalConversationSummary) -> Unit)? = null,
     val exportBackup: (() -> Unit)? = null, val importBackup: (() -> Unit)? = null,
     val previewPrompt: (suspend (LocalConversation?, String, String, Int?) -> LocalPromptPreview)? = null,
-    val newChatWithDraft: (() -> Unit)? = null)
+    val newChatWithDraft: (() -> Unit)? = null,
+    val continueWithSelectedTurns: ((LocalConversation, List<Int>, String, Boolean) -> Unit)? = null,
+    val previewSelectedPrompt: (suspend (LocalConversation, List<Int>, String) -> LocalPromptPreview)? = null)
 
 @Composable fun LocalAiRoute(vm: LocalAiViewModel, close: () -> Unit) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
@@ -102,7 +105,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             searchHistory = c::searchHistory, clearHistorySearch = c::clearHistorySearch, organize = c::organizeChat,
             exportMarkdown = vm::prepareMarkdownExport, exportBackup = vm.historyBackup::selectExport,
             importBackup = vm.historyBackup::selectImport, previewPrompt = c::previewPrompt,
-            newChatWithDraft = vm::newChatWithDraft), close, observations, handoff)
+            newChatWithDraft = vm::newChatWithDraft, continueWithSelectedTurns = vm::continueWithSelectedTurns,
+            previewSelectedPrompt = c::previewSelectedPrompt), close, observations, handoff)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -208,11 +212,12 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 
 @Composable private fun ColumnScope.PhoneChat(state: LocalAiState, draft: String, change: (String) -> Unit, actions: LocalAiActions, review: (String) -> Unit) {
     var branchReview by remember { mutableStateOf<PhoneBranchReview?>(null) }
+    var continuation by remember { mutableStateOf<PhoneContinuationReview?>(null) }
     var generationReview by remember { mutableStateOf<PhoneGenerationReview?>(null) }
     val loaded = state.loaded
     val mismatch = loaded != null && state.chat?.let {it.modelSha256 != loaded.sha256} == true
     val full = (state.chat?.exchanges?.size ?: 0) >= LocalConversationStore.MAX_TURNS
-    val budget = if (branchReview == null) rememberPhonePromptPreview(state, draft.trim(), actions) else null
+    val budget = if (branchReview == null && continuation == null) rememberPhonePromptPreview(state, draft.trim(), actions) else null
     val contextFull = budget.blocksGeneration()
     val copyDraft = actions.newChatWithDraft?.takeIf {
         !state.busy && loaded != null && !state.chat?.exchanges.isNullOrEmpty() &&
@@ -220,13 +225,29 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     }
     Row(Modifier.fillMaxWidth()) {
         Text(loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"), style = MaterialTheme.typography.labelMedium)
+        val source = state.chat
+        if (actions.continueWithSelectedTurns != null && source != null && source.exchanges.any { it.retainedForPrompt }) {
+            IconButton({ continuation = PhoneContinuationReview(source, draft) },
+                enabled = !state.busy && state.history.size < LocalConversationStore.MAX_CHATS,
+                modifier = Modifier.testTag("phone-select-context")) {
+                Icon(Icons.Outlined.AccountTree, label(Words.PhoneSelectContext))
+            }
+        }
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
     }
     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val exchanges = state.chat?.exchanges.orEmpty()
         state.chat?.origin?.let { origin -> item {
             Column {
-                Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()), style = MaterialTheme.typography.labelSmall)
+                val indices = origin.selectedExchanges
+                if (indices == null) {
+                    Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()),
+                        style = MaterialTheme.typography.labelSmall)
+                } else {
+                    val numbers = indices.joinToString(", ") { (it + 1).toString() }
+                    Text(label(Words.PhoneContextFromTurns).replace("{turns}", numbers),
+                        Modifier.testTag("phone-context-origin"), style = MaterialTheme.typography.labelSmall)
+                }
                 val linkedParent = origin.linkedParentId
                 if (linkedParent != null && state.history.any { it.id == linkedParent }) TextButton({actions.openChat(linkedParent)}, enabled = !state.busy,
                     modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
@@ -260,6 +281,12 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 }
             }
         }
+    }
+    continuation?.let { selected ->
+        PhoneContinuationDialog(selected, state, draft, actions.previewSelectedPrompt, { indices, copyDraft ->
+            continuation = null
+            actions.continueWithSelectedTurns?.invoke(selected.source, indices, selected.draft, copyDraft)
+        }) { continuation = null }
     }
     generationReview?.let { PhoneGenerationDialog(it) { generationReview = null } }
     branchReview?.let { selected ->
@@ -306,7 +333,7 @@ private fun LocalPromptPreview?.blocksGeneration() = when (this) {
 }
 
 @Composable
-private fun PhonePromptUse(preview: LocalPromptPreview?, fallbackOverflow: Boolean = false) {
+internal fun PhonePromptUse(preview: LocalPromptPreview?, fallbackOverflow: Boolean = false) {
     var detail by remember { mutableStateOf(false) }
     when (preview) {
         is LocalPromptPreview.Exact -> {
@@ -377,6 +404,7 @@ private data class PhoneBranchReview(val source: LocalConversation, val index: I
         LocalBranchKind.EDIT -> Words.PhoneEditSend
         LocalBranchKind.REGENERATE -> Words.PhoneRegenerate
         LocalBranchKind.FORK -> Words.PhoneBranchHere
+        LocalBranchKind.SELECTED_TURNS -> error("Selected turns have a separate review")
     }
     val unchanged = state.chat == review.source
     val compatible = review.kind == LocalBranchKind.FORK || state.loaded?.sha256 == review.source.modelSha256

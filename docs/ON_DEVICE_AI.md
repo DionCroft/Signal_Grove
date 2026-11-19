@@ -1,5 +1,21 @@
 # Using on-device AI (beta.9 preview)
 
+## Continue a phone chat with selected earlier turns
+
+In the development build, open a saved phone chat and choose the **Earlier
+turns** branch icon beside New Chat. Select the turns to keep. You can open a full turn in the review
+and choose whether to copy your unsent draft. The preview measures the selected
+turns and draft when the matching model is loaded. The count excludes omitted
+turns.
+
+Tap **Create phone chat** to open a separate chat with the selected turns in
+their original order. The original conversation and its draft stay available.
+The new chat shows the source turn numbers and links to the parent when it is
+in Phone history. You can create the copy with no model loaded. Load the same
+model to send a new question. Creating the copy sends nothing.
+
+[Saved format and verification](contracts/2026-11-19-phone-selected-turns.md).
+
 ## Check how much context your phone model has
 
 On the development branch, load a model and enter a draft. The chat composer

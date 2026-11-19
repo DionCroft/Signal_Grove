@@ -27,10 +27,11 @@ class LocalChatActionsUiTest {
     private var sends = 0
     private fun show(bilingual: Boolean = false,
         preview: (suspend (LocalConversation?, String, String, Int?) -> LocalPromptPreview)? = null,
-        copyDraft: (() -> Unit)? = null) {
+        copyDraft: (() -> Unit)? = null,
+        continuation: ((LocalConversation, List<Int>, String, Boolean) -> Unit)? = null) {
         val actions = LocalAiActions({sends++}, {}, {}, {_, _ ->}, {}, {}, {}, {}, {}, {}, {},
             {opened.add(it)}, {}, {}, branch = {source, index, kind, edited -> requests.add(Request(source, index, kind, edited))},
-            previewPrompt = preview, newChatWithDraft = copyDraft)
+            previewPrompt = preview, newChatWithDraft = copyDraft, continueWithSelectedTurns = continuation)
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
@@ -58,6 +59,48 @@ class LocalChatActionsUiTest {
         assertEquals("Unsent parent draft", freshDraft)
         assertEquals("Unsent parent draft", draft)
         assertEquals(0, sends)
+    }
+
+    @Test fun reviewedSelectedTurnsStayInSourceOrderAndNeverSendTheDraft() {
+        val source = original.copy(exchanges = original.exchanges + listOf(
+            LocalExchange("Interrupted turn", "Partial", LocalReplyState.INTERRUPTED),
+            LocalExchange("Later turn", "Later reply", LocalReplyState.TOKEN_LIMIT)))
+        state = state.copy(chat = source, loaded = null)
+        data class Continuation(val chat: LocalConversation, val indices: List<Int>, val draft: String, val copyDraft: Boolean)
+        val confirmed = mutableListOf<Continuation>()
+        show(continuation = { chat, indices, draft, copy ->
+            confirmed.add(Continuation(chat, indices, draft, copy))
+        })
+        compose.onNodeWithTag("phone-select-context").performClick()
+        compose.onNodeWithTag("phone-context-confirm").assertIsDisplayed().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-context-selection").performScrollToNode(hasTestTag("phone-context-turn-2"))
+        compose.onNodeWithTag("phone-context-turn-2").assertIsToggleable().performClick()
+        compose.onNodeWithTag("phone-context-selection").performScrollToNode(hasTestTag("phone-context-turn-0"))
+        compose.onNodeWithTag("phone-context-turn-0").assertIsToggleable().performClick()
+        assertTrue(confirmed.isEmpty())
+        compose.onNodeWithTag("phone-context-confirm").assertIsEnabled().performClick()
+        assertEquals(listOf(Continuation(source, listOf(0, 2), "Unsent parent draft", true)), confirmed)
+        assertEquals(0, sends)
+        assertEquals(source, state.chat)
+        assertEquals("Unsent parent draft", draft)
+    }
+
+    @Test fun changedDraftCannotBeCopiedFromAnEarlierReviewAndCancelDoesNotCreateAChat() {
+        var confirms = 0
+        show(bilingual = true, continuation = { _, _, _, _ -> confirms++ })
+        val earlier = compose.onNodeWithTag("phone-select-context").assertIsDisplayed()
+        val fresh = compose.onNodeWithTag("phone-new-chat").assertIsDisplayed()
+        assertEquals(fresh.fetchSemanticsNode().boundsInRoot.height, earlier.fetchSemanticsNode().boundsInRoot.height, 1f)
+        earlier.performClick()
+        compose.onNodeWithTag("phone-context-selection").performScrollToNode(hasTestTag("phone-context-turn-0"))
+        compose.onNodeWithTag("phone-context-turn-0").performClick()
+        compose.onNodeWithTag("phone-context-confirm").assertIsDisplayed().assertIsEnabled()
+        compose.runOnIdle { draft = "Updated while the review was open" }
+        compose.onNodeWithTag("phone-context-confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("phone-context-cancel").assertIsDisplayed().performClick()
+        assertEquals(0, confirms)
+        assertEquals(0, sends)
+        assertEquals("Updated while the review was open", draft)
     }
 
     @Test fun regenerationWaitsForReviewAndCancelPreservesEverything() {

@@ -60,6 +60,51 @@ class LocalHistoryBackupFilesAndroidTest {
         }
     }
 
+    @Test fun selectedTurnProvenanceSurvivesBackupCollisionRestoreAndMarkdown() {
+        val root = root()
+        try {
+            val source = LocalConversationStore(File(root, "source"))
+            val organization = LocalHistoryOrganization(File(root, "labels"), source)
+            val stages = LocalHistoryBackupFiles(File(root, "stages"), source, organization)
+            val parent = chat().copy(exchanges = listOf(
+                LocalExchange("Keep garden 你好", "Garden reply", LocalReplyState.COMPLETE),
+                LocalExchange("Omit this question", "Never include this text", LocalReplyState.COMPLETE),
+                LocalExchange("Keep forest 🌱", "Forest reply", LocalReplyState.TOKEN_LIMIT)))
+            source.saveNew(parent)
+            val child = source.createSelectedContinuation(parent, listOf(0, 2), 200)
+            val original = listOf(parent, child).associate { it.id to source.file(it.id).readBytes() }
+            val transaction = LocalHistoryRestoreTransaction(source, organization)
+            val imported = stages.export(organization.history(), null).use { archive ->
+                archive.inspect(null).use { review ->
+                    val plan = transaction.prepare(review.archive)
+                    assertEquals(2, plan.items.size)
+                    assertTrue(plan.items.all { it.remapped })
+                    val copiedChild = plan.items.single { it.source.id == child.id }
+                    val copiedParent = plan.items.single { it.source.id == parent.id }
+                    assertEquals(copiedParent.targetId, copiedChild.targetParentId)
+                    transaction.restore(plan)
+                    source.load(copiedChild.targetId).also {
+                        assertEquals(copiedParent.targetId, it.origin!!.linkedParentId)
+                    }
+                }
+            }
+            val origin = checkNotNull(imported.origin)
+            assertEquals(parent.id, origin.parentId)
+            assertEquals(child.origin!!.sourceSha256, origin.sourceSha256)
+            assertEquals(listOf(0, 2), origin.selectedExchanges)
+            assertEquals(listOf(parent.exchanges.first(), parent.exchanges.last()), imported.exchanges)
+            assertEquals(4, source.list().size)
+            for ((id, bytes) in original) assertArrayEquals(bytes, source.file(id).readBytes())
+            val markdown = java.io.ByteArrayOutputStream().also { source.markdownExport(imported).writeTo(it) }.toString("UTF-8")
+            assertTrue(markdown.contains("Source turns: 1, 3"))
+            assertTrue(markdown.contains("Source conversation ID: ${parent.id}"))
+            assertTrue(markdown.contains("Keep garden 你好") && markdown.contains("Keep forest 🌱"))
+            assertFalse(markdown.contains("Omit this question"))
+        } finally {
+            assertTrue(root.deleteRecursively())
+        }
+    }
+
     @Test fun androidColdHistoryReadReclaimsAbandonedStagesWithoutChangingTheLibrary() {
         val root = root()
         try {

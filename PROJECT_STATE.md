@@ -74,14 +74,21 @@ lint variants and 73 focused checks per emulator API. The pinned LFM3 boundary
 passes on the owned Android 17 emulator.
 [Context meter and limits](docs/contracts/2026-11-19-phone-context-meter.md).
 
+Selected-turn continuation passes 1,150 JVM cases, both lint variants and
+76 focused checks per Android emulator API, including a backup restore with
+chat ID collisions. Source bytes and unsent drafts are preserved.
+[Selected-turn evidence](docs/contracts/2026-11-19-phone-selected-turns.md).
+
 ## Exact next action
 
-Verify an offline backup/restore on the exact backup UI build using selected
-test chats with an original and restored copy. Physical Markdown export is verified. The physical
+Finish the physical protected-backup restore from the saved archive and verify
+the reviewed copy and original test chats. Physical Markdown export is verified. The physical
 label Save, Cancel and unloaded archive read are verified. The full hosted
 Markdown export matrix passed 1,187 API 26 and 1,188 API 37
-cases. Continue OF-03 with explicit earlier-turn selection and editable reviewed
-summaries. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
+cases. The later hosted backup-branch Android 8 shard reported one early Home
+fixture failure among 567 methods. Verify Home route readiness before input
+and retain the existing route-trace assertions. Continue OF-03 with editable reviewed summaries and physical acceptance
+for selected context. Keep OF-01 accessibility and lifecycle, plus the original audit gates open.
 
 Original remaining scope: upstream/shutdown, SDK/gateway/unbound drain/concurrency/
 PM/fleet/recovery, real workspace/worker/files/NAS, automation/rooms/integrations/

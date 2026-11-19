@@ -10,9 +10,10 @@ import kotlinx.serialization.json.*
 
 enum class LocalReplyState { GENERATING, COMPLETE, CANCELLED, TOKEN_LIMIT, FAILED, INTERRUPTED }
 data class LocalExchange(val question: String, val reply: String = "", val state: LocalReplyState, val generation: LocalGenerationSettings? = null)
-enum class LocalBranchKind { FORK, REGENERATE, EDIT }
+enum class LocalBranchKind { FORK, REGENERATE, EDIT, SELECTED_TURNS }
 data class LocalBranchOrigin(val parentId: String, val parentUpdatedAt: Long, val exchangeIndex: Int,
-    val kind: LocalBranchKind, val sourceSha256: String, val linkedParentId: String? = parentId)
+    val kind: LocalBranchKind, val sourceSha256: String, val linkedParentId: String? = parentId,
+    val selectedExchanges: List<Int>? = null)
 data class LocalConversation(val id: String = UUID.randomUUID().toString(), val modelSha256: String,
     val updatedAt: Long, val exchanges: List<LocalExchange> = emptyList(), val origin: LocalBranchOrigin? = null)
 data class LocalConversationSummary(val id: String, val modelSha256: String, val updatedAt: Long, val title: String, val lastState: LocalReplyState?, val origin: LocalBranchOrigin? = null,
@@ -105,9 +106,24 @@ class LocalConversationStore(directory: File) {
                 val question = kind.generationQuestion(selected, editedQuestion)
                 source.exchanges.take(exchangeIndex) + LocalExchange(question, state = LocalReplyState.GENERATING, generation = generation)
             }
+            LocalBranchKind.SELECTED_TURNS -> error("Selected turns require a reviewed selection")
         }
         val origin = LocalBranchOrigin(source.id, source.updatedAt, exchangeIndex, kind,
             MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) })
+        val child = LocalConversation(modelSha256 = source.modelSha256, updatedAt = now, exchanges = rows, origin = origin)
+        saveNew(child)
+        return child
+    }
+
+    /** Freeze a selected subset of completed turns. The full source stays available as a separate chat. */
+    @Synchronized internal fun createSelectedContinuation(expected: LocalConversation, selected: List<Int>, now: Long): LocalConversation {
+        val (source, bytes) = readSnapshot(expected.id)
+        require(source == expected && source.exchanges.none { it.state == LocalReplyState.GENERATING } && now >= 0)
+        val indices = selected.toList()
+        val rows = source.selectedContext(indices)
+        val origin = LocalBranchOrigin(source.id, source.updatedAt, indices.last(), LocalBranchKind.SELECTED_TURNS,
+            MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) },
+            selectedExchanges = indices)
         val child = LocalConversation(modelSha256 = source.modelSha256, updatedAt = now, exchanges = rows, origin = origin)
         saveNew(child)
         return child
@@ -157,6 +173,7 @@ class LocalConversationStore(directory: File) {
         validate(value)
         val branch = value.origin
         val schema = when {
+            branch?.selectedExchanges != null -> 5
             branch != null && branch.linkedParentId != branch.parentId -> 4
             value.exchanges.any { it.generation != null } -> 3
             branch != null -> 2
@@ -168,7 +185,10 @@ class LocalConversationStore(directory: File) {
             branch?.let { origin -> putJsonObject("origin") {
                 put("parent", origin.parentId); put("updated", origin.parentUpdatedAt); put("exchange", origin.exchangeIndex)
                 put("kind", origin.kind.name); put("source", origin.sourceSha256)
-                if (schema == 4) put("linkedParent", origin.linkedParentId?.let(::JsonPrimitive) ?: JsonNull)
+                if (schema >= 4) put("linkedParent", origin.linkedParentId?.let(::JsonPrimitive) ?: JsonNull)
+                origin.selectedExchanges?.let { indices ->
+                    putJsonArray("selected") { indices.forEach { add(JsonPrimitive(it)) } }
+                }
             } }
             putJsonArray("exchanges") { value.exchanges.forEach { row -> add(buildJsonObject {
                 put("question", row.question); put("reply", row.reply); put("state", row.state.name)
@@ -227,21 +247,34 @@ class LocalConversationStore(directory: File) {
             val text = Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes)).toString()
             val json = Json.parseToJsonElement(text).jsonObject
             val schema = json.getValue("schema").jsonPrimitive
-            require(!schema.isString && schema.int in 1..4 && json["id"]?.jsonPrimitive?.content == id)
+            require(!schema.isString && schema.int in 1..5 && json["id"]?.jsonPrimitive?.content == id)
             // Refuse unknown extensions rather than dropping them during a later save.
             require(json.keys == if (schema.int == 1) ROOT_KEYS else ROOT_KEYS + "origin")
             val originJson = if (schema.int >= 2) json.getValue("origin") else JsonNull
             require(schema.int in setOf(1, 3) || originJson != JsonNull)
             val origin = originJson.takeUnless { it == JsonNull }?.jsonObject?.let { row ->
-                require(row.keys == if (schema.int == 4) ORIGIN_KEYS + "linkedParent" else ORIGIN_KEYS)
+                val fields = when (schema.int) {
+                    5 -> ORIGIN_KEYS + setOf("linkedParent", "selected")
+                    4 -> ORIGIN_KEYS + "linkedParent"
+                    else -> ORIGIN_KEYS
+                }
+                require(row.keys == fields)
                 require(!row.getValue("updated").jsonPrimitive.isString && !row.getValue("exchange").jsonPrimitive.isString)
                 val parent = row.getValue("parent").jsonPrimitive.content
                 val linked = if (schema.int < 4) parent else row.getValue("linkedParent").let {
                     if (it == JsonNull) null else it.jsonPrimitive.also { field -> require(field.isString) }.content
                 }
+                val selected = if (schema.int == 5) row.getValue("selected").jsonArray.let { values ->
+                    require(values.size in 1 until MAX_TURNS)
+                    values.map {
+                        val number = it.jsonPrimitive
+                        require(!number.isString)
+                        number.int
+                    }
+                } else null
                 LocalBranchOrigin(parent, row.getValue("updated").jsonPrimitive.long,
                     row.getValue("exchange").jsonPrimitive.int, LocalBranchKind.valueOf(row.getValue("kind").jsonPrimitive.content),
-                    row.getValue("source").jsonPrimitive.content, linked)
+                    row.getValue("source").jsonPrimitive.content, linked, selected)
             }
             val value = LocalConversation(id, json.getValue("model").jsonPrimitive.content,
                 json.getValue("updated").jsonPrimitive.long, json.getValue("exchanges").jsonArray.map { item ->
@@ -269,6 +302,13 @@ class LocalConversationStore(directory: File) {
                 }
                 require(it.parentId != value.id && it.parentUpdatedAt >= 0 && it.exchangeIndex in 0 until MAX_TURNS &&
                     it.sourceSha256.matches(Regex("[a-f0-9]{64}")))
+                val selected = it.selectedExchanges
+                if (it.kind == LocalBranchKind.SELECTED_TURNS) {
+                    requireNotNull(selected)
+                    requireValidTurnSelection(selected, MAX_TURNS)
+                    require(selected.last() == it.exchangeIndex && selected.size <= value.exchanges.size)
+                    require(value.exchanges.take(selected.size).all { row -> row.retainedForPrompt })
+                } else require(selected == null)
             }
             value.exchanges.forEach { it.generation?.validate() }
             require(value.exchanges.all { it.question.isNotBlank() && it.question.toByteArray().size <= 8192 && it.reply.toByteArray().size <= 131072 })

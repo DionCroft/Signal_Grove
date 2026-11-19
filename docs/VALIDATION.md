@@ -1,5 +1,24 @@
 # Current development validation — audit follow-up
 
+## Selected-turn phone continuation on 19 November 2026
+
+The source-bound build passes 1,150 JVM cases and both lint variants with
+zero errors. The exact debug APK pair passes 76 focused checks on Android
+8 and 17 with zero skips. The new device tests exercise reviewed selection,
+draft changes and Cancel, and an Android files backup/restore collision.
+The source bytes remain identical. Reopened copies retain the selected turn
+numbers and remapped parent link. Their Markdown contains the chosen turns
+and source references. [Exact evidence](contracts/2026-11-19-phone-selected-turns.md).
+
+## Hosted Android 8 backup-branch fixture on 19 November 2026
+
+For backup commit `c610cff0817c`, assembly passed. Android 8 shard 0 ran
+567 methods with 566 successful. The route-trace diagnostic failed during
+fixture setup because the Home navigation target was missing at first input.
+The raw result is retained. Verify Home route readiness before the one input,
+then rerun the unchanged route assertions.
+[Hosted job](https://github.com/DionCroft/Signal_Grove/actions/runs/44542744332/job/135638448466).
+
 ## Exact phone context meter on 19 November 2026
 
 The strict Windows build passed 1,148 JVM tests and both lint variants with

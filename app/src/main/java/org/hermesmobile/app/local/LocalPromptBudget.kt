@@ -20,7 +20,7 @@ sealed interface LocalPromptPreview {
 internal fun localChatPrompt(history: List<LocalExchange>, question: String): List<LocalChatMessage> = buildList {
     add(LocalChatMessage("system", "You are an on-device text assistant in Signal Grove. You have no access to Hermes, servers, projects, credentials or tools. Never claim to have performed an action. Give advice as advice."))
     for (exchange in history) {
-        if (exchange.state != LocalReplyState.COMPLETE && exchange.state != LocalReplyState.TOKEN_LIMIT) continue
+        if (!exchange.retainedForPrompt) continue
         add(LocalChatMessage("user", exchange.question))
         if (exchange.reply.isNotBlank()) add(LocalChatMessage("assistant", exchange.reply))
     }
@@ -30,5 +30,5 @@ internal fun localChatPrompt(history: List<LocalExchange>, question: String): Li
 internal fun LocalBranchKind.generationQuestion(selected: LocalExchange, editedQuestion: String?): String = when (this) {
     LocalBranchKind.EDIT -> requireNotNull(editedQuestion)
     LocalBranchKind.REGENERATE -> selected.question.also { require(editedQuestion == null) }
-    LocalBranchKind.FORK -> error("A copied branch does not generate")
+    LocalBranchKind.FORK, LocalBranchKind.SELECTED_TURNS -> error("A copied branch does not generate")
 }
