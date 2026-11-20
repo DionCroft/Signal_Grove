@@ -67,9 +67,10 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
     sys.path[:0] = [str(source), str(site)]
     denials = []
     read_roots = (source, fixture, site, Path(sys.base_prefix).resolve(), Path(__file__).resolve())
+    # psutil checks the init process birth time when it validates process identity.
     system_reads = {Path(name).resolve() for name in (
         "/etc/localtime", "/etc/mime.types", "/proc/stat", "/proc/1/cgroup",
-        "/proc/self/mountinfo",
+        "/proc/1/stat", "/proc/self/mountinfo",
     )} if os.name == "posix" else set()
     if os.name == "nt":
         system_reads.update(Path(fixture.drive + name).resolve() for name in (

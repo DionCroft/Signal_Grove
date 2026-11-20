@@ -63,6 +63,13 @@ artifact still logged the late reopen. The failed lifecycle cohort
 remains outside acceptance.
 [Launch-chain evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/44764811622).
 
+All 16 lifecycle probes in the following run progressed beyond the
+same-account process reads. Each recorded the same refusal when psutil
+checked the runner's init process birth time. The fixture now allows
+that exact read-only Linux process stat record. All four artifact ZIP
+sizes and digests were checked before comparing the refusals.
+[Init process stat evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/44766014538).
+
 ## Owned emulator API readiness - 20 November 2026
 
 Run 44748140345 API 26 shard 0 observed Android boot completion and lost the
@@ -85,6 +92,14 @@ explanation and the visible voice screen. These are test failures on the
 older source, separate from the API 26 transport failure. The verified
 shard archive SHA-256 is
 c6d37ba4637d3e438958ea60fcbb10ef4a422a70c79d5a98463796702b37f5b1.
+
+Android 8 shard 1 finished 654 of 656 cases successfully. The profile
+editor did not reopen in one case, and the temporary composer title
+was not displayed in the other. Both cases and the two Phone Voice
+cases passed on both local emulators in the later temporary-chat build.
+The full hosted rerun remains the check for the original suite context.
+The verified Android 8 shard archive SHA-256 is
+69e188a176173ebd4f394e15b66fd88887ef8fda9e7471c758a331b6745c9e18.
 
 ## Temporary chat and project cancellation controls - 20 November 2026
 
