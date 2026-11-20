@@ -88,6 +88,20 @@ applies to model transfers. You can verify a complete saved file
 offline.
 [Network preference validation](VALIDATION.md#model-download-network-preference).
 
+### Keep a model download running while you leave
+
+In **Model downloads**, select **Download in background** on a
+reviewed item. Signal Grove shows a notification with progress and
+Pause. Tap the notification to open the downloads list. This option
+unloads any loaded phone model. If the app asks for notifications,
+open Android notification settings, enable the model download
+channel, then choose the download again.
+
+Choose **Start download** or **Resume download** to keep it tied
+to the On-device AI screen. If Android stops a background transfer,
+return to the list to resume its saved bytes yourself.
+[Background transfer validation](VALIDATION.md#opt-in-model-downloads-while-away-from-the-app).
+
 ## Choose settings for a phone model
 
 In a development build, open **On-device AI → Phone models → Model settings**

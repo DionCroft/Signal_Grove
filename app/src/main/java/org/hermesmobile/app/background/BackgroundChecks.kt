@@ -36,7 +36,14 @@ object BackgroundChecks {
     }
     fun schedule(context: Context,p: AppPreferences) {
         val manager=WorkManager.getInstance(context)
-        if(!p.notifications) {manager.cancelAllWorkByTag(TAG);NotificationManagerCompat.from(context).cancelAll();return}
+        if (!p.notifications) {
+            manager.cancelAllWorkByTag(TAG)
+            val notifications = context.getSystemService(NotificationManager::class.java)
+            notifications.activeNotifications.filter { it.notification.channelId == CHANNEL }.forEach {
+                notifications.cancel(it.tag, it.id)
+            }
+            return
+        }
         channel(context,p)
         manager.enqueueUniquePeriodicWork(TAG,ExistingPeriodicWorkPolicy.UPDATE,PeriodicWorkRequestBuilder<ReminderWorker>(15,TimeUnit.MINUTES).addTag(TAG).build())
     }

@@ -173,9 +173,14 @@ unmetered Android network. A restricted request stops if its network
 changes or loses the capability. Saved bytes require an explicit resume.
 [Network checks](VALIDATION.md#model-download-network-preference).
 
-Opt-in foreground-service transfers and their visible progress and
-cancellation remain open. Model updates still need explicit
-review of the replacement revision and extra storage. Physical interruption,
+Reviewed items can opt into a foreground service with notification
+progress and Pause. The transfer waits for Android to promote the
+service and keeps the existing verification and network policy.
+[Service checks](VALIDATION.md#opt-in-model-downloads-while-away-from-the-app).
+
+Real publisher transfers, Android service timeout and notification
+revocation remain open. Model updates still need explicit review
+of the replacement revision and extra storage. Physical interruption,
 network handoff, low-space and reboot verification remain open.
 
 Acceptance: downloading/backgrounding never starts inference. Cancel, sleep,

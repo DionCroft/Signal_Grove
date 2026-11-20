@@ -100,6 +100,92 @@ class LocalAiControllerTest {
         assertTrue(driver.requests.isEmpty())
     }
 
+    @Test fun backgroundTransferWaitsForNotificationThenSurvivesLeavingAndPausesOnlyItsLease() = runTest {
+        val root = temp.newFolder()
+        val installed = model(root)
+        val qwen = CuratedPhoneModel.QWEN
+        val partial = File(root, "${qwen.sha256}.part").apply { writeText("saved prefix") }
+        val baseline = partial.readBytes()
+        val engine = Engine()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        var requests = 0
+        val controller = LocalAiController(root, temp.newFolder(), "unused", true, { Long.MAX_VALUE },
+            UpdateWorkGuard(), dispatcher, dispatcher, prepareDownloadRoute = {
+                requests++
+                awaitCancellation()
+            }) { engine }
+        advanceUntilIdle()
+        assertNull(controller.requestBackgroundDownload(qwen))
+        controller.enqueueDownload(qwen, licenceReviewed = true)
+        advanceUntilIdle()
+        controller.load(installed)
+        advanceUntilIdle()
+        assertEquals(installed, controller.state.value.loaded)
+
+        val lease = checkNotNull(controller.requestBackgroundDownload(qwen))
+        runCurrent()
+        assertEquals(lease, controller.state.value.backgroundDownloadId)
+        assertNull(controller.state.value.loaded)
+        assertNull(controller.requestBackgroundDownload(qwen))
+        assertFalse(controller.onDownloadServicePromoted("stale"))
+        controller.leave()
+        runCurrent()
+        assertTrue(controller.state.value.busy)
+        assertEquals(0, requests)
+
+        assertTrue(controller.onDownloadServicePromoted(lease))
+        assertFalse(controller.onDownloadServicePromoted(lease))
+        runCurrent()
+        assertEquals(1, requests)
+        controller.stopBackgroundDownload("stale", force = true)
+        runCurrent()
+        assertTrue(controller.state.value.busy)
+        controller.stopBackgroundDownload(lease)
+        advanceUntilIdle()
+        assertFalse(controller.state.value.busy)
+        assertNull(controller.state.value.backgroundDownloadId)
+        assertEquals(listOf(qwen), controller.state.value.queuedDownloads)
+        assertArrayEquals(baseline, partial.readBytes())
+        assertEquals(1, engine.loads)
+        assertTrue(engine.requests.isEmpty())
+        assertEquals(1, requests)
+    }
+
+    @Test fun refusedOrExpiredNotificationLeaseKeepsQueueWithoutStartingWork() = runTest {
+        val root = temp.newFolder()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        var requests = 0
+        val controller = LocalAiController(root, temp.newFolder(), "unused", true, { Long.MAX_VALUE },
+            UpdateWorkGuard(), dispatcher, dispatcher, prepareDownloadRoute = { requests++; error("Unexpected route") }) { Engine() }
+        advanceUntilIdle()
+        val qwen = CuratedPhoneModel.QWEN
+        controller.enqueueDownload(qwen, licenceReviewed = true)
+        advanceUntilIdle()
+        val refused = checkNotNull(controller.requestBackgroundDownload(qwen))
+        runCurrent()
+        controller.onDownloadServiceUnavailable("stale")
+        runCurrent()
+        assertTrue(controller.state.value.busy)
+        controller.onDownloadServiceUnavailable(refused)
+        advanceUntilIdle()
+        assertEquals("download_background_unavailable", controller.state.value.error)
+        assertFalse(controller.onDownloadServicePromoted(refused))
+
+        val expires = checkNotNull(controller.requestBackgroundDownload(qwen))
+        runCurrent()
+        controller.stopBackgroundDownload(refused, force = true)
+        runCurrent()
+        assertEquals(expires, controller.state.value.backgroundDownloadId)
+        advanceTimeBy(8_001)
+        runCurrent()
+        assertEquals("download_background_unavailable", controller.state.value.error)
+        assertFalse(controller.onDownloadServicePromoted(expires))
+        assertNull(controller.state.value.backgroundDownloadId)
+        assertFalse(controller.state.value.busy)
+        assertEquals(listOf(qwen), controller.state.value.queuedDownloads)
+        assertEquals(0, requests)
+    }
+
     @Test fun reviewedDownloadsPersistInOrderAndDiscardOnlyTheSelectedEntry() = runTest {
         val root = temp.newFolder()
         val history = temp.newFolder()

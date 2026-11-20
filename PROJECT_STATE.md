@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest background model transfer checkpoint
+
+A reviewed model can download with a foreground notification after
+an explicit tap. The service keeps the existing network preference
+and saved partials. The debug pair passed 1,167 JVM tests and 100
+focused tests per API with zero lint errors. Continue OF-06 with
+reviewed updates and the remaining service and physical-phone checks.
+Hermes integration and final-source release gates remain active.
+[Service evidence](docs/VALIDATION.md#opt-in-model-downloads-while-away-from-the-app).
+
 ## Latest model download network checkpoint
 
 The download queue offers a saved unmetered-only option. The bound

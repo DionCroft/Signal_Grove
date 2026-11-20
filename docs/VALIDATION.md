@@ -1,5 +1,52 @@
 # Current development validation — audit follow-up
 
+## Opt-in model downloads while away from the app
+
+A reviewed queue item offers a separate **Download in background**
+action. This starts an Android data-sync foreground service for
+the exact attempt. The downloader waits for service promotion with
+a visible notification. Going to Home leaves that attempt running.
+An old notification cannot pause another attempt. The notification
+opens the downloads list and offers Pause while safe to stop.
+
+The action releases loaded inference weights and inherits the
+saved network preference, existing partial file, full hash and
+atomic publication path. Closing the ordinary download screen
+keeps the original activity-scoped behavior. Notification refusal
+and an expired service acknowledgement retain the item. The
+service uses a non-sticky launch and its attempt identity lives
+only in the current process.
+
+The frozen build passed 1,167 JVM tests and both lint variants
+with zero errors. Android 8 and Android 17 each passed 100
+focused device methods. The added JVM checks cover waiting for
+promotion, leaving the activity, refusing stale actions, preserving
+the saved prefix and expiry without a network request. The
+Android UI test and focused emulator suite verify the reviewed
+entry and independent notification-settings route.
+
+On the owned Android 8 emulator, the regular app displayed an active
+model download notification. The service survived the Home button
+while a loopback fixture held its one CONNECT attempt. Tapping the
+notification opened the active download. The real Pause
+button closed the socket. After a process restart the same reviewed
+item was waiting. The test removed its own queue entry, compared
+5 unchanged model and chat files, and restored the emulator proxy.
+The fixture sent no model bytes.
+
+Physical-phone testing, an Android 15 or newer timeout/permission
+revocation trial, and an end-to-end publisher transfer with this
+service remain open.
+
+- Frozen source digest: 97f9d821b23f2bd77c720c01516b88e13814fd3fd0fd5d6f104f03e125daf26c
+- Debug APK SHA-256: 2ca5324c51430eb86efd3b2900e4bed972d33ffd58ee03f0254cba2cd7cc6a62
+- Debug test APK SHA-256: cc083cc6dec0734ee9935a8fe8db0e6ee364c38acd92704575c905880aed37eb
+- API 26 native evidence SHA-256: a6b5aa5a85aeb59ca776ecedeb18fd7c464fb5d076fe11f6078182b55ab29810
+- API 37 native evidence SHA-256: c0bac2b55e8c3d4532a2d9cf79ea3bfb200c5f9c84732abd7235388a8470d4c2
+
+[Android foreground service requirements](https://developer.android.com/develop/background-work/services/fgs/launch) ·
+[Data sync timeout behavior](https://developer.android.com/develop/background-work/services/fgs/timeout).
+
 ## Model download network preference
 
 The private model download client can use any network or restrict

@@ -31,6 +31,8 @@ class LocalAiFlowTest {
     private val queued = mutableListOf<CuratedPhoneModel>()
     private val resumed = mutableListOf<CuratedPhoneModel>()
     private var pauses = 0
+    private val backgroundAttempts = mutableListOf<CuratedPhoneModel>()
+    private var notificationsOpened = 0
     private var imports = 0; private var sends = 0; private var stops = 0
     private var newChats = 0
     private var pending by mutableStateOf(false)
@@ -42,7 +44,7 @@ class LocalAiFlowTest {
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
     private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false, queue: Boolean = false,
-        networkStore: PreferenceStore? = null) {
+        networkStore: PreferenceStore? = null, background: Boolean = false) {
         val actions = LocalAiActions({sends++}, {
                 stops++
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
@@ -66,7 +68,12 @@ class LocalAiFlowTest {
                     val active = checkNotNull(state.activeDownload)
                     state = state.copy(activeDownload = null, busy = false, status = "idle", transfer = null,
                         downloadPartials = state.downloadPartials + (active to 512L))
-                }
+                },
+                background = if (background) { option ->
+                    backgroundAttempts.add(option)
+                    state = state.copy(error = "download_background_notifications")
+                } else null,
+                notificationSettings = if (background) { { notificationsOpened++ } } else null
             ) else null)
         compose.setContent {
             val density = LocalDensity.current
@@ -239,6 +246,30 @@ class LocalAiFlowTest {
             assertEquals(512L, state.partialBytes(qwen))
             assertTrue(requestedLoads.isEmpty())
             assertEquals(0, sends)
+        }
+    }
+
+    @Test fun backgroundChoiceIsPerReviewedItemAndNotificationSettingsDoNotStartIt() {
+        val qwen = CuratedPhoneModel.QWEN
+        val lfm = CuratedPhoneModel.LFM3
+        state = state.copy(queuedDownloads = listOf(qwen), downloadPartials = mapOf(lfm to 512L))
+        show(queue = true, background = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        compose.onNodeWithTag("phone-downloads-open").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-transfer-background-LFM3").assertDoesNotExist()
+        val chosen = compose.onNodeWithTag("phone-transfer-background-QWEN")
+        chosen.performScrollTo().assertIsEnabled()
+        compose.runOnIdle { assertTrue(backgroundAttempts.isEmpty()) }
+        chosen.performClick()
+        compose.onNodeWithText(Words.PhoneDownloadBackgroundNotifications.en).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-transfer-notification-settings").performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(listOf(qwen), backgroundAttempts)
+            assertEquals(1, notificationsOpened)
+            assertTrue(downloads.isEmpty())
+            assertTrue(resumed.isEmpty())
+            assertTrue(requestedLoads.isEmpty())
+            assertEquals(listOf(qwen), state.queuedDownloads)
         }
     }
 

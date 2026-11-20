@@ -71,7 +71,9 @@ import org.hermesmobile.app.local.*
 data class PhoneDownloadActions(
     val enqueue: (CuratedPhoneModel) -> Unit,
     val resume: (CuratedPhoneModel) -> Unit,
-    val pause: () -> Unit
+    val pause: () -> Unit,
+    val background: ((CuratedPhoneModel) -> Unit)? = null,
+    val notificationSettings: (() -> Unit)? = null
 )
 
 data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newChat: () -> Unit,
@@ -101,7 +103,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     close: () -> Unit,
     openHermes: (() -> Unit)? = null,
     startupSetting: (@Composable () -> Unit)? = null,
-    downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null
+    downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null,
+    backgroundDownload: ((CuratedPhoneModel) -> Unit)? = null,
+    downloadNotificationSettings: (() -> Unit)? = null,
+    requestedDownloads: Boolean = false,
+    downloadsOpened: () -> Unit = {}
 ) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
@@ -127,8 +133,9 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             previewSelectedPrompt = c::previewSelectedPrompt, continueWithSummary = vm::continueWithReviewedSummary,
             draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt,
             saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark,
-            downloads = PhoneDownloadActions({ c.enqueueDownload(it, licenceReviewed = true) }, c::resumeDownload, c::pauseDownload)),
-        close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings)
+            downloads = PhoneDownloadActions({ c.enqueueDownload(it, licenceReviewed = true) }, c::resumeDownload, c::pauseDownload,
+                backgroundDownload, downloadNotificationSettings)),
+        close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -137,7 +144,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 @Composable fun LocalAiScreen(state: LocalAiState, supported: Boolean, draft: String, changeDraft: (String) -> Unit,
     pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null,
     handoffState: String = "", openHermes: (() -> Unit)? = null, startupSetting: (@Composable () -> Unit)? = null,
-    downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null) {
+    downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null,
+    requestedDownloads: Boolean = false, downloadsOpened: () -> Unit = {}) {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
@@ -241,6 +249,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         }
     }
     val downloadActions = actions.downloads
+    LaunchedEffect(requestedDownloads) {
+        if (requestedDownloads && downloadActions != null) {
+            tab = 1
+            catalogueOpen = false
+            downloadsOpen = true
+            downloadsOpened()
+        }
+    }
     if (downloadsOpen && downloadReview == null && discardReview == null && !pendingImport && downloadActions != null) {
         PhoneDownloads(state, supported, downloadActions, { downloadReview = it }, { discardReview = it },
             actions.refresh, networkSettings = downloadNetworkSettings, close = { downloadsOpen = false })
@@ -566,6 +582,8 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     else -> Words.PhoneWorking
 }
 internal fun phoneError(code: String) = when {
+    code == "download_background_unavailable" -> Words.PhoneDownloadBackgroundUnavailable
+    code == "download_background_notifications" -> Words.PhoneDownloadBackgroundNotifications
     code == "download_unmetered_required" -> Words.PhoneDownloadUnmeteredRequired
     code == "download_network_changed" -> Words.PhoneDownloadNetworkChanged
     code == "download_network_proxy" -> Words.PhoneDownloadNetworkProxy

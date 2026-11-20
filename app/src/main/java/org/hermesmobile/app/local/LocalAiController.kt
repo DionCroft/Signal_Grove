@@ -2,6 +2,7 @@ package org.hermesmobile.app.local
 
 import java.io.File
 import java.io.InputStream
+import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +26,8 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val modelStorageAvailableBytes: Long? = null,
     val queuedDownloads: List<CuratedPhoneModel> = emptyList(),
     val activeDownload: CuratedPhoneModel? = null,
-    val downloadQueueUnavailable: Boolean = false) {
+    val downloadQueueUnavailable: Boolean = false,
+    val backgroundDownloadId: String? = null) {
     fun partialBytes(model: CuratedPhoneModel): Long = downloadPartials[model] ?: 0L
 }
 
@@ -54,6 +56,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     }
     private var engine: LocalInference? = null
     private var job: Job? = null
+    private var backgroundPermit: BackgroundPermit? = null
+
+    private data class BackgroundPermit(val id: String, val promoted: CompletableDeferred<Boolean> = CompletableDeferred())
     private var leaving = false
     private var restoreRecoveryNeeded = true
     private var recovered = false
@@ -162,8 +167,44 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         if (current.status == "downloading" && current.transfer?.phase != LocalTransferPhase.INSTALLING) job?.cancel()
     }
 
+    internal fun requestBackgroundDownload(model: CuratedPhoneModel): String? {
+        val current = mutable.value
+        if (!supported || current.busy || leaving || current.downloadQueueUnavailable ||
+            model !in current.queuedDownloads || current.models.any { it.sha256 == model.sha256 }) return null
+        val permit = BackgroundPermit(UUID.randomUUID().toString())
+        backgroundPermit = permit
+        action("downloading", model, permit.id) {
+            if (withTimeoutOrNull(8_000) { permit.promoted.await() } != true) {
+                throw LocalModelStorageException("download_background_unavailable")
+            }
+            transferModel(model) { downloadQueue.assertReviewed(model) }
+        }
+        return permit.id
+    }
+
+    internal fun onDownloadServicePromoted(id: String): Boolean =
+        backgroundPermit?.takeIf { it.id == id }?.promoted?.complete(true) == true
+
+    internal fun onDownloadServiceUnavailable(id: String) {
+        backgroundPermit?.takeIf { it.id == id }?.promoted?.complete(false)
+    }
+
+    internal fun backgroundNotificationRequired() {
+        if (!mutable.value.busy) mutable.update { it.copy(error = "download_background_notifications") }
+    }
+
+    internal fun stopBackgroundDownload(id: String, force: Boolean = false) {
+        if (mutable.value.backgroundDownloadId == id) {
+            if (force) job?.cancel() else pauseDownload()
+        }
+    }
+
     private fun beginDownload(model: CuratedPhoneModel, authorize: () -> Unit) = action("downloading", model) {
         check(supported)
+        transferModel(model, authorize)
+    }
+
+    private suspend fun transferModel(model: CuratedPhoneModel, authorize: () -> Unit) {
         io { authorize() }
         downloads.getValue(model).download(true) { value -> mutable.update { it.copy(transfer = value) } }
         refresh()
@@ -520,9 +561,13 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
     }
 
-    /** Leaving the UI cancels work and releases weights; it never submits a replacement request. */
+    /** Leaving the UI releases weights and preserves an explicitly started background transfer. */
     fun leave() {
         if (leaving) return
+        if (mutable.value.backgroundDownloadId != null) {
+            mutable.update { it.copy(helper = null) }
+            return
+        }
         leaving = true; guard.set(owner, true)
         mutable.update { it.copy(busy = true, status = "unloading") }; cancel()
         scope.launch {
@@ -536,13 +581,17 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
     }
 
-    private fun action(status: String, activeDownload: CuratedPhoneModel? = null, block: suspend () -> Unit) {
+    private fun action(status: String, activeDownload: CuratedPhoneModel? = null,
+        backgroundDownloadId: String? = null, block: suspend () -> Unit) {
         if (mutable.value.busy || leaving) return
-        mutable.update { it.copy(busy = true, status = status, error = null, transfer = null, activeDownload = activeDownload) }
+        mutable.update { it.copy(busy = true, status = status, error = null, transfer = null,
+            activeDownload = activeDownload, backgroundDownloadId = backgroundDownloadId) }
         guard.set(owner, true)
         val next = scope.launch(start = CoroutineStart.LAZY) {
             lock.withLock {
                 try {
+                    // An authorized background transfer still releases old inference weights.
+                    if (backgroundDownloadId != null && mutable.value.loaded != null) unloadModel()
                     ensureHistoryReady()
                     block()
                 }
@@ -572,8 +621,10 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
         job = next
         next.invokeOnCompletion {
+            if (backgroundPermit?.id == backgroundDownloadId) backgroundPermit = null
             if (!leaving) {
-                mutable.update { it.copy(busy = false, status = "idle", transfer = null, activeDownload = null) }
+                mutable.update { it.copy(busy = false, status = "idle", transfer = null,
+                    activeDownload = null, backgroundDownloadId = null) }
                 guard.set(owner, false)
             }
         }

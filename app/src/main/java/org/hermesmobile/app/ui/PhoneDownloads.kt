@@ -47,6 +47,9 @@ internal fun PhoneDownloads(
                         }
                     }
                     Text(label(Words.PhoneDownloadQueueHelp), style = MaterialTheme.typography.bodySmall)
+                    if (actions.background != null && state.queuedDownloads.isNotEmpty()) {
+                        Text(label(Words.PhoneDownloadBackgroundInfo), style = MaterialTheme.typography.bodySmall)
+                    }
                     if (!supported) Text(label(Words.PhoneUnsupported), style = MaterialTheme.typography.bodySmall)
                     if (state.downloadQueueUnavailable) {
                         Text(label(Words.PhoneDownloadQueueUnavailable), color = MaterialTheme.colorScheme.error)
@@ -56,6 +59,11 @@ internal fun PhoneDownloads(
                     }
                     state.error?.takeUnless { state.downloadQueueUnavailable && it == "download_queue_unreadable" }?.let { code ->
                         Text(label(phoneError(code)), color = MaterialTheme.colorScheme.error)
+                    }
+                    if (state.error == "download_background_notifications") actions.notificationSettings?.let { open ->
+                        TextButton(open, Modifier.testTag("phone-transfer-notification-settings")) {
+                            Text(label(Words.PhoneDownloadNotificationSettings))
+                        }
                     }
                     for (model in models) {
                         val reviewed = model in state.queuedDownloads
@@ -70,6 +78,9 @@ internal fun PhoneDownloads(
                                 Modifier.testTag("phone-transfer-bytes-${model.name}"))
                             if (active == model) {
                                 val phase = transfer?.phase
+                                if (state.backgroundDownloadId != null) {
+                                    Text(label(Words.PhoneDownloadBackgroundRunning), style = MaterialTheme.typography.bodySmall)
+                                }
                                 Text(label(if (state.status == "unloading") Words.PhoneUnloading else phoneDownloadPhase(phase)))
                                 transfer?.let {
                                     LinearProgressIndicator(progress = { (it.bytes.toDouble() / it.total).toFloat().coerceIn(0f, 1f) },
@@ -91,6 +102,11 @@ internal fun PhoneDownloads(
                                         saved > 0 -> Words.PhoneDownloadResume
                                         else -> Words.PhoneDownloadStart
                                     }))
+                                }
+                                if (reviewed && saved < model.bytes && model !in installed) actions.background?.let { start ->
+                                    TextButton({ start(model) }, Modifier.testTag("phone-transfer-background-${model.name}"), enabled = canStart) {
+                                        Text(label(Words.PhoneDownloadBackground))
+                                    }
                                 }
                                 TextButton({ discard(model) }, enabled = !state.busy && !state.downloadQueueUnavailable,
                                     modifier = Modifier.testTag("phone-transfer-discard-${model.name}")) {
