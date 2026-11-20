@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py']
+    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py', 'scripts/hermes_persistence_compatibility.py', 'scripts/canonical_shutdown_gate.py']
   pull_request:
-    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py']
+    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py', 'scripts/hermes_persistence_compatibility.py', 'scripts/canonical_shutdown_gate.py']
 permissions:
   contents: read
 concurrency:
@@ -80,5 +80,69 @@ jobs:
         with:
           name: pristine-linux-canonical-plugin-rpc
           path: ${{ runner.temp }}/canonical-plugin-rpc
+          if-no-files-found: error
+          retention-days: 30
+
+  public-linux-persistence:
+    strategy:
+      fail-fast: false
+      matrix:
+        source_commit: [caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: client
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: NousResearch/hermes-agent
+          ref: ${{ matrix.source_commit }}
+          path: sdk
+          persist-credentials: false
+      - name: Verify exact public SDK before provisioning
+        env:
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
+        run: |
+          test ! -e sdk/.git/info/attributes
+          printf '%s\n' '*.ps1 -text' > sdk/.git/info/attributes
+          python3 -I -B - <<'PY'
+          from pathlib import Path
+          import subprocess
+          for raw in subprocess.check_output(['git','-C','sdk','ls-files','-z','*.ps1']).split(b'\0'):
+              if raw:
+                  name=raw.decode('utf8')
+                  (Path('sdk')/name).write_bytes(subprocess.check_output(['git','-C','sdk','show','HEAD:'+name]))
+          PY
+          python3 -I -B client/scripts/canonical_shutdown_gate.py prepare \
+            --source sdk --evidence "$RUNNER_TEMP/persistence" --variant pristine --source-commit "$SOURCE_COMMIT"
+      - name: Build the supported PM side test environment
+        id: pm
+        uses: ./sdk/.github/actions/setup-pm
+        with:
+          toolchain: python
+          extras: '["all"]'
+          test-environment: 'true'
+          archive-inputs: 'false'
+          cache: 'false'
+          cache-python: 'false'
+          cache-node: 'false'
+      - name: Run one unchanged, source-bound persistence cohort
+        env:
+          PM_PYTHON: ${{ steps.pm.outputs.python-path }}
+        run: |
+          python3 -I -B client/scripts/hermes_persistence_compatibility.py \
+            --source sdk --evidence "$RUNNER_TEMP/persistence" --python "$PM_PYTHON"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: public-linux-persistence-${{ matrix.source_commit }}
+          path: |
+            ${{ runner.temp }}/persistence/before.json
+            ${{ runner.temp }}/persistence/base-map.json
+            ${{ runner.temp }}/persistence/persistence-*.json
+            ${{ runner.temp }}/persistence/persistence.xml
+            ${{ runner.temp }}/persistence/persistence.log
           if-no-files-found: error
           retention-days: 30
