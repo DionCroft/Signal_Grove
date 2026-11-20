@@ -100,7 +100,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     vm: LocalAiViewModel,
     close: () -> Unit,
     openHermes: (() -> Unit)? = null,
-    startupSetting: (@Composable () -> Unit)? = null
+    startupSetting: (@Composable () -> Unit)? = null,
+    downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null
 ) {
     val state by vm.controller.state.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
@@ -127,7 +128,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt,
             saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark,
             downloads = PhoneDownloadActions({ c.enqueueDownload(it, licenceReviewed = true) }, c::resumeDownload, c::pauseDownload)),
-        close, observations, handoff, openHermes, startupSetting)
+        close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -135,7 +136,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
 /** UI consumes only local state and callbacks. It has no Hermes client or profile credentials. */
 @Composable fun LocalAiScreen(state: LocalAiState, supported: Boolean, draft: String, changeDraft: (String) -> Unit,
     pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null,
-    handoffState: String = "", openHermes: (() -> Unit)? = null, startupSetting: (@Composable () -> Unit)? = null) {
+    handoffState: String = "", openHermes: (() -> Unit)? = null, startupSetting: (@Composable () -> Unit)? = null,
+    downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null) {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
@@ -241,7 +243,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val downloadActions = actions.downloads
     if (downloadsOpen && downloadReview == null && discardReview == null && !pendingImport && downloadActions != null) {
         PhoneDownloads(state, supported, downloadActions, { downloadReview = it }, { discardReview = it },
-            actions.refresh, close = { downloadsOpen = false })
+            actions.refresh, networkSettings = downloadNetworkSettings, close = { downloadsOpen = false })
     }
     if (pendingImport) {
         PhoneLicence(label(Words.PhoneImportLicence), state.busy, actions.acceptImport, actions.cancelImport)
@@ -564,6 +566,10 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     else -> Words.PhoneWorking
 }
 internal fun phoneError(code: String) = when {
+    code == "download_unmetered_required" -> Words.PhoneDownloadUnmeteredRequired
+    code == "download_network_changed" -> Words.PhoneDownloadNetworkChanged
+    code == "download_network_proxy" -> Words.PhoneDownloadNetworkProxy
+    code == "download_network_settings" -> Words.PhoneDownloadNetworkReadFailed
     code == "download_queue_unreadable" -> Words.PhoneDownloadQueueUnavailable
     code == "download_review_required" -> Words.PhoneDownloadNeedsReview
     code in setOf("download_resume_unsupported", "download_range") -> Words.PhoneDownloadRangeError

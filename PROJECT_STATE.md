@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest model download network checkpoint
+
+The download queue offers a saved unmetered-only option. The bound
+request stops when the selected network changes and keeps its saved
+bytes for an explicit resume. The debug pair passed 1,165 JVM and
+99 focused methods per emulator API with zero lint errors. Continue
+OF-06 with supported foreground transfers and reviewed model
+updates while retaining physical, Hermes and final-source release gates.
+[Network evidence](docs/VALIDATION.md#model-download-network-preference).
+
 ## Latest model download checkpoint
 
 The development app has a private ordered queue for reviewed catalogue

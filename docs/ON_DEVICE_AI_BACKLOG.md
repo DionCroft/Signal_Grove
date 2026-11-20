@@ -168,8 +168,13 @@ order and shows exact bytes and phase. Start, pause, resume, and discard
 are explicit. Earlier partials retain their data and require a current review.
 [Queue checks](VALIDATION.md#reviewed-download-queue-and-explicit-resume).
 
-Network preferences, opt-in foreground-service transfers and their visible
-progress and cancellation remain open. Model updates still need explicit
+The model download preference supports any network or the current
+unmetered Android network. A restricted request stops if its network
+changes or loses the capability. Saved bytes require an explicit resume.
+[Network checks](VALIDATION.md#model-download-network-preference).
+
+Opt-in foreground-service transfers and their visible progress and
+cancellation remain open. Model updates still need explicit
 review of the replacement revision and extra storage. Physical interruption,
 network handoff, low-space and reboot verification remain open.
 

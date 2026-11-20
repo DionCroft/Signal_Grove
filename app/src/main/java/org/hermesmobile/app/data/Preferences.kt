@@ -41,6 +41,13 @@ class PreferenceStore(context: Context) {
         store.edit { it[openPhoneAtLaunch] = enabled }
     }
 
+    private val unmeteredModelDownloads = booleanPreferencesKey("unmetered_model_downloads")
+    internal val phoneDownloadUnmetered = store.data.map { it[unmeteredModelDownloads] ?: false }.distinctUntilChanged()
+
+    internal suspend fun setPhoneDownloadUnmetered(enabled: Boolean) {
+        store.edit { it[unmeteredModelDownloads] = enabled }
+    }
+
     val flow = store.data.map { p -> AppPreferences(p[theme] ?: "STARHAVEN", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f),p[notify] ?: false,p[monitor] ?: false,p[automation].orEmpty(),p[runtimes] ?: "{}") }.distinctUntilChanged()
     suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp;it[localSpeech]=p.onDeviceSpeechOnly;it[networkSpeech]=p.allowNetworkSpeech;it[rate]=p.speechRate.coerceIn(.75f,1.25f);it[notify]=p.notifications;it[monitor]=p.monitorRuns;it[automation]=p.automationScope } }
     suspend fun patchUserSettings(next: AppPreferences,base: AppPreferences) {store.edit {p ->

@@ -1,5 +1,46 @@
 # Current development validation — audit follow-up
 
+## Model download network preference
+
+The private model download client can use any network or restrict
+requests to Android's current unmetered network. Any network is the
+default. Unmetered only checks the default network's capabilities
+before external I/O. The restricted client binds DNS and sockets
+to that network and uses an isolated connection pool. If the
+default network changes or loses eligibility, the callback cancels
+the current call and the downloader preserves the written prefix.
+The app never submits a new request from the callback. A saved file
+that already has every byte can be verified offline. A preference
+read failure stops the request.
+
+The frozen build passed 1,165 JVM tests and both lint variants with
+zero errors. Android 8 and Android 17 each passed 99 focused device
+methods. JVM fixtures cover denied fresh and resumed requests,
+invalidation followed by an explicit exact Range request, and
+offline verification of a complete partial. Android tests cover
+saving the choice without starting a download, the platform
+classification and bound client, and a failed preference read.
+
+The owned Android 17 emulator was checked with an explicit metered
+override. Its actual default network lost the unmetered capability.
+The adapter rejected that route. The original Wi-Fi metering
+setting and unmetered capability were restored. The first shell and
+immediate-transition observations were retained. The successful run
+used the settled network state after changing the setting in Android.
+Metered-device test log SHA-256 f173639d0e5b4028c226c48be9dec50e096fefd29baf354503949c3a199e4c79.
+
+Physical network handoff, a real publisher transfer on this build,
+and opt-in background transfer acceptance remain open.
+
+- Frozen source digest: af8c82354e3db04fc877fb7efeacf3c72f47ba95cd5b53a04031d1c772828d0d
+- Debug APK SHA-256: e8e390dc7cad3347e7f617678555839d0f17ae82161a0b0e40be192a1d962e28
+- Debug test APK SHA-256: 03e1b1368eef758c58b95f4b29259cee0aee1f621a4b2b1289926356fe8c90f4
+- API 26 native evidence SHA-256: e500934f3eceebcd7bef3c6b5dc83432fb95a2a288c9d70421307cc253983b2b
+- API 37 native evidence SHA-256: 2392a6b5412eab63815a1d19fdcea14adc4f34e4f25f05a9fb4ec0298a43acf7
+
+[Android network binding](https://developer.android.com/reference/android/net/Network#getSocketFactory()) ·
+[Android network capabilities](https://developer.android.com/reference/android/net/NetworkCapabilities#NET_CAPABILITY_NOT_METERED).
+
 ## Reviewed download queue and explicit resume
 
 A catalogue licence review can start the download immediately or

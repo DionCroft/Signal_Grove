@@ -1,11 +1,13 @@
 package org.hermesmobile.app
 
 import android.app.Application
+import android.net.ConnectivityManager
 import androidx.room.Room
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.hermesmobile.app.background.*
 import org.hermesmobile.app.data.*
+import org.hermesmobile.app.local.AndroidModelDownloadNetwork
 
 class HermesApplication : Application() {
     private val appScope=CoroutineScope(SupervisorJob()+Dispatchers.IO)
@@ -19,12 +21,16 @@ class HermesApplication : Application() {
     val phoneDrafts=org.hermesmobile.app.local.PhoneDraftHandoff()
     val updateWorkGuard=org.hermesmobile.app.updates.UpdateWorkGuard()
     val localAi by lazy {
+        val network = AndroidModelDownloadNetwork(checkNotNull(getSystemService(ConnectivityManager::class.java))) {
+            preferences.phoneDownloadUnmetered.first()
+        }
         org.hermesmobile.app.local.LocalAiController(
             java.io.File(noBackupFilesDir,"local-ai/models"),java.io.File(noBackupFilesDir,"local-ai/chats"),
             applicationInfo.nativeLibraryDir,android.os.Process.is64Bit(),
             {android.app.ActivityManager.MemoryInfo().also {getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it)}.availMem},
             updateWorkGuard,
-            readLoadPssKiB = { android.os.Debug.MemoryInfo().also { android.os.Debug.getMemoryInfo(it) }.totalPss })
+            readLoadPssKiB = { android.os.Debug.MemoryInfo().also { android.os.Debug.getMemoryInfo(it) }.totalPss },
+            prepareDownloadRoute = network::prepare)
     }
     val managementReady by lazy {appScope.async {database.dao().recoverManagementOperations()}}
     val database by lazy { Room.databaseBuilder(this,HermesDatabase::class.java,"hermes.db").addMigrations(*ALL_HERMES_MIGRATIONS).build() }

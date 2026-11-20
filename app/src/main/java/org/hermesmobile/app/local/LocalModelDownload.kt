@@ -20,12 +20,19 @@ internal data class ModelDownloadSpec(val url: HttpUrl, val bytes: Long, val sha
 enum class LocalTransferPhase { DOWNLOADING, VERIFYING, CHECKING, INSTALLING }
 data class LocalTransferProgress(val bytes: Long, val total: Long, val phase: LocalTransferPhase)
 
+class ModelDownloadRoute internal constructor(
+    internal val client: OkHttpClient,
+    internal val check: () -> Unit = {},
+    internal val watch: (() -> Unit) -> AutoCloseable = { AutoCloseable {} }
+)
+
 /** A separate, unauthenticated HTTPS client. Never reuse the Hermes client's headers or cookies. */
 internal class LocalModelDownload(private val store: LocalModelStore,
     private val client: OkHttpClient = OkHttpClient.Builder().retryOnConnectionFailure(false).followSslRedirects(false)
         .connectTimeout(30, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build(),
     private val spec: ModelDownloadSpec,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO) {
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val prepareRoute: suspend (OkHttpClient) -> ModelDownloadRoute = { ModelDownloadRoute(it) }) {
     private val mutex = Mutex()
     private fun partial() = store.owned("${spec.sha256}.part")
 
@@ -56,49 +63,57 @@ internal class LocalModelDownload(private val store: LocalModelStore,
             if (count < spec.bytes) {
                 val request = Request.Builder().url(spec.url).header("Accept-Encoding", "identity")
                     .apply { if (count > 0) header("Range", "bytes=$count-") }.build()
-                val call = client.newCall(request)
-                coroutineScope {
-                    // Only OkHttp's thread-safe cancel runs here; it must not queue behind
-                    // the blocking HTTP operation on a saturated I/O dispatcher.
-                    val watcher = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
-                        try { awaitCancellation() } finally { call.cancel() }
-                    }
-                    try {
-                        call.execute().use { response ->
-                            validateResponse(response.code, response.header("Content-Range"), count, spec.bytes)
-                            if (response.header("Content-Encoding")?.let { !it.equals("identity", true) } == true) throw LocalModelStorageException("download_encoding")
-                            val body = response.body ?: throw LocalModelStorageException("download_empty")
-                            if (body.contentLength() >= 0 && body.contentLength() != spec.bytes - count) throw LocalModelStorageException("download_size")
-                            FileOutputStream(file, count > 0).use { output -> body.byteStream().use { input ->
-                                val buffer = ByteArray(256 * 1024)
-                                var synced = count
-                                try {
-                                    while (true) {
-                                        checkpoint()
-                                        val n = input.read(buffer)
-                                        if (n < 0) break
-                                        if (n == 0) continue
-                                        if (n > spec.bytes - count) throw LocalModelStorageException("download_size")
-                                        store.ensureSpace(n.toLong())
-                                        output.write(buffer, 0, n)
-                                        count += n
-                                        if (count - synced >= 8L * 1024 * 1024) {
-                                            output.fd.sync()
-                                            synced = count
-                                        }
-                                        progress(LocalTransferProgress(count, spec.bytes, LocalTransferPhase.DOWNLOADING))
-                                    }
-                                } finally {
-                                    // An explicit pause or failed read leaves a durable prefix.
-                                    if (count != synced) output.fd.sync()
-                                }
-                            } }
+                val route = prepareRoute(client)
+                checkpoint()
+                val call = route.client.newCall(request)
+                route.watch(call::cancel).use {
+                    route.check()
+                    coroutineScope {
+                        // Only OkHttp's thread-safe cancel runs here; it must not queue behind
+                        // the blocking HTTP operation on a saturated I/O dispatcher.
+                        val watcher = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+                            try { awaitCancellation() } finally { call.cancel() }
                         }
-                    } catch (e: IOException) {
-                        // A cancelled blocking read can fail before the next coroutine checkpoint.
-                        checkpoint()
-                        throw e
-                    } finally { watcher.cancel() }
+                        try {
+                            call.execute().use { response ->
+                                validateResponse(response.code, response.header("Content-Range"), count, spec.bytes)
+                                if (response.header("Content-Encoding")?.let { !it.equals("identity", true) } == true) throw LocalModelStorageException("download_encoding")
+                                val body = response.body ?: throw LocalModelStorageException("download_empty")
+                                if (body.contentLength() >= 0 && body.contentLength() != spec.bytes - count) throw LocalModelStorageException("download_size")
+                                FileOutputStream(file, count > 0).use { output -> body.byteStream().use { input ->
+                                    val buffer = ByteArray(256 * 1024)
+                                    var synced = count
+                                    try {
+                                        while (true) {
+                                            checkpoint()
+                                            route.check()
+                                            val n = input.read(buffer)
+                                            route.check()
+                                            if (n < 0) break
+                                            if (n == 0) continue
+                                            if (n > spec.bytes - count) throw LocalModelStorageException("download_size")
+                                            store.ensureSpace(n.toLong())
+                                            output.write(buffer, 0, n)
+                                            count += n
+                                            if (count - synced >= 8L * 1024 * 1024) {
+                                                output.fd.sync()
+                                                synced = count
+                                            }
+                                            progress(LocalTransferProgress(count, spec.bytes, LocalTransferPhase.DOWNLOADING))
+                                        }
+                                    } finally {
+                                        // An explicit pause or failed read leaves a durable prefix.
+                                        if (count != synced) output.fd.sync()
+                                    }
+                                } }
+                            }
+                        } catch (e: IOException) {
+                            // A cancelled blocking read can fail before the next coroutine checkpoint.
+                            checkpoint()
+                            route.check()
+                            throw e
+                        } finally { watcher.cancel() }
+                    }
                 }
             }
             checkpoint()

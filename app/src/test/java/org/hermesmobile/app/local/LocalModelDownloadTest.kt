@@ -102,6 +102,83 @@ class LocalModelDownloadTest {
         assertTrue(cancelled); assertTrue(store.models().isEmpty()); assertTrue(downloader.partialBytes() in 1 until bytes.size.toLong())
         assertEquals(spec.sha256, downloader.download(true).sha256); assertEquals(2, requests)
     }
+    @Test fun ineligibleNetworkMakesNoRequestAndPreservesBothFreshAndResumedState() = runBlocking {
+        val bytes = fixture()
+        val spec = spec(bytes)
+        val root = temp.newFolder()
+        var requests = 0
+        var checks = 0
+        val http = client { requests++; response(it, bytes) }
+        val downloader = LocalModelDownload(store(root), http, spec, prepareRoute = {
+            checks++
+            throw LocalModelStorageException("download_unmetered_required")
+        })
+        val part = File(root, "${spec.sha256}.part")
+        for (prefix in listOf(byteArrayOf(), bytes.copyOf(512))) {
+            if (prefix.isNotEmpty()) part.writeBytes(prefix)
+            val error = runCatching { downloader.download(true) }.exceptionOrNull() as LocalModelStorageException
+            assertEquals("download_unmetered_required", error.reason)
+            if (prefix.isEmpty()) assertFalse(part.exists()) else assertArrayEquals(prefix, part.readBytes())
+        }
+        assertEquals(2, checks)
+        assertEquals(0, requests)
+        assertTrue(store(root).models().isEmpty())
+    }
+
+    @Test fun networkChangeStopsAtSavedBytesAndRequiresAnExplicitRangeRequest() = runBlocking {
+        val bytes = fixture()
+        val spec = spec(bytes)
+        val root = temp.newFolder()
+        val ranges = mutableListOf<String?>()
+        val http = client { request ->
+            val range = request.header("Range")
+            ranges.add(range)
+            val offset = range?.removePrefix("bytes=")?.removeSuffix("-")?.toInt() ?: 0
+            response(request, bytes.copyOfRange(offset, bytes.size), if (offset == 0) 200 else 206,
+                if (offset == 0) null else "bytes $offset-${bytes.size - 1}/${bytes.size}")
+        }
+        var invalidated = false
+        var watchesClosed = 0
+        var cancel: (() -> Unit)? = null
+        val downloader = LocalModelDownload(store(root), http, spec, prepareRoute = { base ->
+            ModelDownloadRoute(base, check = {
+                if (invalidated) throw LocalModelStorageException("download_network_changed")
+            }, watch = {
+                cancel = it
+                AutoCloseable { watchesClosed++; cancel = null }
+            })
+        })
+        val error = runCatching {
+            downloader.download(true) {
+                invalidated = true
+                checkNotNull(cancel).invoke()
+            }
+        }.exceptionOrNull() as LocalModelStorageException
+        assertEquals("download_network_changed", error.reason)
+        val saved = downloader.partialBytes().toInt()
+        assertTrue(saved in 1 until bytes.size)
+        assertArrayEquals(bytes.copyOf(saved), File(root, "${spec.sha256}.part").readBytes())
+        assertEquals(listOf<String?>(null), ranges)
+        assertEquals(1, watchesClosed)
+        assertNull(cancel)
+
+        invalidated = false
+        assertEquals(listOf<String?>(null), ranges)
+        assertEquals(spec.sha256, downloader.download(true).sha256)
+        assertEquals(listOf(null, "bytes=$saved-"), ranges)
+        assertEquals(2, watchesClosed)
+    }
+
+    @Test fun completeSavedFileCanBeVerifiedWithNoNetworkRoute() = runBlocking {
+        val bytes = fixture()
+        val spec = spec(bytes)
+        val root = temp.newFolder()
+        File(root, "${spec.sha256}.part").writeBytes(bytes)
+        val downloader = LocalModelDownload(store(root), spec = spec, prepareRoute = { error("Offline verification contacted the network") })
+        assertEquals(spec.sha256, downloader.download(true).sha256)
+        assertArrayEquals(bytes, store(root).verifiedFile(spec.sha256).readBytes())
+    }
+
     @Test fun licenceAndSpaceFailuresMakeNoRequest() = runBlocking {
         val bytes = fixture(); var requests = 0; val client = client { requests++; response(it, bytes) }
         val root = temp.newFolder(); val downloader = LocalModelDownload(LocalModelStore(root) { 0L }, client, spec(bytes))

@@ -77,6 +77,17 @@ Each transfer starts on an explicit action and each installed model
 needs its own load action.
 [Download validation](VALIDATION.md#reviewed-download-queue-and-explicit-resume).
 
+### Choose a network for model downloads
+
+In **Phone models → Model downloads → Download network**, choose
+**Any network** or **Unmetered only**. Any network is the default.
+For the second option, Android must report the current network as
+unmetered. If the network changes while downloading, Signal Grove
+keeps the saved bytes and waits for you to resume. The setting
+applies to model transfers. You can verify a complete saved file
+offline.
+[Network preference validation](VALIDATION.md#model-download-network-preference).
+
 ## Choose settings for a phone model
 
 In a development build, open **On-device AI → Phone models → Model settings**

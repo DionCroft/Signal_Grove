@@ -12,6 +12,7 @@ import org.hermesmobile.app.data.AppPreferences
 import org.hermesmobile.app.local.LocalAiViewModel
 import org.hermesmobile.app.ui.HermesAppTheme
 import org.hermesmobile.app.ui.LocalAiRoute
+import org.hermesmobile.app.ui.PhoneDownloadNetworkSettings
 import org.hermesmobile.app.ui.PhoneStartupSetting
 
 /** Private, explicit phone inference destination. No remote drafts or requests are imported. */
@@ -29,7 +30,8 @@ class LocalAiActivity : ComponentActivity() {
                     model,
                     close = ::finish,
                     openHermes = if (standalone) ::openHermes else null,
-                    startupSetting = { PhoneStartupSetting(store) }
+                    startupSetting = { PhoneStartupSetting(store) },
+                    downloadNetworkSettings = { close -> PhoneDownloadNetworkSettings(store, close) }
                 )
             }
         }

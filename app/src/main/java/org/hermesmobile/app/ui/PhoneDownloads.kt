@@ -4,7 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -22,8 +23,14 @@ internal fun PhoneDownloads(
     review: (CuratedPhoneModel) -> Unit,
     discard: (CuratedPhoneModel) -> Unit,
     refresh: () -> Unit,
+    networkSettings: (@Composable (() -> Unit) -> Unit)? = null,
     close: () -> Unit
 ) {
+    var showNetworks by rememberSaveable { mutableStateOf(false) }
+    if (showNetworks && networkSettings != null) {
+        networkSettings { showNetworks = false }
+        return
+    }
     val active = state.activeDownload
     val installed = CuratedPhoneModel.entries.filter { model -> state.models.any { it.sha256 == model.sha256 } }
     val models = (listOfNotNull(active) + state.queuedDownloads +
@@ -34,6 +41,11 @@ internal fun PhoneDownloads(
                 Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(label(Words.PhoneDownloads), style = MaterialTheme.typography.titleLarge)
+                    if (networkSettings != null) {
+                        TextButton({ showNetworks = true }, Modifier.testTag("phone-download-networks"), enabled = !state.busy) {
+                            Text(label(Words.PhoneDownloadNetworks))
+                        }
+                    }
                     Text(label(Words.PhoneDownloadQueueHelp), style = MaterialTheme.typography.bodySmall)
                     if (!supported) Text(label(Words.PhoneUnsupported), style = MaterialTheme.typography.bodySmall)
                     if (state.downloadQueueUnavailable) {

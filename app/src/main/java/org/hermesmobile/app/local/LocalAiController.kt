@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okhttp3.OkHttpClient
 import org.hermesmobile.app.updates.UpdateWorkGuard
 
 internal class LocalHistoryBackupBusyException : IllegalStateException()
@@ -33,6 +34,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     val supported: Boolean, private val freeMemory: () -> Long, private val guard: UpdateWorkGuard,
     dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate, private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val readLoadPssKiB: () -> Int? = { null },
+    prepareDownloadRoute: suspend (OkHttpClient) -> ModelDownloadRoute = { ModelDownloadRoute(it) },
     private val engineFactory: () -> LocalInference = { NativeLocalInference(modelRoot, nativeDirectory) }) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val lock = Mutex()
@@ -48,7 +50,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     )
     private val downloadQueue = LocalDownloadQueue(store)
     private val downloads = CuratedPhoneModel.entries.associateWith { model ->
-        LocalModelDownload(store, spec = model.spec, ioDispatcher = ioDispatcher)
+        LocalModelDownload(store, spec = model.spec, ioDispatcher = ioDispatcher, prepareRoute = prepareDownloadRoute)
     }
     private var engine: LocalInference? = null
     private var job: Job? = null

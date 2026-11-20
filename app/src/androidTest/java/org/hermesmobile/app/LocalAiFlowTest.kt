@@ -13,7 +13,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import java.io.File
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.hermesmobile.app.data.AppPreferences
+import org.hermesmobile.app.data.PreferenceStore
 import org.hermesmobile.app.local.*
 import org.hermesmobile.app.ui.*
 import org.junit.Assert.*
@@ -38,7 +41,8 @@ class LocalAiFlowTest {
     private val requestedLoads = mutableListOf<Pair<String, Int>>()
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
-    private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false, queue: Boolean = false) {
+    private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false, queue: Boolean = false,
+        networkStore: PreferenceStore? = null) {
         val actions = LocalAiActions({sends++}, {
                 stops++
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
@@ -69,7 +73,8 @@ class LocalAiFlowTest {
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
             HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
                 LocalAiScreen(state, supported, "Fresh local draft", {}, pending, actions, {},
-                    LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "")
+                    LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "",
+                    downloadNetworkSettings = networkStore?.let { store -> { close -> PhoneDownloadNetworkSettings(store, close) } })
             }
             }
         }
@@ -234,6 +239,41 @@ class LocalAiFlowTest {
             assertEquals(512L, state.partialBytes(qwen))
             assertTrue(requestedLoads.isEmpty())
             assertEquals(0, sends)
+        }
+    }
+
+    @Test fun networkChoicePersistsAndCannotStartTheReviewedQueue() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
+        val store = PreferenceStore(context)
+        val original = runBlocking { store.phoneDownloadUnmetered.first() }
+        try {
+            runBlocking { store.setPhoneDownloadUnmetered(false) }
+            state = state.copy(queuedDownloads = listOf(CuratedPhoneModel.QWEN))
+            show(bilingual = true, queue = true, networkStore = store)
+            compose.onNodeWithTag("phone-tab-1").performClick()
+            compose.onNodeWithTag("phone-downloads-open").performScrollTo().performClick()
+            val opens = compose.onNodeWithTag("phone-download-networks")
+            opens.performScrollTo().performClick()
+            compose.onNodeWithTag("phone-network-any").performScrollTo().assertIsSelected()
+            val restricted = compose.onNodeWithTag("phone-network-unmetered")
+            restricted.performScrollTo().assertIsNotSelected().performClick()
+            compose.waitUntil(10_000) {
+                compose.onAllNodes(hasTestTag("phone-network-unmetered") and isSelected()).fetchSemanticsNodes().size == 1
+            }
+            assertTrue(runBlocking { store.phoneDownloadUnmetered.first() })
+            compose.onNodeWithTag("phone-network-close").performClick()
+            opens.performScrollTo().performClick()
+            restricted.performScrollTo().assertIsSelected()
+            compose.onNodeWithTag("phone-network-close").performClick()
+            compose.runOnIdle {
+                assertTrue(downloads.isEmpty())
+                assertTrue(resumed.isEmpty())
+                assertEquals(listOf(CuratedPhoneModel.QWEN), state.queuedDownloads)
+                state = state.copy(busy = true, status = "downloading")
+            }
+            opens.performScrollTo().assertIsNotEnabled()
+        } finally {
+            runBlocking { store.setPhoneDownloadUnmetered(original) }
         }
     }
 
