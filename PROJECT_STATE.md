@@ -5,6 +5,14 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Native dependency release checkpoint
+
+Development pins the verified b12556 llama.cpp fix for CVE-2026-133710.
+The runtime-pin APK passed the Android 8 and 17 offline model checks.
+The published beta.9 still uses b12255. Physical ARM64 and final
+signed upgrade remain open.
+[Runtime-pin evidence](docs/VALIDATION.md#verified-llamacpp-b12556-development-runtime).
+
 ## Cold-start model stage cleanup
 
 The app reclaims incomplete manual import and replacement stages when

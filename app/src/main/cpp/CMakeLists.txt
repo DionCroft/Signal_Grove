@@ -40,8 +40,8 @@ endif()
 include(FetchContent)
 # A source archive, not an install script. All fetched/build files remain under the build directory.
 FetchContent_Declare(llama_source
-    URL https://codeload.github.com/ggml-org/llama.cpp/tar.gz/940a30ee3b5593e1a66fe0aadc3b731989022552
-    URL_HASH SHA256=9cac27a1d867fec8eda2c5b348ac5f0b3b22e70fc4af46d82c93b64ab3f83167
+    URL https://codeload.github.com/ggml-org/llama.cpp/tar.gz/50518b64c6f2191a116d2760042f106c4b3387d7
+    URL_HASH SHA256=df90368465d96bc7c5403afca4bafc8055608ad4499406f3870e784705644c08
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_MakeAvailable(llama_source)
 add_library(signal_grove_llm SHARED signal_grove_llm.cpp)

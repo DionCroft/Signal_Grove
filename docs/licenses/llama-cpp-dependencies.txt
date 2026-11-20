@@ -1,4 +1,4 @@
-llama.cpp and GGML, pinned commit 940a30ee3b5593e1a66fe0aadc3b731989022552
+llama.cpp and GGML, pinned commit 50518b64c6f2191a116d2760042f106c4b3387d7
 
 MIT License
 

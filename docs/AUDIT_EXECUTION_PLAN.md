@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Native runtime advisory remediation - 20 November 2026
+
+The published beta.9 inventory still lists b12255. Development source
+now uses the verified b12556 archive. It passed the runtime-pin
+build, native APK alignment, Android 8/17 offline Qwen and Android 17
+LFM3/Qwen switching and protected-file checks. Physical ARM64 and
+signed production upgrade remain open.
+[Runtime-pin evidence](VALIDATION.md#verified-llamacpp-b12556-development-runtime).
+
 ## Cold-start recovery of interrupted model copies - 20 November 2026
 
 The predecessor left the private import copy on disk after a fresh

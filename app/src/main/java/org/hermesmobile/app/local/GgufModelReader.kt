@@ -16,7 +16,7 @@ object GgufModelReader {
     const val MAX_MODEL_BYTES = 4L * 1024 * 1024 * 1024
     private const val HEADER_LIMIT = 32L * 1024 * 1024
     private val architectures = setOf("lfm3", "lfm2", "llama", "qwen2", "qwen3", "gemma", "gemma2", "gemma3")
-    // GGML block length / byte size at pinned llama.cpp b12255. Other types fail explicitly.
+    // GGML block length / byte size at pinned llama.cpp b12556. Other types fail explicitly.
     private val tensorTypes = mapOf(0 to (1 to 4), 1 to (1 to 2), 2 to (32 to 18), 3 to (32 to 20),
         6 to (32 to 22), 7 to (32 to 24), 8 to (32 to 34), 9 to (32 to 40),
         10 to (256 to 84), 11 to (256 to 110), 12 to (256 to 144), 13 to (256 to 176),

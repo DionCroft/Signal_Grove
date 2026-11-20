@@ -519,7 +519,9 @@ with Airplane mode enabled and Wi-Fi disabled. This is a feasibility result,
 not acceptance of an embedded Signal Grove feature or the remaining Hermes audit.
 The installed production application and its data were not changed by this probe.
 
-Provenance is pinned in [the manifest](on-device-ai-provenance.json). Model bytes
+The [provenance manifest](on-device-ai-provenance.json) records the standalone
+phone trial under the runtime entry and the app's current source pin under
+embeddedRuntime. Model bytes
 were checked against the official Hugging Face LFS SHA-256, and the Android CPU
 archive against the GitHub release asset's SHA-256. Every transferred native file
 and the model were hashed again on the phone before execution. Runtime identity

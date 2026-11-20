@@ -1,5 +1,48 @@
 # Current development validation — audit follow-up
 
+## Verified llama.cpp b12556 development runtime
+
+The public beta.9 runtime inventory lists the older b12255 commit. The
+development source now pins the publisher's b12556 fix for
+CVE-2026-133710. OSV reported zero matches for the exact replacement
+commit in the comparison below. The archive matched all 4,482 paths,
+modes and blob IDs in the publisher's verified commit tree. Both native
+targets fetched an archive with that digest. The enabled GGML tensor
+trait sizes and bundled licence files match the previous pin.
+
+The runtime-pin build passed 1,203 JVM tests and both lint variants
+with zero errors. The APK contained the ARM64 and x86-64 runtime and
+the two 32-bit compatibility shims. Its ZIP alignment check and each
+runtime ELF load segment's 16 KiB minimum alignment check passed.
+
+On the Android 8 and Android 17 emulators, the pinned Qwen2.5 model
+imported, generated text offline, and retained its history after
+unload and model removal. Android 17 also switched Qwen → LFM3 → Qwen
+and checked that history stayed bound to its original model hash.
+Both owned guests retained the checked package identities, protected
+files and original model fixtures. Android 8 required a Wi-Fi switch
+selection correction during restoration. The completed native case
+was reconciled from its original log and the original radio preference
+was restored without repeating generation.
+
+The tested APK predates the attribution and documentation updates
+that accompany the pin. Physical ARM64, production signing and the
+final in-place upgrade remain release gates.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Verified publisher archive | `df90368465d96bc7c5403afca4bafc8055608ad4499406f3870e784705644c08` |
+| Publisher tree comparison receipt | `f88611593e968740b5fbfc868d5d85fc7751350ab9cc90b8d82c83f147fd91ca` |
+| Pinned advisory comparison receipt | `65ceaff5b1cc80b3b2e24942cf1051e8aefcd440041ce86f3cd0e8a20bda8f53` |
+| Runtime-pin source snapshot | `b50d6db94fa0ff92615a7eb822c841adc7cff4796c084817666c85fed50d3a57` |
+| Runtime-pin debug APK | `561f70e4d9a1696396f5dd74766f3f69420aaccc36322413916783e1785a4d89` |
+| Native APK inventory receipt | `dd9a0f178225cafdd6281446f87524671a96a0abaeb5e31d6fb904320fd66a71` |
+| Android 8 native and restoration receipt | `76c09b4766bfb2de3e9efc172d7d5600f4c933201e5341a7e31a2a614bb8ca8c` |
+| Android 17 native and restoration receipt | `a9521e5b53943f212f9cc72c3550939802336c974cd92cddd1e8aa65bf85da97` |
+
+[Publisher release](https://github.com/ggml-org/llama.cpp/releases/tag/b12556) ·
+[OSV advisory](https://api.osv.dev/v1/vulns/CVE-2026-133710).
+
 ## Release runtime dependency review - 20 November 2026
 
 Gradle resolved 154 exact Maven versions from the development build's
