@@ -5,6 +5,17 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest phone model replacement checkpoint
+
+The development app can stage a user-selected GGUF and review both
+hashes and required space. Installation adds the candidate beside the
+previous model. An Android 17 offline normal-app picker trial tested
+cancel and exact publication alongside a verified LFM3 file. All
+1,170 JVM and 102 focused native tests per API passed with zero lint
+errors. Catalogue replacement and physical lifecycle checks remain
+open. The original Hermes and release gates remain active.
+[Replacement evidence](docs/VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
+
 ## Latest background model transfer checkpoint
 
 A reviewed model can download with a foreground notification after

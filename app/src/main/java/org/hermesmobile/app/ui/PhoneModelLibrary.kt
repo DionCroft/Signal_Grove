@@ -113,6 +113,12 @@ private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supporte
             Text(label(Words.PhoneModelContextTooSmall), style = MaterialTheme.typography.bodySmall)
         }
         if (state.loaded?.sha256 == model.sha256) TextButton(actions.unload, enabled = !state.busy) { Text(label(Words.PhoneUnload)) }
+        actions.replacements?.let { replacements ->
+            TextButton({ replacements.choose(model) }, enabled = supported && !state.busy,
+                modifier = Modifier.testTag("phone-replace-${model.sha256.take(8)}")) {
+                Text(label(Words.PhoneChooseReplacement))
+            }
+        }
         TextButton(remove, enabled = !state.busy) { Text(label(Words.Delete)) }
     }
     if (diagnosticsOpen && active != null && benchmark != null) {

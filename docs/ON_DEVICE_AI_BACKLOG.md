@@ -182,8 +182,11 @@ The Android 17 system timeout closed the transfer and kept the same
 reviewed item after relaunch. Revoking runtime notification permission
 also closed the attempt. Real publisher transfers, same-process channel
 changes, physical interruption, network handoff, low-space and reboot
-verification remain open. Model updates still need explicit review of
-the replacement revision and extra storage. Both publisher manifests
+verification remain open. User-selected GGUF replacements have an exact side-by-side
+review with a storage measurement and a separate install action.
+[Replacement checks](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
+Publisher catalogue updates still need an explicit review of the
+replacement revision and extra storage. Both publisher manifests
 still matched the packaged files by revision, size and SHA-256 on
 20 November 2026.
 [LiquidAI manifest](https://huggingface.co/api/models/LiquidAI/LFM3-1.7B-GGUF/tree/main) ·

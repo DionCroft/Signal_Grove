@@ -76,6 +76,12 @@ data class PhoneDownloadActions(
     val notificationSettings: (() -> Unit)? = null
 )
 
+data class PhoneModelReplacementActions(
+    val choose: (InstalledLocalModel) -> Unit,
+    val install: (PhoneModelReplacement) -> Unit,
+    val discard: (PhoneModelReplacement) -> Unit
+)
+
 data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newChat: () -> Unit,
     val load: (InstalledLocalModel, Int) -> Unit, val unload: () -> Unit, val remove: (InstalledLocalModel) -> Unit,
     val download: (CuratedPhoneModel) -> Unit, val discard: (CuratedPhoneModel) -> Unit, val chooseFile: () -> Unit,
@@ -96,7 +102,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val previewSummaryPrompt: (suspend (LocalConversation, String, String) -> LocalPromptPreview)? = null,
     val saveModelPerformance: ((InstalledLocalModel, LocalModelPerformance) -> Unit)? = null,
     val benchmark: ((String) -> Unit)? = null,
-    val downloads: PhoneDownloadActions? = null)
+    val downloads: PhoneDownloadActions? = null,
+    val replacements: PhoneModelReplacementActions? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -119,7 +126,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val observations = remember(preferences, state.loaded?.sha256) {preferences?.let {
         LocalHelpObservations.capture(it.demo, it.url, android.os.Process.is64Bit(), state.loaded != null, System.currentTimeMillis())
     }}
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {vm.pendingImport.value = it}
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), vm::selectedModel)
+    val replacementPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), vm::selectedReplacement)
     val c = vm.controller
     LocalAiScreen(state, c.supported, draft, vm::changeDraft, pending != null,
         LocalAiActions(vm::send, c::cancel, vm::newChat, c::load, c::unload, c::deleteModel,
@@ -134,8 +142,13 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt,
             saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark,
             downloads = PhoneDownloadActions({ c.enqueueDownload(it, licenceReviewed = true) }, c::resumeDownload, c::pauseDownload,
-                backgroundDownload, downloadNotificationSettings)),
-        close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened)
+                backgroundDownload, downloadNotificationSettings),
+            replacements = PhoneModelReplacementActions({ previous ->
+                vm.pickReplacement(previous)
+                replacementPicker.launch(arrayOf("*/*"))
+            }, c::installModelReplacement, c::discardModelReplacement)),
+        close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
+        replacing = pending?.previous)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -145,7 +158,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null,
     handoffState: String = "", openHermes: (() -> Unit)? = null, startupSetting: (@Composable () -> Unit)? = null,
     downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null,
-    requestedDownloads: Boolean = false, downloadsOpened: () -> Unit = {}) {
+    requestedDownloads: Boolean = false, downloadsOpened: () -> Unit = {}, replacing: InstalledLocalModel? = null) {
     var tab by rememberSaveable {mutableIntStateOf(0)}
     var guide by rememberSaveable {mutableStateOf(false)}
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
@@ -262,7 +275,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             actions.refresh, networkSettings = downloadNetworkSettings, close = { downloadsOpen = false })
     }
     if (pendingImport) {
-        PhoneLicence(label(Words.PhoneImportLicence), state.busy, actions.acceptImport, actions.cancelImport)
+        val licence = label(Words.PhoneImportLicence)
+        val explanation = replacing?.let { previous ->
+            label(Words.PhoneReplacementBeforeCopy).replace("{model}", previous.metadata.name) + "\n\n" + licence
+        } ?: licence
+        PhoneLicence(explanation, state.busy, actions.acceptImport, actions.cancelImport)
     } else downloadReview?.let { model ->
         val licence = remember(model, context) {
             context.assets.open(model.licenceAsset).bufferedReader().use { it.readText() }
@@ -283,6 +300,13 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     }
                 })
         }
+    }
+    val replacement = state.modelReplacement
+    val replacementActions = actions.replacements
+    if (replacement != null && replacementActions != null) {
+        PhoneModelReplacementReview(replacement, state.busy,
+            install = { replacementActions.install(replacement) },
+            discard = { replacementActions.discard(replacement) })
     }
     deleteModel?.let { model -> PhoneConfirm(label(Words.PhoneDeleteModel), state.busy, {actions.remove(model); deleteModel = null}) {deleteModel = null} }
     deleteChat?.let { id -> PhoneConfirm(label(Words.PhoneDeleteChat), state.busy, {actions.deleteChat(id); deleteChat = null}) {deleteChat = null} }
@@ -590,6 +614,9 @@ internal fun phoneError(code: String) = when {
     code == "download_network_settings" -> Words.PhoneDownloadNetworkReadFailed
     code == "download_queue_unreadable" -> Words.PhoneDownloadQueueUnavailable
     code == "download_review_required" -> Words.PhoneDownloadNeedsReview
+    code == "model_replacement_changed" -> Words.PhoneReplacementChanged
+    code == "model_replacement_installed" -> Words.PhoneReplacementAlreadyInstalled
+    code == "library_limit" -> Words.PhoneModelLibraryFull
     code in setOf("download_resume_unsupported", "download_range") -> Words.PhoneDownloadRangeError
     code == "history_search" -> Words.PhoneHistorySearchError
     code == "history_organization" -> Words.PhoneHistoryOrganizationError
@@ -598,6 +625,9 @@ internal fun phoneError(code: String) = when {
     code == "history_export_prepare" -> Words.PhoneMarkdownPrepareError
     code == "helper_unverified" -> Words.PhoneHelperRejected
     code == "summary_unusable" -> Words.PhoneSummaryUnusable
+    code in setOf("gguf_version", "missing_architecture", "unsupported_architecture", "missing_template",
+        "template_size", "split_model_unsupported", "unsupported_tensor_type", "tensor_range",
+        "malformed_gguf", "missing_context") -> Words.PhoneModelFileUnsupported
     code == "insufficient_memory" -> Words.PhoneMemoryError
     code == "engine_2" -> Words.PhoneContextError
     code == "engine_6" || code == "native_unavailable" -> Words.PhoneUnsupported

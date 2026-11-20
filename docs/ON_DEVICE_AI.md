@@ -102,6 +102,21 @@ to the On-device AI screen. If Android stops a background transfer,
 return to the list to resume its saved bytes yourself.
 [Background transfer validation](VALIDATION.md#opt-in-model-downloads-while-away-from-the-app).
 
+### Review another version of an installed phone model
+
+1. Open **Phone models** and choose **Review a replacement file** on the
+   model you already have.
+2. Pick a compatible GGUF and confirm that you reviewed its licence.
+   Signal Grove stages the file. The phone needs space for both files.
+3. Compare the hashes and see the new file size and remaining space.
+   If you have a SHA-256 from the publisher, compare it with the
+   selected file's displayed hash.
+4. Choose **Install alongside**. Select **Load** on the new model when
+   you want to use it in a new chat. Existing chats continue with their
+   original model. Use Cancel to discard a review and release the space.
+
+[Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
+
 ## Choose settings for a phone model
 
 In a development build, open **On-device AI → Phone models → Model settings**

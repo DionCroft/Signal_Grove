@@ -13,6 +13,13 @@ data class InstalledLocalModel(val sha256: String, val metadata: GgufModelMetada
     internal val minimumLoadMemoryBytes: Long
         get() = minimumModelLoadMemoryBytes(metadata.bytes)
 }
+class PhoneModelReplacement internal constructor(
+    val previous: InstalledLocalModel,
+    val candidate: InstalledLocalModel,
+    internal val stageId: UUID,
+    val availableBytes: Long
+)
+
 class LocalModelStorageException(val reason: String) : IllegalStateException(reason)
 
 /** Owns model bytes only. No server credentials, conversations or external paths are stored. */
@@ -42,30 +49,86 @@ class LocalModelStore(directory: File, private val availableBytes: () -> Long = 
         val partial = owned("import-${UUID.randomUUID()}.part")
         check(partial.createNewFile())
         try {
-            val digest = MessageDigest.getInstance("SHA-256")
-            var count = 0L
-            input.use { source -> partial.outputStream().use { target ->
-                val buffer = ByteArray(256 * 1024)
-                while (true) {
-                    checkpoint()
-                    val n = source.read(buffer)
-                    if (n < 0) break
-                    if (n == 0) continue
-                    count += n
-                    if (count > GgufModelReader.MAX_MODEL_BYTES) throw LocalModelStorageException("model_size")
-                    ensureSpace(n.toLong())
-                    target.write(buffer, 0, n); digest.update(buffer, 0, n); progress(count)
-                }
-                target.fd.sync()
-            } }
-            val hash = digest.digest().hex()
-            if (expectedSha256 != null && hash != expectedSha256) throw LocalModelStorageException("checksum_mismatch")
-            val metadata = GgufModelReader.read(partial, checkpoint)
-            return install(partial, hash, metadata, checkpoint)
+            val copied = copyModel(input, partial, checkpoint, expectedSha256, progress)
+            return install(partial, copied.sha256, copied.metadata, checkpoint)
         } finally {
-            // Only the unique partial created by this exact import can be removed here.
-            if (partial.exists() && !partial.delete()) throw LocalModelStorageException("partial_cleanup_failed")
+            removePartial(partial)
         }
+    }
+
+    @Synchronized internal fun stageReplacement(
+        previous: InstalledLocalModel, stageId: UUID, input: InputStream, checkpoint: () -> Unit
+    ): PhoneModelReplacement {
+        val partial = replacementFile(stageId)
+        requireCurrentModel(previous, checkpoint)
+        if (models(checkpoint).size >= 32) throw LocalModelStorageException("library_limit")
+        check(partial.createNewFile())
+        val candidate = copyModel(input, partial, checkpoint)
+        if (owned("${candidate.sha256}.gguf").exists()) throw LocalModelStorageException("model_replacement_installed")
+        return PhoneModelReplacement(previous, candidate, stageId, usableBytes())
+    }
+
+    @Synchronized internal fun installReplacement(review: PhoneModelReplacement, checkpoint: () -> Unit): InstalledLocalModel {
+        requireCurrentModel(review.previous, checkpoint)
+        val partial = replacementFile(review.stageId)
+        val candidate = review.candidate
+        if (partial.length() != candidate.metadata.bytes || hash(partial, checkpoint) != candidate.sha256) {
+            throw LocalModelStorageException("model_replacement_changed")
+        }
+        return install(partial, candidate.sha256, candidate.metadata, checkpoint)
+    }
+
+    @Synchronized internal fun discardReplacement(stageId: UUID) {
+        removePartial(replacementFile(stageId))
+    }
+
+    /** No review survives process death. Only the replacement staging namespace is reclaimed. */
+    @Synchronized internal fun discardAbandonedReplacements() {
+        val files = directory.listFiles() ?: throw LocalModelStorageException("library_unreadable")
+        val pattern = Regex("review-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}\\.part")
+        for (file in files) {
+            if (pattern.matches(file.name)) removePartial(owned(file.name))
+        }
+    }
+
+    private fun replacementFile(stageId: UUID) = owned("review-$stageId.part")
+
+    private fun requireCurrentModel(model: InstalledLocalModel, checkpoint: () -> Unit) {
+        val current = owned("${model.sha256}.gguf")
+        if (!current.isFile || GgufModelReader.read(current, checkpoint) != model.metadata) {
+            throw LocalModelStorageException("model_replacement_changed")
+        }
+    }
+
+    private fun removePartial(file: File) {
+        if (file.exists() && (!file.isFile || !file.delete())) throw LocalModelStorageException("partial_cleanup_failed")
+    }
+
+    private fun copyModel(
+        input: InputStream, partial: File, checkpoint: () -> Unit,
+        expectedSha256: String? = null, progress: (Long) -> Unit = {}
+    ): InstalledLocalModel {
+        val digest = MessageDigest.getInstance("SHA-256")
+        var count = 0L
+        input.use { source -> partial.outputStream().use { target ->
+            val buffer = ByteArray(256 * 1024)
+            while (true) {
+                checkpoint()
+                val n = source.read(buffer)
+                if (n < 0) break
+                if (n == 0) continue
+                count += n
+                if (count > GgufModelReader.MAX_MODEL_BYTES) throw LocalModelStorageException("model_size")
+                ensureSpace(n.toLong())
+                target.write(buffer, 0, n)
+                digest.update(buffer, 0, n)
+                progress(count)
+            }
+            target.fd.sync()
+        } }
+        val hash = digest.digest().hex()
+        if (expectedSha256 != null && hash != expectedSha256) throw LocalModelStorageException("checksum_mismatch")
+        return InstalledLocalModel(hash, GgufModelReader.read(partial, checkpoint))
     }
 
     /** Rehash on explicit load. A valid header or filename is never treated as an integrity check. */
@@ -127,7 +190,7 @@ class LocalModelStore(directory: File, private val availableBytes: () -> Long = 
         return File(directory, name).also(::requireOwned)
     }
 
-    internal fun install(partial: File, sha256: String, metadata: GgufModelMetadata, checkpoint: () -> Unit): InstalledLocalModel {
+    @Synchronized internal fun install(partial: File, sha256: String, metadata: GgufModelMetadata, checkpoint: () -> Unit): InstalledLocalModel {
         requireHash(sha256); requireOwned(partial); checkpoint()
         val target = owned("$sha256.gguf")
         if (target.exists()) {

@@ -1,5 +1,52 @@
 # Current development validation — audit follow-up
 
+## Reviewed replacement from a phone model file
+
+In **Phone models**, **Review a replacement file** opens the Android
+picker for one installed model. After the licence review, the app stages
+the picked GGUF in private storage and checks its metadata, supported
+architecture, chat-template presence and tensor ranges. It displays
+both SHA-256 identifiers, the new model's declared context, file size
+and free space after staging. The hash identifies the file's bytes.
+The picker supplies no publisher attestation.
+
+**Install alongside** rehashes the reviewed stage and atomically
+publishes the exact candidate as another model. Chats and performance
+settings stay bound to their original SHA-256. Loading the candidate or
+deleting the earlier file requires a separate action. Cancel and
+activity stop clear the stage. Process restart removes only abandoned
+replacement stages. The existing publisher-download queue keeps its
+own files and receipts.
+
+The exact build passed 1,170 JVM tests and both lint variants
+with zero errors. The 102 focused Android checks passed on each of API
+26 and 37. They included the large-font review and the connection
+profile test that previously hit a hosted Compose idle timeout. The
+first local profile check timed out during connection because the
+earlier loopback smoke tests had cleared the legacy proxy key but left
+Android's effective proxy populated. After removing the matching test
+host and port, the same profile test passed on both emulators.
+
+On the owned Android 17 emulator in Demo mode, with airplane mode
+on, Wi-Fi off and no default network, the ordinary Android picker
+provided the 491,400,032-byte Qwen fixture. One review was cancelled
+before installation. A second review showed both exact hashes and
+installed Qwen alongside LFM3 only after confirmation. All
+7 inventoried files in the private model and chat stores
+matched their previous hashes. The trial restored the default network
+and removed its own files.
+
+Physical-phone rollout, publisher catalogue replacement review,
+and dedicated low-space and interruption trials remain open.
+
+- Frozen build receipt: 20261120-012929-84957a6c3d2f46a594d5d396470e739e
+- Frozen source digest: a0b4b78fe09f228b76eb37f8f3718ec1c8d45b2bf70015245b48ff930a5382ce
+- Debug APK SHA-256: 388a53f1c8d16125042fba6ba94fd324db4bf6c1385e514c0291a672ba67f30c
+- Debug test APK SHA-256: 110d1a7406786cc91240c4a71099e3d87ca7e2f025924972335bd0263639c3ee
+- API 26 instrumentation evidence SHA-256: 3c91d6f5c98f02d5425f80f0f0b48668e821e0ed65a22c881c0bf981fc0aa026
+- API 37 instrumentation evidence SHA-256: 28526cb379df028c3276feaf6553cd4e40444741ebcf9c40288cd02c0e763068
+- Offline picker result SHA-256: a298104298d0005502a9915155e987b1609211aeeb4d709e6c38a3b385e50f68
+
 ## Opt-in model downloads while away from the app
 
 A reviewed queue item offers a separate **Download in background**

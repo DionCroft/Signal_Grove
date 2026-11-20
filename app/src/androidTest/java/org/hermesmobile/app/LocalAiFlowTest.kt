@@ -44,7 +44,8 @@ class LocalAiFlowTest {
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
     private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false, queue: Boolean = false,
-        networkStore: PreferenceStore? = null, background: Boolean = false) {
+        networkStore: PreferenceStore? = null, background: Boolean = false,
+        replacements: PhoneModelReplacementActions? = null) {
         val actions = LocalAiActions({sends++}, {
                 stops++
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
@@ -74,7 +75,7 @@ class LocalAiFlowTest {
                     state = state.copy(error = "download_background_notifications")
                 } else null,
                 notificationSettings = if (background) { { notificationsOpened++ } } else null
-            ) else null)
+            ) else null, replacements = replacements)
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
@@ -178,6 +179,49 @@ class LocalAiFlowTest {
         compose.onNodeWithText(Words.SetupHost.en).assertExists()
         assertEquals(0, sends); assertTrue(downloads.isEmpty()); assertEquals(0, imports)
     }
+    @Test fun replacementReviewShowsBothModelsAndKeepsAnExplicitInstallAction() {
+        val candidate = InstalledLocalModel("b".repeat(64), model.metadata.copy(name = "Fixture replacement", bytes = 2_048))
+        val review = PhoneModelReplacement(model, candidate, java.util.UUID.randomUUID(), 1024L * 1024 * 1024)
+        val approved = mutableListOf<PhoneModelReplacement>()
+        val cancelled = mutableListOf<PhoneModelReplacement>()
+        state = LocalAiState(models = listOf(model))
+        show(bilingual = true, replacements = PhoneModelReplacementActions(
+            choose = { previous ->
+                assertEquals(model, previous)
+                state = state.copy(modelReplacement = review)
+            },
+            install = {
+                approved.add(it)
+                state = state.copy(models = state.models + it.candidate, modelReplacement = null)
+            },
+            discard = {
+                cancelled.add(it)
+                state = state.copy(modelReplacement = null)
+            }
+        ))
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        val choose = compose.onNodeWithTag("phone-replace-${sha.take(8)}")
+        choose.performScrollTo().performClick()
+        compose.onNode(hasText(model.metadata.name) and hasAnyAncestor(hasTestTag("phone-replacement-details")))
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(candidate.metadata.name).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-replacement-hash").performScrollTo()
+            .assertTextContains(candidate.sha256, substring = true)
+        val install = compose.onNodeWithTag("phone-replacement-install")
+        install.assertIsDisplayed().assertIsEnabled()
+        compose.runOnIdle { assertTrue(approved.isEmpty()); assertEquals(listOf(model), state.models) }
+        compose.onNodeWithTag("phone-replacement-cancel").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(listOf(review), cancelled); assertTrue(approved.isEmpty()) }
+        choose.performScrollTo().performClick()
+        install.assertIsDisplayed().performClick()
+        compose.runOnIdle {
+            assertEquals(listOf(review), approved)
+            assertEquals(listOf(model, candidate), state.models)
+            assertTrue(requestedLoads.isEmpty())
+            assertEquals(0, sends)
+        }
+    }
+
     @Test fun downloadWaitsForSeparateLicenceConsent() {
         show(); compose.onNodeWithTag("phone-tab-1").performClick()
         compose.onNodeWithTag("phone-catalogue-open").performScrollTo().performClick()

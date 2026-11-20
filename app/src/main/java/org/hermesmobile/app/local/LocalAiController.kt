@@ -27,7 +27,8 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val queuedDownloads: List<CuratedPhoneModel> = emptyList(),
     val activeDownload: CuratedPhoneModel? = null,
     val downloadQueueUnavailable: Boolean = false,
-    val backgroundDownloadId: String? = null) {
+    val backgroundDownloadId: String? = null,
+    val modelReplacement: PhoneModelReplacement? = null) {
     fun partialBytes(model: CuratedPhoneModel): Long = downloadPartials[model] ?: 0L
 }
 
@@ -218,6 +219,58 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     fun importModel(licenceReviewed: Boolean, cancelOpen: () -> Unit = {}, open: () -> InputStream) = action("importing") {
         check(supported)
         require(licenceReviewed)
+        readSelectedModel(cancelOpen, open) { input, checkpoint ->
+            store.importModel(input, licenceReviewed, checkpoint = checkpoint)
+        }
+        refresh()
+    }
+
+    internal fun stageModelReplacement(previous: InstalledLocalModel, licenceReviewed: Boolean,
+        cancelOpen: () -> Unit, open: () -> InputStream) = action("importing") {
+        check(supported)
+        require(licenceReviewed && previous in mutable.value.models && mutable.value.modelReplacement == null)
+        val stageId = UUID.randomUUID()
+        try {
+            val review = readSelectedModel(cancelOpen, open) { input, checkpoint ->
+                store.stageReplacement(previous, stageId, input, checkpoint)
+            }
+            mutable.update { it.copy(modelReplacement = review, modelStorageAvailableBytes = review.availableBytes) }
+        } finally {
+            if (mutable.value.modelReplacement?.stageId != stageId) removeModelReplacement(stageId)
+        }
+    }
+
+    internal fun installModelReplacement(review: PhoneModelReplacement) = action("installing_replacement") {
+        if (mutable.value.modelReplacement !== review) return@action
+        try {
+            io {
+                val context = currentCoroutineContext()
+                store.installReplacement(review) { context.ensureActive() }
+            }
+        } finally {
+            removeModelReplacement(review.stageId)
+        }
+        refresh()
+    }
+
+    internal fun discardModelReplacement(review: PhoneModelReplacement) = action("discarding_replacement") {
+        if (mutable.value.modelReplacement === review) removeModelReplacement(review.stageId)
+    }
+
+    private suspend fun removeModelReplacement(stageId: UUID) = withContext(NonCancellable) {
+        try {
+            io { store.discardReplacement(stageId) }
+        } finally {
+            val available = io { store.usableBytes() }
+            mutable.update {
+                it.copy(modelReplacement = it.modelReplacement?.takeUnless { review -> review.stageId == stageId },
+                    modelStorageAvailableBytes = available)
+            }
+        }
+    }
+
+    private suspend fun <T> readSelectedModel(cancelOpen: () -> Unit, open: () -> InputStream,
+        read: (InputStream, () -> Unit) -> T): T =
         io {
             val context = currentCoroutineContext()
             val source = java.util.concurrent.atomic.AtomicReference<InputStream?>()
@@ -227,7 +280,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 }
                 try {
                     val input = open(); source.set(input); context.ensureActive()
-                    store.importModel(input, licenceReviewed, checkpoint = { context.ensureActive() })
+                    read(input) { context.ensureActive() }
                 } catch (e: Exception) {
                     // A document provider may signal close/cancellation with its own exception.
                     context.ensureActive()
@@ -235,8 +288,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 } finally { watcher.cancel(); runCatching { source.get()?.close() } }
             }
         }
-        refresh()
-    }
+
     fun saveModelPerformance(model: InstalledLocalModel, performance: LocalModelPerformance) = action("saving_model_settings") {
         require(model in mutable.value.models)
         withContext(NonCancellable) {
@@ -572,7 +624,15 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         mutable.update { it.copy(busy = true, status = "unloading") }; cancel()
         scope.launch {
             lock.withLock {
-                try { unloadModel() }
+                try {
+                    try {
+                        mutable.value.modelReplacement?.let { removeModelReplacement(it.stageId) }
+                    } catch (e: Exception) {
+                        mutable.update { it.copy(error = failure(e)) }
+                    } finally {
+                        unloadModel()
+                    }
+                }
                 finally {
                     mutable.update { it.copy(busy = false, status = "idle", transfer = null, helper = null, activeDownload = null) }
                     leaving = false; guard.set(owner, false)
@@ -597,7 +657,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 }
                 catch (_: CancellationException) {
                     if (status == "downloading" || status == "importing" ||
-                        status == "queuing_download" || status == "discarding_download") reconcileModelLibrary()
+                        status == "queuing_download" || status == "discarding_download" ||
+                        status == "installing_replacement") reconcileModelLibrary()
                     if (status == "organizing") withContext(NonCancellable) {
                         // Cancellation can lose the return after publication.
                         try {
@@ -607,7 +668,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     }
                 }
                 catch (e: Exception) {
-                    if (status == "downloading" || status == "queuing_download" || status == "discarding_download") reconcileModelLibrary()
+                    if (status == "downloading" || status == "queuing_download" || status == "discarding_download" ||
+                        status == "installing_replacement") reconcileModelLibrary()
                     mutable.update { it.copy(error = when {
                         e is LocalMarkdownExportException && e.reason == LocalMarkdownExportFailure.CHANGED -> "history_export_changed"
                         status == "preparing_export" -> "history_export_prepare"
@@ -661,6 +723,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 } catch (_: java.io.IOException) {
                     // Backup preparation reports staging errors. History remains readable.
                 }
+                store.discardAbandonedReplacements()
                 conversations.recoverInterrupted { context.ensureActive() }
             }
             recovered = true

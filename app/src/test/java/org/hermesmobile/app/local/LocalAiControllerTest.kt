@@ -72,6 +72,129 @@ class LocalAiControllerTest {
         supported: Boolean = true, freeMemory: Long = Long.MAX_VALUE) = LocalAiController(models, history, "unused-test-library-directory", supported,
         { freeMemory }, guard, dispatcher, dispatcher) { engine }
 
+    @Test fun replacementPublishesOnlyAfterReviewAndRetainsModelChatAndSettings() = runTest {
+        val models = temp.newFolder()
+        val history = temp.newFolder()
+        val previous = model(models)
+        val candidateRoot = temp.newFolder()
+        val candidate = model(candidateRoot, "Candidate revision")
+        val bytes = File(candidateRoot, "${candidate.sha256}.gguf").readBytes()
+        val oldFile = File(models, "${previous.sha256}.gguf")
+        val oldBytes = oldFile.readBytes()
+        val driver = Engine()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val c = controller(models, history, driver, UpdateWorkGuard(), dispatcher)
+        advanceUntilIdle()
+
+        val settings = LocalPerformancePreset.BALANCED.forModel(previous.metadata.trainedContext)
+        c.saveModelPerformance(previous, settings)
+        advanceUntilIdle()
+        c.load(previous)
+        advanceUntilIdle()
+        c.send("Previous revision test")
+        advanceUntilIdle()
+        val priorChat = checkNotNull(c.state.value.chat)
+        val historyBytes = File(history, "${priorChat.id}.json").readBytes()
+
+        var opens = 0
+        c.stageModelReplacement(previous, false, {}) { opens++; bytes.inputStream() }
+        advanceUntilIdle()
+        assertEquals(0, opens)
+        assertNull(c.state.value.modelReplacement)
+
+        c.stageModelReplacement(previous, true, {}) { opens++; bytes.inputStream() }
+        advanceUntilIdle()
+        val declined = checkNotNull(c.state.value.modelReplacement)
+        assertEquals(previous, declined.previous)
+        assertEquals(candidate, declined.candidate)
+        assertEquals(listOf(previous), c.state.value.models)
+        assertFalse(File(models, "${candidate.sha256}.gguf").exists())
+        c.discardModelReplacement(declined)
+        advanceUntilIdle()
+        assertNull(c.state.value.modelReplacement)
+        assertFalse(models.listFiles().orEmpty().any { it.name.startsWith("review-") })
+
+        c.stageModelReplacement(previous, true, {}) { opens++; bytes.inputStream() }
+        advanceUntilIdle()
+        val accepted = checkNotNull(c.state.value.modelReplacement)
+        c.installModelReplacement(declined)
+        advanceUntilIdle()
+        assertSame(accepted, c.state.value.modelReplacement)
+        assertEquals(listOf(previous), c.state.value.models)
+
+        c.installModelReplacement(accepted)
+        advanceUntilIdle()
+        assertNull(c.state.value.modelReplacement)
+        assertEquals(setOf(previous, candidate), c.state.value.models.toSet())
+        assertArrayEquals(bytes, File(models, "${candidate.sha256}.gguf").readBytes())
+        assertArrayEquals(oldBytes, oldFile.readBytes())
+        assertArrayEquals(historyBytes, File(history, "${priorChat.id}.json").readBytes())
+        assertEquals(previous.sha256, c.state.value.chat?.modelSha256)
+        assertEquals(previous, c.state.value.loaded)
+        assertEquals(mapOf(previous.sha256 to settings), c.state.value.modelPerformance)
+        assertEquals(1, driver.loads)
+        assertEquals(2, opens)
+    }
+
+    @Test fun changedReplacementFailsBeforeInstallationAndLeavingClearsItsPrivateCopy() = runTest {
+        val models = temp.newFolder()
+        val history = temp.newFolder()
+        val previous = model(models)
+        val candidateRoot = temp.newFolder()
+        val candidate = model(candidateRoot, "Candidate revision")
+        val bytes = File(candidateRoot, "${candidate.sha256}.gguf").readBytes()
+        val c = controller(models, history, Engine(), UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+
+        c.stageModelReplacement(previous, true, {}) { bytes.inputStream() }
+        advanceUntilIdle()
+        val review = checkNotNull(c.state.value.modelReplacement)
+        val staged = File(models, "review-${review.stageId}.part")
+        val modified = bytes.copyOf().apply { this[lastIndex] = 1 }
+        staged.writeBytes(modified)
+        c.installModelReplacement(review)
+        advanceUntilIdle()
+        assertEquals("model_replacement_changed", c.state.value.error)
+        assertNull(c.state.value.modelReplacement)
+        assertEquals(listOf(previous), c.state.value.models)
+        assertFalse(staged.exists())
+
+        c.stageModelReplacement(previous, true, {}) { bytes.inputStream() }
+        advanceUntilIdle()
+        assertNotNull(c.state.value.modelReplacement)
+        c.leave()
+        advanceUntilIdle()
+        assertNull(c.state.value.modelReplacement)
+        assertFalse(models.listFiles().orEmpty().any { it.name.startsWith("review-") })
+        assertEquals(listOf(previous), c.state.value.models)
+    }
+
+    @Test fun interruptedReplacementAndStartupRecoveryPreserveOtherPartials() = runTest {
+        val models = temp.newFolder()
+        val history = temp.newFolder()
+        val previous = model(models)
+        val abandoned = File(models, "review-${java.util.UUID.randomUUID()}.part").apply { writeText("abandoned") }
+        val queued = File(models, "${CuratedPhoneModel.QWEN.sha256}.part").apply { writeText("resumable") }
+        val c = controller(models, history, Engine(), UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        assertFalse(abandoned.exists())
+        assertEquals("resumable", queued.readText())
+
+        var closed = 0
+        val interrupted = object : java.io.InputStream() {
+            override fun read(): Int = throw java.io.IOException("broken provider")
+            override fun close() { closed++ }
+        }
+        c.stageModelReplacement(previous, true, {}) { interrupted }
+        advanceUntilIdle()
+        assertTrue(closed > 0)
+        assertNotNull(c.state.value.error)
+        assertNull(c.state.value.modelReplacement)
+        assertFalse(models.listFiles().orEmpty().any { it.name.startsWith("review-") })
+        assertEquals(listOf(previous), c.state.value.models)
+        assertEquals("resumable", queued.readText())
+    }
+
     @Test fun curatedDownloadsKeepSeparatePartialsAndDiscardOnlyTheSelectedFile() = runTest {
         val root = temp.newFolder()
         val existing = model(root)

@@ -82,7 +82,24 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
             } catch(e:TimeoutCancellationException) {handoffState.value = "unavailable"}
         }
     }
-    val pendingImport = MutableStateFlow<Uri?>(null)
+    internal data class ModelSelection(val uri: Uri, val previous: InstalledLocalModel? = null)
+    internal val pendingImport = MutableStateFlow<ModelSelection?>(null)
+    private var replacementTarget: InstalledLocalModel? = null
+
+    internal fun pickReplacement(previous: InstalledLocalModel) {
+        replacementTarget = previous
+    }
+
+    internal fun selectedModel(uri: Uri?) {
+        pendingImport.value = uri?.let { ModelSelection(it) }
+    }
+
+    internal fun selectedReplacement(uri: Uri?) {
+        val previous = replacementTarget
+        replacementTarget = null
+        // A picker result cannot authorize staging if its in-memory target was lost.
+        pendingImport.value = if (uri != null && previous != null) ModelSelection(uri, previous) else null
+    }
     fun send() {
         val text = draft.value.trim()
         val state = controller.state.value
@@ -96,13 +113,16 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     }
     fun importSelected() {
         if (controller.state.value.busy) return
-        val uri = pendingImport.value ?: return
+        val selection = pendingImport.value ?: return
         pendingImport.value = null
         val signal = CancellationSignal()
-        controller.importModel(true, signal::cancel) {
-            getApplication<Application>().contentResolver.openAssetFileDescriptor(uri, "r", signal)?.createInputStream()
+        val open = {
+            getApplication<Application>().contentResolver.openAssetFileDescriptor(selection.uri, "r", signal)?.createInputStream()
                 ?: throw LocalModelStorageException("import_unavailable")
         }
+        val previous = selection.previous
+        if (previous == null) controller.importModel(true, signal::cancel, open)
+        else controller.stageModelReplacement(previous, true, signal::cancel, open)
     }
     override fun onCleared() {
         markdownExport.clear()
