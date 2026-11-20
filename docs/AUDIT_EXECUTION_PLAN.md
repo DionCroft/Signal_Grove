@@ -1,5 +1,19 @@
 # Signal Grove audit execution plan
 
+## Native Linux heartbeat process evidence - 20 November 2026
+
+The shutdown workflow now runs real gateway stop and standalone process
+exit probes on both reviewed public persistence pins. The candidate also
+runs one held SQLite close-gate probe and one full stop under released
+contention. Each case has a separate local profile, one child invocation
+and a fresh SQLite row and integrity check after process exit. The
+comparison verifies the child digest, source pin and receipts alongside
+the canonical evidence. The eight v0.23.3 Windows scenarios and 26
+portable verifier checks passed with this fixture. The Windows receipt SHA-256
+is 9605b57d4cede31e63d30164b08a0c8d65eca82924ed65090b88173c98c5aa72.
+The hosted Linux
+lifecycle result remains open.
+
 ## Owned emulator API readiness - 20 November 2026
 
 Run 44748140345 API 26 shard 0 observed Android boot completion and lost the

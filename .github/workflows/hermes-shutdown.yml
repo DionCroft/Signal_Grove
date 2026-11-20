@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch']
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch', 'scripts/hermes_native_heartbeat_gate.py', 'scripts/native/shutdown_heartbeat_fixture.py', 'scripts/tests/test_native_heartbeat_gate.py']
   pull_request:
-    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch']
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch', 'scripts/hermes_native_heartbeat_gate.py', 'scripts/native/shutdown_heartbeat_fixture.py', 'scripts/tests/test_native_heartbeat_gate.py']
 permissions:
   contents: read
 concurrency:
@@ -48,6 +48,7 @@ jobs:
           PY
           python3 -I -B client/scripts/canonical_shutdown_gate.py prepare --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" --variant "$VARIANT" --source-commit "$SOURCE_COMMIT"
           python3 -B -m unittest discover -s client/scripts/tests -p test_canonical_shutdown_gate.py -v
+          python3 -B -m unittest discover -s client/scripts/tests -p test_native_heartbeat_gate.py -v
       - name: Build the supported PM side test environment
         id: pm
         uses: ./sdk/.github/actions/setup-pm
@@ -64,6 +65,15 @@ jobs:
           VARIANT: ${{ matrix.variant }}
           PM_PYTHON: ${{ steps.pm.outputs.python-path }}
         run: python3 -I -B client/scripts/canonical_shutdown_gate.py run --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" --python "$PM_PYTHON"
+      - name: Run real gateway and heartbeat process lifetimes
+        if: matrix.source_commit != '3b421578588243f920886e6fe79a6faa87ea026e'
+        env:
+          VARIANT: ${{ matrix.variant }}
+          PM_PYTHON: ${{ steps.pm.outputs.python-path }}
+        run: |
+          python3 -I -B client/scripts/hermes_native_heartbeat_gate.py run \
+            --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" \
+            --scratch "$RUNNER_TEMP/heartbeat-lifetime-$VARIANT" --python "$PM_PYTHON"
       - name: Verify raw case identities and all SDK bytes and modes
         if: ${{ !cancelled() }}
         env:
@@ -101,10 +111,19 @@ jobs:
           python3 -I -B scripts/canonical_shutdown_gate.py compare \
             --source-commit "$SOURCE_COMMIT" --pristine "$artifact-pristine" \
             --candidate "$artifact-candidate" --output "$RUNNER_TEMP/paired-shutdown.json"
+      - name: Independently compare both lifecycle cohorts
+        if: matrix.source_commit != '3b421578588243f920886e6fe79a6faa87ea026e'
+        env:
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
+        run: |
+          artifact="$RUNNER_TEMP/shutdown-pair/canonical-linux-shutdown-$SOURCE_COMMIT"
+          python3 -I -B scripts/hermes_native_heartbeat_gate.py compare \
+            --source-commit "$SOURCE_COMMIT" --pristine "$artifact-pristine" \
+            --candidate "$artifact-candidate" --output "$RUNNER_TEMP/paired-heartbeat-lifecycle.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: canonical-linux-shutdown-pair-${{ matrix.source_commit }}
-          path: ${{ runner.temp }}/paired-shutdown.json
+          path: ${{ runner.temp }}/paired-*.json
           if-no-files-found: error
           retention-days: 30
