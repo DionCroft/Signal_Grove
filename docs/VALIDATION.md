@@ -11,8 +11,9 @@ its exact bytes stay preserved.
 The chat store now syncs the Android directory after atomically
 publishing or deleting a chat, and syncs parent entries for directories
 it creates. A failed sync propagates instead of acknowledging a
-durable save. Both app variants assemble. The exact development build
-passes 1,200 JVM cases over 113 reports, including two new persistence
+durable save. The debug app and instrumentation APKs assemble. The
+exact development build passes 1,200 JVM cases over 113 reports,
+including two new persistence
 regressions, and both lint variants have zero errors.
 
 On the same emulator, the in-place debug upgrade retained both

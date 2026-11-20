@@ -16,8 +16,13 @@ device gates, deployed Hermes and production release remain open.
 Hosted Android run 44759909823 passed 1,198 JVM methods and zero-error
 lint at its earlier source. Verified API 37 shard 0 executed 585 cases,
 with 583 positive and two Phone Voice screen visibility failures.
-The original artifacts remain and the full Android acceptance gate
-stays open. [Hosted Android follow-up](https://github.com/DionCroft/Signal_Grove/actions/runs/44759909823).
+The two verified shard 1 archives show 653 of 657 cases passing on
+API 26 and 656 of 657 on API 37. Both miss the host-project
+cancellation test. Its locator searches the scrolling project list
+for the control that now lives in the dialog footer. API 26 also
+retains document-source, personal-profile and temporary-title UI
+failures. The original artifacts and full Android acceptance gate
+stay open. [Hosted Android follow-up](https://github.com/DionCroft/Signal_Grove/actions/runs/44759909823).
 
 ## External offline model checkpoint - 20 November 2026
 
