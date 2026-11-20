@@ -249,9 +249,11 @@ on cancellation. Code is explained as text; this does not add shell execution.
 **Status: in progress.** Foreground-only temporary chats have explicit
 model choice and end confirmation. Their drafts and transcripts clear on
 end or backgrounding. The temporary-chat emulator cases and real LFM3 trial passed.
-Finish local profiles for writing style/preferences and user-approved
-notes/facts, per-request review of what enters the context, explicit
-backup collection selection and physical-phone checks.
+Local profiles now support manual preferences and notes, per-request
+selection, exact review and budget checks. An offline LFM3 trial verified
+one selected note and one unselected preference. Explicit backup
+collection selection and physical-phone checks remain open.
+[Personal profile checks](VALIDATION.md#personal-profiles-with-a-reviewed-phone-model-request).
 [Temporary chat checks](VALIDATION.md#foreground-only-temporary-phone-chats).
 
 Acceptance: memory starts off and never harvests other chats, credentials, files

@@ -108,7 +108,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val replacements: PhoneModelReplacementActions? = null,
     val documents: PhoneDocumentActions? = null,
     val openWriting: (() -> Unit)? = null,
-    val openTemporary: (() -> Unit)? = null)
+    val openTemporary: (() -> Unit)? = null,
+    val openProfiles: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -159,13 +160,15 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 documentPicker.launch(arrayOf("*/*"))
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
                 c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting,
-            openTemporary = vm::openTemporary),
+            openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
         replacing = pending?.previous, pendingDocument = pendingDocument)
     val writingOpen by vm.writingOpen.collectAsStateWithLifecycle()
     if (writingOpen) PhoneWritingDialog(vm, state)
     val temporary by vm.temporary.state.collectAsStateWithLifecycle()
     temporary?.let { PhoneTemporaryChatDialog(vm, it, state) }
+    val profilesOpen by vm.personalProfilesOpen.collectAsStateWithLifecycle()
+    if (profilesOpen) PhonePersonalProfilesDialog(vm, state, draft)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -403,9 +406,18 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         }
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
     }
-    actions.openTemporary?.let { open ->
-        TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-temporary-open")) {
-            Text(label(Words.PhoneTemporaryChat))
+    if (actions.openTemporary != null || actions.openProfiles != null) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            actions.openTemporary?.let { open ->
+                TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-temporary-open")) {
+                    Text(label(Words.PhoneTemporaryChat))
+                }
+            }
+            actions.openProfiles?.let { open ->
+                TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-profile-open")) {
+                    Text(label(Words.PhonePersonalProfiles))
+                }
+            }
         }
     }
     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -651,6 +663,8 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     else -> Words.PhoneWorking
 }
 internal fun phoneError(code: String) = when {
+    code == "profile_changed" -> Words.PhoneProfileChanged
+    code == "profile_estimate_unavailable" -> Words.PhoneProfileEstimateUnavailable
     code == "document_format" -> Words.PhoneDocumentFormat
     code == "document_encoding" -> Words.PhoneDocumentEncoding
     code == "temporary_timeout" -> Words.PhoneTemporaryTimeout

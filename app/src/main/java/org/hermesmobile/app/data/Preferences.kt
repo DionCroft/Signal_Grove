@@ -10,6 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.*
+import org.hermesmobile.app.local.PhonePersonalProfiles
 import org.hermesmobile.app.local.PhoneWritingLibrary
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -60,6 +61,16 @@ class PreferenceStore(context: Context) {
 
     private fun decodeWritingLibrary(value: String?): PhoneWritingLibrary =
         if (value == null) PhoneWritingLibrary() else PhoneWritingLibrary.decode(value)
+
+    private val personalProfilesKey = stringPreferencesKey("phone_personal_profiles")
+    internal val phonePersonalProfiles = store.data.map { PhonePersonalProfiles.decode(it[personalProfilesKey]) }
+        .distinctUntilChanged()
+
+    internal suspend fun editPhonePersonalProfiles(change: (PhonePersonalProfiles) -> PhonePersonalProfiles) {
+        store.edit { values ->
+            values[personalProfilesKey] = change(PhonePersonalProfiles.decode(values[personalProfilesKey])).encode()
+        }
+    }
 
     val flow = store.data.map { p -> AppPreferences(p[theme] ?: "STARHAVEN", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f),p[notify] ?: false,p[monitor] ?: false,p[automation].orEmpty(),p[runtimes] ?: "{}") }.distinctUntilChanged()
     suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp;it[localSpeech]=p.onDeviceSpeechOnly;it[networkSpeech]=p.allowNetworkSpeech;it[rate]=p.speechRate.coerceIn(.75f,1.25f);it[notify]=p.notifications;it[monitor]=p.monitorRuns;it[automation]=p.automationScope } }

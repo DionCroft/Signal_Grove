@@ -1,5 +1,49 @@
 # Current development validation — audit follow-up
 
+## Personal profiles with a reviewed phone-model request
+
+Personal profiles store up to eight named collections of manually
+entered preferences and notes. The user may edit or delete them.
+Creating a profile leaves ordinary Chat Send unchanged. To use a
+profile, the user selects items for an individual draft and reviews
+the exact message and chosen context. Selection starts empty every
+time, including when switching between profiles.
+
+The request binds the full profile version, original draft, local chat,
+loaded model and effective settings. The active model counts the
+exact prompt with the chosen details and reserved reply capacity.
+Generation checks those inputs and the latest stored profile before
+publishing. The raw profile context is omitted from the saved
+question and future prompt history. A generated reply can contain
+details derived from it, and saved replies still enter ordinary
+history, search, exports and chat backups. Profile storage itself
+stays outside those backups. A backgrounded activity clears the
+open review and unsaved profile editor.
+
+The exact build passed 1,189 JVM cases and both lint variants with
+zero errors. Each Android emulator API passed 139 cases, including
+profile creation, private editing, persistence and deletion. Controller
+tests verified that only the selected items reach the model, the
+native preview and send receive the same prompt, and stale or
+unmeasurable context cannot start a generation.
+
+An Android 17 normal-app trial used LFM3 with networking disabled.
+The reply used the selected flower note and omitted the unselected
+writing preference. The original question was saved with the reply.
+All 7 existing model and chat files matched their original hashes,
+and the emulator network preferences were restored after the trial. The first harness attempt stopped before
+profile creation because it used an incorrect caption. That attempt
+also restored networking.
+
+- Build receipt 20261120-124629-d1a5e76998794cda9087da484ad558fe
+- Source snapshot SHA-256 63855c8e4fd28b74a4ca9ac63a194d75a5c0fb11bb1ecfb5f000cdfdbce007cf
+- Application and companion SHA-256 3abc7b3d64afbc6de5e052798aeb9d0167479aede8cddbc885e3404494020441 and 23b4c66f7c82ada1813f49cc7e4beb3131bd5000bad2ec7312c3bf384990acbd
+- Android 8 and Android 17 instrumentation SHA-256 2417316518a630bd71080daa3aa6bfec431ac818b28796b7c7607a6cbe10df41 and aecdef03d66444885fd84255f8714175bb55266c1bc09edb11e704940c3cfa8f
+- Offline model trial receipt SHA-256 a88f63e5960e015cf60b1c75227ee3b92cb76596fba0afc42d8cbdac4afde0ca
+
+Physical acceptance and explicit profile backup selection remain open,
+alongside the full hosted, real Hermes and signed-release gates.
+
 ## Project approval footer and phone history filter menus
 
 Project change review keeps the exact target, values, effects and

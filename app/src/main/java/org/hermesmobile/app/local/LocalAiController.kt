@@ -510,15 +510,23 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             emptyList<LocalExchange>().takeIf { summary.isValidReviewedSummary() }
         }
 
+    internal suspend fun previewProfilePrompt(review: PhoneProfileReview): LocalPromptPreview =
+        previewPromptFor(review.chat, review.model.sha256, review.question, review.chat?.reviewedSummary?.text, review) {
+            review.chat?.exchanges.orEmpty()
+        }
+
     private suspend fun previewPromptFor(expected: LocalConversation?, modelHash: String, question: String,
-        reviewedSummary: String? = null, history: () -> List<LocalExchange>?): LocalPromptPreview = lock.withLock {
+        reviewedSummary: String? = null, profile: PhoneProfileReview? = null,
+        history: () -> List<LocalExchange>?): LocalPromptPreview = lock.withLock {
         val state = mutable.value
         if (leaving || state.busy || state.chat != expected || state.loaded?.sha256 != modelHash ||
             expected?.let { it.modelSha256 != modelHash } == true ||
+            (profile != null && profile.settings != state.loadedSettings) ||
             question.isBlank() || question.toByteArray().size > 8192) return@withLock LocalPromptPreview.Unavailable
         try {
             val rows = history() ?: return@withLock LocalPromptPreview.Unavailable
-            val budget = measurePrompt(localChatPrompt(rows, question, reviewedSummary), generationSettings())
+            val messages = localChatPrompt(rows, question, reviewedSummary, profile?.context?.text)
+            val budget = measurePrompt(messages, generationSettings())
             if (budget == null) LocalPromptPreview.Unavailable else LocalPromptPreview.Exact(budget)
         } catch (e: LocalEngineException) {
             if (e.code == 2) LocalPromptPreview.TooLarge else LocalPromptPreview.Unavailable
@@ -564,13 +572,31 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
 
     fun send(question: String) = send(question) {}
     fun send(question: String, onPublished: (LocalConversation) -> Unit) = action("generating") {
+        generateQuestion(question, onPublished)
+    }
+
+    internal fun sendProfileQuestion(review: PhoneProfileReview, checkProfile: suspend () -> Boolean,
+        onPublished: (LocalConversation) -> Unit) = action("generating") {
+        generateQuestion(review.question, onPublished, review, checkProfile)
+    }
+
+    private suspend fun generateQuestion(question: String, onPublished: (LocalConversation) -> Unit,
+        review: PhoneProfileReview? = null, checkProfile: suspend () -> Boolean = { true }) {
         require(question.isNotBlank() && question.toByteArray().size <= 8192)
+        if (review != null && !review.matches(mutable.value, review.draft)) throw LocalModelStorageException("profile_changed")
         val model = mutable.value.loaded ?: throw LocalEngineException(4)
         val prior = mutable.value.chat ?: LocalConversation(modelSha256 = model.sha256, updatedAt = System.currentTimeMillis())
         require(prior.modelSha256 == model.sha256 && prior.exchanges.size < LocalConversationStore.MAX_TURNS)
         val settings = generationSettings()
-        val messages = localChatPrompt(prior.exchanges, question, prior.reviewedSummary?.text)
-        validatePrompt(messages, settings)
+        val messages = localChatPrompt(prior.exchanges, question, prior.reviewedSummary?.text, review?.context?.text)
+        if (review == null) {
+            validatePrompt(messages, settings)
+        } else {
+            val budget = measurePrompt(messages, settings) ?: throw LocalModelStorageException("profile_estimate_unavailable")
+            if (!budget.fits) throw LocalEngineException(2)
+            if (!checkProfile()) throw LocalModelStorageException("profile_changed")
+            currentCoroutineContext().ensureActive()
+        }
         runGeneration(messages, {
             val pending = prior.copy(updatedAt = System.currentTimeMillis(),
                 exchanges = prior.exchanges + LocalExchange(question, state = LocalReplyState.GENERATING, generation = settings))

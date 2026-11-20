@@ -130,6 +130,23 @@ those exact files.
 
 [Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
 
+## Use personal notes in one phone-model request
+
+1. Open **On-device AI → Chat → Personal profiles**.
+2. Add a profile and enter optional writing preferences or personal
+   notes. Save the profile. You can edit or delete it from the same screen.
+3. Load a phone model and type the message in Chat. Open **Personal
+   profiles** again and tap **Choose for this message** for one profile.
+4. Select the preferences or notes to include, then tap **Review**.
+   Read the selected details and message. The context meter checks
+   whether they fit before **Send** becomes available.
+
+Each request starts with no profile details selected. Profile records
+stay on this phone and are excluded from chat backups. The model's
+saved reply can mention the details you chose. Closing the review or
+leaving the activity discards the outstanding selection.
+[Profile validation](VALIDATION.md#personal-profiles-with-a-reviewed-phone-model-request).
+
 ## Start a temporary chat
 
 1. Open **On-device AI → Chat → Temporary chat**.

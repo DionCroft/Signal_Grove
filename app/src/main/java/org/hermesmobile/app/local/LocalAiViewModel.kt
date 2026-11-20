@@ -45,6 +45,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     }
 
     internal fun leavePhone() {
+        closePersonalProfiles()
         if (temporary.state.value != null) closeTemporary()
         controller.leave()
     }
@@ -122,6 +123,71 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
             } finally {
                 writingSaving.value = false
             }
+        }
+    }
+
+    internal val personalProfilesOpen = MutableStateFlow(false)
+    internal val profileReview = MutableStateFlow<PhoneProfileReview?>(null)
+    internal val profileStorageError = MutableStateFlow(false)
+    internal val profileSaving = MutableStateFlow(false)
+    internal val personalProfiles = app.preferences.phonePersonalProfiles
+        .catch { profileStorageError.value = true }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    internal fun openPersonalProfiles() {
+        if (!controller.state.value.busy) personalProfilesOpen.value = true
+    }
+
+    internal fun closePersonalProfiles() {
+        profileReview.value = null
+        personalProfilesOpen.value = false
+    }
+
+    internal fun savePersonalProfile(previous: PhonePersonalProfile?, profile: PhonePersonalProfile, done: () -> Unit) =
+        changePersonalProfiles({ it.save(previous, profile) }, done)
+
+    internal fun removePersonalProfile(profile: PhonePersonalProfile, done: () -> Unit) =
+        changePersonalProfiles({ it.remove(profile) }, done)
+
+    private fun changePersonalProfiles(update: (PhonePersonalProfiles) -> PhonePersonalProfiles, done: () -> Unit) {
+        if (profileSaving.value || personalProfiles.value == null || controller.state.value.busy) return
+        profileSaving.value = true
+        profileStorageError.value = false
+        profileReview.value = null
+        viewModelScope.launch {
+            try {
+                app.preferences.editPhonePersonalProfiles(update)
+                done()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                profileStorageError.value = true
+            } finally {
+                profileSaving.value = false
+            }
+        }
+    }
+
+    internal fun prepareProfileReview(profile: PhonePersonalProfile, context: PhoneProfileContext) {
+        if (profile in personalProfiles.value?.entries.orEmpty() && !profileSaving.value) {
+            profileReview.value = PhoneProfileReview.create(profile, context, draft.value, controller.state.value)
+        }
+    }
+
+    internal fun discardProfileReview() { profileReview.value = null }
+
+    internal fun sendProfileQuestion(review: PhoneProfileReview) {
+        val state = controller.state.value
+        if (profileReview.value !== review || state.busy || !review.matches(state, draft.value) ||
+            review.profile !in personalProfiles.value?.entries.orEmpty() || profileSaving.value) return
+        closePersonalProfiles()
+        val sourceId = drafts.selectedId
+        controller.sendProfileQuestion(review, checkProfile = {
+            review.profile in app.preferences.phonePersonalProfiles.first().entries &&
+                review.matches(controller.state.value, draft.value)
+        }) { published ->
+            drafts.published(sourceId, review.draft, published.id)
+            handoffState.value = ""
         }
     }
 

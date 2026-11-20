@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Personal profiles and optional request context - 20 November 2026
+
+Personal profiles support private manual notes and writing preferences.
+Users choose the exact details per request. The native context budget,
+stale-review checks and an offline LFM3 trial cover the send path.
+Physical checks, explicit backup collection choices and the full
+Hermes and release acceptance remain open.
+[Profile validation](VALIDATION.md#personal-profiles-with-a-reviewed-phone-model-request).
+
 ## Project approval and history search controls - 20 November 2026
 
 Explicit project approval stays beside Confirm and Cancel, with exact

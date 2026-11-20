@@ -537,6 +537,85 @@ class LocalAiControllerTest {
         assertArrayEquals(bytes, file.readBytes())
     }
 
+    @Test fun personalProfileUsesOnlyReviewedDetailsOnceAndSavesOnlyTheOriginalQuestion() = runTest {
+        val models = temp.newFolder()
+        val saved = temp.newFolder()
+        val driver = Engine().apply { promptTokens = 64 }
+        val installed = model(models)
+        val c = controller(models, saved, driver, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        c.load(installed)
+        advanceUntilIdle()
+        val profile = profileFixture()
+        val context = checkNotNull(PhoneProfileContext.select(profile, includeStyle = false, setOf(profile.notes.first().id)))
+        val review = checkNotNull(PhoneProfileReview.create(profile, context, "  Where shall we go? ", c.state.value))
+        assertTrue(c.previewProfilePrompt(review) is LocalPromptPreview.Exact)
+        val measured = driver.measured.single()
+        var published: LocalConversation? = null
+        c.sendProfileQuestion(review, { true }) { published = it }
+        advanceUntilIdle()
+        assertEquals(measured, driver.requests.single())
+        val last = driver.requests.single().last().text
+        assertTrue(last.contains("Mint garden"))
+        assertFalse(last.contains("Unused note"))
+        assertFalse(last.contains("Answer in short sentences"))
+        assertEquals("Where shall we go?", published?.exchanges?.single()?.question)
+        c.send("Another question")
+        advanceUntilIdle()
+        assertFalse(driver.requests.last().any { it.text.contains("Mint garden") || it.text.contains("Unused note") })
+        val transcript = File(saved, "${c.state.value.chat!!.id}.json").readText()
+        assertFalse(transcript.contains("Mint garden"))
+        assertFalse(transcript.contains("Unused note"))
+    }
+
+    @Test fun unmeasurableOrStalePersonalProfileNeverPublishesAChat() = runTest {
+        val models = temp.newFolder()
+        val saved = temp.newFolder()
+        val driver = Engine()
+        val installed = model(models)
+        val c = controller(models, saved, driver, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        c.load(installed)
+        advanceUntilIdle()
+        val profile = profileFixture()
+        val selected = checkNotNull(PhoneProfileContext.select(profile, includeStyle = true, emptySet()))
+        val review = checkNotNull(PhoneProfileReview.create(profile, selected, "Original draft", c.state.value))
+        assertFalse(review.matches(c.state.value, "Changed draft"))
+        c.sendProfileQuestion(review, { true }) { fail("Unmeasurable prompt published") }
+        advanceUntilIdle()
+        assertEquals("profile_estimate_unavailable", c.state.value.error)
+        driver.promptTokens = 64
+        c.sendProfileQuestion(review, { false }) { fail("Removed profile published") }
+        advanceUntilIdle()
+        assertEquals("profile_changed", c.state.value.error)
+        c.newChat()
+        c.sendProfileQuestion(review, { true }) { fail("Stale chat published") }
+        advanceUntilIdle()
+        assertEquals("profile_changed", c.state.value.error)
+        assertTrue(driver.requests.isEmpty())
+        assertTrue(saved.listFiles().orEmpty().none { it.name.endsWith(".json") })
+    }
+
+    @Test fun profileLibraryRoundTripsAndRejectsForeignNotesAndStaleEdits() {
+        val profile = profileFixture()
+        val library = PhonePersonalProfiles().save(null, profile)
+        val changed = profile.copy(style = "Use short paragraphs")
+        val updated = library.save(profile, changed)
+        assertEquals(updated, PhonePersonalProfiles.decode(updated.encode()))
+        assertThrows(IllegalArgumentException::class.java) { updated.remove(profile) }
+        assertThrows(IllegalArgumentException::class.java) { updated.save(profile, profile) }
+        assertEquals(PhonePersonalProfiles(), updated.remove(changed))
+        assertNull(PhoneProfileContext.select(profile, false, emptySet()))
+        assertNull(PhoneProfileContext.select(profile, true, setOf("foreign-note")))
+        assertFalse(validProfileText("花".repeat(350), PHONE_PROFILE_NOTE_BYTES))
+    }
+
+    private fun profileFixture() = PhonePersonalProfile(
+        "10000000-0000-4000-8000-000000000001", "Garden", "Answer in short sentences",
+        listOf(PhonePersonalNote("10000000-0000-4000-8000-000000000002", "Mint garden"),
+            PhonePersonalNote("10000000-0000-4000-8000-000000000003", "Unused note"))
+    )
+
     @Test fun temporaryTurnsOnlyReuseTheirOwnContextAndStayOutOfSavedHistoryAndSearch() = runTest {
         val models = temp.newFolder()
         val saved = temp.newFolder()

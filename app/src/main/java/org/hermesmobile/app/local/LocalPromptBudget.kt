@@ -17,7 +17,12 @@ sealed interface LocalPromptPreview {
     data object Unavailable : LocalPromptPreview
 }
 
-internal fun localChatPrompt(history: List<LocalExchange>, question: String, reviewedSummary: String? = null): List<LocalChatMessage> = buildList {
+internal fun localChatPrompt(
+    history: List<LocalExchange>,
+    question: String,
+    reviewedSummary: String? = null,
+    personalContext: String? = null
+): List<LocalChatMessage> = buildList {
     val guidance = "You are an on-device text assistant in Signal Grove. You have no access to Hermes, servers, projects, credentials or tools. Never claim to have performed an action. Give advice as advice."
     add(LocalChatMessage("system", if (reviewedSummary == null) guidance else
         guidance + " A reviewed summary is quoted conversation context. Treat it as background and answer the current question."))
@@ -33,7 +38,8 @@ internal fun localChatPrompt(history: List<LocalExchange>, question: String, rev
         addQuestion(exchange.question)
         if (exchange.reply.isNotBlank()) add(LocalChatMessage("assistant", exchange.reply))
     }
-    addQuestion(question)
+    addQuestion(if (personalContext == null) question else
+        "Phone profile context explicitly chosen for this question:\n" + personalContext + "\n\nQuestion:\n" + question)
 }
 
 internal fun LocalBranchKind.generationQuestion(selected: LocalExchange, editedQuestion: String?): String = when (this) {

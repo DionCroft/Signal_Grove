@@ -5,6 +5,15 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest personal profile checkpoint
+
+On-device Chat supports local profiles, writing preferences and
+explicit selection of individual notes for a single reviewed request.
+An offline LFM3 trial used one chosen note and preserved the prior
+history. Profile backup selection, physical testing, and the original
+Hermes and release gates remain open.
+[Personal profile evidence](docs/VALIDATION.md#personal-profiles-with-a-reviewed-phone-model-request).
+
 ## Latest project approval and search checkpoint
 
 Project review keeps the confirmation controls together, and phone history
