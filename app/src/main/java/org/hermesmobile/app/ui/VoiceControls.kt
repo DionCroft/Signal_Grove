@@ -8,6 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
@@ -40,10 +42,23 @@ internal fun RecognitionFailure.word()=when(this) {
     var speechSettingsUnavailable by remember {mutableStateOf(false)}
     val idle=session.phase==DictationPhase.IDLE
     val voiceTitle=label(if(phoneOnly) Words.PhoneVoice else Words.Voice)
+    var transcriptFocused by remember { mutableStateOf(false) }
+    val editingTranscript = phoneOnly && !readAloud && transcriptFocused && WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    val useTranscript: @Composable () -> Unit = {
+        Button(
+            onClick = onChat,
+            modifier = Modifier.testTag("voice-use-transcript"),
+            enabled = transcript.isNotBlank() && idle && !busy && draftBlock == null
+        ) {
+            Text(label(if (phoneOnly) Words.PhoneVoiceAppend else Words.Chat))
+        }
+    }
     Column(Modifier.fillMaxSize().padding(horizontal=20.dp).testTag("voice-screen").semantics {paneTitle=voiceTitle},verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            FilterChip(!readAloud,{onSection(false)},modifier=Modifier.weight(1f).testTag("voice-dictation-tab"),label={Text(label(Words.Dictation))})
-            FilterChip(readAloud,{onSection(true)},modifier=Modifier.weight(1f).testTag("voice-read-tab"),label={Text(label(Words.ReadAloud))})
+        if (!editingTranscript) {
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                FilterChip(!readAloud,{onSection(false)},modifier=Modifier.weight(1f).testTag("voice-dictation-tab"),label={Text(label(Words.Dictation))})
+                FilterChip(readAloud,{onSection(true)},modifier=Modifier.weight(1f).testTag("voice-read-tab"),label={Text(label(Words.ReadAloud))})
+            }
         }
         key(readAloud) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("voice-controls").padding(bottom=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp),horizontalAlignment=Alignment.CenterHorizontally) {
@@ -80,13 +95,11 @@ internal fun RecognitionFailure.word()=when(this) {
                     if(!idle) TextButton(onCancel,Modifier.testTag("voice-cancel")) {Text(label(Words.Cancel))}
                     session.failure?.let {Text(label(it.word()),Modifier.testTag("voice-dictation-error"),color=MaterialTheme.colorScheme.error)}
                     if(session.failure==RecognitionFailure.PERMISSION) TextButton(onPermissions) {Text(label(Words.AppPermissions))}
-                    OutlinedTextField(transcript,onTranscript,Modifier.fillMaxWidth().testTag("voice-transcript"),
+                    OutlinedTextField(transcript,onTranscript,Modifier.fillMaxWidth().testTag("voice-transcript")
+                        .onFocusChanged { transcriptFocused = it.hasFocus },
                         label={Text(label(Words.Transcript))},enabled=!phoneOnly || idle,minLines=2,maxLines=6)
                     draftBlock?.let { Text(label(it),Modifier.testTag("voice-draft-reason"),color=MaterialTheme.colorScheme.error) }
-                    Button(onChat,Modifier.testTag("voice-use-transcript"),
-                        enabled=transcript.isNotBlank() && idle && !busy && draftBlock==null) {
-                        Text(label(if(phoneOnly) Words.PhoneVoiceAppend else Words.Chat))
-                    }
+                    if (!phoneOnly) useTranscript()
                     if(busy) Text(label(Words.SpeechChatBusy))
                     if(!preferences.onDeviceSpeechOnly) Text(label(Words.VoiceDisclosure),style=MaterialTheme.typography.bodySmall)
                 } else {
@@ -100,6 +113,11 @@ internal fun RecognitionFailure.word()=when(this) {
                     if(!phoneOnly) Text(label(Words.SpeechDisclosure),style=MaterialTheme.typography.bodySmall)
                 }
                 TextButton({speechSettingsUnavailable=false;onRefresh()},Modifier.testTag("voice-refresh"),enabled=idle && !speaking) {Text(label(Words.RefreshSpeech))}
+            }
+        }
+        if (phoneOnly && !readAloud) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                useTranscript()
             }
         }
     }

@@ -29,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.window.Dialog
@@ -206,63 +207,73 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     var errorDetails by remember {mutableStateOf(false)}
     val context = LocalContext.current
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                if(handoffState.isNotEmpty()) PhoneDraftNotice(handoffState)
-                else IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
-                if (openHermes != null) {
-                    IconButton(openHermes, Modifier.testTag("phone-open-hermes")) {
-                        Icon(Icons.Outlined.Home, label(Words.PhoneStartupOpenHermes))
+        BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(12.dp)) {
+            val keyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+            // Reserve the remaining height for chat controls and the composer on short IME viewports.
+            val compactComposer = tab == 0 && keyboardOpen && maxHeight < 360.dp
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (!compactComposer) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                        if(handoffState.isNotEmpty()) PhoneDraftNotice(handoffState)
+                        else IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
+                        if (openHermes != null) {
+                            IconButton(openHermes, Modifier.testTag("phone-open-hermes")) {
+                                Icon(Icons.Outlined.Home, label(Words.PhoneStartupOpenHermes))
+                            }
+                        }
+                        actions.documents?.let { documents ->
+                            IconButton({ actions.dismissError(); documentsOpen = true; documents.refresh() },
+                                enabled = !state.busy, modifier = Modifier.testTag("phone-documents-open")) {
+                                Icon(Icons.Outlined.Description, label(Words.PhoneDocuments))
+                            }
+                        }
+                        actions.openWriting?.let { open ->
+                            IconButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-writing-open")) {
+                                Icon(Icons.Outlined.Edit, label(Words.PhoneWriting))
+                            }
+                        }
+                        IconButton(close, Modifier.testTag("phone-close")) {Icon(Icons.Outlined.Close, label(Words.Close))}
+                    }
+                    Row(Modifier.fillMaxWidth()) {
+                        listOf(Words.Chat, Words.PhoneModels, Words.PhoneHistory).forEachIndexed { index, word ->
+                            Tab(selected = tab == index, onClick = {tab = index}, modifier = Modifier.weight(1f).testTag("phone-tab-$index"),
+                                text = {Text(label(word))})
+                        }
                     }
                 }
-                actions.documents?.let { documents ->
-                    IconButton({ actions.dismissError(); documentsOpen = true; documents.refresh() },
-                        enabled = !state.busy, modifier = Modifier.testTag("phone-documents-open")) {
-                        Icon(Icons.Outlined.Description, label(Words.PhoneDocuments))
+                if (!supported) Text(label(Words.PhoneUnsupported), style = MaterialTheme.typography.bodySmall)
+                if (state.busy) {
+                    Text(label(phoneStatus(state)), Modifier.testTag("phone-working"), style = MaterialTheme.typography.labelSmall)
+                    state.transfer?.let { p ->
+                        LinearProgressIndicator(progress = {(p.bytes.toDouble() / p.total).toFloat().coerceIn(0f, 1f)}, modifier = Modifier.fillMaxWidth())
+                        Text("${p.bytes / 1048576} / ${p.total / 1048576} MiB", style = MaterialTheme.typography.labelSmall)
+                    }
+                    if (state.status != "unloading") TextButton(actions.stop, Modifier.testTag("phone-stop")) {Text(label(Words.Stop))}
+                }
+                state.error?.let {
+                    TextButton({errorDetails = true}, Modifier.testTag("phone-error")) {Text(label(Words.PhoneIssue), color = MaterialTheme.colorScheme.error)}
+                }
+                when (tab) {
+                    0 -> PhoneChat(state, draft, changeDraft, actions, { offlineSetup = true }) { review = it }
+                    1 -> PhoneModelLibrary(state, supported, actions,
+                        openCatalogue = { catalogueOpen = true },
+                        openSetup = { offlineSetup = true },
+                        openDownloads = actions.downloads?.let { { downloadsOpen = true } },
+                        reviewUpdate = { downloadReview = it },
+                        remove = { deleteModel = it })
+                    2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
+                }
+                if (!compactComposer) {
+                    Row {
+                        TextButton({guide = true}, Modifier.weight(1f).testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
+                        TextButton({helper = LocalHelpTopic.FIRST_SETUP}, Modifier.weight(1f).testTag("phone-helper-open")) {Text(label(Words.PhoneHelper))}
                     }
                 }
-                actions.openWriting?.let { open ->
-                    IconButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-writing-open")) {
-                        Icon(Icons.Outlined.Edit, label(Words.PhoneWriting))
-                    }
-                }
-                IconButton(close, Modifier.testTag("phone-close")) {Icon(Icons.Outlined.Close, label(Words.Close))}
-            }
-            Row(Modifier.fillMaxWidth()) {
-                listOf(Words.Chat, Words.PhoneModels, Words.PhoneHistory).forEachIndexed { index, word ->
-                    Tab(selected = tab == index, onClick = {tab = index}, modifier = Modifier.weight(1f).testTag("phone-tab-$index"),
-                        text = {Text(label(word))})
-                }
-            }
-            if (!supported) Text(label(Words.PhoneUnsupported), style = MaterialTheme.typography.bodySmall)
-            if (state.busy) {
-                Text(label(phoneStatus(state)), Modifier.testTag("phone-working"), style = MaterialTheme.typography.labelSmall)
-                state.transfer?.let { p ->
-                    LinearProgressIndicator(progress = {(p.bytes.toDouble() / p.total).toFloat().coerceIn(0f, 1f)}, modifier = Modifier.fillMaxWidth())
-                    Text("${p.bytes / 1048576} / ${p.total / 1048576} MiB", style = MaterialTheme.typography.labelSmall)
-                }
-                if (state.status != "unloading") TextButton(actions.stop, Modifier.testTag("phone-stop")) {Text(label(Words.Stop))}
-            }
-            state.error?.let {
-                TextButton({errorDetails = true}, Modifier.testTag("phone-error")) {Text(label(Words.PhoneIssue), color = MaterialTheme.colorScheme.error)}
-            }
-            when (tab) {
-                0 -> PhoneChat(state, draft, changeDraft, actions, { offlineSetup = true }) { review = it }
-                1 -> PhoneModelLibrary(state, supported, actions,
-                    openCatalogue = { catalogueOpen = true },
-                    openSetup = { offlineSetup = true },
-                    openDownloads = actions.downloads?.let { { downloadsOpen = true } },
-                    reviewUpdate = { downloadReview = it },
-                    remove = { deleteModel = it })
-                2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
-            }
-            Row {
-                TextButton({guide = true}, Modifier.weight(1f).testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
-                TextButton({helper = LocalHelpTopic.FIRST_SETUP}, Modifier.weight(1f).testTag("phone-helper-open")) {Text(label(Words.PhoneHelper))}
             }
         }
     }
+
     val documentActions = actions.documents
     if (documentsOpen && documentActions != null) {
         PhoneDocuments(state, documentActions, pendingDocument, actions.stop, actions.dismissError) {

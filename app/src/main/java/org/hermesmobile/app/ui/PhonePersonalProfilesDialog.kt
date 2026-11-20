@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -45,7 +46,8 @@ internal fun PhonePersonalProfilesDialog(vm: LocalAiViewModel, state: LocalAiSta
         decorFitsSystemWindows = false, securePolicy = SecureFlagPolicy.SecureOn)) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(label(Words.PhonePersonalProfiles), style = MaterialTheme.typography.titleLarge)
+                val editingWithKeyboard = page is ProfilePage.Edit && WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                if (!editingWithKeyboard) Text(label(Words.PhonePersonalProfiles), style = MaterialTheme.typography.titleLarge)
                 if (error) Text(label(Words.PhoneProfileStorageError), color = MaterialTheme.colorScheme.error)
                 val request = review
                 if (request != null) {

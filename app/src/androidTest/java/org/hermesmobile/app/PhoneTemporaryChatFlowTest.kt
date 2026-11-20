@@ -17,13 +17,18 @@ class PhoneTemporaryChatFlowTest {
     @Test fun endingTemporaryChatPreservesTheSavedChatDraftAndReopensEmpty() = withPhone {
         compose.onNodeWithTag("phone-draft").assertIsDisplayed().performClick().performTextInput("Original saved-chat draft")
         openTemporary()
-        compose.onNodeWithTag("phone-temporary-draft").assertIsDisplayed().performClick().performTextInput("Unsent private draft")
-        compose.onNodeWithTag("phone-temporary-close").performClick()
-        compose.onNodeWithTag("phone-temporary-end-review").assertIsDisplayed()
-        compose.onNodeWithTag("phone-temporary-keep").performClick()
-        compose.onNodeWithTag("phone-temporary-draft").assertTextContains("Unsent private draft")
-        compose.onNodeWithTag("phone-temporary-close").performClick()
-        compose.onNodeWithTag("phone-temporary-end-confirm").performClick()
+        val draft = compose.onNodeWithTag("phone-temporary-draft")
+        draft.assertIsDisplayed().performClick().assertIsFocused().performTextInput("Unsent private draft")
+        draft.assertTextContains("Unsent private draft")
+        val review = compose.onNodeWithTag("phone-temporary-end-review")
+        val close = compose.onNodeWithTag("phone-temporary-close")
+        close.assertIsDisplayed().performTouchInput { click() }
+        compose.waitUntil(5_000) { review.isDisplayed() }
+        compose.onNodeWithTag("phone-temporary-keep").assertIsDisplayed().performTouchInput { click() }
+        draft.assertTextContains("Unsent private draft")
+        close.assertIsDisplayed().performTouchInput { click() }
+        compose.waitUntil(5_000) { review.isDisplayed() }
+        compose.onNodeWithTag("phone-temporary-end-confirm").assertIsDisplayed().performTouchInput { click() }
         compose.onNodeWithTag("phone-temporary-title").assertDoesNotExist()
         compose.onNodeWithTag("phone-draft").assertTextContains("Original saved-chat draft")
         openTemporary()

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.0-beta.10 - offline AI and reliability preview
+
+- Edit, regenerate and branch local chats. Search, pin, archive and export
+  phone history, and review encrypted backups before restoring.
+- Continue from selected turns or a reviewed summary. See prompt context
+  and per-model performance settings in the phone chat and model library.
+- Manage reviewed LFM3 and Qwen downloads and compatible GGUF imports.
+  Review model updates and retain existing chat bindings.
+- Ask questions about supported local documents, use local writing presets,
+  review personal profiles, and open a foreground-only temporary chat.
+- Keep chat actions reachable when the keyboard leaves little room. Apply
+  edited offline Voice transcripts from a fixed action above the keyboard.
+- Use the updated llama.cpp b12556 engine and a model-free setup checklist
+  with searchable troubleshooting.
+
+[Release scope and checks](docs/releases/1.1.0-beta.10.md).
+
 ## 1.1.0-beta.9 - 13 November 2026 - experimental preview
 
 - Publish the original-key code114 APKs at the owner's request, from exact

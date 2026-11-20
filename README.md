@@ -4,14 +4,18 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 
 **[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)** — experimental preview with optional offline AI, model management and a grounded setup helper. Full compatibility and production-phone acceptance remain open. [Published scope](docs/contracts/2026-11-13-beta9-public-preview.md) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
 
-The development branch adds offline chat editing, regeneration, branching,
-search, labels, Markdown, protected backups, reviewed summaries and per-model
-performance presets. It also adds offline speech controls and an offline setup
-checklist with searchable, reviewed troubleshooting topics that work before a
-model is loaded. The latest focused build passes **1,198 JVM tests** and **153
-Android methods each on API 26 and API 37**, with zero lint errors.
-[Offline setup and troubleshooting](docs/ON_DEVICE_AI.md#setup-and-troubleshooting) ·
-[Latest validation](docs/VALIDATION.md#offline-checklist-and-setup-issue-search).
+The beta.10 development candidate adds local chat editing and branching,
+search and labels, Markdown and protected backups, reviewed summaries,
+a two-model verified catalogue, document questions, writing presets,
+personal profiles and temporary chats. It includes compact keyboard
+layouts, a model-free setup checklist and the llama.cpp b12556 update.
+
+Recent local verification passed **1,203 JVM tests** and both lint
+variants with zero errors. The full hosted and signed phone checks
+remain separate release gates.
+[Offline AI guide](docs/ON_DEVICE_AI.md) ·
+[Beta.10 release scope](docs/releases/1.1.0-beta.10.md) ·
+[Validation evidence](docs/VALIDATION.md).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
 verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device

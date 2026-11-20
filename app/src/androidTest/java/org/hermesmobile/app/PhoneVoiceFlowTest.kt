@@ -34,9 +34,21 @@ class PhoneVoiceFlowTest {
                 compose.onNodeWithTag("voice-read-reason").performScrollTo().assertIsDisplayed()
                     .assertTextContains(Words.PhoneReadReplyRequired.en, substring = true)
                 compose.onNodeWithTag("voice-dictation-tab").performClick()
-                compose.onNodeWithTag("voice-use-transcript").performScrollTo().assertIsNotEnabled()
-                compose.onNodeWithTag("voice-transcript").performScrollTo().performTextReplacement("Test words 你好")
-                compose.onNodeWithTag("voice-use-transcript").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                val apply = compose.onNodeWithTag("voice-use-transcript")
+                apply.assertIsDisplayed().assertIsNotEnabled()
+                compose.onNodeWithTag("voice-transcript").performScrollTo().performClick()
+                    .assertIsFocused().performTextReplacement("Test words 你好")
+                compose.waitUntil(5_000) { focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true }
+                val viewport = checkNotNull(focusedDialogViewport(requireKeyboard = false))
+                assertTrue("Expected the real keyboard during transcript editing", viewport.keyboardVisible)
+                val bounds = apply.fetchSemanticsNode().boundsInRoot
+                assertTrue(
+                    "Transcript action bounds $bounds should fit the visible window ${viewport.visible}",
+                    bounds.top + viewport.screenOffsetY >= viewport.visible.top &&
+                        bounds.bottom + viewport.screenOffsetY <= viewport.visible.bottom && bounds.height > 0f
+                )
+                apply.assertIsDisplayed().assertIsEnabled()
+                apply.performTouchInput { click() }
                 compose.onNodeWithTag("voice-screen").assertDoesNotExist()
                 compose.onNodeWithTag("phone-draft").assertTextContains("Existing text\nTest words 你好")
                 assertEquals(history, app.localAi.state.value.history)
@@ -56,7 +68,7 @@ class PhoneVoiceFlowTest {
         compose.onNodeWithTag("voice-screen").assertDoesNotExist()
         compose.onNodeWithTag("phone-draft").assertTextContains("Keep my draft")
         open()
-        compose.onNodeWithTag("voice-use-transcript").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("voice-use-transcript").assertIsDisplayed().assertIsNotEnabled()
     }
 
     private fun open() {

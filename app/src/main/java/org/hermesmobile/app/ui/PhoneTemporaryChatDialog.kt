@@ -55,11 +55,13 @@ internal fun PhoneTemporaryChatDialog(vm: LocalAiViewModel, chat: TemporaryPhone
                         Text(label(Words.PhoneTemporaryEndReview), Modifier.testTag("phone-temporary-end-review"))
                         Text(label(Words.PhoneTemporaryRetention))
                     }
-                    Button(vm::closeTemporary, Modifier.fillMaxWidth().testTag("phone-temporary-end-confirm")) {
-                        Text(label(Words.PhoneTemporaryEnd))
-                    }
-                    TextButton({ confirmEnd = false }, Modifier.fillMaxWidth().testTag("phone-temporary-keep")) {
-                        Text(label(Words.Cancel))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton({ confirmEnd = false }, Modifier.weight(1f).testTag("phone-temporary-keep")) {
+                            Text(label(Words.Cancel))
+                        }
+                        Button(vm::closeTemporary, Modifier.weight(1f).testTag("phone-temporary-end-confirm")) {
+                            Text(label(Words.PhoneTemporaryEnd))
+                        }
                     }
                 } else {
                     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-temporary-messages"),
@@ -98,7 +100,11 @@ internal fun PhoneTemporaryChatDialog(vm: LocalAiViewModel, chat: TemporaryPhone
                         enabled = !state.busy && !chat.atTurnLimit, label = { Text(label(Words.PhoneTemporaryMessage)) }, maxLines = 4)
                     if (state.busy) Text(label(Words.PhoneWritingWorking))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(close, Modifier.weight(1f).testTag("phone-temporary-close")) {
+                        TextButton({
+                            focus.clearFocus()
+                            keyboard?.hide()
+                            close()
+                        }, Modifier.weight(1f).testTag("phone-temporary-close")) {
                             Text(label(Words.PhoneTemporaryEnd))
                         }
                         if (chat.pending) TextButton(vm.controller::cancel, Modifier.weight(1f).testTag("phone-temporary-stop")) {
