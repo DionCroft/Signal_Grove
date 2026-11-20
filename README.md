@@ -119,6 +119,7 @@ Updated **19 November 2026** for unreleased offline chat, backups, reviewed summ
 | Current selected offline methods | **7 have positive evidence** | Unchanged code114 source0ee app, separately identified companions; garden/metadata/helper/generation/Qwen/switch/import; not the full external-model gate; old failures retained |
 | Current workspace Review regression | **31 / 31 API26 cases** | Native UI, rendered-outline counterexamples and six scripted dispatch guards;16 acknowledged native taps, not full-suite/live acceptance |
 | Latest complete standard device gate | **1,142 API26 / 1,143 API37 cases** | Source `09306e6`, four independently checked disjoint raw partitions and actual build APK hashes; external-model/final-head/phone gates remain separate |
+| Physical LFM3 1.7B benchmark · development build | **3.06 s** to first visible text · **44.3 sampled tokens/s** | One offline run on M098FE, 127 sampled tokens and 2,370.47 MiB after-load process PSS. Sustained speed and battery drain remain unmeasured. [Benchmark evidence](docs/VALIDATION.md#physical-lfm3-benchmark-with-networking-off) |
 | Physical model import observations | **649–1,438 ms** | Three observed LFM3/Qwen imports; not a speed guarantee |
 | Highest observed process VmHWM in model tests | **2.43 GiB** | Short USB-charging phone tests; not a minimum-RAM requirement or sustained thermal/battery benchmark |
 | Recommended LFM3 model file | **1.05 GB** | 1,049,615,680 bytes, separate licensed download; weights are not bundled |
