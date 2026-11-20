@@ -14,11 +14,31 @@ import time
 from urllib.parse import unquote, urlsplit
 
 
+GIT_VERSION_READS = {
+    ("rev-parse", "HEAD"),
+    ("branch", "--show-current"),
+    ("log", "-1", "--format=%ct", "HEAD"),
+    ("--no-optional-locks", "status", "--porcelain", "-uno"),
+    ("tag", "--merged", "HEAD", "--list", "v[0-9]*"),
+    ("describe", "--tags", "--long", "--match", "v2[0-9][0-9][0-9].*", "HEAD"),
+    ("rev-parse", "--short=7", "HEAD"),
+}
+
+
+def checkout_version_read(executable, argv, cwd, env, source: Path) -> bool:
+    return (executable == "git" and type(argv) is list and argv[:1] == ["git"]
+            and all(type(item) is str for item in argv)
+            and tuple(argv[1:]) in GIT_VERSION_READS and env is None
+            and isinstance(cwd, (str, os.PathLike)) and Path(cwd).resolve() == source)
+
+
 def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> tuple[Path, list[str]]:
     fixture.mkdir(mode=0o700)
     home, account, temp = (fixture / name for name in ("profile", "account", "temp"))
     for directory in (home, account, temp):
         directory.mkdir(mode=0o700)
+    # This disposable profile does not run optional release discovery.
+    (home / "config.yaml").write_text("updates:\n  check: false\n", encoding="utf8")
     system = {name: os.environ[name] for name in ("SYSTEMROOT", "WINDIR", "PATH", "COMSPEC")
               if name in os.environ}
     os.environ.clear()
@@ -27,13 +47,18 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
                       APPDATA=str(account), LOCALAPPDATA=str(account),
                       TEMP=str(temp), TMP=str(temp), TMPDIR=str(temp), XDG_CACHE_HOME=str(fixture / "cache"),
                       HERMES_DISABLE_LAZY_INSTALLS="1", HERMES_GATEWAY_HEARTBEAT_REFRESH_S=interval)
+    if os.name == "posix":
+        os.environ.update(PATH="/usr/bin:/bin", GIT_CONFIG_NOSYSTEM="1",
+                          GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull,
+                          GIT_OPTIONAL_LOCKS="0", GIT_NO_LAZY_FETCH="1", GIT_TERMINAL_PROMPT="0",
+                          GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="core.fsmonitor", GIT_CONFIG_VALUE_0="false")
     os.chdir(fixture)
     sys.path[:0] = [str(source), str(site)]
     denials = []
     read_roots = (source, fixture, site, Path(sys.base_prefix).resolve(), Path(__file__).resolve())
     system_reads = {Path(name).resolve() for name in (
         "/etc/localtime", "/etc/mime.types", "/proc/stat", "/proc/1/cgroup",
-        "/proc/self/mountinfo", f"/proc/{os.getpid()}/stat",
+        "/proc/self/mountinfo", f"/proc/{os.getpid()}/stat", f"/proc/{os.getppid()}/stat",
     )} if os.name == "posix" else set()
     if os.name == "nt":
         system_reads.update(Path(fixture.drive + name).resolve() for name in (
@@ -61,6 +86,8 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
                 if isinstance(target, tuple) and target[0] in ("127.0.0.1", "::1"):
                     return
             if event == "subprocess.Popen":
+                if os.name == "posix" and checkout_version_read(*args, source):
+                    return
                 program = Path(os.fsdecode(args[0])).name
                 argv = args[1]
                 names = " ".join(str(arg)[:120] for arg in argv[:8]) if isinstance(argv, list) else program
@@ -192,6 +219,7 @@ def main() -> None:
     assert not fixture.is_relative_to(source) and not source.is_relative_to(fixture)
     assert site.is_relative_to(Path(sys.prefix).resolve())
     home, denials = constrain_child(source, fixture, site, interval)
+    print(f"FIXTURE_PROCESS pid={os.getpid()} parent={os.getppid()}", flush=True)
     from gateway.config import GatewayConfig
     from gateway.run import GatewayRunner
     from tui_gateway import server

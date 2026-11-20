@@ -35,6 +35,14 @@ and process arguments and permits the reviewed read-only CPU and MIME
 metadata. Native Linux lifecycle acceptance remains open.
 [First native Linux run](https://github.com/DionCroft/Signal_Grove/actions/runs/44761651593).
 
+The follow-up traced the Git refusals to passive release discovery and
+local checkout version reporting. The disposable profile disables passive
+discovery through the upstream updates setting. Exact read-only Git version
+queries run against the verified checkout with optional locking and lazy
+fetches disabled. Process stats are limited to the fixture and its parent.
+The source-pinned runtime assertions and post-exit evidence checks still apply.
+[Diagnostic run](https://github.com/DionCroft/Signal_Grove/actions/runs/44762685910).
+
 ## Owned emulator API readiness - 20 November 2026
 
 Run 44748140345 API 26 shard 0 observed Android boot completion and lost the

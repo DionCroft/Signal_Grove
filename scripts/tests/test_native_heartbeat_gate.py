@@ -39,6 +39,24 @@ class NativeHeartbeatGateTest(unittest.TestCase):
         (folder / "process.log").write_text(log, encoding="utf-8")
         return folder
 
+    def test_checkout_version_reads_are_exact_commands_at_the_disposable_source(self):
+        fixture_spec = importlib.util.spec_from_file_location("heartbeat_fixture", gate.CHILD)
+        fixture = importlib.util.module_from_spec(fixture_spec)
+        fixture_spec.loader.exec_module(fixture)
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory).resolve()
+            for argv in fixture.GIT_VERSION_READS:
+                self.assertTrue(fixture.checkout_version_read("git", ["git", *argv], source, None, source))
+            for argv in (
+                ["git", "fetch"], ["git", "config", "--global", "--list"],
+                ["git", "status", "--porcelain"], ["git", "rev-parse", "--git-dir"],
+            ):
+                self.assertFalse(fixture.checkout_version_read("git", argv, source, None, source))
+            query = ["git", "rev-parse", "HEAD"]
+            self.assertFalse(fixture.checkout_version_read("git", query, source.parent, None, source))
+            self.assertFalse(fixture.checkout_version_read("git", query, source, {"GIT_DIR": "elsewhere"}, source))
+            self.assertFalse(fixture.checkout_version_read("sh", query, source, None, source))
+
     def test_all_eight_distinct_lifecycle_cases_require_the_intended_observations(self):
         for variant in ("pristine", "candidate"):
             for case in gate.cases(variant):
