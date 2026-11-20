@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Project approval and history search controls - 20 November 2026
+
+Explicit project approval stays beside Confirm and Cancel, with exact
+fields in the scrollable body. Phone history shows the date selection
+in its own menu. The updated source passed the 138-case focused
+regression set on Android 8 and 17. The full hosted suite, real
+Hermes writes, physical-device and signed release checks remain open.
+[Project and history regression evidence](VALIDATION.md#project-approval-footer-and-phone-history-filter-menus).
+
 ## Summary drafting on Android 8 - 20 November 2026
 
 The summary review puts optional drafting above the editor. Android 8

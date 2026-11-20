@@ -3,11 +3,14 @@ package org.hermesmobile.app.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
@@ -84,30 +87,43 @@ fun projectFieldWord(key:String)=when(key) {
     val request=review.request
     var approved by remember(review) {mutableStateOf(false)}
     AlertDialog(onDismissRequest=close,title={Text(label(mcpActionWord(request.action.receiptAction)))},text={
-        LazyColumn(Modifier.heightIn(max=520.dp).testTag("project-change-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            item {Text(review.target.url);Text(review.target.profile);Text(review.target.actor)}
-            request.selected?.let {row->item {Text(row.name);Text(label(Words.HostProjectId));SelectionContainer {Text(row.id)};Text(label(Words.HostProjectSlug));SelectionContainer {Text(row.slug)};if(row.archived) Text(label(Words.HostProjectArchived))}}
-            if(request.action==HostProjectAction.ClearActive) item {Text(label(Words.HostProjectActive));SelectionContainer {Text(request.expected.activeId.orEmpty())}}
-            items(request.values.entries.filter {it.key !in setOf("id","use","restore")}.sortedBy {it.key},key={it.key}) {(key,value)->
-                Column {Text(label(projectFieldWord(key)),style=MaterialTheme.typography.titleSmall)
-                    when(value) {
-                        is JsonArray->value.forEach {path->SelectionContainer {Text(path.jsonPrimitive.content)}}
-                        else->if(value==JsonPrimitive(true) || value==JsonPrimitive(false)) Text(label(if(value==JsonPrimitive(true)) Words.Yes else Words.No)) else SelectionContainer {Text(value.jsonPrimitive.content.ifEmpty {label(Words.ProjectEmptyValue)})}
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            LazyColumn(
+                Modifier.weight(1f, fill = false).heightIn(max = 520.dp).testTag("project-change-review"),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {Text(review.target.url);Text(review.target.profile);Text(review.target.actor)}
+                request.selected?.let {row->item {Text(row.name);Text(label(Words.HostProjectId));SelectionContainer {Text(row.id)};Text(label(Words.HostProjectSlug));SelectionContainer {Text(row.slug)};if(row.archived) Text(label(Words.HostProjectArchived))}}
+                if(request.action==HostProjectAction.ClearActive) item {Text(label(Words.HostProjectActive));SelectionContainer {Text(request.expected.activeId.orEmpty())}}
+                items(request.values.entries.filter {it.key !in setOf("id","use","restore")}.sortedBy {it.key},key={it.key}) {(key,value)->
+                    Column {Text(label(projectFieldWord(key)),style=MaterialTheme.typography.titleSmall)
+                        when(value) {
+                            is JsonArray->value.forEach {path->SelectionContainer {Text(path.jsonPrimitive.content)}}
+                            else->if(value==JsonPrimitive(true) || value==JsonPrimitive(false)) Text(label(if(value==JsonPrimitive(true)) Words.Yes else Words.No)) else SelectionContainer {Text(value.jsonPrimitive.content.ifEmpty {label(Words.ProjectEmptyValue)})}
+                        }
                     }
                 }
+                item {Text(label(when(request.action) {
+                    HostProjectAction.Create->Words.ProjectCreateEffect
+                    HostProjectAction.Update->Words.ProjectUpdateEffect
+                    HostProjectAction.AddFolder->Words.ProjectAddFolderEffect
+                    HostProjectAction.RemoveFolder->Words.ProjectRemoveFolderEffect
+                    HostProjectAction.SetPrimary->Words.ProjectSetPrimaryEffect
+                    HostProjectAction.Archive,HostProjectAction.Restore->Words.ProjectArchiveEffect
+                    HostProjectAction.Delete->Words.ProjectDeleteEffect
+                    HostProjectAction.SetActive,HostProjectAction.ClearActive->Words.ProjectActiveEffect
+                }))}
+                item {Text(label(Words.ProjectConcurrency));Text(label(Words.HostProjectsBoundary))}
             }
-            item {Text(label(when(request.action) {
-                HostProjectAction.Create->Words.ProjectCreateEffect
-                HostProjectAction.Update->Words.ProjectUpdateEffect
-                HostProjectAction.AddFolder->Words.ProjectAddFolderEffect
-                HostProjectAction.RemoveFolder->Words.ProjectRemoveFolderEffect
-                HostProjectAction.SetPrimary->Words.ProjectSetPrimaryEffect
-                HostProjectAction.Archive,HostProjectAction.Restore->Words.ProjectArchiveEffect
-                HostProjectAction.Delete->Words.ProjectDeleteEffect
-                HostProjectAction.SetActive,HostProjectAction.ClearActive->Words.ProjectActiveEffect
-            }))}
-            item {Text(label(Words.ProjectConcurrency));Text(label(Words.HostProjectsBoundary))}
-            item {ProjectChoice(Words.ProjectChangeGrant,approved,{approved=it},"project-change-approve")}
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    .toggleable(approved, enabled = enabled, role = Role.Checkbox, onValueChange = { approved = it })
+                    .testTag("project-change-approve"),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(approved, onCheckedChange = null, enabled = enabled)
+                Text(label(Words.ProjectChangeGrant), Modifier.weight(1f).padding(start = 8.dp))
+            }
         }
     },confirmButton={TextButton(confirm,enabled=enabled && approved,modifier=Modifier.heightIn(min=48.dp).testTag("project-change-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton(close,Modifier.heightIn(min=48.dp).testTag("project-change-cancel")) {Text(label(Words.Cancel))}})
 }

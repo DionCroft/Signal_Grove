@@ -5,6 +5,14 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest project approval and search checkpoint
+
+Project review keeps the confirmation controls together, and phone history
+shows the selected date before Apply. Both Android versions passed 138
+focused checks, including summary drafting and image-share review.
+Full hosted, real Hermes and signed-release acceptance remain open.
+[Android UI evidence](docs/VALIDATION.md#project-approval-footer-and-phone-history-filter-menus).
+
 ## Latest temporary phone chat checkpoint
 
 Temporary chat keeps an independent foreground transcript. Ending or

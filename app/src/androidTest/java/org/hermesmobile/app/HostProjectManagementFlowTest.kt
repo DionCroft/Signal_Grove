@@ -45,7 +45,12 @@ class HostProjectManagementFlowTest {
     private fun details() {tap("host-projects-list","host-project-details-$id");compose.waitUntil(10000) {!vm.state.value.busy && vm.state.value.projects.detail!=null}}
     private fun editName(value:String="Reviewed garden") {tap("host-project-detail","project-action-Update");tap("project-form","project-form-name-set");input("project-form-name",value)}
     private fun review() {compose.onNodeWithTag("project-form-review").assertIsEnabled().performClick();compose.onNodeWithTag("project-change-confirm").assertIsNotEnabled()}
-    private fun approve() {tap("project-change-review","project-change-approve");compose.onNodeWithTag("project-change-confirm").assertIsEnabled()}
+    private fun approve() {
+        val approval = compose.onNodeWithTag("project-change-approve")
+        approval.assertIsDisplayed().assertIsOff().performClick()
+        approval.assertIsDisplayed().assertIsOn()
+        compose.onNodeWithTag("project-change-confirm").assertIsDisplayed().assertIsEnabled()
+    }
     private fun capture(name:String) {
         val bitmap=checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         val file=File(compose.activity.getExternalFilesDir(null),"qa/$name.png");file.parentFile!!.mkdirs()

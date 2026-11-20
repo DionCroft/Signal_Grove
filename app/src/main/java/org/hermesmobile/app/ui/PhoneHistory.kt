@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -129,7 +131,10 @@ internal fun historyViewWord(view: LocalHistoryView) = when(view) {
     text: String, change: (String) -> Unit,
     model: String?, chooseModel: (String?) -> Unit, period: PhoneHistoryPeriod, choosePeriod: (PhoneHistoryPeriod) -> Unit,
     search: (LocalHistoryQuery) -> Unit, close: () -> Unit) {
-    var menu by remember {mutableStateOf(false)}
+    var modelMenu by remember { mutableStateOf(false) }
+    var dateMenu by remember { mutableStateOf(false) }
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     val models = (state.history.map {it.modelSha256} + state.models.map {it.sha256} + listOfNotNull(model)).distinct().sorted()
     fun modelLabel(hash: String) = state.models.firstOrNull {it.sha256 == hash}?.metadata?.name
         ?.filter { !it.isISOControl() }?.take(80)?.let {"$it · ${hash.take(12)}"} ?: hash.take(12)
@@ -149,19 +154,39 @@ internal fun historyViewWord(view: LocalHistoryView) = when(view) {
                         modifier = Modifier.testTag("phone-history-view-${value.name}")) }
                     Text(label(Words.PhoneHistoryModel), style = MaterialTheme.typography.titleSmall)
                     Box {
-                        OutlinedButton({menu = true}, enabled = !state.busy, modifier = Modifier.testTag("phone-history-model-menu")) {
+                        OutlinedButton({
+                            focus.clearFocus()
+                            keyboard?.hide()
+                            modelMenu = true
+                        }, enabled = !state.busy, modifier = Modifier.testTag("phone-history-model-menu")) {
                             Text(model?.let(::modelLabel) ?: label(Words.PhoneHistoryAllModels))
                         }
-                        DropdownMenu(menu, {menu = false}) {
-                            DropdownMenuItem(text = {Text(label(Words.PhoneHistoryAllModels))}, onClick = {chooseModel(null); menu = false},
+                        DropdownMenu(modelMenu, {modelMenu = false}) {
+                            DropdownMenuItem(text = {Text(label(Words.PhoneHistoryAllModels))}, onClick = {chooseModel(null); modelMenu = false},
                                 modifier = Modifier.testTag("phone-history-model-all"))
-                            models.forEach {hash -> DropdownMenuItem(text = {Text(modelLabel(hash))}, onClick = {chooseModel(hash); menu = false},
+                            models.forEach {hash -> DropdownMenuItem(text = {Text(modelLabel(hash))}, onClick = {chooseModel(hash); modelMenu = false},
                                 modifier = Modifier.testTag("phone-history-model-$hash")) }
                         }
                     }
                     Text(label(Words.PhoneHistoryDate), style = MaterialTheme.typography.titleSmall)
-                    PhoneHistoryPeriod.entries.forEach {value -> FilterChip(value == period, {choosePeriod(value)},
-                        label = {Text(label(value.word))}, enabled = !state.busy, modifier = Modifier.testTag("phone-history-period-${value.name}")) }
+                    Box {
+                        OutlinedButton({
+                            focus.clearFocus()
+                            keyboard?.hide()
+                            dateMenu = true
+                        }, enabled = !state.busy, modifier = Modifier.testTag("phone-history-date-menu")) {
+                            Text(label(period.word))
+                        }
+                        DropdownMenu(dateMenu, { dateMenu = false }) {
+                            PhoneHistoryPeriod.entries.forEach { value ->
+                                DropdownMenuItem(
+                                    text = { Text(label(value.word)) },
+                                    onClick = { choosePeriod(value); dateMenu = false },
+                                    modifier = Modifier.testTag("phone-history-period-${value.name}")
+                                )
+                            }
+                        }
+                    }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton({

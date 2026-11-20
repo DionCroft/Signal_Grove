@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## Project approval footer and phone history filter menus
+
+Project change review keeps the exact target, values, effects and
+concurrency explanation in its scrollable body. The explicit approval
+checkbox and its label stay with the confirmation actions. The checkbox
+starts clear, and Confirm still depends on both approval and a current
+review. The existing tests still verify no write after a changed host
+home, stale profile, cancellation, or unresolved operation.
+
+Phone history presents the date presets in a menu showing the selected
+date. Entering a model or date menu dismisses text input focus.
+The search test observes the new date on the screen before applying
+and verifies that the single read-only search receives the exact model,
+literal text and date bounds.
+
+The older hosted run 44717059626 reported the project approval checkbox
+outside the viewport and a history search with missing date bounds.
+On the immediately preceding build, the focused baseline passed all
+29 cases on Android 8 and 17. The updated layout passed all 138
+integrated cases on each version, including both targeted flows,
+multilingual controls, real keyboard bounds and image-share review.
+The strict build passed all 1,186 JVM tests and lint with zero errors.
+The Android 8 multilingual capture shows the complete approval label,
+checkbox, Confirm and Cancel. Full hosted and physical acceptance remain open.
+
+The later hosted run 44722706135 reached 653 Android 8 shard 1 cases
+after the boot check. Its two errors came from one image-share test
+and its cleanup on source before the image-share fix. The raw hosted
+failure remains recorded.
+
+- Build receipt 20261120-122316-10c4752032f645dbb7baf0b109b48896
+- Source snapshot SHA-256 b97944bba88294e27f87a5f5c146bd27d15c574cc504c21a1a3a0334e3145163
+- Debug APK SHA-256 8d26e10ad6f6e1a431c0e4c7973c770f0efe97f2f5c861d0fb97114633b09227
+- Test companion SHA-256 ce392d76e6653ff8ea096d5c0a68d4167a1e8afe96a52960c321adddf2c2e892
+- Android 8 and Android 17 focused baseline SHA-256 a1e805afde9932d8814dccaf2c8c93d2aaa3dee0d7e0d7ef5b9e8c72d0a8e071 and 6424debe12c08f5919fd83b4fa8325a2e555ce8369776adc13cb7a21f4f0f0a7
+- Android 8 and Android 17 integrated instrumentation SHA-256 0bb2bbd6675cee5f8b6e301a12d77f7bd6a48567d079b6e4805f22fd916581e8 and fcda99905c596c272f6e5bea056bd5a3680483e64d561cc78b04532cdddbf94e
+- Older project and search failure logs SHA-256 389fd74785864533f7fbd901e361e44083232adaa51a2c7d25b5c100f8bea40a and 181bf1e47b8aad9ac42d0c754b60f8b766ca72146a0bc64a0cbda74270ee1c56
+- Android 8 approval capture SHA-256 3c4ab0ad8356db6a6f70f0ba343ebca31634e4dd0f4a7e253edb4196bba4553e
+- Older image-share failure log SHA-256 f3c65b8c63f8a619c070805fba299abef97921ffc2f917f0a562fc64032b223d
+
 ## Earlier-turn summary draft placement on Android 8
 
 The summary review now puts Draft with phone model and its Stop control
