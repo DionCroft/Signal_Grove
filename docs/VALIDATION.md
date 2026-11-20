@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## Bound the hosted Android boot status probe
+
+In GitHub Actions run 44717059626, the verify job passed. The first
+Android 8 shard's read of sys.boot_completed timed out during startup,
+before APK installation or test dispatch. The CI runner now uses the
+existing owned-process and deadline checks for boot completion as well
+as ADB readiness. A timed-out read observes the same emulator again
+within the original boot deadline. Boot completion requires a successful
+read of 1. APK installation and instrumentation keep their original
+one-dispatch behavior.
+
+All 28 focused runner tests passed. The complete repository script
+suite reported 1,163 cases, with 273 skips and zero failures. A hosted
+rerun remains required.
+[Original Android 8 failure](https://github.com/DionCroft/Signal_Grove/actions/runs/44717059626/job/136230175658).
+
 ## Offline questions about PDF pages
 
 On Android 15 and later, Documents can extract selectable text from

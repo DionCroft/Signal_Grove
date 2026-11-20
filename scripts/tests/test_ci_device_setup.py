@@ -85,6 +85,37 @@ class DeviceSdkSetupTest(unittest.TestCase):
         with patch.object(device_ci.time,'sleep'):device_ci.wait_for_owned_device(process,probe,3)
         self.assertEqual(2,probe.call_count);self.assertEqual(2,process.poll.call_count)
 
+    def test_boot_poll_requires_a_successful_fresh_read_after_transport_timeout(self):
+        process = Mock()
+        process.poll.return_value = None
+        command = ('shell', 'getprop', 'sys.boot_completed')
+        probe = Mock(side_effect=[
+            subprocess.TimeoutExpired(command, 10),
+            subprocess.CompletedProcess(command, 1, '1'),
+            subprocess.CompletedProcess(command, 0, '0'),
+            subprocess.CompletedProcess(command, 0, '1'),
+        ])
+        with patch.object(device_ci.time, 'sleep'), patch('builtins.print') as recorded:
+            device_ci.wait_for_owned_device(process, probe, timeout=240, boot=True)
+        self.assertEqual(4, process.poll.call_count)
+        self.assertEqual([command] * 4, [call.args for call in probe.call_args_list])
+        self.assertTrue(all(call.kwargs == {'timeout': 10, 'check': False} for call in probe.call_args_list))
+        recorded.assert_called_once()
+
+    def test_boot_poll_exits_at_original_deadline_and_never_queries_a_dead_process(self):
+        process = Mock()
+        process.poll.return_value = None
+        probe = Mock(side_effect=subprocess.TimeoutExpired(['owned-adb'], 4))
+        with patch.object(device_ci.time, 'monotonic', side_effect=[0, 0, 4, 4]), patch.object(device_ci.time, 'sleep'), patch('builtins.print'):
+            with self.assertRaisesRegex(TimeoutError, 'ready for boot'):
+                device_ci.wait_for_owned_device(process, probe, timeout=4, boot=True)
+        probe.assert_called_once_with('shell', 'getprop', 'sys.boot_completed', timeout=4, check=False)
+        process.poll.return_value = 7
+        probe.reset_mock()
+        with self.assertRaisesRegex(RuntimeError, 'exited before boot'):
+            device_ci.wait_for_owned_device(process, probe, boot=True)
+        probe.assert_not_called()
+
     def test_owned_ci_data_partition_replaces_all_template_defaults_without_touching_other_properties(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);owned=root/'HermesCI26.avd';owned.mkdir();config=owned/'config.ini'

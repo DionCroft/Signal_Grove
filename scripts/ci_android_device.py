@@ -346,17 +346,27 @@ def ensure_device_disk_space(sdk: Path, work: Path, env: dict, minimum_bytes: in
     if free<minimum_bytes:raise ValueError('Insufficient emulator disk space after bounded NDK cleanup.')
 
 
-def wait_for_owned_device(process, probe, timeout: float = 180) -> None:
-    """Observe this process and serial together; a dead emulator is not an ADB wait."""
-    deadline=time.monotonic()+timeout
+def wait_for_owned_device(process, probe, timeout: float = 180, *, boot: bool = False) -> None:
+    """Observe this process and serial together until ADB responds or Android completes boot."""
+    command = ('shell', 'getprop', 'sys.boot_completed') if boot else ('get-state',)
+    expected = '1' if boot else 'device'
+    phase = 'boot' if boot else 'ADB'
+    deadline = time.monotonic() + timeout
     while True:
-        if process.poll() is not None:raise RuntimeError('Owned emulator exited before ADB became ready; inspect emulator.log.')
-        remaining=deadline-time.monotonic()
-        if remaining<=0:raise TimeoutError('Owned emulator did not become ready for ADB.')
-        try:result=probe('get-state',timeout=min(10,remaining),check=False)
-        except subprocess.TimeoutExpired:result=None
-        if result is not None and result.returncode==0 and result.stdout.strip()=='device':return
-        time.sleep(min(2,max(0,deadline-time.monotonic())))
+        if process.poll() is not None:
+            raise RuntimeError(f'Owned emulator exited before {phase} became ready; inspect emulator.log.')
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError(f'Owned emulator did not become ready for {phase}.')
+        try:
+            result = probe(*command, timeout=min(10, remaining), check=False)
+        except subprocess.TimeoutExpired:
+            if boot:
+                print('Boot status observation timed out; checking the same owned emulator.', flush=True)
+        else:
+            if result.returncode == 0 and result.stdout.strip() == expected:
+                return
+        time.sleep(min(2, max(0, deadline - time.monotonic())))
 
 
 def configure_owned_avd(avd_home: Path, name: str) -> None:
@@ -415,12 +425,7 @@ def main() -> int:
             print('Waiting for the owned emulator to boot.',flush=True)
             run([adb,'start-server'])
             wait_for_owned_device(process,device)
-            deadline=time.monotonic()+240
-            while True:
-                if process.poll() is not None:raise RuntimeError('Owned emulator exited before boot.')
-                if device('shell','getprop','sys.boot_completed',check=False).stdout.strip()=='1':break
-                if time.monotonic()>deadline:raise TimeoutError('Owned emulator did not finish booting.')
-                time.sleep(2)
+            wait_for_owned_device(process, device, timeout=240, boot=True)
             actual=device('shell','getprop','ro.build.version.sdk').stdout.strip()
             if actual!=str(args.api):raise ValueError('The emulator API does not match the matrix entry.')
             print(f'Emulator booted with verified API {actual}; installing APKs.',flush=True)
