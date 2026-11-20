@@ -72,11 +72,11 @@ class PhoneVoiceFlowTest {
     }
 
     private fun selectVoiceTab(tag: String) {
-        // The dialog can be attached before the chip is displayed, and its label can
-        // merge into another semantics node while the IME and dialog settle.
         val tab = compose.onNodeWithTag(tag, useUnmergedTree = true)
-        compose.waitUntil(10_000) { tab.isDisplayed() }
-        tab.assertIsEnabled().performTouchInput { click() }
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().size == 1
+        }
+        tab.performScrollTo().assertIsDisplayed().assertIsEnabled().performTouchInput { click() }
     }
 
     private fun open() {

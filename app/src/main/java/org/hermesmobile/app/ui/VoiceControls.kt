@@ -8,8 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
@@ -42,8 +40,14 @@ internal fun RecognitionFailure.word()=when(this) {
     var speechSettingsUnavailable by remember {mutableStateOf(false)}
     val idle=session.phase==DictationPhase.IDLE
     val voiceTitle=label(if(phoneOnly) Words.PhoneVoice else Words.Voice)
-    var transcriptFocused by remember { mutableStateOf(false) }
-    val editingTranscript = phoneOnly && !readAloud && transcriptFocused && WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    val sectionTabs: @Composable () -> Unit = {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(!readAloud, { onSection(false) }, modifier = Modifier.weight(1f).testTag("voice-dictation-tab"),
+                label = { Text(label(Words.Dictation)) })
+            FilterChip(readAloud, { onSection(true) }, modifier = Modifier.weight(1f).testTag("voice-read-tab"),
+                label = { Text(label(Words.ReadAloud)) })
+        }
+    }
     val useTranscript: @Composable () -> Unit = {
         Button(
             onClick = onChat,
@@ -54,14 +58,12 @@ internal fun RecognitionFailure.word()=when(this) {
         }
     }
     Column(Modifier.fillMaxSize().padding(horizontal=20.dp).testTag("voice-screen").semantics {paneTitle=voiceTitle},verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        if (!editingTranscript) {
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                FilterChip(!readAloud,{onSection(false)},modifier=Modifier.weight(1f).testTag("voice-dictation-tab"),label={Text(label(Words.Dictation))})
-                FilterChip(readAloud,{onSection(true)},modifier=Modifier.weight(1f).testTag("voice-read-tab"),label={Text(label(Words.ReadAloud))})
-            }
-        }
+        if (!phoneOnly) sectionTabs()
         key(readAloud) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("voice-controls").padding(bottom=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp),horizontalAlignment=Alignment.CenterHorizontally) {
+                // The phone dialog shares this scroll area with the editor.
+                // Its transcript action stays fixed above the keyboard.
+                if (phoneOnly) sectionTabs()
                 if(readAloud) {
                     Button(onRead,Modifier.testTag("voice-read-reply"),enabled=speaking || readBlock==null) {Text(label(if(speaking) Words.StopSpeech else Words.ReadReply))}
                     readBlock?.let {Text(label(it),Modifier.testTag("voice-read-reason"))}
@@ -95,8 +97,7 @@ internal fun RecognitionFailure.word()=when(this) {
                     if(!idle) TextButton(onCancel,Modifier.testTag("voice-cancel")) {Text(label(Words.Cancel))}
                     session.failure?.let {Text(label(it.word()),Modifier.testTag("voice-dictation-error"),color=MaterialTheme.colorScheme.error)}
                     if(session.failure==RecognitionFailure.PERMISSION) TextButton(onPermissions) {Text(label(Words.AppPermissions))}
-                    OutlinedTextField(transcript,onTranscript,Modifier.fillMaxWidth().testTag("voice-transcript")
-                        .onFocusChanged { transcriptFocused = it.hasFocus },
+                    OutlinedTextField(transcript,onTranscript,Modifier.fillMaxWidth().testTag("voice-transcript"),
                         label={Text(label(Words.Transcript))},enabled=!phoneOnly || idle,minLines=2,maxLines=6)
                     draftBlock?.let { Text(label(it),Modifier.testTag("voice-draft-reason"),color=MaterialTheme.colorScheme.error) }
                     if (!phoneOnly) useTranscript()

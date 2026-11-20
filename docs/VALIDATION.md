@@ -88,6 +88,34 @@ per-glyph and native input assertions still apply.
 The original raw local instrumentation log is preserved on the build
 host with SHA-256 ce3f1ecae994f44df2723847132431e5622e47698c7ef1e99908156f179cf854.
 
+## Phone Voice section scroll layout
+
+The intermediate fixture-only candidate 1e8f220 passed four of five
+standard-viewport phone dialog checks on Android 8. Waiting for Read
+aloud to become visible still timed out. The previous compact candidate
+could hide both section tabs while the transcript had focus and the IME
+inset was present.
+
+The phone Voice section controls now sit at the top of the scrollable
+content. The fixed transcript action remains above the keyboard. The
+test scrolls the actual chip into view, taps once and checks the selected
+screen. The main Hermes Voice screen retains its fixed section row.
+
+The intermediate log is preserved with SHA-256 ffaaef59e4704e56dc70b97ddd1da5744fc632e93680b208bfcafa628d052831.
+
+## Hosted Android 17 workspace input timing
+
+On source beef582, Android 17 shard 1 ran all 657 cases and passed
+656. Its one failed workspace review reported a native input warning.
+The trace recorded one accepted DOWN and one accepted UP at the
+checked control. Their event times were 641 ms apart, beyond the
+400 ms long-press threshold. There was no second tap and the fixture
+did not continue to the confirmation. This warning remains a failed
+result. Android 8 shard 1 and Android 17 shard 0 independently passed
+657 and 585 named cases respectively.
+
+[Failed Android 17 shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44808153153/job/136545168106).
+Raw archive SHA-256 d8ed2b6555e0333641a09c8d0cb469d99dca8e54c14689d1c000b3eaec0617ff.
 ## Compact phone chat action menu
 
 The previous APK failed the actual Temporary chat flow after a draft
