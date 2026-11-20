@@ -149,7 +149,8 @@ def count_rows(home: Path) -> int:
         return conn.execute("SELECT count(*) FROM gateway_heartbeats").fetchone()[0]
 
 
-def run_contention(runner, server, home: Path, *, hold_at_close: bool) -> dict:
+def run_contention(runner, server, home: Path, *, hold_at_close: bool, hold_through_stop: bool = False) -> dict:
+    from persistence.sqlite._state.write import WriterMutexTimeout
     from persistence_assembly import close_all_stores
     from tests.fixtures.storage_holder import raw_holder
 
@@ -158,6 +159,9 @@ def run_contention(runner, server, home: Path, *, hold_at_close: bool) -> dict:
     entered, release, transaction_done = (threading.Event() for _ in range(3))
     competing, competing_done, saw_wait = (threading.Event() for _ in range(3))
     transactions = 0
+    writer_timeouts = []
+    row_while_held = None
+    stop_returned_with_live_transaction = False
 
     def instrument_write(action, patience_s=None):
         if threading.current_thread().name != "hermes-gateway-heartbeat":
@@ -166,6 +170,9 @@ def run_contention(runner, server, home: Path, *, hold_at_close: bool) -> dict:
             competing.set()
             try:
                 return write(action, patience_s=patience_s)
+            except WriterMutexTimeout:
+                writer_timeouts.append(patience_s)
+                raise
             finally:
                 competing_done.set()
 
@@ -175,7 +182,7 @@ def run_contention(runner, server, home: Path, *, hold_at_close: bool) -> dict:
             result = action(conn)
             transactions += 1
             entered.set()
-            if not release.wait(10):
+            if not release.wait(34 if hold_through_stop else 10):
                 raise TimeoutError("Fixture did not release its heartbeat transaction")
             return result
 
@@ -209,6 +216,21 @@ def run_contention(runner, server, home: Path, *, hold_at_close: bool) -> dict:
             assert transaction_done.wait(5) and server._stop_backend_heartbeat_refresher(3)
             assert count_rows(home) == 0
             close_all_stores()
+        elif hold_through_stop:
+            # Observe the full upstream stop with the write still admitted, then
+            # release the fixture transaction and inspect its original settlement.
+            asyncio.run(asyncio.wait_for(runner.stop(), timeout=28))
+            elapsed = time.monotonic() - start
+            assert competing.is_set() and competing_done.is_set() and writer_timeouts == [10.0]
+            assert not release.is_set() and not transaction_done.is_set()
+            assert holder._conn is not None and holder._conn.in_transaction
+            row_while_held = count_rows(home)
+            assert row_while_held == 1
+            stop_returned_with_live_transaction = True
+            release.set()
+            assert transaction_done.wait(5) and server._stop_backend_heartbeat_refresher(3)
+            assert count_rows(home) == 0
+            close_all_stores()
         else:
             releaser = threading.Thread(target=release_when_contended, daemon=True)
             releaser.start()
@@ -221,8 +243,12 @@ def run_contention(runner, server, home: Path, *, hold_at_close: bool) -> dict:
         if releaser is not None:
             releaser.join(5)
             assert not releaser.is_alive()
-    return dict(registered=1, heartbeatTransactions=transactions, closeGateHeldOpen=hold_at_close,
-                observedCompetingWriter=saw_wait.is_set(), rowsAfterAction=0, elapsedSeconds=round(elapsed, 3))
+    result = dict(registered=1, heartbeatTransactions=transactions, closeGateHeldOpen=hold_at_close,
+                  observedCompetingWriter=saw_wait.is_set() or hold_through_stop, rowsAfterAction=0, elapsedSeconds=round(elapsed, 3))
+    if hold_through_stop:
+        result.update(rowAtStopReturn=row_while_held, competingWriterTimeouts=writer_timeouts,
+                      stopReturnedWithLiveTransaction=stop_returned_with_live_transaction)
+    return result
 
 
 def main() -> None:
@@ -230,7 +256,7 @@ def main() -> None:
         raise SystemExit("Expected -I -S -B with assertions enabled")
     source, fixture, site = (Path(path).resolve() for path in sys.argv[1:4])
     action, interval = sys.argv[4:]
-    assert action in ("stop", "exit", "gate", "overlap") and interval in ("0", "0.5")
+    assert action in ("stop", "exit", "gate", "overlap", "held-stop") and interval in ("0", "0.5")
     assert all(path.is_dir() for path in (source, fixture.parent, site))
     assert not fixture.is_relative_to(source) and not source.is_relative_to(fixture)
     assert site.is_relative_to(Path(sys.prefix).resolve())
@@ -244,8 +270,9 @@ def main() -> None:
     assert server._launch_home().resolve() == home
     logging.basicConfig(stream=sys.stderr, level=logging.INFO, force=True)
     runner = GatewayRunner(GatewayConfig()) if action != "exit" else None
-    if action in ("gate", "overlap"):
-        result = run_contention(runner, server, home, hold_at_close=action == "gate")
+    if action in ("gate", "overlap", "held-stop"):
+        result = run_contention(runner, server, home, hold_at_close=action == "gate",
+                                hold_through_stop=action == "held-stop")
     else:
         server._start_backend_heartbeat_refresher()
         assert count_rows(home) == 1

@@ -1,5 +1,17 @@
 # Signal Grove audit execution plan
 
+## Hermes full stop under held heartbeat contention - 20 November 2026
+
+Both current source pins ran seven candidate lifecycle cases on Windows.
+The full stop returned with the original heartbeat transaction still
+open. It skipped closing SQLite and the original cleanup removed the
+row after explicit release. Both source inventories and post-exit SQLite
+checks passed. The earlier subagent ledger write exhausted its 10-second
+mutex wait, so marking and recovery of real interrupted subagents under
+this contention remain open. Hosted Linux for the new scenario and
+live Pi lifecycle acceptance remain open.
+[Full-stop evidence](contracts/2026-11-19-hermes-public-shutdown-review.md#full-hermes-stop-with-the-heartbeat-transaction-still-open).
+
 ## Phone dialogs and project cancellation checkpoint - 20 November 2026
 
 The project cancellation fixture now targets the reachable dialog footer.

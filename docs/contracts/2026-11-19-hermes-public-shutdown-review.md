@@ -244,3 +244,41 @@ Independent verification summary SHA-256 is 4b1729568ce09aba43843152d70086ed0f5a
 probes on current Linux, full Pi bootstrap and live deployment acceptance
 remain open.
 [Hosted run 44756972963](https://github.com/DionCroft/Signal_Grove/actions/runs/44756972963).
+
+## Full Hermes stop with the heartbeat transaction still open
+
+The reviewed heartbeat candidate ran a full `GatewayRunner.stop()` on
+Windows at each source pin. The fixture held one real SQLite heartbeat
+transaction until stop returned. It recorded the same connection and
+transaction still open and one heartbeat row visible from a second
+reader. Stop returned in 11.60 seconds on v0.23.3 and
+11.60 seconds on the reviewed main pin. The close phase skipped
+the checkpoint and close. The fixture then released the original
+transaction and let the armed cleanup finish. Fresh read-only checks
+found zero remaining heartbeat rows and SQLite integrity `ok`, with no
+late reopen in either process log.
+
+The final tool cleanup also attempted the resumable subagent shutdown
+ledger write. Its 10-second writer wait expired before the write began,
+and Hermes logged the contention. The new verifier requires that exact
+diagnostic, the skipped close and the still-open transaction together.
+The trial used an idle disposable profile, so shutdown marking and
+recovery of real in-flight subagents under contention remain open.
+The two source trees matched all 27,139 and 27,171 expected source files
+before and after the trials.
+
+The exact fixture passed seven candidate scenarios at each pin and the
+portable verification suites passed 30 tests. The first local attempt
+used the base interpreter and stopped before profile creation. The
+second ran both stop cases, and the initial log check refused the
+expected ledger exception chain. Both original attempts are retained.
+The exact fixture and verifier results are recorded separately from
+earlier hosted checks and live Pi acceptance.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Paired Windows result | `c8a959ab3841e29590d5f22e4e918101e3cb5db4104c06d6a3f11ae621defa76` |
+| Native fixture | `331421e76897463e0b1524dad6a7a7848ba34bed8f506a0ff594ff9a6d6d40d6` |
+| Evidence verifier | `85658ff64f05674e605f2762009726abab8f8ff4db761e793a3c0e062151f5ee` |
+| v0.23.3 held-stop log | `c887b5296054925d2e3eb6150aa84de4dc342153f4ffbe0a8fc80ee9d7f6bcd7` |
+| Reviewed main held-stop log | `e1d1e3019b99c3a7737d3a59a692f9694654bff365494ab0ce95c6de8ec72c9b` |

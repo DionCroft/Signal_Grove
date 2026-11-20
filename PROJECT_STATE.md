@@ -22,10 +22,12 @@ The exact v0.23.3 and main pins reproduced the late database reopen.
 A shared two-file candidate stops heartbeat admission at teardown and
 cleans up register-once and periodic rows on exit. Windows native stop,
 standalone exit, live SQLite close-gate and released-contention checks
-passed. The hosted canonical Linux gate also passed all six 50-case cohorts
-across the three reviewed pins. Native Linux and live Pi lifecycle checks
-and full stop with an unreleased writer remain open.
-[Candidate and evidence](docs/contracts/2026-11-19-hermes-public-shutdown-review.md#hermes-v0233-and-current-main-shutdown-candidate).
+passed. Hosted Linux passed the earlier canonical and lifecycle cases.
+The candidate now also returns from a full Windows stop with the
+heartbeat transaction still held and leaves SQLite open. The subagent
+shutdown ledger times out under the same contention. Real subagent
+recovery, hosted Linux for this new case and live Pi checks remain open.
+[Candidate and evidence](docs/contracts/2026-11-19-hermes-public-shutdown-review.md#full-hermes-stop-with-the-heartbeat-transaction-still-open).
 
 ## Latest offline setup checkpoint
 

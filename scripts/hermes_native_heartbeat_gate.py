@@ -24,9 +24,13 @@ PRISTINE_CASES = {"stop-once": ("stop", "0"), "stop-periodic": ("stop", "0.5")}
 CANDIDATE_CASES = {
     **PRISTINE_CASES, "exit-once": ("exit", "0"), "exit-periodic": ("exit", "0.5"),
     "close-gate-held": ("gate", "0.5"), "stop-released-contention": ("overlap", "0.5"),
+    "stop-held-contention": ("held-stop", "0.5"),
 }
 RETURN_MARKER = "NATIVE_HEARTBEAT_ACTION_RETURNED"
 REOPEN_WARNING = "was closed while a write was still in flight"
+LEDGER_REFUSAL = "WARNING:tools.delegate_tool:resumable subagent record write failed"
+HEARTBEAT_CLOSE_REFUSAL = "backend heartbeat writer/cleanup is not drained"
+MUTEX_TIMEOUT = "database is locked (in-process state.db writer mutex exceeded write patience)"
 EXPECTED_PIN_COMMITS = tuple(commit for commit in gate.REVIEWED_PINS if commit != gate.rpc.PIN)
 
 
@@ -47,6 +51,28 @@ def read_post_exit(db: Path) -> tuple[int, str]:
     return rows, integrity
 
 
+def held_stop_evidence(observation: dict, log: str) -> dict:
+    seconds = observation.get("elapsedSeconds")
+    if (observation.get("stopReturnedWithLiveTransaction") is not True
+            or type(observation.get("rowAtStopReturn")) is not int or observation["rowAtStopReturn"] != 1
+            or observation.get("competingWriterTimeouts") != [10.0]
+            or type(seconds) not in (int, float) or not 10.0 <= seconds < 28.0):
+        raise ValueError("Full stop lacks the held heartbeat or bounded ledger timeout observation")
+
+    before, _, remaining = log.partition(LEDGER_REFUSAL)
+    diagnostic, _, after = remaining.partition(HEARTBEAT_CLOSE_REFUSAL)
+    if (log.count(LEDGER_REFUSAL) != 1 or log.count(HEARTBEAT_CLOSE_REFUSAL) != 1
+            or "skipping SessionDB close/checkpoint" not in after
+            or "Traceback" in before or "Traceback" in after
+            or diagnostic.count("Traceback (most recent call last):") != 2
+            or "mark_subagents_gateway_shutdown" not in diagnostic
+            or diagnostic.splitlines().count("persistence.sqlite._state.write.WriterMutexTimeout: " + MUTEX_TIMEOUT) != 1
+            or diagnostic.splitlines().count("persistence.core.errors.StoreContention: " + MUTEX_TIMEOUT) != 1):
+        raise ValueError("Full stop lacks the expected ledger refusal and heartbeat close decision")
+    return dict(stopReturnedWithLiveTransaction=True, rowAtStopReturn=1, ledgerWriteTimedOut=True,
+                elapsedSeconds=seconds)
+
+
 def check_case(folder: Path, variant: str, case: str) -> dict:
     action, interval = cases(variant)[case]
     terminal = gate.read_json(folder / "terminal.json")
@@ -58,7 +84,7 @@ def check_case(folder: Path, variant: str, case: str) -> dict:
         raise ValueError(f"Heartbeat observation differs from the intended case: {case}")
     log = (folder / "process.log").read_text(encoding="utf8")
     if (log.splitlines().count(RETURN_MARKER) != 1 or "FIXTURE_BOUNDARY_DENIAL" in log
-            or "Traceback" in log or "Backend heartbeat cleanup failed" in log):
+            or (action != "held-stop" and "Traceback" in log) or "Backend heartbeat cleanup failed" in log):
         raise ValueError(f"Heartbeat action or exit produced a refusal: {case}")
     post = gate.read_json(folder / "post-exit.json")
     pristine = variant == "pristine"
@@ -69,17 +95,20 @@ def check_case(folder: Path, variant: str, case: str) -> dict:
     reported_reopen = REOPEN_WARNING in log
     if reported_reopen != (pristine and interval != "0"):
         raise ValueError(f"Unexpected database reopen observation: {case}")
-    if action in ("gate", "overlap"):
+    if action in ("gate", "overlap", "held-stop"):
         if (observation["heartbeatTransactions"] != 1 or
                 observation["closeGateHeldOpen"] is not (action == "gate") or
-                observation["observedCompetingWriter"] is not (action == "overlap")):
+                observation["observedCompetingWriter"] is not (action != "gate")):
             raise ValueError(f"Missing exact contention outcome: {case}")
         if action == "gate" and not 0 <= observation["elapsedSeconds"] < 4:
             raise ValueError("Heartbeat close gate exceeded its bounded window")
     if action == "gate" and "skipping SessionDB close/checkpoint" not in log:
         raise ValueError("Close gate did not record the held write")
-    return dict(rowsAfterAction=expected_during, rowsAfterExit=expected_rows, sqliteIntegrity="ok",
-                reopenWarning=reported_reopen, logSha256=gate.snapshot.digest(log.encode()))
+    result = dict(rowsAfterAction=expected_during, rowsAfterExit=expected_rows, sqliteIntegrity="ok",
+                  reopenWarning=reported_reopen, logSha256=gate.snapshot.digest(log.encode()))
+    if action == "held-stop":
+        result.update(held_stop_evidence(observation, log))
+    return result
 
 
 def supported_runtime(python: Path, evidence: Path) -> Path:

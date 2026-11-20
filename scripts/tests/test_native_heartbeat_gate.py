@@ -24,8 +24,10 @@ class NativeHeartbeatGateTest(unittest.TestCase):
         gate.gate.write_new(folder / "before-exit.json", dict(
             action=action, interval=interval, registered=1, guardDenials=[],
             rowsAfterAction=int(pristine or action == "exit"), closeGateHeldOpen=action == "gate",
-            observedCompetingWriter=action == "overlap", heartbeatTransactions=1,
-            elapsedSeconds=4.1 if timing_overrun else 1.0,
+            observedCompetingWriter=action in ("held-stop", "overlap"), heartbeatTransactions=1,
+            elapsedSeconds=12.5 if action == "held-stop" else (4.1 if timing_overrun else 1.0),
+            **(dict(stopReturnedWithLiveTransaction=True, rowAtStopReturn=1, competingWriterTimeouts=[10.0])
+               if action == "held-stop" else {}),
         ))
         gate.gate.write_new(folder / "post-exit.json", dict(
             rows=int(pristine and case == "stop-once"), integrity="ok"
@@ -37,6 +39,17 @@ class NativeHeartbeatGateTest(unittest.TestCase):
             log += gate.REOPEN_WARNING + "\n"
         if action == "gate" and not missing_close_refusal:
             log += "skipping SessionDB close/checkpoint\n"
+        if action == "held-stop":
+            log = "\n".join((
+                additional_log, gate.LEDGER_REFUSAL,
+                "Traceback (most recent call last):", "mark_subagents_gateway_shutdown",
+                "persistence.sqlite._state.write.WriterMutexTimeout: " + gate.MUTEX_TIMEOUT,
+                "Traceback (most recent call last):",
+                "persistence.core.errors.StoreContention: " + gate.MUTEX_TIMEOUT,
+                gate.HEARTBEAT_CLOSE_REFUSAL,
+                "" if missing_close_refusal else "skipping SessionDB close/checkpoint",
+                gate.RETURN_MARKER, "",
+            ))
         (folder / "process.log").write_text(log, encoding="utf-8")
         return folder
 
@@ -75,7 +88,7 @@ class NativeHeartbeatGateTest(unittest.TestCase):
                 self.assertFalse(fixture.same_account_process_stat(path))
                 path.stat.assert_not_called()
 
-    def test_all_eight_distinct_lifecycle_cases_require_the_intended_observations(self):
+    def test_all_lifecycle_cases_require_the_intended_observations(self):
         for variant in ("pristine", "candidate"):
             for case in gate.cases(variant):
                 with self.subTest(variant=variant, case=case):
@@ -102,6 +115,27 @@ class NativeHeartbeatGateTest(unittest.TestCase):
                 folder = self.fixture("candidate", "close-gate-held", **kwargs)
                 with self.assertRaisesRegex(ValueError, expected):
                     gate.check_case(folder, "candidate", "close-gate-held")
+
+    def test_full_held_stop_requires_the_specific_ledger_refusal_and_close_decision(self):
+        for kwargs in ({"missing_close_refusal": True}, {"additional_log": "Traceback (unrelated)"}):
+            with self.subTest(kwargs=kwargs):
+                folder = self.fixture("candidate", "stop-held-contention", **kwargs)
+                with self.assertRaisesRegex(ValueError, "expected ledger refusal"):
+                    gate.check_case(folder, "candidate", "stop-held-contention")
+
+    def test_full_held_stop_requires_the_transaction_to_survive_until_return(self):
+        folder = self.fixture("candidate", "stop-held-contention")
+        for field, value in (("stopReturnedWithLiveTransaction", False),
+                             ("rowAtStopReturn", 0), ("competingWriterTimeouts", []), ("elapsedSeconds", 28.0)):
+            with self.subTest(field=field):
+                report = folder / "before-exit.json"
+                original = gate.gate.read_json(report)
+                report.unlink()
+                gate.gate.write_new(report, {**original, field: value})
+                with self.assertRaisesRegex(ValueError, "held heartbeat or bounded ledger timeout"):
+                    gate.check_case(folder, "candidate", "stop-held-contention")
+                report.unlink()
+                gate.gate.write_new(report, original)
 
     def test_unknown_process_cannot_be_accepted_from_a_written_marker(self):
         folder = self.fixture("candidate", "exit-periodic",
