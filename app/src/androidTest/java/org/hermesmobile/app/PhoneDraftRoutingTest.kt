@@ -8,6 +8,8 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
@@ -200,10 +202,24 @@ class PhoneDraftRoutingTest {
     @Test fun missingOrConsumedTokenCannotReplaceAPhoneDraftOrStartWork() {
         ready();val before=history();val intent=Intent(app,LocalAiActivity::class.java).putExtra(LocalAiActivity.DRAFT_TOKEN,UUID.randomUUID().toString())
         compose.runOnUiThread {compose.activity.startActivity(intent)}
-        compose.waitUntil(15000) {resumedLocal()!=null};openedLocal=resumedLocal()!!
-        compose.waitUntil(15000) {compose.onAllNodesWithTag("phone-draft-notice").fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithTag("phone-draft").assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText,AnnotatedString("")))
-        compose.onNodeWithTag("phone-draft-notice").assertContentDescriptionEquals(Words.PhoneDraftNotReady.localized(vm.preferences.value)).performClick()
+        compose.waitUntil(15_000) { resumedLocal() != null }
+        val local = checkNotNull(resumedLocal())
+        openedLocal = local
+        val notice = compose.onNodeWithTag("phone-draft-notice")
+        compose.waitUntil(15_000) { notice.isDisplayed() }
+        val draft = compose.onNodeWithTag("phone-draft")
+        draft.assertIsDisplayed().performTouchInput { click() }
+        compose.waitUntil(10_000) {
+            compose.runOnIdle {
+                ViewCompat.getRootWindowInsets(local.window.decorView)
+                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+            }
+        }
+        draft.assertIsDisplayed()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
+        notice.assertIsDisplayed()
+            .assertContentDescriptionEquals(Words.PhoneDraftNotReady.localized(vm.preferences.value))
+            .performTouchInput { click() }
         compose.onNodeWithTag("phone-draft-info-text").assertTextEquals(Words.PhoneDraftExpired.localized(vm.preferences.value))
         compose.onNodeWithTag("phone-draft-info-close").performClick()
         assertEquals(before,history());assertNull(app.localAi.state.value.loaded);assertNull(app.localAi.state.value.chat)

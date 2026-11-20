@@ -6,6 +6,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleCallback
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
@@ -66,7 +68,7 @@ class PhoneStartupRoutingTest {
         val main = awaitActivity<MainActivity>()
         selected("home")
         instrumentation.runOnMainSync { main.startActivity(Intent(main, LocalAiActivity::class.java)) }
-        awaitActivity<LocalAiActivity>()
+        val phoneFromHermes = awaitActivity<LocalAiActivity>()
         compose.onNodeWithTag("phone-messages").performScrollToNode(hasTestTag("phone-offline-setup-chat-entry"))
         compose.onNodeWithTag("phone-offline-setup-chat-entry").performClick()
         val toggle = compose.onNodeWithTag("phone-startup-toggle").performScrollTo().assertIsOff()
@@ -76,12 +78,22 @@ class PhoneStartupRoutingTest {
         compose.onNodeWithTag("phone-offline-setup-close").performClick()
 
         start(launcher())
-        awaitActivity<LocalAiActivity>()
+        val phoneFromLauncher = awaitActivity<LocalAiActivity> { it !== phoneFromHermes }
         assertTrue(readStartup())
         assertNull(app.localAi.state.value.loaded)
         compose.onNodeWithTag("phone-send").assertIsNotEnabled()
         compose.onNodeWithTag("nav-home").assertDoesNotExist()
-        compose.onNodeWithTag("phone-open-hermes").assertIsDisplayed().performClick()
+        val openHermes = compose.onNodeWithTag("phone-open-hermes")
+        compose.waitUntil(10_000) { openHermes.isDisplayed() }
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed().performTouchInput { click() }
+        compose.waitUntil(10_000) {
+            compose.runOnIdle {
+                ViewCompat.getRootWindowInsets(phoneFromLauncher.window.decorView)
+                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+            }
+        }
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed()
+        openHermes.assertIsDisplayed().performTouchInput { click() }
 
         awaitActivity<MainActivity>()
         selected("home")

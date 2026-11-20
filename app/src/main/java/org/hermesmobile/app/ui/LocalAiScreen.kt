@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
@@ -48,17 +49,22 @@ import org.hermesmobile.app.local.*
     else TextButton(open, Modifier.testTag("phone-ai-open")) {Text(label(Words.PhoneAi))}
 }
 
-/** Keep the composer usable on short screens; the complete translated explanation stays one tap away. */
-@Composable private fun PhoneDraftNotice(state:String) {
-    var details by remember {mutableStateOf(false)}
-    val title=if(state=="received") Words.PhoneDraftReady else Words.PhoneDraftNotReady
-    val body=if(state=="received") Words.PhoneDraftReceived else Words.PhoneDraftExpired
-    val focus=LocalFocusManager.current
-    val keyboard=LocalSoftwareKeyboardController.current
-    IconButton({focus.clearFocus();keyboard?.hide();details=true},Modifier.testTag("phone-draft-notice")) {
-        Icon(if(state=="received") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(title),tint=if(state=="received") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+@Composable private fun PhoneDraftNotice(state: String, onOpen: () -> Unit) {
+    val received = state == "received"
+    IconButton(onOpen, Modifier.testTag("phone-draft-notice")) {
+        Icon(
+            if (received) Icons.Outlined.CheckCircle else Icons.Outlined.Info,
+            label(if (received) Words.PhoneDraftReady else Words.PhoneDraftNotReady),
+            tint = if (received) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+        )
     }
-    if(details) Dialog(onDismissRequest={details=false},properties=DialogProperties(usePlatformDefaultWidth=false,decorFitsSystemWindows=false)) {
+}
+
+@Composable private fun PhoneDraftNoticeDetails(state: String, onClose: () -> Unit) {
+    val received = state == "received"
+    val title = if (received) Words.PhoneDraftReady else Words.PhoneDraftNotReady
+    val body = if (received) Words.PhoneDraftReceived else Words.PhoneDraftExpired
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(),color=MaterialTheme.colorScheme.surface) {
             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -67,7 +73,7 @@ import org.hermesmobile.app.local.*
                     Text(label(Words.PhoneBoundary))
                     Text(label(Words.PhoneEntry))
                 }
-                TextButton({details=false},Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("phone-draft-info-close")) {Text(label(Words.Close))}
+                TextButton(onClose, Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("phone-draft-info-close")) {Text(label(Words.Close))}
             }
         }
     }
@@ -204,24 +210,49 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     var discardReview by remember { mutableStateOf<CuratedPhoneModel?>(null) }
     var review by remember {mutableStateOf<String?>(null)}
     var boundary by remember {mutableStateOf(false)}
+    var draftNoticeOpen by remember { mutableStateOf(false) }
     var errorDetails by remember {mutableStateOf(false)}
     val context = LocalContext.current
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val entryActions: @Composable () -> Unit = {
+        if (handoffState.isNotEmpty()) {
+            PhoneDraftNotice(handoffState) {
+                focus.clearFocus()
+                keyboard?.hide()
+                draftNoticeOpen = true
+            }
+        }
+        if (openHermes != null) {
+            IconButton(openHermes, Modifier.testTag("phone-open-hermes")) {
+                Icon(Icons.Outlined.Home, label(Words.PhoneStartupOpenHermes))
+            }
+        }
+    }
+    val setupActions: @Composable () -> Unit = {
+        Row {
+            TextButton({ guide = true }, Modifier.weight(1f).testTag("phone-setup-guide")) {
+                Text(label(Words.SetupGuide))
+            }
+            TextButton({ helper = LocalHelpTopic.FIRST_SETUP }, Modifier.weight(1f).testTag("phone-helper-open")) {
+                Text(label(Words.PhoneHelper))
+            }
+        }
+    }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(12.dp)) {
             val keyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
             // Reserve the remaining height for chat controls and the composer on short IME viewports.
             val compactComposer = tab == 0 && keyboardOpen && maxHeight < 360.dp
+            val scrollSetupActions = tab == 0 && maxHeight < 560.dp && !compactComposer
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (!compactComposer) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                        if(handoffState.isNotEmpty()) PhoneDraftNotice(handoffState)
-                        else IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
-                        if (openHermes != null) {
-                            IconButton(openHermes, Modifier.testTag("phone-open-hermes")) {
-                                Icon(Icons.Outlined.Home, label(Words.PhoneStartupOpenHermes))
-                            }
+                        if (handoffState.isEmpty()) {
+                            IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
                         }
+                        entryActions()
                         actions.documents?.let { documents ->
                             IconButton({ actions.dismissError(); documentsOpen = true; documents.refresh() },
                                 enabled = !state.busy, modifier = Modifier.testTag("phone-documents-open")) {
@@ -255,7 +286,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     TextButton({errorDetails = true}, Modifier.testTag("phone-error")) {Text(label(Words.PhoneIssue), color = MaterialTheme.colorScheme.error)}
                 }
                 when (tab) {
-                    0 -> PhoneChat(state, draft, changeDraft, actions, { offlineSetup = true }) { review = it }
+                    0 -> PhoneChat(
+                        state, draft, changeDraft, actions, { offlineSetup = true },
+                        compactEntryActions = entryActions.takeIf { compactComposer },
+                        setupActions = setupActions.takeIf { scrollSetupActions }
+                    ) { review = it }
                     1 -> PhoneModelLibrary(state, supported, actions,
                         openCatalogue = { catalogueOpen = true },
                         openSetup = { offlineSetup = true },
@@ -264,12 +299,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                         remove = { deleteModel = it })
                     2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
                 }
-                if (!compactComposer) {
-                    Row {
-                        TextButton({guide = true}, Modifier.weight(1f).testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
-                        TextButton({helper = LocalHelpTopic.FIRST_SETUP}, Modifier.weight(1f).testTag("phone-helper-open")) {Text(label(Words.PhoneHelper))}
-                    }
-                }
+                if (!compactComposer && !scrollSetupActions) setupActions()
             }
         }
     }
@@ -317,6 +347,9 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             close = { offlineSetup = false },
             startupSetting = startupSetting
         )
+    }
+    if (draftNoticeOpen && handoffState.isNotEmpty()) {
+        PhoneDraftNoticeDetails(handoffState) { draftNoticeOpen = false }
     }
     if (boundary) AlertDialog(onDismissRequest = {boundary = false}, title = {Text(label(Words.PhoneAi))},
         text = {Text(label(Words.PhoneBoundary) + "\n\n" + label(Words.PhoneEntry), Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()))},
@@ -411,6 +444,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     change: (String) -> Unit,
     actions: LocalAiActions,
     openSetup: () -> Unit,
+    compactEntryActions: (@Composable () -> Unit)?,
+    setupActions: (@Composable () -> Unit)?,
     review: (String) -> Unit
 ) {
     var optionsOpen by remember { mutableStateOf(false) }
@@ -435,7 +470,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     }
 
     Row(Modifier.fillMaxWidth()) {
-        Text(loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"), style = MaterialTheme.typography.labelMedium)
+        Text(
+            loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"),
+            style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
+        )
+        compactEntryActions?.invoke()
         actions.openVoice?.let { open ->
             IconButton({ openFromChat(open) }, enabled = !state.busy, modifier = Modifier.testTag("phone-voice-open")) {
                 Icon(Icons.Outlined.MicNone, label(Words.PhoneVoice))
@@ -515,6 +554,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 }
             }
         }
+        if (setupActions != null) item(key = "setup-actions") { setupActions() }
         if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
         if (state.chat?.hasSavedContent != true) item {Text(label(Words.PhoneEmpty))}
         if (state.history.size >= LocalConversationStore.MAX_CHATS) item { Text(label(Words.PhoneBranchHistoryFull)) }
