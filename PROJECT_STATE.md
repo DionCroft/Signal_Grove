@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Exact rebuild and hosted UI checkpoint
+
+The app rebuild at `a97c462` verified the updated notice, packaged
+native alignment and exact-APK offline generation and model switching
+on Android 8 and 17. The earlier hosted Android 8 shard failed two
+visibility assertions. The local focused and 13-case runs passed, so
+the hosted discrepancy remains open. Continue with the hosted matrix,
+physical ARM64 and signed release gates.
+[Build and Android evidence](docs/VALIDATION.md#exact-runtime-packaging-and-hosted-android-follow-up).
+
 ## Native dependency release checkpoint
 
 Development pins the verified b12556 llama.cpp fix for CVE-2026-133710.

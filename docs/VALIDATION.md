@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Exact runtime packaging and hosted Android follow-up
+
+The clean rebuild of app source `a97c462` passed all 1,203 JVM tests,
+both lint variants with zero errors, debug signing checks and the
+16 KiB checks for all packaged native runtime libraries. The APK
+contains the updated b12556 attribution. Its packaged native libraries
+had different binary hashes from the earlier build, so the exact
+APK ran fresh offline tests. Qwen generation and history passed on
+Android 8 and LFM3/Qwen switching and model-bound history passed on
+Android 17. Both guests retained the checked files, package identity,
+publisher weights and original radio preferences.
+
+The separate hosted run at `54d6c4e` passed all 585 named cases in
+Android 17 shard 0. Android 8 shard 1 passed 655 of 657. The Personal
+profiles and Temporary chat methods failed on visibility of their
+entry buttons. The unchanged UI and test steps passed a local Android 8
+two-case run and a 13-case run including their neighboring methods.
+That local result leaves the full hosted environment discrepancy open.
+The original hosted failures and local passes are retained separately.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Rebuilt app source snapshot | `1a2f351302a6ff50d32c569c5309c025430f218e31cd116db2a024fd7e74c607` |
+| Rebuilt debug APK | `f1c594ac7065e4b6a944981cceff86f761dba1f096d18989f34a66a31eabc411` |
+| Rebuilt debug test APK | `7b5e18f104e1c192e756fc10315c86349c40015b4ad1a216c9655cc7389c9a32` |
+| Rebuilt APK attribution and native inventory check | `37012db8e53a528a3e276def4fa7909c57ca7b5a41af1d5e1bfcecc5e5b3cdbc` |
+| Android 8 exact APK native receipt | `7b696a65c9b45501672d96d9c88a03257ff0fb852adc652c9d85ea6512fdaf27` |
+| Android 17 exact APK native receipt | `a7db297d1b7cb29e3546fb82447d7ec415f7cb31176c8aae2acd98e1c7d47d44` |
+| Hosted Android 8 shard 1 archive | `6b363c2d74b4cc102726b88c4fef64f63293e9bb592f8a483680fe9bb6bb2de9` |
+| Hosted Android 17 shard 0 archive | `cd9f159c456174805a74d50812a171a918672e61f035c5fae9ce5bfcb3962cbf` |
+| Local 13-method raw log | `893e544d88300638aff4c1acd1c84986a9c193ef5dfbaf2a0432f57f529618f6` |
+
+[Hosted Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/44783939145) ·
+[Android 8 shard 1](https://github.com/DionCroft/Signal_Grove/actions/runs/44783939145/job/136474930302).
+
 ## Verified llama.cpp b12556 development runtime
 
 The public beta.9 runtime inventory lists the older b12255 commit. The
