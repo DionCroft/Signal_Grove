@@ -26,6 +26,23 @@ Source inventory SHA-256 is 3b34b2ae28f356b66b2777fd93b214d64eeeab17b8b84e11d102
 
 ## Native Linux heartbeat process evidence - 20 November 2026
 
+Hosted run 44767487623 passed at Signal Grove source ff31081.
+All nine archives matched their GitHub sizes and SHA-256 digests.
+Independent verification matched 300 canonical cases across three pins
+and 16 native lifecycle cases across v0.23.3 and the reviewed main pin.
+At each current pin, the pristine periodic process still logged the
+late SQLite reopen. All six candidate processes exited cleanly with
+zero remaining heartbeat rows, healthy SQLite stores and no late reopen.
+The candidate verified a held-write close refusal and a full stop after
+the competing transaction was released.
+
+The full stop with an unreleased writer through earlier shutdown phases
+and acceptance on the deployed Pi remain open. The isolated fixture
+uses the upstream test-isolation marker and an independent path guard.
+The paired evidence receipt SHA-256 is
+c70db1374a36a355d64b5dc0eeaa2e7cc539c39984618c4fc1e18f088fd13111.
+[Accepted hosted Linux run](https://github.com/DionCroft/Signal_Grove/actions/runs/44767487623).
+
 The shutdown workflow now runs real gateway stop and standalone process
 exit probes on both reviewed public persistence pins. The candidate also
 runs one held SQLite close-gate probe and one full stop under released
@@ -41,7 +58,7 @@ refused startup and shutdown metadata reads and process probes. The
 rejection evidence remains separate from the previously accepted Windows
 and canonical Linux cohorts. The fixture now identifies bounded callsites
 and process arguments and permits the reviewed read-only CPU and MIME
-metadata. Native Linux lifecycle acceptance remains open.
+metadata. That earlier run did not pass native Linux lifecycle checks.
 [First native Linux run](https://github.com/DionCroft/Signal_Grove/actions/runs/44761651593).
 
 The follow-up traced the Git refusals to passive release discovery and
