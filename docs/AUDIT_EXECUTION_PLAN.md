@@ -11,8 +11,14 @@ comparison verifies the child digest, source pin and receipts alongside
 the canonical evidence. The eight v0.23.3 Windows scenarios and 26
 portable verifier checks passed with this fixture. The Windows receipt SHA-256
 is 9605b57d4cede31e63d30164b08a0c8d65eca82924ed65090b88173c98c5aa72.
-The hosted Linux
-lifecycle result remains open.
+Hosted run 44761651593 retained four rejected current-pin artifacts. The
+canonical tests and source checks passed, and the Linux child fixture
+refused startup and shutdown metadata reads and process probes. The
+rejection evidence remains separate from the previously accepted Windows
+and canonical Linux cohorts. The fixture now identifies bounded callsites
+and process arguments and permits the reviewed read-only CPU and MIME
+metadata. Native Linux lifecycle acceptance remains open.
+[First native Linux run](https://github.com/DionCroft/Signal_Grove/actions/runs/44761651593).
 
 ## Owned emulator API readiness - 20 November 2026
 

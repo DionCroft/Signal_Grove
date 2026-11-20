@@ -32,7 +32,8 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
     denials = []
     read_roots = (source, fixture, site, Path(sys.base_prefix).resolve(), Path(__file__).resolve())
     system_reads = {Path(name).resolve() for name in (
-        "/etc/localtime", "/proc/1/cgroup", "/proc/self/mountinfo", f"/proc/{os.getpid()}/stat",
+        "/etc/localtime", "/etc/mime.types", "/proc/stat", "/proc/1/cgroup",
+        "/proc/self/mountinfo", f"/proc/{os.getpid()}/stat",
     )} if os.name == "posix" else set()
     if os.name == "nt":
         system_reads.update(Path(fixture.drive + name).resolve() for name in (
@@ -43,7 +44,13 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
     def refuse(event: str, target: str = "") -> None:
         detail = f"{event} {target}".strip()
         denials.append(detail)
-        print(f"FIXTURE_BOUNDARY_DENIAL {detail}", file=sys.stderr, flush=True)
+        callers = []
+        frame = sys._getframe(1)
+        while frame is not None and len(callers) < 9:
+            location = Path(frame.f_code.co_filename).name
+            callers.append(f"{location}:{frame.f_lineno}:{frame.f_code.co_name}")
+            frame = frame.f_back
+        print(f"FIXTURE_BOUNDARY_DENIAL {detail} | {' -> '.join(callers)}", file=sys.stderr, flush=True)
         raise PermissionError(f"Disposable heartbeat boundary: {detail}")
 
     def audit(event, args):
@@ -53,6 +60,11 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
                 target = args[1]
                 if isinstance(target, tuple) and target[0] in ("127.0.0.1", "::1"):
                     return
+            if event == "subprocess.Popen":
+                program = Path(os.fsdecode(args[0])).name
+                argv = args[1]
+                names = " ".join(str(arg)[:120] for arg in argv[:8]) if isinstance(argv, list) else program
+                refuse(event, names)
             if event not in ("socket.__new__", "socket.gethostname"):
                 refuse(event)
         if event == "open" and isinstance(args[0], (str, bytes, os.PathLike)):
@@ -67,7 +79,7 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
             if not writing and (path in system_reads or path == manifest and not path.exists()):
                 return
             if not any(path.is_relative_to(root) for root in ((fixture,) if writing else read_roots)):
-                refuse(event, path.name)
+                refuse(event, str(path))
         if event == "sqlite3.connect" and args[0] != ":memory:":
             value = os.fsdecode(args[0])
             if value.startswith("file:"):
