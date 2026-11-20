@@ -32,23 +32,15 @@ def checkout_version_read(executable, argv, cwd, env, source: Path) -> bool:
             and isinstance(cwd, (str, os.PathLike)) and Path(cwd).resolve() == source)
 
 
-def proc_stat_parent(record: str) -> int:
-    # The process name may contain spaces and parentheses. The last ")" ends it.
-    return int(record.rsplit(")", 1)[1].split()[1])
-
-
-def fixture_process_stats() -> set[Path]:
-    parent = Path(f"/proc/{os.getppid()}/stat")
-    allowed = {Path(f"/proc/{os.getpid()}/stat"), parent}
+def same_account_process_stat(path: Path) -> bool:
+    parts = path.parts
+    if (len(parts) != 4 or parts[:2] != ("/", "proc") or parts[3] != "stat"
+            or not parts[2].isascii() or not parts[2].isdigit()):
+        return False
     try:
-        launcher_pid = proc_stat_parent(parent.read_text(encoding="utf8"))
-        if launcher_pid > 1:
-            launcher = Path(f"/proc/{launcher_pid}/stat")
-            if launcher.stat().st_uid == parent.stat().st_uid == os.geteuid():
-                allowed.add(launcher)
-    except (OSError, IndexError, ValueError):
-        pass
-    return allowed
+        return path.stat().st_uid == os.geteuid()
+    except OSError:
+        return False
 
 
 def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> tuple[Path, list[str]]:
@@ -79,8 +71,6 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
         "/etc/localtime", "/etc/mime.types", "/proc/stat", "/proc/1/cgroup",
         "/proc/self/mountinfo",
     )} if os.name == "posix" else set()
-    if os.name == "posix":
-        system_reads.update(fixture_process_stats())
     if os.name == "nt":
         system_reads.update(Path(fixture.drive + name).resolve() for name in (
             "/proc/1/cgroup", "/proc/self/mountinfo", f"/proc/{os.getpid()}/stat",
@@ -125,6 +115,8 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
             if raw.lower() == os.devnull.lower():
                 return
             if not writing and (path in system_reads or path == manifest and not path.exists()):
+                return
+            if not writing and os.name == "posix" and same_account_process_stat(path):
                 return
             if not any(path.is_relative_to(root) for root in ((fixture,) if writing else read_roots)):
                 refuse(event, str(path))

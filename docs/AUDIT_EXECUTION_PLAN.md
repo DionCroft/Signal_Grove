@@ -55,6 +55,14 @@ own and parent records. The source and lifecycle assertions still apply.
 [Diagnostic run](https://github.com/DionCroft/Signal_Grove/actions/runs/44762685910) ·
 [Launcher-stat refusal](https://github.com/DionCroft/Signal_Grove/actions/runs/44763860930).
 
+The next Linux run found a further same-runner process in the launch
+chain. Read access in the fixture now covers only same-account
+/proc/PID/stat files. Environment files and other process data still
+require the original guard. The pristine periodic probe in the retained
+artifact still logged the late reopen. The failed lifecycle cohort
+remains outside acceptance.
+[Launch-chain evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/44764811622).
+
 ## Owned emulator API readiness - 20 November 2026
 
 Run 44748140345 API 26 shard 0 observed Android boot completion and lost the
@@ -70,6 +78,13 @@ on the same live emulator within the existing boot deadline. A confirmed
 different API stops the job. Installation and instrumentation dispatch
 are unchanged. Device setup and coverage verifiers passed 45 portable tests.
 The new full hosted result remains open.
+
+The same older run also retained two Phone Voice assertions from Android 17
+shard 0 in a 585-case execution. The cases missed the no-reply read-aloud
+explanation and the visible voice screen. These are test failures on the
+older source, separate from the API 26 transport failure. The verified
+shard archive SHA-256 is
+c6d37ba4637d3e438958ea60fcbb10ef4a422a70c79d5a98463796702b37f5b1.
 
 ## Temporary chat and project cancellation controls - 20 November 2026
 

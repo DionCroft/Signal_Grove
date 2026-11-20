@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 
 spec = importlib.util.spec_from_file_location(
@@ -56,7 +57,23 @@ class NativeHeartbeatGateTest(unittest.TestCase):
             self.assertFalse(fixture.checkout_version_read("git", query, source.parent, None, source))
             self.assertFalse(fixture.checkout_version_read("git", query, source, {"GIT_DIR": "elsewhere"}, source))
             self.assertFalse(fixture.checkout_version_read("sh", query, source, None, source))
-            self.assertEqual(fixture.proc_stat_parent("73 (fixture) launcher) R 32 40 1 0"), 32)
+
+    def test_process_stat_read_is_limited_by_name_and_account(self):
+        fixture_spec = importlib.util.spec_from_file_location("heartbeat_fixture", gate.CHILD)
+        fixture = importlib.util.module_from_spec(fixture_spec)
+        fixture_spec.loader.exec_module(fixture)
+        path = Mock()
+        with patch.object(fixture.os, "geteuid", return_value=123, create=True):
+            path.parts = ("/", "proc", "42", "stat")
+            path.stat.return_value.st_uid = 123
+            self.assertTrue(fixture.same_account_process_stat(path))
+            path.stat.return_value.st_uid = 124
+            self.assertFalse(fixture.same_account_process_stat(path))
+            for leaf in ("environ", "cmdline", "status"):
+                path.parts = ("/", "proc", "42", leaf)
+                path.stat.reset_mock()
+                self.assertFalse(fixture.same_account_process_stat(path))
+                path.stat.assert_not_called()
 
     def test_all_eight_distinct_lifecycle_cases_require_the_intended_observations(self):
         for variant in ("pristine", "candidate"):
