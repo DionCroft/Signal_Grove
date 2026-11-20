@@ -64,41 +64,44 @@ internal fun PhoneTemporaryChatDialog(vm: LocalAiViewModel, chat: TemporaryPhone
                         }
                     }
                 } else {
-                    LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-temporary-messages"),
-                        state = list, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        item(key = "temporary-info") {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(label(Words.PhoneTemporaryRetention))
-                                if (chat.modelSha256 == null) PhoneInlineModelPicker(state, !state.busy) { vm.controller.load(it) }
-                                else if (loaded != null && loaded.sha256 == chat.modelSha256) {
-                                    Text(label(Words.PhoneLoaded).replace("{model}", loaded.metadata.name))
-                                } else Text(label(Words.PhoneTemporaryModelChanged))
-                                if (loaded == null) Text(label(Words.PhoneTemporaryLoad))
-                                state.error?.let {
-                                    Text(label(phoneError(it)), color = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.testTag("phone-temporary-error"))
+                    // Measure the fixed action row before allocating the keyboard's remaining space.
+                    Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-temporary-messages"),
+                            state = list, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            item(key = "temporary-info") {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(label(Words.PhoneTemporaryRetention))
+                                    if (chat.modelSha256 == null) PhoneInlineModelPicker(state, !state.busy) { vm.controller.load(it) }
+                                    else if (loaded != null && loaded.sha256 == chat.modelSha256) {
+                                        Text(label(Words.PhoneLoaded).replace("{model}", loaded.metadata.name))
+                                    } else Text(label(Words.PhoneTemporaryModelChanged))
+                                    if (loaded == null) Text(label(Words.PhoneTemporaryLoad))
+                                    state.error?.let {
+                                        Text(label(phoneError(it)), color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.testTag("phone-temporary-error"))
+                                    }
+                                    if (chat.exchanges.isEmpty()) Text(label(Words.PhoneTemporaryEmpty))
                                 }
-                                if (chat.exchanges.isEmpty()) Text(label(Words.PhoneTemporaryEmpty))
+                            }
+                            items(chat.exchanges) { exchange ->
+                                HermesCard {
+                                    Text(exchange.question, Modifier.testTag("phone-temporary-question"), style = MaterialTheme.typography.titleSmall)
+                                    LocalReplyContent.chunks(exchange.reply).forEach { section ->
+                                        Text(section, Modifier.testTag("phone-temporary-reply"))
+                                    }
+                                    if (exchange.state == LocalReplyState.TOKEN_LIMIT) Text(label(Words.PhoneTokenLimit))
+                                }
                             }
                         }
-                        items(chat.exchanges) { exchange ->
-                            HermesCard {
-                                Text(exchange.question, Modifier.testTag("phone-temporary-question"), style = MaterialTheme.typography.titleSmall)
-                                LocalReplyContent.chunks(exchange.reply).forEach { section ->
-                                    Text(section, Modifier.testTag("phone-temporary-reply"))
-                                }
-                                if (exchange.state == LocalReplyState.TOKEN_LIMIT) Text(label(Words.PhoneTokenLimit))
-                            }
+                        if (chat.atTurnLimit) Text(label(Words.PhoneTemporaryLimit))
+                        else if (loaded != null && chat.draft.isNotBlank() && !chat.pending && !chat.canSend(state.loaded) &&
+                            (chat.modelSha256 == null || chat.modelSha256 == state.loaded.sha256)) {
+                            Text(label(Words.PhoneTemporaryDraftLimit))
                         }
+                        OutlinedTextField(chat.draft, vm.temporary::edit, Modifier.fillMaxWidth().testTag("phone-temporary-draft"),
+                            enabled = !state.busy && !chat.atTurnLimit, label = { Text(label(Words.PhoneTemporaryMessage)) }, maxLines = 4)
+                        if (state.busy) Text(label(Words.PhoneWritingWorking))
                     }
-                    if (chat.atTurnLimit) Text(label(Words.PhoneTemporaryLimit))
-                    else if (loaded != null && chat.draft.isNotBlank() && !chat.pending && !chat.canSend(state.loaded) &&
-                        (chat.modelSha256 == null || chat.modelSha256 == state.loaded.sha256)) {
-                        Text(label(Words.PhoneTemporaryDraftLimit))
-                    }
-                    OutlinedTextField(chat.draft, vm.temporary::edit, Modifier.fillMaxWidth().testTag("phone-temporary-draft"),
-                        enabled = !state.busy && !chat.atTurnLimit, label = { Text(label(Words.PhoneTemporaryMessage)) }, maxLines = 4)
-                    if (state.busy) Text(label(Words.PhoneWritingWorking))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton({
                             focus.clearFocus()

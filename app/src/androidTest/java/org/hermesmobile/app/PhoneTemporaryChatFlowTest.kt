@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -22,7 +23,16 @@ class PhoneTemporaryChatFlowTest {
         draft.assertTextContains("Unsent private draft")
         val review = compose.onNodeWithTag("phone-temporary-end-review")
         val close = compose.onNodeWithTag("phone-temporary-close")
-        close.assertIsDisplayed().performTouchInput { click() }
+        compose.waitUntil(5_000) { focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true }
+        val viewport = checkNotNull(focusedDialogViewport(requireKeyboard = false))
+        val bounds = close.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Temporary chat must keep its End action above the keyboard",
+            viewport.keyboardVisible && bounds.height > 0f &&
+                bounds.top + viewport.screenOffsetY >= viewport.visible.top &&
+                bounds.bottom + viewport.screenOffsetY <= viewport.visible.bottom
+        )
+        close.performTouchInput { click() }
         compose.waitUntil(5_000) { review.isDisplayed() }
         compose.onNodeWithTag("phone-temporary-keep").assertIsDisplayed().performTouchInput { click() }
         draft.assertTextContains("Unsent private draft")

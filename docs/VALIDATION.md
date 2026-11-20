@@ -116,6 +116,22 @@ result. Android 8 shard 1 and Android 17 shard 0 independently passed
 
 [Failed Android 17 shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44808153153/job/136545168106).
 Raw archive SHA-256 d8ed2b6555e0333641a09c8d0cb469d99dca8e54c14689d1c000b3eaec0617ff.
+## Temporary chat footer on a compact keyboard viewport
+
+Source 43adc6e passed the eleven selected standard-viewport cases on
+Android 8 and 17 and the five compact cases on Android 8. The compact
+Android 17 run passed both Voice cases and the profile and backgrounding
+cases. Its Temporary chat End button was outside the displayed area
+after typing into the draft.
+
+The temporary composer now allocates the viewport to the End and Send
+or Stop actions before measuring its scrollable messages and draft.
+The test checks the End button against the actual keyboard boundary
+before tapping. The confirmation and retained-draft checks still run.
+
+The original local compact failure is preserved with SHA-256
+54f2136762c10b19ddb6530cccc806818a06a1d747daeb3f2ebad89662850138.
+
 ## Compact phone chat action menu
 
 The previous APK failed the actual Temporary chat flow after a draft
