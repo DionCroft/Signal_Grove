@@ -11,8 +11,10 @@ Signal Grove can review a newer bundled publisher revision while
 keeping earlier model files, chat bindings and exact queue receipts.
 The exact APK pair passed 1,173 JVM tests and 103 focused tests on
 each emulator API. The current publisher revisions already match the
-packaged pins. A real successor, physical device and release gates
-remain open.
+packaged pins. A live Qwen download recovered its exact prefix after
+process stop and verified the full publisher hash after explicit
+resume. A real successor, physical device and release gates remain
+open.
 [Catalogue evidence](docs/VALIDATION.md#publisher-catalogue-revision-updates).
 
 ## Latest phone model replacement checkpoint

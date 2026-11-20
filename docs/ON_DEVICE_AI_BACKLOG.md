@@ -180,8 +180,10 @@ service and keeps the existing verification and network policy.
 
 The Android 17 system timeout closed the transfer and kept the same
 reviewed item after relaunch. Revoking runtime notification permission
-also closed the attempt. Real publisher transfers, same-process channel
-changes, physical interruption, network handoff, low-space and reboot
+also closed the attempt. The real Qwen publisher transfer recovered
+after process interruption and published its pinned SHA-256 after an
+explicit resume. Additional publisher/network combinations, same-process
+channel changes, physical interruption, handoff, low-space and reboot
 verification remain open. User-selected GGUF replacements have an exact side-by-side
 review with a storage measurement and a separate install action.
 [Replacement checks](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).

@@ -27,8 +27,23 @@ controls and exact queue selection. Live metadata for the two
 publishers still matched the shipped pins. No successor was added
 to the bundled catalogue.
 
+The Android 17 normal app acquired live Qwen publisher bytes in its
+foreground service and continued after Home. The accessibility snapshot
+showed the launcher and did not expose notification Pause. The harness
+stopped the process and verified the retained 17,268,466-byte prefix
+against the same range of the full publisher file on disk. The
+existing review receipt and prefix hash matched after app relaunch.
+Only an explicit resume completed publication of the 491,400,032-byte
+file with the pinned SHA-256. The earlier LFM3 file matched its full
+hash. The remaining inventoried model and chat files matched their
+prior evidence. Inference stayed unloaded. The trial's fixture was
+removed, and the emulator's notification and network settings were
+restored.
+
 A real published successor, physical-phone interruption and handoff,
 low-space and reboot acceptance remain open.
+
+- Live publisher result SHA-256: 53fd38c5c7d8d57417d89f8bc045b98e15a091b1bceae3e99eefc9c40ff53a8f
 
 - Build receipt: 20261120-015128-0d5aeac07a624c218c988cac745ab337
 - Frozen source digest: 24e4b5365798dd39a0aaa434d941463ad7f87c73dd3290a73fdc6c0ef7e16847
