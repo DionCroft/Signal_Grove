@@ -636,6 +636,13 @@ internal fun phoneError(code: String) = when {
     code == "document_format" -> Words.PhoneDocumentFormat
     code == "document_encoding" -> Words.PhoneDocumentEncoding
     code == "document_size" -> Words.PhoneDocumentSize
+    code == "document_pdf_unsupported" -> Words.PhonePdfUnsupported
+    code == "document_pdf_password" -> Words.PhonePdfPassword
+    code == "document_pdf_image_only" -> Words.PhonePdfNoText
+    code == "document_pdf_page_limit" -> Words.PhonePdfPageLimit
+    code == "document_pdf_size" -> Words.PhonePdfSize
+    code == "document_pdf_timeout" -> Words.PhonePdfTimeout
+    code == "document_pdf_invalid" || code == "document_pdf_unavailable" -> Words.PhonePdfReadError
     code == "document_empty" -> Words.PhoneDocumentEmpty
     code == "document_limit" -> Words.PhoneDocumentLimit
     code == "document_changed" -> Words.PhoneDocumentChanged

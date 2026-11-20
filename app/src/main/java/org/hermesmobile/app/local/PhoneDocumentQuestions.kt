@@ -5,7 +5,7 @@ import java.util.Locale
 import kotlinx.serialization.json.*
 
 data class PhoneDocumentSource(
-    val document: PhoneDocument, val firstLine: Int, val lastLine: Int, val text: String
+    val document: PhoneDocument, val firstLine: Int, val lastLine: Int, val text: String, val page: Int? = null
 )
 
 class PhoneDocumentReview internal constructor(val question: String, val sources: List<PhoneDocumentSource>)
@@ -31,15 +31,18 @@ internal object PhoneDocumentQuestions {
         val terms = terms(question)
         if (terms.isEmpty()) return null
         val ranked = mutableListOf<Pair<Int, PhoneDocumentSource>>()
-        for ((info, text) in documents) {
-            var firstLine = 1
-            for (part in LocalReplyContent.chunks(text, EXCERPT_CHARS)) {
-                check()
-                val newlines = part.count { it == '\n' }
-                val lastLine = firstLine + newlines - if (part.endsWith('\n')) 1 else 0
-                val score = terms(part).count { it in terms }
-                if (score > 0) ranked.add(score to PhoneDocumentSource(info, firstLine, lastLine, part))
-                firstLine += newlines
+        for ((info, sections) in documents) {
+            sections.forEachIndexed { index, text ->
+                val page = if (info.pageCount > 0) index + 1 else null
+                var firstLine = 1
+                for (part in LocalReplyContent.chunks(text, EXCERPT_CHARS)) {
+                    check()
+                    val newlines = part.count { it == '\n' }
+                    val lastLine = firstLine + newlines - if (part.endsWith('\n')) 1 else 0
+                    val score = terms(part).count { it in terms }
+                    if (score > 0) ranked.add(score to PhoneDocumentSource(info, firstLine, lastLine, part, page))
+                    firstLine += newlines
+                }
             }
         }
         val sources = ranked.sortedByDescending { it.first }.take(MAX_EXCERPTS).map { it.second }

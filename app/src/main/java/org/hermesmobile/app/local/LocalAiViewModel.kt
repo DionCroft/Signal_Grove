@@ -160,7 +160,9 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
             resolver.query(document.uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null, signal)?.use {
                 if (it.moveToFirst()) it.getString(0) else null
             } ?: throw LocalModelStorageException("document_unavailable")
-        }, cancelOpen = signal::cancel) {
+        }, cancelOpen = signal::cancel, extractPdf = { input, check ->
+            PhonePdfReader.extract(app, input, check)
+        }) {
             resolver.openAssetFileDescriptor(document.uri, "r", signal)?.createInputStream()
                 ?: throw LocalModelStorageException("document_unavailable")
         }

@@ -2,6 +2,8 @@ package org.hermesmobile.app
 
 import android.app.Application
 import android.net.ConnectivityManager
+import android.os.Build
+import android.os.Process
 import androidx.room.Room
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -13,6 +15,7 @@ class HermesApplication : Application() {
     private val appScope=CoroutineScope(SupervisorJob()+Dispatchers.IO)
     override fun onCreate() {
         super.onCreate()
+        if (Build.VERSION.SDK_INT >= 28 && Process.isIsolated()) return
         imageDraftReady.start()
         managementReady.start()
         appScope.launch {preferences.flow.collect {BackgroundChecks.schedule(this@HermesApplication,it);TaskWidget.updateAll(this@HermesApplication)}}

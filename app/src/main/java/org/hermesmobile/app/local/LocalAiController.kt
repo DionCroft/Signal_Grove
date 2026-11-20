@@ -278,11 +278,22 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
 
     fun refreshDocuments() = action("reading") { refreshDocumentLibrary() }
 
-    internal fun indexDocument(previous: PhoneDocument?, name: () -> String, cancelOpen: () -> Unit, open: () -> InputStream) =
+    internal fun indexDocument(
+        previous: PhoneDocument?, name: () -> String, cancelOpen: () -> Unit,
+        extractPdf: suspend (InputStream, () -> Unit) -> List<String> = { _, _ ->
+            throw LocalModelStorageException("document_pdf_unsupported")
+        }, open: () -> InputStream
+    ) =
         action("indexing_document") {
             clearDocumentReview()
             readSelectedModel(cancelOpen, open) { input, check ->
-                documents.save(name(), input, previous, check)
+                val displayName = name()
+                if (PhoneDocumentLibrary.isPdf(displayName)) {
+                    val pages = extractPdf(input, check)
+                    documents.savePdf(displayName, pages, previous, check)
+                } else {
+                    documents.save(displayName, input, previous, check)
+                }
             }
             refreshDocumentLibrary()
         }
@@ -360,7 +371,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     }
 
     private suspend fun <T> readSelectedModel(cancelOpen: () -> Unit, open: () -> InputStream,
-        read: (InputStream, () -> Unit) -> T): T =
+        read: suspend (InputStream, () -> Unit) -> T): T =
         io {
             val context = currentCoroutineContext()
             val source = java.util.concurrent.atomic.AtomicReference<InputStream?>()

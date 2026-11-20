@@ -130,12 +130,14 @@ those exact files.
 
 [Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
 
-## Ask about selected text files
+## Ask about selected documents
 
 1. Open the **Documents** icon at the top of **On-device AI**.
-2. Choose **Add TXT or Markdown**, select one file, then tap **Index selected
-   file**. Add other files individually. Signal Grove accepts UTF-8 text up
-   to 128 KiB per file and stores up to 12 private copies.
+2. Tap **Choose a document**, select one file, then tap **Index selected
+   file**. Add other files individually. Signal Grove accepts UTF-8 TXT
+   and Markdown up to 128 KiB per file and stores up to 12 private copies.
+   On Android 15 and newer you can also choose PDFs with selectable text,
+   up to 8 MiB, 64 pages, and 128 KiB of extracted text.
 3. Close Documents, load a model from **Phone models**, then reopen
    **Documents**. The Android picker can unload a model when the app
    leaves the screen, so finish choosing files before this step.
@@ -143,14 +145,14 @@ those exact files.
    matching excerpts**. Confirm **Ask loaded model** after checking what
    will be sent.
 5. Compare citation labels such as **[S1]** with the source filename,
-   lines and text shown below the answer.
+   text and the line range or PDF page shown below the answer.
 
 Use **Re-index** to choose a fresh copy and replace the older private
 text. **Delete** removes the private copy and leaves the selected original
 file in place. Document questions and answers stay in the Documents screen
-for the session. This version accepts TXT and Markdown. PDF support
-remains in development.
-[Document validation](VALIDATION.md#offline-questions-about-txt-and-markdown).
+for the session. PDFs that require a password or contain only scanned
+images show an explanation.
+[Document validation](VALIDATION.md#offline-questions-about-pdf-pages).
 
 ## Choose settings for a phone model
 

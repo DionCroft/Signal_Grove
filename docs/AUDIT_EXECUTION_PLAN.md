@@ -1,5 +1,13 @@
 # Signal Grove audit execution plan
 
+## Offline PDF page citations - 20 November 2026
+
+OF-07 covers selected TXT, Markdown and text PDFs. Android 17 verified
+an offline LFM3 answer tied to the original page. Physical device and
+signed-release validation remain open along with the full original
+Hermes compatibility and integration requirements.
+[Document receipts](VALIDATION.md#offline-questions-about-pdf-pages).
+
 ## Hosted Android 8 Demo and keyboard recheck - 19 November 2026
 
 The catalogue build's hosted records now confirm the Android 8 Demo

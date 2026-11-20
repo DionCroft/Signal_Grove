@@ -19,7 +19,7 @@ class PhoneDocumentsTest {
         val info = documents.list().single()
         assertFalse(abandoned.exists())
         assertEquals(3, info.lineCount)
-        assertEquals("# Trip\nMeet at Kyoto.\n", documents.selected(listOf(info.id)) {}.single().text)
+        assertEquals("# Trip\nMeet at Kyoto.\n", documents.selected(listOf(info.id)) {}.single().sections.single())
         val original = File(root, "${info.id}.json").readBytes()
         var checkpoints = 0
         assertTrue(runCatching {
@@ -56,6 +56,33 @@ class PhoneDocumentsTest {
             assertEquals(reason, failure.reason)
             assertTrue(documents.list().isEmpty())
         }
+    }
+
+    @Test fun pdfPageNumbersSurviveReopeningAndSkipBlankPagesWithoutMergingExcerpts() {
+        val root = temp.newFolder()
+        PhoneDocumentLibrary(root).apply {
+            save("legacy.txt", "Original text".byteInputStream(), null) {}
+            savePdf("Handbook.PDF", listOf("The observatory opens at dusk.", "", "The observatory codeword is MARIGOLD."), null) {}
+        }
+        val documents = PhoneDocumentLibrary(root)
+        val (pdf, text) = documents.list()
+        assertEquals(3, pdf.pageCount)
+        assertEquals(1, text.lineCount)
+        val selected = documents.selected(listOf(pdf.id)) {}
+        val review = checkNotNull(PhoneDocumentQuestions.review("observatory codeword", selected) {})
+        assertEquals(listOf(3, 1), review.sources.map { it.page })
+        assertEquals("The observatory codeword is MARIGOLD.", review.sources.first().text)
+        assertEquals("Original text", documents.selected(listOf(text.id)) {}.single().sections.single())
+
+        val invalid = runCatching { documents.savePdf("Handbook.PDF", listOf("", "  "), pdf) {} }
+        assertEquals("document_pdf_image_only", (invalid.exceptionOrNull() as LocalModelStorageException).reason)
+        assertEquals(listOf(pdf, text), documents.list())
+        documents.savePdf("Handbook.PDF", listOf("The observatory codeword is MARIGOLD."), pdf) {}
+        val updated = documents.list().first()
+        assertEquals(pdf.id, updated.id)
+        assertNotEquals(pdf.fingerprint, updated.fingerprint)
+        documents.remove(updated) {}
+        assertEquals(listOf(text), documents.list())
     }
 
     @Test fun uncitedReplyCanOnlyBeAnchoredAsAUniqueVerbatimExcerpt() {

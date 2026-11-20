@@ -215,9 +215,11 @@ or background generation is introduced by this item.
 **Status: in progress.** TXT and Markdown support includes an explicit
 picker and index action, bounded scope and excerpt review, native local
 answers with source labels and line ranges, and exact remove and re-index
-controls. Finish supported text PDF extraction and page citations, including
-encrypted and scanned input handling, then validate on a physical phone.
-[Document checks](VALIDATION.md#offline-questions-about-txt-and-markdown).
+controls. Android 15 and newer support selected PDFs with extractable text
+and original page citations. Offline Android 17 checks verified the picker,
+a password-protected refusal, image-only refusal, and an LFM3 answer from
+page 3. Physical-phone acceptance remains open.
+[Document checks](VALIDATION.md#offline-questions-about-pdf-pages).
 
 Acceptance: extraction, retrieval and inference work with networking disabled.
 Unsupported encrypted/scanned PDFs, oversize documents and malformed text produce

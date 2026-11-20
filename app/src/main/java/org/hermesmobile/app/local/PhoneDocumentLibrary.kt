@@ -12,10 +12,11 @@ import java.util.UUID
 import kotlinx.serialization.json.*
 
 data class PhoneDocument(
-    val id: String, val name: String, val fingerprint: String, val byteCount: Int, val lineCount: Int
+    val id: String, val name: String, val fingerprint: String, val byteCount: Int, val lineCount: Int,
+    val pageCount: Int = 0
 )
 
-internal data class PhoneDocumentText(val info: PhoneDocument, val text: String)
+internal data class PhoneDocumentText(val info: PhoneDocument, val sections: List<String>)
 
 /** Private extracted text. No provider URI, original file, grant, or separate persistent index. */
 internal class PhoneDocumentLibrary(root: File) {
@@ -40,10 +41,8 @@ internal class PhoneDocumentLibrary(root: File) {
     }
 
     @Synchronized fun save(name: String, input: InputStream, previous: PhoneDocument?, check: () -> Unit) {
-        validateName(name)
-        val records = files()
-        if (previous == null && records.size >= MAX_DOCUMENTS) problem("document_limit")
-        if (previous != null) requireCurrent(previous)
+        validateName(name, pdf = false)
+        requireWritable(previous)
         val bytes = ByteArray(MAX_DOCUMENT_BYTES + 1)
         var length = 0
         while (length < bytes.size) {
@@ -59,15 +58,36 @@ internal class PhoneDocumentLibrary(root: File) {
                 .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes, 0, length)).toString()
         } catch (_: CharacterCodingException) {
             problem("document_encoding")
-        }.removePrefix("\uFEFF").replace("\r\n", "\n").replace('\r', '\n')
-        validateText(text)
-        val id = previous?.id ?: UUID.randomUUID().toString()
-        val target = record(id)
-        val value = buildJsonObject {
+        }.let(::normalize)
+        validateSections(false, listOf(text))
+        write(buildJsonObject {
             put("version", 1)
             put("name", name)
             put("text", text)
-        }.toString().toByteArray(Charsets.UTF_8)
+        }, previous, check)
+    }
+
+    @Synchronized fun savePdf(name: String, pages: List<String>, previous: PhoneDocument?, check: () -> Unit) {
+        validateName(name, pdf = true)
+        requireWritable(previous)
+        val normalized = pages.map(::normalize)
+        validateSections(true, normalized)
+        write(buildJsonObject {
+            put("version", 2)
+            put("name", name)
+            put("pages", JsonArray(normalized.map(::JsonPrimitive)))
+        }, previous, check)
+    }
+
+    private fun requireWritable(previous: PhoneDocument?) {
+        val records = files()
+        if (previous == null && records.size >= MAX_DOCUMENTS) problem("document_limit")
+        if (previous != null) requireCurrent(previous)
+    }
+
+    private fun write(fields: JsonObject, previous: PhoneDocument?, check: () -> Unit) {
+        val target = record(previous?.id ?: UUID.randomUUID().toString())
+        val value = fields.toString().toByteArray(Charsets.UTF_8)
         val stage = owned("stage-${UUID.randomUUID()}.tmp")
         kotlin.check(stage.createNewFile())
         try {
@@ -113,29 +133,51 @@ internal class PhoneDocumentLibrary(root: File) {
         if (safe.length() !in 1..MAX_RECORD_BYTES) problem("document_store")
         try {
             val fields = Json.parseToJsonElement(safe.readText(Charsets.UTF_8)).jsonObject
-            require(fields["version"]?.jsonPrimitive?.int == 1)
+            val version = fields.getValue("version").jsonPrimitive.int
+            require(version in 1..2)
+            val pdf = version == 2
             val name = fields.getValue("name").jsonPrimitive.content
-            val text = fields.getValue("text").jsonPrimitive.content
-            validateName(name)
-            validateText(text)
-            val encoded = text.toByteArray(Charsets.UTF_8)
-            require(encoded.size <= MAX_DOCUMENT_BYTES)
-            val hash = MessageDigest.getInstance("SHA-256").digest(encoded).joinToString("") { "%02x".format(it) }
-            return PhoneDocumentText(PhoneDocument(safe.name.removeSuffix(".json"), name, hash,
-                encoded.size, text.count { it == '\n' } + 1), text)
+            validateName(name, pdf)
+            val sections = if (pdf) {
+                fields.getValue("pages").jsonArray.map { element ->
+                    element.jsonPrimitive.also { require(it.isString) }.content
+                }
+            } else {
+                listOf(fields.getValue("text").jsonPrimitive.also { require(it.isString) }.content)
+            }
+            val bytes = validateSections(pdf, sections)
+            val content = if (pdf) JsonArray(sections.map(::JsonPrimitive)).toString() else sections.single()
+            val hash = MessageDigest.getInstance("SHA-256").digest(content.toByteArray(Charsets.UTF_8))
+                .joinToString("") { "%02x".format(it) }
+            return PhoneDocumentText(PhoneDocument(safe.name.removeSuffix(".json"), name, hash, bytes,
+                if (pdf) 0 else sections.single().count { it == '\n' } + 1,
+                if (pdf) sections.size else 0), sections)
         } catch (_: Exception) {
             problem("document_store")
         }
     }
 
-    private fun validateName(name: String) {
-        if (name.length !in 1..160 || name.any { it in "/\\" || it.isISOControl() || Character.getType(it) == Character.FORMAT.toInt() } ||
-            name.substringAfterLast('.', "").lowercase() !in TEXT_EXTENSIONS) problem("document_format")
+    private fun validateName(name: String, pdf: Boolean) {
+        val supported = if (pdf) isPdf(name) else name.substringAfterLast('.', "").lowercase() in TEXT_EXTENSIONS
+        if (!supported || name.length !in 1..160 || name.any {
+                it in "/\\" || it.isISOControl() || Character.getType(it) == Character.FORMAT.toInt()
+            }) problem("document_format")
     }
 
-    private fun validateText(text: String) {
-        if (text.isBlank()) problem("document_empty")
-        if (text.any { it.isISOControl() && it !in "\n\t" } || !Charsets.UTF_8.newEncoder().canEncode(text)) problem("document_encoding")
+    private fun normalize(text: String) = text.removePrefix("\uFEFF").replace("\r\n", "\n").replace('\r', '\n')
+
+    private fun validateSections(pdf: Boolean, sections: List<String>): Int {
+        if (pdf && sections.size !in 1..MAX_PDF_PAGES) problem("document_pdf_page_limit")
+        if (sections.all(String::isBlank)) problem(if (pdf) "document_pdf_image_only" else "document_empty")
+        var bytes = 0
+        val encoder = Charsets.UTF_8.newEncoder()
+        for (text in sections) {
+            if (text.length > MAX_DOCUMENT_BYTES - bytes) problem("document_size")
+            if (text.any { it.isISOControl() && it !in "\n\t" } || !encoder.canEncode(text)) problem("document_encoding")
+            bytes += text.toByteArray(Charsets.UTF_8).size
+            if (bytes > MAX_DOCUMENT_BYTES) problem("document_size")
+        }
+        return bytes
     }
 
     private fun record(id: String): File {
@@ -155,6 +197,8 @@ internal class PhoneDocumentLibrary(root: File) {
         const val MAX_DOCUMENTS = 12
         const val MAX_SCOPE = 4
         const val MAX_DOCUMENT_BYTES = 128 * 1024
+        const val MAX_PDF_PAGES = 64
+        fun isPdf(name: String) = name.endsWith(".pdf", ignoreCase = true)
         private const val MAX_RECORD_BYTES = 3L * MAX_DOCUMENT_BYTES + 1024
         private val TEXT_EXTENSIONS = setOf("txt", "md", "markdown")
     }

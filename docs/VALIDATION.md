@@ -1,5 +1,48 @@
 # Current development validation — audit follow-up
 
+## Offline questions about PDF pages
+
+On Android 15 and later, Documents can extract selectable text from
+a chosen PDF up to 8 MiB and 64 pages, with up to 128 KiB of extracted
+UTF-8 text. PDF text extraction uses Android's renderer in a non-exported
+isolated service. The service receives a read-only descriptor for one
+selected file. The app unlinks its empty staging file before writing bytes
+and saves only the extracted pages. It can still read previous text-file
+records. Password-protected and image-only PDFs show an explanation.
+
+The review and answer cards show the original PDF page. Empty pages
+preserve page numbering and excerpts stay within their page.
+
+The initial isolated-service preflight found normal WorkManager
+startup running inside the parser process. The verified app checks
+Android's isolation status before ordinary application initialization
+and gates the PDF API at the service entry point.
+
+The exact debug build passed 1,179 JVM tests and 106 focused Android
+tests each on Android 8 and Android 17. Both lint variants reported
+zero errors. The Android tests checked the configured isolated service,
+page extraction, unsupported older Android, cancellation, malformed
+inputs, image-only PDFs, and both byte and page limits.
+
+On Android 17, the stock app used the system picker with networking
+disabled. It rejected a known password-protected fixture and retained
+its source bytes. It indexed a separate three-page PDF, kept the blank
+second page, and reopened the saved result after an app relaunch. LFM3
+answered a question about the PDF and cited [S1] on page 3. The test
+retained 7 inventoried model and chat files, removed its synthetic
+copies, and verified that networking was restored.
+
+- Build receipt 20261120-103605-153941e1a2d745f98dec2e59700f4628
+- Frozen source SHA-256 533786b8d865f84b5c8bdcce56d84f258949dde73b955f08a9e667680c4d425f
+- Debug APK SHA-256 e233bd01ec5a5207f79034c974860dd0cc5c28c12f872a4d96c07a76b21d1ed3
+- Debug test APK SHA-256 aea1e0d1acba7cb237eed1a185b63740fa6d52c8adcc13811d137c55ae3a3337
+- Android 8 instrumentation SHA-256 2862c9062ebf6cf64872d6089fdda519107199296a4d4b580c7ed66730a34c99
+- Android 17 instrumentation SHA-256 9fc60191449844b259b6bbe3a1de64822dfb222a06e5f8b13636520e581f613d
+- Native offline trial receipt SHA-256 757e83cb4bd209d0c0225a845f76fc7e24edba88e8ac0946348cfdef92fd9a10
+
+Physical-phone testing and the signed upgrade and release checks remain
+open. [Android PDF text API](https://developer.android.com/reference/android/graphics/pdf/PdfRenderer.Page#getTextContents()).
+
 ## Resolve the Compose plugin marker with strict verification
 
 GitHub Actions run 44651782983 received a Compose Kotlin plugin marker

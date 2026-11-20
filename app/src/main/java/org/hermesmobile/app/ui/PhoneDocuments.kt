@@ -94,6 +94,8 @@ internal fun PhoneDocuments(
                         }
                         showLibrary -> {
                             Text(label(Words.PhoneDocumentPrivacy), style = MaterialTheme.typography.bodySmall)
+                            Text(label(if (android.os.Build.VERSION.SDK_INT >= 35) Words.PhonePdfFormats
+                                else Words.PhoneTextFormats), style = MaterialTheme.typography.bodySmall)
                             Button({ actions.choose(null) }, enabled = idle && state.documents.size < PhoneDocumentLibrary.MAX_DOCUMENTS,
                                 modifier = Modifier.testTag("phone-document-add")) { Text(label(Words.PhoneDocumentAdd)) }
                             if (state.documents.size >= PhoneDocumentLibrary.MAX_DOCUMENTS) Text(label(Words.PhoneDocumentLimit))
@@ -171,8 +173,9 @@ internal fun PhoneDocuments(
 @Composable
 private fun DocumentSources(review: PhoneDocumentReview) {
     review.sources.forEachIndexed { index, source ->
-        val range = label(Words.PhoneDocumentLines).replace("{first}", source.firstLine.toString())
-            .replace("{last}", source.lastLine.toString())
+        val range = source.page?.let { label(Words.PhoneDocumentPage).replace("{page}", it.toString()) }
+            ?: label(Words.PhoneDocumentLines).replace("{first}", source.firstLine.toString())
+                .replace("{last}", source.lastLine.toString())
         HermesCard {
             Text("[S${index + 1}] ${source.document.name} · $range",
                 Modifier.testTag("phone-document-citation-$index"), style = MaterialTheme.typography.titleSmall)

@@ -26,6 +26,8 @@
         </receiver>
         <service android:name=".local.PhoneModelDownloadService" android:exported="false"
             android:foregroundServiceType="dataSync" />
+        <service android:name=".local.PhonePdfService" android:exported="false"
+            android:process=":phone_pdf" android:isolatedProcess="true" />
         <activity android:name=".LocalAiActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
     </application>
 </manifest>
