@@ -32,9 +32,14 @@ atomicity, replay and revision fencing, retirement, and the selected
 local receipts and handoffs passed. The inherited Desktop container
 workspace test kept the supplied cwd in memory but did not mark it for
 persistence. Windows resolves the path for the comparison with a drive
-prefix, while the container resolver returns the POSIX path. The
-unchanged Linux case, real worker attribution and production acceptance
-remain open.
+prefix, while the container resolver returns the POSIX path.
+
+Hosted Linux passed all 103 cases at each pin, including the inherited
+Desktop container workspace case. Both archives matched their published
+sizes and SHA-256 digests. The source files and the 103 case identities
+match the Windows cohort. The Windows-specific regression, full Android
+and deployed project/worker acceptance remain open.
+[Paired hosted Linux run](https://github.com/DionCroft/Signal_Grove/actions/runs/44770066449).
 
 | Evidence | SHA-256 |
 | --- | --- |
@@ -43,6 +48,9 @@ remain open.
 | Main static comparison | 0aa9288eb5fd84d03cae6ca57fa4ec73f3a03a65365c5f0e5f2501a8242e351b |
 | v0.23.3 Windows JUnit | 2a7b45a1db5c1edd6f017ac097bf7ae9509e09222e322a863a55378536e36caa |
 | Main Windows JUnit | 50af267fc1f9e76de9a2ed8a20f189ba954ddcac73b8bc9b41540529143d6f9b |
+| v0.23.3 Linux JUnit | a3abd4588ecb0bce7ef40323819bc5e1779fe905e466ef115b05701a06063bba |
+| Main Linux JUnit | 659ff5b7436130f51f30d796c292132d75f92fb99ffa6cee1622a1ad1736ec77 |
+| Independent Linux verification | e3ec21bb44afc80c14dd1d7ac26d76af98fb74a693f2d1219302dc561672786d |
 
 ## Current Hermes cron and plugin settings sources - 20 November 2026
 
