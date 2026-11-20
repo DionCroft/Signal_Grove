@@ -10,8 +10,10 @@ retain every original requirement.
 A reviewed model can download with a foreground notification after
 an explicit tap. The service keeps the existing network preference
 and saved partials. The debug pair passed 1,167 JVM tests and 100
-focused tests per API with zero lint errors. Continue OF-06 with
-reviewed updates and the remaining service and physical-phone checks.
+focused tests per API with zero lint errors. The Android 17 system
+timeout closed the socket and retained the exact queue item without a
+retry. Continue OF-06 with reviewed updates, a notification-channel
+trial and physical and publisher-transfer checks.
 Hermes integration and final-source release gates remain active.
 [Service evidence](docs/VALIDATION.md#opt-in-model-downloads-while-away-from-the-app).
 

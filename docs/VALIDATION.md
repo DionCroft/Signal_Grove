@@ -34,9 +34,24 @@ item was waiting. The test removed its own queue entry, compared
 5 unchanged model and chat files, and restored the emulator proxy.
 The fixture sent no model bytes.
 
-Physical-phone testing, an Android 15 or newer timeout/permission
-revocation trial, and an end-to-end publisher transfer with this
-service remain open.
+On the owned Android 17 emulator, an 18-second test limit exercised the
+system data-sync service timeout from the ordinary app. Android logged
+the timeout for Signal Grove. The socket closed, the service stopped,
+and there was no timeout crash. Relaunch showed the same reviewed Qwen
+item with zero saved bytes and no second request. Existing model and
+chat files passed retention checks. The fixture sent no model bytes.
+The emulator's timeout, notification permission and network settings
+were restored. Timeout log SHA-256 is ca81a3442b2dabb1fe66b14687c550b2cb9e2fabe358b6b8ffd413cd0fbc0edb.
+
+In a second Android 17 run, revoking the temporary runtime notification
+permission ended the process and closed the socket. Relaunch preserved
+the exact queued item without reconnecting. This verified OS-level
+revocation; stopping after a channel-only change in the same process
+still needs a separate check.
+
+Physical-phone and end-to-end publisher checks remain open. The download
+notification channel also needs a visible-to-disabled trial while the
+process stays alive.
 
 - Frozen source digest: 97f9d821b23f2bd77c720c01516b88e13814fd3fd0fd5d6f104f03e125daf26c
 - Debug APK SHA-256: 2ca5324c51430eb86efd3b2900e4bed972d33ffd58ee03f0254cba2cd7cc6a62

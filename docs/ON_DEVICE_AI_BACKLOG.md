@@ -178,10 +178,16 @@ progress and Pause. The transfer waits for Android to promote the
 service and keeps the existing verification and network policy.
 [Service checks](VALIDATION.md#opt-in-model-downloads-while-away-from-the-app).
 
-Real publisher transfers, Android service timeout and notification
-revocation remain open. Model updates still need explicit review
-of the replacement revision and extra storage. Physical interruption,
-network handoff, low-space and reboot verification remain open.
+The Android 17 system timeout closed the transfer and kept the same
+reviewed item after relaunch. Revoking runtime notification permission
+also closed the attempt. Real publisher transfers, same-process channel
+changes, physical interruption, network handoff, low-space and reboot
+verification remain open. Model updates still need explicit review of
+the replacement revision and extra storage. Both publisher manifests
+still matched the packaged files by revision, size and SHA-256 on
+20 November 2026.
+[LiquidAI manifest](https://huggingface.co/api/models/LiquidAI/LFM3-1.7B-GGUF/tree/main) ·
+[Qwen manifest](https://huggingface.co/api/models/Qwen/Qwen2.5-0.5B-Instruct-GGUF/tree/main).
 
 Acceptance: downloading/backgrounding never starts inference. Cancel, sleep,
 network loss, low space and process/reboot interruption reconcile exact receipts
