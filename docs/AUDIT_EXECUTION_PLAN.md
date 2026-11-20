@@ -1,5 +1,21 @@
 # Signal Grove audit execution plan
 
+## Owned emulator API readiness - 20 November 2026
+
+Run 44748140345 API 26 shard 0 observed Android boot completion and lost the
+ADB shell at the immediate API identity check. The verified artifact retained
+the live emulator and ADB device state, with no instrumentation inventory or
+test execution. Archive SHA-256 is
+82e708f20fd1f43609493007f21c866314298f9d792d9e0e001d9fa46bc14abe.
+[Source-bound failure](https://github.com/DionCroft/Signal_Grove/actions/runs/44748140345).
+
+The readiness poll now requires a fresh successful boot flag and exact API
+read before installing APKs. A transient shell failure is logged and observed
+on the same live emulator within the existing boot deadline. A confirmed
+different API stops the job. Installation and instrumentation dispatch
+are unchanged. Device setup and coverage verifiers passed 45 portable tests.
+The new full hosted result remains open.
+
 ## Temporary chat and project cancellation controls - 20 November 2026
 
 The temporary composer and end review stay reachable through keyboard and

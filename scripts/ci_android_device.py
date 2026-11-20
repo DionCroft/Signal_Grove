@@ -346,8 +346,11 @@ def ensure_device_disk_space(sdk: Path, work: Path, env: dict, minimum_bytes: in
     if free<minimum_bytes:raise ValueError('Insufficient emulator disk space after bounded NDK cleanup.')
 
 
-def wait_for_owned_device(process, probe, timeout: float = 180, *, boot: bool = False) -> None:
-    """Observe this process and serial together until ADB responds or Android completes boot."""
+def wait_for_owned_device(process, probe, timeout: float = 180, *, boot: bool = False,
+                          expected_api: int | None = None) -> None:
+    """Observe the owned process, checking the boot flag and API in the same poll."""
+    if expected_api is not None and not boot:
+        raise ValueError('API verification requires the boot readiness phase.')
     command = ('shell', 'getprop', 'sys.boot_completed') if boot else ('get-state',)
     expected = '1' if boot else 'device'
     phase = 'boot' if boot else 'ADB'
@@ -360,12 +363,26 @@ def wait_for_owned_device(process, probe, timeout: float = 180, *, boot: bool = 
             raise TimeoutError(f'Owned emulator did not become ready for {phase}.')
         try:
             result = probe(*command, timeout=min(10, remaining), check=False)
+            if result.returncode == 0 and result.stdout.strip() == expected:
+                if expected_api is None:
+                    return
+                if process.poll() is not None:
+                    raise RuntimeError('Owned emulator exited before API verification; inspect emulator.log.')
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError('Owned emulator did not become ready for boot.')
+                identity = probe('shell', 'getprop', 'ro.build.version.sdk',
+                                 timeout=min(10, remaining), check=False)
+                api = identity.stdout.strip()
+                if identity.returncode == 0 and api.isdecimal():
+                    if api != str(expected_api):
+                        raise ValueError('The emulator API does not match the matrix entry.')
+                    return
+                print(f'Boot flag set, API identity unavailable (ADB exit {identity.returncode}). '
+                      'Checking the same owned emulator.', flush=True)
         except subprocess.TimeoutExpired:
             if boot:
-                print('Boot status observation timed out; checking the same owned emulator.', flush=True)
-        else:
-            if result.returncode == 0 and result.stdout.strip() == expected:
-                return
+                print('Boot or API observation timed out; checking the same owned emulator.', flush=True)
         time.sleep(min(2, max(0, deadline - time.monotonic())))
 
 
@@ -425,10 +442,8 @@ def main() -> int:
             print('Waiting for the owned emulator to boot.',flush=True)
             run([adb,'start-server'])
             wait_for_owned_device(process,device)
-            wait_for_owned_device(process, device, timeout=240, boot=True)
-            actual=device('shell','getprop','ro.build.version.sdk').stdout.strip()
-            if actual!=str(args.api):raise ValueError('The emulator API does not match the matrix entry.')
-            print(f'Emulator booted with verified API {actual}; installing APKs.',flush=True)
+            wait_for_owned_device(process, device, timeout=240, boot=True, expected_api=args.api)
+            print(f'Emulator booted with verified API {args.api}; installing APKs.',flush=True)
             device('shell','svc','power','stayon','true')
             device('shell','settings','put','system','screen_off_timeout','2147483647')
             device('shell','settings','put','system','font_scale','1.3' if args.api==26 else '1.0')

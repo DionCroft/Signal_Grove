@@ -116,6 +116,41 @@ class DeviceSdkSetupTest(unittest.TestCase):
             device_ci.wait_for_owned_device(process, probe, boot=True)
         probe.assert_not_called()
 
+    def test_boot_requires_api_identity_after_a_transient_shell_disconnect(self):
+        process = Mock()
+        process.poll.return_value = None
+        boot = ('shell', 'getprop', 'sys.boot_completed')
+        sdk = ('shell', 'getprop', 'ro.build.version.sdk')
+        probe = Mock(side_effect=[
+            subprocess.CompletedProcess(boot, 0, '1'),
+            subprocess.CompletedProcess(sdk, 255, ''),
+            subprocess.CompletedProcess(boot, 0, '1'),
+            subprocess.CompletedProcess(sdk, 0, '26'),
+        ])
+        with patch.object(device_ci.time, 'sleep'), patch('builtins.print') as recorded:
+            device_ci.wait_for_owned_device(process, probe, boot=True, expected_api=26)
+        self.assertEqual([boot, sdk, boot, sdk], [call.args for call in probe.call_args_list])
+        self.assertRegex(recorded.call_args.args[0], 'ADB exit 255')
+        self.assertEqual(4, process.poll.call_count)
+
+    def test_mismatched_api_is_fatal_and_identity_probe_preserves_deadline(self):
+        process = Mock()
+        process.poll.return_value = None
+        boot = ('shell', 'getprop', 'sys.boot_completed')
+        sdk = ('shell', 'getprop', 'ro.build.version.sdk')
+        probe = Mock(side_effect=[subprocess.CompletedProcess(boot, 0, '1'),
+                                  subprocess.CompletedProcess(sdk, 0, '37')])
+        with patch.object(device_ci.time, 'monotonic', side_effect=[0, 0, 2]):
+            with self.assertRaisesRegex(ValueError, 'API does not match'):
+                device_ci.wait_for_owned_device(process, probe, timeout=3, boot=True, expected_api=26)
+        probe.assert_called_with(*sdk, timeout=1, check=False)
+        probe.reset_mock(side_effect=True)
+        probe.return_value = subprocess.CompletedProcess(boot, 0, '1')
+        with patch.object(device_ci.time, 'monotonic', side_effect=[0, 0, 3]):
+            with self.assertRaisesRegex(TimeoutError, 'ready for boot'):
+                device_ci.wait_for_owned_device(process, probe, timeout=3, boot=True, expected_api=26)
+        probe.assert_called_once_with(*boot, timeout=3, check=False)
+
     def test_owned_ci_data_partition_replaces_all_template_defaults_without_touching_other_properties(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);owned=root/'HermesCI26.avd';owned.mkdir();config=owned/'config.ini'
