@@ -46,6 +46,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     }
 
     internal fun leavePhone() {
+        closePhoneVoice()
         closePersonalProfiles()
         if (temporary.state.value != null) closeTemporary()
         controller.leave()
@@ -125,6 +126,28 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
                 writingSaving.value = false
             }
         }
+    }
+
+    internal val phoneVoice = MutableStateFlow<PhoneVoiceDraft?>(null)
+
+    internal fun openPhoneVoice() {
+        val state = controller.state.value
+        if (!state.busy) phoneVoice.value = PhoneVoiceDraft(state.chat, draft.value)
+    }
+
+    internal fun closePhoneVoice() { phoneVoice.value = null }
+
+    internal fun updateVoicePreferences(updated: org.hermesmobile.app.data.AppPreferences,
+        previous: org.hermesmobile.app.data.AppPreferences) {
+        viewModelScope.launch { app.preferences.patchUserSettings(updated, previous) }
+    }
+
+    internal fun applyPhoneVoice(target: PhoneVoiceDraft, transcript: String) {
+        val state = controller.state.value
+        if (phoneVoice.value !== target || state.busy || !target.current(state, draft.value)) return
+        val combined = appendPhoneTranscript(target.draft, transcript) ?: return
+        drafts.edit(combined)
+        closePhoneVoice()
     }
 
     internal val personalProfilesOpen = MutableStateFlow(false)

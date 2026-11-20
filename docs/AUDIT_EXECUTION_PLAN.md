@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## Offline voice in phone chat - 20 November 2026
+
+The phone chat has offline-only dictation and read-aloud controls.
+A supported recognition service must verify the installed language.
+The user can edit the transcript before adding it to a draft. Focus
+and lifecycle tests, physical dictation and Bluetooth, and local-first
+setup helper improvements remain tracked with the full hosted,
+real Hermes and signed-release gates. The earlier hosted run 44722706135
+reported image lifecycle failures and timed out in the Android 8 startup
+shard before the image lifecycle fix was present. New-source hosted
+coverage remains required.
+[Offline voice evidence](VALIDATION.md#offline-voice-in-phone-chat).
+
 ## Protected personal-profile backup choice - 20 November 2026
 
 Profiles now have explicit export and restore selection in a separate

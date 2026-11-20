@@ -34,11 +34,12 @@ internal fun RecognitionFailure.word()=when(this) {
     recognitionAvailable:Boolean,busy:Boolean,speaking:Boolean,readBlock:Words?,readError:Words?,
     onLanguage:(String)->Unit,onLocalOnly:(Boolean)->Unit,onNetworkVoices:(Boolean)->Unit,onRate:(Float)->Unit,
     onMicrophone:()->Unit,onCancel:()->Unit,onChat:()->Unit,onRead:()->Unit,onRefresh:()->Unit,onPermissions:()->Unit,
-    onSpeechSettings:()->Boolean
+    onSpeechSettings:()->Boolean,
+    phoneOnly:Boolean=false, checkingLanguage:Boolean=false, recognitionBlock:Words?=null, draftBlock:Words?=null
 ) {
     var speechSettingsUnavailable by remember {mutableStateOf(false)}
     val idle=session.phase==DictationPhase.IDLE
-    val voiceTitle=label(Words.Voice)
+    val voiceTitle=label(if(phoneOnly) Words.PhoneVoice else Words.Voice)
     Column(Modifier.fillMaxSize().padding(horizontal=20.dp).testTag("voice-screen").semantics {paneTitle=voiceTitle},verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             FilterChip(!readAloud,{onSection(false)},modifier=Modifier.weight(1f).testTag("voice-dictation-tab"),label={Text(label(Words.Dictation))})
@@ -54,37 +55,49 @@ internal fun RecognitionFailure.word()=when(this) {
                     if(readBlock==Words.SpeechEngineUnavailable || readBlock==Words.SpeechVoiceUnavailable || speechSettingsUnavailable) Text(label(Words.SpeechSetupInfo),Modifier.testTag("voice-speech-setup-info"))
                     if(speechSettingsUnavailable) Text(label(Words.SpeechSettingsUnavailable),Modifier.testTag("voice-speech-settings-error"),color=MaterialTheme.colorScheme.error)
                 }
-                Text(label(if(readAloud) Words.ReadAloudInfo else Words.VoiceInfo))
+                Text(label(when {
+                    phoneOnly && readAloud -> Words.PhoneVoiceReadInfo
+                    phoneOnly -> Words.PhoneVoiceDictateInfo
+                    readAloud -> Words.ReadAloudInfo
+                    else -> Words.VoiceInfo
+                }))
                 FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     FilterChip(session.language=="en-GB",{onLanguage("en-GB")},enabled=idle && !speaking,label={Text(label(Words.SpeechEnglish))})
                     FilterChip(session.language=="zh-CN",{onLanguage("zh-CN")},enabled=idle && !speaking,label={Text(label(Words.SpeechChinese))})
                 }
                 if(!readAloud) {
-                    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                    if(!phoneOnly) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                         Text(label(Words.LocalSpeech),Modifier.weight(1f))
                         Switch(preferences.onDeviceSpeechOnly,onLocalOnly,Modifier.testTag("voice-local-only"),enabled=idle && !speaking)
                     }
-                    if(!recognitionAvailable) Text(label(if(preferences.onDeviceSpeechOnly) Words.LocalSpeechUnavailable else Words.VoiceUnavailable),Modifier.testTag("voice-recognition-unavailable"))
-                    FilledTonalIconButton(onMicrophone,enabled=recognitionAvailable && session.phase!=DictationPhase.PROCESSING && !speaking,modifier=Modifier.size(96.dp).testTag("voice-microphone")) {
+                    if(!recognitionAvailable) Text(label(recognitionBlock ?: if(preferences.onDeviceSpeechOnly) Words.LocalSpeechUnavailable else Words.VoiceUnavailable),Modifier.testTag("voice-recognition-unavailable"))
+                    FilledTonalIconButton(onMicrophone,enabled=recognitionAvailable && !checkingLanguage && session.phase!=DictationPhase.PROCESSING && !speaking,modifier=Modifier.size(96.dp).testTag("voice-microphone")) {
                         Icon(Icons.Outlined.MicNone,label(Words.TapSpeak),Modifier.size(42.dp))
                     }
-                    Text(label(when(session.phase) {DictationPhase.LISTENING->Words.Listening;DictationPhase.PROCESSING->Words.Processing;else->Words.TapSpeak}))
+                    Text(label(if(checkingLanguage) Words.PhoneSpeechChecking else when(session.phase) {
+                        DictationPhase.LISTENING->Words.Listening;DictationPhase.PROCESSING->Words.Processing;else->Words.TapSpeak
+                    }))
                     if(!idle) TextButton(onCancel,Modifier.testTag("voice-cancel")) {Text(label(Words.Cancel))}
                     session.failure?.let {Text(label(it.word()),Modifier.testTag("voice-dictation-error"),color=MaterialTheme.colorScheme.error)}
                     if(session.failure==RecognitionFailure.PERMISSION) TextButton(onPermissions) {Text(label(Words.AppPermissions))}
-                    OutlinedTextField(transcript,onTranscript,Modifier.fillMaxWidth(),label={Text(label(Words.Transcript))},minLines=2,maxLines=6)
-                    Button(onChat,enabled=transcript.isNotBlank() && idle && !busy) {Text(label(Words.Chat))}
+                    OutlinedTextField(transcript,onTranscript,Modifier.fillMaxWidth().testTag("voice-transcript"),
+                        label={Text(label(Words.Transcript))},enabled=!phoneOnly || idle,minLines=2,maxLines=6)
+                    draftBlock?.let { Text(label(it),Modifier.testTag("voice-draft-reason"),color=MaterialTheme.colorScheme.error) }
+                    Button(onChat,Modifier.testTag("voice-use-transcript"),
+                        enabled=transcript.isNotBlank() && idle && !busy && draftBlock==null) {
+                        Text(label(if(phoneOnly) Words.PhoneVoiceAppend else Words.Chat))
+                    }
                     if(busy) Text(label(Words.SpeechChatBusy))
                     if(!preferences.onDeviceSpeechOnly) Text(label(Words.VoiceDisclosure),style=MaterialTheme.typography.bodySmall)
                 } else {
 
-                    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                    if(!phoneOnly) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                         Text(label(Words.NetworkSpeech),Modifier.weight(1f))
                         Switch(preferences.allowNetworkSpeech,onNetworkVoices,Modifier.testTag("voice-network-voices"),enabled=!speaking)
                     }
                     Text(label(Words.SpeechRate)+" · "+"%.2f×".format(preferences.speechRate))
                     Slider(preferences.speechRate,onRate,valueRange=.75f..1.25f,enabled=!speaking)
-                    Text(label(Words.SpeechDisclosure),style=MaterialTheme.typography.bodySmall)
+                    if(!phoneOnly) Text(label(Words.SpeechDisclosure),style=MaterialTheme.typography.bodySmall)
                 }
                 TextButton({speechSettingsUnavailable=false;onRefresh()},Modifier.testTag("voice-refresh"),enabled=idle && !speaking) {Text(label(Words.RefreshSpeech))}
             }

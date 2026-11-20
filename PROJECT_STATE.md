@@ -5,6 +5,14 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest offline phone voice checkpoint
+
+Phone chat has an offline speech panel with reviewed draft append and
+read-aloud for completed replies. Device coverage includes the phone
+voice path and shared Hermes Voice screen controls. Physical speech
+and Bluetooth, the expanded setup helper, and release checks remain open.
+[Voice evidence](docs/VALIDATION.md#offline-voice-in-phone-chat).
+
 ## Latest personal profile backup checkpoint
 
 Each profile backup includes explicitly selected profiles and uses a

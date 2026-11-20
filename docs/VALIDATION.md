@@ -1,5 +1,47 @@
 # Current development validation — audit follow-up
 
+## Offline voice in phone chat
+
+Phone voice reuses Android speech services. Dictation selects Android's
+on-device recognizer, requests the installed-language inventory before
+listening, and uses only a returned compatible language. Android 13 or
+later is required for the language check. An older Android version, a
+missing service, or an unverified language has an explanation in the
+screen. The editor can put the reviewed transcript into the current
+phone draft. That action preserves the existing draft, checks the exact
+chat and UTF-8 limit, and leaves Send as a separate action.
+
+Read aloud chooses an installed voice whose Android descriptor reports
+no network requirement. It verifies the applied voice before speaking.
+Stop and leaving release playback and audio focus. Focus loss and the
+Android audio route warning stop playback, which requires a fresh
+tap to start again. Leaving discards any unapplied transcript.
+[Android installed recognition languages](https://developer.android.com/reference/android/speech/RecognitionSupport#getInstalledOnDeviceLanguages()) ·
+[Android voice network flag](https://developer.android.com/reference/android/speech/tts/Voice#isNetworkConnectionRequired()).
+
+The strict build passed 1,196 JVM tests and both lint variants with zero
+errors. The Android 8 and 17 emulators each passed 152 focused methods,
+including the existing voice controls, per-draft opt-in and lifecycle.
+The real app preserved draft text and exposed no network speech switches
+while the Hermes voice preferences allowed network speech. Controller
+tests verified compatible language selection, exact local reply binding,
+and draft bounds. Android 17 played the synthetic reply through an installed voice with
+networking off. Android reported an active speech player, and audio
+focus was released on Stop and when leaving the app. All 8 pre-existing
+model and chat files kept their hashes and the emulator network
+settings were restored. Early harness attempts exposed raw-transfer
+verification and a focus-dump spacing error. The captured audio state
+and the corrected run are retained on the test host.
+
+- Build receipt 20261120-133522-b5c887f82260428a8bb79a9bae102a55
+- Source snapshot SHA-256 68762b630dac68bb06dda97e684bc5fba48b932cd8fc2a172fe949819cfa6a89
+- Application and test APK SHA-256 75bea3110c6783323ebf665eec16bde4b5dafe720d47ae143451e5b5cad23205 and bcd5fb0363102aa627779a5c216cb3b684fad93a160b6414b3405f176197ea8d
+- Android 8 and Android 17 instrumentation SHA-256 81e4f73769c734a4fbb2a1fa20a8b6b65a1030af417d777b90460e87c4b00ad3 and cd8e553cea556e6f4401507df4b51e1061ba3997d25338a4464d7ab5d3390ea4
+- Normal-app voice observation receipt SHA-256 ee7e2c74ff521abc26994241f7a3a7e0e3dea4ffb1af66861fc5d2eeb0c220ac
+
+Physical microphone, Bluetooth routing, audio interruptions, advanced
+setup helper, and the original Hermes and release gates remain open.
+
 ## Separate protected personal-profile backups
 
 From Personal profiles, choose the complete profiles to export. The

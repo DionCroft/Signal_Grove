@@ -268,10 +268,12 @@ erasure. Existing persistent chats are unaffected.
 
 ## OF-10: Offline voice and a more helpful setup experience
 
-**Status: planned.** Bring compatible offline dictation and read-aloud into local
-chat, with an editable transcript before Send. Extend the existing guide/helper
-with a guided local-first checklist, better missing-model/storage/context recovery
-and natural-language topic selection constrained to reviewed helper checks.
+**Status: in progress.** Phone chat offers offline-only dictation, editable
+draft append and read-aloud for the current chat. Verify physical microphone,
+Bluetooth, and interruptions. Extend the guide and helper with a local-first
+checklist, missing-model/storage/context recovery, and natural-language topic
+selection constrained to reviewed helper checks.
+[Offline voice checks](VALIDATION.md#offline-voice-in-phone-chat).
 
 Acceptance: speech works offline only when a compatible offline recognizer/voice
 is installed and positively verified; show unsupported reasons otherwise. Never

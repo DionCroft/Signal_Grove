@@ -130,6 +130,21 @@ those exact files.
 
 [Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
 
+## Use offline voice in phone chat
+
+Open **On-device AI → Chat → Phone voice**. Dictation checks that Android
+has an installed offline recognizer for the selected language. Review or
+edit the transcript, then tap **Add to phone draft**. Use **Send** in Chat
+when you are ready. On Android 12 and earlier, type in the transcript
+editor or the chat composer.
+
+To listen to a completed reply in the current phone chat, select
+**Read aloud**. The screen identifies a missing voice or reply. Use
+**Speech settings** to configure voices in Android and **Refresh speech
+services** to reload the available options. Tap **Stop speaking** or
+close Phone voice to end playback.
+[Offline voice validation](VALIDATION.md#offline-voice-in-phone-chat).
+
 ## Back up and restore personal profiles
 
 In **On-device AI → Chat → Personal profiles**, choose **Back up

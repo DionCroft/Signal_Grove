@@ -1,10 +1,24 @@
 package org.hermesmobile.app.voice
 
+import java.util.Locale
+
 enum class RecognitionMode { ON_DEVICE, SYSTEM, UNAVAILABLE }
 object SpeechPolicy {
     fun recognition(localOnly: Boolean,api: Int,localAvailable: Boolean,systemAvailable: Boolean): RecognitionMode =
         if(localOnly) {if(api>=31 && localAvailable) RecognitionMode.ON_DEVICE else RecognitionMode.UNAVAILABLE}
         else if(systemAvailable) RecognitionMode.SYSTEM else RecognitionMode.UNAVAILABLE
+    fun phoneRecognition(api: Int, localAvailable: Boolean): RecognitionMode =
+        if (api >= 33 && localAvailable) RecognitionMode.ON_DEVICE else RecognitionMode.UNAVAILABLE
+
+    fun installedLanguage(requested: String, ready: List<String>): String? {
+        val preferred = Locale.forLanguageTag(requested)
+        if (preferred.language.isBlank()) return null
+        val choices = ready.map(Locale::forLanguageTag).filter {
+            it.language == preferred.language && (preferred.script.isBlank() || it.script == preferred.script)
+        }
+        return (choices.firstOrNull { it.toLanguageTag() == preferred.toLanguageTag() } ?: choices.firstOrNull())?.toLanguageTag()
+    }
+
     fun plainText(markdown: String): String = markdown.replace(Regex("(?s)```.*?```")," ")
         .replace(Regex("\\[([^]]+)]\\([^)]+\\)")) {it.groupValues[1]}
         .replace(Regex("[*`#>]"),"").trim()

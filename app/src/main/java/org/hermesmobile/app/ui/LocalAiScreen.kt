@@ -109,7 +109,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val documents: PhoneDocumentActions? = null,
     val openWriting: (() -> Unit)? = null,
     val openTemporary: (() -> Unit)? = null,
-    val openProfiles: (() -> Unit)? = null)
+    val openProfiles: (() -> Unit)? = null, val openVoice: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -160,7 +160,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 documentPicker.launch(arrayOf("*/*"))
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
                 c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting,
-            openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles),
+            openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles, openVoice = vm::openPhoneVoice),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
         replacing = pending?.previous, pendingDocument = pendingDocument)
     val writingOpen by vm.writingOpen.collectAsStateWithLifecycle()
@@ -169,6 +169,13 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     temporary?.let { PhoneTemporaryChatDialog(vm, it, state) }
     val profilesOpen by vm.personalProfilesOpen.collectAsStateWithLifecycle()
     if (profilesOpen) PhonePersonalProfilesDialog(vm, state, draft)
+    val voice by vm.phoneVoice.collectAsStateWithLifecycle()
+    val settings = preferences
+    if (settings != null) voice?.let { target ->
+        PhoneVoiceDialog(vm, target, state, draft, settings) { updated ->
+            vm.updateVoicePreferences(updated, settings)
+        }
+    }
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -406,7 +413,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         }
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
     }
-    if (actions.openTemporary != null || actions.openProfiles != null) {
+    if (actions.openTemporary != null || actions.openProfiles != null || actions.openVoice != null) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             actions.openTemporary?.let { open ->
                 TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-temporary-open")) {
@@ -416,6 +423,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             actions.openProfiles?.let { open ->
                 TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-profile-open")) {
                     Text(label(Words.PhonePersonalProfiles))
+                }
+            }
+            actions.openVoice?.let { open ->
+                TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-voice-open")) {
+                    Text(label(Words.PhoneVoice))
                 }
             }
         }
