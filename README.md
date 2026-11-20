@@ -176,11 +176,13 @@ Every remaining requirement stays in the [full audit](docs/AUDIT_EXECUTION_PLAN.
 
 ## Interface figures
 
-| Pixel interface | Candidate on-device AI |
+| Demo home | On-device model catalogue |
 | --- | --- |
-| ![Starhaven Grove Demo interface](docs/screenshots/pixel-starhaven-phone.png) | ![Candidate on-device AI with English, Chinese and pinyin](docs/screenshots/on-device-ai-candidate-api26.png) |
+| ![Signal Grove beta.10 Demo home](docs/screenshots/beta10-demo-home.png) | ![Beta.10 catalogue listing a model's licence, download size and RAM requirement](docs/screenshots/beta10-phone-models.png) |
 
-Left: earlier Android 16 Demo capture. Right: exact beta.9 API26 component-test capture, synthetic model/draft, bilingual text at 130% font scale. These are app captures, not generated mockups or proof of live model output. [More themes, tablet views and capture provenance](docs/screenshots.md).
+Captured from the signed beta.10 candidate on an Android 17 emulator in Demo
+mode. The catalogue shows the requirements for the listed LFM3 model.
+[More themes, tablet views and capture details](docs/screenshots.md).
 
 ## Connect to Hermes
 

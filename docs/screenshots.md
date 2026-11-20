@@ -1,5 +1,16 @@
 # Signal Grove screenshots
 
+## Beta.10 signed candidate
+
+Android 17 emulator at 1080 × 1920, 420 dpi and 100% system font. Both
+captures use the signed production APK in Demo mode. The catalogue
+opens with the model unloaded. Its data comes from Signal Grove's bundled
+catalogue.
+
+| Demo home | Phone model catalogue |
+| --- | --- |
+| <img src="screenshots/beta10-demo-home.png" width="360" alt="Signal Grove beta.10 Demo home"> | <img src="screenshots/beta10-phone-models.png" width="360" alt="Model licence, download size and RAM requirement in the offline catalogue"> |
+
 ## Beta.9 candidate: on-device AI
 
 Captured by the exact candidate's API26 LocalAiFlowTest with English, Chinese,
