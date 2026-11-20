@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.runtime.*
@@ -103,7 +104,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val saveModelPerformance: ((InstalledLocalModel, LocalModelPerformance) -> Unit)? = null,
     val benchmark: ((String) -> Unit)? = null,
     val downloads: PhoneDownloadActions? = null,
-    val replacements: PhoneModelReplacementActions? = null)
+    val replacements: PhoneModelReplacementActions? = null,
+    val documents: PhoneDocumentActions? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -128,6 +130,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     }}
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), vm::selectedModel)
     val replacementPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), vm::selectedReplacement)
+    val pendingDocument by vm.pendingDocument.collectAsStateWithLifecycle()
+    val documentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), vm::selectedDocument)
     val c = vm.controller
     LocalAiScreen(state, c.supported, draft, vm::changeDraft, pending != null,
         LocalAiActions(vm::send, c::cancel, vm::newChat, c::load, c::unload, c::deleteModel,
@@ -146,9 +150,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             replacements = PhoneModelReplacementActions({ previous ->
                 vm.pickReplacement(previous)
                 replacementPicker.launch(arrayOf("*/*"))
-            }, c::installModelReplacement, c::discardModelReplacement)),
+            }, c::installModelReplacement, c::discardModelReplacement),
+            documents = PhoneDocumentActions(c::refreshDocuments, { previous ->
+                vm.pickDocument(previous)
+                documentPicker.launch(arrayOf("*/*"))
+            }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
+                c::answerDocumentQuestion, c::clearDocumentReview)),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
-        replacing = pending?.previous)
+        replacing = pending?.previous, pendingDocument = pendingDocument)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -158,8 +167,10 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     pendingImport: Boolean, actions: LocalAiActions, close: () -> Unit, observations: LocalHelpObservations? = null,
     handoffState: String = "", openHermes: (() -> Unit)? = null, startupSetting: (@Composable () -> Unit)? = null,
     downloadNetworkSettings: (@Composable (() -> Unit) -> Unit)? = null,
-    requestedDownloads: Boolean = false, downloadsOpened: () -> Unit = {}, replacing: InstalledLocalModel? = null) {
+    requestedDownloads: Boolean = false, downloadsOpened: () -> Unit = {}, replacing: InstalledLocalModel? = null,
+    pendingDocument: Boolean = false) {
     var tab by rememberSaveable {mutableIntStateOf(0)}
+    var documentsOpen by rememberSaveable { mutableStateOf(false) }
     var guide by rememberSaveable {mutableStateOf(false)}
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
     var helper by remember {mutableStateOf(false)}
@@ -182,6 +193,12 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 if (openHermes != null) {
                     IconButton(openHermes, Modifier.testTag("phone-open-hermes")) {
                         Icon(Icons.Outlined.Home, label(Words.PhoneStartupOpenHermes))
+                    }
+                }
+                actions.documents?.let { documents ->
+                    IconButton({ actions.dismissError(); documentsOpen = true; documents.refresh() },
+                        enabled = !state.busy, modifier = Modifier.testTag("phone-documents-open")) {
+                        Icon(Icons.Outlined.Description, label(Words.PhoneDocuments))
                     }
                 }
                 IconButton(close, Modifier.testTag("phone-close")) {Icon(Icons.Outlined.Close, label(Words.Close))}
@@ -218,6 +235,15 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 TextButton({guide = true}, Modifier.weight(1f).testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
                 TextButton({helper = true}, Modifier.weight(1f).testTag("phone-helper-open")) {Text(label(Words.PhoneHelper))}
             }
+        }
+    }
+    val documentActions = actions.documents
+    if (documentsOpen && documentActions != null) {
+        PhoneDocuments(state, documentActions, pendingDocument, actions.stop, actions.dismissError) {
+            documentActions.cancelIndex()
+            documentActions.clearReview()
+            actions.dismissError()
+            documentsOpen = false
         }
     }
     if (guide) SetupGuide {guide = false}
@@ -607,6 +633,16 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     else -> Words.PhoneWorking
 }
 internal fun phoneError(code: String) = when {
+    code == "document_format" -> Words.PhoneDocumentFormat
+    code == "document_encoding" -> Words.PhoneDocumentEncoding
+    code == "document_size" -> Words.PhoneDocumentSize
+    code == "document_empty" -> Words.PhoneDocumentEmpty
+    code == "document_limit" -> Words.PhoneDocumentLimit
+    code == "document_changed" -> Words.PhoneDocumentChanged
+    code == "document_no_matches" -> Words.PhoneDocumentNoMatches
+    code == "document_answer_uncited" -> Words.PhoneDocumentUncited
+    code == "document_answer_timeout" -> Words.PhoneDocumentTimeout
+    code == "document_store" || code == "document_unavailable" -> Words.PhoneDocumentReadError
     code == "download_background_unavailable" -> Words.PhoneDownloadBackgroundUnavailable
     code == "download_background_notifications" -> Words.PhoneDownloadBackgroundNotifications
     code == "download_unmetered_required" -> Words.PhoneDownloadUnmeteredRequired

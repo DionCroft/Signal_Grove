@@ -130,6 +130,28 @@ those exact files.
 
 [Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
 
+## Ask about selected text files
+
+1. Open the **Documents** icon at the top of **On-device AI**.
+2. Choose **Add TXT or Markdown**, select one file, then tap **Index selected
+   file**. Add other files individually. Signal Grove accepts UTF-8 text up
+   to 128 KiB per file and stores up to 12 private copies.
+3. Close Documents, load a model from **Phone models**, then reopen
+   **Documents**. The Android picker can unload a model when the app
+   leaves the screen, so finish choosing files before this step.
+4. Select up to four documents, enter a question and choose **Review
+   matching excerpts**. Confirm **Ask loaded model** after checking what
+   will be sent.
+5. Compare citation labels such as **[S1]** with the source filename,
+   lines and text shown below the answer.
+
+Use **Re-index** to choose a fresh copy and replace the older private
+text. **Delete** removes the private copy and leaves the selected original
+file in place. Document questions and answers stay in the Documents screen
+for the session. This version accepts TXT and Markdown. PDF support
+remains in development.
+[Document validation](VALIDATION.md#offline-questions-about-txt-and-markdown).
+
 ## Choose settings for a phone model
 
 In a development build, open **On-device AI → Phone models → Model settings**

@@ -487,6 +487,56 @@ class LocalAiControllerTest {
         assertArrayEquals(original, file.readBytes())
     }
 
+    @Test fun documentAnswerRequiresTheCurrentReviewedSourcesAndLeavesChatUntouched() = runTest {
+        val models = temp.newFolder()
+        val history = temp.newFolder()
+        val loaded = model(models)
+        val engine = Engine()
+        val c = controller(models, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        c.load(loaded)
+        advanceUntilIdle()
+        c.send("Existing chat")
+        advanceUntilIdle()
+        val saved = checkNotNull(c.state.value.chat)
+        val file = File(history, "${saved.id}.json")
+        val bytes = file.readBytes()
+        c.indexDocument(null, { "Hours.md" }, {}) { "Museum closes at five.".byteInputStream() }
+        advanceUntilIdle()
+        val doc = c.state.value.documents.single()
+        c.reviewDocumentQuestion(listOf(doc.id), "When does the museum close?")
+        advanceUntilIdle()
+        val review = checkNotNull(c.state.value.documentReview)
+        assertEquals(1, engine.requests.size)
+        c.answerDocumentQuestion(PhoneDocumentReview(review.question, review.sources))
+        advanceUntilIdle()
+        assertEquals(1, engine.requests.size)
+
+        engine.reply = "The museum closes at five [S1]."
+        c.answerDocumentQuestion(review)
+        advanceUntilIdle()
+        assertEquals("The museum closes at five [S1].", c.state.value.documentAnswer?.text)
+        assertEquals(review.sources, c.state.value.documentAnswer?.review?.sources)
+        assertEquals(2, engine.requests.size)
+        assertFalse(engine.requests.last().any { "Existing chat" in it.text })
+        assertTrue(engine.requests.last().any { "Museum closes at five." in it.text })
+        assertArrayEquals(bytes, file.readBytes())
+
+        c.reviewDocumentQuestion(listOf(doc.id), "What time for the museum?")
+        advanceUntilIdle()
+        val another = checkNotNull(c.state.value.documentReview)
+        engine.reply = "It closes at five [S8]."
+        c.answerDocumentQuestion(another)
+        advanceUntilIdle()
+        assertNull(c.state.value.documentAnswer?.text)
+        assertEquals("document_answer_uncited", c.state.value.error)
+        c.removeDocument(doc)
+        advanceUntilIdle()
+        assertTrue(c.state.value.documents.isEmpty())
+        assertNull(c.state.value.documentAnswer)
+        assertArrayEquals(bytes, file.readBytes())
+    }
+
     @Test fun benchmarkUsesTheLoadedLimitsAndLeavesChatHistoryUntouched() = runTest {
         val root = temp.newFolder()
         val first = model(root)

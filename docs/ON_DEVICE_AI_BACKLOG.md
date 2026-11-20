@@ -212,10 +212,12 @@ or background generation is introduced by this item.
 
 ## OF-07: Ask questions about selected local documents
 
-**Status: planned.** Add user-selected TXT/Markdown and supported text PDFs through
-Android's picker. Extract/index a bounded private local collection; answer using
-selected excerpts with filename/page/section citations and visible source text.
-Provide remove/re-index controls and show the active document scope.
+**Status: in progress.** TXT and Markdown support includes an explicit
+picker and index action, bounded scope and excerpt review, native local
+answers with source labels and line ranges, and exact remove and re-index
+controls. Finish supported text PDF extraction and page citations, including
+encrypted and scanned input handling, then validate on a physical phone.
+[Document checks](VALIDATION.md#offline-questions-about-txt-and-markdown).
 
 Acceptance: extraction, retrieval and inference work with networking disabled.
 Unsupported encrypted/scanned PDFs, oversize documents and malformed text produce

@@ -5,6 +5,14 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest selected text documents checkpoint
+
+Signal Grove can index selected TXT and Markdown files, review the exact
+excerpts for a question and ask the loaded model with local citations.
+The debug pair passed 1,178 JVM tests and 104 focused device tests per API.
+The Android 17 offline picker and LFM3 answer passed. PDF extraction and physical-device acceptance remain open.
+[Document evidence](docs/VALIDATION.md#offline-questions-about-txt-and-markdown).
+
 ## Latest publisher model catalogue checkpoint
 
 Signal Grove can review a newer bundled publisher revision while

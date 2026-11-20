@@ -1,6 +1,8 @@
 package org.hermesmobile.app.local
 
 import android.app.Application
+import android.content.ContentResolver
+import android.provider.OpenableColumns
 import android.net.Uri
 import android.os.CancellationSignal
 import androidx.lifecycle.AndroidViewModel
@@ -124,6 +126,46 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
         if (previous == null) controller.importModel(true, signal::cancel, open)
         else controller.stageModelReplacement(previous, true, signal::cancel, open)
     }
+    private data class DocumentSelection(val uri: Uri, val previous: PhoneDocument?)
+    private var pickingDocument = false
+    private var documentTarget: PhoneDocument? = null
+    private var documentSelection: DocumentSelection? = null
+    internal val pendingDocument = MutableStateFlow(false)
+
+    internal fun pickDocument(previous: PhoneDocument?) {
+        pickingDocument = true
+        documentTarget = previous
+    }
+
+    internal fun selectedDocument(uri: Uri?) {
+        documentSelection = uri?.takeIf { pickingDocument && it.scheme == ContentResolver.SCHEME_CONTENT }
+            ?.let { DocumentSelection(it, documentTarget) }
+        pendingDocument.value = documentSelection != null
+        pickingDocument = false
+        documentTarget = null
+    }
+
+    internal fun cancelDocumentImport() {
+        documentSelection = null
+        pendingDocument.value = false
+    }
+
+    internal fun indexSelectedDocument() {
+        val document = documentSelection ?: return
+        if (controller.state.value.busy) return
+        cancelDocumentImport()
+        val resolver = app.contentResolver
+        val signal = CancellationSignal()
+        controller.indexDocument(document.previous, name = {
+            resolver.query(document.uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null, signal)?.use {
+                if (it.moveToFirst()) it.getString(0) else null
+            } ?: throw LocalModelStorageException("document_unavailable")
+        }, cancelOpen = signal::cancel) {
+            resolver.openAssetFileDescriptor(document.uri, "r", signal)?.createInputStream()
+                ?: throw LocalModelStorageException("document_unavailable")
+        }
+    }
+
     override fun onCleared() {
         markdownExport.clear()
         historyBackup.clear()

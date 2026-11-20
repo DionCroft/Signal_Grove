@@ -30,7 +30,10 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val backgroundDownloadId: String? = null,
     val modelReplacement: PhoneModelReplacement? = null,
     val modelCatalog: PhoneModelCatalog = PhoneModelCatalog.Bundled,
-    val unavailableDownloadReviews: Int = 0) {
+    val unavailableDownloadReviews: Int = 0,
+    val documents: List<PhoneDocument> = emptyList(),
+    val documentReview: PhoneDocumentReview? = null,
+    val documentAnswer: PhoneDocumentAnswer? = null) {
     fun partialBytes(model: CuratedPhoneModel): Long = downloadPartials[model] ?: 0L
 }
 
@@ -47,6 +50,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     private val owner = Any()
     private val store = LocalModelStore(modelRoot)
     private val conversations = LocalConversationStore(historyRoot)
+    private val documents = PhoneDocumentLibrary(File(conversations.directory.parentFile, "selected-documents"))
     private val organization = LocalHistoryOrganization(historyRoot.canonicalFile.let {
         File(it.parentFile, it.name + "-organization")
     }, conversations)
@@ -270,6 +274,89 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     modelStorageAvailableBytes = available)
             }
         }
+    }
+
+    fun refreshDocuments() = action("reading") { refreshDocumentLibrary() }
+
+    internal fun indexDocument(previous: PhoneDocument?, name: () -> String, cancelOpen: () -> Unit, open: () -> InputStream) =
+        action("indexing_document") {
+            clearDocumentReview()
+            readSelectedModel(cancelOpen, open) { input, check ->
+                documents.save(name(), input, previous, check)
+            }
+            refreshDocumentLibrary()
+        }
+
+    fun removeDocument(document: PhoneDocument) = action("indexing_document") {
+        clearDocumentReview()
+        io {
+            val context = currentCoroutineContext()
+            documents.remove(document) { context.ensureActive() }
+        }
+        refreshDocumentLibrary()
+    }
+
+    fun reviewDocumentQuestion(ids: List<String>, question: String) = action("reading") {
+        clearDocumentReview()
+        val review = io {
+            val context = currentCoroutineContext()
+            val check = { context.ensureActive() }
+            PhoneDocumentQuestions.review(question, documents.selected(ids, check), check)
+        } ?: throw LocalModelStorageException("document_no_matches")
+        mutable.update { it.copy(documentReview = review) }
+    }
+
+    fun answerDocumentQuestion(review: PhoneDocumentReview) = action("answering_document") {
+        if (mutable.value.documentReview !== review) return@action
+        if (mutable.value.loaded == null) throw LocalEngineException(4)
+        val referenced = review.sources.map { it.document }.distinct()
+        val current = io {
+            val context = currentCoroutineContext()
+            documents.selected(referenced.map { it.id }) { context.ensureActive() }.map { it.info }
+        }
+        if (referenced != current) {
+            clearDocumentReview()
+            throw LocalModelStorageException("document_changed")
+        }
+        val messages = PhoneDocumentQuestions.messages(review)
+        val settings = generationSettings()
+        val output = minOf(settings.maxOutputTokens, PhoneDocumentQuestions.OUTPUT_TOKENS)
+        validatePrompt(messages, settings.copy(maxOutputTokens = output))
+        var reply = ""
+        var result = PhoneDocumentAnswer(review, null, LocalReplyState.FAILED)
+        mutable.update { it.copy(documentReview = null, documentAnswer = result.copy(state = LocalReplyState.GENERATING)) }
+        try {
+            val end = withTimeoutOrNull(60_000) {
+                checkNotNull(engine).generate(messages, output) { reply = it }
+            }
+            if (end == null) throw LocalModelStorageException("document_answer_timeout")
+            if (end == LocalGenerationEnd.CANCELLED) {
+                result = result.copy(state = LocalReplyState.CANCELLED)
+            } else {
+                val cited = PhoneDocumentQuestions.checkedReply(reply, review.sources.size)
+                val text = cited ?: PhoneDocumentQuestions.anchorVerbatimReply(reply, review.sources)
+                    ?: throw LocalModelStorageException("document_answer_uncited")
+                result = result.copy(text = text, anchoredVerbatim = cited == null,
+                    state = if (end == LocalGenerationEnd.COMPLETE) LocalReplyState.COMPLETE else LocalReplyState.TOKEN_LIMIT)
+            }
+        } catch (e: CancellationException) {
+            result = result.copy(state = LocalReplyState.CANCELLED)
+            throw e
+        } finally {
+            mutable.update { it.copy(documentAnswer = result) }
+        }
+    }
+
+    fun clearDocumentReview() {
+        mutable.update { it.copy(documentReview = null, documentAnswer = null) }
+    }
+
+    private suspend fun refreshDocumentLibrary() {
+        val library = io {
+            val context = currentCoroutineContext()
+            documents.list { context.ensureActive() }
+        }
+        mutable.update { it.copy(documents = library) }
     }
 
     private suspend fun <T> readSelectedModel(cancelOpen: () -> Unit, open: () -> InputStream,
@@ -620,7 +707,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     fun leave() {
         if (leaving) return
         if (mutable.value.backgroundDownloadId != null) {
-            mutable.update { it.copy(helper = null) }
+            mutable.update { it.copy(helper = null, documentReview = null, documentAnswer = null) }
             return
         }
         leaving = true; guard.set(owner, true)
@@ -637,7 +724,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     }
                 }
                 finally {
-                    mutable.update { it.copy(busy = false, status = "idle", transfer = null, helper = null, activeDownload = null) }
+                    mutable.update { it.copy(busy = false, status = "idle", transfer = null, helper = null, activeDownload = null,
+                        documentReview = null, documentAnswer = null) }
                     leaving = false; guard.set(owner, false)
                 }
             }
@@ -662,6 +750,10 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     if (status == "downloading" || status == "importing" ||
                         status == "queuing_download" || status == "discarding_download" ||
                         status == "installing_replacement") reconcileModelLibrary()
+                    if (status == "indexing_document") withContext(NonCancellable) {
+                        try { refreshDocumentLibrary() }
+                        catch (e: Exception) { mutable.update { it.copy(error = failure(e)) } }
+                    }
                     if (status == "organizing") withContext(NonCancellable) {
                         // Cancellation can lose the return after publication.
                         try {

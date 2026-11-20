@@ -1,5 +1,53 @@
 # Current development validation — audit follow-up
 
+## Offline questions about TXT and Markdown
+
+On-device AI uses Android's document picker and an explicit index action.
+Signal Grove stores up to 12 private UTF-8 text copies, each up to 128
+KiB. A question can search up to four selected files. The review shows
+at most two exact excerpts with stable citation labels, filename and
+line range. The prompt carries the question and those excerpts. The
+answer screen shows only outputs with usable citation markers and
+displays their underlying excerpts. For a reply without markers, the
+app can attach the unique source of an exact quote. Citation resolution
+checks references and leaves factual verification to the reader.
+
+Re-indexing atomically replaces the reviewed private copy. Deleting
+removes only that current private record. The app never saves the
+provider URI or claims directory access, and the document answer
+does not create a remote request or enter normal phone chat history.
+Pending question and answer content is held in memory.
+
+The exact debug pair passed 1,178 JVM tests and 104 focused tests
+per API on Android 8 and Android 17. Both lint variants reported zero
+errors. Tests covered strict UTF-8, file bounds, cancellation before
+publication, re-indexing, stale deletion, Unicode retrieval, isolated
+scope, citation validation and the in-app review and confirmation.
+The first Android 8 build rejected a Unicode regex during screen
+initialization. The verified build classifies Unicode code points
+without that regex.
+
+The normal Android 17 app indexed a selected Markdown fixture through
+the system picker with Wi-Fi off and no default network. After a
+relaunch, the existing LFM3 model answered a question about the file
+from the explicitly reviewed excerpt and cited [S1]. The source card
+resolved to the same file and lines. The test retained 7
+inventoried model and chat files, removed its own two copies, and
+restored networking. Native trial evidence SHA-256 is
+0828886a5a7e86082f627bcc6769875e764c906d6129d5dfacaf40b992ba5c25.
+
+Text PDF extraction, citations for PDF pages, and the physical-phone
+acceptance check remain open.
+
+- Build receipt: 20261120-095115-2a573837a70f4b4ea2de0dc3e01f3a4a
+- Frozen source digest: 925d3ff86ae56f029ad3f479d432ead084cd0c46b786fa8eba673dae3eb9a0e4
+- Debug APK SHA-256: f34b864ab82334a32ccdb7a1c1ab1a161fc353502e41eb386fa1334c75da6654
+- Debug test APK SHA-256: a842e74c40c84bc5c2bf3d464f16359fbb26fd4eb272125721b7a8b9b2949c14
+- API 26 instrumentation evidence SHA-256: 5220b17a8a9f8d54e73ac499cfba644805ca1c130be4d34304340e61d4d75453
+- API 37 instrumentation evidence SHA-256: 05743b546e0d7f0fac75672c4392644998d0a410b7a2debd3323fa00a62e5b9a
+
+[Android document picker reference](https://developer.android.com/training/data-storage/shared/documents-files#open-file).
+
 ## Publisher catalogue revision updates
 
 A fresh catalogue revision now has its own immutable HTTPS pin and

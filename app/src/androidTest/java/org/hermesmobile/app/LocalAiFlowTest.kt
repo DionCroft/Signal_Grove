@@ -45,7 +45,7 @@ class LocalAiFlowTest {
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
     private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false, queue: Boolean = false,
         networkStore: PreferenceStore? = null, background: Boolean = false,
-        replacements: PhoneModelReplacementActions? = null) {
+        replacements: PhoneModelReplacementActions? = null, documents: PhoneDocumentActions? = null) {
         val actions = LocalAiActions({sends++}, {
                 stops++
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
@@ -75,7 +75,7 @@ class LocalAiFlowTest {
                     state = state.copy(error = "download_background_notifications")
                 } else null,
                 notificationSettings = if (background) { { notificationsOpened++ } } else null
-            ) else null, replacements = replacements)
+            ) else null, replacements = replacements, documents = documents)
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
@@ -260,6 +260,32 @@ class LocalAiFlowTest {
             assertTrue(requestedLoads.isEmpty())
             assertEquals(0, sends)
         }
+    }
+
+    @Test fun phoneDocumentsReviewExactSourcesBeforeInvokingTheLoadedModel() {
+        val document = PhoneDocument("fixture", "Museum.md", "a".repeat(64), 24, 2)
+        val source = PhoneDocumentSource(document, 1, 2, "Opening hours.\nCloses at five.")
+        val requests = mutableListOf<PhoneDocumentReview>()
+        state = LocalAiState(models = listOf(model), loaded = model, documents = listOf(document))
+        show(bilingual = true, documents = PhoneDocumentActions({}, {}, {}, {}, {}, { ids, question ->
+                assertEquals(listOf(document.id), ids)
+                state = state.copy(documentReview = PhoneDocumentReview(question, listOf(source)))
+            }, {
+                requests.add(it)
+                state = state.copy(documentReview = null, documentAnswer = PhoneDocumentAnswer(it, "It closes at five [S1].", LocalReplyState.COMPLETE))
+            }, { state = state.copy(documentReview = null, documentAnswer = null) }))
+        compose.onNodeWithTag("phone-documents-open").performClick()
+        compose.onNodeWithTag("phone-document-select-fixture").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-document-question").performScrollTo().performTextInput("When does it close?")
+        compose.onNodeWithTag("phone-document-review").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-document-source-0").performScrollTo().assertTextEquals(source.text)
+        compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("Museum.md", substring = true)
+        compose.onNodeWithTag("phone-document-answer-confirm").assertIsDisplayed()
+        compose.runOnIdle { assertTrue(requests.isEmpty()); assertEquals(0, sends) }
+        compose.onNodeWithTag("phone-document-answer-confirm").performClick()
+        compose.onNodeWithTag("phone-document-answer").performScrollTo().assertTextEquals("It closes at five [S1].")
+        compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("[S1]", substring = true)
+        compose.runOnIdle { assertEquals(listOf(source), requests.single().sources); assertEquals(0, sends) }
     }
 
     @Test fun publisherUpdateComparesExactRevisionsAndQueuesOnlyTheSeparatelyReviewedFile() {
