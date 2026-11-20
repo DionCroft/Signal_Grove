@@ -1,5 +1,7 @@
 package org.hermesmobile.app
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
@@ -10,21 +12,34 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 import org.junit.Assert.*
 
+private data class CaptionGeometry(
+    val actionBounds: Rect,
+    val captionBounds: Rect,
+    val captionOrigin: Offset,
+    val layout: TextLayoutResult
+)
+
 /** Assert rendered glyphs, including every translated line, fit their visible action. */
 fun ComposeContentTestRule.assertDialogActionCaptionVisible(tag:String,outline:Outline?=null) {
-    waitForIdle()
-    val button=onNodeWithTag(tag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-    val text=onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult) and hasAnyAncestor(hasTestTag(tag)),useUnmergedTree=true)
-    assertEquals("One caption layout is required for "+tag,1,text.fetchSemanticsNodes().size)
-    val node=text[0].fetchSemanticsNode();val layouts=mutableListOf<TextLayoutResult>()
-    text[0].performSemanticsAction(SemanticsActions.GetTextLayoutResult) {get->assertTrue(get(layouts))}
-    val layout=layouts.single()
+    val action = onNodeWithTag(tag).assertIsDisplayed().fetchSemanticsNode()
+    val captions = onAllNodes(
+        SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult) and hasAnyAncestor(hasTestTag(tag)),
+        useUnmergedTree = true
+    ).fetchSemanticsNodes()
+    assertEquals("One caption layout is required for " + tag, 1, captions.size)
+    val caption = captions.single()
+    // Read all live coordinates together so a keyboard resize cannot split this check across frames.
+    val (button, visible, origin, layout) = runOnIdle {
+        val layouts = mutableListOf<TextLayoutResult>()
+        val getLayout = checkNotNull(caption.config[SemanticsActions.GetTextLayoutResult].action)
+        assertTrue(getLayout(layouts))
+        CaptionGeometry(action.boundsInRoot, caption.boundsInRoot, caption.positionInRoot, layouts.single())
+    }
     // Paragraph width is its retained layout constraint, not the rendered glyph extent.
     // Check the actual final caption clip and shape below, including cached layouts.
     assertFalse("Caption height overflows: "+tag,layout.didOverflowHeight)
     for(line in 0 until layout.lineCount) assertFalse("Caption line ellipsized: "+tag,layout.isLineEllipsized(line))
     val value=layout.layoutInput.text.text;assertTrue(value.isNotBlank())
-    val visible=node.boundsInRoot;val origin=node.positionInRoot
     val left=maxOf(button.left,visible.left);val top=maxOf(button.top,visible.top);val right=minOf(button.right,visible.right);val bottom=minOf(button.bottom,visible.bottom)
     val clipRegion=outline?.let {shape->
         val path=android.graphics.Path()

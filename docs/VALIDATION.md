@@ -75,6 +75,19 @@ speech preferences.
 Raw archive SHA-256
 ddaa1d0902db216d60b4c1e9171bd4837a22d1041f7b4f1a07d4b8a196a8c1dc.
 
+## Local Android 8 shard 0 counterexamples
+
+The exact source beef582 debug APKs ran all 584 standard shard 0 cases
+on the owned Android 8 emulator. Two failed. The Voice tab selection
+failed at the same click as the hosted run. The workspace refusal case
+also captured caption and button bounds separated by 720 vertical pixels
+during the keyboard transition. The caption and action now read their
+coordinates and text layout together on the UI thread. The outline,
+per-glyph and native input assertions still apply.
+
+The original raw local instrumentation log is preserved on the build
+host with SHA-256 ce3f1ecae994f44df2723847132431e5622e47698c7ef1e99908156f179cf854.
+
 ## Compact phone chat action menu
 
 The previous APK failed the actual Temporary chat flow after a draft
