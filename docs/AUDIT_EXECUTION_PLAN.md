@@ -70,6 +70,14 @@ that exact read-only Linux process stat record. All four artifact ZIP
 sizes and digests were checked before comparing the refusals.
 [Init process stat evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/44766014538).
 
+The next run reached upstream's SQLite test-isolation ancestry
+check. All four verified artifacts recorded command-line read
+refusals. The disposable fixture now sets Hermes's supported
+test-isolation marker before imports. This takes the guard's
+environment path and keeps the ancestry command lines inaccessible.
+The SQLite path boundary and lifecycle assertions still apply.
+[Test-isolation evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/44766700139).
+
 ## Owned emulator API readiness - 20 November 2026
 
 Run 44748140345 API 26 shard 0 observed Android boot completion and lost the

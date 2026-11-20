@@ -57,7 +57,9 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
     os.environ.update(HERMES_HOME=str(home), HOME=str(account), USERPROFILE=str(account),
                       APPDATA=str(account), LOCALAPPDATA=str(account),
                       TEMP=str(temp), TMP=str(temp), TMPDIR=str(temp), XDG_CACHE_HOME=str(fixture / "cache"),
-                      HERMES_DISABLE_LAZY_INSTALLS="1", HERMES_GATEWAY_HEARTBEAT_REFRESH_S=interval)
+                      # Arm upstream's live-database test isolation for the disposable home.
+                      HERMES_TEST_ISOLATION="1", HERMES_DISABLE_LAZY_INSTALLS="1",
+                      HERMES_GATEWAY_HEARTBEAT_REFRESH_S=interval)
     if os.name == "posix":
         os.environ.update(PATH="/usr/bin:/bin", GIT_CONFIG_NOSYSTEM="1",
                           GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull,
