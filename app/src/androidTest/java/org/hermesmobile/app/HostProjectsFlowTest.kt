@@ -130,8 +130,10 @@ class HostProjectsFlowTest {
                 compose.onNodeWithTag("host-projects-read-confirm").assertIsDisplayed().assertIsEnabled().performClick()
                 if(mode=="held") {
                     compose.waitUntil(10000) {entered.count==0L}
-                    compose.onNodeWithTag("host-projects-list").performScrollToNode(hasTestTag("host-projects-cancel-work"))
-                    compose.onNodeWithTag("host-projects-cancel-work").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick();release.countDown()
+                    val cancel = compose.onNodeWithTag("host-projects-cancel-work")
+                    compose.waitUntil(10_000) { cancel.isDisplayed() }
+                    cancel.assertIsDisplayed().assertIsEnabled().assertHeightIsAtLeast(48.dp).performClick()
+                    release.countDown()
                     compose.waitUntil(10000) {returned.count==0L};compose.waitForIdle()
                     assertNull(management.state.value.projects.inventory);assertNull(management.state.value.projects.detail);compose.onNodeWithText(privateName).assertDoesNotExist();assertEquals(1,tickets.get());assertEquals(1,lists.get());return@use
                 }

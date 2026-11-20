@@ -31,7 +31,8 @@ class PhoneVoiceFlowTest {
                 compose.onNodeWithTag("voice-read-tab").performClick()
                 compose.onNodeWithTag("voice-network-voices").assertDoesNotExist()
                 compose.onNodeWithTag("voice-read-reply").performScrollTo().assertIsNotEnabled()
-                compose.onNodeWithTag("voice-read-reason").assertTextContains(Words.PhoneReadReplyRequired.en)
+                compose.onNodeWithTag("voice-read-reason").performScrollTo().assertIsDisplayed()
+                    .assertTextContains(Words.PhoneReadReplyRequired.en, substring = true)
                 compose.onNodeWithTag("voice-dictation-tab").performClick()
                 compose.onNodeWithTag("voice-use-transcript").performScrollTo().assertIsNotEnabled()
                 compose.onNodeWithTag("voice-transcript").performScrollTo().performTextReplacement("Test words 你好")
@@ -47,7 +48,7 @@ class PhoneVoiceFlowTest {
     }
 
     @Test fun leavingPhoneVoiceDiscardsAnUnappliedTranscript() = withPhone { scenario ->
-        compose.onNodeWithTag("phone-draft").performTextReplacement("Keep my draft")
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed().performClick().performTextInput("Keep my draft")
         open()
         compose.onNodeWithTag("voice-transcript").performScrollTo().performTextReplacement("Unapplied local speech")
         scenario.moveToState(Lifecycle.State.CREATED)
@@ -62,8 +63,10 @@ class PhoneVoiceFlowTest {
         compose.waitUntil(15_000) {
             compose.onAllNodes(hasTestTag("phone-voice-open") and isEnabled()).fetchSemanticsNodes().size == 1
         }
-        compose.onNodeWithTag("phone-voice-open").performClick()
-        compose.onNodeWithTag("voice-screen").assertIsDisplayed()
+        compose.onNodeWithTag("phone-voice-open").assertIsDisplayed().assertIsEnabled().performClick()
+        val screen = compose.onNodeWithTag("voice-screen")
+        compose.waitUntil(10_000) { screen.isDisplayed() }
+        screen.assertIsDisplayed()
     }
 
     private fun withPhone(run: (ActivityScenario<LocalAiActivity>) -> Unit) {

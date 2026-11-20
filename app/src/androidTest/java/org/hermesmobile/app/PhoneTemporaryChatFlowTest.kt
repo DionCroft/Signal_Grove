@@ -45,8 +45,10 @@ class PhoneTemporaryChatFlowTest {
         compose.waitUntil(15_000) {
             compose.onAllNodes(hasTestTag("phone-temporary-open") and isEnabled()).fetchSemanticsNodes().size == 1
         }
-        compose.onNodeWithTag("phone-temporary-open").performClick()
-        compose.onNodeWithTag("phone-temporary-title").assertIsDisplayed()
+        compose.onNodeWithTag("phone-temporary-open").assertIsDisplayed().assertIsEnabled().performClick()
+        val title = compose.onNodeWithTag("phone-temporary-title")
+        compose.waitUntil(10_000) { title.isDisplayed() }
+        title.assertIsDisplayed()
     }
 
     private fun withPhone(run: (ActivityScenario<LocalAiActivity>) -> Unit) {

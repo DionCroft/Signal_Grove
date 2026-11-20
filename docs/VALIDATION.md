@@ -1,5 +1,43 @@
 # Current development validation — audit follow-up
 
+## Project cancellation and phone dialogs with the keyboard
+
+The older debug pair reproduced the project cancellation test failure on
+Android 8 and 17. The test now taps the real 48 dp dialog-footer control
+while a mocked project read is in flight. It verifies one ticket, one list
+request and no late inventory or details after cancellation. The Android 17
+predecessor also exposed an English-only assertion against the multilingual
+Voice read-aloud explanation. An intermediate build passed all 40 selected
+checks on Android 8 and 38 on Android 17. Both Android 17 Voice tests
+identified the launcher as outside the visible phone chat layout.
+The intermediate native log SHA-256 is
+`e5ab08cf0e2a54e9d6cd2c9b8ad28735847bbf659bd53b2109b3b64f3cb4fc29`.
+
+The microphone button now sits in the chat toolbar and becomes available
+once its speech preferences are ready. Opening
+Voice, a temporary chat or personal profiles clears focus and dismisses the
+saved-chat keyboard while preserving the draft. The tests verify visible
+dialog content, draft retention, private editor cleanup, persisted profiles,
+and the exact document question, source and citation before model invocation.
+
+The debug build assembled the app and test companion. It passed
+1,200 JVM tests across 113 reports, with zero lint errors
+(56 debug warnings and 55 release warnings).
+The same signed debug pair passed 40 focused Android methods on each of
+API 26 and 37, with zero skips. Both in-place emulator updates preserved
+package UIDs. This evidence covers the affected UI and fixture flows.
+The full hosted Android suite, live Hermes lifecycle and production
+upgrade/release acceptance remain open.
+
+| Evidence | Value |
+| --- | --- |
+| Build receipt | `20261120-172024-e9cd75b7e21c4b09b24a9329fa3839c3` |
+| Source snapshot SHA-256 | `8a3b18540f95dcd270f372fd5da743012aa3e4cdfcbeafd4756cdf75c5db31b6` |
+| Debug app APK SHA-256 | `bec29260bbe079d60063ebc68b7e2ab1247a8c561e21d3f918d8b7ef26b60dc4` |
+| Debug test APK SHA-256 | `f1bbbd9792fc32548c83dc6d3e7cb8395c506563805eb2480463d9842c70ed9e` |
+| API 26 native log SHA-256 | `3a11b386d821cadece2a2bdd08a020e914be93bfb6fc7fc75f2a4ede33973188` |
+| API 37 native log SHA-256 | `fa8e4bb858a6c80f29e3bd560a02d128521beb1381d8bd69bafdfc50bab2a9b3` |
+
 ## Phone chat durability across a virtual power cycle
 
 In the unmodified build, an Android 17 emulator stopped and restarted

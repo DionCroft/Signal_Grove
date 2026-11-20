@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## Phone dialogs and project cancellation checkpoint - 20 November 2026
+
+The project cancellation fixture now targets the reachable dialog footer.
+The Voice microphone stays in the phone chat toolbar and waits for speech
+preferences. The chat keyboard releases focus before the three private
+dialogs open. The exact build
+passed 1,200 JVM tests, both lint variants with zero errors and 40 focused
+methods on each of Android 8 and 17. Full hosted, live Hermes and
+production-release acceptance remain open.
+[Validation evidence](VALIDATION.md#project-cancellation-and-phone-dialogs-with-the-keyboard).
+
 ## Saved phone chat power-cycle durability - 20 November 2026
 
 A separate Android 17 cold boot exposed a completed Qwen reply reverting

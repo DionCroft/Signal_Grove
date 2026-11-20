@@ -24,7 +24,7 @@ class PhonePersonalProfilesFlowTest {
             compose.waitUntil(15_000) {
                 compose.onAllNodes(hasTestTag("phone-profile-open") and isEnabled()).fetchSemanticsNodes().size == 1
             }
-            compose.onNodeWithTag("phone-profile-open").performClick()
+            compose.onNodeWithTag("phone-profile-open").assertIsDisplayed().assertIsEnabled().performClick()
             compose.waitUntil(10_000) {
                 compose.onAllNodes(hasTestTag("phone-profile-add") and isEnabled()).fetchSemanticsNodes().size == 1
             }
@@ -48,7 +48,7 @@ class PhonePersonalProfilesFlowTest {
             scenario.moveToState(Lifecycle.State.RESUMED)
             compose.onNodeWithTag("phone-profile-name").assertDoesNotExist()
             open()
-            compose.onNodeWithText("QA Grove profile").assertIsDisplayed()
+            compose.onNodeWithText("QA Grove profile").performScrollTo().assertIsDisplayed()
             compose.onNodeWithTag("phone-profile-delete-${saved.id}").performScrollTo().performClick()
             compose.onNodeWithTag("phone-profile-delete-confirm").assertIsDisplayed().performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("QA Grove profile").fetchSemanticsNodes().isEmpty() }

@@ -5,6 +5,17 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Phone dialogs and project cancellation checkpoint - 20 November 2026
+
+The project cancellation fixture now targets the reachable dialog footer.
+The Voice microphone stays in the phone chat toolbar and waits for speech
+preferences. The chat keyboard releases focus before the three private
+dialogs open. The exact build
+passed 1,200 JVM tests, both lint variants with zero errors and 40 focused
+methods on each of Android 8 and 17. Full hosted, live Hermes and
+production-release acceptance remain open.
+[Validation evidence](docs/VALIDATION.md#project-cancellation-and-phone-dialogs-with-the-keyboard).
+
 ## Current Hermes heartbeat shutdown checkpoint
 
 The exact v0.23.3 and main pins reproduced the late database reopen.

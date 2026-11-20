@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.MicNone
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PhoneAndroid
@@ -160,7 +161,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 documentPicker.launch(arrayOf("*/*"))
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
                 c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting,
-            openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles, openVoice = vm::openPhoneVoice),
+            openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles,
+            openVoice = preferences?.let { vm::openPhoneVoice }),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
         replacing = pending?.previous, pendingDocument = pendingDocument)
     val writingOpen by vm.writingOpen.collectAsStateWithLifecycle()
@@ -411,8 +413,21 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         !state.busy && loaded != null && state.chat?.hasSavedContent == true &&
             state.history.size < LocalConversationStore.MAX_CHATS && draft.isNotBlank()
     }
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    fun openFromChat(open: () -> Unit) {
+        focus.clearFocus()
+        keyboard?.hide()
+        open()
+    }
+
     Row(Modifier.fillMaxWidth()) {
         Text(loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"), style = MaterialTheme.typography.labelMedium)
+        actions.openVoice?.let { open ->
+            IconButton({ openFromChat(open) }, enabled = !state.busy, modifier = Modifier.testTag("phone-voice-open")) {
+                Icon(Icons.Outlined.MicNone, label(Words.PhoneVoice))
+            }
+        }
         val source = state.chat
         if (actions.continueWithSelectedTurns != null && source != null && source.exchanges.any { it.retainedForPrompt }) {
             IconButton({ continuation = PhoneContinuationReview(source, draft) },
@@ -423,27 +438,17 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         }
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
     }
-    if (actions.openTemporary != null || actions.openProfiles != null || actions.openVoice != null) {
+    if (actions.openTemporary != null || actions.openProfiles != null) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             actions.openTemporary?.let { open ->
-                val focus = LocalFocusManager.current
-                val keyboard = LocalSoftwareKeyboardController.current
-                TextButton({
-                    focus.clearFocus()
-                    keyboard?.hide()
-                    open()
-                }, enabled = !state.busy, modifier = Modifier.testTag("phone-temporary-open")) {
+                TextButton({ openFromChat(open) }, enabled = !state.busy,
+                    modifier = Modifier.testTag("phone-temporary-open")) {
                     Text(label(Words.PhoneTemporaryChat))
                 }
             }
             actions.openProfiles?.let { open ->
-                TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-profile-open")) {
+                TextButton({ openFromChat(open) }, enabled = !state.busy, modifier = Modifier.testTag("phone-profile-open")) {
                     Text(label(Words.PhonePersonalProfiles))
-                }
-            }
-            actions.openVoice?.let { open ->
-                TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-voice-open")) {
-                    Text(label(Words.PhoneVoice))
                 }
             }
         }

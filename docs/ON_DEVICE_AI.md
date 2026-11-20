@@ -132,7 +132,8 @@ those exact files.
 
 ## Use offline voice in phone chat
 
-Open **On-device AI → Chat → Phone voice**. Dictation checks that Android
+In **On-device AI → Chat**, tap the **Phone voice** microphone in the
+chat toolbar. Dictation checks that Android
 has an installed offline recognizer for the selected language. Review or
 edit the transcript, then tap **Add to phone draft**. Use **Send** in Chat
 when you are ready. On Android 12 and earlier, type in the transcript

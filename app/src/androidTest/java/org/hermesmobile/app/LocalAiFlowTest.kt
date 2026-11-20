@@ -269,6 +269,7 @@ class LocalAiFlowTest {
         state = LocalAiState(models = listOf(model), loaded = model, documents = listOf(document))
         show(bilingual = true, documents = PhoneDocumentActions({}, {}, {}, {}, {}, { ids, question ->
                 assertEquals(listOf(document.id), ids)
+                assertEquals("When does it close?", question)
                 state = state.copy(documentReview = PhoneDocumentReview(question, listOf(source)))
             }, {
                 requests.add(it)
@@ -277,8 +278,14 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-documents-open").performClick()
         compose.onNodeWithTag("phone-document-select-fixture").performScrollTo().performClick()
         compose.onNodeWithTag("phone-document-question").performScrollTo().performTextInput("When does it close?")
-        compose.onNodeWithTag("phone-document-review").performScrollTo().performClick()
-        compose.onNodeWithTag("phone-document-source-0").performScrollTo().assertTextEquals(source.text)
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasTestTag("phone-document-review") and isEnabled()).fetchSemanticsNodes().size == 1
+        }
+        compose.onNodeWithTag("phone-document-review").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("phone-document-source-0").fetchSemanticsNodes().size == 1
+        }
+        compose.onNodeWithTag("phone-document-source-0").performScrollTo().assertIsDisplayed().assertTextEquals(source.text)
         compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("Museum.md", substring = true)
         compose.onNodeWithTag("phone-document-answer-confirm").assertIsDisplayed()
         compose.runOnIdle { assertTrue(requests.isEmpty()); assertEquals(0, sends) }
