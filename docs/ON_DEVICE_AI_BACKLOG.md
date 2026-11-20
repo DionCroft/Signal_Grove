@@ -304,8 +304,8 @@ freeform model commands never become actions or bypass the deterministic guide.
   exact source/APK bindings. Keep weights, credentials and private content out of Git.
 - Complete relevant JVM/native/emulator and representative physical-phone checks,
   including cancellation, low memory/storage, process recovery and no data loss.
-  Test the actual feature rather than only schema/UI fixtures. Existing failed
-  gates are not waived and all original twelve-method external-model/final
-  production acceptance remains required.
+  Exercise the actual feature. Retain evidence for failed gates and verify
+  every case in the current 14-method external-model inventory and final
+  production acceptance.
 - Commit and push coherent tested chunks when resumed. Publish only through the
   existing final-source, original-key upgrade and signed-release process.

@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Offline Qwen history after a normal Android 8 reboot
+
+The exact model-library durability APK pair ran the three existing
+recovery methods on the owned Android 8 emulator without a default
+network. The host deliberately force-stopped the debug process after
+observing native output, model mappings and the saved GENERATING record.
+That preparation is kept as an expected interruption. Cold recovery
+marked it INTERRUPTED with zero model loads or generation. A single
+explicit fresh send then produced and saved a completed reply.
+
+One normal Android reboot changed the kernel boot ID while the same
+host emulator process stayed alive. Android and the package service
+were ready in 14.39 seconds. The installed
+491,400,032-byte Qwen file and the two-turn chat matched their
+pre-reboot hashes. The post-boot method opened both turns without
+loading weights or replaying either question. Deleting the test model
+kept the chat byte-for-byte.
+
+The independent check verified the raw method inventory and terminal
+logs, both APK hashes and package UIDs, nine original app files and
+both staged publisher model files. The earlier radio preferences and
+working default network were restored. This closes the normal reboot
+case for the current build on this emulator. The retained older
+Android 17 guest result, physical phone and production upgrade gates
+retain their separate status.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Build snapshot | `e723bc7cb5c9f206a2a85c6d54696673f5a57369cd0148ea53fc0eb80f0fcb80` |
+| Independent result | `b7793de82f4bdce7fca9e220f3480ff8191e7ef0aa5b18985dde771ff15e149d` |
+| Intentional native interruption log | `afcf88d8a077735c3a0330c6c9f6ac3b9f5797d4ebdff2bfbdaee71ef7d143ad` |
+| Cold recovery log | `2a0f879cfc3d4bf1535f9ff27a9d5391e27e4848431941cadede52e975690e89` |
+| Post-reboot log | `27c06c98a8849f46f040866855263a7693a1b43ee26dc9755fdb5d993ec0e519` |
+| Completed two-turn chat | `22b0d1f22a4693cbe9b90cf45d934f51bd3170349137045d425ade8af2ad08b9` |
+
 ## Phone model library durability
 
 The model store syncs Android directory entries before acknowledging the
@@ -22,7 +57,9 @@ and LFM3 files with chat bindings preserved. Both guests had no default
 network at test admission. The native APKs, package UIDs, original app
 files and staged inputs were verified, and the previous network
 settings were restored. These checks cover the filesystem calls and
-lifecycle on this build. Its new cold-boot and physical tests remain open.
+lifecycle on this build. The normal Android 8 reboot evidence is
+[recorded above](#offline-qwen-history-after-a-normal-android-8-reboot).
+Physical and production acceptance remain open.
 
 The first Android 8 radio command was refused before any test. A
 verified Settings switch then supplied the offline condition. The

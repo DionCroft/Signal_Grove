@@ -11,8 +11,12 @@ Model install, settings and deletion sync directory entries before returning.
 The build passed 1,202 JVM tests and both lint variants with zero errors.
 Verified LFM3 and Qwen inputs passed five offline Android cases across
 both owned emulators. The older hosted Android 8 shard holds a timeout in
-the phone startup test. Full hosted, cold-boot and phone checks remain open.
-[Model evidence](docs/VALIDATION.md#phone-model-library-durability).
+the phone startup test. The exact build then passed a normal Android 8 reboot
+with the Qwen bytes and both chat turn states retained. Physical-phone,
+the older Android 17 guest observation, full hosted and production checks
+remain open.
+[Model evidence](docs/VALIDATION.md#phone-model-library-durability) ·
+[Reboot evidence](docs/VALIDATION.md#offline-qwen-history-after-a-normal-android-8-reboot).
 
 ## Phone dialogs and project cancellation checkpoint - 20 November 2026
 

@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## Normal offline Android 8 reboot - 20 November 2026
+
+The current model-library build passed cold recovery and the existing
+post-reboot method after one real guest reboot. The interrupted and
+completed turns, exact Qwen bytes, both installed package identities
+and nine original files survived. History reopened with zero model
+loads or replayed turns. Both staged models
+and the radio baseline were checked after the test. Seven distinct
+methods across the recorded emulator cohorts now have positive
+evidence. The older Android 17 in-guest observation, physical phone
+and production upgrade and publication remain open.
+[Reboot evidence](VALIDATION.md#offline-qwen-history-after-a-normal-android-8-reboot).
+
 ## Phone model library durability - 20 November 2026
 
 Model files, performance settings and deletions now sync directory entries
@@ -7,7 +20,7 @@ before acknowledgement. The fixed build passed 1,202 JVM tests, both lint
 variants with zero errors and five real offline cases across Android 8
 and 17. The previous Android 8 hosted shard timed out after 489 of 584
 methods completed and stopped reporting during the phone startup test.
-The full Android matrix, new cold-boot and physical acceptance stay open.
+The full Android matrix and physical acceptance stay open.
 [Model and hosted evidence](VALIDATION.md#phone-model-library-durability).
 
 ## Hermes full stop under held heartbeat contention - 20 November 2026
@@ -78,7 +91,8 @@ mismatched send and continuation of the earlier Qwen chat were
 verified. The prior guest's boot result remains open. These cohorts
 now cover six distinct methods after the public pinned LFM3 download
 discard and resume cases also passed on the newer guest. The
-post-reboot, physical-phone and final production tests remain open.
+older Android 17 post-reboot observation, physical-phone and final
+production tests remain open.
 [Import and recovery evidence](VALIDATION.md#external-model-import-recovery-and-guest-reboot) ·
 [Mixed-model verification](VALIDATION.md#offline-switch-between-lfm3-and-qwen) ·
 [Public transfer evidence](VALIDATION.md#public-lfm3-transfer-cancellation-discard-and-resume).
