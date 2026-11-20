@@ -5,8 +5,10 @@
 The catalogue build's hosted records now confirm the Android 8 Demo
 clarification and phone-history search cases passed. The previous
 Android 17 Kanban keyboard case also passed. This verifies the named
-regressions at that source. The newest-source device, physical,
-Hermes integration and signed-release checks remain open.
+regressions at that source. All four source-bound shards and the
+published aggregate now verify 1,212 Android 8 and 1,213 Android 17
+standard methods. The newest-source device, physical, Hermes
+integration and signed-release checks remain open.
 [Verified records](VALIDATION.md#hosted-demo-and-keyboard-regression-recheck).
 
 ## Backup selection and protection review - 19 November 2026

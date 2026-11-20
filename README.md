@@ -81,9 +81,11 @@ Updated **19 November 2026** for unreleased offline chat, backups, reviewed summ
 | New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |
 | Unreleased offline chat setup | **1,158 JVM / 89 focused Android methods per API (26 and 37)** | Guided download or import, explicit load and first chat. [Exact checks](docs/VALIDATION.md#guided-offline-chat-setup) |
 | Unreleased optional On-device AI startup | **1,158 JVM / 94 focused Android methods per API (26 and 37)** | Saved app-icon routing, explicit Hermes return, and widget, notification and share coverage. [Exact checks](docs/VALIDATION.md#optional-on-device-ai-startup) |
+| Unreleased reviewed model downloads | **1,162 JVM / 96 focused Android methods per API (26 and 37)** | Durable queue, explicit start, pause and resume, and exact saved bytes. [Exact checks](docs/VALIDATION.md#reviewed-download-queue-and-explicit-resume) |
+| Hosted catalogue device matrix | **1,212 API 26 / 1,213 API 37 standard methods** | Four verified shards and published aggregate for catalogue commit 6bc7ff0. [Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44625566131) |
 | Current Windows policy suite | **885 passes / 273 platform skips** | 1,158 distinct cases in this chunk; new native component observations are separate |
 | Previous controlled Pi cohort | **104 methods / no skips** | Eight native gateway cases plus existing PM/backup/retirement coverage; four-mode SDK trial separately verifies eight requests |
-| Last independently reviewed hosted policy suite | **1,158 methods / no skips** | Source `4e66626`; exact positive raw inventory, stopped native unit and Windows/native inventory match |
+| Last independently reviewed hosted policy suite | **1,161 methods / no skips** | Exact catalogue commit 6bc7ff0. [Hosted evidence](docs/VALIDATION.md#hosted-demo-and-keyboard-regression-recheck) |
 | Merged UI local JVM baseline | **1,011 cases / 97 reports** | UI snapshot 1f46186; actual XML, no failures/errors/skips; previous hosted scopes retained separately |
 | Focused workspace/native-tap device checks | **27 methods on each API / no skips** | API26 + API37, same verified APKs; actual late-keyboard transition and single native input, not full device acceptance |
 | Current HTTPS cancellation | **3 ms phone / 18-34 ms emulator** | Two initial cancellation observations per device; see the separate full foreground-resume result |

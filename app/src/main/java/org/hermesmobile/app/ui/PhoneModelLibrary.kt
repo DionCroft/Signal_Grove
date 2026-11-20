@@ -23,6 +23,7 @@ internal fun ColumnScope.PhoneModelLibrary(
     actions: LocalAiActions,
     openCatalogue: () -> Unit,
     openSetup: () -> Unit,
+    openDownloads: (() -> Unit)?,
     remove: (InstalledLocalModel) -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -51,6 +52,9 @@ internal fun ColumnScope.PhoneModelLibrary(
             if (partials > 0) Text(label(Words.PhoneModelSavedDownloads)
                 .replace("{size}", Formatter.formatFileSize(context, partials)),
                 Modifier.testTag("phone-model-saved-downloads"), style = MaterialTheme.typography.bodySmall)
+        }
+        if (openDownloads != null) TextButton(openDownloads, Modifier.testTag("phone-downloads-open")) {
+            Text(label(Words.PhoneDownloads))
         }
         TextButton(openSetup, Modifier.testTag("phone-offline-setup-models-entry")) { Text(label(Words.PhoneOfflineSetup)) }
         TextButton(actions.refresh, enabled = !state.busy) { Text(label(Words.Refresh)) }

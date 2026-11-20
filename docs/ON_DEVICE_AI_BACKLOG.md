@@ -163,10 +163,15 @@ account, token or automatic cloud connection.
 
 ## OF-06: Better downloads, updates and lifecycle controls
 
-**Status: planned.** Add a transfer queue, clear byte/progress/storage reporting,
-pause/resume/discard, network preferences and an explicit opt-in for supported
-foreground-service downloads with visible progress/Cancel. Offer reviewed model
-updates that identify the new revision and extra storage needed.
+**Status: in progress.** The foreground queue saves reviewed model pins in
+order and shows exact bytes and phase. Start, pause, resume, and discard
+are explicit. Earlier partials retain their data and require a current review.
+[Queue checks](VALIDATION.md#reviewed-download-queue-and-explicit-resume).
+
+Network preferences, opt-in foreground-service transfers and their visible
+progress and cancellation remain open. Model updates still need explicit
+review of the replacement revision and extra storage. Physical interruption,
+network handoff, low-space and reboot verification remain open.
 
 Acceptance: downloading/backgrounding never starts inference. Cancel, sleep,
 network loss, low space and process/reboot interruption reconcile exact receipts

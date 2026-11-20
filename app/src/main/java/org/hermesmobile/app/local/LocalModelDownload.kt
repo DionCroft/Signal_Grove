@@ -71,16 +71,27 @@ internal class LocalModelDownload(private val store: LocalModelStore,
                             if (body.contentLength() >= 0 && body.contentLength() != spec.bytes - count) throw LocalModelStorageException("download_size")
                             FileOutputStream(file, count > 0).use { output -> body.byteStream().use { input ->
                                 val buffer = ByteArray(256 * 1024)
-                                while (true) {
-                                    checkpoint()
-                                    val n = input.read(buffer)
-                                    if (n < 0) break
-                                    if (n == 0) continue
-                                    if (n > spec.bytes - count) throw LocalModelStorageException("download_size")
-                                    store.ensureSpace(n.toLong()); output.write(buffer, 0, n); count += n
-                                    progress(LocalTransferProgress(count, spec.bytes, LocalTransferPhase.DOWNLOADING))
+                                var synced = count
+                                try {
+                                    while (true) {
+                                        checkpoint()
+                                        val n = input.read(buffer)
+                                        if (n < 0) break
+                                        if (n == 0) continue
+                                        if (n > spec.bytes - count) throw LocalModelStorageException("download_size")
+                                        store.ensureSpace(n.toLong())
+                                        output.write(buffer, 0, n)
+                                        count += n
+                                        if (count - synced >= 8L * 1024 * 1024) {
+                                            output.fd.sync()
+                                            synced = count
+                                        }
+                                        progress(LocalTransferProgress(count, spec.bytes, LocalTransferPhase.DOWNLOADING))
+                                    }
+                                } finally {
+                                    // An explicit pause or failed read leaves a durable prefix.
+                                    if (count != synced) output.fd.sync()
                                 }
-                                output.fd.sync()
                             } }
                         }
                     } catch (e: IOException) {

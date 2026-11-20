@@ -22,7 +22,8 @@ internal fun PhoneLicence(
     busy: Boolean,
     accept: () -> Unit,
     close: () -> Unit,
-    model: CuratedPhoneModel? = null
+    model: CuratedPhoneModel? = null,
+    queue: (() -> Unit)? = null
 ) {
     var approved by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
@@ -52,6 +53,11 @@ internal fun PhoneLicence(
                     Checkbox(approved, onCheckedChange = null, enabled = !busy)
                     Text(label(Words.PhoneLicenceAccept), Modifier.weight(1f).padding(start = 8.dp),
                         style = MaterialTheme.typography.bodySmall)
+                }
+                if (queue != null) {
+                    OutlinedButton(queue, Modifier.fillMaxWidth().testTag("phone-licence-queue"), enabled = approved && !busy) {
+                        Text(label(Words.PhoneDownloadQueueAdd))
+                    }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(close, Modifier.weight(1f).heightIn(min = 48.dp).testTag("phone-licence-cancel")) {

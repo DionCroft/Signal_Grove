@@ -1,5 +1,44 @@
 # Current development validation — audit follow-up
 
+## Reviewed download queue and explicit resume
+
+A catalogue licence review can start the download immediately or
+save the selected model in **Model downloads**. The private queue
+persists its order and exact publisher URL, length, hash and licence
+identity as a fingerprint. Adding a row contacts no publisher. Starting,
+resuming and verifying saved files require a separate tap. A partial
+from an older build can be reviewed without deleting its bytes.
+
+The transfer flushes its written prefix on pause and periodically
+during download. The queue shows the measured byte count and phase.
+After an interruption the app reads the actual partial file length
+before offering an explicit resume. The same HTTPS range validation,
+full SHA-256, GGUF compatibility inspection and atomic publication
+still apply. Observing an installed model removes its completed
+queue receipt. An unreadable receipt preserves the installed library
+and stops queue writes.
+
+The frozen build passed 1,162 JVM tests and both lint variants with
+zero errors. Android 8 and Android 17 each passed 96 focused native
+methods with zero skips. The JVM cases cover ordered reread, scoped
+discard, no resume without current review, corrupt-receipt retention,
+and reconciliation after installation. The new device checks cover
+the actual bilingual review controls, exact item/byte status, pause,
+and licence review for an older partial. Android fixtures simulate
+the transfer. A physical interruption and restart with this build
+remain open.
+
+The regular Android 8 app saved one reviewed LFM3 row with zero
+downloaded bytes. A different app process reopened the same pin.
+Removal returned the queue to empty and all 5 compared
+model and chat files retained their previous bytes.
+
+- Frozen source digest: 0679768c3723914ac54580a2aacdff247df65f3f38b77fc5dc15a326b63c94b2
+- Debug APK SHA-256: 324c2be4bdbe5d46210a70ea7284638fd3a76ceb0320b6c62e63df9458e1505e
+- Debug test APK SHA-256: 57805eea49c801ba564666ade83864367675f0a456a5a8b170ac2c0f4d704bda
+- API 26 native evidence SHA-256: f45885b99506c5fa0212145b8f03617c059b5d7e637f40e36a7ba6a4420d4712
+- API 37 native evidence SHA-256: 0d1718f31b023611257f067d0738cb5ef9a8adb6e9178e7844b2f47e62158adf
+
 ## Optional On-device AI startup
 
 The offline setup guide has a saved startup switch. The launcher
@@ -49,7 +88,11 @@ Android 8 Demo clarification and history-search methods completed
 successfully in shard 1. Android 17 shard 0 includes a positive
 terminal record for the previously failing Kanban keyboard case.
 The failed earlier run remains recorded under its own source.
-The combined hosted gate was still open at review.
+The catalogue run has since passed. All four raw shards, the matching
+APK pair and the published aggregate verify **1,212 Android 8**
+and **1,213 Android 17** standard methods. The same run has
+1,158 JVM and 1,161 hosted policy passes. These results belong
+to the exact catalogue commit.
 [Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44625566131).
 
 ## Guided offline chat setup

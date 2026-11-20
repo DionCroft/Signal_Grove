@@ -25,6 +25,9 @@ class LocalAiFlowTest {
     @get:Rule val compose = createComposeRule()
     private val downloads = mutableListOf<CuratedPhoneModel>()
     private val discarded = mutableListOf<CuratedPhoneModel>()
+    private val queued = mutableListOf<CuratedPhoneModel>()
+    private val resumed = mutableListOf<CuratedPhoneModel>()
+    private var pauses = 0
     private var imports = 0; private var sends = 0; private var stops = 0
     private var newChats = 0
     private var pending by mutableStateOf(false)
@@ -35,7 +38,7 @@ class LocalAiFlowTest {
     private val requestedLoads = mutableListOf<Pair<String, Int>>()
     private val sha = "a".repeat(64)
     private val model = InstalledLocalModel(sha, GgufModelMetadata("Fixture", "lfm3", 2048, "fixture", 1024))
-    private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false) {
+    private fun show(supported: Boolean = true, bilingual: Boolean = false, copied: Boolean = false, queue: Boolean = false) {
         val actions = LocalAiActions({sends++}, {
                 stops++
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
@@ -47,7 +50,20 @@ class LocalAiFlowTest {
             }, benchmark = { modelSha256 ->
                 benchmarks.add(modelSha256)
                 state = state.copy(busy = true, status = "benchmarking")
-            })
+            }, downloads = if (queue) PhoneDownloadActions(
+                enqueue = { queued.add(it); state = state.copy(queuedDownloads = state.queuedDownloads + it) },
+                resume = {
+                    resumed.add(it)
+                    state = state.copy(activeDownload = it, busy = true, status = "downloading",
+                        transfer = LocalTransferProgress(512, it.bytes, LocalTransferPhase.DOWNLOADING))
+                },
+                pause = {
+                    pauses++
+                    val active = checkNotNull(state.activeDownload)
+                    state = state.copy(activeDownload = null, busy = false, status = "idle", transfer = null,
+                        downloadPartials = state.downloadPartials + (active to 512L))
+                }
+            ) else null)
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
@@ -187,6 +203,55 @@ class LocalAiFlowTest {
             assertEquals(listOf(qwen), downloads)
             assertTrue(requestedLoads.isEmpty())
             assertEquals(0, sends)
+        }
+    }
+
+    @Test fun reviewedQueueStartsAndPausesOnlyTheExplicitItem() {
+        val qwen = CuratedPhoneModel.QWEN
+        show(bilingual = true, queue = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        compose.onNodeWithTag("phone-catalogue-open").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-download-review-QWEN").performScrollTo().performClick()
+        val add = compose.onNodeWithTag("phone-licence-queue")
+        add.assertIsDisplayed().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-licence-consent").assertIsDisplayed().performClick()
+        add.assertIsEnabled().performClick()
+        val start = compose.onNodeWithTag("phone-transfer-start-QWEN")
+        start.performScrollTo().assertTextContains(Words.PhoneDownloadStart.en, substring = true)
+        compose.runOnIdle {
+            assertEquals(listOf(qwen), queued)
+            assertTrue(downloads.isEmpty())
+            assertTrue(resumed.isEmpty())
+        }
+        start.performClick()
+        compose.onNodeWithTag("phone-transfer-bytes-QWEN").performScrollTo()
+            .assertTextContains("512 of ${qwen.bytes} bytes saved", substring = true)
+        compose.onNodeWithTag("phone-transfer-pause").performScrollTo().assertIsEnabled().performClick()
+        start.performScrollTo().assertTextContains(Words.PhoneDownloadResume.en, substring = true)
+        compose.runOnIdle {
+            assertEquals(listOf(qwen), resumed)
+            assertEquals(1, pauses)
+            assertEquals(512L, state.partialBytes(qwen))
+            assertTrue(requestedLoads.isEmpty())
+            assertEquals(0, sends)
+        }
+    }
+
+    @Test fun existingPartialOpensLicenceBeforeItCanResume() {
+        val model = CuratedPhoneModel.LFM3
+        state = state.copy(downloadPartials = mapOf(model to 512L))
+        show(queue = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        compose.onNodeWithTag("phone-downloads-open").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-transfer-start-LFM3").performScrollTo()
+            .assertTextContains(Words.PhoneDownloadNeedsReview.en, substring = true).performClick()
+        compose.onNodeWithTag("phone-licence-model").assertTextEquals(model.displayName)
+        compose.onNodeWithTag("phone-licence-cancel").performClick()
+        compose.onNodeWithTag("phone-transfer-start-LFM3").assertExists()
+        compose.runOnIdle {
+            assertTrue(resumed.isEmpty())
+            assertTrue(downloads.isEmpty())
+            assertTrue(queued.isEmpty())
         }
     }
 

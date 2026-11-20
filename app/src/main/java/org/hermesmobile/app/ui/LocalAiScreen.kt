@@ -68,6 +68,12 @@ import org.hermesmobile.app.local.*
     }
 }
 
+data class PhoneDownloadActions(
+    val enqueue: (CuratedPhoneModel) -> Unit,
+    val resume: (CuratedPhoneModel) -> Unit,
+    val pause: () -> Unit
+)
+
 data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newChat: () -> Unit,
     val load: (InstalledLocalModel, Int) -> Unit, val unload: () -> Unit, val remove: (InstalledLocalModel) -> Unit,
     val download: (CuratedPhoneModel) -> Unit, val discard: (CuratedPhoneModel) -> Unit, val chooseFile: () -> Unit,
@@ -87,7 +93,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val draftSummary: ((LocalConversation, List<Int>, (LocalSummaryDraft) -> Unit) -> Unit)? = null,
     val previewSummaryPrompt: (suspend (LocalConversation, String, String) -> LocalPromptPreview)? = null,
     val saveModelPerformance: ((InstalledLocalModel, LocalModelPerformance) -> Unit)? = null,
-    val benchmark: ((String) -> Unit)? = null)
+    val benchmark: ((String) -> Unit)? = null,
+    val downloads: PhoneDownloadActions? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -118,7 +125,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             newChatWithDraft = vm::newChatWithDraft, continueWithSelectedTurns = vm::continueWithSelectedTurns,
             previewSelectedPrompt = c::previewSelectedPrompt, continueWithSummary = vm::continueWithReviewedSummary,
             draftSummary = c::draftContinuationSummary, previewSummaryPrompt = c::previewSummaryPrompt,
-            saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark),
+            saveModelPerformance = c::saveModelPerformance, benchmark = c::benchmark,
+            downloads = PhoneDownloadActions({ c.enqueueDownload(it, licenceReviewed = true) }, c::resumeDownload, c::pauseDownload)),
         close, observations, handoff, openHermes, startupSetting)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
@@ -133,6 +141,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
     var helper by remember {mutableStateOf(false)}
     var catalogueOpen by rememberSaveable { mutableStateOf(false) }
+    var downloadsOpen by rememberSaveable { mutableStateOf(false) }
     var downloadReview by remember { mutableStateOf<CuratedPhoneModel?>(null) }
     var deleteModel by remember {mutableStateOf<InstalledLocalModel?>(null)}
     var deleteChat by remember {mutableStateOf<String?>(null)}
@@ -177,6 +186,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 1 -> PhoneModelLibrary(state, supported, actions,
                     openCatalogue = { catalogueOpen = true },
                     openSetup = { offlineSetup = true },
+                    openDownloads = actions.downloads?.let { { downloadsOpen = true } },
                     remove = { deleteModel = it })
                 2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
             }
@@ -228,6 +238,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             catalogueOpen = false
         }
     }
+    val downloadActions = actions.downloads
+    if (downloadsOpen && downloadReview == null && discardReview == null && !pendingImport && downloadActions != null) {
+        PhoneDownloads(state, supported, downloadActions, { downloadReview = it }, { discardReview = it },
+            actions.refresh, close = { downloadsOpen = false })
+    }
     if (pendingImport) {
         PhoneLicence(label(Words.PhoneImportLicence), state.busy, actions.acceptImport, actions.cancelImport)
     } else downloadReview?.let { model ->
@@ -238,14 +253,24 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             PhoneLicence(licence, state.busy, accept = {
                 downloadReview = null
                 catalogueOpen = false
+                downloadsOpen = downloadActions != null
                 actions.download(model)
-            }, close = { downloadReview = null }, model = model)
+            }, close = { downloadReview = null }, model = model,
+                queue = downloadActions?.let { transfers ->
+                    {
+                        downloadReview = null
+                        catalogueOpen = false
+                        downloadsOpen = true
+                        transfers.enqueue(model)
+                    }
+                })
         }
     }
     deleteModel?.let { model -> PhoneConfirm(label(Words.PhoneDeleteModel), state.busy, {actions.remove(model); deleteModel = null}) {deleteModel = null} }
     deleteChat?.let { id -> PhoneConfirm(label(Words.PhoneDeleteChat), state.busy, {actions.deleteChat(id); deleteChat = null}) {deleteChat = null} }
     discardReview?.let { model ->
-        PhoneConfirm(label(Words.PhoneDiscard) + "\n" + model.displayName, state.busy, {
+        PhoneConfirm(label(if (state.partialBytes(model) > 0) Words.PhoneDiscard else Words.PhoneDownloadQueueRemove) +
+            "\n" + model.displayName, state.busy, {
             discardReview = null
             actions.discard(model)
         }) { discardReview = null }
@@ -524,7 +549,7 @@ internal fun phoneReplyState(state: LocalReplyState) = when(state) {
     LocalReplyState.INTERRUPTED -> Words.PhoneInterrupted
 }
 private fun phoneStatus(state: LocalAiState) = when(state.status) {
-    "downloading" -> if(state.transfer?.phase == LocalTransferPhase.DOWNLOADING) Words.PhoneDownloading else Words.PhoneVerifying
+    "downloading" -> phoneDownloadPhase(state.transfer?.phase)
     "reading" -> Words.PhoneReading
     "searching" -> Words.PhoneHistorySearching
     "organizing" -> Words.PhoneHistoryOrganizing
@@ -539,6 +564,9 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
     else -> Words.PhoneWorking
 }
 internal fun phoneError(code: String) = when {
+    code == "download_queue_unreadable" -> Words.PhoneDownloadQueueUnavailable
+    code == "download_review_required" -> Words.PhoneDownloadNeedsReview
+    code in setOf("download_resume_unsupported", "download_range") -> Words.PhoneDownloadRangeError
     code == "history_search" -> Words.PhoneHistorySearchError
     code == "history_organization" -> Words.PhoneHistoryOrganizationError
     code == "history_organization_changed" -> Words.PhoneHistoryOrganizationChanged

@@ -100,6 +100,83 @@ class LocalAiControllerTest {
         assertTrue(driver.requests.isEmpty())
     }
 
+    @Test fun reviewedDownloadsPersistInOrderAndDiscardOnlyTheSelectedEntry() = runTest {
+        val root = temp.newFolder()
+        val history = temp.newFolder()
+        val engine = Engine()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val qwen = CuratedPhoneModel.QWEN
+        val lfm = CuratedPhoneModel.LFM3
+        val firstPart = File(root, "${qwen.sha256}.part").apply { writeText("qwen partial") }
+        val otherPart = File(root, "${lfm.sha256}.part").apply { writeText("lfm partial") }
+        val otherBytes = otherPart.readBytes()
+        val first = controller(root, history, engine, UpdateWorkGuard(), dispatcher)
+        advanceUntilIdle()
+
+        first.enqueueDownload(qwen, licenceReviewed = true)
+        advanceUntilIdle()
+        first.enqueueDownload(lfm, licenceReviewed = true)
+        advanceUntilIdle()
+        first.enqueueDownload(qwen, licenceReviewed = true)
+        advanceUntilIdle()
+
+        val reopened = controller(root, history, engine, UpdateWorkGuard(), dispatcher)
+        advanceUntilIdle()
+        assertEquals(listOf(qwen, lfm), reopened.state.value.queuedDownloads)
+        assertNull(reopened.state.value.activeDownload)
+        assertEquals(firstPart.length(), reopened.state.value.partialBytes(qwen))
+        assertArrayEquals(otherBytes, otherPart.readBytes())
+        reopened.discardDownload(qwen)
+        advanceUntilIdle()
+        assertEquals(listOf(lfm), reopened.state.value.queuedDownloads)
+        assertFalse(firstPart.exists())
+        assertArrayEquals(otherBytes, otherPart.readBytes())
+        assertEquals(0, engine.loads)
+        assertTrue(engine.requests.isEmpty())
+    }
+
+    @Test fun startingALegacyPartialRequiresCurrentLicenceReview() = runTest {
+        val root = temp.newFolder()
+        val qwen = CuratedPhoneModel.QWEN
+        val partial = File(root, "${qwen.sha256}.part").apply { writeText("old reviewed bytes") }
+        val snapshot = partial.readBytes()
+        val controller = controller(root, temp.newFolder(), Engine(), UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        controller.resumeDownload(qwen)
+        advanceUntilIdle()
+        assertEquals("download_review_required", controller.state.value.error)
+        assertNull(controller.state.value.activeDownload)
+        assertFalse(controller.state.value.busy)
+        assertArrayEquals(snapshot, partial.readBytes())
+    }
+
+    @Test fun corruptReceiptCannotBeReplacedAndTheInstalledLibraryStaysReadable() = runTest {
+        val root = temp.newFolder()
+        val installed = model(root)
+        val bad = File(root, "download-queue").apply { writeText("1\nincomplete receipt") }
+        val original = bad.readBytes()
+        val controller = controller(root, temp.newFolder(), Engine(), UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        assertEquals(listOf(installed), controller.state.value.models)
+        assertTrue(controller.state.value.downloadQueueUnavailable)
+        controller.enqueueDownload(CuratedPhoneModel.LFM3, licenceReviewed = true)
+        advanceUntilIdle()
+        assertEquals("download_queue_unreadable", controller.state.value.error)
+        assertArrayEquals(original, bad.readBytes())
+        assertEquals(listOf(installed), controller.state.value.models)
+    }
+
+    @Test fun publishedPinReceiptDoesNotReturnAfterTheInstalledModelDisappears() {
+        val root = temp.newFolder()
+        val store = LocalModelStore(root)
+        val first = LocalDownloadQueue(store)
+        first.add(CuratedPhoneModel.LFM3)
+        first.add(CuratedPhoneModel.QWEN)
+        val completed = CuratedPhoneModel.LFM3.sha256
+        assertEquals(listOf(CuratedPhoneModel.QWEN), first.pending(setOf(completed)))
+        assertEquals(listOf(CuratedPhoneModel.QWEN), LocalDownloadQueue(store).pending(emptySet()))
+    }
+
     @Test fun benchmarkUsesTheLoadedLimitsAndLeavesChatHistoryUntouched() = runTest {
         val root = temp.newFolder()
         val first = model(root)

@@ -1,9 +1,19 @@
 # Signal Grove project state
 
-19 November 2026. The full goal is **active**. Fix UI blockers first, then OF-01
+20 November 2026. The full goal is **active**. Fix UI blockers first, then OF-01
 through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
+
+## Latest model download checkpoint
+
+The development app has a private ordered queue for reviewed catalogue
+files, exact saved bytes and phase, and explicit pause, resume and
+discard. The debug pair passed 1,162 JVM and 96 focused methods per
+emulator API with zero lint errors. Continue OF-06 with network
+preferences, supported foreground transfers and reviewed model
+updates. Physical and final-source release gates remain open.
+[Queue evidence](docs/VALIDATION.md#reviewed-download-queue-and-explicit-resume).
 
 ## Latest offline startup checkpoint
 

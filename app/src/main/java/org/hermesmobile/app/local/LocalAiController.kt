@@ -21,7 +21,10 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val modelPerformance: Map<String, LocalModelPerformance> = emptyMap(),
     val loadedSettings: LocalGenerationSettings? = null,
     val performance: LocalPerformanceDiagnostics = LocalPerformanceDiagnostics(),
-    val modelStorageAvailableBytes: Long? = null) {
+    val modelStorageAvailableBytes: Long? = null,
+    val queuedDownloads: List<CuratedPhoneModel> = emptyList(),
+    val activeDownload: CuratedPhoneModel? = null,
+    val downloadQueueUnavailable: Boolean = false) {
     fun partialBytes(model: CuratedPhoneModel): Long = downloadPartials[model] ?: 0L
 }
 
@@ -43,6 +46,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     internal val historyBackupFiles = LocalHistoryBackupFiles(
         File(conversations.directory.parentFile, "history-backup-stages"), conversations, organization
     )
+    private val downloadQueue = LocalDownloadQueue(store)
     private val downloads = CuratedPhoneModel.entries.associateWith { model ->
         LocalModelDownload(store, spec = model.spec, ioDispatcher = ioDispatcher)
     }
@@ -137,15 +141,34 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             error = it.error.takeUnless {code -> code == "history_search"}) }
     }
 
-    fun download(model: CuratedPhoneModel, licenceReviewed: Boolean) = action("downloading") {
+    fun enqueueDownload(model: CuratedPhoneModel, licenceReviewed: Boolean) = action("queuing_download") {
         check(supported)
-        downloads.getValue(model).download(licenceReviewed) { value ->
-            mutable.update { it.copy(transfer = value) }
-        }
+        require(licenceReviewed)
+        io { downloadQueue.add(model) }
         refresh()
     }
 
-    fun discardDownload(model: CuratedPhoneModel) = action("reading") {
+    fun download(model: CuratedPhoneModel, licenceReviewed: Boolean) = beginDownload(model) {
+        require(licenceReviewed)
+        downloadQueue.add(model)
+    }
+
+    fun resumeDownload(model: CuratedPhoneModel) = beginDownload(model) { downloadQueue.assertReviewed(model) }
+
+    fun pauseDownload() {
+        val current = mutable.value
+        if (current.status == "downloading" && current.transfer?.phase != LocalTransferPhase.INSTALLING) job?.cancel()
+    }
+
+    private fun beginDownload(model: CuratedPhoneModel, authorize: () -> Unit) = action("downloading", model) {
+        check(supported)
+        io { authorize() }
+        downloads.getValue(model).download(true) { value -> mutable.update { it.copy(transfer = value) } }
+        refresh()
+    }
+
+    fun discardDownload(model: CuratedPhoneModel) = action("discarding_download") {
+        io { downloadQueue.remove(model) }
         downloads.getValue(model).discardPartial()
         refresh()
     }
@@ -504,16 +527,17 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             lock.withLock {
                 try { unloadModel() }
                 finally {
-                    mutable.update { it.copy(busy = false, status = "idle", transfer = null, helper = null) }
+                    mutable.update { it.copy(busy = false, status = "idle", transfer = null, helper = null, activeDownload = null) }
                     leaving = false; guard.set(owner, false)
                 }
             }
         }
     }
 
-    private fun action(status: String, block: suspend () -> Unit) {
+    private fun action(status: String, activeDownload: CuratedPhoneModel? = null, block: suspend () -> Unit) {
         if (mutable.value.busy || leaving) return
-        mutable.update { it.copy(busy = true, status = status, error = null, transfer = null) }; guard.set(owner, true)
+        mutable.update { it.copy(busy = true, status = status, error = null, transfer = null, activeDownload = activeDownload) }
+        guard.set(owner, true)
         val next = scope.launch(start = CoroutineStart.LAZY) {
             lock.withLock {
                 try {
@@ -521,7 +545,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     block()
                 }
                 catch (_: CancellationException) {
-                    if (status == "downloading" || status == "importing") reconcileModelLibrary()
+                    if (status == "downloading" || status == "importing" ||
+                        status == "queuing_download" || status == "discarding_download") reconcileModelLibrary()
                     if (status == "organizing") withContext(NonCancellable) {
                         // Cancellation can lose the return after publication.
                         try {
@@ -531,7 +556,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     }
                 }
                 catch (e: Exception) {
-                    if (status == "downloading") reconcileModelLibrary()
+                    if (status == "downloading" || status == "queuing_download" || status == "discarding_download") reconcileModelLibrary()
                     mutable.update { it.copy(error = when {
                         e is LocalMarkdownExportException && e.reason == LocalMarkdownExportFailure.CHANGED -> "history_export_changed"
                         status == "preparing_export" -> "history_export_prepare"
@@ -545,7 +570,10 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
         job = next
         next.invokeOnCompletion {
-            if (!leaving) { mutable.update { it.copy(busy = false, status = "idle", transfer = null) }; guard.set(owner, false) }
+            if (!leaving) {
+                mutable.update { it.copy(busy = false, status = "idle", transfer = null, activeDownload = null) }
+                guard.set(owner, false)
+            }
         }
         next.start()
     }
@@ -601,10 +629,12 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         val models: List<InstalledLocalModel>,
         val performance: Map<String, LocalModelPerformance>,
         val partials: Map<CuratedPhoneModel, Long>,
-        val availableBytes: Long
+        val availableBytes: Long,
+        val queued: List<CuratedPhoneModel>?
     ) {
         fun applyTo(state: LocalAiState) = state.copy(models = models, modelPerformance = performance,
-            downloadPartials = partials, modelStorageAvailableBytes = availableBytes)
+            downloadPartials = partials, modelStorageAvailableBytes = availableBytes,
+            queuedDownloads = queued.orEmpty(), downloadQueueUnavailable = queued == null)
     }
 
     private suspend fun readModelLibrary() = io {
@@ -617,7 +647,13 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             }
         }
         val partials = downloads.mapValues { (_, download) -> download.partialBytes() }
-        ModelLibrary(models, performance, partials, store.usableBytes())
+        val queued = try {
+            downloadQueue.pending(models.mapTo(mutableSetOf()) { it.sha256 })
+        } catch (e: LocalModelStorageException) {
+            if (e.reason != "download_queue_unreadable") throw e
+            null
+        }
+        ModelLibrary(models, performance, partials, store.usableBytes(), queued)
     }
 
     private suspend fun <T> io(block: suspend () -> T) = withContext(ioDispatcher) { block() }

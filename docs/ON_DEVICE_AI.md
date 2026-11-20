@@ -58,6 +58,25 @@ free storage and retained download data. Tap **Refresh** to recheck
 the figures. [Library and licence validation](VALIDATION.md#installed-model-library-and-fixed-licence-controls).
 [Catalogue validation](VALIDATION.md#offline-catalogue-and-separate-model-downloads).
 
+## Manage model downloads in the development build
+
+Open **Phone models → Compare downloadable models**, select a file,
+and review its source and licence. After selecting the consent box,
+tap **Add to downloads** to save it for later or **Confirm** to start
+now. Saving the item requires no internet connection.
+
+Open **Phone models → Model downloads** to choose which saved file
+to start or resume. The list shows exact bytes and whether the app
+is transferring, verifying, checking compatibility, or installing.
+**Pause download** keeps the written bytes. Leaving On-device AI
+also pauses the current transfer. To abandon a selection, use
+**Remove queued download** or review **Discard partial download**.
+A partial from an older version opens licence review first.
+
+Each transfer starts on an explicit action and each installed model
+needs its own load action.
+[Download validation](VALIDATION.md#reviewed-download-queue-and-explicit-resume).
+
 ## Choose settings for a phone model
 
 In a development build, open **On-device AI → Phone models → Model settings**
