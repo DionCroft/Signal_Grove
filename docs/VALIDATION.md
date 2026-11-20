@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Public LFM3 transfer cancellation, discard and resume
+
+The exact development debug pair ran two native download cases on the
+owned Android 17 emulator over the pinned publisher HTTPS route.
+The bundled LFM Open License and unchanged test source were checked
+against the Android build inputs. No Hermes profile or credentials
+were present in the trial.
+
+The discard case cancelled with 8,390,338 bytes retained and removed
+the partial while preserving an unrelated sentinel. The resume case
+cancelled with 8,393,915 bytes retained. The recreated controller
+verified the partial prefix and waited for an explicit resume. The
+completed 1,049,615,680-byte file matched the pinned SHA-256 and became
+visible after atomic publication. No model loaded or generated text.
+The resume and verification step took 86.154 seconds on this run.
+Both package identities and the base app files were conserved.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Cancel and discard native log | 5a0e51980040f5ba0f6f5957c455b4c9496b08d893b05f45e673e96734407776 |
+| Cancel and resume native log | c6ab4937e0d48879ced022cc9b3f902f48062f2f0abb7078122ade20539aa377 |
+| Independent case and source verification | 0a6746b0fe276d54b97367bf9f67695f5ec9ff2e1e39e1d104fcb8d0e04b0707 |
+
 ## Offline switch between LFM3 and Qwen
 
 The unchanged debug APKs ran the mixed-model test on a separate Android

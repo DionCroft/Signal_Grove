@@ -18,10 +18,12 @@ A separate Android 17 guest with enough RAM passed the unchanged
 offline mixed-model switch. Both model bindings, refusal of a
 mismatched send and continuation of the earlier Qwen chat were
 verified. The prior guest's boot result remains open. These cohorts
-now cover four distinct methods; post-reboot, online transfer and
-final physical/production validation remain open.
+now cover six distinct methods after the public pinned LFM3 download
+discard and resume cases also passed on the newer guest. The
+post-reboot, physical-phone and final production tests remain open.
 [Import and recovery evidence](VALIDATION.md#external-model-import-recovery-and-guest-reboot) ·
-[Mixed-model verification](VALIDATION.md#offline-switch-between-lfm3-and-qwen).
+[Mixed-model verification](VALIDATION.md#offline-switch-between-lfm3-and-qwen) ·
+[Public transfer evidence](VALIDATION.md#public-lfm3-transfer-cancellation-discard-and-resume).
 
 
 ## Current Hermes stored history - 20 November 2026
