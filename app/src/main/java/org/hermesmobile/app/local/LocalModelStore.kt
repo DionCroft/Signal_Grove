@@ -3,6 +3,7 @@ package org.hermesmobile.app.local
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.UUID
@@ -89,13 +90,15 @@ class LocalModelStore internal constructor(
         removePartial(replacementFile(stageId))
     }
 
-    /** No review survives process death. Only the replacement staging namespace is reclaimed. */
-    @Synchronized internal fun discardAbandonedReplacements() {
+    /** A manual import or replacement review cannot resume after process death. */
+    @Synchronized internal fun discardAbandonedModelStages() {
         val files = directory.listFiles() ?: throw LocalModelStorageException("library_unreadable")
-        val pattern = Regex("review-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}\\.part")
-        for (file in files) {
-            if (pattern.matches(file.name)) removePartial(owned(file.name))
+        val pattern = Regex("(?:import|review)-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}\\.part")
+        val abandoned = files.filter {
+            pattern.matches(it.name) && Files.isRegularFile(it.toPath(), LinkOption.NOFOLLOW_LINKS)
         }
+        for (file in abandoned) removePartial(owned(file.name))
+        if (abandoned.isNotEmpty()) syncLibraryChanges()
     }
 
     private fun replacementFile(stageId: UUID) = owned("review-$stageId.part")

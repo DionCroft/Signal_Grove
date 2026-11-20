@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Cold-start recovery of interrupted model copies - 20 November 2026
+
+The predecessor left the private import copy on disk after a fresh
+startup. The fixed build removes only the uniquely named regular
+import and review stages and syncs the directory. Two real app startup
+probes and the JVM test preserved resume prefixes and existing files.
+The build passed 1,203 JVM tests and both lint variants with zero
+errors. The final phone and production gates remain open.
+[Model-stage evidence](VALIDATION.md#cold-start-cleanup-for-interrupted-manual-model-copies).
+
 ## Normal offline Android 8 reboot - 20 November 2026
 
 The current model-library build passed cold recovery and the existing

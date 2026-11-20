@@ -187,6 +187,10 @@ channel changes, physical interruption, handoff, low-space and reboot
 verification remain open. User-selected GGUF replacements have an exact side-by-side
 review with a storage measurement and a separate install action.
 [Replacement checks](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
+Fresh library startup reclaims abandoned manual import and replacement
+copies. Android 8 and 17 startup tests verified the exact cleanup and
+preserved the resume prefix and existing model bytes.
+[Cold-start cleanup checks](VALIDATION.md#cold-start-cleanup-for-interrupted-manual-model-copies).
 The publisher update review shows both pinned revisions and the
 required extra storage. It preserves the earlier file, chats,
 and exact reviewed download receipts. Bundled pins and their licence

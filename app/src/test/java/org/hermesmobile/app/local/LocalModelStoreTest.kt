@@ -5,6 +5,7 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
+import java.util.UUID
 import java.util.concurrent.CancellationException
 import org.junit.Assert.*
 import org.junit.Rule
@@ -97,6 +98,34 @@ class LocalModelStoreTest {
         store.delete(sha)
         assertEquals(4, syncAttempts)
         assertTrue(root.list()!!.isEmpty())
+    }
+
+    @Test fun coldCleanupReclaimsOnlyAbandonedManualModelStages() {
+        val root = temp.newFolder().canonicalFile
+        val bytes = fixture()
+        val installed = store(root).importModel(bytes.inputStream(), true)
+        val importStage = File(root, "import-${UUID.randomUUID()}.part").apply { writeText("incomplete local copy") }
+        val reviewStage = File(root, "review-${UUID.randomUUID()}.part").apply { writeText("incomplete review") }
+        val download = File(root, "${"a".repeat(64)}.part").apply { writeText("resume prefix") }
+        val other = File(root, "import-other.part").apply { writeText("unrecognized") }
+        val directory = File(root, "import-${UUID.randomUUID()}.part").apply { assertTrue(mkdir()) }
+        val child = File(directory, "keep").apply { writeText("nested data") }
+        val syncs = mutableListOf<File>()
+        val recovered = LocalModelStore(root, { Long.MAX_VALUE }) { synced ->
+            assertFalse(importStage.exists())
+            assertFalse(reviewStage.exists())
+            syncs += synced
+        }
+
+        recovered.discardAbandonedModelStages()
+        recovered.discardAbandonedModelStages()
+
+        assertEquals(listOf(root), syncs)
+        assertEquals(listOf(installed), recovered.models())
+        assertArrayEquals(bytes, recovered.verifiedFile(installed.sha256).readBytes())
+        assertEquals("resume prefix", download.readText())
+        assertEquals("unrecognized", other.readText())
+        assertEquals("nested data", child.readText())
     }
 
     @Test fun supportsOtherValidatedArchitecturesWithoutClaimingNativeCompatibility() {

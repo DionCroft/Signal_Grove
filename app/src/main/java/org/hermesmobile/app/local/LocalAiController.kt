@@ -894,7 +894,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 } catch (_: java.io.IOException) {
                     // Backup preparation reports staging errors. History remains readable.
                 }
-                store.discardAbandonedReplacements()
+                store.discardAbandonedModelStages()
                 conversations.recoverInterrupted { context.ensureActive() }
             }
             recovered = true

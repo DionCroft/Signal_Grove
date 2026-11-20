@@ -1,5 +1,63 @@
 # Current development validation — audit follow-up
 
+## Release runtime dependency review - 20 November 2026
+
+Gradle resolved 154 exact Maven versions from the development build's
+release runtime configuration with strict dependency verification.
+OSV returned complete results for all 154 coordinates, the pinned
+llama.cpp commit and the separate positive control. Maven had zero
+indexed matches. The native pin b12255 matched CVE-2026-133710.
+The publisher's fixed build b12556 resolved to commit
+`50518b64c6f2191a116d2760042f106c4b3387d7` and returned zero matches
+in the separate pinned-commit comparison.
+
+The matching native dependency is a production release gate. The fixed
+source, app linkage and supported local-model behavior require their
+own verification. Build tools and a complete packaged release inventory
+retain separate gates.
+[OSV query API](https://google.github.io/osv.dev/post-v1-querybatch/) ·
+[Upstream fix](https://github.com/ggml-org/llama.cpp/releases/tag/b12556).
+
+Runtime coordinate inventory SHA-256 `358586c4bcd150aa1f6e119bfc82ad0a6826754db94e04fb6700b50b4d66331d`.
+OSV batch response SHA-256 `2790d77718e9004d27bdc650b69401c0b480bd7457a0b3e864e005978e5757f7`.
+Exact commit comparison SHA-256
+`8d9d8fba9971dfae987fab72173fa2009b339a04b13203f852e9845f79279f80`.
+
+## Cold-start cleanup for interrupted manual model copies
+
+In the predecessor build, the normal phone startup test was run with
+three synthetic app-private files. Startup removed the abandoned
+replacement review, retained the hash-named download prefix and
+left the abandoned manual import in the library. The raw counterexample
+is preserved.
+
+Cold model-library recovery now removes only regular files with the
+exact generated names for incomplete manual imports and replacement
+reviews. It syncs the library directory after removal. Installed
+models, hash-named download prefixes, unknown filenames and directories
+remain intact. The original selected file is outside the cleanup scope.
+A JVM regression checks those boundaries and repeat cleanup.
+
+The exact development APKs passed 1,203 JVM tests across
+113 reports, both lint variants with zero errors, and the
+normal phone startup probe on owned Android 8 and Android 17 emulators.
+Both cold starts removed their import and review stages and retained
+the hash-named prefix byte-for-byte. Package UIDs and all 2
+pre-existing files across the two model libraries matched.
+The host removed only its remaining synthetic fixture after checking its
+hash. These are persisted-stage and normal-startup tests. Physical
+mid-copy interruption, publisher download recovery and production
+upgrade have separate acceptance evidence and gates.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Build snapshot | `44aac2823d2ba2396f623f7f8321fd26f9ea735cd55114b3788948f64702cf5d` |
+| Debug APK | `b27ebd1fe48c30d5ffad4697666f71ffffe810cb6eb93ac53b01e1e7fcb735c1` |
+| Debug test APK | `f1bbbd9792fc32548c83dc6d3e7cb8395c506563805eb2480463d9842c70ed9e` |
+| Predecessor startup receipt | `c3d049491347cd0070c7511a3fc6f9156b640006ed64346ee62607008e3e4691` |
+| Android 8 startup receipt | `42188280502e882ded315bb8eea65ca097591ca3adf1bcf32a07e3cd29844fcc` |
+| Android 17 startup receipt | `522f9aa0565a864b8cd003b090830c2cf682b06c45ea16d3661222d456bbb575` |
+
 ## Offline Qwen history after a normal Android 8 reboot
 
 The exact model-library durability APK pair ran the three existing

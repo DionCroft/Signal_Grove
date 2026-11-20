@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Cold-start model stage cleanup
+
+The app reclaims incomplete manual import and replacement stages when
+the private model library opens after a process restart. The normal
+startup test passed on Android 8 and 17 and verified retained download
+prefixes and existing model bytes. The exact build passed 1,203 JVM
+tests and both lint variants with zero errors. Physical and production
+checks remain open.
+[Cleanup evidence](docs/VALIDATION.md#cold-start-cleanup-for-interrupted-manual-model-copies).
+
 ## Phone model library durability checkpoint
 
 Model install, settings and deletion sync directory entries before returning.
