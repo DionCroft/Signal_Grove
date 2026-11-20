@@ -185,9 +185,16 @@ changes, physical interruption, network handoff, low-space and reboot
 verification remain open. User-selected GGUF replacements have an exact side-by-side
 review with a storage measurement and a separate install action.
 [Replacement checks](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
-Publisher catalogue updates still need an explicit review of the
-replacement revision and extra storage. Both publisher manifests
-still matched the packaged files by revision, size and SHA-256 on
+The publisher update review shows both pinned revisions and the
+required extra storage. It preserves the earlier file, chats,
+and exact reviewed download receipts. Bundled pins and their licence
+assets stay immutable across future catalogue transitions. When
+adding a reviewed replacement from the same publisher repository,
+retain earlier pins in the revision history and use a distinct
+content hash for the replacement.
+[Publisher update checks](VALIDATION.md#publisher-catalogue-revision-updates).
+A real upstream replacement is still pending. Both manifests
+matched the packaged files by revision, size and SHA-256 on
 20 November 2026.
 [LiquidAI manifest](https://huggingface.co/api/models/LiquidAI/LFM3-1.7B-GGUF/tree/main) ·
 [Qwen manifest](https://huggingface.co/api/models/Qwen/Qwen2.5-0.5B-Instruct-GGUF/tree/main).

@@ -24,6 +24,7 @@ internal fun ColumnScope.PhoneModelLibrary(
     openCatalogue: () -> Unit,
     openSetup: () -> Unit,
     openDownloads: (() -> Unit)?,
+    reviewUpdate: (CuratedPhoneModel) -> Unit,
     remove: (InstalledLocalModel) -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -69,14 +70,15 @@ internal fun ColumnScope.PhoneModelLibrary(
             if (models.isEmpty()) Text(label(Words.PhoneModelNoMatches), Modifier.testTag("phone-model-no-matches"))
         }
         for (model in models) {
-            key(model.sha256) { PhoneModel(model, state, supported, actions) { remove(model) } }
+            key(model.sha256) { PhoneModel(model, state, supported, actions, reviewUpdate) { remove(model) } }
         }
         Text(label(Words.PhoneLibraryHelp), style = MaterialTheme.typography.bodySmall)
     }
 }
 
 @Composable
-private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supported: Boolean, actions: LocalAiActions, remove: () -> Unit) {
+private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supported: Boolean, actions: LocalAiActions,
+    reviewUpdate: (CuratedPhoneModel) -> Unit, remove: () -> Unit) {
     val next = state.modelPerformance[model.sha256] ?: LocalPerformancePreset.BALANCED.forModel(model.metadata.trainedContext)
     val canLoad = supported && next.allowedBy(model.metadata.trainedContext)
     val active = state.loadedSettings.takeIf { state.loaded?.sha256 == model.sha256 }
@@ -90,7 +92,7 @@ private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supporte
             modifier = Modifier.testTag("phone-load-${model.sha256.take(8)}")) { Text(label(Words.PhoneLoad)) }
         Text("${model.metadata.architecture} · ${model.metadata.bytes / 1048576} MiB", style = MaterialTheme.typography.bodySmall)
         Text("SHA-256: ${model.sha256}", style = MaterialTheme.typography.labelSmall)
-        val source = if (CuratedPhoneModel.entries.any { it.sha256 == model.sha256 }) Words.PhonePublisher else Words.PhoneImported
+        val source = if (state.modelCatalog.known.any { it.sha256 == model.sha256 }) Words.PhonePublisher else Words.PhoneImported
         Text(label(source), style = MaterialTheme.typography.bodySmall)
         val minimumMiB = (model.minimumLoadMemoryBytes + 1048575) / 1048576
         Text(label(Words.PhoneModelFreeMemory).replace("{number}", minimumMiB.toString()), style = MaterialTheme.typography.bodySmall)
@@ -113,6 +115,14 @@ private fun PhoneModel(model: InstalledLocalModel, state: LocalAiState, supporte
             Text(label(Words.PhoneModelContextTooSmall), style = MaterialTheme.typography.bodySmall)
         }
         if (state.loaded?.sha256 == model.sha256) TextButton(actions.unload, enabled = !state.busy) { Text(label(Words.PhoneUnload)) }
+        state.modelCatalog.updateFor(model.sha256)
+            ?.takeUnless { update -> state.models.any { it.sha256 == update.sha256 } }
+            ?.let { update ->
+                TextButton({ reviewUpdate(update) }, enabled = supported && !state.busy,
+                    modifier = Modifier.testTag("phone-catalogue-update-${model.sha256.take(8)}")) {
+                    Text(label(Words.PhoneCatalogueUpdateReview))
+                }
+            }
         actions.replacements?.let { replacements ->
             TextButton({ replacements.choose(model) }, enabled = supported && !state.busy,
                 modifier = Modifier.testTag("phone-replace-${model.sha256.take(8)}")) {

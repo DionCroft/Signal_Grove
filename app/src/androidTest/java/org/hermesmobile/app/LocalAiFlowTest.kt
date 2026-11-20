@@ -262,6 +262,49 @@ class LocalAiFlowTest {
         }
     }
 
+    @Test fun publisherUpdateComparesExactRevisionsAndQueuesOnlyTheSeparatelyReviewedFile() {
+        val older = CuratedPhoneModel.QWEN
+        val newer = older.copy(name = "QWEN_NEW_FIXTURE", revision = "e".repeat(40), sha256 = "b".repeat(64))
+        val previous = model.copy(sha256 = older.sha256)
+        state = LocalAiState(
+            models = listOf(previous),
+            modelCatalog = PhoneModelCatalog(listOf(newer), mapOf(newer to listOf(older))),
+            modelStorageAvailableBytes = 1_500_000_000L,
+            unavailableDownloadReviews = 2
+        )
+        show(bilingual = true, queue = true)
+        compose.onNodeWithTag("phone-tab-1").performClick()
+        val open = compose.onNodeWithTag("phone-catalogue-update-${older.sha256.take(8)}")
+        open.performScrollTo().performClick()
+        compose.onNodeWithTag("phone-licence-source").performScrollTo().assertTextContains(newer.revision, substring = true)
+            .assertTextContains(newer.sha256, substring = true)
+        compose.onNodeWithTag("phone-catalogue-update-previous-QWEN").performScrollTo()
+            .assertTextContains(older.revision, substring = true).assertTextContains(older.sha256, substring = true)
+        compose.onNodeWithTag("phone-catalogue-update-space").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-catalogue-update-free").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-licence-queue").assertIsDisplayed().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-licence-confirm").assertIsDisplayed().assertIsNotEnabled()
+        compose.onNodeWithTag("phone-licence-cancel").performClick()
+        compose.runOnIdle {
+            assertTrue(queued.isEmpty())
+            assertTrue(downloads.isEmpty())
+        }
+
+        open.performScrollTo().performClick()
+        compose.onNodeWithTag("phone-licence-consent").assertIsOff().performClick()
+        compose.onNodeWithTag("phone-licence-queue").assertIsEnabled().performClick()
+        compose.onNodeWithTag("phone-downloads-unavailable-count").performScrollTo().assertTextContains("2", substring = true)
+        compose.onNodeWithTag("phone-transfer-revision-QWEN_NEW_FIXTURE").performScrollTo()
+            .assertTextContains(newer.revision, substring = true)
+        compose.onNodeWithTag("phone-transfer-start-QWEN_NEW_FIXTURE").performScrollTo().assertIsEnabled()
+        compose.runOnIdle {
+            assertEquals(listOf(newer), queued)
+            assertTrue(resumed.isEmpty())
+            assertTrue(downloads.isEmpty())
+            assertEquals(listOf(previous), state.models)
+        }
+    }
+
     @Test fun reviewedQueueStartsAndPausesOnlyTheExplicitItem() {
         val qwen = CuratedPhoneModel.QWEN
         show(bilingual = true, queue = true)

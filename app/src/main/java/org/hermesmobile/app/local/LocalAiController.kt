@@ -28,7 +28,9 @@ data class LocalAiState(val models: List<InstalledLocalModel> = emptyList(), val
     val activeDownload: CuratedPhoneModel? = null,
     val downloadQueueUnavailable: Boolean = false,
     val backgroundDownloadId: String? = null,
-    val modelReplacement: PhoneModelReplacement? = null) {
+    val modelReplacement: PhoneModelReplacement? = null,
+    val modelCatalog: PhoneModelCatalog = PhoneModelCatalog.Bundled,
+    val unavailableDownloadReviews: Int = 0) {
     fun partialBytes(model: CuratedPhoneModel): Long = downloadPartials[model] ?: 0L
 }
 
@@ -38,6 +40,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate, private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val readLoadPssKiB: () -> Int? = { null },
     prepareDownloadRoute: suspend (OkHttpClient) -> ModelDownloadRoute = { ModelDownloadRoute(it) },
+    catalogue: PhoneModelCatalog = PhoneModelCatalog.Bundled,
     private val engineFactory: () -> LocalInference = { NativeLocalInference(modelRoot, nativeDirectory) }) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val lock = Mutex()
@@ -51,8 +54,8 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     internal val historyBackupFiles = LocalHistoryBackupFiles(
         File(conversations.directory.parentFile, "history-backup-stages"), conversations, organization
     )
-    private val downloadQueue = LocalDownloadQueue(store)
-    private val downloads = CuratedPhoneModel.entries.associateWith { model ->
+    private val downloadQueue = LocalDownloadQueue(store, catalogue)
+    private val downloads = catalogue.known.associateWith { model ->
         LocalModelDownload(store, spec = model.spec, ioDispatcher = ioDispatcher, prepareRoute = prepareDownloadRoute)
     }
     private var engine: LocalInference? = null
@@ -63,7 +66,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     private var leaving = false
     private var restoreRecoveryNeeded = true
     private var recovered = false
-    private val mutable = MutableStateFlow(LocalAiState())
+    private val mutable = MutableStateFlow(LocalAiState(modelCatalog = catalogue))
     val state = mutable.asStateFlow()
 
     init { action("reading") { refresh() } }
@@ -746,11 +749,12 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         val performance: Map<String, LocalModelPerformance>,
         val partials: Map<CuratedPhoneModel, Long>,
         val availableBytes: Long,
-        val queued: List<CuratedPhoneModel>?
+        val queued: LocalDownloadQueue.Pending?
     ) {
         fun applyTo(state: LocalAiState) = state.copy(models = models, modelPerformance = performance,
             downloadPartials = partials, modelStorageAvailableBytes = availableBytes,
-            queuedDownloads = queued.orEmpty(), downloadQueueUnavailable = queued == null)
+            queuedDownloads = queued?.models.orEmpty(), unavailableDownloadReviews = queued?.unavailable ?: 0,
+            downloadQueueUnavailable = queued == null)
     }
 
     private suspend fun readModelLibrary() = io {

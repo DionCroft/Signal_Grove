@@ -102,6 +102,19 @@ to the On-device AI screen. If Android stops a background transfer,
 return to the list to resume its saved bytes yourself.
 [Background transfer validation](VALIDATION.md#opt-in-model-downloads-while-away-from-the-app).
 
+### Review a publisher update
+
+When the bundled catalogue includes a newer pinned revision for an
+installed model, **Review publisher update** appears on the earlier
+model and in the catalogue. Check both revisions and the required
+storage. Review the licence, then add the candidate to downloads or
+start it explicitly. The older file stays available for existing chats.
+
+**Model downloads** keeps earlier reviewed transfers tied to their
+original revision. If the app version cannot open a saved entry, the
+list shows how many entries are retained for a version that supports
+those exact files.
+
 ### Review another version of an installed phone model
 
 1. Open **Phone models** and choose **Review a replacement file** on the

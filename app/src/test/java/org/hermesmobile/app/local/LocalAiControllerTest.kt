@@ -382,8 +382,109 @@ class LocalAiControllerTest {
         first.add(CuratedPhoneModel.LFM3)
         first.add(CuratedPhoneModel.QWEN)
         val completed = CuratedPhoneModel.LFM3.sha256
-        assertEquals(listOf(CuratedPhoneModel.QWEN), first.pending(setOf(completed)))
-        assertEquals(listOf(CuratedPhoneModel.QWEN), LocalDownloadQueue(store).pending(emptySet()))
+        assertEquals(listOf(CuratedPhoneModel.QWEN), first.pending(setOf(completed)).models)
+        assertEquals(listOf(CuratedPhoneModel.QWEN), LocalDownloadQueue(store).pending(emptySet()).models)
+    }
+
+    @Test fun catalogueUpgradeKeepsTheOldReviewAndRequiresNewConsentForTheReplacement() = runTest {
+        val root = temp.newFolder()
+        val history = temp.newFolder()
+        val fixtures = temp.newFolder()
+        val oldModel = model(fixtures, "Older test revision")
+        val newModel = model(fixtures, "Newer test revision")
+        val older = CuratedPhoneModel.QWEN.copy(bytes = oldModel.metadata.bytes, sha256 = oldModel.sha256)
+        val newer = older.copy(name = "QWEN_UPDATE_FIXTURE", revision = "e".repeat(40),
+            bytes = newModel.metadata.bytes, sha256 = newModel.sha256)
+        val original = PhoneModelCatalog(listOf(older))
+        val updated = PhoneModelCatalog(listOf(newer), mapOf(newer to listOf(older)))
+        val store = LocalModelStore(root)
+        LocalDownloadQueue(store, original).add(older)
+        val oldBytes = File(fixtures, "${older.sha256}.gguf").readBytes()
+        val newBytes = File(fixtures, "${newer.sha256}.gguf").readBytes()
+        val oldPartial = File(root, "${older.sha256}.part").apply { writeBytes(oldBytes) }
+        val newPartial = File(root, "${newer.sha256}.part").apply { writeBytes(newBytes) }
+
+        val engine = Engine()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        var requests = 0
+        val c = LocalAiController(root, history, "unused", true, { Long.MAX_VALUE }, UpdateWorkGuard(),
+            dispatcher, dispatcher, prepareDownloadRoute = { requests++; error("Complete partials need no network") },
+            catalogue = updated) { engine }
+        advanceUntilIdle()
+        assertEquals(listOf(older), c.state.value.queuedDownloads)
+        assertEquals(newer, c.state.value.modelCatalog.updateFor(older.sha256))
+        assertEquals(0, c.state.value.unavailableDownloadReviews)
+        assertNull(c.state.value.activeDownload)
+        assertArrayEquals(oldBytes, oldPartial.readBytes())
+        c.resumeDownload(newer)
+        advanceUntilIdle()
+        assertEquals("download_review_required", c.state.value.error)
+        assertArrayEquals(newBytes, newPartial.readBytes())
+        assertTrue(c.state.value.models.isEmpty())
+
+        c.resumeDownload(older)
+        advanceUntilIdle()
+        assertEquals(listOf(oldModel), c.state.value.models)
+        assertTrue(c.state.value.queuedDownloads.isEmpty())
+        c.load(oldModel)
+        advanceUntilIdle()
+        c.send("Keep this conversation on the original model")
+        advanceUntilIdle()
+        val chat = checkNotNull(c.state.value.chat)
+        val transcript = File(history, "${chat.id}.json")
+        val prior = transcript.readBytes()
+
+        c.enqueueDownload(newer, licenceReviewed = true)
+        advanceUntilIdle()
+        assertEquals(listOf(newer), c.state.value.queuedDownloads)
+        assertEquals(listOf(oldModel), c.state.value.models)
+        c.resumeDownload(newer)
+        advanceUntilIdle()
+        assertEquals(setOf(oldModel, newModel), c.state.value.models.toSet())
+        assertArrayEquals(oldBytes, store.verifiedFile(older.sha256).readBytes())
+        assertArrayEquals(newBytes, store.verifiedFile(newer.sha256).readBytes())
+        assertArrayEquals(prior, transcript.readBytes())
+        assertEquals(older.sha256, c.state.value.chat?.modelSha256)
+        assertEquals(oldModel, c.state.value.loaded)
+        assertEquals(1, engine.loads)
+        assertEquals(0, requests)
+    }
+
+    @Test fun unavailableRevisionReceiptsSurviveAddingRemovingAndCompletingKnownPins() {
+        val root = temp.newFolder()
+        val older = CuratedPhoneModel.QWEN
+        val known = CuratedPhoneModel.LFM3
+        val store = LocalModelStore(root)
+        val saved = File(root, "download-queue").apply { writeText("1\ncc5df24de2b6468a8d99d984afc4e28df45acf553252b42c0ae8d862e05868b1\n") }
+        val partial = File(root, "${older.sha256}.part").apply { writeText("previous version partial") }
+        val reduced = LocalDownloadQueue(store, PhoneModelCatalog(listOf(known)))
+
+        assertEquals(LocalDownloadQueue.Pending(emptyList(), 1), reduced.pending(emptySet()))
+        reduced.add(known)
+        assertEquals("1\ncc5df24de2b6468a8d99d984afc4e28df45acf553252b42c0ae8d862e05868b1\nb13f106f5fc8d490426be8b485aafc30ba98e9dc8379c3c3423275c5f3b27a67\n", saved.readText())
+        assertEquals(LocalDownloadQueue.Pending(listOf(known), 1), reduced.pending(emptySet()))
+        reduced.remove(known)
+        assertEquals("1\ncc5df24de2b6468a8d99d984afc4e28df45acf553252b42c0ae8d862e05868b1\n", saved.readText())
+        reduced.add(known)
+        assertEquals(LocalDownloadQueue.Pending(emptyList(), 1), reduced.pending(setOf(known.sha256)))
+        assertEquals("1\ncc5df24de2b6468a8d99d984afc4e28df45acf553252b42c0ae8d862e05868b1\n", saved.readText())
+        assertEquals("previous version partial", partial.readText())
+
+        val full = LocalDownloadQueue(store)
+        full.assertReviewed(older)
+        assertEquals(LocalDownloadQueue.Pending(listOf(older), 0), full.pending(emptySet()))
+    }
+
+    @Test fun boundedQueueKeepsEveryUnknownReceiptWhenThereIsNoRoomToAddOne() {
+        val root = temp.newFolder()
+        val pins = (1..62).joinToString("\n") { it.toString(16).padStart(64, '0') }
+        val file = File(root, "download-queue").apply { writeText("1\n$pins\n") }
+        val original = file.readBytes()
+        val queue = LocalDownloadQueue(LocalModelStore(root))
+        assertEquals(LocalDownloadQueue.Pending(emptyList(), 62), queue.pending(emptySet()))
+        val failure = runCatching { queue.add(CuratedPhoneModel.QWEN) }.exceptionOrNull() as LocalModelStorageException
+        assertEquals("download_queue_full", failure.reason)
+        assertArrayEquals(original, file.readBytes())
     }
 
     @Test fun benchmarkUsesTheLoadedLimitsAndLeavesChatHistoryUntouched() = runTest {

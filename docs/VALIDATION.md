@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## Publisher catalogue revision updates
+
+A fresh catalogue revision now has its own immutable HTTPS pin and
+licence review. A user with an earlier model can open **Review publisher
+update** from **Phone models** or **Compare downloadable models**.
+The dialog shows the incoming pinned revision and hash, the earlier
+installed revisions, and space needed for the remaining bytes plus
+the reserve. The app keeps earlier files and conversation hashes.
+
+The existing version 1 download receipt format is unchanged. The same
+exact earlier revision can still resume when bundled as older. A
+receipt for a revision unavailable in this app version stays in the
+queue file with its original identity and relative order. Known items can
+be added, completed or removed without erasing it. When the queue has
+no space for a new entry, the attempted addition leaves the file intact.
+
+The exact build passed 1,173 JVM tests and 103 focused methods per API
+on Android 8 and Android 17. Both lint variants reported zero errors.
+The catalogue-transition test used synthetic GGUF fixtures with
+different pins. It verified the earlier receipt resumed under the
+new catalogue, required independent approval for the replacement,
+and compared both installed files and the existing chat. The Android
+test verified the two visible revisions, storage summary, licence
+controls and exact queue selection. Live metadata for the two
+publishers still matched the shipped pins. No successor was added
+to the bundled catalogue.
+
+A real published successor, physical-phone interruption and handoff,
+low-space and reboot acceptance remain open.
+
+- Build receipt: 20261120-015128-0d5aeac07a624c218c988cac745ab337
+- Frozen source digest: 24e4b5365798dd39a0aaa434d941463ad7f87c73dd3290a73fdc6c0ef7e16847
+- Debug APK SHA-256: 7496c4cd89255b25ac3014d00765e2d2f3f366972190384b90baa55c431ab3b4
+- Debug test APK SHA-256: 7a650bd1c56bf5a106df3aeb9ad2ca622085a22322bc2c26c0d33ada8eb74c2e
+- Android 8 instrumentation SHA-256: 64d80bd5b0a3dfad09a52d843be2737747d3c032194494ffbe6d01d03cf0cca1
+- Android 17 instrumentation SHA-256: 561f9fd56a45a76941c2ea4c790043558d7d31e5f8be88bf36e1f680fe8b6bab
+
+[Official Qwen manifest](https://huggingface.co/api/models/Qwen/Qwen2.5-0.5B-Instruct-GGUF/tree/9217f5db79a29953eb74d5343926648285ec7e67) ·
+[Official LiquidAI manifest](https://huggingface.co/api/models/LiquidAI/LFM3-1.7B-GGUF/tree/cd0c74c575b5c416f3011b5b4c298077f26ca8c2).
+
 ## Reviewed replacement from a phone model file
 
 In **Phone models**, **Review a replacement file** opens the Android

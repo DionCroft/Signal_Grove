@@ -210,6 +210,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     openCatalogue = { catalogueOpen = true },
                     openSetup = { offlineSetup = true },
                     openDownloads = actions.downloads?.let { { downloadsOpen = true } },
+                    reviewUpdate = { downloadReview = it },
                     remove = { deleteModel = it })
                 2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
             }
@@ -290,7 +291,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 catalogueOpen = false
                 downloadsOpen = downloadActions != null
                 actions.download(model)
-            }, close = { downloadReview = null }, model = model,
+            }, close = { downloadReview = null }, model = model, catalogueState = state,
                 queue = downloadActions?.let { transfers ->
                     {
                         downloadReview = null
@@ -613,6 +614,7 @@ internal fun phoneError(code: String) = when {
     code == "download_network_proxy" -> Words.PhoneDownloadNetworkProxy
     code == "download_network_settings" -> Words.PhoneDownloadNetworkReadFailed
     code == "download_queue_unreadable" -> Words.PhoneDownloadQueueUnavailable
+    code == "download_queue_full" -> Words.PhoneDownloadQueueFull
     code == "download_review_required" -> Words.PhoneDownloadNeedsReview
     code == "model_replacement_changed" -> Words.PhoneReplacementChanged
     code == "model_replacement_installed" -> Words.PhoneReplacementAlreadyInstalled

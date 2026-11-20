@@ -28,9 +28,12 @@ internal fun PhoneModelCatalogue(
                 Text(label(Words.PhoneCatalogue), style = MaterialTheme.typography.headlineSmall)
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (!supported) Text(label(Words.PhoneUnsupported), style = MaterialTheme.typography.bodySmall)
-                    CuratedPhoneModel.entries.forEach { model ->
+                    state.modelCatalog.current.forEach { model ->
                         val installed = state.models.any { it.sha256 == model.sha256 }
                         val partial = state.partialBytes(model)
+                        val update = state.modelCatalog.olderVersions(model).any { previous ->
+                            state.models.any { it.sha256 == previous.sha256 }
+                        }
                         val minimumMiB = (minimumModelLoadMemoryBytes(model.bytes) + 1048575) / 1048576
                         HermesCard {
                             Text(model.displayName, Modifier.testTag("phone-catalogue-${model.name}"),
@@ -52,7 +55,7 @@ internal fun PhoneModelCatalogue(
                             if (installed) Text(label(Words.PhoneCatalogueInstalled))
                             else Button({ reviewDownload(model) }, enabled = supported && !state.busy,
                                 modifier = Modifier.testTag("phone-download-review-${model.name}")) {
-                                Text(label(Words.PhoneDownload))
+                                Text(label(if (update) Words.PhoneCatalogueUpdateReview else Words.PhoneDownload))
                             }
                         }
                     }

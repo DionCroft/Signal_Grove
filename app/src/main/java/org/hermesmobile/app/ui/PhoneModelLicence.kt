@@ -1,5 +1,6 @@
 package org.hermesmobile.app.ui
 
+import android.text.format.Formatter
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -9,12 +10,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.hermesmobile.app.local.CuratedPhoneModel
+import org.hermesmobile.app.local.LocalAiState
+import org.hermesmobile.app.local.LocalModelStore
 
 @Composable
 internal fun PhoneLicence(
@@ -23,6 +27,7 @@ internal fun PhoneLicence(
     accept: () -> Unit,
     close: () -> Unit,
     model: CuratedPhoneModel? = null,
+    catalogueState: LocalAiState? = null,
     queue: (() -> Unit)? = null
 ) {
     var approved by remember { mutableStateOf(false) }
@@ -40,6 +45,7 @@ internal fun PhoneLicence(
                             Text(model.catalogueFileDetails(), Modifier.testTag("phone-licence-source"), style = MaterialTheme.typography.bodySmall)
                         }
                         Text(label(Words.PhoneDownloadInfo), style = MaterialTheme.typography.bodySmall)
+                        if (catalogueState != null) CatalogueUpdateReview(model, catalogueState)
                     }
                     SelectionContainer { Text(text, style = MaterialTheme.typography.bodySmall) }
                 }
@@ -71,5 +77,31 @@ internal fun PhoneLicence(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CatalogueUpdateReview(model: CuratedPhoneModel, state: LocalAiState) {
+    val previous = state.modelCatalog.olderVersions(model).filter { older ->
+        state.models.any { it.sha256 == older.sha256 }
+    }
+    if (previous.isEmpty()) return
+
+    val context = LocalContext.current
+    val remaining = (model.bytes - state.partialBytes(model)).coerceAtLeast(0)
+    val required = Formatter.formatFileSize(context, remaining + LocalModelStore.SPACE_RESERVE)
+    Text(label(Words.PhoneCatalogueUpdateKeep), Modifier.testTag("phone-catalogue-update-retention"))
+    for (older in previous) {
+        SelectionContainer {
+            Text(label(Words.PhoneReplacementPrevious) + "\n" + older.displayName + "\n" +
+                label(Words.PhoneCatalogueRevision).replace("{revision}", older.revision) + "\nSHA-256 · ${older.sha256}",
+                Modifier.testTag("phone-catalogue-update-previous-${older.name}"), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+    Text(label(Words.PhoneCatalogueUpdateSpace).replace("{size}", required),
+        Modifier.testTag("phone-catalogue-update-space"), style = MaterialTheme.typography.bodySmall)
+    state.modelStorageAvailableBytes?.let { available ->
+        Text(label(Words.PhoneCatalogueUpdateFree).replace("{available}", Formatter.formatFileSize(context, available)),
+            Modifier.testTag("phone-catalogue-update-free"), style = MaterialTheme.typography.bodySmall)
     }
 }

@@ -32,9 +32,9 @@ internal fun PhoneDownloads(
         return
     }
     val active = state.activeDownload
-    val installed = CuratedPhoneModel.entries.filter { model -> state.models.any { it.sha256 == model.sha256 } }
+    val installed = state.modelCatalog.known.filter { model -> state.models.any { it.sha256 == model.sha256 } }
     val models = (listOfNotNull(active) + state.queuedDownloads +
-        CuratedPhoneModel.entries.filter { state.partialBytes(it) > 0 } + installed).distinct()
+        state.modelCatalog.known.filter { state.partialBytes(it) > 0 } + installed).distinct()
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -54,8 +54,12 @@ internal fun PhoneDownloads(
                     if (state.downloadQueueUnavailable) {
                         Text(label(Words.PhoneDownloadQueueUnavailable), color = MaterialTheme.colorScheme.error)
                         TextButton(refresh, enabled = !state.busy) { Text(label(Words.Refresh)) }
-                    } else if (models.isEmpty()) {
+                    } else if (models.isEmpty() && state.unavailableDownloadReviews == 0) {
                         Text(label(Words.PhoneDownloadQueueEmpty), Modifier.testTag("phone-downloads-empty"))
+                    }
+                    if (state.unavailableDownloadReviews > 0) {
+                        Text(label(Words.PhoneDownloadReviewsUnavailable).replace("{count}", state.unavailableDownloadReviews.toString()),
+                            Modifier.testTag("phone-downloads-unavailable-count"), style = MaterialTheme.typography.bodySmall)
                     }
                     state.error?.takeUnless { state.downloadQueueUnavailable && it == "download_queue_unreadable" }?.let { code ->
                         Text(label(phoneError(code)), color = MaterialTheme.colorScheme.error)
@@ -72,6 +76,10 @@ internal fun PhoneDownloads(
                         HermesCard {
                             Text(model.displayName, Modifier.testTag("phone-transfer-${model.name}"),
                                 style = MaterialTheme.typography.titleMedium)
+                            if (state.modelCatalog.updateFor(model.sha256) != null || state.modelCatalog.olderVersions(model).isNotEmpty()) {
+                                Text(label(Words.PhoneCatalogueRevision).replace("{revision}", model.revision),
+                                    Modifier.testTag("phone-transfer-revision-${model.name}"), style = MaterialTheme.typography.bodySmall)
+                            }
                             val displayedBytes = if (model in installed && saved == 0L) model.bytes else saved
                             Text(label(Words.PhoneDownloadBytes)
                                 .replace("{saved}", displayedBytes.toString()).replace("{total}", model.bytes.toString()),

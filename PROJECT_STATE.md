@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest publisher model catalogue checkpoint
+
+Signal Grove can review a newer bundled publisher revision while
+keeping earlier model files, chat bindings and exact queue receipts.
+The exact APK pair passed 1,173 JVM tests and 103 focused tests on
+each emulator API. The current publisher revisions already match the
+packaged pins. A real successor, physical device and release gates
+remain open.
+[Catalogue evidence](docs/VALIDATION.md#publisher-catalogue-revision-updates).
+
 ## Latest phone model replacement checkpoint
 
 The development app can stage a user-selected GGUF and review both
