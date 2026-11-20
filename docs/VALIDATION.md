@@ -1,5 +1,31 @@
 # Current development validation — audit follow-up
 
+## Image share review survives Android activity recreation
+
+A new share is read from the delivered intent and stored in the
+activity's review state. Activity recreation retains a pending review.
+Once the review is accepted or dismissed, recreation keeps it closed.
+The share still requires explicit review and no image or caption is sent
+to Hermes automatically.
+
+Earlier hosted image-share tests failed because activity lifecycle
+observations dropped events after a new intent replaced the launch
+intent. Android 8 reproduced the failure. The same tests passed after
+the fix with their assertions unchanged. Android 8 and Android 17 each
+passed all eight focused image and startup cases, including a valid
+share, cancel, invalid files, activity recreation, a repeated launcher
+entry, and widget and notification routing. The build also passed all
+1,186 JVM tests and lint with zero errors. The broader device suite,
+including the intermittent Android 8 summary review, remains open.
+
+- Build receipt 20261120-115819-d1a141587e7d4c599b1dedbbc5b7db2d
+- Source snapshot SHA-256 15d1cc55d0aa68a170fd873a72e0696783bcccc0c4d6012b9deff677875f9a45
+- Debug APK SHA-256 9926e98f130982630e0f3934bcf9eed04557c98f980d9edc1591be312c0a4ab0
+- Test companion SHA-256 c4eff55d5ac346602efd163959b06c4cb54924806a655c0afa166d22ae193303
+- Earlier Android 8 reproduction SHA-256 47d3fda919d46230c611c7282973ef1f9bec20b38ce794de87f49c40103b75e3
+- Android 8 instrumentation SHA-256 b2b2f3185500915bf2f50b86d884dbd99afe3a05870d5e4256d4551e8de525e3
+- Android 17 instrumentation SHA-256 9bb8249517a72c93da3bcbc97e749aad4424094af04ada5f63a0544fd6cb4554
+
 ## Foreground-only temporary phone chats
 
 Open Temporary chat from the phone Chat tab. It runs against an explicit

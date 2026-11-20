@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.isLauncherEntry()) return
-        setIntent(intent)
+        // A delivered request updates saved review state and leaves the activity launch identity intact.
         launcherRouting?.cancel()
         destination.value=intent.getStringExtra("destination")?.takeIf {it in setOf("Tasks","Chat")}
         org.hermesmobile.app.data.SharedImages.parse(intent)?.let {shareConsumed=false;sharedImages.value=it}
