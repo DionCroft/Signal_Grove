@@ -5,14 +5,13 @@ An unofficial, open-source Android companion for [Hermes Agent](https://github.c
 **[Download beta.9](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk)** — experimental preview with optional offline AI, model management and a grounded setup helper. Full compatibility and production-phone acceptance remain open. [Published scope](docs/contracts/2026-11-13-beta9-public-preview.md) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
 
 The development branch adds offline chat editing, regeneration, branching,
-search, labels, Markdown, protected backups, reviewed summaries and
-saved per-model performance presets. Phone backups now guide chat selection and protection in two steps. The owner's phone saved a protected
-archive and restored a reviewed copy offline. The latest focused build
-passes **1,155 JVM tests** and **82 Android methods each on API 26 and API
-37** with zero lint errors.
-[Phone model settings](docs/ON_DEVICE_AI.md#choose-settings-for-a-phone-model) ·
-[Reviewed summaries](docs/ON_DEVICE_AI.md#continue-a-phone-chat-with-a-reviewed-summary) ·
-[Phone backup evidence](docs/contracts/2026-11-19-phone-history-backup-ui.md).
+search, labels, Markdown, protected backups, reviewed summaries and per-model
+performance presets. It also adds offline speech controls and an offline setup
+checklist with searchable, reviewed troubleshooting topics that work before a
+model is loaded. The latest focused build passes **1,198 JVM tests** and **153
+Android methods each on API 26 and API 37**, with zero lint errors.
+[Offline setup and troubleshooting](docs/ON_DEVICE_AI.md#setup-and-troubleshooting) ·
+[Latest validation](docs/VALIDATION.md#offline-checklist-and-setup-issue-search).
 
 UI readiness/native-viewport fixes are on `main` at `a992cf4`, with independently
 verified identical-tree PR coverage of **1,149 API26 / 1,150 API37 standard device
@@ -79,7 +78,7 @@ Updated **19 November 2026** for unreleased offline chat, backups, reviewed summ
 | Maintained SDK unbound-status component | **16 read-only checks / two real turn receipts** | Corrected declared SDK copy; includes five expected UNKNOWN outcomes and idle second profile; not gateway/fleet/PM acceptance |
 | Prior original-SDK gateway lifecycle | **Freeze/drain/native stop verified in its configured home** | Source `6e1325b` fixture, original SDK/dependency baseline and profiler scope; corrected SDK gateway-wire/fleet acceptance remains open |
 | New fixture boundary methods | **10 / 10 on Pi and Windows** | Negative scope/epoch/admission/read-only command guards; overlaps full policy counts |
-| Unreleased offline chat setup | **1,158 JVM / 89 focused Android methods per API (26 and 37)** | Guided download or import, explicit load and first chat. [Exact checks](docs/VALIDATION.md#guided-offline-chat-setup) |
+| Unreleased offline checklist and setup helper | **1,198 JVM / 153 focused Android methods per API (26 and 37)** | Model, storage and history state; reviewed topic search with the model unloaded and networking off. [Exact checks](docs/VALIDATION.md#offline-checklist-and-setup-issue-search) |
 | Unreleased optional On-device AI startup | **1,158 JVM / 94 focused Android methods per API (26 and 37)** | Saved app-icon routing, explicit Hermes return, and widget, notification and share coverage. [Exact checks](docs/VALIDATION.md#optional-on-device-ai-startup) |
 | Unreleased reviewed model downloads | **1,162 JVM / 96 focused Android methods per API (26 and 37)** | Durable queue, explicit start, pause and resume, and exact saved bytes. [Exact checks](docs/VALIDATION.md#reviewed-download-queue-and-explicit-resume) |
 | Unreleased model download network preference | **1,165 JVM / 99 focused Android methods per API (26 and 37)** | Optional unmetered downloads, explicit resume after a network change and offline verification. [Exact checks](docs/VALIDATION.md#model-download-network-preference) |

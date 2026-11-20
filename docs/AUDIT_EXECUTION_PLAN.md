@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## Offline checklist and reviewed topic search - 20 November 2026
+
+Offline setup exposes current library/load state, last-checked storage
+and saved history. The helper works before inference with reviewed
+storage, memory and context checks searchable by a typed question.
+Optional ranking and observation consent remain explicit. JVM, lint
+and both focused Android emulator groups passed. The new phone recovery
+topic's physical model run and UI, full hosted, real Hermes and signed
+release acceptance remain open.
+[Exact checklist evidence](VALIDATION.md#offline-checklist-and-setup-issue-search).
+
 ## Offline voice in phone chat - 20 November 2026
 
 The phone chat has offline-only dictation and read-aloud controls.

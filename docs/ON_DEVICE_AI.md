@@ -594,14 +594,33 @@ The **Setup guide** works before any model download. It includes connecting an
 existing Hermes host, authenticated API access, private HTTPS/Tailscale, separate
 dashboard sign-in, model choices, conversation history and stored projects.
 
-With a model loaded, **Setup helper** suggests one to three reviewed checks for
-six preset topics. Each check identifies where it applies: the phone app, Hermes
-host or execution worker. The model chooses eligible IDs; the app displays exact
-reviewed English/Chinese/pinyin text and source references. Generated commands,
-URLs and freeform model instructions never enter this helper view. A rejected or
-incomplete selection leaves the full guide and examples available.
+For phone-only setup, tap **Set up offline chat** from Phone models or an
+empty phone chat. Check the installed count and available space from the last
+library check. With a compatible GGUF already on the phone, use **Import GGUF
+file** and review its licence. To acquire a model, open the catalogue and review
+the download while online. Then load the model under **Phone models**. You can
+read saved phone chats from the checklist with the model unloaded.
 
-Optional phone observations require a checkbox and show their capture time.
+Tap **Troubleshoot phone setup** for reviewed checks on installation, storage,
+memory and context. If a model won't fit in memory, try a smaller supported
+context in Performance settings or a smaller compatible model. If an individual
+request won't fit, check **Phone context** and shorten the draft, lower the reply
+token limit or start a new chat with selected earlier turns.
+
+In **Setup helper**, type a question such as “Why won't my GGUF load?” and tap
+the matching topic. The query stays in the search field and the reviewed checks
+work without a model or connection. English and Chinese terms and common pinyin
+for phone-model issues can find relevant topics. Clear search to browse all
+topics. Each check identifies the phone app, Hermes host or execution worker
+and lists its bundled source and revision.
+
+With a model loaded, tap **Suggest guide checks on phone** to rank one to three
+reviewed checks for the selected topic. The app displays the original reviewed
+English, Chinese and pinyin text and source references. A rejected or incomplete
+selection keeps the bundled checks available.
+
+Optional phone observations require a checkbox for each request and show
+their capture time.
 Only Demo mode, address-scheme category, 64-bit process and local-model-loaded
 state are shared; hostnames, paths, profile names, tokens, chat history and logs
 are excluded. These observations do not establish server readiness or

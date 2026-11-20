@@ -191,7 +191,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     var documentsOpen by rememberSaveable { mutableStateOf(false) }
     var guide by rememberSaveable {mutableStateOf(false)}
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
-    var helper by remember {mutableStateOf(false)}
+    var helper by remember {mutableStateOf<LocalHelpTopic?>(null)}
     var catalogueOpen by rememberSaveable { mutableStateOf(false) }
     var downloadsOpen by rememberSaveable { mutableStateOf(false) }
     var downloadReview by remember { mutableStateOf<CuratedPhoneModel?>(null) }
@@ -256,7 +256,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }
             Row {
                 TextButton({guide = true}, Modifier.weight(1f).testTag("phone-setup-guide")) {Text(label(Words.SetupGuide))}
-                TextButton({helper = true}, Modifier.weight(1f).testTag("phone-helper-open")) {Text(label(Words.PhoneHelper))}
+                TextButton({helper = LocalHelpTopic.FIRST_SETUP}, Modifier.weight(1f).testTag("phone-helper-open")) {Text(label(Words.PhoneHelper))}
             }
         }
     }
@@ -292,6 +292,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 offlineSetup = false
                 tab = 0
             },
+            openHistory = {
+                offlineSetup = false
+                tab = 2
+            },
+            troubleshoot = {
+                offlineSetup = false
+                helper = LocalHelpTopic.OFFLINE_MODEL
+            },
             close = { offlineSetup = false },
             startupSetting = startupSetting
         )
@@ -302,9 +310,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     if (errorDetails && state.error != null) AlertDialog(onDismissRequest = {errorDetails = false}, title = {Text(label(Words.PhoneIssue))},
         text = {Text(label(phoneError(state.error)), Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()))},
         confirmButton = {TextButton({errorDetails = false; actions.dismissError()}) {Text(label(Words.Close))}})
-    if (helper) LocalHelpScreen(state, observations, actions.help, actions.stop) {
-        helper = false
-        if(state.busy && state.helper?.state == LocalReplyState.GENERATING) actions.stop()
+    helper?.let { initialTopic ->
+        LocalHelpScreen(state, initialTopic, observations, actions.help, actions.stop) {
+            helper = null
+            if(state.busy && state.helper?.state == LocalReplyState.GENERATING) actions.stop()
+        }
     }
     if (catalogueOpen && downloadReview == null && discardReview == null && !pendingImport) {
         PhoneModelCatalogue(state, supported, { downloadReview = it }, { discardReview = it }) {

@@ -574,6 +574,35 @@ class LocalAiFlowTest {
         compose.onNodeWithText(Words.PhoneHelperSources.en, substring = true).performScrollTo().assertExists()
         assertTrue(helperRequests.isEmpty()); assertTrue(downloads.isEmpty())
     }
+    @Test fun offlineChecklistAndTopicSearchWorkBeforeAnyModelInstallation() {
+        state = LocalAiState(modelStorageAvailableBytes = 1024L * 1024L)
+        show()
+        compose.onNodeWithTag("phone-messages").performScrollToNode(hasTestTag("phone-offline-setup-chat-entry"))
+        compose.onNodeWithTag("phone-offline-setup-chat-entry").performClick()
+        compose.onNodeWithTag("phone-offline-setup-installed").performScrollTo().assertTextContains("0", substring = true)
+        compose.onNodeWithTag("phone-offline-setup-space").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-offline-setup-troubleshoot").performScrollTo().performClick()
+        compose.onNodeWithTag("phone-helper-current-topic").performScrollTo().assertTextContains(Words.PhoneOfflineSetup.en)
+        compose.onNodeWithText(Words.HelpOfflineStorage.en).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(Words.HelpOfflineContext.en).performScrollTo().assertIsDisplayed()
+
+        val query = compose.onNodeWithTag("phone-helper-query").performScrollTo()
+        query.performTextInput("Earlier chats")
+        compose.onNodeWithTag("phone-helper-topic-HISTORY").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-helper-topic-NETWORK").assertDoesNotExist()
+        compose.onNodeWithTag("phone-helper-current-topic").assertTextContains(Words.PhoneOfflineSetup.en)
+        compose.onNodeWithTag("phone-helper-topic-HISTORY").performClick()
+        compose.onNodeWithTag("phone-helper-current-topic").assertTextContains(Words.SetupChats.en)
+        compose.onNodeWithText(Words.HelpChatHistory.en).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("phone-helper-run").performScrollTo().assertIsNotEnabled()
+        compose.runOnIdle {
+            assertTrue(helperRequests.isEmpty())
+            assertTrue(downloads.isEmpty())
+            assertTrue(requestedLoads.isEmpty())
+            assertEquals(0, sends)
+            assertEquals(0, imports)
+        }
+    }
     @Test fun helperObservationsRequireExplicitOptInForTheRequest() {
         state = LocalAiState(loaded = model)
         show(); compose.onNodeWithTag("phone-helper-open").performClick()
@@ -582,6 +611,8 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-helper-observations").performScrollTo().performClick()
         compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
         assertEquals(LocalHelpTopic.FIRST_SETUP to true, helperRequests.last())
+        compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
+        assertEquals(LocalHelpTopic.FIRST_SETUP to false, helperRequests.last())
         assertEquals(0, sends); assertTrue(downloads.isEmpty())
     }
     @Test fun bilingualLargeTextKeepsTheConversationAndComposerReachable() {

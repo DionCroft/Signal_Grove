@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Offline checklist and setup issue search
+
+The checklist shows installed model count, last-checked storage when
+available, the loaded model, and a link to saved phone chats that works
+with the model unloaded. Existing download and import reviews still
+open before installation. Troubleshoot phone setup opens the bundled
+checks for acquisition, storage, load memory and context recovery.
+
+The Setup helper matches a bounded typed question against reviewed
+topic terms on the phone. Tapping a result selects its topic. Reviewed
+checks, locations, guide revision and sources are readable before
+loading a model. Optional ranking still accepts only the selected
+topic's reviewed check IDs. The search text is excluded from inference
+and persistence, and sharing redacted observations resets after each
+request and on topic changes.
+
+The build passed 1,198 JVM tests, 15 runtime-policy tests and both
+lint variants with zero errors. All 153 focused Android methods passed
+on each of API 26 and API 37. The new no-install fixture exercised
+review access and search without starting import, download, generation
+or chat. The normal Android 17 app also found and opened the history
+topic with no model loaded, Airplane mode on, Wi-Fi off and no Android
+default network. All 8 checked model and chat
+files matched after the existing radio settings were restored.
+
+- Source snapshot: ab0774b38bc482ceb0685a0aa87e4cc0e104c8a5dd22a56dc17dfae01a033787
+- Debug APK SHA-256: 6553105e2951d67103636c8c1f0eb9781d7b4bf50877cca763d2103eaa726328
+- Test APK SHA-256: 1243b36f2f40b38a690facd776e0041129e13d198f30b74487fcc6adc40dd2c8
+- API 26 focused log SHA-256: 80a839a525516b656527cee40ec19c05550a8594fdd4985f7100ffcee6d096a4
+- API 37 focused log SHA-256: 1fac625a8a1b46fb4a68943c0d5258576c7aa88b788ea1b17d888a9322d9faea
+
+The new recovery topic's grammar-constrained generation and current UI
+still need a physical-phone check. Exact-head hosted and release
+checks remain open.
+
 ## Offline voice in phone chat
 
 Phone voice reuses Android speech services. Dictation selects Android's

@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -15,26 +16,46 @@ import androidx.compose.ui.window.DialogProperties
 import org.hermesmobile.app.local.*
 import java.time.Instant
 
-@Composable internal fun LocalHelpScreen(state: LocalAiState, candidate: LocalHelpObservations?,
+@Composable internal fun LocalHelpScreen(state: LocalAiState, initialTopic: LocalHelpTopic, candidate: LocalHelpObservations?,
     start: (LocalHelpTopic, Boolean) -> Unit, stop: () -> Unit, close: () -> Unit) {
-    var topic by remember {mutableStateOf(LocalHelpTopic.FIRST_SETUP)}
-    var share by remember {mutableStateOf(false)}
+    var topic by remember(initialTopic) {mutableStateOf(initialTopic)}
+    var query by remember {mutableStateOf("")}
+    var share by remember(topic) {mutableStateOf(false)}
     val uri = LocalUriHandler.current
+    val focus = LocalFocusManager.current
+    val topics = remember(query) { if (query.isBlank()) LocalHelpTopic.entries else LocalSetupHelper.matchingTopics(query) }
     val result = state.helper?.takeIf {it.topic == topic}
-    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(Modifier.fillMaxSize().safeDrawingPadding(), color = MaterialTheme.colorScheme.background) {
+    val checks = result?.checks?.takeIf { it.isNotEmpty() } ?: LocalSetupHelper.checks(topic)
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.padding(16.dp).testTag("phone-helper")) {
                 Text(label(Words.PhoneHelper), style = MaterialTheme.typography.titleLarge)
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(label(Words.PhoneHelperBoundary))
-                    LocalHelpTopic.entries.forEach { value ->
-                        FilterChip(topic == value, {topic = value}, label = {Text(label(value.title))}, enabled = !state.busy,
-                            modifier = Modifier.fillMaxWidth().testTag("phone-helper-topic-${value.name}"))
+                    OutlinedTextField(query, { query = it.take(LocalSetupHelper.MAX_QUERY_LENGTH) },
+                        label = { Text(label(Words.PhoneHelperQuery)) },
+                        modifier = Modifier.fillMaxWidth().testTag("phone-helper-query"),
+                        enabled = !state.busy, singleLine = true)
+                    Text(label(Words.PhoneHelperQueryHelp), style = MaterialTheme.typography.bodySmall)
+                    if (topics.isEmpty()) Text(label(Words.PhoneHelperQueryEmpty), Modifier.testTag("phone-helper-no-topics"))
+                    if (query.isNotEmpty()) TextButton({ query = ""; focus.clearFocus() },
+                        Modifier.testTag("phone-helper-clear-query"), enabled = !state.busy) {
+                        Text(label(Words.PhoneHistoryClear))
                     }
+                    topics.forEach { value ->
+                        FilterChip(topic == value, {
+                            topic = value
+                            query = ""
+                            focus.clearFocus()
+                        }, label = {Text(label(value.title))}, enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth().testTag("phone-helper-topic-" + value.name))
+                    }
+                    Text(label(topic.title), style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.testTag("phone-helper-current-topic"))
                     Row {Checkbox(share, {share = it}, enabled = candidate != null && !state.busy, modifier = Modifier.testTag("phone-helper-observations")); Text(label(Words.PhoneHelperShare))}
                     if (share) candidate?.let {HelpObservations(it)}
                     if (state.loaded == null) Text(label(Words.PhoneNotLoaded))
-                    Button({start(topic, share)}, enabled = state.loaded != null && !state.busy && (!share || candidate != null),
+                    Button({ start(topic, share); share = false }, enabled = state.loaded != null && !state.busy && (!share || candidate != null),
                         modifier = Modifier.testTag("phone-helper-run")) {Text(label(Words.PhoneHelperRun))}
                     if (state.busy) {
                         Text(label(Words.PhoneWorking))
@@ -45,8 +66,15 @@ import java.time.Instant
                         Text(label(Words.PhoneHelperAdvice), style = MaterialTheme.typography.titleMedium)
                         Text(label(Words.PhoneHelperModel).replace("{sha}", answer.modelSha256), style = MaterialTheme.typography.labelSmall)
                         answer.observations?.let {HelpObservations(it)} ?: Text(label(Words.PhoneHelperUnshared))
-                        Column(Modifier.testTag("phone-helper-answer"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            answer.checks.forEach {check -> HermesCard {
+                        Text(label(phoneReplyState(answer.state)))
+                    }
+                    if (result?.checks.isNullOrEmpty()) {
+                        Text(label(Words.PhoneHelperChecks), style = MaterialTheme.typography.titleMedium)
+                    }
+                    Column(Modifier.testTag(if (result?.checks.isNullOrEmpty()) "phone-helper-reviewed" else "phone-helper-answer"),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        checks.forEach { check ->
+                            HermesCard {
                                 Text(label(when(check.scope) {
                                     LocalHelpScope.HERMES_HOST -> Words.PhoneHelperOnHost
                                     LocalHelpScope.PHONE_APP -> Words.PhoneHelperOnPhone
@@ -55,9 +83,8 @@ import java.time.Instant
                                 }), style = MaterialTheme.typography.labelMedium)
                                 SelectionContainer {Text(label(check.word))}
                                 Text("[${check.sourceId}]", style = MaterialTheme.typography.labelSmall)
-                            } }
+                            }
                         }
-                        Text(label(phoneReplyState(answer.state)))
                     }
                     Text("${label(Words.PhoneHelperSources)} · ${LocalSetupHelper.VERSION}", style = MaterialTheme.typography.titleMedium)
                     (result?.sources ?: LocalSetupHelper.sources(topic)).forEach { source -> HermesCard {

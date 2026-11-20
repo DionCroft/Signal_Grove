@@ -5,12 +5,20 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest offline setup checkpoint
+
+The offline checklist shows model, storage and history state. Typed topic
+search and deterministic recovery check cards work with the model unloaded
+and networking off. Exact JVM and focused API 26/37 checks passed. Physical
+ranking of the new recovery topic, full hosted and release gates remain open.
+[Setup evidence](docs/VALIDATION.md#offline-checklist-and-setup-issue-search).
+
 ## Latest offline phone voice checkpoint
 
 Phone chat has an offline speech panel with reviewed draft append and
 read-aloud for completed replies. Device coverage includes the phone
 voice path and shared Hermes Voice screen controls. Physical speech
-and Bluetooth, the expanded setup helper, and release checks remain open.
+and Bluetooth remain open, along with release checks.
 [Voice evidence](docs/VALIDATION.md#offline-voice-in-phone-chat).
 
 ## Latest personal profile backup checkpoint

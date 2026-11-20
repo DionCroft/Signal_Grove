@@ -50,6 +50,25 @@ class LocalSetupHelperTest {
         for(text in listOf("[\"host.api\"]", "[\"host.serve\",\"host.serve\"]", "[]", "{}", "[5]", "[\"unknown\"]", "[\"phone.tailnet\",\"host.tailscale\",\"host.serve\",\"host.private\"]", " ".repeat(1025)))
             assertNull(text, LocalSetupHelper.selection(text, LocalHelpTopic.NETWORK))
     }
+    @Test fun localQuestionMatchesOnlyReviewedTopicsInSeveralWritingStyles() {
+        assertEquals(listOf(LocalHelpTopic.OFFLINE_MODEL), LocalSetupHelper.matchingTopics("Why can't I load my GGUF?"))
+        assertEquals(listOf(LocalHelpTopic.OFFLINE_MODEL), LocalSetupHelper.matchingTopics("导入时手机存储空间不足"))
+        assertEquals(listOf(LocalHelpTopic.OFFLINE_MODEL), LocalSetupHelper.matchingTopics("Líxiàn"))
+        assertEquals(listOf(LocalHelpTopic.NETWORK, LocalHelpTopic.AUTH),
+            LocalSetupHelper.matchingTopics("Tailscale returns HTTP 401"))
+        assertTrue(LocalSetupHelper.matchingTopics("projectile reloads").isEmpty())
+        assertTrue(LocalSetupHelper.matchingTopics(" ".repeat(LocalSetupHelper.MAX_QUERY_LENGTH) + "wifi project").isEmpty())
+    }
+    @Test fun offlineRecoveryOnlyResolvesReviewedPhoneChecks() {
+        val topic = LocalHelpTopic.OFFLINE_MODEL
+        val checks = LocalSetupHelper.selection("[\"phone.local_storage\",\"phone.local_context\"]", topic)!!
+        assertEquals(listOf("phone.local_storage", "phone.local_context"), checks.map { it.id })
+        assertTrue(checks.all { it.scope == LocalHelpScope.PHONE_APP })
+        assertNull(LocalSetupHelper.selection("[\"host.serve\"]", topic))
+        val privateQuestion = "I'm out of storage, my private text is 737355"
+        assertEquals(listOf(topic), LocalSetupHelper.matchingTopics(privateQuestion))
+        assertTrue(LocalSetupHelper.messages(topic, null).none { "737355" in it.text })
+    }
     @Test fun hostCommandsAlwaysRenderAsHostChecksAndPhoneUsesAndroidApps() {
         val network = LocalSetupHelper.checks(LocalHelpTopic.NETWORK)
         network.filter {it.word.en.contains("tailscale status") || it.word.en.contains("tailscale serve status")}.forEach {assertEquals(LocalHelpScope.HERMES_HOST, it.scope)}

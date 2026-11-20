@@ -270,10 +270,13 @@ erasure. Existing persistent chats are unaffected.
 
 **Status: in progress.** Phone chat offers offline-only dictation, editable
 draft append and read-aloud for the current chat. Verify physical microphone,
-Bluetooth, and interruptions. Extend the guide and helper with a local-first
-checklist, missing-model/storage/context recovery, and natural-language topic
-selection constrained to reviewed helper checks.
-[Offline voice checks](VALIDATION.md#offline-voice-in-phone-chat).
+Bluetooth, and interruptions. The local-first checklist shows stored model,
+load and history state. It opens reviewed acquisition, storage, memory and
+context recovery. Typed questions find reviewed topics without loading a
+model or sending the question to inference. Verify the new topic's
+grammar-constrained ranking and checklist UI on a physical phone.
+[Offline voice checks](VALIDATION.md#offline-voice-in-phone-chat) ·
+[Setup and search checks](VALIDATION.md#offline-checklist-and-setup-issue-search).
 
 Acceptance: speech works offline only when a compatible offline recognizer/voice
 is installed and positively verified; show unsupported reasons otherwise. Never

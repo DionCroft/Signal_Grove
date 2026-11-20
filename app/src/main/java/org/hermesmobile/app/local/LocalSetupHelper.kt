@@ -1,13 +1,22 @@
 package org.hermesmobile.app.local
 
 import java.net.URI
+import java.text.Normalizer
+import java.util.Locale
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.ui.SetupGuideContent
 import org.hermesmobile.app.ui.Words
 
-enum class LocalHelpTopic(val title: Words, val page: Int) {
-    FIRST_SETUP(Words.SetupPhone, 3), NETWORK(Words.SetupNetwork, 2), AUTH(Words.SetupApi, 1),
-    MODEL(Words.SetupModels, 5), HISTORY(Words.SetupChats, 6), PROJECT(Words.SetupProjects, 7)
+enum class LocalHelpTopic(val title: Words, val page: Int?, internal val searchTerms: List<String>) {
+    FIRST_SETUP(Words.SetupPhone, 3, listOf("setup", "set up", "onboarding", "first time", "配置手机", "首次设置")),
+    NETWORK(Words.SetupNetwork, 2, listOf("network", "connect", "connection", "timeout", "tailscale", "tailnet", "tls", "网络", "连接")),
+    AUTH(Words.SetupApi, 1, listOf("login", "sign in", "signed in", "authentication", "api key", "401", "403", "登录", "认证", "密钥")),
+    MODEL(Words.SetupModels, 5, listOf("spark", "serving model", "session lock", "server default", "model selection", "服务模型", "会话锁")),
+    HISTORY(Words.SetupChats, 6, listOf("history", "conversation", "conversations", "earlier chats", "missing chats", "历史", "会话")),
+    PROJECT(Words.SetupProjects, 7, listOf("project", "projects", "workspace", "worker", "项目", "工作区", "执行主机")),
+    OFFLINE_MODEL(Words.PhoneOfflineSetup, null, listOf("offline", "on device", "gguf", "model", "models", "local model", "phone model",
+        "storage", "space", "memory", "ram", "context", "load", "import", "lfm3", "离线", "本机模型", "手机模型", "空间", "存储",
+        "内存", "上下文", "加载", "导入", "li xian", "lixian", "nei cun", "neicun", "shang xia wen", "shangxiawen"))
 }
 enum class LocalAddressKind { UNCONFIGURED, HTTPS, OTHER }
 
@@ -33,11 +42,36 @@ data class LocalHelpResult(val topic: LocalHelpTopic, val modelSha256: String, v
 
 /** The model ranks approved checks. It never authors the instructions displayed to a novice. */
 object LocalSetupHelper {
-    const val VERSION = "signal-grove-setup-checks-2026-11-11"
+    const val VERSION = "signal-grove-setup-checks-2026-11-20"
+    const val MAX_QUERY_LENGTH = 240
+    private val combiningMarks = Regex("\\p{M}+")
+    private val separators = Regex("[^\\p{L}\\p{N}]+")
+
+    private fun normalize(query: String) = Normalizer.normalize(query.lowercase(Locale.ROOT), Normalizer.Form.NFD)
+        .replace(combiningMarks, "").replace(separators, " ").trim()
+
+    /** Local topic lookup. Only the explicitly selected enum is used in a model request. */
+    fun matchingTopics(query: String): List<LocalHelpTopic> {
+        val text = normalize(query.take(MAX_QUERY_LENGTH))
+        if (text.isBlank()) return emptyList()
+        val padded = " $text "
+        return LocalHelpTopic.entries.filter { topic ->
+            topic.searchTerms.any { term ->
+                if (term.any { it in '\u4e00'..'\u9fff' }) text.contains(term)
+                else padded.contains(" $term ")
+            }
+        }
+    }
+
     fun sources(topic: LocalHelpTopic): List<LocalHelpSource> {
-        val page = SetupGuideContent.pages[topic.page]
+        val pageIndex = topic.page ?: return listOf(
+            LocalHelpSource("S1", Words.PhoneOfflineSetup, Words.PhoneOfflineSetupGetHelp,
+                "https://github.com/DionCroft/Signal_Grove/blob/main/docs/ON_DEVICE_AI.md#setup-and-troubleshooting",
+                scope = LocalHelpScope.PHONE_APP)
+        )
+        val page = SetupGuideContent.pages[pageIndex]
         val scope = when(topic) {LocalHelpTopic.AUTH, LocalHelpTopic.NETWORK -> LocalHelpScope.HERMES_HOST; else -> LocalHelpScope.PHONE_APP}
-        return listOf(LocalHelpSource("S1", page.heading, page.body, page.url, SetupGuideContent.example(topic.page, false, ""), scope),
+        return listOf(LocalHelpSource("S1", page.heading, page.body, page.url, SetupGuideContent.example(pageIndex, false, ""), scope),
             LocalHelpSource("S2", Words.SetupTroubleshoot, Words.SetupTroubleshootBody,
                 "https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server"))
     }
@@ -58,6 +92,9 @@ object LocalSetupHelper {
                 phone("phone.chat_readonly", Words.HelpChatReadOnly), phone("phone.chat_receipts", Words.HelpChatReceipts))
             LocalHelpTopic.PROJECT -> listOf(phone("phone.project_open", Words.HelpProjectOpen), phone("phone.project_details", Words.HelpProjectDetails),
                 LocalHelpCheck("worker.project_files", Words.HelpProjectWorker, "S1", LocalHelpScope.EXECUTION_WORKER), phone("phone.project_limits", Words.HelpProjectLimits))
+            LocalHelpTopic.OFFLINE_MODEL -> listOf(phone("phone.local_get", Words.PhoneOfflineSetupGetHelp),
+                phone("phone.local_storage", Words.HelpOfflineStorage), phone("phone.local_memory", Words.HelpOfflineMemory),
+                phone("phone.local_context", Words.HelpOfflineContext))
         }
     }
     fun messages(topic: LocalHelpTopic, observations: LocalHelpObservations?): List<LocalChatMessage> {
