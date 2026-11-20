@@ -1,5 +1,24 @@
 # Current development validation — audit follow-up
 
+## Resolve the Compose plugin marker with strict verification
+
+GitHub Actions run 44651782983 received a Compose Kotlin plugin marker
+from the Gradle Plugin Portal whose SHA-256 differed from the pinned
+Maven Central publication. Both markers name the same compiler plugin
+at 2.4.21. Direct retrieval confirmed the mismatch and matched the
+current pin to Maven Central. Configure only that marker coordinate to
+resolve exclusively from Maven Central. The verification metadata and
+strict verification policy remain unchanged.
+
+The strict Windows project build passed 1,178 JVM tests, both lint
+variants with zero errors, and both debug APK builds. The checksum
+policy check passed for 501 components and 1,080 artifacts. Hosted
+verification for this change is tracked separately from the previous
+device shard timeouts.
+
+- Build receipt: 20261120-100424-796a6dbfcc4d4fdc885b5c143a1478d2
+- Frozen source digest: 176d2503e090b0757a6102df6270b81aa8f8404b8a1d7dcbe34b5a83b79318e2
+
 ## Offline questions about TXT and Markdown
 
 On-device AI uses Android's document picker and an explicit index action.
