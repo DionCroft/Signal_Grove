@@ -58,6 +58,25 @@ test asserted. The archive and terminal outcome are preserved.
 | Public beta.9 direct upgrade on Android 8 | 3525b016628dc7b285ed20bb53bddb1b3e46d45cf6d93091790a0aaa0ae0aa3d |
 | First hosted policy archive | 01e51c1fb2b21495cabee8e3ddb83ec816e1f6c453813c507ec1e55ba1eb810c |
 
+## Complete local Android 8 first shard
+
+The exact signed-candidate source 766ea4a ran every standard method in
+Android 8 shard 0 on the owned Windows emulator. All 584 passed, with
+the protected local files retained. The startup route, compact Voice
+case and workspace refusal case all completed successfully.
+
+On the earlier source 43adc6e, the hosted equivalent finished with
+583 passed and one failure. The fresh on-device startup test did not
+see the Open Hermes button at its display assertion. Both outcomes
+remain recorded with their own source and device scope.
+[Earlier hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44820461936) ·
+[Current hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44824595282).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Current exact local raw test log | 07cb6c567be570a1865b8d5bdd0f5d866629d4cfc6b03a69d42229256e75e933 |
+| Earlier hosted Android 8 shard archive | 957cc56e4ff1b281d73c2639d286417cf54decb800a8608393e1b71ff2fd4e57 |
+
 ## Beta.10 compact layout and signed upgrade
 
 The exact beta.10 source is
