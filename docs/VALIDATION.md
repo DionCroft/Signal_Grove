@@ -1,5 +1,63 @@
 # Current development validation — audit follow-up
 
+## Beta.10 compact footer and exact signed acceptance
+
+Source 766ea4ac117a6f2702d9700f124ead625681157b keeps the temporary composer bounded
+above its fixed End and Send or Stop row. Phone Voice section controls
+stay in the scrollable content, with the transcript action fixed above
+the keyboard. Both Android 8 and 17 passed 11 selected standard and
+five compact checks each. The compact case uses 900 × 1440, density 420
+and font scale 1.3. The checks observe the real keyboard when applying
+a transcript or ending a temporary chat. The original failures are
+recorded below.
+
+The exact build passed 1,203 JVM tests across 113 reports. Debug and
+release lint had zero errors, with 55 and 54 warnings respectively.
+The signed APK is code 115 and uses the original production signer.
+Native alignment and the CycloneDX 1.6 runtime inventory passed.
+The manifest inventories 154 Maven components and 32 packaged
+native libraries. The resolved graph has 98 distinct Maven binaries.
+
+The physical Android 17 phone retained its package UID, existing local
+reply and model. The saved Hermes endpoint connected after opening the
+VPN app and running Save & test connection. The app loaded an existing
+conversation and refreshed an existing project through the saved
+dashboard sign-in. LFM3 gave the exact expected local reply with
+Airplane mode on, Wi-Fi off and no default network. The reply remained
+visible after model unload. The original radio settings and private
+VPN reachability were verified afterward.
+
+A separate Android 8 emulator upgraded directly from the published
+beta.9 code-114 APK to this exact signed code-115 package. Its app UID,
+Demo setting and one synthetic local task survived the in-place
+upgrade.
+
+The first hosted run on this source ended before the Android jobs.
+One of 1,179 isolated policy fixtures failed. Its local gateway accepted
+one connection and had recorded zero requests when the 80 ms timeout
+test asserted. The archive and terminal outcome are preserved.
+[First hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44822784936) ·
+[Fresh exact-source hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44824595282).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Signed beta.10 APK | 755f8951901f7dc456e2f5b6507726892223fb9fcf4e08cc3a58de5b6f17a17d |
+| CycloneDX runtime inventory | 3afc13c8d86b5005d26df22c8f473d52e955735778cde6f0cd686e33a5741c6b |
+| Android 8 compact | cec5b85af0db0881af6af06d4d20fb9d3439de4a6f50de45c1a60180c8d15b9a |
+| Android 17 compact | 5d64efbc813057926f55904d5dffd00c238a5484cd9b285b60eaa3d558a90d1d |
+| Android 8 standard | 1fdff49682a110a9c9157f25e49cc258d9a3ef04b9f1ceb751d9c7d656791263 |
+| Android 17 standard | a86e7022609659c247ab39b6a346fa367990a964e091f59117ca009eea31b29d |
+| Original-signer physical install | 7ba5e0fa1d7c6b03d73a7d56ee9ac55ba346f83e6391982005161b3fb07b3707 |
+| Physical Hermes connection | 1fd65befc5e4fa1c0a7c078b2bdb5bd1fd65254cb154b589240ae72c356fc40e |
+| Existing Hermes conversation | 8a5937d4fa6b7853fc0fa549acb1c4417e1d61f3621289a818d147387813ce28 |
+| Existing stored project detail | 0c402a9c8ddc4a8b79b7a2a41563fd1fdeae817107cd789c31bc668db9cf1cc6 |
+| Retained local conversation | 6e363021f93e4e8405d983d1ebe5ca7b5ab50bf6d8973fa253794fedc6959d12 |
+| Physical offline LFM3 reply | d899fd8979acb81dc44451d2068fd2ca42fc15f0be3ad1c37c7b2287a0f14b98 |
+| Physical model unload and reply readback | a1185b0a8887ae6388bafab84a5279adcb68a2dcbb477c3aa0aad137db3f8ab0 |
+| Phone radio and private VPN restoration | 828e4c0d51c1155f02779ab9f2ce9ea50b3a1d6c82de62574b2b4269572bd55f |
+| Public beta.9 direct upgrade on Android 8 | 3525b016628dc7b285ed20bb53bddb1b3e46d45cf6d93091790a0aaa0ae0aa3d |
+| First hosted policy archive | 01e51c1fb2b21495cabee8e3ddb83ec816e1f6c453813c507ec1e55ba1eb810c |
+
 ## Beta.10 compact layout and signed upgrade
 
 The exact beta.10 source is

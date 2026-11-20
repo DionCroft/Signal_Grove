@@ -10,9 +10,12 @@ a two-model verified catalogue, document questions, writing presets,
 personal profiles and temporary chats. It includes compact keyboard
 layouts, a model-free setup checklist and the llama.cpp b12556 update.
 
-Recent local verification passed **1,203 JVM tests** and both lint
-variants with zero errors. The full hosted and signed phone checks
-remain separate release gates.
+The signed candidate passed **1,203 JVM tests**, zero-error lint,
+and 11 standard and five compact UI checks on each of Android 8 and 17.
+The physical upgrade verified saved Hermes history and projects and
+an offline LFM3 reply. A separate Android 8 upgrade from the public
+beta.9 APK retained a local task.
+[Full hosted suite](https://github.com/DionCroft/Signal_Grove/actions/runs/44824595282).
 [Offline AI guide](docs/ON_DEVICE_AI.md) ·
 [Beta.10 release scope](docs/releases/1.1.0-beta.10.md) ·
 [Validation evidence](docs/VALIDATION.md).
