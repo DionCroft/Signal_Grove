@@ -1,5 +1,23 @@
 # Signal Grove audit execution plan
 
+## External offline model checkpoint - 20 November 2026
+
+The installed development APKs passed offline Qwen import, generation,
+history and delete on both API 26 and API 37. API 26 also passed LFM3
+committed-import cancellation. API 37 passed actual cold recovery
+after a witnessed interruption. Four verified executions cover three
+distinct methods from the current 14-method external inventory.
+
+API 26 rejected the larger model during the mixed-model switch on
+available memory. The guest network and retained data were verified.
+API 37 reached a new guest kernel after one reboot, with the Android
+framework still unready. Its post-reboot case and network restoration
+remain held. Preserve the case failure and boot evidence. Mixed-model
+tests on a device with sufficient RAM, the post-reboot check, online
+transfers and final physical/production validation remain open.
+[Binding, raw result digests and restoration](VALIDATION.md#external-model-import-recovery-and-guest-reboot).
+
+
 ## Current Hermes stored history - 20 November 2026
 
 Fresh, isolated Windows trials at v0.23.3 and the reviewed main pin passed

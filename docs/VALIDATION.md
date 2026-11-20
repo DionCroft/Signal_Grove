@@ -1,5 +1,55 @@
 # Current development validation — audit follow-up
 
+## External model import, recovery and guest reboot
+
+The development debug APK pair from source snapshot
+92f69c516cf3dbfe50d51419570feb5ccaca56db609e246ea31c1b67170362d7
+matched the packages installed on the owned API 26 and API 37 emulators.
+The app and test input hashes still matched the current Android source.
+The fixtures verified publisher SHA-256 and exact size for the staged
+LFM3 and Qwen files. Read-only case review checked the original native
+status and terminal records against the exact method names.
+
+API 26 passed the LFM3 import case that cancels after publication and
+reconciles the committed file without opening it again or loading
+weights. Qwen imported, generated, unloaded, retained its chat and was
+deleted on both APIs. Both devices had Airplane mode on, Wi-Fi disabled
+and no default network for the tests. API 26 retained its mobile-data
+preference while the cellular connection was down. A separate API 26
+model-switch case failed at the LFM3 memory preflight with
+`insufficient_memory`. The memory limit and assertion are preserved.
+
+On API 37, the separate interruption fixture verified the generating
+chat on disk and actual model mappings before force-stopping its exact
+debug process. The interrupted preparation is retained as an expected
+terminated setup. A new app process passed cold recovery. It read the
+interrupted chat without loading or generating, then persisted exactly
+one fresh explicit send. The recovered model hash and protected files
+matched before reboot. One guest reboot changed the kernel boot ID.
+Android did not report boot complete within the observation window or
+at the subsequent same-guest check. The post-reboot method and radio
+restoration for that guest remain held.
+
+API 26 radio preferences, active networking, nine protected files and
+both package identities were verified after the tests. The earlier
+standalone API 37 Qwen case separately restored networking and retained
+eleven protected files and both package identities before the later
+reboot trial. Earlier model-staging and API 26 radio-control refusals
+remain recorded. The full external-model gate has 14 methods. This
+cohort supplies four positive executions of three distinct methods.
+Physical phone, online transfer and production acceptance stay open.
+
+| Raw evidence | SHA-256 |
+| --- | --- |
+| API 26 committed import | 823cb29c80862b15c1e8ba71f1349bad203b2100e2d98e92fd54932896a28e91 |
+| API 26 Qwen family lifecycle | b6c4f0dedc30e6badf3d288cebb3e0a98f94bb9e0cfc4b7071d558e1277517cf |
+| API 26 failed switch | fae19c5405e229eec2927217228da7d4f6dd176bcccc6b3607527fb823c18724 |
+| API 37 Qwen family lifecycle | 5e8d13f74ef6ffbb0c6aae2f779a36cedda742824f56ca9421a71beb2b9450ee |
+| API 37 interrupted preparation | ec230a925516d3a95db0c87a42262bc43624a1ac659375a69a6ce368a3a72e43 |
+| API 37 cold recovery | 1054f7b863ec1fe0150116c940197841304d356b40d842fdbf308fabc52443fe |
+| Independent result receipt | b8afc6f23f1ccbe51f23eedd045958f41ef6a17e241e2924208f698270093c42 |
+
+
 ## Temporary chat review and project cancellation viewport
 
 Opening a temporary chat releases focus in the saved composer. The temporary
