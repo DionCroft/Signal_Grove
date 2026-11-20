@@ -1,5 +1,48 @@
 # Current development validation — audit follow-up
 
+## Beta.10 offline routing and signed upgrade checkpoint
+
+The prior hosted workflow finished with 582 of 584 on Android 8 shard 0.
+The two failed methods could not reach the draft-status notice or the Hermes
+return action. The original archive SHA-256 is
+`59950ae6173f87a3f0c38e9292790262369344f69a067809fbedf62924f0fa5e`. The other three hosted partitions passed 657,
+585 and 657 cases. The separate local Android 17 shard 1 also passed all
+657 on the prior candidate. [Retained prior run](https://github.com/DionCroft/Signal_Grove/actions/runs/44824595282).
+
+On the owned Android 8 emulator at 900 × 1440, density 420 and font
+scale 1.3, the earlier app lost the draft notice after opening the
+keyboard. The startup flow also showed a zero-height message area before
+the setup link could be reached. After the first fix, standard checks
+passed, while this short message area still blocked startup.
+Source `d651a33c460515bb6652db69fb4ce1c88db1a11d` keeps the draft notice and Hermes return beside the
+composer when the keyboard leaves little space. On short displays, the
+setup guide and helper sit in the scroll area. The start-up test waits for
+the fresh Activity and both changed tests open the real keyboard before
+using the controls.
+
+The exact signed build passed 1,203 JVM tests across 113 reports and both
+lint variants with zero errors. Android 8 and 17 each passed 13 selected
+standard and seven compact native tests with original display settings
+restored. This includes Voice, Temporary chat, Personal profiles, the
+draft notice and the Hermes return. The selected standard checks also
+cover the workspace Review controls and rendered caption outline.
+
+The production APK uses the original signer, package and app UID.
+The phone verified its saved Hermes connection, current read-only
+conversation history, retained dashboard access and refreshed stored
+project details. It completed an LFM3 reply with no default network or
+mobile data and Wi-Fi off. The reply reopened without a loaded model.
+The original Wi-Fi and private VPN were restored. In Android 8, the
+original-key update also retained the Demo task created on the public
+beta.9 APK through the upgrade chain.
+
+The signed APK is 76,066,678 bytes. Its SHA-256 is
+`0411a0b09d5d810fc6e8227607d9068e862834135a1945c31d4dbbb40eb2486c`. APK and native alignment,
+original signer identity, and the 187-component software inventory are
+verified. GitHub passed the build and the 1,179 policy cases. The exact
+hosted device matrix and anonymous asset checks are still pending.
+[Exact hosted workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/44836131279).
+
 ## Beta.10 compact footer and exact signed acceptance
 
 Source 766ea4ac117a6f2702d9700f124ead625681157b keeps the temporary composer bounded

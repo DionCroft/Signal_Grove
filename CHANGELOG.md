@@ -12,6 +12,8 @@
   review personal profiles, and open a foreground-only temporary chat.
 - Keep chat actions reachable when the keyboard leaves little room. Apply
   edited offline Voice transcripts from a fixed action above the keyboard.
+  Keep the Hermes return and draft status beside the compact composer.
+  Short chat screens put setup links in the scroll area.
 - Use the updated llama.cpp b12556 engine and a model-free setup checklist
   with searchable troubleshooting.
 

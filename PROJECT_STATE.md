@@ -7,17 +7,17 @@ retain every original requirement.
 
 ## Beta.10 release checkpoint
 
-Exact candidate 766ea4a passed 1,203 JVM tests, both lint variants and
-the eleven standard and five compact checks on each of Android 8 and 17.
+Exact candidate d651a33 passed 1,203 JVM tests, both lint variants and
+13 standard and seven compact checks on each of Android 8 and 17.
 The original-key APK upgraded in place on the owner's phone. Its existing
 Hermes conversations and project metadata loaded, and a real offline
-LFM3 reply persisted. Android 8 also upgraded directly from the
-published beta.9 APK and retained a local task. The full hosted suite
+LFM3 reply persisted. An Android 8 upgrade path from the published
+beta.9 APK retained a local task. The full hosted suite
 for this source precedes the main push and GitHub release. Quick
 Capture follows release.
 
-[Signed upgrade and test evidence](docs/VALIDATION.md#beta10-compact-footer-and-exact-signed-acceptance) ·
-[Hosted Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/44824595282).
+[Signed upgrade and test evidence](docs/VALIDATION.md#beta10-offline-routing-and-signed-upgrade-checkpoint) ·
+[Hosted Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/44836131279).
 
 ## Compact phone chat menu checkpoint
 
