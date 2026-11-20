@@ -194,6 +194,46 @@ EXTRA_SOURCES.update(CANONICAL_ATTACHMENT_CONTRACT_SOURCES)
 MAIN_AUTHORITY_CONTRACT_SOURCES = {'canonical_stored_reads': 'gateway/session_stored_reads.py', 'canonical_picker': 'gateway/session_picker_fields.py', 'canonical_plugin_rpc': 'gateway/session_plugin_rpc.py', 'canonical_recovery': 'gateway/session_local_recovery.py', 'canonical_transcript_rows': 'gateway/session_transcript_rows.py', 'canonical_local_receipts': 'hermes_state_local.py', 'canonical_local_lineage': 'hermes_state_local_lineage.py', 'canonical_policy_state': 'gateway/session_policy.py'}
 EXTRA_SOURCES.update(MAIN_AUTHORITY_CONTRACT_SOURCES)
 
+# This persistence layout is verified only for the two exact upstream trees.
+# Keep legacy keys so module changes remain visible against the existing baseline.
+PERSISTENCE_LAYOUT_PINS = frozenset({
+    'caafe5389ae585ef77387a962aee05b1bcf17029',
+    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
+})
+PERSISTENCE_SOURCE_MOVES = {
+    'canonical_workspace_actions': 'persistence/sqlite/authority/_mutation.py',
+    'canonical_workspace_commit': 'persistence/sqlite/authority/_runtime_picks.py',
+    'canonical_workspace_guards': 'persistence/sqlite/authority/_runtime_guards.py',
+    'canonical_workspace_binding': 'persistence/sqlite/authority/_binding_history.py',
+    'canonical_workspace_retirement': 'persistence/sqlite/authority/_runtime_retirement.py',
+    'canonical_workspace_store': 'persistence/sqlite/authority/_runtime.py',
+    'canonical_local_receipts': 'persistence/sqlite/authority/_local.py',
+    'canonical_local_lineage': 'persistence/sqlite/conversation/_store/local_lineage.py',
+}
+PERSISTENCE_SOURCE_DEPENDENCIES = {
+    'persistence_authority_binding_contract': 'persistence/authority/bindings.py',
+    'persistence_authority_runtime_contract': 'persistence/authority/runtime.py',
+    'persistence_authority_owner_rules': 'persistence/authority/vocabulary.py',
+    'persistence_authority_errors': 'persistence/core/errors.py',
+    'persistence_runtime_repository': 'persistence/sqlite/authority/runtime.py',
+    'persistence_binding_repository': 'persistence/sqlite/authority/bindings.py',
+    'persistence_mutation_publish': 'persistence/sqlite/authority/_mutation_publish.py',
+    'persistence_admission_store': 'persistence/sqlite/authority/_admission_store.py',
+    'persistence_admission_owner': 'persistence/sqlite/authority/_admission_owner.py',
+    'persistence_runtime_end': 'persistence/sqlite/authority/_runtime_ends.py',
+    'persistence_binding_migration': 'persistence/sqlite/authority/_local_migration.py',
+    'persistence_local_policy': 'persistence/sqlite/conversation/_store/local.py',
+    'persistence_local_migration': 'persistence/sqlite/conversation/_store/local_migration.py',
+    'persistence_local_handoff': 'persistence/sqlite/gateway/_local_lineage.py',
+    'persistence_route_retirement': 'persistence/sqlite/gateway/_routes.py',
+    'persistence_conversation_retirement': 'persistence/sqlite/conversation/_store/retirement.py',
+    'persistence_worker_receipts': 'persistence/sqlite/workers/_receipt.py',
+    'persistence_worker_executions': 'persistence/sqlite/workers/_executions.py',
+    'persistence_legacy_binding_rules': 'session_rules/legacy_local.py',
+    'persistence_assembly': 'persistence_assembly.py',
+    'persistence_gateway_profile': 'gateway/session_persistence.py',
+}
+
 
 
 
@@ -621,6 +661,9 @@ def contract_source_paths(commit: str) -> dict[str, str]:
         paths['cron_format'] = CRON_FORMAT_PATH
     if commit == REVIEWED_PLUGIN_SETTINGS_SPLIT and paths.get('plugin_settings') == LEGACY_PLUGIN_SETTINGS_PATH:
         paths['plugin_settings'] = PLUGIN_SETTINGS_FIELDS_PATH
+    if commit in PERSISTENCE_LAYOUT_PINS and PERSISTENCE_SOURCE_MOVES.keys() <= paths.keys():
+        paths.update(PERSISTENCE_SOURCE_MOVES)
+        paths.update(PERSISTENCE_SOURCE_DEPENDENCIES)
     return paths
 
 
@@ -741,10 +784,13 @@ def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     original_paths = SOURCES | EXTRA_SOURCES
     relocations = [
         dict(source=name, original_path=original_paths[name], path=path, commit=sha)
-        for name, path in sorted(paths.items()) if original_paths[name] != path
+        for name, path in sorted(paths.items()) if name in original_paths and original_paths[name] != path
     ]
     if relocations:
         result['reviewed_source_relocations'] = relocations
+    dependencies = {name: paths[name] for name in PERSISTENCE_SOURCE_DEPENDENCIES if name in paths}
+    if dependencies:
+        result['watched_persistence_dependencies'] = dependencies
     if source_cache is not None:result['source_cache']=cache_counts
     return result
 
@@ -911,6 +957,13 @@ def compare(baseline: dict, current: dict) -> dict:
             relevant['changed_used_handlers'][key]={'before':None,'after':None,'required_introduced_handler_missing':True}
     for key,problem in baseline_source_guard_failures(baseline,current,guarded_variants).items():
         relevant['changed_used_handlers'].setdefault(key,{}).update(problem)
+    # A split module must stay reviewable even when no directly watched handler changes.
+    persistence_sources = PERSISTENCE_SOURCE_MOVES.keys() | PERSISTENCE_SOURCE_DEPENDENCIES.keys()
+    before_sources, after_sources = old.get('source_hashes', {}), new.get('source_hashes', {})
+    if PERSISTENCE_SOURCE_DEPENDENCIES.keys() & (before_sources.keys() | after_sources.keys()):
+        relevant['changed_persistence_sources'] = sorted(
+            name for name in persistence_sources if before_sources.get(name) != after_sources.get(name)
+        )
     relevant['changed_used_request_fields'] = {key: {'before': old.get('request_fields', {}).get(key), 'after': new.get('request_fields', {}).get(key)}
         for key in baseline.get('mobile_used_request_fields', []) if old.get('request_fields', {}).get(key) != new.get('request_fields', {}).get(key)}
     return {'baseline_commit': baseline['upstream']['commit'], 'reviewed_source_guarded_variants_applied': sorted(guarded_variants), 'reviewed_handler_replacements_applied': sorted(replaced), 'changed_source_modules': sorted(key for key in set(old.get('source_hashes', {})) | set(new.get('source_hashes', {})) if old.get('source_hashes', {}).get(key) != new.get('source_hashes', {}).get(key)), 'known_open_mobile_findings': baseline.get('known_open_mobile_findings', []), 'current': current, 'added_routes': sorted(new_routes-old_routes), 'added_management_routes': sorted(set(new.get('management_routes', []))-set(old.get('management_routes', []))), 'removed_management_routes': removed_management, 'removed_routes': removed, 'changed_static_features': flags, 'job_update_fields_changed': old['job_update_fields'] != new['job_update_fields'], 'mobile_review_required': any(relevant.values()), 'mobile_relevant_changes': relevant, 'limitations': ['Static routes/selected limits, explicitly tracked request fields and handler ASTs; source-guarded variants also bind their selected complete modules. Other transitive helpers, runtime gates, installed deployment and provider behavior still require review and live tests.', 'New routes/features must be triaged even when no used contract changed. No server credentials are sent.']}

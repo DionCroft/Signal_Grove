@@ -9,6 +9,41 @@ checked. The older v0.23.2 failure stays recorded. Persistence source
 review, mutation and live owner acceptance remain open.
 [Current paired evidence](contracts/2026-11-19-hermes-main-stored-history.md#stored-history-on-hermes-v0233-and-the-current-main-pin).
 
+## Hermes persistence source split and Windows checks - 20 November 2026
+
+The two pinned upstream trees replaced eight monolithic files with
+typed authority ports and separate SQLite repositories. The watcher
+retains all eight historical keys, resolves their implementations at
+these exact pins, and requires 21 additional files for the split
+authority, mutation publication, admission, retirement, lineage,
+receipt and profile wiring. A missing replacement or dependency fails
+inspection. An unreviewed future pin still uses the existing path
+requirements. The baseline stays intact.
+
+Both static comparisons could inspect all 249 logical inputs. Every
+present source checked against the official Git tree and verified
+checkout. Both reports explicitly require review of all 29 changed
+persistence sources. The two regression suites passed 28 source-cache
+and 121 contract tests.
+
+The same 103 upstream test identities ran on both exact Windows source
+trees, with 102 passes and the same failure at each pin. Mutation
+atomicity, replay and revision fencing, retirement, and the selected
+local receipts and handoffs passed. The inherited Desktop container
+workspace test kept the supplied cwd in memory but did not mark it for
+persistence. Windows resolves the path for the comparison with a drive
+prefix, while the container resolver returns the POSIX path. The
+unchanged Linux case, real worker attribution and production acceptance
+remain open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Paired identity and Git blob checks | 1c9eeb0eb02314378932a064eab150a82fcd60d1b0c4291d19922f7373aae661 |
+| v0.23.3 static comparison | 1a7bd031e4914c5cc2833266556bff95239414e2f4360921ee30b4c24091387c |
+| Main static comparison | 0aa9288eb5fd84d03cae6ca57fa4ec73f3a03a65365c5f0e5f2501a8242e351b |
+| v0.23.3 Windows JUnit | 2a7b45a1db5c1edd6f017ac097bf7ae9509e09222e322a863a55378536e36caa |
+| Main Windows JUnit | 50af267fc1f9e76de9a2ed8a20f189ba954ddcac73b8bc9b41540529143d6f9b |
+
 ## Current Hermes cron and plugin settings sources - 20 November 2026
 
 The watcher now follows the verified cron formatter on v0.23.3 and

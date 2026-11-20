@@ -161,6 +161,50 @@ class SourceCacheTest(unittest.TestCase):
                 with self.assertRaises(c.MissingSourcePaths):
                     c.source_identities(reviewed)
 
+    def test_persistence_split_requires_every_dependency_only_at_verified_pins(self):
+        legacy = {name: c.EXTRA_SOURCES[name] for name in c.PERSISTENCE_SOURCE_MOVES}
+        relocated = c.PERSISTENCE_SOURCE_MOVES | c.PERSISTENCE_SOURCE_DEPENDENCIES
+        oid, size = self.identity()
+        rows = [dict(path=path, sha=oid, size=size, mode='100644', type='blob')
+                for path in sorted(set(relocated.values()))]
+        tree = self.tree()
+        tree['tree'] = rows
+        with patch.multiple(c, SOURCES={}, EXTRA_SOURCES=legacy):
+            self.assertEqual(legacy, c.contract_source_paths(self.pin))
+            for pin in sorted(c.PERSISTENCE_LAYOUT_PINS):
+                with (
+                    self.subTest(pin=pin),
+                    patch.object(c, 'resolve', return_value=('main', pin)),
+                    patch.object(c, 'github', return_value=tree),
+                    patch.object(c, 'github_source', return_value=self.data.decode()) as download,
+                    patch.object(c, 'extract', side_effect=dict),
+                ):
+                    result = c.snapshot('main')
+                    self.assertEqual(c.PERSISTENCE_SOURCE_DEPENDENCIES, result['watched_persistence_dependencies'])
+                    self.assertEqual(set(relocated), set(result['contract']))
+                    self.assertEqual(set(legacy), {row['source'] for row in result['reviewed_source_relocations']})
+                    self.assertEqual({(path, pin) for path in relocated.values()},
+                                     {call.args for call in download.call_args_list})
+                    with patch.object(c, 'github', return_value={**tree, 'tree': rows[:-1]}):
+                        with self.assertRaises(c.MissingSourcePaths):
+                            c.source_identities(pin)
+            with patch.object(c, 'github', return_value=tree):
+                with self.assertRaises(c.MissingSourcePaths):
+                    c.source_identities(self.pin)
+
+    def test_persistence_dependency_change_alone_requires_mobile_review(self):
+        baseline = {'upstream': {'commit': self.pin, 'contract': {
+            'routes': [], 'static_features': {}, 'job_constraints': {},
+            'job_update_fields': [], 'source_hashes': {},
+        }}, 'mobile_used_routes': [], 'mobile_used_static_flags': [],
+            'mobile_used_job_update_fields': []}
+        key = next(iter(c.PERSISTENCE_SOURCE_DEPENDENCIES))
+        current = {'commit': next(iter(c.PERSISTENCE_LAYOUT_PINS)),
+                   'contract': {**baseline['upstream']['contract'], 'source_hashes': {key: '1' * 64}}}
+        result = c.compare(baseline, current)
+        self.assertTrue(result['mobile_review_required'])
+        self.assertEqual([key], result['mobile_relevant_changes']['changed_persistence_sources'])
+
     def test_corrupt_cached_bytes_fail_without_redownload_or_parse(self):
         self.cache.mkdir();oid,size=self.identity();(self.cache/oid).write_bytes(b'x'*size)
         with patch.object(c,'github_source') as download:
