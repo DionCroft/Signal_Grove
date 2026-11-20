@@ -11,8 +11,9 @@ The exact v0.23.3 and main pins reproduced the late database reopen.
 A shared two-file candidate stops heartbeat admission at teardown and
 cleans up register-once and periodic rows on exit. Windows native stop,
 standalone exit, live SQLite close-gate and released-contention checks
-passed, as did both 50-case upstream suites. Current-pin Linux and live
-Pi acceptance and a full stop with an unreleased writer remain open.
+passed. The hosted canonical Linux gate also passed all six 50-case cohorts
+across the three reviewed pins. Native Linux and live Pi lifecycle checks
+and full stop with an unreleased writer remain open.
 [Candidate and evidence](docs/contracts/2026-11-19-hermes-public-shutdown-review.md#hermes-v0233-and-current-main-shutdown-candidate).
 
 ## Latest offline setup checkpoint

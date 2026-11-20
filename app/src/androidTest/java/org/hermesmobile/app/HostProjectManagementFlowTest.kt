@@ -173,7 +173,9 @@ class HostProjectManagementFlowTest {
                 if(mode=="before-home") f.reportedHome.set("/srv/remapped")
                 compose.onNodeWithTag("project-change-confirm").performClick()
                 if(mode=="held") {
-                    compose.waitUntil(10000) {f.entered.count==0L};tap("host-projects-list","host-projects-cancel-work");f.release.countDown()
+                    compose.waitUntil(10_000) { f.entered.count == 0L }
+                    compose.onNodeWithTag("host-projects-cancel-work").assertIsDisplayed().performClick()
+                    f.release.countDown()
                     compose.waitUntil(10000) {!vm.state.value.busy && runBlocking {app.database.dao().managementOperations(scope).first().singleOrNull()?.state}=="unknown"}
                     assertNull(vm.state.value.projects.inventory);assertNull(vm.state.value.projects.report);assertEquals(1,f.writes.get());return@use
                 }

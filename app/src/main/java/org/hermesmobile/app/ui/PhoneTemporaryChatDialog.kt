@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -25,28 +27,34 @@ internal fun PhoneTemporaryChatDialog(vm: LocalAiViewModel, chat: TemporaryPhone
     var confirmEnd by remember { mutableStateOf(false) }
     val list = rememberLazyListState()
     val loaded = state.loaded
-    val focus = LocalFocusManager.current
-    val keyboard = LocalSoftwareKeyboardController.current
     val close = {
         if (confirmEnd) confirmEnd = false
-        else if (chat.hasContent || chat.pending) {
-            focus.clearFocus()
-            keyboard?.hide()
-            confirmEnd = true
-        } else vm.closeTemporary()
-    }
-    LaunchedEffect(chat.exchanges.size) {
-        if (chat.exchanges.isNotEmpty()) list.scrollToItem(chat.exchanges.lastIndex)
+        else if (chat.hasContent || chat.pending) confirmEnd = true
+        else vm.closeTemporary()
     }
 
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false,
         decorFitsSystemWindows = false, securePolicy = SecureFlagPolicy.SecureOn)) {
+        val focus = LocalFocusManager.current
+        val keyboard = LocalSoftwareKeyboardController.current
+        LaunchedEffect(confirmEnd) {
+            if (confirmEnd) {
+                focus.clearFocus()
+                keyboard?.hide()
+            }
+        }
+        LaunchedEffect(chat.exchanges.size) {
+            if (chat.exchanges.isNotEmpty()) list.scrollToItem(chat.exchanges.size)
+        }
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(label(Words.PhoneTemporaryChat), Modifier.testTag("phone-temporary-title"), style = MaterialTheme.typography.titleLarge)
-                Text(label(Words.PhoneTemporaryRetention))
                 if (confirmEnd) {
-                    Text(label(Words.PhoneTemporaryEndReview), Modifier.weight(1f).testTag("phone-temporary-end-review"))
+                    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(label(Words.PhoneTemporaryEndReview), Modifier.testTag("phone-temporary-end-review"))
+                        Text(label(Words.PhoneTemporaryRetention))
+                    }
                     Button(vm::closeTemporary, Modifier.fillMaxWidth().testTag("phone-temporary-end-confirm")) {
                         Text(label(Words.PhoneTemporaryEnd))
                     }
@@ -54,16 +62,23 @@ internal fun PhoneTemporaryChatDialog(vm: LocalAiViewModel, chat: TemporaryPhone
                         Text(label(Words.Cancel))
                     }
                 } else {
-                    if (chat.modelSha256 == null) PhoneInlineModelPicker(state, !state.busy) { vm.controller.load(it) }
-                    else if (loaded != null && loaded.sha256 == chat.modelSha256) {
-                        Text(label(Words.PhoneLoaded).replace("{model}", loaded.metadata.name))
-                    } else Text(label(Words.PhoneTemporaryModelChanged))
-                    state.error?.let {
-                        Text(label(phoneError(it)), color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("phone-temporary-error"))
-                    }
                     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-temporary-messages"),
                         state = list, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (chat.exchanges.isEmpty()) item { Text(label(Words.PhoneTemporaryEmpty)) }
+                        item(key = "temporary-info") {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(label(Words.PhoneTemporaryRetention))
+                                if (chat.modelSha256 == null) PhoneInlineModelPicker(state, !state.busy) { vm.controller.load(it) }
+                                else if (loaded != null && loaded.sha256 == chat.modelSha256) {
+                                    Text(label(Words.PhoneLoaded).replace("{model}", loaded.metadata.name))
+                                } else Text(label(Words.PhoneTemporaryModelChanged))
+                                if (loaded == null) Text(label(Words.PhoneTemporaryLoad))
+                                state.error?.let {
+                                    Text(label(phoneError(it)), color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.testTag("phone-temporary-error"))
+                                }
+                                if (chat.exchanges.isEmpty()) Text(label(Words.PhoneTemporaryEmpty))
+                            }
+                        }
                         items(chat.exchanges) { exchange ->
                             HermesCard {
                                 Text(exchange.question, Modifier.testTag("phone-temporary-question"), style = MaterialTheme.typography.titleSmall)
@@ -75,8 +90,7 @@ internal fun PhoneTemporaryChatDialog(vm: LocalAiViewModel, chat: TemporaryPhone
                         }
                     }
                     if (chat.atTurnLimit) Text(label(Words.PhoneTemporaryLimit))
-                    else if (state.loaded == null) Text(label(Words.PhoneTemporaryLoad))
-                    else if (chat.draft.isNotBlank() && !chat.pending && !chat.canSend(state.loaded) &&
+                    else if (loaded != null && chat.draft.isNotBlank() && !chat.pending && !chat.canSend(state.loaded) &&
                         (chat.modelSha256 == null || chat.modelSha256 == state.loaded.sha256)) {
                         Text(label(Words.PhoneTemporaryDraftLimit))
                     }

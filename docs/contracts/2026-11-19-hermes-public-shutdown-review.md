@@ -225,5 +225,22 @@ pins. Each job verifies its full source and executable maps before PM setup
 and after execution. Separate jobs compare artifact pairs for the exact
 requested pin. The 21 portable verifier tests include refusals for mixed
 revisions and mismatched source inventories. The Windows public archive
-maps reproduce the two new pin fingerprints. The hosted Linux results and
-native lifecycle testing remain separate gates.
+maps reproduce the two new pin fingerprints.
+
+From source 7b9820e, all six native Ubuntu 24.04 cohorts ran the supported
+Hermes PM side environment and canonical runner without retries. Each
+cohort passed all 50 exact case identities with no failures or skips.
+All nine API-reported archives matched their downloaded sizes and SHA-256
+digests. Independent verification reproduced the source maps, mode inventories
+and all three hosted comparison reports.
+
+| Hermes source | Independently verified pair SHA-256 |
+| --- | --- |
+| Original SDK pin | 64f2fc498ef9c87db87a9289f449f93866f472b629ee0a69a8149334ea4279f5 |
+| v0.23.3 | 1f3ef217ed75400c92028ac75b1e333a5e2262dc438565854d87eea240693ad2 |
+| Reviewed main | 6163c22021244da574cf660b8841ad618e4a19e00b872c9fe825e62e1430eee1 |
+
+Independent verification summary SHA-256 is 4b1729568ce09aba43843152d70086ed0f5af710e0e415d451ce4e2c11d44969. Native lifetime
+probes on current Linux, full Pi bootstrap and live deployment acceptance
+remain open.
+[Hosted run 44756972963](https://github.com/DionCroft/Signal_Grove/actions/runs/44756972963).

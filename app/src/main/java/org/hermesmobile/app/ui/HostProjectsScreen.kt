@@ -42,7 +42,7 @@ private fun projectTime(ms:Long)=DateFormat.getDateTimeInstance().format(Date(ms
                 vm.hostProjectBlockReason(s)?.let {Text(label(it))}
             }
             if(pending) item {Text(label(Words.ManagementOutcomePending));TextButton(::dismiss,Modifier.heightIn(min=48.dp).testTag("project-return-receipts")) {Text(label(Words.ProjectReturnReceipts))}}
-            if(s.busy) item {QuietProgress();Text(label(Words.Loading));TextButton(vm::cancel,modifier=Modifier.heightIn(min=48.dp).testTag("host-projects-cancel-work")) {Text(label(Words.Cancel))}}
+            if(s.busy) item {QuietProgress();Text(label(Words.Loading))}
             visible.report?.let {report->item {HostProjectChangeStatus(report)}}
             visible.inventory?.let {snapshot->
                 item {Text(label(Words.HostProjectsSnapshot).replace("{time}",projectTime(snapshot.observedAt)))}
@@ -65,7 +65,15 @@ private fun projectTime(ms:Long)=DateFormat.getDateTimeInstance().format(Date(ms
             }
             s.error?.let {message->item {Text(label(message),color=MaterialTheme.colorScheme.error)}}
         }
-    },confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp)) {Text(label(Words.Close))}})
+    },confirmButton={TextButton(::dismiss,Modifier.heightIn(min=48.dp)) {Text(label(Words.Close))}},
+        dismissButton = if (s.busy) {
+            {
+                TextButton(vm::cancel, Modifier.heightIn(min = 48.dp).testTag("host-projects-cancel-work")) {
+                    Text(label(Words.Cancel))
+                }
+            }
+        } else null
+    )
     readReview?.takeIf(vm::hostProjectReadCurrent)?.let {frozen->AlertDialog(onDismissRequest={readReview=null},title={Text(label(Words.HostProjectsRead))},text={
         LazyColumn(Modifier.heightIn(max=480.dp).testTag("host-projects-read-review")) {
             item {Text(frozen.target.url);Text(frozen.target.profile);Text(frozen.target.actor);Text(label(Words.HostProjectsReadEffect));Text(label(Words.HostProjectsBoundary))}

@@ -1,12 +1,26 @@
 # Signal Grove audit execution plan
 
+## Temporary chat and project cancellation controls - 20 November 2026
+
+The temporary composer and end review stay reachable through keyboard and
+scroll transitions. Project cancellation remains in the dialog footer and
+keeps the original unknown-send receipt. Both device groups passed the
+strengthened temporary chat cases, cancellation and the unchanged startup
+setup test. API 26 retained one helper-topic failure that passed in isolation.
+The full hosted Android matrix remains open.
+[Viewport validation](VALIDATION.md#temporary-chat-review-and-project-cancellation-viewport).
+
 ## Linux shutdown matrix and Android device evidence - 20 November 2026
 
 The pinned Linux workflow now runs pristine and candidate cohorts at the
 original SDK pin, v0.23.3 and the observed main pin. The gate independently
 checks the full exact-source and executable maps, pin-specific patch and
 50 canonical case identities, and refuses evidence paired across revisions.
-Portable verifier checks passed. Current-pin Linux execution remains open.
+The exact hosted workflow passed all six 50-case Linux cohorts. The nine
+downloaded archives and three paired case/source reports were independently
+verified. Current-pin native lifecycle probes and the live owner gates remain
+open.
+[Hosted run 44756972963](https://github.com/DionCroft/Signal_Grove/actions/runs/44756972963).
 
 The older Android CI run 44734783993 on commit 19387ab passed verification
 and API 37 shard 0. The other three verified artifacts retain failures in
@@ -22,7 +36,7 @@ teardown begins and uses its original store for bounded cleanup. Both
 Windows cohorts passed normal stop, standalone exit, a held SQLite close
 gate and released contention. All 50 original upstream test cases passed
 per pristine and candidate pin. Preserve the earlier held-transaction
-failure and its subagent ledger trace. Current Linux, deployed owner
+failure and its subagent ledger trace. Native Linux and deployed owner
 lifecycle, the persistent-contention full shutdown case and the remaining
 compatibility and release gates are open.
 [Current pin evidence](contracts/2026-11-19-hermes-public-shutdown-review.md#hermes-v0233-and-current-main-shutdown-candidate).

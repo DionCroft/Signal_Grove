@@ -426,7 +426,13 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     if (actions.openTemporary != null || actions.openProfiles != null || actions.openVoice != null) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             actions.openTemporary?.let { open ->
-                TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-temporary-open")) {
+                val focus = LocalFocusManager.current
+                val keyboard = LocalSoftwareKeyboardController.current
+                TextButton({
+                    focus.clearFocus()
+                    keyboard?.hide()
+                    open()
+                }, enabled = !state.busy, modifier = Modifier.testTag("phone-temporary-open")) {
                     Text(label(Words.PhoneTemporaryChat))
                 }
             }

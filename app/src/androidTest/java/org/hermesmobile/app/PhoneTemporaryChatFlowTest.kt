@@ -15,9 +15,9 @@ class PhoneTemporaryChatFlowTest {
     @get:Rule val compose = createEmptyComposeRule()
 
     @Test fun endingTemporaryChatPreservesTheSavedChatDraftAndReopensEmpty() = withPhone {
-        compose.onNodeWithTag("phone-draft").performTextInput("Original saved-chat draft")
+        compose.onNodeWithTag("phone-draft").assertIsDisplayed().performClick().performTextInput("Original saved-chat draft")
         openTemporary()
-        compose.onNodeWithTag("phone-temporary-draft").performTextInput("Unsent private draft")
+        compose.onNodeWithTag("phone-temporary-draft").assertIsDisplayed().performClick().performTextInput("Unsent private draft")
         compose.onNodeWithTag("phone-temporary-close").performClick()
         compose.onNodeWithTag("phone-temporary-end-review").assertIsDisplayed()
         compose.onNodeWithTag("phone-temporary-keep").performClick()

@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Temporary chat review and project cancellation viewport
+
+Opening a temporary chat releases focus in the saved composer. The temporary
+dialog uses its own focus owner when the end review opens. Its model picker,
+status and retention explanation scroll with the transcript. Its review and
+footer stay available while the keyboard leaves. Ending or backgrounding a
+temporary chat continues to discard its content independently of the saved
+draft. Project cancellation stays in the dialog footer while a request is
+running, including while the project list is scrolled.
+
+The source-bound build passed 1,198 JVM tests, both lint variants with no
+errors. The focused group passed 153 of 153 methods on API 37 and 152 of
+153 on API 26. Both APIs passed the changed paths, including unsent drafts,
+temporary review cancellation and empty reopen. A cancelled project send
+remained unknown with exactly one admission in the fixture. The Phone
+startup setup test passed locally on both APIs.
+
+The API 26 group missed the selected Setup helper check after a topic tap.
+The identical installed APKs passed that single case in isolation. The
+failed group log remains the primary group result. Full hosted validation
+of the helper, startup and viewport paths remains open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Build source snapshot | 92f69c516cf3dbfe50d51419570feb5ccaca56db609e246ea31c1b67170362d7 |
+| App APK | cd6cccd9a0a20d498ad33c50da08cf0cca90d0d35195951f2dcc0a1c71a9b335 |
+| Test APK | 6c56bf0ac74238d4d390f83b301efb36e84eb4e2f7957079eaf7055a9fb586fc |
+| Android 8 focused log | 7d7bf61a3b4c9a6f97e647232060297294a61e1637166fd7ec966504c441c03c |
+| Android 17 focused log | c44e2a7b9cb7c5fa3f77a06f4bd49243f595089ebfeeb89d1780dcf0c5835a6b |
+| API 26 isolated helper check | a8bd47aa68b3043d9a11fc237f88b9390dad11f54beefd7a92e1152e96b0b042 |
+
 ## Offline checklist and setup issue search
 
 The checklist shows installed model count, last-checked storage when
