@@ -303,6 +303,12 @@ internal class LocalHistoryRestoreTransaction(
     }
 }
 
+internal fun createDurableLocalDirectory(directory: File, syncDirectory: (File) -> Unit) {
+    val missing = generateSequence(directory) { it.parentFile }.takeWhile { !it.exists() }.toList()
+    check(directory.isDirectory || directory.mkdirs())
+    for (created in missing.asReversed()) syncDirectory(checkNotNull(created.parentFile))
+}
+
 internal fun syncAndroidDirectory(file: File) {
     // The local JVM test stubs have no Android file-descriptor implementation.
     if (Build.VERSION.SDK_INT == 0) return

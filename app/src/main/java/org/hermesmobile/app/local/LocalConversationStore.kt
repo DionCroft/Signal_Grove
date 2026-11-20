@@ -37,9 +37,7 @@ class LocalConversationStore internal constructor(
     internal val directory = directory.canonicalFile
 
     init {
-        val missing = generateSequence(this.directory) { it.parentFile }.takeWhile { !it.exists() }.toList()
-        check(this.directory.isDirectory || this.directory.mkdirs())
-        for (created in missing.asReversed()) syncDirectory(checkNotNull(created.parentFile))
+        createDurableLocalDirectory(this.directory, syncDirectory)
     }
 
     @Synchronized fun list(checkpoint: () -> Unit = {}): List<LocalConversationSummary> {

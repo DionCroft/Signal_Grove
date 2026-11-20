@@ -1,5 +1,60 @@
 # Current development validation — audit follow-up
 
+## Phone model library durability
+
+The model store syncs Android directory entries before acknowledging the
+published model, performance settings or model deletion. It also uses
+the shared durable creation path for new private directories. Explicit
+repeat requests verify an already published model and sync the directory
+before reporting success. Import and settings failures refresh the
+observed library while keeping the operation error visible.
+
+Two JVM regressions check directory creation and the publication order.
+They inject a sync failure after the file operation and verify that it
+cannot return success. The visible bytes survive for reconciliation by
+an explicit retry. This build passed 1,202 JVM tests across
+113 reports, with zero lint errors in debug and release.
+
+Both owned Android emulators passed real LFM3 cancellation after import
+publication, plus Qwen import, generation, history read and deletion.
+The Android 17 guest also passed switching between the verified Qwen
+and LFM3 files with chat bindings preserved. Both guests had no default
+network at test admission. The native APKs, package UIDs, original app
+files and staged inputs were verified, and the previous network
+settings were restored. These checks cover the filesystem calls and
+lifecycle on this build. Its new cold-boot and physical tests remain open.
+
+The first Android 8 radio command was refused before any test. A
+verified Settings switch then supplied the offline condition. The
+first Android 17 import completed while its host parser rejected the
+extra diagnostic fields. Its terminal log was checked without
+repeating the case. Both initial attempts remain in the evidence.
+
+| Evidence | Value |
+| --- | --- |
+| Build receipt | `20261120-175038-3a8775abe7ed4078abb29b9f6bd0c85a` |
+| Source snapshot SHA-256 | `e723bc7cb5c9f206a2a85c6d54696673f5a57369cd0148ea53fc0eb80f0fcb80` |
+| Debug app APK SHA-256 | `5aa9b5749009e6fafdec19c2d89cf2ded06b930584e4c6229bae02b169f04a95` |
+| Debug test APK SHA-256 | `f1bbbd9792fc32548c83dc6d3e7cb8395c506563805eb2480463d9842c70ed9e` |
+| Android 8 result SHA-256 | `1012ac5d07a602b67f51dc9ce1ce8ddbbe35a0fa771a6655d3dd372207863c74` |
+| Android 17 result SHA-256 | `3444249176fcc79fce7fae0fd7694255eb273a72f8f1709f186736486e97cc38` |
+
+## Older hosted Android 8 startup timeout
+
+The final API 26 shard in run 44759909823 terminated at the command
+timeout. The verified archive reports 584 selected cases, 490 starts
+and 489 positive completions. The last start was
+`PhoneStartupRoutingTest.setupSwitchPersistsAndFreshLauncherOpensAnUnloadedPhone`,
+with no finish. The runner state still showed the emulator alive
+and ADB attached. The archive establishes where test output stopped.
+The same test passed in isolation on the current build. Its log SHA-256
+is `5f2b2c9fb1636a8d65f4b76cc4957422563fc362778966c3c58f546719f41002`. The older shard stall and full Android
+acceptance remain open.
+[Failed Android 8 job](https://github.com/DionCroft/Signal_Grove/actions/runs/44759909823/job/136405725411).
+
+Archive SHA-256 `da386f5f46a7d296b3c2232464534362fa8a0059b0b0e4d8146312a1317b0c5c`.
+Native log SHA-256 `ebaab542259e47d491b8e33a8383c9dd7e82d7669213bb44b7548253a13659b3`.
+
 ## Project cancellation and phone dialogs with the keyboard
 
 The older debug pair reproduced the project cancellation test failure on

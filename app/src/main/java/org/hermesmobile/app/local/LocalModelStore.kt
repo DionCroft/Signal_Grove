@@ -23,11 +23,18 @@ class PhoneModelReplacement internal constructor(
 class LocalModelStorageException(val reason: String) : IllegalStateException(reason)
 
 /** Owns model bytes only. No server credentials, conversations or external paths are stored. */
-class LocalModelStore(directory: File, private val availableBytes: () -> Long = { directory.usableSpace }) {
+class LocalModelStore internal constructor(
+    directory: File,
+    private val availableBytes: () -> Long,
+    private val syncDirectory: (File) -> Unit
+) {
+    constructor(directory: File, availableBytes: () -> Long = { directory.usableSpace }) :
+        this(directory, availableBytes, ::syncAndroidDirectory)
+
     private val directory = directory.canonicalFile
     companion object { const val SPACE_RESERVE = 64L * 1024 * 1024 }
     init {
-        check(directory.isDirectory || directory.mkdirs())
+        createDurableLocalDirectory(this.directory, syncDirectory)
     }
 
     @Synchronized fun models(checkpoint: () -> Unit = {}): List<InstalledLocalModel> {
@@ -166,6 +173,7 @@ class LocalModelStore(directory: File, private val availableBytes: () -> Long = 
                 output.fd.sync()
             }
             Files.move(partial.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            syncLibraryChanges()
         } finally {
             if (partial.exists() && !partial.delete()) throw LocalModelStorageException("partial_cleanup_failed")
         }
@@ -177,7 +185,10 @@ class LocalModelStore(directory: File, private val availableBytes: () -> Long = 
         val file = owned("$sha256.gguf")
         if (file.exists() && !file.delete()) throw LocalModelStorageException("delete_failed")
         Files.deleteIfExists(owned("$sha256.performance").toPath())
+        syncLibraryChanges()
     }
+
+    @Synchronized internal fun syncLibraryChanges() = syncDirectory(directory)
 
     internal fun usableBytes(): Long = availableBytes().coerceAtLeast(0)
 
@@ -200,6 +211,8 @@ class LocalModelStore(directory: File, private val availableBytes: () -> Long = 
             // Same private filesystem: incomplete bytes never appear as an installed model.
             Files.move(partial.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
         }
+        // An explicit retry can find the exact file after an earlier sync failure.
+        syncLibraryChanges()
         return InstalledLocalModel(sha256, metadata)
     }
 

@@ -282,3 +282,14 @@ earlier hosted checks and live Pi acceptance.
 | Evidence verifier | `85658ff64f05674e605f2762009726abab8f8ff4db761e793a3c0e062151f5ee` |
 | v0.23.3 held-stop log | `c887b5296054925d2e3eb6150aa84de4dc342153f4ffbe0a8fc80ee9d7f6bcd7` |
 | Reviewed main held-stop log | `e1d1e3019b99c3a7737d3a59a692f9694654bff365494ab0ce95c6de8ec72c9b` |
+
+Hosted Linux run **44786166403** passed at source `294607e`.
+Independent checks matched all nine archive sizes and SHA-256 digests
+and reproduced 300 canonical cases and 18 native lifecycle outcomes.
+The held-stop cases returned in 11.33 seconds on v0.23.3 and
+11.24 seconds on the reviewed main pin. Both verified the exact
+ledger timeout, the decision to leave SQLite open and successful
+heartbeat cleanup after release. Real subagent recovery and live Pi
+acceptance remain open. The independent Linux verification receipt
+SHA-256 is `778c05815dc3dde054c969f3181ff24b74715cfc2792ca0202161d8e023c1ca8`.
+[Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44786166403).

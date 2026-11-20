@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Phone model library durability - 20 November 2026
+
+Model files, performance settings and deletions now sync directory entries
+before acknowledgement. The fixed build passed 1,202 JVM tests, both lint
+variants with zero errors and five real offline cases across Android 8
+and 17. The previous Android 8 hosted shard timed out after 489 of 584
+methods completed and stopped reporting during the phone startup test.
+The full Android matrix, new cold-boot and physical acceptance stay open.
+[Model and hosted evidence](VALIDATION.md#phone-model-library-durability).
+
 ## Hermes full stop under held heartbeat contention - 20 November 2026
 
 Both current source pins ran seven candidate lifecycle cases on Windows.
@@ -8,8 +18,9 @@ open. It skipped closing SQLite and the original cleanup removed the
 row after explicit release. Both source inventories and post-exit SQLite
 checks passed. The earlier subagent ledger write exhausted its 10-second
 mutex wait, so marking and recovery of real interrupted subagents under
-this contention remain open. Hosted Linux for the new scenario and
-live Pi lifecycle acceptance remain open.
+this contention remain open. Hosted Linux independently passed 300 canonical
+and 18 lifecycle cases, including the same held-stop outcome at both pins.
+Live Pi lifecycle acceptance remains open.
 [Full-stop evidence](contracts/2026-11-19-hermes-public-shutdown-review.md#full-hermes-stop-with-the-heartbeat-transaction-still-open).
 
 ## Phone dialogs and project cancellation checkpoint - 20 November 2026

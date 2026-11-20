@@ -3,6 +3,7 @@ package org.hermesmobile.app.local
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 import java.util.concurrent.CancellationException
 import org.junit.Assert.*
@@ -41,6 +42,63 @@ class LocalModelStoreTest {
         assertEquals(listOf(result), store.models())
         assertEquals(listOf(result.sha256 + ".gguf"), root.listFiles()!!.map { it.name })
     }
+    @Test fun modelNamesAndPerformanceSettingsAreSyncedAfterPublicationAndDeletion() {
+        val parent = temp.newFolder().canonicalFile
+        val local = File(parent, "local-ai")
+        val root = File(local, "models")
+        val bytes = fixture()
+        val sha = hash(bytes)
+        val modelFile = File(root, "$sha.gguf")
+        val settingsFile = File(root, "$sha.performance")
+        val syncs = mutableListOf<File>()
+        val published = mutableListOf<Pair<Boolean, Boolean>>()
+        val store = LocalModelStore(root, { Long.MAX_VALUE }) { synced ->
+            syncs += synced
+            if (synced == root) {
+                assertFalse(root.listFiles()!!.any { it.name.endsWith(".part") || it.name.endsWith(".tmp") })
+                if (modelFile.isFile) assertArrayEquals(bytes, modelFile.readBytes())
+                published += modelFile.isFile to settingsFile.isFile
+            }
+        }
+        val model = store.importModel(bytes.inputStream(), true)
+        val settings = LocalPerformancePreset.BALANCED.forModel(model.metadata.trainedContext)
+        store.savePerformance(model, settings)
+        assertEquals(settings, store.performance(model))
+        store.delete(sha)
+
+        assertEquals(listOf(parent, local, root, root, root), syncs)
+        assertEquals(listOf(true to false, true to true, false to false), published)
+    }
+
+    @Test fun syncFailureRefusesSuccessAndPreservesBytesForExplicitReconciliation() {
+        val root = temp.newFolder()
+        val bytes = fixture()
+        val sha = hash(bytes)
+        var syncFails = true
+        var syncAttempts = 0
+        val store = LocalModelStore(root, { Long.MAX_VALUE }) {
+            syncAttempts++
+            if (syncFails) throw IOException("directory sync failed")
+        }
+
+        assertThrows(IOException::class.java) { store.importModel(bytes.inputStream(), true) }
+        assertArrayEquals(bytes, store.verifiedFile(sha).readBytes())
+        assertEquals(listOf("$sha.gguf"), root.list()!!.toList())
+
+        syncFails = false
+        val model = store.importModel(bytes.inputStream(), true)
+        assertEquals(sha, model.sha256)
+        assertEquals(2, syncAttempts)
+        syncFails = true
+        assertThrows(IOException::class.java) { store.delete(sha) }
+        assertTrue(store.models().isEmpty())
+
+        syncFails = false
+        store.delete(sha)
+        assertEquals(4, syncAttempts)
+        assertTrue(root.list()!!.isEmpty())
+    }
+
     @Test fun supportsOtherValidatedArchitecturesWithoutClaimingNativeCompatibility() {
         val store = store(temp.newFolder())
         assertEquals("qwen3", store.importModel(fixture("qwen3").inputStream(), true).metadata.architecture)

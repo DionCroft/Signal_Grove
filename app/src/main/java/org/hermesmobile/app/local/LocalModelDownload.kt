@@ -55,7 +55,11 @@ internal class LocalModelDownload(private val store: LocalModelStore,
             val context = currentCoroutineContext()
             val checkpoint = { context.ensureActive() }
             val existing = store.models(checkpoint).find { it.sha256 == spec.sha256 }
-            if (existing != null) { store.verifiedFile(existing.sha256, checkpoint); return@withContext existing }
+            if (existing != null) {
+                store.verifiedFile(existing.sha256, checkpoint)
+                store.syncLibraryChanges()
+                return@withContext existing
+            }
             val file = partial()
             if (file.exists() && (!file.isFile || file.length() > spec.bytes)) throw LocalModelStorageException("partial_size")
             var count = file.length()

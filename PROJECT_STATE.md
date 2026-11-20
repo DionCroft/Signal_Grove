@@ -5,6 +5,15 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Phone model library durability checkpoint
+
+Model install, settings and deletion sync directory entries before returning.
+The build passed 1,202 JVM tests and both lint variants with zero errors.
+Verified LFM3 and Qwen inputs passed five offline Android cases across
+both owned emulators. The older hosted Android 8 shard holds a timeout in
+the phone startup test. Full hosted, cold-boot and phone checks remain open.
+[Model evidence](docs/VALIDATION.md#phone-model-library-durability).
+
 ## Phone dialogs and project cancellation checkpoint - 20 November 2026
 
 The project cancellation fixture now targets the reachable dialog footer.
@@ -24,9 +33,9 @@ cleans up register-once and periodic rows on exit. Windows native stop,
 standalone exit, live SQLite close-gate and released-contention checks
 passed. Hosted Linux passed the earlier canonical and lifecycle cases.
 The candidate now also returns from a full Windows stop with the
-heartbeat transaction still held and leaves SQLite open. The subagent
-shutdown ledger times out under the same contention. Real subagent
-recovery, hosted Linux for this new case and live Pi checks remain open.
+heartbeat transaction still held and leaves SQLite open. Hosted Linux reproduced that outcome at both reviewed pins. The subagent
+shutdown ledger times out under the same contention. Real subagent recovery
+and live Pi checks remain open.
 [Candidate and evidence](docs/contracts/2026-11-19-hermes-public-shutdown-review.md#full-hermes-stop-with-the-heartbeat-transaction-still-open).
 
 ## Latest offline setup checkpoint

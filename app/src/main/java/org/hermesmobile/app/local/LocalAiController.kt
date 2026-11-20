@@ -838,8 +838,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                     }
                 }
                 catch (e: Exception) {
-                    if (status == "downloading" || status == "queuing_download" || status == "discarding_download" ||
-                        status == "installing_replacement") reconcileModelLibrary()
+                    if (status == "downloading" || status == "importing" ||
+                        status == "queuing_download" || status == "discarding_download" ||
+                        status == "installing_replacement" || status == "saving_model_settings") reconcileModelLibrary()
                     mutable.update { it.copy(error = when {
                         e is LocalMarkdownExportException && e.reason == LocalMarkdownExportFailure.CHANGED -> "history_export_changed"
                         status == "preparing_export" -> "history_export_prepare"
