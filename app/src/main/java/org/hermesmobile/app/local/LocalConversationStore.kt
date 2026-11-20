@@ -28,9 +28,19 @@ data class LocalConversationSummary(val id: String, val modelSha256: String, val
 class LocalHistoryException : IllegalStateException("local_history_unavailable")
 
 /** Deliberately independent of Hermes database/session IDs, receipts and profile history. */
-class LocalConversationStore(directory: File) {
+class LocalConversationStore internal constructor(
+    directory: File,
+    private val syncDirectory: (File) -> Unit
+) {
+    constructor(directory: File) : this(directory, ::syncAndroidDirectory)
+
     internal val directory = directory.canonicalFile
-    init { check(this.directory.isDirectory || this.directory.mkdirs()) }
+
+    init {
+        val missing = generateSequence(this.directory) { it.parentFile }.takeWhile { !it.exists() }.toList()
+        check(this.directory.isDirectory || this.directory.mkdirs())
+        for (created in missing.asReversed()) syncDirectory(checkNotNull(created.parentFile))
+    }
 
     @Synchronized fun list(checkpoint: () -> Unit = {}): List<LocalConversationSummary> {
         val files = directory.listFiles() ?: throw LocalHistoryException()
@@ -183,10 +193,18 @@ class LocalConversationStore(directory: File) {
         try {
             partial.outputStream().use { it.write(json); it.fd.sync() }
             Files.move(partial.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            // The file sync does not make the directory's replacement entry durable.
+            syncDirectory(directory)
         } finally { if (partial.exists() && !partial.delete()) throw LocalHistoryException() }
     }
 
-    @Synchronized fun delete(id: String) { val target = file(id); if (target.exists() && !target.delete()) throw LocalHistoryException() }
+    @Synchronized fun delete(id: String) {
+        val target = file(id)
+        if (target.exists()) {
+            if (!target.delete()) throw LocalHistoryException()
+            syncDirectory(directory)
+        }
+    }
     internal fun file(id: String): File {
         requireCanonicalChatId(id)
         return File(directory, "$id.json").also { require(it.canonicalFile == it.absoluteFile) }

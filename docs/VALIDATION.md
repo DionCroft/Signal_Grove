@@ -1,5 +1,41 @@
 # Current development validation — audit follow-up
 
+## Phone chat durability across a virtual power cycle
+
+In the unmodified build, an Android 17 emulator stopped and restarted
+from the same data disk with a new kernel boot ID. Its APK and model
+hashes matched. The completed chat record reverted to the earlier
+version with a second turn marked GENERATING. The failed record and
+its exact bytes stay preserved.
+
+The chat store now syncs the Android directory after atomically
+publishing or deleting a chat, and syncs parent entries for directories
+it creates. A failed sync propagates instead of acknowledging a
+durable save. Both app variants assemble. The exact development build
+passes 1,200 JVM cases over 113 reports, including two new persistence
+regressions, and both lint variants have zero errors.
+
+On the same emulator, the in-place debug upgrade retained both
+package UIDs and the original failed chat bytes. A fresh test then
+witnessed an interrupted Qwen turn, completed one explicitly sent turn,
+stopped the emulator and started it once with the same data disk.
+The new offline guest retained the completed chat byte-for-byte and
+the installed model matched its pinned SHA-256. The native post-boot
+method opened the saved turns with no load or replay. The fixture
+restored the guest's network settings and verified the original
+failed chat hash again. The separate older guest's in-guest reboot
+remains unaccepted. Physical phone and production release checks
+remain open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Build source snapshot | 3a26b168acf78c2e3a1340cab562136331ebf7e7f44d92f208c65c103d426d2d |
+| Old expected completed chat | e0e366e7e1b2c6eed48ee85c25cd528d31d9ec523e9e6faf3ea0595be9e1cd88 |
+| Old observed rolled-back chat | 13cf753bf310cfcffb43cf70fbaf9622946ee6a066115404a9943658b2a7ebef |
+| Fixed cold recovery native log | c1c3d5649d17bed6a97223bb26eaad4edbf65ecc01c01b61fcf7f08773542cb4 |
+| Fixed post-boot native log | 4f0ba697b7b14d6a203d7ea99081e39bf3fd6860bfa7e6a91623fe28fa1b3680 |
+| Independent result receipt | 21d33b776652a3b9759b9ab24a1353835160e2afc73268f5a66bb8875280e71c |
+
 ## Public LFM3 transfer cancellation, discard and resume
 
 The exact development debug pair ran two native download cases on the

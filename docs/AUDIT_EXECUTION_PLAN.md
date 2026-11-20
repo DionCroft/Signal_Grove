@@ -1,5 +1,24 @@
 # Signal Grove audit execution plan
 
+## Saved phone chat power-cycle durability - 20 November 2026
+
+A separate Android 17 cold boot exposed a completed Qwen reply reverting
+to its earlier GENERATING record. The chat store now syncs directory
+entries after publication and deletion. The fixed build passes all
+1,200 JVM tests and zero-error lint. The preserved failed fixture
+survived an in-place debug upgrade. A fresh offline cold-boot trial
+retained the completed chat and model bytes and reopened history without
+loading or replaying. This adds positive evidence for the post-boot
+method on the corrected build. The old in-guest restart, physical
+device gates, deployed Hermes and production release remain open.
+[Durability evidence](VALIDATION.md#phone-chat-durability-across-a-virtual-power-cycle).
+
+Hosted Android run 44759909823 passed 1,198 JVM methods and zero-error
+lint at its earlier source. Verified API 37 shard 0 executed 585 cases,
+with 583 positive and two Phone Voice screen visibility failures.
+The original artifacts remain and the full Android acceptance gate
+stays open. [Hosted Android follow-up](https://github.com/DionCroft/Signal_Grove/actions/runs/44759909823).
+
 ## External offline model checkpoint - 20 November 2026
 
 The installed development APKs passed offline Qwen import, generation,

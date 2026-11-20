@@ -1,5 +1,6 @@
 package org.hermesmobile.app.local
 
+import android.os.Build
 import android.system.Os
 import android.system.OsConstants
 import java.io.File
@@ -299,15 +300,18 @@ internal class LocalHistoryRestoreTransaction(
         private fun labelDigest(file: File) =
             if (file.exists()) digest(file, LocalHistoryOrganization.MAX_BYTES) else null
 
-        private fun syncAndroidDirectory(file: File) {
-            val flags = OsConstants.O_RDONLY or OsConstants.O_NOFOLLOW
-            val fd = Os.open(file.path, flags, 0)
-            try {
-                check(OsConstants.S_ISDIR(Os.fstat(fd).st_mode))
-                Os.fsync(fd)
-            } finally {
-                Os.close(fd)
-            }
-        }
+    }
+}
+
+internal fun syncAndroidDirectory(file: File) {
+    // The local JVM test stubs have no Android file-descriptor implementation.
+    if (Build.VERSION.SDK_INT == 0) return
+    val flags = OsConstants.O_RDONLY or OsConstants.O_NOFOLLOW
+    val fd = Os.open(file.path, flags, 0)
+    try {
+        check(OsConstants.S_ISDIR(Os.fstat(fd).st_mode))
+        Os.fsync(fd)
+    } finally {
+        Os.close(fd)
     }
 }

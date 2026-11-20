@@ -1,6 +1,7 @@
 package org.hermesmobile.app.local
 
 import java.io.File
+import java.io.IOException
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -16,6 +17,39 @@ class LocalConversationStoreTest {
         assertEquals("Hello 你好 🌱", store.list().single().title)
         assertEquals(listOf(value.id + ".json"), root.listFiles()!!.map { it.name })
     }
+    @Test fun syncsNewDirectoryEntriesAndEveryPublishedChatName() {
+        val parent = temp.newFolder().canonicalFile
+        val local = File(parent, "local-ai")
+        val history = File(local, "chats")
+        val syncs = mutableListOf<File>()
+        val published = mutableListOf<String?>()
+        val generating = conversation(LocalReplyState.GENERATING)
+        val completed = generating.copy(exchanges = listOf(generating.exchanges.single().copy(state = LocalReplyState.COMPLETE)))
+        val target = File(history, "${generating.id}.json")
+        val store = LocalConversationStore(history) { synced ->
+            syncs += synced
+            if (synced == history) {
+                assertFalse(history.listFiles()!!.any { it.name.endsWith(".part") })
+                published += target.takeIf(File::isFile)?.readText()
+            }
+        }
+        store.saveNew(generating)
+        store.save(completed)
+        store.delete(generating.id)
+        store.delete(generating.id)
+        assertEquals(listOf(parent, local, history, history, history), syncs)
+        assertTrue(published[0]!!.contains("GENERATING"))
+        assertTrue(published[1]!!.contains("COMPLETE"))
+        assertNull(published[2])
+    }
+
+    @Test fun aDirectorySyncFailureCannotAcknowledgeCompletedHistory() {
+        val root = temp.newFolder()
+        val store = LocalConversationStore(root) { throw IOException("directory sync failed") }
+        assertThrows(IOException::class.java) { store.save(conversation()) }
+        assertFalse(root.listFiles()!!.any { it.name.endsWith(".part") })
+    }
+
     @Test fun processInterruptionIsDurableAndNeverReplayed() {
         val root = temp.newFolder(); val value = conversation(LocalReplyState.GENERATING)
         LocalConversationStore(root).save(value)
