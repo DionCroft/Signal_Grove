@@ -28,12 +28,12 @@ class PhoneVoiceFlowTest {
                 compose.onNodeWithTag("phone-draft").performTextReplacement("Existing text")
                 open()
                 compose.onNodeWithTag("voice-local-only").assertDoesNotExist()
-                compose.onNodeWithTag("voice-read-tab").performClick()
+                selectVoiceTab("voice-read-tab")
                 compose.onNodeWithTag("voice-network-voices").assertDoesNotExist()
                 compose.onNodeWithTag("voice-read-reply").performScrollTo().assertIsNotEnabled()
                 compose.onNodeWithTag("voice-read-reason").performScrollTo().assertIsDisplayed()
                     .assertTextContains(Words.PhoneReadReplyRequired.en, substring = true)
-                compose.onNodeWithTag("voice-dictation-tab").performClick()
+                selectVoiceTab("voice-dictation-tab")
                 val apply = compose.onNodeWithTag("voice-use-transcript")
                 apply.assertIsDisplayed().assertIsNotEnabled()
                 compose.onNodeWithTag("voice-transcript").performScrollTo().performClick()
@@ -69,6 +69,14 @@ class PhoneVoiceFlowTest {
         compose.onNodeWithTag("phone-draft").assertTextContains("Keep my draft")
         open()
         compose.onNodeWithTag("voice-use-transcript").assertIsDisplayed().assertIsNotEnabled()
+    }
+
+    private fun selectVoiceTab(tag: String) {
+        // The dialog can be attached before the chip is displayed, and its label can
+        // merge into another semantics node while the IME and dialog settle.
+        val tab = compose.onNodeWithTag(tag, useUnmergedTree = true)
+        compose.waitUntil(10_000) { tab.isDisplayed() }
+        tab.assertIsEnabled().performTouchInput { click() }
     }
 
     private fun open() {

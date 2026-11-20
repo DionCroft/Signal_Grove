@@ -57,6 +57,24 @@ API 26 emulator and passed both. That focused run leaves the hosted
 full-suite outcome open.
 [Exact candidate GitHub Actions run](https://github.com/DionCroft/Signal_Grove/actions/runs/44808153153).
 
+## Hosted Android 8 Voice follow-up
+
+On beta.10 source beef582, hosted Android 8 shard 0 finished all 584
+cases. 583 passed. The startup method that timed out on the preceding
+run finished. The one failed case tried to select Read aloud in
+on-device Voice. Compose found one tagged control in the unmerged
+tree and none in the merged tree at the click.
+
+The fixture now waits for the exact chip in the unmerged semantics
+tree to become displayed before tapping it once. Its checks still
+require the Read aloud content, the disabled-state explanation, the
+real keyboard, an editable transcript and no change to history or
+speech preferences.
+
+[Failed hosted shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44808153153/job/136545168028).
+Raw archive SHA-256
+ddaa1d0902db216d60b4c1e9171bd4837a22d1041f7b4f1a07d4b8a196a8c1dc.
+
 ## Compact phone chat action menu
 
 The previous APK failed the actual Temporary chat flow after a draft
