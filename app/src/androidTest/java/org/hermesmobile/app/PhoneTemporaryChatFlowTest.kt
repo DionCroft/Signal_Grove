@@ -43,9 +43,12 @@ class PhoneTemporaryChatFlowTest {
 
     private fun openTemporary() {
         compose.waitUntil(15_000) {
-            compose.onAllNodes(hasTestTag("phone-temporary-open") and isEnabled()).fetchSemanticsNodes().size == 1
+            compose.onAllNodes(hasTestTag("phone-chat-options") and isEnabled()).fetchSemanticsNodes().size == 1
         }
-        compose.onNodeWithTag("phone-temporary-open").assertIsDisplayed().assertIsEnabled().performClick()
+        compose.onNodeWithTag("phone-chat-options").assertIsDisplayed().assertIsEnabled()
+            .performTouchInput { click() }
+        compose.onNodeWithTag("phone-temporary-open").assertIsDisplayed().assertIsEnabled()
+            .performTouchInput { click() }
         val title = compose.onNodeWithTag("phone-temporary-title")
         compose.waitUntil(10_000) { title.isDisplayed() }
         title.assertIsDisplayed()

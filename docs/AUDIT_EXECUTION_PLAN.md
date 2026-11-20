@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Compact phone chat actions - 20 November 2026
+
+The exact predecessor reproduced the Temporary chat visibility
+failure on a shorter Android 8 display after editing the draft. The
+toolbar menu passed the same compact viewport and the focused Android
+17 retest. The predecessor profile flow and two later intermittent
+Android 17 failures have their own evidence. Full hosted and physical
+acceptance remain required.
+[Compact menu evidence](VALIDATION.md#compact-phone-chat-action-menu).
+
 ## Native runtime advisory remediation - 20 November 2026
 
 The published beta.9 inventory still lists b12255. Development source

@@ -148,7 +148,7 @@ close Phone voice to end playback.
 
 ## Back up and restore personal profiles
 
-In **On-device AI → Chat → Personal profiles**, choose **Back up
+In **On-device AI → Chat → Chat options (⋮) → Personal profiles**, choose **Back up
 profiles**, check the profiles to include, and enter and confirm a
 passphrase. Open the backup review and choose where to save the
 `.sgprofiles` file. Each selected profile includes its saved writing
@@ -166,7 +166,7 @@ up profiles. Each backup has its own selection and restore review.
 
 ## Use personal notes in one phone-model request
 
-1. Open **On-device AI → Chat → Personal profiles**.
+1. Open **On-device AI → Chat → Chat options (⋮) → Personal profiles**.
 2. Add a profile and enter optional writing preferences or personal
    notes. Save the profile. You can edit or delete it from the same screen.
 3. Load a phone model and type the message in Chat. Open **Personal
@@ -183,7 +183,7 @@ leaving the activity discards the outstanding selection.
 
 ## Start a temporary chat
 
-1. Open **On-device AI → Chat → Temporary chat**.
+1. Open **On-device AI → Chat → Chat options (⋮) → Temporary chat**.
 2. Choose a loaded phone model, or choose an installed model to load.
 3. Send a message. The same temporary chat can use its earlier turns
    while the selected model has context available.

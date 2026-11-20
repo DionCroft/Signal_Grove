@@ -1,5 +1,50 @@
 # Current development validation — audit follow-up
 
+## Compact phone chat action menu
+
+The previous APK failed the actual Temporary chat flow after a draft
+was entered on Android 8 at a 900 × 1440 viewport, density 420 and
+font scale 1.3. The control existed but was outside the displayed
+area. The Personal profiles flow passed this compact predecessor run.
+The Android 8 hosted run had flagged visibility at both entries.
+
+The existing chat toolbar now has one **Chat options** menu for
+Temporary chat and Personal profiles. Opening the menu clears the
+composer focus and hides the keyboard without changing the draft.
+The tests tap the toolbar and the menu items and exercise the actual
+profile and temporary chat flows.
+
+On the exact candidate, all five targeted profile, temporary chat and
+Voice paths passed on the same compact Android 8 guest, and all five
+passed on the standard Android 17 guest. The first Android 17 attempt
+on these candidate bytes failed later at profile save readback and
+the Voice transcript button. Those two methods passed separately
+on the predecessor and the full five passed on a second candidate
+run. The failed attempt is retained. The display baselines, package
+identities and checked app-private data passed the retention checks.
+The candidate passed 1,203 JVM tests and both lint variants with
+zero errors. The final source tidies test indentation and adds this
+record after the local build.
+
+Both hosted Android 17 partitions of **54d6c4e** separately passed
+their complete verified inventories, 585 and 657 methods. Current
+source still needs its own complete hosted results and physical
+production acceptance.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Compact predecessor receipt | `08c8109ae1aa4bb732598c143d2765c459a8577f0aab9d892a823393d16ae047` |
+| Candidate source snapshot | `32cb06a73cf03f36a6e4c6e0c6d6dbd9faefc7d9ddd3d8e96fc2cef8044aba99` |
+| Candidate debug APK | `ad38831cdf1dbb0915ac65a277f53c053dddd4d140b71e0c89825778000b542e` |
+| Candidate test APK | `0b1e191afe02df9264228e25399bb5e7cfba75782c1faf0cda87246975149d3e` |
+| Android 8 compact UI receipt | `5a7cb8472eef7b2e4b7afaaf9099fc1f7c63aea07b446e414dc5183672d81fd8` |
+| Android 17 first candidate log | `7faf44523edb13933c8017d560c2d0abf1322d934d4618bde05b2e47962e5549` |
+| Android 17 repeating candidate receipt | `0d9275eb269ee474a9cf208c92dd5f181dd6379011083a7076504d27c4422b1b` |
+| Android 17 predecessor comparison receipt | `9d510f9599fb31a0b2ae523ac8cbf86fb844f6591232d7c0ff5da93331c69ebc` |
+| Hosted Android 17 shard 1 archive | `63281148f3e20e113620217d3db9182885b598bd2db7cbf9c4c73a3fd0044d69` |
+
+[Hosted Android 17 shard 1](https://github.com/DionCroft/Signal_Grove/actions/runs/44783939145/job/136474929838).
+
 ## Exact runtime packaging and hosted Android follow-up
 
 The clean rebuild of app source `a97c462` passed all 1,203 JVM tests,

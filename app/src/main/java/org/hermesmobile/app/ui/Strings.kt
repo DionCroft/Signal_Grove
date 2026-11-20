@@ -360,6 +360,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     PhoneProfileBackupChanged("The profile list changed. Open the backup again to review it.","资料列表已更改。请重新打开备份并审阅。","Zīliào lièbiǎo yǐ gēnggǎi. Qǐng chóngxīn dǎkāi bèifèn bìng shěnyuè."),
     PhoneProfileBackupUncertain("Restore outcome is uncertain. Check Personal profiles before restoring again.","恢复结果不确定。再次恢复前请查看个人资料。","Huīfù jiéguǒ bù quèdìng. Zàicì huīfù qián qǐng chákàn gèrén zīliào."),
     PhoneProfileStorageError("Personal profiles could not be read or saved.","无法读取或保存个人资料。","Wúfǎ dúqǔ huò bǎocún gèrén zīliào."),
+    PhoneChatOptions("Chat options","对话选项","Duìhuà xuǎnxiàng"),
     PhoneTemporaryChat("Temporary chat","临时对话","Línshí duìhuà"),
     PhoneTemporaryRetention("This chat clears when you close it or leave the app. History, search and backups include saved chats.","关闭此对话或离开应用时会清除对话。历史、搜索和备份仅包含已保存的对话。","Guānbì cǐ duìhuà huò líkāi yìngyòng shí huì qīngchú duìhuà. Lìshǐ, sōusuǒ hé bèifèn jǐn bāohán yǐ bǎocún de duìhuà."),
     PhoneTemporaryEmpty("Start a chat using only the loaded phone model.","使用已加载的手机模型开始对话。","Shǐyòng yǐ jiāzài de shǒujī móxíng kāishǐ duìhuà."),

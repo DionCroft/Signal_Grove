@@ -22,9 +22,12 @@ class PhonePersonalProfilesFlowTest {
         val scenario = ActivityScenario.launch<LocalAiActivity>(Intent(context, LocalAiActivity::class.java))
         fun open() {
             compose.waitUntil(15_000) {
-                compose.onAllNodes(hasTestTag("phone-profile-open") and isEnabled()).fetchSemanticsNodes().size == 1
+                compose.onAllNodes(hasTestTag("phone-chat-options") and isEnabled()).fetchSemanticsNodes().size == 1
             }
-            compose.onNodeWithTag("phone-profile-open").assertIsDisplayed().assertIsEnabled().performClick()
+            compose.onNodeWithTag("phone-chat-options").assertIsDisplayed().assertIsEnabled()
+                .performTouchInput { click() }
+            compose.onNodeWithTag("phone-profile-open").assertIsDisplayed().assertIsEnabled()
+                .performTouchInput { click() }
             compose.waitUntil(10_000) {
                 compose.onAllNodes(hasTestTag("phone-profile-add") and isEnabled()).fetchSemanticsNodes().size == 1
             }

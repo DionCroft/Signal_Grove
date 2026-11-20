@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.MicNone
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PhoneAndroid
@@ -401,6 +402,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     openSetup: () -> Unit,
     review: (String) -> Unit
 ) {
+    var optionsOpen by remember { mutableStateOf(false) }
     var branchReview by remember { mutableStateOf<PhoneBranchReview?>(null) }
     var continuation by remember { mutableStateOf<PhoneContinuationReview?>(null) }
     var generationReview by remember { mutableStateOf<PhoneGenerationReview?>(null) }
@@ -437,18 +439,38 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }
         }
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
-    }
-    if (actions.openTemporary != null || actions.openProfiles != null) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            actions.openTemporary?.let { open ->
-                TextButton({ openFromChat(open) }, enabled = !state.busy,
-                    modifier = Modifier.testTag("phone-temporary-open")) {
-                    Text(label(Words.PhoneTemporaryChat))
+        if (actions.openTemporary != null || actions.openProfiles != null) {
+            Box {
+                IconButton(
+                    onClick = { openFromChat { optionsOpen = true } },
+                    enabled = !state.busy,
+                    modifier = Modifier.testTag("phone-chat-options")
+                ) {
+                    Icon(Icons.Outlined.MoreVert, label(Words.PhoneChatOptions))
                 }
-            }
-            actions.openProfiles?.let { open ->
-                TextButton({ openFromChat(open) }, enabled = !state.busy, modifier = Modifier.testTag("phone-profile-open")) {
-                    Text(label(Words.PhonePersonalProfiles))
+                DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
+                    actions.openTemporary?.let { open ->
+                        DropdownMenuItem(
+                            text = { Text(label(Words.PhoneTemporaryChat)) },
+                            onClick = {
+                                optionsOpen = false
+                                open()
+                            },
+                            enabled = !state.busy,
+                            modifier = Modifier.testTag("phone-temporary-open")
+                        )
+                    }
+                    actions.openProfiles?.let { open ->
+                        DropdownMenuItem(
+                            text = { Text(label(Words.PhonePersonalProfiles)) },
+                            onClick = {
+                                optionsOpen = false
+                                open()
+                            },
+                            enabled = !state.busy,
+                            modifier = Modifier.testTag("phone-profile-open")
+                        )
+                    }
                 }
             }
         }

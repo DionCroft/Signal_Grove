@@ -5,6 +5,17 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Compact phone chat menu checkpoint
+
+The previous build reproduced the Android 8 Temporary chat visibility
+failure on a compact viewport after drafting. Chat options puts both
+Temporary chat and Personal profiles in the existing toolbar. The
+same viewport passed with the candidate, along with its focused
+Android 17 retest. The initial Android 17 save and Voice transcript
+failures remain in the evidence. The full hosted matrix and physical
+production gates are still open.
+[Menu checks](docs/VALIDATION.md#compact-phone-chat-action-menu).
+
 ## Exact rebuild and hosted UI checkpoint
 
 The app rebuild at `a97c462` verified the updated notice, packaged
