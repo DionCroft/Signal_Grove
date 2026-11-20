@@ -1,5 +1,31 @@
 # Current development validation — audit follow-up
 
+## Earlier-turn summary draft placement on Android 8
+
+The summary review now puts Draft with phone model and its Stop control
+above the multiline editor. The source-turn references and confirm
+action retain their existing positions. Drafting still requires
+an explicit request, and saving still requires separate confirmation.
+
+Before the change, 109 of 110 Android 8 cases passed. The only failure
+found the draft control outside the visible area after a scroll. The
+same test companion and same 110 cases passed on Android 8 and Android
+17 after the change. In a separate Android 8 run with a 1080 × 1440
+display override at 130% text size, the isolated summary test passed
+on both builds. The original emulator display settings were restored.
+The exact build passed 1,186 JVM tests and both lint variants with zero
+errors. The full hosted matrix and physical model-drafted summary
+acceptance remain open.
+
+- Build receipt 20261120-120838-33fd45a3fef443d0916eaade5032726d
+- Source snapshot SHA-256 1bf0cb97fc5b0167c186f37826659a9f477f48df60c77332a591737c01628e8e
+- Debug APK SHA-256 a71a0dd50c902c0d487cbb7066f99578ae8e8955340da8da59dceb243318bba8
+- Unchanged test companion SHA-256 c4eff55d5ac346602efd163959b06c4cb54924806a655c0afa166d22ae193303
+- Android 8 baseline reproduction SHA-256 f0bcf5f4225eceaaf2e684f5ad42ab58cf7ac08189f7e6ba7f6ccb86df6c318d
+- Android 8 instrumentation SHA-256 826a03bdb03c5e2b88200bbdc99659481ea46771609168f8d3cc94848b476bce
+- Android 17 instrumentation SHA-256 1ec39cfaa507c6dad283b4424486523a4b364fb49c34a2474a7549432851e3ab
+- Compact Android 8 baseline and candidate log SHA-256 5d3c33e219a5f8332e78240ed3f287a3b6db4a1ec80cb5268f95b5421e64fc14 and 45576784304ecfb83d273ed6f9f7da14dca8cd80dbc47a9eec944dc8a5bf5cd1
+
 ## Image share review survives Android activity recreation
 
 A new share is read from the delivered intent and stored in the

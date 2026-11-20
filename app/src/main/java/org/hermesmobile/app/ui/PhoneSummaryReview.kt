@@ -67,16 +67,6 @@ import org.hermesmobile.app.local.isValidReviewedSummary
                     if (copyDraft) Text(label(Words.PhoneCopyUnsentDraft))
                     if (!sameSource || !sameDraft) Text(label(Words.PhoneContextReviewChanged), color = MaterialTheme.colorScheme.error)
                     if (!capacity) Text(label(Words.PhoneBranchHistoryFull))
-                    OutlinedTextField(text, { changed ->
-                        rejectedEdit = changed.length > LOCAL_SUMMARY_BYTE_LIMIT
-                        if (!rejectedEdit) text = changed
-                    }, Modifier.fillMaxWidth().testTag("phone-summary-text"),
-                        label = { Text(label(Words.PhoneSummaryText)) }, enabled = canEdit, minLines = 3, maxLines = 8,
-                        isError = rejectedEdit || (text.isNotBlank() && !valid))
-                    Text(label(Words.PhoneSummaryLength),
-                        color = if (rejectedEdit || (text.isNotBlank() && !valid)) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall)
                     actions.draftSummary?.let { prepare ->
                         if (drafting) {
                             Text(label(Words.PhoneSummaryDrafting))
@@ -98,6 +88,16 @@ import org.hermesmobile.app.local.isValidReviewedSummary
                             else if (text.isNotBlank()) Text(label(Words.PhoneSummaryDraftKeep))
                         }
                     }
+                    OutlinedTextField(text, { changed ->
+                        rejectedEdit = changed.length > LOCAL_SUMMARY_BYTE_LIMIT
+                        if (!rejectedEdit) text = changed
+                    }, Modifier.fillMaxWidth().testTag("phone-summary-text"),
+                        label = { Text(label(Words.PhoneSummaryText)) }, enabled = canEdit, minLines = 3, maxLines = 8,
+                        isError = rejectedEdit || (text.isNotBlank() && !valid))
+                    Text(label(Words.PhoneSummaryLength),
+                        color = if (rejectedEdit || (text.isNotBlank() && !valid)) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall)
                     if (limitedDraft) Text(label(Words.PhoneSummaryDraftLimit))
                     if (draftRequested && !state.busy) state.error?.let { code ->
                         Text(label(phoneError(code)), color = MaterialTheme.colorScheme.error)

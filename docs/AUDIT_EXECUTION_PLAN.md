@@ -1,5 +1,13 @@
 # Signal Grove audit execution plan
 
+## Summary drafting on Android 8 - 20 November 2026
+
+The summary review puts optional drafting above the editor. Android 8
+reproduced the viewport failure before the fix. The same 110 focused
+checks passed on Android 8 and Android 17 after the change. Physical
+model-drafted summary, full hosted and release acceptance remain open.
+[Summary viewport evidence](VALIDATION.md#earlier-turn-summary-draft-placement-on-android-8).
+
 ## Temporary phone chat and native context cleanup - 20 November 2026
 
 OF-09 now includes foreground-only temporary chat. The real LFM3
