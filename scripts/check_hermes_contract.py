@@ -30,7 +30,12 @@ CRON_FORMAT_PATH = 'cron/job_args.py'
 REVIEWED_CRON_FORMAT_MOVES = frozenset({
     'ae2a81ccc00e9b7c06301523e5bb09608397149c',
     '364aded7ee2a2888421fc7aec96adbe6c07748a5',
+    'caafe5389ae585ef77387a962aee05b1bcf17029',
+    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
 })
+LEGACY_PLUGIN_SETTINGS_PATH = 'hermes_cli/plugins_settings.py'
+PLUGIN_SETTINGS_FIELDS_PATH = 'hermes_cli/plugins_settings/fields.py'
+REVIEWED_PLUGIN_SETTINGS_SPLIT = '2de9f51b8008a7d49a49221c184f2f11cbfc4af1'
 SOURCES = {
     'api': 'gateway/platforms/api_server.py',
     'runs': 'gateway/platforms/api_server_runs.py',
@@ -96,7 +101,7 @@ EXTRA_SOURCES = {
     'plugin_git': 'hermes_cli/plugins_cmd_git.py',
     'plugin_install': 'hermes_cli/plugins_cmd_install.py',
     'plugin_update': 'hermes_cli/plugins_cmd_update.py',
-    'plugin_settings': 'hermes_cli/plugins_settings.py',
+    'plugin_settings': LEGACY_PLUGIN_SETTINGS_PATH,
     'env_routes': 'hermes_cli/web_routers/config_env.py',
     'custom_provider_config': 'hermes_cli/config_providers.py',
     'probe_metadata': 'agent/model_metadata.py',
@@ -614,6 +619,8 @@ def contract_source_paths(commit: str) -> dict[str, str]:
     paths = SOURCES | EXTRA_SOURCES
     if commit in REVIEWED_CRON_FORMAT_MOVES and paths.get('cron_format') == LEGACY_CRON_FORMAT_PATH:
         paths['cron_format'] = CRON_FORMAT_PATH
+    if commit == REVIEWED_PLUGIN_SETTINGS_SPLIT and paths.get('plugin_settings') == LEGACY_PLUGIN_SETTINGS_PATH:
+        paths['plugin_settings'] = PLUGIN_SETTINGS_FIELDS_PATH
     return paths
 
 
@@ -731,11 +738,13 @@ def snapshot(ref: str, source_cache: Path | None = None) -> dict:
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         sources = dict(pool.map(download, paths.items()))
     result={'requested_ref':ref,'resolved_ref':resolved,'commit':sha,'contract':extract(sources),'reviewed_source_absences':sorted(absences,key=lambda entry:entry['source'])}
-    if paths.get('cron_format') == CRON_FORMAT_PATH and sha in REVIEWED_CRON_FORMAT_MOVES:
-        result['reviewed_source_relocations'] = [{
-            'source': 'cron_format', 'original_path': LEGACY_CRON_FORMAT_PATH,
-            'path': CRON_FORMAT_PATH, 'commit': sha,
-        }]
+    original_paths = SOURCES | EXTRA_SOURCES
+    relocations = [
+        dict(source=name, original_path=original_paths[name], path=path, commit=sha)
+        for name, path in sorted(paths.items()) if original_paths[name] != path
+    ]
+    if relocations:
+        result['reviewed_source_relocations'] = relocations
     if source_cache is not None:result['source_cache']=cache_counts
     return result
 

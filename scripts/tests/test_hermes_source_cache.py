@@ -136,6 +136,31 @@ class SourceCacheTest(unittest.TestCase):
                 download.assert_called_once_with(required, pin)
                 parse.assert_not_called()
 
+    def test_plugin_settings_split_keeps_existing_watch_key_and_pin_fence(self):
+        old_path = c.LEGACY_PLUGIN_SETTINGS_PATH
+        fields = c.PLUGIN_SETTINGS_FIELDS_PATH
+        reviewed = c.REVIEWED_PLUGIN_SETTINGS_SPLIT
+        source = "def plugin_settings_fields():\n    return []\n"
+        oid, size = self.identity(source.encode())
+        tree = self.tree(path=fields, sha=oid, size=size)
+        with patch.multiple(c, SOURCES={}, EXTRA_SOURCES={'plugin_settings': old_path}), \
+                patch.object(c, 'resolve', return_value=('main', reviewed)), \
+                patch.object(c, 'github', return_value=tree), \
+                patch.object(c, 'github_source', return_value=source) as read, \
+                patch.object(c, 'extract', side_effect=lambda rows: dict(rows)):
+            direct = c.snapshot('main')
+            cached = c.snapshot('main', self.cache)
+            self.assertEqual(direct['contract'], cached['contract'])
+            self.assertEqual({'plugin_settings': source}, cached['contract'])
+            self.assertEqual([dict(source='plugin_settings', original_path=old_path, path=fields, commit=reviewed)],
+                             cached['reviewed_source_relocations'])
+            self.assertTrue(read.call_args_list)
+            self.assertTrue(all(call.args == (fields, reviewed) for call in read.call_args_list))
+            self.assertEqual({'plugin_settings': old_path}, c.contract_source_paths(self.pin))
+            with patch.object(c, 'github', return_value=self.tree(path=old_path)):
+                with self.assertRaises(c.MissingSourcePaths):
+                    c.source_identities(reviewed)
+
     def test_corrupt_cached_bytes_fail_without_redownload_or_parse(self):
         self.cache.mkdir();oid,size=self.identity();(self.cache/oid).write_bytes(b'x'*size)
         with patch.object(c,'github_source') as download:

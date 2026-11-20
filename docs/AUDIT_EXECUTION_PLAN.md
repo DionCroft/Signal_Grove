@@ -1,5 +1,20 @@
 # Signal Grove audit execution plan
 
+## Current Hermes cron and plugin settings sources - 20 November 2026
+
+The watcher now follows the verified cron formatter on v0.23.3 and
+the reviewed main pin. The 21 definitions match the prior reviewed
+formatter. Main also resolves the plugin settings split to fields.py
+under the existing watch key. Five settings functions match the
+stable definitions and the field reader now treats an empty environment
+value as unset. The new fingerprint remains reviewable.
+
+The cache and contract checks passed 26 and 121 tests. Both exact source
+trees still refuse a complete report with eight missing legacy storage
+modules. These cover workspace mutations, receipts and lineage. Their
+replacement review remains open.
+Source inventory SHA-256 is 3b34b2ae28f356b66b2777fd93b214d64eeeab17b8b84e11d10270da5a3c549f.
+
 ## Native Linux heartbeat process evidence - 20 November 2026
 
 The shutdown workflow now runs real gateway stop and standalone process
