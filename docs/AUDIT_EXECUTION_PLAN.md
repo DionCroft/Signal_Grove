@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## Current Hermes heartbeat shutdown - 20 November 2026
+
+The v0.23.3 release and the observed main pin share the relevant storage
+and shutdown files. A source-pinned candidate fences the heartbeat when
+teardown begins and uses its original store for bounded cleanup. Both
+Windows cohorts passed normal stop, standalone exit, a held SQLite close
+gate and released contention. All 50 original upstream test cases passed
+per pristine and candidate pin. Preserve the earlier held-transaction
+failure and its subagent ledger trace. Current Linux, deployed owner
+lifecycle, the persistent-contention full shutdown case and the remaining
+compatibility and release gates are open.
+[Current pin evidence](contracts/2026-11-19-hermes-public-shutdown-review.md#hermes-v0233-and-current-main-shutdown-candidate).
+
 ## Offline checklist and reviewed topic search - 20 November 2026
 
 Offline setup exposes current library/load state, last-checked storage

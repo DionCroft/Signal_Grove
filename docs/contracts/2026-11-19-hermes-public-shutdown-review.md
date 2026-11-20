@@ -148,3 +148,73 @@ requires a separate storage and shutdown review before a port.
 The stable Windows trial ran in disposable homes. Native Linux,
 held-writer contention, owner bootstrap and live Pi shutdown remain
 open for v0.23.2.
+
+
+## Hermes v0.23.3 and current main shutdown candidate
+
+On 20 November, the GitHub API resolved the stable release to
+`caafe5389ae585ef77387a962aee05b1bcf17029` and main to `2de9f51b8008a7d49a49221c184f2f11cbfc4af1`.
+Their reaper, shutdown phase, storage binding, assembly and heartbeat test
+files have identical blob IDs. The two archive inventories match all
+27,139 and 27,171 regular Git blobs. On each pin,
+42 PowerShell files used archive CRLF conversion. Their normalized bytes
+matched the Git blob hashes before the disposable source was run.
+[Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.3)
+· [Main at the observed pin](https://github.com/NousResearch/hermes-agent/commit/2de9f51b8008a7d49a49221c184f2f11cbfc4af1).
+
+Each pristine cohort registered one row. Normal stop returned with the row
+present. Register-once left the row after process exit. Periodic mode
+cleared it at exit after logging a database reopen. All four SQLite
+integrity checks passed. The native harness used CPython 3.14.9 with an
+existing compatible Hermes PM side test environment. The first smoke
+attempt used Python 3.13 with 3.14 extension modules and stopped at import.
+Its diagnostics were retained.
+
+The [two-file candidate](../../upstream_patches/hermes-caafe538-heartbeat-shutdown.patch)
+uses the existing persistence handle and backend ID for cleanup. It arms
+cleanup before registration, so standalone exit can drain without starting
+a thread during interpreter shutdown. Beginning gateway teardown fences
+future heartbeat writes. The database close phase waits at most one second
+within its remaining budget. An active or failed cleanup leaves handles
+open. The candidate applied with Git's whitespace check to both pins.
+The complete post-run file inventories matched their pristine or exact
+candidate hashes.
+
+| Disposable Windows process case | v0.23.3 and pinned main result |
+| --- | --- |
+| Normal gateway stop, register-once and periodic | Stop returned with zero heartbeat rows. |
+| Standalone process exit, register-once and periodic | Clean process exit removed the row in both modes. |
+| Close phase with a live heartbeat SQLite transaction | Returned in the wait budget and left the connection and transaction open. After explicit release, the original cleanup cleared the row. |
+| Full stop with a live heartbeat transaction released once a teardown writer waited | Both writes settled, no new heartbeat transaction started, and stop closed the connection. |
+
+All 12 candidate process runs exited zero. All 12 fresh read-only SQLite
+checks found zero heartbeat rows and integrity `ok`. The native logs
+had no late close/reopen warning and the guards recorded no denials.
+The four pristine and candidate pytest combinations each passed the same
+50 unmodified upstream cases with zero skips. The candidate pytest logs
+include exit diagnostics for handles already closed by the upstream
+autouse fixture. The native owner-handle scenarios above exited without
+those diagnostics.
+[Fixture close order](https://github.com/NousResearch/hermes-agent/blob/caafe5389ae585ef77387a962aee05b1bcf17029/tests/gateway/fixtures/storage_handles.py).
+
+An earlier full-stop trial kept a real heartbeat transaction open for
+10 seconds. The teardown subagent ledger write waited on that transaction
+before the database close phase. A subsequent prototype released the
+transaction and completed stop, but admitted more heartbeat writes during
+teardown. The final two-file patch fences admission at teardown entry.
+The full gateway path while a transaction stays blocked throughout
+teardown remains open for further review.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| v0.23.3 archive | `3dffc702249874db2e6f60d93370a8d3c11e57e3ab5ee321447969e170a51aef` |
+| Main archive | `dc7db14c94a8a02530e27deaed7bfa16673893b356e82883d31615417aa5b65f` |
+| Two-file candidate patch | `43ca3e046be09981f85ce43209ef7d4556f4e95a7a995153788d1ee658964dd2` |
+| v0.23.3 pristine / candidate JUnit | `a3d27ea5a0ef22d8d996fc7ff1f45a409d98598c08aa3c238b1675f72bb06c29` / `c6753b3cdebe9d5b0226cab9b74a7ced7e43c182c3abaf2febb570828585974d` |
+| Main pristine / candidate JUnit | `fb1101111998be0bca3367ea50777a581f17712a06cb9ee119e4ddac8f82c199` / `cbf706df20e5d0f75943c713143ab85a71a3d779283df5bca620f233afe0078e` |
+| Native receipt and complete verification summary | `c0f1b5a5559b98b2b3d8b3e37acd917e455f8af69d7c3f9296b08d1cbb5e3c13` |
+| Retained first held-transaction trace | `68fba238e9943de261ed98c2eba4d6ae70252f5a65b753ad2642eb312b916972` |
+
+Hosted Linux with the current pins, the full owner bootstrap and Pi
+lifecycle, and the separate compatibility and Android release gates
+remain open. The candidate is retained for review and local testing.

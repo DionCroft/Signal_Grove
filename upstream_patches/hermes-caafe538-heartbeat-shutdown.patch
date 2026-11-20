@@ -1,0 +1,214 @@
+--- a/tui_gateway/session_reaper.py
++++ b/tui_gateway/session_reaper.py
+@@ -511,6 +511,8 @@
+ _HEARTBEAT_REFRESH_S = max(0.0, env_float("HERMES_GATEWAY_HEARTBEAT_REFRESH_S", 60.0))
+ _heartbeat_refresher_started = False
+ _heartbeat_refresher_lock = threading.Lock()
++_heartbeat_refresher_state = None
++_heartbeat_shutdown_requested = False
+ _BACKEND_NONCE = secrets.token_hex(4)
+ 
+ 
+@@ -532,54 +534,121 @@
+     return _gateway_started_at._t
+ 
+ 
+-def _refresh_backend_heartbeat() -> None:
+-    """Refresh this backend's heartbeat row. No-op when DB unavailable."""
++def _refresh_backend_heartbeat():
++    """Refresh this backend and return the exact store and row used."""
+     db = _get_db()
+     if db is None:
+-        return
++        return None
++    backend_id = _backend_id_for_this_process()
++    with _persistence_for(db) as persistence:
++        if persistence is None:
++            return None
++        persistence.maintenance.register_backend_heartbeat(
++            backend_id=backend_id, pid=os.getpid(), started_at=_gateway_started_at(),
++            profile=_current_profile_name(), host=_reaper_hostname())
++    return db, backend_id
++
++
++def _run_backend_heartbeat_refresh(state: dict) -> None:
++    with state["lock"]:
++        if state["stop"].is_set():
++            return
++        state["active"] += 1
++        state["drained"].clear()
+     try:
+-        with _persistence_for(db) as persistence:
+-            persistence.maintenance.register_backend_heartbeat(
+-                backend_id=_backend_id_for_this_process(), pid=os.getpid(), started_at=_gateway_started_at(),
+-                profile=_current_profile_name(), host=_reaper_hostname())
++        registration = _refresh_backend_heartbeat()
++        if registration is not None:
++            db, backend_id = registration
++            with state["lock"]:
++                state["registrations"][(id(db), backend_id)] = registration
+     except Exception:
+         logger.debug("backend heartbeat refresh failed", exc_info=True)
++    finally:
++        with state["lock"]:
++            state["active"] -= 1
++            if not state["active"]:
++                state["drained"].set()
++
++
++def _finish_backend_heartbeat(state: dict) -> None:
++    """Wait for admitted writes, then clear this backend's captured rows once."""
++    try:
++        state["stop"].wait()
++        state["drained"].wait()
++        thread = state["thread"]
++        if thread is not None:
++            thread.join()
++        for db, backend_id in state["registrations"].values():
++            with _persistence_for(db) as persistence:
++                if persistence is None:
++                    raise RuntimeError("backend heartbeat store is unavailable during cleanup")
++                persistence.maintenance.clear_backend_heartbeat(backend_id)
++    except Exception:
++        state["failed"] = True
++        logger.warning("Backend heartbeat cleanup failed; SessionDB close must be skipped", exc_info=True)
++    finally:
++        state["finished"].set()
++
++
++def _drain_backend_heartbeat(state: dict, timeout: float = 1.0) -> bool:
++    with state["lock"]:
++        state["stop"].set()
++    return state["finished"].wait(timeout) and not state["failed"]
++
++
++def _stop_backend_heartbeat_refresher(timeout: float = 1.0) -> bool:
++    """Fence future starts and bound the wait for the already armed cleanup."""
++    import math
++
++    if not math.isfinite(timeout) or timeout < 0:
++        raise ValueError("heartbeat drain timeout must be finite and nonnegative")
++    global _heartbeat_shutdown_requested
++    with _heartbeat_refresher_lock:
++        _heartbeat_shutdown_requested = True
++        state = _heartbeat_refresher_state
++    return state is None or _drain_backend_heartbeat(state, timeout)
+ 
+ 
+ def _start_backend_heartbeat_refresher() -> None:
+-    """Register this backend and start the refresher thread (once per process). The first refresh writes the row
+-    synchronously so this process's own sweep sees itself in the heartbeat table. ``_HEARTBEAT_REFRESH_S <= 0``
+-    means "register once, never refresh"."""
+-    global _heartbeat_refresher_started
++    """Register synchronously, then refresh until explicit shutdown or process exit."""
++    global _heartbeat_refresher_started, _heartbeat_refresher_state
+     with _heartbeat_refresher_lock:
+-        if _heartbeat_refresher_started:
++        if _heartbeat_refresher_started or _heartbeat_shutdown_requested:
++            return
++        state = dict(lock=threading.Lock(), stop=threading.Event(), drained=threading.Event(),
++                     finished=threading.Event(), active=0, thread=None, registrations={}, failed=False)
++        state["drained"].set()
++        # Python disallows launching threads from atexit. Arm cleanup before any write.
++        cleanup = threading.Thread(target=_finish_backend_heartbeat, args=(state,),
++                                   name="hermes-gateway-heartbeat-cleanup", daemon=True)
++        try:
++            cleanup.start()
++        except RuntimeError:
++            logger.warning("Backend heartbeat cleanup could not start; skipping registration", exc_info=True)
+             return
+         _heartbeat_refresher_started = True
+-    try:
+-        _refresh_backend_heartbeat()
+-    except Exception:
+-        logger.debug("initial backend heartbeat write failed", exc_info=True)
++        _heartbeat_refresher_state = state
++        atexit.register(_drain_backend_heartbeat, state)
++
++    _run_backend_heartbeat_refresh(state)
+     if _HEARTBEAT_REFRESH_S <= 0:
+         return
+-    stop_event = threading.Event()
+ 
+     def _loop() -> None:
+-        while not stop_event.is_set():
+-            try:
+-                _refresh_backend_heartbeat()
+-            except Exception:
+-                logger.debug("heartbeat refresh loop iteration failed", exc_info=True)
+-            stop_event.wait(_HEARTBEAT_REFRESH_S)
+-
+-    def _atexit_clear():
+-        stop_event.set()
+-        with contextlib.suppress(Exception):
+-            if (db := _get_db()) is not None:
+-                with _persistence_for(db) as persistence:
+-                    persistence.maintenance.clear_backend_heartbeat(_backend_id_for_this_process())
+-
+-    atexit.register(_atexit_clear)
+-    threading.Thread(target=_loop, name="hermes-gateway-heartbeat", daemon=True).start()
++        while not state["stop"].is_set():
++            _run_backend_heartbeat_refresh(state)
++            state["stop"].wait(_HEARTBEAT_REFRESH_S)
++
++    with state["lock"]:
++        if state["stop"].is_set():
++            return
++        thread = threading.Thread(target=_loop, name="hermes-gateway-heartbeat", daemon=True)
++        state["thread"] = thread
++        try:
++            thread.start()
++        except RuntimeError:
++            state["thread"] = None
++            logger.debug("Backend heartbeat refresher could not start", exc_info=True)
+ 
+ 
+ def _schedule_startup_orphan_sweep() -> None:
+--- a/gateway/run_shutdown.py
++++ b/gateway/run_shutdown.py
+@@ -184,6 +184,18 @@
+         return active_count()
+     except Exception:  # health: allow BLE001 -- a count probe on the stop path must never raise
+         return 0
++
++
++def _drain_tui_heartbeat(timeout: float) -> bool:
++    server = sys.modules.get("tui_gateway.server")
++    if server is None:
++        return True
++    stop = getattr(server, "_stop_backend_heartbeat_refresher", None)
++    try:
++        return callable(stop) and stop(timeout)
++    except Exception:
++        logger.warning("Backend heartbeat drain failed", exc_info=True)
++        return False
+ 
+ 
+ class GatewayShutdownMixin(GatewaySessionEndMixin, GatewayHomeShutdownNoticeMixin):
+@@ -1728,6 +1740,9 @@
+         """Flag teardown, stop room worker/watchdog, notify sessions."""
+         logger.info("Stopping gateway%s...", " for restart" if self._restart_requested else "")
+         ctx.started_at = time.monotonic()
++        # Stop admission before teardown begins its own storage writes. The
++        # close phase below waits for the same cleanup within its budget.
++        _drain_tui_heartbeat(0.0)
+         self._running = False
+         self._clear_plugin_message_injector()
+         self._draining = True
+@@ -1987,6 +2002,16 @@
+                 _cron_live, _api_live, _api_worker_live, _deferred_live,
+             )
+             return
++        # Keep handles open if an admitted TUI/desktop heartbeat write or cleanup is still live.
++        heartbeat_budget = max(
++            0.0, min(1.0, resolve_shutdown_watchdog_delay(timeout) - ctx.elapsed() - 1.0),
++        )
++        if not _drain_tui_heartbeat(heartbeat_budget):
++            logger.warning(
++                "Shutdown phase: backend heartbeat writer/cleanup is not drained — "
++                "skipping SessionDB close/checkpoint to avoid a late write"
++            )
++            return
+         _step = GatewayShutdownMixin._quiet_step
+         # Close SQLite session DBs so --replace's new gateway does not hit 'database is locked'.
+         # ``_session_db`` may wrap the SessionDB it serves (``_db``): unwrap; ``session_store`` holds ``_db``.

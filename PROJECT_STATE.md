@@ -5,6 +5,16 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Current Hermes heartbeat shutdown checkpoint
+
+The exact v0.23.3 and main pins reproduced the late database reopen.
+A shared two-file candidate stops heartbeat admission at teardown and
+cleans up register-once and periodic rows on exit. Windows native stop,
+standalone exit, live SQLite close-gate and released-contention checks
+passed, as did both 50-case upstream suites. Current-pin Linux and live
+Pi acceptance and a full stop with an unreleased writer remain open.
+[Candidate and evidence](docs/contracts/2026-11-19-hermes-public-shutdown-review.md#hermes-v0233-and-current-main-shutdown-candidate).
+
 ## Latest offline setup checkpoint
 
 The offline checklist shows model, storage and history state. Typed topic
