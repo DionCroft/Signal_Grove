@@ -109,6 +109,14 @@ The full hosted rerun remains the check for the original suite context.
 The verified Android 8 shard archive SHA-256 is
 69e188a176173ebd4f394e15b66fd88887ef8fda9e7471c758a331b6745c9e18.
 
+The final Android 17 shard recorded 655 of 656 successful cases. The
+history-search week preset was not displayed during the remaining
+case. That case passed in the later local Android 17 run. The verified
+shard archive SHA-256 is
+c16304e5f78964af9bdd56dd407590b48f06d2f2c277c50b190c062fb2e7a010.
+[Original hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44748140345)
+and [full hosted follow-up](https://github.com/DionCroft/Signal_Grove/actions/runs/44759909823).
+
 ## Temporary chat and project cancellation controls - 20 November 2026
 
 The temporary composer and end review stay reachable through keyboard and
