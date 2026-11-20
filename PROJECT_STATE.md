@@ -5,6 +5,15 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest temporary phone chat checkpoint
+
+Temporary chat keeps an independent foreground transcript. Ending or
+backgrounding the chat clears it. The native request releases its
+context while keeping the model loaded. Android 17 verified two LFM3
+turns offline and an empty reopen. Personal profiles, reviewed memory,
+backup controls and physical-phone acceptance remain open.
+[Temporary chat evidence](docs/VALIDATION.md#foreground-only-temporary-phone-chats).
+
 ## Latest offline writing checkpoint
 
 Writing tools provide editable English and Chinese presets, custom

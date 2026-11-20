@@ -541,6 +541,27 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         currentCoroutineContext().ensureActive()
     }
 
+    internal fun sendTemporaryChat(chat: TemporaryPhoneChat) = action("generating", prepareSavedHistory = false) {
+        val loaded = mutable.value.loaded ?: throw LocalEngineException(4)
+        val request = chat.begin(loaded) ?: return@action
+        try {
+            val messages = localChatPrompt(request.exchanges, request.question)
+            val settings = generationSettings()
+            validatePrompt(messages, settings)
+            var reply = ""
+            val end = withTimeoutOrNull(90_000) {
+                checkNotNull(engine).generate(messages, settings.maxOutputTokens) { reply = it }
+            } ?: throw LocalModelStorageException("temporary_timeout")
+            currentCoroutineContext().ensureActive()
+            if (end != LocalGenerationEnd.CANCELLED) {
+                if (!validOutput(reply)) throw LocalModelStorageException("temporary_no_reply")
+                chat.complete(request, reply, end)
+            }
+        } finally {
+            chat.finish(request)
+        }
+    }
+
     fun send(question: String) = send(question) {}
     fun send(question: String, onPublished: (LocalConversation) -> Unit) = action("generating") {
         require(question.isNotBlank() && question.toByteArray().size <= 8192)
@@ -761,7 +782,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
     }
 
     private fun action(status: String, activeDownload: CuratedPhoneModel? = null,
-        backgroundDownloadId: String? = null, block: suspend () -> Unit) {
+        backgroundDownloadId: String? = null, prepareSavedHistory: Boolean = true, block: suspend () -> Unit) {
         if (mutable.value.busy || leaving) return
         mutable.update { it.copy(busy = true, status = status, error = null, transfer = null,
             activeDownload = activeDownload, backgroundDownloadId = backgroundDownloadId) }
@@ -771,7 +792,7 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
                 try {
                     // An authorized background transfer still releases old inference weights.
                     if (backgroundDownloadId != null && mutable.value.loaded != null) unloadModel()
-                    ensureHistoryReady()
+                    if (prepareSavedHistory) ensureHistoryReady()
                     block()
                 }
                 catch (_: CancellationException) {

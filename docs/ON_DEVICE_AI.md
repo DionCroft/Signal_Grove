@@ -130,6 +130,23 @@ those exact files.
 
 [Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
 
+## Start a temporary chat
+
+1. Open **On-device AI → Chat → Temporary chat**.
+2. Choose a loaded phone model, or choose an installed model to load.
+3. Send a message. The same temporary chat can use its earlier turns
+   while the selected model has context available.
+4. Choose **End temporary chat** and confirm to clear the messages and
+   draft. The app also clears them when the activity stops in the
+   background.
+
+Temporary conversations are kept in foreground memory. Saved chat
+history, search, and chat backups use the saved conversation store.
+Android's secure window flag helps protect the temporary screen from
+capture. An input method or the operating system may retain data in
+memory. App cleanup is not a secure erase guarantee.
+[Temporary chat checks](VALIDATION.md#foreground-only-temporary-phone-chats).
+
 ## Write with a phone model
 
 1. Open **On-device AI → Writing tools** using the pencil icon. You can

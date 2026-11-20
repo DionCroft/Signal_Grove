@@ -70,7 +70,7 @@ class LocalAiActivity : ComponentActivity() {
     }
     override fun onStart() { super.onStart(); model.controller.refreshLibrary() }
     override fun onStop() {
-        if (!isChangingConfigurations) model.controller.leave()
+        if (!isChangingConfigurations) model.leavePhone()
         super.onStop()
     }
 }

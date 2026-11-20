@@ -1,5 +1,52 @@
 # Current development validation — audit follow-up
 
+## Foreground-only temporary phone chats
+
+Open Temporary chat from the phone Chat tab. It runs against an explicit
+installed model, keeps conversation context in memory, and applies the
+same exact native context budget as saved chat. A temporary request
+opens no saved-chat generation record. History, search and chat backups
+operate on the saved conversation store. End confirmation clears the
+draft and transcript. Android stopping the activity or destroying the
+process clears the temporary session. The secure dialog requests
+Android screen capture protection.
+
+Native generation releases its request context at every terminal
+outcome while retaining model weights. Closing drops the in-memory
+request identity before stopping active generation, so a late callback
+cannot restore that transcript. These app controls do not establish
+forensic erasure of Android, keyboard, runtime or system memory.
+
+The strict build passed 1,186 JVM tests with zero lint errors. Android
+17 passed all 110 focused tests. Android 8 passed 109 of 110, including
+both new temporary-chat cases. The existing summary-draft viewport test
+failed in the full Android 8 run. A separate run on the same build
+passed that test and both temporary-chat cases. The full-run failure
+remains open. The temporary-chat checks covered context and model
+guards, saved draft retention, explicit close, background cleanup, and
+history and search isolation.
+The first stock prompt produced no usable reply and its draft remained visible.
+
+On Android 17 the stock app used LFM3 offline for two temporary turns.
+The second reply recalled the flower named in the first question. The
+synthetic marker was absent from the bounded app log sample. Ending
+the chat kept the model weights and reopened an empty session.
+The trial preserved 7 inventoried model and chat files and restored
+emulator networking.
+
+- Build receipt 20261120-114204-2e9b5cd1fc314d2a83e41fdae8809ea0
+- Frozen source SHA-256 d9ae232b09d772d457d1e9ce7b8f8374d6a798ca37ee4f06f1c5a1fe7b2a113a
+- Debug APK SHA-256 2e3eb31e41a7f5c972b0c491c468812271878d13879057a17c602d17e553de1a
+- Test APK SHA-256 c4eff55d5ac346602efd163959b06c4cb54924806a655c0afa166d22ae193303
+- Android 8 instrumentation SHA-256 d06942a99d53a931ac0bcbd85d05ad6ac85f6c42b781b0143adf8475c0fbff42
+- Android 8 targeted rerun SHA-256 7f903d6693b240e72d655b176e1315682f59c38c1a1a01bc21aa3fb8f35a5365
+- Android 17 instrumentation SHA-256 0daea5ea38d3e29e8f9288acf7d7ed15e64bea9bf184b38a6caaca5527b887c5
+- Real offline trial receipt SHA-256 ee6b1a861afe55bafc9365ffd7968fbc9e73739c74bd75eda88ff8f7125d769f
+
+Physical-phone testing, personal profiles, reviewed memory and backup
+choice remain open.
+[Android secure window reference](https://developer.android.com/reference/android/view/WindowManager.LayoutParams#FLAG_SECURE).
+
 ## Reviewed offline writing tools
 
 Writing tools accept a manually edited draft, one Android plain-text

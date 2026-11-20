@@ -31,6 +31,24 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
             markdownExport.review(document, summary.title)
         }
     }
+    internal val temporary = TemporaryPhoneChat()
+
+    internal fun openTemporary() {
+        if (controller.state.value.busy) return
+        controller.dismissError()
+        temporary.open()
+    }
+
+    internal fun closeTemporary() {
+        if (temporary.close()) controller.cancel()
+        controller.dismissError()
+    }
+
+    internal fun leavePhone() {
+        if (temporary.state.value != null) closeTemporary()
+        controller.leave()
+    }
+
     internal val writing = app.phoneWriting
     internal val writingOpen = MutableStateFlow(false)
     internal val writingStorageError = MutableStateFlow(false)
@@ -47,6 +65,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
 
     internal fun receiveWriting(token: String?, invalid: Boolean) {
         if (token == null && !invalid) return
+        if (temporary.state.value != null) closeTemporary()
         writing.receive(token?.let(app.writingIntake::take))
         writingOpen.value = true
     }
@@ -250,6 +269,6 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     override fun onCleared() {
         markdownExport.clear()
         historyBackup.clear()
-        controller.leave()
+        leavePhone()
     }
 }

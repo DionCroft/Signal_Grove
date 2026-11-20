@@ -261,17 +261,16 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
         common_chat_session session(engine->templates.get(), vocab, input, {});
         if (limit >= engine->context_size) return context_full;
         auto tokens = tokenize_prompt(*engine, session, vocab, static_cast<size_t>(engine->context_size - limit));
-        // Each request supplies its complete, explicit history. Rebuild all transient
-        // state while retaining resident weights; an interrupted recurrent decode
-        // must not influence the next request through a reused scheduler/context.
+        // Only the weights outlive a request. The scoped context also releases
+        // its prompt state on cancellation, decoder failure, or callback failure.
         if (engine->context) { llama_free(engine->context); engine->context = nullptr; }
         if (engine->stopped()) return cancelled;
-        engine->context = new_context(*engine);
-        if (!engine->context) return engine->stopped() ? cancelled : failed;
+        auto context = std::unique_ptr<llama_context, decltype(&llama_free)>(new_context(*engine), llama_free);
+        if (!context) return engine->stopped() ? cancelled : failed;
         for (size_t start = 0; start < tokens.size(); start += 128) {
             if (engine->stopped()) return cancelled;
             auto batch = llama_batch_get_one(tokens.data() + start, std::min<size_t>(128, tokens.size() - start));
-            if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
+            if (llama_decode(context.get(), batch) != 0) return engine->stopped() ? cancelled : failed;
         }
         auto sampling = engine->sampling;
         signal_grove::apply_local_chat_sampling(session, vocab, sampling, limit, env->GetArrayLength(helper_choices) != 0);
@@ -308,7 +307,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
         size_t generated_bytes = 0;
         for (int i = 0; i < limit; ++i) {
             if (engine->stopped()) return cancelled;
-            auto token = common_sampler_sample(sampler.get(), engine->context, -1);
+            auto token = common_sampler_sample(sampler.get(), context.get(), -1);
             common_sampler_accept(sampler.get(), token, true);
             if (llama_vocab_is_eog(vocab, token)) {
                 auto status = emit_answer(session.finish());
@@ -321,7 +320,7 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_generate(JNIEnv * env, jobject
             auto status = emit_answer(session.feed(chunk));
             if (status != ok) return status;
             auto batch = llama_batch_get_one(&token, 1);
-            if (llama_decode(engine->context, batch) != 0) return engine->stopped() ? cancelled : failed;
+            if (llama_decode(context.get(), batch) != 0) return engine->stopped() ? cancelled : failed;
         }
         auto status = emit_answer(session.finish());
         return finish(status != ok ? status : token_limit, limit);

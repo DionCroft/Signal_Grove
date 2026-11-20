@@ -246,10 +246,13 @@ on cancellation. Code is explained as text; this does not add shell execution.
 
 ## OF-09: Optional personal profiles, memory and temporary chats
 
-**Status: planned.** Add local profiles for writing style/preferences and
-user-approved notes/facts. Show, edit, remove and choose what enters each chat.
-Add a temporary-chat option and clear local retention/privacy controls, including
-which collections enter an explicitly selected backup.
+**Status: in progress.** Foreground-only temporary chats have explicit
+model choice and end confirmation. Their drafts and transcripts clear on
+end or backgrounding. The temporary-chat emulator cases and real LFM3 trial passed.
+Finish local profiles for writing style/preferences and user-approved
+notes/facts, per-request review of what enters the context, explicit
+backup collection selection and physical-phone checks.
+[Temporary chat checks](VALIDATION.md#foreground-only-temporary-phone-chats).
 
 Acceptance: memory starts off and never harvests other chats, credentials, files
 or server profiles. Switching profiles does not leak another profile's context.

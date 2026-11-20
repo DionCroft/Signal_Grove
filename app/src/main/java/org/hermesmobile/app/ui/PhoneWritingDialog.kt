@@ -151,20 +151,9 @@ internal fun PhoneWritingDialog(vm: LocalAiViewModel, state: LocalAiState) {
 private fun WritingDraftFields(draft: PhoneWritingDraft, library: PhoneWritingLibrary, state: LocalAiState,
     enabled: Boolean, vm: LocalAiViewModel) {
     var languageChinese by remember { mutableStateOf(false) }
-    var chooseModel by remember { mutableStateOf(false) }
     var chooseTemplate by remember { mutableStateOf(false) }
     Text(label(Words.PhoneWritingPrivate))
-    state.loaded?.let { Text(label(Words.PhoneLoaded).replace("{model}", it.metadata.name)) }
-    if (state.models.isEmpty()) Text(label(Words.PhoneWritingNoInstalled))
-    else Box {
-        TextButton({ chooseModel = true }, enabled = enabled) { Text(label(Words.PhoneWritingChooseModel)) }
-        DropdownMenu(chooseModel, { chooseModel = false }) {
-            state.models.forEach { model ->
-                DropdownMenuItem(text = { Text(model.metadata.name) }, enabled = model.sha256 != state.loaded?.sha256,
-                    onClick = { chooseModel = false; vm.controller.load(model) })
-            }
-        }
-    }
+    PhoneInlineModelPicker(state, enabled) { vm.controller.load(it) }
     TextButton({ languageChinese = !languageChinese }, enabled = enabled) {
         Text(label(if (languageChinese) Words.PhoneWritingChinese else Words.PhoneWritingEnglish))
     }
@@ -196,5 +185,21 @@ private fun WritingDraftFields(draft: PhoneWritingDraft, library: PhoneWritingLi
     }
     draft.template?.let { template ->
         TextButton({ vm.removeWritingTemplate(template) }, enabled = enabled) { Text(label(Words.PhoneWritingDeleteTemplate)) }
+    }
+}
+
+@Composable
+internal fun PhoneInlineModelPicker(state: LocalAiState, enabled: Boolean, onLoad: (InstalledLocalModel) -> Unit) {
+    var choose by remember { mutableStateOf(false) }
+    state.loaded?.let { Text(label(Words.PhoneLoaded).replace("{model}", it.metadata.name)) }
+    if (state.models.isEmpty()) Text(label(Words.PhoneWritingNoInstalled))
+    else Box {
+        TextButton({ choose = true }, enabled = enabled) { Text(label(Words.PhoneWritingChooseModel)) }
+        DropdownMenu(choose, { choose = false }) {
+            state.models.forEach { model ->
+                DropdownMenuItem(text = { Text(model.metadata.name) }, enabled = model.sha256 != state.loaded?.sha256,
+                    onClick = { choose = false; onLoad(model) })
+            }
+        }
     }
 }

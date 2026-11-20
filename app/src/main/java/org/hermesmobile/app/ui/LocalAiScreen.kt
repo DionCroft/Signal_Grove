@@ -107,7 +107,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val downloads: PhoneDownloadActions? = null,
     val replacements: PhoneModelReplacementActions? = null,
     val documents: PhoneDocumentActions? = null,
-    val openWriting: (() -> Unit)? = null)
+    val openWriting: (() -> Unit)? = null,
+    val openTemporary: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -157,11 +158,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 vm.pickDocument(previous)
                 documentPicker.launch(arrayOf("*/*"))
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
-                c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting),
+                c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting,
+            openTemporary = vm::openTemporary),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
         replacing = pending?.previous, pendingDocument = pendingDocument)
     val writingOpen by vm.writingOpen.collectAsStateWithLifecycle()
     if (writingOpen) PhoneWritingDialog(vm, state)
+    val temporary by vm.temporary.state.collectAsStateWithLifecycle()
+    temporary?.let { PhoneTemporaryChatDialog(vm, it, state) }
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -398,6 +402,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }
         }
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
+    }
+    actions.openTemporary?.let { open ->
+        TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-temporary-open")) {
+            Text(label(Words.PhoneTemporaryChat))
+        }
     }
     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val exchanges = state.chat?.exchanges.orEmpty()
@@ -644,6 +653,8 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
 internal fun phoneError(code: String) = when {
     code == "document_format" -> Words.PhoneDocumentFormat
     code == "document_encoding" -> Words.PhoneDocumentEncoding
+    code == "temporary_timeout" -> Words.PhoneTemporaryTimeout
+    code == "temporary_no_reply" -> Words.PhoneTemporaryNoReply
     code == "writing_timeout" -> Words.PhoneWritingTimeout
     code == "writing_unusable" -> Words.PhoneWritingUnusable
     code == "document_size" -> Words.PhoneDocumentSize

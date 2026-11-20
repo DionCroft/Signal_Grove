@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Temporary phone chat and native context cleanup - 20 November 2026
+
+OF-09 now includes foreground-only temporary chat. The real LFM3
+offline trial verified same-chat context, empty reopen, and retained
+saved files. Personal profiles, opt-in context, explicit backup choices,
+physical-device behavior, and the original Hermes release requirements
+remain open.
+[Temporary chat receipts](VALIDATION.md#foreground-only-temporary-phone-chats).
+
 ## Offline writing and text intake - 20 November 2026
 
 OF-08 now has reviewed plain-text intake, editable presets, custom templates,
