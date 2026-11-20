@@ -32,6 +32,25 @@ def checkout_version_read(executable, argv, cwd, env, source: Path) -> bool:
             and isinstance(cwd, (str, os.PathLike)) and Path(cwd).resolve() == source)
 
 
+def proc_stat_parent(record: str) -> int:
+    # The process name may contain spaces and parentheses. The last ")" ends it.
+    return int(record.rsplit(")", 1)[1].split()[1])
+
+
+def fixture_process_stats() -> set[Path]:
+    parent = Path(f"/proc/{os.getppid()}/stat")
+    allowed = {Path(f"/proc/{os.getpid()}/stat"), parent}
+    try:
+        launcher_pid = proc_stat_parent(parent.read_text(encoding="utf8"))
+        if launcher_pid > 1:
+            launcher = Path(f"/proc/{launcher_pid}/stat")
+            if launcher.stat().st_uid == parent.stat().st_uid == os.geteuid():
+                allowed.add(launcher)
+    except (OSError, IndexError, ValueError):
+        pass
+    return allowed
+
+
 def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> tuple[Path, list[str]]:
     fixture.mkdir(mode=0o700)
     home, account, temp = (fixture / name for name in ("profile", "account", "temp"))
@@ -58,8 +77,10 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
     read_roots = (source, fixture, site, Path(sys.base_prefix).resolve(), Path(__file__).resolve())
     system_reads = {Path(name).resolve() for name in (
         "/etc/localtime", "/etc/mime.types", "/proc/stat", "/proc/1/cgroup",
-        "/proc/self/mountinfo", f"/proc/{os.getpid()}/stat", f"/proc/{os.getppid()}/stat",
+        "/proc/self/mountinfo",
     )} if os.name == "posix" else set()
+    if os.name == "posix":
+        system_reads.update(fixture_process_stats())
     if os.name == "nt":
         system_reads.update(Path(fixture.drive + name).resolve() for name in (
             "/proc/1/cgroup", "/proc/self/mountinfo", f"/proc/{os.getpid()}/stat",

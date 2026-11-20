@@ -165,3 +165,25 @@ comparison report. A regression test proves that incomplete discovery
 performs no source downloads or extraction and emits no JSON report.
 The targeted cache, transport, authority and auth-boundary suites ran
 45 tests. Portable contract discovery ran 121 tests with overlap.
+
+
+## Stored history on Hermes v0.23.3 and the current main pin
+
+The exact v0.23.3 checkout and reviewed main checkout each passed the
+163 unmodified upstream cases in eight files. The test identities match
+each other and the earlier accepted main cohort. The v0.23.2 inventory
+failure remains in its original record. The current trials used isolated
+Windows homes with the compatible CPython 3.14.9 test environment.
+
+These tests cover stored-history access, picker inventory, cursor polling,
+transcript snapshots and handoff ownership through the upstream fixtures.
+They also cover the SQLite transcript repository. They keep the separate
+workspace mutations, receipt recovery, persistent contention and deployed
+Pi requirements open.
+
+| Revision | JUnit SHA-256 |
+| --- | --- |
+| v0.23.3 caafe5389ae585ef77387a962aee05b1bcf17029 | 8d324a191da113438ca8f166c6c86b71856d979b16d914bc8464e9466eaa1f63 |
+| Main 2de9f51b8008a7d49a49221c184f2f11cbfc4af1 | 23454daa8b29afc8ce6f6cc57e078837cd51dd29d389cd6578f2d93285e6d96c |
+
+The paired identity and eight-file hash receipt has SHA-256 5bd1eaa6b5389540bc8590eca4fcadeecb28690fce1557720627df2a9e3d09a6.

@@ -56,6 +56,7 @@ class NativeHeartbeatGateTest(unittest.TestCase):
             self.assertFalse(fixture.checkout_version_read("git", query, source.parent, None, source))
             self.assertFalse(fixture.checkout_version_read("git", query, source, {"GIT_DIR": "elsewhere"}, source))
             self.assertFalse(fixture.checkout_version_read("sh", query, source, None, source))
+            self.assertEqual(fixture.proc_stat_parent("73 (fixture) launcher) R 32 40 1 0"), 32)
 
     def test_all_eight_distinct_lifecycle_cases_require_the_intended_observations(self):
         for variant in ("pristine", "candidate"):

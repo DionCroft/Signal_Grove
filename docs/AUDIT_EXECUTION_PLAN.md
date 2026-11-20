@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Current Hermes stored history - 20 November 2026
+
+Fresh, isolated Windows trials at v0.23.3 and the reviewed main pin passed
+the same 163 upstream stored-history and transcript tests with no skips.
+The eight selected source files and JUnit identities were independently
+checked. The older v0.23.2 failure stays recorded. Persistence source
+review, mutation and live owner acceptance remain open.
+[Current paired evidence](contracts/2026-11-19-hermes-main-stored-history.md#stored-history-on-hermes-v0233-and-the-current-main-pin).
+
 ## Current Hermes cron and plugin settings sources - 20 November 2026
 
 The watcher now follows the verified cron formatter on v0.23.3 and
@@ -39,9 +48,12 @@ The follow-up traced the Git refusals to passive release discovery and
 local checkout version reporting. The disposable profile disables passive
 discovery through the upstream updates setting. Exact read-only Git version
 queries run against the verified checkout with optional locking and lazy
-fetches disabled. Process stats are limited to the fixture and its parent.
-The source-pinned runtime assertions and post-exit evidence checks still apply.
-[Diagnostic run](https://github.com/DionCroft/Signal_Grove/actions/runs/44762685910).
+fetches disabled. The next run isolated the remaining read to the launcher
+above the Python parent. The fixture derives that PID from the parent stat
+record and allows only the same-user launcher stat file in addition to its
+own and parent records. The source and lifecycle assertions still apply.
+[Diagnostic run](https://github.com/DionCroft/Signal_Grove/actions/runs/44762685910) ·
+[Launcher-stat refusal](https://github.com/DionCroft/Signal_Grove/actions/runs/44763860930).
 
 ## Owned emulator API readiness - 20 November 2026
 
