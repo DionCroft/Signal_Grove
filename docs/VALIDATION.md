@@ -1,5 +1,31 @@
 # Current development validation — audit follow-up
 
+## Offline switch between LFM3 and Qwen
+
+The unchanged debug APKs ran the mixed-model test on a separate Android
+17 guest built from the verified emulator configuration. It had
+4,049,904 KiB of available memory and 9,468,788,736 free data bytes at
+preflight. Both inputs matched the pinned publisher byte counts and
+SHA-256 digests before their verified private copies were used.
+Airplane mode and both disabled radios stayed in effect during the
+test, with no default network.
+
+The native case imported both families, created a Qwen chat, switched
+to LFM3 and rejected a mismatched send without modifying the Qwen chat.
+It generated a separate LFM3 reply, switched back to Qwen and continued
+the original conversation. It checked both saved model bindings and
+retained the chats when deleting the test copies of the models.
+The original Android 8 memory refusal remains recorded. The new
+guest's prior network settings and installed package identities were
+verified after testing. The earlier Android 17 reboot gate was not
+reissued and remains open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Mixed-model raw native log | ee9df13058bb1891705c6755f58fa4d5ca4b20d33c4314cdf123392b4719ae44 |
+| Test source | fcee546a3d222e5d89979ea336f84183a3edbceebf6a26416f4194e2213a0ca6 |
+| Independent case and source verification | e2855d17a025229dac601afa37403fe31c629f69cfc4ae644f9375b40bee58c1 |
+
 ## External model import, recovery and guest reboot
 
 The development debug APK pair from source snapshot

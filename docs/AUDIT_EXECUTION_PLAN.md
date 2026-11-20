@@ -12,10 +12,16 @@ API 26 rejected the larger model during the mixed-model switch on
 available memory. The guest network and retained data were verified.
 API 37 reached a new guest kernel after one reboot, with the Android
 framework still unready. Its post-reboot case and network restoration
-remain held. Preserve the case failure and boot evidence. Mixed-model
-tests on a device with sufficient RAM, the post-reboot check, online
-transfers and final physical/production validation remain open.
-[Binding, raw result digests and restoration](VALIDATION.md#external-model-import-recovery-and-guest-reboot).
+remain held. Preserve the case failure and boot evidence.
+
+A separate Android 17 guest with enough RAM passed the unchanged
+offline mixed-model switch. Both model bindings, refusal of a
+mismatched send and continuation of the earlier Qwen chat were
+verified. The prior guest's boot result remains open. These cohorts
+now cover four distinct methods; post-reboot, online transfer and
+final physical/production validation remain open.
+[Import and recovery evidence](VALIDATION.md#external-model-import-recovery-and-guest-reboot) ·
+[Mixed-model verification](VALIDATION.md#offline-switch-between-lfm3-and-qwen).
 
 
 ## Current Hermes stored history - 20 November 2026
