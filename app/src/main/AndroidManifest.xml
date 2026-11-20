@@ -28,6 +28,19 @@
             android:foregroundServiceType="dataSync" />
         <service android:name=".local.PhonePdfService" android:exported="false"
             android:process=":phone_pdf" android:isolatedProcess="true" />
+        <activity android:name=".PhoneTextReceiveActivity" android:exported="true"
+            android:label="@string/phone_writing_share" android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
         <activity android:name=".LocalAiActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
     </application>
 </manifest>

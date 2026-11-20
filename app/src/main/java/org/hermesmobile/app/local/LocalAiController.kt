@@ -358,6 +358,23 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
         }
     }
 
+    internal fun generateWriting(review: PhoneWritingReview, onPrepared: (PhoneWritingNote) -> Unit) =
+        action("generating") {
+            if (mutable.value.loaded?.sha256 != review.modelSha256) throw LocalEngineException(4)
+            require(validInstructions(review.instructions) && validWritingSource(review.source))
+            val messages = review.messages()
+            val settings = generationSettings().let { it.copy(maxOutputTokens = minOf(it.maxOutputTokens, 1024)) }
+            validatePrompt(messages, settings)
+            var text = ""
+            val end = withTimeoutOrNull(90_000) {
+                checkNotNull(engine).generate(messages, settings.maxOutputTokens) { text = it }
+            } ?: throw LocalModelStorageException("writing_timeout")
+            currentCoroutineContext().ensureActive()
+            if (end == LocalGenerationEnd.CANCELLED) return@action
+            if (!validOutput(text)) throw LocalModelStorageException("writing_unusable")
+            onPrepared(PhoneWritingNote(review.id, text, end == LocalGenerationEnd.TOKEN_LIMIT))
+        }
+
     fun clearDocumentReview() {
         mutable.update { it.copy(documentReview = null, documentAnswer = null) }
     }

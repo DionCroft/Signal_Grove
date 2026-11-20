@@ -5,6 +5,14 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest offline writing checkpoint
+
+Writing tools provide editable English and Chinese presets, custom
+templates, reviewed Android text intake, exact model and prompt review,
+and local result notes. LFM3 generated offline and the note reopened
+after relaunch on Android 17. Physical-phone acceptance remains open.
+[Writing evidence](docs/VALIDATION.md#reviewed-offline-writing-tools).
+
 ## Latest selected documents checkpoint
 
 Signal Grove can ask the phone model about reviewed TXT and Markdown

@@ -537,6 +537,72 @@ class LocalAiControllerTest {
         assertArrayEquals(bytes, file.readBytes())
     }
 
+    @Test fun writingUsesOnlyTheSingleReviewedModelRequestWithoutTouchingChatFiles() = runTest {
+        val models = temp.newFolder()
+        val history = temp.newFolder()
+        val selected = model(models)
+        val engine = Engine()
+        val c = controller(models, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        c.load(selected)
+        advanceUntilIdle()
+        c.send("Existing private chat")
+        advanceUntilIdle()
+        val chat = checkNotNull(c.state.value.chat)
+        val file = File(history, "${chat.id}.json")
+        val bytes = file.readBytes()
+
+        val writing = PhoneWritingWorkspace()
+        writing.choosePreset("Summarize this text.")
+        writing.editSource("Three blue signs were installed.")
+        writing.prepare(selected)
+        val earlier = checkNotNull(writing.review.value)
+        writing.editSource("Two green signs were installed.")
+        assertFalse(writing.consume(earlier, selected))
+        writing.prepare(selected)
+        val reviewed = checkNotNull(writing.review.value)
+        assertFalse(writing.consume(reviewed, selected.copy(sha256 = "e".repeat(64))))
+        assertEquals(1, engine.requests.size)
+        assertTrue(writing.consume(reviewed, selected))
+        assertFalse(writing.consume(reviewed, selected))
+        engine.reply = "Two green signs."
+        c.generateWriting(reviewed, writing::publish)
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(LocalChatMessage("system", "Summarize this text."), LocalChatMessage("user", "Two green signs were installed.")),
+            engine.requests.last()
+        )
+        assertEquals(2, engine.requests.size)
+        assertEquals("Two green signs.", writing.result.value?.text)
+        assertEquals(chat, c.state.value.chat)
+        assertArrayEquals(bytes, file.readBytes())
+    }
+
+    @Test fun writingCancellationLeavesTheDraftAndPublishesNoNote() = runTest {
+        val models = temp.newFolder()
+        val selected = model(models)
+        val engine = Engine().apply { blockGeneration = true }
+        val c = controller(models, temp.newFolder(), engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        c.load(selected)
+        advanceUntilIdle()
+        val writing = PhoneWritingWorkspace()
+        writing.choosePreset("Rewrite this sentence.")
+        writing.editSource("Draft retained on cancellation.")
+        writing.prepare(selected)
+        val review = checkNotNull(writing.review.value)
+        assertTrue(writing.consume(review, selected))
+        c.generateWriting(review, writing::publish)
+        runCurrent()
+        assertEquals(1, engine.requests.size)
+        c.cancel()
+        advanceUntilIdle()
+        assertNull(writing.result.value)
+        assertNull(c.state.value.chat)
+        assertEquals("Draft retained on cancellation.", writing.draft.value.source)
+    }
+
     @Test fun benchmarkUsesTheLoadedLimitsAndLeavesChatHistoryUntouched() = runTest {
         val root = temp.newFolder()
         val first = model(root)

@@ -1,5 +1,44 @@
 # Current development validation — audit follow-up
 
+## Reviewed offline writing tools
+
+Writing tools accept a manually edited draft, one Android plain-text
+share, or text selected in another app. Intake shows the text and
+requires approval before it replaces the writing source. The source
+limit is 6 KiB of UTF-8 and the editable instruction limit is 2 KiB.
+Shared attachments are refused. Cancelling intake or request review keeps
+the editor's draft in memory.
+
+The review shows the loaded model and the two exact native messages.
+Editing or a different model invalidates the review. Each confirmation
+is consumed once, and a cancelled generation publishes no new result.
+Phone chat history is separate. The five English and Chinese preset
+prompts can be edited, saved as custom templates, or used for one turn.
+Users can explicitly save a result in private phone writing notes.
+Each library holds up to 16 saved items.
+
+The first JVM run found that the app did not generate Kotlin serializers.
+The verified writing library uses explicit, versioned JSON validation.
+
+The strict build passed 1,183 JVM tests, both lint variants with zero
+errors, and 108 focused tests on Android 8 and Android 17. A stock
+Android 17 trial opened and cancelled a selected-text review before
+using the real Share receiver. It selected LFM3,
+reviewed the exact input, generated offline, saved a note and reopened it
+after app relaunch. It removed only the synthetic test note, retained
+7 inventoried model and chat files, and restored networking.
+
+- Build receipt 20261120-111232-60fd5ea2b1604227913dd5c75366b290
+- Source SHA-256 60fc8360740e54f389c3ed68d69b61792d739a671866a2e8586a27c5d91f0be7
+- Debug APK SHA-256 f4782b59d1e4a651aa90dfd7602b00f082b7fc622b908503ca958b7a335b70d4
+- Debug test APK SHA-256 9a2d8d05316631cf0ee92712343e0f6ad585f59accc767af81a1cde3fa2eb563
+- API 26 instrumentation SHA-256 93233bd5743d60abcae722bc627281c7e4381d4d96ce0991bc1aba161a06dcc2
+- API 37 instrumentation SHA-256 c1f497c74cb0adfc1639ca498f779c805bf4de90b90b45bf0fb45e6a7183742f
+- Native trial receipt SHA-256 7cefaa3461acb7c91837310e2c3be46064e80ccc7ff7d0a03ee382e459839092
+
+Physical phone and signed-release acceptance remain open.
+[Android's share entry guidance](https://developer.android.com/develop/ui/compose/sharing/receive).
+
 ## Bound the hosted Android boot status probe
 
 In GitHub Actions run 44717059626, the verify job passed. The first

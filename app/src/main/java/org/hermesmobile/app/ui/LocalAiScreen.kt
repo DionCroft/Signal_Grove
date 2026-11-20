@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.runtime.*
@@ -105,7 +106,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val benchmark: ((String) -> Unit)? = null,
     val downloads: PhoneDownloadActions? = null,
     val replacements: PhoneModelReplacementActions? = null,
-    val documents: PhoneDocumentActions? = null)
+    val documents: PhoneDocumentActions? = null,
+    val openWriting: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -155,9 +157,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 vm.pickDocument(previous)
                 documentPicker.launch(arrayOf("*/*"))
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
-                c::answerDocumentQuestion, c::clearDocumentReview)),
+                c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
         replacing = pending?.previous, pendingDocument = pendingDocument)
+    val writingOpen by vm.writingOpen.collectAsStateWithLifecycle()
+    if (writingOpen) PhoneWritingDialog(vm, state)
     PhoneMarkdownExportFlow(vm.markdownExport, busy = state.busy)
     PhoneHistoryBackupFlow(vm.historyBackup, busy = state.busy)
 }
@@ -199,6 +203,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     IconButton({ actions.dismissError(); documentsOpen = true; documents.refresh() },
                         enabled = !state.busy, modifier = Modifier.testTag("phone-documents-open")) {
                         Icon(Icons.Outlined.Description, label(Words.PhoneDocuments))
+                    }
+                }
+                actions.openWriting?.let { open ->
+                    IconButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-writing-open")) {
+                        Icon(Icons.Outlined.Edit, label(Words.PhoneWriting))
                     }
                 }
                 IconButton(close, Modifier.testTag("phone-close")) {Icon(Icons.Outlined.Close, label(Words.Close))}
@@ -635,6 +644,8 @@ private fun phoneStatus(state: LocalAiState) = when(state.status) {
 internal fun phoneError(code: String) = when {
     code == "document_format" -> Words.PhoneDocumentFormat
     code == "document_encoding" -> Words.PhoneDocumentEncoding
+    code == "writing_timeout" -> Words.PhoneWritingTimeout
+    code == "writing_unusable" -> Words.PhoneWritingUnusable
     code == "document_size" -> Words.PhoneDocumentSize
     code == "document_pdf_unsupported" -> Words.PhonePdfUnsupported
     code == "document_pdf_password" -> Words.PhonePdfPassword

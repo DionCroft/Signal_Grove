@@ -22,6 +22,8 @@ class HermesApplication : Application() {
         appScope.launch {database.dao().tasks().collect {TaskWidget.updateAll(this@HermesApplication)}}
     }
     val phoneDrafts=org.hermesmobile.app.local.PhoneDraftHandoff()
+    internal val phoneWriting = org.hermesmobile.app.local.PhoneWritingWorkspace()
+    internal val writingIntake = org.hermesmobile.app.local.PhoneDraftHandoff()
     val updateWorkGuard=org.hermesmobile.app.updates.UpdateWorkGuard()
     val localAi by lazy {
         val network = AndroidModelDownloadNetwork(checkNotNull(getSystemService(ConnectivityManager::class.java))) {

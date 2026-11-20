@@ -130,6 +130,28 @@ those exact files.
 
 [Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
 
+## Write with a phone model
+
+1. Open **On-device AI → Writing tools** using the pencil icon. You can
+   also use Android Share or the selected-text menu and choose
+   **Write on this phone with Signal Grove**. Review and accept the
+   incoming text before it replaces your writing source.
+2. Use **Choose a phone model** to explicitly load an installed model.
+   Choose a preset for summary, rewrite, translation, brainstorming, or
+   code explanation. The preset language button sets the language for
+   the next preset. Edit the instructions and source text as needed.
+3. To reuse an instruction, enter a **Saved template name** and tap
+   **Save template**. The template menu lists your saved choices.
+4. Tap **Review writing request**, then check the exact model,
+   instructions and text. Tap **Send to phone model** once.
+5. Use **Save result as a phone note** to keep the result. Open
+   **Phone writing notes** to read it after relaunch.
+
+Review and generation use the loaded phone model. Writing stays in
+its own workspace and saved notes. A source can be up to 6 KiB and
+instructions up to 2 KiB of UTF-8.
+[Writing checks](VALIDATION.md#reviewed-offline-writing-tools).
+
 ## Ask about selected documents
 
 1. Open the **Documents** icon at the top of **On-device AI**.

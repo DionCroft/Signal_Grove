@@ -9,7 +9,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
+import java.util.UUID
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.hermesmobile.app.HermesApplication
 
@@ -27,6 +31,81 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
             markdownExport.review(document, summary.title)
         }
     }
+    internal val writing = app.phoneWriting
+    internal val writingOpen = MutableStateFlow(false)
+    internal val writingStorageError = MutableStateFlow(false)
+    internal val writingSaving = MutableStateFlow(false)
+    internal val writingLibrary = app.preferences.phoneWritingLibrary
+        .catch { writingStorageError.value = true }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PhoneWritingLibrary())
+
+    internal fun openWriting() {
+        if (controller.state.value.busy) return
+        controller.dismissError()
+        writingOpen.value = true
+    }
+
+    internal fun receiveWriting(token: String?, invalid: Boolean) {
+        if (token == null && !invalid) return
+        writing.receive(token?.let(app.writingIntake::take))
+        writingOpen.value = true
+    }
+
+    internal fun closeWriting() {
+        if (controller.state.value.busy) return
+        writing.cancelReview()
+        writingOpen.value = false
+    }
+
+    internal fun sendWriting(review: PhoneWritingReview) {
+        val state = controller.state.value
+        if (!state.busy && writing.consume(review, state.loaded)) {
+            controller.generateWriting(review, writing::publish)
+        }
+    }
+
+    internal fun saveWritingTemplate() {
+        val draft = writing.draft.value
+        if (!validTitle(draft.title) || !validInstructions(draft.instructions)) return
+        val template = PhoneWritingTemplate(draft.template?.id ?: UUID.randomUUID().toString(),
+            draft.title.trim(), draft.instructions)
+        changeWritingLibrary({ it.save(template, draft.template) }) { writing.templateSaved(template, draft) }
+    }
+
+    internal fun saveWritingNote(note: PhoneWritingNote) = changeWritingLibrary({ it.save(note) })
+
+    internal fun removeWritingNote(note: PhoneWritingNote) = changeWritingLibrary({ library ->
+        library.copy(notes = library.notes - note)
+    })
+
+    internal fun removeWritingTemplate(template: PhoneWritingTemplate) = changeWritingLibrary({ library ->
+        library.copy(templates = library.templates - template)
+    }) {
+        val draft = writing.draft.value
+        if (draft.template == template) writing.choosePreset(draft.instructions)
+    }
+
+    private fun changeWritingLibrary(
+        update: (PhoneWritingLibrary) -> PhoneWritingLibrary,
+        saved: () -> Unit = {}
+    ) {
+        if (writingSaving.value) return
+        writingStorageError.value = false
+        writingSaving.value = true
+        viewModelScope.launch {
+            try {
+                app.preferences.editPhoneWritingLibrary(update)
+                saved()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                writingStorageError.value = true
+            } finally {
+                writingSaving.value = false
+            }
+        }
+    }
+
     private val drafts = LocalConversationDrafts(controller.state.value.chat?.id)
     val draft = drafts.text
     fun changeDraft(value: String) { drafts.edit(value) }

@@ -1,5 +1,13 @@
 # Signal Grove audit execution plan
 
+## Offline writing and text intake - 20 November 2026
+
+OF-08 now has reviewed plain-text intake, editable presets, custom templates,
+explicit on-device generation and local notes. Android 17 verified the
+full offline path with LFM3. The physical device and original Hermes and
+release acceptance still require their own evidence.
+[Writing receipts](VALIDATION.md#reviewed-offline-writing-tools).
+
 ## Offline PDF page citations - 20 November 2026
 
 OF-07 covers selected TXT, Markdown and text PDFs. Android 17 verified

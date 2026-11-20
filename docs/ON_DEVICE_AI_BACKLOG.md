@@ -231,10 +231,12 @@ copies/indexes on explicit deletion; preserve the original selected document.
 
 ## OF-08: Reusable writing tools and selected-text actions
 
-**Status: planned.** Add editable prompt templates for summarizing, rewriting,
-translation, brainstorming and explaining code, plus user-created templates.
-Allow Android Share/selected-text entry into a reviewed local draft, with a clear
-model choice and an explicit Send. Offer save-to-local-note or reviewed export.
+**Status: in progress.** The writing workspace provides editable English
+and Chinese summary, rewrite, translation, brainstorming, and code presets,
+custom templates, reviewed Android share/selected-text intake, explicit
+phone-model generation, and private local result notes. Emulator acceptance
+passed. Physical-phone and production acceptance remain open.
+[Writing checks](VALIDATION.md#reviewed-offline-writing-tools).
 
 Acceptance: users can inspect/edit exactly what text and template will be sent.
 No background clipboard reading, automatic generation or automatic sending to

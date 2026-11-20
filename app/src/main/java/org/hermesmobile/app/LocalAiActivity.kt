@@ -24,6 +24,7 @@ class LocalAiActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); enableEdgeToEdge()
         model.receiveDraft(intent.getStringExtra(DRAFT_TOKEN))
+        if (savedInstanceState == null) receiveWriting(intent)
         showDownloads.value = savedInstanceState == null && intent.getBooleanExtra(OPEN_DOWNLOADS, false)
         val store = (application as HermesApplication).preferences
         val standalone = intent.getBooleanExtra(FROM_LAUNCHER, false)
@@ -47,7 +48,12 @@ class LocalAiActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        receiveWriting(intent)
         if (intent.getBooleanExtra(OPEN_DOWNLOADS, false)) showDownloads.value = true
+    }
+
+    private fun receiveWriting(intent: Intent) {
+        model.receiveWriting(intent.getStringExtra(WRITING_TOKEN), intent.getBooleanExtra(WRITING_REJECTED, false))
     }
 
     private fun openHermes() {
@@ -57,6 +63,8 @@ class LocalAiActivity : ComponentActivity() {
 
     companion object {
         const val DRAFT_TOKEN = "phone_draft_token"
+        internal const val WRITING_TOKEN = "phone_writing_token"
+        internal const val WRITING_REJECTED = "phone_writing_rejected"
         internal const val FROM_LAUNCHER = "phone_from_launcher"
         internal const val OPEN_DOWNLOADS = "open_phone_model_downloads"
     }
