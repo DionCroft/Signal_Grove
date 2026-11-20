@@ -1,5 +1,17 @@
 # Signal Grove audit execution plan
 
+## Beta.10 compact layout and production upgrade - 20 November 2026
+
+Exact source `beef582` passed the compact keyboard checks on both APIs.
+The signed production upgrade retained the Hermes connection and access
+to an existing conversation and stored project details. It retained the
+phone model and local history. The phone verified offline completion,
+Stop and history reopen. The
+exact hosted matrix, main push and downloadable release remain open.
+Broader Hermes interoperability, live workspace/worker and automation
+acceptance continue under their existing audit rows.
+[Beta.10 validation](VALIDATION.md#beta10-compact-layout-and-signed-upgrade).
+
 ## Compact phone chat actions - 20 November 2026
 
 The exact predecessor reproduced the Temporary chat visibility

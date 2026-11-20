@@ -25,6 +25,40 @@ Exercise every navigation destination on a narrow phone and a wide tablet; use A
 
 Build reports: `app/build/reports/tests`, `app/build/reports/lint-results-*.html`. APK: `app/build/outputs/apk/debug/app-debug.apk`. Generated reports and debug signing material are excluded from Git. Run `python -B scripts/secret_review.py` before publishing.
 
+## Physical Android QA over USB
+
+Use the Android platform-tools and a trusted USB data connection. Turn on
+Developer options and USB debugging, unlock the phone and approve the normal
+debugging prompt for your workstation. Use `adb devices -l` to check the
+connection. Select the verified serial with `adb -s SERIAL` when emulators
+or other phones are connected.
+[Android Debug Bridge](https://developer.android.com/tools/adb) ·
+[Xiaomi USB debugging](https://www.mi.com/uk/support/article/KA-06515/).
+
+For physical UI checks, run the following with one authorized USB phone.
+Set `ADB` to the same platform-tools executable if scrcpy would otherwise
+use a different installation.
+
+```powershell
+scrcpy --select-usb --mouse=sdk --keyboard=sdk --no-audio --no-clipboard-autosync
+```
+
+SDK input worked on the tested Android 17 HyperOS phone, including saved
+connection testing, project readback and offline chat. If the mirror works
+but input is blocked, check whether the phone offers the separate
+**USB debugging (Security settings)** option. scrcpy documents a restart
+after enabling that option on affected Xiaomi devices.
+[scrcpy control modes](https://github.com/Genymobile/scrcpy/blob/master/doc/control.md) ·
+[Xiaomi-specific scrcpy troubleshooting](https://github.com/Genymobile/scrcpy/blob/master/FAQ.md#mouse-and-keyboard-do-not-work).
+
+For scripted QA, use ADB for package/version checks, app launch and scoped
+UI readback. Prefer the owned emulator and instrumented fixture for
+repeatable coverage. A physical upgrade check should first verify the
+installed package, signing identity and target APK SHA-256. For UI checks,
+observe the screen after each action, keep login prompts with the owner
+and keep private screen captures out of Git. After any offline check,
+restore the original radio settings and confirm private VPN reachability.
+
 ## Current validation and historical baseline
 
 The beta.9 candidate has 1,006 JVM cases /96 reports; its preceding candidate has

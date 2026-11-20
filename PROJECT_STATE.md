@@ -5,6 +5,19 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Beta.10 release checkpoint
+
+Exact candidate `beef582` passed 1,203 JVM tests, both lint variants and
+five compact-screen cases on each of Android 8 and 17. The original-key
+production APK upgraded in place on the owner phone, and a separate
+emulator upgraded from the published beta.9 package. The phone verified
+saved Hermes history, management renewal, stored project details, offline
+LFM3 completion and Stop, and reopening history with no model loaded.
+The release branch holds the exact source. Review the matching hosted
+Android matrix before pushing to main and publishing beta.10. Quick
+Capture remains scheduled after release.
+[Signed upgrade and test evidence](docs/VALIDATION.md#beta10-compact-layout-and-signed-upgrade).
+
 ## Compact phone chat menu checkpoint
 
 The previous build reproduced the Android 8 Temporary chat visibility

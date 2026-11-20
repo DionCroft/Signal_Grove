@@ -1,5 +1,62 @@
 # Current development validation — audit follow-up
 
+## Beta.10 compact layout and signed upgrade
+
+The exact beta.10 source is
+`beef582d3f379b729750f13f3d9809350d54bd7a`.
+The clean build passed 1,203 JVM tests across 113 reports and both lint
+variants with zero errors. Existing lint warnings were recorded.
+Both Android 8 and Android 17 passed all five focused profile editor,
+Temporary chat and Voice cases at 900 × 1440, density 420 and font scale
+1.3. The Voice test verifies native keyboard geometry and uses a real tap.
+The compact baseline failures remain in the records below.
+
+The production APK is version 1.1.0-beta.10, code 115, with the original
+production signer and 16 KiB native alignment. The owner's ARM64 Android
+17 Xiaomi phone upgraded in place from its existing code-112 production
+build. An owned Android 17 emulator also upgraded in place from the
+public beta.9 code-114 APK. Both checks verified package retention and
+the installed APK digest.
+
+On the physical phone, the saved API connection reached the private
+Hermes instance and an existing read-only conversation loaded its earlier
+messages. Management Refresh reported a rejected saved sign-in. The
+in-app Renew sign-in action then verified the existing management session,
+and a reviewed read loaded the stored project list and fresh details for
+an existing project. This confirms project metadata access through the
+saved profile. Workspace binding, worker execution and automation remain
+separate audit items.
+
+The retained LFM3 model generated the expected reply while the phone had
+Airplane mode on and Wi-Fi off. A separate longer local turn stopped and
+was saved as stopped with no replay. Phone history reopened an older
+existing chat and the completed QA reply with the model unloaded.
+The original Wi-Fi and tailnet reachability were verified after testing.
+[Physical USB QA setup](DEVELOPMENT.md#physical-android-qa-over-usb).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Signed production APK | `6b371054655acd7e8ac51fddf73e68f29255e560f3919fbf36cdf4fb0837a055` |
+| Production signer certificate DER | `bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f` |
+| API 26 compact receipt | `93f17be783f80e116cbbd2f087260dccc2c050be280f22635638ea0fcdda2c00` |
+| API 37 compact receipt | `83a891ab16dfa8e852922f2291cdbe5804269d2f53fa2f08a1bcaf18c7975ad4` |
+| Phone in-place install receipt | `4fc71e30d1bef2f1a4688552499fb0735d7175280b54277b7dfec3d31a4a448e` |
+| Public beta.9 emulator upgrade receipt | `c936e7b2c14d609911f794d8ed30afa5a5f7e3e534e0828356e24f131e2080cb` |
+| Phone existing Hermes conversation receipt | `82f463287db44dfe13f84fe0e57885804bc7b616342ef776adcef4516b7274ab` |
+| Phone refreshed project detail receipt | `b2a8df89173eee446825c0c07ec1cae30b55bb75c6fa1b4e8a10b8f92407952f` |
+| Phone offline LFM3 completion receipt | `8c4d24827dacbc4927a76cde68a29dc13aa1eb44976335f483816f8a6ca612d0` |
+| Phone saved Stop receipt | `1bd7726d714f92f930f8c9c9c183260212592bb8f59b13d754e239d8bc164638` |
+| Phone history reopen receipt | `e87dcff74c9cf8b89e501b58bb5e36e673c8e8644335e7c8c7b24101318a192d` |
+| Phone private connectivity restoration receipt | `09a01495cf3f5e7c73fdb796cc04ecacbd9263d49927409566cc0d0476b44067` |
+
+An older hosted API 26 partition timed out after 489 of its 584 methods.
+The last completed method was the startup image-intent test and the
+launcher preference test started without returning. The exact beta.10
+debug build executed these two methods in the same order on the owned
+API 26 emulator and passed both. That focused run leaves the hosted
+full-suite outcome open.
+[Exact candidate GitHub Actions run](https://github.com/DionCroft/Signal_Grove/actions/runs/44808153153).
+
 ## Compact phone chat action menu
 
 The previous APK failed the actual Temporary chat flow after a draft
