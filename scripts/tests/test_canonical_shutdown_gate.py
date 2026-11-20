@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
 spec = importlib.util.spec_from_file_location('shutdown_gate', Path(__file__).resolve().parents[1] / 'canonical_shutdown_gate.py')
@@ -29,6 +30,36 @@ class ShutdownEvidenceTests(unittest.TestCase):
         rows = [gate.positive_cases(ET.tostring(self.suite(f)[0]), f) for f in gate.CASES]
         self.assertEqual([len(r) for r in rows], [5, 17, 10, 2, 2, 14])
         self.assertEqual(sum(map(len, rows)), 50)
+
+    def test_reviewed_maps_select_the_pin_specific_patch_and_refuse_cross_pin_inputs(self):
+        cases = {
+            'first': {'gateway.py': 'a', 'reaper.py': 'b'},
+            'second': {'gateway.py': 'c', 'reaper.py': 'b'},
+        }
+        specs = {
+            key: gate.ShutdownPin(len(value), gate.snapshot.digest(gate.snapshot.canonical(value)),
+                (0, gate.snapshot.digest(b'\\n')), 'patch', 'patch-digest',
+                {'gateway.py': (value.get('gateway.py'), 'fixed')})
+            for key, value in cases.items()
+        }
+        with patch.dict(gate.REVIEWED_PINS, specs, clear=True):
+            for key, value in cases.items():
+                self.assertEqual(gate.expected_map(value, 'pristine', key), value)
+                self.assertEqual(gate.expected_map(value, 'candidate', key), {'gateway.py': 'fixed', 'reaper.py': 'b'})
+            with self.assertRaisesRegex(ValueError, 'Unreviewed whole SDK source'):
+                gate.expected_map(cases['first'], 'candidate', 'second')
+            with self.assertRaisesRegex(ValueError, 'Unreviewed whole SDK source'):
+                gate.expected_map(cases['first'], 'pristine', 'unknown')
+
+    def test_comparison_rejects_mixed_pins_and_wrong_requested_pin_before_publishing(self):
+        pristine = dict(variant='pristine', caseCount=50, sourceCommit='a')
+        candidate = dict(variant='candidate', caseCount=50, sourceCommit='b')
+        with patch.object(gate, 'accepted_evidence', side_effect=[pristine, candidate]):
+            with self.assertRaisesRegex(ValueError, 'same requested SDK revision'):
+                gate.compare(Path('pristine'), Path('candidate'), Path('unused'))
+        with patch.object(gate, 'accepted_evidence', side_effect=[pristine, {**candidate, 'sourceCommit': 'a'}]):
+            with self.assertRaisesRegex(ValueError, 'same requested SDK revision'):
+                gate.compare(Path('pristine'), Path('candidate'), Path('unused'), 'b')
 
     def test_green_totals_cannot_hide_failed_or_skipped_cases(self):
         for tag in ('failure', 'error', 'skipped'):

@@ -218,3 +218,12 @@ teardown remains open for further review.
 Hosted Linux with the current pins, the full owner bootstrap and Pi
 lifecycle, and the separate compatibility and Android release gates
 remain open. The candidate is retained for review and local testing.
+
+The [Linux matrix](../../.github/workflows/hermes-shutdown.yml) now runs the
+same six untouched canonical files for both variants at all three reviewed
+pins. Each job verifies its full source and executable maps before PM setup
+and after execution. Separate jobs compare artifact pairs for the exact
+requested pin. The 21 portable verifier tests include refusals for mixed
+revisions and mismatched source inventories. The Windows public archive
+maps reproduce the two new pin fingerprints. The hosted Linux results and
+native lifecycle testing remain separate gates.

@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch']
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch']
   pull_request:
-    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch']
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch']
 permissions:
   contents: read
 concurrency:
@@ -16,6 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1]
         variant: [pristine, candidate]
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -27,12 +28,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: NousResearch/hermes-agent
-          ref: 3b421578588243f920886e6fe79a6faa87ea026e
+          ref: ${{ matrix.source_commit }}
           path: sdk
           persist-credentials: false
       - name: Verify exact inputs and prepare the selected variant
         env:
           VARIANT: ${{ matrix.variant }}
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
         run: |
           test ! -e sdk/.git/info/attributes
           printf '%s\n' '*.ps1 -text' > sdk/.git/info/attributes
@@ -44,7 +46,7 @@ jobs:
                   name=raw.decode('utf8')
                   (Path('sdk')/name).write_bytes(subprocess.check_output(['git','-C','sdk','show','HEAD:'+name]))
           PY
-          python3 -I -B client/scripts/canonical_shutdown_gate.py prepare --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" --variant "$VARIANT"
+          python3 -I -B client/scripts/canonical_shutdown_gate.py prepare --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" --variant "$VARIANT" --source-commit "$SOURCE_COMMIT"
           python3 -B -m unittest discover -s client/scripts/tests -p test_canonical_shutdown_gate.py -v
       - name: Build the supported PM side test environment
         id: pm
@@ -70,12 +72,17 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: canonical-linux-shutdown-${{ matrix.variant }}
+          name: canonical-linux-shutdown-${{ matrix.source_commit }}-${{ matrix.variant }}
           path: ${{ runner.temp }}/shutdown-${{ matrix.variant }}
           if-no-files-found: error
           retention-days: 30
   compare:
     needs: canonical-linux
+    if: ${{ !cancelled() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -84,14 +91,20 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: canonical-linux-shutdown-*
+          pattern: canonical-linux-shutdown-${{ matrix.source_commit }}-*
           path: ${{ runner.temp }}/shutdown-pair
       - name: Independently compare both raw cohorts
-        run: python3 -I -B scripts/canonical_shutdown_gate.py compare --pristine "$RUNNER_TEMP/shutdown-pair/canonical-linux-shutdown-pristine" --candidate "$RUNNER_TEMP/shutdown-pair/canonical-linux-shutdown-candidate" --output "$RUNNER_TEMP/paired-shutdown.json"
+        env:
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
+        run: |
+          artifact="$RUNNER_TEMP/shutdown-pair/canonical-linux-shutdown-$SOURCE_COMMIT"
+          python3 -I -B scripts/canonical_shutdown_gate.py compare \
+            --source-commit "$SOURCE_COMMIT" --pristine "$artifact-pristine" \
+            --candidate "$artifact-candidate" --output "$RUNNER_TEMP/paired-shutdown.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: canonical-linux-shutdown-pair
+          name: canonical-linux-shutdown-pair-${{ matrix.source_commit }}
           path: ${{ runner.temp }}/paired-shutdown.json
           if-no-files-found: error
           retention-days: 30

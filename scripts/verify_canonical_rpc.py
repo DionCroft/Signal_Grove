@@ -74,10 +74,10 @@ def reviewed_entries(head: bytes, index: bytes) -> dict[bytes, tuple[bytes, byte
     return expected
 
 
-def source_snapshot(source: Path) -> dict[str, str]:
+def source_snapshot(source: Path, *, commit: str = PIN, file_count: int = 23586) -> dict[str, str]:
     def git(*args: str) -> bytes:
         return subprocess.check_output(['git', '--no-optional-locks', '-C', str(source), *args], stderr=subprocess.PIPE)
-    if git('rev-parse', 'HEAD').decode().strip() != PIN:
+    if git('rev-parse', 'HEAD').decode().strip() != commit:
         raise ValueError('Wrong pinned SDK revision')
     result = {}
     entries = reviewed_entries(git('ls-tree', '-r', '-z', 'HEAD'), git('ls-files', '--stage', '-z'))
@@ -92,7 +92,7 @@ def source_snapshot(source: Path) -> dict[str, str]:
         if os.name == 'posix' and bool(path.stat().st_mode & 0o111) != (mode == b'100755'):
             raise ValueError('SDK executable bit changed: ' + relative)
         result[relative] = sha(data)
-    if len(result) != 23586 or TEST_FILE not in result:
+    if len(result) != file_count or TEST_FILE not in result:
         raise ValueError('Incomplete pinned SDK tree')
     return result
 

@@ -1,5 +1,19 @@
 # Signal Grove audit execution plan
 
+## Linux shutdown matrix and Android device evidence - 20 November 2026
+
+The pinned Linux workflow now runs pristine and candidate cohorts at the
+original SDK pin, v0.23.3 and the observed main pin. The gate independently
+checks the full exact-source and executable maps, pin-specific patch and
+50 canonical case identities, and refuses evidence paired across revisions.
+Portable verifier checks passed. Current-pin Linux execution remains open.
+
+The older Android CI run 44734783993 on commit 19387ab passed verification
+and API 37 shard 0. The other three verified artifacts retain failures in
+temporary chat (both APIs), the Phone startup setup entry and the project
+cancellation control (API 26). The standard acceptance gate stays open.
+[Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/44734783993).
+
 ## Current Hermes heartbeat shutdown - 20 November 2026
 
 The v0.23.3 release and the observed main pin share the relevant storage

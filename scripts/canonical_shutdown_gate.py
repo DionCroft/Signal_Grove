@@ -11,6 +11,7 @@ import json
 import math
 import os
 from pathlib import Path, PurePosixPath
+from typing import NamedTuple
 import platform
 import re
 import stat
@@ -131,7 +132,43 @@ CASES = {'tests/tui_gateway/test_backend_heartbeat.py': [('tests.tui_gateway.tes
                                             ('tests.gateway.test_gateway_shutdown',
                                              'test_shutdown_mcp_servers_nonblocking_completes_fast_path')]}
 VARIANTS = ('pristine', 'candidate')
-BASE_SHA = snapshot.REVIEWED['pristine-stable3b'][1]
+class ShutdownPin(NamedTuple):
+    file_count: int
+    source_digest: str
+    executables: tuple[int, str]
+    patch_name: str
+    patch_digest: str
+    patch_files: dict[str, tuple[str, str]]
+
+
+CURRENT_PATCH = 'hermes-caafe538-heartbeat-shutdown.patch'
+CURRENT_PATCH_DIGEST = '43ca3e046be09981f85ce43209ef7d4556f4e95a7a995153788d1ee658964dd2'
+CURRENT_PATCH_FILES = {
+    'gateway/run_shutdown.py': (
+        '8e3ba686b5a15bff8c8eb257e32da4bbcb5e30efa81bde05f2f05b04789ae6db',
+        'eaeec6d9a24e501822f8b8930054f361e35db3ba2b236d9bf92c31e5ff3414aa',
+    ),
+    'tui_gateway/session_reaper.py': (
+        '62d8f144b3405eff3fe323e5e934031e45aff90f9625db3512c6ac4d56bb467e',
+        '82b0b1d1eb0c5bf54ff75f423b7de430816e29dc9d34ff3f8d6bd775e37c69b7',
+    ),
+}
+CURRENT_EXECUTABLES = (131, '90f8e66ffbf463c6be1f0d7f030c3686c9253b45d768000202434c0fe2ed5e6f')
+REVIEWED_PINS = {
+    rpc.PIN: ShutdownPin(
+        *snapshot.REVIEWED['pristine-stable3b'], snapshot.EXECUTABLES,
+        pinned.PATCH_NAME, pinned.PATCH_SHA256,
+        {name: (row['base_sha256'], row['patched_sha256']) for name, row in pinned.PATCH_FILES.items()},
+    ),
+    'caafe5389ae585ef77387a962aee05b1bcf17029': ShutdownPin(
+        27139, '231933e1e21c429e42b1ece6facc5046fe153301493ca953f026fe33e0669c6d',
+        CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, CURRENT_PATCH_FILES,
+    ),
+    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1': ShutdownPin(
+        27171, '03ec455040fd87a350e21b99924f451cd96f2c7921d9eda8692e3a406e7770bd',
+        CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, CURRENT_PATCH_FILES,
+    ),
+}
 PYTEST_CACHE = frozenset({'.gitignore', 'README.md', 'CACHEDIR.TAG',
                           'v/cache/nodeids', 'v/cache/lastfailed', 'v/cache/stepwise'})
 
@@ -150,16 +187,24 @@ def require_linux():
         raise ValueError('Native Linux required; no OS simulation')
 
 
-def expected_map(base, variant):
-    if variant not in VARIANTS or len(base) != 23586 or snapshot.digest(snapshot.canonical(base)) != BASE_SHA:
+def expected_map(base, variant, source_commit=rpc.PIN):
+    pin = REVIEWED_PINS.get(source_commit)
+    if (pin is None or variant not in VARIANTS or len(base) != pin.file_count or
+            snapshot.digest(snapshot.canonical(base)) != pin.source_digest):
         raise ValueError('Unreviewed whole SDK source')
     result = dict(base)
     if variant == 'candidate':
-        for name, row in pinned.PATCH_FILES.items():
-            if result[name] != row['base_sha256']:
+        for name, (before, after) in pin.patch_files.items():
+            if result.get(name) != before:
                 raise ValueError('Unreviewed patch input')
-            result[name] = row['patched_sha256']
+            result[name] = after
     return result
+
+
+def verify_executables(modes, pin):
+    names = sorted(name for name, mode in modes.items() if mode & 0o111)
+    if (len(names), snapshot.digest(('\n'.join(names) + '\n').encode())) != pin.executables:
+        raise ValueError('SDK executable identities changed')
 
 
 def generated_path(name, sources, guard=None):
@@ -245,43 +290,47 @@ def inspect_source(source, expected, modes=None, *, generated=False, observation
         raise ValueError('Missing/changed source or empty shadow namespace')
     if modes is not None and actual_modes != modes:
         raise ValueError('SDK source mode changed')
-    names = sorted(n for n, mode in actual_modes.items() if mode & 0o111)
-    if len(expected) == 23586 and (len(names), snapshot.digest(('\n'.join(names) + '\n').encode())) != snapshot.EXECUTABLES:
-        raise ValueError('SDK executable identities changed')
+    for pin in REVIEWED_PINS.values():
+        if len(expected) == pin.file_count:
+            verify_executables(actual_modes, pin)
+            break
     return result
 
 
-def source_index(source):
-    if pinned.git(source, 'rev-parse', 'HEAD').decode().strip() != rpc.PIN:
+def source_index(source, source_commit):
+    if pinned.git(source, 'rev-parse', 'HEAD').decode().strip() != source_commit:
         raise ValueError('SDK HEAD changed')
     rpc.reviewed_entries(pinned.git(source, 'ls-tree', '-r', '-z', 'HEAD'),
                          pinned.git(source, 'ls-files', '--stage', '-z'))
 
 
-def prepare(source, evidence, variant):
+def prepare(source, evidence, variant, source_commit=rpc.PIN):
     require_linux()
     if evidence.exists():
         raise ValueError('Fresh evidence required; preserve uncertain/failed runs')
-    base = rpc.source_snapshot(source)
-    expected = expected_map(base, variant)
+    pin = REVIEWED_PINS[source_commit]
+    base = rpc.source_snapshot(source, commit=source_commit, file_count=pin.file_count)
+    expected = expected_map(base, variant, source_commit)
     before = inspect_source(source, base)
     evidence.mkdir(mode=0o700)
-    write_new(evidence / 'intent.json', dict(state='PREPARATION_STARTED', variant=variant, sourceCommit=rpc.PIN))
+    write_new(evidence / 'intent.json', dict(state='PREPARATION_STARTED', variant=variant, sourceCommit=source_commit))
     write_new(evidence / 'base-map.json', base)
     write_new(evidence / 'git-observations.json', dict(status=pinned.git(source, 'status', '--porcelain', '--untracked-files=no').decode('utf8')))
     if variant == 'candidate':
-        patch = Path(__file__).resolve().parents[1] / 'upstream_patches' / pinned.PATCH_NAME
-        raw = pinned.patch_bytes(patch)
-        staged = evidence / pinned.PATCH_NAME
+        patch = Path(__file__).resolve().parents[1] / 'upstream_patches' / pin.patch_name
+        raw = patch.read_bytes()
+        if snapshot.digest(raw) != pin.patch_digest:
+            raise ValueError('Unreviewed patch bytes')
+        staged = evidence / pin.patch_name
         staged.write_bytes(raw)
-        pinned.git(source, 'apply', '--check', str(staged))
-        pinned.git(source, 'apply', str(staged))
-        for name in pinned.PATCH_FILES:
+        pinned.git(source, '-c', 'core.autocrlf=false', 'apply', '--check', '--whitespace=error', str(staged))
+        pinned.git(source, '-c', 'core.autocrlf=false', 'apply', '--whitespace=error', str(staged))
+        for name in pin.patch_files:
             (source / name).chmod(before['modes'][name])
     actual = inspect_source(source, expected, before['modes'])
-    source_index(source)
-    write_new(evidence / 'before.json', dict(variant=variant, sourceCommit=rpc.PIN,
-              patchSha256=pinned.PATCH_SHA256 if variant == 'candidate' else None,
+    source_index(source, source_commit)
+    write_new(evidence / 'before.json', dict(variant=variant, sourceCommit=source_commit,
+              patchSha256=pin.patch_digest if variant == 'candidate' else None,
               sourceMapSha256=snapshot.digest(snapshot.canonical(expected)), **actual))
 
 
@@ -294,9 +343,10 @@ def command(source, evidence, index, test_file):
 def run(source, evidence, python):
     require_linux()
     before = read_json(evidence / 'before.json')
-    expected = expected_map(read_json(evidence / 'base-map.json'), before['variant'])
+    source_commit = before['sourceCommit']
+    expected = expected_map(read_json(evidence / 'base-map.json'), before['variant'], source_commit)
     inspect_source(source, expected, before['modes'], generated=True)
-    source_index(source)
+    source_index(source, source_commit)
     runtime_code = "import importlib.metadata,json,platform,sys; print(json.dumps(dict(system=platform.system(),machine=platform.machine(),python=sys.version,pytest=importlib.metadata.version('pytest'),executable=sys.executable,prefix=sys.prefix)))"
     runtime = json.loads(subprocess.check_output([str(python), '-I', '-B', '-c', runtime_code], text=True))
     if runtime['system'] != 'Linux' or runtime['machine'] != platform.machine() or runtime['pytest'] != '9.1.1':
@@ -356,11 +406,16 @@ def positive_cases(raw, test_file):
 def accepted_evidence(evidence):
     before = read_json(evidence / 'before.json')
     variant = before['variant']
-    expected = expected_map(read_json(evidence / 'base-map.json'), variant)
-    if (before['sourceCommit'] != rpc.PIN or before['source'] != expected or
+    source_commit = before['sourceCommit']
+    expected = expected_map(read_json(evidence / 'base-map.json'), variant, source_commit)
+    pin = REVIEWED_PINS[source_commit]
+    if (before['source'] != expected or
             before['sourceMapSha256'] != snapshot.digest(snapshot.canonical(expected)) or
-            before['patchSha256'] != (pinned.PATCH_SHA256 if variant == 'candidate' else None) or before['generated']):
+            before['patchSha256'] != (pin.patch_digest if variant == 'candidate' else None) or before['generated']):
         raise ValueError('Preparation evidence mismatch')
+    if set(before['modes']) != set(expected):
+        raise ValueError('Incomplete source modes')
+    verify_executables(before['modes'], pin)
     after = read_json(evidence / 'after.json')
     if (after['source'] != expected or after['modes'] != before['modes'] or
             after['guardFingerprint'] != before['guardFingerprint']):
@@ -377,7 +432,7 @@ def accepted_evidence(evidence):
         log = (evidence / f'{index}.log').read_bytes()
         results.append(dict(file=test_file, cases=positive_cases(raw, test_file),
                             junitSha256=snapshot.digest(raw), logSha256=snapshot.digest(log)))
-    return dict(variant=variant, sourceCommit=rpc.PIN, sourceMapSha256=before['sourceMapSha256'],
+    return dict(variant=variant, sourceCommit=source_commit, sourceMapSha256=before['sourceMapSha256'],
                 caseCount=sum(len(r['cases']) for r in results), files=results,
                 canonicalRunner='scripts/run_tests.sh', fileRetries=0, runtime=runtime,
                 generatedFiles=len(after['generated']), piActivationAccepted=False,
@@ -405,8 +460,9 @@ def terminal_runs(record):
 def verify(source, evidence):
     require_linux()
     before = read_json(evidence / 'before.json')
-    expected = expected_map(read_json(evidence / 'base-map.json'), before['variant'])
-    source_index(source)
+    source_commit = before['sourceCommit']
+    expected = expected_map(read_json(evidence / 'base-map.json'), before['variant'], source_commit)
+    source_index(source, source_commit)
     actual = inspect_source(source, expected, before['modes'], generated=True,
                             observations=evidence / 'observed-tree.json')
     write_new(evidence / 'after.json', actual)
@@ -416,16 +472,19 @@ def verify(source, evidence):
     print(json.dumps({k: v for k, v in result.items() if k not in ('files', 'runtime')}))
 
 
-def compare(pristine, candidate, output):
+def compare(pristine, candidate, output, source_commit=None):
     a, b = accepted_evidence(pristine), accepted_evidence(candidate)
     if a['variant'] != 'pristine' or b['variant'] != 'candidate' or a['caseCount'] != 50 or b['caseCount'] != 50:
         raise ValueError('Need the two distinct complete cohorts')
+    pin_commit = a['sourceCommit']
+    if b['sourceCommit'] != pin_commit or (source_commit is not None and source_commit != pin_commit):
+        raise ValueError('Paired evidence must match the same requested SDK revision')
     if [r['cases'] for r in a['files']] != [r['cases'] for r in b['files']]:
         raise ValueError('Paired case identities differ')
     if read_json(pristine / 'before.json')['modes'] != read_json(candidate / 'before.json')['modes']:
         raise ValueError('Paired source modes differ')
     result = dict(state='PAIRED_LINUX_CANONICAL_SHUTDOWN_FIFTY_IDENTITIES_PASS',
-                  sourceCommit=rpc.PIN, patchSha256=pinned.PATCH_SHA256,
+                  sourceCommit=pin_commit, patchSha256=REVIEWED_PINS[pin_commit].patch_digest,
                   pristine=a, candidate=b, exactSameFiftyCases=True,
                   piActivationAccepted=False, completeUpstreamLifecycleAccepted=False)
     write_new(output, result)
@@ -438,6 +497,7 @@ def main():
     parser.add_argument('--source', type=Path)
     parser.add_argument('--evidence', type=Path)
     parser.add_argument('--variant', choices=VARIANTS)
+    parser.add_argument('--source-commit', choices=REVIEWED_PINS)
     parser.add_argument('--python', type=Path)
     parser.add_argument('--pristine', type=Path)
     parser.add_argument('--candidate', type=Path)
@@ -446,7 +506,8 @@ def main():
     if args.action == 'compare':
         if not all((args.pristine, args.candidate, args.output)):
             parser.error('compare requires pristine, candidate and fresh output')
-        compare(args.pristine.resolve(strict=True), args.candidate.resolve(strict=True), args.output)
+        compare(args.pristine.resolve(strict=True), args.candidate.resolve(strict=True), args.output,
+                args.source_commit)
         return
     if not args.source or not args.evidence:
         parser.error('source and evidence required')
@@ -454,7 +515,7 @@ def main():
     if args.action == 'prepare':
         if args.variant is None:
             parser.error('prepare requires variant')
-        prepare(source, evidence, args.variant)
+        prepare(source, evidence, args.variant, args.source_commit or rpc.PIN)
     elif args.action == 'run':
         if not args.python:
             parser.error('run requires supported PM test interpreter')
