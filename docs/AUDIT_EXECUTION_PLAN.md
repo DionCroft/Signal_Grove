@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Protected personal-profile backup choice - 20 November 2026
+
+Profiles now have explicit export and restore selection in a separate
+passphrase-protected format. The exact emulator build verified
+authenticated selection, conflict copies and original data retention.
+The actual Android picker completed an offline round trip.
+Physical-device acceptance and the full Hermes and signed-release
+gates remain open.
+[Profile backup evidence](VALIDATION.md#separate-protected-personal-profile-backups).
+
 ## Personal profiles and optional request context - 20 November 2026
 
 Personal profiles support private manual notes and writing preferences.

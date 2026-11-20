@@ -23,7 +23,8 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     val controller = app.localAi
     internal val markdownExport = PhoneMarkdownExport(app.contentResolver, app.updateWorkGuard, savedState, viewModelScope)
 
-    internal val historyBackup = PhoneHistoryBackup(app.contentResolver, controller, app.updateWorkGuard, savedState, viewModelScope)
+    internal val historyBackup = PhoneHistoryBackup(app.contentResolver, controller, app.updateWorkGuard,
+        savedState, viewModelScope, app.preferences)
 
     internal fun prepareMarkdownExport(summary: LocalConversationSummary) {
         if (markdownExport.state.value != PhoneMarkdownExportState.Idle) return
@@ -136,6 +137,18 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
 
     internal fun openPersonalProfiles() {
         if (!controller.state.value.busy) personalProfilesOpen.value = true
+    }
+
+    internal fun backUpPersonalProfiles() {
+        if (!profileSaving.value && historyBackup.selectProfileExport(personalProfiles.value?.entries.orEmpty())) {
+            closePersonalProfiles()
+        }
+    }
+
+    internal fun restorePersonalProfiles() {
+        if (!profileSaving.value && personalProfiles.value != null && historyBackup.selectProfileImport()) {
+            closePersonalProfiles()
+        }
     }
 
     internal fun closePersonalProfiles() {

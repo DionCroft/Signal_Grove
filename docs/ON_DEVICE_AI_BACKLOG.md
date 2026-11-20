@@ -251,8 +251,10 @@ model choice and end confirmation. Their drafts and transcripts clear on
 end or backgrounding. The temporary-chat emulator cases and real LFM3 trial passed.
 Local profiles now support manual preferences and notes, per-request
 selection, exact review and budget checks. An offline LFM3 trial verified
-one selected note and one unselected preference. Explicit backup
-collection selection and physical-phone checks remain open.
+one selected note and one unselected preference. Profiles can now be
+selected for a separate protected backup and reviewed before additive
+restore. Physical-phone acceptance remains open.
+[Profile backup checks](VALIDATION.md#separate-protected-personal-profile-backups).
 [Personal profile checks](VALIDATION.md#personal-profiles-with-a-reviewed-phone-model-request).
 [Temporary chat checks](VALIDATION.md#foreground-only-temporary-phone-chats).
 

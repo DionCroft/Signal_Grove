@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.local.*
 
@@ -30,11 +31,13 @@ internal fun PhoneHistoryBackupFlow(backup: PhoneHistoryBackup, busy: Boolean) {
     when (val current = state) {
         PhoneHistoryBackupState.Idle -> Unit
         is PhoneHistoryBackupState.Selection -> BackupSelection(current, backup)
+        is PhoneHistoryBackupState.ProfileSelection -> ProfileBackupSelection(current, backup)
         is PhoneHistoryBackupState.ExportReview -> BackupReview(
             Words.PhoneBackupExportReview, Words.PhoneMarkdownChoose, backup::dismiss,
             enabled = !busy, tag = "phone-backup-choose-destination", confirm = { backup.chooseDestination(current) }
         ) {
-            Text(label(Words.PhoneBackupSize).replace("{count}", current.count.toString()).replace("{bytes}", current.bytes.toString()))
+            val size = if (current.collection == BackupCollection.PROFILES) Words.PhoneProfileBackupSize else Words.PhoneBackupSize
+            Text(label(size).replace("{count}", current.count.toString()).replace("{bytes}", current.bytes.toString()))
             Text(label(backupFormat(current.format)))
             Text(label(if (current.format == LocalHistoryBackupFormat.PROTECTED) Words.PhoneBackupKeepPassword else Words.PhoneBackupPlainWarning))
             Text(label(Words.PhoneBackupDestination))
@@ -55,14 +58,114 @@ internal fun PhoneHistoryBackupFlow(backup: PhoneHistoryBackup, busy: Boolean) {
         )
         is PhoneHistoryBackupState.Unlock -> BackupUnlock(current, backup)
         is PhoneHistoryBackupState.RestoreReview -> RestoreReview(current, backup, busy)
+        is PhoneHistoryBackupState.ProfileRestoreReview -> ProfileBackupRestoreReview(current, backup, busy)
         is PhoneHistoryBackupState.Finished -> AlertDialog(
             onDismissRequest = backup::dismiss,
             text = {
-                Text(label(backupResult(current.result)).replace("{count}", current.restoredCount.toString()),
+                val word = if (current.collection == BackupCollection.PROFILES) profileBackupResult(current.result)
+                    else backupResult(current.result)
+                Text(label(word).replace("{count}", current.restoredCount.toString()),
                     Modifier.testTag("phone-backup-result"))
             },
             confirmButton = { TextButton(backup::dismiss, Modifier.testTag("phone-backup-close")) { Text(label(Words.Close)) } }
         )
+    }
+}
+
+@Composable
+private fun ProfileBackupSelection(selection: PhoneHistoryBackupState.ProfileSelection, backup: PhoneHistoryBackup) {
+    var checked by remember(selection) { mutableStateOf(emptySet<String>()) }
+    var protecting by remember(selection) { mutableStateOf(false) }
+    var password by remember(selection) { mutableStateOf("") }
+    var confirmation by remember(selection) { mutableStateOf("") }
+    val protectionStep = protecting
+    BackupReview(if (protectionStep) Words.PhoneBackupProtection else Words.PhoneProfileBackupSelect,
+        if (protectionStep) Words.PhoneBackupPrepare else Words.PhoneBackupContinue,
+        backup::dismiss, enabled = checked.isNotEmpty() &&
+            (!protectionStep || (password.isNotEmpty() && password == confirmation)),
+        tag = if (protectionStep) "phone-backup-prepare" else "phone-backup-continue",
+        secure = true,
+        back = if (protectionStep) ({
+            password = ""
+            confirmation = ""
+            protecting = false
+        }) else null,
+        confirm = {
+            if (protectionStep != protecting || checked.isEmpty()) return@BackupReview
+            if (!protectionStep) protecting = true
+            else if (password.isNotEmpty() && password == confirmation) {
+                val passphrase = password.toCharArray()
+                password = ""
+                confirmation = ""
+                backup.prepareProfileExport(selection, checked, passphrase)
+            }
+        }
+    ) {
+        Text(label(Words.PhoneProfileBackupCount).replace("{count}", checked.size.toString()))
+        if (protectionStep) {
+            Text(label(Words.PhoneBackupKeepPassword))
+            BackupPassword(password, { password = it }, Words.PhoneBackupPassword, "phone-backup-passphrase")
+            BackupPassword(confirmation, { confirmation = it }, Words.PhoneBackupRepeat, "phone-backup-passphrase-repeat",
+                confirmation.isNotEmpty() && confirmation != password)
+        } else {
+            Text(label(Words.PhoneProfileBackupScope))
+            selection.profiles.forEach { profile ->
+                ProfileBackupChoice(profile, profile.id in checked, true, "phone-profile-backup-item-${profile.id}") { include ->
+                    checked = if (include) checked + profile.id else checked - profile.id
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileBackupRestoreReview(review: PhoneHistoryBackupState.ProfileRestoreReview, backup: PhoneHistoryBackup, busy: Boolean) {
+    var selected by remember(review) { mutableStateOf(emptySet<String>()) }
+    val slots = review.plan.available
+    BackupReview(Words.PhoneProfileBackupRestoreReview, Words.PhoneProfileBackupRestoreConfirm, backup::dismiss,
+        enabled = !busy && selected.isNotEmpty() && selected.size <= slots,
+        tag = "phone-profile-backup-restore-confirm", secure = true,
+        confirm = { backup.restoreProfiles(review, selected) }) {
+        Text(label(Words.PhoneProfileBackupRestoreScope))
+        Text(label(Words.PhoneProfileBackupSlots).replace("{count}", slots.toString()))
+        review.plan.items.forEach { item ->
+            val profile = item.profile
+            val checked = profile.id in selected
+            HermesCard {
+                ProfileBackupChoice(profile, checked,
+                    item.disposition != ProfileRestoreDisposition.ALREADY_PRESENT && (checked || selected.size < slots),
+                    "phone-profile-restore-item-${profile.id}") { include ->
+                    selected = if (include) selected + profile.id else selected - profile.id
+                }
+                when (item.disposition) {
+                    ProfileRestoreDisposition.ADD -> Unit
+                    ProfileRestoreDisposition.COPY -> Text(label(Words.PhoneProfileBackupCopy))
+                    ProfileRestoreDisposition.ALREADY_PRESENT -> Text(label(Words.PhoneProfileBackupPresent))
+                }
+                if (profile.style.isNotBlank()) {
+                    Text(label(Words.PhoneProfileStyle), style = MaterialTheme.typography.titleSmall)
+                    Text(profile.style)
+                }
+                profile.notes.forEach { note ->
+                    Text(label(Words.PhoneProfileNote), style = MaterialTheme.typography.titleSmall)
+                    Text(note.text)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileBackupChoice(profile: PhonePersonalProfile, checked: Boolean, enabled: Boolean,
+    tag: String, choose: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(checked, enabled = enabled,
+        role = Role.Checkbox, onValueChange = choose).testTag(tag), verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked, onCheckedChange = null, enabled = enabled)
+        Column(Modifier.weight(1f).padding(start = 8.dp)) {
+            Text(profile.name)
+            Text(label(Words.PhoneProfileBackupNotes).replace("{count}", profile.notes.size.toString()),
+                style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 
@@ -169,7 +272,7 @@ private fun BackupChatChoices(rows: List<LocalConversationSummary>, selected: Se
 private fun BackupUnlock(unlock: PhoneHistoryBackupState.Unlock, backup: PhoneHistoryBackup) {
     var passphrase by remember(unlock) { mutableStateOf("") }
     BackupReview(Words.PhoneBackupProtected, Words.PhoneBackupUnlock, backup::dismiss,
-        enabled = passphrase.isNotEmpty(), tag = "phone-backup-unlock", confirm = {
+        enabled = passphrase.isNotEmpty(), tag = "phone-backup-unlock", secure = unlock.collection == BackupCollection.PROFILES, confirm = {
             val value = passphrase.toCharArray()
             passphrase = ""
             backup.unlock(value)
@@ -210,8 +313,9 @@ private fun BackupPassword(value: String, change: (String) -> Unit, title: Words
 
 @Composable
 private fun BackupReview(title: Words, action: Words, cancel: () -> Unit, enabled: Boolean, tag: String,
-    confirm: () -> Unit, back: (() -> Unit)? = null, body: @Composable ColumnScope.() -> Unit) {
-    Dialog(onDismissRequest = cancel, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+    confirm: () -> Unit, back: (() -> Unit)? = null, secure: Boolean = false, body: @Composable ColumnScope.() -> Unit) {
+    Dialog(onDismissRequest = cancel, properties = DialogProperties(usePlatformDefaultWidth = false,
+        decorFitsSystemWindows = false, securePolicy = if (secure) SecureFlagPolicy.SecureOn else SecureFlagPolicy.Inherit)) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 key(title) {
@@ -253,6 +357,14 @@ private fun backupStep(step: BackupStep) = when (step) {
     BackupStep.REVIEWING -> Words.PhoneBackupInspecting
     BackupStep.WRITING -> Words.PhoneBackupWriting
     BackupStep.RESTORING -> Words.PhoneBackupRestoring
+}
+
+private fun profileBackupResult(result: BackupResult) = when (result) {
+    BackupResult.RESTORED -> Words.PhoneProfileBackupRestored
+    BackupResult.CHANGED -> Words.PhoneProfileBackupChanged
+    BackupResult.RESTORE_UNCERTAIN -> Words.PhoneProfileBackupUncertain
+    BackupResult.CAPACITY -> Words.PhoneProfileLimit
+    else -> backupResult(result)
 }
 
 private fun backupResult(result: BackupResult) = when (result) {

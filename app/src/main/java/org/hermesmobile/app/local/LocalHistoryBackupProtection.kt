@@ -34,6 +34,7 @@ internal class LocalHistoryProtectedInspection(
 /** Passphrase-protected version 1 envelope around the existing phone history archive. */
 internal object LocalHistoryBackupProtection {
     private val magic = "SGBKAE01".toByteArray(Charsets.US_ASCII)
+    private val profileMagic = "SGPFAE01".toByteArray(Charsets.US_ASCII)
     private const val MAGIC_BYTES = 8
     private const val SALT_BYTES = 16
     private const val HEADER_BYTES = MAGIC_BYTES + SALT_BYTES
@@ -66,9 +67,35 @@ internal object LocalHistoryBackupProtection {
         load: (String) -> LocalHistoryBackupRecord,
         checkpoint: () -> Unit = {}
     ) {
+        writePayload(magic, passphrase, output, checkpoint) { encrypted ->
+            LocalHistoryBackupArchive.write(selected, encrypted, load, checkpoint)
+        }
+    }
+
+    fun writeProfilePayload(payload: ByteArray, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit) {
+        require(payload.size in 1..PhoneProfileBackup.MAX_PLAINTEXT)
+        writePayload(profileMagic, passphrase, output, checkpoint) { it.write(payload) }
+    }
+
+    fun readProfilePayload(input: InputStream, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit) {
+        val header = readHeader(input, ::isProfileHeader)
+        val streaming = primitive(passphrase, header.copyOfRange(MAGIC_BYTES, HEADER_BYTES))
+        checkpoint()
+        streaming.newDecryptingStream(input, header).use { plaintext ->
+            copyAuthenticated(plaintext, output, checkpoint, PhoneProfileBackup.MAX_PLAINTEXT)
+        }
+    }
+
+    fun recognizesProfileEnvelope(bytes: ByteArray): Boolean =
+        bytes.size in (MIN_BYTES + 1)..PhoneProfileBackup.MAX_FILE && isProfileHeader(bytes.copyOf(MAGIC_BYTES))
+
+    private fun isProfileHeader(prefix: ByteArray): Boolean = prefix.contentEquals(profileMagic)
+
+    private fun writePayload(kind: ByteArray, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit,
+        write: (OutputStream) -> Unit) {
         checkpoint()
         val salt = ByteArray(SALT_BYTES).also(random::nextBytes)
-        val header = magic + salt
+        val header = kind + salt
         val streaming = primitive(passphrase, salt)
         checkpoint()
         output.write(header)
@@ -84,7 +111,7 @@ internal object LocalHistoryBackupProtection {
         }
         streaming.newEncryptingStream(borrowedOutput, header).use { encrypted ->
             try {
-                LocalHistoryBackupArchive.write(selected, encrypted, load, checkpoint)
+                write(encrypted)
                 checkpoint()
             } catch (failure: Throwable) {
                 // Close the crypto stream without publishing a final segment on failure.
@@ -112,7 +139,7 @@ internal object LocalHistoryBackupProtection {
         Files.createFile(stage.toPath())
         try {
             ciphertext.inputStream().buffered().use { input ->
-                val header = readHeader(input)
+                val header = readHeader(input, ::recognizesHeader)
                 val streaming = primitive(passphrase, header.copyOfRange(MAGIC_BYTES, HEADER_BYTES))
                 checkpoint()
                 streaming.newDecryptingStream(input, header).use { plaintext ->
@@ -131,14 +158,14 @@ internal object LocalHistoryBackupProtection {
         }
     }
 
-    private fun readHeader(input: InputStream): ByteArray {
+    private fun readHeader(input: InputStream, accepts: (ByteArray) -> Boolean): ByteArray {
         val header = ByteArray(HEADER_BYTES)
         try {
             DataInputStream(input).readFully(header)
         } catch (_: IOException) {
             throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
         }
-        if (!recognizesHeader(header.copyOf(MAGIC_BYTES))) {
+        if (!accepts(header.copyOf(MAGIC_BYTES))) {
             throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
         }
         return header
@@ -152,7 +179,8 @@ internal object LocalHistoryBackupProtection {
         return false
     }
 
-    private fun copyAuthenticated(input: InputStream, output: OutputStream, checkpoint: () -> Unit) {
+    private fun copyAuthenticated(input: InputStream, output: OutputStream, checkpoint: () -> Unit,
+        maxBytes: Int = MAX_PLAINTEXT) {
         val buffer = ByteArray(8192)
         var size = 0
         try {
@@ -165,7 +193,7 @@ internal object LocalHistoryBackupProtection {
                 }
                 if (read < 0) return
                 size += read
-                if (size > MAX_PLAINTEXT) throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
+                if (size > maxBytes) throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
                 output.write(buffer, 0, read)
             }
         } finally {

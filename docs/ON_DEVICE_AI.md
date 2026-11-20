@@ -130,6 +130,24 @@ those exact files.
 
 [Replacement validation](VALIDATION.md#reviewed-replacement-from-a-phone-model-file).
 
+## Back up and restore personal profiles
+
+In **On-device AI → Chat → Personal profiles**, choose **Back up
+profiles**, check the profiles to include, and enter and confirm a
+passphrase. Open the backup review and choose where to save the
+`.sgprofiles` file. Each selected profile includes its saved writing
+preferences and notes.
+
+On the same phone or a new phone, choose **Restore profiles from a file**
+and open the file. Enter its passphrase, inspect the profile details,
+choose the entries to add, and tap **Restore selected profiles**.
+Profiles with matching content are marked as present. A different
+profile that shares an ID can be added as a separate copy.
+
+Use **Phone history** to back up chats and **Personal profiles** to back
+up profiles. Each backup has its own selection and restore review.
+[Profile backup validation](VALIDATION.md#separate-protected-personal-profile-backups).
+
 ## Use personal notes in one phone-model request
 
 1. Open **On-device AI → Chat → Personal profiles**.

@@ -62,6 +62,18 @@ internal fun PhonePersonalProfilesDialog(vm: LocalAiViewModel, state: LocalAiSta
                             if (library == null && !error) Text(label(Words.Loading))
                             if (library != null && entries.isEmpty()) Text(label(Words.PhoneProfileEmpty))
                             if (entries.size >= PHONE_PROFILE_MAX) Text(label(Words.PhoneProfileLimit))
+                            if (entries.isNotEmpty()) {
+                                TextButton(vm::backUpPersonalProfiles, enabled = !saving,
+                                    modifier = Modifier.testTag("phone-profile-backup-export")) {
+                                    Text(label(Words.PhoneProfileBackup))
+                                }
+                            }
+                            if (library != null) {
+                                TextButton(vm::restorePersonalProfiles, enabled = !saving,
+                                    modifier = Modifier.testTag("phone-profile-backup-import")) {
+                                    Text(label(Words.PhoneProfileBackupRestore))
+                                }
+                            }
                             entries.forEach { profile ->
                                 HermesCard {
                                     Text(profile.name, style = MaterialTheme.typography.titleMedium)

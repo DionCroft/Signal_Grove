@@ -5,6 +5,15 @@ through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
 
+## Latest personal profile backup checkpoint
+
+Each profile backup includes explicitly selected profiles and uses a
+passphrase. The actual Android 17 document picker saved and restored a
+profile offline. Fixture tests verified additive conflict handling
+and preserved existing history. Physical, hosted and release checks
+remain open.
+[Profile backup evidence](docs/VALIDATION.md#separate-protected-personal-profile-backups).
+
 ## Latest personal profile checkpoint
 
 On-device Chat supports local profiles, writing preferences and

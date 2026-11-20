@@ -17,10 +17,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.hermesmobile.app.data.PreferenceStore
 import org.hermesmobile.app.updates.UpdateWorkGuard
 
+internal enum class BackupCollection { CHATS, PROFILES }
 internal enum class BackupStep { PREPARING, READING, REVIEWING, WRITING, RESTORING }
 internal enum class BackupResult {
     SAVED, RESTORED, RESTORED_REFRESH_NEEDED, CANCELLED, STOPPED, WRITE_STOPPED,
@@ -31,12 +34,17 @@ internal enum class BackupResult {
 internal sealed interface PhoneHistoryBackupState {
     data object Idle : PhoneHistoryBackupState
     data class Selection(val rows: List<LocalConversationSummary>) : PhoneHistoryBackupState
+    data class ProfileSelection(val profiles: List<PhonePersonalProfile>) : PhoneHistoryBackupState
     data class Working(val step: BackupStep, val stopping: Boolean = false) : PhoneHistoryBackupState
-    data class ExportReview(val count: Int, val bytes: Long, val format: LocalHistoryBackupFormat) : PhoneHistoryBackupState
+    data class ExportReview(val count: Int, val bytes: Long, val format: LocalHistoryBackupFormat,
+        val collection: BackupCollection = BackupCollection.CHATS) : PhoneHistoryBackupState
     data class Picking(val id: String, val filename: String?) : PhoneHistoryBackupState
-    data class Unlock(val rejected: Boolean = false) : PhoneHistoryBackupState
+    data class Unlock(val rejected: Boolean = false,
+        val collection: BackupCollection = BackupCollection.CHATS) : PhoneHistoryBackupState
     data class RestoreReview(val plan: LocalHistoryBackupRestorePlan, val format: LocalHistoryBackupFormat) : PhoneHistoryBackupState
-    data class Finished(val result: BackupResult, val restoredCount: Int = 0) : PhoneHistoryBackupState
+    data class ProfileRestoreReview(val plan: ProfileRestorePlan) : PhoneHistoryBackupState
+    data class Finished(val result: BackupResult, val restoredCount: Int = 0,
+        val collection: BackupCollection = BackupCollection.CHATS) : PhoneHistoryBackupState
 }
 
 /** Retains only the active picker/review in memory. A dead process cannot resume file or restore work. */
@@ -46,7 +54,8 @@ internal class PhoneHistoryBackup(
     private val controller: LocalAiController,
     private val guard: UpdateWorkGuard,
     private val savedState: SavedStateHandle,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val preferences: PreferenceStore? = null
 ) {
     private val mutable = MutableStateFlow<PhoneHistoryBackupState>(
         if (savedState.get<Boolean>(IN_FLIGHT) == true) PhoneHistoryBackupState.Finished(BackupResult.INTERRUPTED)
@@ -54,6 +63,8 @@ internal class PhoneHistoryBackup(
     )
     val state = mutable.asStateFlow()
     private var document: LocalHistoryBackupDocument? = null
+    private var collection = BackupCollection.CHATS
+    private var profileCiphertext: ByteArray? = null
     private var review: LocalHistoryBackupReview? = null
     private var pickerLaunched = false
     private var operation: BackupOperation? = null
@@ -62,7 +73,10 @@ internal class PhoneHistoryBackup(
     fun selectExport() {
         if (!canStart()) return
         val rows = controller.state.value.history.filter { it.canExport }
-        if (rows.isNotEmpty()) mutable.value = PhoneHistoryBackupState.Selection(rows)
+        if (rows.isNotEmpty()) {
+            collection = BackupCollection.CHATS
+            mutable.value = PhoneHistoryBackupState.Selection(rows)
+        }
     }
 
     fun prepareExport(selection: PhoneHistoryBackupState.Selection, ids: Set<String>, passphrase: CharArray?) {
@@ -87,12 +101,53 @@ internal class PhoneHistoryBackup(
     }
 
     fun selectImport() {
-        if (canStart()) pick(filename = null)
+        if (!canStart()) return
+        collection = BackupCollection.CHATS
+        pick(filename = null)
+    }
+
+    fun selectProfileExport(profiles: List<PhonePersonalProfile>): Boolean {
+        if (!canStart() || preferences == null || profiles.isEmpty()) return false
+        collection = BackupCollection.PROFILES
+        mutable.value = PhoneHistoryBackupState.ProfileSelection(profiles.toList())
+        return true
+    }
+
+    fun selectProfileImport(): Boolean {
+        if (!canStart() || preferences == null) return false
+        collection = BackupCollection.PROFILES
+        pick(filename = null)
+        return true
+    }
+
+    fun prepareProfileExport(selection: PhoneHistoryBackupState.ProfileSelection, ids: Set<String>, passphrase: CharArray) {
+        val source = preferences
+        val chosen = selection.profiles.filter { it.id in ids }
+        if (disposed || mutable.value !== selection || source == null || chosen.isEmpty() || chosen.size != ids.size) {
+            passphrase.fill('\u0000')
+            return
+        }
+        work(BackupStep.PREPARING) { task ->
+            try {
+                val current = source.phonePersonalProfiles.first()
+                if (!current.entries.containsAll(chosen)) throw LocalHistoryBackupException(LocalHistoryBackupProblem.CHANGED)
+                val bytes = withContext(Dispatchers.IO) {
+                    PhoneProfileBackup.encrypt(PhonePersonalProfiles(entries = chosen), passphrase, task::checkpoint)
+                }
+                profileCiphertext = bytes
+                task.checkpoint()
+                mutable.value = PhoneHistoryBackupState.ExportReview(chosen.size, bytes.size.toLong(),
+                    LocalHistoryBackupFormat.PROTECTED, collection)
+            } finally {
+                passphrase.fill('\u0000')
+            }
+        }
     }
 
     fun chooseDestination(selection: PhoneHistoryBackupState.ExportReview) {
         if (disposed || mutable.value !== selection) return
-        pick(checkNotNull(document).suggestedFilename)
+        pick(if (selection.collection == BackupCollection.PROFILES) PhoneProfileBackup.FILENAME
+            else checkNotNull(document).suggestedFilename)
     }
 
     private fun pick(filename: String?) {
@@ -120,15 +175,22 @@ internal class PhoneHistoryBackup(
             uri == null -> finish(BackupResult.CANCELLED)
             uri.scheme != ContentResolver.SCHEME_CONTENT -> finish(BackupResult.FILE_UNAVAILABLE)
             picker.filename != null -> write(uri)
+            collection == BackupCollection.PROFILES -> readProfiles(uri)
             else -> read(uri)
         }
     }
 
     private fun write(uri: Uri) {
-        val staged = checkNotNull(document)
         work(BackupStep.WRITING) { task ->
             val result = withContext(Dispatchers.IO) {
-                task.writer.save(resolver, uri, staged::writeTo)
+                task.writer.save(resolver, uri) { output, checkpoint ->
+                    val ciphertext = profileCiphertext
+                    if (collection == BackupCollection.PROFILES) {
+                        checkpoint()
+                        output.write(checkNotNull(ciphertext))
+                        checkpoint()
+                    } else checkNotNull(document).writeTo(output, checkpoint)
+                }
             }
             finish(when (result) {
                 DocumentWriteResult.SAVED -> BackupResult.SAVED
@@ -151,19 +213,34 @@ internal class PhoneHistoryBackup(
         }
     }
 
+    private fun readProfiles(uri: Uri) = work(BackupStep.READING) { task ->
+        profileCiphertext = withContext(Dispatchers.IO) {
+            task.read(resolver, uri) { PhoneProfileBackup.readFile(it, task::checkpoint) }
+        }
+        task.checkpoint()
+        mutable.value = PhoneHistoryBackupState.Unlock(collection = collection)
+    }
+
     fun unlock(passphrase: CharArray) {
         if (disposed || mutable.value !is PhoneHistoryBackupState.Unlock) {
             passphrase.fill('\u0000')
             return
         }
-        val staged = checkNotNull(document)
         work(BackupStep.REVIEWING) { task ->
             try {
-                inspect(staged, passphrase, task)
+                if (collection == BackupCollection.PROFILES) {
+                    val ciphertext = checkNotNull(profileCiphertext)
+                    val profiles = withContext(Dispatchers.IO) {
+                        PhoneProfileBackup.unlock(ciphertext, passphrase, task::checkpoint)
+                    }
+                    val current = checkNotNull(preferences).phonePersonalProfiles.first()
+                    task.checkpoint()
+                    mutable.value = PhoneHistoryBackupState.ProfileRestoreReview(ProfileRestorePlan(current, profiles))
+                } else inspect(checkNotNull(document), passphrase, task)
             } catch (error: LocalHistoryBackupException) {
                 if (error.problem != LocalHistoryBackupProblem.AUTHENTICATION) throw error
                 task.checkpoint()
-                mutable.value = PhoneHistoryBackupState.Unlock(rejected = true)
+                mutable.value = PhoneHistoryBackupState.Unlock(rejected = true, collection = collection)
             } finally {
                 passphrase.fill('\u0000')
             }
@@ -184,6 +261,16 @@ internal class PhoneHistoryBackup(
         work(BackupStep.RESTORING) {
             val refreshed = controller.restoreHistory(selection.plan)
             finish(if (refreshed) BackupResult.RESTORED else BackupResult.RESTORED_REFRESH_NEEDED, selection.plan.items.size)
+        }
+    }
+
+    fun restoreProfiles(selection: PhoneHistoryBackupState.ProfileRestoreReview, ids: Set<String>) {
+        val store = preferences ?: return
+        if (disposed || mutable.value !== selection || controller.state.value.busy) return
+        val checked = ids.toSet()
+        work(BackupStep.RESTORING) {
+            store.editPhonePersonalProfiles { current -> selection.plan.restore(current, checked) }
+            finish(BackupResult.RESTORED, checked.size)
         }
     }
 
@@ -259,11 +346,13 @@ internal class PhoneHistoryBackup(
     private fun finish(result: BackupResult, count: Int = 0) {
         closeStages()
         savedState.remove<Boolean>(IN_FLIGHT)
-        mutable.value = PhoneHistoryBackupState.Finished(result, count)
+        mutable.value = PhoneHistoryBackupState.Finished(result, count, collection)
         if (operation == null) guard.set(this, false)
     }
 
     private fun closeStages() {
+        profileCiphertext?.fill(0)
+        profileCiphertext = null
         runCatching { review?.close() }
         review = null
         runCatching { document?.close() }

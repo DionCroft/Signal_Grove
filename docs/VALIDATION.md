@@ -1,5 +1,46 @@
 # Current development validation — audit follow-up
 
+## Separate protected personal-profile backups
+
+From Personal profiles, choose the complete profiles to export. The
+selection starts empty, and the passphrase is entered twice before
+preparing the file. Profile backups use the separate `.sgprofiles`
+format. They contain the selected profile names, preferences and notes.
+Android's document picker lets the user choose the file location.
+
+The format authenticates a bounded payload with the existing backup
+cryptography and a separate format identifier. Restore inspects the
+entire file before showing its contents. Identical profiles are flagged
+as already present. A conflicting ID can be restored as a separate copy.
+The user selects the entries to add and confirms the restore. The
+preference transaction checks the reviewed library again before
+adding all selected profiles together. Unlocked profiles and passphrase
+input have no disk staging in the backup flow.
+
+The strict build passed 1,193 JVM tests and both lint variants with zero
+errors. Android 8 and Android 17 each passed all 140 selected methods.
+Tests covered encrypted selection, wrong passphrases, tampering,
+size bounds, wrong archive type, stale review, capacity, and conflict
+copies. Android's content-provider fixture restored one reviewed copy
+and verified original chat and profile data.
+
+A normal-app Android 17 trial used the actual document picker with
+networking disabled. The app saved a protected file of
+306 bytes, authenticated it at restore, and put
+the reviewed note back into Personal profiles. All
+8 existing model and chat files kept their
+hashes, and the test restored the original network settings. The test
+driver first missed the picker's uppercase SAVE control. It continued
+from the pending picker and verified the one resulting file.
+
+- Build receipt 20261120-130920-2d99065f8c154ac2bca60ac9046bdf06
+- Source snapshot SHA-256 80bf903a70a401f220903597ca0fd46dd919c3daab45d4f99dd743356e668edd
+- Application and test APK SHA-256 dcf4bc14d41581d20b891ae7109fb939d37d67a12b43a161a599142372e2aebf and de810838e070fc9e12f13a5649793e2683bdfe4d0d445bb6b65bb37102ffcdc7
+- Android 8 and Android 17 instrumentation SHA-256 d61231bc8a3aac4af468ee669b44c1cad4b4b3b014a10bcf66d51e1e808e5d32 and 90f393386117b5d27f358eca61f6d35f428041c5c3de6e1343520bb564f7a68b
+- Normal-app offline trial receipt SHA-256 bf780c6acc60a0a236f93043648ac8bef86444bfce780e812501ed58bc9e5115
+
+Physical-phone, full hosted, real Hermes, and signed-release checks remain open.
+
 ## Personal profiles with a reviewed phone-model request
 
 Personal profiles store up to eight named collections of manually

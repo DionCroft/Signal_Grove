@@ -20,7 +20,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import java.io.File
 import java.util.UUID
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.hermesmobile.app.data.AppPreferences
+import org.hermesmobile.app.data.PreferenceStore
 import org.hermesmobile.app.local.*
 import org.hermesmobile.app.ui.*
 import org.hermesmobile.app.updates.UpdateWorkGuard
@@ -59,7 +62,7 @@ class PhoneHistoryBackupFlowTest {
         override val activityResultRegistry = picker
     }
 
-    private fun show(multilingual: Boolean = false, includeSummary: Boolean = false) {
+    private fun show(multilingual: Boolean = false, includeSummary: Boolean = false, profileStore: PreferenceStore? = null) {
         val activity = compose.activity
         fixture = File(activity.cacheDir, "phone-backup-test-" + UUID.randomUUID()).apply { check(mkdir()) }
         output = File(activity.filesDir, "updates/apks/backup-test-" + UUID.randomUUID() + ".sgbackup")
@@ -73,7 +76,7 @@ class PhoneHistoryBackupFlowTest {
         compose.runOnUiThread {
             controller = LocalAiController(File(fixture, "models"), source.directory, activity.applicationInfo.nativeLibraryDir,
                 supported = false, freeMemory = { Long.MAX_VALUE }, guard = guard)
-            backup = PhoneHistoryBackup(activity.contentResolver, controller, guard, savedState, activity.lifecycleScope)
+            backup = PhoneHistoryBackup(activity.contentResolver, controller, guard, savedState, activity.lifecycleScope, profileStore)
         }
         val actions = LocalAiActions({}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
             exportBackup = backup::selectExport, importBackup = backup::selectImport,
@@ -120,6 +123,71 @@ class PhoneHistoryBackupFlowTest {
         val row = compose.onNodeWithTag("phone-backup-select-" + id)
         row.performScrollTo().assertIsDisplayed().assertIsOff().performTouchInput { click() }
         row.assertIsOn()
+    }
+
+    @Test fun protectedProfileBackupWritesOnlySelectedProfilesAndRestoresOneReviewedCopy() {
+        val store = (compose.activity.application as HermesApplication).preferences
+        val before = runBlocking { store.phonePersonalProfiles.first() }
+        val sample = PhonePersonalProfile(UUID.randomUUID().toString(), "Garden fixture " + UUID.randomUUID().toString().take(8),
+            "Use short paragraphs", listOf(PhonePersonalNote(UUID.randomUUID().toString(), "Private garden fixture 花")))
+        val omitted = PhonePersonalProfile(UUID.randomUUID().toString(), "Omitted fixture " + UUID.randomUUID().toString().take(8),
+            "Write in short sentences", emptyList())
+        runBlocking { store.editPhonePersonalProfiles { it.save(null, sample).save(null, omitted) } }
+        try {
+            show(profileStore = store)
+            val chatFiles = listOf(seed, excluded).associate { it.id to source.file(it.id).readBytes() }
+            val password = "profile-fixture-unique"
+            compose.runOnUiThread { assertTrue(backup.selectProfileExport(listOf(sample, omitted))) }
+            compose.onNodeWithTag("phone-backup-continue").assertIsNotEnabled()
+            val selected = compose.onNodeWithTag("phone-profile-backup-item-${sample.id}")
+            selected.performScrollTo().assertIsDisplayed().assertIsOff().performClick().assertIsOn()
+            compose.onNodeWithTag("phone-profile-backup-item-${omitted.id}").assertIsOff()
+            compose.onNodeWithTag("phone-backup-continue").assertIsEnabled().performClick()
+            compose.onNodeWithTag("phone-backup-passphrase").performScrollTo().performTextReplacement(password)
+            compose.onNodeWithTag("phone-backup-passphrase-repeat").performScrollTo().performTextReplacement(password)
+            compose.onNodeWithTag("phone-backup-prepare").assertIsDisplayed().assertIsEnabled().performClick()
+            waitForState { it is PhoneHistoryBackupState.ExportReview }
+            compose.onNodeWithTag("phone-backup-choose-destination").performClick()
+            compose.waitUntil(10_000) { picks.size == 1 }
+            val destination = picks.single()
+            assertEquals(PhoneProfileBackup.FILENAME, destination.second.getStringExtra(Intent.EXTRA_TITLE))
+            deliverFile(destination)
+            waitForState { it is PhoneHistoryBackupState.Finished && it.result == BackupResult.SAVED }
+            val bytes = output.readBytes()
+            assertTrue(LocalHistoryBackupProtection.recognizesProfileEnvelope(bytes))
+            assertEquals(listOf(sample), PhoneProfileBackup.unlock(bytes, password.toCharArray()).entries)
+            compose.onNodeWithTag("phone-backup-close").performClick()
+
+            val changed = sample.copy(style = "The local version still exists")
+            val expected = before.save(null, changed).save(null, omitted)
+            runBlocking { store.editPhonePersonalProfiles { it.save(sample, changed) } }
+            compose.runOnUiThread { assertTrue(backup.selectProfileImport()) }
+            compose.waitUntil(10_000) { picks.size == 2 }
+            deliverFile(picks.last())
+            waitForState { it is PhoneHistoryBackupState.Unlock }
+            compose.onNodeWithTag("phone-backup-unlock-password").performTextReplacement(password)
+            compose.onNodeWithTag("phone-backup-unlock").assertIsDisplayed().assertIsEnabled().performClick()
+            waitForState { it is PhoneHistoryBackupState.ProfileRestoreReview }
+            assertEquals(expected, runBlocking { store.phonePersonalProfiles.first() })
+            compose.onNodeWithTag("phone-profile-backup-restore-confirm").assertIsNotEnabled()
+            compose.onNodeWithText(Words.PhoneProfileBackupCopy.en).assertExists()
+            compose.onNodeWithTag("phone-profile-restore-item-${sample.id}").performScrollTo().assertIsOff().performClick()
+            compose.onNodeWithTag("phone-profile-backup-restore-confirm").assertIsDisplayed().assertIsEnabled().performClick()
+            waitForState { it is PhoneHistoryBackupState.Finished && it.result == BackupResult.RESTORED }
+            val after = runBlocking { store.phonePersonalProfiles.first() }
+            assertEquals(expected.entries, after.entries.dropLast(1))
+            assertNotEquals(sample.id, after.entries.last().id)
+            assertEquals(sample, after.entries.last().copy(id = sample.id))
+            assertArrayEquals(bytes, output.readBytes())
+            for ((id, raw) in chatFiles) assertArrayEquals(raw, source.file(id).readBytes())
+            compose.waitUntil(10_000) { !guard.active.value }
+        } finally {
+            runBlocking {
+                store.editPhonePersonalProfiles { current ->
+                    current.copy(entries = current.entries.filterNot { it.name == sample.name || it.id == omitted.id })
+                }
+            }
+        }
     }
 
     @Test fun protectedBackupMakesAReviewedCopyAndPreservesBothOriginals() {
