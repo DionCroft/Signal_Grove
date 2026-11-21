@@ -37,7 +37,8 @@ class LocalAiFlowTest {
     private var newChats = 0
     private var pending by mutableStateOf(false)
     private var state by mutableStateOf(LocalAiState())
-    private val helperRequests = mutableListOf<Pair<LocalHelpTopic, Boolean>>()
+    private var observationTime by mutableLongStateOf(100)
+    private val helperRequests = mutableListOf<Pair<LocalHelpTopic, LocalHelpObservations?>>()
     private val benchmarks = mutableListOf<String>()
     private val performanceSaves = mutableListOf<LocalModelPerformance>()
     private val requestedLoads = mutableListOf<Pair<String, Int>>()
@@ -51,7 +52,7 @@ class LocalAiFlowTest {
                 if (state.status == "benchmarking") state = state.copy(busy = false, status = "idle")
             }, { newChats++ }, { model, context -> requestedLoads.add(model.sha256 to context) },
             {}, {}, { model -> downloads.add(model) }, { model -> discarded.add(model) }, {imports++; pending = true}, {pending = false}, {pending = false}, {}, {}, {},
-            help = {topic, share -> helperRequests.add(topic to share)}, saveModelPerformance = { item, settings ->
+            help = { topic, observations -> helperRequests.add(topic to observations) }, saveModelPerformance = { item, settings ->
                 performanceSaves.add(settings)
                 state = state.copy(modelPerformance = state.modelPerformance + (item.sha256 to settings))
             }, benchmark = { modelSha256 ->
@@ -81,7 +82,7 @@ class LocalAiFlowTest {
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
             HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
                 LocalAiScreen(state, supported, "Fresh local draft", {}, pending, actions, {},
-                    LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "",
+                    LocalHelpObservations(observationTime, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "",
                     downloadNetworkSettings = networkStore?.let { store -> { close -> PhoneDownloadNetworkSettings(store, close) } })
             }
             }
@@ -612,15 +613,54 @@ class LocalAiFlowTest {
     }
     @Test fun helperObservationsRequireExplicitOptInForTheRequest() {
         state = LocalAiState(loaded = model)
-        show(); compose.onNodeWithTag("phone-helper-open").performClick()
-        compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
-        assertEquals(listOf(LocalHelpTopic.FIRST_SETUP to false), helperRequests)
-        compose.onNodeWithTag("phone-helper-observations").performScrollTo().performClick()
-        compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
-        assertEquals(LocalHelpTopic.FIRST_SETUP to true, helperRequests.last())
-        compose.onNodeWithTag("phone-helper-run").performScrollTo().performClick()
-        assertEquals(LocalHelpTopic.FIRST_SETUP to false, helperRequests.last())
-        assertEquals(0, sends); assertTrue(downloads.isEmpty())
+        show(bilingual = true)
+        compose.onNodeWithTag("phone-helper-open").performClick()
+        val include = compose.onNodeWithTag("phone-helper-observations")
+        val run = compose.onNodeWithTag("phone-helper-run")
+        include.performScrollTo().assertIsOff()
+        run.performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(listOf(LocalHelpTopic.FIRST_SETUP to null), helperRequests) }
+
+        include.performScrollTo().assertIsEnabled().performTouchInput { click(center.copy(x = width * 0.75f)) }
+        include.assertIsOn()
+        run.performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(2, helperRequests.size)
+            assertEquals(LocalHelpTopic.FIRST_SETUP to
+                LocalHelpObservations(100, false, LocalAddressKind.HTTPS, true, true), helperRequests.last())
+        }
+
+        include.performScrollTo().assertIsOff()
+        run.performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(3, helperRequests.size)
+            assertEquals(LocalHelpTopic.FIRST_SETUP to null, helperRequests.last())
+            assertEquals(0, sends)
+            assertTrue(downloads.isEmpty())
+        }
+    }
+
+    @Test fun helperRequiresNewOptInAfterTheObservationPreviewChanges() {
+        state = LocalAiState(loaded = model)
+        show()
+        compose.onNodeWithTag("phone-helper-open").performClick()
+        val include = compose.onNodeWithTag("phone-helper-observations")
+        val run = compose.onNodeWithTag("phone-helper-run")
+        include.performScrollTo().assertIsOff().performClick()
+        include.assertIsOn()
+        compose.runOnIdle { observationTime = 200 }
+        include.performScrollTo().assertIsOff()
+        run.performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(listOf(LocalHelpTopic.FIRST_SETUP to null), helperRequests) }
+
+        include.performScrollTo().assertIsOff().performClick()
+        include.assertIsOn()
+        run.performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(2, helperRequests.size)
+            assertEquals(LocalHelpTopic.FIRST_SETUP to
+                LocalHelpObservations(200, false, LocalAddressKind.HTTPS, true, true), helperRequests.last())
+        }
     }
     @Test fun bilingualLargeTextKeepsTheConversationAndComposerReachable() {
         state = LocalAiState(loaded = model)

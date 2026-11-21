@@ -1,15 +1,18 @@
 package org.hermesmobile.app.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -17,10 +20,11 @@ import org.hermesmobile.app.local.*
 import java.time.Instant
 
 @Composable internal fun LocalHelpScreen(state: LocalAiState, initialTopic: LocalHelpTopic, candidate: LocalHelpObservations?,
-    start: (LocalHelpTopic, Boolean) -> Unit, stop: () -> Unit, close: () -> Unit) {
+    start: (LocalHelpTopic, LocalHelpObservations?) -> Unit, stop: () -> Unit, close: () -> Unit) {
     var topic by remember(initialTopic) {mutableStateOf(initialTopic)}
     var query by remember {mutableStateOf("")}
-    var share by remember(topic) {mutableStateOf(false)}
+    var share by remember(topic, candidate) { mutableStateOf(false) }
+    val reviewed = candidate.takeIf { share }
     val uri = LocalUriHandler.current
     val focus = LocalFocusManager.current
     val topics = remember(query) { if (query.isBlank()) LocalHelpTopic.entries else LocalSetupHelper.matchingTopics(query) }
@@ -52,11 +56,28 @@ import java.time.Instant
                     }
                     Text(label(topic.title), style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.testTag("phone-helper-current-topic"))
-                    Row {Checkbox(share, {share = it}, enabled = candidate != null && !state.busy, modifier = Modifier.testTag("phone-helper-observations")); Text(label(Words.PhoneHelperShare))}
-                    if (share) candidate?.let {HelpObservations(it)}
+                    val canShare = candidate != null && !state.busy
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .toggleable(share, enabled = canShare, role = Role.Checkbox, onValueChange = { share = it })
+                            .testTag("phone-helper-observations"),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(share, onCheckedChange = null, enabled = canShare)
+                        Text(label(Words.PhoneHelperShare), Modifier.weight(1f).padding(start = 8.dp))
+                    }
+                    if (candidate == null) Text(label(Words.PhoneHelperObservationsPending), style = MaterialTheme.typography.bodySmall)
+                    reviewed?.let { HelpObservations(it) }
                     if (state.loaded == null) Text(label(Words.PhoneNotLoaded))
-                    Button({ start(topic, share); share = false }, enabled = state.loaded != null && !state.busy && (!share || candidate != null),
-                        modifier = Modifier.testTag("phone-helper-run")) {Text(label(Words.PhoneHelperRun))}
+                    Button(
+                        onClick = {
+                            val observations = reviewed
+                            share = false
+                            start(topic, observations)
+                        },
+                        enabled = state.loaded != null && !state.busy,
+                        modifier = Modifier.testTag("phone-helper-run")
+                    ) { Text(label(Words.PhoneHelperRun)) }
                     if (state.busy) {
                         Text(label(Words.PhoneWorking))
                         if(state.helper?.state == LocalReplyState.GENERATING) TextButton(stop) {Text(label(Words.Stop))}

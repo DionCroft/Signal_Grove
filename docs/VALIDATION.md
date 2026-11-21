@@ -1,5 +1,32 @@
 # Current development validation — audit follow-up
 
+## Phone helper observation consent
+
+The Android 8 hosted context cohort reported 585 of 586 positive tests.
+The helper case recorded a false opt-in after the toggle. A focused run of
+that revision passed locally, so the original failure's cause remains
+unconfirmed. [Original hosted result](https://github.com/DionCroft/Signal_Grove/actions/runs/44854689508/job/136700701257).
+
+The helper now makes its labelled consent row a single checkbox target and
+passes the exact optional observation snapshot shown in the preview. Each
+submission starts the next request with consent off. Changes to the topic
+or candidate snapshot also clear consent.
+
+Both exact debug APKs passed the two focused cases on Android API 26 and
+37. The bilingual large-text case tapped the label inside the row, checked
+the selected state and exact preview snapshot, and verified that the next
+request omitted observations. The other case changed the candidate after
+consent, checked that the next request omitted observations, and verified
+that a fresh opt-in sent the new snapshot. The frozen build passed all
+1,213 JVM tests, both lint variants with zero errors and 50/49 warnings,
+and both APK builds with the existing debug signer. The complete hosted
+matrix for this revision remains open.
+
+| APK | SHA-256 |
+| --- | --- |
+| Debug app | `255987f1a7c4e65c0fac38cc728c9e3be1fb0aab1e68995c9a7d99a1064e00c4` |
+| Debug instrumentation | `3bee274cb0f5dd6ae73d90fbfc3e2731f858dd23853524430de0ba1941a50532` |
+
 ## Authenticated Android owner and native Windows workspace
 
 The full client/authority path passed on Android 8 and 17. The isolated

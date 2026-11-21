@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Phone helper consent checkpoint
+
+The Android 8 helper case retained a hosted opt-in failure that did not
+reproduce in the focused run. The repaired consent row accepts taps on its
+label and sends only the previewed observation snapshot. Both focused cases
+passed on Android 8 and 17, with zero build or lint errors. The complete
+device matrix remains open.
+[Validation](docs/VALIDATION.md#phone-helper-observation-consent).
+
 ## Authenticated Android owner and Windows worker checkpoint
 
 Android 8 and 17 passed through the actual Hermes v0.23.1 owner dashboard,
