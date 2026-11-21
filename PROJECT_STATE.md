@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes dashboard listener authentication checkpoint
+
+The exact stable and main pins passed 129 common HTTP and WebSocket
+authentication checks each on Windows. Main passed ten additional
+companion-listener cases through the real in-process dashboard mount.
+The hosted source scan published both reports, with review still
+required. Live Pi TLS, browser/profile acceptance and unreviewed source
+drift remain open.
+[Validation](docs/VALIDATION.md#hermes-dashboard-listener-authentication-on-stable-and-main).
+
 ## Hermes main source inspection checkpoint
 
 The exact main canary `242315c` can now read all ten relocated sources.

@@ -1,5 +1,51 @@
 # Current development validation — audit follow-up
 
+## Hermes dashboard listener authentication on stable and main
+
+The Windows run used real upstream FastAPI handlers and WebSocket test
+clients on release `caafe5389ae585ef77387a962aee05b1bcf17029` and main
+`242315ce571cde721e717a544cf8ae6c343315cf`. Both complete source trees
+were checked against their Git blob identities. The selected application
+and test files matched their recorded hashes again after the run.
+The Python 3.14.9 subprocesses used separate disposable homes and cached
+test dependencies. Audit hooks recorded zero denied network, process or
+filesystem operations in the successful runs.
+
+The 129 common cases passed at both pins with identical test IDs. They
+cover dashboard authentication, trusted public and proxy configuration,
+HTTP Host and WebSocket Origin, and scoped socket tickets. The two
+common runs each recorded 11 warnings, including the deprecated Windows
+asyncio selector-policy calls. The main-only suite passed its 10
+companion-listener cases. The real dashboard mount required sign-in at
+both the configured address and the companion authority, refused
+out-of-scope Host/Origin requests, issued a same-origin ticket after the
+synthetic login, and cleared companion authority when the mount closed.
+The tests use in-process ASGI transport and synthetic identity.
+[Shared Host/Origin cases](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/tests/hermes_cli/test_web_server_host_header.py)
+· [Companion sign-in cases](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/tests/gateway/test_webapp_specific_address_sign_in.py).
+
+| Pin and cohort | Passed | JUnit SHA-256 |
+| --- | ---: | --- |
+| Stable shared | 129 | `5bb0e353d637ec3a402a1c710d254ecb91bac40e1ec8c99ba5dcec89b57106c8` |
+| Main shared | 129 | `b845b30a41255e5b3639424577d79065050d2011f23b9771a802a130d079392b` |
+| Main companion | 10 | `93fd0f03d62fe1faf7430669bbe13d80c4b62a3efee308ac0760112d3aaf8664` |
+
+Two earlier fixture attempts stopped before collection. An incomplete
+dependency tree was recovered from the exact-version E: cache. The
+isolation guard then refused pytest's default logging destination, so
+the corrected launcher put its log inside the disposable work directory.
+The upstream sources and test assertions stayed byte-identical.
+
+The hosted relocation run passed policy, registry and sidecar checks and
+uploaded both source comparisons. The main comparison matches the local
+212-handler and 29-persistence-source result. Stable reproduced its
+205-handler and 29-persistence-source result. Both archive digests matched
+GitHub. The upstream job requires review because those reports contain
+drift. Full TLS and browser interoperability through the actual Pi,
+multi-profile acceptance, remaining handler changes and the signed phone
+upgrade remain open.
+[Hosted source results](https://github.com/DionCroft/Signal_Grove/actions/runs/44869352657).
+
 ## Hermes main source relocation at `242315c`
 
 The integrated canary stopped with ten missing legacy paths. The full
