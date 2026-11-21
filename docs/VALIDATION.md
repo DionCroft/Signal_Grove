@@ -26,9 +26,14 @@ The pinned v0.23.1 dispatcher passed 23 cases, including the native
 review envelope and refusal of an apply without its review digest.
 The three native source files and ten modules passed isolated
 staged hash verification. The full portable Windows suite passed
-932 cases with 273 platform skips. The exact protected Linux
-fixture follows the push. Android review and live Pi acceptance
-are open.
+932 cases with 273 platform skips. Hosted Linux passed all 31
+cases at `f7ec541`. Its new cases verified review without a
+catalogue or lock write, repeat and time-zone projection, review
+digest refusal after draft or inherited-zone changes, and read-only
+observation of an earlier-format receipt. The archive digests
+matched GitHub's reports for Linux and the 72-case Windows worker
+gate. Android review and final live Pi acceptance are open.
+[Hosted validation](https://github.com/DionCroft/Signal_Grove/actions/runs/44880578719).
 
 ## Strict paused schedule editing source
 

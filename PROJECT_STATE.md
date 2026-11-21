@@ -12,8 +12,9 @@ requirements. Commit and push tested chunks.
 Hermes now reports the before-and-after schedule, time zone and
 repeat effect from the same projection used by its writer. Apply
 requires that review digest under the native lock. Both native
-cohorts and the prior scheduler regression suites passed.
-Android review and original-receipt recovery are the next client
+cohorts, the prior scheduler regression suites and all 31 hosted
+Linux cases passed. Android review and original-receipt recovery
+are the next client
 integration. Live Pi validation and the wider release gates remain open.
 [Validation](docs/VALIDATION.md#native-timing-review-projection).
 
