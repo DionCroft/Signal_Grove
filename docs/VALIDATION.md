@@ -44,6 +44,14 @@ the same gate on Linux and publishes a bounded result. Hosted results,
 actual side-effect reconciliation, the all-profile drain and live Pi
 acceptance remain open.
 
+The first hosted Linux run passed the canonical and heartbeat checks at both
+candidate pins, then failed while verifying the recovery child in the
+released-writer case. The workflow retained the parent error only. The
+follow-up keeps the last 64 KiB of each synthetic child log and its terminal
+receipt so the failing boundary can be identified. The shell check covered
+a partial failed run, the log bound and exclusion of the fixture database.
+[First hosted result](https://github.com/DionCroft/Signal_Grove/actions/runs/44864681969).
+
 ## Phone helper observation consent
 
 The Android 8 hosted context cohort reported 585 of 586 positive tests.

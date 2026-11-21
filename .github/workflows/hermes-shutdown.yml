@@ -86,6 +86,24 @@ jobs:
             --source sdk --source-commit "$SOURCE_COMMIT" --base-map "$evidence/base-map.json" \
             --scratch "$recovery" --python "$PM_PYTHON"
           cp "$recovery/result.json" "$evidence/subagent-recovery.json"
+      - name: Preserve synthetic subagent recovery process evidence
+        if: ${{ !cancelled() && matrix.variant == 'candidate' && matrix.source_commit != '3b421578588243f920886e6fe79a6faa87ea026e' }}
+        run: |
+          recovery="$RUNNER_TEMP/delegation-recovery"
+          evidence="$RUNNER_TEMP/shutdown-candidate/delegation-processes"
+          if [[ -d "$recovery" ]]; then
+            for case in released held; do
+              if [[ -d "$recovery/$case" ]]; then
+                mkdir -p "$evidence/$case"
+                for phase in "$case" recover; do
+                  log="$recovery/$case/$phase.log"
+                  terminal="$recovery/$case/$phase-terminal.json"
+                  if [[ -f "$log" ]]; then tail -c 65536 "$log" > "$evidence/$case/$phase.log"; fi
+                  if [[ -f "$terminal" ]]; then cp "$terminal" "$evidence/$case/$phase-terminal.json"; fi
+                done
+              fi
+            done
+          fi
       - name: Verify raw case identities and all SDK bytes and modes
         if: ${{ !cancelled() }}
         env:
