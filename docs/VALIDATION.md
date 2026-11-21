@@ -42,9 +42,12 @@ uses DELETE journaling under Hermes' compatibility guard.
 Six portable cases passed, including changed policy or job-store
 identity, scope partitioning and exact schedule-definition validation.
 The full suite discovered 1,226 tests with zero failures and 273 platform
-or fixture skips. Linux descriptor checks run in the protected coordinator
-workflow. Occurrence-specific approve/defer/deny, live worker execution,
-Pi deployment and Android inbox controls remain open.
+or fixture skips. Hosted run [44891181658](https://github.com/DionCroft/Signal_Grove/actions/runs/44891181658)
+passed the protocol job, 35 Linux protected coordinator cases and 72
+Windows native worker cases on exact source `24c95f0`. The Linux suite
+exercised the anchored inbox and fail-closed file modes using real descriptors.
+Occurrence-specific approve/defer/deny, live worker execution, Pi deployment
+and Android inbox controls remain open.
 [Hermes cron internals](https://hermes-agent.nousresearch.com/docs/developer-guide/cron-internals).
 
 ## Android reviewed Run once and original receipt
