@@ -27,6 +27,21 @@ compatibility and owner shutdown remain open.
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
 
+## Development candidate
+
+The unreleased candidate shows formatted prompt use and reply budget before
+sending a phone request. It also shows context and compression reported by
+the connected Hermes session, puts date presets directly in phone-history
+search, and can preview registered workspace files from a followed chat
+when the server advertises the authenticated read capability. The qualified
+LFM3 phone window remains 4K.
+
+The combined source passed **1,213 JVM tests** and zero-error lint.
+Hosted worker checks passed **72 Windows provider** and **9 POSIX policy**
+methods. The authenticated workspace fixture passed on Android 8 and 17.
+The full Android matrix, live Pi verification and signed upgrade checks
+remain part of release qualification. [Candidate evidence](docs/VALIDATION.md#integrated-audit-release-candidate).
+
 ## Download and release status
 
 | Version | Status | Install |

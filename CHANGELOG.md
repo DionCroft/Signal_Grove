@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- See the exact formatted phone prompt budget and what fits before sending.
+  Review earlier turns while keeping the draft. The tested larger LFM3
+  windows remain experimental.
+- Read context and compression reported by the followed Hermes session
+  separately from the phone model’s context.
+- Review the enrolled worker before browsing a registered workspace from a
+  followed chat. Supported servers return bounded read-only file previews.
+- Select phone-history dates directly in the search form. The optional
+  offline helper uses only the redacted phone observations explicitly
+  approved for that request.
+- Verify delegation recovery after SQLite contention and keep a gateway
+  drain pending while the original ledger still records unbound work.
+
+[Candidate coverage and remaining checks](docs/VALIDATION.md#integrated-audit-release-candidate).
+
 ## 1.1.0-beta.10 - 21 November 2026 - offline AI and reliability preview
 
 - Edit, regenerate and branch local chats. Search, pin, archive and export

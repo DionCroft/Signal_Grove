@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Integrated release candidate checkpoint
+
+Source `6da9cd1` combines the phone context and history, scoped workspace
+access, shutdown and unbound drain changes. The combined APKs passed 1,213
+JVM checks and zero-error lint. Android 8 and 17 both read a registered
+fixture through native Hermes authentication and a real Windows pipe;
+the known heartbeat cleanup warning remains. The worker CI matrix passed.
+The candidate Android matrix, upstream contract review, live Pi verification
+and signed release gates remain open.
+[Validation](docs/VALIDATION.md#integrated-audit-release-candidate).
+
 ## Phone history date picker checkpoint
 
 The hosted Android 17 history test reported an undisplayed date option.

@@ -1,5 +1,46 @@
 # Current development validation — audit follow-up
 
+## Integrated audit release candidate
+
+Source `6da9cd1` preserves the tested phone-history and worker changes
+from `7c6e052` and the unbound drain implementation from `850c558`.
+The merge retained both sets of validation notes. The exact combined
+build passed 1,213 JVM tests, zero lint errors with 50 debug and 49
+release warnings, and both debug APK assemblies with their original
+signer. The portable policy suite completed 1,197 methods with 924
+passes and 273 platform skips. The local Windows worker suite passed 72
+methods. The hosted worker run passed all three jobs. Independent
+checks matched both native archives to the GitHub digest and source
+revision and confirmed 72 Windows provider and nine POSIX policy passes
+with zero errors, failures or skips.
+[Hosted worker run](https://github.com/DionCroft/Signal_Grove/actions/runs/44868155839).
+
+The exact candidate APKs passed one seeded workspace read on Android 8 and
+one on Android 17. Each used native Hermes v0.23.1 owner authentication
+with a synthetic identity provider, then adopted one existing chat and
+previewed the same 31 bytes through its followed socket and a real Windows
+pipe. A heartbeat succeeded on that socket, the confirmed Android receipt
+and saved credentials were retained, and both Hermes profile stores passed
+SQLite checks with zero admissions or worker executions. Both temporary
+emulator reverse mappings were removed and the fixture processes ended.
+Both supervisors reproduced one known SQLite reopen warning in the
+heartbeat exit cleanup. Owner transport passed and complete shutdown
+acceptance for that pinned fixture remains open.
+
+| Item | SHA-256 |
+| --- | --- |
+| Debug app | `5b8530f1d96878d95c303e8eb0f9dd804b742441d30478f3d0c9a6e7123c7121` |
+| Debug instrumentation | `bdb9419288f34a69ceb050e848be30ff6782d75409164a82274f6f7d970e2382` |
+| Android 8 exact owner test log | `0dab559b0b956fde38b84e17d28818ad838ae94a7ef7c7703eb158a24b2b6a0c` |
+| Android 17 exact owner test log | `af1f4d69c8243f1bf7d646f4bbe0bdefc34762c14b12a9614691f900995fda1b` |
+| Preview read on both emulators | `e23e6ee6278bfda1857e35f63161baffae517b24cff20959d27727ea57deac10` |
+
+Hosted Android and Hermes contract coverage run against the exact candidate.
+Live Pi workspace verification, final signed phone upgrade retention and
+publication remain open.
+[Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/44868156883)
+· [Hermes compatibility](https://github.com/DionCroft/Signal_Grove/actions/runs/44868198181).
+
 ## Phone history inline date choices
 
 The earlier Android 17 attached-workspace cohort passed 657 of 658 methods.
