@@ -13,13 +13,20 @@ import textwrap
 
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
          'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
-         'cron_run_once.py','cron_run_once_approval.py')
+         'cron_run_once.py','cron_run_once_approval.py','cron_run_once_operator.py')
 
 
 def patch_source(source):
+    known_imports = (
+        'from hermes_state_runtime import RuntimeStoreError\n',
+        'from persistence.core.errors import STORE_FAILURES, AuthorityRefusal, PersistenceError\n',
+    )
+    anchors = [line for line in known_imports if source.count(line) == 1]
+    if len(anchors) != 1 or sum(source.count(line) for line in known_imports) != 1:
+        raise ValueError('Native runtime differs from reviewed anchors; no change.')
+    imported = anchors[0]
     edits = (
-        ('from hermes_state_runtime import RuntimeStoreError\n',
-         'from hermes_state_runtime import RuntimeStoreError\n'
+        (imported, imported +
          'from gateway.signal_grove_workspaces.native_adapter import handlers as worker_workspace_handlers\n'),
         ('        handlers.update(stored_read_handlers(self))\n        return handlers\n',
          '        handlers.update(stored_read_handlers(self))\n'

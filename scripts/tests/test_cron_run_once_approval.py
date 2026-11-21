@@ -1,17 +1,22 @@
 """Exact and one-use Run once approval across dispatch and receipt failure boundaries."""
 
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack, nullcontext
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 import sys
-from threading import Lock
+from threading import Event, Lock
 from types import ModuleType
 import unittest
 from unittest.mock import patch
 
 from server_extensions.coordinator_workspaces import cron_run_once_approval as approval
+from server_extensions.coordinator_workspaces import cron_run_once_operator as operator_module
+from server_extensions.coordinator_workspaces.cron_run_once_operator import (
+    RunOnceOperator, confirm_query, prepare_query,
+)
 from server_extensions.coordinator_workspaces.coordinator import NativeReadContext, ReadRefused
 
 
@@ -25,6 +30,7 @@ class NativeFixture:
         self.locked = False
         self.receipts = []
         self.fail_after_reservation = False
+        self.after_reservation = lambda: None
 
     def claim_reviewed_run_once(self, job_id, *, execution_id, authorize):
         with self.lock:
@@ -34,6 +40,7 @@ class NativeFixture:
                 if job_id != original["id"] or authorize(original) is not True:
                     return False
                 self.receipts.append(execution_id)
+                self.after_reservation()
                 if self.fail_after_reservation:
                     raise OSError("Synthetic job-store failure")
                 return dict(original, execution_id=execution_id, _scheduled_instant=None)
@@ -62,6 +69,7 @@ class RunOnceApprovalTest(unittest.TestCase):
             patch.object(approval, "_profile_home", side_effect=lambda *_: nullcontext()),
             patch.object(approval, "_catalogue", side_effect=self.catalogue),
             patch.object(approval, "monotonic", side_effect=lambda: self.clock),
+            patch.object(operator_module, "monotonic", side_effect=lambda: self.clock),
         ):
             stack.enter_context(fixture)
 
@@ -183,3 +191,94 @@ class RunOnceApprovalTest(unittest.TestCase):
         denied = next(outcome for outcome in results if isinstance(outcome, ReadRefused))
         self.assertEqual(("DUPLICATE", True), (denied.code, denied.request_submitted))
         self.assertEqual([review.receipt.execution_id()], self.native.receipts)
+
+    def test_closed_gateway_selectors_and_retired_review(self):
+        selected = {"expected_profile": "profile-a", "job_id": "exact-job"}
+        operator = RunOnceOperator(self.resolve, lambda run: self.fail("Dismissed review dispatched"))
+        prepared = operator.prepare(prepare_query(selected), self.verify)
+        self.assertEqual("verified-workspace", prepared["scope"]["workspace"])
+        self.assertEqual("Read the approved status file", prepared["scope"]["task"])
+        self.assertGreater(prepared["expires_in_seconds"], 0)
+        self.assertNotIn("actor", prepared)
+        inputs = selected | {key: prepared[key] for key in ("request_id", "review_digest")}
+        self.refuse("INVALID", lambda: prepare_query(selected | {"profile": "profile-b"}))
+        for field in ("profile", "session_id", "workspace", "dispatch"):
+            self.refuse("INVALID", lambda: confirm_query(inputs | {field: "other"}))
+        self.refuse("INVALID", lambda: confirm_query(inputs | {"review_digest": "wrong"}))
+        request = confirm_query(inputs | {"decision": "defer"}, dismiss=True)
+        self.assertEqual("defer", operator.dismiss(request, self.verify)["decision"])
+        self.refuse("DUPLICATE", lambda: asyncio.run(operator.confirm(confirm_query(inputs), self.verify)))
+        self.assertEqual([], self.native.receipts)
+
+    def test_confirm_returns_claimed_while_native_dispatch_is_still_running(self):
+        active, finish = Event(), Event()
+        routed = []
+
+        def dispatch(run):
+            routed.append(run)
+            active.set()
+            if not finish.wait(5):
+                raise RuntimeError("Fixture timed out")
+
+        async def exercise():
+            operator = RunOnceOperator(self.resolve, dispatch)
+            selected = {"expected_profile": "profile-a", "job_id": "exact-job"}
+            prepared = operator.prepare(prepare_query(selected), self.verify)
+            request = confirm_query(selected | {key: prepared[key] for key in ("request_id", "review_digest")})
+            try:
+                accepted = await asyncio.wait_for(operator.confirm(request, self.verify), timeout=5)
+                self.assertTrue(await asyncio.to_thread(active.wait, 5))
+                self.assertEqual({"profile": "profile-a", "job_id": "exact-job",
+                                  "request_id": request.receipt.request_id,
+                                  "execution_id": request.receipt.execution_id(), "state": "claimed"}, accepted)
+                self.assertEqual(1, len(operator._tasks))
+                self.assertEqual((self.scope, self.actor), (routed[0].scope, routed[0].actor))
+                with self.assertRaises(ReadRefused) as duplicate:
+                    await operator.confirm(request, self.verify)
+                self.assertEqual(("DUPLICATE", True),
+                                 (duplicate.exception.code, duplicate.exception.request_submitted))
+            finally:
+                finish.set()
+                await asyncio.gather(*operator._tasks)
+
+        asyncio.run(exercise())
+        self.assertEqual(1, len(routed))
+        self.assertEqual([routed[0].receipt.execution_id()], self.native.receipts)
+
+    def test_disconnect_after_reservation_keeps_exact_dispatched_work(self):
+        stored, release = Event(), Event()
+        routed = []
+
+        def block_after_store():
+            stored.set()
+            if not release.wait(5):
+                raise RuntimeError("Fixture timed out")
+
+        self.native.after_reservation = block_after_store
+
+        async def exercise():
+            operator = RunOnceOperator(self.resolve, routed.append)
+            selected = {"expected_profile": "profile-a", "job_id": "exact-job"}
+            prepared = operator.prepare(prepare_query(selected), self.verify)
+            request = confirm_query(selected | {key: prepared[key] for key in ("request_id", "review_digest")})
+
+            def verify():
+                if release.is_set():
+                    raise ReadRefused("DENIED")
+                return self.actor
+
+            caller = asyncio.create_task(operator.confirm(request, verify))
+            try:
+                self.assertTrue(await asyncio.to_thread(stored.wait, 5))
+                caller.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await caller
+                self.assertEqual(1, len(operator._tasks))
+                self.assertEqual([], routed)
+            finally:
+                release.set()
+                await asyncio.gather(*operator._tasks)
+            self.assertEqual([request.receipt], [run.receipt for run in routed])
+            self.assertEqual([request.receipt.execution_id()], self.native.receipts)
+
+        asyncio.run(exercise())

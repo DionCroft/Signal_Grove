@@ -16,6 +16,7 @@ from .cron_edit import apply_edit, edit_query, observe_edit, prepare_edit, revie
 from .cron_history import execution_query, read_executions
 from .cron_output import output_query, read_output
 from .cron_run_once import observe_run_once, run_once_receipt_query
+from .cron_run_once_operator import RunOnceOperator, confirm_query, prepare_query
 
 DESCRIBE = 'signal_grove.workspaces.describe_v1'
 READ = 'signal_grove.workspaces.read_v1'
@@ -28,6 +29,9 @@ CRON_EDIT_REVIEW = 'signal_grove.cron.edit_review_v1'
 CRON_EDIT_APPLY = 'signal_grove.cron.edit_apply_v1'
 CRON_EDIT_OBSERVE = 'signal_grove.cron.edit_observe_v1'
 CRON_RUN_ONCE_OBSERVE = 'signal_grove.cron.run_once_observe_v1'
+CRON_RUN_ONCE_PREPARE = 'signal_grove.cron.run_once_prepare_v1'
+CRON_RUN_ONCE_CONFIRM = 'signal_grove.cron.run_once_confirm_v1'
+CRON_RUN_ONCE_DISMISS = 'signal_grove.cron.run_once_dismiss_v1'
 
 
 class DescribeParams(Params):
@@ -80,6 +84,14 @@ class CronRunOnceObserveParams(Params):
     request_id: str
 
 
+class CronRunOnceConfirmParams(CronRunOnceObserveParams):
+    review_digest: str
+
+
+class CronRunOnceDismissParams(CronRunOnceConfirmParams):
+    decision: Literal['defer', 'deny']
+
+
 class CronEditReviewParams(CronEditPrepareParams):
     expected_version: str
     changes: dict[str, JsonValue]
@@ -128,6 +140,14 @@ canonical_method(CRON_EDIT_OBSERVE, params=CronEditObserveParams, result=ReadRes
 
 canonical_method(CRON_RUN_ONCE_OBSERVE, params=CronRunOnceObserveParams, result=ReadResult,
                  doc='Observe the original reviewed manual execution using its request ID.')
+
+
+canonical_method(CRON_RUN_ONCE_PREPARE, params=CronEditPrepareParams, result=ReadResult,
+                 doc='Read the exact stored job and current verified operator route for one review.')
+canonical_method(CRON_RUN_ONCE_CONFIRM, params=CronRunOnceConfirmParams, result=ReadResult,
+                 doc='Confirm a one-use review and return the reserved native execution receipt.')
+canonical_method(CRON_RUN_ONCE_DISMISS, params=CronRunOnceDismissParams, result=ReadResult,
+                 doc='Retire a pending review without submitting a native execution.')
 
 
 def _identity_instance_matches(connection):
@@ -207,6 +227,17 @@ def _operator_service():
         raise ReadRefused('UNAVAILABLE') from None
     service = getattr(operator, 'service', None)
     if not isinstance(service, CoordinatorReadService):
+        raise ReadRefused('UNAVAILABLE')
+    return service
+
+
+def _run_once_operator():
+    try:
+        operator = importlib.import_module('gateway.signal_grove_workspace_operator')
+    except Exception:
+        raise ReadRefused('UNAVAILABLE') from None
+    service = getattr(operator, 'run_once', None)
+    if not isinstance(service, RunOnceOperator):
         raise ReadRefused('UNAVAILABLE')
     return service
 
@@ -307,6 +338,35 @@ def handlers(connection):
     async def run_once_observe(ref, params):
         return await scheduler_read(params, run_once_receipt_query, observe_run_once)
 
+    async def run_once(ref, params, *, action):
+        reserved = False
+        try:
+            context = native_context(connection)
+            request = (prepare_query(params) if action == 'prepare'
+                       else confirm_query(params, dismiss=action == 'dismiss'))
+
+            def verify():
+                fresh = native_context(connection)
+                if fresh != context:
+                    raise ReadRefused('DENIED')
+                return fresh
+
+            service = _run_once_operator()
+            if action == 'confirm':
+                result = await service.confirm(request, verify)
+                reserved = True
+            else:
+                call = service.prepare if action == 'prepare' else service.dismiss
+                result = await asyncio.to_thread(call, request, verify)
+            verify()
+            return dict(schema=1, state='ok', payload=result)
+        except ReadRefused as exc:
+            return dict(schema=1, state='error', code=exc.code,
+                        request_submitted=reserved or exc.request_submitted)
+
+    async def run_once_prepare(ref, params): return await run_once(ref, params, action='prepare')
+    async def run_once_confirm(ref, params): return await run_once(ref, params, action='confirm')
+    async def run_once_dismiss(ref, params): return await run_once(ref, params, action='dismiss')
     async def executions(ref, params): return await scheduler_read(params, execution_query, read_executions)
     async def output(ref, params): return await scheduler_read(params, output_query, read_output)
     async def describe(ref, params): return await invoke(ref, params, reading=False)
@@ -316,4 +376,6 @@ def handlers(connection):
     return {DESCRIBE:describe, READ:read, DESCRIBE_ATTACHED:describe_attached, READ_ATTACHED:read_attached,
             CRON_EXECUTIONS:executions, CRON_OUTPUT:output,
             CRON_EDIT_PREPARE:schedule_prepare, CRON_EDIT_REVIEW:schedule_review, CRON_EDIT_OBSERVE:schedule_observe,
-            CRON_EDIT_APPLY:schedule_apply, CRON_RUN_ONCE_OBSERVE:run_once_observe}
+            CRON_EDIT_APPLY:schedule_apply, CRON_RUN_ONCE_OBSERVE:run_once_observe,
+            CRON_RUN_ONCE_PREPARE:run_once_prepare, CRON_RUN_ONCE_CONFIRM:run_once_confirm,
+            CRON_RUN_ONCE_DISMISS:run_once_dismiss}

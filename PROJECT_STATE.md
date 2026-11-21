@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reviewed Run once on the authenticated gateway
+
+The optional owner methods prepare, confirm, defer and deny one exact
+Run once review. Five real native dispatcher cases passed on each of
+v0.23.1 and the reviewed main pin. A disconnect after saving the claim
+left one original attempt that a new authenticated connection observed
+to completion. The fixture used an explicit dispatcher and a deterministic
+task. Managed Pi wiring, phone approval controls and deployment
+acceptance remain open.
+[Gateway and recovery evidence](docs/VALIDATION.md#reviewed-run-once-on-the-authenticated-gateway).
+
 ## Exact one-use Run once approval
 
 The native approval binds the existing job to the verified profile and
@@ -17,8 +28,8 @@ Denial, deferral and expiry end the review. On both pins a fixture exercised app
 through the native executor and completed one original receipt. A separate
 native worker process also adopted it, and fresh-process recovery kept an
 interrupted fixture unknown without a second attempt. Hosted tests passed
-33 Linux and 72 Windows cases. The next work binds this approval to the
-authenticated operator route and tests the managed Pi launcher and phone.
+33 Linux and 72 Windows cases. The gateway checkpoint above adds native
+route coverage. Managed Pi launcher and phone checks remain open.
 [Validation](docs/VALIDATION.md#exact-one-use-run-once-approval).
 
 ## Native pause-preserving Run once

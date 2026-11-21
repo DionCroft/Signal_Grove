@@ -1,5 +1,47 @@
 # Current development validation — audit follow-up
 
+## Reviewed Run once on the authenticated gateway
+
+The optional native operator adds prepare, confirm and dismiss methods
+alongside original-receipt observation. Confirmation reports `claimed`
+as soon as the exact approved reservation is durable. The actual native
+outcome stays in the original receipt. With the verified local operator
+installed, the dispatch continues if the matching transport is lost
+after reservation.
+[Methods and operator requirements](../server_extensions/coordinator_workspaces/README.md#reviewed-run-once-on-the-owner-gateway).
+
+Git-object-verified v0.23.1 and main `242315c` each passed five cases
+through strict `AuthorityConnection.dispatch`:
+
+- An absent operator configuration refused the methods.
+- A non-operator, the wrong profile and caller-supplied routing fields were refused.
+- A foreign transport and a dismissed review could not admit an execution.
+- Confirmation reserved one receipt, ran the fixture through the native
+  scheduler, saved its output and preserved the paused job's repeat state.
+- A disconnect during the native job save yielded a submitted-but-denied
+  reply. A fresh owner connection observed the same completed execution,
+  with exactly one ledger row for that job.
+
+The Windows fixture read a disposable catalogue and the exact native
+SQLite receipt. It used a deterministic task and refused external network,
+child processes and out-of-fixture writes. Windows SQLite used DELETE
+journaling under Hermes' compatibility guard. The earlier POSIX run
+covers the anchored protected reader and WAL. The fixture's first atomic
+output save was blocked by its own file-descriptor audit. The final fixture
+permits that call only for the checked native temporary output path.
+Main used its scoped persistence assembly for the authority fixture.
+Managed Pi dispatch, permanent operator configuration, and Android
+approval and reconnection acceptance remain open.
+
+Installer preview and apply agreed for both pins. The exact hash guard
+refused a wrong native hash and repeated apply. The verified main gateway
+now stages with the reviewed persistence import anchor. Patched controls
+SHA-256 values were
+`3a31ac06b3d6c9f9f1bfcc8f4331b83a2581e8d6811dae0156d25a1e843ef5f9` (stable) and
+`66b870911e744a9985ab9a037b6f0206afff2138ba2f531ee65533b50d18e52c` (main).
+The 11 focused approval and operator cases passed. The full portable suite
+discovered 1,220 tests with zero failures and 273 platform or fixture skips.
+
 ## Exact one-use Run once approval
 
 The optional native service issues a bounded, three-minute review in the
@@ -85,8 +127,9 @@ The final nine-file upstream schedule and ownership regression suite passed
 allowlisted exactly after the first harness refused it. The portable suite
 discovered 1,209 tests with zero failures and 273 platform or fixture skips.
 The verified stable source produced patched jobs SHA-256 `ed82b8e43604af49555fa8f4b30da0ecca859626e4443a8b36c1bb8cc98dc562`.
-The main jobs and ledger passed in isolation. Full main gateway staging
-still refuses the upstream adapter's changed anchors.
+The main jobs and ledger passed in isolation. The installer at this
+checkpoint refused main's changed gateway import. The later reviewed
+gateway checkpoint above records the guarded update and exact-pin test.
 [Upstream job store](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/cron/jobs.py).
 
 ## Native original Run once receipts

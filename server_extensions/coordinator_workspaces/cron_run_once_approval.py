@@ -61,6 +61,7 @@ class ApprovedRunOnce:
     receipt: RunOnceReceipt
     scope: RunOnceScope
     snapshot: dict
+    actor: NativeReadContext
 
 
 @dataclass(repr=False)
@@ -170,7 +171,7 @@ class RunOnceApprovals:
         with self._lock:
             self._pending(receipt, digest, actor).state = decision
 
-    def admit(self, receipt, digest, verify):
+    def admit(self, receipt, digest, verify, *, on_reserved=None):
         actor = _verified_context(verify, receipt.profile)
         with self._lock:
             slot = self._pending(receipt, digest, actor)
@@ -205,8 +206,12 @@ class RunOnceApprovals:
                     or snapshot.get("execution_id") != receipt.execution_id()
                     or snapshot.get("_scheduled_instant") is not None):
                 raise ReadRefused("UNAVAILABLE")
+            approved = ApprovedRunOnce(receipt, review.scope, snapshot, actor)
+            if on_reserved is not None:
+                with _profile_home(jobs, home):
+                    on_reserved(approved)
             _verified_context(verify, receipt.profile, actor)
-            return ApprovedRunOnce(receipt, review.scope, snapshot)
+            return approved
         except jobs.CronStoreLockUnavailable:
             raise ReadRefused("BUSY", request_submitted=submitted) from None
         except sqlite3.IntegrityError:

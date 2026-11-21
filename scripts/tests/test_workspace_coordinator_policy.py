@@ -215,7 +215,16 @@ class InstallerPolicyTest(unittest.TestCase):
     def test_source_anchor_drift_and_second_application_refuse(self):
         from server_extensions.coordinator_workspaces.install_adapter import patch_source
         source='from hermes_state_runtime import RuntimeStoreError\n\nclass C:\n    def handlers(self):\n        handlers = {}\n        handlers.update(stored_read_handlers(self))\n        return handlers\n'
-        result=patch_source(source)
-        self.assertIn('handlers.update(worker_workspace_handlers(self))',result)
-        for changed in (result,source.replace('return handlers','return dict(handlers)'),source+source):
-            with self.assertRaises(ValueError):patch_source(changed)
+        stable_import = 'from hermes_state_runtime import RuntimeStoreError\n'
+        main_import = 'from persistence.core.errors import STORE_FAILURES, AuthorityRefusal, PersistenceError\n'
+        for native_source in (source, source.replace(stable_import, main_import)):
+            with self.subTest(import_line=native_source.splitlines()[0]):
+                result = patch_source(native_source)
+                self.assertIn('handlers.update(worker_workspace_handlers(self))', result)
+                for changed in (result, native_source.replace('return handlers', 'return dict(handlers)'),
+                                native_source + native_source):
+                    with self.assertRaises(ValueError):
+                        patch_source(changed)
+        for changed in (source.replace(stable_import, ''), source.replace(stable_import, stable_import + main_import)):
+            with self.assertRaises(ValueError):
+                patch_source(changed)

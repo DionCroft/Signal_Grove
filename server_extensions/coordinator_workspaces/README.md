@@ -66,10 +66,32 @@ expires after three minutes and can be used once. Denial and deferral
 retire the review. If confirmation passes the native locks and a later
 write fails, the caller reconciles through the original request ID.
 
-The network surface currently exposes receipt observation. The internal
-service delegates scope resolution to the operator, and its caller still
-owns verified dispatch. Reviews are transient and the native execution
-receipt is durable. The project approval inbox has its own acceptance gate.
+### Reviewed Run once on the owner gateway
+
+Every request supplies the same `expected_profile` and canonical `job_id`
+selectors as the observer.
+
+| Method | Additional fields | Result |
+| --- | --- | --- |
+| `signal_grove.cron.run_once_prepare_v1` | None | Original `request_id`, `review_digest`, expiry and verified project, workspace, branch, worker instance, task and access |
+| `signal_grove.cron.run_once_confirm_v1` | `request_id`, `review_digest` | Original `execution_id` and `state: claimed` |
+| `signal_grove.cron.run_once_dismiss_v1` | `request_id`, `review_digest`, `decision` (`defer` or `deny`) | Original request and recorded review decision |
+
+Queued approval work uses the verified current owner transport and grant.
+The prepare, confirm and dismiss methods require a locally configured
+`RunOnceOperator` at `gateway.signal_grove_workspace_operator.run_once`.
+The operator supplies a read-only exact scope resolver and a dispatcher.
+The dispatcher receives the frozen approved scope and snapshotted native
+job under the owning profile home. It is responsible for executing that
+reserved attempt and recording the native outcome. An unconfigured gateway
+returns `UNAVAILABLE`.
+
+A claimed reply confirms reservation. For the execution outcome, use
+`run_once_observe_v1` with the original request. If the reply is lost
+after reservation, the approved attempt can continue and the existing
+receipt remains the source of its status. Reviews are transient. The native
+execution receipt is durable while its row is retained.
+[Gateway validation](../../docs/VALIDATION.md#reviewed-run-once-on-the-authenticated-gateway).
 [Approval validation](../../docs/VALIDATION.md#exact-one-use-run-once-approval).
 [Validation](../../docs/VALIDATION.md#native-original-run-once-receipts).
 
