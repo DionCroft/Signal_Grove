@@ -28,6 +28,17 @@ remains open. Both native Windows benches used SQLite's selected DELETE
 journal mode. Linux protected WAL observation has a dedicated fixture in the
 hosted suite.
 
+A separate two-process race used a primed fixture ledger and two independent
+native writers on each pin. One writer inserted the exact reviewed ID, the
+other hit SQLite's unique constraint, and a third process read one retained
+claim. The fixture did not create a job or dispatch an executor.
+
+Hosted run [44884232092](https://github.com/DionCroft/Signal_Grove/actions/runs/44884232092)
+validated exact source 345142c. Protocol, 72 Windows provider cases and all
+32 Linux protected coordinator cases passed. The Linux suite includes the
+committed WAL receipt case covering unrelated source, wrong request/profile/job,
+receipt retention after removal and unchanged protected bytes.
+
 The pinned stable native dispatcher passed 26 cases with empty session and
 worker execution stores, including the original request observation, a
 foreign profile, insufficient capability and routed parameters. The portable

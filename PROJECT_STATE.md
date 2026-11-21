@@ -13,8 +13,10 @@ An optional native execution ID binds a reviewed manual request to one
 retained Hermes ledger row. The authenticated observation route reads that
 original row by request, canonical job and profile. Both pinned native
 execution stores passed the competing insert and fresh-process proof, plus
-24 upstream ledger tests each. The stable dispatcher passed its 26-case
-fixture. The remaining Run once stage needs a pause-preserving native claim
+24 upstream ledger tests each. Both pins also saved exactly one row in
+a two-process race. The stable dispatcher passed 26 cases, and the hosted
+checks passed 32 Linux and 72 Windows cases. The remaining Run once stage
+needs a pause-preserving native claim
 and settlement, exact one-run approval, and a verified dispatch path.
 [Validation](docs/VALIDATION.md#native-original-run-once-receipts).
 
