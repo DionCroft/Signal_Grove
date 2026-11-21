@@ -57,7 +57,12 @@ class CronCreationFlowTest {
                     request.path=="/dashboard/api/cron/jobs?profile=worker" && request.method=="GET"->json(JsonArray(listOfNotNull(configured)).toString())
                     request.path=="/dashboard/api/cron/jobs?profile=worker" && request.method=="POST"->{
                         assertEquals("Bearer management-create-fixture",request.getHeader("Authorization"));val body=Json.parseToJsonElement(request.body.readUtf8()).jsonObject
-                        assertEquals(true,body["paused"]!!.jsonPrimitive.boolean);assertFalse(body.containsKey("profile"));assertEquals(JsonArray(emptyList()),body["enabled_toolsets"]);writes.incrementAndGet();configured=CronCreationFixture.job(body);json(configured.toString())
+                        assertEquals(true,body["paused"]!!.jsonPrimitive.boolean);assertFalse(body.containsKey("profile"));assertEquals(JsonArray(emptyList()),body["enabled_toolsets"]);
+                        assertEquals(JsonPrimitive("America/Toronto"), body["timezone"])
+                        assertEquals(JsonPrimitive(2), body["repeat"])
+                        assertEquals(JsonPrimitive(0), body["grace_minutes"])
+                        assertEquals(JsonPrimitive(false), body["catch_up"])
+                        writes.incrementAndGet();configured=CronCreationFixture.job(body);json(configured.toString())
                     }
                     request.path=="/dashboard/api/cron/jobs/created-job-fixture?profile=worker"->json(configured.toString())
                     else->json("{}").setResponseCode(404)
@@ -97,6 +102,28 @@ class CronCreationFlowTest {
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-advanced"));compose.onNodeWithTag("cron-create-advanced").performClick()
             compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-restrict-tools"));compose.onNodeWithTag("cron-create-restrict-tools").performClick()
             compose.onNodeWithTag("cron-create-review").performClick();compose.onNodeWithTag("cron-create-confirmation").assertExists();assertEquals(0,writes.get())
+            compose.onNodeWithTag("cron-create-confirmation").performScrollToNode(hasTestTag("cron-create-preview"))
+            compose.onNodeWithText(Words.HostCronPreviewProfileZone.en).assertExists()
+            compose.onNodeWithTag("cron-create-preview-time-0").assertDoesNotExist()
+            compose.onNodeWithTag("cron-create-edit").performClick()
+            compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-repeat"))
+            compose.onNodeWithTag("cron-create-repeat").performTextReplacement("2")
+            compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-timezone"))
+            compose.onNodeWithTag("cron-create-timezone").performTextReplacement("America/Toronto")
+            compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-grace"))
+            compose.onNodeWithTag("cron-create-grace").performTextReplacement("0")
+            closeDialogKeyboard()
+            compose.onNodeWithTag("cron-create-form").performScrollToNode(hasTestTag("cron-create-catch-up-skip"))
+            compose.onNodeWithTag("cron-create-catch-up-skip").performClick()
+            compose.onNodeWithTag("cron-create-review").performClick()
+            compose.onNodeWithTag("cron-create-confirmation").performScrollToNode(hasTestTag("cron-create-preview"))
+            compose.waitUntil(5000) { compose.onAllNodesWithTag("cron-create-preview-time-1").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("cron-create-preview-zone").assertTextContains("America/Toronto", substring = true)
+            compose.onNodeWithTag("cron-create-preview-time-0").assertExists()
+            compose.onNodeWithTag("cron-create-preview-time-2").assertDoesNotExist()
+            compose.onNodeWithTag("cron-create-preview-grace").assertTextContains("\n2", substring = true)
+            compose.onNodeWithTag("cron-create-preview-policy").assertTextEquals(Words.HostCronPreviewCatchUpSkip.en)
+            assertEquals(0,writes.get())
             compose.onNodeWithTag("cron-create-confirmation").performScrollToNode(hasText(Words.HostCronNoTools.en));compose.onNode(hasText(Words.HostCronNoTools.en) and hasAnyAncestor(hasTestTag("cron-create-confirmation"))).assertExists()
             val shot=File(compose.activity.getExternalFilesDir(null),"qa/cron-create-review.png");shot.parentFile!!.mkdirs()
             shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}

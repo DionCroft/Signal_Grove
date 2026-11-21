@@ -42,6 +42,12 @@ methods. The authenticated workspace fixture passed on Android 8 and 17.
 The full Android matrix, live Pi verification and signed upgrade checks
 remain part of release qualification. [Candidate evidence](docs/VALIDATION.md#integrated-audit-release-candidate).
 
+The newer schedule-review build also previews upcoming occurrences with
+UTC offsets and explains the missed-run policy before paused creation.
+It passed **1,222 JVM tests** and the creation-review check at both
+viewports on Android 8 and 17.
+[Schedule preview evidence](docs/VALIDATION.md#calendar-and-missed-run-preview-in-the-schedule-review).
+
 ## Download and release status
 
 | Version | Status | Install |

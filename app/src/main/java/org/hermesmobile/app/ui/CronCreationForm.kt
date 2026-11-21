@@ -9,6 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import org.hermesmobile.app.data.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 private data class CronDraft(val name:String="",val schedule:String="",val prompt:String="",val repeat:String="1",val unlimited:Boolean=false,
     val delivery:String="local",val skills:String="",val model:String="",val provider:String="",val baseUrl:String="",val script:String="",
@@ -66,7 +72,7 @@ private data class CronDraft(val name:String="",val schedule:String="",val promp
                 item {OutlinedTextField(draft.workdir,{draft=draft.copy(workdir=it)},Modifier.fillMaxWidth(),label={Text(label(Words.HostCronWorkdir))},supportingText={Text(label(Words.HostCronWorkdirHelp))},enabled=enabled)}
                 item {OutlinedTextField(draft.timezone,{draft=draft.copy(timezone=it)},Modifier.fillMaxWidth().testTag("cron-create-timezone"),label={Text(label(Words.HostCronTimezone))},supportingText={Text(label(Words.HostCronTimezoneHelp))},enabled=enabled)}
                 item {OutlinedTextField(draft.grace,{draft=draft.copy(grace=it)},Modifier.fillMaxWidth().testTag("cron-create-grace"),label={Text(label(Words.HostCronGrace))},supportingText={Text(label(Words.HostCronGraceHelp))},enabled=enabled)}
-                item {Text(label(Words.HostCronCatchUp));Row {RadioButton(draft.catchUp==0,{draft=draft.copy(catchUp=0)},enabled=enabled);Text(label(Words.HostCronInherit))};Row {RadioButton(draft.catchUp==1,{draft=draft.copy(catchUp=1)},enabled=enabled);Text(label(Words.Enabled))};Row {RadioButton(draft.catchUp==2,{draft=draft.copy(catchUp=2)},enabled=enabled);Text(label(Words.Disabled))}}
+                item {Text(label(Words.HostCronCatchUp));Row {RadioButton(draft.catchUp==0,{draft=draft.copy(catchUp=0)},enabled=enabled);Text(label(Words.HostCronInherit))};Row {RadioButton(draft.catchUp==1,{draft=draft.copy(catchUp=1)},enabled=enabled);Text(label(Words.Enabled))};Row {RadioButton(draft.catchUp==2,{draft=draft.copy(catchUp=2)},enabled=enabled,modifier=Modifier.testTag("cron-create-catch-up-skip"));Text(label(Words.Disabled))}}
                 item {OutlinedTextField(draft.reason,{draft=draft.copy(reason=it)},Modifier.fillMaxWidth(),label={Text(label(Words.HostCronPauseReason))},enabled=enabled)}
             }
             if(attempted && request==null) item {Text(label(Words.HostCronCreateInvalid),color=MaterialTheme.colorScheme.error)}
@@ -82,13 +88,73 @@ private data class CronDraft(val name:String="",val schedule:String="",val promp
     review?.let {frozen ->CronCreationReview(frozen,enabled,{review=null}) {vm.createCron(frozen);close()}}
 }
 
+@Composable private fun CronCreationPreview(request: CronCreation, reference: Instant, displayZone: ZoneId) {
+    val preview by produceState<CronSchedulePreview?>(null, request, reference, displayZone) {
+        value = withContext(Dispatchers.Default) {
+            CronSchedulePreview.create(
+                request.schedule, request.timezone, request.repeat, request.catchUp,
+                request.graceMinutes, reference, displayZone,
+            )
+        }
+    }
+    Column(Modifier.fillMaxWidth().testTag("cron-create-preview"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label(Words.HostCronPreview), style = MaterialTheme.typography.titleSmall)
+        val result = preview
+        if (result == null) {
+            QuietProgress()
+            return@Column
+        }
+        val unavailable = when (result.unavailable) {
+            CronSchedulePreview.Unavailable.ProfileZone -> Words.HostCronPreviewProfileZone
+            CronSchedulePreview.Unavailable.InvalidZone -> Words.HostCronPreviewInvalidZone
+            CronSchedulePreview.Unavailable.Unsupported -> Words.HostCronPreviewUnsupported
+            CronSchedulePreview.Unavailable.Past -> Words.HostCronPreviewPast
+            CronSchedulePreview.Unavailable.NoOccurrence -> Words.HostCronPreviewNoOccurrence
+            CronSchedulePreview.Unavailable.GraceRequiresCron -> Words.HostCronPreviewGraceRequiresCron
+            null -> null
+        }
+        if (unavailable != null) {
+            Text(label(unavailable))
+        } else {
+            Text(label(Words.HostCronPreviewEstimate))
+            if (result.elapsed) Text(label(Words.HostCronPreviewElapsed))
+            Text(label(Words.HostCronTimezone) + "\n" + result.times.first().zone.id,
+                Modifier.testTag("cron-create-preview-zone"))
+            val formatter = remember { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM) }
+            result.times.forEachIndexed { index, time ->
+                Text(formatter.format(time) + " (" + time.offset.id + ")",
+                    Modifier.testTag("cron-create-preview-time-$index"))
+            }
+        }
+        val policy = when (result.missed) {
+            CronSchedulePreview.Missed.OneShot -> Words.HostCronPreviewOneShot
+            CronSchedulePreview.Missed.Inherit -> Words.HostCronPreviewCatchUpInherited
+            CronSchedulePreview.Missed.RunOnce -> Words.HostCronPreviewCatchUpOnce
+            CronSchedulePreview.Missed.Skip -> Words.HostCronPreviewCatchUpSkip
+            null -> null
+        }
+        if (policy != null) {
+            if (result.missed != CronSchedulePreview.Missed.OneShot) {
+                val window = result.graceMinutes
+                Text(if (window == null) label(Words.HostCronPreviewGraceInherited)
+                    else label(Words.HostCronGrace) + "\n" + window,
+                    Modifier.testTag("cron-create-preview-grace"))
+            }
+            Text(label(policy), Modifier.testTag("cron-create-preview-policy"))
+        }
+    }
+}
+
 @Composable private fun CronCreationReview(review:ReviewedCronCreation,enabled:Boolean,close:()->Unit,confirm:()->Unit) {
     val request=review.request
+    val reference = remember(review) { Instant.now() }
+    val displayZone = remember(review) { ZoneId.systemDefault() }
     var query by remember(review) {mutableStateOf(false)}
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostCronCreate))},text={
         LazyColumn(Modifier.heightIn(max=500.dp).testTag("cron-create-confirmation"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(review.target.url);Text(review.target.profile);Text(review.target.actor);Text(request.name,style=MaterialTheme.typography.titleMedium)}
             item {Text(label(Words.Schedule));Text(request.schedule);Text(label(Words.HostCronRepeat));Text(request.repeat?.toString() ?: label(Words.HostCronUnlimited));Text(label(Words.HostCronDelivery));Text(if(request.delivery.id=="local") label(Words.HostCronLocal) else request.delivery.name+"\n"+label(Words.HostCronDeliveryEffect))}
+            item { CronCreationPreview(request, reference, displayZone) }
             if(request.prompt.isNotBlank()) item {Text(label(Words.Prompt));Text(request.prompt)}
             if(request.script.isNotBlank()) item {Text(label(Words.HostCronScript));Text(request.script);Text(label(if(request.noAgent) Words.HostCronNoAgent else Words.HostCronScriptContext))}
             if(request.skills.isNotEmpty()) item {Text(label(Words.HostCronSkills));Text(request.skills.joinToString("\n"))}
@@ -103,5 +169,5 @@ private data class CronDraft(val name:String="",val schedule:String="",val promp
             if(request.pausedReason.isNotBlank()) item {Text(label(Words.HostCronPauseReason));Text(request.pausedReason)}
             item {Text(label(Words.HostCronCreateEffect))}
         }
-    },confirmButton={TextButton(confirm,enabled=enabled,modifier=Modifier.testTag("cron-create-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton(close) {Text(label(Words.Edit))}})
+    },confirmButton={TextButton(confirm,enabled=enabled,modifier=Modifier.testTag("cron-create-confirm")) {Text(label(Words.Confirm))}},dismissButton={TextButton(close, modifier=Modifier.testTag("cron-create-edit")) {Text(label(Words.Edit))}})
 }

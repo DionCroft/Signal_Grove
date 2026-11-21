@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Android schedule preview checkpoint
+
+The paused create review shows up to three local estimates, timezone
+and UTC offset, and the missed-run policy. The review still requires an
+explicit confirmation for one scoped paused create. The test passed at
+both viewports on Android 8 and 17, together with 1,222 JVM cases and
+zero-error lint. The preview requires a known zone for calendar
+estimates. Existing schedule edit, run-once, authenticated output and
+live acceptance remain open.
+[Validation](docs/VALIDATION.md#calendar-and-missed-run-preview-in-the-schedule-review).
+
 ## Hermes scheduler profile and timezone checkpoint
 
 Both exact upstream pins passed 112 scheduler cases with explicit UTC

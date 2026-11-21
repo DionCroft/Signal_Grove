@@ -1,5 +1,47 @@
 # Current development validation — audit follow-up
 
+## Calendar and missed-run preview in the schedule review
+
+The paused Hermes creation review now calculates up to three estimated
+occurrences on the phone. It shows the time zone and UTC offset, respects
+the finite repeat count and explains the effective explicit or inherited
+missed-run setting. Calendar estimates require a known pinned zone.
+One-time timestamps with a numeric offset preserve that instant. Hermes
+resolves offset-less one-time dates in the owner profile, so the phone
+asks for an offset. Elapsed intervals and delays use elapsed time, with
+the displayed local zone labelled. Unsupported formats stay eligible for
+the existing host validation path.
+
+The nine new JVM cases cover daily wall time across both DST transitions,
+missing and repeated hours, leap day and special weekdays, natural and
+numeric syntax, intervals, relative and absolute one-shot time, grace,
+repeat limits and invalid or unknown values. Thirteen timing vectors
+and two grace vectors matched the real `parse_schedule` and
+`compute_next_run` helpers on the exact stable and main pins.
+[Scheduler source](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/cron/jobs.py).
+
+The regular creation UI passed on Android 8 and 17 at the native
+1080 × 1920 and compact 900 × 1440 / 420 dpi viewports. The fixture
+opened and cancelled a review with an inherited zone, returned to edit,
+entered America/Toronto with two repeats, disabled catch-up and set
+zero-minute grace. It then verified two estimated times, a two-minute
+effective tick window and zero writes before confirmation. One scoped
+paused POST followed confirmation, carrying the exact time zone, repeat,
+raw grace and catch-up choices. Both emulators returned to their original
+sizes. All 1,222 JVM tests passed. Debug and release lint reported zero
+errors and 55/54 warnings. The signed debug APKs passed assembly.
+
+| Build item | SHA-256 |
+| --- | --- |
+| Source snapshot | `cb79d662b5de2246e616dcc05895898350723ee03e02c89dbbb241074a8d330a` |
+| Debug app | `b0dd54b22453f99733bccf6d83605ea822c755bcd223563649dff2ce4f56b286` |
+| Debug instrumentation APK | `a3e5ac24866f856977a368620c31332606f7e0cef801284b7c2c9099b07616a2` |
+
+The forecast is checked by the app and native fixture evidence above.
+Host activation still computes the actual next run. Live Pi scheduling,
+scoped output and log review, existing schedule edit and run-once
+acceptance remain open.
+
 ## Hermes scheduler and scoped run history on stable and main
 
 Stable `caafe5389ae585ef77387a962aee05b1bcf17029` and main
