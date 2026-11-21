@@ -94,10 +94,11 @@ class CoordinatorReadService:
         self._routes = dict(routes)
         self._grant = grant
         self._inflight = 0
+        self.attachments = None
 
     def __repr__(self): return 'CoordinatorReadService(redacted)'
 
-    def _checked(self, authenticate, device):
+    def _checked(self, authenticate, device, grant_revision):
         if type(device) is not str or device not in self._routes: raise ReadRefused('DENIED')
         try:
             context = authenticate()
@@ -113,16 +114,18 @@ class CoordinatorReadService:
                 or not 1 <= len(grant.projects) <= 32
                 or any(type(p) is not str or not _PROJECT.fullmatch(p) for p in grant.projects)):
             raise ReadRefused('DENIED')
+        if grant_revision is not None and grant.revision != grant_revision:
+            raise ReadRefused('CHANGED')
         return context, grant, scope_for(self._authority, context.subject, context.profile_id)
 
-    async def _call(self, authenticate, device, payload, before, *, reading):
+    async def _call(self, authenticate, device, payload, before, *, reading, grant_revision):
         if self._inflight >= 4: raise ReadRefused('BUSY')
         self._inflight += 1
         try:
             encode(payload)
             reply = await self._routes[device](payload)
             # A changed actor, profile, authority instance or enrollment drops contents.
-            try: after = self._checked(authenticate, device)
+            try: after = self._checked(authenticate, device, grant_revision)
             except ReadRefused as exc: raise ReadRefused(exc.code, request_submitted=reading) from None
             if after != before: raise ReadRefused('CHANGED', request_submitted=reading)
             if type(reply) is not dict: raise ReadRefused('UNAVAILABLE', request_submitted=reading)
@@ -139,9 +142,10 @@ class CoordinatorReadService:
         except Exception: raise ReadRefused('UNAVAILABLE', request_submitted=reading) from None
         finally: self._inflight -= 1
 
-    async def describe(self, authenticate, device):
-        before = self._checked(authenticate, device); scope = before[2]
-        reply = await self._call(authenticate, device, {'action':'workspace_status','scope_id':scope}, before, reading=False)
+    async def describe(self, authenticate, device, *, grant_revision=None):
+        before = self._checked(authenticate, device, grant_revision); scope = before[2]
+        reply = await self._call(authenticate, device, {'action':'workspace_status','scope_id':scope}, before, reading=False,
+                                 grant_revision=grant_revision)
         if (set(reply) != {'transport','scope_id','device','state','worker_instance','failure_code'}
                 or reply['transport'] != 'status' or reply['scope_id'] != scope or reply['device'] != device
                 or type(reply['state']) is not str or reply['state'] not in {'ready','starting','held','closed'}
@@ -157,8 +161,8 @@ class CoordinatorReadService:
                     failure_code=reply['failure_code'], project_ids=sorted(before[1].projects),
                     operations=['prepare','list','preview'] if reply['state']=='ready' else [])
 
-    async def read(self, authenticate, device, request):
-        before = self._checked(authenticate, device); scope = before[2]
+    async def read(self, authenticate, device, request, *, grant_revision=None):
+        before = self._checked(authenticate, device, grant_revision); scope = before[2]
         if type(request) is not dict or type(request.get('schema')) is not int or request['schema'] != 1:
             raise ReadRefused('INVALID')
         base = {'schema','request_id','worker_instance','operation','project_id'}
@@ -181,7 +185,8 @@ class CoordinatorReadService:
         payload = {k:v for k,v in request.items() if k not in {'request_id','worker_instance'}}
         payload['scope_id'] = scope
         frame = dict(schema=1, request_id=request['request_id'], worker_instance=request['worker_instance'], payload=payload)
-        reply = await self._call(authenticate, device, {'action':'workspace_read','scope_id':scope,'frame':frame}, before, reading=True)
+        reply = await self._call(authenticate, device, {'action':'workspace_read','scope_id':scope,'frame':frame}, before, reading=True,
+                                 grant_revision=grant_revision)
         if set(reply) != {'transport','reply'} or reply['transport'] != 'reply' or type(reply['reply']) is not dict:
             raise ReadRefused('UNAVAILABLE', request_submitted=True)
         result = reply['reply']

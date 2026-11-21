@@ -5,8 +5,9 @@ cannot provide policy, authority, subject, profile or command identity.
 """
 from dataclasses import dataclass, field
 import hashlib
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
+from .attached import AttachedWorkspaceReads, RegisteredAttachment
 from .coordinator import (CoordinatorReadService, ReadGrant, ReadRefused,
                           _identity, _PROJECT, decode)
 
@@ -34,11 +35,22 @@ def _document(reader):
         raise ReadRefused('UNAVAILABLE') from None
 
 
+def _absolute(value, path_type):
+    if not _identity(value):
+        return False
+    path = path_type(value)
+    return path.is_absolute() and '..' not in path.parts and str(path) == value
+
+
 def _rules(document, authority, devices):
     try:
         data = decode(document.data, MAX_POLICY)
-        if (set(data) != {'schema','authority','grants'} or type(data['schema']) is not int
-                or data['schema'] != 1 or data['authority'] != authority
+        schema = data.get('schema')
+        expected = {'schema', 'authority', 'grants'}
+        if schema == 2:
+            expected.add('attachments')
+        if (type(schema) is not int or schema not in (1, 2) or set(data) != expected
+                or data['authority'] != authority
                 or type(data['grants']) is not list or len(data['grants']) > 64):
             raise ValueError('Invalid operator policy')
         rules = {}
@@ -46,9 +58,8 @@ def _rules(document, authority, devices):
             if type(item) is not dict or set(item) != {'subject','profile_id','device','project_ids'}:
                 raise ValueError('Invalid grant')
             subject, profile, device, projects = (item[k] for k in ('subject','profile_id','device','project_ids'))
-            if (not _identity(subject) or not _identity(profile) or type(device) is not str
-                    or device not in devices or not Path(profile).is_absolute()
-                    or '..' in Path(profile).parts or str(Path(profile)) != profile
+            if (not _identity(subject) or not _absolute(profile, Path)
+                    or type(device) is not str or device not in devices
                     or type(projects) is not list or not 1 <= len(projects) <= 32
                     or any(type(p) is not str or not _PROJECT.fullmatch(p) for p in projects)
                     or len(set(projects)) != len(projects)):
@@ -56,7 +67,33 @@ def _rules(document, authority, devices):
             key = (subject, profile, device)
             if key in rules: raise ValueError('Duplicate grant')
             rules[key] = frozenset(projects)
-        return rules
+        revision = hashlib.sha256(b'signal-grove-operator-policy-v1\0'
+                                  + document.version.encode('ascii') + document.data).hexdigest()
+        attachments = {}
+        rows = data.get('attachments', [])
+        if type(rows) is not list or len(rows) > 64:
+            raise ValueError('Invalid attachment inventory')
+        for item in rows:
+            if type(item) is not dict or set(item) != {
+                'subject', 'profile_id', 'session_id', 'coordinator_cwd', 'device', 'project_id', 'worker_root',
+            }:
+                raise ValueError('Invalid attachment')
+            subject, profile, session = (item[key] for key in ('subject', 'profile_id', 'session_id'))
+            device, project = item['device'], item['project_id']
+            cwd, worker_root = item['coordinator_cwd'], item['worker_root']
+            if (not _identity(subject) or not _absolute(profile, Path)
+                    or not _identity(session) or len(session) > 256 or type(device) is not str
+                    or type(project) is not str or project not in rules.get((subject, profile, device), ())
+                    or not _absolute(cwd, Path) or not _absolute(worker_root, PureWindowsPath)):
+                raise ValueError('Invalid attachment scope')
+            path = PureWindowsPath(worker_root)
+            if path.drive.startswith(('\\\\?\\', '\\\\.\\')) or len(path.parts) < 3:
+                raise ValueError('Invalid worker root')
+            key = (subject, profile, session)
+            if key in attachments:
+                raise ValueError('Duplicate session attachment')
+            attachments[key] = RegisteredAttachment(device, project, cwd, worker_root, revision)
+        return rules, attachments, revision
     except Exception:
         raise ReadRefused('UNAVAILABLE') from None
 
@@ -69,14 +106,23 @@ def build_operator_service(reader, *, authority, routes):
     in-flight verdict. Caller authentication is still the native adapter's job.
     """
     if not callable(reader): raise ReadRefused('INVALID')
+    def snapshot():
+        return _rules(_document(reader), authority, service._routes)
+
     def grant(context, device):
-        document = _document(reader)
-        rules = _rules(document, authority, service._routes)
+        rules, _, revision = snapshot()
         projects = rules.get((context.subject, context.profile_id, device))
         if projects is None: raise ReadRefused('DENIED')
-        revision = hashlib.sha256(b'signal-grove-operator-policy-v1\0'
-                                  + document.version.encode('ascii') + document.data).hexdigest()
         return ReadGrant(revision, projects)
+
+    def resolve_attachment(context, session_id):
+        _, attachments, _ = snapshot()
+        attachment = attachments.get((context.subject, context.profile_id, session_id))
+        if attachment is None:
+            raise ReadRefused('DENIED')
+        return attachment
+
     service = CoordinatorReadService(authority, routes, grant=grant)
-    _rules(_document(reader), authority, service._routes)
+    snapshot()
+    service.attachments = AttachedWorkspaceReads(service, resolve_attachment)
     return service

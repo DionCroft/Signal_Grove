@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Session-bound worker read checkpoint
+
+The coordinator can derive one registered Windows workspace from a protected
+association with a currently followed Hermes chat. The isolated v0.23.1
+authority and native Windows pipe passed 10 new attachment checks in addition
+to the prior 13. The two fixture paths were distinct. A concurrent workspace
+move discarded the preview, and the obsolete lease was refused before the
+next worker call. The source preserves the v1 worker read API.
+Next, wire the followed Android viewer to the two attachment methods and
+verify reviewed read-only browsing through the authenticated owner path.
+[Validation](docs/VALIDATION.md#session-bound-worker-file-reads).
+
 ## Attached workspace and Windows read checkpoint
 
 A disposable Hermes v0.23.1 session applied and read back a workspace move.

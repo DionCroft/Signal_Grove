@@ -55,6 +55,36 @@ class PosixPolicyFileTest(unittest.TestCase):
         result=asyncio.run(self.service().describe(lambda:self.context,DEVICE))
         self.assertEqual(['fixture-project'],result['project_ids']);self.assertEqual(1,len(self.calls))
 
+    def test_attached_policy_uses_the_protected_file_and_discards_revoked_status(self):
+        from server_extensions.coordinator_workspaces.attached import FollowedWorkspace
+
+        cwd = str(self.directory / 'control')
+        root = r'E:\registered\fixture'
+        policy = json.loads(self.policy())
+        policy['schema'] = 2
+        policy['attachments'] = [{
+            'subject': self.context.subject,
+            'profile_id': self.context.profile_id,
+            'session_id': 'fixture-session',
+            'coordinator_cwd': cwd,
+            'device': DEVICE,
+            'project_id': 'fixture-project',
+            'worker_root': root,
+        }]
+        self.write(json.dumps(policy).encode())
+        attached = self.service().attachments
+        view = FollowedWorkspace(self.context, 'fixture-session', 'live-subscription', cwd, 1, 1)
+
+        status = asyncio.run(attached.describe(lambda: view))
+        self.assertEqual((root, ['fixture-project']), (status['root'], status['project_ids']))
+        self.edit = lambda: self.write(self.policy())  # Remove the attachment, retain the v1 grant.
+        with self.assertRaises(c.ReadRefused) as error:
+            asyncio.run(attached.describe(lambda: view))
+        self.assertEqual('DENIED', error.exception.code)
+        self.assertFalse(error.exception.request_submitted)
+        self.assertEqual(2, len(self.calls))
+
+
     def test_file_and_ancestor_permission_changes_refuse(self):
         path=self.write()
         for mode in (0o644,0o660,0o620):

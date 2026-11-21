@@ -1,5 +1,30 @@
 # Current development validation — audit follow-up
 
+## Session-bound worker file reads
+
+The optional coordinator now has two read methods for a followed chat with a
+protected session-to-project registration. The Windows root can differ from
+the Hermes working directory. Both paths were distinct in the isolated
+Hermes v0.23.1 and Windows named-pipe test. The worker described the enrolled
+project, proved its root at prepare, listed it and returned a 26-byte preview
+with the expected SHA-256. The confirmed attachment, revision, generation,
+operator grant and worker identity were checked before and after I/O.
+A real workspace move on a second owner connection discarded the in-flight
+preview. A later stale request was refused before the worker received it.
+The fixture also confirmed that a missing attachment, an unfollowed session,
+a non-operator, stale generation, and a raw worker token could not authorize
+a read. No prompt admission or worker execution record was created.
+[Contract and source review](contracts/2026-11-21-attached-workspace-reads.md).
+
+The native Windows harness passed 13 existing checks and 10 new attached-read
+checks. The 18 original native coordinator checks, 130 portable workspace tests
+and 72 Windows provider tests passed. The full local script suite ran 1,190
+tests with 273 platform or dependency skips, and the guarded installer preview
+matched the pinned source hash. The disposable Hermes profile logged expected
+auxiliary-provider credential warnings. The audit recorded no external
+network call or execution. The implementation is in the coordinator source.
+Android integration and the live Pi acceptance remain open.
+
 ## Attached workspace and Windows worker read checkpoint
 
 On Windows, the source-pinned Hermes v0.23.1 authority created and resumed a
