@@ -48,10 +48,12 @@ class PhoneHistorySearchUiTest {
         compose.onNodeWithTag("phone-history-search-text").performScrollTo().performTextInput("[花园.*]")
         compose.onNodeWithTag("phone-history-model-menu").performScrollTo().performClick()
         compose.onNodeWithTag("phone-history-model-${second.modelSha256}").performClick()
-        val dateMenu = compose.onNodeWithTag("phone-history-date-menu")
-        dateMenu.performScrollTo().assertIsDisplayed().assertTextEquals(Words.PhoneHistoryAnyDate.en).performClick()
-        compose.onNodeWithTag("phone-history-period-WEEK").assertIsDisplayed().performClick()
-        dateMenu.assertTextEquals(Words.PhoneHistoryLastWeek.en)
+        val anyDate = compose.onNodeWithTag("phone-history-period-ALL")
+        val lastWeek = compose.onNodeWithTag("phone-history-period-WEEK")
+        anyDate.performScrollTo().assertIsDisplayed().assertIsSelected()
+        lastWeek.performScrollTo().assertIsDisplayed().assertIsNotSelected().performClick()
+        lastWeek.assertIsSelected()
+        anyDate.assertIsNotSelected()
         assertTrue(searches.isEmpty()); val before = System.currentTimeMillis()
         compose.onNodeWithTag("phone-history-search-apply").assertIsDisplayed().assertIsEnabled().performClick()
         val after = System.currentTimeMillis(); assertEquals(1, searches.size)
@@ -91,6 +93,14 @@ class PhoneHistorySearchUiTest {
             assertTrue("Complete action must remain above the native IME", node.bottom + viewport.screenOffsetY <= viewport.visible.bottom)
             assertTrue(node.top + viewport.screenOffsetY >= viewport.visible.top)
         }
+        val lastWeek = compose.onNodeWithTag("phone-history-period-WEEK")
+        val row = lastWeek.performScrollTo().assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInRoot
+        assertTrue("Date choice must remain above the native IME", row.bottom + viewport.screenOffsetY <= viewport.visible.bottom)
+        assertTrue(row.top + viewport.screenOffsetY >= viewport.visible.top)
+        lastWeek.performTouchInput { click(center.copy(x = width * 0.75f)) }
+        lastWeek.assertIsSelected()
+        compose.onNodeWithTag("phone-history-period-ALL").assertIsNotSelected()
+        assertTrue(searches.isEmpty())
         compose.onNodeWithTag("phone-history-search-cancel").performClick()
         assertTrue(searches.isEmpty()); assertEquals(0, sends)
     }

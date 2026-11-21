@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Phone history date picker checkpoint
+
+The hosted Android 17 history test reported an undisplayed date option.
+The four date presets now stay in the scrollable form with full-width
+single-choice controls. Four history UI cases passed at standard and
+compact sizes on Android 8 and 17, including the visible keyboard with
+bilingual large text. The complete hosted matrix remains open.
+[Validation](docs/VALIDATION.md#phone-history-inline-date-choices).
+
 ## Native subagent recovery checkpoint
 
 On Windows, both current Hermes candidate pins passed the original-owner

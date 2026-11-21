@@ -1,5 +1,46 @@
 # Current development validation — audit follow-up
 
+## Phone history inline date choices
+
+The earlier Android 17 attached-workspace cohort passed 657 of 658 methods.
+The history search test found the Last week popup item undisplayed after
+entering a literal query and selecting a model. The installed pre-fix local
+APK passed two focused comparisons at the standard and compact emulator
+sizes. The cause of the hosted failure remains unconfirmed.
+[Hosted Android 17 result](https://github.com/DionCroft/Signal_Grove/actions/runs/44859078674/job/136713144328).
+
+The four date choices now sit inside the scrollable search form as one
+tappable radio group. The date calculation, literal text, selected model
+and explicit Search action retain their original behavior. The bilingual
+large-text case scrolls the Last week row into the actual keyboard viewport
+and taps across its label area. It confirms the new selection, preserves
+the visible Search and Cancel controls and cancels without issuing a query.
+The original contract still checks the one exact literal search, model
+filter and seven-day bounds.
+
+All four history UI methods passed on Android API 26 and 37 at both their
+standard settings and the established 900 × 1440 / 420 dpi compact viewport.
+Both guests returned to their original display settings. The same build
+passed all 1,213 JVM cases, both lint variants with zero errors and 50/49
+warnings, and both debug APK assemblies with the original debug signer.
+The initial Android 17 run passed the exact-query test. Its keyboard test
+lost dialog focus while the emulator launcher’s Application Not Responding
+dialog was active. The corrected run used the identical
+installed APK bytes after restoring launcher focus. The full hosted matrix
+for this revision is a separate gate.
+
+| APK | SHA-256 |
+| --- | --- |
+| Debug app | `ba55a984160d56a508af061ad100226dbeee5b05c202fcadd014cc2a7eac81c6` |
+| Debug instrumentation | `bdb9419288f34a69ceb050e848be30ff6782d75409164a82274f6f7d970e2382` |
+
+| Emulator | Instrumentation log SHA-256 |
+| --- | --- |
+| Android 8 standard | `be25b07fa4ae4c51b7555ca0c1ed2e6b1370c759a683839d591c8ac8575a49fa` |
+| Android 8 compact | `e83e484b39bf5fb10603350a9c58cf467d6318304b6015283bc2b8e08c399505` |
+| Android 17 standard | `2a83c771dc7b749cbe631a6c4fa1165cd5ba15689793f8b135fb6ddf49d2f931` |
+| Android 17 compact | `9371f5487aa46cb3d6825d590b5e27617e66e40875cb97b4aa87eb6f9eec9fdf` |
+
 ## Native recovery of an in-flight Hermes delegation
 
 The Windows gate exercised real Hermes background delegation, the full gateway

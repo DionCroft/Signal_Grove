@@ -4,14 +4,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -132,7 +136,6 @@ internal fun historyViewWord(view: LocalHistoryView) = when(view) {
     model: String?, chooseModel: (String?) -> Unit, period: PhoneHistoryPeriod, choosePeriod: (PhoneHistoryPeriod) -> Unit,
     search: (LocalHistoryQuery) -> Unit, close: () -> Unit) {
     var modelMenu by remember { mutableStateOf(false) }
-    var dateMenu by remember { mutableStateOf(false) }
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     val models = (state.history.map {it.modelSha256} + state.models.map {it.sha256} + listOfNotNull(model)).distinct().sorted()
@@ -169,21 +172,20 @@ internal fun historyViewWord(view: LocalHistoryView) = when(view) {
                         }
                     }
                     Text(label(Words.PhoneHistoryDate), style = MaterialTheme.typography.titleSmall)
-                    Box {
-                        OutlinedButton({
-                            focus.clearFocus()
-                            keyboard?.hide()
-                            dateMenu = true
-                        }, enabled = !state.busy, modifier = Modifier.testTag("phone-history-date-menu")) {
-                            Text(label(period.word))
-                        }
-                        DropdownMenu(dateMenu, { dateMenu = false }) {
-                            PhoneHistoryPeriod.entries.forEach { value ->
-                                DropdownMenuItem(
-                                    text = { Text(label(value.word)) },
-                                    onClick = { choosePeriod(value); dateMenu = false },
-                                    modifier = Modifier.testTag("phone-history-period-${value.name}")
-                                )
+                    Column(Modifier.selectableGroup()) {
+                        PhoneHistoryPeriod.entries.forEach { value ->
+                            val selected = period == value
+                            Row(
+                                Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("phone-history-period-${value.name}")
+                                    .selectable(selected = selected, enabled = !state.busy, role = Role.RadioButton) {
+                                        choosePeriod(value)
+                                    },
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                RadioButton(selected = selected, onClick = null, enabled = !state.busy)
+                                Text(label(value.word))
                             }
                         }
                     }
