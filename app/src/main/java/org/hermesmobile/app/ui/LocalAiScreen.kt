@@ -457,6 +457,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val full = (state.chat?.exchanges?.size ?: 0) >= LocalConversationStore.MAX_TURNS
     val budget = if (branchReview == null && continuation == null) rememberPhonePromptPreview(state, draft.trim(), actions) else null
     val contextFull = budget.blocksGeneration()
+    val source = state.chat
+    val selectEarlierTurns: (() -> Unit)? =
+        if (actions.continueWithSelectedTurns != null && source != null && source.exchanges.any { it.retainedForPrompt }) {
+            { continuation = PhoneContinuationReview(source, draft) }
+        } else null
     val copyDraft = actions.newChatWithDraft?.takeIf {
         !state.busy && loaded != null && state.chat?.hasSavedContent == true &&
             state.history.size < LocalConversationStore.MAX_CHATS && draft.isNotBlank()
@@ -480,9 +485,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 Icon(Icons.Outlined.MicNone, label(Words.PhoneVoice))
             }
         }
-        val source = state.chat
-        if (actions.continueWithSelectedTurns != null && source != null && source.exchanges.any { it.retainedForPrompt }) {
-            IconButton({ continuation = PhoneContinuationReview(source, draft) },
+        selectEarlierTurns?.let { select ->
+            IconButton({ openFromChat(select) },
                 enabled = !state.busy && state.history.size < LocalConversationStore.MAX_CHATS,
                 modifier = Modifier.testTag("phone-select-context")) {
                 Icon(Icons.Outlined.AccountTree, label(Words.PhoneSelectContext))
@@ -595,7 +599,10 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     }
     if (draft.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
     if (budget != null || (!state.busy && state.error == "engine_2")) {
-        PhonePromptUse(budget, state.error == "engine_2")
+        PhonePromptUse(budget, state.error == "engine_2",
+            reviewEarlierTurns = selectEarlierTurns?.takeIf {
+                !state.busy && state.history.size < LocalConversationStore.MAX_CHATS
+            }?.let { select -> { openFromChat(select) } })
     }
     if ((contextFull || full || state.error == "engine_2") && copyDraft != null) {
         TextButton(copyDraft, modifier = Modifier.testTag("phone-fresh-draft")) { Text(label(Words.PhoneUseDraftInNewChat)) }
@@ -614,10 +621,10 @@ private fun rememberPhonePromptPreview(state: LocalAiState, question: String, ac
     val preview = actions.previewPrompt ?: return null
     if (state.busy || state.chat?.let { it.modelSha256 != model.sha256 } == true ||
         question.isBlank() || question.toByteArray().size > 8192) return null
-    var result by remember(preview, state.chat, model, question, beforeExchange) {
+    var result by remember(preview, state.chat, model, state.loadedSettings, question, beforeExchange) {
         mutableStateOf<LocalPromptPreview?>(null)
     }
-    LaunchedEffect(preview, state.chat, model, question, beforeExchange) {
+    LaunchedEffect(preview, state.chat, model, state.loadedSettings, question, beforeExchange) {
         delay(300)
         result = preview(state.chat, model.sha256, question, beforeExchange)
     }
@@ -631,7 +638,8 @@ private fun LocalPromptPreview?.blocksGeneration() = when (this) {
 }
 
 @Composable
-internal fun PhonePromptUse(preview: LocalPromptPreview?, fallbackOverflow: Boolean = false) {
+internal fun PhonePromptUse(preview: LocalPromptPreview?, fallbackOverflow: Boolean = false,
+    reviewEarlierTurns: (() -> Unit)? = null) {
     var detail by remember { mutableStateOf(false) }
     when (preview) {
         is LocalPromptPreview.Exact -> {
@@ -650,7 +658,20 @@ internal fun PhonePromptUse(preview: LocalPromptPreview?, fallbackOverflow: Bool
                             .replace("{context}", budget.contextTokens.toString()))
                         Text(label(Words.PhoneContextRoom).replace("{remaining}", budget.remainingTokens.toString())
                             .replace("{reserved}", budget.reservedTokens.toString()), Modifier.testTag("phone-prompt-output-room"))
+                        val marginLabel = if (budget.fits) Words.PhoneContextInputFits else Words.PhoneContextInputExceeds
+                        Text(label(marginLabel).replace("{limit}", budget.inputTokenLimit.toString())
+                            .replace("{margin}", (if (budget.fits) budget.spareInputTokens else budget.excessInputTokens).toString()),
+                            Modifier.testTag("phone-prompt-input-margin"))
                         Text(label(Words.PhoneContextScope))
+                        PhonePromptComponents(preview.input)
+                    }
+                },
+                dismissButton = {
+                    if (reviewEarlierTurns != null) TextButton({
+                        detail = false
+                        reviewEarlierTurns()
+                    }, Modifier.testTag("phone-prompt-review-turns")) {
+                        Text(label(Words.PhoneSelectContext))
                     }
                 },
                 confirmButton = { TextButton({ detail = false }) { Text(label(Words.Close)) } })
@@ -661,6 +682,21 @@ internal fun PhonePromptUse(preview: LocalPromptPreview?, fallbackOverflow: Bool
         null -> if (fallbackOverflow) Text(label(Words.PhoneContextWouldOverflow), Modifier.testTag("phone-prompt-overflow"),
             color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
     }
+}
+
+@Composable
+private fun PhonePromptComponents(input: LocalPromptInput) {
+    Text(label(Words.PhoneContextComponents), style = MaterialTheme.typography.labelLarge)
+    Text(label(Words.PhoneContextComponentInstructions).replace("{bytes}", input.instructionBytes.toString()))
+    Text(label(Words.PhoneContextComponentHistory).replace("{turns}", input.historyTurns.toString())
+        .replace("{bytes}", input.historyBytes.toString()), Modifier.testTag("phone-prompt-history-size"))
+    if (input.summaryBytes > 0) {
+        Text(label(Words.PhoneContextComponentSummary).replace("{bytes}", input.summaryBytes.toString()))
+    }
+    if (input.profileBytes > 0) {
+        Text(label(Words.PhoneContextComponentProfile).replace("{bytes}", input.profileBytes.toString()))
+    }
+    Text(label(Words.PhoneContextComponentQuestion).replace("{bytes}", input.questionBytes.toString()))
 }
 
 private data class PhoneGenerationReview(val modelSha256: String, val settings: LocalGenerationSettings?)

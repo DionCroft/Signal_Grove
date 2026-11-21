@@ -525,9 +525,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             question.isBlank() || question.toByteArray().size > 8192) return@withLock LocalPromptPreview.Unavailable
         try {
             val rows = history() ?: return@withLock LocalPromptPreview.Unavailable
-            val messages = localChatPrompt(rows, question, reviewedSummary, profile?.context?.text)
-            val budget = measurePrompt(messages, generationSettings())
-            if (budget == null) LocalPromptPreview.Unavailable else LocalPromptPreview.Exact(budget)
+            val prompt = assembleLocalChatPrompt(rows, question, reviewedSummary, profile?.context?.text)
+            val budget = measurePrompt(prompt.messages, generationSettings())
+            if (budget == null) LocalPromptPreview.Unavailable else LocalPromptPreview.Exact(budget, prompt.describeInput())
         } catch (e: LocalEngineException) {
             if (e.code == 2) LocalPromptPreview.TooLarge else LocalPromptPreview.Unavailable
         } catch (_: IllegalArgumentException) {

@@ -1,9 +1,19 @@
 # Signal Grove project state
 
-21 November 2026. The full goal is **active**. Fix UI blockers first, then OF-01
-through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
-[full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
-retain every original requirement.
+21 November 2026. The full goal is **active**. The owner approved the order:
+phone context and request review, measured larger windows and Hermes-reported
+context, then verified workspace attachment, project approvals and scheduling.
+The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
+[offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
+requirements. Commit and push tested chunks.
+
+## Phone context review
+
+The request review reports exact formatted tokens against the active input
+budget and gives the pre-format byte sizes for each included part. Earlier turns
+opens the existing continuation review with the unsent draft. Larger windows
+remain a separate experiment with pinned LFM3 on the Xiaomi.
+[Context guide](docs/ON_DEVICE_AI.md#check-how-much-context-your-phone-model-has).
 
 ## Beta.10 release checkpoint
 

@@ -325,11 +325,17 @@ model to send a new question. Creating the copy sends nothing.
 
 ## Check how much context your phone model has
 
-On the development branch, load a model and enter a draft. The chat composer
-shows the number of prompt tokens used and the loaded context capacity. Tap
-the count to see how many output tokens remain and how many the current request
-reserves. The count includes the model template, special tokens and eligible
-earlier turns. The output reservation covers both reasoning and the reply.
+Load a model and enter a draft. The chat composer shows the number of prompt
+tokens used and the loaded context capacity. Tap the count to see the input
+limit, remaining room or overage, and the current output reserve. The exact
+prompt count includes the model template and special tokens. Reasoning and reply
+share the output reserve.
+
+The development build also shows the UTF-8 size of each part before model
+formatting. The breakdown includes instructions, eligible earlier turns,
+reviewed summary and chosen profile context when present, and the current
+question. Tap **Earlier turns** in the review to check a selection and carry
+the draft into a separate chat. The review itself submits nothing.
 
 If the prompt leaves too little room, shorten the question or open a larger
 supported context. **Use draft in new chat** copies the text into a new unsent

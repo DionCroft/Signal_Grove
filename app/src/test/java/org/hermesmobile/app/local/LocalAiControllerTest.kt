@@ -978,6 +978,24 @@ class LocalAiControllerTest {
         assertEquals(second.sha256, controller.state.value.chat!!.modelSha256); assertEquals(2, engine.requests.size)
         controller.leave(); advanceUntilIdle()
     }
+    @Test fun promptBreakdownCountsOnlyIncludedContentBeforeFormatting() {
+        val earlier = LocalExchange("早上好", "你好 🌱", LocalReplyState.COMPLETE)
+        val interrupted = LocalExchange("Excluded draft", "Partial", LocalReplyState.INTERRUPTED)
+        val question = "今天天气如何？"
+        val prompt = assembleLocalChatPrompt(listOf(earlier, interrupted), question, "Summary 草", "Profile 语")
+        val input = prompt.describeInput()
+
+        assertEquals(1, input.historyTurns)
+        assertEquals((earlier.question + earlier.reply).toByteArray().size, input.historyBytes)
+        assertEquals(question.toByteArray().size, input.questionBytes)
+        assertEquals("Reviewed conversation summary:\nSummary 草\n\nQuestion:\n".toByteArray().size, input.summaryBytes)
+        assertEquals("Phone profile context explicitly chosen for this question:\nProfile 语\n\nQuestion:\n".toByteArray().size,
+            input.profileBytes)
+        assertEquals(prompt.messages.sumOf { it.text.toByteArray().size },
+            input.instructionBytes + input.historyBytes + input.summaryBytes + input.profileBytes + input.questionBytes)
+        assertFalse(prompt.messages.any { "Excluded draft" in it.text || "Partial" in it.text })
+    }
+
     @Test fun exactPromptBudgetReservesOutputAndRejectsOverflowBeforePublishing() = runTest {
         val root = temp.newFolder()
         val model = model(root)
@@ -989,8 +1007,13 @@ class LocalAiControllerTest {
         advanceUntilIdle()
         engine.promptTokens = 2048 - 384 + 1
         val rejected = controller.previewPrompt(null, model.sha256, "Preserve this draft")
-        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(1665, 2048, 384)), rejected)
-        assertFalse((rejected as LocalPromptPreview.Exact).budget.fits)
+        val details = rejected as LocalPromptPreview.Exact
+        assertEquals(LocalPromptBudget(1665, 2048, 384), details.budget)
+        assertEquals(1664, details.budget.inputTokenLimit)
+        assertEquals(1, details.budget.excessInputTokens)
+        assertFalse(details.budget.fits)
+        assertEquals(0, details.input.historyTurns)
+        assertEquals("Preserve this draft".toByteArray().size, details.input.questionBytes)
         var published = 0
         controller.send("Preserve this draft") { published++ }
         advanceUntilIdle()
@@ -1001,6 +1024,9 @@ class LocalAiControllerTest {
         assertEquals(0, published)
 
         engine.promptTokens = 2048 - 384
+        val exactFit = controller.previewPrompt(null, model.sha256, "Preserve this draft") as LocalPromptPreview.Exact
+        assertTrue(exactFit.budget.fits)
+        assertEquals(0, exactFit.budget.spareInputTokens)
         controller.send("Preserve this draft") { published++ }
         advanceUntilIdle()
         assertEquals(1, published)
@@ -1032,7 +1058,10 @@ class LocalAiControllerTest {
         advanceUntilIdle()
         engine.promptTokens = 2000
         val preview = controller.previewPrompt(source, model.sha256, "Edited question", beforeExchange = 2)
-        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(2000, 2048, 384)), preview)
+        val details = preview as LocalPromptPreview.Exact
+        assertEquals(LocalPromptBudget(2000, 2048, 384), details.budget)
+        assertEquals(1, details.input.historyTurns)
+        assertEquals("Earlier questionEarlier answer".toByteArray().size, details.input.historyBytes)
         controller.branch(source, 2, LocalBranchKind.EDIT, "Edited question") { error("Overflow published a child") }
         advanceUntilIdle()
         assertEquals("engine_2", controller.state.value.error)
@@ -1075,7 +1104,7 @@ class LocalAiControllerTest {
         advanceUntilIdle()
         val selection = mutableListOf(0, 2)
         val preview = controller.previewSelectedPrompt(source, selection, "Unsent draft")
-        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(80, 2048, 384)), preview)
+        assertEquals(LocalPromptBudget(80, 2048, 384), (preview as LocalPromptPreview.Exact).budget)
         val reviewedMessages = engine.measured.single()
         assertEquals(LocalPromptPreview.Unavailable,
             controller.previewSelectedPrompt(source, listOf(1), "Unsent draft"))
@@ -1136,7 +1165,7 @@ class LocalAiControllerTest {
         val approved = "I checked the notes. Continue the garden work 🌱."
         val next = "What should we do next?"
         val preview = controller.previewSummaryPrompt(source, approved, next)
-        assertEquals(LocalPromptPreview.Exact(LocalPromptBudget(80, 2048, 384)), preview)
+        assertEquals(LocalPromptBudget(80, 2048, 384), (preview as LocalPromptPreview.Exact).budget)
         val reviewedPrompt = engine.measured.last()
         var child: LocalConversation? = null
         controller.continueWithReviewedSummary(source, listOf(0, 2), approved) { child = it }

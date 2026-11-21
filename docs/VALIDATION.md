@@ -1,5 +1,32 @@
 # Current development validation — audit follow-up
 
+## Phone context review and request budget
+
+The first context chunk keeps exact formatted prompt counts and the native
+admission guard. The review shows the active input ceiling, output reserve,
+remaining input room or overflow, and separately labeled pre-format UTF-8 sizes.
+Earlier turns opens the existing continuation review with a copyable draft
+and makes no submission. Multibyte questions and notes, omitted interrupted
+turns, branch prefixes, exact fit and one-token overflow have JVM assertions.
+
+The frozen application and companion produced **1,204 passing JVM tests**,
+successful debug/release lint and both APKs. The exact APK pair passed all
+**18 LocalChatActionsUiTest cases** on each of Android 8 and 17. They cover
+the budget overflow and Earlier turns review, draft/parent preservation,
+and large bilingual text. The debug app and companion APK SHA-256 digests are
+`031052f7b60e04d5c6d5c574c6c6cdc6a723527244c856d8a6895f2c5e0bfe6a`
+and `6c6f5c0d379c231fbd80776a62a9b2f70d58d38c0ab6a4574d784652dd67bfd3`.
+
+The optional real LFM3 Android 17 check used the verified model bytes and
+confirmed there was no active default network. It hit its 120-second
+deadline before emitting a boundary result. The current receipt does not
+distinguish model load from exact-fit generation. Earlier failed staging
+attempts left an empty directory and a 68,658-byte partial. A fresh ADB
+sync copy and its private copy both matched the pinned size and SHA-256.
+The emulator's radio state and a connected default network were verified
+after the test. Native qualification, the Xiaomi 8K/16K experiment and
+the signed release are open.
+
 ## Published beta.10 release verification
 
 Source d651a33c460515bb6652db69fb4ce1c88db1a11d is the exact tagged build. The standard Android matrix

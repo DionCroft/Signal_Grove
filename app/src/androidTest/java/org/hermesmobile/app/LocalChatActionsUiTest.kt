@@ -52,17 +52,38 @@ class LocalChatActionsUiTest {
             assertEquals(hash, modelHash)
             assertEquals("Unsent parent draft", question)
             assertNull(index)
-            LocalPromptPreview.Exact(LocalPromptBudget(1792, 2048, 384))
+            LocalPromptPreview.Exact(LocalPromptBudget(1792, 2048, 384),
+                LocalPromptInput(180, 31, 1, 0, 0, question.toByteArray().size))
         }, copyDraft = { freshDraft = draft })
         compose.waitUntil(5000) { compose.onAllNodesWithTag("phone-prompt-overflow").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithTag("phone-send").assertIsNotEnabled()
         compose.onNodeWithTag("phone-prompt-budget").performClick()
         compose.onNodeWithTag("phone-prompt-output-room").assertTextEquals("256 tokens available for output. This request reserves 384.")
+        compose.onNodeWithTag("phone-prompt-input-margin").assertTextEquals("Input limit 1664 tokens. This prompt is 128 over.")
+        compose.onNodeWithTag("phone-prompt-history-size").performScrollTo()
+            .assertTextEquals("Earlier turns included · 1 (31 bytes)")
         compose.onNodeWithText(Words.Close.en).performClick()
         compose.onNodeWithTag("phone-fresh-draft").performClick()
         assertEquals("Unsent parent draft", freshDraft)
         assertEquals("Unsent parent draft", draft)
         assertEquals(0, sends)
+    }
+
+    @Test fun contextReviewOpensEarlierTurnsWithoutSubmittingOrChangingTheDraft() {
+        var copied = false
+        show(bilingual = true, preview = { _, _, question, _ ->
+            LocalPromptPreview.Exact(LocalPromptBudget(1700, 2048, 384),
+                LocalPromptInput(180, 31, 1, 0, 0, question.toByteArray().size))
+        }, continuation = { _, _, _, _ -> copied = true })
+        compose.waitUntil(5000) { compose.onAllNodesWithTag("phone-prompt-budget").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("phone-prompt-budget").performClick()
+        compose.onNodeWithTag("phone-prompt-review-turns").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-context-selection").assertIsDisplayed()
+        compose.onNodeWithTag("phone-context-confirm").assertIsNotEnabled()
+        assertFalse(copied)
+        assertEquals(0, sends)
+        assertEquals("Unsent parent draft", draft)
+        assertEquals(original, state.chat)
     }
 
     @Test fun summaryOnlyOverflowCanCarryDraftToFreshChat() {
