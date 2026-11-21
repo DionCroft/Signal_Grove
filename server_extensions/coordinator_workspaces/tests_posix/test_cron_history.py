@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from server_extensions.coordinator_workspaces import cron_history, cron_output
+from server_extensions.coordinator_workspaces import cron_history, cron_output, cron_run_once
 from server_extensions.coordinator_workspaces.coordinator import ReadRefused
 
 JOB = 'f1e2d3c4b5a6'
@@ -45,13 +45,13 @@ class CronHistoryPosixTest(unittest.TestCase):
         db.execute('PRAGMA wal_autocheckpoint=0')
         db.execute('''CREATE TABLE executions (
             id TEXT PRIMARY KEY, job_id TEXT NOT NULL, status TEXT NOT NULL, claimed_at TEXT NOT NULL,
-            started_at TEXT, finished_at TEXT, scheduled_instant TEXT, delivery_outcome TEXT, error TEXT
+            started_at TEXT, finished_at TEXT, scheduled_instant TEXT, delivery_outcome TEXT, error TEXT, source TEXT
         )''')
         return db
 
-    def add(self, db, receipt=RECEIPT, job=JOB, status='completed', claimed=UTC):
-        db.execute('INSERT INTO executions VALUES (?, ?, ?, ?, NULL, NULL, NULL, ?, ?)',
-                   (receipt, job, status, claimed, 'delivered', 'private diagnostic'))
+    def add(self, db, receipt=RECEIPT, job=JOB, status='completed', claimed=UTC, source='tick'):
+        db.execute('INSERT INTO executions VALUES (?, ?, ?, ?, NULL, NULL, NULL, ?, ?, ?)',
+                   (receipt, job, status, claimed, 'delivered', 'private diagnostic', source))
         db.commit()
 
     def expect(self, code, call):
@@ -92,6 +92,29 @@ class CronHistoryPosixTest(unittest.TestCase):
             self.assertEqual([OTHER_RECEIPT], [row['execution_id'] for row in current['attempts']])
             self.expect('NOT_FOUND', lambda: cron_history.read_executions(
                 self.home, replace(self.query, execution_id='3' * 32)))
+
+    def test_reviewed_manual_observation_is_original_and_survives_job_removal(self):
+        target = {'expected_profile': 'default', 'job_id': JOB, 'request_id': RECEIPT}
+        original = cron_run_once.run_once_receipt_query(target)
+        same_id = original.execution_id()
+        with closing(self.open_ledger(self.home)) as own, closing(self.open_ledger(self.other_home)) as other:
+            self.add(own, same_id, source='dashboard')
+            self.add(other, same_id, source=cron_run_once.RUN_ONCE_SOURCE)
+            self.expect('NOT_FOUND', lambda: cron_run_once.observe_run_once(self.home, original))
+
+            own.execute('UPDATE executions SET source=?, status=? WHERE id=?',
+                        (cron_run_once.RUN_ONCE_SOURCE, 'unknown', same_id))
+            own.commit()
+            self.catalog(self.home, [])
+            before = self.protected(self.home)
+            value = cron_run_once.observe_run_once(self.home, original)
+            self.assertEqual(('default', JOB, RECEIPT), (value['profile'], value['job_id'], value['request_id']))
+            self.assertEqual((same_id, 'unknown'), (value['execution']['execution_id'], value['execution']['status']))
+            self.assertEqual(before, self.protected(self.home))
+            self.assertNotIn('private diagnostic', str(value))
+            for change in ({'request_id': OTHER_RECEIPT}, {'job_id': OTHER_JOB}, {'expected_profile': 'secondary'}):
+                lookup = cron_run_once.run_once_receipt_query(target | change)
+                self.expect('NOT_FOUND', lambda: cron_run_once.observe_run_once(self.home, lookup))
 
     def test_name_alias_and_duplicate_ids_cannot_authorize_a_read(self):
         self.catalog(self.home, [{'id': OTHER_JOB, 'name': JOB}])
@@ -140,8 +163,8 @@ class CronHistoryPosixTest(unittest.TestCase):
         with closing(self.open_ledger(self.home)) as db:
             self.add(db)
 
-            def changed(parent, query):
-                result = read_ledger(parent, query)
+            def changed(parent, query, **kwargs):
+                result = read_ledger(parent, query, **kwargs)
                 target = self.home / 'cron' / 'jobs.json'
                 candidate = target.with_name('updated.json')
                 candidate.write_text(json.dumps({'jobs': [{'id': JOB, 'enabled': False}]}), encoding='utf-8')

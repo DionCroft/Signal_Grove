@@ -12,7 +12,10 @@ from server_extensions.coordinator_workspaces.cron_edit import edit_query
 from server_extensions.coordinator_workspaces.cron_history import execution_query, read_executions
 from server_extensions.coordinator_workspaces.coordinator import ReadRefused
 from server_extensions.coordinator_workspaces.cron_output import bind_output, output_query, read_output
-from server_extensions.coordinator_workspaces.install_adapter import patch_scheduler_output, prepare
+from server_extensions.coordinator_workspaces.cron_run_once import run_once_receipt_query
+from server_extensions.coordinator_workspaces.install_adapter import (
+    patch_cron_execution_reservation, patch_scheduler_output, prepare,
+)
 
 
 class CronHistoryQueryTest(unittest.TestCase):
@@ -95,6 +98,46 @@ class CronHistoryQueryTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepare(path, "0" * 64, patch_scheduler_output)
 
+
+    def test_manual_receipt_identity_is_stable_and_bound_to_the_original_request(self):
+        target = dict(expected_profile="worker", job_id="calendar-job", request_id="3" * 32)
+        receipt = run_once_receipt_query(target)
+        self.assertRegex(receipt.execution_id(), r"^[a-f0-9]{32}$")
+        self.assertEqual(receipt.execution_id(), run_once_receipt_query(dict(reversed(list(target.items())))).execution_id())
+        for change in ({"expected_profile": "other"}, {"job_id": "other"}, {"request_id": "4" * 32}):
+            other = run_once_receipt_query(target | change)
+            self.assertNotEqual(receipt.execution_id(), other.execution_id())
+        for invalid in (target | {"profile": "other"}, target | {"execution_id": "5" * 32},
+                        target | {"request_id": "F" * 32}, target | {"job_id": "unknown"},
+                        target | {"expected_profile": "all"}, {"expected_profile": "worker", "job_id": "calendar-job"}):
+            with self.assertRaises(ReadRefused) as raised:
+                run_once_receipt_query(invalid)
+            self.assertEqual("INVALID", raised.exception.code)
+
+    def test_execution_reservation_changes_only_the_reviewed_creator(self):
+        source = """class Store: pass
+
+def create_execution(
+    job_id: str, *, source: str, scheduled_instant: Optional[str] = None,
+) -> dict[str, Any]:
+    execution_id = uuid.uuid4().hex
+    return owner_transaction(job_id, source, scheduled_instant, execution_id)
+
+def set_execution_occurrence():
+    return production_body()
+"""
+        original = ast.parse(source)
+        patched = patch_cron_execution_reservation(source)
+        updated = ast.parse(patched)
+        for index in (0, 2):
+            self.assertEqual(ast.dump(original.body[index]), ast.dump(updated.body[index]))
+        self.assertEqual(ast.dump(original.body[1].body[-1]), ast.dump(updated.body[1].body[-1]))
+        self.assertEqual(["source", "scheduled_instant", "reviewed_id"],
+                         [param.arg for param in updated.body[1].args.kwonlyargs])
+        with self.assertRaises(ValueError):
+            patch_cron_execution_reservation(patched)
+        with self.assertRaises(ValueError):
+            patch_cron_execution_reservation(source.replace("uuid.uuid4().hex", "random_identity()"))
 
     def test_schedule_edit_accepts_only_exact_scope_review_and_timing_changes(self):
         target = dict(expected_profile="worker", job_id="calendar-job")

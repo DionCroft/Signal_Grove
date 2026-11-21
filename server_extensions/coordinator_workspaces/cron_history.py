@@ -121,7 +121,7 @@ def _project(row):
     }
 
 
-def _read_ledger(parent, query):
+def _read_ledger(parent, query, *, required_source=None):
     identity = _ledger_identity(parent, _LEDGER)
     sidecars = {name: _ledger_identity(parent, name) for name in (_LEDGER + '-wal', _LEDGER + '-shm')}
     if identity is None:
@@ -138,6 +138,9 @@ def _read_ledger(parent, query):
     if query.execution_id is not None:
         statement += ' AND id = ?'
         args.append(query.execution_id)
+    if required_source is not None:
+        statement += ' AND source = ?'
+        args.append(required_source)
     statement += ' ORDER BY julianday(claimed_at) DESC, claimed_at DESC, id DESC LIMIT ?'
     args.append(query.limit + 1)
     end = time.monotonic() + 0.25
@@ -156,17 +159,19 @@ def _read_ledger(parent, query):
     return 'available', [_project(row) for row in rows[:query.limit]], len(rows) > query.limit
 
 
-def read_executions(home, query):
+def read_executions(home, query, *, required_source=None):
     """Use only the native authority's current home and the exact canonical job ID."""
     if sys.platform != 'linux':
         raise ReadRefused('UNSUPPORTED')
+    if required_source is not None and query.execution_id is None:
+        raise ReadRefused('INVALID')
     try:
         root = Path(home) / 'cron'
         with open_owner_directory(root) as parent:
             # A saved one-shot can remove itself after completion. Its exact
             # execution ID and job ID still bind the receipt in this profile.
             original = _catalog(parent, query.job_id) if query.execution_id is None else None
-            ledger, attempts, limited = _read_ledger(parent, query)
+            ledger, attempts, limited = _read_ledger(parent, query, required_source=required_source)
             with open_owner_directory(root) as current:
                 if _disk_identity(os.fstat(parent)) != _disk_identity(os.fstat(current)):
                     raise ReadRefused('CHANGED')

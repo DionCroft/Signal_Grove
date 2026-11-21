@@ -1,5 +1,42 @@
 # Current development validation — audit follow-up
 
+## Native original Run once receipts
+
+The optional native ledger hook accepts a reserved execution ID for the
+reviewed manual source and no scheduled occurrence. The existing SQLite
+primary key refuses a second claim for the same ID while the row is retained.
+The observer derives the execution ID from the validated original request and
+reads by canonical job, profile and reserved source. A missing row leaves the
+outcome unresolved. The observer requires the original authenticated owner
+scope and uses the existing protected receipt reader.
+[Wire and staging contract](../server_extensions/coordinator_workspaces/README.md#optional-native-run-once-receipts).
+
+Git-verified v0.23.1 and main `242315c` each preserved one original native row when
+two inserts competed. A fresh process recovered it and SQLite refused another
+insert with the same ID. Ordinary attempts continued to receive independent
+IDs. Malformed reviewed IDs, a mixed source and a scheduled instant were
+refused. All 24 upstream execution-ledger tests passed on each pin, including
+the exact restart case. The first upstream harness denied the restart
+subprocess. The corrected fixture authorizes only that test's two subprocess
+snippets, loads the patched store in them and keeps their state on E:.
+
+The v0.23.1 installer preview and apply agreed. Bad hashes and repeated
+apply were refused. The main execution module passed the native tests with
+its verified hook applied in isolation. The existing full main installer refused
+the changed gateway source anchors before staging, so main gateway acceptance
+remains open. Both native Windows benches used SQLite's selected DELETE
+journal mode. Linux protected WAL observation has a dedicated fixture in the
+hosted suite.
+
+The pinned stable native dispatcher passed 26 cases with empty session and
+worker execution stores, including the original request observation, a
+foreign profile, insufficient capability and routed parameters. The portable
+policy suite discovered 1,207 tests with zero failures and 273 platform or
+fixture skips. The next stage needs to claim, execute and settle a reviewed
+manual run while preserving its schedule and repeat budget. Project approval
+consumption, live Pi validation and release remain open.
+[Upstream execution ledger](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/cron/executions.py).
+
 ## Android review and recovery for paused schedules
 
 The Android schedule details screen opens a timing editor for a paused job

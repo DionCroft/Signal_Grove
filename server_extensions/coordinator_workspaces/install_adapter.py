@@ -12,7 +12,8 @@ import stat
 import textwrap
 
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
-         'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py')
+         'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
+         'cron_run_once.py')
 
 
 def patch_source(source):
@@ -100,6 +101,27 @@ def patch_cron_edit(source):
     return result
 
 
+def patch_cron_execution_reservation(source):
+    start = source.index('def create_execution(\n')
+    end = source.index('\ndef set_execution_occurrence(', start)
+    section = source[start:end]
+    signature = '    job_id: str, *, source: str, scheduled_instant: Optional[str] = None,\n'
+    identity = '    execution_id = uuid.uuid4().hex\n'
+    if section.count(signature) != 1 or section.count(identity) != 1:
+        raise ValueError('Native execution admission differs from reviewed anchors.')
+    section = section.replace(signature, signature + '    reviewed_id: Optional[str] = None,\n')
+    section = section.replace(identity, '''    if source == "signal-grove-run-once-v1" or reviewed_id is not None:
+        if (source != "signal-grove-run-once-v1" or scheduled_instant is not None
+                or type(reviewed_id) is not str or len(reviewed_id) != 32
+                or any(char not in "0123456789abcdef" for char in reviewed_id)):
+            raise ValueError("Malformed reviewed manual execution.")
+    execution_id = reviewed_id if reviewed_id is not None else uuid.uuid4().hex
+''')
+    updated = source[:start] + section + source[end:]
+    ast.parse(updated)
+    return updated
+
+
 def prepare(path, expected_hash, patch):
     raw = path.read_bytes()
     if hashlib.sha256(raw).hexdigest() != expected_hash:
@@ -116,6 +138,8 @@ def main():
     parser.add_argument('--expected-controls-sha256',required=True)
     parser.add_argument('--expected-scheduler-sha256', help='Also bind owned output in this reviewed runtime generation.')
     parser.add_argument('--expected-cron-jobs-sha256', help='Also stage the strict paused scheduler edit hook.')
+    parser.add_argument('--expected-cron-executions-sha256',
+                        help='Also stage the reviewed native manual execution ID hook.')
     parser.add_argument('--apply',action='store_true')
     args=parser.parse_args()
     source=args.runtime_root/'gateway/session_controls.py'
@@ -128,6 +152,10 @@ def main():
         jobs = args.runtime_root / 'cron/jobs.py'
         updates.append((jobs, args.expected_cron_jobs_sha256,
                         prepare(jobs, args.expected_cron_jobs_sha256, patch_cron_edit)))
+    if args.expected_cron_executions_sha256 is not None:
+        executions = args.runtime_root / 'cron/executions.py'
+        expected = args.expected_cron_executions_sha256
+        updates.append((executions, expected, prepare(executions, expected, patch_cron_execution_reservation)))
     modules={name:Path(__file__).with_name(name).read_bytes() for name in FILES}
     for value in modules.values(): ast.parse(value)
     target=source.parent/'signal_grove_workspaces'

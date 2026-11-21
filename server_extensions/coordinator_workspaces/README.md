@@ -37,6 +37,25 @@ edit was never made. A change to any job expires an earlier
 review of the shared catalogue.
 [Validation](../../docs/VALIDATION.md#strict-paused-schedule-editing-source).
 
+## Optional native Run once receipts
+
+The original request is addressed with `signal_grove.cron.run_once_observe_v1` and
+`{expected_profile, job_id, request_id}`. The authenticated owner profile
+must match `expected_profile`. The profile, job and request derive
+one opaque native execution ID. The protected ledger lookup requires that
+ID, the canonical job and the reserved Run once source. It returns the
+profile, job, original request and exact execution status while the row
+is retained. It can still read a receipt after the job is removed.
+
+The optional `--expected-cron-executions-sha256` stages the reviewed native
+execution-ID hook. The hook uses the existing SQLite transaction and
+primary key. It reserves an out-of-schedule claim for the reviewed source.
+A missing or expired receipt is insufficient to determine the outcome.
+This source checkpoint provides receipt identity and observation. Manual
+admission, pause-preserving settlement and approval consumption are
+pending.
+[Validation](../../docs/VALIDATION.md#native-original-run-once-receipts).
+
 ## Optional native scheduled output previews
 
 `signal_grove.cron.output_v1` takes `{expected_profile, job_id, execution_id}`.

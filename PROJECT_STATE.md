@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native Run once receipt checkpoint
+
+An optional native execution ID binds a reviewed manual request to one
+retained Hermes ledger row. The authenticated observation route reads that
+original row by request, canonical job and profile. Both pinned native
+execution stores passed the competing insert and fresh-process proof, plus
+24 upstream ledger tests each. The stable dispatcher passed its 26-case
+fixture. The remaining Run once stage needs a pause-preserving native claim
+and settlement, exact one-run approval, and a verified dispatch path.
+[Validation](docs/VALIDATION.md#native-original-run-once-receipts).
+
 ## Android review and recovery for paused schedules
 
 Schedule details now open a paused-job timing editor with native before-and-after

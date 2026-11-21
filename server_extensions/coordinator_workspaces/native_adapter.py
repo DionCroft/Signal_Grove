@@ -15,6 +15,7 @@ from .coordinator import CoordinatorReadService, NativeReadContext, ReadRefused,
 from .cron_edit import apply_edit, edit_query, observe_edit, prepare_edit, review_edit
 from .cron_history import execution_query, read_executions
 from .cron_output import output_query, read_output
+from .cron_run_once import observe_run_once, run_once_receipt_query
 
 DESCRIBE = 'signal_grove.workspaces.describe_v1'
 READ = 'signal_grove.workspaces.read_v1'
@@ -26,6 +27,7 @@ CRON_EDIT_PREPARE = 'signal_grove.cron.edit_prepare_v1'
 CRON_EDIT_REVIEW = 'signal_grove.cron.edit_review_v1'
 CRON_EDIT_APPLY = 'signal_grove.cron.edit_apply_v1'
 CRON_EDIT_OBSERVE = 'signal_grove.cron.edit_observe_v1'
+CRON_RUN_ONCE_OBSERVE = 'signal_grove.cron.run_once_observe_v1'
 
 
 class DescribeParams(Params):
@@ -69,6 +71,12 @@ class CronEditPrepareParams(Params):
 
 
 class CronEditObserveParams(CronEditPrepareParams):
+    request_id: str
+
+
+class CronRunOnceObserveParams(Params):
+    expected_profile: str
+    job_id: str
     request_id: str
 
 
@@ -116,6 +124,10 @@ canonical_method(CRON_EDIT_APPLY, params=CronEditApplyParams, result=ReadResult,
                  doc='Apply one exact approved timing edit while the canonical job is paused.')
 canonical_method(CRON_EDIT_OBSERVE, params=CronEditObserveParams, result=ReadResult,
                  doc='Observe a retained timing edit receipt without submitting work.')
+
+
+canonical_method(CRON_RUN_ONCE_OBSERVE, params=CronRunOnceObserveParams, result=ReadResult,
+                 doc='Observe the original reviewed manual execution using its request ID.')
 
 
 def _identity_instance_matches(connection):
@@ -292,6 +304,9 @@ def handlers(connection):
             return dict(schema=1, state='error', code=exc.code,
                         request_submitted=committed or exc.request_submitted)
 
+    async def run_once_observe(ref, params):
+        return await scheduler_read(params, run_once_receipt_query, observe_run_once)
+
     async def executions(ref, params): return await scheduler_read(params, execution_query, read_executions)
     async def output(ref, params): return await scheduler_read(params, output_query, read_output)
     async def describe(ref, params): return await invoke(ref, params, reading=False)
@@ -301,4 +316,4 @@ def handlers(connection):
     return {DESCRIBE:describe, READ:read, DESCRIBE_ATTACHED:describe_attached, READ_ATTACHED:read_attached,
             CRON_EXECUTIONS:executions, CRON_OUTPUT:output,
             CRON_EDIT_PREPARE:schedule_prepare, CRON_EDIT_REVIEW:schedule_review, CRON_EDIT_OBSERVE:schedule_observe,
-            CRON_EDIT_APPLY:schedule_apply}
+            CRON_EDIT_APPLY:schedule_apply, CRON_RUN_ONCE_OBSERVE:run_once_observe}
