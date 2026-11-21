@@ -7,15 +7,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -135,9 +138,8 @@ internal fun historyViewWord(view: LocalHistoryView) = when(view) {
     text: String, change: (String) -> Unit,
     model: String?, chooseModel: (String?) -> Unit, period: PhoneHistoryPeriod, choosePeriod: (PhoneHistoryPeriod) -> Unit,
     search: (LocalHistoryQuery) -> Unit, close: () -> Unit) {
-    var modelMenu by remember { mutableStateOf(false) }
-    val focus = LocalFocusManager.current
-    val keyboard = LocalSoftwareKeyboardController.current
+    var modelExpanded by rememberSaveable { mutableStateOf(false) }
+    val modelChoicesState = label(if (modelExpanded) Words.PhoneHistoryModelChoicesExpanded else Words.PhoneHistoryModelChoicesCollapsed)
     val models = (state.history.map {it.modelSha256} + state.models.map {it.sha256} + listOfNotNull(model)).distinct().sorted()
     fun modelLabel(hash: String) = state.models.firstOrNull {it.sha256 == hash}?.metadata?.name
         ?.filter { !it.isISOControl() }?.take(80)?.let {"$it · ${hash.take(12)}"} ?: hash.take(12)
@@ -156,36 +158,34 @@ internal fun historyViewWord(view: LocalHistoryView) = when(view) {
                         label = {Text(label(historyViewWord(value)))}, enabled = !state.busy,
                         modifier = Modifier.testTag("phone-history-view-${value.name}")) }
                     Text(label(Words.PhoneHistoryModel), style = MaterialTheme.typography.titleSmall)
-                    Box {
-                        OutlinedButton({
-                            focus.clearFocus()
-                            keyboard?.hide()
-                            modelMenu = true
-                        }, enabled = !state.busy, modifier = Modifier.testTag("phone-history-model-menu")) {
-                            Text(model?.let(::modelLabel) ?: label(Words.PhoneHistoryAllModels))
-                        }
-                        DropdownMenu(modelMenu, {modelMenu = false}) {
-                            DropdownMenuItem(text = {Text(label(Words.PhoneHistoryAllModels))}, onClick = {chooseModel(null); modelMenu = false},
-                                modifier = Modifier.testTag("phone-history-model-all"))
-                            models.forEach {hash -> DropdownMenuItem(text = {Text(modelLabel(hash))}, onClick = {chooseModel(hash); modelMenu = false},
-                                modifier = Modifier.testTag("phone-history-model-$hash")) }
+                    OutlinedButton(
+                        onClick = { modelExpanded = !modelExpanded },
+                        enabled = !state.busy,
+                        modifier = Modifier.fillMaxWidth().testTag("phone-history-model-menu")
+                            .semantics { stateDescription = modelChoicesState },
+                    ) {
+                        Text(model?.let(::modelLabel) ?: label(Words.PhoneHistoryAllModels), Modifier.weight(1f))
+                        Icon(if (modelExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                    }
+                    if (modelExpanded) {
+                        Column(Modifier.selectableGroup()) {
+                            PhoneHistoryFilterChoice(label(Words.PhoneHistoryAllModels), model == null, !state.busy, "phone-history-model-all") {
+                                chooseModel(null)
+                                modelExpanded = false
+                            }
+                            models.forEach { hash ->
+                                PhoneHistoryFilterChoice(modelLabel(hash), model == hash, !state.busy, "phone-history-model-$hash") {
+                                    chooseModel(hash)
+                                    modelExpanded = false
+                                }
+                            }
                         }
                     }
                     Text(label(Words.PhoneHistoryDate), style = MaterialTheme.typography.titleSmall)
                     Column(Modifier.selectableGroup()) {
                         PhoneHistoryPeriod.entries.forEach { value ->
-                            val selected = period == value
-                            Row(
-                                Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                    .testTag("phone-history-period-${value.name}")
-                                    .selectable(selected = selected, enabled = !state.busy, role = Role.RadioButton) {
-                                        choosePeriod(value)
-                                    },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                RadioButton(selected = selected, onClick = null, enabled = !state.busy)
-                                Text(label(value.word))
+                            PhoneHistoryFilterChoice(label(value.word), period == value, !state.busy, "phone-history-period-${value.name}") {
+                                choosePeriod(value)
                             }
                         }
                     }
@@ -200,5 +200,18 @@ internal fun historyViewWord(view: LocalHistoryView) = when(view) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PhoneHistoryFilterChoice(title: String, selected: Boolean, enabled: Boolean, tag: String, select: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(tag)
+            .selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = select),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        RadioButton(selected = selected, onClick = null, enabled = enabled)
+        Text(title)
     }
 }

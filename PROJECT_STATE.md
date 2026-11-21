@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Phone history inline model choices
+
+The model filter now expands within the history search form, keeps the
+keyboard visible and shares the date rows' full-width single-choice control.
+All four history search cases passed in standard and compact runs on
+Android 8 and 17. Android 17's separate history-view choice exceeded its
+input-readiness deadline in the broader cohort and passed in isolation.
+The full exact-source hosted Android and signed release gates remain open.
+[Validation](docs/VALIDATION.md#phone-history-inline-model-choices).
+
 ## Exact reviewed Windows checkout
 
 The worker can now capture and recheck its enrolled instance, root and Git

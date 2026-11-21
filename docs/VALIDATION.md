@@ -1,5 +1,54 @@
 # Current development validation — audit follow-up
 
+## Phone history inline model choices
+
+The earlier hosted Android 8 shard at `7d2ccb6` passed 664 of 665 cases.
+Its exact-query history test could not find the requested model popup row
+after literal text input. The downloaded shard archive matched its GitHub
+digest, `21b6a893c954a974d7acd1a8562aadbd0298f5f0c0af24e729b865b69e8cc20b`.
+The same method passed in isolation on the previous local build. The
+hosted failure remains in evidence and its exact timing trigger is unknown.
+[Hosted Android 8 failure](https://github.com/DionCroft/Signal_Grove/actions/runs/44889989273/job/136813465034).
+
+The model button now reveals full-width radio choices in the same scrollable
+form as the date choices. Selecting a model collapses the list while keeping
+the selected model and keyboard focus. The test reopens it to confirm the
+selection. The existing literal text and seven-day bounds still produce
+exactly one read-only query after explicit Search. The large-text bilingual
+case checks a model option within the actual keyboard viewport, selects it
+by its row and verifies both footer actions before cancelling. It also
+retains the actual-keyboard check and tap for the date choice.
+
+Source snapshot
+`35d4a75cdb67f29bd374392684dcaf3df61889e81ec95d2b4d5e9f611fe11a69`
+passed all 1,241 JVM tests, both lint variants with zero errors, both debug
+APK assemblies and 15 portable Android device-accounting tests. The first
+Gradle run succeeded but the build wrapper held publication because a
+documentation edit changed its source inventory. Restoring the exact
+frozen documentation bytes allowed the unchanged snapshot to publish.
+The three app and test inputs matched the frozen manifest byte-for-byte.
+
+The standard Android 8 run passed all 15 cases. Android 17 passed 14 of 15
+on the same signed pair. The separate history-view choice exceeded its
+input-readiness deadline before a tap. That exact method passed in
+isolation without an assertion change. All four history search tests
+passed on each API at 840×1470, 420 dpi and 1.3× text. Both guests returned
+to their original display and font settings. The standard cohorts also
+exercised Demo clarification and both scheduled project approval cases.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Debug app APK | `3d2a2d8ed2cd924ce26febec37224b7abd85a2e1e5a45364356621e749f3fa58` |
+| Debug test APK | `04aa3f3d7777d7d51946d889ac4941c4efce36c1660dff05e923be410aad2d05` |
+| Android 8 standard | `6c70fbe42c17e7308e7817f9f2983434943336c798657f7c256a6fd35f7a7036` |
+| Android 8 compact | `e72d47c1a25f0630db176a8f8770c8b7e8748dcb19fd29a4aa71313ec4441952` |
+| Android 17 standard, retained failure | `25ff9b925f32831de8ec42a880e98bb5d177a54e20ca8d68bbfb875497c091ce` |
+| Android 17 isolated history-view choice | `8ffe0e7a6cc3f3cd16851f3e2813573fd6634e3f1abcbae9c83257b5e5f55fea` |
+| Android 17 compact | `4db1459993e805533127df3648856b5054484535ae773ffe64abcb41c7425d4c` |
+
+The full hosted matrix and signed production upgrade remain separate
+release gates.
+
 ## Exact reviewed Windows checkout
 
 The optional worker checkout check uses the existing enrolled
@@ -28,6 +77,12 @@ registry drift and checkout redirection. The existing test runner recorded
 The 130 portable workspace cases passed. The full portable suite discovered
 1,228 tests with zero failures and 273 platform or fixture skips. Native result
 JSON SHA-256 `0bc5bb07dca73b2e8c385dd1bff85d33940e3957b59da4891615f692009a669b`.
+
+The hosted run on `1dfaf15` passed protocol, all 80 Windows cases including
+the eight checkout checks, and 37 protected Linux coordinator cases. Both
+native artifacts matched their published GitHub archive digest and the exact
+commit recorded in the reports.
+[Hosted worker validation](https://github.com/DionCroft/Signal_Grove/actions/runs/44896239068).
 
 These checks prepare the exact scope fence for the reviewed worker approval
 path. Wiring the original request into the queue and the native prompt

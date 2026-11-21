@@ -101,6 +101,8 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     PhoneHistoryQuery("Title or message text", "标题或消息文字", "Biāotí huò xiāoxi wénzì"),
     PhoneHistoryQueryLimit("Up to 1,024 UTF-8 bytes; literal text, not a regular expression.", "最多 1,024 个 UTF-8 字节；按原文搜索，不使用正则表达式。", "Zuìduō 1,024 ge UTF-8 zìjié; àn yuánwén sōusuǒ, bù shǐyòng zhèngzé biǎodáshì."),
     PhoneHistoryAllModels("All models", "全部模型", "Quánbù móxíng"),
+    PhoneHistoryModelChoicesExpanded("Model choices expanded", "模型选项已展开", "Móxíng xuǎnxiàng yǐ zhǎnkāi"),
+    PhoneHistoryModelChoicesCollapsed("Model choices collapsed", "模型选项已折叠", "Móxíng xuǎnxiàng yǐ zhédié"),
     PhoneHistoryDate("Last updated", "最后更新", "Zuìhòu gēngxīn"),
     PhoneHistoryAnyDate("Any date", "任意日期", "Rènyì rìqī"),
     PhoneHistoryLastDay("Last 24 hours", "最近 24 小时", "Zuìjìn 24 xiǎoshí"),

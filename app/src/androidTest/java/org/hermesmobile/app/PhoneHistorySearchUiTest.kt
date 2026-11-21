@@ -46,8 +46,15 @@ class PhoneHistorySearchUiTest {
     @Test fun applyingLiteralTextModelAndPresetDatesDispatchesOneExactReadOnlyQuery() {
         show(); compose.onNodeWithTag("phone-history-search-open").performClick()
         compose.onNodeWithTag("phone-history-search-text").performScrollTo().performTextInput("[花园.*]")
-        compose.onNodeWithTag("phone-history-model-menu").performScrollTo().performClick()
-        compose.onNodeWithTag("phone-history-model-${second.modelSha256}").performClick()
+        val models = compose.onNodeWithTag("phone-history-model-menu")
+        val forest = compose.onNodeWithTag("phone-history-model-${second.modelSha256}")
+        models.performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-history-model-all").assertIsSelected()
+        forest.performScrollTo().assertIsDisplayed().assertIsNotSelected().performClick()
+        forest.assertDoesNotExist()
+        models.performScrollTo().assertIsDisplayed().performClick()
+        forest.performScrollTo().assertIsDisplayed().assertIsSelected()
+        models.performScrollTo().assertIsDisplayed().performClick()
         val anyDate = compose.onNodeWithTag("phone-history-period-ALL")
         val lastWeek = compose.onNodeWithTag("phone-history-period-WEEK")
         anyDate.performScrollTo().assertIsDisplayed().assertIsSelected()
@@ -88,6 +95,14 @@ class PhoneHistorySearchUiTest {
             current != null && now - stableSince >= 250
         }
         val viewport = checkNotNull(stableViewport)
+        compose.onNodeWithTag("phone-history-model-menu").performScrollTo().assertIsDisplayed().performClick()
+        val model = compose.onNodeWithTag("phone-history-model-${second.modelSha256}")
+        val modelBounds = model.performScrollTo().assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInRoot
+        assertTrue("Model choice must remain above the native IME", modelBounds.bottom + viewport.screenOffsetY <= viewport.visible.bottom)
+        assertTrue(modelBounds.top + viewport.screenOffsetY >= viewport.visible.top)
+        model.performTouchInput { click(center.copy(x = width * 0.75f)) }
+        compose.onNodeWithTag("phone-history-model-menu").performScrollTo().assertTextContains(second.modelSha256.take(12))
+        assertTrue("Model selection keeps the native keyboard visible", focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true)
         for (tag in listOf("phone-history-search-apply", "phone-history-search-cancel")) {
             val node = compose.onNodeWithTag(tag).assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInRoot
             assertTrue("Complete action must remain above the native IME", node.bottom + viewport.screenOffsetY <= viewport.visible.bottom)
