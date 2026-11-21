@@ -46,6 +46,20 @@ class ManagementResourceTest {
         assertTrue(projected("password · other", home, row.copy(state = "confirmed")).isEmpty())
     }
 
+    @Test fun aRunOnceReceiptRequiresOriginalActorConnectionAndHome() {
+        val home = "c".repeat(64)
+        val row = receipt().copy(action = CronRunOnceProtocol.Action, projectHome = home)
+        fun shown(connection: String, actor: String, selectedHome: String) = ManagementReceiptVisibility.project(
+            listOf(row), connection, owner.resourceScope, owner.url, selectedHome, actor).single()
+        assertSame(row, shown(owner.apiScope, owner.actor, home))
+        for (other in listOf(shown("d".repeat(64), owner.actor, home), shown(owner.apiScope, "other", home),
+            shown(owner.apiScope, owner.actor, "e".repeat(64)))) {
+            assertEquals(ManagementReceiptVisibility.SharedCronRunOncePending, other.action)
+            assertTrue(other.apiScope.isEmpty() && other.actor.isEmpty() && other.target.isEmpty())
+            assertTrue(other.requestSummary.isEmpty() && other.resultSummary.isEmpty())
+        }
+    }
+
     @Test fun ownHistoryStaysIntactAndStaleRowsAreRedactedAfterSwitching() {
         val raw=receipt();assertSame(raw,ManagementReceiptVisibility.project(listOf(raw),owner.apiScope,owner.resourceScope).single())
         val stale=ManagementReceiptVisibility.project(listOf(raw),"b".repeat(64),owner.resourceScope)

@@ -81,18 +81,7 @@ class CronExecutionHistory private constructor(
             val limited = payload.flag("limited")
             require(rows.size <= Limit && (!limited || rows.size == Limit))
             require(ledger != "absent" || (rows.isEmpty() && !limited))
-            val attempts = rows.map {
-                val row = it as? JsonObject ?: error("Invalid attempt.")
-                require(row.keys == attemptFields)
-                val id = row.string("execution_id")
-                require(receiptPattern.matches(id))
-                val wireStatus = row.string("status")
-                val status = CronExecutionStatus.entries.single { item -> item.wire == wireStatus }
-                val delivery = row.optionalString("delivery_outcome")
-                require(delivery == null || deliveryPattern.matches(delivery))
-                CronExecutionAttempt(id, status, checkNotNull(row.time("claimed_at")), row.time("started_at"),
-                    row.time("finished_at"), row.time("scheduled_instant"), delivery, row.flag("reported_error"))
-            }
+            val attempts = rows.map(::parseAttempt)
             require(attempts.map { it.id }.toSet().size == attempts.size)
             CronExecutionHistory(owner, homeId, jobId, ledger == "available",
                 java.util.Collections.unmodifiableList(attempts), limited)
@@ -100,6 +89,19 @@ class CronExecutionHistory private constructor(
             throw error
         } catch (_: Exception) {
             throw InvalidCronExecutionHistory()
+        }
+
+        internal fun parseAttempt(raw: JsonElement): CronExecutionAttempt {
+            val row = raw as? JsonObject ?: error("Invalid attempt.")
+            require(row.keys == attemptFields)
+            val id = row.string("execution_id")
+            require(receiptPattern.matches(id))
+            val wireStatus = row.string("status")
+            val status = CronExecutionStatus.entries.single { it.wire == wireStatus }
+            val delivery = row.optionalString("delivery_outcome")
+            require(delivery == null || deliveryPattern.matches(delivery))
+            return CronExecutionAttempt(id, status, checkNotNull(row.time("claimed_at")), row.time("started_at"),
+                row.time("finished_at"), row.time("scheduled_instant"), delivery, row.flag("reported_error"))
         }
 
         internal fun scopedPayload(reply: JsonObject, owner: ManagementTarget, jobId: String): JsonObject {

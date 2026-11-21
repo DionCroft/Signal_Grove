@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Android reviewed Run once and original receipt
+
+Scheduled job details now offer a one-run review with the exact task,
+access, verified project and workspace, branch and worker. Approve, defer
+and deny use the same authenticated review connection. Approval stores its
+original request ID before sending, and a lost reply can be resolved only
+by reading the matching native execution. The fixture passed 14 scheduler
+and gateway cases on each of Android 8 and 17, plus both new compact
+large-text cases. Managed Pi operator configuration, live worker
+dispatch and the broader project approval inbox remain open.
+[Android validation](docs/VALIDATION.md#android-reviewed-run-once-and-original-receipt).
+
 ## Reviewed Run once on the authenticated gateway
 
 The optional owner methods prepare, confirm, defer and deny one exact

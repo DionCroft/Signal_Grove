@@ -195,25 +195,29 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         tokens: ManagementTokens, target: ManagementTarget, homeId: String, jobId: String, executionId: String
     ): CronExecutionOutput = withScheduler(tokens, target, homeId) { it.cronExecutionOutput(jobId, executionId) }
 
-    internal suspend fun <T> withScheduler(
-        tokens: ManagementTokens, target: ManagementTarget, homeId: String,
-        call: suspend (CanonicalGatewayChannel) -> T
-    ): T {
-        val channel = try {
+    internal suspend fun openScheduler(tokens: ManagementTokens, target: ManagementTarget, homeId: String) =
+        try {
             canonicalGateway(tokens, target, homeId)
         } catch (_: CanonicalNotSupported) {
             throw CronExecutionHistoryUnavailable()
         } catch (_: CanonicalProfileTransportUnavailable) {
             throw CronExecutionHistoryUnavailable()
         }
-        return channel.use {
-            val binding = it.binding
-            val result = call(it)
-            identity(tokens)
-            verifyCanonicalHome(tokens, target, homeId)
-            if (it.binding !== binding) throw CanonicalScopeChanged()
-            result
-        }
+
+    internal suspend fun verifyScheduler(tokens: ManagementTokens, channel: CanonicalGatewayChannel, binding: CanonicalRuntimeBinding) {
+        identity(tokens)
+        verifyCanonicalHome(tokens, binding.target, binding.homeId)
+        if (channel.binding !== binding) throw CanonicalScopeChanged()
+    }
+
+    internal suspend fun <T> withScheduler(
+        tokens: ManagementTokens, target: ManagementTarget, homeId: String,
+        call: suspend (CanonicalGatewayChannel) -> T
+    ): T = openScheduler(tokens, target, homeId).use { channel ->
+        val binding = channel.binding
+        val result = call(channel)
+        verifyScheduler(tokens, channel, binding)
+        result
     }
 
     suspend fun skills(tokens:ManagementTokens,profile:String):JsonArray {SkillProtocol.profile(profile);return element("api/skills",tokens.access,profile=profile).jsonArray}

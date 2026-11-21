@@ -20,7 +20,7 @@ import java.util.Date
 
 private fun cronRunTime(seconds:Double)=DateFormat.getDateTimeInstance(DateFormat.MEDIUM,DateFormat.SHORT).format(Date((seconds*1000).toLong()))
 
-private fun CronExecutionStatus.word(): Words = when (this) {
+internal fun CronExecutionStatus.word(): Words = when (this) {
     CronExecutionStatus.Claimed -> Words.HostCronAttemptClaimed
     CronExecutionStatus.Running -> Words.HostCronAttemptRunning
     CronExecutionStatus.Completed -> Words.Completed

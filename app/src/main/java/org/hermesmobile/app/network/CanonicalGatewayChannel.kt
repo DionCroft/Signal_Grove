@@ -1,5 +1,6 @@
 package org.hermesmobile.app.network
 
+import android.os.SystemClock
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -89,6 +90,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private val requests = Mutex()
     private var nextId = 1L
     private var pending: Pending? = null
+    private var runOnceReview: CronRunOnceReview? = null
     private var resuming = false
     private var resumed = false
     private val earlyFrames = ArrayList<JsonObject>()
@@ -272,7 +274,8 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
         require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", CronExecutionHistory.Method, CronExecutionOutput.Method,
             CronTimingProtocol.Prepare, CronTimingProtocol.Review, CronTimingProtocol.Apply,
-            CronTimingProtocol.Observe, AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read))
+            CronTimingProtocol.Observe, AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read) ||
+            method in CronRunOnceProtocol.methods)
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -344,6 +347,40 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         CronTimingProtocol.parseReceipt(reply, owner, jobId, id, proof)
     }
 
+    internal suspend fun prepareCronRunOnce(jobId: String): CronRunOnceReview {
+        val expected = binding
+        val started = SystemClock.elapsedRealtime()
+        val reply = cronCall(CronRunOnceProtocol.Prepare, CronRunOnceProtocol.prepare(expected.target, jobId))
+        return CronRunOnceProtocol.review(reply, expected.target, expected.homeId, jobId, started)
+            .also { runOnceReview = it }
+    }
+
+    internal fun requireRunOnceReview(review: CronRunOnceReview) {
+        if (stopped.get() || runOnceReview !== review) throw CronRunOnceRefused("CHANGED")
+        if (SystemClock.elapsedRealtime() >= review.expiresAt) throw CronRunOnceRefused("EXPIRED")
+    }
+
+    internal suspend fun confirmCronRunOnce(review: CronRunOnceReview): CronRunOnceObservation {
+        requireRunOnceReview(review)
+        runOnceReview = null
+        val reply = cronCall(CronRunOnceProtocol.Confirm, CronRunOnceProtocol.decide(review, CronRunOnceDecision.Approve))
+        return CronRunOnceProtocol.confirmed(reply, review)
+    }
+
+    internal suspend fun dismissCronRunOnce(review: CronRunOnceReview, decision: CronRunOnceDecision) {
+        require(decision != CronRunOnceDecision.Approve)
+        requireRunOnceReview(review)
+        runOnceReview = null
+        val reply = cronCall(CronRunOnceProtocol.Dismiss, CronRunOnceProtocol.decide(review, decision))
+        CronRunOnceProtocol.dismissed(reply, review, decision)
+    }
+
+    internal suspend fun observeCronRunOnce(jobId: String, request: String): CronRunOnceObservation {
+        val owner = binding.target
+        val reply = cronCall(CronRunOnceProtocol.Observe, CronRunOnceProtocol.observe(owner, jobId, request))
+        return CronRunOnceProtocol.observed(reply, owner, jobId, request)
+    }
+
     private suspend fun cronCall(method: String, params: JsonObject): JsonObject {
         synchronized(this) { check(!resuming && !resumed) }
         val expected = binding
@@ -354,6 +391,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
                 if (method == CronExecutionHistory.Method || method == CronExecutionOutput.Method) {
                     throw CronExecutionHistoryUnavailable()
                 }
+                if (method in CronRunOnceProtocol.methods) throw CronRunOnceRefused("UNSUPPORTED")
                 throw CronTimingRefused("UNSUPPORTED", false)
             }
             throw error

@@ -113,7 +113,7 @@ object RunStates {
     @Insert suspend fun insertManagementOperation(receipt:ManagementOperation)
     @Transaction suspend fun claimManagementOperation(receipt:ManagementOperation) {
         require(receipt.resourceScope==managementResourceScope(receipt.url,receipt.profile)) {"Invalid management resource identity."}
-        require(if(HostProjectAction.receipt(receipt.action) || CanonicalWorkspaceAction.receipt(receipt.action) || receipt.action==CronTimingProtocol.Action) receipt.projectHome.matches(Regex("[a-f0-9]{64}")) else receipt.projectHome.isEmpty()) {"Invalid project store identity."}
+        require(if(HostProjectAction.receipt(receipt.action) || CanonicalWorkspaceAction.receipt(receipt.action) || receipt.action in setOf(CronTimingProtocol.Action, CronRunOnceProtocol.Action)) receipt.projectHome.matches(Regex("[a-f0-9]{64}")) else receipt.projectHome.isEmpty()) {"Invalid project store identity."}
         val accessHome=if(HostKanbanBoardAction.receipt(receipt.action) || HostKanbanTaskAction.receipt(receipt.action) || HostKanbanStatusChange.receipt(receipt.action)) HostKanbanBoardChange.accessHome(receipt.requestSummary) else receipt.projectHome
         if(unresolvedManagementOperations(receipt.resourceScope,receipt.url,accessHome).isNotEmpty()) throw ManagementOutcomePending()
         insertManagementOperation(receipt)
@@ -137,7 +137,7 @@ object RunStates {
     suspend fun updateCanonicalViewerCheckpoint(key:String,previous:String,result:String):Int
 
 
-    @Query("UPDATE management_operations SET state='reviewed' WHERE action!='CronTimingEdit' AND `key`=:key AND ((resourceScope=:scope AND (projectHome='' OR projectHome=:projectHome)) OR (url=:url AND (action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe','KanbanBoardCreate','KanbanBoardUpdate','KanbanBoardArchive','KanbanBoardDelete','KanbanBoardSwitch','KanbanTaskCreate','KanbanTaskMetadata','KanbanTaskPriority','KanbanTaskAssignee','KanbanTaskComment','KanbanTaskLink','KanbanTaskUnlink','KanbanTaskDelete','KanbanTaskModelOverride','KanbanTaskReasoningOverride','KanbanTaskStatus') OR (:projectHome!='' AND projectHome=:projectHome)))) AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String,url:String="",projectHome:String="")
+    @Query("UPDATE management_operations SET state='reviewed' WHERE action NOT IN ('CronTimingEdit','CronRunOnce') AND `key`=:key AND ((resourceScope=:scope AND (projectHome='' OR projectHome=:projectHome)) OR (url=:url AND (action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe','KanbanBoardCreate','KanbanBoardUpdate','KanbanBoardArchive','KanbanBoardDelete','KanbanBoardSwitch','KanbanTaskCreate','KanbanTaskMetadata','KanbanTaskPriority','KanbanTaskAssignee','KanbanTaskComment','KanbanTaskLink','KanbanTaskUnlink','KanbanTaskDelete','KanbanTaskModelOverride','KanbanTaskReasoningOverride','KanbanTaskStatus') OR (:projectHome!='' AND projectHome=:projectHome)))) AND state='unknown'") suspend fun reviewManagementOperation(key:String,scope:String,url:String="",projectHome:String="")
 
     @Query("SELECT * FROM run_reports WHERE sessionKey=:key ORDER BY updatedAt DESC LIMIT 100") fun reports(key:String):Flow<List<RunReport>>
     @Query("SELECT * FROM run_reports WHERE `key`=:key") suspend fun report(key:String):RunReport?

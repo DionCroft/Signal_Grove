@@ -48,6 +48,18 @@ class HostCronRunsFlowTest {
         val timingReviews = AtomicInteger()
         val timingApplies = AtomicInteger()
         val timingObserves = AtomicInteger()
+        val runOncePrepares = AtomicInteger()
+        val runOnceConfirms = AtomicInteger()
+        val runOnceObserves = AtomicInteger()
+        val runOnceDecisions = ConcurrentLinkedQueue<String>()
+        private val acceptedRunOnce = AtomicReference<String?>()
+        @Volatile var loseRunOnceReply = false
+        private fun runOnceExecution(request: String): String {
+            val identity = """{"profile":"worker","job_id":"job-fixture","request_id":"$request"}"""
+            return java.security.MessageDigest.getInstance("SHA-256")
+                .digest(("signal-grove-cron-run-once-v1\u0000" + identity).encodeToByteArray())
+                .take(16).joinToString("") { "%02x".format(it.toInt() and 255) }
+        }
         @Volatile var changeReview = false
         @Volatile var loseEditReply = false
         private val timingReceipt = AtomicReference<JsonObject?>()
@@ -104,6 +116,8 @@ class HostCronRunsFlowTest {
         }
 
         private fun listener() = object : WebSocketListener() {
+            private var preparedRunOnce: String? = null
+
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 socketCount.incrementAndGet()
                 webSocket.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"replay_epoch":"cron-fixture","session_authority":true}}}""")
@@ -146,6 +160,68 @@ class HostCronRunsFlowTest {
                             } else {
                                 reply()
                             }
+                        }
+                        in CronRunOnceProtocol.methods -> {
+                            check(params["expected_profile"] == JsonPrimitive("worker") && params["job_id"] == JsonPrimitive("job-fixture"))
+                            val body = when (method) {
+                                CronRunOnceProtocol.Prepare -> {
+                                    check(params.size == 2)
+                                    val original = "%032x".format(runOncePrepares.incrementAndGet())
+                                    preparedRunOnce = original
+                                    buildJsonObject {
+                                        put("request_id", original); put("review_digest", digest); put("expires_in_seconds", 179)
+                                        putJsonObject("scope") {
+                                            put("project", "fixture-project"); put("workspace", "workspaces/fixture")
+                                            put("branch", "fixture-branch"); put("worker", "FIXTURE-WORKER")
+                                            put("worker_instance", "fixture-instance"); put("access", "write")
+                                            put("task", "Write the fixture summary without changing the seed.")
+                                        }
+                                    }
+                                }
+                                CronRunOnceProtocol.Confirm -> {
+                                    val original = checkNotNull(preparedRunOnce)
+                                    check(params.size == 4 && params["request_id"] == JsonPrimitive(original) &&
+                                        params["review_digest"] == JsonPrimitive(digest))
+                                    preparedRunOnce = null
+                                    val saved = runBlocking { app.database.dao().managementOperation(original) }
+                                    check(saved?.state == "sending" && saved.action == CronRunOnceProtocol.Action &&
+                                        saved.target == "job-fixture" && saved.requestSummary.isEmpty() && saved.resultSummary.isEmpty())
+                                    check(acceptedRunOnce.compareAndSet(null, original))
+                                    runOnceConfirms.incrementAndGet()
+                                    if (loseRunOnceReply) {
+                                        webSocket.close(1011, "fixture lost run response")
+                                        return
+                                    }
+                                    buildJsonObject { put("request_id", original); put("execution_id", runOnceExecution(original)); put("state", "claimed") }
+                                }
+                                CronRunOnceProtocol.Dismiss -> {
+                                    val original = checkNotNull(preparedRunOnce)
+                                    check(params.size == 5 && params["request_id"] == JsonPrimitive(original) &&
+                                        params["review_digest"] == JsonPrimitive(digest))
+                                    preparedRunOnce = null
+                                    val decision = params.getValue("decision").jsonPrimitive.content
+                                    check(decision in setOf("deny", "defer"))
+                                    runOnceDecisions.add(decision)
+                                    buildJsonObject { put("request_id", original); put("decision", decision) }
+                                }
+                                else -> {
+                                    val original = checkNotNull(acceptedRunOnce.get())
+                                    check(preparedRunOnce == null && params.size == 3 && params["request_id"] == JsonPrimitive(original))
+                                    val status = if (runOnceObserves.incrementAndGet() == 1) "running" else "completed"
+                                    buildJsonObject {
+                                        put("request_id", original)
+                                        putJsonObject("execution") {
+                                            put("execution_id", runOnceExecution(original)); put("status", status)
+                                            put("claimed_at", "2026-11-21T02:00:00Z"); put("started_at", JsonNull)
+                                            put("finished_at", JsonNull); put("scheduled_instant", JsonNull)
+                                            put("delivery_outcome", JsonNull); put("reported_error", false)
+                                        }
+                                    }
+                                }
+                            }
+                            val payload = JsonObject(body + mapOf("profile" to JsonPrimitive("worker"),
+                                "job_id" to JsonPrimitive("job-fixture")))
+                            send(buildJsonObject { put("schema", 1); put("state", "ok"); put("payload", payload) }.toString())
                         }
                         CronTimingProtocol.Prepare, CronTimingProtocol.Review, CronTimingProtocol.Apply, CronTimingProtocol.Observe -> {
                             check(params["expected_profile"] == JsonPrimitive("worker") && params["job_id"] == JsonPrimitive("job-fixture"))
@@ -291,6 +367,72 @@ class HostCronRunsFlowTest {
         compose.onNodeWithTag("cron-timing-schedule").performTextReplacement("every 2h")
         compose.onNodeWithTag("cron-timing-review").performClick()
         compose.waitUntil(10000) { !management.state.value.busy && management.state.value.cron.timingEditor?.review != null }
+    }
+
+    private fun actionOnRunOnceReview(tag: String) {
+        compose.onNodeWithTag("host-cron-detail").performScrollToNode(hasTestTag("host-cron-run-once-open"))
+        compose.onNodeWithTag("host-cron-run-once-open").performClick()
+        compose.waitUntil(10000) { !management.state.value.busy && management.state.value.cron.runOnce != null }
+        val review = compose.onNodeWithTag("host-cron-run-once-review")
+        review.performScrollToNode(hasText("fixture-branch"))
+        compose.onNodeWithText("fixture-branch").assertIsDisplayed()
+        val task = "Write the fixture summary without changing the seed."
+        review.performScrollToNode(hasText(task))
+        compose.onNodeWithText(task).assertIsDisplayed()
+        review.performScrollToNode(hasTestTag(tag))
+        compose.onNodeWithTag(tag).assertIsEnabled().performClick()
+    }
+
+    @Test fun reviewedRunOnceRecoversLostReplyAndWaitsForNativeCompletion() {
+        Fixture(ledgerEnabled = true).use { f ->
+            f.loseRunOnceReply = true
+            open(f, multilingual = true)
+            actionOnRunOnceReview("host-cron-run-once-approve")
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.action == CronRunOnceProtocol.Action && it.state == "unknown"
+            } }
+            val row = management.receipts.value.single { it.action == CronRunOnceProtocol.Action }
+            assertTrue(row.resultSummary.isEmpty())
+            assertNull(management.prepareManagementUncertainty(row.key))
+            runBlocking {
+                app.database.dao().reviewManagementOperation(row.key, row.resourceScope, row.url, row.projectHome)
+                assertEquals("unknown", app.database.dao().managementOperation(row.key)?.state)
+            }
+            compose.onNodeWithTag("host-cron-detail-close").performClick()
+            val original = "management-observe-" + row.key
+            fun observe() {
+                compose.onNodeWithTag("host-cron-list").performScrollToNode(hasTestTag(original))
+                compose.onNodeWithTag(original).performClick()
+            }
+            observe()
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.key == row.key && it.state == "unknown" && CronRunOnceProtocol.savedSummary(it)?.status == CronExecutionStatus.Running
+            } }
+            observe()
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.key == row.key && it.state == "confirmed" && CronRunOnceProtocol.savedSummary(it)?.status == CronExecutionStatus.Completed
+            } }
+            assertEquals(1, f.runOnceConfirms.get())
+            assertEquals(2, f.runOnceObserves.get())
+            assertEquals(0, f.writes.get())
+            assertEquals(0, f.unexpectedSocketFrames.get())
+        }
+    }
+
+    @Test fun reviewedRunOnceDefersAndDeniesOnTheReviewSocketWithoutSubmitting() {
+        Fixture(ledgerEnabled = true).use { f ->
+            open(f)
+            actionOnRunOnceReview("host-cron-run-once-defer")
+            compose.waitUntil(10000) { !management.state.value.busy && management.state.value.notice == Words.HostCronRunOnceDeferred }
+            actionOnRunOnceReview("host-cron-run-once-deny")
+            compose.waitUntil(10000) { !management.state.value.busy && management.state.value.notice == Words.HostCronRunOnceDenied }
+            assertEquals(listOf("defer", "deny"), f.runOnceDecisions.toList())
+            assertEquals(2, f.runOncePrepares.get())
+            assertEquals(0, f.runOnceConfirms.get())
+            assertTrue(management.receipts.value.none { it.action == CronRunOnceProtocol.Action })
+            assertEquals(0, f.writes.get())
+            assertEquals(0, f.unexpectedSocketFrames.get())
+        }
     }
 
     @Test fun reviewedTimingRequiresExplicitSaveAndRefusesChangedDigest() {

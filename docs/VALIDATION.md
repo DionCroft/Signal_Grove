@@ -1,5 +1,47 @@
 # Current development validation — audit follow-up
 
+## Android reviewed Run once and original receipt
+
+Scheduled job details open a foreground review on a separate canonical
+owner connection. The review displays the signed-in identity, task,
+read or write access, exact workspace and worker, and the project and branch
+when present. Approve, Defer and Deny reuse that connection. Closing the
+review, leaving the management screen or reaching its deadline closes the
+connection. The optional operator contract returns an explanation when
+reviewed Run once is unavailable.
+[Native operator contract](../server_extensions/coordinator_workspaces/README.md#reviewed-run-once-on-the-owner-gateway).
+
+Room stores the original request and its owner, profile, job and verified
+home before confirmation. Task and scope text stay out of the receipt.
+A claimed or running attempt stays unresolved. A lost confirmation uses a
+separate authenticated observation to read the original execution. A verified
+terminal result settles the same receipt. A foreign connection, actor or
+home sees only pending metadata. Generic review cannot clear the pending run.
+
+A fixture checked that the original request was already durable when the
+confirmation frame arrived. The fixture then dropped the reply, returned
+running on the first original-receipt read and returned completed on the
+second. Exactly one confirmation was received. Another case sent Defer
+and Deny on their respective review sockets and created zero submissions.
+Both cases used the rendered review controls. Protocol cases also verify
+the native execution-ID derivation, reject a mismatched receipt and
+validate the submission flag on a refused reply.
+
+The E: source snapshot `40edada3ceb4ce8ddd13c770cdc94040b8f81c4e283ecc64586d73ef61ebb6fd`
+passed 1,238 JVM tests, debug and release lint, and app and test APK
+assembly. Fifteen Android device-coverage policy tests passed. The debug pair
+passed 14 scheduler and gateway cases on each of API 26 and API 37.
+Both new cases passed at 840×1470 with 1.3× font scale on API 37. Emulator
+size and font scale were restored. The verified debug app and companion
+SHA-256 values were
+`0a24d206d816597f1e97aa19aa2944a6961cb9bc16c2f2ca970e96c5df01f33c` and
+`a53de357302f0407e021fd5978e47d73a6f2e347f70ceeb3957abd98d40a100c`.
+
+These device cases used the authenticated gateway fixture. The earlier
+native fixture exercises the actual Hermes dispatcher. Managed Pi
+operator wiring, live dispatch, the wider project approval inbox and
+production phone acceptance remain open.
+
 ## Reviewed Run once on the authenticated gateway
 
 The optional native operator adds prepare, confirm and dismiss methods
