@@ -1,5 +1,63 @@
 # Current development validation — audit follow-up
 
+## Managed Pi workspace candidate and worker preflight
+
+A read-only inspection found the Pi serve, gateway and dispatcher active.
+Both Hermes processes have identical `gateway/session_controls.py` and four
+cron source hashes. All five match the Git-object-verified v0.23.1 inputs
+at `3b421578588243f920886e6fe79a6faa87ea026e`. The live sources have mode
+0600 and the workspace adapter is absent. The default profile has a job
+catalogue and no Signal Grove schedule policy. Two group-writable ancestor
+directories still fail the existing protected policy prerequisite.
+[Prior Pi policy preflight](contracts/2026-11-14-pi-policy-preflight.md).
+
+Two source-only packets were built on the Windows owner from the committed
+extension at `badc5963ac818c2275bef3f29b3e2fcf0a18a460`. The workspace packet
+uses the installer with the controls hash only and preserves all four stock
+cron files. The scheduler packet adds the four verified cron input hashes and
+`--hold-project-schedules`. It needs separate schedule enrolment. For each,
+preview and apply matched, preview preserved every source file, repeat apply
+refused, and every ZIP member matched its manifest and intended mode. Each
+packet uses the same 15 extension modules. The earlier Pi candidate and its
+PM environment remain as separate evidence.
+
+| Candidate | ZIP entries | Bytes | SHA-256 |
+| --- | ---: | ---: | --- |
+| Attached workspace reads | 17 | 187,968 | `b2ff079156e098400bcfdab6ce82a12a410829c5e7723e6b3215c792f73fa45d` |
+| Optional scheduler holds | 21 | 652,239 | `11d7fafc7fb24b35f562a57daeafd9ef6b5fd94e7c765889c66cacad345426c0` |
+
+The workspace packet, loaded against the verified upstream sources on
+Windows, passed 12 native authority and 10 followed-session checks through
+the real local worker pipe. A disposable registration returned the exact
+26-byte preview. A changed generation during a read discarded the response.
+The fixture recorded zero admissions, worker executions and external network
+or execution attempts. It used a supplied owner identity. Report SHA-256
+`3f40a0e77918af58de59716a6100064aa25974de11c1dce002f0d204be395f12`.
+
+The optional scheduler packet passed eight native occurrence decision checks
+and recovered the original unknown receipt in a fresh process with zero
+replays. The worker callback was deterministic. The Windows SQLite build used
+native DELETE journal compatibility. Retained native and reopen log SHA-256
+values are `beab254c4522e4079d6f46500be94ebcc866f16d7ad560c64a670eb4aa3ddf93`
+and `2c6b4805010035e0f8b06a323b8bc66b703023947360c6fb8ddf2afb978721fa`.
+
+Read-only inspection of the installed Windows helper found two distinct
+receipt methods. `result` acknowledges and renews a queue lease.
+`observe` reads the existing receipt without acknowledging the queue.
+Four scratch trials used the actual installed observer module and preserved
+the fixture files byte-for-byte. Absent receipts, host completion without a
+native record and foreign terminal identity left native completion unproven.
+The exact native terminal identity projected completion without disclosing
+the session ID, admission ID or answer. The current `start` request has no
+expected branch or worker-instance fields. It needs a worker-side admission
+fence before it can execute a reviewed schedule under that exact scope.
+
+The packets contain source and integrity metadata. They remain on the
+Windows owner. The next Pi step is a reviewed isolated stage of the
+workspace packet first and an actual authenticated read through the
+registered worker. Production activation, policy enrollment, real project
+dispatch and scheduler acceptance remain open.
+
 ## Android scheduled project approval inbox
 
 In **Hermes management → Scheduled jobs → Project approvals**, an

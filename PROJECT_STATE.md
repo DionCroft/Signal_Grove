@@ -7,6 +7,19 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Managed Pi workspace candidate and worker preflight
+
+The active Pi serve and gateway both match all five inspected upstream
+v0.23.1 source inputs and have no workspace adapter. Separate source packets
+for attached reads and the optional schedule holds match these inputs.
+The exact workspace packet passed 22 native checks through a disposable
+Windows pipe. The scheduler packet passed eight decision checks and one
+fresh-process recovery. The installed worker observer can verify the
+original terminal receipt without renewing the execution lease. The stock
+worker start contract still needs exact branch and worker-instance admission.
+The live protected policy prerequisite remains open.
+[Pi and worker evidence](docs/VALIDATION.md#managed-pi-workspace-candidate-and-worker-preflight).
+
 ## Android scheduled project approval inbox
 
 Hermes management opens a dedicated Project approvals inbox under Scheduled
