@@ -12,9 +12,9 @@ requirements. Commit and push tested chunks.
 The optional Hermes source now has an authenticated owner/profile read for
 Linux scheduler attempts and an exact durable receipt that can outlive its
 one-shot job. Windows passed 928 portable tests and twelve native authority
-cases. The Linux WAL gate follows the source push. Exact output/log
-association, Android integration, strict mutations and live Pi acceptance
-remain open.
+cases. The exact source passed 17 hosted Linux tests, including eight
+protected ledger/WAL cases. Exact output/log association, Android
+integration, strict mutations and live Pi acceptance remain open.
 [Validation](docs/VALIDATION.md#authenticated-scheduled-execution-ledger-source).
 
 ## Exact stored schedule checkpoint

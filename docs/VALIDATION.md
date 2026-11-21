@@ -17,8 +17,19 @@ authority and contract cases, including rejection of the routing field,
 ordinary API credentials, foreign instances and closed transport.
 It reported zero isolation denials and empty session and command stores.
 Windows refused native ledger storage as designed. That dispatcher test
-used synthetic storage replies for the positive authority cases. The
-protected Linux SQLite/WAL tests are gated separately in CI.
+used synthetic storage replies for the positive authority cases.
+
+At exact source `0cd59fb`, hosted Linux passed all 17 native cases,
+including the eight new ledger tests with actual SQLite/WAL snapshots
+from protected, isolated roots. The tests preserve existing database
+and WAL bytes, cover duplicate IDs across profiles and verify that an
+exact receipt survives job removal. They also refuse mismatched job
+IDs, symbolic link substitutions and an ambiguous catalogue snapshot.
+The same run passed 72 native Windows worker and 130 protocol cases.
+The downloaded Linux and Windows reports matched GitHub's published
+artifact digests. Live Hermes/Linux testing against a real scheduler
+store remains open.
+[Hosted validation](https://github.com/DionCroft/Signal_Grove/actions/runs/44874950715).
 
 The reply only exposes scheduler status, timestamps, a delivery code
 and an error-presence flag. Timestamped stock output files still need
