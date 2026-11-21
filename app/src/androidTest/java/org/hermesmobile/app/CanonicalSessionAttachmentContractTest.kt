@@ -42,6 +42,7 @@ class CanonicalSessionAttachmentContractTest {
         val resumes=AtomicInteger();val replays=AtomicInteger();val sockets=AtomicInteger();val pings=AtomicInteger()
         val profileReadAttempts=AtomicInteger()
         val contextReads=AtomicInteger()
+        val projectReads=AtomicInteger()
         val server=MockWebServer()
         val failures=AtomicInteger()
         private val pending=AtomicReference<Pending>()
@@ -61,7 +62,7 @@ class CanonicalSessionAttachmentContractTest {
         private fun listener()=object:WebSocketListener() {
             override fun onOpen(ws:WebSocket,response:Response) {
                 sockets.incrementAndGet()
-                ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"heartbeat":${mode in setOf("viewer","viewer-activity")},"replay_epoch":"fixture-ring","session_authority":true}}}""")
+                ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"heartbeat":${mode in setOf("viewer","viewer-activity","attached-project")},"replay_epoch":"fixture-ring","session_authority":true}}}""")
             }
             override fun onMessage(ws:WebSocket,text:String) {
                 try {
@@ -70,7 +71,7 @@ class CanonicalSessionAttachmentContractTest {
                     fun reply(result:JsonObject)=ws.send(buildJsonObject {put("jsonrpc","2.0");put("id",id);put("result",result)}.toString())
                     when(method) {
                         "gateway.ping"->{
-                            check(mode in setOf("viewer","viewer-activity") && params.isEmpty());pings.incrementAndGet()
+                            check(mode in setOf("viewer","viewer-activity","attached-project") && params.isEmpty());pings.incrementAndGet()
                             if(mode=="viewer-activity" && pings.get()==3) publish(ws,4)
                             reply(buildJsonObject {put("ok",true)})
                         }
@@ -115,7 +116,7 @@ class CanonicalSessionAttachmentContractTest {
                             if(mode=="drop-resume") {ws.close(1000,"fixture-drop");return}
                             ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"sessions.changed","session_id":"","payload":{}}}""")
                             val raw=Json.parseToJsonElement("""{"session_id":"shared-fixture","stored_session_id":"shared-fixture","messages":[],"messages_omitted":true,"message_count":2,"running":false,"authority_epoch":1,"replay_epoch":"fixture-ring","last_sequence":0,"subscription_id":"fixture-subscription","revision":0,"execution_generation":0,"pending":[],"prompts":[],"info":{"desktop_protocol":"hermes-gateway-v1","profile_id":"/fixture/homes/default"}}""").jsonObject
-                            val roundTrip=mode in setOf("workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock");val changed=mutations.get()>0 && !mode.startsWith("workspace-refusal-")
+                            val roundTrip=mode in setOf("workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock","attached-project");val changed=mutations.get()>0 && !mode.startsWith("workspace-refusal-")
                             reply(if(roundTrip) JsonObject(raw+mapOf(
                                 "message_count" to JsonPrimitive(0),"revision" to JsonPrimitive(if(changed) 3 else 2),
                                 "execution_generation" to JsonPrimitive(if(changed) 4 else 3),
@@ -128,6 +129,60 @@ class CanonicalSessionAttachmentContractTest {
                             if(mode=="drop-replay") {ws.close(1000,"fixture-drop");return}
                             val result=Json.parseToJsonElement("""{"events":[],"latest_seq":0,"last_sequence":0,"epoch":"fixture-ring","replay_epoch":"fixture-ring","truncated":false,"snapshot_required":false,"count":0}""").jsonObject
                             reply(if(mode=="viewer-activity") JsonObject(result+mapOf("events" to JsonArray((1..3).map(::activity)),"latest_seq" to JsonPrimitive(3),"last_sequence" to JsonPrimitive(3),"count" to JsonPrimitive(3))) else result)
+                        }
+                        AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read -> {
+                            check(mode == "attached-project")
+                            val worker = "11111111-2222-4333-8444-555555555555"
+                            val root = "E:\\fixture\\worker"
+                            val attachment = buildJsonObject {
+                                put("attached_session_id", "shared-fixture")
+                                put("expected_revision", 2)
+                                put("expected_generation", 3)
+                            }
+                            val step = projectReads.getAndIncrement()
+                            val payload = if (method == AttachedWorkerProtocol.Describe) {
+                                check(step == 0 && params == attachment)
+                                buildJsonObject {
+                                    put("schema", 1); put("device", "FIXTURE-WORKER"); put("state", "ready")
+                                    put("worker_instance", worker); put("failure_code", JsonNull); put("root", root)
+                                    put("project_ids", buildJsonArray { add("fixture-android-worker") })
+                                    put("operations", buildJsonArray { add("prepare"); add("list"); add("preview") })
+                                }
+                            } else {
+                                check(JsonObject(params - "request") == attachment)
+                                val req = params.getValue("request").jsonObject
+                                val operation = req.getValue("operation").jsonPrimitive.content
+                                check(operation == listOf("describe", "prepare", "list", "preview")[step])
+                                val common = setOf("request_id", "operation", "worker_instance")
+                                check(req.keys == if (step == 1) common else common + setOf("binding_token", "relative_path", "entry_token"))
+                                check(req["worker_instance"] == JsonPrimitive(worker))
+                                val result = buildJsonObject {
+                                    put("schema", 1); put("project_id", "fixture-android-worker")
+                                    if (step == 1) {
+                                        put("root", root); put("binding_token", "b".repeat(64)); put("expires_in_seconds", 250)
+                                        put("worker", buildJsonObject { put("device", "FIXTURE-WORKER"); put("instance_id", worker) })
+                                    } else {
+                                        put("worker_instance", worker); put("relative_path", req.getValue("relative_path")); put("truncated", false)
+                                        if (step == 2) {
+                                            put("excluded_entries", 0)
+                                            put("entries", buildJsonArray { add(buildJsonObject {
+                                                put("name", "note.txt"); put("relative_path", "note.txt"); put("kind", "file")
+                                                put("byte_size", 31); put("entry_token", "d".repeat(64))
+                                            }) })
+                                        } else {
+                                            put("binary", false)
+                                            val text = "Android owner project fixture.\n"
+                                            put("byte_size", text.toByteArray().size); put("preview_bytes", text.toByteArray().size)
+                                            put("preview_sha256", "c".repeat(64)); put("text", text)
+                                        }
+                                    }
+                                }
+                                buildJsonObject {
+                                    put("schema", 1); put("request_id", req.getValue("request_id"))
+                                    put("worker_instance", worker); put("status", "ok"); put("result", result)
+                                }
+                            }
+                            reply(buildJsonObject { put("schema", 1); put("state", "ok"); put("payload", payload) })
                         }
                         else->error("Unreviewed fixture RPC.")
                     }
@@ -160,7 +215,7 @@ class CanonicalSessionAttachmentContractTest {
                             check(challenge==pending.get().challenge);json(envelope)
                         }
                         "/dashboard/auth/native/refresh"->{
-                            check(mode in setOf("viewer","workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock") && q.method=="POST" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null)
+                            check(mode in setOf("viewer","workspace-roundtrip","workspace-drop-roundtrip","workspace-refusal-turn-lease","workspace-refusal-compression-lock","attached-project") && q.method=="POST" && q.getHeader("Authorization")==null && q.getHeader("Cookie")==null)
                             val body=Json.parseToJsonElement(q.body.readUtf8()).jsonObject
                             check(body.keys==setOf("provider","refresh_token") && body["provider"]==JsonPrimitive("stub"))
                             check(body["refresh_token"]==Json.parseToJsonElement(envelope).jsonObject.getValue("refresh_token"))
@@ -229,6 +284,95 @@ class CanonicalSessionAttachmentContractTest {
     private fun base(f:Fixture)=f.server.url("/dashboard/").newBuilder().host("127.0.0.1").build().toString()
     private fun target(api:ManagementClient,tokens:ManagementTokens,profile:String="default")=ManagementTarget("b".repeat(64),api.base.toString(),profile,tokens.provider+" · "+tokens.userId)
     private suspend fun home(api:ManagementClient,tokens:ManagementTokens)=checkNotNull(api.profiles(tokens).single {it.name=="default"}.pluginHome).identity()
+
+    @Test fun followedProjectFilesUseNativeOwnerAuthenticationAndRetainTheChat() = runBlocking {
+        val instrument = InstrumentationRegistry.getInstrumentation()
+        val encoded = InstrumentationRegistry.getArguments().getString("signalGroveAttachedWorkerCase")
+        val enabled = encoded?.let {
+            require(it.length <= 8192)
+            Json.parseToJsonElement(String(Base64.getUrlDecoder().decode(it), Charsets.UTF_8)).jsonObject.also { row ->
+                require(row.keys == setOf("caseId", "sourceCommit", "api", "baseUrl", "profileHome", "session", "cwd", "project", "root"))
+                require(row.getValue("sourceCommit").jsonPrimitive.content == "3b421578588243f920886e6fe79a6faa87ea026e")
+                require(row.getValue("api").jsonPrimitive.int == Build.VERSION.SDK_INT)
+                require(UUID.fromString(row.getValue("caseId").jsonPrimitive.content).toString() == row.getValue("caseId").jsonPrimitive.content)
+            }
+        }
+        fun value(key: String, fallback: String) = enabled?.getValue(key)?.jsonPrimitive?.content ?: fallback
+        val fixture = if (enabled == null) Fixture("attached-project") else null
+        try {
+            withTimeout(90_000) {
+                val url = (enabled?.getValue("baseUrl")?.jsonPrimitive?.content ?: base(checkNotNull(fixture))).toHttpUrl()
+                require(url.scheme == "http" && url.host == "127.0.0.1" && url.encodedPath == "/dashboard/" &&
+                    url.query == null && url.fragment == null && url.username.isEmpty() && url.password.isEmpty())
+                val api = ManagementClient(url.toString(), true, true)
+                val saved = instrument.targetContext.getSharedPreferences("credentials", 0)
+                val before = saved.all.toMap()
+                val source = signIn(api)
+                val tokens = api.refresh(source)
+                assertEquals(tokens.userId, api.identity(tokens).userId)
+                val owner = target(api, tokens)
+                val verifiedHome = home(api, tokens)
+                assertEquals(PluginHome.project(JsonPrimitive(value("profileHome", "/fixture/homes/default")))!!.identity(), verifiedHome)
+                val session = value("session", "shared-fixture")
+                val content = withDatabase { db ->
+                    val repository = CanonicalSessionsRepository(db.dao(), CompletableDeferred(Unit))
+                    val inventory = repository.prepare(owner, verifiedHome, api, tokens, CanonicalSessionScope.Live)
+                    val link = repository.adopt(inventory.review(session), api, tokens, requireHeartbeat = true)
+                    link.use {
+                        assertEquals(session, it.attachment.snapshot.owner.sessionId)
+                        assertEquals(value("cwd", "/fixture/old"), (it.attachment.snapshot.workspace as CanonicalWorkspaceDirectory.Reported).path)
+                        val existing = db.dao().managementOperation(it.receipt.key)
+                        assertEquals("confirmed", existing?.state)
+                        val review = it.describeWorker()
+                        assertEquals(value("project", "fixture-android-worker"), review.projectId)
+                        assertEquals(value("root", "E:\\fixture\\worker"), review.root)
+                        assertNotEquals((it.attachment.snapshot.workspace as CanonicalWorkspaceDirectory.Reported).path, review.root)
+                        assertNotNull(review.instance)
+                        val binding = it.prepareWorker(review)
+                        val entry = it.listWorker(binding, null).entries.single()
+                        assertEquals("note.txt", entry.path)
+                        val preview = it.previewWorker(binding, entry)
+                        assertEquals("Android owner project fixture.\n", preview.text)
+                        assertFalse(preview.truncated)
+                        it.heartbeat()
+                        assertEquals(existing, db.dao().managementOperation(it.receipt.key))
+                        assertTrue(db.dao().unresolvedManagementOperations(owner.resourceScope, owner.url, verifiedHome).isEmpty())
+                        db.openHelper.readableDatabase.query("SELECT COUNT(*) FROM management_operations").use { cursor ->
+                            assertTrue(cursor.moveToFirst())
+                            assertEquals(1, cursor.getInt(0))
+                        }
+                        checkNotNull(preview.text)
+                    }
+                }
+                assertEquals(before, saved.all.toMap())
+                fixture?.let {
+                    assertEquals(0, it.failures.get())
+                    assertEquals(0, it.mutations.get())
+                    assertEquals(1, it.resumes.get())
+                    assertEquals(1, it.replays.get())
+                    assertEquals(2, it.pings.get())
+                    assertEquals(4, it.projectReads.get())
+                }
+                if (enabled != null) {
+                    val caseId = enabled.getValue("caseId").jsonPrimitive.content
+                    val digest = MessageDigest.getInstance("SHA-256").digest(content.toByteArray()).joinToString("") { "%02x".format(it) }
+                    val result = buildJsonObject {
+                        put("state", "PASS_ANDROID_REAL_OWNER_ATTACHED_WORKER")
+                        put("caseId", caseId)
+                        put("sourceCommit", enabled.getValue("sourceCommit"))
+                        put("api", Build.VERSION.SDK_INT)
+                        put("previewSha256", digest)
+                        put("recordCount", 1)
+                        put("savedCredentialsUnchanged", true)
+                    }
+                    val encodedResult = Base64.getUrlEncoder().withoutPadding().encodeToString(result.toString().toByteArray())
+                    instrument.sendStatus(2, android.os.Bundle().apply { putString("signalGroveAttachedWorkerResult", encodedResult) })
+                }
+            }
+        } finally {
+            fixture?.close()
+        }
+    }
 
     @Test fun viewerHeartbeatUsesRealRouterAndPersistsOnlyAppliedCursor()=viewerContract(false)
     @Test fun advancingEventsHidePrivateTextAndPersistEachAppliedCursorOnce()=viewerContract(true)

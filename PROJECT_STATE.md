@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Authenticated Android owner and Windows worker checkpoint
+
+Android 8 and 17 passed through the actual Hermes v0.23.1 owner dashboard,
+prefixed native PKCE, refresh and a single followed socket. The same socket
+read and previewed the disposable project through the real Windows pipe and
+answered a subsequent heartbeat. The confirmed Room receipt and saved
+credentials matched their pre-read values. Both Hermes stores passed SQLite
+quick checks with zero admissions. The known heartbeat cleanup warning
+remains open.
+
+A read-only Pi check verified the active original maintained runtime and
+the earlier v1 staging generation. A four-module source delta is verified
+against that stage. Next, obtain scoped approval for a fresh Pi stage and
+verify its ARM64 package and owner route before considering live activation.
+[Evidence](docs/VALIDATION.md#authenticated-android-owner-and-native-windows-workspace).
+
 ## Android attached project browser checkpoint
 
 The followed viewer now reviews the worker and registered root before listing

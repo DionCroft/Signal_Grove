@@ -1,5 +1,67 @@
 # Current development validation — audit follow-up
 
+## Authenticated Android owner and native Windows workspace
+
+The full client/authority path passed on Android 8 and 17. The isolated
+Hermes v0.23.1 gateway ran its real dashboard, PKCE, refresh, ticket,
+WebSocket and session authority. A local test identity provider supplied the
+login. Android followed an existing disposable session and reached a real
+Windows named pipe using the owner-bound coordinator and a controlled
+registration. The Hermes working directory and the Windows worker root were
+distinct. The proxy admitted one Android resume, replay, describe, prepare,
+list and preview. A heartbeat succeeded on the same followed socket after
+previewing the exact 31-byte fixture. The file digest matched on host and
+client. The Android store retained one confirmed adoption receipt and the
+saved credentials. Both server stores passed SQLite quick checks and retained
+zero messages, new session mutations, execution records or admissions.
+
+The first Android 8 attempt found the seeded session absent from the live
+inventory. The retained HTTP/WS record ends at `session.list` with zero worker
+calls. The corrected fixture held a native observer open during APK
+installation, then Android individually followed the session. The regular
+mock-fixture path also passed after permitting its declared refresh request.
+An earlier startup with an incomplete dependency copy failed before the
+dashboard was ready. The accepted runs used the full pinned dependency
+environment. Both supervisor runs report core acceptance with one warning
+from `session_reaper._atexit_clear` reopening SQLite to clear the backend
+heartbeat after database close. Clean shutdown remains open.
+[Prior shutdown finding](contracts/2026-11-11-http-owner-workspace.md).
+
+The exact frozen source passed all 1,213 JVM tests, both APK builds and
+debug/release lint with zero errors. Portable validation ran 1,190 tests with
+273 skips. Debug app SHA-256
+`9681045ebc1d4fba2d1bd655b328f76efecb584d7a777d2b414f8b6eeb39446b` and
+debug test SHA-256
+`935c74d95f4897640e8e3ac836c0a995fc0a653bdcd9f3ddbb65f5294a4251c3`.
+
+The earlier hosted Android 8 shard reported 585 of 586 positive tests.
+The failure was `helperObservationsRequireExplicitOptInForTheRequest`, whose
+observations flag remained false after the test toggled it. The targeted case
+passed once on the local Android 8 emulator. Full-cohort verification remains
+open. [Hosted failure](https://github.com/DionCroft/Signal_Grove/actions/runs/44854689508/job/136700701257).
+
+The Pi's active source has the original unextended session controls hash
+`44624fbc34c86529db0963eb9dd2183b56b2c8034650053c6a6dc8c3556dc352`.
+Its earlier staged v1 controls hash
+`3a31ac06b3d6c9f9f1bfcc8f4331b83a2581e8d6811dae0156d25a1e843ef5f9`
+already matches the adapter anchor. Three Python modules would be replaced
+in a fresh stage and `attached.py` would be added. The local 11,110-byte
+public-source ZIP has five members including the exact preimage/postimage
+manifest and SHA-256
+`190aa9abf96d5cc23dade22ac57af681f27bc7fc77dbb920db2a0350f357522d`.
+The privately staged operator policy, case identities, credentials and route
+configuration are outside that bundle.
+
+To repeat the Android owner case, use
+`scripts/compatibility_fixture_owner_workspace_tcp.py --android-attached-worker`
+with the v0.23.1 source pin, complete dependencies, fresh E: root and API level.
+Pass its `ready.json` case as Base64URL in
+`signalGroveAttachedWorkerCase` to the named Android instrumentation test via
+a temporary emulator loopback reverse. Pair its proof bundle with the exact
+terminal positive method and publish `android-result.json` inside the owned
+case root. The API and app checks are isolated. Production Android-to-Pi-to-worker,
+clean shutdown and signed release acceptance remain open.
+
 ## Android attached project browser
 
 The followed viewer can review a registered worker, project and root before
