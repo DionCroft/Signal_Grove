@@ -14,9 +14,11 @@ connection, project/workspace, branch, worker instance, task, access and
 policy revision. Confirming consumes that review once under the native
 claim fences. A different connection or changed scope refuses confirmation.
 Denial, deferral and expiry end the review. On both pins a fixture exercised approval
-through the native in-process executor and completed one original receipt.
-The next stage binds the authenticated operator route and detached worker
-delivery, then validates a real project approval and signed Android flow.
+through the native executor and completed one original receipt. A separate
+native worker process also adopted it, and fresh-process recovery kept an
+interrupted fixture unknown without a second attempt. Hosted tests passed
+33 Linux and 72 Windows cases. The next work binds this approval to the
+authenticated operator route and tests the managed Pi launcher and phone.
 [Validation](docs/VALIDATION.md#exact-one-use-run-once-approval).
 
 ## Native pause-preserving Run once

@@ -28,13 +28,24 @@ fixture substitutes its exact local catalogue read and a deterministic
 task. The guarded stable jobs source SHA-256 is `1b0133dfdd0934b1986ea68a2d52966589b4dadc64dfaba786260d425a89ef40`. The repair-free
 claim also passed the 126 stable and 147 main stock scheduler cases.
 
-A separate hosted POSIX case checks the bounded catalogue and live WAL
-reader together. It verifies a read-only preview, refuses an identical
-replacement of the protected jobs file, and reads the original receipt
-after a simulated lost write. The binder and approval state are internal
-to this source stage. Authenticated phone controls, the durable project
-approval inbox, live worker dispatch and detached-worker recovery remain
-open.
+Hosted run [44886610585](https://github.com/DionCroft/Signal_Grove/actions/runs/44886610585)
+verified exact approval source d2bae39 with 33 Linux and 72 Windows cases.
+The new POSIX case uses the bounded catalogue and live WAL reader together.
+It verifies a read-only preview, refuses an identical replacement of the
+protected jobs file, and reads the original receipt after a simulated
+lost write.
+
+A separate-process fixture on each pinned source passed approval and
+reservation to the native worker payload entry. The worker adopted the
+original execution with its own PID and matching acknowledgement. The
+successful task saved one output and settled that ID. A second payload
+for it failed ownership before the task. A second approved task exited
+after adoption, and a fresh process recovered its original row as unknown,
+cleared the matching fire claim and left pause and repeat intact.
+The fixture starts the worker processes directly with a deterministic
+task. Its IPv6 allowance covers only urllib3's local capability probe.
+The managed systemd launch, authenticated phone controls, durable project
+approval inbox and live Pi dispatch still need acceptance.
 [Approval and native staging boundary](../server_extensions/coordinator_workspaces/README.md#optional-native-run-once-receipts).
 
 ## Native pause-preserving Run once
