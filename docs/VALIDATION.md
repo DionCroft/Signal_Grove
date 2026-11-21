@@ -36,8 +36,18 @@ ten extension modules. A wrong jobs hash caused no edits and dry
 preview left source unchanged. Expected and actual candidate hashes
 matched, repeated apply refused and the pristine bytes stayed
 unchanged. The `242315c` jobs file matched its verified archive and
-the same patch anchors. The protected Linux cases follow the source
-push. Android review and live Pi acceptance remain open.
+the same patch anchors.
+
+At `d079795`, hosted Linux passed all 28 coordinator cases.
+The five new cases used protected POSIX stores and real Linux lock
+contention with a scheduler-writer fixture. They covered exact
+timing and receipt persistence, an equal-byte replacement, lock
+and owner checks, a lost reply, and sibling/permission refusals.
+The same workflow passed the 72 Windows worker and portable
+protocol cases. Both downloaded native reports matched their
+published digests. Android review and a live Pi edit through
+the pinned native writer remain open.
+[Hosted validation](https://github.com/DionCroft/Signal_Grove/actions/runs/44879790531).
 
 ## Exact saved output on Android
 
