@@ -23,6 +23,12 @@ internal class CanonicalViewerReview(val approval:CanonicalResumeReview,val gene
 internal class CanonicalActivity(val sequence:Long,val kind:Words,val text:String,val truncated:Boolean=false) {
     override fun toString()="CanonicalActivity(redacted)"
 }
+internal sealed interface HermesContextRead {
+    data object Loading : HermesContextRead
+    data class Report(val stats: HermesContextStats, val observedAt: Long) : HermesContextRead
+    data class Unavailable(val message: Words) : HermesContextRead
+}
+
 internal data class CanonicalViewerState(
     val phase:CanonicalViewerPhase=CanonicalViewerPhase.Closed,
     val scope:CanonicalSessionScope=CanonicalSessionScope.Live,
@@ -31,7 +37,8 @@ internal data class CanonicalViewerState(
     val cursor:CanonicalReplayCursor?=null,val observed:Long=0,
     val activities:List<CanonicalActivity> = emptyList(),val heartbeatAt:Long?=null,val error:Words?=null,
     val workspace:CanonicalWorkspaceDirectory?=null,val workspaceObservedAt:Long?=null,
-    val workspaceSnapshot:CanonicalSessionSnapshot?=null,val workspaceChanging:Boolean=false,val workspaceNotice:Words?=null
+    val workspaceSnapshot:CanonicalSessionSnapshot?=null,val workspaceChanging:Boolean=false,val workspaceNotice:Words?=null,
+    val hermesContext: HermesContextRead? = null
 ) {
     val busy get()=phase in setOf(CanonicalViewerPhase.Loading,CanonicalViewerPhase.Opening)
     override fun toString()="CanonicalViewerState("+phase+")"
@@ -51,6 +58,7 @@ internal class CanonicalViewerController(
     private var generation=0L
     private var task:Job?=null
     private var workspaceTask:Job?=null
+    private var contextTask: Job? = null
     private var connection:CanonicalViewerLink?=null
     private var acceptedContext:CanonicalViewerAccess?=null
     private fun current(id:Long,access:CanonicalViewerAccess) = id==generation && access.same(context())
@@ -143,7 +151,13 @@ internal class CanonicalViewerController(
                     attached.observations().collect {delivery->apply(id,access,attached,delivery)}
                     throw GatewayUnavailable()
                 }
-            } finally {link?.close();if(connection===link) connection=null}
+            } finally {
+                link?.close()
+                if (connection === link) {
+                    connection = null
+                    clearContextRead()
+                }
+            }
         }
     }
     private suspend fun beat(link:CanonicalViewerLink) {
@@ -193,12 +207,53 @@ internal class CanonicalViewerController(
         val end=clean.offsetByCodePoints(0,minOf(512,clean.codePointCount(0,clean.length)))
         return CanonicalActivity(event.sequence,kind,clean.substring(0,end),end<clean.length)
     }
+    fun readContext() {
+        val access = acceptedContext ?: return
+        val link = connection ?: return
+        val id = generation
+        fun currentViewer() = current(id, access) && connection === link &&
+            state.value.phase == CanonicalViewerPhase.Following && !state.value.workspaceChanging
+        if (!currentViewer() || state.value.hermesContext == HermesContextRead.Loading) return
+        state.update { it.copy(hermesContext = HermesContextRead.Loading) }
+        contextTask = scope.launch {
+            try {
+                requireCurrent(id, access)
+                val report = repository.readContext(link.attachment.snapshot.owner, access.api, access.tokens)
+                currentCoroutineContext().ensureActive()
+                requireCurrent(id, access)
+                if (currentViewer()) state.update { it.copy(hermesContext = HermesContextRead.Report(report, now())) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                currentCoroutineContext().ensureActive()
+                requireCurrent(id, access)
+                if (currentViewer()) {
+                    val message = when {
+                        error is GatewayRpcException && error.code == -32601 -> Words.ViewerContextUnsupported
+                        error is CanonicalNotSupported -> Words.ViewerContextUnsupported
+                        error is CanonicalScopeChanged || error is CanonicalReviewChanged -> Words.ManagementReviewChanged
+                        error is HermesHttpException && error.code == 401 -> Words.ManagementExpired
+                        else -> Words.ViewerContextUnavailable
+                    }
+                    state.update { it.copy(hermesContext = HermesContextRead.Unavailable(message)) }
+                }
+            }
+        }
+    }
+
+    private fun clearContextRead() {
+        contextTask?.cancel()
+        contextTask = null
+        state.update { it.copy(hermesContext = null) }
+    }
+
     fun workspaceCurrent(snapshot:CanonicalSessionSnapshot)=state.value.workspaceSnapshot===snapshot &&
         state.value.phase==CanonicalViewerPhase.Following && !state.value.workspaceChanging &&
         acceptedContext?.same(context())==true && CanonicalWorkspaceReview.eligible(snapshot)
     fun changeWorkspace(review:CanonicalWorkspaceReview) {
         if(!workspaceCurrent(review.expected)) return
         val access=checkNotNull(acceptedContext);val id=generation;val owner=Any()
+        clearContextRead()
         state.value=state.value.copy(workspaceChanging=true,workspaceNotice=null);guard(owner,true)
         workspaceTask=scope.launch {
             try {
@@ -227,6 +282,7 @@ internal class CanonicalViewerController(
     }
     fun close() {
         generation++;task?.cancel();task=null;workspaceTask?.cancel();workspaceTask=null;connection?.close();connection=null;acceptedContext=null
+        clearContextRead()
         state.value=CanonicalViewerState()
     }
 }

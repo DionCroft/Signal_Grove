@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes context read checkpoint
+
+The followed viewer can read and refresh Hermes-reported context and
+compression over a separate authenticated socket. Both new native Android
+cases passed on API 26 and 37. Four broader workspace tap failures remain
+retained. The same cases passed after isolation. Eight upstream authority
+checks passed across v0.23.1, v0.23.2, v0.23.3 and the reviewed main pin.
+Continue with verified read-only workspace attachment and bound worker
+files before the project approval inbox.
+[Context read and workspace cohort evidence](docs/VALIDATION.md#hermes-reported-context-and-compression).
+
 ## Phone context review
 
 The request review reports exact formatted tokens against the active input

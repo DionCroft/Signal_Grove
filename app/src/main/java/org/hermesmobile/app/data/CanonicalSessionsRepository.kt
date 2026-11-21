@@ -107,6 +107,15 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
             throw error
         }
     }
+    override suspend fun readContext(owner: CanonicalFeedOwner, api: ManagementClient, tokens: ManagementTokens): HermesContextStats {
+        ready.await()
+        scope(owner.target, owner.homeId, api, tokens)
+        val result = api.canonicalGateway(tokens, owner.target, owner.homeId).use { it.readContext(owner) }
+        api.identity(tokens)
+        home(owner.target, owner.homeId, api, tokens)
+        return result
+    }
+
     override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {
         ready.await()
         val rows=dao.canonicalViewerReceipts(target.apiScope,target.url,target.profile,target.actor,homeId,requested)

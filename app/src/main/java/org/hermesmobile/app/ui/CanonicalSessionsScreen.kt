@@ -77,6 +77,44 @@ import java.util.Date
                         if(pending) Text(label(Words.ManagementOutcomePending))
                     }
                 }}
+                if (s.phase == CanonicalViewerPhase.Following) {
+                    item(key = "hermes-context") {
+                        val reading = s.hermesContext
+                        TextButton(controller::readContext, enabled = !s.workspaceChanging && reading != HermesContextRead.Loading,
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("canonical-read-context")) {
+                            Text(label(if (reading == null) Words.ViewerContextRead else Words.ViewerContextRefresh))
+                        }
+                        if (reading == HermesContextRead.Loading) { QuietProgress(); Text(label(Words.Loading)) }
+                        if (reading is HermesContextRead.Unavailable) {
+                            Text(label(reading.message), Modifier.testTag("canonical-context-unavailable"))
+                        }
+                    }
+                    val report = s.hermesContext as? HermesContextRead.Report
+                    if (report != null) {
+                        val stats = report.stats
+                        item { Text(label(Words.ViewerContextBoundary), style = MaterialTheme.typography.bodySmall) }
+                        item {
+                            val window = stats.effectiveWindow
+                            Text(if (window == null) label(Words.ViewerContextWindowUnknown)
+                                else label(Words.ViewerContextWindow).replace("{tokens}", window.toString()),
+                                Modifier.testTag("canonical-context-window"))
+                        }
+                        stats.configuredWindow?.let { count ->
+                            item { Text(label(Words.ViewerContextConfigured).replace("{tokens}", count.toString())) }
+                        }
+                        stats.contextTokens?.let { count ->
+                            item { Text(label(Words.ViewerContextUsed).replace("{tokens}", count.toString()),
+                                Modifier.testTag("canonical-context-used")) }
+                        }
+                        stats.lastPromptTokens?.let { count ->
+                            item { Text(label(Words.ViewerContextLastPrompt).replace("{tokens}", count.toString())) }
+                        }
+                        item { Text(label(Words.ViewerContextCompressions).replace("{count}", stats.compressionCount.toString()),
+                            Modifier.testTag("canonical-context-compressions")) }
+                        item { Text(label(Words.ViewerContextObserved).replace("{time}",
+                            DateFormat.getDateTimeInstance().format(Date(report.observedAt))), style = MaterialTheme.typography.bodySmall) }
+                    }
+                }
                 item {Text(label(Words.ViewerActivityLimit))}
                 item {Text(label(Words.ViewerEventCount).replace("{count}",s.observed.toString()))}
                 s.heartbeatAt?.let {time->item {Text(label(Words.ViewerHeartbeat).replace("{time}",DateFormat.getTimeInstance().format(Date(time))))}}

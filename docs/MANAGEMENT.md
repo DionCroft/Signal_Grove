@@ -644,6 +644,12 @@ opening/closing effects before confirming. Hermes can restore/adopt the selected
 chat and refresh its settings/hooks; its last-viewer policy applies when leaving.
 Use Hermes itself for decisions, work and workspace actions.
 
+While following a session, tap **Read Hermes context** for the windows,
+usage and compression count reported by Hermes, and **Refresh Hermes context**
+to get a new reading. A live session with no reported window shows that
+explicitly. The phone model's context meter is in **On-device AI**.
+[Context read validation](VALIDATION.md#hermes-reported-context-and-compression).
+
 This foreground viewer closes when you leave/background or change identity.
 Activity is a bounded preview, not the full stored transcript or proof that a
 run completed. Normally it resumes its last locally applied cursor; explicitly

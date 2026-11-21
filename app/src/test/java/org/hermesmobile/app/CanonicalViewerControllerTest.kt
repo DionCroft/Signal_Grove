@@ -26,6 +26,8 @@ class CanonicalViewerControllerTest {
     private class Repo:CanonicalViewerRepository {
         val link=Link();var prepares=0;var adoptions=0;var cursorReads=0
         var workspaceCalls=0;var workspaceGate:CompletableDeferred<Unit>?=null;var workspaceError:Exception?=null
+        val contextOwners = mutableListOf<CanonicalFeedOwner>()
+        var contextReader: suspend () -> HermesContextStats = { HermesContextStats(8192, null, 1024, 1050, 3) }
         var requireHeartbeat=false;var previous:CanonicalReplayCheckpoint?=null
         var savedPrevious:CanonicalReplayCheckpoint?=null
         var prepareGate:CompletableDeferred<Unit>?=null;var adoptGate:CompletableDeferred<Unit>?=null
@@ -47,6 +49,10 @@ class CanonicalViewerControllerTest {
             return CanonicalWorkspaceAcknowledgement.parse(buildJsonObject {
                 put("session_id",review.expected.owner.sessionId);put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd",review.requestedDirectory)
             },review)
+        }
+        override suspend fun readContext(owner: CanonicalFeedOwner, api: ManagementClient, tokens: ManagementTokens): HermesContextStats {
+            contextOwners += owner
+            return contextReader()
         }
         override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {cursorReads++;return savedPrevious}
         override suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor) {save();savedKeys+=key;saves+=CanonicalReplayCheckpoint(owner,cursor)}
@@ -71,6 +77,54 @@ class CanonicalViewerControllerTest {
         put("replay_epoch",kotlinx.serialization.json.JsonPrimitive(CanonicalViewerFixtures.cursor.epoch));put("seq",kotlinx.serialization.json.JsonPrimitive(sequence))
         put("payload",kotlinx.serialization.json.buildJsonObject {for((key,value) in values) put(key,kotlinx.serialization.json.JsonPrimitive(value))})
     },CanonicalViewerFixtures.owner,CanonicalViewerFixtures.cursor,65536)
+
+    @Test fun contextRefreshIsExplicitAndCoalescesWhileTheBoundReadIsPending() = runTest { exercise {
+        opened()
+        assertTrue(repo.contextOwners.isEmpty())
+        val gate = CompletableDeferred<Unit>().also { gates += it }
+        repo.contextReader = { gate.await(); HermesContextStats(8192, 12288, 1024, 1050, 3) }
+        viewer.readContext()
+        viewer.readContext()
+        runCurrent()
+        assertEquals(HermesContextRead.Loading, viewer.state.value.hermesContext)
+        assertEquals(listOf(repo.link.attachment.snapshot.owner), repo.contextOwners)
+        gate.complete(Unit)
+        runCurrent()
+        assertEquals(HermesContextRead.Report(HermesContextStats(8192, 12288, 1024, 1050, 3), currentTime),
+            viewer.state.value.hermesContext)
+        assertEquals(1, repo.adoptions)
+    } }
+
+    @Test fun contextReadRefusalLeavesTheExistingViewerAndHeartbeatActive() = runTest { exercise {
+        opened()
+        repo.contextReader = { throw GatewayRpcException(-32601) }
+        viewer.readContext()
+        runCurrent()
+        assertEquals(HermesContextRead.Unavailable(Words.ViewerContextUnsupported), viewer.state.value.hermesContext)
+        assertEquals(CanonicalViewerPhase.Following, viewer.state.value.phase)
+        val beats = repo.link.beats
+        advanceTimeBy(101)
+        runCurrent()
+        assertTrue(repo.link.beats > beats)
+        assertEquals(1, repo.contextOwners.size)
+    } }
+
+    @Test fun lateContextStatsCannotLeaveTheAuthenticatedSessionScope() = runTest { exercise {
+        opened()
+        val gate = CompletableDeferred<Unit>().also { gates += it }
+        repo.contextReader = {
+            withContext(NonCancellable) { gate.await() }
+            HermesContextStats(8192, null, 1024, 1050, 3)
+        }
+        viewer.readContext()
+        runCurrent()
+        access = null
+        gate.complete(Unit)
+        runCurrent()
+        assertNull(viewer.state.value.hermesContext)
+        assertEquals(CanonicalViewerPhase.Closed, viewer.state.value.phase)
+        assertEquals(1, repo.link.closes)
+    } }
 
     @Test fun projectSelectionLoadsStoredInventoryAndRequiresSeparateResumeApproval()=runTest {exercise {
         viewer.loadSelection(CanonicalViewerSelection(f.target,f.home,1,"history"));runCurrent()

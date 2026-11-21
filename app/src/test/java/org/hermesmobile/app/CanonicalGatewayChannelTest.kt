@@ -9,6 +9,9 @@ import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.mockwebserver.*
 import okio.ByteString.Companion.encodeUtf8
+import org.hermesmobile.app.data.CanonicalFeedOwner
+import org.hermesmobile.app.data.CanonicalReviewChanged
+import org.hermesmobile.app.data.HermesContextStats
 import org.hermesmobile.app.data.ManagementTarget
 import org.hermesmobile.app.data.PluginHome
 import org.hermesmobile.app.network.*
@@ -42,6 +45,15 @@ class CanonicalGatewayChannelTest {
                 override fun onMessage(ws: WebSocket, text: String) {
                     val request = Json.parseToJsonElement(text).jsonObject
                     calls.add(request)
+                    if (request["method"] == JsonPrimitive("session.stats")) {
+                        val id = request.getValue("id")
+                        if (mode == "stats-missing") {
+                            ws.send("""{"jsonrpc":"2.0","id":$id,"error":{"code":-32601,"message":"Private fixture refusal"}}""")
+                        } else {
+                            ws.send("""{"jsonrpc":"2.0","id":$id,"result":{"context_length":16384,"config_context_length":32768,"context_tokens":794,"last_prompt_tokens":820,"compression_count":2,"model":"private fixture text"}}""")
+                        }
+                        return
+                    }
                     when (mode) {
                         "server-request" -> ws.send("""{"jsonrpc":"2.0","id":"1","method":"approval.respond","params":{}}""")
                         "foreign-response" -> ws.send("""{"jsonrpc":"2.0","id":"srq-foreign","result":{}}""")
@@ -116,6 +128,53 @@ class CanonicalGatewayChannelTest {
             assertEquals(Json.parseToJsonElement("""{"jsonrpc":"2.0","id":"1","method":"runtime.describe","params":{}}"""), f.calls.single())
         }
     }
+    @Test fun contextReadUsesOnlyTheAlreadyReviewedSessionAndRejectsAnotherRuntime() = runBlocking {
+        Fixture().use { fixture ->
+            val channel = withTimeout(4000) {
+                CanonicalGatewayChannel.connect(fixture.http, fixture.base, fixture.ticket, fixture.target, home())
+            }
+            channel.use {
+                val owner = CanonicalFeedOwner(fixture.target, home(), "/fixture/default", "fixture-instance", "history", 7)
+                assertTrue(runCatching { channel.readContext(owner.copy(authorityEpoch = 8)) }.exceptionOrNull() is CanonicalReviewChanged)
+                assertEquals(1, fixture.calls.size)
+                assertEquals(HermesContextStats(16384, 32768, 794, 820, 2), withTimeout(4000) { channel.readContext(owner) })
+                assertEquals(listOf(JsonPrimitive("runtime.describe"), JsonPrimitive("session.stats")), fixture.calls.map { it["method"] })
+                assertEquals(buildJsonObject { put("session_id", "history") }, fixture.calls.last()["params"])
+            }
+        }
+    }
+
+    @Test fun unsupportedContextMethodKeepsItsTypedRefusalOnTheReadSocket() = runBlocking {
+        Fixture("stats-missing").use { fixture ->
+            val channel = withTimeout(4000) {
+                CanonicalGatewayChannel.connect(fixture.http, fixture.base, fixture.ticket, fixture.target, home())
+            }
+            channel.use {
+                val owner = CanonicalFeedOwner(fixture.target, home(), "/fixture/default", "fixture-instance", "history", 7)
+                val failure = runCatching { withTimeout(4000) { channel.readContext(owner) } }.exceptionOrNull()
+                assertEquals(-32601, (failure as GatewayRpcException).code)
+                assertEquals(listOf("runtime.describe", "session.stats"), fixture.calls.map { it.getValue("method").jsonPrimitive.content })
+            }
+        }
+    }
+
+    @Test fun contextNumericProjectionDistinguishesUnreportedWindowAndRejectsMalformedCounts() {
+        val agentless = buildJsonObject { put("context_length", JsonNull); put("context_tokens", 0); put("last_prompt_tokens", 0); put("compression_count", 2) }
+        assertEquals(HermesContextStats(null, null, null, null, 2), HermesContextStats.parse(agentless))
+        val bounded = buildJsonObject { agentless.forEach { (name, value) -> put(name, value) }; put("context_length", 4096) }
+        assertEquals(0L, HermesContextStats.parse(bounded).contextTokens)
+        for ((field, value) in listOf(
+            "context_tokens" to JsonPrimitive(4097),
+            "compression_count" to JsonPrimitive(-1),
+            "last_prompt_tokens" to JsonPrimitive("100"),
+            "context_length" to JsonPrimitive(1.5),
+            "config_context_length" to JsonPrimitive(true)
+        )) {
+            val malformed = JsonObject(bounded + (field to value))
+            assertTrue(runCatching { HermesContextStats.parse(malformed) }.exceptionOrNull() is GatewayProtocolException)
+        }
+    }
+
     @Test fun exactHomeIdentityAndPrefixAreBoundWithoutGrantOrSessionRequests() = success("normal")
     @Test fun boundedHostNotificationDoesNotSendOrInferAnApproval() = success("host-notification")
     @Test fun registeredEmptyScopeHostSignalsNeverBecomeReviewedTranscriptEvents() {

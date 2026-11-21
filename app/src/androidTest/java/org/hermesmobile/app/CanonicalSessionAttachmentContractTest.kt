@@ -41,6 +41,7 @@ class CanonicalSessionAttachmentContractTest {
         val mutations=AtomicInteger();var mutationReceived:(JsonObject)->Unit={}
         val resumes=AtomicInteger();val replays=AtomicInteger();val sockets=AtomicInteger();val pings=AtomicInteger()
         val profileReadAttempts=AtomicInteger()
+        val contextReads=AtomicInteger()
         val server=MockWebServer()
         val failures=AtomicInteger()
         private val pending=AtomicReference<Pending>()
@@ -76,6 +77,16 @@ class CanonicalSessionAttachmentContractTest {
                         "runtime.describe"->{
                             check(params.isEmpty())
                             reply(Json.parseToJsonElement("""{"instance_id":"fixture-native-default","profile_id":"/fixture/homes/default","authority_epoch":1,"capabilities":["durable-admission-v1","event-replay-v1"],"session_create":{"sources":["cli"],"parameters":["title"]}}""").jsonObject)
+                        }
+                        "session.stats" -> {
+                            check(mode == "stats")
+                            check(params == buildJsonObject { put("session_id", "shared-fixture") })
+                            contextReads.incrementAndGet()
+                            reply(buildJsonObject {
+                                put("context_length", 16384); put("config_context_length", 32768)
+                                put("context_tokens", 4060); put("last_prompt_tokens", 4062); put("compression_count", 2)
+                                put("rate_limit", buildJsonObject { put("fixture", "private-fixture-metadata") })
+                            })
                         }
                         "session.mutate"->{
                             check(mode.startsWith("workspace"))
@@ -445,6 +456,34 @@ class CanonicalSessionAttachmentContractTest {
     }    private fun workspaceSnapshot(target:ManagementTarget,home:String)=CanonicalSessionSnapshot(
         CanonicalFeedOwner(target,home,"/fixture/homes/default","fixture-native-default","shared-fixture",1),
         "shared-fixture","shared-fixture","fixture-sub",CanonicalReplayCursor("fixture-ring",0),2,3,false,2,true,CanonicalWorkspaceDirectory.Reported("/fixture/old"))
+
+    @Test fun contextStatsUseAnIndependentAuthenticatedSocketAndCreateNoReceipt() = runBlocking {
+        Fixture("stats").use { fixture ->
+            withDatabase { db ->
+                withTimeout(30_000) {
+                    val api = ManagementClient(base(fixture), true, true)
+                    val tokens = signIn(api)
+                    val target = target(api, tokens)
+                    val home = home(api, tokens)
+                    val repo = CanonicalSessionsRepository(db.dao(), CompletableDeferred(Unit))
+                    val review = repo.prepare(target, home, api, tokens).review("shared-fixture")
+                    repo.adopt(review, api, tokens).use { viewer ->
+                        val before = db.dao().managementOperations(target.apiScope).first()
+                        assertEquals(listOf(viewer.receipt.key), before.map { it.key })
+                        val stats = repo.readContext(viewer.attachment.snapshot.owner, api, tokens)
+                        assertEquals(HermesContextStats(16384, 32768, 4060, 4062, 2), stats)
+                        assertEquals(before, db.dao().managementOperations(target.apiScope).first())
+                        assertEquals(1, fixture.resumes.get())
+                        assertEquals(1, fixture.replays.get())
+                        assertEquals(1, fixture.contextReads.get())
+                        assertEquals(3, fixture.sockets.get())
+                        assertEquals(0, fixture.mutations.get())
+                        assertEquals(0, fixture.failures.get())
+                    }
+                }
+            }
+        }
+    }
 
     @Test fun workspaceUsesNativeTicketTransportAndDurableClaimBeforeOneAcknowledgedMutation()=runBlocking {
         Fixture("workspace").use {f->

@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## Hermes-reported context and compression
+
+The followed session can read the effective and configured windows, current
+context, last prompt size and compression count with **Read Hermes context**.
+The request uses only the attached session ID on a fresh profile-bound socket.
+The runtime instance, authority epoch and management identity/home are checked
+against the followed session. The read creates no local management receipt.
+The projection retains numeric fields and a local read time. An unavailable
+window is shown as unreported. A failed read leaves the event subscription
+on its original connection.
+
+The canonical wire shapes and auth-first handlers were reviewed at Hermes
+v0.23.1, v0.23.2, v0.23.3 and main 2de9f51b8008a7d49a49221c184f2f11cbfc4af1.
+Two actual upstream authority cases passed at each pin. The separate
+read-scoped connection returned the same numeric counters without a
+subscription, the connection without read capability was refused, and
+the original viewer subscription was retained. These tests used isolated
+Hermes fixtures. [Wire schema](https://github.com/NousResearch/hermes-agent/blob/v0.23.3/tui_gateway/contracts/canonical.py) ·
+[Stats handler](https://github.com/NousResearch/hermes-agent/blob/v0.23.3/gateway/session_usage.py#L265).
+
+The frozen build passed all 1,210 JVM tests, both lint variants and
+both APK builds. The exact Android APK pair passed the new large-caption
+context UI test and the native PKCE/TCP/Room stats-read test on both
+Android 8 and 17. The TCP fixture confirmed one stats read over its own
+authenticated socket, one previously approved attachment, and identical
+receipt records before and after the read. The app and test APK hashes are
+5da8a7e6a349045a9ed58ff7d76818e6cecd18176716d9eba0ab4e66a2e5f4d4 and
+2b3cc0a407c63eb487a37c4d1057fdf96a7283f7240e73dafb8ed5bb371907f5.
+
+The larger viewer cohorts had 22 of 23 positive cases on Android 8 and
+20 of 23 on Android 17. All four negative outcomes were workspace native
+tap checks. Three reached the viewport deadline before a tap. The fourth
+returned Espresso WARNING after a 694 ms DOWN-to-UP elapsed interval,
+above the reported 400 ms long-press timeout. Both native events were
+accepted and the test performed no retry. The three-case selection passed
+on the preceding APK and on this APK independently. The single Android 8
+failure also passed in isolation. The original negative cohort results
+and viewport evidence remain recorded. Full hosted and live owner
+acceptance are open.
+
 ## LFM3 context capacity probe on the Xiaomi
 
 One in-place debug APK pair measured the pinned QAD Q4_0 LFM3 model with

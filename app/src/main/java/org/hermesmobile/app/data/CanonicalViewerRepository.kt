@@ -17,6 +17,7 @@ internal interface CanonicalViewerRepository {
                       previous:CanonicalReplayCheckpoint?=null,requireHeartbeat:Boolean=false):CanonicalViewerLink
     suspend fun changeWorkspace(review:CanonicalWorkspaceReview,api:ManagementClient,tokens:ManagementTokens):CanonicalWorkspaceAcknowledgement =
         throw CanonicalNotSupported()
+    suspend fun readContext(owner: CanonicalFeedOwner, api: ManagementClient, tokens: ManagementTokens): HermesContextStats
     suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint?
     suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor)
 }

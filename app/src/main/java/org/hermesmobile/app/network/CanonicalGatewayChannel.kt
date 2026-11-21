@@ -265,7 +265,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     }
 
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
-        require(method in setOf("session.list", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions"))
+        require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions"))
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -379,15 +379,27 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         }
     }
 
+    private fun requireUnattachedOwner(expected: CanonicalFeedOwner): CanonicalRuntimeBinding {
+        synchronized(this) { check(!resuming && !resumed) }
+        val current = binding
+        if (current.target != expected.target || current.homeId != expected.homeId || current.profileId != expected.profileId ||
+            current.instanceId != expected.instanceId || current.authorityEpoch != expected.authorityEpoch) throw CanonicalReviewChanged()
+        return current
+    }
+
+    internal suspend fun readContext(expected: CanonicalFeedOwner): HermesContextStats {
+        val current = requireUnattachedOwner(expected)
+        val result = call("session.stats", buildJsonObject { put("session_id", expected.sessionId) })
+        if (binding !== current) throw CanonicalScopeChanged()
+        return HermesContextStats.parse(result)
+    }
+
     /** A separately authenticated socket; no attachment, prompt or work is replayed. */
     internal suspend fun changeWorkspaceReviewed(
         review:CanonicalWorkspaceReview,beforeSend:suspend ()->Unit,
         acknowledged:suspend (CanonicalWorkspaceAcknowledgement)->Unit
     ):CanonicalWorkspaceAcknowledgement {
-        synchronized(this) {check(!resuming && !resumed)}
-        val current=binding;val expected=review.expected.owner
-        if(current.target!=expected.target || current.homeId!=expected.homeId || current.profileId!=expected.profileId ||
-            current.instanceId!=expected.instanceId || current.authorityEpoch!=expected.authorityEpoch) throw CanonicalReviewChanged()
+        val current = requireUnattachedOwner(review.expected.owner)
         val payload=review.consume(review.expected)
         beforeSend()
         currentCoroutineContext().ensureActive()

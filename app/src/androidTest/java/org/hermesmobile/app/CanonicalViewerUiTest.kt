@@ -62,6 +62,7 @@ class CanonicalViewerUiTest {
     private inner class Repo:CanonicalViewerRepository {
         val link=Link();val reads=mutableListOf<CanonicalSessionScope>()
         var workspaceChanges=0
+        var contextReads = 0
         var workspaceError:Exception?=null
         var adoptions=0;var requireHeartbeat=false;var saves=0;var previousReads=0
         var expectedApplied=cursor
@@ -77,6 +78,11 @@ class CanonicalViewerUiTest {
             return CanonicalWorkspaceAcknowledgement.parse(buildJsonObject {
                 put("session_id",owner.sessionId);put("operation","workspace");put("revision",3);put("execution_generation",4);put("cwd",review.requestedDirectory)
             },review)
+        }
+        override suspend fun readContext(owner: CanonicalFeedOwner, api: ManagementClient, tokens: ManagementTokens): HermesContextStats {
+            assertEquals(this@CanonicalViewerUiTest.owner, owner)
+            contextReads++
+            return HermesContextStats(8192, 12288, 1024, 1050, 3)
         }
         override suspend fun lastApplied(target:ManagementTarget,homeId:String,requested:String):CanonicalReplayCheckpoint? {previousReads++;return null}
         override suspend fun recordApplied(key:String,owner:CanonicalFeedOwner,cursor:CanonicalReplayCursor) {
@@ -136,6 +142,22 @@ class CanonicalViewerUiTest {
         compose.runOnUiThread {viewer.close();shown=false;scope.cancel()}
         compose.waitForIdle();assertFalse(guard.active.value)
     }
+    @Test fun explicitHermesContextReadShowsWindowAndCompressionsAtLargeCaptions() {
+        render(large = true)
+        open()
+        assertEquals(0, repo.contextReads)
+        scroll("canonical-viewer-list", "canonical-read-context").performClick()
+        scroll("canonical-viewer-list", "canonical-context-window")
+            .assertTextContains("Effective window · 8192 tokens", substring = true)
+        scroll("canonical-viewer-list", "canonical-context-used")
+            .assertTextContains("Context in use · 1024 tokens", substring = true)
+        scroll("canonical-viewer-list", "canonical-context-compressions")
+            .assertTextContains("Compressions · 3", substring = true)
+        assertEquals(1, repo.contextReads)
+        assertEquals(1, repo.adoptions)
+        compose.onNodeWithTag("canonical-close").assertIsDisplayed()
+    }
+
     @Test fun projectConversationSelectionShowsConsentBeforeOpeningAtLargeCaptions() {
         render(large=true,selection=CanonicalViewerSelection(target,home,1,"fixture-history"))
         assertEquals(listOf(CanonicalSessionScope.Stored),repo.reads);assertEquals(0,repo.adoptions);assertEquals(0,repo.previousReads)
