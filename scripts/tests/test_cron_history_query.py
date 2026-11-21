@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from server_extensions.coordinator_workspaces.cron_edit import edit_query
 from server_extensions.coordinator_workspaces.cron_history import execution_query, read_executions
 from server_extensions.coordinator_workspaces.coordinator import ReadRefused
 from server_extensions.coordinator_workspaces.cron_output import bind_output, output_query, read_output
@@ -93,3 +94,24 @@ class CronHistoryQueryTest(unittest.TestCase):
             self.assertEqual(data, path.read_bytes())
             with self.assertRaises(ValueError):
                 prepare(path, "0" * 64, patch_scheduler_output)
+
+
+    def test_schedule_edit_accepts_only_exact_scope_review_and_timing_changes(self):
+        target = dict(expected_profile="worker", job_id="calendar-job")
+        apply = dict(target, request_id="1"*32, expected_version="a"*64,
+                     changes={"timezone":"Europe/London", "schedule":"0 9 * * *", "grace_minutes":0})
+        valid = edit_query(apply, "apply")
+        self.assertEqual(("worker", "calendar-job", "1"*32, "a"*64),
+                         (valid.profile, valid.job_id, valid.request_id, valid.expected_version))
+        self.assertEqual(["grace_minutes", "schedule", "timezone"], list(valid.changes))
+        self.assertEqual(valid.request_id, edit_query(dict(target, request_id=valid.request_id), "observe").request_id)
+        self.assertIsNone(edit_query(target, "prepare").request_id)
+        for invalid in (dict(apply, profile="default"), dict(apply, expected_version="wrong"),
+                        dict(apply, request_id="path/claim"), dict(apply, changes={}),
+                        dict(apply, changes={"enabled":True}), dict(apply, changes={"prompt":"private"}),
+                        dict(apply, changes={"grace_minutes":True}), dict(apply, changes={"catch_up":"yes"}),
+                        dict(apply, changes={"timezone":"../../other"}), dict(apply, changes={"timezone":"../UTC"}),
+                        dict(apply, changes={"schedule":"0 9 * * *\n"})):
+            with self.assertRaises(ReadRefused) as error:
+                edit_query(invalid, "apply")
+            self.assertEqual("INVALID", error.exception.code)

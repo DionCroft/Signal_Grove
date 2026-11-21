@@ -1,5 +1,37 @@
 # Optional native coordinator workspace reads
 
+## Optional native timing edits for paused jobs
+
+The edit methods use the authenticated owner connection and the
+non-routing `expected_profile` assertion. All selectors require an
+exact canonical `job_id`.
+
+| Method | Additional fields | Result |
+| --- | --- | --- |
+| `signal_grove.cron.edit_prepare_v1` | None | Opaque catalogue `version` and current `timing` |
+| `signal_grove.cron.edit_apply_v1` | `expected_version`, `request_id`, `changes` | Original ID, reviewed version and committed timing |
+| `signal_grove.cron.edit_observe_v1` | Original `request_id` | The retained original edit receipt |
+
+The changes object accepts schedule, timezone, catch-up and grace
+minutes. One-time edits require an explicit UTC offset so the instant
+cannot drift between review and commit. The job must already be
+paused, disabled and free of a fire claim. Native schedule kind
+changes follow Hermes' existing repeat rules. A client review must
+surface a repeat change before confirmation. The edit cannot activate
+or dispatch a job and cannot change its prompt or workspace.
+
+Only staged generations with the reviewed jobs hook support edits.
+Stage it with `--expected-cron-jobs-sha256` and the existing exact
+controls hash. The separate scheduler hash enables the archive hook.
+A cross-process lock refusal stops before the timing edit. The native
+job save stores the last 20 edit receipts per job. The same request
+and expected version return the original retained receipt, and
+conflicting reuse refuses. Use observation after a lost or uncertain
+reply. An absent or expired receipt alone does not prove that the
+edit was never made. A change to any job expires an earlier
+review of the shared catalogue.
+[Validation](../../docs/VALIDATION.md#strict-paused-schedule-editing-source).
+
 ## Optional native scheduled output previews
 
 `signal_grove.cron.output_v1` takes `{expected_profile, job_id, execution_id}`.

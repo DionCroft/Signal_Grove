@@ -11,7 +11,7 @@ from pathlib import Path
 import stat
 
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
-         'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py')
+         'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py')
 
 
 def patch_source(source):
@@ -45,6 +45,53 @@ def patch_scheduler_output(source):
     return updated
 
 
+def patch_cron_edit(source):
+    start = source.index("@contextlib.contextmanager\ndef _jobs_lock():")
+    end = source.index("@contextlib.contextmanager\ndef _fire_job_lock", start)
+    section = source[start:end]
+    lock_edits = (
+        ("@contextlib.contextmanager\ndef _jobs_lock():",
+         "class CronStoreLockUnavailable(RuntimeError):\n    pass\n\n\n"
+         "@contextlib.contextmanager\ndef _jobs_lock(*, require_cross_process=False):"),
+        ("    if depth:\n        _jobs_lock_state.depth",
+         "    if depth:\n        if require_cross_process:\n            raise CronStoreLockUnavailable()\n"
+         "        _jobs_lock_state.depth"),
+        ("        lock_fd = None\n        try:", "        lock_fd = None\n        acquired = None\n        try:"),
+        ("                if _acquire_flock(lock_fd, _JOBS_LOCK_TIMEOUT_SECONDS) is False:\n                    logger.error(",
+         "                acquired = _acquire_flock(lock_fd, _JOBS_LOCK_TIMEOUT_SECONDS)\n"
+         "                if acquired is False and not require_cross_process:\n                    logger.error("),
+        ("            except OSError as e:\n", "            except OSError as e:\n"
+         "                if require_cross_process:\n                    acquired = None\n"
+         "                    if lock_fd is not None:\n                        lock_fd.close()\n                        lock_fd = None\n"
+         "                    raise CronStoreLockUnavailable() from None\n"),
+        ("            try:\n                yield\n", "            try:\n"
+         "                if require_cross_process and acquired is not True:\n                    raise CronStoreLockUnavailable()\n"
+         "                yield\n"),
+    )
+    for before, after in lock_edits:
+        if section.count(before) != 1:
+            raise ValueError('Native lock differs from the reviewed schedule edit anchors.')
+        section = section.replace(before, after)
+    source = source[:start] + section + source[end:]
+    start = source.index("def update_job(job_id: str, updates: dict[str, Any])")
+    end = source.index("\n\ndef pause_job", start)
+    section = source[start:end]
+    edit_anchors = (
+        ("def update_job(job_id: str, updates: dict[str, Any])",
+         "def update_job(job_id: str, updates: dict[str, Any], *, finalize_review=None)"),
+        ("        jobs[i] = updated\n        save_jobs(jobs)",
+         "        if finalize_review is not None:\n            finalize_review(updated)\n"
+         "        jobs[i] = updated\n        save_jobs(jobs)"),
+    )
+    for before, after in edit_anchors:
+        if section.count(before) != 1:
+            raise ValueError('Native schedule writer differs from the reviewed edit anchors.')
+        section = section.replace(before, after)
+    result = source[:start] + section + source[end:]
+    ast.parse(result)
+    return result
+
+
 def prepare(path, expected_hash, patch):
     raw = path.read_bytes()
     if hashlib.sha256(raw).hexdigest() != expected_hash:
@@ -60,6 +107,7 @@ def main():
     parser.add_argument('--runtime-root',type=Path,required=True)
     parser.add_argument('--expected-controls-sha256',required=True)
     parser.add_argument('--expected-scheduler-sha256', help='Also bind owned output in this reviewed runtime generation.')
+    parser.add_argument('--expected-cron-jobs-sha256', help='Also stage the strict paused scheduler edit hook.')
     parser.add_argument('--apply',action='store_true')
     args=parser.parse_args()
     source=args.runtime_root/'gateway/session_controls.py'
@@ -68,6 +116,10 @@ def main():
         scheduler = args.runtime_root / 'cron/scheduler.py'
         updates.append((scheduler, args.expected_scheduler_sha256,
                         prepare(scheduler, args.expected_scheduler_sha256, patch_scheduler_output)))
+    if args.expected_cron_jobs_sha256 is not None:
+        jobs = args.runtime_root / 'cron/jobs.py'
+        updates.append((jobs, args.expected_cron_jobs_sha256,
+                        prepare(jobs, args.expected_cron_jobs_sha256, patch_cron_edit)))
     modules={name:Path(__file__).with_name(name).read_bytes() for name in FILES}
     for value in modules.values(): ast.parse(value)
     target=source.parent/'signal_grove_workspaces'

@@ -1,5 +1,44 @@
 # Current development validation — audit follow-up
 
+## Strict paused schedule editing source
+
+The optional native adapter supports owner-scoped prepare, apply
+and receipt observation for timing edits to a paused, unclaimed job.
+The review version binds the bytes and identity of the protected
+catalogue. Apply requires the cross-process native lock and
+rechecks the selected ID and review before the native writer saves
+anything. Stock calls retain their existing lock behavior.
+The timing and original request receipt are written together in
+the same native catalogue replacement. A same-request replay with
+identical fields reads the retained receipt. A conflicting reuse
+or stale review refuses. A lost post-save readback is marked as
+possibly submitted and can be observed by the original ID.
+
+The Windows portable suite passed 932 cases with 273 platform
+skips. The actual v0.23.1 and `242315c` schedulers each passed
+eight isolated cases on Windows. The harness used a Windows
+catalogue observation in place of the protected POSIX read.
+They covered timing and retained pause, field ordering in a replay,
+stale revisions, missing/contended/degraded lock refusal,
+pre-save owner loss, explicit-offset one-time edits, post-save
+readback loss and two competing edits. One competing edit saved
+and one refused. Secondary-job bytes and pristine sources were
+preserved. Both runs recorded zero isolation denials.
+
+The actual v0.23.1 owner dispatcher passed 22 cases, including five
+new timing-edit contract cases using a synthetic writer. Wrong
+profile, API-key and non-operator requests were refused. Closing
+the scoped owner after apply produced a possibly submitted reply.
+Observation used the original request and called no writer.
+
+A v0.23.1 staged apply verified all three immutable source files and
+ten extension modules. A wrong jobs hash caused no edits and dry
+preview left source unchanged. Expected and actual candidate hashes
+matched, repeated apply refused and the pristine bytes stayed
+unchanged. The `242315c` jobs file matched its verified archive and
+the same patch anchors. The protected Linux cases follow the source
+push. Android review and live Pi acceptance remain open.
+
 ## Exact saved output on Android
 
 An explicit **View saved output** reads one selected scheduler

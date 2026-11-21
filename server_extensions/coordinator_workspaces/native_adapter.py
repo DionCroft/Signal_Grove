@@ -12,6 +12,7 @@ from tui_gateway.contracts.base import JsonValue, Params, Result
 from tui_gateway.contracts.registry import canonical_method
 from .attached import FollowedWorkspace
 from .coordinator import CoordinatorReadService, NativeReadContext, ReadRefused, _identity
+from .cron_edit import apply_edit, edit_query, observe_edit, prepare_edit
 from .cron_history import execution_query, read_executions
 from .cron_output import output_query, read_output
 
@@ -21,6 +22,9 @@ DESCRIBE_ATTACHED = 'signal_grove.workspaces.describe_attachment_v1'
 READ_ATTACHED = 'signal_grove.workspaces.read_attachment_v1'
 CRON_EXECUTIONS = 'signal_grove.cron.executions_v1'
 CRON_OUTPUT = 'signal_grove.cron.output_v1'
+CRON_EDIT_PREPARE = 'signal_grove.cron.edit_prepare_v1'
+CRON_EDIT_APPLY = 'signal_grove.cron.edit_apply_v1'
+CRON_EDIT_OBSERVE = 'signal_grove.cron.edit_observe_v1'
 
 
 class DescribeParams(Params):
@@ -58,6 +62,20 @@ class CronOutputParams(Params):
     execution_id: str
 
 
+class CronEditPrepareParams(Params):
+    expected_profile: str
+    job_id: str
+
+
+class CronEditObserveParams(CronEditPrepareParams):
+    request_id: str
+
+
+class CronEditApplyParams(CronEditObserveParams):
+    expected_version: str
+    changes: dict[str, JsonValue]
+
+
 class ReadResult(Result):
     schema_version: Literal[1] = Field(alias='schema')
     state: Literal['ok','error']
@@ -83,6 +101,13 @@ canonical_method(CRON_EXECUTIONS, params=CronExecutionParams, result=ReadResult,
 
 canonical_method(CRON_OUTPUT, params=CronOutputParams, result=ReadResult,
                  doc='Preview an exact owner-bound scheduler output archive.')
+
+canonical_method(CRON_EDIT_PREPARE, params=CronEditPrepareParams, result=ReadResult,
+                 doc='Prepare the exact stored paused schedule for a timing review.')
+canonical_method(CRON_EDIT_APPLY, params=CronEditApplyParams, result=ReadResult,
+                 doc='Apply one exact approved timing edit while the canonical job is paused.')
+canonical_method(CRON_EDIT_OBSERVE, params=CronEditObserveParams, result=ReadResult,
+                 doc='Observe a retained timing edit receipt without submitting work.')
 
 
 def _identity_instance_matches(connection):
@@ -229,6 +254,33 @@ def handlers(connection):
         except ReadRefused as exc:
             return dict(schema=1, state='error', code=exc.code, request_submitted=False)
 
+    async def schedule_prepare(ref, params):
+        return await scheduler_read(params, lambda values: edit_query(values, 'prepare'), prepare_edit)
+
+    async def schedule_observe(ref, params):
+        return await scheduler_read(params, lambda values: edit_query(values, 'observe'), observe_edit)
+
+    async def schedule_apply(ref, params):
+        from hermes_cli.profiles import profile_matches_home
+        committed = False
+        try:
+            context = native_context(connection)
+            query = edit_query(params, 'apply')
+            home = Path(context.profile_id)
+
+            def verify_authority():
+                if native_context(connection) != context or not profile_matches_home(query.profile, home):
+                    raise ReadRefused('DENIED')
+
+            verify_authority()
+            payload = await asyncio.to_thread(apply_edit, home, query, verify_authority)
+            committed = True
+            verify_authority()
+            return dict(schema=1, state='ok', payload=payload)
+        except ReadRefused as exc:
+            return dict(schema=1, state='error', code=exc.code,
+                        request_submitted=committed or exc.request_submitted)
+
     async def executions(ref, params): return await scheduler_read(params, execution_query, read_executions)
     async def output(ref, params): return await scheduler_read(params, output_query, read_output)
     async def describe(ref, params): return await invoke(ref, params, reading=False)
@@ -236,4 +288,6 @@ def handlers(connection):
     async def describe_attached(ref, params): return await attached(ref, params, reading=False)
     async def read_attached(ref, params): return await attached(ref, params, reading=True)
     return {DESCRIBE:describe, READ:read, DESCRIBE_ATTACHED:describe_attached, READ_ATTACHED:read_attached,
-            CRON_EXECUTIONS:executions, CRON_OUTPUT:output}
+            CRON_EXECUTIONS:executions, CRON_OUTPUT:output,
+            CRON_EDIT_PREPARE:schedule_prepare, CRON_EDIT_OBSERVE:schedule_observe,
+            CRON_EDIT_APPLY:schedule_apply}

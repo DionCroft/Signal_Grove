@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Strict paused scheduler edit source
+
+The optional native timing editor now checks the exact reviewed job
+under the cross-process lock and saves a recovery receipt with the
+edit. Both pinned native scheduler cohorts and the authenticated
+dispatcher passed isolated tests. Android review, authenticated
+live Pi testing, run-once and scheduled project approvals remain open.
+[Validation](docs/VALIDATION.md#strict-paused-schedule-editing-source).
+
 ## Exact saved output on Android
 
 A selected scheduler attempt offers a bounded, profile- and
