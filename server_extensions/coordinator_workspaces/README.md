@@ -1,5 +1,38 @@
 # Optional native coordinator workspace reads
 
+## Optional native scheduled output previews
+
+`signal_grove.cron.output_v1` takes `{expected_profile, job_id, execution_id}`.
+Use the same verified native owner socket as for execution receipts.
+The execution must still exist under that canonical job ID in the
+current profile's Linux ledger. The response returns the exact profile,
+job and execution IDs, recorded status, `archive_state`, `limited` and
+optional `text`. Archive states are `available`, `unlinked`, `missing`
+and `changed`. Only available previews contain text.
+
+On a reviewed, staged generation, provide
+`--expected-scheduler-sha256` in addition to the controls hash when
+previewing or applying the adapter. This adds an association under
+Hermes' existing output writer fence **after** its normal archive save.
+The controls-only installer still works. This extra hook checks the
+archive bytes, writes owner-only identity and digest metadata, and
+keeps up to 50 associations per job. The manifest lives under the
+job's ordinary output directory and follows native removal. The reader
+verifies the same file again before returning up to 16 KiB of UTF-8
+from a linked archive of up to 512 KiB. Older, replaced, oversized or
+removed archives can be unavailable. Unknown execution status remains
+unknown even when output exists. Existing owner-only file permissions
+and stock archive names and pruning are used. Arbitrary filesystem
+paths, older timestamp guesses and unrelated gateway logs are outside
+this method.
+
+The installer validates both hashes and source anchors before writing
+any module to the candidate. Apply to a staged runtime to review the
+complete patched generation before activation. The installer has no
+live transaction spanning the two source files. A partial staged
+generation requires inspection before use.
+[Validation](../../docs/VALIDATION.md#exact-scheduler-archive-association).
+
 ## Optional native scheduled execution receipts
 
 `signal_grove.cron.executions_v1` accepts `{expected_profile, job_id, limit?}`

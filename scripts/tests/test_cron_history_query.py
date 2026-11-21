@@ -1,10 +1,16 @@
 """Closed selectors and redacted failure behavior for the scoped scheduler reader."""
 
+import ast
+import hashlib
+from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 from server_extensions.coordinator_workspaces.cron_history import execution_query, read_executions
 from server_extensions.coordinator_workspaces.coordinator import ReadRefused
+from server_extensions.coordinator_workspaces.cron_output import bind_output, output_query, read_output
+from server_extensions.coordinator_workspaces.install_adapter import patch_scheduler_output, prepare
 
 
 class CronHistoryQueryTest(unittest.TestCase):
@@ -37,3 +43,53 @@ class CronHistoryQueryTest(unittest.TestCase):
         with self.assertRaises(ReadRefused) as raised:
             read_executions(None, query)
         self.assertEqual('UNSUPPORTED', raised.exception.code)
+
+
+    def test_output_rpc_only_accepts_exact_selector(self):
+        params = dict(expected_profile="field", job_id="calendar-job", execution_id="a" * 32)
+        self.assertEqual("a" * 32, output_query(params).execution_id)
+        for invalid in (dict(params, profile="default"), dict(params, path="2026.md"),
+                        dict(params, limit=1), dict(params, execution_id=None),
+                        {key: value for key, value in params.items() if key != "execution_id"}):
+            with self.assertRaises(ReadRefused) as raised:
+                output_query(invalid)
+            self.assertEqual("INVALID", raised.exception.code)
+
+    @unittest.skipIf(sys.platform == "linux", "Only non-Linux hosts fail the platform gate")
+    def test_output_never_reads_or_writes_paths_on_an_unsupported_host(self):
+        query = output_query(dict(expected_profile="field", job_id="calendar-job", execution_id="a" * 32))
+        with self.assertRaises(ReadRefused) as raised:
+            read_output(None, query)
+        self.assertEqual("UNSUPPORTED", raised.exception.code)
+        self.assertFalse(bind_output("calendar-job", "a" * 32, None, "fixture"))
+
+    def test_scheduler_patch_runs_inside_output_fence_and_preserves_the_unmodified_writer(self):
+        source = """def finish(job, fence, verbose, output):
+    with fence.side_effect_fence() as owns_output:
+        if not owns_output:
+            raise RuntimeError()
+        output_file = (
+            None if self_removal_delivery_allowed(job["id"])
+            else save_job_output(job["id"], output))
+    if verbose and output_file is not None:
+        return output_file
+"""
+        patched = patch_scheduler_output(source)
+        node = ast.parse(patched).body[0]
+        self.assertIsInstance(node.body[0], ast.With)
+        self.assertEqual(ast.unparse(node.body[0].body[1]),
+                         ast.unparse(ast.parse(source).body[0].body[0].body[1]))
+        self.assertIn("output_file is not None and job.get", ast.unparse(node.body[0].body[2]))
+        self.assertIn("bind_output(job['id'], job['execution_id'], output_file, output)",
+                      ast.unparse(node.body[0].body[2]))
+        with self.assertRaises(ValueError):
+            patch_scheduler_output(patched)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "scheduler.py"
+            data = source.replace("\n", "\r\n").encode("utf-8")
+            path.write_bytes(data)
+            prepared = prepare(path, hashlib.sha256(data).hexdigest(), patch_scheduler_output)
+            self.assertEqual(patched.replace("\n", "\r\n").encode("utf-8"), prepared)
+            self.assertEqual(data, path.read_bytes())
+            with self.assertRaises(ValueError):
+                prepare(path, "0" * 64, patch_scheduler_output)

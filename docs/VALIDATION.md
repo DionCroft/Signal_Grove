@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Exact scheduler archive association
+
+The optional scheduler hook records a receipt-to-archive association
+inside the existing native output write fence. It records only the
+job ID, execution ID, archive name, byte digest and file identity.
+The stock Markdown file and its retention stay under Hermes control.
+The read verifies an exact ledger entry in the authenticated profile
+before and after the protected archive read. The file can be absent,
+unlinked or changed. A later same-second archive, including an
+identical copy with a different identity, cannot stand for the old
+receipt. Only verified UTF-8 previews are returned. Archive data is
+neither included in history pages nor sent to a model.
+
+The full Windows portable suite passed 931 cases with 273 platform
+skips. The native v0.23.1 dispatcher passed 16 isolated cases with
+zero work records and zero isolation denials. Its positive archive
+wire reply used synthetic protected-read data. Wrong-owner and
+ordinary API callers were refused before storage. Actual Windows
+storage refused by platform. The first probe used Python 3.13
+with 3.14 native dependencies and stopped at import. The matching
+3.14.9 environment passed on a fresh fixture.
+
+A two-file staged installation used exact Git blob bytes from
+v0.23.1. A wrong scheduler hash caused no staging writes. Dry preview
+left both files and the extension path untouched. The isolated
+apply produced matching preview hashes and nine exact modules.
+A repeated apply refused and preserved the new candidate. The
+immutable source remained intact. The independently verified
+`242315c` main scheduler matches the hook anchor. The protected
+Linux archive gate follows the source push.
+
 ## Scheduler execution history on Android
 
 Advanced schedule details offer a separate **Scheduler attempts** read.

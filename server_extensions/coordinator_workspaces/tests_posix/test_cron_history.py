@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from server_extensions.coordinator_workspaces import cron_history
+from server_extensions.coordinator_workspaces import cron_history, cron_output
 from server_extensions.coordinator_workspaces.coordinator import ReadRefused
 
 JOB = 'f1e2d3c4b5a6'
@@ -160,3 +160,110 @@ class CronHistoryPosixTest(unittest.TestCase):
         raw = ledger.read_bytes()
         self.expect('UNAVAILABLE', lambda: cron_history.read_executions(self.home, self.query))
         self.assertEqual(raw, ledger.read_bytes())
+
+
+    def archive(self, home, output, *, filename="2026-11-21_02-15-00.md", job=JOB):
+        path = home / "cron" / "output" / job / filename
+        path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        temporary = path.with_suffix(".pending")
+        temporary.write_bytes(output.encode("utf-8"))
+        temporary.chmod(0o600)
+        temporary.replace(path)
+        return path
+
+    def output(self, home=None, receipt=RECEIPT, job=JOB):
+        query = cron_output.output_query(dict(expected_profile="default", job_id=job, execution_id=receipt))
+        return cron_output.read_output(self.home if home is None else home, query)
+
+    def test_output_association_preserves_stock_bytes_and_rejects_lookalike_time(self):
+        output = "# Results\nOne exact archived reply"
+        with closing(self.open_ledger(self.home)) as db:
+            self.add(db, status="unknown")
+            path = self.archive(self.home, output)
+            before = (path.read_bytes(), path.stat().st_ino)
+            self.assertEqual("unlinked", self.output()["archive_state"])
+            self.assertFalse(cron_output.bind_output(JOB, RECEIPT, path, "another output"))
+            self.assertTrue(cron_output.bind_output(JOB, RECEIPT, path, output))
+            self.assertEqual(before, (path.read_bytes(), path.stat().st_ino))
+            saved = self.output()
+            self.assertEqual((RECEIPT, "unknown", "available", output, False),
+                             tuple(saved[key] for key in ("execution_id", "status", "archive_state", "text", "limited")))
+            self.assertNotIn(str(path), str(saved))
+            self.assertEqual({"profile", "job_id", "execution_id", "status", "archive_state", "text", "limited"},
+                             set(saved))
+
+    def test_same_second_archive_replacement_never_adopts_the_later_output(self):
+        with closing(self.open_ledger(self.home)) as db:
+            self.add(db)
+            self.add(db, OTHER_RECEIPT)
+            first = self.archive(self.home, "identical archived bytes")
+            self.assertTrue(cron_output.bind_output(JOB, RECEIPT, first, "identical archived bytes"))
+            later = self.archive(self.home, "identical archived bytes")
+            self.assertEqual(first, later)
+            self.assertTrue(cron_output.bind_output(JOB, OTHER_RECEIPT, later, "identical archived bytes"))
+            self.assertFalse(cron_output.bind_output(JOB, RECEIPT, later, "identical archived bytes"))
+            self.assertEqual(("changed", None), tuple(self.output()[key] for key in ("archive_state", "text")))
+            self.assertEqual("identical archived bytes", self.output(receipt=OTHER_RECEIPT)["text"])
+            later.unlink()
+            self.assertEqual("missing", self.output(receipt=OTHER_RECEIPT)["archive_state"])
+
+    def test_exact_output_remains_in_its_profile_even_with_matching_job_and_execution_ids(self):
+        with closing(self.open_ledger(self.home)) as first, closing(self.open_ledger(self.other_home)) as second:
+            self.add(first)
+            self.add(second)
+            path = self.archive(self.home, "default archive")
+            other = self.archive(self.other_home, "secondary archive")
+            self.assertTrue(cron_output.bind_output(JOB, RECEIPT, path, "default archive"))
+            self.assertTrue(cron_output.bind_output(JOB, RECEIPT, other, "secondary archive"))
+            self.assertEqual("default archive", self.output()["text"])
+            self.assertEqual("secondary archive", self.output(self.other_home)["text"])
+            self.catalog(self.home, [])
+            self.assertEqual("default archive", self.output()["text"])
+            self.expect("NOT_FOUND", lambda: self.output(self.home, job=OTHER_JOB))
+            first.execute("DELETE FROM executions WHERE id = ?", (RECEIPT,))
+            first.commit()
+            self.expect("NOT_FOUND", self.output)
+
+    def test_utf8_projection_is_bounded_and_actor_cannot_choose_an_archive_name(self):
+        with closing(self.open_ledger(self.home)) as db:
+            self.add(db)
+            output = "a" * (cron_output._MAX_PREVIEW - 1) + "庭院"
+            path = self.archive(self.home, output)
+            self.assertTrue(cron_output.bind_output(JOB, RECEIPT, path, output))
+            result = self.output()
+            self.assertTrue(result["limited"])
+            self.assertEqual("a" * (cron_output._MAX_PREVIEW - 1), result["text"])
+            link = path.parent / cron_output._LINKS / (RECEIPT + ".json")
+            record = json.loads(link.read_text(encoding="utf-8"))
+            record["archive"] = "../../other.md"
+            link.write_text(json.dumps(record), encoding="utf-8")
+            self.expect("UNAVAILABLE", self.output)
+
+    def test_foreign_symlink_and_writable_link_are_refused(self):
+        with closing(self.open_ledger(self.home)) as db:
+            self.add(db)
+            output = "the original output"
+            path = self.archive(self.home, output)
+            other = self.archive(self.other_home, output)
+            self.assertTrue(cron_output.bind_output(JOB, RECEIPT, path, output))
+            link = path.parent / cron_output._LINKS / (RECEIPT + ".json")
+            link.chmod(0o640)
+            self.expect("UNAVAILABLE", self.output)
+            link.chmod(0o600)
+            path.unlink()
+            path.symlink_to(other)
+            self.expect("UNAVAILABLE", self.output)
+            self.assertFalse(cron_output.bind_output(JOB, OTHER_RECEIPT, path, output))
+
+    def test_binding_retention_prunes_metadata_and_keeps_stock_archives(self):
+        with patch.object(cron_output, "_KEEP_LINKS", 2):
+            paths = []
+            for index in range(3):
+                output = f"archived result {index}"
+                path = self.archive(self.home, output, filename=f"2026-11-21_02-15-0{index}.md")
+                paths.append(path)
+                self.assertTrue(cron_output.bind_output(JOB, f"{index:032x}", path, output))
+            links = list((paths[0].parent / cron_output._LINKS).iterdir())
+            self.assertEqual(2, len(links))
+            self.assertIn(f"{2:032x}.json", {link.name for link in links})
+            self.assertTrue(all(path.is_file() for path in paths))

@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Exact scheduler archive association checkpoint
+
+The optional native hook binds a retained stock archive to the
+execution that wrote it. An explicit owner read checks the ledger,
+identity and digest before returning a bounded preview. Pinned
+v0.23.1 staged preview/apply and 16 native dispatcher cases passed.
+The protected Linux gate, Android archive viewer, arbitrary service
+logs and live Pi acceptance remain open.
+[Validation](docs/VALIDATION.md#exact-scheduler-archive-association).
+
 ## Scheduler execution history on Android
 
 Advanced schedule details can read the optional owner-bound Linux
