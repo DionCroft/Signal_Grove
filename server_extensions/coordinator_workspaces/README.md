@@ -27,10 +27,42 @@ The result contains the selected profile and a bounded `entries` list
 with job ID, project ID, UTC due instant and occurrence ID. It projects
 due registered jobs that have no unresolved native claim. The identifier
 addresses the same occurrence across reconnect and process restart.
-Occurrence review still needs to verify current policy, exact job
-definition, access and worker identity before admission. This checkpoint
-adds the hold and the read-only owner inbox.
-[Validation](../../docs/VALIDATION.md#held-scheduled-project-writes-and-owner-inbox).
+[Hold validation](../../docs/VALIDATION.md#held-scheduled-project-writes-and-owner-inbox).
+
+### Decide one held project occurrence
+
+All three owner methods take `{expected_profile, job_id, occurrence_id}`.
+The occurrence ID comes from the held inbox.
+
+| Method | Additional fields | Result |
+| --- | --- | --- |
+| `signal_grove.cron.project_prepare_v1` | None | Original occurrence, UTC due instant, exact scope, review digest and expiry |
+| `signal_grove.cron.project_decide_v1` | `review_digest`, `decision` | Original occurrence and `deferred`, `denied` or `claimed` |
+| `signal_grove.cron.project_observe_v1` | None | Original occurrence, durable decision, execution ID, compact outcome and retained execution details |
+
+The prepare and decision methods use a locally configured
+`ProjectScheduleOperator` at `gateway.signal_grove_workspace_operator.project_schedule`.
+The verified resolver must match the registered project and provide the
+exact writable route, workspace, branch, worker, worker instance and
+task. Its observations run again before approval under the native locks.
+The dispatcher receives that frozen scope and execution in the owning
+profile. A dispatcher returns `completed` or `failed` only after verifying
+the scoped worker result. An uncertain response records unknown
+on the original execution and keeps its fire claim for reconciliation.
+
+Defer closes this review and leaves the exact occurrence held. Deny records
+a cancelled receipt with no worker submission. Denial advances a recurring
+schedule and pauses a one-shot while retaining the repeat budget. Approval
+claims the occurrence once. A verified worker result consumes one repeat
+using native scheduling. The occurrence stays blocked after a partial write or
+an interrupted run. Clients reconcile using `project_observe_v1` with
+the original occurrence.
+
+The compact decision survives normal native execution retention. The
+execution field can be null after pruning. A null compact outcome means
+the receipt has no retained terminal verdict. Managed deployment and
+an authenticated worker dispatcher have separate acceptance.
+[Decision validation](../../docs/VALIDATION.md#decisions-for-exact-scheduled-project-occurrences).
 
 ## Optional native timing edits for paused jobs
 

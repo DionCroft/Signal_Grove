@@ -14,7 +14,7 @@ import textwrap
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
          'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
          'cron_run_once.py','cron_run_once_approval.py','cron_run_once_operator.py',
-         'cron_project_holds.py')
+         'cron_project_holds.py','cron_project_decisions.py')
 
 
 def patch_source(source):
@@ -232,6 +232,104 @@ def _guard_entry(source, function, before, inserted):
     return "".join(lines)
 
 
+_PROJECT_JOB_DECISIONS = """def _with_project_decision_job(job_id, apply):
+    from cron import executions
+
+    if type(job_id) is not str or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}", job_id) is None or job_id == "unknown":
+        raise ValueError("Invalid reviewed project job.")
+    directory = get_hermes_home().resolve() / "cron"
+    store = _current_cron_store()
+    ledger = directory / "executions.db"
+    if (executions.EXECUTIONS_FILE is not None or store.cron_dir.resolve() != directory
+            or store.jobs_file.resolve() != directory / "jobs.json" or ledger.resolve() != ledger):
+        raise ValueError("Reviewed project job and execution stores have different homes.")
+
+    def locked():
+        with _jobs_lock(require_cross_process=True):
+            stamp = _jobs_file_stamp(store.jobs_file)
+            rows = _peek_jobs_unlocked()
+            if rows is None or any(type(job) is not dict for job in rows):
+                raise ValueError("Invalid reviewed project job store.")
+            selected = [job for job in rows if job.get("id") == job_id]
+            if len(selected) != 1:
+                return False
+            _record_load_stamp(stamp)
+            return apply(rows, selected[0])
+
+    return _under_fire_fence(job_id, locked)
+
+
+def decide_reviewed_project_occurrence(job_id, *, occurrence_id, execution_id, instant, decision, authorize):
+    from cron import executions
+    from cron.occurrences import scheduled_instant
+
+    def apply(rows, job):
+        now = _hermes_now()
+        if (job.get("enabled") is not True or job.get("state") != "scheduled" or _has_pause_marker(job)
+                or any(job.get(key) is not None for key in ("run_claim", "fire_claim", "pending_slot",
+                       "manual_run_at", "manual_run_restore_at", "manual_run_prompt"))
+                or type(instant) is not str or scheduled_instant(instant) != instant
+                or scheduled_instant(job.get("next_run_at")) != instant or datetime.fromisoformat(instant) > now):
+            return False
+        if decision not in ("approve", "deny") or authorize(copy.deepcopy(job)) is not True:
+            return False
+
+        advanced = None
+        if decision == "deny" and job["schedule"].get("kind") in ("cron", "interval"):
+            advanced = compute_next_run(job["schedule"], now.isoformat(), timezone=job.get("timezone"))
+            if advanced is None or datetime.fromisoformat(scheduled_instant(advanced)) <= now:
+                raise ValueError("Could not safely advance a denied schedule.")
+
+        executions.record_project_decision(job_id, occurrence_id=occurrence_id, execution_id=execution_id,
+                                           instant=instant, decision=decision)
+        if decision == "approve":
+            job["fire_claim"] = {"at": now.isoformat(), "by": f"{_machine_id()}:{uuid.uuid4().hex}",
+                                 "signal_grove_project_occurrence": execution_id}
+        elif advanced is not None:
+            job["next_run_at"] = advanced
+        else:
+            job.update(enabled=False, state="paused", next_run_at=None, paused_at=now.isoformat(),
+                       paused_reason="Scheduled occurrence denied.")
+        save_jobs(rows)
+        return dict(copy.deepcopy(job), _scheduled_instant=instant, execution_id=execution_id)
+
+    return _with_project_decision_job(job_id, apply)
+
+
+def settle_reviewed_project_occurrence(job_id, owner, execution_id, status):
+    from cron import executions
+    from cron.occurrences import scheduled_instant
+
+    if status not in ("completed", "failed"):
+        return False
+
+    def apply(rows, job):
+        claim = job.get("fire_claim")
+        if (type(claim) is not dict or claim.get("by") != owner or
+                claim.get("signal_grove_project_occurrence") != execution_id):
+            return False
+        decision = executions.project_decision_record(execution_id)
+        if (decision is None or decision["job_id"] != job_id or decision["decision"] != "approve"
+                or decision["scheduled_instant"] != scheduled_instant(job.get("next_run_at"))):
+            return False
+        detail = None if status == "completed" else "Reviewed project worker reported failure."
+        if decision["outcome"] is None:
+            executions.finish_execution(execution_id, success=status == "completed", error=detail)
+            decision = executions.project_decision_record(execution_id)
+        if decision is None or decision["outcome"] != status:
+            return False
+        now = _hermes_now().isoformat()
+        _record_run_outcome(job, status == "completed", detail, None, None, now)
+        _advance_after_run(job, now)
+        save_jobs(rows)
+        return True
+
+    return _with_project_decision_job(job_id, apply)
+
+
+"""
+
+
 def patch_cron_project_jobs(source):
     source = patch_cron_reviewed_run_once(source)
     anchor = "def _project_job_update(job_id, job, updates):\n"
@@ -287,6 +385,15 @@ def _ordinary_cron_allowed(selected, *, automatic=None, stored=None):
                          """    if not _ordinary_cron_allowed(job_id):
         return False
 """)
+    source = _guard_entry(source, "mark_job_run", "        if execution_id is not None and execution_id in job.get(",
+                         """        claim = job.get("fire_claim")
+        if isinstance(claim, dict) and "signal_grove_project_occurrence" in claim:
+            return False
+""")
+    anchor = "def heartbeat_fire_claim(job_id: str, *, expected_owner: str) -> bool:\n"
+    if source.count(anchor) != 1:
+        raise ValueError("Native jobs source differs from the reviewed project claim anchor.")
+    source = source.replace(anchor, _PROJECT_JOB_DECISIONS + anchor)
     ast.parse(source)
     return source
 
@@ -352,6 +459,91 @@ def patch_cron_execution_reservation(source):
     return updated
 
 
+def patch_cron_project_executions(source):
+    source = patch_cron_execution_reservation(source)
+    opening = "    _widen_status_check(conn)\n"
+    if source.count(opening) != 1:
+        raise ValueError("Native ledger schema differs from the reviewed project decision anchor.")
+    source = source.replace(opening, opening + """    conn.execute('''
+        CREATE TABLE IF NOT EXISTS signal_grove_project_decisions (
+            execution_id TEXT PRIMARY KEY, occurrence_id TEXT NOT NULL UNIQUE,
+            job_id TEXT NOT NULL, scheduled_instant TEXT NOT NULL,
+            decision TEXT NOT NULL CHECK(decision IN ('approve','deny')),
+            outcome TEXT CHECK(outcome IN ('completed','failed','cancelled','unknown')),
+            UNIQUE(job_id, scheduled_instant)
+        )
+    ''')
+    conn.execute('''
+        CREATE TRIGGER IF NOT EXISTS signal_grove_project_outcome
+        AFTER UPDATE OF status ON executions
+        WHEN NEW.source = 'signal-grove-project-occurrence-v1'
+            AND NEW.status IN ('completed','failed','cancelled','unknown')
+        BEGIN
+            UPDATE signal_grove_project_decisions SET outcome=NEW.status WHERE execution_id=NEW.id;
+        END
+    ''')
+""")
+    anchor = "def set_execution_occurrence(execution_id: str, instant: Optional[str]) -> None:\n"
+    if source.count(anchor) != 1:
+        raise ValueError("Native executions source differs from the reviewed project reservation anchor.")
+    source = source.replace(anchor, """def project_decision_record(execution_id):
+    with _transaction() as conn:
+        row = conn.execute("SELECT * FROM signal_grove_project_decisions WHERE execution_id=?",
+                           (execution_id,)).fetchone()
+        return dict(row) if row is not None else None
+
+
+def mark_project_execution_unknown(execution_id):
+    with _transaction() as conn:
+        cursor = conn.execute(
+            "UPDATE executions SET status='unknown', finished_at=?, error=?, handoff_pending=0, handoff_started_at=NULL "
+            "WHERE id=? AND source='signal-grove-project-occurrence-v1' AND status IN ('claimed','running') "
+            "AND process_id=? AND pid=?",
+            (_hermes_now().isoformat(), "Scoped worker outcome was not verified.", execution_id, _PROCESS_ID, os.getpid()),
+        )
+        record = _fetch(conn, execution_id) if cursor.rowcount == 1 else None
+        if record is not None:
+            _prune_unlocked(conn)
+    if record is not None:
+        _emit_execution_state(record)
+
+
+def record_project_decision(job_id, *, occurrence_id, execution_id, instant, decision):
+    from cron.occurrences import scheduled_instant
+
+    if (type(job_id) is not str or not job_id
+            or any(type(value) is not str or len(value) != 32 or any(char not in "0123456789abcdef" for char in value)
+                   for value in (occurrence_id, execution_id))
+            or type(instant) is not str or scheduled_instant(instant) != instant or decision not in ("approve", "deny")):
+        raise ValueError("Invalid reviewed project decision.")
+    now = _hermes_now().isoformat()
+    denied = decision == "deny"
+    status = "cancelled" if denied else "claimed"
+    pid = os.getpid()
+    with _transaction() as conn:
+        conn.execute(
+            "INSERT INTO signal_grove_project_decisions "
+            "(execution_id, occurrence_id, job_id, scheduled_instant, decision, outcome) VALUES (?, ?, ?, ?, ?, ?)",
+            (execution_id, occurrence_id, job_id, instant, decision, status if denied else None),
+        )
+        conn.execute(
+            "INSERT INTO executions (id, job_id, source, process_id, pid, process_started_at, "
+            "status, claimed_at, scheduled_instant, finished_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (execution_id, job_id, "signal-grove-project-occurrence-v1", _PROCESS_ID, pid,
+             _process_start_time(pid), status, now, instant, now if denied else None),
+        )
+        record = _fetch(conn, execution_id)
+        if denied:
+            _prune_unlocked(conn)
+    _emit_execution_state(record)
+    return record
+
+
+""" + anchor)
+    ast.parse(source)
+    return source
+
+
 def prepare(path, expected_hash, patch):
     raw = path.read_bytes()
     if hashlib.sha256(raw).hexdigest() != expected_hash:
@@ -399,7 +591,8 @@ def main():
     if args.expected_cron_executions_sha256 is not None:
         executions = args.runtime_root / 'cron/executions.py'
         expected = args.expected_cron_executions_sha256
-        updates.append((executions, expected, prepare(executions, expected, patch_cron_execution_reservation)))
+        execution_patch = patch_cron_project_executions if args.hold_project_schedules else patch_cron_execution_reservation
+        updates.append((executions, expected, prepare(executions, expected, execution_patch)))
     if args.hold_project_schedules:
         provider = args.runtime_root / 'cron/scheduler_provider.py'
         expected = args.expected_cron_provider_sha256

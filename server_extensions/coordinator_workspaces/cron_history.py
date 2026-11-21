@@ -1,6 +1,6 @@
 """Owner/profile-bound reads of Hermes' durable scheduler ledger on Linux."""
 
-from contextlib import closing
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 import os
@@ -121,18 +121,36 @@ def _project(row):
     }
 
 
-def _read_ledger(parent, query, *, required_source=None):
+@contextmanager
+def _open_read_ledger(parent):
     identity = _ledger_identity(parent, _LEDGER)
     sidecars = {name: _ledger_identity(parent, name) for name in (_LEDGER + '-wal', _LEDGER + '-shm')}
     if identity is None:
         if any(value is not None for value in sidecars.values()):
             raise ReadRefused('UNAVAILABLE')
-        return 'absent', [], False
-    # The directory descriptor anchors the normal database and its adjacent WAL.
-    # Use a regular SQLite read transaction so committed WAL rows remain visible.
+        yield None
+        if _ledger_identity(parent, _LEDGER) is not None:
+            raise ReadRefused('CHANGED')
+        return
+    # The descriptor anchors the database and its adjacent WAL.
     pinned = Path(f'/proc/self/fd/{parent}') / _LEDGER
     if _disk_identity(pinned.stat()) != identity:
         raise ReadRefused('CHANGED')
+    end = time.monotonic() + 0.25
+    with closing(sqlite3.connect(pinned.as_uri() + '?mode=ro', uri=True, timeout=0.1)) as db:
+        db.row_factory = sqlite3.Row
+        db.execute('PRAGMA query_only=ON')
+        db.execute('PRAGMA trusted_schema=OFF')
+        db.set_progress_handler(lambda: int(time.monotonic() >= end), 500)
+        yield db
+    if _ledger_identity(parent, _LEDGER) != identity:
+        raise ReadRefused('CHANGED')
+    for name, previous in sidecars.items():
+        if previous is not None and _ledger_identity(parent, name) != previous:
+            raise ReadRefused('CHANGED')
+
+
+def _read_ledger(parent, query, *, required_source=None):
     statement = _SELECT
     args = [query.job_id]
     if query.execution_id is not None:
@@ -143,19 +161,10 @@ def _read_ledger(parent, query, *, required_source=None):
         args.append(required_source)
     statement += ' ORDER BY julianday(claimed_at) DESC, claimed_at DESC, id DESC LIMIT ?'
     args.append(query.limit + 1)
-    end = time.monotonic() + 0.25
-    with closing(sqlite3.connect(pinned.as_uri() + '?mode=ro', uri=True, timeout=0.1)) as db:
-        db.row_factory = sqlite3.Row
-        db.execute('PRAGMA query_only=ON')
-        db.execute('PRAGMA trusted_schema=OFF')
-        db.set_progress_handler(lambda: int(time.monotonic() >= end), 500)
+    with _open_read_ledger(parent) as db:
+        if db is None:
+            return 'absent', [], False
         rows = db.execute(statement, args).fetchall()
-    if _ledger_identity(parent, _LEDGER) != identity:
-        raise ReadRefused('CHANGED')
-    for name, previous in sidecars.items():
-        current = _ledger_identity(parent, name)
-        if previous is not None and current != previous:
-            raise ReadRefused('CHANGED')
     return 'available', [_project(row) for row in rows[:query.limit]], len(rows) > query.limit
 
 
@@ -183,5 +192,51 @@ def read_executions(home, query, *, required_source=None):
             raise ReadRefused('NOT_FOUND')
         return {'profile': query.profile, 'job_id': query.job_id, 'ledger': ledger,
                 'attempts': attempts, 'limited': limited}
+    except (OSError, ValueError, sqlite3.Error, TypeError):
+        raise ReadRefused('UNAVAILABLE') from None
+
+
+def read_project_receipt(home, query, occurrence_id, required_source):
+    """Read the durable decision and its optional native execution in one SQLite snapshot."""
+    if sys.platform != 'linux':
+        raise ReadRefused('UNSUPPORTED')
+    if query.execution_id is None or not _EXECUTION_ID.fullmatch(occurrence_id):
+        raise ReadRefused('INVALID')
+    root = Path(home) / 'cron'
+    try:
+        decision = execution = None
+        with open_owner_directory(root) as parent:
+            with _open_read_ledger(parent) as db:
+                if db is not None:
+                    db.execute('BEGIN')
+                    table = db.execute(
+                        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='signal_grove_project_decisions'"
+                    ).fetchone()
+                    if table is not None:
+                        decision = db.execute(
+                            "SELECT decision, scheduled_instant, outcome FROM signal_grove_project_decisions "
+                            "WHERE job_id=? AND occurrence_id=? AND execution_id=?",
+                            (query.job_id, occurrence_id, query.execution_id),
+                        ).fetchone()
+                        if decision is not None:
+                            row = db.execute(_SELECT + " AND id=? AND source=?",
+                                             (query.job_id, query.execution_id, required_source)).fetchone()
+                            if row is not None:
+                                execution = _project(row)
+            with open_owner_directory(root) as current:
+                if _disk_identity(os.fstat(parent)) != _disk_identity(os.fstat(current)):
+                    raise ReadRefused('CHANGED')
+        if decision is None:
+            raise ReadRefused('NOT_FOUND')
+        selected = _checked_timestamp(decision['scheduled_instant'])
+        choice, outcome = decision['decision'], decision['outcome']
+        if (choice not in ('approve', 'deny')
+                or (choice == 'deny' and outcome != 'cancelled')
+                or (choice == 'approve' and outcome not in (None, 'completed', 'failed', 'cancelled', 'unknown'))
+                or execution is not None and (execution['scheduled_instant'] != selected
+                    or outcome != (None if execution['status'] in ('claimed', 'running') else execution['status']))):
+            raise ReadRefused('CHANGED')
+        return {'decision': choice, 'scheduled_instant': selected,
+                'execution_id': query.execution_id, 'outcome': outcome, 'execution': execution}
     except (OSError, ValueError, sqlite3.Error, TypeError):
         raise ReadRefused('UNAVAILABLE') from None

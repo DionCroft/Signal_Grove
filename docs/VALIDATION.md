@@ -1,5 +1,52 @@
 # Current development validation — audit follow-up
 
+## Decisions for exact scheduled project occurrences
+
+The protected owner route binds a review to one occurrence, live actor
+and transport, catalogue and policy generations, and the resolved
+project, workspace, branch, worker, task and access. The approval
+rechecks these values under the native job and fire locks. An approval
+or denial reserves a compact decision and native execution in one
+SQLite transaction. The job and due instant also have a unique key.
+Native terminal outcomes are copied to the compact decision before
+ordinary execution pruning. Original receipt reads use the protected
+profile database and can return the decision when execution detail has
+expired. Defer closes the review and leaves the occurrence held.
+[Protocol and settlement rules](../server_extensions/coordinator_workspaces/README.md#decide-one-held-project-occurrence).
+
+Git-object-verified v0.23.1 and main `242315c` each passed eight cases
+through strict native owner dispatch and one fresh-process case:
+
+- Absent operator setup, another profile and a foreign transport refused.
+  Deferral retained the exact job with no native execution row.
+- A changed worker instance and an expired review could not reserve.
+- Denial wrote a cancelled receipt without starting work. A recurring job
+  advanced, a one-shot paused and both retained their unused repeat budget.
+- Closing the original transport just after saving the fire claim left
+  a single task callback and the same completed occurrence on reconnect.
+- Competing reviews on two owner transports reserved one exact attempt.
+- Pruning the terminal native row kept the compact completed decision.
+  A second execution ID for that job and instant was refused.
+- A catalogue save failure after reservation retained the claim receipt
+  with zero dispatches for that occurrence. It refused both replay and a
+  second review.
+- A lost worker response recorded unknown for the original execution and
+  kept its fire claim for reconciliation.
+- A fresh process marked the interrupted attempt unknown through the
+  native recovery function. Pruning retained the compact unknown result,
+  and the native ticker left the job held.
+
+The Windows fixtures use deterministic dispatch and a disposable
+read-only catalogue and receipt adapter. The native job locks, SQLite
+reservation and outcome trigger, executor bookkeeping, ordinary ledger
+pruning and recovery function are real. SQLite used DELETE journaling
+under Hermes' compatibility guard. The separately staged manual Run
+once contract passed its five native dispatcher regressions on each pin.
+The portable suite discovered 1,228 tests with zero failures and 273
+platform or fixture skips. Actual project worker effects, Pi policy
+installation, Android inbox and explicit repair of a partially saved
+schedule remain open.
+
 ## Held scheduled project writes and owner inbox
 
 The optional native source gate requires a protected policy per profile.

@@ -46,6 +46,40 @@ def _receipt_fields(receipt):
     return {"profile": receipt.profile, "job_id": receipt.job_id, "request_id": receipt.request_id}
 
 
+async def run_reserved_decision(tasks, work):
+    """Keep a reserved operation alive independently of its response wait."""
+    if len(tasks) >= _MAX_IN_FLIGHT:
+        raise ReadRefused("BUSY")
+    loop = asyncio.get_running_loop()
+    reply = loop.create_future()
+
+    def publish(value):
+        def resolve():
+            if not reply.done():
+                reply.set_result(value)
+        try:
+            loop.call_soon_threadsafe(resolve)
+        except RuntimeError:
+            # The native receipt can outlive this connection.
+            pass
+
+    def run():
+        try:
+            work(publish)
+        except ReadRefused as error:
+            publish(error)
+        except Exception:
+            publish(ReadRefused("UNAVAILABLE", request_submitted=True))
+
+    task = asyncio.create_task(asyncio.to_thread(run))
+    tasks.add(task)
+    task.add_done_callback(tasks.discard)
+    result = await asyncio.shield(reply)
+    if isinstance(result, ReadRefused):
+        raise result
+    return result
+
+
 class RunOnceOperator:
     """Opt-in bridge to a locally configured, already verified dispatcher.
 
@@ -75,39 +109,12 @@ class RunOnceOperator:
         return {**_receipt_fields(request.receipt), "decision": request.decision}
 
     async def confirm(self, request, verify):
-        if len(self._tasks) >= _MAX_IN_FLIGHT:
-            raise ReadRefused("BUSY")
-        loop = asyncio.get_running_loop()
-        reply = loop.create_future()
+        def submit(publish):
+            def dispatch(approved):
+                publish({**_receipt_fields(approved.receipt),
+                         "execution_id": approved.receipt.execution_id(), "state": "claimed"})
+                self._dispatch(approved)
 
-        def publish(value):
-            def resolve():
-                if not reply.done():
-                    reply.set_result(value)
-            try:
-                loop.call_soon_threadsafe(resolve)
-            except RuntimeError:
-                # The native attempt and original receipt outlive this reply.
-                pass
+            self._approvals.admit(request.receipt, request.digest, verify, on_reserved=dispatch)
 
-        def dispatch(approved):
-            publish({**_receipt_fields(approved.receipt),
-                     "execution_id": approved.receipt.execution_id(), "state": "claimed"})
-            self._dispatch(approved)
-
-        def run():
-            try:
-                self._approvals.admit(request.receipt, request.digest, verify, on_reserved=dispatch)
-            except ReadRefused as error:
-                publish(error)
-            except Exception:
-                publish(ReadRefused("UNAVAILABLE", request_submitted=True))
-
-        task = asyncio.create_task(asyncio.to_thread(run))
-        self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
-        # Socket closure must not cancel the work that won the durable claim.
-        result = await asyncio.shield(reply)
-        if isinstance(result, ReadRefused):
-            raise result
-        return result
+        return await run_reserved_decision(self._tasks, submit)

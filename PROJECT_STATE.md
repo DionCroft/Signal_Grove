@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Decisions for exact scheduled project occurrences
+
+The native owner methods now prepare, approve, defer, deny and observe
+one held occurrence. A fresh worker-scope check and the native job locks
+bind approval to the reviewed definition. Each occurrence has one
+durable decision and native execution ID. A competing review and a lost
+reply converged on one fixture dispatch. Fresh-process recovery recorded
+an interrupted reservation as unknown and preserved it through ledger
+pruning. Both source pins passed nine isolated checks. The phone inbox,
+actual worker adapter and managed Pi acceptance remain open.
+[Validation](docs/VALIDATION.md#decisions-for-exact-scheduled-project-occurrences).
+
 ## Held scheduled project writes
 
 The optional source gate preserves a registered project-write occurrence
@@ -14,8 +26,8 @@ before the stock ticker, provider, manual claim and execution paths.
 An authenticated owner read returns the same due occurrence after reconnect
 and process restart. A permitted ordinary job still uses the native
 scheduler with its approved definition. Both pins passed seven isolated
-checks. Occurrence-specific decisions, worker admission and Android inbox
-controls are the next gate. The optional policy is staged for testing.
+checks. The later checkpoint adds native occurrence decisions. The optional
+policy and decision methods are staged for testing.
 [Validation](docs/VALIDATION.md#held-scheduled-project-writes-and-owner-inbox).
 
 ## Android reviewed Run once and original receipt
