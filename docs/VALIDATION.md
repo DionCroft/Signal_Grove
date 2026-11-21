@@ -43,9 +43,12 @@ pruning and recovery function are real. SQLite used DELETE journaling
 under Hermes' compatibility guard. The separately staged manual Run
 once contract passed its five native dispatcher regressions on each pin.
 The portable suite discovered 1,228 tests with zero failures and 273
-platform or fixture skips. Actual project worker effects, Pi policy
-installation, Android inbox and explicit repair of a partially saved
-schedule remain open.
+platform or fixture skips. Hosted run [44892649476](https://github.com/DionCroft/Signal_Grove/actions/runs/44892649476)
+passed the protocol job, 37 protected Linux cases and 72 Windows worker
+cases on `7e11f80`. Linux verified the retained original decision after
+pruning and refused foreign or unsafe receipt reads.
+Actual project worker effects, Pi policy installation, Android inbox and
+explicit repair of a partially saved schedule remain open.
 
 ## Held scheduled project writes and owner inbox
 
