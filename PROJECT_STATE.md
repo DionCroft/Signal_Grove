@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native pause-preserving Run once
+
+The guarded native claim checks approval under both scheduler locks and
+reserves the original execution in the same profile before saving the fire
+claim. A live manual claim holds a due scheduled slot until settlement.
+The pinned v0.23.1 and main runtimes each passed six isolated cases,
+including recorded output and retention of a paused one-shot. The full
+pinned scheduling regressions passed 126 and 147 cases. The next work
+binds exact one-run approval and task scope to this native claim, then
+verifies callable dispatch and detached-worker recovery.
+[Validation](docs/VALIDATION.md#native-pause-preserving-run-once).
+
 ## Native Run once receipt checkpoint
 
 An optional native execution ID binds a reviewed manual request to one
@@ -15,9 +27,8 @@ original row by request, canonical job and profile. Both pinned native
 execution stores passed the competing insert and fresh-process proof, plus
 24 upstream ledger tests each. Both pins also saved exactly one row in
 a two-process race. The stable dispatcher passed 26 cases, and the hosted
-checks passed 32 Linux and 72 Windows cases. The remaining Run once stage
-needs a pause-preserving native claim
-and settlement, exact one-run approval, and a verified dispatch path.
+checks passed 32 Linux and 72 Windows cases. Exact one-run approval and
+live dispatch acceptance remain open.
 [Validation](docs/VALIDATION.md#native-original-run-once-receipts).
 
 ## Android review and recovery for paused schedules

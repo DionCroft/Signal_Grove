@@ -101,6 +101,102 @@ def patch_cron_edit(source):
     return result
 
 
+def patch_cron_reviewed_run_once(source):
+    """Stage the reviewed claim using the existing native job and fire locks."""
+    source = patch_cron_edit(source)
+    patches = (
+        ('def mark_job_run(\n', """def _reviewed_run_once_id(job):
+    claim = job.get("fire_claim")
+    return claim.get("signal_grove_run_once") if isinstance(claim, dict) else None
+
+
+def mark_job_run(
+"""),
+        ('        extra = extra_fire.is_extra(job)  # read before the outcome clears the claim\n'
+         '        held = extra_fire.held_markers(job) if extra else {}\n',
+         """        reviewed_run = _reviewed_run_once_id(job)
+        if reviewed_run is not None and (expected_fire_owner is None
+                or execution_id not in (None, reviewed_run)):
+            return False
+        extra = extra_fire.is_extra(job)  # read before the outcome clears the claim
+        held = extra_fire.held_markers(job) if extra or reviewed_run is not None else {}
+        if reviewed_run is not None:
+            held.update({key: job[key] for key in ("pending_slot", "run_claim") if key in job})
+"""),
+        ('        if extra:  # a manual run: repeat budget and pending occurrence untouched\n',
+         """        if reviewed_run is not None:
+            # The manual result must not spend repeat, move the scheduled
+            # occurrence or set automatic retry/quota scheduling for the job.
+            save_jobs(jobs)
+            return True
+        if extra:  # a manual run: repeat budget and pending occurrence untouched
+"""),
+        ('        if extra_fire.is_extra(job):  # a manual run leaves the scheduled fire\'s budget alone\n',
+         '        if _reviewed_run_once_id(job) is not None or extra_fire.is_extra(job):  # manual budget\n'),
+        ('    now = scan.now\n    # Cross-process guard: another process\'s live one-shot run_claim',
+         '''    now = scan.now
+    if _reviewed_run_once_id(job) is not None and _claim_is_live(
+            job["fire_claim"], now, FIRE_CLAIM_TTL_SECONDS):
+        return False
+    # Cross-process guard: another process's live one-shot run_claim'''),
+        ('def heartbeat_fire_claim(job_id: str, *, expected_owner: str) -> bool:\n',
+         """def claim_reviewed_run_once(job_id: str, *, execution_id: str, authorize):
+    \"\"\"Claim one manual execution after checking its approval under the native fences.\"\"\"
+    from cron import executions
+
+    if (type(job_id) is not str or job_id == "unknown"
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}", job_id) is None
+            or type(execution_id) is not str or re.fullmatch(r"[a-f0-9]{32}", execution_id) is None
+            or not callable(authorize)):
+        raise ValueError("Invalid reviewed manual claim.")
+
+    def verify_store():
+        directory = get_hermes_home().resolve() / "cron"
+        store = _current_cron_store()
+        ledger = directory / "executions.db"
+        if (executions.EXECUTIONS_FILE is not None or store.cron_dir.resolve() != directory
+                or store.jobs_file.resolve() != directory / "jobs.json" or ledger.resolve() != ledger):
+            raise ValueError("Reviewed job and execution stores have different homes.")
+
+    verify_store()
+
+    def apply(jobs, _index, job):
+        paused = job.get("state") == "paused" and job.get("enabled") is False
+        if (is_terminal_job(job) or not (paused or is_job_runnable(job))
+                or job.get("fire_claim") is not None or job.get("run_claim") is not None
+                or any(job.get(key) is not None
+                       for key in ("manual_run_at", "manual_run_restore_at", "manual_run_prompt"))):
+            return False
+        if authorize(copy.deepcopy(job)) is not True:
+            return False
+        verify_store()
+        now = _hermes_now()
+        owner = f"{_machine_id()}:{uuid.uuid4().hex}"
+        # Reserve under the protected locks before changing the job. A failed
+        # job save leaves an original receipt to reconcile, rather than replay.
+        executions.create_execution(job_id, source="signal-grove-run-once-v1", reviewed_id=execution_id)
+        job["fire_claim"] = {"at": now.isoformat(), "by": owner, "signal_grove_run_once": execution_id}
+        save_jobs(jobs)
+        return dict(copy.deepcopy(job), _scheduled_instant=None, execution_id=execution_id)
+
+    def locked():
+        with _jobs_lock(require_cross_process=True):
+            return _with_job(job_id, apply, False)
+
+    return _under_fire_fence(job_id, locked)
+
+
+def heartbeat_fire_claim(job_id: str, *, expected_owner: str) -> bool:
+"""),
+    )
+    for before, after in patches:
+        if source.count(before) != 1:
+            raise ValueError("Native jobs source differs from the reviewed manual claim anchors.")
+        source = source.replace(before, after)
+    ast.parse(source)
+    return source
+
+
 def patch_cron_execution_reservation(source):
     start = source.index('def create_execution(\n')
     end = source.index('\ndef set_execution_occurrence(', start)
@@ -150,8 +246,10 @@ def main():
                         prepare(scheduler, args.expected_scheduler_sha256, patch_scheduler_output)))
     if args.expected_cron_jobs_sha256 is not None:
         jobs = args.runtime_root / 'cron/jobs.py'
+        jobs_patch = (patch_cron_reviewed_run_once if args.expected_cron_executions_sha256 is not None
+                      else patch_cron_edit)
         updates.append((jobs, args.expected_cron_jobs_sha256,
-                        prepare(jobs, args.expected_cron_jobs_sha256, patch_cron_edit)))
+                        prepare(jobs, args.expected_cron_jobs_sha256, jobs_patch)))
     if args.expected_cron_executions_sha256 is not None:
         executions = args.runtime_root / 'cron/executions.py'
         expected = args.expected_cron_executions_sha256

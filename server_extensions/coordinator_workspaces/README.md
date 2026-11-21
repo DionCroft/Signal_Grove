@@ -51,9 +51,18 @@ The optional `--expected-cron-executions-sha256` stages the reviewed native
 execution-ID hook. The hook uses the existing SQLite transaction and
 primary key. It reserves an out-of-schedule claim for the reviewed source.
 A missing or expired receipt is insufficient to determine the outcome.
-This source checkpoint provides receipt identity and observation. Manual
-admission, pause-preserving settlement and approval consumption are
-pending.
+With both the jobs and executions hashes supplied, staging adds the
+internal reviewed manual claim. It checks the job and receipt share the
+profile, revalidates the caller's approval under the fire fence and jobs
+lock, and reserves the original execution before saving the job claim.
+A failed save leaves the original receipt available for reconciliation.
+The normal tick defers the pending occurrence while the manual claim is live.
+The manual settlement preserves pause, repeat, next occurrence and
+automatic retry state.
+
+The network surface currently exposes receipt observation. Callers of the
+internal claim still need exact approval consumption and verified dispatch.
+[Native claim validation](../../docs/VALIDATION.md#native-pause-preserving-run-once).
 [Validation](../../docs/VALIDATION.md#native-original-run-once-receipts).
 
 ## Optional native scheduled output previews

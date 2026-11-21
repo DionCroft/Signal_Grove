@@ -1,5 +1,46 @@
 # Current development validation — audit follow-up
 
+## Native pause-preserving Run once
+
+Staging with both reviewed native hashes enables an internal manual claim
+and settlement hook. The hook checks the job and execution stores share the
+same profile. It holds the per-job fire fence and strict jobs lock while
+its caller checks approval against a copy of the exact stored job. The
+native ledger reserves the original ID before the job claim is saved.
+Settlement records the manual outcome while preserving pause, repeat,
+the scheduled instant and automatic retry state. A normal tick leaves
+that occurrence available while the reviewed manual fire is live.
+[Staging and call boundary](../server_extensions/coordinator_workspaces/README.md#optional-native-run-once-receipts).
+
+The Git-verified v0.23.1 and main `242315c` modules each passed six isolated cases:
+
+- A denied approval and a mixed job or ledger profile produce no original attempt.
+- An exact claim requires both native locks and refuses a busy job or stale completion.
+- The native in-process scheduler saved a fixture result and completed its original
+  ledger row while leaving a finite one-shot paused with its repeat budget intact.
+- An active due occurrence stayed untouched during the live manual claim and
+  became eligible after settlement. A failed manual run preserved its schedule,
+  quota and retry settings.
+- An injected job-store write failure left one original claimed row. A second
+  reservation of that ID failed, with the saved job unchanged.
+
+The scheduler fixture substitutes a deterministic task result and uses the
+native in-process delivery and bookkeeping path. The next gates include
+exact approval consumption, detached worker execution and recovery, and a
+live authenticated app-to-Pi run. The first in-process experiment exposed an
+import order problem in the test harness. A stale stock function advanced
+the fixture one-shot. The corrected harness imports the staged jobs and
+ledger before the scheduler and asserts its bound callables.
+
+The final nine-file upstream schedule and ownership regression suite passed
+126 stable and 147 main cases. The no-op child in the stale-owner test was
+allowlisted exactly after the first harness refused it. The portable suite
+discovered 1,209 tests with zero failures and 273 platform or fixture skips.
+The verified stable source produced patched jobs SHA-256 `ed82b8e43604af49555fa8f4b30da0ecca859626e4443a8b36c1bb8cc98dc562`.
+The main jobs and ledger passed in isolation. Full main gateway staging
+still refuses the upstream adapter's changed anchors.
+[Upstream job store](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/cron/jobs.py).
+
 ## Native original Run once receipts
 
 The optional native ledger hook accepts a reserved execution ID for the
