@@ -41,6 +41,17 @@ publication remain open.
 [Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/44868156883)
 · [Hermes compatibility](https://github.com/DionCroft/Signal_Grove/actions/runs/44868198181).
 
+The integrated Hermes workflow passed its policy, pinned registry and pinned
+sidecar jobs. Its upstream source review flagged **205 used handler** and
+**29 persistence source** changes at stable `caafe53`. These source
+fingerprints await semantic review. The stable artifact recorded zero removed
+used routes or request fields and matched the published archive digest.
+Main `242315c` ended before report publication because ten previously
+required paths were absent, across local state, mutation state, plugin
+settings and scheduled-job arguments. The canary requires a source review
+of those exact paths and their supported replacements.
+[Integrated upstream result](https://github.com/DionCroft/Signal_Grove/actions/runs/44868198181).
+
 ## Phone history inline date choices
 
 The earlier Android 17 attached-workspace cohort passed 657 of 658 methods.
