@@ -28,8 +28,26 @@ left both files and the extension path untouched. The isolated
 apply produced matching preview hashes and nine exact modules.
 A repeated apply refused and preserved the new candidate. The
 immutable source remained intact. The independently verified
-`242315c` main scheduler matches the hook anchor. The protected
-Linux archive gate follows the source push.
+`242315c` main scheduler matches the hook anchor.
+
+A separate native writer probe executed the patched v0.23.1 save
+function, stock archive writer and actual cron ledger in an isolated
+Windows store. It traced the same running execution ID into the
+association callback while the output fence was held. A lost fence
+and the self-removal branch did not invoke the writer or callback.
+Delivery and the Linux callback were stubbed. The first harness hit
+the filesystem audit when Python tried temporary fallbacks. The
+fresh repeat pinned its temporary directory and recorded zero
+isolation denials.
+
+At `fc0cf9e`, hosted Linux passed all 23 cases, including six new
+archive cases covering same-second replacement with identical bytes,
+duplicate IDs across profiles, retention, owner-only permissions and
+a UTF-8 boundary. The same workflow passed Windows native and
+protocol validation. Both downloaded reports matched GitHub's
+published digests. Live Linux execution from scheduler write
+through the authenticated RPC remains open.
+[Hosted validation](https://github.com/DionCroft/Signal_Grove/actions/runs/44877061978).
 
 ## Scheduler execution history on Android
 

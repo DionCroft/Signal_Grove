@@ -12,9 +12,10 @@ requirements. Commit and push tested chunks.
 The optional native hook binds a retained stock archive to the
 execution that wrote it. An explicit owner read checks the ledger,
 identity and digest before returning a bounded preview. Pinned
-v0.23.1 staged preview/apply and 16 native dispatcher cases passed.
-The protected Linux gate, Android archive viewer, arbitrary service
-logs and live Pi acceptance remain open.
+v0.23.1 staged preview/apply, 16 native dispatcher cases and all 23
+hosted Linux cases passed. The traced native writer ran under its
+output fence. The Linux writer-to-socket round trip, Android archive
+viewer and service logs remain open.
 [Validation](docs/VALIDATION.md#exact-scheduler-archive-association).
 
 ## Scheduler execution history on Android
