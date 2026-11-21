@@ -66,6 +66,16 @@ The emulator's radio state and a connected default network were verified
 after the test. Native qualification, the Xiaomi 8K/16K experiment and
 the signed release are open.
 
+The hosted follow-up for ad92278 has a retained Android 8 shard 0 failure
+during test inventory, before any device assertions. The raw job artifact
+records an Android DeadSystemException from AppWidgetManager.getAppWidgetIds
+during app startup, a process-crashed instrumentation envelope, and false
+native acceptance. ADB and the emulator process still answered before
+cleanup. The initiating system failure remains unknown. The 18 local
+Android 8 context cases and the other current gates retain their specific
+scopes.
+[Hosted shard](https://github.com/DionCroft/Signal_Grove/actions/runs/44850136168/job/136684463338).
+
 ## Published beta.10 release verification
 
 Source d651a33c460515bb6652db69fb4ce1c88db1a11d is the exact tagged build. The standard Android matrix
