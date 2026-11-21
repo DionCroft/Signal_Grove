@@ -78,6 +78,12 @@ import java.util.Date
                     }
                 }}
                 if (s.phase == CanonicalViewerPhase.Following) {
+                    item(key = "project-files") {
+                        TextButton(controller::reviewProjectFiles, enabled = !s.workspaceChanging && !s.projectReading,
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("canonical-project-files")) {
+                            Text(label(if (s.projectReading && s.projectFiles == null) Words.Loading else Words.ViewerFilesBrowse))
+                        }
+                    }
                     item(key = "hermes-context") {
                         val reading = s.hermesContext
                         TextButton(controller::readContext, enabled = !s.workspaceChanging && reading != HermesContextRead.Loading,
@@ -127,6 +133,9 @@ import java.util.Date
             s.error?.let {message->item {Text(label(message),color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("canonical-error"))}}
         }
     },confirmButton={TextButton(close,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-close")) {Text(label(Words.Close))}})
+    s.projectFiles?.takeIf { s.phase == CanonicalViewerPhase.Following }?.let {
+        CanonicalProjectFilesDialog(it, controller)
+    }
     if(workspaceEdit) s.workspaceSnapshot?.takeIf(controller::workspaceCurrent)?.let {snapshot->
         CanonicalWorkspaceForm(snapshot,pending,{controller.workspaceCurrent(snapshot)},{workspaceEdit=false}) {review->
             workspaceEdit=false;controller.changeWorkspace(review)

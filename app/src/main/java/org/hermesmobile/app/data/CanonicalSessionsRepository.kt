@@ -19,6 +19,21 @@ internal class CanonicalSessionConnection(
 ) : CanonicalViewerLink {
     override fun observations(): Flow<CanonicalFeedDelivery> = channel.observations()
     override suspend fun heartbeat() {channel.heartbeat();verifyScope()}
+    private suspend fun <T> readWorker(block: suspend (CanonicalSessionSnapshot) -> T): T {
+        verifyScope()
+        val result = block(attachment.snapshot)
+        verifyScope()
+        return result
+    }
+
+    override suspend fun describeWorker() = readWorker { channel.describeWorker(it) }
+    override suspend fun prepareWorker(project: AttachedWorkerProject) =
+        readWorker { channel.prepareWorker(it, project) }
+    override suspend fun listWorker(binding: AttachedWorkerBinding, entry: AttachedWorkerEntry?) =
+        readWorker { channel.listWorker(it, binding, entry) }
+    override suspend fun previewWorker(binding: AttachedWorkerBinding, entry: AttachedWorkerEntry) =
+        readWorker { channel.previewWorker(it, binding, entry) }
+
     override fun close() = channel.close()
     override fun toString() = "CanonicalSessionConnection(redacted)"
 }

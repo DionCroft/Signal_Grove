@@ -20,6 +20,7 @@ class CanonicalAttachmentWireTest {
         val calls=CopyOnWriteArrayList<JsonObject>()
         @Volatile var peer:WebSocket?=null
         private var catalogs=0
+        private val worker = "11111111-2222-4333-8444-555555555555"
         val target get()=ManagementTarget("b".repeat(64),server.url("/prefix/").toString(),"default","fixture · owner")
         val home=checkNotNull(PluginHome.project(JsonPrimitive("/fixture/home"))).identity()
         private fun event(seq:Long,session:String="history",text:String="event-"+seq)=buildJsonObject {
@@ -74,6 +75,38 @@ class CanonicalAttachmentWireTest {
                                 put("truncated",mode=="truncated");put("snapshot_required",mode=="truncated");put("count",2)
                             })
                         }
+                        AttachedWorkerProtocol.Describe -> {
+                            if (mode == "worker-unsupported") {
+                                ws.send(buildJsonObject {
+                                    put("jsonrpc", "2.0")
+                                    put("id", q.getValue("id"))
+                                    put("error", buildJsonObject { put("code", -32601); put("message", "unknown_method") })
+                                }.toString())
+                            } else {
+                                reply(Json.parseToJsonElement("""{"schema":1,"state":"ok","payload":{"schema":1,"device":"FIXTURE-WORKER","state":"ready","worker_instance":"$worker","failure_code":null,"project_ids":["fixture-project"],"operations":["prepare","list","preview"],"root":"E:\\work\\fixture"}}"""))
+                            }
+                        }
+                        AttachedWorkerProtocol.Read -> {
+                            val req = q.getValue("params").jsonObject.getValue("request").jsonObject
+                            val operation = req.getValue("operation").jsonPrimitive.content
+                            val result = when (operation) {
+                                "prepare" -> Json.parseToJsonElement("""{"schema":1,"project_id":"fixture-project","worker":{"device":"FIXTURE-WORKER","instance_id":"$worker"},"root":"E:\\work\\${if (mode == "foreign-root") "wrong" else "fixture"}","binding_token":"${"b".repeat(64)}","expires_in_seconds":297}""")
+                                "list" -> Json.parseToJsonElement("""{"schema":1,"worker_instance":"$worker","project_id":"fixture-project","relative_path":"","truncated":false,"excluded_entries":0,"entries":[{"name":"note.txt","relative_path":"${if (mode == "foreign-listing") "elsewhere/" else ""}note.txt","kind":"file","byte_size":6,"entry_token":"${"c".repeat(64)}"}]}""")
+                                "preview" -> Json.parseToJsonElement("""{"schema":1,"worker_instance":"$worker","project_id":"fixture-project","relative_path":"note.txt","byte_size":6,"preview_bytes":6,"preview_sha256":"${"d".repeat(64)}","binary":false,"text":"hello\n","truncated":false}""")
+                                else -> error("Unexpected worker RPC")
+                            }
+                            reply(buildJsonObject {
+                                put("schema", 1)
+                                put("state", "ok")
+                                put("payload", buildJsonObject {
+                                    put("schema", 1)
+                                    put("request_id", req.getValue("request_id"))
+                                    put("worker_instance", worker)
+                                    put("status", "ok")
+                                    put("result", result)
+                                })
+                            })
+                        }
                         else->ws.close(1011,"unreviewed-fixture-rpc")
                     }
                 }
@@ -121,6 +154,73 @@ class CanonicalAttachmentWireTest {
             } finally {channel.close()}
         }}
     }
+    @Test fun attachedProjectReadsUseTheSameFollowedSocketAndOnlyTheReviewedReference() = runBlocking {
+        Fixture("worker-ready").use { f -> withTimeout(6000) {
+            f.connect().use { channel ->
+                val attached = channel.resumeReviewed(channel.sessionInventory().review("history"),
+                    beforeSend = {}, acknowledged = {})
+                val project = channel.describeWorker(attached.snapshot)
+                assertEquals("FIXTURE-WORKER", project.device)
+                val binding = channel.prepareWorker(attached.snapshot, project)
+                val listing = channel.listWorker(attached.snapshot, binding, null)
+                val entry = listing.entries.single()
+                assertEquals("note.txt", entry.path)
+                assertEquals("hello\n", channel.previewWorker(attached.snapshot, binding, entry).text)
+                f.send(4)
+                assertEquals(4L, channel.observations().first().status.cursor.sequence)
+
+                val calls = f.calls.filter { it["method"] == JsonPrimitive(AttachedWorkerProtocol.Describe) ||
+                    it["method"] == JsonPrimitive(AttachedWorkerProtocol.Read) }.map { it.getValue("params").jsonObject }
+                assertEquals(4, calls.size)
+                assertEquals(setOf("attached_session_id", "expected_revision", "expected_generation"), calls.first().keys)
+                calls.forEach {
+                    assertEquals(JsonPrimitive("history"), it["attached_session_id"])
+                    assertEquals(JsonPrimitive(2), it["expected_revision"])
+                    assertEquals(JsonPrimitive(0), it["expected_generation"])
+                    assertFalse(it.keys.any { key -> key in setOf("session_id", "worker_root", "profile", "device") })
+                }
+                val requests = calls.drop(1).map { it.getValue("request").jsonObject }
+                assertEquals(listOf("prepare", "list", "preview"), requests.map { it.getValue("operation").jsonPrimitive.content })
+                assertEquals(JsonNull, requests[1]["entry_token"])
+                assertEquals(JsonPrimitive("c".repeat(64)), requests[2]["entry_token"])
+                assertEquals(3, requests.map { it["request_id"] }.toSet().size)
+                assertEquals(1, f.calls.count { it["method"] == JsonPrimitive("session.resume") })
+            }
+        } }
+    }
+
+    @Test fun unsupportedProjectReadKeepsTheOriginalSubscription() = runBlocking {
+        Fixture("worker-unsupported").use { f -> withTimeout(6000) {
+            f.connect().use { channel ->
+                val attached = channel.resumeReviewed(channel.sessionInventory().review("history"),
+                    beforeSend = {}, acknowledged = {})
+                assertTrue(runCatching { channel.describeWorker(attached.snapshot) }.exceptionOrNull() is CanonicalNotSupported)
+                f.send(4)
+                assertEquals(4L, channel.observations().first().status.cursor.sequence)
+                assertEquals(1, f.calls.count { it["method"] == JsonPrimitive("session.resume") })
+            }
+        } }
+    }
+
+    @Test fun attachedProjectReadDiscardsUnreviewedRootsAndForeignListingEntries() = runBlocking {
+        for (mode in listOf("foreign-root", "foreign-listing")) {
+            Fixture(mode).use { f -> withTimeout(6000) {
+                f.connect().use { channel ->
+                    val attached = channel.resumeReviewed(channel.sessionInventory().review("history"),
+                        beforeSend = {}, acknowledged = {})
+                    val project = channel.describeWorker(attached.snapshot)
+                    val error = runCatching {
+                        val binding = channel.prepareWorker(attached.snapshot, project)
+                        channel.listWorker(attached.snapshot, binding, null)
+                    }.exceptionOrNull()
+                    assertTrue(error is GatewayProtocolException)
+                    f.send(4)
+                    assertEquals(4L, channel.observations().first().status.cursor.sequence)
+                }
+            } }
+        }
+    }
+
     @Test fun attachFirstReplayMergesRacingLiveOverlapExactlyOnce()=success("normal")
     @Test fun actualEmptyScopeHostChangeDoesNotBecomeATranscriptEvent()=success("host-empty")
     @Test fun snapshotCoveredLateDuplicateDoesNotCreateAFalseGap()=success("covered-late")

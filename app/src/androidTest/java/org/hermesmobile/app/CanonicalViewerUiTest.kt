@@ -55,6 +55,29 @@ class CanonicalViewerUiTest {
         override val receipt=ManagementOperation("native-viewer-receipt",target.resourceScope,target.apiScope,target.url,target.profile,target.actor,
             CanonicalResumeAction.Id,"fixture-history",inventory(CanonicalSessionScope.Live).review("fixture-history").summary(),"confirmed",snapshot.receiptSummary(),1,home)
         var closes=0;var beats=0
+        var workerDescribes = 0
+        var workerPrepares = 0
+        var workerPreviews = 0
+        private val project = AttachedWorkerProject("fixture-project", "FIXTURE-WORKER",
+            "E:\\fixture\\project", "11111111-2222-4333-8444-555555555555")
+        override suspend fun describeWorker(): AttachedWorkerProject {
+            workerDescribes++
+            return project
+        }
+        override suspend fun prepareWorker(project: AttachedWorkerProject): AttachedWorkerBinding {
+            assertSame(this.project, project)
+            workerPrepares++
+            return AttachedWorkerBinding(project, "a".repeat(64))
+        }
+        override suspend fun listWorker(binding: AttachedWorkerBinding, entry: AttachedWorkerEntry?): AttachedWorkerListing {
+            assertNull(entry)
+            return AttachedWorkerListing("", listOf(AttachedWorkerEntry("note.txt", "note.txt", false, "b".repeat(64))), false, 0)
+        }
+        override suspend fun previewWorker(binding: AttachedWorkerBinding, entry: AttachedWorkerEntry): AttachedWorkerPreview {
+            workerPreviews++
+            assertEquals("note.txt", entry.path)
+            return AttachedWorkerPreview(entry.path, "Verified fixture text", false)
+        }
         override fun observations()=events.receiveAsFlow()
         override suspend fun heartbeat() {beats++}
         override fun close() {if(closes==0) {closes++;events.close()}}
@@ -142,6 +165,25 @@ class CanonicalViewerUiTest {
         compose.runOnUiThread {viewer.close();shown=false;scope.cancel()}
         compose.waitForIdle();assertFalse(guard.active.value)
     }
+    @Test fun reviewedProjectFilesKeepTheChatOpenAndShowTheSelectedPreviewAtLargeCaptions() {
+        render(large = true)
+        open()
+        assertEquals(0, repo.link.workerDescribes)
+        scroll("canonical-viewer-list", "canonical-project-files").performClick()
+        scroll("project-files-dialog", "project-files-reviewed-root").assertTextEquals("E:\\fixture\\project")
+        assertEquals(1, repo.link.workerDescribes)
+        assertEquals(0, repo.link.workerPrepares)
+        compose.onNodeWithTag("project-files-confirm").assertIsDisplayed().performClick()
+        scroll("project-files-dialog", "project-files-entry").performClick()
+        scroll("project-files-dialog", "project-files-preview").assertTextEquals("Verified fixture text")
+        assertEquals(1, repo.link.workerPreviews)
+        compose.onNodeWithTag("project-files-close").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("project-files-preview").assertDoesNotExist()
+        scroll("canonical-viewer-list", "canonical-following").assertIsDisplayed()
+        assertEquals(1, repo.adoptions)
+        assertEquals(0, repo.link.closes)
+    }
+
     @Test fun explicitHermesContextReadShowsWindowAndCompressionsAtLargeCaptions() {
         render(large = true)
         open()

@@ -29,6 +29,16 @@ internal sealed interface HermesContextRead {
     data class Unavailable(val message: Words) : HermesContextRead
 }
 
+internal sealed interface CanonicalProjectFiles {
+    data object Loading : CanonicalProjectFiles
+    class Review(val project: AttachedWorkerProject) : CanonicalProjectFiles
+    class Folder(val binding: AttachedWorkerBinding, val pages: List<AttachedWorkerListing>) : CanonicalProjectFiles {
+        val current get() = pages.last()
+    }
+    class Preview(val folder: Folder, val preview: AttachedWorkerPreview) : CanonicalProjectFiles
+    class Unavailable(val message: Words) : CanonicalProjectFiles
+}
+
 internal data class CanonicalViewerState(
     val phase:CanonicalViewerPhase=CanonicalViewerPhase.Closed,
     val scope:CanonicalSessionScope=CanonicalSessionScope.Live,
@@ -38,7 +48,8 @@ internal data class CanonicalViewerState(
     val activities:List<CanonicalActivity> = emptyList(),val heartbeatAt:Long?=null,val error:Words?=null,
     val workspace:CanonicalWorkspaceDirectory?=null,val workspaceObservedAt:Long?=null,
     val workspaceSnapshot:CanonicalSessionSnapshot?=null,val workspaceChanging:Boolean=false,val workspaceNotice:Words?=null,
-    val hermesContext: HermesContextRead? = null
+    val hermesContext: HermesContextRead? = null,
+    val projectFiles: CanonicalProjectFiles? = null, val projectReading: Boolean = false
 ) {
     val busy get()=phase in setOf(CanonicalViewerPhase.Loading,CanonicalViewerPhase.Opening)
     override fun toString()="CanonicalViewerState("+phase+")"
@@ -59,6 +70,8 @@ internal class CanonicalViewerController(
     private var task:Job?=null
     private var workspaceTask:Job?=null
     private var contextTask: Job? = null
+    private var projectTask: Job? = null
+    private var projectReadGeneration = 0L
     private var connection:CanonicalViewerLink?=null
     private var acceptedContext:CanonicalViewerAccess?=null
     private fun current(id:Long,access:CanonicalViewerAccess) = id==generation && access.same(context())
@@ -144,7 +157,13 @@ internal class CanonicalViewerController(
                 coroutineScope {
                     launch {
                         while(isActive) {
-                            delay(heartbeatDelay);requireCurrent(id,access);beat(attached);requireCurrent(id,access)
+                            delay(heartbeatDelay)
+                            requireCurrent(id,access)
+                            // The native socket serializes RPCs. Do not start a heartbeat timeout
+                            // while a bounded worker read is already checking that same scope.
+                            if (projectTask?.isActive == true) continue
+                            beat(attached)
+                            requireCurrent(id,access)
                             state.value=state.value.copy(heartbeatAt=now())
                         }
                     }
@@ -156,6 +175,7 @@ internal class CanonicalViewerController(
                 if (connection === link) {
                     connection = null
                     clearContextRead()
+                    clearProjectRead()
                 }
             }
         }
@@ -247,13 +267,113 @@ internal class CanonicalViewerController(
         state.update { it.copy(hermesContext = null) }
     }
 
+    fun reviewProjectFiles() {
+        if (state.value.projectFiles != null) return
+        readProjectFiles { link -> CanonicalProjectFiles.Review(link.describeWorker()) }
+    }
+
+    fun openProjectFiles(review: CanonicalProjectFiles.Review) {
+        if (state.value.projectFiles !== review || review.project.instance == null) return
+        readProjectFiles { link ->
+            val binding = link.prepareWorker(review.project)
+            ensureCurrentProjectRead()
+            val root = link.listWorker(binding, null)
+            CanonicalProjectFiles.Folder(binding, listOf(root))
+        }
+    }
+
+    fun openProjectEntry(folder: CanonicalProjectFiles.Folder, entry: AttachedWorkerEntry) {
+        if (state.value.projectFiles !== folder || folder.current.entries.none { it === entry }) return
+        readProjectFiles { link ->
+            if (entry.directory) {
+                CanonicalProjectFiles.Folder(folder.binding, folder.pages + link.listWorker(folder.binding, entry))
+            } else {
+                CanonicalProjectFiles.Preview(folder, link.previewWorker(folder.binding, entry))
+            }
+        }
+    }
+
+    fun backInProjectFiles() {
+        when (val view = state.value.projectFiles) {
+            is CanonicalProjectFiles.Preview -> state.update { it.copy(projectFiles = view.folder) }
+            is CanonicalProjectFiles.Folder -> {
+                if (view.pages.size > 1) state.update {
+                    it.copy(projectFiles = CanonicalProjectFiles.Folder(view.binding, view.pages.dropLast(1)))
+                }
+            }
+            else -> Unit
+        }
+    }
+
+    fun closeProjectFiles() {
+        projectReadGeneration++
+        state.update { it.copy(projectFiles = null) }
+    }
+
+    private fun readProjectFiles(block: suspend ProjectRead.(CanonicalViewerLink) -> CanonicalProjectFiles) {
+        val link = connection ?: return
+        val access = acceptedContext ?: return
+        val viewer = generation
+        if (!current(viewer, access) || state.value.phase != CanonicalViewerPhase.Following ||
+            state.value.workspaceChanging || projectTask?.isActive == true) return
+        val read = ++projectReadGeneration
+        fun holdsScope() = read == projectReadGeneration && current(viewer, access) && connection === link &&
+            state.value.phase == CanonicalViewerPhase.Following && !state.value.workspaceChanging
+        state.update { it.copy(projectFiles = CanonicalProjectFiles.Loading, projectReading = true) }
+        projectTask = scope.launch {
+            val request = ProjectRead(::holdsScope)
+            try {
+                request.ensureCurrentProjectRead()
+                val result = request.block(link)
+                request.ensureCurrentProjectRead()
+                state.update { it.copy(projectFiles = result) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (holdsScope()) state.update {
+                    it.copy(projectFiles = CanonicalProjectFiles.Unavailable(projectReadError(error)))
+                }
+            } finally {
+                if (generation == viewer && connection === link) state.update { it.copy(projectReading = false) }
+            }
+        }
+    }
+
+    private class ProjectRead(private val holdsScope: () -> Boolean) {
+        fun ensureCurrentProjectRead() {
+            if (!holdsScope()) throw CancellationException("Project browser closed.")
+        }
+    }
+
+    private fun projectReadError(error: Exception): Words = when (error) {
+        is CanonicalNotSupported -> Words.ViewerFilesUnsupported
+        is CanonicalReviewChanged, is CanonicalScopeChanged -> Words.ManagementReviewChanged
+        is HermesHttpException -> if (error.code == 401) Words.ManagementExpired else Words.ViewerFilesUnavailable
+        is AttachedWorkerRefused -> when (error.code) {
+            "DENIED" -> Words.ViewerFilesNotAttached
+            "CHANGED" -> Words.ViewerFilesChanged
+            "EXPIRED" -> Words.ViewerFilesExpired
+            "TOO_LARGE" -> Words.ViewerFileTooLarge
+            else -> Words.ViewerFilesUnavailable
+        }
+        else -> Words.ViewerFilesUnavailable
+    }
+
+    private fun clearProjectRead() {
+        closeProjectFiles()
+        projectTask?.cancel()
+        projectTask = null
+        state.update { it.copy(projectReading = false) }
+    }
+
     fun workspaceCurrent(snapshot:CanonicalSessionSnapshot)=state.value.workspaceSnapshot===snapshot &&
         state.value.phase==CanonicalViewerPhase.Following && !state.value.workspaceChanging &&
-        acceptedContext?.same(context())==true && CanonicalWorkspaceReview.eligible(snapshot)
+        acceptedContext?.same(context())==true && projectTask?.isActive != true && CanonicalWorkspaceReview.eligible(snapshot)
     fun changeWorkspace(review:CanonicalWorkspaceReview) {
         if(!workspaceCurrent(review.expected)) return
         val access=checkNotNull(acceptedContext);val id=generation;val owner=Any()
         clearContextRead()
+        closeProjectFiles()
         state.value=state.value.copy(workspaceChanging=true,workspaceNotice=null);guard(owner,true)
         workspaceTask=scope.launch {
             try {
@@ -283,6 +403,7 @@ internal class CanonicalViewerController(
     fun close() {
         generation++;task?.cancel();task=null;workspaceTask?.cancel();workspaceTask=null;connection?.close();connection=null;acceptedContext=null
         clearContextRead()
+        clearProjectRead()
         state.value=CanonicalViewerState()
     }
 }

@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Android attached project browser
+
+The followed viewer can review a registered worker, project and root before
+opening its read-only folder. The app lists the root, follows only entries
+returned for the current folder and shows bounded text previews. It keeps
+the worker binding on the followed connection, checks the profile and owner
+around each read, and drops the browser contents on close or scope change.
+The read methods use the chat's captured revision and execution generation.
+An unsupported method leaves the chat subscription open. The UI keeps its
+contents off the chat, model prompts and durable history.
+[Coordinator wire contract](contracts/2026-11-21-attached-workspace-reads.md).
+
+The frozen Android source passed 1,213 JVM tests with zero skips, both APK
+builds and debug/release lint with zero errors and 50/49 warnings. Three new
+wire tests checked one followed socket, the exact reviewed request fields,
+an unsupported gateway and refusals for a different prepared root or a file
+outside the returned folder. The large-caption Compose fixture passed on
+Android 8 and 17 using the same signed APKs. It checked that no prepare was
+sent before review, opened the selected text preview, closed the browser and
+confirmed the same chat was still followed.
+
+Debug app SHA-256
+`a15dcc9e054a4e7a461ac884e9ccfc56e1758f7f5486eed2e90f0ca06c6c0685`.
+Debug test APK SHA-256
+`8b03ca79919f165205458f5b6dd0f0fab238bf2a61612042860d83027bccfaac`.
+Both used the original debug certificate. The app tests used a controlled
+worker fixture. The coordinator's earlier native pipe and protected-file tests
+passed on the exact pushed source. Real Android-to-Pi-to-worker acceptance and
+the signed production release remain open.
+[Coordinator GitHub checks](https://github.com/DionCroft/Signal_Grove/actions/runs/44857573672).
+
 ## Session-bound worker file reads
 
 The optional coordinator now has two read methods for a followed chat with a

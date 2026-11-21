@@ -85,7 +85,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private var describeAnswered = false
     private var notificationCount = 0
     private var receivedBytes = 0L
-    private data class Pending(val id: String, val waiter: CompletableDeferred<JsonObject>,val workspace:Boolean)
+    private data class Pending(val id: String, val waiter: CompletableDeferred<JsonObject>,val workspace:Boolean, val attachedRead: Boolean)
     private val requests = Mutex()
     private var nextId = 1L
     private var pending: Pending? = null
@@ -216,6 +216,11 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
             if (j.containsKey("error")) {
                 val error = j["error"] as? JsonObject ?: throw GatewayProtocolException()
                 val code = (error["code"] as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull ?: throw GatewayProtocolException()
+                if (!handshake && pending?.attachedRead == true && code == -32601) {
+                    pending = null
+                    waiter.completeExceptionally(CanonicalNotSupported())
+                    return
+                }
                 val refusal = if(!handshake && pending?.workspace==true) CanonicalWorkspaceRefused.parse(code,error) ?: GatewayRpcException(code) else GatewayRpcException(code)
                 waiter.completeExceptionally(refusal)
                 throw refusal
@@ -265,12 +270,14 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     }
 
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
-        require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions"))
+        require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read))
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
             check(verified != null && pending == null && nextId < Long.MAX_VALUE)
-            request = Pending((++nextId).toString(), CompletableDeferred(),method=="session.mutate" && params["operation"]==JsonPrimitive("workspace"))
+            request = Pending((++nextId).toString(), CompletableDeferred(),
+                method == "session.mutate" && params["operation"] == JsonPrimitive("workspace"),
+                method == AttachedWorkerProtocol.Describe || method == AttachedWorkerProtocol.Read)
             pending = request
             val frame = buildJsonObject { put("jsonrpc","2.0"); put("id",request.id); put("method",method); put("params",params) }
             if (socket?.send(frame.toString()) != true) {
@@ -280,7 +287,9 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         try {
             withTimeoutOrNull(45000) { request.waiter.await() } ?: throw GatewayUnavailable()
         } catch (error: Exception) {
-            fail(if (error is GatewayRpcException || error is GatewayProtocolException) error else GatewayUnavailable())
+            if (!request.attachedRead || error !is CanonicalNotSupported) {
+                fail(if (error is GatewayRpcException || error is GatewayProtocolException) error else GatewayUnavailable())
+            }
             throw error
         } finally {
             synchronized(this) { if (pending === request) pending = null }
@@ -392,6 +401,43 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         val result = call("session.stats", buildJsonObject { put("session_id", expected.sessionId) })
         if (binding !== current) throw CanonicalScopeChanged()
         return HermesContextStats.parse(result)
+    }
+
+    private suspend fun attachedWorkerCall(
+        expected: CanonicalSessionSnapshot, request: JsonObject? = null
+    ): JsonObject {
+        val current = binding
+        synchronized(this) {
+            if (resuming || snapshot !== expected || feed == null) throw CanonicalReviewChanged()
+        }
+        val result = call(
+            if (request == null) AttachedWorkerProtocol.Describe else AttachedWorkerProtocol.Read,
+            AttachedWorkerProtocol.params(expected, request)
+        )
+        if (binding !== current) throw CanonicalScopeChanged()
+        return result
+    }
+
+    internal suspend fun describeWorker(expected: CanonicalSessionSnapshot): AttachedWorkerProject =
+        AttachedWorkerProtocol.describe(attachedWorkerCall(expected))
+
+    internal suspend fun prepareWorker(expected: CanonicalSessionSnapshot, project: AttachedWorkerProject): AttachedWorkerBinding {
+        val request = AttachedWorkerProtocol.request(project, "prepare")
+        return AttachedWorkerProtocol.prepare(attachedWorkerCall(expected, request), request, project)
+    }
+
+    internal suspend fun listWorker(expected: CanonicalSessionSnapshot, binding: AttachedWorkerBinding,
+                                    entry: AttachedWorkerEntry?): AttachedWorkerListing {
+        require(entry == null || entry.directory)
+        val request = AttachedWorkerProtocol.request(binding.project, "list", binding, entry)
+        return AttachedWorkerProtocol.list(attachedWorkerCall(expected, request), request, binding)
+    }
+
+    internal suspend fun previewWorker(expected: CanonicalSessionSnapshot, binding: AttachedWorkerBinding,
+                                       entry: AttachedWorkerEntry): AttachedWorkerPreview {
+        require(!entry.directory)
+        val request = AttachedWorkerProtocol.request(binding.project, "preview", binding, entry)
+        return AttachedWorkerProtocol.preview(attachedWorkerCall(expected, request), request, binding)
     }
 
     /** A separately authenticated socket; no attachment, prompt or work is replayed. */

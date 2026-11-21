@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Android attached project browser checkpoint
+
+The followed viewer now reviews the worker and registered root before listing
+files. The client sends only the current session revision and generation and
+the selected entry token. The frozen Android build passed 1,213 JVM tests,
+both lint variants and both APK builds. The new reviewed-preview Compose
+check passed on Android 8 and 17. The wire fixture verified that an older
+gateway or a mismatched worker response leaves the original chat subscribed.
+The Android owner-login interoperability and the live Pi-to-worker read are
+still required before project-run approval and scheduling acceptance.
+[Validation](docs/VALIDATION.md#android-attached-project-browser).
+
 ## Session-bound worker read checkpoint
 
 The coordinator can derive one registered Windows workspace from a protected
