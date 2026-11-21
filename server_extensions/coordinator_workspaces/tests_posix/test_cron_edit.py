@@ -51,7 +51,23 @@ class NativeWriterFixture:
     def parse_schedule(value):
         if value.count(" ") == 4:
             return {"kind":"cron", "expr":value, "display":value}
+        if value == "2038-10-10T11:30:00+00:00":
+            return {"kind":"once", "run_at":value}
         raise ValueError("Unreviewed schedule fixture")
+
+    @staticmethod
+    def _project_job_update(job_id, job, updates):
+        assert job_id == job["id"]
+        changed = dict(job, **updates)
+        old = job["schedule"]["kind"]
+        new = changed["schedule"]["kind"]
+        repeat = dict(job.get("repeat") or {"times":None,"completed":0})
+        if new == "once" and old != "once" and repeat["times"] is None:
+            repeat["times"] = 1
+        if new != "once" and old == "once" and repeat["times"] == 1:
+            repeat["times"] = None
+        changed["repeat"] = repeat
+        return changed
 
     def update_job(self, job_id, updates, *, finalize_review=None):
         document = self.store / "jobs.json"
@@ -59,7 +75,7 @@ class NativeWriterFixture:
         for index, job in enumerate(rows):
             if job["id"] != job_id:
                 continue
-            updated = dict(job, **updates)
+            updated = self._project_job_update(job_id, job, updates)
             finalize_review(updated)
             rows[index] = updated
             replacement = document.with_suffix(".pending")
@@ -89,9 +105,13 @@ class CronEditPosixTest(unittest.TestCase):
             (home / "cron").mkdir(parents=True, mode=0o700)
             self.write(home, [dict(self.initial)])
         self.writer = NativeWriterFixture()
-        boot = patch.object(cron_edit, "_native", return_value=self.writer)
-        boot.start()
-        self.addCleanup(boot.stop)
+        for mock in (
+            patch.object(cron_edit, "_native", return_value=self.writer),
+            patch.object(cron_edit, "_profile_home", side_effect=lambda jobs, home: jobs.use_cron_store(home)),
+            patch.object(cron_edit, "_profile_timezone", return_value="UTC"),
+        ):
+            mock.start()
+            self.addCleanup(mock.stop)
 
     @staticmethod
     def path(home):
@@ -108,9 +128,15 @@ class CronEditPosixTest(unittest.TestCase):
     def query(self, action="prepare", **fields):
         return cron_edit.edit_query(dict(expected_profile="default", job_id=JOB, **fields), action)
 
-    def request(self, request_number=1, version=None, **changes):
-        return self.query("apply", request_id=f"{request_number:032x}",
-                          expected_version=version or self.prepare()["version"], changes=changes)
+    def review(self, version=None, **changes):
+        query = self.query("review", expected_version=version or self.prepare()["version"], changes=changes)
+        return cron_edit.review_edit(self.home, query)
+
+    def request(self, request_number=1, version=None, digest=None, **changes):
+        version = version or self.prepare()["version"]
+        digest = digest or self.review(version, **changes)["review_digest"]
+        return self.query("apply", request_id=f"{request_number:032x}", expected_version=version,
+                          review_digest=digest, changes=changes)
 
     def submit(self, query, guard=lambda: None):
         return cron_edit.apply_edit(self.home, query, guard)
@@ -171,9 +197,10 @@ class CronEditPosixTest(unittest.TestCase):
         self.refuse("UNAVAILABLE", lambda: self.submit(edit), submitted=True)
         result = self.observe(edit)
         self.writer.lose_reply = False
-        repeat = self.request(version=edit.expected_version, grace_minutes=0, schedule="0 11 * * *")
+        repeat = self.request(version=edit.expected_version, digest=edit.review_digest,
+                              grace_minutes=0, schedule="0 11 * * *")
         self.assertEqual(result, self.submit(repeat))
-        conflicting = self.request(version=edit.expected_version, catch_up=True)
+        conflicting = self.request(version=edit.expected_version, digest=edit.review_digest, catch_up=True)
         self.refuse("DUPLICATE", lambda: self.submit(conflicting))
         self.assertEqual(1, self.writer.saves)
 
@@ -188,3 +215,46 @@ class CronEditPosixTest(unittest.TestCase):
         target.symlink_to(self.path(self.other))
         self.refuse("UNAVAILABLE", self.prepare)
         self.assertEqual(0, self.writer.saves)
+
+
+    def test_review_projects_the_timezone_and_repeat_effect_without_touching_the_catalogue(self):
+        before = self.path(self.home).read_bytes()
+        when = "2038-10-10T11:30:00+00:00"
+        result = self.review(schedule=when, timezone="Europe/London")
+        self.assertEqual("UTC", result["profile_timezone"])
+        self.assertIsNone(result["before"]["repeat"])
+        self.assertEqual({"times":1, "completed":0}, result["after"]["repeat"])
+        self.assertEqual("Europe/London", result["after"]["timing"]["timezone"])
+        self.assertEqual(before,self.path(self.home).read_bytes())
+        self.assertFalse((self.home/"cron/.jobs.lock").exists())
+        self.assertEqual(0,self.writer.saves)
+        applied = self.submit(self.request(schedule=when, timezone="Europe/London"))
+        self.assertEqual(result["after"]["repeat"],applied["repeat"])
+        self.assertEqual(result["review_digest"],applied["review_digest"])
+
+    def test_review_digest_refuses_different_changes_and_a_shifted_profile_timezone(self):
+        reviewed = self.request(schedule="0 11 * * *")
+        alternative = self.request(version=reviewed.expected_version, digest=reviewed.review_digest, schedule="0 12 * * *")
+        before = self.path(self.home).read_bytes()
+        self.refuse("CHANGED", lambda: self.submit(alternative))
+        with patch.object(cron_edit, "_profile_timezone", return_value="Europe/Paris"):
+            self.refuse("CHANGED", lambda: self.submit(reviewed))
+        self.assertEqual(before,self.path(self.home).read_bytes())
+        self.assertEqual(0,self.writer.saves)
+
+
+    def test_earlier_receipt_format_remains_observable(self):
+        request_id = "1"*32
+        timing = {"schedule":{"kind":"cron","expr":"0 9 * * *"},"timezone":"UTC",
+                  "catch_up":None,"grace_minutes":None}
+        previous = {"request_id":request_id,"reviewed_version":"a"*64,
+                    "timing":timing,"fingerprint":"b"*64}
+        stored = dict(self.initial)
+        stored[cron_edit._RECEIPTS] = [previous]
+        self.write(self.home,[stored])
+        original = self.path(self.home).read_bytes()
+        output = cron_edit.observe_edit(self.home, self.query("observe",request_id=request_id))
+        self.assertEqual({"profile":"default","job_id":JOB,"request_id":request_id,
+                          "reviewed_version":"a"*64,"timing":timing},output)
+        self.assertEqual(original,self.path(self.home).read_bytes())
+        self.assertEqual(0,self.writer.saves)

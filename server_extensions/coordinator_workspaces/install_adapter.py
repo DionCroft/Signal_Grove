@@ -9,6 +9,7 @@ import hashlib
 import os
 from pathlib import Path
 import stat
+import textwrap
 
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
          'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py')
@@ -76,17 +77,24 @@ def patch_cron_edit(source):
     start = source.index("def update_job(job_id: str, updates: dict[str, Any])")
     end = source.index("\n\ndef pause_job", start)
     section = source[start:end]
-    edit_anchors = (
-        ("def update_job(job_id: str, updates: dict[str, Any])",
-         "def update_job(job_id: str, updates: dict[str, Any], *, finalize_review=None)"),
-        ("        jobs[i] = updated\n        save_jobs(jobs)",
-         "        if finalize_review is not None:\n            finalize_review(updated)\n"
-         "        jobs[i] = updated\n        save_jobs(jobs)"),
-    )
-    for before, after in edit_anchors:
-        if section.count(before) != 1:
-            raise ValueError('Native schedule writer differs from the reviewed edit anchors.')
-        section = section.replace(before, after)
+    apply_start = "    def apply(jobs, i, job):\n"
+    write_start = "        jobs[i] = updated\n        save_jobs(jobs)"
+    if section.count(apply_start) != 1 or section.count(write_start) != 1:
+        raise ValueError('Native schedule writer differs from the reviewed edit anchors.')
+    projection_start = section.index(apply_start) + len(apply_start)
+    projection_end = section.index(write_start, projection_start)
+    projection = textwrap.dedent(section[projection_start:projection_end]).rstrip()
+    if (not projection.startswith("_rederive_repeat_for_schedule_change(job, updates)\n")
+            or not projection.endswith("_reject_terminal_activation(job, updated, job_id)")):
+        raise ValueError('Native schedule projection differs from the reviewed edit anchors.')
+    section = (section[:projection_start]
+               + "        updated = _project_job_update(job_id, job, updates)\n"
+               + "        if finalize_review is not None:\n            finalize_review(updated)\n"
+               + section[projection_end:])
+    section = section.replace("def update_job(job_id: str, updates: dict[str, Any])",
+                              "def update_job(job_id: str, updates: dict[str, Any], *, finalize_review=None)")
+    section = ("def _project_job_update(job_id, job, updates):\n"
+               + textwrap.indent(projection, "    ") + "\n    return updated\n\n\n" + section)
     result = source[:start] + section + source[end:]
     ast.parse(result)
     return result

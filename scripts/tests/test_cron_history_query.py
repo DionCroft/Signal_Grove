@@ -98,12 +98,20 @@ class CronHistoryQueryTest(unittest.TestCase):
 
     def test_schedule_edit_accepts_only_exact_scope_review_and_timing_changes(self):
         target = dict(expected_profile="worker", job_id="calendar-job")
-        apply = dict(target, request_id="1"*32, expected_version="a"*64,
+        apply = dict(target, request_id="1"*32, expected_version="a"*64, review_digest="b"*64,
                      changes={"timezone":"Europe/London", "schedule":"0 9 * * *", "grace_minutes":0})
         valid = edit_query(apply, "apply")
         self.assertEqual(("worker", "calendar-job", "1"*32, "a"*64),
                          (valid.profile, valid.job_id, valid.request_id, valid.expected_version))
         self.assertEqual(["grace_minutes", "schedule", "timezone"], list(valid.changes))
+        self.assertEqual("b"*64, valid.review_digest)
+        review = edit_query({key: value for key, value in apply.items() if key not in {"request_id", "review_digest"}}, "review")
+        self.assertEqual(valid.changes, review.changes)
+        self.assertIsNone(review.review_digest)
+        for missing in ("review_digest", "expected_version"):
+            with self.assertRaises(ReadRefused) as error:
+                edit_query({key: value for key, value in apply.items() if key != missing}, "apply")
+            self.assertEqual("INVALID", error.exception.code)
         self.assertEqual(valid.request_id, edit_query(dict(target, request_id=valid.request_id), "observe").request_id)
         self.assertIsNone(edit_query(target, "prepare").request_id)
         for invalid in (dict(apply, profile="default"), dict(apply, expected_version="wrong"),

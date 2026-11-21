@@ -1,5 +1,7 @@
 """Exact, paused scheduler timing updates using the native writer and durable receipts."""
 
+from contextlib import contextmanager
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
 import hashlib
@@ -26,22 +28,28 @@ class EditQuery:
     request_id: str | None = None
     expected_version: str | None = None
     changes: dict | None = None
+    review_digest: str | None = None
 
 
 def edit_query(params, action):
     base = {"expected_profile", "job_id"}
     keys = {
-        "prepare": base, "observe": base | {"request_id"},
-        "apply": base | {"request_id", "expected_version", "changes"},
+        "prepare": base,
+        "observe": base | {"request_id"},
+        "review": base | {"expected_version", "changes"},
+        "apply": base | {"request_id", "expected_version", "changes", "review_digest"},
     }
     if type(params) is not dict or set(params) != keys[action]:
         raise ReadRefused("INVALID")
     target = execution_query({key: params[key] for key in base})
     request_id = params.get("request_id")
-    if action != "prepare" and (type(request_id) is not str or not _ID.fullmatch(request_id)):
+    if action in {"observe", "apply"} and (type(request_id) is not str or not _ID.fullmatch(request_id)):
         raise ReadRefused("INVALID")
-    if action != "apply":
+    if action in {"prepare", "observe"}:
         return EditQuery(target.profile, target.job_id, request_id)
+    review_digest = params.get("review_digest")
+    if action == "apply" and (type(review_digest) is not str or not _HEX.fullmatch(review_digest)):
+        raise ReadRefused("INVALID")
     version, changes = params["expected_version"], params["changes"]
     if (type(version) is not str or not _HEX.fullmatch(version) or type(changes) is not dict
             or not changes or not changes.keys() <= _FIELDS):
@@ -52,7 +60,7 @@ def edit_query(params, action):
                 raise ReadRefused("INVALID")
         else:
             _validate_setting(name, value, "INVALID")
-    return EditQuery(target.profile, target.job_id, request_id, version, dict(sorted(changes.items())))
+    return EditQuery(target.profile, target.job_id, request_id, version, dict(sorted(changes.items())), review_digest)
 
 
 def _text(value, maximum):
@@ -128,32 +136,54 @@ def _timing(job):
     return result
 
 
+def _repeat(value):
+    if value is None:
+        return None
+    if type(value) is not dict or "times" not in value or "completed" not in value:
+        raise ReadRefused("UNAVAILABLE")
+    times, completed = value["times"], value["completed"]
+    if ((times is not None and (type(times) is not int or times < 1))
+            or type(completed) is not int or completed < 0):
+        raise ReadRefused("UNAVAILABLE")
+    return {"times": times, "completed": completed}
+
+
+def _effect(job):
+    return {"timing": _timing(job), "repeat": _repeat(job.get("repeat"))}
+
+
 def _receipts(job):
     records = job.get(_RECEIPTS, [])
     if type(records) is not list or len(records) > _KEEP:
         raise ReadRefused("UNAVAILABLE")
     seen = set()
+    base = {"request_id", "fingerprint", "reviewed_version", "timing"}
     for record in records:
-        if (type(record) is not dict or set(record) != {"request_id", "fingerprint", "reviewed_version", "timing"}
+        if (type(record) is not dict or set(record) not in (base, base | {"review_digest", "repeat"})
                 or type(record["request_id"]) is not str or not _ID.fullmatch(record["request_id"])
                 or record["request_id"] in seen
                 or type(record["fingerprint"]) is not str or not _HEX.fullmatch(record["fingerprint"])
                 or type(record["reviewed_version"]) is not str or not _HEX.fullmatch(record["reviewed_version"])
                 or type(record["timing"]) is not dict or _timing(record["timing"]) != record["timing"]):
             raise ReadRefused("UNAVAILABLE")
+        if "review_digest" in record and (
+                type(record["review_digest"]) is not str or not _HEX.fullmatch(record["review_digest"])
+                or record["repeat"] != _repeat(record["repeat"])):
+            raise ReadRefused("UNAVAILABLE")
         seen.add(record["request_id"])
     return records
 
 
 def _result(query, record):
-    return {"profile": query.profile, "job_id": query.job_id, "request_id": record["request_id"],
-            "reviewed_version": record["reviewed_version"], "timing": record["timing"]}
+    result = {key: value for key, value in record.items() if key != "fingerprint"}
+    return {"profile": query.profile, "job_id": query.job_id, **result}
 
 
 def _native():
     from cron import jobs
     if ("require_cross_process" not in signature(jobs._jobs_lock).parameters
-            or "finalize_review" not in signature(jobs.update_job).parameters):
+            or "finalize_review" not in signature(jobs.update_job).parameters
+            or not callable(getattr(jobs, "_project_job_update", None))):
         raise ReadRefused("UNSUPPORTED")
     return jobs
 
@@ -163,7 +193,7 @@ def prepare_edit(home, query):
     try:
         job, version = _catalogue(home, query.job_id)
         _paused(job)
-        return {"profile": query.profile, "job_id": query.job_id, "version": version, "timing": _timing(job)}
+        return {"profile": query.profile, "job_id": query.job_id, "version": version, **_effect(job)}
     except (OSError, TypeError, ValueError):
         raise ReadRefused("UNAVAILABLE") from None
 
@@ -194,14 +224,65 @@ def _reviewed_changes(jobs, changes):
     return prepared
 
 
+@contextmanager
+def _profile_home(jobs, home):
+    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    token = set_hermes_home_override(str(home))
+    try:
+        with jobs.use_cron_store(home):
+            yield
+    finally:
+        reset_hermes_home_override(token)
+
+
+def _profile_timezone():
+    from hermes_time import get_timezone
+    zone = get_timezone()
+    return zone.key if zone is not None else None
+
+
+def _plan(jobs, saved, version, query):
+    if version != query.expected_version:
+        raise ReadRefused("CHANGED")
+    _paused(saved)
+    updates = _reviewed_changes(jobs, query.changes)
+    if "schedule" in updates or "timezone" in updates:
+        updates["next_run_at"] = None
+    projected = jobs._project_job_update(query.job_id, deepcopy(saved), deepcopy(updates))
+    _paused(projected)
+    review = {
+        "profile": query.profile, "job_id": query.job_id, "version": version,
+        "profile_timezone": _profile_timezone(), "before": _effect(saved), "after": _effect(projected),
+    }
+    digest = hashlib.sha256(b"signal-grove-cron-review-v1\0"
+                            + encode({"review": review, "changes": query.changes})).hexdigest()
+    return {**review, "review_digest": digest}, updates
+
+
+def review_edit(home, query):
+    jobs = _native()
+    try:
+        saved, version = _catalogue(home, query.job_id)
+        with _profile_home(jobs, home):
+            review, _ = _plan(jobs, saved, version, query)
+        if _catalogue(home, query.job_id)[1] != version:
+            raise ReadRefused("CHANGED")
+        return review
+    except ValueError:
+        raise ReadRefused("INVALID") from None
+    except (OSError, TypeError, RuntimeError):
+        raise ReadRefused("UNAVAILABLE") from None
+
+
 def apply_edit(home, query, verify_authority):
     jobs = _native()
     started = False
     try:
-        key = hashlib.sha256(encode({"version": query.expected_version, "changes": query.changes})).hexdigest()
+        key = hashlib.sha256(encode({"version": query.expected_version, "changes": query.changes,
+                                     "review_digest": query.review_digest})).hexdigest()
         # Check the protected store before native locking can create directories.
         _catalogue(home, query.job_id)
-        with jobs.use_cron_store(home), jobs._jobs_lock(require_cross_process=True):
+        with _profile_home(jobs, home), jobs._jobs_lock(require_cross_process=True):
             verify_authority()
             saved, version = _catalogue(home, query.job_id)
             history = _receipts(saved)
@@ -210,15 +291,12 @@ def apply_edit(home, query, verify_authority):
                     if record["fingerprint"] != key:
                         raise ReadRefused("DUPLICATE")
                     return _result(query, record)
-            if version != query.expected_version:
+            plan, updates = _plan(jobs, saved, version, query)
+            if plan["review_digest"] != query.review_digest:
                 raise ReadRefused("CHANGED")
-            _paused(saved)
-            updates = _reviewed_changes(jobs, query.changes)
-            expected = _timing({**saved, **updates})
-            if "schedule" in updates or "timezone" in updates:
-                updates["next_run_at"] = None
-            record = {"request_id": query.request_id, "fingerprint": key,
-                      "reviewed_version": version, "timing": expected}
+            expected = plan["after"]
+            record = {"request_id": query.request_id, "fingerprint": key, "reviewed_version": version,
+                      "review_digest": query.review_digest, **expected}
 
             def finalize(updated):
                 nonlocal started
@@ -226,7 +304,7 @@ def apply_edit(home, query, verify_authority):
                 if _catalogue(home, query.job_id)[1] != version:
                     raise ReadRefused("CHANGED")
                 _paused(updated)
-                if _timing(updated) != expected:
+                if _effect(updated) != expected or _profile_timezone() != plan["profile_timezone"]:
                     raise ReadRefused("CHANGED")
                 updated[_RECEIPTS] = (history + [record])[-_KEEP:]
                 started = True
@@ -235,7 +313,7 @@ def apply_edit(home, query, verify_authority):
             if result is None or not started:
                 raise ReadRefused("NOT_FOUND")
             confirmed, _ = _catalogue(home, query.job_id)
-            if _receipts(confirmed)[-1:] != [record] or _timing(confirmed) != expected:
+            if _receipts(confirmed)[-1:] != [record] or _effect(confirmed) != expected:
                 raise ReadRefused("CHANGED", request_submitted=True)
             _paused(confirmed)
             return _result(query, record)

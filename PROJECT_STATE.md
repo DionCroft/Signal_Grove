@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native timing review projection
+
+Hermes now reports the before-and-after schedule, time zone and
+repeat effect from the same projection used by its writer. Apply
+requires that review digest under the native lock. Both native
+cohorts and the prior scheduler regression suites passed.
+Android review and original-receipt recovery are the next client
+integration. Live Pi validation and the wider release gates remain open.
+[Validation](docs/VALIDATION.md#native-timing-review-projection).
+
 ## Strict paused scheduler edit source
 
 The optional native timing editor now checks the exact reviewed job

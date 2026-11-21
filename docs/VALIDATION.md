@@ -1,5 +1,35 @@
 # Current development validation — audit follow-up
 
+## Native timing review projection
+
+An explicit read-only review now runs the same projected update
+as the native scheduler save. It returns the current and proposed
+timing, repeat policy and completed count, plus the profile's
+reported time zone. The review digest binds the catalogue version,
+proposed changes and the exact before/after state. The locked
+apply requires this digest and recomputes the projection. A new
+draft, changed reported time zone or replaced job file requires
+a fresh review. The committed receipt records the digest, timing
+and repeat outcome. Earlier-format receipts remain observable.
+
+Both pinned schedulers passed eleven isolated native scenarios
+each. They projected the stored repeat budget in both directions
+between one-time and recurring schedules. The original catalogue
+bytes survived preview. Draft or inherited time-zone changes were
+refused, and one lost acknowledgement settled from its original
+receipt. The test's Windows catalogue observation stands in for
+production POSIX protection. Separate regression runs executed
+the refactored native scheduler with 91 v0.23.1 and 112 `242315c`
+upstream cases. All passed with the original audited test isolation.
+
+The pinned v0.23.1 dispatcher passed 23 cases, including the native
+review envelope and refusal of an apply without its review digest.
+The three native source files and ten modules passed isolated
+staged hash verification. The full portable Windows suite passed
+932 cases with 273 platform skips. The exact protected Linux
+fixture follows the push. Android review and live Pi acceptance
+are open.
+
 ## Strict paused schedule editing source
 
 The optional native adapter supports owner-scoped prepare, apply

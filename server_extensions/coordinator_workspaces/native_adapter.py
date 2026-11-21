@@ -12,7 +12,7 @@ from tui_gateway.contracts.base import JsonValue, Params, Result
 from tui_gateway.contracts.registry import canonical_method
 from .attached import FollowedWorkspace
 from .coordinator import CoordinatorReadService, NativeReadContext, ReadRefused, _identity
-from .cron_edit import apply_edit, edit_query, observe_edit, prepare_edit
+from .cron_edit import apply_edit, edit_query, observe_edit, prepare_edit, review_edit
 from .cron_history import execution_query, read_executions
 from .cron_output import output_query, read_output
 
@@ -23,6 +23,7 @@ READ_ATTACHED = 'signal_grove.workspaces.read_attachment_v1'
 CRON_EXECUTIONS = 'signal_grove.cron.executions_v1'
 CRON_OUTPUT = 'signal_grove.cron.output_v1'
 CRON_EDIT_PREPARE = 'signal_grove.cron.edit_prepare_v1'
+CRON_EDIT_REVIEW = 'signal_grove.cron.edit_review_v1'
 CRON_EDIT_APPLY = 'signal_grove.cron.edit_apply_v1'
 CRON_EDIT_OBSERVE = 'signal_grove.cron.edit_observe_v1'
 
@@ -71,9 +72,14 @@ class CronEditObserveParams(CronEditPrepareParams):
     request_id: str
 
 
-class CronEditApplyParams(CronEditObserveParams):
+class CronEditReviewParams(CronEditPrepareParams):
     expected_version: str
     changes: dict[str, JsonValue]
+
+
+class CronEditApplyParams(CronEditReviewParams):
+    request_id: str
+    review_digest: str
 
 
 class ReadResult(Result):
@@ -104,6 +110,8 @@ canonical_method(CRON_OUTPUT, params=CronOutputParams, result=ReadResult,
 
 canonical_method(CRON_EDIT_PREPARE, params=CronEditPrepareParams, result=ReadResult,
                  doc='Prepare the exact stored paused schedule for a timing review.')
+canonical_method(CRON_EDIT_REVIEW, params=CronEditReviewParams, result=ReadResult,
+                 doc='Project one paused timing edit with the native scheduler and report its repeat effect.')
 canonical_method(CRON_EDIT_APPLY, params=CronEditApplyParams, result=ReadResult,
                  doc='Apply one exact approved timing edit while the canonical job is paused.')
 canonical_method(CRON_EDIT_OBSERVE, params=CronEditObserveParams, result=ReadResult,
@@ -257,6 +265,9 @@ def handlers(connection):
     async def schedule_prepare(ref, params):
         return await scheduler_read(params, lambda values: edit_query(values, 'prepare'), prepare_edit)
 
+    async def schedule_review(ref, params):
+        return await scheduler_read(params, lambda values: edit_query(values, 'review'), review_edit)
+
     async def schedule_observe(ref, params):
         return await scheduler_read(params, lambda values: edit_query(values, 'observe'), observe_edit)
 
@@ -289,5 +300,5 @@ def handlers(connection):
     async def read_attached(ref, params): return await attached(ref, params, reading=True)
     return {DESCRIBE:describe, READ:read, DESCRIBE_ATTACHED:describe_attached, READ_ATTACHED:read_attached,
             CRON_EXECUTIONS:executions, CRON_OUTPUT:output,
-            CRON_EDIT_PREPARE:schedule_prepare, CRON_EDIT_OBSERVE:schedule_observe,
+            CRON_EDIT_PREPARE:schedule_prepare, CRON_EDIT_REVIEW:schedule_review, CRON_EDIT_OBSERVE:schedule_observe,
             CRON_EDIT_APPLY:schedule_apply}

@@ -8,17 +8,22 @@ exact canonical `job_id`.
 
 | Method | Additional fields | Result |
 | --- | --- | --- |
-| `signal_grove.cron.edit_prepare_v1` | None | Opaque catalogue `version` and current `timing` |
-| `signal_grove.cron.edit_apply_v1` | `expected_version`, `request_id`, `changes` | Original ID, reviewed version and committed timing |
+| `signal_grove.cron.edit_prepare_v1` | None | Opaque catalogue `version`, current `timing` and `repeat` |
+| `signal_grove.cron.edit_review_v1` | `expected_version`, `changes` | Current and proposed `timing` and `repeat`, reported profile time zone and `review_digest` |
+| `signal_grove.cron.edit_apply_v1` | `expected_version`, `request_id`, `changes`, `review_digest` | Original ID, reviewed version, review digest and committed timing/repeat |
 | `signal_grove.cron.edit_observe_v1` | Original `request_id` | The retained original edit receipt |
 
 The changes object accepts schedule, timezone, catch-up and grace
 minutes. One-time edits require an explicit UTC offset so the instant
 cannot drift between review and commit. The job must already be
-paused, disabled and free of a fire claim. Native schedule kind
-changes follow Hermes' existing repeat rules. A client review must
-surface a repeat change before confirmation. The edit cannot activate
-or dispatch a job and cannot change its prompt or workspace.
+paused, disabled and free of a fire claim. The read-only review
+uses the native schedule projection, including repeat-rule changes
+when switching cadence. A client shows these effects and binds its
+confirmation to the returned review digest. Apply recomputes the
+same digest inside the lock with the current scope. An inherited time
+zone is the zone reported by the selected profile, or null for server-local
+time. The edit cannot activate or dispatch a job and cannot change its
+prompt or workspace.
 
 Only staged generations with the reviewed jobs hook support edits.
 Stage it with `--expected-cron-jobs-sha256` and the existing exact
