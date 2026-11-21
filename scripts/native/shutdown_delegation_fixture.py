@@ -118,7 +118,7 @@ def produce(fixture: Path, home: Path, held: bool, denials: list[str]) -> None:
             worker_release.set()
 
 
-def recover(fixture, home):
+def recover(fixture, home, exited_owner):
     from tools.async_delegation import recover_abandoned_delegations
     from tools.delegate_tool_auto_resume import enabled
 
@@ -126,6 +126,7 @@ def recover(fixture, home):
     sid, did = prior["subagent"], prior["delegation"]
     assert not (fixture / "run-cwd").exists()
     assert os.getpid() != prior["owner"] and enabled() is False
+    assert exited_owner is None or prior["owner"] == exited_owner
     before = ledger_snapshot(home, sid, did)
     assert before == prior["after"]
     with patch("run_agent.AIAgent", side_effect=AssertionError("Recovery tried to build a child")) as factory:
@@ -144,7 +145,6 @@ def recover(fixture, home):
     assert count_rows(home) == 0
     write_receipt(fixture / "recovery-result.json", dict(pid=os.getpid(), first=first, second=second, state=after,
                   newModelCalls=factory.call_count, autoResumeEnabled=False))
-    print("NATIVE_RECOVERY_RETURNED_NO_REPLAY", flush=True)
 
 
 def main():
@@ -152,15 +152,24 @@ def main():
     sys.stdout.reconfigure(encoding='utf8')
     sys.stderr.reconfigure(encoding='utf8')
     source, fixture, site = (Path(path).resolve() for path in sys.argv[1:4])
-    action, = sys.argv[4:]
+    action, *owner_args = sys.argv[4:]
     assert action in ("released", "held", "recover")
+    exited_owner = None
+    if os.name == "posix" and action == "recover":
+        owner, = owner_args
+        exited_owner = int(owner)
+        assert owner == str(exited_owner) and exited_owner > 1 and exited_owner != os.getpid()
+    else:
+        assert not owner_args
     assert fixture.parent.is_dir() and not source.is_relative_to(fixture)
     assert not fixture.is_relative_to(source) and site.is_relative_to(Path(sys.prefix).resolve())
-    home, denials = constrain_child(source, fixture, site, "0.5", config=CONFIG, recovering=action == "recover")
+    home, denials = constrain_child(source, fixture, site, "0.5", config=CONFIG,
+                                    recovering=action == "recover", exited_owner=exited_owner)
     logging.basicConfig(stream=sys.stderr, level=logging.INFO, force=True)
     if action == "recover":
-        recover(fixture, home)
+        recover(fixture, home, exited_owner)
         assert not denials
+        print("NATIVE_RECOVERY_RETURNED_NO_REPLAY", flush=True)
     else:
         produce(fixture, home, action == "held", denials)
 

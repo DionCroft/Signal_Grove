@@ -88,6 +88,26 @@ class NativeHeartbeatGateTest(unittest.TestCase):
                 self.assertFalse(fixture.same_account_process_stat(path))
                 path.stat.assert_not_called()
 
+    def test_missing_stat_keeps_enoent_only_for_the_exact_reaped_owner(self):
+        fixture_spec = importlib.util.spec_from_file_location("heartbeat_fixture", gate.CHILD)
+        fixture = importlib.util.module_from_spec(fixture_spec)
+        fixture_spec.loader.exec_module(fixture)
+        path = Mock()
+        path.parts = ("/", "proc", "42", "stat")
+        missing = FileNotFoundError("/proc/42/stat")
+        path.stat.side_effect = missing
+        with patch.object(fixture.os, "geteuid", return_value=123, create=True):
+            self.assertFalse(fixture.same_account_process_stat(path))
+            self.assertFalse(fixture.same_account_process_stat(path, exited_owner=43))
+            with self.assertRaises(FileNotFoundError) as refused_open:
+                fixture.same_account_process_stat(path, exited_owner=42)
+            self.assertIs(missing, refused_open.exception)
+            path.stat.side_effect = PermissionError("/proc/42/stat")
+            self.assertFalse(fixture.same_account_process_stat(path, exited_owner=42))
+            path.stat.side_effect = None
+            path.stat.return_value.st_uid = 124
+            self.assertFalse(fixture.same_account_process_stat(path, exited_owner=42))
+
     def test_all_lifecycle_cases_require_the_intended_observations(self):
         for variant in ("pristine", "candidate"):
             for case in gate.cases(variant):

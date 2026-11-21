@@ -52,6 +52,15 @@ receipt so the failing boundary can be identified. The shell check covered
 a partial failed run, the log bound and exclusion of the fixture database.
 [First hosted result](https://github.com/DionCroft/Signal_Grove/actions/runs/44864681969).
 
+The retained Linux logs showed the fixture intercepting the expected
+missing `/proc/<owner>/stat` lookup after the owning process had exited.
+The parent now matches the recorded owner to the exact reaped child.
+For that PID alone, the guard propagates the original missing-file error.
+Foreign and inaccessible process files still fail the boundary. The
+recovery marker follows all guard checks. The portable heartbeat and
+canonical verifier suites passed all 31 tests.
+[Retained child diagnostics](https://github.com/DionCroft/Signal_Grove/actions/runs/44865708091).
+
 ## Phone helper observation consent
 
 The Android 8 hosted context cohort reported 585 of 586 positive tests.

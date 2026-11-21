@@ -32,20 +32,26 @@ def checkout_version_read(executable, argv, cwd, env, source: Path) -> bool:
             and isinstance(cwd, (str, os.PathLike)) and Path(cwd).resolve() == source)
 
 
-def same_account_process_stat(path: Path) -> bool:
+def same_account_process_stat(path: Path, *, exited_owner: int | None = None) -> bool:
     parts = path.parts
     if (len(parts) != 4 or parts[:2] != ("/", "proc") or parts[3] != "stat"
             or not parts[2].isascii() or not parts[2].isdigit()):
         return False
     try:
         return path.stat().st_uid == os.geteuid()
+    except FileNotFoundError:
+        # Restore the kernel's missing-file outcome for the exact reaped
+        # fixture owner. Do not allow an open if its PID is reused meanwhile.
+        if type(exited_owner) is int and exited_owner > 1 and parts[2] == str(exited_owner):
+            raise
+        return False
     except OSError:
         return False
 
 
 def constrain_child(
     source: Path, fixture: Path, site: Path, interval: str, *,
-    config: str = "updates:\n  check: false\n", recovering: bool = False,
+    config: str = "updates:\n  check: false\n", recovering: bool = False, exited_owner: int | None = None,
 ) -> tuple[Path, list[str]]:
     home, account, temp = (fixture / name for name in ("profile", "account", "temp"))
     settings = home / "config.yaml"
@@ -131,7 +137,7 @@ def constrain_child(
                 return
             if not writing and (path in system_reads or path == manifest and not path.exists()):
                 return
-            if not writing and os.name == "posix" and same_account_process_stat(path):
+            if not writing and os.name == "posix" and same_account_process_stat(path, exited_owner=exited_owner):
                 return
             if not any(path.is_relative_to(root) for root in ((fixture,) if writing else read_roots)):
                 refuse(event, str(path))

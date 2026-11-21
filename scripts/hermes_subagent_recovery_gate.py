@@ -28,10 +28,12 @@ RECOVER = "NATIVE_RECOVERY_RETURNED_NO_REPLAY"
 CASES = ("released", "held")
 
 
-def launch(python, source, site, folder, phase, marker):
+def launch(python, source, site, folder, phase, marker, *, exited_owner=None):
     log_path = folder / f"{phase}.log"
     command = [str(python), "-I", "-S", "-B", str(CHILD), str(source),
                str(folder / "fixture"), str(site), phase]
+    if exited_owner is not None:
+        command.append(str(exited_owner))
     with log_path.open("xb") as log:
         proc = subprocess.Popen(command, cwd=folder, stdin=subprocess.DEVNULL,
                                 stdout=log, stderr=subprocess.STDOUT)
@@ -45,6 +47,7 @@ def launch(python, source, site, folder, phase, marker):
     gate.write_new(folder / f"{phase}-terminal.json",
                    dict(state="TERMINAL", pid=proc.pid, returnCode=code, logSha256=digest))
     verified_log(folder, phase, marker)
+    return proc.pid
 
 
 def verified_log(folder, phase, marker):
@@ -171,11 +174,17 @@ def run(source, commit, base_map, scratch, python):
         for case in CASES:
             folder = scratch / case
             folder.mkdir(mode=0o700)
-            launch(python, source, site, folder, case, STOP)
+            stopped = launch(python, source, site, folder, case, STOP)
+            exited_owner = None
+            if os.name == "posix":
+                original_owner = gate.read_json(folder / "fixture/delegation-probe.json")["owner"]
+                if type(original_owner) is not int or original_owner <= 1 or original_owner != stopped:
+                    raise ValueError("Original delegation owner differs from the reaped process")
+                exited_owner = original_owner
             # The owner used this empty directory. Remove it before recovery so
             # the no-repository scenario needs no optional Git subprocess.
             (folder / "fixture/run-cwd").rmdir()
-            launch(python, source, site, folder, "recover", RECOVER)
+            launch(python, source, site, folder, "recover", RECOVER, exited_owner=exited_owner)
             results[case] = verify_case(folder, case)
             print(f"{case}: {results[case]}", flush=True)
     finally:
