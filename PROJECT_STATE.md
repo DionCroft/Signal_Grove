@@ -11,13 +11,14 @@ requirements. Commit and push tested chunks.
 
 A disposable Hermes v0.23.1 session applied and read back a workspace move.
 The native Windows broker prepared the same root, listed it and returned a
-verified 26-byte preview. All 12 combined checks passed, along with the 18
+verified 26-byte preview. All 13 combined checks passed, along with the 18
 original coordinator cases, 119 portable tests and 72 Windows-native tests.
 The test preserved the chat row, subscription and project bytes and created
 no turn or worker execution.
 
-Next, bind reads server-side to the verified session's current workspace and
-enrolled worker mapping. Then verify the authenticated Android-to-Pi-to-worker
+Hermes also refused a path missing on its host before any worker call.
+Next, bind reads server-side to the verified session's current attachment and
+an explicit worker registration. The worker's root can live on another host. Then verify the authenticated Android-to-Pi-to-worker
 path before adding project approvals. Production enrollment and Pi activation
 still require their own acceptance.
 [Isolated evidence](docs/VALIDATION.md#attached-workspace-and-windows-worker-read-checkpoint).

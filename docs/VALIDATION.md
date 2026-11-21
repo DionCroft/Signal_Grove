@@ -15,9 +15,17 @@ worker execution record was created.
 
 The test also refused a missing operator capability, an ungranted project, a
 mismatched worker instance, an invalid binding token and an invalid file token.
-All 12 combined checks passed, along with 18 original native coordinator
+All 13 combined checks passed, along with 18 original native coordinator
 checks, 119 portable workspace tests and 72 Windows-native tests. This change
-adds a validation probe and evidence.
+adds a validation probe and evidence. The hosted protocol, Windows-native and
+coordinator POSIX checks also passed on the initial verification commit.
+[Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/44856192657).
+
+The fixture also tried a directory absent from the Hermes host. The native
+workspace operation returned `invalid_params`. The session row was unchanged,
+the directory stayed absent and the worker received no call. The upstream
+workspace mutation resolves and checks the directory on the authority host.
+[Hermes v0.23.1 workspace implementation](https://github.com/NousResearch/hermes-agent/blob/3b421578588243f920886e6fe79a6faa87ea026e/gateway/session_mutation_policy.py#L37-L55).
 
 Reproduce with `scripts/probe_workspace_coordinator.py --windows-attached-worker
 --source-root <clean-Hermes-v0.23.1-checkout> --work-root <new-E-drive-directory>`
@@ -32,10 +40,12 @@ It leaves deployed services, credentials and workstation project files untouched
 The combined test compares the authoritative session cwd with the prepared
 Windows root. The v1 workspace methods still scope reads by owner, profile,
 worker and project independently of the conversation attachment. Production
-needs a server-owned mapping from the attached workspace to the enrolled
-worker/project and a fence on its current session revision and execution
-generation. A changed attachment must discard a returned preview. Authenticated
-Android-to-Pi-to-worker acceptance remains open.
+needs an explicit server-owned association between the authenticated session,
+the enrolled worker project and its registered root. That association must work
+even when Hermes has a different local cwd. Bind reads to the current session
+revision and execution generation, and discard replies if the attachment or
+registration changes during a read. Authenticated Android-to-Pi-to-worker
+acceptance remains open.
 
 ## Hermes-reported context and compression
 

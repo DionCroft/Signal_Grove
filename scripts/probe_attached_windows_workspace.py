@@ -165,6 +165,23 @@ async def run(root, home, controls, adapter, coordinator, operator_policy):
                 sid = created['session_id']
                 attached = await request(peer, 'session.resume', session_id=sid)
                 assert peer.subscriptions.get(sid)
+                # A worker-only directory is absent from the Hermes host view.
+                # A native workspace move must never treat its label as a local directory.
+                missing = root / 'not-present-on-authority'
+                assert not missing.exists()
+                before_refusal = db.get_session(sid)
+                rejected = await peer.dispatch({
+                    'jsonrpc': '2.0', 'id': 2, 'method': 'session.mutate',
+                    'params': {
+                        'session_id': sid, 'request_id': 'worker-path',
+                        'operation': 'workspace', 'payload': {'cwd': str(missing)},
+                        'expected_revision': attached['revision'],
+                        'expected_generation': attached['execution_generation'],
+                    },
+                })
+                assert rejected.get('error', {}).get('data', {}).get('reason') == 'invalid_params', rejected
+                assert db.get_session(sid) == before_refusal and not operations
+                assert not missing.exists()
                 await request(
                     peer, 'session.mutate', session_id=sid, request_id='attach', operation='workspace',
                     expected_revision=attached['revision'], expected_generation=attached['execution_generation'],
@@ -226,7 +243,7 @@ async def run(root, home, controls, adapter, coordinator, operator_policy):
 
     return {
         'state': 'ISOLATED_NATIVE_ATTACHMENT_AND_WINDOWS_PIPE_PASS',
-        'checks': ['create-resume-move-readback', 'ready-worker', 'same-root-prepare', 'list',
+        'checks': ['absent-authority-directory-refused', 'create-resume-move-readback', 'ready-worker', 'same-root-prepare', 'list',
                    'preview-bytes-and-hash', 'non-operator-denied', 'ungranted-project-denied',
                    'invalid-entry-token-denied', 'invalid-binding-denied', 'wrong-worker-instance-denied',
                    'state-and-files-preserved'],
