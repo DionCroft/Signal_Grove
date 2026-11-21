@@ -1,3 +1,4 @@
+from contextlib import closing
 from dataclasses import replace
 from datetime import datetime,timezone,timedelta
 import hashlib
@@ -12,6 +13,8 @@ import stat
 import sys
 import time
 import tempfile
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 import py_compile
 import unittest
 import uuid
@@ -49,6 +52,118 @@ class DrainFenceTests(unittest.TestCase):
     def test_active_and_unverified_counts_are_retained_without_exclusions(self):
         actual=fence(1,OPERATION,True,active_turns=2,active_tools=1,unverified_operations=1)
         self.assertEqual(actual,m.require_fence(actual,m.FencePreimage(0,None),OPERATION));self.assertEqual(2,actual['active_turns'])
+
+
+class DrainUnboundObservationTests(unittest.TestCase):
+    def setUp(self):
+        owned = tempfile.TemporaryDirectory(prefix='signal-grove-drain-unbound-')
+        self.addCleanup(owned.cleanup)
+        self.db = Path(owned.name) / 'project-control.db'
+        with closing(sqlite3.connect(self.db)) as db, db:
+            db.executescript("""
+                CREATE TABLE admission_fence (singleton INTEGER, epoch INTEGER, owner TEXT, frozen INTEGER);
+                CREATE TABLE unbound_turns (phase TEXT);
+                INSERT INTO unbound_turns VALUES ('ACTIVE');
+            """)
+            db.execute('INSERT INTO admission_fence VALUES (1, 1, ?, 1)', (OPERATION,))
+        self.actor = object.__new__(m.NativeGatewayDrain)
+        self.actor.spec = SimpleNamespace(fence=m.FencePreimage(0, None))
+        self.actor.requests = 0
+        self.actor._authorize = Mock()
+        self.actor._current = Mock()
+        self.approval = SimpleNamespace(deadline=15.0, operation=OPERATION)
+        self.receipt = Mock()
+        self.now = 10.0
+
+        def request(approval, receipt, phase, verb, deadline):
+            self.assertIs(approval, self.approval)
+            self.assertIs(receipt, self.receipt)
+            self.assertEqual(('drain', 'status', 15.0), (phase, verb, deadline))
+            self.actor.requests += 1
+            return dict(fence_epoch=1, fence_owner=OPERATION, admission_frozen=True,
+                        busy=False, lifecycle='draining')
+
+        self.actor._request = request
+        timer = patch.object(m, 'time', SimpleNamespace(monotonic=lambda: self.now, sleep=self.advance))
+        timer.start()
+        self.addCleanup(timer.stop)
+
+    def advance(self, seconds):
+        self.now += seconds
+
+    @staticmethod
+    def count(db):
+        return db.execute("SELECT count(*) FROM unbound_turns WHERE phase!='FINISHED'").fetchone()[0]
+
+    def read(self, deadline):
+        return m.observe_frozen_unbound(self.db, self.actor.spec.fence, OPERATION, self.count, .05)
+
+    def recorded_counts(self):
+        return [args[1]['active_unbound_turns'] for args, _ in self.receipt.append.call_args_list
+                if args[0] == 'gateway_unbound_observed']
+
+    def test_idle_older_wire_waits_for_the_original_unbound_turn_to_finish(self):
+        def settle(seconds):
+            self.advance(seconds)
+            with closing(sqlite3.connect(self.db)) as external_worker, external_worker:
+                external_worker.execute("UPDATE unbound_turns SET phase='FINISHED'")
+        m.time.sleep = settle
+        result = self.actor._observe_idle(self.approval, self.receipt, 'drain', unbound=self.read)
+        self.assertFalse(result['busy'])
+        self.assertEqual(2, self.actor.requests)
+        self.assertEqual([1, 0], self.recorded_counts())
+
+    def test_active_unbound_turn_keeps_original_drain_pending_until_expiry(self):
+        with self.assertRaisesRegex(m.Unknown, 'original expiry'):
+            self.actor._observe_idle(self.approval, self.receipt, 'drain', unbound=self.read)
+        self.assertGreater(self.actor.requests, 1)
+        self.assertEqual([1] * self.actor.requests, self.recorded_counts())
+        self.assertEqual(15.0, self.now)
+        self.assertEqual(1, self.read(15.0))
+
+    def test_zero_sample_arriving_at_expiry_cannot_finish_the_drain(self):
+        def late_zero(deadline):
+            self.now = deadline
+            return 0
+        with self.assertRaisesRegex(m.Unknown, 'original expiry'):
+            self.actor._observe_idle(self.approval, self.receipt, 'drain', unbound=late_zero)
+        self.assertEqual(1, self.actor.requests)
+
+    def test_frozen_fence_and_unbound_count_share_a_read_only_snapshot(self):
+        with closing(sqlite3.connect(self.db)) as external_worker, external_worker:
+            self.assertEqual('wal', external_worker.execute('PRAGMA journal_mode=WAL').fetchone()[0])
+
+            def count_while_other_connection_writes(db):
+                self.assertEqual(1, db.execute('PRAGMA query_only').fetchone()[0])
+                with self.assertRaises(sqlite3.OperationalError):
+                    db.execute("UPDATE unbound_turns SET phase='FINISHED'")
+                external_worker.execute("UPDATE unbound_turns SET phase='FINISHED'")
+                external_worker.commit()
+                return self.count(db)
+
+            self.assertEqual(1, m.observe_frozen_unbound(self.db, self.actor.spec.fence,
+                                                       OPERATION, count_while_other_connection_writes, .05))
+        self.assertEqual(0, self.read(15.0))
+
+    def test_foreign_fence_unknown_count_and_missing_ledger_cannot_be_idle(self):
+        for result in (False, -1, None):
+            with self.subTest(result=result), self.assertRaises(m.Unknown):
+                m.observe_frozen_unbound(self.db, self.actor.spec.fence, OPERATION, lambda db: result, .05)
+        missing = self.db.with_name('absent.db')
+        with self.assertRaises(m.Unknown):
+            m.observe_frozen_unbound(missing, self.actor.spec.fence, OPERATION, self.count, .05)
+        self.assertFalse(missing.exists())
+        with closing(sqlite3.connect(self.db)) as db, db:
+            db.execute("UPDATE admission_fence SET owner='other'")
+        with self.assertRaises(m.Unknown):
+            self.actor._observe_idle(self.approval, self.receipt, 'drain', unbound=self.read)
+        self.assertEqual(1, self.actor.requests)
+        self.assertEqual([], self.recorded_counts())
+
+    def test_drain_cannot_require_only_the_older_wire_observation(self):
+        with self.assertRaises(m.Refused):
+            self.actor._observe_idle(self.approval, self.receipt, 'drain')
+        self.assertEqual(0, self.actor.requests)
 
 
 class DrainPayloadTests(unittest.TestCase):
