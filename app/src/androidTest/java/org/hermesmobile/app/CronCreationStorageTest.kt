@@ -68,6 +68,52 @@ class CronCreationStorageTest {
             } finally {db.close()}
         }
     }
+    @Test fun substitutedScheduleNeverConfirmsEvenWhenTheAcknowledgementAndReadbackAgree() = runBlocking {
+        val db = Room.inMemoryDatabaseBuilder(context, HermesDatabase::class.java).build()
+        val writes = AtomicInteger()
+        MockWebServer().use { server ->
+            var stored: JsonObject? = null
+            server.dispatcher = object : Dispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse = when {
+                    request.path == "/api/auth/me" -> json(identity)
+                    request.path == "/openapi.json" -> json(CronCreationFixture.schema())
+                    request.path == "/api/cron/jobs?profile=worker" && request.method == "GET" ->
+                        json(JsonArray(listOfNotNull(stored)))
+                    request.path == "/api/cron/jobs?profile=worker" && request.method == "POST" -> {
+                        val body = Json.parseToJsonElement(request.body.readUtf8()).jsonObject
+                        assertEquals(JsonPrimitive("0 9 * * *"), body["schedule"])
+                        assertEquals(JsonPrimitive(true), body["paused"])
+                        writes.incrementAndGet()
+                        stored = CronCreationFixture.job(JsonObject(body + ("schedule" to JsonPrimitive("0 11 * * *"))))
+                        json(stored!!)
+                    }
+                    request.path == "/api/cron/jobs/created-job-fixture?profile=worker" -> json(stored!!)
+                    else -> MockResponse().setResponseCode(404)
+                }
+            }
+            try {
+                val api = ManagementClient(server.url("/").toString(),true,true)
+                val target = ManagementTarget("a".repeat(64),api.base.toString(),"worker","password · fixture")
+                val request = CronCreation("Fixture","0 9 * * *","private-prompt-fixture")
+                val schema = CronCreateContract.parse(CronCreationFixture.schema())
+                val repository = CronCreationRepository(db.dao(),CompletableDeferred(Unit))
+                val failure = runCatching { repository.create(target,request,schema,api,tokens) }.exceptionOrNull()
+                assertTrue(failure is CronCreationReadbackPending)
+                val receipt = db.dao().managementOperations(target.apiScope).first().single()
+                assertEquals("acknowledged", receipt.state)
+                assertEquals("created-job-fixture", Json.parseToJsonElement(receipt.resultSummary).jsonObject.text("job_id"))
+                assertFalse(receipt.toString().contains("private-prompt-fixture"))
+                db.dao().recoverManagementOperations()
+                val afterRestart = CronCreationRepository(db.dao(),CompletableDeferred(Unit))
+                assertTrue(runCatching { afterRestart.create(target,request,schema,api,tokens) }.exceptionOrNull() is CronCreationChanged)
+                assertEquals(receipt, db.dao().managementOperations(target.apiScope).first().single())
+                assertEquals(1, writes.get())
+            } finally {
+                db.close()
+            }
+        }
+    }
+
     @Test fun changedSchemaRefusesBeforePostAndReadbackFailureCannotDowngradeAcknowledgement()=runBlocking {
         val db=Room.inMemoryDatabaseBuilder(context,HermesDatabase::class.java).build();val writes=AtomicInteger();var declared=false;var saved:JsonObject?=null
         MockWebServer().use {server ->

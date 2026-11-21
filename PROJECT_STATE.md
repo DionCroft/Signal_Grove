@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Exact stored schedule checkpoint
+
+Paused creation now verifies the exact reviewed schedule on both the
+acknowledgment and readback. A substituted schedule keeps the original
+acknowledgment for read-only observation. All 20 native schedule records
+matched, and all 20 changed copies were refused. Five Android cases
+each passed on Android 8 and 17. The two official trigger cohorts also
+passed and confirmed stock pause/resume and job snapshot behavior.
+Strict edit, run-once and authenticated output remain open.
+[Validation](docs/VALIDATION.md#exact-schedule-readback-after-paused-creation).
+
 ## Android schedule preview checkpoint
 
 The paused create review shows up to three local estimates, timezone

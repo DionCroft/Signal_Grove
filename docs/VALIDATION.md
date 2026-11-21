@@ -1,5 +1,51 @@
 # Current development validation — audit follow-up
 
+## Exact schedule readback after paused creation
+
+The paused-create verifier now checks the approved schedule against the
+canonical stored fields in both the acknowledgment and the follow-up GET.
+The preview and verifier share typed parsing. Cron expressions compare the
+returned expression, including Hermes' conversion of weekday phrases.
+Intervals compare exact integer minutes. One-time dates compare the
+reviewed instant when an offset is present and the profile wall time
+otherwise. Relative delays compare the host's intended time against
+`created_at`, allowing for the two clock reads in the Hermes writer
+within a window shorter than a minute. The final read also preserves
+the job's reported creation time.
+
+The original same-kind substitution is covered by a Room and HTTP case.
+Both replies report an 11 a.m. schedule where the review asked for
+9 a.m. The original receipt retains the acknowledged job ID and never
+confirms. Recovery and another request with the same reviewed name
+produce zero extra writes. Unknown payloads remain held for readback.
+
+The native adapter fixture generated ten actual paused schedules from
+each exact Hermes pin `caafe53` and `242315c`. The Kotlin matcher
+accepted all 20 exact records and refused 20 copies with changed
+expressions, interval minutes or one-time instants. The original stable
+fixture isolation refusal was retained before a clean isolated run
+produced its records. The amended app passed 1,225 JVM tests, zero
+debug/release lint errors with 55/54 warnings and both signed debug APK
+assemblies. Android 8 and Android 17 each passed the same five creation
+and storage cases, including normal preview and confirmation, lost
+reply recovery, schema drift, and the substituted schedule.
+[Schedule writer](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/cron/jobs.py#L1790).
+
+| Build item | SHA-256 |
+| --- | --- |
+| Source snapshot | `6c2418dab59f5ad4bb7a39805e05f8a11d6dc4be1241c763889689d3aee8d27b` |
+| Debug app | `a3b0fe1d4b04cdb4c4610ec433c5fe1dcffc5432306411bf6b7b3aaba698cda1` |
+| Debug instrumentation | `41103a8c153c28b3e48a3f18910860d4097c72655a077a83ddb375167030b4d2` |
+
+Both pins also passed the six isolated dashboard trigger cases. The
+stock trigger can force-resume a paused job and returns a job snapshot.
+The dashboard edit and trigger paths share a profile resolver whose
+profile argument is a hint. A strict owner-scoped edit and a
+pause-preserving run-once call with a verifiable original execution
+receipt remain necessary for the Android controls.
+[Trigger source](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/hermes_cli/web_routers/cron.py#L730)
+· [Paused claim behavior](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/cron/jobs.py#L2693).
+
 ## Calendar and missed-run preview in the schedule review
 
 The paused Hermes creation review now calculates up to three estimated

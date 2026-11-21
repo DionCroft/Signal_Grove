@@ -58,8 +58,50 @@ class CronCreationTest {
         assertTrue(request.acknowledge(row,"worker").contains("job-fixture"));assertTrue(request.matches(row));assertTrue(request.sameConfiguration(row,row))
         val active=obj(row.toString().replace("\"enabled\":false","\"enabled\":true"));assertTrue(runCatching {request.acknowledge(active,"worker")}.isFailure);assertFalse(request.sameConfiguration(row,active))
         val other=obj(row.toString().replace("\"job-fixture\"","\"other-job\""));assertFalse(request.sameConfiguration(row,other))
-        val once=obj(accepted(JsonPrimitive(1)).toString().replace("\"kind\":\"cron\"","\"kind\":\"once\""));assertTrue(CronCreation("Fixture","tomorrow","Fixture prompt",repeat=null).matches(once))
+        val once = withSchedule(accepted(), """{"kind":"once","run_at":"2026-11-23T09:00:00+01:00"}""")
+        assertTrue(CronCreation("Fixture","2026-11-23T08:00:00Z","Fixture prompt",repeat=null).matches(once))
+        assertFalse(CronCreation("Fixture","tomorrow","Fixture prompt",repeat=null).matches(once))
     }
+    private fun withSchedule(reply: JsonObject, schedule: String): JsonObject =
+        JsonObject(reply + ("schedule" to obj(schedule)))
+
+    @Test fun canonicalFieldsBindReviewedSchedulesWithoutRequiringADeviceForecast() {
+        val row = accepted()
+        fun request(text: String) = CronCreation("Fixture", text, "Fixture prompt")
+        assertFalse(request("0 9 * * *").matches(withSchedule(row, """{"kind":"cron","expr":"0 11 * * *"}""")))
+        assertFalse(request("0 9 * * *").matches(withSchedule(row, """{"kind":"cron","display":"0 9 * * *"}""")))
+        assertTrue(request("weekdays at 9am").matches(withSchedule(row, """{"kind":"cron","expr":"0 9 * * 1-5"}""")))
+        assertFalse(request("weekdays at 9am").matches(withSchedule(row, """{"kind":"cron","expr":"0 9 * * *"}""")))
+        assertTrue(request("0   9 * JAN MON").matches(withSchedule(row, """{"kind":"cron","expr":"0 9 * jan mon"}""")))
+        assertTrue(request("R 9 * * *").matches(withSchedule(row, """{"kind":"cron","expr":"R 9 * * *"}""")))
+        assertTrue(request("every 2h").matches(withSchedule(row, """{"kind":"interval","minutes":120}""")))
+        assertFalse(request("every 2h").matches(withSchedule(row, """{"kind":"interval","minutes":60}""")))
+        assertFalse(request("every 2h").matches(withSchedule(row, """{"kind":"interval","minutes":"120"}""")))
+        assertFalse(request("every 2h").matches(withSchedule(row, """{"kind":"once","run_at":"2026-11-23T11:00:00Z"}""")))
+    }
+
+    @Test fun fixedOneShotChecksTheReviewedInstantOrProfileWallTime() {
+        val row = withSchedule(accepted(), """{"kind":"once","run_at":"2026-11-23T09:30:00.123456+01:00"}""")
+        assertTrue(CronCreation("Fixture","2026-11-23T08:30:00.123456789Z","Fixture prompt").matches(row))
+        assertTrue(CronCreation("Fixture","2026-11-23 09:30:00.123456","Fixture prompt").matches(row))
+        assertFalse(CronCreation("Fixture","2026-11-23T09:30:00.123456Z","Fixture prompt").matches(row))
+        assertFalse(CronCreation("Fixture","2026-11-23T08:30:00.123456","Fixture prompt").matches(row))
+        val dateOnly = withSchedule(accepted(), """{"kind":"once","run_at":"2026-11-23T00:00:00-05:00"}""")
+        assertTrue(CronCreation("Fixture","2026-11-23","Fixture prompt").matches(dateOnly))
+    }
+
+    @Test fun relativeOneShotUsesHostCreationTimeAndRejectsChangedDelays() {
+        val request = CronCreation("Fixture","in 2 hours","Fixture prompt")
+        val created = JsonObject(accepted() + ("created_at" to JsonPrimitive("2026-03-29T00:30:00.600000Z")))
+        val correct = withSchedule(created, """{"kind":"once","run_at":"2026-03-29T03:30:00.500000+01:00"}""")
+        assertTrue(request.matches(correct))
+        assertFalse(request.matches(JsonObject(correct - "created_at")))
+        assertFalse(request.matches(withSchedule(created, """{"kind":"once","run_at":"2026-03-29T02:31:00.500000Z"}""")))
+        assertFalse(request.matches(withSchedule(created, """{"kind":"once","run_at":"2026-03-29T02:29:00.500000Z"}""")))
+        assertFalse(request.matches(withSchedule(created, """{"kind":"once","run_at":"2026-03-29T02:30:00.600001Z"}""")))
+        assertFalse(request.sameConfiguration(correct, JsonObject(correct + ("created_at" to JsonPrimitive("2026-03-29T00:30:00.7Z")))))
+    }
+
     @Test fun unsafeOrUnsupportedDraftsAreRejectedLocallyWithoutInventingNoAgentEffects() {
         val invalid=listOf<()->CronCreation>(
             {CronCreation("","0 9 * * *","prompt")},

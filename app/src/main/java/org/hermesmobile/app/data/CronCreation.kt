@@ -101,14 +101,17 @@ class CronCreation(val name:String,val schedule:String,val prompt:String="",val 
         if(body.containsKey("base_url")) require(value.text("base_url")==baseUrl.trimEnd('/'))
         for(key in listOf("skills","context_from","enabled_toolsets","grace_minutes","catch_up")) if(body.containsKey(key)) require(value[key]==body[key])
         require(value["no_agent"]?.jsonPrimitive?.booleanOrNull==noAgent)
-        val schedule=value["schedule"]!!.jsonObject;require(schedule.text("kind") in setOf("cron","interval","once"))
+        val storedSchedule = value["schedule"] as? JsonObject ?: error("Missing stored schedule.")
+        val reviewedSchedule = parseHermesCronSchedule(schedule) ?: error("Unrecognized schedule.")
+        val createdAt = (value["created_at"] as? JsonPrimitive)?.takeIf { it.isString }?.content
+        require(reviewedSchedule.matchesStoredSchedule(storedSchedule, createdAt))
         val times=value["repeat"]!!.jsonObject["times"]
-        val expected=if(repeat==null && schedule.text("kind")=="once") 1 else repeat
+        val expected=if(repeat==null && storedSchedule.text("kind")=="once") 1 else repeat
         require(if(expected==null) times is JsonNull else (times as? JsonPrimitive)?.intOrNull==expected)
         true
     }.getOrDefault(false)
     fun sameConfiguration(first:JsonObject,second:JsonObject):Boolean {
-        val keys=body().keys-setOf("paused","schedule","repeat")+setOf("id","profile","enabled","state","schedule","no_agent")
+        val keys=body().keys-setOf("paused","schedule","repeat")+setOf("id","profile","enabled","state","schedule","no_agent","created_at")
         return keys.all {first[it]==second[it]} && first["repeat"]?.jsonObject?.get("times")==second["repeat"]?.jsonObject?.get("times") && (second["repeat"]?.jsonObject?.get("completed") as? JsonPrimitive)?.intOrNull==0 && second["next_run_at"] is JsonNull
     }
     fun reviewBaseUrl()=baseUrl.toHttpUrlOrNull()?.newBuilder()?.query(null)?.build()?.toString().orEmpty()
