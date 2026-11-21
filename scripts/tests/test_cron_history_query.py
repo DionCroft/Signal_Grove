@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from server_extensions.coordinator_workspaces.cron_history import execution_query, read_executions
 from server_extensions.coordinator_workspaces.coordinator import ReadRefused
@@ -37,10 +38,9 @@ class CronHistoryQueryTest(unittest.TestCase):
                 execution_query(value)
             self.assertEqual('INVALID', raised.exception.code)
 
-    @unittest.skipIf(sys.platform == 'linux', 'Non-Linux refusal applies to the other platforms')
     def test_unsupported_host_refuses_before_inspecting_profile_paths(self):
         query = execution_query({'expected_profile': 'default', 'job_id': 'a1b2c3d4e5f6'})
-        with self.assertRaises(ReadRefused) as raised:
+        with patch.object(sys, 'platform', 'win32'), self.assertRaises(ReadRefused) as raised:
             read_executions(None, query)
         self.assertEqual('UNSUPPORTED', raised.exception.code)
 
@@ -55,13 +55,13 @@ class CronHistoryQueryTest(unittest.TestCase):
                 output_query(invalid)
             self.assertEqual("INVALID", raised.exception.code)
 
-    @unittest.skipIf(sys.platform == "linux", "Only non-Linux hosts fail the platform gate")
     def test_output_never_reads_or_writes_paths_on_an_unsupported_host(self):
         query = output_query(dict(expected_profile="field", job_id="calendar-job", execution_id="a" * 32))
-        with self.assertRaises(ReadRefused) as raised:
-            read_output(None, query)
-        self.assertEqual("UNSUPPORTED", raised.exception.code)
-        self.assertFalse(bind_output("calendar-job", "a" * 32, None, "fixture"))
+        with patch.object(sys, "platform", "win32"):
+            with self.assertRaises(ReadRefused) as raised:
+                read_output(None, query)
+            self.assertEqual("UNSUPPORTED", raised.exception.code)
+            self.assertFalse(bind_output("calendar-job", "a" * 32, None, "fixture"))
 
     def test_scheduler_patch_runs_inside_output_fence_and_preserves_the_unmodified_writer(self):
         source = """def finish(job, fence, verbose, output):
