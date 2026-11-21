@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Exact saved output on Android
+
+A selected scheduler attempt offers a bounded, profile- and
+execution-verified archive preview. Both debug builds, 1,232
+JVM cases, ten focused cases on Android 8 and 17 and two compact
+Android 17 cases passed. The earlier schedule-preview matrix
+completed. The scheduler-history matrix stopped on a policy test
+skip, now replaced with explicit portable boundary coverage.
+Live Linux writer-to-app, strict schedule editing, run-once
+and service logs remain open.
+[Validation](docs/VALIDATION.md#exact-saved-output-on-android).
+
 ## Exact scheduler archive association checkpoint
 
 The optional native hook binds a retained stock archive to the

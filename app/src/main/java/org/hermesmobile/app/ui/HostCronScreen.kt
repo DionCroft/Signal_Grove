@@ -8,6 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import org.hermesmobile.app.data.CronExecutionAttempt
 import org.hermesmobile.app.data.CronExecutionHistory
 import org.hermesmobile.app.data.ManagedCronJob
 import org.hermesmobile.app.data.ManagedCronRuns
@@ -22,6 +25,8 @@ private fun hostCronField(key:String)=when(key) {
 }
 
 @Composable fun HostCronDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.closeHostCronOutput() }
+    DisposableEffect(vm) { onDispose(vm::closeHostCronOutput) }
     var creating by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     val receiptRows by vm.receipts.collectAsState();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.resourceScope==vm.resourceScope(s) && it.state in setOf("sending","unknown")}
@@ -49,16 +54,19 @@ private fun hostCronField(key:String)=when(key) {
         val ledger = s.cron.executionHistory?.takeIf {
             it.owner.apiScope == s.apiScope && it.owner.profile == s.profile && it.homeId == home && it.jobId == job.id
         }
+        val output = s.cron.output?.takeIf { it.history === ledger }
         HostCronDetail(job, s.cron.runs?.takeIf { it.profile == s.profile && it.jobId == job.id },
-            ledger, home != null, s.busy, s.error, { vm.loadHostCronRuns(job) },
-            { vm.loadHostCronExecutionHistory(job) }, vm::closeHostCronDetail)
+            ledger, home != null, s.busy, s.error.takeIf { output == null }, { vm.loadHostCronRuns(job) },
+            { vm.loadHostCronExecutionHistory(job) }, vm::loadHostCronOutput, vm::closeHostCronDetail)
+        if (output != null) HostCronOutputDialog(output, s.busy, s.error, vm::closeHostCronOutput)
     }
 }
 
 @Composable private fun HostCronDetail(
     job: ManagedCronJob, history: ManagedCronRuns?, ledger: CronExecutionHistory?,
     canReadLedger: Boolean, busy: Boolean, error: Words?,
-    loadRuns: () -> Unit, loadLedger: () -> Unit, close: () -> Unit
+    loadRuns: () -> Unit, loadLedger: () -> Unit,
+    loadOutput: (CronExecutionHistory, CronExecutionAttempt) -> Unit, close: () -> Unit
 ) {
     AlertDialog(onDismissRequest=close,title={Text(job.name)},text={
         LazyColumn(Modifier.heightIn(max=500.dp).testTag("host-cron-detail"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -76,7 +84,7 @@ private fun hostCronField(key:String)=when(key) {
                 if (!canReadLedger) Text(label(Words.HostCronLedgerProfile))
             }
             hostCronRuns(history,busy,error,loadRuns)
-            hostCronExecutionHistory(ledger)
+            hostCronExecutionHistory(ledger, busy, loadOutput)
             items(job.fields().entries.toList(),key={it.key}) {field ->Column {Text(label(hostCronField(field.key)),style=MaterialTheme.typography.titleSmall);Text(if(field.key=="enabled_toolsets" && job.noToolsAllowed) label(Words.HostCronNoTools) else if(field.key=="repeat" && field.value=="__unlimited__") label(Words.HostCronUnlimited) else field.value.ifBlank {label(Words.Unknown)})}}
         }
     },confirmButton={TextButton(close,Modifier.testTag("host-cron-detail-close")) {Text(label(Words.Close))}})

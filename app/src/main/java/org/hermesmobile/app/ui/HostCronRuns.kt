@@ -1,6 +1,7 @@
 package org.hermesmobile.app.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -9,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import org.hermesmobile.app.data.CronArchiveState
+import org.hermesmobile.app.data.CronExecutionAttempt
 import org.hermesmobile.app.data.CronExecutionHistory
 import org.hermesmobile.app.data.CronExecutionStatus
 import org.hermesmobile.app.data.ManagedCronRuns
@@ -27,7 +30,10 @@ private fun CronExecutionStatus.word(): Words = when (this) {
     CronExecutionStatus.Missed -> Words.HostCronAttemptMissed
 }
 
-internal fun LazyListScope.hostCronExecutionHistory(history: CronExecutionHistory?) {
+internal fun LazyListScope.hostCronExecutionHistory(
+    history: CronExecutionHistory?, busy: Boolean,
+    loadOutput: (CronExecutionHistory, CronExecutionAttempt) -> Unit
+) {
     if (history == null) return
     item {
         when {
@@ -47,6 +53,10 @@ internal fun LazyListScope.hostCronExecutionHistory(history: CronExecutionHistor
                 attempt.finishedAt?.let { Text(label(Words.HostCronAttemptFinishedAt) + "\n" + it) }
                 attempt.deliveryOutcome?.let { Text(label(Words.HostCronDelivery) + "\n" + it) }
                 if (attempt.reportedError) Text(label(Words.HostCronRunError))
+                TextButton({ loadOutput(history, attempt) }, enabled = !busy,
+                    modifier = Modifier.fillMaxWidth().testTag("host-cron-attempt-output-$index")) {
+                    Text(label(Words.HostCronOpenOutput), Modifier.fillMaxWidth())
+                }
                 TextButton({ reveal = !reveal }, Modifier.fillMaxWidth().testTag("host-cron-attempt-id-$index")) {
                     Text(label(if (reveal) Words.HostCronHideReceipt else Words.HostCronShowReceipt), Modifier.fillMaxWidth())
                 }
@@ -54,6 +64,45 @@ internal fun LazyListScope.hostCronExecutionHistory(history: CronExecutionHistor
             }
         }
     }
+}
+
+@Composable
+internal fun HostCronOutputDialog(output: HostCronOutputState, busy: Boolean, error: Words?, close: () -> Unit) {
+    val preview = output.preview
+    AlertDialog(
+        onDismissRequest = close,
+        title = { Text(label(Words.HostCronSavedOutput)) },
+        text = {
+            LazyColumn(Modifier.heightIn(max = 420.dp).testTag("host-cron-output"),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    Text(label((preview?.status ?: output.attempt.status).word()))
+                    Text(label(Words.HostCronAttemptClaimedAt) + "\n" + output.attempt.claimedAt)
+                }
+                if (busy) item { QuietProgress() }
+                if (error != null) item {
+                    val message = if (error == Words.HostCronLedgerUnavailable) Words.HostCronOutputUnavailable else error
+                    Text(label(message), color = MaterialTheme.colorScheme.error)
+                }
+                if (preview != null) {
+                    when (preview.archive) {
+                        CronArchiveState.Available -> {
+                            if (preview.limited) item { Text(label(Words.HostCronOutputLimited)) }
+                            item {
+                                SelectionContainer {
+                                    Text(checkNotNull(preview.text), Modifier.testTag("host-cron-output-text"))
+                                }
+                            }
+                        }
+                        CronArchiveState.Missing -> item { Text(label(Words.HostCronOutputMissing)) }
+                        CronArchiveState.Unlinked -> item { Text(label(Words.HostCronOutputUnlinked)) }
+                        CronArchiveState.Changed -> item { Text(label(Words.HostCronOutputChanged)) }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(close, Modifier.testTag("host-cron-output-close")) { Text(label(Words.Close)) } }
+    )
 }
 
 /** Private display-only history; no run row becomes a writable chat or worker handle. */

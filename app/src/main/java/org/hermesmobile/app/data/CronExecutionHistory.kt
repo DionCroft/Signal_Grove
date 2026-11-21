@@ -50,11 +50,21 @@ class CronExecutionHistory private constructor(
         internal fun supportsProfile(profile: String) =
             profilePattern.matches(profile) && GatewayCronInventory.supportedProfile(profile)
 
-        internal fun request(owner: ManagementTarget, jobId: String) = buildJsonObject {
-            require(supportsProfile(owner.profile) && jobId != "unknown" && jobPattern.matches(jobId))
-            put("expected_profile", owner.profile)
-            put("job_id", jobId)
+        private fun selector(owner: ManagementTarget, jobId: String, fields: JsonObjectBuilder.() -> Unit) =
+            buildJsonObject {
+                require(supportsProfile(owner.profile) && jobId != "unknown" && jobPattern.matches(jobId))
+                put("expected_profile", owner.profile)
+                put("job_id", jobId)
+                fields()
+            }
+
+        internal fun request(owner: ManagementTarget, jobId: String) = selector(owner, jobId) {
             put("limit", Limit)
+        }
+
+        internal fun receiptRequest(owner: ManagementTarget, jobId: String, executionId: String) = selector(owner, jobId) {
+            require(receiptPattern.matches(executionId))
+            put("execution_id", executionId)
         }
 
         internal fun parse(
@@ -63,16 +73,8 @@ class CronExecutionHistory private constructor(
             homeId: String,
             jobId: String
         ): CronExecutionHistory = try {
-            require(reply["schema"] == JsonPrimitive(1))
-            if (reply["state"] == JsonPrimitive("error")) {
-                require(reply.keys == setOf("schema", "state", "code", "request_submitted"))
-                require(reply["request_submitted"] == JsonPrimitive(false) && reply.string("code") in refusals)
-                throw CronExecutionHistoryUnavailable()
-            }
-            require(reply.keys == setOf("schema", "state", "payload") && reply["state"] == JsonPrimitive("ok"))
-            val payload = reply["payload"] as? JsonObject ?: error("Invalid ledger payload.")
+            val payload = scopedPayload(reply, owner, jobId)
             require(payload.keys == payloadFields)
-            require(payload["profile"] == JsonPrimitive(owner.profile) && payload["job_id"] == JsonPrimitive(jobId))
             val ledger = payload.string("ledger")
             require(ledger == "available" || ledger == "absent")
             val rows = payload["attempts"] as? JsonArray ?: error("Invalid attempts.")
@@ -98,6 +100,19 @@ class CronExecutionHistory private constructor(
             throw error
         } catch (_: Exception) {
             throw InvalidCronExecutionHistory()
+        }
+
+        internal fun scopedPayload(reply: JsonObject, owner: ManagementTarget, jobId: String): JsonObject {
+            require(reply["schema"] == JsonPrimitive(1))
+            if (reply["state"] == JsonPrimitive("error")) {
+                require(reply.keys == setOf("schema", "state", "code", "request_submitted"))
+                require(reply["request_submitted"] == JsonPrimitive(false) && reply.string("code") in refusals)
+                throw CronExecutionHistoryUnavailable()
+            }
+            require(reply.keys == setOf("schema", "state", "payload") && reply["state"] == JsonPrimitive("ok"))
+            val payload = reply["payload"] as? JsonObject ?: error("Invalid ledger payload.")
+            require(payload["profile"] == JsonPrimitive(owner.profile) && payload["job_id"] == JsonPrimitive(jobId))
+            return payload
         }
 
         private fun JsonObject.string(key: String): String =

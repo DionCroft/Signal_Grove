@@ -108,8 +108,13 @@ the displayed outcome remains unknown.
 **Recent run records** remains available for the dashboard's reported
 conversation and output history. Each view is a distinct read. Scheduler
 attempts require the optional owner method and can report an unavailable
-ledger or no attempts. Result and log text need a verified association with
-an exact execution before they can be opened from an attempt.
+ledger or no attempts.
+
+Where Hermes has linked an archive to its exact execution, **View saved
+output** shows the verified text preview. The app reads a single receipt
+when you open the preview and clears its text when you close it or leave
+the foreground. An older, pruned or replaced file can be unavailable.
+The recorded execution outcome remains visible even if the archive is gone.
 [Native ledger contract](../server_extensions/coordinator_workspaces/README.md#optional-native-scheduled-execution-receipts).
 
 ## Create a paused advanced schedule

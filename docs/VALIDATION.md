@@ -1,5 +1,67 @@
 # Current development validation — audit follow-up
 
+## Exact saved output on Android
+
+An explicit **View saved output** reads one selected scheduler
+execution through the existing verified profile socket. The reply
+must match the profile, job and execution. The current ledger
+status is displayed with the archive state. Archive text is
+plain and transient, with a 16 KiB UTF-8 limit. Closing,
+backgrounding or changing scope discards it. History pages perform
+no archive reads. Unlinked, missing and changed archives get
+separate messages. The pinned v0.23.1 dispatcher also preserved
+the explicit null text field on an unavailable archive.
+
+The frozen Android inputs passed all 1,232 JVM tests, both lint
+variants with zero errors and 55 debug / 54 release warnings, and
+both debug APK assemblies. Both signatures were verified before
+device installation. The temporary E-only wrapper initially
+refused its copy destination under the checkout-only guard.
+A corrected repeat verified the copied outputs on E: and reused
+the same APK bytes.
+
+Ten focused cases passed each on Android 8 and 17. They covered the
+explicit read, wrong execution, closed pending reply, returning
+from the background, existing run history, profile negotiation
+and transport cancellation. Both output UI cases also passed at
+320dp width and 1.3 font scale on Android 17. The emulator's
+original display settings were restored. The device cases used
+authenticated fixtures. Live Hermes Linux writer-to-app acceptance
+and gateway service logs remain open.
+
+| Item | SHA-256 |
+| --- | --- |
+| Source snapshot | `3d6280d06757b7d4dea73333ad86a015f215c43583e7e0f5acd75fda9a633989` |
+| Debug app | `cf9c5a5f55e116c3c5c8100734a026a3ce32f98d65e609041585e1f3e2c307fe` |
+| Debug instrumentation | `4aebdf173d943c75a420aecb8950cc940ac80ef633ccce0e1693d7184fec6ef2` |
+
+### Hosted matrix reconciliation
+
+The exact schedule-preview revision `549a507` passed all four
+device shards, with 1,247 standard cases on Android 8 and 1,248
+on Android 17. The later scheduler-history matrix at `8c449e5`
+stopped before build because its native policy suite refuses skips.
+The retained result recorded one skipped non-Linux test for the
+scheduler reader. The scheduler boundary tests now explicitly
+exercise the unsupported platform branch on either host. The
+separate Linux storage tests still run against real Linux and
+the no-skips gate remains enforced.
+[Preview matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/44872538710) ·
+[Retained policy failure](https://github.com/DionCroft/Signal_Grove/actions/runs/44876319890).
+
+### Next schedule edit boundary
+
+Isolated v0.23.1 and `242315c` runs each used two disposable
+profile homes. The stock exact-ID update changed the cron
+expression and timezone while keeping the selected job paused
+with no next run. Its name alias returned missing and the
+secondary store's bytes were identical. A stale client write
+still replaced an intervening edit. The strict update must check
+the reviewed state inside the existing job lock. The first local
+fixture passed a cron root where Hermes expected a profile home
+and stopped before verification. Corrected repeats had zero
+external-effect audit denials.
+
 ## Exact scheduler archive association
 
 The optional scheduler hook records a receipt-to-archive association
