@@ -19,6 +19,7 @@ See [the release record](docs/releases/0.2.0.md). Session controls distinguish l
 | --- | --- | --- |
 | 1.1.0-beta.8 | Signal Grove pixel interface/updater, serving-model awareness, preset reasoning/service choices, existing chats and stored projects | Published preview; [release evidence](docs/releases/1.1.0-beta.8.md) |
 | 1.1.0-beta.9 | Optional phone LLM chat/history, compatible model management, grounded setup helper, newer canonical/project navigation and startup packaging | Published experimental preview/code114 at owner request; original-key downloads verify; full compatibility/final production-phone acceptance remain open; [release record](docs/releases/1.1.0-beta.9.md) |
+| 1.1.0-beta.10 | Offline chat, model and helper improvements, compact-screen fixes and signed upgrade validation | Published preview. [Release evidence](docs/releases/1.1.0-beta.10.md) |
 | Offline-LLM expansion | Ten planned packages for richer chat/history/context, performance, models/transfers, selected documents, writing, personal context and offline voice/help | Added 16 November; queued under the resumed goal; [priorities and acceptance](docs/ON_DEVICE_AI_BACKLOG.md) |
 | Continuing audit / later stable release | Real interoperability, worker/workspace ownership and files, automation/rooms/management, background/audio/accessibility and community hardening | Resumed at owner request on 18 November; all acceptance requirements remain in the [audit ledger](docs/AUDIT_EXECUTION_PLAN.md) and [current inventory](docs/audits/2026-11-15/PAUSED_REVIEW.md) |
 

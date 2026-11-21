@@ -1,5 +1,26 @@
 # Current development validation — audit follow-up
 
+## Published beta.10 release verification
+
+Source d651a33c460515bb6652db69fb4ce1c88db1a11d is the exact tagged build. The standard Android matrix
+covered 1,241 methods on Android 8 and 1,242 on Android 17. The four
+partition archives matched GitHub's digests. The APK pairs, named case
+inventories and raw positive terminal results matched the hosted summary.
+The hosted policy suite passed 1,179 cases.
+
+GitHub published beta.10 on 21 November 2026. A separate anonymous download
+verified each asset's exact size and SHA-256. The normal stable update
+channel still resolves to 1.0.0.
+[Hosted validation](https://github.com/DionCroft/Signal_Grove/actions/runs/44836131279) · [Published release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.10).
+
+| Published asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| SHA256SUMS | 413 | d92ff97935ac4cc1a0b123a398e44b252b6a71cc4ef09444bafabd476f8f6c4c |
+| hermes-agent-mobile-1.1.0-beta.10.apk | 76,066,678 | 0411a0b09d5d810fc6e8227607d9068e862834135a1945c31d4dbbb40eb2486c |
+| signal-grove-1.1.0-beta.10-provenance.json | 4,067 | ca4cee60c57b414ca68b2139e48e9fbf119eaf998bd3e098b38615099a7e0c13 |
+| signal-grove-1.1.0-beta.10-runtime.cdx.json | 79,918 | 03545cd7a76ce0209abd824bf7373040767962f28122586c4e9d5ef5c3d086da |
+| signing-certificate.pem | 1,874 | 1edcbbd9dafe0dd454efd6c5222dc21c3c6664d0e9b8434b8290f394addb6f54 |
+
 ## Beta.10 offline routing and signed upgrade checkpoint
 
 The prior hosted workflow finished with 582 of 584 on Android 8 shard 0.
@@ -39,8 +60,8 @@ beta.9 APK through the upgrade chain.
 The signed APK is 76,066,678 bytes. Its SHA-256 is
 `0411a0b09d5d810fc6e8227607d9068e862834135a1945c31d4dbbb40eb2486c`. APK and native alignment,
 original signer identity, and the 187-component software inventory are
-verified. GitHub passed the build and the 1,179 policy cases. The exact
-hosted device matrix and anonymous asset checks are still pending.
+verified. GitHub passed the build and the 1,179 policy cases. The device matrix and anonymous asset checks were still pending
+at this 20 November checkpoint. The published results are above.
 [Exact hosted workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/44836131279).
 
 ## Beta.10 compact footer and exact signed acceptance

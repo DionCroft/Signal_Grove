@@ -1,5 +1,16 @@
 # Compatibility and protocol scope
 
+## Signal Grove beta.10 preview
+
+The signed APK starts on Android 8 and 17. On-device inference requires
+a supported 64-bit process and sufficient storage and RAM. A physical
+Android 17 phone generated with a verified LFM3 GGUF offline.
+The live Hermes check used the owner's saved API and dashboard sessions
+to load existing conversation and project metadata. The independently
+verified device suite covered 1,241 Android 8 and 1,242 Android 17 methods.
+Wider Hermes version and worker/automation acceptance remain in the
+audit. [Release and checks](releases/1.1.0-beta.10.md).
+
 ## 13 November 2026 - heartbeat candidate verified; second API26 failure retained
 
 An exact-pin experimental two-file SDK patch closes heartbeat admission and

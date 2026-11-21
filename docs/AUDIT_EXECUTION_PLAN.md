@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Published beta.10 checkpoint
+
+The compact keyboard fixes, signed phone upgrade and Android 8
+upgrade path from public beta.9 passed for the published preview. The exact hosted
+matrix and anonymous asset verification also passed. The audit retains
+upstream interoperability and shutdown review, real workspace and
+worker acceptance, automation, integrations and device lifecycle work.
+[Release verification](VALIDATION.md#published-beta10-release-verification).
+
 ## Beta.10 compact layout and production upgrade - 20 November 2026
 
 Exact source `beef582` passed the compact keyboard checks on both APIs.

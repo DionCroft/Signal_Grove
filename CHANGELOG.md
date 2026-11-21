@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0-beta.10 - offline AI and reliability preview
+## 1.1.0-beta.10 - 21 November 2026 - offline AI and reliability preview
 
 - Edit, regenerate and branch local chats. Search, pin, archive and export
   phone history, and review encrypted backups before restoring.

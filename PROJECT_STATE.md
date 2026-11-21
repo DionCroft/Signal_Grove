@@ -1,6 +1,6 @@
 # Signal Grove project state
 
-20 November 2026. The full goal is **active**. Fix UI blockers first, then OF-01
+21 November 2026. The full goal is **active**. Fix UI blockers first, then OF-01
 through OF-10; commit/push tested chunks. The [goal](docs/GOAL.md),
 [full audit](docs/AUDIT_EXECUTION_PLAN.md) and [ordered backlog](docs/ON_DEVICE_AI_BACKLOG.md)
 retain every original requirement.
@@ -12,9 +12,9 @@ Exact candidate d651a33 passed 1,203 JVM tests, both lint variants and
 The original-key APK upgraded in place on the owner's phone. Its existing
 Hermes conversations and project metadata loaded, and a real offline
 LFM3 reply persisted. An Android 8 upgrade path from the published
-beta.9 APK retained a local task. The full hosted suite
-for this source precedes the main push and GitHub release. Quick
-Capture follows release.
+beta.9 APK retained a local task. The hosted suite passed 1,241 Android 8
+and 1,242 Android 17 tests. Beta.10 is published and the Hermes audit
+stays active. Quick Capture is queued separately.
 
 [Signed upgrade and test evidence](docs/VALIDATION.md#beta10-offline-routing-and-signed-upgrade-checkpoint) ·
 [Hosted Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/44836131279).

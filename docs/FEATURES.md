@@ -1,5 +1,21 @@
 # Current feature and validation matrix
 
+## Published beta.10 offline AI and compact UI
+
+The preview adds local chat branches, history search and protected
+backups, earlier-turn selection, reviewed summaries, model-specific
+performance controls, local document questions, writing tools and
+personal profiles. It also improves the compact Voice and Temporary
+chat keyboard layout. The exact signed APK supports Android 8 and
+newer. Offline inference needs a compatible 64-bit phone and a model
+file you choose.
+
+The release passed 1,203 JVM and 1,179 hosted policy cases, with
+1,241 Android 8 and 1,242 Android 17 standard device methods.
+The physical upgrade verified saved Hermes history and stored projects
+along with a generated offline LFM3 answer.
+[Release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.10) · [Exact scope](VALIDATION.md#published-beta10-release-verification).
+
 ## Resumed UI checkpoint - 18 November 2026
 
 The full goal is active at the owner's request. UI navigation now observes the
