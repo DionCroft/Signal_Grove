@@ -14,6 +14,7 @@ object ManagementReceiptVisibility {
     const val SharedProjectPending="SharedProjectPending"
     internal const val SharedCronTimingPending="SharedCronTimingPending"
     internal const val SharedCronRunOncePending="SharedCronRunOncePending"
+    internal const val SharedCronProjectPending="SharedCronProjectPending"
     fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe") || HostKanbanBoardAction.receipt(action) || HostKanbanTaskAction.receipt(action) || HostKanbanStatusChange.receipt(action)
     fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String="",projectHome:String="",actor:String=""):List<ManagementOperation> {
         if(resourceScope.isBlank()) return emptyList()
@@ -23,12 +24,16 @@ object ManagementReceiptVisibility {
             val instance=dashboardUrl.isNotBlank() && row.url==dashboardUrl && pending && (instanceAction(row.action) || row.action==SharedInstancePending)
             val sameStore=dashboardUrl.isNotBlank() && row.url==dashboardUrl && pending && projectHome.isNotBlank() && row.projectHome==projectHome
             if(!sameResource && !instance && !sameStore) null
-            else if(row.action in setOf(CronTimingProtocol.Action, SharedCronTimingPending, CronRunOnceProtocol.Action, SharedCronRunOncePending)) {
+            else if(row.action in setOf(CronTimingProtocol.Action, SharedCronTimingPending, CronRunOnceProtocol.Action,
+                    SharedCronRunOncePending, CronProjectProtocol.Action, SharedCronProjectPending)) {
                 if(sameResource && row.apiScope==apiScope && actor.isNotBlank() && row.actor==actor &&
                     projectHome.isNotBlank() && row.projectHome==projectHome) row
                 else if(pending) row.copy(apiScope="",actor="",
-                    action=if(row.action in setOf(CronRunOnceProtocol.Action, SharedCronRunOncePending))
-                        SharedCronRunOncePending else SharedCronTimingPending,
+                    action=when (row.action) {
+                        CronRunOnceProtocol.Action, SharedCronRunOncePending -> SharedCronRunOncePending
+                        CronProjectProtocol.Action, SharedCronProjectPending -> SharedCronProjectPending
+                        else -> SharedCronTimingPending
+                    },
                     target="",requestSummary="",resultSummary="",createdAt=0)
                 else null
             }

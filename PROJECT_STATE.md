@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Android scheduled project approval inbox
+
+Hermes management opens a dedicated Project approvals inbox under Scheduled
+jobs. The app reviews one held occurrence and its verified project, workspace,
+branch, worker, task and access. Approve or Deny saves the original occurrence
+before sending the decision. Defer leaves it held. Reconnecting reads the same
+receipt, and an unknown result stays pending. The frozen candidate passed 1,241
+JVM tests, both lint variants and 20 focused tests each on Android 8 and 17.
+Both new approval cases also passed on a compact Android 17 layout with larger
+text. Live Pi and registered worker acceptance remain open.
+[Android validation](docs/VALIDATION.md#android-scheduled-project-approval-inbox).
+
 ## Decisions for exact scheduled project occurrences
 
 The native owner methods now prepare, approve, defer, deny and observe
@@ -15,8 +27,9 @@ bind approval to the reviewed definition. Each occurrence has one
 durable decision and native execution ID. A competing review and a lost
 reply converged on one fixture dispatch. Fresh-process recovery recorded
 an interrupted reservation as unknown and preserved it through ledger
-pruning. Both source pins passed nine isolated checks. The phone inbox,
-actual worker adapter and managed Pi acceptance remain open.
+pruning. Both source pins passed nine isolated checks. The Android
+checkpoint above covers the inbox against a fixture. Actual worker dispatch
+and managed Pi acceptance remain open.
 [Validation](docs/VALIDATION.md#decisions-for-exact-scheduled-project-occurrences).
 
 ## Held scheduled project writes

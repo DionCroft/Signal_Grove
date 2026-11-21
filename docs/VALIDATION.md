@@ -1,5 +1,52 @@
 # Current development validation — audit follow-up
 
+## Android scheduled project approval inbox
+
+In **Hermes management → Scheduled jobs → Project approvals**, an
+authenticated owner can review the exact held occurrence, original due time,
+project and workspace, branch, worker, task and write access. The app uses the
+same owner transport through prepare and decision. Leaving the screen, changing
+profile or reaching the review deadline closes that transport.
+
+Before Approve or Deny, Room saves the original occurrence and its due time
+with the authenticated identity and verified home. The receipt excludes the
+task and workspace text. Defer closes the review while leaving the original
+occurrence held. After a lost decision response, a new authenticated transport
+can observe the exact occurrence. An unknown or missing retained result stays
+unresolved. A verified compact terminal decision can settle the receipt after
+the native execution detail is pruned. Generic receipt clearing cannot settle
+these pending decisions.
+
+Two rendered Android fixture cases exercised Approve with a lost reply and
+unknown-to-completed recovery, and Defer followed by a fresh Deny review.
+The fixtures checked that the receipt existed before either durable decision
+arrived, that no duplicate approval was sent, and that the two settlement
+paths used the original occurrence. Protocol tests cover exact receipt and
+execution identity and reject a mismatched profile, time or occurrence.
+
+The frozen source snapshot
+`fb51d03580790113012d8b6f4fee33ebca067258ebe761f9689978a745aefa12`
+passed 1,241 JVM tests, debug and release lint, both debug APK assemblies and
+15 device coverage policy tests. The signature-verified debug APK hashes were
+`3486e3259c761f6dc316ddcf848638ea3c6fce84ea893e828a61676abca4fde8` (app)
+and `4fdcfcf0e60ae91b1650680ccb6b5cba2dbdc7d1f3a0221d6fdea7eec1daa085` (tests).
+
+The targeted suite passed all 20 cases on API 26. The first API 37 run passed
+both new cases and failed an existing phone-draft cancellation test at the
+native tap. Its retained diagnostic showed a 406 ms interval from touch down
+to touch up against the configured 400 ms long-press threshold. The same
+signed APK pair passed all 20 cases on the isolated API 37 rerun after Gradle
+and the other emulator were idle. Both new cases also passed on API 37 at
+840×1470 with 1.3× font scale, and the wrapper restored the original settings.
+
+The [hosted Android baseline](https://github.com/DionCroft/Signal_Grove/actions/runs/44882818879)
+separately passed 1,255 API 26 and 1,256 API 37 executions on source
+`75a6fef8f10072256a0ce7e3a2da9f52f22873a9`. The raw API 26 results include
+passing Demo clarification, phone-draft cancellation, the setup host choice
+and the bilingual keyboard review. The emulator results above exercise the
+new inbox against a gateway fixture. Live Pi policy and actual worker
+dispatch acceptance remain open.
+
 ## Decisions for exact scheduled project occurrences
 
 The protected owner route binds a review to one occurrence, live actor
@@ -47,8 +94,9 @@ platform or fixture skips. Hosted run [44892649476](https://github.com/DionCroft
 passed the protocol job, 37 protected Linux cases and 72 Windows worker
 cases on `7e11f80`. Linux verified the retained original decision after
 pruning and refused foreign or unsafe receipt reads.
-Actual project worker effects, Pi policy installation, Android inbox and
-explicit repair of a partially saved schedule remain open.
+The Android checkpoint above covers the inbox against a fixture. Actual
+project worker effects, Pi policy installation and explicit repair of a
+partially saved schedule remain open.
 
 ## Held scheduled project writes and owner inbox
 

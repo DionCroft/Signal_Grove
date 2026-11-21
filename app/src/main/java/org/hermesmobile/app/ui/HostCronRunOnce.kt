@@ -12,26 +12,42 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.hermesmobile.app.data.CronRunOnceDecision
 import org.hermesmobile.app.data.CronRunOnceReview
+import org.hermesmobile.app.data.CronRunOnceScope
+import org.hermesmobile.app.data.ManagementTarget
 
 @Composable
 internal fun HostCronRunOnceDialog(vm: ManagementViewModel, review: CronRunOnceReview, busy: Boolean, pending: Boolean) {
-    val scope = review.scope
-    LaunchedEffect(review) {
-        delay((review.expiresAt - SystemClock.elapsedRealtime()).coerceAtLeast(0))
-        vm.expireHostCronRunOnce(review)
+    SchedulerApprovalDialog(review.owner, review.job, review.scope, review.expiresAt,
+        Words.HostCronRunOnceReview, Words.HostCronRunOnceEffect, "host-cron-run-once",
+        busy, pending, denyBlocked = false, close = vm::closeSchedulerReview,
+        expire = { vm.expireHostCronRunOnce(review) }, decide = { vm.decideHostCronRunOnce(review, it) })
+}
+
+@Composable
+internal fun SchedulerApprovalDialog(
+    owner: ManagementTarget, job: String, scope: CronRunOnceScope, expiresAt: Long,
+    title: Words, explanation: Words, tag: String, busy: Boolean, pending: Boolean, denyBlocked: Boolean,
+    close: () -> Unit, expire: () -> Unit, decide: (CronRunOnceDecision) -> Unit,
+    detail: @Composable () -> Unit = {}
+) {
+    val onExpire by rememberUpdatedState(expire)
+    LaunchedEffect(expiresAt) {
+        delay((expiresAt - SystemClock.elapsedRealtime()).coerceAtLeast(0))
+        onExpire()
     }
     AlertDialog(
-        onDismissRequest = vm::closeHostCronRunOnce,
-        title = { Text(label(Words.HostCronRunOnceReview)) },
+        onDismissRequest = close,
+        title = { Text(label(title)) },
         text = {
-            LazyColumn(Modifier.heightIn(max = 440.dp).testTag("host-cron-run-once-review"),
+            LazyColumn(Modifier.heightIn(max = 440.dp).testTag("$tag-review"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item {
-                    Text(label(Words.HostCronRunOnceEffect))
-                    Text(review.owner.url)
-                    Text(review.owner.profile)
-                    Text(review.owner.actor)
-                    Text(review.job)
+                    Text(label(explanation))
+                    Text(owner.url)
+                    Text(owner.profile)
+                    Text(owner.actor)
+                    Text(job)
+                    detail()
                 }
                 scope.project?.let { project -> item { runOnceScopeField(Words.HostCronRunOnceProject, project) } }
                 item { runOnceScopeField(Words.HostCronRunOnceWorkspace, scope.workspace) }
@@ -41,24 +57,24 @@ internal fun HostCronRunOnceDialog(vm: ManagementViewModel, review: CronRunOnceR
                 item { runOnceScopeField(Words.HostCronRunOnceTask, scope.task) }
                 if (pending) item { Text(label(Words.ManagementOutcomePending)) }
                 item {
-                    TextButton({ vm.decideHostCronRunOnce(review, CronRunOnceDecision.Approve) },
+                    TextButton({ decide(CronRunOnceDecision.Approve) },
                         enabled = !busy && !pending,
-                        modifier = Modifier.heightIn(min = 48.dp).testTag("host-cron-run-once-approve")) {
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("$tag-approve")) {
                         Text(label(Words.HostCronRunOnceApprove))
                     }
-                    TextButton({ vm.decideHostCronRunOnce(review, CronRunOnceDecision.Defer) }, enabled = !busy,
-                        modifier = Modifier.heightIn(min = 48.dp).testTag("host-cron-run-once-defer")) {
+                    TextButton({ decide(CronRunOnceDecision.Defer) }, enabled = !busy,
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("$tag-defer")) {
                         Text(label(Words.HostCronRunOnceDefer))
                     }
-                    TextButton({ vm.decideHostCronRunOnce(review, CronRunOnceDecision.Deny) }, enabled = !busy,
-                        modifier = Modifier.heightIn(min = 48.dp).testTag("host-cron-run-once-deny")) {
+                    TextButton({ decide(CronRunOnceDecision.Deny) }, enabled = !busy && !denyBlocked,
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("$tag-deny")) {
                         Text(label(Words.HostCronRunOnceDeny))
                     }
                 }
             }
         },
         confirmButton = {
-            TextButton(vm::closeHostCronRunOnce, Modifier.heightIn(min = 48.dp)) { Text(label(Words.Close)) }
+            TextButton(close, Modifier.heightIn(min = 48.dp)) { Text(label(Words.Close)) }
         })
 }
 

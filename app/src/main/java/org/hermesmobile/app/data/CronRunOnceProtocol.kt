@@ -7,7 +7,7 @@ internal class CronRunOnceInvalid : Exception()
 internal class CronRunOnceRefused(val code: String, val submitted: Boolean = false) : Exception()
 
 internal enum class CronRunOnceDecision(val wire: String) {
-    Approve(""), Defer("defer"), Deny("deny")
+    Approve("approve"), Defer("defer"), Deny("deny")
 }
 
 internal class CronRunOnceScope(
@@ -69,15 +69,18 @@ internal object CronRunOnceProtocol {
         val body = payload(wire, owner, job, identityFields + setOf("review_digest", "expires_in_seconds", "scope"))
         val expires = body.getValue("expires_in_seconds").jsonPrimitive.also { require(!it.isString) }.int
         require(expires in 1..180)
-        val scope = body.getValue("scope").jsonObject
+        CronRunOnceReview(owner, home, job, body.text("request_id").also { require(id.matches(it)) },
+            body.text("review_digest").also { require(hash.matches(it)) }, started + expires * 1000L,
+            parseScope(body.getValue("scope").jsonObject))
+    }
+
+    internal fun parseScope(scope: JsonObject): CronRunOnceScope {
         require(scope.keys == scopeFields)
         val access = scope.text("access")
         require(access in setOf("read", "write"))
-        CronRunOnceReview(owner, home, job, body.text("request_id").also { require(id.matches(it)) },
-            body.text("review_digest").also { require(hash.matches(it)) }, started + expires * 1000L,
-            CronRunOnceScope(scope.identity("project"), checkNotNull(scope.identity("workspace")), scope.identity("branch"),
-                checkNotNull(scope.identity("worker")), checkNotNull(scope.identity("worker_instance")),
-                access == "write", scope.text("task").also { require(displaySafe(it, 8192, multiline = true)) }))
+        return CronRunOnceScope(scope.identity("project"), checkNotNull(scope.identity("workspace")), scope.identity("branch"),
+            checkNotNull(scope.identity("worker")), checkNotNull(scope.identity("worker_instance")),
+            access == "write", scope.text("task").also { require(displaySafe(it, 8192, multiline = true)) })
     }
 
     fun confirmed(wire: JsonObject, review: CronRunOnceReview): CronRunOnceObservation = checked {
@@ -123,7 +126,12 @@ internal object CronRunOnceProtocol {
             .take(16).joinToString("") { "%02x".format(it.toInt() and 255) }
     }
 
-    private fun payload(wire: JsonObject, owner: ManagementTarget, job: String, fields: Set<String>): JsonObject {
+    private fun payload(wire: JsonObject, owner: ManagementTarget, job: String, fields: Set<String>): JsonObject =
+        ownerResult(wire).also {
+            require(it.keys == fields && it.text("profile") == owner.profile && it.text("job_id") == job)
+        }
+
+    internal fun ownerResult(wire: JsonObject): JsonObject {
         require(wire["schema"] == JsonPrimitive(1) && wire.toString().encodeToByteArray().size <= 384 * 1024)
         if (wire["state"] == JsonPrimitive("error")) {
             require(wire.keys == setOf("schema", "state", "code", "request_submitted"))
@@ -137,9 +145,7 @@ internal object CronRunOnceProtocol {
             throw CronRunOnceRefused(code, submitted)
         }
         require(wire.keys == setOf("schema", "state", "payload") && wire["state"] == JsonPrimitive("ok"))
-        return wire.getValue("payload").jsonObject.also {
-            require(it.keys == fields && it.text("profile") == owner.profile && it.text("job_id") == job)
-        }
+        return wire.getValue("payload").jsonObject
     }
 
     private fun JsonObject.identity(key: String) = getValue(key).takeUnless { it == JsonNull }

@@ -91,6 +91,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private var nextId = 1L
     private var pending: Pending? = null
     private var runOnceReview: CronRunOnceReview? = null
+    private var projectReview: CronProjectReview? = null
     private var resuming = false
     private var resumed = false
     private val earlyFrames = ArrayList<JsonObject>()
@@ -275,7 +276,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", CronExecutionHistory.Method, CronExecutionOutput.Method,
             CronTimingProtocol.Prepare, CronTimingProtocol.Review, CronTimingProtocol.Apply,
             CronTimingProtocol.Observe, AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read) ||
-            method in CronRunOnceProtocol.methods)
+            method in CronRunOnceProtocol.methods || method in CronProjectProtocol.methods)
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -381,6 +382,39 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         return CronRunOnceProtocol.observed(reply, owner, jobId, request)
     }
 
+    internal suspend fun cronProjectInbox(): CronProjectInbox {
+        val owner = binding
+        return CronProjectProtocol.listed(
+            cronCall(CronProjectProtocol.Inbox, CronProjectProtocol.inbox(owner.target)), owner.target, owner.homeId)
+    }
+
+    internal suspend fun prepareCronProject(inbox: CronProjectInbox, entry: CronProjectEntry): CronProjectReview {
+        if (binding.target != inbox.owner || binding.homeId != inbox.home || inbox.entries.none { it === entry }) {
+            throw CanonicalScopeChanged()
+        }
+        val started = SystemClock.elapsedRealtime()
+        val reply = cronCall(CronProjectProtocol.Prepare, CronProjectProtocol.select(inbox.owner, entry.occurrence))
+        return CronProjectProtocol.prepared(reply, inbox, entry, started).also { projectReview = it }
+    }
+
+    internal fun requireProjectReview(review: CronProjectReview) {
+        if (stopped.get() || projectReview !== review) throw CronProjectRefused("CHANGED")
+        if (SystemClock.elapsedRealtime() >= review.expiresAt) throw CronProjectRefused("EXPIRED")
+    }
+
+    internal suspend fun decideCronProject(review: CronProjectReview, choice: CronRunOnceDecision): CronProjectObservation? {
+        requireProjectReview(review)
+        projectReview = null
+        val reply = cronCall(CronProjectProtocol.Decide, CronProjectProtocol.decide(review, choice))
+        return CronProjectProtocol.decided(reply, review, choice)
+    }
+
+    internal suspend fun observeCronProject(occurrence: CronProjectOccurrence): CronProjectObservation {
+        val owner = binding.target
+        val reply = cronCall(CronProjectProtocol.Observe, CronProjectProtocol.select(owner, occurrence))
+        return CronProjectProtocol.observed(reply, owner, occurrence)
+    }
+
     private suspend fun cronCall(method: String, params: JsonObject): JsonObject {
         synchronized(this) { check(!resuming && !resumed) }
         val expected = binding
@@ -391,6 +425,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
                 if (method == CronExecutionHistory.Method || method == CronExecutionOutput.Method) {
                     throw CronExecutionHistoryUnavailable()
                 }
+                if (method in CronProjectProtocol.methods) throw CronProjectRefused("UNSUPPORTED")
                 if (method in CronRunOnceProtocol.methods) throw CronRunOnceRefused("UNSUPPORTED")
                 throw CronTimingRefused("UNSUPPORTED", false)
             }

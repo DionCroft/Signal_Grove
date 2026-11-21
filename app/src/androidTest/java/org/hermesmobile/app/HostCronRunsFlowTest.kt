@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*
 import okhttp3.Response
@@ -36,6 +37,9 @@ class HostCronRunsFlowTest {
     private val app get()=compose.activity.application as HermesApplication
 
     private val executionId = "1".repeat(32)
+    private val projectOccurrence = "e".repeat(32)
+    private val projectExecution = "7047c736b0b60bf43d79cd179f05a59b"
+    private val projectDue = "2026-11-21T09:00:00+00:00"
     private val outputText = "Private exact scheduler result"
 
     private inner class Fixture(private val ledgerEnabled: Boolean = false):AutoCloseable {
@@ -52,6 +56,10 @@ class HostCronRunsFlowTest {
         val runOnceConfirms = AtomicInteger()
         val runOnceObserves = AtomicInteger()
         val runOnceDecisions = ConcurrentLinkedQueue<String>()
+        val projectDecisions = ConcurrentLinkedQueue<String>()
+        val projectReads = AtomicInteger()
+        private val projectChoice = AtomicReference<String?>()
+        @Volatile var loseProjectReply = false
         private val acceptedRunOnce = AtomicReference<String?>()
         @Volatile var loseRunOnceReply = false
         private fun runOnceExecution(request: String): String {
@@ -117,6 +125,7 @@ class HostCronRunsFlowTest {
 
         private fun listener() = object : WebSocketListener() {
             private var preparedRunOnce: String? = null
+            private var preparedProject = false
 
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 socketCount.incrementAndGet()
@@ -160,6 +169,87 @@ class HostCronRunsFlowTest {
                             } else {
                                 reply()
                             }
+                        }
+                        in CronProjectProtocol.methods -> {
+                            check(params["expected_profile"] == JsonPrimitive("worker"))
+                            if (method != CronProjectProtocol.Inbox) {
+                                check(params["occurrence_id"] == JsonPrimitive(projectOccurrence) &&
+                                    params["job_id"] == JsonPrimitive("job-fixture"))
+                            }
+                            val result = when (method) {
+                                CronProjectProtocol.Inbox -> {
+                                    check(params.size == 1)
+                                    buildJsonObject {
+                                        putJsonArray("entries") {
+                                            if (projectChoice.get() == null) addJsonObject {
+                                                put("job_id", "job-fixture"); put("project_id", "registered-fixture")
+                                                put("occurrence_id", projectOccurrence); put("scheduled_instant", projectDue)
+                                            }
+                                        }
+                                    }
+                                }
+                                CronProjectProtocol.Prepare -> {
+                                    check(params.size == 3 && projectChoice.get() == null)
+                                    preparedProject = true
+                                    buildJsonObject {
+                                        put("review_digest", digest); put("expires_in_seconds", 179)
+                                        put("scheduled_instant", projectDue)
+                                        putJsonObject("scope") {
+                                            put("project", "registered-fixture"); put("workspace", "verified/workspace")
+                                            put("branch", "reviewed-branch"); put("worker", "REGISTERED-WORKER")
+                                            put("worker_instance", "registered-instance"); put("access", "write")
+                                            put("task", "Update notes in the verified fixture project.")
+                                        }
+                                    }
+                                }
+                                CronProjectProtocol.Decide -> {
+                                    check(preparedProject && params.size == 5 && params["review_digest"] == JsonPrimitive(digest))
+                                    preparedProject = false
+                                    val choice = params.getValue("decision").jsonPrimitive.content
+                                    check(choice in setOf("approve", "deny", "defer"))
+                                    if (choice != "defer") {
+                                        val durable = runBlocking {
+                                            app.database.dao().managementOperations(api.profileScope.value).first()
+                                                .single { it.action == CronProjectProtocol.Action && it.state == "sending" }
+                                        }
+                                        check(durable.target == "job-fixture")
+                                        val stored = CronProjectProtocol.storedOccurrence(durable)
+                                        check(stored.id == projectOccurrence && stored.scheduledAt == java.time.OffsetDateTime.parse(projectDue))
+                                        check(durable.resultSummary.isEmpty() && !durable.requestSummary.contains("verified"))
+                                        check(projectChoice.compareAndSet(null, choice))
+                                    }
+                                    projectDecisions.add(choice)
+                                    if (loseProjectReply && choice == "approve") {
+                                        webSocket.close(1011, "fixture lost occurrence reply")
+                                        return
+                                    }
+                                    buildJsonObject {
+                                        val resultState = when (choice) {
+                                            "approve" -> "claimed"
+                                            "deny" -> "denied"
+                                            else -> "deferred"
+                                        }
+                                        put("state", resultState)
+                                        if (choice != "defer") {
+                                            put("execution_id", projectExecution); put("scheduled_instant", projectDue)
+                                        }
+                                    }
+                                }
+                                else -> {
+                                    check(!preparedProject && params.size == 3)
+                                    val choice = checkNotNull(projectChoice.get())
+                                    val read = projectReads.incrementAndGet()
+                                    buildJsonObject {
+                                        put("decision", choice); put("execution_id", projectExecution)
+                                        put("scheduled_instant", projectDue); put("execution", JsonNull)
+                                        put("outcome", if (choice == "deny") "cancelled" else if (read == 1) "unknown" else "completed")
+                                    }
+                                }
+                            }
+                            val fields = if (method == CronProjectProtocol.Inbox) result else JsonObject(result + mapOf(
+                                "job_id" to JsonPrimitive("job-fixture"), "occurrence_id" to JsonPrimitive(projectOccurrence)))
+                            val scoped = JsonObject(fields + ("profile" to JsonPrimitive("worker")))
+                            send(buildJsonObject { put("schema", 1); put("state", "ok"); put("payload", scoped) }.toString())
                         }
                         in CronRunOnceProtocol.methods -> {
                             check(params["expected_profile"] == JsonPrimitive("worker") && params["job_id"] == JsonPrimitive("job-fixture"))
@@ -430,6 +520,91 @@ class HostCronRunsFlowTest {
             assertEquals(2, f.runOncePrepares.get())
             assertEquals(0, f.runOnceConfirms.get())
             assertTrue(management.receipts.value.none { it.action == CronRunOnceProtocol.Action })
+            assertEquals(0, f.writes.get())
+            assertEquals(0, f.unexpectedSocketFrames.get())
+        }
+    }
+
+    private fun openProjectInbox(f: Fixture, multilingual: Boolean = false) {
+        open(f, multilingual)
+        compose.onNodeWithTag("host-cron-detail-close").performClick()
+        compose.onNodeWithTag("host-cron-list").performScrollToNode(hasTestTag("host-cron-project-open"))
+        compose.onNodeWithTag("host-cron-project-open").performClick()
+        compose.waitUntil(10000) { !management.state.value.busy && management.state.value.cron.projectInbox != null }
+    }
+
+    private fun projectDecision(action: String) {
+        val button = "project-review-" + projectOccurrence
+        compose.onNodeWithTag("host-cron-project-list").performScrollToNode(hasTestTag(button))
+        compose.onNodeWithTag(button).performClick()
+        compose.waitUntil(10000) { !management.state.value.busy && management.state.value.cron.projectReview != null }
+        val list = compose.onNodeWithTag("host-cron-project-review")
+        list.performScrollToNode(hasText("reviewed-branch"))
+        compose.onNodeWithText("reviewed-branch").assertIsDisplayed()
+        val task = "Update notes in the verified fixture project."
+        list.performScrollToNode(hasText(task))
+        compose.onNodeWithText(task).assertIsDisplayed()
+        val tag = "host-cron-project-" + action
+        list.performScrollToNode(hasTestTag(tag))
+        compose.onNodeWithTag(tag).assertIsEnabled().performClick()
+    }
+
+    private fun observeProject(row: ManagementOperation) {
+        val tag = "management-observe-" + row.key
+        compose.onNodeWithTag("host-cron-project-list").performScrollToNode(hasTestTag(tag))
+        compose.onNodeWithTag(tag).assertIsEnabled().performClick()
+    }
+
+    @Test fun projectApprovalsRecoverOriginalAfterDisconnectAndKeepUnknownHeld() {
+        Fixture(ledgerEnabled = true).use { f ->
+            f.loseProjectReply = true
+            openProjectInbox(f, multilingual = true)
+            projectDecision("approve")
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.action == CronProjectProtocol.Action && it.state == "unknown"
+            } }
+            val row = management.receipts.value.single { it.action == CronProjectProtocol.Action }
+            assertEquals(projectOccurrence, CronProjectProtocol.storedOccurrence(row).id)
+            assertNull(management.prepareManagementUncertainty(row.key))
+            runBlocking {
+                app.database.dao().reviewManagementOperation(row.key, row.resourceScope, row.url, row.projectHome)
+                assertEquals("unknown", app.database.dao().managementOperation(row.key)?.state)
+            }
+            observeProject(row)
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.key == row.key && it.state == "unknown" && CronProjectProtocol.savedSummary(it)?.status == CronExecutionStatus.Unknown
+            } }
+            val button = "project-review-" + projectOccurrence
+            compose.onNodeWithTag("host-cron-project-list").performScrollToNode(hasTestTag(button))
+            compose.onNodeWithTag(button).assertIsNotEnabled()
+            observeProject(row)
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.key == row.key && it.state == "confirmed" && CronProjectProtocol.savedSummary(it)?.status == CronExecutionStatus.Completed
+            } }
+            assertEquals(listOf("approve"), f.projectDecisions.toList())
+            assertEquals(2, f.projectReads.get())
+            assertEquals(0, f.writes.get())
+            assertEquals(0, f.unexpectedSocketFrames.get())
+        }
+    }
+
+    @Test fun projectApprovalsDeferAndDenyTheSameOccurrence() {
+        Fixture(ledgerEnabled = true).use { f ->
+            openProjectInbox(f)
+            projectDecision("defer")
+            compose.waitUntil(10000) { !management.state.value.busy && management.state.value.notice == Words.HostCronProjectDeferred }
+            assertTrue(management.receipts.value.none { it.action == CronProjectProtocol.Action })
+            projectDecision("deny")
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.action == CronProjectProtocol.Action && it.state == "unknown"
+            } }
+            val row = management.receipts.value.single { it.action == CronProjectProtocol.Action }
+            observeProject(row)
+            compose.waitUntil(15000) { !management.state.value.busy && management.receipts.value.any {
+                it.key == row.key && it.state == "confirmed" && CronProjectProtocol.savedSummary(it)?.denied == true
+            } }
+            assertEquals(listOf("defer", "deny"), f.projectDecisions.toList())
+            assertEquals(1, f.projectReads.get())
             assertEquals(0, f.writes.get())
             assertEquals(0, f.unexpectedSocketFrames.get())
         }

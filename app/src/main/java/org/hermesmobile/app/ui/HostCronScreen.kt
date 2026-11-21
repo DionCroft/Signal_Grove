@@ -14,6 +14,7 @@ import org.hermesmobile.app.data.CronExecutionAttempt
 import org.hermesmobile.app.data.CronExecutionHistory
 import org.hermesmobile.app.data.CronTimingProtocol
 import org.hermesmobile.app.data.CronRunOnceProtocol
+import org.hermesmobile.app.data.CronProjectProtocol
 import org.hermesmobile.app.data.ManagedCronJob
 import org.hermesmobile.app.data.ManagedCronRuns
 import org.hermesmobile.app.data.ManagementReceiptVisibility
@@ -28,25 +29,42 @@ private fun hostCronField(key:String)=when(key) {
 }
 
 @Composable fun HostCronDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
+    var projectInboxOpen by remember(s.apiScope, s.url, s.profile, s.identity) { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
-        vm.closeHostCronRunOnce()
+        if (projectInboxOpen) {
+            vm.closeCronProjectInbox()
+            projectInboxOpen = false
+        }
+        vm.closeSchedulerReview()
         vm.closeHostCronTiming()
         vm.closeHostCronOutput()
     }
     DisposableEffect(vm) {
         onDispose {
-            vm.closeHostCronRunOnce()
+            vm.closeSchedulerReview()
             vm.closeHostCronTiming()
             vm.closeHostCronOutput()
         }
     }
     var creating by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     val receiptRows by vm.receipts.collectAsState();val receipts=vm.visibleReceipts(s,receiptRows)
-    val pending=receipts.any {it.resourceScope==vm.resourceScope(s) && it.state in setOf("sending","unknown")}
+    val pending = receipts.any {
+        (it.resourceScope == vm.resourceScope(s) || it.action == ManagementReceiptVisibility.SharedCronProjectPending)
+            && it.state in setOf("sending", "unknown")
+    }
+    val projectHome = vm.hostCronLedgerHome(s)
     AlertDialog(onDismissRequest=close,title={Text(label(Words.HostCron))},text={
         LazyColumn(Modifier.heightIn(max=520.dp).testTag("host-cron-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(s.url);Text(s.profile);Text(label(Words.HostCronBoundary),style=MaterialTheme.typography.bodySmall);TextButton(vm::loadHostCron,enabled=!s.busy,modifier=Modifier.testTag("host-cron-refresh")) {Text(label(Words.Refresh))}}
             item {TextButton({creating=true;vm.loadCronCreationSetup()},enabled=!s.busy && !pending && s.cron.loaded,modifier=Modifier.testTag("cron-create-open")) {Text(label(Words.HostCronCreate))}}
+            item {
+                TextButton({ projectInboxOpen = true; vm.loadCronProjectInbox() },
+                    enabled = !s.busy && projectHome != null,
+                    modifier = Modifier.heightIn(min = 48.dp).testTag("host-cron-project-open")) {
+                    Text(label(Words.HostCronProjectInbox))
+                }
+                if (projectHome == null) Text(label(Words.HostCronLedgerProfile))
+            }
             if(pending) item {Text(label(Words.ManagementOutcomePending))}
             items(receipts.filter {
                 (it.action == CronTimingProtocol.Action && it.state == "unknown") ||
@@ -66,6 +84,12 @@ private fun hostCronField(key:String)=when(key) {
             s.error?.let {word->item {Text(label(word),color=MaterialTheme.colorScheme.error)}}
         }
     },confirmButton={TextButton(close,Modifier.testTag("host-cron-close")) {Text(label(Words.Close))}})
+    if (projectInboxOpen) HostCronProjectInboxDialog(vm, s, receipts.filter {
+        it.action in setOf(CronProjectProtocol.Action, ManagementReceiptVisibility.SharedCronProjectPending)
+    }, pending) {
+        vm.closeCronProjectInbox()
+        projectInboxOpen = false
+    }
     if(creating && s.cron.contract!=null && !s.busy) CronCreationForm(vm,s) {creating=false}
     s.cron.detail?.let { job ->
         val home = vm.hostCronLedgerHome(s)
