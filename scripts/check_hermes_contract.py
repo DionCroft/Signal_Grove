@@ -32,10 +32,14 @@ REVIEWED_CRON_FORMAT_MOVES = frozenset({
     '364aded7ee2a2888421fc7aec96adbe6c07748a5',
     'caafe5389ae585ef77387a962aee05b1bcf17029',
     '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
+    '242315ce571cde721e717a544cf8ae6c343315cf',
 })
 LEGACY_PLUGIN_SETTINGS_PATH = 'hermes_cli/plugins_settings.py'
 PLUGIN_SETTINGS_FIELDS_PATH = 'hermes_cli/plugins_settings/fields.py'
-REVIEWED_PLUGIN_SETTINGS_SPLIT = '2de9f51b8008a7d49a49221c184f2f11cbfc4af1'
+REVIEWED_PLUGIN_SETTINGS_SPLITS = frozenset({
+    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
+    '242315ce571cde721e717a544cf8ae6c343315cf',
+})
 SOURCES = {
     'api': 'gateway/platforms/api_server.py',
     'runs': 'gateway/platforms/api_server_runs.py',
@@ -194,11 +198,12 @@ EXTRA_SOURCES.update(CANONICAL_ATTACHMENT_CONTRACT_SOURCES)
 MAIN_AUTHORITY_CONTRACT_SOURCES = {'canonical_stored_reads': 'gateway/session_stored_reads.py', 'canonical_picker': 'gateway/session_picker_fields.py', 'canonical_plugin_rpc': 'gateway/session_plugin_rpc.py', 'canonical_recovery': 'gateway/session_local_recovery.py', 'canonical_transcript_rows': 'gateway/session_transcript_rows.py', 'canonical_local_receipts': 'hermes_state_local.py', 'canonical_local_lineage': 'hermes_state_local_lineage.py', 'canonical_policy_state': 'gateway/session_policy.py'}
 EXTRA_SOURCES.update(MAIN_AUTHORITY_CONTRACT_SOURCES)
 
-# This persistence layout is verified only for the two exact upstream trees.
+# This persistence layout is verified only for the listed exact upstream trees.
 # Keep legacy keys so module changes remain visible against the existing baseline.
 PERSISTENCE_LAYOUT_PINS = frozenset({
     'caafe5389ae585ef77387a962aee05b1bcf17029',
     '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
+    '242315ce571cde721e717a544cf8ae6c343315cf',
 })
 PERSISTENCE_SOURCE_MOVES = {
     'canonical_workspace_actions': 'persistence/sqlite/authority/_mutation.py',
@@ -659,7 +664,7 @@ def contract_source_paths(commit: str) -> dict[str, str]:
     paths = SOURCES | EXTRA_SOURCES
     if commit in REVIEWED_CRON_FORMAT_MOVES and paths.get('cron_format') == LEGACY_CRON_FORMAT_PATH:
         paths['cron_format'] = CRON_FORMAT_PATH
-    if commit == REVIEWED_PLUGIN_SETTINGS_SPLIT and paths.get('plugin_settings') == LEGACY_PLUGIN_SETTINGS_PATH:
+    if commit in REVIEWED_PLUGIN_SETTINGS_SPLITS and paths.get('plugin_settings') == LEGACY_PLUGIN_SETTINGS_PATH:
         paths['plugin_settings'] = PLUGIN_SETTINGS_FIELDS_PATH
     if commit in PERSISTENCE_LAYOUT_PINS and PERSISTENCE_SOURCE_MOVES.keys() <= paths.keys():
         paths.update(PERSISTENCE_SOURCE_MOVES)

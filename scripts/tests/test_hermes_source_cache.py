@@ -139,27 +139,49 @@ class SourceCacheTest(unittest.TestCase):
     def test_plugin_settings_split_keeps_existing_watch_key_and_pin_fence(self):
         old_path = c.LEGACY_PLUGIN_SETTINGS_PATH
         fields = c.PLUGIN_SETTINGS_FIELDS_PATH
-        reviewed = c.REVIEWED_PLUGIN_SETTINGS_SPLIT
         source = "def plugin_settings_fields():\n    return []\n"
         oid, size = self.identity(source.encode())
         tree = self.tree(path=fields, sha=oid, size=size)
-        with patch.multiple(c, SOURCES={}, EXTRA_SOURCES={'plugin_settings': old_path}), \
-                patch.object(c, 'resolve', return_value=('main', reviewed)), \
-                patch.object(c, 'github', return_value=tree), \
-                patch.object(c, 'github_source', return_value=source) as read, \
-                patch.object(c, 'extract', side_effect=lambda rows: dict(rows)):
-            direct = c.snapshot('main')
-            cached = c.snapshot('main', self.cache)
-            self.assertEqual(direct['contract'], cached['contract'])
-            self.assertEqual({'plugin_settings': source}, cached['contract'])
-            self.assertEqual([dict(source='plugin_settings', original_path=old_path, path=fields, commit=reviewed)],
-                             cached['reviewed_source_relocations'])
-            self.assertTrue(read.call_args_list)
-            self.assertTrue(all(call.args == (fields, reviewed) for call in read.call_args_list))
+        with patch.multiple(c, SOURCES={}, EXTRA_SOURCES={'plugin_settings': old_path}):
             self.assertEqual({'plugin_settings': old_path}, c.contract_source_paths(self.pin))
-            with patch.object(c, 'github', return_value=self.tree(path=old_path)):
-                with self.assertRaises(c.MissingSourcePaths):
-                    c.source_identities(reviewed)
+            for pin in sorted(c.REVIEWED_PLUGIN_SETTINGS_SPLITS):
+                with (
+                    self.subTest(pin=pin),
+                    patch.object(c, 'resolve', return_value=('main', pin)),
+                    patch.object(c, 'github', return_value=tree),
+                    patch.object(c, 'github_source', return_value=source) as read,
+                    patch.object(c, 'extract', side_effect=dict),
+                ):
+                    direct = c.snapshot('main')
+                    cached = c.snapshot('main', self.cache)
+                    self.assertEqual(direct['contract'], cached['contract'])
+                    self.assertEqual({'plugin_settings': source}, cached['contract'])
+                    self.assertEqual(
+                        [dict(source='plugin_settings', original_path=old_path, path=fields, commit=pin)],
+                        cached['reviewed_source_relocations'],
+                    )
+                    self.assertTrue(read.call_args_list)
+                    self.assertTrue(all(call.args == (fields, pin) for call in read.call_args_list))
+                    with patch.object(c, 'github', return_value=self.tree(path=old_path)):
+                        with self.assertRaises(c.MissingSourcePaths):
+                            c.source_identities(pin)
+
+    def test_main_pin_uses_all_ten_verified_relocations(self):
+        pin = '242315ce571cde721e717a544cf8ae6c343315cf'
+        legacy = c.SOURCES | c.EXTRA_SOURCES
+        actual = c.contract_source_paths(pin)
+        relocated = {key: actual[key] for key in legacy if actual[key] != legacy[key]}
+        self.assertEqual(
+            c.PERSISTENCE_SOURCE_MOVES | {
+                'plugin_settings': c.PLUGIN_SETTINGS_FIELDS_PATH,
+                'cron_format': c.CRON_FORMAT_PATH,
+            },
+            relocated,
+        )
+        self.assertEqual(10, len(relocated))
+        self.assertEqual(c.PERSISTENCE_SOURCE_DEPENDENCIES, {
+            key: actual[key] for key in actual.keys() - legacy.keys()
+        })
 
     def test_persistence_split_requires_every_dependency_only_at_verified_pins(self):
         legacy = {name: c.EXTRA_SOURCES[name] for name in c.PERSISTENCE_SOURCE_MOVES}

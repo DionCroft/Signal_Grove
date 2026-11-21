@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes main source inspection checkpoint
+
+The exact main canary `242315c` can now read all ten relocated sources.
+Their Git blobs match the earlier reviewed layout. The checker completes
+with 212 changed used handler fingerprints and 29 changed persistence
+sources requiring semantic review. It reports zero removals of used routes
+or request field changes. The existing stable report and the prior
+incomplete main run remain in the validation record.
+[Validation](docs/VALIDATION.md#hermes-main-source-relocation-at-242315c).
+
 ## Integrated release candidate checkpoint
 
 Source `6da9cd1` combines the phone context and history, scoped workspace

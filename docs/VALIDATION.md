@@ -1,5 +1,37 @@
 # Current development validation — audit follow-up
 
+## Hermes main source relocation at `242315c`
+
+The integrated canary stopped with ten missing legacy paths. The full
+Git tree at `242315ce571cde721e717a544cf8ae6c343315cf` contains the same
+replacement blobs as reviewed main `2de9f51`: one cron argument module,
+the plugin settings field module and eight local or workspace persistence
+modules. The plugin package entry point and all 21 separately watched
+persistence dependencies also match the earlier blobs. The exact pin now
+uses the relocated paths with the existing watch keys and dependency
+coverage. Other commit IDs require their own source evidence.
+[Exact upstream revision](https://github.com/NousResearch/hermes-agent/tree/242315ce571cde721e717a544cf8ae6c343315cf)
+· [Prior reviewed tree](https://github.com/NousResearch/hermes-agent/tree/2de9f51b8008a7d49a49221c184f2f11cbfc4af1).
+
+Archive bytes took the standard checker path after matching the Git tree
+blob identities and size limits. The exact-ref comparison then revalidated
+249 logical source reads from the cache, recorded ten relocations and zero
+reviewed absences, and returned the review-required exit code 2. The
+comparison keeps the existing baseline and records 212 changed used
+handler fingerprints and 29 changed persistence sources. It found zero
+removed used API or management routes, changed used request fields,
+removed job update fields, changed job constraints or changed used flags.
+The local comparison JSON has SHA-256
+`186293b55097806f285ccc616454834d2e0bc0bfe66dfc20a79c0ce57b0a7a90`.
+
+Against the archived stable `caafe53` report, seven additional handler keys
+are flagged on main, including request Origin handling, channel environment
+and identity, Kanban Host validation, plugin fields, dashboard dependency
+routing and WebSocket Host/Origin checks. Three shared canonical module hashes
+also differ between those pins. Both pins require semantic and native review.
+The portable policy suite completed 1,198 methods with 925 passes and
+273 platform skips. The prior exit-3 result remains recorded below.
+
 ## Integrated audit release candidate
 
 Source `6da9cd1` preserves the tested phone-history and worker changes
