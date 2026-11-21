@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import org.hermesmobile.app.data.CronExecutionAttempt
 import org.hermesmobile.app.data.CronExecutionHistory
+import org.hermesmobile.app.data.CronTimingProtocol
 import org.hermesmobile.app.data.ManagedCronJob
 import org.hermesmobile.app.data.ManagedCronRuns
 
@@ -25,8 +26,16 @@ private fun hostCronField(key:String)=when(key) {
 }
 
 @Composable fun HostCronDialog(vm:ManagementViewModel,s:ManagementState,close:()->Unit) {
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.closeHostCronOutput() }
-    DisposableEffect(vm) { onDispose(vm::closeHostCronOutput) }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        vm.closeHostCronTiming()
+        vm.closeHostCronOutput()
+    }
+    DisposableEffect(vm) {
+        onDispose {
+            vm.closeHostCronTiming()
+            vm.closeHostCronOutput()
+        }
+    }
     var creating by remember(s.apiScope,s.url,s.profile) {mutableStateOf(false)}
     val receiptRows by vm.receipts.collectAsState();val receipts=vm.visibleReceipts(s,receiptRows)
     val pending=receipts.any {it.resourceScope==vm.resourceScope(s) && it.state in setOf("sending","unknown")}
@@ -35,6 +44,9 @@ private fun hostCronField(key:String)=when(key) {
             item {Text(s.url);Text(s.profile);Text(label(Words.HostCronBoundary),style=MaterialTheme.typography.bodySmall);TextButton(vm::loadHostCron,enabled=!s.busy,modifier=Modifier.testTag("host-cron-refresh")) {Text(label(Words.Refresh))}}
             item {TextButton({creating=true;vm.loadCronCreationSetup()},enabled=!s.busy && !pending && s.cron.loaded,modifier=Modifier.testTag("cron-create-open")) {Text(label(Words.HostCronCreate))}}
             if(pending) item {Text(label(Words.ManagementOutcomePending))}
+            items(receipts.filter {
+                it.action == CronTimingProtocol.Action && it.state == "unknown"
+            }, key = { it.key }) { ManagementReceiptCard(it, vm, s) }
             s.notice?.let {word->item {Text(label(word))}}
             if(s.busy) item {QuietProgress()}
             if(s.cron.loaded && s.cron.jobs.isEmpty()) item {Text(label(Words.EmptyInventory))}
@@ -55,22 +67,38 @@ private fun hostCronField(key:String)=when(key) {
             it.owner.apiScope == s.apiScope && it.owner.profile == s.profile && it.homeId == home && it.jobId == job.id
         }
         val output = s.cron.output?.takeIf { it.history === ledger }
+        val editor = s.cron.timingEditor?.takeIf { it.job === job && it.baseline.homeId == home }
         HostCronDetail(job, s.cron.runs?.takeIf { it.profile == s.profile && it.jobId == job.id },
-            ledger, home != null, s.busy, s.error.takeIf { output == null }, { vm.loadHostCronRuns(job) },
-            { vm.loadHostCronExecutionHistory(job) }, vm::loadHostCronOutput, vm::closeHostCronDetail)
+            ledger, home != null, s.busy, pending, s.error.takeIf { output == null && editor == null },
+            { vm.loadHostCronRuns(job) }, { vm.loadHostCronExecutionHistory(job) },
+            { vm.openHostCronTiming(job) }, vm::loadHostCronOutput, vm::closeHostCronDetail)
         if (output != null) HostCronOutputDialog(output, s.busy, s.error, vm::closeHostCronOutput)
+        if (editor != null) HostCronTimingDialog(vm, editor, s.busy, pending, s.error)
     }
 }
 
 @Composable private fun HostCronDetail(
     job: ManagedCronJob, history: ManagedCronRuns?, ledger: CronExecutionHistory?,
-    canReadLedger: Boolean, busy: Boolean, error: Words?,
-    loadRuns: () -> Unit, loadLedger: () -> Unit,
+    canReadLedger: Boolean, busy: Boolean, pending: Boolean, error: Words?,
+    loadRuns: () -> Unit, loadLedger: () -> Unit, editTiming: () -> Unit,
     loadOutput: (CronExecutionHistory, CronExecutionAttempt) -> Unit, close: () -> Unit
 ) {
     AlertDialog(onDismissRequest=close,title={Text(job.name)},text={
         LazyColumn(Modifier.heightIn(max=500.dp).testTag("host-cron-detail"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(job.id);Text(label(Words.Schedule));Text(job.schedule);Text(label(Words.HostCronScheduleState));Text(job.state)}
+            item {
+                val paused = job.enabled == false && job.state == "paused"
+                TextButton(editTiming, enabled = paused && canReadLedger && !busy && !pending,
+                    modifier = Modifier.heightIn(min = 48.dp).testTag("host-cron-timing-open")) {
+                    Text(label(Words.HostCronTimingEdit))
+                }
+                when {
+                    !paused -> Text(label(Words.HostCronTimingNeedsPause))
+                    pending -> Text(label(Words.ManagementOutcomePending))
+                    !canReadLedger -> Text(label(Words.HostCronLedgerProfile))
+                }
+                error?.let { Text(label(it), color = MaterialTheme.colorScheme.error) }
+            }
             if(job.createdAt.isNotBlank()) item {Text(label(Words.HostCronCreatedAt));Text(job.createdAt)}
             if(job.nextRun.isNotBlank()) item {Text(label(Words.NextRun));Text(job.nextRun)}
             if(job.lastRun.isNotBlank()) item {Text(label(Words.LastRun));Text(job.lastRun)}
@@ -83,7 +111,7 @@ private fun hostCronField(key:String)=when(key) {
                 }
                 if (!canReadLedger) Text(label(Words.HostCronLedgerProfile))
             }
-            hostCronRuns(history,busy,error,loadRuns)
+            hostCronRuns(history,busy,null,loadRuns)
             hostCronExecutionHistory(ledger, busy, loadOutput)
             items(job.fields().entries.toList(),key={it.key}) {field ->Column {Text(label(hostCronField(field.key)),style=MaterialTheme.typography.titleSmall);Text(if(field.key=="enabled_toolsets" && job.noToolsAllowed) label(Words.HostCronNoTools) else if(field.key=="repeat" && field.value=="__unlimited__") label(Words.HostCronUnlimited) else field.value.ifBlank {label(Words.Unknown)})}}
         }

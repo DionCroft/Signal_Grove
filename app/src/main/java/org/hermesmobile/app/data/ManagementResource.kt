@@ -12,8 +12,9 @@ object ManagementReceiptVisibility {
     const val SharedPending="SharedPending"
     const val SharedInstancePending="SharedInstancePending"
     const val SharedProjectPending="SharedProjectPending"
+    internal const val SharedCronTimingPending="SharedCronTimingPending"
     fun instanceAction(action:String)=action in setOf("RelayLinkStart","RelayUnlink","CustomEndpointProbe") || HostKanbanBoardAction.receipt(action) || HostKanbanTaskAction.receipt(action) || HostKanbanStatusChange.receipt(action)
-    fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String="",projectHome:String=""):List<ManagementOperation> {
+    fun project(rows:List<ManagementOperation>,apiScope:String,resourceScope:String,dashboardUrl:String="",projectHome:String="",actor:String=""):List<ManagementOperation> {
         if(resourceScope.isBlank()) return emptyList()
         return rows.mapNotNull {row ->
             val pending=row.state in setOf("sending","unknown")
@@ -21,6 +22,13 @@ object ManagementReceiptVisibility {
             val instance=dashboardUrl.isNotBlank() && row.url==dashboardUrl && pending && (instanceAction(row.action) || row.action==SharedInstancePending)
             val sameStore=dashboardUrl.isNotBlank() && row.url==dashboardUrl && pending && projectHome.isNotBlank() && row.projectHome==projectHome
             if(!sameResource && !instance && !sameStore) null
+            else if(row.action==CronTimingProtocol.Action || row.action==SharedCronTimingPending) {
+                if(sameResource && row.apiScope==apiScope && actor.isNotBlank() && row.actor==actor &&
+                    projectHome.isNotBlank() && row.projectHome==projectHome) row
+                else if(pending) row.copy(apiScope="",actor="",action=SharedCronTimingPending,
+                    target="",requestSummary="",resultSummary="",createdAt=0)
+                else null
+            }
             else if(sameResource && row.apiScope==apiScope) row
             else if(pending) row.copy(resourceScope=if(instance || sameStore) "" else row.resourceScope,apiScope="",profile=if(instance || sameStore) "" else row.profile,actor="",action=if(instance) SharedInstancePending else if(sameStore) SharedProjectPending else SharedPending,target="",requestSummary="",resultSummary="",createdAt=0)
             else null

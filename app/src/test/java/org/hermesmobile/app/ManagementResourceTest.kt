@@ -28,6 +28,24 @@ class ManagementResourceTest {
         assertTrue(ManagementReceiptVisibility.project(rows,"b".repeat(64),owner.resourceScope).isEmpty())
         assertTrue(ManagementReceiptVisibility.project(listOf(receipt()),owner.apiScope,"").isEmpty())
     }
+    @Test fun timingEditRequiresTheOriginalActorAndVerifiedHome() {
+        val home = "c".repeat(64)
+        val row = receipt().copy(action = CronTimingProtocol.Action, projectHome = home)
+        fun projected(actor: String, selectedHome: String, record: ManagementOperation = row) =
+            ManagementReceiptVisibility.project(listOf(record), owner.apiScope, owner.resourceScope, owner.url, selectedHome, actor)
+        assertSame(row, projected(owner.actor, home).single())
+        for (redacted in listOf(projected("password · other", home).single(), projected(owner.actor, "").single())) {
+            assertEquals(ManagementReceiptVisibility.SharedCronTimingPending, redacted.action)
+            assertTrue(redacted.apiScope.isEmpty())
+            assertTrue(redacted.actor.isEmpty())
+            assertTrue(redacted.target.isEmpty())
+            assertTrue(redacted.requestSummary.isEmpty())
+            assertTrue(redacted.resultSummary.isEmpty())
+            assertEquals(ManagementReceiptVisibility.SharedCronTimingPending, projected(owner.actor, home, redacted).single().action)
+        }
+        assertTrue(projected("password · other", home, row.copy(state = "confirmed")).isEmpty())
+    }
+
     @Test fun ownHistoryStaysIntactAndStaleRowsAreRedactedAfterSwitching() {
         val raw=receipt();assertSame(raw,ManagementReceiptVisibility.project(listOf(raw),owner.apiScope,owner.resourceScope).single())
         val stale=ManagementReceiptVisibility.project(listOf(raw),"b".repeat(64),owner.resourceScope)

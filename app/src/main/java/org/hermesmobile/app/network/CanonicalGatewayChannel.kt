@@ -270,7 +270,9 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     }
 
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
-        require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", CronExecutionHistory.Method, CronExecutionOutput.Method, AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read))
+        require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", CronExecutionHistory.Method, CronExecutionOutput.Method,
+            CronTimingProtocol.Prepare, CronTimingProtocol.Review, CronTimingProtocol.Apply,
+            CronTimingProtocol.Observe, AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read))
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -307,23 +309,53 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
 
     internal suspend fun cronExecutionHistory(jobId: String): CronExecutionHistory {
         val expected = binding
-        val reply = cronRead(CronExecutionHistory.Method, CronExecutionHistory.request(expected.target, jobId))
+        val reply = cronCall(CronExecutionHistory.Method, CronExecutionHistory.request(expected.target, jobId))
         return CronExecutionHistory.parse(reply, expected.target, expected.homeId, jobId)
     }
 
     internal suspend fun cronExecutionOutput(jobId: String, executionId: String): CronExecutionOutput {
         val expected = binding
-        val reply = cronRead(CronExecutionOutput.Method, CronExecutionHistory.receiptRequest(expected.target, jobId, executionId))
+        val reply = cronCall(CronExecutionOutput.Method, CronExecutionHistory.receiptRequest(expected.target, jobId, executionId))
         return CronExecutionOutput.parse(reply, expected.target, jobId, executionId)
     }
 
-    private suspend fun cronRead(method: String, params: JsonObject): JsonObject {
+    internal suspend fun prepareCronTiming(jobId: String): CronTimingBaseline {
+        val expected = binding
+        val reply = cronCall(CronTimingProtocol.Prepare, CronTimingProtocol.prepare(expected.target, jobId))
+        return CronTimingProtocol.parseBaseline(reply, expected.target, expected.homeId, jobId)
+    }
+
+    internal suspend fun cronTimingReview(base: CronTimingBaseline, draft: CronTimingDraft): CronTimingReview {
+        if (binding.target != base.owner || binding.homeId != base.homeId) throw CanonicalScopeChanged()
+        return CronTimingProtocol.parseReview(
+            cronCall(CronTimingProtocol.Review, CronTimingProtocol.review(base, draft)), base, draft)
+    }
+
+    internal suspend fun applyCronTiming(review: CronTimingReview, id: String, proof: CronTimingReceiptProof) {
+        val base = review.baseline
+        if (binding.target != base.owner || binding.homeId != base.homeId) throw CanonicalScopeChanged()
+        val reply = cronCall(CronTimingProtocol.Apply, CronTimingProtocol.apply(review, id))
+        CronTimingProtocol.parseReceipt(reply, base.owner, base.jobId, id, proof)
+    }
+
+    internal suspend fun observeCronTiming(jobId: String, id: String, proof: CronTimingReceiptProof) {
+        val owner = binding.target
+        val reply = cronCall(CronTimingProtocol.Observe, CronTimingProtocol.observe(owner, jobId, id))
+        CronTimingProtocol.parseReceipt(reply, owner, jobId, id, proof)
+    }
+
+    private suspend fun cronCall(method: String, params: JsonObject): JsonObject {
         synchronized(this) { check(!resuming && !resumed) }
         val expected = binding
         val reply = try {
             call(method, params)
         } catch (error: GatewayRpcException) {
-            if (error.code == -32601) throw CronExecutionHistoryUnavailable()
+            if (error.code == -32601) {
+                if (method == CronExecutionHistory.Method || method == CronExecutionOutput.Method) {
+                    throw CronExecutionHistoryUnavailable()
+                }
+                throw CronTimingRefused("UNSUPPORTED", false)
+            }
             throw error
         }
         if (binding !== expected) throw CanonicalScopeChanged()

@@ -7,15 +7,23 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Android review and recovery for paused schedules
+
+Schedule details now open a paused-job timing editor with native before-and-after
+review, a separate save and original-receipt recovery for lost replies.
+The corrected source passed 1,233 JVM tests, both lint variants, 12 focused
+Android tests on each API, and both compact editor checks. The next scheduler
+stage is to verify a native Run once admission and bind it to a durable
+execution receipt. Live Pi and physical acceptance remain open.
+[Validation](docs/VALIDATION.md#android-review-and-recovery-for-paused-schedules).
+
 ## Native timing review projection
 
 Hermes now reports the before-and-after schedule, time zone and
 repeat effect from the same projection used by its writer. Apply
 requires that review digest under the native lock. Both native
 cohorts, the prior scheduler regression suites and all 31 hosted
-Linux cases passed. Android review and original-receipt recovery
-are the next client
-integration. Live Pi validation and the wider release gates remain open.
+Linux cases passed. Live Pi validation and the wider release gates remain open.
 [Validation](docs/VALIDATION.md#native-timing-review-projection).
 
 ## Strict paused scheduler edit source
@@ -25,8 +33,8 @@ under the cross-process lock and saves a recovery receipt with the
 edit. Both pinned native scheduler cohorts and the authenticated
 dispatcher passed isolated tests. The exact source passed all 28
 hosted Linux cases, including five protected timing-edit cases.
-Android review, authenticated live Pi testing, run-once and
-scheduled project approvals remain open.
+Authenticated live Pi testing, run-once and scheduled project approvals
+remain open.
 [Validation](docs/VALIDATION.md#strict-paused-schedule-editing-source).
 
 ## Exact saved output on Android

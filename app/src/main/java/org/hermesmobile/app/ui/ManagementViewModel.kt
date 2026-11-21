@@ -116,7 +116,13 @@ data class ReviewedCatalogInstall(val target:ManagementTarget,val request:McpCat
 data class ReviewedMcpCreation(val target:ManagementTarget,val creation:McpCreation,val generation:Long)
 data class ReviewedMcpAction(val target:ManagementTarget,val request:McpRequest,val generation:Long)
 data class ManagementObservation(val key:String,val name:String,val exists:Boolean,val enabled:Boolean?)
-data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:Boolean=false,val detail:ManagedCronJob?=null,val contract:CronCreateContract?=null,val deliveries:List<CronDeliveryTarget> = emptyList(),val runs:ManagedCronRuns?=null,val executionHistory:CronExecutionHistory?=null,val output:HostCronOutputState?=null)
+data class HostCronState(val jobs:List<ManagedCronJob> = emptyList(),val loaded:Boolean=false,val detail:ManagedCronJob?=null,val contract:CronCreateContract?=null,val deliveries:List<CronDeliveryTarget> = emptyList(),val runs:ManagedCronRuns?=null,val executionHistory:CronExecutionHistory?=null,val output:HostCronOutputState?=null,val timingEditor:HostCronTimingEditor?=null)
+
+class HostCronTimingEditor internal constructor(
+    internal val job: ManagedCronJob,
+    internal val baseline: CronTimingBaseline,
+    internal val review: CronTimingReview? = null
+)
 
 class HostCronOutputState internal constructor(
     internal val history: CronExecutionHistory,
@@ -159,6 +165,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     private val hubInstalls=HubInstallRepository(app.database.dao(),app.managementReady)
     private val gatewayOperations=GatewayCronRepository(app.database.dao(),app.managementReady)
     private val skillOperations=SkillOperationsRepository(app.database.dao(),app.managementReady)
+    private val cronTiming=CronTimingRepository(app.database.dao(),app.managementReady)
     private val cronCreations=CronCreationRepository(app.database.dao(),app.managementReady)
     private val oauthOperations=McpOAuthRepository(app.database.dao(),app.managementReady)
     private val catalogOperations=McpCatalogRepository(app.database.dao(),app.managementReady)
@@ -205,11 +212,24 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun resourceScope(s:ManagementState):String=if(s.profile.isBlank()) "" else runCatching {ManagementTarget(s.apiScope,baseUrl(s).toString(),s.profile,"scope").resourceScope}.getOrDefault("")
     private fun dashboardUrl(s:ManagementState)=runCatching {baseUrl(s).toString()}.getOrDefault("")
     fun projectReceiptHome(s:ManagementState):String=if(s.identity==null || !GatewayCronInventory.supportedProfile(s.profile)) "" else s.profiles.singleOrNull {it.name==s.profile}?.pluginHome?.identity().orEmpty()
-    fun visibleReceipts(s:ManagementState,rows:List<ManagementOperation>)=ManagementReceiptVisibility.project(rows,s.apiScope,resourceScope(s),dashboardUrl(s),projectReceiptHome(s))
-    private data class ReceiptScope(val resource:String,val api:String,val url:String,val projectHome:String)
-    val receipts=state.map {ReceiptScope(resourceScope(it),it.apiScope,dashboardUrl(it),projectReceiptHome(it))}.distinctUntilChanged().flatMapLatest {(scope,apiScope,url,home)->
-        if(scope.isBlank()) flowOf(emptyList()) else app.database.dao().managementVisibleResourceOperations(scope,apiScope,url,home).map {ManagementReceiptVisibility.project(it,apiScope,scope,url,home)}
-    }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
+    private fun receiptActor(s: ManagementState) = s.identity?.let { it.provider + " · " + it.userId }.orEmpty()
+    private data class ReceiptScope(
+        val resource: String, val api: String, val url: String, val projectHome: String, val actor: String
+    ) {
+        fun visible(rows: List<ManagementOperation>) =
+            ManagementReceiptVisibility.project(rows, api, resource, url, projectHome, actor)
+    }
+
+    private fun receiptScope(s: ManagementState) =
+        ReceiptScope(resourceScope(s), s.apiScope, dashboardUrl(s), projectReceiptHome(s), receiptActor(s))
+
+    fun visibleReceipts(s: ManagementState, rows: List<ManagementOperation>) = receiptScope(s).visible(rows)
+
+    val receipts = state.map(::receiptScope).distinctUntilChanged().flatMapLatest { scope ->
+        if (scope.resource.isBlank()) flowOf(emptyList()) else app.database.dao()
+            .managementVisibleResourceOperations(scope.resource, scope.api, scope.url, scope.projectHome)
+            .map(scope::visible)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     // Review identity can change while ManagementState stays equal; dialogs must observe both.
     private val reviewGenerationState=MutableStateFlow(0L)
     val reviewGeneration=reviewGenerationState.asStateFlow()
@@ -332,6 +352,13 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         is InvalidCronRunsReply->Words.HostCronRunsInvalid
         is InvalidCronExecutionHistory->Words.HostCronLedgerInvalid
         is InvalidCronExecutionOutput->Words.HostCronOutputInvalid
+        is CronTimingInvalid->Words.HostCronTimingInvalidReply
+        is CronTimingRefused->when {
+            e.submitted->Words.ManagementOutcomePending
+            e.code=="CHANGED"->Words.ManagementReviewChanged
+            e.code=="UNSUPPORTED"->Words.HostCronTimingUnavailable
+            else->Words.HostCronTimingRefused
+        }
         is CronExecutionHistoryUnavailable->Words.HostCronLedgerUnavailable
         is HermesResponseTooLargeException->Words.ManagementTooLarge
         is McpOAuthUnavailable->Words.McpOAuthExpired
@@ -393,7 +420,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     fun cancel() {
         closeForegroundReaders()
-        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,cron=state.value.cron.copy(output=null),projects=HostProjectsState(),kanban=HostKanbanState(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
+        generation++;login?.close();login=null;work?.cancel();state.value=state.value.copy(busy=false,cron=state.value.cron.copy(output=null,timingEditor=null),projects=HostProjectsState(),kanban=HostKanbanState(),moa=null,hostModels=null,hostMainModel=HostMainModelState(),hostAuxModel=HostAuxModelState(),environment=null,channels=null,channelPosture=null,relay=null,relayTarget=null,relayLink=null,oauth=emptyMap(),providerAccounts=null,customEndpoints=null,customEndpointProbe=null,fallback=null,credentialPool=null,poolCleanup=null,providerFlows=emptyMap(),providerFlowKey=null,plugins=state.value.plugins.copy(lookup=null,inspection=null,installReport=null,toggleReport=null,updateDecision=null,updateReport=null,updateResult=null,settings=null),hub=state.value.hub.copy(preview=null,scan=null))
     }
     fun refresh(renew:Boolean=false)=operation {id ->
         val saved=state.value;val original=tokens ?: error("Sign in to management first.")
@@ -420,9 +447,9 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(id==generation) state.value=state.value.copy(servers=servers,loaded=true)
     }
     private fun target():ManagementTarget? {
-        val saved=state.value;val identity=saved.identity ?: return null
-        if(!saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
-        return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,identity.provider+" · "+identity.userId)
+        val saved=state.value
+        if(saved.identity==null || !saved.signedIn || saved.profile.isBlank() || saved.profiles.none {it.name==saved.profile}) return null
+        return ManagementTarget(saved.apiScope,baseUrl(saved).toString(),saved.profile,receiptActor(saved))
     }
 
 
@@ -1365,7 +1392,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun loadHostCronDetail(job:ManagedCronJob)=operation {id ->
         val saved=state.value;val target=target() ?: error("Verify management profile first.")
         require(saved.cron.jobs.any {it===job} && job.addressable)
-        state.value=state.value.copy(cron=saved.cron.copy(detail=null,runs=null,executionHistory=null,output=null))
+        state.value=state.value.copy(cron=saved.cron.copy(detail=null,runs=null,executionHistory=null,output=null,timingEditor=null))
         val current=tokens ?: error("Sign in first.");val api=client(saved);api.identity(current)
         val detail=ManagedCronJob.parse(api.cronJob(current,target.profile,job.id),target.profile);require(detail.id==job.id)
         if(id==generation) state.value=state.value.copy(cron=state.value.cron.copy(detail=detail))
@@ -1373,7 +1400,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun loadHostCronRuns(job:ManagedCronJob)=operation {id ->
         val saved=state.value;val target=target() ?: error("Verify management profile first.")
         require(saved.cron.detail===job && job.addressable)
-        state.value=state.value.copy(cron=saved.cron.copy(runs=null,executionHistory=null,output=null))
+        state.value=state.value.copy(cron=saved.cron.copy(runs=null,executionHistory=null,output=null,timingEditor=null))
         val current=tokens ?: error("Sign in first.");val api=client(saved);api.identity(current)
         val fresh=ManagedCronJob.parse(api.cronJob(current,target.profile,job.id),target.profile);require(fresh.id==job.id)
         val runs=ManagedCronRuns.parse(api.cronRuns(current,target.profile,job.id),target.profile,job.id)
@@ -1382,6 +1409,71 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     internal fun hostCronLedgerHome(saved: ManagementState): String? {
         if (saved.identity == null || !CronExecutionHistory.supportsProfile(saved.profile)) return null
         return saved.profiles.singleOrNull { it.name == saved.profile }?.pluginHome?.identity()
+    }
+
+    internal fun openHostCronTiming(job: ManagedCronJob) = operation { id ->
+        val saved = state.value
+        val owner = target() ?: throw CronTimingInvalid()
+        val home = hostCronLedgerHome(saved) ?: throw CronTimingInvalid()
+        require(saved.cron.detail === job && job.addressable && job.enabled == false && job.state == "paused")
+        val baseline = client(saved).withScheduler(tokens ?: throw CronTimingInvalid(), owner, home) {
+            it.prepareCronTiming(job.id)
+        }
+        val latest = state.value
+        if (id == generation && latest.cron.detail === job) {
+            state.value = latest.copy(cron = latest.cron.copy(timingEditor = HostCronTimingEditor(job, baseline)))
+        }
+    }
+
+    internal fun reviewHostCronTiming(editor: HostCronTimingEditor, draft: CronTimingDraft) = operation { id ->
+        val saved = state.value
+        require(saved.cron.timingEditor === editor && editor.review == null)
+        val baseline = editor.baseline
+        if (target() != baseline.owner || hostCronLedgerHome(saved) != baseline.homeId) throw CanonicalScopeChanged()
+        val reviewed = client(saved).withScheduler(tokens ?: throw CronTimingInvalid(), baseline.owner, baseline.homeId) {
+            it.cronTimingReview(baseline, draft)
+        }
+        val latest = state.value
+        if (id == generation && latest.cron.timingEditor === editor) {
+            state.value = latest.copy(cron = latest.cron.copy(timingEditor = HostCronTimingEditor(editor.job, baseline, reviewed)))
+        }
+    }
+
+    internal fun reviseHostCronTiming(editor: HostCronTimingEditor) {
+        val saved = state.value
+        if (saved.busy || saved.cron.timingEditor !== editor) return
+        state.value = saved.copy(error = null, cron = saved.cron.copy(
+            timingEditor = HostCronTimingEditor(editor.job, editor.baseline)))
+    }
+
+    internal fun applyHostCronTiming(editor: HostCronTimingEditor) = operation { id ->
+        val saved = state.value
+        val reviewed = editor.review ?: throw CronTimingInvalid()
+        require(saved.cron.timingEditor === editor && saved.cron.detail === editor.job)
+        if (target() != editor.baseline.owner || hostCronLedgerHome(saved) != editor.baseline.homeId) throw CanonicalScopeChanged()
+        state.value = saved.copy(cron = saved.cron.copy(timingEditor = HostCronTimingEditor(editor.job, editor.baseline)))
+        cronTiming.apply(reviewed, client(saved), tokens ?: throw CronTimingInvalid())
+        if (id == generation) {
+            val latest = state.value
+            state.value = latest.copy(cron = latest.cron.copy(
+                detail = null, runs = null, executionHistory = null, output = null, timingEditor = null),
+                notice = Words.HostCronTimingSaved)
+        }
+    }
+
+    internal fun observeCronTimingReceipt(key: String) = operation { id ->
+        val saved = state.value
+        val owner = target() ?: throw CronTimingInvalid()
+        val home = hostCronLedgerHome(saved) ?: throw CronTimingInvalid()
+        cronTiming.observe(owner, home, key, client(saved), tokens ?: throw CronTimingInvalid())
+        if (id == generation) state.value = state.value.copy(notice = Words.HostCronTimingSaved)
+    }
+
+    fun closeHostCronTiming() {
+        if (state.value.cron.timingEditor == null) return
+        if (state.value.busy) cancel()
+        val latest = state.value
+        state.value = latest.copy(cron = latest.cron.copy(timingEditor = null))
     }
 
     fun loadHostCronExecutionHistory(job: ManagedCronJob) = operation { id ->
@@ -1427,7 +1519,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     fun closeHostCronDetail() {
         if (state.value.busy && state.value.cron.detail != null) cancel()
         val latest = state.value
-        state.value = latest.copy(cron = latest.cron.copy(detail = null, runs = null, executionHistory = null, output = null),
+        state.value = latest.copy(cron = latest.cron.copy(detail = null, runs = null, executionHistory = null, output = null, timingEditor = null),
             error = null)
     }
     fun prepareOAuth(server:ManagedServer):ReviewedMcpOAuth? {
@@ -1521,6 +1613,7 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         if(s.busy) return null
         val owner=target() ?: return null
         val row=visibleReceipts(s,receipts.value).singleOrNull {it.key==key && it.state=="unknown"} ?: return null
+        if (row.action in setOf(CronTimingProtocol.Action, ManagementReceiptVisibility.SharedCronTimingPending)) return null
         val project=row.projectHome.isNotBlank() || row.action==ManagementReceiptVisibility.SharedProjectPending || HostProjectAction.receipt(row.action)
         val home=if(project) projectReceiptHome(s).takeIf {it.isNotBlank() && it==row.projectHome} ?: return null else ""
         return ReviewedManagementUncertainty(key,owner,ManagementReceiptVisibility.instanceAction(row.action) || row.action==ManagementReceiptVisibility.SharedInstancePending,home)

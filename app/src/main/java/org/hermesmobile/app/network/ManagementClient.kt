@@ -189,15 +189,15 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
 
     internal suspend fun cronExecutionHistory(
         tokens: ManagementTokens, target: ManagementTarget, homeId: String, jobId: String
-    ): CronExecutionHistory = readScheduler(tokens, target, homeId) { it.cronExecutionHistory(jobId) }
+    ): CronExecutionHistory = withScheduler(tokens, target, homeId) { it.cronExecutionHistory(jobId) }
 
     internal suspend fun cronExecutionOutput(
         tokens: ManagementTokens, target: ManagementTarget, homeId: String, jobId: String, executionId: String
-    ): CronExecutionOutput = readScheduler(tokens, target, homeId) { it.cronExecutionOutput(jobId, executionId) }
+    ): CronExecutionOutput = withScheduler(tokens, target, homeId) { it.cronExecutionOutput(jobId, executionId) }
 
-    private suspend fun <T> readScheduler(
+    internal suspend fun <T> withScheduler(
         tokens: ManagementTokens, target: ManagementTarget, homeId: String,
-        read: suspend (CanonicalGatewayChannel) -> T
+        call: suspend (CanonicalGatewayChannel) -> T
     ): T {
         val channel = try {
             canonicalGateway(tokens, target, homeId)
@@ -208,7 +208,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         }
         return channel.use {
             val binding = it.binding
-            val result = read(it)
+            val result = call(it)
             identity(tokens)
             verifyCanonicalHome(tokens, target, homeId)
             if (it.binding !== binding) throw CanonicalScopeChanged()

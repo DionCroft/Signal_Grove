@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Android review and recovery for paused schedules
+
+The Android schedule details screen opens a timing editor for a paused job
+on a verified Hermes profile. The native review shows current and proposed
+schedule, zone, catch-up, grace and repeat effects. Save rechecks the reviewed
+digest before claiming a durable attempt. The exact authenticated receipt
+confirms the edit. A missing reply keeps the attempt pending and the recovery
+control reads only that original request. It never dispatches a run.
+[Native timing edit contract](../server_extensions/coordinator_workspaces/README.md#optional-native-timing-edits-for-paused-jobs).
+
+The first signed debug pair passed 11 of 12 focused cases on each API.
+The missing-reply test found that the receipt collector redacted the
+original owner's row because it omitted the verified actor. The corrected
+collector scopes on actor and home. The first-run failure logs were retained.
+
+The corrected exact source passed 1,233 JVM tests, both lint variants and
+debug and instrumentation assembly. All 12 focused cases passed separately
+on Android 8 (API 26) and Android 17 (API 37). At 320 × 560 dp and 1.3× font
+scale, both new flows passed again on Android 17, and the display overrides
+were restored. The tests cover explicit save, changed review rejection
+without applying, one submission, original observation without replay,
+and refusal to clear an uncertain timing edit through a generic review.
+The portable Windows policy suite discovered 1,205 cases with zero
+failures and 273 platform or fixture skips.
+
+- Exact source input digest — `921798133da3fce09b62cc26613c725e24cf69389e845b89035bcac4066fd8c8`
+- Debug APK SHA-256 — `2ea48523e08284cad38ca1a4169487e7a508d52a9fcb1fdd6949ea4e6b7e81cf`
+- Instrumentation APK SHA-256 — `85a07b584484e5f29db77e2eae52f40827d226f81a02c2d8e0242db17450157c`
+
+The emulator tests use a synthetic authenticated Hermes transport. The
+previous native tests prove the timing writer in isolation. An authenticated
+live Pi edit, physical acceptance, scheduled project approval, Run once and
+service logs are still open.
+
 ## Native timing review projection
 
 An explicit read-only review now runs the same projected update

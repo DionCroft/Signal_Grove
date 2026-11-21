@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*
 import okhttp3.Response
 import okhttp3.WebSocket
@@ -43,6 +44,24 @@ class HostCronRunsFlowTest {
         val requests=ConcurrentLinkedQueue<RecordedRequest>()
         val historyReads = AtomicInteger()
         val outputReads = AtomicInteger()
+        val timingPrepares = AtomicInteger()
+        val timingReviews = AtomicInteger()
+        val timingApplies = AtomicInteger()
+        val timingObserves = AtomicInteger()
+        @Volatile var changeReview = false
+        @Volatile var loseEditReply = false
+        private val timingReceipt = AtomicReference<JsonObject?>()
+        private val version = "a".repeat(64)
+        private val digest = "b".repeat(64)
+        private fun effect(minutes: Int) = buildJsonObject {
+            putJsonObject("timing") {
+                putJsonObject("schedule") { put("kind","interval"); put("minutes",minutes) }
+                put("timezone",JsonNull); put("catch_up",JsonNull); put("grace_minutes",JsonNull)
+            }
+            putJsonObject("repeat") { put("times",JsonNull); put("completed",2) }
+        }
+        private fun timingPayload(effect: JsonObject) = JsonObject(effect + mapOf(
+            "profile" to JsonPrimitive("worker"), "job_id" to JsonPrimitive("job-fixture")))
         val socketCount = AtomicInteger()
         val unexpectedSocketFrames = AtomicInteger()
         val outputEntered = CountDownLatch(1)
@@ -127,6 +146,52 @@ class HostCronRunsFlowTest {
                             } else {
                                 reply()
                             }
+                        }
+                        CronTimingProtocol.Prepare, CronTimingProtocol.Review, CronTimingProtocol.Apply, CronTimingProtocol.Observe -> {
+                            check(params["expected_profile"] == JsonPrimitive("worker") && params["job_id"] == JsonPrimitive("job-fixture"))
+                            if (method in setOf(CronTimingProtocol.Review, CronTimingProtocol.Apply)) {
+                                check(params["expected_version"] == JsonPrimitive(version))
+                                check(params["changes"] == buildJsonObject { put("schedule","every 2h") })
+                            }
+                            val body = when (method) {
+                                CronTimingProtocol.Prepare -> {
+                                    timingPrepares.incrementAndGet()
+                                    check(params.size == 2)
+                                    timingPayload(JsonObject(effect(60) + ("version" to JsonPrimitive(version))))
+                                }
+                                CronTimingProtocol.Review -> {
+                                    val attempt = timingReviews.incrementAndGet()
+                                    check(params.size == 4)
+                                    timingPayload(buildJsonObject {
+                                        put("version",version); put("profile_timezone","Europe/London")
+                                        put("before",effect(60)); put("after",effect(120))
+                                        put("review_digest", if (changeReview && attempt > 1) "c".repeat(64) else digest)
+                                    })
+                                }
+                                CronTimingProtocol.Apply -> {
+                                    timingApplies.incrementAndGet()
+                                    val key = params.getValue("request_id").jsonPrimitive.content
+                                    check(params.size == 6 && params["review_digest"] == JsonPrimitive(digest))
+                                    val durable = runBlocking { app.database.dao().managementOperation(key) }
+                                    check(durable?.state == "sending" && durable.action == CronTimingProtocol.Action)
+                                    val receipt = timingPayload(JsonObject(effect(120) + mapOf(
+                                        "request_id" to JsonPrimitive(key), "reviewed_version" to JsonPrimitive(version),
+                                        "review_digest" to JsonPrimitive(digest))))
+                                    timingReceipt.set(receipt)
+                                    if (loseEditReply) {
+                                        webSocket.close(1011, "fixture edit ACK lost")
+                                        return
+                                    }
+                                    receipt
+                                }
+                                else -> {
+                                    timingObserves.incrementAndGet()
+                                    val exact = checkNotNull(timingReceipt.get())
+                                    check(params.size == 3 && params["request_id"] == exact["request_id"])
+                                    exact
+                                }
+                            }
+                            send(buildJsonObject { put("schema",1); put("state","ok"); put("payload",body) }.toString())
                         }
                         else -> error("Unexpected RPC.")
                     }
@@ -215,6 +280,69 @@ class HostCronRunsFlowTest {
     private fun screenshot(name:String) {
         val file=File(compose.activity.getExternalFilesDir(null),"qa/$name.png");file.parentFile!!.mkdirs()
         file.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+    }
+
+    private fun reviewNewTiming() {
+        compose.onNodeWithTag("host-cron-detail").performScrollToNode(hasTestTag("host-cron-timing-open"))
+        compose.onNodeWithTag("host-cron-timing-open").performClick()
+        compose.waitUntil(10000) { !management.state.value.busy && management.state.value.cron.timingEditor != null }
+        compose.onNodeWithTag("cron-timing-review").assertIsNotEnabled()
+        compose.onNodeWithTag("host-cron-timing").performScrollToNode(hasTestTag("cron-timing-schedule"))
+        compose.onNodeWithTag("cron-timing-schedule").performTextReplacement("every 2h")
+        compose.onNodeWithTag("cron-timing-review").performClick()
+        compose.waitUntil(10000) { !management.state.value.busy && management.state.value.cron.timingEditor?.review != null }
+    }
+
+    @Test fun reviewedTimingRequiresExplicitSaveAndRefusesChangedDigest() {
+        Fixture(ledgerEnabled = true).use { f ->
+            f.changeReview = true
+            open(f, multilingual = true)
+            reviewNewTiming()
+            compose.onNodeWithTag("cron-timing-apply").assertIsDisplayed().assertIsEnabled()
+            assertEquals(1, f.timingPrepares.get())
+            assertEquals(1, f.timingReviews.get())
+            assertEquals(0, f.timingApplies.get())
+            compose.onNodeWithTag("cron-timing-apply").performClick()
+            compose.waitUntil(10000) { !management.state.value.busy && management.state.value.error == Words.ManagementReviewChanged }
+            assertEquals(2, f.timingReviews.get())
+            assertEquals(0, f.timingApplies.get())
+            assertEquals(0, f.timingObserves.get())
+            assertEquals(0, f.writes.get())
+            assertEquals(0, f.unexpectedSocketFrames.get())
+        }
+    }
+
+    @Test fun lostTimingReplyCanBeCheckedOnlyByTheOriginalReceipt() {
+        Fixture(ledgerEnabled = true).use { f ->
+            f.loseEditReply = true
+            open(f)
+            reviewNewTiming()
+            compose.onNodeWithTag("cron-timing-apply").performClick()
+            compose.waitUntil(15000) {
+                !management.state.value.busy && management.receipts.value.any {
+                    it.action == CronTimingProtocol.Action && it.state == "unknown"
+                }
+            }
+            val row = management.receipts.value.single { it.action == CronTimingProtocol.Action && it.state == "unknown" }
+            assertNull(management.prepareManagementUncertainty(row.key))
+            runBlocking {
+                app.database.dao().reviewManagementOperation(row.key, row.resourceScope, row.url, row.projectHome)
+                assertEquals("unknown", app.database.dao().managementOperation(row.key)?.state)
+            }
+            compose.onNodeWithTag("cron-timing-back").performClick()
+            compose.onNodeWithTag("host-cron-detail-close").performClick()
+            val observe = "management-observe-" + row.key
+            compose.onNodeWithTag("host-cron-list").performScrollToNode(hasTestTag(observe))
+            compose.onNodeWithTag(observe).performClick()
+            compose.waitUntil(15000) {
+                !management.state.value.busy && management.receipts.value.any { it.key == row.key && it.state == "confirmed" }
+            }
+            assertEquals(Words.HostCronTimingSaved, management.state.value.notice)
+            assertEquals(1, f.timingApplies.get())
+            assertEquals(1, f.timingObserves.get())
+            assertEquals(0, f.writes.get())
+            assertEquals(0, f.unexpectedSocketFrames.get())
+        }
     }
 
     @Test fun scopedHistoryRequiresRevealAndRefreshRemovesPrivateText() {
