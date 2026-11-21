@@ -42,6 +42,10 @@ SHA-256 values were
 The 11 focused approval and operator cases passed. The full portable suite
 discovered 1,220 tests with zero failures and 273 platform or fixture skips.
 
+Hosted run [44888121356](https://github.com/DionCroft/Signal_Grove/actions/runs/44888121356)
+passed the protocol job, 33 protected Linux coordinator cases and 72
+Windows native worker cases on exact source `0963382`.
+
 ## Exact one-use Run once approval
 
 The optional native service issues a bounded, three-minute review in the
