@@ -13,7 +13,7 @@ import textwrap
 
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
          'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
-         'cron_run_once.py')
+         'cron_run_once.py','cron_run_once_approval.py')
 
 
 def patch_source(source):
@@ -181,7 +181,20 @@ def mark_job_run(
 
     def locked():
         with _jobs_lock(require_cross_process=True):
-            return _with_job(job_id, apply, False)
+            # Observe the exact record without stock load_jobs repairing state
+            # before approval. Keep the native save's pre-read merge stamp.
+            stamp = _jobs_file_stamp(_current_cron_store().jobs_file)
+            rows = _peek_jobs_unlocked()
+            if rows is None or any(type(row) is not dict for row in rows):
+                raise ValueError("Invalid reviewed manual job store.")
+            matches = [(index, row) for index, row in enumerate(rows) if row.get("id") == job_id]
+            if len(matches) > 1:
+                raise ValueError("Ambiguous reviewed manual job.")
+            if not matches:
+                return False
+            _record_load_stamp(stamp)
+            index, job = matches[0]
+            return apply(rows, index, job)
 
     return _under_fire_fence(job_id, locked)
 

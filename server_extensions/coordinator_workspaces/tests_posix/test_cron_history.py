@@ -1,17 +1,20 @@
 """The scoped cron read uses real protected directories and SQLite WAL snapshots."""
 
-from contextlib import closing
+from contextlib import closing, nullcontext
 from dataclasses import replace
 import json
 import os
 from pathlib import Path
 import sqlite3
+import sys
 import tempfile
+from types import ModuleType
 import unittest
 from unittest.mock import patch
 
 from server_extensions.coordinator_workspaces import cron_history, cron_output, cron_run_once
-from server_extensions.coordinator_workspaces.coordinator import ReadRefused
+from server_extensions.coordinator_workspaces import cron_run_once_approval as approval
+from server_extensions.coordinator_workspaces.coordinator import NativeReadContext, ReadRefused
 
 JOB = 'f1e2d3c4b5a6'
 OTHER_JOB = '1029384756ab'
@@ -115,6 +118,50 @@ class CronHistoryPosixTest(unittest.TestCase):
             for change in ({'request_id': OTHER_RECEIPT}, {'job_id': OTHER_JOB}, {'expected_profile': 'secondary'}):
                 lookup = cron_run_once.run_once_receipt_query(target | change)
                 self.expect('NOT_FOUND', lambda: cron_run_once.observe_run_once(self.home, lookup))
+
+    def test_run_once_review_is_read_only_and_lost_save_keeps_original_wal_receipt(self):
+        job_path = self.home / 'cron/jobs.json'
+        actor = NativeReadContext('owner', str(self.home), 'transport', 'native-authority')
+        scope = approval.RunOnceScope(None, 'exact-workspace', None, 'local', 'instance-a',
+                                      'read', 'a' * 64, 'Read one fixture')
+        service = approval.RunOnceApprovals(lambda *_: scope)
+        profiles = ModuleType('hermes_cli.profiles')
+        profiles.profile_matches_home = lambda name, home: (name, home) == ('default', self.home)
+        fixture = self
+
+        class Native:
+            class CronStoreLockUnavailable(RuntimeError):
+                pass
+
+            def claim_reviewed_run_once(self, job_id, *, execution_id, authorize):
+                row = json.loads(job_path.read_bytes())['jobs'][0]
+                assert job_id == row['id']
+                assert authorize(row) is True
+                fixture.add(db, receipt=execution_id, status='claimed', source=cron_run_once.RUN_ONCE_SOURCE)
+                raise OSError('Saved native receipt, then simulated lost job save')
+
+        with (closing(self.open_ledger(self.home)) as db,
+              patch.dict(sys.modules, {'hermes_cli.profiles': profiles}),
+              patch.object(approval, '_native_jobs', return_value=Native()),
+              patch.object(approval, '_profile_home', side_effect=lambda *_: nullcontext())):
+            before = self.protected(self.home)
+            reviewed = service.prepare('default', JOB, lambda: actor)
+            self.assertEqual(before, self.protected(self.home))
+            replacement = job_path.with_name('copy.json')
+            replacement.write_bytes(job_path.read_bytes())
+            replacement.chmod(0o600)
+            replacement.replace(job_path)
+            self.expect('CHANGED', lambda: service.admit(reviewed.receipt, reviewed.digest, lambda: actor))
+            self.expect('NOT_FOUND', lambda: cron_run_once.observe_run_once(self.home, reviewed.receipt))
+            valid = service.prepare('default', JOB, lambda: actor)
+            with self.assertRaises(ReadRefused) as error:
+                service.admit(valid.receipt, valid.digest, lambda: actor)
+            self.assertEqual(('UNAVAILABLE', True), (error.exception.code, error.exception.request_submitted))
+            original = cron_run_once.observe_run_once(self.home, valid.receipt)
+            self.assertEqual('claimed', original['execution']['status'])
+            self.assertEqual(valid.receipt.execution_id(), original['execution']['execution_id'])
+            self.expect('DUPLICATE', lambda: service.admit(valid.receipt, valid.digest, lambda: actor))
+            self.assertEqual(1, db.execute('SELECT COUNT(*) FROM executions').fetchone()[0])
 
     def test_name_alias_and_duplicate_ids_cannot_authorize_a_read(self):
         self.catalog(self.home, [{'id': OTHER_JOB, 'name': JOB}])

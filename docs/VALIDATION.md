@@ -1,5 +1,42 @@
 # Current development validation — audit follow-up
 
+## Exact one-use Run once approval
+
+The optional native service issues a bounded, three-minute review in the
+current authority. It binds the exact protected scheduler record to the
+authenticated actor, profile and transport. The operator's verified task,
+project/workspace, branch, worker instance, access and policy revision
+are also bound. Native admission rechecks the record and current grant
+under both scheduler locks. A consumed review can create only one native
+execution ID. Defer and deny retire the pending review. Preview uses the
+protected read, and the native claim observes the store without repair
+writes before approval.
+
+Eight portable cases covered the exact digest and each scope field, foreign
+actors and transports, expiry, defer/deny, competing confirmations,
+redacted policy failures, and uncertain outcomes after either a job-save
+failure or a lost authority. The full portable suite discovered 1,217
+tests with zero failures and 273 platform or fixture skips.
+
+The verified v0.23.1 and main `242315c` native sources each passed eight isolated
+cases. The new fixture passed an exact approval to the real native
+in-process scheduler, retained the original paused one-shot, saved a
+deterministic result and reached one terminal receipt. Replaying the
+confirmation returned the original-attempt conflict. A rejected approval
+left even the legacy fixture's job bytes unchanged. The Windows native
+fixture substitutes its exact local catalogue read and a deterministic
+task. The guarded stable jobs source SHA-256 is `1b0133dfdd0934b1986ea68a2d52966589b4dadc64dfaba786260d425a89ef40`. The repair-free
+claim also passed the 126 stable and 147 main stock scheduler cases.
+
+A separate hosted POSIX case checks the bounded catalogue and live WAL
+reader together. It verifies a read-only preview, refuses an identical
+replacement of the protected jobs file, and reads the original receipt
+after a simulated lost write. The binder and approval state are internal
+to this source stage. Authenticated phone controls, the durable project
+approval inbox, live worker dispatch and detached-worker recovery remain
+open.
+[Approval and native staging boundary](../server_extensions/coordinator_workspaces/README.md#optional-native-run-once-receipts).
+
 ## Native pause-preserving Run once
 
 Staging with both reviewed native hashes enables an internal manual claim

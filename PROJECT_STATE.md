@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Exact one-use Run once approval
+
+The native approval binds the existing job to the verified profile and
+connection, project/workspace, branch, worker instance, task, access and
+policy revision. Confirming consumes that review once under the native
+claim fences. A different connection or changed scope refuses confirmation.
+Denial, deferral and expiry end the review. On both pins a fixture exercised approval
+through the native in-process executor and completed one original receipt.
+The next stage binds the authenticated operator route and detached worker
+delivery, then validates a real project approval and signed Android flow.
+[Validation](docs/VALIDATION.md#exact-one-use-run-once-approval).
+
 ## Native pause-preserving Run once
 
 The guarded native claim checks approval under both scheduler locks and
@@ -14,9 +26,9 @@ reserves the original execution in the same profile before saving the fire
 claim. A live manual claim holds a due scheduled slot until settlement.
 The pinned v0.23.1 and main runtimes each passed six isolated cases,
 including recorded output and retention of a paused one-shot. The full
-pinned scheduling regressions passed 126 and 147 cases. The next work
-binds exact one-run approval and task scope to this native claim, then
-verifies callable dispatch and detached-worker recovery.
+pinned scheduling regressions passed 126 and 147 cases. Native review
+consumption is available internally. Authenticated dispatch and
+detached-worker recovery remain open.
 [Validation](docs/VALIDATION.md#native-pause-preserving-run-once).
 
 ## Native Run once receipt checkpoint

@@ -60,9 +60,17 @@ The normal tick defers the pending occurrence while the manual claim is live.
 The manual settlement preserves pause, repeat, next occurrence and
 automatic retry state.
 
-The network surface currently exposes receipt observation. Callers of the
-internal claim still need exact approval consumption and verified dispatch.
-[Native claim validation](../../docs/VALIDATION.md#native-pause-preserving-run-once).
+The internal approval service binds the current actor, profile and
+transport to the exact job and verified execution scope. A review
+expires after three minutes and can be used once. Denial and deferral
+retire the review. If confirmation passes the native locks and a later
+write fails, the caller reconciles through the original request ID.
+
+The network surface currently exposes receipt observation. The internal
+service delegates scope resolution to the operator, and its caller still
+owns verified dispatch. Reviews are transient and the native execution
+receipt is durable. The project approval inbox has its own acceptance gate.
+[Approval validation](../../docs/VALIDATION.md#exact-one-use-run-once-approval).
 [Validation](../../docs/VALIDATION.md#native-original-run-once-receipts).
 
 ## Optional native scheduled output previews
