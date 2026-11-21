@@ -1,5 +1,37 @@
 # Optional native coordinator workspace reads
 
+## Optional scheduled project-write holds
+
+A reviewed candidate can enable `--hold-project-schedules` with exact
+stock controls, jobs, executions, scheduler and provider hashes. The
+installer stages the source. Operator policy and service activation are separate.
+
+The candidate expects an owner-only `cron/signal-grove-schedule-policy.json`
+under each served profile home. It is a closed schema with integer
+`schema: 1`, an `automatic` list of `{job_id, spec_digest}` and a
+`project_writes` list of `{job_id, project_id}`. The combined limit is
+64 distinct job IDs. An ordinary job can run automatically while its
+job definition matches the enrolled digest. The server's
+`automatic_spec_digest` projects the stored record, excluding the
+documented native counters, timestamps and execution identifiers.
+A changed definition needs a fresh operator policy decision. A missing
+or unsafe policy holds stock execution on that profile.
+
+A registered write keeps its stored due instant and repeat budget.
+Unclassified jobs also hold. Manual prompt overrides and stock manual
+triggers cannot replace an occurrence in this mode.
+
+On the authenticated owner socket,
+`signal_grove.cron.project_inbox_v1` accepts only `{expected_profile}`.
+The result contains the selected profile and a bounded `entries` list
+with job ID, project ID, UTC due instant and occurrence ID. It projects
+due registered jobs that have no unresolved native claim. The identifier
+addresses the same occurrence across reconnect and process restart.
+Occurrence review still needs to verify current policy, exact job
+definition, access and worker identity before admission. This checkpoint
+adds the hold and the read-only owner inbox.
+[Validation](../../docs/VALIDATION.md#held-scheduled-project-writes-and-owner-inbox).
+
 ## Optional native timing edits for paused jobs
 
 The edit methods use the authenticated owner connection and the

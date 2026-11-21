@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Held scheduled project writes
+
+The optional source gate preserves a registered project-write occurrence
+before the stock ticker, provider, manual claim and execution paths.
+An authenticated owner read returns the same due occurrence after reconnect
+and process restart. A permitted ordinary job still uses the native
+scheduler with its approved definition. Both pins passed seven isolated
+checks. Occurrence-specific decisions, worker admission and Android inbox
+controls are the next gate. The optional policy is staged for testing.
+[Validation](docs/VALIDATION.md#held-scheduled-project-writes-and-owner-inbox).
+
 ## Android reviewed Run once and original receipt
 
 Scheduled job details now offer a one-run review with the exact task,

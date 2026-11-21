@@ -1,5 +1,52 @@
 # Current development validation — audit follow-up
 
+## Held scheduled project writes and owner inbox
+
+The optional native source gate requires a protected policy per profile.
+It admits ordinary jobs only while the stored job and the dispatch
+snapshot match the approved execution definition. It retains a registered
+project write at its original due instant before the stock ticker can
+advance, retire or spend its repeat. Missing or unsafe policy and
+unclassified jobs hold the stock path. The authenticated owner inbox
+projects the canonical job ID, project ID, due instant and occurrence ID.
+It reads the protected catalogue and policy again before returning.
+[Protected policy and inbox contract](../server_extensions/coordinator_workspaces/README.md#optional-scheduled-project-write-holds).
+
+Git-object-verified v0.23.1 and reviewed main `242315c` each passed
+six fixture cases plus one fresh-process case:
+
+- Missing policy held the job before native dispatch.
+- Registered and unclassified jobs stayed held across the stock ticker,
+  normal and forced claims, reviewed manual claims, provider reservation,
+  direct scheduler execution and native trigger.
+- Wrong actors, profiles and routing fields were refused. Reconnecting
+  recovered the same minimal occurrence without a claim or execution row.
+- A change to an otherwise approved job's task, a modified dispatch
+  snapshot and a per-fire prompt override stayed held.
+- An ordinary approved job ran through the native provider and scheduler
+  with a deterministic task, one saved result and a completed native receipt.
+- The overdue one-shot kept its first occurrence and full finite repeat
+  as the ordinary job settled.
+- A new process opened the same job store and projected the same held
+  occurrence and zero execution rows for that job.
+
+Preview and apply agreed for both pins. The installer refused missing
+or incorrect provider hashes and repeat application. The untouched
+upstream Git blobs were verified again after staging. The first fixture
+opened a replacement connection before awaiting the original close. The
+final fixture awaits the native close, then checks the replacement and
+the fresh-process result. Windows supplies a bounded disposable
+catalogue and simulated protected descriptor reads. Its SQLite build
+uses DELETE journaling under Hermes' compatibility guard.
+
+Six portable cases passed, including changed policy or job-store
+identity, scope partitioning and exact schedule-definition validation.
+The full suite discovered 1,226 tests with zero failures and 273 platform
+or fixture skips. Linux descriptor checks run in the protected coordinator
+workflow. Occurrence-specific approve/defer/deny, live worker execution,
+Pi deployment and Android inbox controls remain open.
+[Hermes cron internals](https://hermes-agent.nousresearch.com/docs/developer-guide/cron-internals).
+
 ## Android reviewed Run once and original receipt
 
 Scheduled job details open a foreground review on a separate canonical

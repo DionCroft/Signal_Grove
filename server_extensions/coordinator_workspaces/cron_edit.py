@@ -80,7 +80,7 @@ def _validate_setting(name, value, code):
         raise ReadRefused(code)
 
 
-def _catalogue(home, job_id):
+def _catalogue_records(home):
     with open_owner_directory(Path(home) / "cron") as parent:
         if _ledger_identity(parent, "jobs.json") is None:
             raise ReadRefused("NOT_FOUND")
@@ -101,9 +101,14 @@ def _catalogue(home, job_id):
                 type(repeat["completed"]) is not int or repeat["completed"] < 0):
             raise ReadRefused("UNAVAILABLE")
         records[key] = job
+    version = hashlib.sha256(b"signal-grove-cron-catalogue-v1\0" + encode({"identity": identity}) + raw).hexdigest()
+    return records, version
+
+
+def _catalogue(home, job_id):
+    records, version = _catalogue_records(home)
     if job_id not in records:
         raise ReadRefused("NOT_FOUND")
-    version = hashlib.sha256(b"signal-grove-cron-catalogue-v1\0" + encode({"identity": identity}) + raw).hexdigest()
     return records[job_id], version
 
 

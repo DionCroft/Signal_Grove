@@ -13,7 +13,8 @@ import textwrap
 
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
          'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
-         'cron_run_once.py','cron_run_once_approval.py','cron_run_once_operator.py')
+         'cron_run_once.py','cron_run_once_approval.py','cron_run_once_operator.py',
+         'cron_project_holds.py')
 
 
 def patch_source(source):
@@ -217,6 +218,119 @@ def heartbeat_fire_claim(job_id: str, *, expected_owner: str) -> bool:
     return source
 
 
+def _guard_entry(source, function, before, inserted):
+    """Add a guard inside one exact reviewed function, before a known statement."""
+    matches = [node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == function]
+    if len(matches) != 1:
+        raise ValueError(f"Expected one reviewed function for {function}.")
+    node = matches[0]
+    lines = source.splitlines(keepends=True)
+    section = "".join(lines[node.lineno - 1:node.end_lineno])
+    if section.count(before) != 1 or inserted in section:
+        raise ValueError(f"Native source differs from the reviewed gate for {function}.")
+    lines[node.lineno - 1:node.end_lineno] = [section.replace(before, inserted + before)]
+    return "".join(lines)
+
+
+def patch_cron_project_jobs(source):
+    source = patch_cron_reviewed_run_once(source)
+    anchor = "def _project_job_update(job_id, job, updates):\n"
+    if source.count(anchor) != 1:
+        raise ValueError("Native schedule projection differs from the reviewed project gate.")
+    source = source.replace(anchor, """def _project_cron_automatic_jobs():
+    from gateway.signal_grove_workspaces.cron_project_holds import automatic_jobs
+
+    store = _current_cron_store()
+    return automatic_jobs(get_hermes_home(), store.cron_dir, store.jobs_file)
+
+
+def _ordinary_cron_allowed(selected, *, automatic=None, stored=None):
+    from gateway.signal_grove_workspaces.cron_project_holds import matches_automatic
+
+    policy = _project_cron_automatic_jobs() if automatic is None else automatic
+    job_id = selected.get("id") if type(selected) is dict else selected
+    if type(job_id) is not str or job_id not in policy:
+        return False
+    if stored is None:
+        rows = _peek_jobs_unlocked()
+        if rows is None or any(type(row) is not dict for row in rows):
+            return False
+        matches = [row for row in rows if row.get("id") == job_id]
+        if len(matches) != 1:
+            return False
+        stored = matches[0]
+    return (matches_automatic(policy, stored)
+            and (type(selected) is not dict or matches_automatic(policy, selected)))
+
+
+""" + anchor + """    if any(updates.get(key) is not None for key in ("manual_run_at", "manual_run_restore_at", "manual_run_prompt")):
+        raise ValueError("This job requires scoped scheduler approval.")
+""")
+    source = _guard_entry(source, "_get_due_jobs_locked", "    raw_jobs = load_jobs()\n",
+                         """    automatic = _project_cron_automatic_jobs()
+    if not automatic:
+        return []
+""")
+    source = _guard_entry(source, "_get_due_jobs_locked", "            if _evaluate_due_job(job, scan, run_claim_ttl):\n",
+                         """            if not _ordinary_cron_allowed(job, automatic=automatic, stored=scan.find(job.get("id"))):
+                continue
+""")
+    for function, statement in (
+        ("claim_job_for_fire", "        if is_terminal_job(job) and not _is_recoverable_error_job(job):\n"),
+        ("claim_reviewed_run_once", '        paused = job.get("state") == "paused" and job.get("enabled") is False\n'),
+        ("claim_dispatch", '        repeat = job.get("repeat") or {}\n'),
+    ):
+        source = _guard_entry(source, function, statement, """        if not _ordinary_cron_allowed(job_id, stored=job):
+            return False
+""")
+    source = _guard_entry(source, "claim_dispatch", "    claimed = _with_job(job_id, apply, missing=_MISSING)\n",
+                         """    if not _ordinary_cron_allowed(job_id):
+        return False
+""")
+    ast.parse(source)
+    return source
+
+
+def patch_cron_project_scheduler(source):
+    source = patch_scheduler_output(source)
+    source = _guard_entry(source, "run_one_job",
+                         "    # Every gateway path (built-in scheduler, external providers, and direct\n",
+                         """    from cron.jobs import _ordinary_cron_allowed
+
+    if extra_prompt is not None or not _ordinary_cron_allowed(job):
+        return False
+
+""")
+    source = _guard_entry(source, "run_job", "    from gateway.session_cron import current_execution\n",
+                         """    from cron.jobs import _ordinary_cron_allowed
+
+    if extra_prompt is not None or not _ordinary_cron_allowed(job):
+        return False, "", "", "This job requires scoped scheduler approval."
+
+""")
+    ast.parse(source)
+    return source
+
+
+def patch_cron_project_provider(source):
+    # CronScheduler.claim_fire reserves a row before its ordinary job CAS.
+    # Refuse held jobs before reservation, then the normal gate checks again under the lock.
+    anchor = '''        from cron.jobs import claim_job_for_fire
+
+        execution = create_execution(job_id, source=self.name)
+'''
+    if source.count(anchor) != 1:
+        raise ValueError("Native provider differs from the reviewed project gate.")
+    updated = source.replace(anchor, """        from cron.jobs import _ordinary_cron_allowed, claim_job_for_fire
+
+        if not _ordinary_cron_allowed(job_id):
+            return None
+        execution = create_execution(job_id, source=self.name)
+""")
+    ast.parse(updated)
+    return updated
+
+
 def patch_cron_execution_reservation(source):
     start = source.index('def create_execution(\n')
     end = source.index('\ndef set_execution_occurrence(', start)
@@ -256,24 +370,40 @@ def main():
     parser.add_argument('--expected-cron-jobs-sha256', help='Also stage the strict paused scheduler edit hook.')
     parser.add_argument('--expected-cron-executions-sha256',
                         help='Also stage the reviewed native manual execution ID hook.')
+    parser.add_argument('--hold-project-schedules', action='store_true',
+                        help='Require protected schedule policy across reviewed stock dispatch paths.')
+    parser.add_argument('--expected-cron-provider-sha256',
+                        help='Required native provider hash when holding project schedules.')
     parser.add_argument('--apply',action='store_true')
     args=parser.parse_args()
+    if args.hold_project_schedules and not all((args.expected_scheduler_sha256, args.expected_cron_jobs_sha256,
+            args.expected_cron_executions_sha256, args.expected_cron_provider_sha256)):
+        parser.error('Holding project schedules requires verified scheduler, jobs, executions and provider hashes.')
+    if args.expected_cron_provider_sha256 and not args.hold_project_schedules:
+        parser.error('The provider hook requires --hold-project-schedules.')
     source=args.runtime_root/'gateway/session_controls.py'
     updates = [(source, args.expected_controls_sha256, prepare(source, args.expected_controls_sha256, patch_source))]
     if args.expected_scheduler_sha256 is not None:
         scheduler = args.runtime_root / 'cron/scheduler.py'
+        scheduler_patch = patch_cron_project_scheduler if args.hold_project_schedules else patch_scheduler_output
         updates.append((scheduler, args.expected_scheduler_sha256,
-                        prepare(scheduler, args.expected_scheduler_sha256, patch_scheduler_output)))
+                        prepare(scheduler, args.expected_scheduler_sha256, scheduler_patch)))
     if args.expected_cron_jobs_sha256 is not None:
         jobs = args.runtime_root / 'cron/jobs.py'
         jobs_patch = (patch_cron_reviewed_run_once if args.expected_cron_executions_sha256 is not None
                       else patch_cron_edit)
+        if args.hold_project_schedules:
+            jobs_patch = patch_cron_project_jobs
         updates.append((jobs, args.expected_cron_jobs_sha256,
                         prepare(jobs, args.expected_cron_jobs_sha256, jobs_patch)))
     if args.expected_cron_executions_sha256 is not None:
         executions = args.runtime_root / 'cron/executions.py'
         expected = args.expected_cron_executions_sha256
         updates.append((executions, expected, prepare(executions, expected, patch_cron_execution_reservation)))
+    if args.hold_project_schedules:
+        provider = args.runtime_root / 'cron/scheduler_provider.py'
+        expected = args.expected_cron_provider_sha256
+        updates.append((provider, expected, prepare(provider, expected, patch_cron_project_provider)))
     modules={name:Path(__file__).with_name(name).read_bytes() for name in FILES}
     for value in modules.values(): ast.parse(value)
     target=source.parent/'signal_grove_workspaces'
