@@ -96,6 +96,24 @@ def require_fence(value,preimage,operation=None):
     return value
 
 
+def observe_frozen_unbound(path, preimage, operation, count_unbound, timeout):
+    """Snapshot the exact frozen owner and SDK's unbound count without a writer transaction."""
+    try:
+        with closing(sqlite3.connect(path.as_uri()+'?mode=ro',uri=True,timeout=timeout)) as db:
+            db.execute('PRAGMA query_only=ON')
+            db.execute('BEGIN')
+            row=db.execute('SELECT epoch,owner,frozen FROM admission_fence WHERE singleton=1').fetchone()
+            if (row is None or type(row[0]) is not int or type(row[2]) is not int
+                or row!=(preimage.epoch+1,operation,1)):
+                raise Unknown('Frozen ledger ownership changed during the gateway observation')
+            count=count_unbound(db)
+            if type(count) is not int or count<0:
+                raise Unknown('Unbound turn count is unproven')
+            return count
+    except (sqlite3.Error,OSError):
+        raise Unknown('Unbound ledger observation is unproven') from None
+
+
 def checked_epoch(boot,ticks):
     if (type(boot) is not str or not re.fullmatch('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}',boot)
         or type(ticks) is not str or not re.fullmatch('0|[1-9][0-9]*',ticks) or int(ticks)>=2**64):
@@ -195,6 +213,7 @@ class _Prepared:
     executor:VerifiedInventory
     ledger_class:object=None
     drain_module:ModuleType|None=None
+    count_unbound:object=None
 
 
 class _SdkSourceImports(ReviewedImports):
@@ -292,11 +311,17 @@ class NativeGatewayDrain:
         if any(name.split('.',1)[0] in gate.roots for name in tuple(sys.modules)):raise Refused('Fresh SDK namespaces required')
         self._deadline(e);self._import_gate=gate;sys.meta_path.insert(0,gate)
         ledger=importlib.import_module('agent.project_control_store');drain=importlib.import_module('gateway.drain_control')
-        for module,name in ((ledger,'agent/project_control_store.py'),(drain,'gateway/drain_control.py')):
+        session_scope=importlib.import_module('agent.project_session_scope')
+        for module,name in ((ledger,'agent/project_control_store.py'),(drain,'gateway/drain_control.py'),
+                            (session_scope,'agent/project_session_scope.py')):
             if type(module) is not ModuleType or Path(module.__file__).resolve()!=Path(self.spec.sdk.root.path)/name:raise Refused('Exact reviewed SDK module origin required')
         for method in ('__init__','freeze','fence_status','close'):
             if Path(getattr(ledger.Ledger,method).__code__.co_filename).resolve()!=Path(self.spec.sdk.root.path)/'agent/project_control_store.py':raise Refused('SDK ledger method origin changed')
-        self._prepared=replace(p,ledger_class=ledger.Ledger,drain_module=drain);self._authorize(e,claimed=True);self._inputs(e)
+        count_unbound=session_scope.active_unbound_count
+        if Path(count_unbound.__code__.co_filename).resolve()!=Path(self.spec.sdk.root.path)/'agent/project_session_scope.py':
+            raise Refused('SDK unbound counter origin changed')
+        self._prepared=replace(p,ledger_class=ledger.Ledger,drain_module=drain,count_unbound=count_unbound)
+        self._authorize(e,claimed=True);self._inputs(e)
 
     def _inputs(self,e):
         p=self._prepared
@@ -332,7 +357,17 @@ class NativeGatewayDrain:
             if control is not None:control.close()
             else:sock.close()
 
-    def _observe_idle(self,e,receipt,phase):
+    def _read_unbound(self,e,home_fd,db_fd,deadline):
+        self._authorize(e,claimed=True);self._current();self._database_identity(home_fd,db_fd)
+        now=time.monotonic();remaining=min(.75,deadline-now,e.deadline-now)
+        if remaining<=0:raise Unknown('Original observation window expired before unbound read')
+        path=Path(self.spec.home.path)/'project-control.db'
+        count=observe_frozen_unbound(path,self.spec.fence,e.operation,self._prepared.count_unbound,remaining)
+        self._database_identity(home_fd,db_fd)
+        return count
+
+    def _observe_idle(self,e,receipt,phase,*,unbound=None):
+        if (phase=='drain')!=(unbound is not None):raise Refused('Drain requires the original frozen ledger observer')
         started=time.monotonic();deadline=min(started+5,e.deadline)
         receipt.append('gateway_window',dict(phase=phase,started_monotonic=started,deadline_monotonic=deadline,maximum_seconds=5))
         while True:
@@ -340,9 +375,15 @@ class NativeGatewayDrain:
             expected=(self.spec.fence.epoch,self.spec.fence.owner,False) if phase=='startup' else (self.spec.fence.epoch+1,e.operation,True)
             if (projection['fence_epoch'],projection['fence_owner'],projection['admission_frozen'])!=expected:raise Unknown('Foreign or unexpected admission fence; no adoption')
             if projection['lifecycle'] not in (('running',) if phase=='startup' else ('running','draining')):raise Unknown('Gateway lifecycle is unproven')
-            if not projection['busy'] and projection['lifecycle']==('running' if phase=='startup' else 'draining'):return projection
+            ready=not projection['busy'] and projection['lifecycle']==('running' if phase=='startup' else 'draining')
+            if ready and unbound is not None:
+                active=unbound(deadline)
+                receipt.append('gateway_unbound_observed',dict(sequence=self.requests,active_unbound_turns=active))
+                self._authorize(e,claimed=True);self._current()
+                ready=active==0
             now=time.monotonic()
             if now>=deadline:raise Unknown('Busy gateway did not settle before original expiry')
+            if ready:return projection
             time.sleep(min(.2,deadline-now))
 
     def run(self,e):
@@ -388,8 +429,10 @@ class NativeGatewayDrain:
                 self._deadline(e)
             image=publish_marker(home_fd,self.spec.home,e.operation,payload,before_publish)
             self._authorize(e,claimed=True);receipt.append('gateway_marker_published',dict(image=asdict(image),payload_sha256=digest(payload),exclusive=True))
-            checkpoint='drain';projection=self._observe_idle(e,receipt,'drain')
-            # SDK Ledger includes unbound turns that the older status route omits.
+            checkpoint='drain'
+            projection=self._observe_idle(e,receipt,'drain',
+                unbound=lambda deadline:self._read_unbound(e,home_fd,db_fd,deadline))
+            # Recheck the entire ledger before recording a successful drain.
             final=require_fence(ledger.fence_status(),self.spec.fence,e.operation)
             if any(final[n] for n in LEDGER_COUNTERS):raise Unknown('SDK registered/unbound work remains active')
             if schema_digest(ledger.db)!=self.spec.ledger_schema_sha256:raise Unknown('Ledger schema changed during drain')

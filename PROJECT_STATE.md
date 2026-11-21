@@ -16,6 +16,16 @@ compact sizes on Android 8 and 17, including the visible keyboard with
 bilingual large text. The complete hosted matrix remains open.
 [Validation](docs/VALIDATION.md#phone-history-inline-date-choices).
 
+## Unbound gateway drain observation checkpoint
+
+The drain actor checks the exact unbound count in a separate read-only
+snapshot before accepting idle. Two isolated Windows trials with real
+maintained SDK receipts reproduced the old status gap and proved both
+settlement and expiry while the original fence stayed frozen. The full
+portable policy suite completed with 923 passes and 273 platform skips.
+The original-journal native socket scenario and all-profile drain remain
+open. [Validation](docs/VALIDATION.md#unbound-work-during-the-original-gateway-drain-window).
+
 ## Native subagent recovery checkpoint
 
 On Windows, both current Hermes candidate pins passed the original-owner

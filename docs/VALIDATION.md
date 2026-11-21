@@ -41,6 +41,41 @@ for this revision is a separate gate.
 | Android 17 standard | `2a83c771dc7b749cbe631a6c4fa1165cd5ba15689793f8b135fb6ddf49d2f931` |
 | Android 17 compact | `9371f5487aa46cb3d6825d590b5e27617e66e40875cb97b4aa87eb6f9eec9fdf` |
 
+## Unbound work during the original gateway drain window
+
+The original-journal actor now checks the source-bound SDK unbound counter
+before accepting a gateway idle response during drain. The owner, incremented
+epoch and unbound count come from one query-only read transaction against the
+existing ledger. A positive count is recorded and the actor keeps sampling
+within the original five-second window. An invalid, foreign or missing
+snapshot holds the operation. The actor still reads the complete ledger
+before recording a successful drain. The observer never acquires a SQLite
+writer transaction.
+
+An isolated Windows component trial used real maintained SDK turn scopes,
+receipts, freeze methods and the original unbound-blind status observer. It
+used an in-process adapter for the live-work portion of the status payload
+and for transport. The settled case observed zero twice in the old status
+and one then zero directly. The original turn finished while frozen, and the
+window settled in 0.218 seconds. In the held case the old observer reported
+zero 25 times while the direct count stayed one. The window held at 5.001
+seconds. The fixture then finished its original turn and retained the frozen
+fence. Independent readback found one finished unbound receipt, one freeze,
+zero registered turns and SQLite integrity `ok` in each case.
+The result SHA-256 is `a4e79a1c4b817bb4e9b0398d5de75a9cd65bbff88970f2278be8fec7f38413c8`.
+
+The full Windows policy inventory completed 1,196 cases with 923 passes and
+273 platform skips. Six new cases cover settling, persistent work, a late
+zero, a concurrent WAL writer, foreign or unproven state, and refusing to
+observe a drain without the frozen-ledger check. The prior Windows cleanup
+run had open test SQLite handles, which the final fixture now explicitly
+closes. An earlier private adapter failed to mirror the native transport's
+expiry guard. Its output remains separate from the fresh accepted run.
+
+The original-journal scenario with the native socket, systemd owner and
+active unbound work still needs a generated-home acceptance run. The
+all-profile and worker drain, Pi staging and release gates remain open.
+
 ## Native recovery of an in-flight Hermes delegation
 
 The Windows gate exercised real Hermes background delegation, the full gateway
