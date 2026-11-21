@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Exact reviewed Windows checkout
+
+The optional worker checkout check uses the existing enrolled
+`WorkspaceProvider` for the protected scope, current registered root and
+worker instance. Its snapshot includes the full native directory IDs of the
+root and Git metadata plus the branch, commit and registration revision.
+Before an admission, it rereads the binding and checks that snapshot. The
+owner's registered path and Git HEAD remain open with native no-delete
+sharing. The HEAD handle also refuses a concurrent writer. The check itself
+is read-only and supplies no write grant, approval or job identity.
+
+Git uses fixed, local plumbing commands and the operator-selected native
+binary. Inherited Git environment redirection is excluded, as are optional
+locks, replacements and lazy fetching. The worktree reported by Git must
+match the registered root. Linked metadata and detached HEAD are refused at
+this boundary. This is an admission-time check. Subsequent mutations and the
+native launch still need their own scoped enforcement.
+[Git command options](https://git-scm.com/docs/git) · [Revision resolution](https://git-scm.com/docs/git-rev-parse).
+
+Eight Windows cases use disposable checkouts and the real Git executable.
+A concurrent HEAD replacement was refused while the guard held it.
+The guard also refused a changed branch at the same commit, advanced commit,
+replaced folder at the same path, new worker instance, retired worker,
+registry drift and checkout redirection. The existing test runner recorded
+80 native passes with zero failures or skips and no source changes.
+The 130 portable workspace cases passed. The full portable suite discovered
+1,228 tests with zero failures and 273 platform or fixture skips. Native result
+JSON SHA-256 `0bc5bb07dca73b2e8c385dd1bff85d33940e3957b59da4891615f692009a669b`.
+
+These checks prepare the exact scope fence for the reviewed worker approval
+path. Wiring the original request into the queue and the native prompt
+boundary, adding the independent project-write grant, and Pi acceptance
+remain open.
+
 ## Managed Pi workspace candidate and worker preflight
 
 A read-only inspection found the Pi serve, gateway and dispatcher active.

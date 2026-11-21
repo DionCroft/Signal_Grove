@@ -214,3 +214,19 @@ a five-call Pi trial against the unchanged daemon. The current local totals are
 481 policy, 15 runtime-model and 72 Windows native cases. The new-client update
 is now live without a daemon restart. See [live commissioning and recovery](../../docs/contracts/2026-11-13-live-read-client-update.md); native app authentication,
 Android workspace/file/NAS and the wider audit remain open.
+
+## Checkout verification for reviewed project runs
+
+`reviewed_checkout.py` exposes two local broker calls that reuse the existing
+enrolled workspace provider. `observe_checkout` captures its instance,
+registration, native root and metadata directory identities, branch and
+commit. `hold_reviewed_checkout` compares a fresh observation with the
+reviewed one. Keep the context around the local admission boundary.
+
+The owner selects the installed Git executable. Git runs fixed local read
+commands from the registered checkout. The observation uses an in-place
+`.git` directory, an attached branch and a resolvable commit. The Windows
+handles keep the root, metadata directory and HEAD fixed during the check.
+The checkout check is separate from project-write authority and durable
+request handling. Any later native launch needs a fresh scope check.
+[Windows fixture evidence](../../docs/VALIDATION.md#exact-reviewed-windows-checkout).

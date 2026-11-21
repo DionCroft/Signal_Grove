@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Exact reviewed Windows checkout
+
+The worker can now capture and recheck its enrolled instance, root and Git
+metadata identities, current branch and commit. It holds the checked root
+and HEAD through the local admission check. Windows passed eight checkout
+cases and all 80 worker cases. The reviewed execution queue and the final
+native admission still need to use the check under a separate write grant.
+[Native validation](docs/VALIDATION.md#exact-reviewed-windows-checkout).
+
 ## Managed Pi workspace candidate and worker preflight
 
 The active Pi serve and gateway both match all five inspected upstream
