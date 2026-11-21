@@ -1,5 +1,53 @@
 # Current development validation — audit follow-up
 
+## Hermes scheduler and scoped run history on stable and main
+
+Stable `caafe5389ae585ef77387a962aee05b1bcf17029` and main
+`242315ce571cde721e717a544cf8ae6c343315cf` ran the same 112 exact upstream
+tests in separate Windows fixture homes. The test selection was
+`test_web_server_cron_profiles`, `test_web_server_cron_repeat`,
+`test_cron_run_history_sessions`, `test_compute_next_run_dst`,
+`test_per_job_timezone` and `test_catchup_policy`. These cover profile
+routing, persisted repeat, owner-scoped reconciliation, pinned and
+inherited timezones, DST, grace and catch-up.
+[Run reconciliation tests](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/tests/hermes_cli/test_cron_run_history_sessions.py)
+· [Timezone and grace tests](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/tests/cron/test_per_job_timezone.py).
+
+The initial runs each passed 110 and failed two history cases. Those
+fixtures use UTC session or ledger instants alongside naive summer dates
+in filenames. Their `TZ=UTC` test environment left Windows' local
+historical offset in effect for an unconfigured Hermes profile. The
+retest supplied `HERMES_TIMEZONE=UTC` through Hermes configuration
+resolution for just `test_keeps_session_runs_when_db_history_exists`
+and `test_latest_attempt_without_a_doc_gets_its_own_row`. All 112 passed
+on both pins with identical case IDs and no skips, errors or isolation
+denials. Source and test hashes still matched the exact archives.
+[Filename decoding](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/hermes_cli/web_routers/cron.py#L247).
+
+A separate native probe made in-process authenticated GET calls to the
+actual FastAPI dashboard and used two disposable jobs and SQLite stores
+per pin. Each exact job returned its own profile-marked session. Calling
+the worker job with the default-profile hint returned the worker record
+anyway. Adding one older fixture output file produced two rows. The
+session carried the worker profile and the output row omitted it. The
+response envelope provided only `runs` and `limit` in both cases. SHA-256
+checks matched both jobs files, both SQLite stores and the output file
+before and after the reads. Both stores returned `quick_check=ok`.
+No scheduled execution or external connection was needed.
+[Exact owner and run handlers](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/hermes_cli/web_routers/cron.py).
+
+| Pin | Original JUnit SHA-256 | Explicit UTC JUnit SHA-256 |
+| --- | --- | --- |
+| Stable | `cee78c8f5dd2189e00e0affa226558921127bb3f4299fae5d7a9b3350cadf180` | `d6af6bce6e1f6a7c5a57fefbe55fa229990c16b51e7daa7a94cc0428b07aab8d` |
+| Main | `5743a2e76b402cccbf855fc41e771683552588a050fd2313f829af9c9d4cb9ae` | `85d861db5bdd72a96f23eb252b213e016cd5589c334f8d0704d5ec184f122666` |
+
+Both scope receipts have SHA-256
+`378fc0a432ff1ee54988035f837ac6f9e093049ba45ff32194da5d502dcb96b7`.
+The Android ownership rule still applies to mixed history. Preview UI,
+authenticated output/log scope, exact mutation dispatch and live Pi
+acceptance remain open. See the updated
+[scheduled-job history contract](contracts/2026-11-07-cron-run-history.md).
+
 ## Hermes dashboard listener authentication on stable and main
 
 The Windows run used real upstream FastAPI handlers and WebSocket test

@@ -37,3 +37,31 @@ handlers have explicit BF/stable AST reviews bound to complete cron,
 cron_helpers and web_deps modules. Other transitive storage/auth/runtime behavior
 still requires live acceptance. New module bytes require review even if a route
 AST remains unchanged. Validation is recorded separately in docs/VALIDATION.md.
+
+## Stable v0.23.3 and exact main acceptance
+
+The two-profile native dashboard probe reproduced profile-hint fallback
+and a mixed history response carrying an unmarked output row on stable
+`caafe53` and main `242315c`. A profile query and a successful job
+preflight alone cannot prove ownership of every later output row. Keep the
+explicit row proof requirement for existing hosts. A supported scoped
+output/log response needs to bind the authenticated profile, exact
+canonical job and output to the same server-side read. A mismatched or
+unknown profile or a missing job must fail before resolving output. Test
+same IDs in separate profiles and concurrent removal or reassignment.
+[Exact HTTP and SQLite evidence](../VALIDATION.md#hermes-scheduler-and-scoped-run-history-on-stable-and-main).
+
+Hermes distinguishes elapsed intervals from cron wall-clock schedules.
+For a recurring calendar schedule, a pinned IANA zone takes precedence;
+an unset zone uses the job owner's profile. The next occurrence must
+move strictly forward in absolute time in the repeated autumn hour.
+The foreground preview should use an explicit verified zone for calendar
+estimates and distinguish an estimate from the host's stored next run.
+
+A zero-minute grace setting is subject to Hermes' two-minute tick
+tolerance. Even outside grace, the effective catch-up policy can still
+run one missed occurrence. Disabled catch-up skips beyond grace when
+the scheduler can compute the next occurrence. Manual runs are handled
+separately and inherit no permission from a forecast or a history row.
+[Hermes scheduling rules](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/cron/jobs.py)
+· [Missed-run tests](https://github.com/NousResearch/hermes-agent/blob/242315ce571cde721e717a544cf8ae6c343315cf/tests/cron/test_catchup_policy.py).

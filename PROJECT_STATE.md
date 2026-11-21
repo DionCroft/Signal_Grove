@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes scheduler profile and timezone checkpoint
+
+Both exact upstream pins passed 112 scheduler cases with explicit UTC
+for two Windows fixtures that assume UTC. Before that control each pin
+had 110 passes and two filename reconciliation failures. The native
+dashboard confirmed exact agent-job history and reproduced profile-hint
+fallback and ownerless output rows. Two disposable profile stores per
+pin passed integrity checks. Continue the local schedule forecast with
+the verified timezone and missed-run policy, and require authenticated
+server owner proof before displaying mixed output or enabling mutations.
+[Validation](docs/VALIDATION.md#hermes-scheduler-and-scoped-run-history-on-stable-and-main).
+
 ## Hermes dashboard listener authentication checkpoint
 
 The exact stable and main pins passed 129 common HTTP and WebSocket
