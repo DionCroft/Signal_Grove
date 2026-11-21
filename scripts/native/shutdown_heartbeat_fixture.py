@@ -43,13 +43,24 @@ def same_account_process_stat(path: Path) -> bool:
         return False
 
 
-def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> tuple[Path, list[str]]:
-    fixture.mkdir(mode=0o700)
+def constrain_child(
+    source: Path, fixture: Path, site: Path, interval: str, *,
+    config: str = "updates:\n  check: false\n", recovering: bool = False,
+) -> tuple[Path, list[str]]:
     home, account, temp = (fixture / name for name in ("profile", "account", "temp"))
-    for directory in (home, account, temp):
-        directory.mkdir(mode=0o700)
-    # This disposable profile does not run optional release discovery.
-    (home / "config.yaml").write_text("updates:\n  check: false\n", encoding="utf8")
+    settings = home / "config.yaml"
+    if recovering:
+        for directory in (fixture, home, account, temp):
+            assert directory.is_dir() and not directory.is_symlink()
+        assert settings.is_file() and not settings.is_symlink()
+        assert settings.read_text(encoding="utf8") == config
+        assert (home / "state.db").is_file() and not (home / "state.db").is_symlink()
+    else:
+        fixture.mkdir(mode=0o700)
+        for directory in (home, account, temp):
+            directory.mkdir(mode=0o700)
+        with settings.open("x", encoding="utf8", newline="\n") as stream:
+            stream.write(config)
     system = {name: os.environ[name] for name in ("SYSTEMROOT", "WINDIR", "PATH", "COMSPEC")
               if name in os.environ}
     os.environ.clear()
@@ -68,7 +79,8 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
     os.chdir(fixture)
     sys.path[:0] = [str(source), str(site)]
     denials = []
-    read_roots = (source, fixture, site, Path(sys.base_prefix).resolve(), Path(__file__).resolve())
+    read_roots = (source, fixture, site, Path(sys.base_prefix).resolve(),
+                  Path(__file__).resolve(), Path(sys.argv[0]).resolve())
     # psutil checks the init process birth time when it validates process identity.
     system_reads = {Path(name).resolve() for name in (
         "/etc/localtime", "/etc/mime.types", "/proc/stat", "/proc/1/cgroup",
@@ -102,7 +114,7 @@ def constrain_child(source: Path, fixture: Path, site: Path, interval: str) -> t
             if event == "subprocess.Popen":
                 if os.name == "posix" and checkout_version_read(*args, source):
                     return
-                program = Path(os.fsdecode(args[0])).name
+                program = Path(os.fsdecode(args[0])).name if args[0] is not None else ""
                 argv = args[1]
                 names = " ".join(str(arg)[:120] for arg in argv[:8]) if isinstance(argv, list) else program
                 refuse(event, names)
@@ -149,7 +161,10 @@ def count_rows(home: Path) -> int:
         return conn.execute("SELECT count(*) FROM gateway_heartbeats").fetchone()[0]
 
 
-def run_contention(runner, server, home: Path, *, hold_at_close: bool, hold_through_stop: bool = False) -> dict:
+def run_contention(
+    runner, server, home: Path, *, hold_at_close: bool, hold_through_stop: bool = False,
+    expected_timeouts: tuple[float, ...] = (10.0,),
+) -> dict:
     from persistence.sqlite._state.write import WriterMutexTimeout
     from persistence_assembly import close_all_stores
     from tests.fixtures.storage_holder import raw_holder
@@ -221,7 +236,8 @@ def run_contention(runner, server, home: Path, *, hold_at_close: bool, hold_thro
             # release the fixture transaction and inspect its original settlement.
             asyncio.run(asyncio.wait_for(runner.stop(), timeout=28))
             elapsed = time.monotonic() - start
-            assert competing.is_set() and competing_done.is_set() and writer_timeouts == [10.0]
+            assert competing.is_set() and competing_done.is_set()
+            assert tuple(writer_timeouts) == expected_timeouts, writer_timeouts
             assert not release.is_set() and not transaction_done.is_set()
             assert holder._conn is not None and holder._conn.in_transaction
             row_while_held = count_rows(home)

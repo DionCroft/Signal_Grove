@@ -1,5 +1,49 @@
 # Current development validation — audit follow-up
 
+## Native recovery of an in-flight Hermes delegation
+
+The Windows gate exercised real Hermes background delegation, the full gateway
+stop path, two competing SQLite writer conditions and native abandoned-owner
+recovery in separate processes. The upstream scripted model supplied a
+synthetic checkpoint without live inference. The disposable profile used
+a one-second cron drain and disabled automatic resume. The fixture recorded
+the original delegation, child session, owner and pending state before stop.
+It let stop return, then emulated owner exit before the child could publish
+a terminal result. Only the empty fixture working directory was removed
+before starting recovery, which exercised the no-Git-hint case.
+
+| Reviewed pin | Writer released during stop | Writer held until stop returned | Result SHA-256 |
+| --- | --- | --- | --- |
+| v0.23.3 `caafe53` | Interrupted, 1.551 s | Unknown, 22.321 s | `73f470e4d94e33b0e5890a8b6c0d8f6769486ea118436e2ea8f147e8cc3e1793` |
+| Recorded main `2de9f51` | Interrupted, 1.535 s | Unknown, 22.293 s | `822716f72f368d6d249cbeac4cec4d722bf34e2b194ce6077249052efc85c028` |
+
+The held writer caused two separate 10-second attempts to mark the child.
+Hermes left SQLite open while the heartbeat transaction was active. After
+release, the original cleanup removed the heartbeat. Recovery kept one
+original checkpoint and the same child session, produced one pending
+unknown delegation outcome and built zero new models. A second recovery
+applied zero changes. Independent post-exit reads found SQLite integrity
+`ok`, zero heartbeats, and one expected child and delegation per fixture.
+Both source inventories matched all 27,139 and 27,171 reviewed files,
+respectively, before and after the run. The shared shutdown suites passed
+30 portable tests. Two targeted controls refused a model replay and an
+extra SDK file.
+
+An earlier trial used the default 30-second drain and hit its fixture
+deadline. A subsequent trial reached stop but exposed the optional Git
+hint and the second writer attempt. The finalized fixture accounts for
+both paths without relaxing its subprocess boundary. The initial gate CLI
+and POSIX-mode check on Windows failed before any native case was started;
+the final Windows gate verifies every archived source byte and path. The
+existing Linux mode requirements still apply to the hosted step.
+
+Run `scripts/hermes_subagent_recovery_gate.py` with the exact candidate
+source, reviewed source commit, canonical base map, fresh scratch and
+supported test interpreter. The existing Hermes shutdown workflow runs
+the same gate on Linux and publishes a bounded result. Hosted results,
+actual side-effect reconciliation, the all-profile drain and live Pi
+acceptance remain open.
+
 ## Phone helper observation consent
 
 The Android 8 hosted context cohort reported 585 of 586 positive tests.

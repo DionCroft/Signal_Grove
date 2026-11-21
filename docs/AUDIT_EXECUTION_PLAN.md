@@ -73,6 +73,18 @@ methods completed and stopped reporting during the phone startup test.
 The full Android matrix and physical acceptance stay open.
 [Model and hosted evidence](VALIDATION.md#phone-model-library-durability).
 
+## In-flight Hermes delegation recovery on Windows - 21 November 2026
+
+The real gateway and delegation ledger passed the two-process recovery
+fixture at both current candidate pins. A released writer permitted the
+shutdown mark and recovery classified the child as interrupted. A held
+writer timed out twice, and the next process preserved the child with an
+unknown outcome. Each recovered the original checkpoint and left the
+delegation outcome unknown, with no model replay. The Linux gate, real
+side-effect reconciliation, all-profile drain and live acceptance remain
+open.
+[Native recovery evidence](VALIDATION.md#native-recovery-of-an-in-flight-hermes-delegation).
+
 ## Hermes full stop under held heartbeat contention - 20 November 2026
 
 Both current source pins ran seven candidate lifecycle cases on Windows.

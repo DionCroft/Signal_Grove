@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch', 'scripts/hermes_native_heartbeat_gate.py', 'scripts/native/shutdown_heartbeat_fixture.py', 'scripts/tests/test_native_heartbeat_gate.py']
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch', 'scripts/hermes_native_heartbeat_gate.py', 'scripts/native/shutdown_heartbeat_fixture.py', 'scripts/tests/test_native_heartbeat_gate.py', 'scripts/hermes_subagent_recovery_gate.py', 'scripts/native/shutdown_delegation_fixture.py']
   pull_request:
-    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch', 'scripts/hermes_native_heartbeat_gate.py', 'scripts/native/shutdown_heartbeat_fixture.py', 'scripts/tests/test_native_heartbeat_gate.py']
+    paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch', 'scripts/hermes_native_heartbeat_gate.py', 'scripts/native/shutdown_heartbeat_fixture.py', 'scripts/tests/test_native_heartbeat_gate.py', 'scripts/hermes_subagent_recovery_gate.py', 'scripts/native/shutdown_delegation_fixture.py']
 permissions:
   contents: read
 concurrency:
@@ -74,6 +74,18 @@ jobs:
           python3 -I -B client/scripts/hermes_native_heartbeat_gate.py run \
             --source sdk --evidence "$RUNNER_TEMP/shutdown-$VARIANT" \
             --scratch "$RUNNER_TEMP/heartbeat-lifetime-$VARIANT" --python "$PM_PYTHON"
+      - name: Verify in-flight delegation recovery after writer contention
+        if: matrix.variant == 'candidate' && matrix.source_commit != '3b421578588243f920886e6fe79a6faa87ea026e'
+        env:
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
+          PM_PYTHON: ${{ steps.pm.outputs.python-path }}
+        run: |
+          evidence="$RUNNER_TEMP/shutdown-candidate"
+          recovery="$RUNNER_TEMP/delegation-recovery"
+          python3 -I -B client/scripts/hermes_subagent_recovery_gate.py \
+            --source sdk --source-commit "$SOURCE_COMMIT" --base-map "$evidence/base-map.json" \
+            --scratch "$recovery" --python "$PM_PYTHON"
+          cp "$recovery/result.json" "$evidence/subagent-recovery.json"
       - name: Verify raw case identities and all SDK bytes and modes
         if: ${{ !cancelled() }}
         env:

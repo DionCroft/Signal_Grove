@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native subagent recovery checkpoint
+
+On Windows, both current Hermes candidate pins passed the original-owner
+exit and next-process recovery, with their SQLite writer released during
+stop or held until it returned. Hermes retained the original child
+checkpoint, classified the held case as unknown and made no new model
+calls. The previous mark was durable only in the released case. The
+hosted Linux, all-profile drain and live Pi gates remain open.
+[Validation](docs/VALIDATION.md#native-recovery-of-an-in-flight-hermes-delegation).
+
 ## Phone helper consent checkpoint
 
 The Android 8 helper case retained a hosted opt-in failure that did not
