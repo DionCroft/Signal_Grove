@@ -40,9 +40,8 @@ existing Linux mode requirements still apply to the hosted step.
 Run `scripts/hermes_subagent_recovery_gate.py` with the exact candidate
 source, reviewed source commit, canonical base map, fresh scratch and
 supported test interpreter. The existing Hermes shutdown workflow runs
-the same gate on Linux and publishes a bounded result. Hosted results,
-actual side-effect reconciliation, the all-profile drain and live Pi
-acceptance remain open.
+the same gate on Linux and publishes a bounded result. Actual side-effect
+reconciliation, the all-profile drain and live Pi acceptance remain open.
 
 The first hosted Linux run passed the canonical and heartbeat checks at both
 candidate pins, then failed while verifying the recovery child in the
@@ -60,6 +59,18 @@ Foreign and inaccessible process files still fail the boundary. The
 recovery marker follows all guard checks. The portable heartbeat and
 canonical verifier suites passed all 31 tests.
 [Retained child diagnostics](https://github.com/DionCroft/Signal_Grove/actions/runs/44865708091).
+
+Run 44866087637 passed all nine jobs at source `3a5f2a6`. Both candidate
+pins passed all four native delegation cases. Independent verification
+matched both downloaded archives to their published size and digest, all
+eight exact process logs to their terminal receipt digests, and both
+source identities. The released cases finished in 1.419 s and 1.426 s.
+The held cases finished in 22.122 s and 22.13 s with two writer timeouts
+each. Both preserved one checkpoint, zero replay and SQLite integrity.
+The two summary digests are
+`e5c4147bd7a4bde4ec55147d6e6e2ac26fcb4bb9b6e9dea7edb1080652075e7f`
+and `f26784a4376234942d63066ad257c64d5737e6663f42a16e6952eb40a9551ba2`.
+[Accepted Linux run](https://github.com/DionCroft/Signal_Grove/actions/runs/44866087637).
 
 ## Phone helper observation consent
 

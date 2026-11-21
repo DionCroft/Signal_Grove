@@ -80,9 +80,9 @@ fixture at both current candidate pins. A released writer permitted the
 shutdown mark and recovery classified the child as interrupted. A held
 writer timed out twice, and the next process preserved the child with an
 unknown outcome. Each recovered the original checkpoint and left the
-delegation outcome unknown, with no model replay. The Linux gate, real
-side-effect reconciliation, all-profile drain and live acceptance remain
-open.
+delegation outcome unknown, with no model replay. The hosted Linux trial
+reproduced all four outcomes. Real side-effect reconciliation, all-profile
+drain and live acceptance remain open.
 [Native recovery evidence](VALIDATION.md#native-recovery-of-an-in-flight-hermes-delegation).
 
 ## Hermes full stop under held heartbeat contention - 20 November 2026

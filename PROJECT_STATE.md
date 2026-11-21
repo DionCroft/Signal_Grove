@@ -13,8 +13,10 @@ On Windows, both current Hermes candidate pins passed the original-owner
 exit and next-process recovery, with their SQLite writer released during
 stop or held until it returned. Hermes retained the original child
 checkpoint, classified the held case as unknown and made no new model
-calls. The previous mark was durable only in the released case. The
-hosted Linux, all-profile drain and live Pi gates remain open.
+calls. The previous mark was durable only in the released case. Both
+Linux pins reproduced all four outcomes after the fixture preserved the
+reaped owner's missing-file result. The all-profile drain and live Pi
+gates remain open.
 [Validation](docs/VALIDATION.md#native-recovery-of-an-in-flight-hermes-delegation).
 
 ## Phone helper consent checkpoint
