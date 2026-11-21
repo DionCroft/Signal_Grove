@@ -2,9 +2,10 @@
 
 Use an immutable reviewed checkout, its existing dependency environment and a new
 approved scratch directory. This builds only an in-memory source adapter. The
-trusted constructor identities and synthetic worker replies do not certify HTTP
-sign-in, deployed Pi policy, real worker content or Android. Windows asyncio's
-own self-pipe is initialized before external network/child-process/write fences.
+default case uses a synthetic worker; the optional combined Windows case uses
+a local native pipe and a registered disposable directory. Both use trusted
+constructor identities and are independent of deployed Pi or Android.
+Local OS probes are initialized before the network/child-process/write audit.
 """
 from pathlib import Path
 import asyncio, hashlib, importlib, json, os, sys, types
@@ -13,11 +14,15 @@ import argparse, subprocess
 parser=argparse.ArgumentParser(description='Isolated actual Hermes native workspace-read contract/actor gate; no deployment or external network.')
 parser.add_argument('--source-root',type=Path,required=True)
 parser.add_argument('--work-root',type=Path,required=True)
+parser.add_argument('--windows-attached-worker', action='store_true',
+                    help='Use a disposable Hermes workspace and a real Windows read-only named pipe')
 args=parser.parse_args()
 R=Path(__file__).resolve().parents[1]
 S=args.source_root.resolve()
 root=args.work_root.resolve()
 assert not root.exists() and not root.is_relative_to(R), 'Use a fresh approved scratch root outside source'
+if args.windows_attached_worker and (os.name != 'nt' or root.drive.upper() != 'E:'):
+    parser.error('The attached Windows worker fixture needs a fresh root on E:')
 env=os.environ.copy()
 for key in ('GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE'):env.pop(key,None)
 def source_git(*args):return subprocess.check_output(['git','--no-optional-locks','-c','core.fsmonitor=false','-C',str(S),*args],env=env).decode('utf8')
@@ -28,6 +33,12 @@ home=root/'default'; field=home/'profiles'/'field'; field.mkdir(parents=True)
 os.environ.update(HERMES_HOME=str(home),TEMP=str(root),TMP=str(root),PYTHONDONTWRITEBYTECODE='1',HERMES_TEST_ISOLATION='1')
 sys.path[:0]=[str(S),str(R)]
 loop=asyncio.new_event_loop()  # Windows asyncio's own socketpair, before the operation audit
+if args.windows_attached_worker:
+    import tempfile
+    # Some third-party imports create local OS probes before any RPC is handled.
+    tempfile.tempdir = str(root)
+    import urllib3.util.connection  # Detect local IPv6 support before the fence.
+    os.environ.update(PYTEST_CURRENT_TEST='isolated attached worker', HERMES_DISABLE_LAZY_INSTALLS='1')
 violations=[]
 def audit(event,args):
     if event in {'socket.connect','socket.bind','socket.sendto','socket.sendmsg','subprocess.Popen','os.system','os.exec','os.posix_spawn','os.kill','os.killpg'}:
@@ -58,6 +69,27 @@ controls=types.ModuleType('gateway.session_controls'); controls.__file__=str(S/'
 sys.modules[controls.__name__]=controls
 raw=(S/'gateway/session_controls.py').read_bytes();patched=patch_source(raw.decode('utf8'))
 exec(compile(patched,controls.__file__,'exec'),controls.__dict__)
+if args.windows_attached_worker:
+    import probe_attached_windows_workspace as attached_worker
+    policy = importlib.import_module(package.__name__ + '.operator_policy')
+    try:
+        result = loop.run_until_complete(attached_worker.run(root, home, controls, adapter, c, policy))
+        assert not violations, violations
+        result.update(
+            sourceCommit='3b421578588243f920886e6fe79a6faa87ea026e',
+            sourceControlsSha256=hashlib.sha256(raw).hexdigest(),
+            patchedControlsSha256=hashlib.sha256(patched.encode()).hexdigest(),
+            fixtureSha256=hashlib.sha256(Path(attached_worker.__file__).read_bytes()).hexdigest(),
+            noExternalNetworkOrExecution=True,
+            productionChanged=False,
+        )
+        report = json.dumps(result, indent=2)
+        (root / 'report.json').write_text(report + '\n', encoding='utf-8')
+        print(report, flush=True)
+    finally:
+        loop.close()
+    sys.exit(0)
+
 runner=types.SimpleNamespace(_draining=False,adapters={},_cached_agent_for=lambda route:None)
 registry=runner.session_authorities=SessionAuthorities(home,multiplexed=True)
 databases=[]

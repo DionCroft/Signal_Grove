@@ -7,6 +7,21 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Attached workspace and Windows read checkpoint
+
+A disposable Hermes v0.23.1 session applied and read back a workspace move.
+The native Windows broker prepared the same root, listed it and returned a
+verified 26-byte preview. All 12 combined checks passed, along with the 18
+original coordinator cases, 119 portable tests and 72 Windows-native tests.
+The test preserved the chat row, subscription and project bytes and created
+no turn or worker execution.
+
+Next, bind reads server-side to the verified session's current workspace and
+enrolled worker mapping. Then verify the authenticated Android-to-Pi-to-worker
+path before adding project approvals. Production enrollment and Pi activation
+still require their own acceptance.
+[Isolated evidence](docs/VALIDATION.md#attached-workspace-and-windows-worker-read-checkpoint).
+
 ## Hermes context read checkpoint
 
 The followed viewer can read and refresh Hermes-reported context and

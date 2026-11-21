@@ -1,5 +1,42 @@
 # Current development validation — audit follow-up
 
+## Attached workspace and Windows worker read checkpoint
+
+On Windows, the source-pinned Hermes v0.23.1 authority created and resumed a
+disposable chat, moved it to a registered fixture workspace using the expected
+revision and execution generation, and read the new workspace back through
+`session.info`. The coordinator's operator adapter then described the worker
+and used its actual Windows named pipe to prepare that root, list `note.txt`
+and preview all 26 bytes. The root matched Hermes' workspace, and the returned
+length, text and SHA-256 matched the fixture. The worker observed the actual
+interactive Windows process identity. The chat row, observer subscription and
+fixture files remained intact after the reads. No message, task admission or
+worker execution record was created.
+
+The test also refused a missing operator capability, an ungranted project, a
+mismatched worker instance, an invalid binding token and an invalid file token.
+All 12 combined checks passed, along with 18 original native coordinator
+checks, 119 portable workspace tests and 72 Windows-native tests. This change
+adds a validation probe and evidence.
+
+Reproduce with `scripts/probe_workspace_coordinator.py --windows-attached-worker
+--source-root <clean-Hermes-v0.23.1-checkout> --work-root <new-E-drive-directory>`
+using the pinned Hermes dependencies and an active Windows interactive session.
+The probe checks upstream commit
+`3b421578588243f920886e6fe79a6faa87ea026e`, applies the adapter in memory and
+keeps the SQLite database, protected registration fixture and report in that
+directory. It injects a trusted owner identity, skips incidental Git metadata
+and model discovery, and calls the worker RPC directly on the same host.
+It leaves deployed services, credentials and workstation project files untouched.
+
+The combined test compares the authoritative session cwd with the prepared
+Windows root. The v1 workspace methods still scope reads by owner, profile,
+worker and project independently of the conversation attachment. Production
+needs a server-owned mapping from the attached workspace to the enrolled
+worker/project and a fence on its current session revision and execution
+generation. A changed attachment must discard a returned preview. Authenticated
+Android-to-Pi-to-worker acceptance remains open.
+
 ## Hermes-reported context and compression
 
 The followed session can read the effective and configured windows, current
