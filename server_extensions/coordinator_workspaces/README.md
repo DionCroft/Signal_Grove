@@ -1,5 +1,29 @@
 # Optional native coordinator workspace reads
 
+## Optional native scheduled execution receipts
+
+`signal_grove.cron.executions_v1` accepts `{expected_profile, job_id, limit?}`
+for one current job's latest attempts, or `{expected_profile, job_id, execution_id}`
+for one exact receipt. Limits are 1 through 20. The execution ID is the
+32-character lowercase hexadecimal value from the native ledger. The requested
+profile must match the verified owner connection's current home. The field is
+an assertion of scope. Generic Hermes profile routing is outside this contract.
+
+On Linux the reader opens the protected current profile's scheduler catalogue
+and SQLite ledger with bounded read-only access. A page requires an exact
+unique catalogue job ID. An exact execution receipt remains addressable after
+one-shot job removal while the ledger retains the matching job and execution ID.
+The payload includes `profile`, `job_id`, `ledger`, `attempts` and `limited`.
+Each attempt contains the durable ID, reported status and timestamps, delivery
+code and an error-presence flag. A missing exact receipt returns NOT_FOUND.
+An absent ledger on a valid job page is reported as absent. The read preserves
+the scheduler's reported unknown outcomes. Stock output and log files need
+their own exact execution association before they can be displayed for a run.
+
+The source uses the same optional authority installation as the workspace
+methods below. Linux ledger validation is tracked in
+[Validation](../../docs/VALIDATION.md#authenticated-scheduled-execution-ledger-source).
+
 **Native source gate accepted, 14 November:** exact-source 493 portable, 8 Linux
 policy, 72 Windows provider and 119 CI protocol cases are verified; the protocol
 cases are a portable subset. All native source hashes match committed LF bytes.

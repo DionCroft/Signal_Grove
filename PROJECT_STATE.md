@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Scheduled execution ledger checkpoint
+
+The optional Hermes source now has an authenticated owner/profile read for
+Linux scheduler attempts and an exact durable receipt that can outlive its
+one-shot job. Windows passed 928 portable tests and twelve native authority
+cases. The Linux WAL gate follows the source push. Exact output/log
+association, Android integration, strict mutations and live Pi acceptance
+remain open.
+[Validation](docs/VALIDATION.md#authenticated-scheduled-execution-ledger-source).
+
 ## Exact stored schedule checkpoint
 
 Paused creation now verifies the exact reviewed schedule on both the

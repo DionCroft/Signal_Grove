@@ -1,5 +1,11 @@
 # Scoped scheduled-job history
 
+The optional native owner ledger method is a separate source contract for
+durable scheduler attempts and one exact receipt. Its `expected_profile`
+must match the authenticated connection. The Android dashboard path
+described below remains current. See the
+[native ledger method](../../server_extensions/coordinator_workspaces/README.md#optional-native-scheduled-execution-receipts).
+
 The Android management view reads GET /api/cron/jobs/{job_id}/runs with the
 selected explicit dashboard profile and limit20 after rechecking the exact job.
 The dashboard bearer remains independent from the inference credential; existing

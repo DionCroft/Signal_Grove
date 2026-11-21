@@ -1,5 +1,30 @@
 # Current development validation — audit follow-up
 
+## Authenticated scheduled execution ledger source
+
+The optional native owner method reads a bounded page from the current
+Hermes profile or one exact durable execution receipt. The profile check
+uses `expected_profile` because the generic Hermes dispatcher can route a
+bare `profile` field to a sibling before validating the method. The handler
+checks the verified owner identity and live transport around the read.
+Job pages bind to a canonical catalogue ID. Exact receipt lookups use the
+stored job and execution IDs so one-shot catalogue removal can leave the
+original receipt readable.
+
+On Windows, 928 portable policy cases passed and 273 platform-specific
+cases skipped. The pinned v0.23.1 native dispatcher passed 12 isolated
+authority and contract cases, including rejection of the routing field,
+ordinary API credentials, foreign instances and closed transport.
+It reported zero isolation denials and empty session and command stores.
+Windows refused native ledger storage as designed. That dispatcher test
+used synthetic storage replies for the positive authority cases. The
+protected Linux SQLite/WAL tests are gated separately in CI.
+
+The reply only exposes scheduler status, timestamps, a delivery code
+and an error-presence flag. Timestamped stock output files still need
+durable run-specific linkage. Android integration, strict edit, run-once
+and live Pi acceptance remain open.
+
 ## Exact schedule readback after paused creation
 
 The paused-create verifier now checks the approved schedule against the

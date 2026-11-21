@@ -3,6 +3,7 @@
 No chmod, cache, fallback reader, policy creation, subprocess or network access.
 Unsupported native primitives refuse; permission/identity claims are not inputs.
 """
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -26,24 +27,25 @@ def _directory(value, uid):
         raise ReadRefused('UNAVAILABLE')
 
 
-def _file(value, uid):
+def _file(value, uid, maximum):
     if (not stat.S_ISREG(value.st_mode) or value.st_uid not in (0, uid)
             or value.st_mode & 0o077 or value.st_nlink != 1 or value.st_ino <= 0
-            or not 1 <= value.st_size <= MAX_POLICY):
+            or not 1 <= value.st_size <= maximum):
         raise ReadRefused('UNAVAILABLE')
 
 
-def read_owner_document(directory, name):
-    """Read one fixed operator file; never follow a symlink or trust mode bits on Windows."""
+@contextmanager
+def open_owner_directory(directory):
+    """Anchor each path component in a protected POSIX directory."""
     if (os.name != 'posix' or not all(hasattr(os, k) for k in ('O_NOFOLLOW','O_DIRECTORY','O_CLOEXEC','O_NONBLOCK'))
             or os.open not in os.supports_dir_fd or os.stat not in os.supports_dir_fd
             or os.stat not in os.supports_follow_symlinks):
         raise ReadRefused('UNSUPPORTED')
-    parent = descriptor = None
+    parent = None
     try:
         root = Path(directory)
         if (not root.is_absolute() or root.anchor != '/' or '..' in root.parts
-                or len(str(root)) > 4096 or type(name) is not str or not _NAME.fullmatch(name)):
+                or len(str(root)) > 4096):
             raise ReadRefused('UNAVAILABLE')
         uid = os.geteuid()
         flags = os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW
@@ -51,36 +53,59 @@ def read_owner_document(directory, name):
         _directory(os.fstat(parent), uid)
         for part in root.parts[1:]:
             child = os.open(part, flags, dir_fd=parent)
-            try: _directory(os.fstat(child), uid)
+            try:
+                _directory(os.fstat(child), uid)
             except BaseException:
                 os.close(child)
                 raise
             os.close(parent)
             parent = child
+        yield parent
+    except (OSError, ValueError, TypeError):
+        raise ReadRefused('UNAVAILABLE') from None
+    finally:
+        if parent is not None:
+            os.close(parent)
+
+
+def read_owner_file(parent, name, maximum):
+    """Return bytes and a current identity from one bounded, protected file."""
+    if type(name) is not str or not _NAME.fullmatch(name):
+        raise ReadRefused('UNAVAILABLE')
+    descriptor = None
+    try:
         descriptor = os.open(name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
         before = os.fstat(descriptor)
-        _file(before, uid)
-        chunks = []; total = 0
+        _file(before, os.geteuid(), maximum)
+        chunks = []
+        total = 0
         while True:
-            piece = os.read(descriptor, min(8192, MAX_POLICY + 1 - total))
-            if not piece: break
+            piece = os.read(descriptor, min(8192, maximum + 1 - total))
+            if not piece:
+                break
             total += len(piece)
-            if total > MAX_POLICY: raise ReadRefused('UNAVAILABLE')
+            if total > maximum:
+                raise ReadRefused('UNAVAILABLE')
             chunks.append(piece)
         after = os.fstat(descriptor)
         named = os.stat(name, dir_fd=parent, follow_symlinks=False)
         if _stamp(before) != _stamp(after) or _stamp(after) != _stamp(named) or total != before.st_size:
             raise ReadRefused('UNAVAILABLE')
-        data = b''.join(chunks)
-        version = hashlib.sha256(json.dumps(_stamp(after),separators=(',',':')).encode('ascii')
-                                 + b'\0' + data).hexdigest()
-        return PolicyDocument(data, version)
-    except ReadRefused: raise
+        return b''.join(chunks), _stamp(after)
     except (OSError, ValueError, TypeError):
         raise ReadRefused('UNAVAILABLE') from None
     finally:
-        if descriptor is not None: os.close(descriptor)
-        if parent is not None: os.close(parent)
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def read_owner_document(directory, name):
+    """Read one fixed operator file with the existing policy size and identity bounds."""
+    with open_owner_directory(directory) as parent:
+        data, stamp = read_owner_file(parent, name, MAX_POLICY)
+    version = hashlib.sha256(json.dumps(stamp,separators=(',',':')).encode('ascii')
+                             + b'\0' + data).hexdigest()
+    return PolicyDocument(data, version)
 
 
 def policy_file_service(directory, name, *, authority, routes):

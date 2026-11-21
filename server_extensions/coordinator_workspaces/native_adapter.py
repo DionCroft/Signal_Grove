@@ -3,6 +3,7 @@
 Loaded only by the reviewed source adapter. An operator module must explicitly
 install ``service``; absence answers UNAVAILABLE and makes no readiness claim.
 """
+import asyncio
 import importlib
 from pathlib import Path
 from typing import Literal
@@ -11,11 +12,13 @@ from tui_gateway.contracts.base import JsonValue, Params, Result
 from tui_gateway.contracts.registry import canonical_method
 from .attached import FollowedWorkspace
 from .coordinator import CoordinatorReadService, NativeReadContext, ReadRefused, _identity
+from .cron_history import execution_query, read_executions
 
 DESCRIBE = 'signal_grove.workspaces.describe_v1'
 READ = 'signal_grove.workspaces.read_v1'
 DESCRIBE_ATTACHED = 'signal_grove.workspaces.describe_attachment_v1'
 READ_ATTACHED = 'signal_grove.workspaces.read_attachment_v1'
+CRON_EXECUTIONS = 'signal_grove.cron.executions_v1'
 
 
 class DescribeParams(Params):
@@ -39,6 +42,14 @@ class ReadAttachmentParams(DescribeAttachmentParams):
     request: dict[str, JsonValue]
 
 
+class CronExecutionParams(Params):
+    # A bare profile key is routed by Hermes before the method is validated.
+    expected_profile: str
+    job_id: str
+    limit: int | None = None
+    execution_id: str | None = None
+
+
 class ReadResult(Result):
     schema_version: Literal[1] = Field(alias='schema')
     state: Literal['ok','error']
@@ -57,6 +68,10 @@ canonical_method(DESCRIBE_ATTACHED, params=DescribeAttachmentParams, result=Read
                  doc='Observe the single registered workspace for this followed session.')
 canonical_method(READ_ATTACHED, params=ReadAttachmentParams, result=ReadResult,
                  doc='Prepare, list or preview the registered workspace of the live attached session.')
+
+
+canonical_method(CRON_EXECUTIONS, params=CronExecutionParams, result=ReadResult,
+                 doc='Read a profile-owned job ledger page or one exact durable execution receipt.')
 
 
 def _identity_instance_matches(connection):
@@ -188,8 +203,24 @@ def handlers(connection):
         except ReadRefused as exc:
             return dict(schema=1, state='error', code=exc.code, request_submitted=exc.request_submitted)
 
+    async def executions(ref, params):
+        try:
+            from hermes_cli.profiles import profile_matches_home
+            context = native_context(connection)
+            query = execution_query(params)
+            home = Path(context.profile_id)
+            if not profile_matches_home(query.profile, home):
+                raise ReadRefused('DENIED')
+            payload = await asyncio.to_thread(read_executions, home, query)
+            if native_context(connection) != context or not profile_matches_home(query.profile, home):
+                raise ReadRefused('CHANGED')
+            return dict(schema=1, state='ok', payload=payload)
+        except ReadRefused as exc:
+            return dict(schema=1, state='error', code=exc.code, request_submitted=False)
+
     async def describe(ref, params): return await invoke(ref, params, reading=False)
     async def read(ref, params): return await invoke(ref, params, reading=True)
     async def describe_attached(ref, params): return await attached(ref, params, reading=False)
     async def read_attached(ref, params): return await attached(ref, params, reading=True)
-    return {DESCRIBE:describe, READ:read, DESCRIBE_ATTACHED:describe_attached, READ_ATTACHED:read_attached}
+    return {DESCRIBE:describe, READ:read, DESCRIBE_ATTACHED:describe_attached, READ_ATTACHED:read_attached,
+            CRON_EXECUTIONS:executions}

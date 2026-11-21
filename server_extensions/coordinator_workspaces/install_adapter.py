@@ -11,7 +11,7 @@ from pathlib import Path
 import stat
 
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
-         'operator_policy.py','policy_file.py','attached.py')
+         'operator_policy.py','policy_file.py','attached.py','cron_history.py')
 
 
 def patch_source(source):
