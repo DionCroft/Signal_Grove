@@ -1,5 +1,48 @@
 # Current development validation — audit follow-up
 
+## Scheduler execution history on Android
+
+Advanced schedule details offer a separate **Scheduler attempts** read.
+The app verifies the signed-in management actor and exact home through
+the canonical dashboard transport. That channel sends only the
+versioned read with `expected_profile`, job ID and a limit of 20. The
+reply must prove the same profile and job. The app rechecks the live
+binding, management identity and profile home before displaying results.
+Closing the details cancels in-flight work and discards the history.
+An unavailable ledger and an empty job history have distinct states.
+Unknown outcomes stay unknown. Execution IDs require a reveal within
+the selected row. Recent run records remain a separate dashboard action.
+
+The frozen sources passed 1,229 JVM cases, both lint variants with
+zero errors and 55 debug / 54 release warnings, and both signed debug
+assemblies. The build outputs were kept in temporary E: storage. The
+wrapper's publication check held the generated copy to the checkout
+because the management guide was edited while Gradle was running; all
+nine changed Kotlin inputs matched the completed snapshot.
+
+Five focused instrumentation cases passed each on Android 8 and 17.
+They exercised the native ticket path, management identity and profile
+checks, a wrong profile in the reply, unknown method, home remapping
+and cancellation with socket close. Session context and the existing
+profile-bound negotiation also passed. These were authenticated
+fixtures. A live Pi ledger, output/log association, strict edit and
+run-once remain open.
+
+| Item | SHA-256 |
+| --- | --- |
+| Source snapshot | `1737454141ccb0d3d13ce7d570d007098bbd75dd061da6f23df0dfd576f1e3ac` |
+| Debug app | `dec6981d4f7e0b697d0b6431b220dc8b20697409df4961842c01c9950dfdf0b5` |
+| Debug instrumentation | `696f1f49edf81dd2cb55796bad37d05120ab29321a9295791e4550df85953e6d` |
+
+The previous integrated Android 17 full shard ran 660 tests with two
+failures. `rotatedConnectionsKeepTheirOwnHistoryAndNeverReplayPendingWork`
+missed the expected message node, and
+`phoneDocumentsReviewExactSourcesBeforeInvokingTheLoadedModel` timed
+out. Both passed together in an isolated repeat on the scheduler
+candidate. The failed full run stands and a fresh exact-source matrix
+is still required.
+[Previous full Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/44868156883).
+
 ## Authenticated scheduled execution ledger source
 
 The optional native owner method reads a bounded page from the current
@@ -33,8 +76,8 @@ store remains open.
 
 The reply only exposes scheduler status, timestamps, a delivery code
 and an error-presence flag. Timestamped stock output files still need
-durable run-specific linkage. Android integration, strict edit, run-once
-and live Pi acceptance remain open.
+durable run-specific linkage. Strict edit, run-once and live Pi
+acceptance remain open.
 
 ## Exact schedule readback after paused creation
 

@@ -94,6 +94,24 @@ The verified list endpoint returns a bare JSON array, while detail and existing 
 
 Source: [profile-scoped cron routes](https://github.com/NousResearch/hermes-agent/blob/f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab/hermes_cli/web_routers/cron.py), [profile annotation](https://github.com/NousResearch/hermes-agent/blob/f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab/hermes_cli/web_server_cron.py), [stored job fields](https://github.com/NousResearch/hermes-agent/blob/f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab/cron/jobs.py).
 
+### Scheduler attempts
+
+On a Hermes host with the optional Linux ledger method installed, open
+**Advanced schedules → Job details → Scheduler attempts**. Signal Grove
+verifies the signed-in management identity and the selected profile home
+on the existing dashboard connection. The latest 20 attempts can show
+the scheduler's recorded outcome, timestamps and delivery status.
+**Show execution ID** reveals the ledger identifier for one attempt.
+Closing the job details clears the list. When the result is unknown,
+the displayed outcome remains unknown.
+
+**Recent run records** remains available for the dashboard's reported
+conversation and output history. Each view is a distinct read. Scheduler
+attempts require the optional owner method and can report an unavailable
+ledger or no attempts. Result and log text need a verified association with
+an exact execution before they can be opened from an attempt.
+[Native ledger contract](../server_extensions/coordinator_workspaces/README.md#optional-native-scheduled-execution-receipts).
+
 ## Create a paused advanced schedule
 
 **Create paused schedule** first reads the management listener's authenticated OpenAPI document. It requires a declared string profile query and a creation body that explicitly accepts boolean `paused=true`, with the required schedule field. Every supplied field must be declared. A missing/disabled/incompatible document leaves creation unavailable with an explanation; schedule inspection remains available. This gate prevents older Pydantic bodies from silently ignoring an undeclared paused flag. It is a contract check, not a certification of an arbitrary deployment's implementation.

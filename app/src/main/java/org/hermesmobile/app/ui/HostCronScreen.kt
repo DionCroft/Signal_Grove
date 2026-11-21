@@ -8,7 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import org.hermesmobile.app.data.CronExecutionHistory
 import org.hermesmobile.app.data.ManagedCronJob
+import org.hermesmobile.app.data.ManagedCronRuns
 
 private fun hostCronField(key:String)=when(key) {
     "prompt"->Words.Prompt;"model"->Words.HostCronModel;"provider"->Words.HostCronProvider;"script"->Words.HostCronScript
@@ -42,10 +44,22 @@ private fun hostCronField(key:String)=when(key) {
         }
     },confirmButton={TextButton(close,Modifier.testTag("host-cron-close")) {Text(label(Words.Close))}})
     if(creating && s.cron.contract!=null && !s.busy) CronCreationForm(vm,s) {creating=false}
-    s.cron.detail?.let {job ->HostCronDetail(job,s.cron.runs?.takeIf {it.profile==s.profile && it.jobId==job.id},s.busy,s.error,{vm.loadHostCronRuns(job)},vm::closeHostCronDetail)}
+    s.cron.detail?.let { job ->
+        val home = vm.hostCronLedgerHome(s)
+        val ledger = s.cron.executionHistory?.takeIf {
+            it.owner.apiScope == s.apiScope && it.owner.profile == s.profile && it.homeId == home && it.jobId == job.id
+        }
+        HostCronDetail(job, s.cron.runs?.takeIf { it.profile == s.profile && it.jobId == job.id },
+            ledger, home != null, s.busy, s.error, { vm.loadHostCronRuns(job) },
+            { vm.loadHostCronExecutionHistory(job) }, vm::closeHostCronDetail)
+    }
 }
 
-@Composable private fun HostCronDetail(job:ManagedCronJob,history:org.hermesmobile.app.data.ManagedCronRuns?,busy:Boolean,error:Words?,loadRuns:()->Unit,close:()->Unit) {
+@Composable private fun HostCronDetail(
+    job: ManagedCronJob, history: ManagedCronRuns?, ledger: CronExecutionHistory?,
+    canReadLedger: Boolean, busy: Boolean, error: Words?,
+    loadRuns: () -> Unit, loadLedger: () -> Unit, close: () -> Unit
+) {
     AlertDialog(onDismissRequest=close,title={Text(job.name)},text={
         LazyColumn(Modifier.heightIn(max=500.dp).testTag("host-cron-detail"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(job.id);Text(label(Words.Schedule));Text(job.schedule);Text(label(Words.HostCronScheduleState));Text(job.state)}
@@ -54,7 +68,15 @@ private fun hostCronField(key:String)=when(key) {
             if(job.lastRun.isNotBlank()) item {Text(label(Words.LastRun));Text(job.lastRun)}
             if(job.lastStatus.isNotBlank()) item {Text(label(Words.HostCronLastStatus));Text(job.lastStatus)}
             if(job.hasRunError) item {Text(label(Words.HostCronRunError))}
+            item {
+                TextButton(loadLedger, enabled = !busy && canReadLedger,
+                    modifier = Modifier.fillMaxWidth().testTag("host-cron-ledger-load")) {
+                    Text(label(Words.HostCronLedger), Modifier.fillMaxWidth())
+                }
+                if (!canReadLedger) Text(label(Words.HostCronLedgerProfile))
+            }
             hostCronRuns(history,busy,error,loadRuns)
+            hostCronExecutionHistory(ledger)
             items(job.fields().entries.toList(),key={it.key}) {field ->Column {Text(label(hostCronField(field.key)),style=MaterialTheme.typography.titleSmall);Text(if(field.key=="enabled_toolsets" && job.noToolsAllowed) label(Words.HostCronNoTools) else if(field.key=="repeat" && field.value=="__unlimited__") label(Words.HostCronUnlimited) else field.value.ifBlank {label(Words.Unknown)})}}
         }
     },confirmButton={TextButton(close,Modifier.testTag("host-cron-detail-close")) {Text(label(Words.Close))}})

@@ -270,7 +270,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     }
 
     private suspend fun call(method: String, params: JsonObject): JsonObject = requests.withLock {
-        require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read))
+        require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", CronExecutionHistory.Method, AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read))
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
@@ -303,6 +303,19 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         val result = call("session.list", buildJsonObject { put("scope",scope.wire); put("limit",200) })
         if (binding !== identity) throw CanonicalScopeChanged()
         return CanonicalSessionProtocol.inventory(result, identity, scope)
+    }
+
+    internal suspend fun cronExecutionHistory(jobId: String): CronExecutionHistory {
+        synchronized(this) { check(!resuming && !resumed) }
+        val expected = binding
+        val reply = try {
+            call(CronExecutionHistory.Method, CronExecutionHistory.request(expected.target, jobId))
+        } catch (error: GatewayRpcException) {
+            if (error.code == -32601) throw CronExecutionHistoryUnavailable()
+            throw error
+        }
+        if (binding !== expected) throw CanonicalScopeChanged()
+        return CronExecutionHistory.parse(reply, expected.target, expected.homeId, jobId)
     }
 
     internal suspend fun projectMetadata(id:String?=null,conversations:Boolean=false):JsonObject {

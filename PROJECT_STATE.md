@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Scheduler execution history on Android
+
+Advanced schedule details can read the optional owner-bound Linux
+ledger. Canonical profile verification, unknown outcomes, ordinary
+dashboard history and cancellation are covered. The candidate passed
+1,229 JVM cases and five focused device cases each on Android 8 and 17.
+The two failures from the earlier Android 17 full shard passed together
+in an isolated repeat. The fresh full matrix, run-to-output linkage,
+strict edit, run-once and live Pi trial remain open.
+[Validation](docs/VALIDATION.md#scheduler-execution-history-on-android).
+
 ## Scheduled execution ledger checkpoint
 
 The optional Hermes source now has an authenticated owner/profile read for

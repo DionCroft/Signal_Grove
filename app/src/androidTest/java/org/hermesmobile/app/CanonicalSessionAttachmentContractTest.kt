@@ -42,6 +42,8 @@ class CanonicalSessionAttachmentContractTest {
         val resumes=AtomicInteger();val replays=AtomicInteger();val sockets=AtomicInteger();val pings=AtomicInteger()
         val profileReadAttempts=AtomicInteger()
         val contextReads=AtomicInteger()
+        val cronReads=AtomicInteger()
+        val cronClosed=CompletableDeferred<Unit>()
         val projectReads=AtomicInteger()
         val server=MockWebServer()
         val failures=AtomicInteger()
@@ -64,6 +66,9 @@ class CanonicalSessionAttachmentContractTest {
                 sockets.incrementAndGet()
                 ws.send("""{"jsonrpc":"2.0","method":"event","params":{"type":"gateway.ready","payload":{"skin":{},"change_events":true,"heartbeat":${mode in setOf("viewer","viewer-activity","attached-project")},"replay_epoch":"fixture-ring","session_authority":true}}}""")
             }
+            override fun onFailure(ws: WebSocket, error: Throwable, response: Response?) {
+                if (mode == "cron-hold") cronClosed.complete(Unit)
+            }
             override fun onMessage(ws:WebSocket,text:String) {
                 try {
                     val frame=Json.parseToJsonElement(text).jsonObject;val method=frame["method"]!!.jsonPrimitive.content
@@ -78,6 +83,26 @@ class CanonicalSessionAttachmentContractTest {
                         "runtime.describe"->{
                             check(params.isEmpty())
                             reply(Json.parseToJsonElement("""{"instance_id":"fixture-native-default","profile_id":"/fixture/homes/default","authority_epoch":1,"capabilities":["durable-admission-v1","event-replay-v1"],"session_create":{"sources":["cli"],"parameters":["title"]}}""").jsonObject)
+                        }
+                        CronExecutionHistory.Method -> {
+                            check(mode.startsWith("cron-"))
+                            check(params == buildJsonObject {
+                                put("expected_profile", "default"); put("job_id", "job-fixture"); put("limit", 20)
+                            })
+                            cronReads.incrementAndGet()
+                            when (mode) {
+                                "cron-hold" -> return
+                                "cron-missing" -> {
+                                    ws.send(buildJsonObject {
+                                        put("jsonrpc", "2.0"); put("id", id); put("error", buildJsonObject {
+                                            put("code", -32601); put("message", "unknown_method")
+                                        })
+                                    }.toString())
+                                    return
+                                }
+                            }
+                            val profile = if (mode == "cron-foreign") "worker" else "default"
+                            reply(Json.parseToJsonElement("""{"schema":1,"state":"ok","payload":{"profile":"$profile","job_id":"job-fixture","ledger":"available","limited":false,"attempts":[{"execution_id":"11111111111111111111111111111111","status":"unknown","claimed_at":"2026-11-21T02:15:00+00:00","started_at":null,"finished_at":null,"scheduled_instant":null,"delivery_outcome":null,"reported_error":true}]}}""").jsonObject)
                         }
                         "session.stats" -> {
                             check(mode == "stats")
@@ -225,7 +250,7 @@ class CanonicalSessionAttachmentContractTest {
                             check(q.getHeader("Authorization")=="Bearer project-access-fixture" && q.getHeader("Cookie")==null)
                             when(url.encodedPath) {
                                 "/dashboard/api/auth/me"->{check(q.method=="GET");json("""{"user_id":"stub-user-1","provider":"stub","display_name":"Project fixture"}""")}
-                                "/dashboard/api/profiles"->{check(q.method=="GET");if(mode=="workspace-remap" && mutations.get()>0) json("""{"profiles":[{"name":"default","path":"/fixture/homes/changed"}]}""") else if(mode=="drop-profile-once" && replays.get()>0 && profileReadAttempts.incrementAndGet()==1) MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST) else json("""{"profiles":[{"name":"default","path":"/fixture/homes/default"},{"name":"worker","path":"/fixture/homes/worker"},{"name":"alias","path":"/fixture/homes/default"}]}""")}
+                                "/dashboard/api/profiles"->{check(q.method=="GET");if((mode=="workspace-remap" && mutations.get()>0) || (mode=="cron-remap" && cronReads.get()>0)) json("""{"profiles":[{"name":"default","path":"/fixture/homes/changed"}]}""") else if(mode=="drop-profile-once" && replays.get()>0 && profileReadAttempts.incrementAndGet()==1) MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST) else json("""{"profiles":[{"name":"default","path":"/fixture/homes/default"},{"name":"worker","path":"/fixture/homes/worker"},{"name":"alias","path":"/fixture/homes/default"}]}""")}
                                 else->{
                                     check(q.method=="POST" && Json.parseToJsonElement(q.body.readUtf8())==JsonObject(emptyMap()))
                                     val ticket="project-ticket-"+UUID.randomUUID().toString().replace("-","");tickets+=ticket
@@ -600,6 +625,63 @@ class CanonicalSessionAttachmentContractTest {
     }    private fun workspaceSnapshot(target:ManagementTarget,home:String)=CanonicalSessionSnapshot(
         CanonicalFeedOwner(target,home,"/fixture/homes/default","fixture-native-default","shared-fixture",1),
         "shared-fixture","shared-fixture","fixture-sub",CanonicalReplayCursor("fixture-ring",0),2,3,false,2,true,CanonicalWorkspaceDirectory.Reported("/fixture/old"))
+
+    @Test fun schedulerHistoryUsesTheVerifiedProfileWithoutSessionOrJobMutation() = runBlocking {
+        Fixture("cron-ok").use { fixture ->
+            val api = ManagementClient(base(fixture), true, true)
+            val tokens = signIn(api)
+            val owner = target(api, tokens)
+            val home = home(api, tokens)
+            val history = api.cronExecutionHistory(tokens, owner, home, "job-fixture")
+            assertEquals(owner, history.owner)
+            assertEquals(home, history.homeId)
+            assertEquals(CronExecutionStatus.Unknown, history.attempts.single().status)
+            assertEquals(1, fixture.cronReads.get())
+            assertEquals(1, fixture.sockets.get())
+            assertEquals(0, fixture.resumes.get() + fixture.replays.get() + fixture.mutations.get() + fixture.failures.get())
+        }
+    }
+
+    @Test fun schedulerHistoryRejectsUnknownMethodForeignReplyAndRemappedHome() = runBlocking {
+        for (mode in listOf("cron-missing", "cron-foreign", "cron-remap")) {
+            Fixture(mode).use { fixture ->
+                val api = ManagementClient(base(fixture), true, true)
+                val tokens = signIn(api)
+                val owner = target(api, tokens)
+                val profile = home(api, tokens)
+                val refusal = runCatching { api.cronExecutionHistory(tokens, owner, profile, "job-fixture") }.exceptionOrNull()
+                when (mode) {
+                    "cron-missing" -> assertTrue(refusal is CronExecutionHistoryUnavailable)
+                    "cron-foreign" -> assertTrue(refusal is InvalidCronExecutionHistory)
+                    else -> assertTrue(refusal is CanonicalScopeChanged)
+                }
+                assertEquals(1, fixture.cronReads.get())
+                assertEquals(1, fixture.sockets.get())
+                assertEquals(0, fixture.resumes.get() + fixture.replays.get() + fixture.mutations.get() + fixture.failures.get())
+            }
+        }
+    }
+
+    @Test fun cancellingSchedulerHistoryClosesItsSocketWithoutRetry() = runBlocking {
+        Fixture("cron-hold").use { fixture ->
+            val api = ManagementClient(base(fixture), true, true)
+            val tokens = signIn(api)
+            val owner = target(api, tokens)
+            val profile = home(api, tokens)
+            val read = async { api.cronExecutionHistory(tokens, owner, profile, "job-fixture") }
+            try {
+                withTimeout(10_000) { while (fixture.cronReads.get() != 1) delay(10) }
+                read.cancelAndJoin()
+                withTimeout(10_000) { fixture.cronClosed.await() }
+                assertTrue(read.isCancelled)
+                assertEquals(1, fixture.sockets.get())
+                assertEquals(1, fixture.cronReads.get())
+                assertEquals(0, fixture.resumes.get() + fixture.replays.get() + fixture.mutations.get() + fixture.failures.get())
+            } finally {
+                read.cancelAndJoin()
+            }
+        }
+    }
 
     @Test fun contextStatsUseAnIndependentAuthenticatedSocketAndCreateNoReceipt() = runBlocking {
         Fixture("stats").use { fixture ->

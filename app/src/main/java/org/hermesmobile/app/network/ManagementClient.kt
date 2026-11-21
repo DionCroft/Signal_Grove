@@ -166,10 +166,7 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         GatewayCronInventory.requireProfile(target.profile)
         require(target.url==base.toString() && target.actor==tokens.provider+" · "+tokens.userId)
         require(homeId.matches(Regex("[a-f0-9]{64}")))
-        suspend fun verifyHome() {
-            if(profiles(tokens).singleOrNull {it.name==target.profile}?.pluginHome?.identity()!=homeId) throw CanonicalScopeChanged()
-        }
-        identity(tokens);verifyHome()
+        identity(tokens);verifyCanonicalHome(tokens,target,homeId)
         suspend fun connect(ticket:String):CanonicalGatewayChannel {
             dns.checkHost(base.host)
             return CanonicalGatewayChannel.connect(http,base,ticket,target,homeId)
@@ -178,12 +175,38 @@ class ManagementClient(url:String,debugHttp:Boolean,debugBuild:Boolean=false,loc
         catch(error:CanonicalTicketProfileMismatch) {
             // The rejected connection is closed and has sent only runtime.describe.
             // Recheck the same actor/home before the sole profile-bound handshake.
-            identity(tokens);verifyHome()
+            identity(tokens);verifyCanonicalHome(tokens,target,homeId)
             connect(profileGatewayTicket(tokens,target.profile))
         }
-        try {verifyHome();return channel}
+        try {verifyCanonicalHome(tokens,target,homeId);return channel}
         catch(error:Exception) {channel.close();throw error}
     }
+    private suspend fun verifyCanonicalHome(tokens: ManagementTokens, target: ManagementTarget, homeId: String) {
+        if (profiles(tokens).singleOrNull { it.name == target.profile }?.pluginHome?.identity() != homeId) {
+            throw CanonicalScopeChanged()
+        }
+    }
+
+    internal suspend fun cronExecutionHistory(
+        tokens: ManagementTokens, target: ManagementTarget, homeId: String, jobId: String
+    ): CronExecutionHistory {
+        val channel = try {
+            canonicalGateway(tokens, target, homeId)
+        } catch (_: CanonicalNotSupported) {
+            throw CronExecutionHistoryUnavailable()
+        } catch (_: CanonicalProfileTransportUnavailable) {
+            throw CronExecutionHistoryUnavailable()
+        }
+        return channel.use {
+            val binding = it.binding
+            val history = it.cronExecutionHistory(jobId)
+            identity(tokens)
+            verifyCanonicalHome(tokens, target, homeId)
+            if (it.binding !== binding) throw CanonicalScopeChanged()
+            history
+        }
+    }
+
     suspend fun skills(tokens:ManagementTokens,profile:String):JsonArray {SkillProtocol.profile(profile);return element("api/skills",tokens.access,profile=profile).jsonArray}
     suspend fun skillContent(tokens:ManagementTokens,profile:String,name:String):JsonObject {SkillProtocol.profile(profile);require(SkillProtocol.name(name));return element("api/skills/content",tokens.access,profile=profile,query=mapOf("name" to name)).jsonObject}
     suspend fun skillControl(tokens:ManagementTokens,profile:String,request:SkillRequest):JsonObject {SkillProtocol.profile(profile);return json("api/skills/"+if(request.action==SkillAction.Toggle) "toggle" else "lock",tokens.access,request.body(profile),profile,method="PUT")}
