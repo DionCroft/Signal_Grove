@@ -28,11 +28,12 @@ EXTERNAL_MODEL_GATES = {
             'verifiedLfm3MetadataScanIsBoundedAndCancellable',
             'verifiedLfm3SelectsReviewedChecksAndGeneratesChineseText',
             'verifiedLfm3PromptCountMatchesTheGenerationBoundary',
+            'verifiedLfm3MeasuresExplicitContextProbe',
             'verifiedLfm3StreamsOnlyAnswerTextForGardenPrompt',
             'verifiedLfm3GeneratesCancelsRecoversAndUnloads',
             'verifiedLfm3BranchesRetainParentsSettingsAndNeverReplay',
         ),
-        'requires': ('actual Android phone', '64-bit process', 'explicitly staged verified licensed LFM3 model', 'localModelLicenceReviewed=true for branch gate'),
+        'requires': ('actual Android phone', '64-bit process', 'explicitly staged verified licensed LFM3 model', 'localModelLicenceReviewed=true for branch gate', 'localContextProbeCapacity=4096, 8192 or 16384 for the debug context probe'),
     },
     'org.hermesmobile.app.LocalImportCommitIntegrationTest': {
         'methods': ('cancelledCommittedImportBecomesVisibleWithoutReopeningOrLoading',),

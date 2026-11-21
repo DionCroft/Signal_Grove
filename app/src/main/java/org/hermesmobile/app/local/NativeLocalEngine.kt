@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.hermesmobile.app.BuildConfig
 
 data class LocalChatMessage(val role: String, val text: String)
 enum class LocalGenerationEnd { COMPLETE, CANCELLED, TOKEN_LIMIT }
@@ -20,8 +21,19 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
     private val sequence = AtomicLong(0)
     private val current = AtomicLong(0)
 
-    suspend fun load(file: File, context: Int = 2048, threads: Int = 4) = operation { id ->
-        require(context in 512..4096 && threads in 1..4)
+    suspend fun load(file: File, context: Int = 2048, threads: Int = 4) {
+        require(context in 512..4096)
+        loadModel(file, context, threads, probe = false)
+    }
+
+    internal suspend fun loadContextProbe(file: File, context: Int, threads: Int) {
+        check(BuildConfig.DEBUG)
+        require(context == 8192 || context == 16384)
+        loadModel(file, context, threads, probe = true)
+    }
+
+    private suspend fun loadModel(file: File, context: Int, threads: Int, probe: Boolean) = operation { id ->
+        require(threads in 1..4)
         require(file.canonicalFile.parentFile == modelRoot.canonicalFile)
         if (!NativeLlmBindings.available()) throw LocalEngineException(6)
         val coroutineContext = currentCoroutineContext()
@@ -29,7 +41,10 @@ class NativeLocalEngine(private val modelRoot: File, private val nativeLibraryDi
         require(context <= metadata.trainedContext)
         if (handle.get() == 0L) handle.set(NativeLlmBindings.create(nativeLibraryDirectory))
         currentCoroutineContext().ensureActive()
-        checkResult(NativeLlmBindings.load(handle.get(), file.canonicalPath, context, threads, id))
+        val path = file.canonicalPath
+        val status = if (probe) NativeLlmBindings.loadContextProbe(handle.get(), path, context, threads, id)
+            else NativeLlmBindings.load(handle.get(), path, context, threads, id)
+        checkResult(status)
     }
 
     suspend fun countPromptTokens(messages: List<LocalChatMessage>): Int = operation { id ->
@@ -118,6 +133,7 @@ internal object NativeLlmBindings {
     external fun available(): Boolean
     external fun create(nativeLibraryDirectory: String): Long
     external fun load(handle: Long, path: String, context: Int, threads: Int, operation: Long): Int
+    external fun loadContextProbe(handle: Long, path: String, context: Int, threads: Int, operation: Long): Int
     external fun countPrompt(handle: Long, roles: Array<String>, contents: Array<ByteArray>, operation: Long): Int
     external fun generate(handle: Long, roles: Array<String>, contents: Array<ByteArray>, helperChoices: Array<String>, maxTokens: Int, operation: Long, sink: NativeTokenSink, measurement: LongArray? = null): Int
     external fun cancel(handle: Long, operation: Long)

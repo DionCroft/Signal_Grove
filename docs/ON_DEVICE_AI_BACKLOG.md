@@ -133,6 +133,12 @@ measured on representative phones. Benchmarking is explicitly started, bounded,
 offline and content-free in its shareable results; sustained thermal/battery and
 low-memory tests remain release gates. GPU/NPU acceleration is not promised.
 
+The debug context probe measured 4K, 8K and 16K on the Xiaomi with the
+same LFM3 model. Near-window 8K and 16K generation did not finish within
+180 seconds. The production context ceiling is still 4K. Sustained
+thermal, battery and representative long-chat acceptance remain open.
+[Context capacity evidence](VALIDATION.md#lfm3-context-capacity-probe-on-the-xiaomi).
+
 ## OF-05: A guided model library and first-run local setup
 
 **Status: in progress.** The development branch packages an offline comparison
@@ -309,7 +315,7 @@ freeform model commands never become actions or bypass the deterministic guide.
 - Complete relevant JVM/native/emulator and representative physical-phone checks,
   including cancellation, low memory/storage, process recovery and no data loss.
   Exercise the actual feature. Retain evidence for failed gates and verify
-  every case in the current 14-method external-model inventory and final
+  every case in the current 15-method external-model inventory and final
   production acceptance.
 - Commit and push coherent tested chunks when resumed. Publish only through the
   existing final-source, original-key upgrade and signed-release process.

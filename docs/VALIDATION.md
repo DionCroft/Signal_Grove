@@ -1,5 +1,44 @@
 # Current development validation — audit follow-up
 
+## LFM3 context capacity probe on the Xiaomi
+
+One in-place debug APK pair measured the pinned QAD Q4_0 LFM3 model with
+four CPU threads at 4,096, 8,192 and 16,384 context tokens. All three runs
+used the same 64-token short prompt and a 384-token output reserve. The
+near-window workload used the measured tokenizer count and the same
+reserve. Android had Wi-Fi enabled and mobile data disabled throughout.
+The debug package, companion and production package kept their UIDs.
+
+| Window | Load | Short prompt first text | Near-window input | Near-window result | Stop | Peak sampled PSS |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| 4,096 | 979 ms | 3.047 s | 3,712 tokens | First text 56.800 s, completed in 57.606 s | 11 ms | 2,323,216 KiB |
+| 8,192 | 954 ms | 3.145 s | 7,808 tokens | Generation deadline at 180 s | 16 ms | 2,427,176 KiB |
+| 16,384 | 898 ms | 3.209 s | 16,000 tokens | Generation deadline at 180 s | 27 ms | 2,610,634 KiB |
+
+Each run refused a one-token overflow without streaming output and
+returned CANCELLED on an explicit Stop during the near-window request.
+Android reported thermal status 0 throughout the samples. The two
+timed-out runs did not report near-window first-text timings. These are
+individual synthetic trials, with sustained thermal and battery behavior
+still open. The production load route enforces 4,096 tokens.
+
+On the same phone and APK pair, the separate 512-token boundary check
+refused 489 input tokens plus a 24-token reserve and generated with a
+23-token reserve. It passed in 8.187 s. On the Android 17 x86_64 emulator
+with networking off, the staged repeat completed load and overflow
+refusal, then reached the 120-second deadline during exact-fit generation.
+The original ambiguous failure and the staged result remain recorded.
+The emulator radio settings and default network were restored.
+
+The frozen app and companion SHA-256 values were
+9837a72fa38d18620a73c79d38eac178dcb7a76621da54fd2baacfda118d9d94 and 2d4ce29e1aef5eda2ed7069dd3943c1f81f739b7395859ed23958f263a2f2bac.
+The exact app sources passed 1,204 JVM checks, both lint variants and
+debug, test and release assembly. The packaged native symbol tables
+export the probe only on ARM64 and x86_64 debug. All four release ABIs
+expose only standard load. The external-model inventory now lists 15
+explicit methods, including one debug probe with three separate capacity
+arguments. Its 65 policy and standard-matrix accounting checks passed.
+
 ## Phone context review and request budget
 
 The first context chunk keeps exact formatted prompt counts and the native

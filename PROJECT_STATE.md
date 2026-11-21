@@ -15,6 +15,18 @@ opens the existing continuation review with the unsent draft. Larger windows
 remain a separate experiment with pinned LFM3 on the Xiaomi.
 [Context guide](docs/ON_DEVICE_AI.md#check-how-much-context-your-phone-model-has).
 
+## Physical LFM3 context capacity checkpoint
+
+The debug-only 4K, 8K and 16K trials captured short reply latency,
+memory, overflow refusal and Stop on the Xiaomi. The near-window 4K
+reply completed. The near-window 8K and 16K runs hit the 180-second
+deadline. The phone passed the exact 512-token boundary that timed out at
+generation on the x86_64 emulator. The production 4K cap remains the
+qualified limit. Continue the separate Hermes-reported context read using
+the existing authenticated session scope and the pinned session.stats
+contract; workspace approval and scheduling acceptance remain open.
+[Physical and emulator results](docs/VALIDATION.md#lfm3-context-capacity-probe-on-the-xiaomi).
+
 ## Beta.10 release checkpoint
 
 Exact candidate d651a33 passed 1,203 JVM tests, both lint variants and

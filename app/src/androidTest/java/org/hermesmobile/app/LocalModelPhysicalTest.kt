@@ -1,11 +1,16 @@
 package org.hermesmobile.app
 
+import android.app.ActivityManager
+import android.os.Build
+import android.os.Debug
+import android.os.PowerManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import android.os.Bundle
 import android.os.SystemClock
 import java.io.File
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -110,7 +115,9 @@ class LocalModelPhysicalTest {
         val engine = NativeLocalEngine(root, context.applicationInfo.nativeLibraryDir)
         try {
             val capacity = 512
+            stage("prompt-boundary-load-start")
             withTimeout(120_000) { engine.load(model, context = capacity, threads = 4) }
+            stage("prompt-boundary-load-complete")
             val short = localChatPrompt(emptyList(), "Reply with a dot.")
             val shortCount = engine.countPromptTokens(short)
             assertTrue(shortCount in 2 until capacity)
@@ -121,10 +128,12 @@ class LocalModelPhysicalTest {
             }
             val room = capacity - promptTokens
             assertEquals(promptTokens, engine.countPromptTokens(request))
+            stage("prompt-boundary-overflow-check")
             var streamed = false
             val refused = runCatching { engine.generate(request, room + 1) { streamed = true } }.exceptionOrNull()
             assertTrue(refused is LocalEngineException && refused.code == 2)
             assertFalse(streamed)
+            stage("prompt-boundary-exact-fit-start")
             val end = withTimeout(120_000) { engine.generate(request, room) {} }
             assertTrue(end in setOf(LocalGenerationEnd.COMPLETE, LocalGenerationEnd.TOKEN_LIMIT))
             assertEquals(shortCount, engine.countPromptTokens(short))
@@ -137,6 +146,124 @@ class LocalModelPhysicalTest {
             stage("native-prompt-count-boundary-complete")
         } finally { withContext(NonCancellable) { engine.unload() } }
     }
+    @Test fun verifiedLfm3MeasuresExplicitContextProbe() = runBlocking {
+        val requested = InstrumentationRegistry.getArguments().getString("localContextProbeCapacity")
+        assumeTrue("Requires an explicit context capacity", requested != null)
+        val capacity = requireNotNull(requested).toInt()
+        require(capacity in setOf(4096, 8192, 16384))
+        val (root, model) = modelInput()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val memory = ActivityManager.MemoryInfo().also {
+            context.getSystemService(ActivityManager::class.java).getMemoryInfo(it)
+        }
+        probeMetric("available_memory_kib", memory.availMem / 1024)
+        assertFalse("Android reports low memory before the context probe", memory.lowMemory)
+        assertTrue("Available memory is below the existing model load floor",
+            memory.availMem >= minimumModelLoadMemoryBytes(model.length()))
+        probeMetric("context_capacity", capacity.toLong())
+        probeMetric("threads", 4)
+        val power = context.getSystemService(PowerManager::class.java)
+        val maxPss = AtomicInteger(Debug.getPss().toInt())
+        val maxThermal = AtomicInteger(-1)
+        val sampler = launch(Dispatchers.Default) {
+            while (isActive) {
+                maxPss.accumulateAndGet(Debug.getPss().toInt(), ::maxOf)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    maxThermal.accumulateAndGet(power.currentThermalStatus, ::maxOf)
+                }
+                delay(1000)
+            }
+        }
+        val engine = NativeLocalEngine(root, context.applicationInfo.nativeLibraryDir)
+        try {
+            stage("context-probe-load-start")
+            val loadStarted = SystemClock.elapsedRealtime()
+            withTimeout(120_000) {
+                if (capacity == 4096) engine.load(model, capacity) else engine.loadContextProbe(model, capacity, 4)
+            }
+            stage("context-probe-load-complete", SystemClock.elapsedRealtime() - loadStarted)
+            probeMetric("loaded_pss_kib", Debug.getPss())
+
+            val common = localChatPrompt(emptyList(), LOCAL_BENCHMARK_PROMPT)
+            val commonTokens = engine.countPromptTokens(common)
+            probeGeneration("common", engine, common, commonTokens, LOCAL_BENCHMARK_OUTPUT_CAP)
+
+            stage("context-probe-near-window-count-start")
+            val (near, nearTokens) = withTimeout(30_000) { nearWindowPrompt(engine, capacity) }
+            val room = capacity - nearTokens
+            probeMetric("near_window_output_room", room.toLong())
+            val refused = runCatching {
+                engine.generate(near, room + 1) { fail("Overflow must not emit output") }
+            }.exceptionOrNull()
+            assertTrue(refused is LocalEngineException && refused.code == 2)
+            stage("context-probe-overflow-refused")
+
+            val pending = async(start = CoroutineStart.UNDISPATCHED) { engine.generate(near, room) {} }
+            delay(250)
+            assertTrue("The near-window request must still be active for Stop", pending.isActive)
+            val stopStarted = SystemClock.elapsedRealtime()
+            engine.cancel()
+            assertEquals(LocalGenerationEnd.CANCELLED, withTimeout(10_000) { pending.await() })
+            stage("context-probe-stop-complete", SystemClock.elapsedRealtime() - stopStarted)
+
+            // A successful near-window reply also verifies recovery after Stop.
+            probeGeneration("near_window", engine, near, nearTokens, room)
+            stage("context-probe-complete")
+        } finally {
+            withContext(NonCancellable) {
+                sampler.cancelAndJoin()
+                probeMetric("max_sampled_pss_kib", maxPss.get().toLong())
+                if (maxThermal.get() >= 0) probeMetric("max_android_thermal_status", maxThermal.get().toLong())
+                engine.unload()
+            }
+        }
+    }
+
+    private fun probeMetric(name: String, value: Long) {
+        InstrumentationRegistry.getInstrumentation().sendStatus(2, Bundle().apply {
+            putLong(name, value)
+        })
+    }
+
+    private suspend fun probeGeneration(
+        name: String, engine: NativeLocalEngine, messages: List<LocalChatMessage>, tokens: Int, outputCap: Int
+    ) {
+        probeMetric("${name}_prompt_tokens", tokens.toLong())
+        probeMetric("${name}_output_cap", outputCap.toLong())
+        stage("context-probe-${name}-generation-start")
+        val started = SystemClock.elapsedRealtime()
+        val result = withTimeout(180_000) { engine.generateMeasured(messages, outputCap) {} }
+        stage("context-probe-${name}-generation-complete", SystemClock.elapsedRealtime() - started)
+        assertTrue(result.end in setOf(LocalGenerationEnd.COMPLETE, LocalGenerationEnd.TOKEN_LIMIT))
+        val measurement = requireNotNull(result.measurement) { "Missing generation measurement for $name" }
+        probeMetric("${name}_sampled_tokens", measurement.sampledTokens.toLong())
+        probeMetric("${name}_sampling_ms", measurement.generationNanos / 1_000_000)
+        val visible = requireNotNull(measurement.firstAnswerNanos) { "No visible answer within the $name output reserve" }
+        probeMetric("${name}_first_answer_ms", visible / 1_000_000)
+    }
+
+    private suspend fun nearWindowPrompt(engine: NativeLocalEngine, capacity: Int): Pair<List<LocalChatMessage>, Int> {
+        // Synthetic two-byte filler keeps even the 16K input within the unchanged
+        // request byte limit. The actual GGUF tokenizer sets the final boundary.
+        val target = capacity - LOCAL_BENCHMARK_OUTPUT_CAP
+        var low = 0
+        var high = LOCAL_PROMPT_BYTE_LIMIT / 4
+        var best: Pair<List<LocalChatMessage>, Int>? = null
+        while (low <= high) {
+            val size = (low + high) / 2
+            val prompt = localChatPrompt(emptyList(), "Background test markers:\n" + " x".repeat(size) +
+                "\nIgnore the test markers. " + LOCAL_BENCHMARK_PROMPT)
+            val count = engine.countPromptTokens(prompt)
+            if (count <= target) {
+                best = prompt to count
+                low = size + 1
+            } else high = size - 1
+        }
+        return requireNotNull(best).also { (_, count) ->
+            check(count in (target - 4)..target) { "The prompt did not approach the measured capacity" }
+        }
+    }
+
     @Test fun verifiedLfm3StreamsOnlyAnswerTextForGardenPrompt() = runBlocking {
         val (root, model) = modelInput()
         val context = InstrumentationRegistry.getInstrumentation().targetContext

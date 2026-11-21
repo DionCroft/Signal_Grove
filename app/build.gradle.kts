@@ -42,7 +42,10 @@ android {
         keyPassword=System.getenv("HERMES_RELEASE_KEY_PASSWORD") ?: storePassword
     }
     buildTypes {
-        debug { applicationIdSuffix = ".debug" }
+        debug {
+            applicationIdSuffix = ".debug"
+            externalNativeBuild { cmake { arguments += "-DSIGNAL_GROVE_CONTEXT_PROBE=ON" } }
+        }
         release { if(!releaseKey.isNullOrBlank()) signingConfig=signingConfigs.getByName("communityRelease"); isMinifyEnabled = false; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") }
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

@@ -192,10 +192,9 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_create(JNIEnv * env, jobject, 
 extern "C" JNIEXPORT jboolean JNICALL
 Java_org_hermesmobile_app_local_NativeLlmBindings_available(JNIEnv *, jobject) { return JNI_TRUE; }
 
-extern "C" JNIEXPORT jint JNICALL
-Java_org_hermesmobile_app_local_NativeLlmBindings_load(JNIEnv * env, jobject, jlong handle, jstring file, jint context_size, jint threads, jlong operation) {
+static jint load_model(JNIEnv * env, jlong handle, jstring file, jint context_size, jint threads, jlong operation) {
     auto engine = get(handle);
-    if (!engine || operation <= 0 || context_size < 512 || context_size > 4096 || threads < 1 || threads > 4) return invalid;
+    if (!engine || operation <= 0 || threads < 1 || threads > 4) return invalid;
     std::unique_lock<std::mutex> lock(engine->operation_mutex, std::try_to_lock);
     if (!lock.owns_lock()) return invalid;
     engine->active.store(operation);
@@ -224,6 +223,20 @@ Java_org_hermesmobile_app_local_NativeLlmBindings_load(JNIEnv * env, jobject, jl
         return ok;
     } catch (...) { engine->clear(); return failed; }
 }
+
+extern "C" JNIEXPORT jint JNICALL
+Java_org_hermesmobile_app_local_NativeLlmBindings_load(JNIEnv * env, jobject, jlong handle, jstring file, jint context_size, jint threads, jlong operation) {
+    if (context_size < 512 || context_size > 4096) return invalid;
+    return load_model(env, handle, file, context_size, threads, operation);
+}
+
+#ifdef SIGNAL_GROVE_CONTEXT_PROBE
+extern "C" JNIEXPORT jint JNICALL
+Java_org_hermesmobile_app_local_NativeLlmBindings_loadContextProbe(JNIEnv * env, jobject, jlong handle, jstring file, jint context_size, jint threads, jlong operation) {
+    if (context_size != 8192 && context_size != 16384) return invalid;
+    return load_model(env, handle, file, context_size, threads, operation);
+}
+#endif
 
 // Count the exact rendered user prompt without allocating a context or running a decoder.
 extern "C" JNIEXPORT jint JNICALL
