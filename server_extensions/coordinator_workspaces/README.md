@@ -43,8 +43,8 @@ The occurrence ID comes from the held inbox.
 The prepare and decision methods use a locally configured
 `ProjectScheduleOperator` at `gateway.signal_grove_workspace_operator.project_schedule`.
 The verified resolver must match the registered project and provide the
-exact writable route, workspace, branch, worker, worker instance and
-task. Its observations run again before approval under the native locks.
+exact writable route, workspace, branch, full Git commit, worker, worker
+instance and task. Its observations run again before approval under the native locks.
 The dispatcher receives that frozen scope and execution in the owning
 profile. A dispatcher returns `completed` or `failed` only after verifying
 the scoped worker result. An uncertain response records unknown
@@ -137,7 +137,7 @@ selectors as the observer.
 
 | Method | Additional fields | Result |
 | --- | --- | --- |
-| `signal_grove.cron.run_once_prepare_v1` | None | Original `request_id`, `review_digest`, expiry and verified project, workspace, branch, worker instance, task and access |
+| `signal_grove.cron.run_once_prepare_v1` | None | Original `request_id`, `review_digest`, expiry and verified project, workspace, branch, commit, worker instance, task and access |
 | `signal_grove.cron.run_once_confirm_v1` | `request_id`, `review_digest` | Original `execution_id` and `state: claimed` |
 | `signal_grove.cron.run_once_dismiss_v1` | `request_id`, `review_digest`, `decision` (`defer` or `deny`) | Original request and recorded review decision |
 
@@ -145,6 +145,10 @@ Queued approval work uses the verified current owner transport and grant.
 The prepare, confirm and dismiss methods require a locally configured
 `RunOnceOperator` at `gateway.signal_grove_workspace_operator.run_once`.
 The operator supplies a read-only exact scope resolver and a dispatcher.
+A registered project write needs its exact branch and full lowercase
+Git commit. The commit is part of the reviewed scope and digest and is
+observed again before the native claim. The client returns the digest
+and original selectors to decide that review.
 The dispatcher receives the frozen approved scope and snapshotted native
 job under the owning profile home. It is responsible for executing that
 reserved attempt and recording the native outcome. An unconfigured gateway

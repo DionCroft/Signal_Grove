@@ -2129,6 +2129,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     HostCronRunOnceProject("Approved project scope","项目范围","Xiàngmù fànwéi"),
     HostCronRunOnceWorkspace("Workspace","工作区","Gōngzuòqū"),
     HostCronRunOnceBranch("Branch","分支","Fēnzhī"),
+    HostCronRunOnceCommit("Git commit","Git 提交","Git tíjiāo"),
     HostCronRunOnceWorker("Worker and instance","工作节点与实例","Gōngzuò jiédiǎn yǔ shílì"),
     HostCronRunOnceWrites("Access includes writes","权限包含写入","Quánxiàn bāohán xiěrù"),
     HostCronRunOnceReads("Read-only access","只读权限","Zhǐdú quánxiàn"),

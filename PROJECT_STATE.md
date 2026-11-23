@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Exact commit in project approvals
+
+The native scheduler now requires a full Git commit and branch when a
+review grants writes to a registered project. The digest includes the
+commit, and the scope is rechecked before native reservation. Signal Grove
+shows the full commit beside the branch in both project approval dialogs.
+
+A changed commit was refused before the fixture reserved anything. A
+fresh review carried the new commit into one dispatch of the original
+occurrence. The existing reconnect tests still recover the same receipt.
+[Validation](docs/VALIDATION.md#exact-commit-in-project-approvals).
+
+Next prove the real owner resolver issues this scope from the enrolled
+checkout, then apply the ref hold at queue admission and final launch.
+The live authorization and signed phone release gates remain open.
+
 ## Windows branch reference hold
 
 The checkout guard now holds the approved branch at its reviewed commit

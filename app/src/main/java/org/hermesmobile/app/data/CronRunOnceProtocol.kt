@@ -12,7 +12,7 @@ internal enum class CronRunOnceDecision(val wire: String) {
 
 internal class CronRunOnceScope(
     val project: String?, val workspace: String, val branch: String?, val worker: String,
-    val workerInstance: String, val writes: Boolean, val task: String
+    val workerInstance: String, val writes: Boolean, val task: String, val commit: String?
 ) {
     override fun toString() = "CronRunOnceScope(redacted)"
 }
@@ -42,6 +42,7 @@ internal object CronRunOnceProtocol {
     val methods = setOf(Prepare, Confirm, Dismiss, Observe)
     private val id = Regex("[a-f0-9]{32}")
     private val hash = Regex("[a-f0-9]{64}")
+    private val commitId = Regex("(?:[a-f0-9]{40}|[a-f0-9]{64})")
     private val jobId = Regex("[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}")
     private val errors = setOf("INVALID", "DENIED", "CHANGED", "EXPIRED", "NOT_FOUND", "BUSY",
         "UNAVAILABLE", "UNSUPPORTED", "TOO_LARGE", "DUPLICATE", "IDENTITY_FAILURE")
@@ -75,12 +76,19 @@ internal object CronRunOnceProtocol {
     }
 
     internal fun parseScope(scope: JsonObject): CronRunOnceScope {
-        require(scope.keys == scopeFields)
+        require(scope.keys == scopeFields || scope.keys == scopeFields + "commit")
         val access = scope.text("access")
         require(access in setOf("read", "write"))
-        return CronRunOnceScope(scope.identity("project"), checkNotNull(scope.identity("workspace")), scope.identity("branch"),
+        val project = scope.identity("project")
+        val branch = scope.identity("branch")
+        val commit = scope["commit"]?.jsonPrimitive?.let {
+            require(it.isString && commitId.matches(it.content))
+            it.content
+        }
+        require(project == null || access != "write" || (branch != null && commit != null))
+        return CronRunOnceScope(project, checkNotNull(scope.identity("workspace")), branch,
             checkNotNull(scope.identity("worker")), checkNotNull(scope.identity("worker_instance")),
-            access == "write", scope.text("task").also { require(displaySafe(it, 8192, multiline = true)) })
+            access == "write", scope.text("task").also { require(displaySafe(it, 8192, multiline = true)) }, commit)
     }
 
     fun confirmed(wire: JsonObject, review: CronRunOnceReview): CronRunOnceObservation = checked {

@@ -1,5 +1,48 @@
 # Current development validation — audit follow-up
 
+## Exact commit in project approvals
+
+The shared scheduler scope validates the exact branch and full lowercase
+40- or 64-character Git commit for registered project writes. Both Run once
+and scheduled project reviews bind the observed commit into their review
+digest. The Android review requires that scope and visibly displays the
+full commit. Legacy ordinary job reviews without a project still parse,
+and the one-use decision sends the review digest with the original
+selectors. Existing receipt formats remain readable.
+
+The portable scheduler suite passed **32 cases**. A same-branch commit
+change between review and native reservation returned CHANGED without
+claiming the occurrence or calling the worker fixture. Fresh review
+carried the new commit into one fixture dispatch. Repeating the decision
+addressed the same execution ID and was refused. Missing, shortened and
+malformed commit values are covered in the native and Android parsers.
+
+Frozen source `22b801a4313cde49f13e5a5cac69fcd64b549b1c947e82d632029005358eb726` passed 1,242 JVM tests, both lint
+variants, and the debug app and instrumentation assemblies. The tested
+pair passed 11 standard and four compact scheduling cases on
+each of Android 8 and 17. These cover actual commit display, approval,
+defer and deny, lost-response recovery, timing changes, scoped history and
+bounded output. Compact runs used 840×1470, 420 dpi and 1.3× text.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Debug app APK | `ff4105dba0d04d43062309362ee1651ccc729e584d1fbe0a2fec0dd1873b8f44` |
+| Debug test APK | `f8017df359002b21024cd1e12f71f1be4b1c5f14619f738bad9a035bf7b07e7e` |
+| Android 8 standard | `498268d62af3cf4a8d891039be20ae565bb5b1274f94b0641cea313ed0beed13` |
+| Android 8 compact | `a603668639f7b0a442f05a5f5dc384d2761f030573583374a1b28dd989a5644d` |
+| Android 17 standard | `5230b89e9d18f308adfb5ecefe734b853cc818e0c3dcb5a0e1481c316b6e46f6` |
+| Android 17 compact | `374f11afc7b2b003e0341c6b72c3a070e3d7bd00d3b3929bd276eba385f5fcdb` |
+
+The prior Windows guard commit `3815178` passed hosted protocol,
+**86 Windows native** and **37 POSIX native** cases. Both archive digests
+matched GitHub. The Windows report's 17 input hashes match the committed
+files with Windows line endings accounted for.
+[Hosted worker validation](https://github.com/DionCroft/Signal_Grove/actions/runs/45257301957).
+
+The local coordinator fixture exercised reservation logic. Integration
+with the actual enrolled worker, native queue and launch, and protected
+Pi activation still need their own acceptance.
+
 ## Windows branch reference hold
 
 A disposable fixture previously advanced a branch while the native guard

@@ -17,6 +17,7 @@ from .cron_run_once import RunOnceReceipt
 REVIEW_SECONDS = 180
 MAX_REVIEWS = 64
 _DIGEST = re.compile(r"[a-f0-9]{64}")
+_COMMIT = re.compile(r"(?:[a-f0-9]{40}|[a-f0-9]{64})")
 
 
 @dataclass(frozen=True, repr=False)
@@ -31,6 +32,7 @@ class RunOnceScope:
     access: str
     policy_revision: str
     task: str
+    commit: str | None = None
 
     def values(self):
         identity = (self.workspace, self.worker, self.worker_instance)
@@ -38,12 +40,24 @@ class RunOnceScope:
         if (not all(_identity(value) for value in identity)
                 or any(value is not None and not _identity(value) for value in optional)
                 or type(self.access) is not str or self.access not in ("read", "write")
+                or (self.commit is not None
+                    and (type(self.commit) is not str or not _COMMIT.fullmatch(self.commit)))
+                or (self.project is not None and self.access == "write"
+                    and (self.branch is None or self.commit is None))
                 or type(self.policy_revision) is not str or not _DIGEST.fullmatch(self.policy_revision)
                 or type(self.task) is not str or not 1 <= len(self.task) <= 8192
                 or any(ord(char) < 32 and char not in "\n\t" or ord(char) == 127
                        or 0xd800 <= ord(char) <= 0xdfff for char in self.task)):
             raise ReadRefused("DENIED")
-        return [*identity, *optional, self.access, self.policy_revision, self.task]
+        return [*identity, *optional, self.access, self.policy_revision, self.task, self.commit]
+
+    def review_payload(self):
+        payload = {"project": self.project, "workspace": self.workspace, "branch": self.branch,
+                   "worker": self.worker, "worker_instance": self.worker_instance,
+                   "access": self.access, "task": self.task}
+        if self.commit is not None:
+            payload["commit"] = self.commit
+        return payload
 
 
 @dataclass(frozen=True, repr=False)

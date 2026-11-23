@@ -56,7 +56,7 @@ class RunOnceApprovalTest(unittest.TestCase):
         self.version = "a" * 64
         self.native = NativeFixture(lambda: deepcopy(self.job))
         self.scope = approval.RunOnceScope("site", "verified-workspace", "main", "worker",
-                                           "worker-instance", "read", "b" * 64, self.job["prompt"])
+                                           "worker-instance", "read", "b" * 64, self.job["prompt"], commit="d" * 40)
         self.scope_checks = []
         self.clock = 100.0
         self.service = approval.RunOnceApprovals(self.resolve)
@@ -113,7 +113,7 @@ class RunOnceApprovalTest(unittest.TestCase):
         original = self.scope
         for field, modified in (("project", "other"), ("workspace", "other"), ("branch", "other"),
                                 ("worker", "other"), ("worker_instance", "other"), ("access", "write"),
-                                ("policy_revision", "c" * 64), ("task", "Different task")):
+                                ("policy_revision", "c" * 64), ("task", "Different task"), ("commit", "e" * 40)):
             with self.subTest(field=field):
                 self.scope = original
                 review = self.prepare()
@@ -124,6 +124,17 @@ class RunOnceApprovalTest(unittest.TestCase):
         self.refuse("CHANGED", lambda: self.service.admit(review.receipt, "c" * 64, self.verify))
         self.version = "e" * 64
         self.refuse("CHANGED", lambda: self.admit(review))
+        self.assertEqual([], self.native.receipts)
+
+    def test_project_write_needs_a_branch_and_a_full_commit_before_review(self):
+        original = replace(self.scope, access="write")
+        for changes in ({"branch": None}, {"commit": None}, {"commit": "a" * 12}, {"commit": "B" * 40}):
+            with self.subTest(changes=changes):
+                self.scope = replace(original, **changes)
+                self.refuse("DENIED", self.prepare)
+        self.scope = original
+        review = self.prepare()
+        self.assertEqual(original.commit, review.scope.review_payload()["commit"])
         self.assertEqual([], self.native.receipts)
 
     def test_foreign_transport_owner_and_authority_refuse_before_admission(self):

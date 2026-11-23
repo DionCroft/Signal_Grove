@@ -118,12 +118,6 @@ def _unreserved(home, selection):
         raise ReadRefused("DUPLICATE", request_submitted=True)
 
 
-def _scope_payload(scope):
-    return {"project": scope.project, "workspace": scope.workspace, "branch": scope.branch,
-            "worker": scope.worker, "worker_instance": scope.worker_instance,
-            "access": scope.access, "task": scope.task}
-
-
 class ProjectScheduleOperator:
     """Local owner policy supplies the current route and a scoped worker dispatcher."""
 
@@ -170,7 +164,7 @@ class ProjectScheduleOperator:
             self._reviews[digest] = _Review(selection, scope, instant, actor, policy_version, catalogue_version,
                                              now + REVIEW_SECONDS)
         return {**selection.fields(), "scheduled_instant": instant, "review_digest": digest,
-                "expires_in_seconds": REVIEW_SECONDS, "scope": _scope_payload(scope)}
+                "expires_in_seconds": REVIEW_SECONDS, "scope": scope.review_payload()}
 
     def _pending(self, request, actor):
         review = self._reviews.get(request.digest)

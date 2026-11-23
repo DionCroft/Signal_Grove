@@ -52,6 +52,7 @@ internal fun SchedulerApprovalDialog(
                 scope.project?.let { project -> item { runOnceScopeField(Words.HostCronRunOnceProject, project) } }
                 item { runOnceScopeField(Words.HostCronRunOnceWorkspace, scope.workspace) }
                 scope.branch?.let { branch -> item { runOnceScopeField(Words.HostCronRunOnceBranch, branch) } }
+                scope.commit?.let { commit -> item { runOnceScopeField(Words.HostCronRunOnceCommit, commit) } }
                 item { runOnceScopeField(Words.HostCronRunOnceWorker, scope.worker + "\n" + scope.workerInstance) }
                 item { Text(label(if (scope.writes) Words.HostCronRunOnceWrites else Words.HostCronRunOnceReads)) }
                 item { runOnceScopeField(Words.HostCronRunOnceTask, scope.task) }

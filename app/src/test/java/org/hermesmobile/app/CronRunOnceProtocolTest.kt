@@ -13,7 +13,7 @@ class CronRunOnceProtocolTest {
     private val digest = "c".repeat(64)
     private val execution = "94a09a6eb293ff4e9d2fbad61bb9c606"
     private val scope = buildJsonObject {
-        put("project", "fixture-project")
+        put("project", JsonNull)
         put("workspace", "fixtures/工作区 🌱")
         put("branch", JsonNull)
         put("worker", "FIXTURE-WORKER")
@@ -38,6 +38,7 @@ class CronRunOnceProtocolTest {
         assertEquals("fixtures/工作区 🌱", review.scope.workspace)
         assertTrue(review.scope.writes)
         assertNull(review.scope.branch)
+        assertNull(review.scope.commit)
         assertEquals(180000L, review.expiresAt)
         assertFalse(review.toString().contains(review.scope.task))
         assertEquals(setOf("expected_profile", "job_id"), CronRunOnceProtocol.prepare(owner, job).keys)
@@ -46,6 +47,22 @@ class CronRunOnceProtocolTest {
         assertEquals(JsonObject(approval + ("decision" to JsonPrimitive("defer"))),
             CronRunOnceProtocol.decide(review, CronRunOnceDecision.Defer))
         CronRunOnceProtocol.dismissed(wire { put("decision", "deny") }, review, CronRunOnceDecision.Deny)
+    }
+
+    @Test fun projectWriteRequiresTheExactReviewedBranchAndFullCommit() {
+        val project = scope + ("project" to JsonPrimitive("fixture-project"))
+        val branch = project + ("branch" to JsonPrimitive("approved-branch"))
+        val oid = "a".repeat(40)
+        val reviewed = CronRunOnceProtocol.review(preview(JsonObject(branch + ("commit" to JsonPrimitive(oid)))),
+            owner, home, job, 1)
+        assertEquals(oid, reviewed.scope.commit)
+        assertEquals("approved-branch", reviewed.scope.branch)
+        for (bad in listOf(JsonObject(branch), JsonObject(branch + ("commit" to JsonPrimitive("a".repeat(12)))),
+            JsonObject(branch + ("commit" to JsonNull)), JsonObject(project + ("commit" to JsonPrimitive(oid))))) {
+            assertThrows(CronRunOnceInvalid::class.java) {
+                CronRunOnceProtocol.review(preview(bad), owner, home, job, 1)
+            }
+        }
     }
 
     @Test fun unfamiliarOrMisleadingReviewFieldsFailClosed() {

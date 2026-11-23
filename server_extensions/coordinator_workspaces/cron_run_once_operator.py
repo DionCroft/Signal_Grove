@@ -100,9 +100,7 @@ class RunOnceOperator:
         scope = review.scope
         return {**_receipt_fields(review.receipt), "review_digest": review.digest,
                 "expires_in_seconds": max(0, int(review.expires_at - monotonic())),
-                "scope": {"project": scope.project, "workspace": scope.workspace, "branch": scope.branch,
-                          "worker": scope.worker, "worker_instance": scope.worker_instance,
-                          "access": scope.access, "task": scope.task}}
+                "scope": scope.review_payload()}
 
     def dismiss(self, request, verify):
         self._approvals.dismiss(request.receipt, request.digest, verify, request.decision)

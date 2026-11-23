@@ -18,7 +18,7 @@ class CronProjectProtocolTest {
     private val scope = buildJsonObject {
         put("project", "registered-fixture"); put("workspace", "fixture/workspace")
         put("branch", "main"); put("worker", "FIXTURE-WORKER"); put("worker_instance", "worker-instance")
-        put("access", "write"); put("task", "Update the fixture notes.")
+        put("access", "write"); put("task", "Update the fixture notes."); put("commit", "a".repeat(64))
     }
     private fun wire(body: JsonObject) = buildJsonObject {
         put("schema", 1); put("state", "ok"); put("payload", body)
@@ -44,6 +44,7 @@ class CronProjectProtocolTest {
         val review = CronProjectProtocol.prepared(preview(), inbox, entry, 1000L)
         assertEquals("registered-fixture", review.scope.project)
         assertTrue(review.scope.writes)
+        assertEquals("a".repeat(64), review.scope.commit)
         assertEquals(180000L, review.expiresAt)
         val selectors = CronProjectProtocol.decide(review, CronRunOnceDecision.Approve)
         assertEquals(setOf("expected_profile", "job_id", "occurrence_id", "review_digest", "decision"), selectors.keys)
@@ -55,7 +56,9 @@ class CronProjectProtocolTest {
         }
         for (value in listOf(preview(time = "2026-11-21T09:00:01Z"),
             preview(JsonObject(scope + ("project" to JsonPrimitive("other")))),
-            preview(JsonObject(scope + ("access" to JsonPrimitive("read")))))) {
+            preview(JsonObject(scope + ("access" to JsonPrimitive("read")))),
+            preview(JsonObject(scope - "commit")),
+            preview(JsonObject(scope + ("commit" to JsonPrimitive("A".repeat(40))))))) {
             assertThrows(CronProjectInvalid::class.java) { CronProjectProtocol.prepared(value, inbox, entry, 1) }
         }
     }

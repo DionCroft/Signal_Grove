@@ -197,6 +197,7 @@ class HostCronRunsFlowTest {
                                         putJsonObject("scope") {
                                             put("project", "registered-fixture"); put("workspace", "verified/workspace")
                                             put("branch", "reviewed-branch"); put("worker", "REGISTERED-WORKER")
+                                            put("commit", "a".repeat(40))
                                             put("worker_instance", "registered-instance"); put("access", "write")
                                             put("task", "Update notes in the verified fixture project.")
                                         }
@@ -263,6 +264,7 @@ class HostCronRunsFlowTest {
                                         putJsonObject("scope") {
                                             put("project", "fixture-project"); put("workspace", "workspaces/fixture")
                                             put("branch", "fixture-branch"); put("worker", "FIXTURE-WORKER")
+                                            put("commit", "b".repeat(64))
                                             put("worker_instance", "fixture-instance"); put("access", "write")
                                             put("task", "Write the fixture summary without changing the seed.")
                                         }
@@ -541,6 +543,9 @@ class HostCronRunsFlowTest {
         val list = compose.onNodeWithTag("host-cron-project-review")
         list.performScrollToNode(hasText("reviewed-branch"))
         compose.onNodeWithText("reviewed-branch").assertIsDisplayed()
+        val commit = "a".repeat(40)
+        list.performScrollToNode(hasText(commit))
+        compose.onNodeWithText(commit).assertIsDisplayed()
         val task = "Update notes in the verified fixture project."
         list.performScrollToNode(hasText(task))
         compose.onNodeWithText(task).assertIsDisplayed()
