@@ -20,7 +20,7 @@ during the claim.
 The exact Windows bundle accepted a signed request through a separate stdio
 process, launched one inert child after the submit reply was lost, and
 returned the original completed receipt. 109 native Windows, 142 workspace
-and 34 scheduler checks passed, plus 14 staged bundle checks. Both staged
+and 34 scheduler checks passed, plus 15 staged bundle checks. Both staged
 Hermes versions passed their eight native decision cases.
 [Validation](docs/VALIDATION.md#reviewed-windows-stdio-and-coordinator-ssh-candidate).
 

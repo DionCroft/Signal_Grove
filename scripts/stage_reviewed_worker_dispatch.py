@@ -53,12 +53,26 @@ def stage_broker(source):
 
 def stage_worker(source):
     source = replace(source, "in {'workspace_status','workspace_read'}:", "in {'workspace_status','workspace_read','workspace_reviewed'}:")
+    source = replace(source, "def rpc(data):", '''def parse_worker_stdin(raw,encoding):
+ # The existing text channel permits a bounded character count. Reviewed frames
+ # have their own UTF-8 byte budget so long Unicode approvals are preserved.
+ if len(raw)>131072:raise ValueError('Budget')
+ utf8=True
+ try:text=raw.decode('utf-8')
+ except UnicodeDecodeError:
+  utf8=False
+  text=raw.decode(encoding or 'utf-8')
+ packet=json.loads(text)
+ if type(packet) is dict and packet.get('action')=='workspace_reviewed':
+  if not utf8 or len(raw)>98304:raise ValueError('Reviewed frame encoding or budget')
+ elif len(text)>32768:raise ValueError('Budget')
+ return packet
+
+def rpc(data):''')
     source = replace(source, """   raw=sys.stdin.read(32769)
    if len(raw)>32768:raise ValueError('Budget')
-   print(json.dumps({'ok':True,'result':rpc(json.loads(raw))}))""", """   raw=sys.stdin.buffer.read(98305)
-   if len(raw)>98304:raise ValueError('Budget')
-   packet=json.loads(raw)
-   if len(raw)>32768 and not (type(packet) is dict and packet.get('action')=='workspace_reviewed'):raise ValueError('Budget')
+   print(json.dumps({'ok':True,'result':rpc(json.loads(raw))}))""", """   raw=sys.stdin.buffer.read(131073)
+   packet=parse_worker_stdin(raw,sys.stdin.encoding)
    print(json.dumps({'ok':True,'result':rpc(packet)}))""")
     for operation in ("result", "cancel"):
         legacy = f"def {operation}(ident):\n ident=valid_id(ident)\n with queue_db() as d:\n"

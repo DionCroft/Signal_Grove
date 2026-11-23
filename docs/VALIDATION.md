@@ -17,7 +17,10 @@ the staged broker launched one inert child and the coordinator read the same
 completed receipt. The fixture used a disposable Git checkout, synthetic
 enrollment metadata, protected fixture credentials and a single test worker.
 Initial failures from a fixture owner type and clock mismatch are retained.
-The final run passed all 14 staged cases, including the legacy control fence.
+The final run passed all 15 staged cases, including the legacy control fence.
+Legacy stdin retained its character limit and the declared-encoding fallback.
+The reviewed action uses its separate UTF-8 byte limit. A local OpenSSH
+configuration check confirmed the effective host-key and forwarding options.
 The 109 native Windows, 142 workspace and 34 scheduler cases also passed.
 The named pipe test proves the stdio and worker boundaries. A real SSH
 handshake across the Pi and Windows remains to be verified.
