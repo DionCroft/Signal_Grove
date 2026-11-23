@@ -1,6 +1,6 @@
 """An exact, short-lived review of one protected scheduled project occurrence."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 import hashlib
 from pathlib import Path
@@ -58,6 +58,7 @@ class ApprovedOccurrence:
 @dataclass(frozen=True, repr=False)
 class _Review:
     selection: ProjectOccurrence
+    local_scope: RunOnceScope
     scope: RunOnceScope
     scheduled_instant: str
     actor: NativeReadContext
@@ -123,10 +124,12 @@ def _unreserved(home, selection):
 class ProjectScheduleOperator:
     """Local owner policy supplies the current route and a scoped worker dispatcher."""
 
-    def __init__(self, resolve_scope, dispatch):
-        if not callable(resolve_scope) or not callable(dispatch):
+    def __init__(self, resolve_scope, dispatch, *, refresh_scope=None):
+        if (not callable(resolve_scope) or not callable(dispatch)
+                or (refresh_scope is not None and not callable(refresh_scope))):
             raise TypeError("Project schedules require a scope resolver and dispatcher")
         self._resolve_scope = resolve_scope
+        self._refresh_scope = refresh_scope
         self._dispatch = dispatch
         self._reviews = {}
         self._lock = Lock()
@@ -144,6 +147,23 @@ class ProjectScheduleOperator:
         scope.values()
         return scope
 
+    def _worker_scope(self, actor, selection, scope):
+        if self._refresh_scope is None:
+            return scope
+        try:
+            current = self._refresh_scope(actor, selection.profile, scope)
+        except ReadRefused:
+            raise
+        except Exception:
+            raise ReadRefused("UNAVAILABLE") from None
+        if type(current) is not RunOnceScope:
+            raise ReadRefused("DENIED")
+        current.values()
+        if replace(scope, checkout_revision=current.checkout_revision,
+                   write_policy_revision=current.write_policy_revision) != current:
+            raise ReadRefused("CHANGED")
+        return current
+
     def prepare(self, selection, verify):
         actor = _verified_context(verify, selection.profile)
         jobs = _native_jobs()
@@ -152,9 +172,14 @@ class ProjectScheduleOperator:
             _unreserved(home, selection)
             chosen = _selected(home, selection)
             job, project, instant, policy_version, catalogue_version = chosen
-            scope = self._scope(actor, project, job)
+            local_scope = self._scope(actor, project, job)
             if _selected(home, selection) != chosen:
                 raise ReadRefused("CHANGED")
+        scope = self._worker_scope(actor, selection, local_scope)
+        if self._refresh_scope is not None:
+            with _profile_home(jobs, home):
+                if _selected(home, selection) != chosen or self._scope(actor, project, job) != local_scope:
+                    raise ReadRefused("CHANGED")
         _verified_context(verify, selection.profile, actor)
         with self._lock:
             now = monotonic()
@@ -163,7 +188,7 @@ class ProjectScheduleOperator:
                 raise ReadRefused("BUSY")
             fields = [*selection.fields().values(), instant, policy_version, catalogue_version, *scope.values(), uuid4().hex]
             digest = hashlib.sha256(b"signal-grove-project-review-v1\0" + encode(fields, maximum=128 * 1024)).hexdigest()
-            self._reviews[digest] = _Review(selection, scope, instant, actor, policy_version, catalogue_version,
+            self._reviews[digest] = _Review(selection, local_scope, scope, instant, actor, policy_version, catalogue_version,
                                              now + REVIEW_SECONDS)
         return {**selection.fields(), "scheduled_instant": instant, "review_digest": digest,
                 "expires_in_seconds": REVIEW_SECONDS, "scope": scope.review_payload()}
@@ -197,6 +222,9 @@ class ProjectScheduleOperator:
             _unreserved(home, selection)
         with self._lock:
             review = self._pending(request, actor)
+        # The owner transport may block. Recheck it before acquiring native job/fire locks.
+        if request.decision == "approve" and self._worker_scope(actor, selection, review.local_scope) != review.scope:
+            raise ReadRefused("CHANGED")
         submitted = False
 
         def authorize(stored):
@@ -207,7 +235,7 @@ class ProjectScheduleOperator:
             if (stored != job or (instant, policy_version, catalogue_version) !=
                     (review.scheduled_instant, review.policy_version, review.catalogue_version)):
                 raise ReadRefused("CHANGED")
-            if request.decision == "approve" and self._scope(actor, project, job) != review.scope:
+            if request.decision == "approve" and self._scope(actor, project, job) != review.local_scope:
                 raise ReadRefused("CHANGED")
             if _selected(home, selection) != chosen:
                 raise ReadRefused("CHANGED")

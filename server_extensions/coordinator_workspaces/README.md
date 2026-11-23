@@ -355,6 +355,18 @@ retain the original execution ID. This integration uses the canonical shared
 approval codec copied by the optional installer. Remote route commissioning
 requires separate verification.
 
+### Operator-enrolled SSH worker
+
+`ReviewedWorkerSsh` implements checkout preparation, a one-shot signed
+submission and scoped receipt observation over the existing fixed worker
+command. Configure the command and host alias from protected local operator
+configuration. Pass its `refresh_scope` method to `ProjectScheduleOperator`
+and its `project_route` to `WorkerProjectDispatch`. A refresh preserves the
+local resolver's exact task and checkout and adds the worker's revision
+proofs. The confirmation refresh happens before native job locks are
+acquired. The worker rechecks its protected grants, checkout and broker
+identity again before execution. [OpenSSH client configuration](https://man.openbsd.org/ssh_config).
+
 ## Actual HTTP-owner investigation — 13 November 2026
 
 The new opt-in --coordinator-http-reads mode on the owner-workspace probe uses

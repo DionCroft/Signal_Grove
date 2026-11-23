@@ -7,6 +7,27 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reviewed Windows stdio and coordinator SSH candidate
+
+The packaged Windows broker starts the reviewed pipe for already enrolled
+scopes when its protected write configuration is present. The fixed stdio
+helper forwards prepare, signed submit and original receipt observation.
+The coordinator uses one submission and can poll the original receipt
+through separate read-only requests. The scheduler refreshes the worker
+checkout before taking its native claim locks and rechecks local policy
+during the claim.
+
+The exact Windows bundle accepted a signed request through a separate stdio
+process, launched one inert child after the submit reply was lost, and
+returned the original completed receipt. 109 native Windows, 142 workspace
+and 34 scheduler checks passed, plus 14 staged bundle checks. Both staged
+Hermes versions passed their eight native decision cases.
+[Validation](docs/VALIDATION.md#reviewed-windows-stdio-and-coordinator-ssh-candidate).
+
+Next verify the SSH exchange between isolated Pi and Windows instances
+using the reviewed operator enrollment. The live scheduled run, original
+receipt recovery and signed Android release still need their own evidence.
+
 ## Private Windows worker approval and receipt pipe
 
 The isolated Windows broker now accepts three fixed reviewed operations over
@@ -114,8 +135,9 @@ space for history and keeps the connection state available through its icon.
 
 The frozen Android build passed 1,241 JVM tests and both lint variants.
 Android 8 and 17 each passed eight standard and three compact activity and
-history cases. The earlier hosted Android 17 model-library failure remains
-open despite local isolation and full-class passes. [Validation](docs/VALIDATION.md#hermes-activity-and-compact-chat).
+history cases. The exact Activity source also passed the full hosted
+standard device gate on Android 8 and 17, succeeding after the earlier
+Android 17 model-library failure. [Hosted results](https://github.com/DionCroft/Signal_Grove/actions/runs/45255879359). [Validation](docs/VALIDATION.md#hermes-activity-and-compact-chat).
 
 The exact Windows checkout suite still passes. A disposable Git fixture
 showed that the current admission guard can hold HEAD open while Git changes

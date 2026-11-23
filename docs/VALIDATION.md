@@ -1,5 +1,33 @@
 # Current development validation — audit follow-up
 
+## Reviewed Windows stdio and coordinator SSH candidate
+
+The exact staged Windows bundle contains the reviewed owner host, immutable
+runtime manifest and fixed stdio action. It preserves the reviewed scope and
+the original process identity at pipe admission. The coordinator's enrolled
+OpenSSH command uses batch mode, strict host key checking and no PTY or port
+forwarding. The approval travels on stdin. A failed submit reply does not
+trigger another submission. Receipt polling uses the original scoped selector.
+[OpenSSH client configuration](https://man.openbsd.org/ssh_config).
+
+The local assertion used the real coordinator subprocess exchange with the
+exact staged Windows stdio worker and native owner-only named pipe. After
+the wrapper deliberately returned a failed status after native admission,
+the staged broker launched one inert child and the coordinator read the same
+completed receipt. The fixture used a disposable Git checkout, synthetic
+enrollment metadata, protected fixture credentials and a single test worker.
+Initial failures from a fixture owner type and clock mismatch are retained.
+The final run passed all 14 staged cases, including the legacy control fence.
+The 109 native Windows, 142 workspace and 34 scheduler cases also passed.
+The named pipe test proves the stdio and worker boundaries. A real SSH
+handshake across the Pi and Windows remains to be verified.
+
+Pinned Hermes v0.23.1 and main `242315c` accepted the staged package with the
+same coordinator module bytes and each passed eight native decision cases.
+Those scheduler fixtures used the deferred in-process worker route.
+Production activation, scheduled-run acceptance and release verification
+remain open.
+
 ## Private Windows worker approval and receipt pipe
 
 The reviewed channel uses closed prepare, submit and observe frames. The

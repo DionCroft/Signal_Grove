@@ -29,11 +29,11 @@ class ReadHost:
     Endpoint publication belongs on the normal host thread, never a thread whose
     impersonation failed to revert. No thread callback writes files or receipts.
     """
-    def __init__(self,sessions,*,pipe_factory=LocalReadPipe):
+    def __init__(self,sessions,*,pipe_factory=LocalReadPipe,owns_sessions=True,exchange_timeout=3):
         if not isinstance(sessions,(tuple,list)) or not 1<=len(sessions)<=8 or any(not isinstance(s,EnrolledReadSession) for s in sessions):raise WorkspaceError('INVALID')
         if len({s.scope for s in sessions})!=len(sessions):raise WorkspaceError('INVALID')
-        self._sessions=tuple(sessions);self._factory=pipe_factory;self._lock=threading.Lock();self._stopping=threading.Event()
-        self._started=False;self._closed=False;self._pipes={};self._threads={};self._failures={}
+        self._sessions=tuple(sessions);self._factory=pipe_factory;self._owns_sessions=owns_sessions;self._lock=threading.Lock();self._stopping=threading.Event()
+        self._exchange_timeout=exchange_timeout;self._started=False;self._closed=False;self._pipes={};self._threads={};self._failures={}
 
     def start(self):
         with self._lock:
@@ -60,7 +60,7 @@ class ReadHost:
         try:
             while not self._stopping.is_set():
                 session.adapter._context()
-                try:pipe.serve_one(timeout=3)
+                try:pipe.serve_one(timeout=self._exchange_timeout)
                 except WorkspaceError as error:
                     # A bounded accept timeout or a disconnected client does not
                     # reissue any request. IDs/leases still belong to this instance.
@@ -75,7 +75,7 @@ class ReadHost:
             try:pipe.close()
             except BaseException:
                 if failure is None:failure='UNAVAILABLE'
-            session.close()
+            if self._owns_sessions:session.close()
             with self._lock:
                 if failure is not None and not self._closed:self._failures[session.scope]=failure
 
@@ -96,7 +96,8 @@ class ReadHost:
     def close(self):
         with self._lock:self._closed=True;self._stopping.set();pipes=tuple(self._pipes.values())
         errors=[]
-        for session in self._sessions:session.close()
+        if self._owns_sessions:
+            for session in self._sessions:session.close()
         for pipe in pipes:
             try:pipe.close()
             except BaseException as error:errors.append(error)

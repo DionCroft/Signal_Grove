@@ -19,7 +19,9 @@ class SingleCallSsh:
                 or set(payload) != ({'action','scope_id'} if payload['action']=='workspace_status'
                                     else {'action','scope_id','frame'})):
             raise ReadRefused('INVALID')
-        raw = encode(payload); reading = payload.get('action') == 'workspace_read'
+        return await self._exchange(encode(payload), reading=payload['action'] == 'workspace_read')
+
+    async def _exchange(self, raw, *, reading):
         submitted = False; process = None; tasks = []
         async def bounded(stream, maximum):
             chunks=[]; total=0

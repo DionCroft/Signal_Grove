@@ -12,8 +12,10 @@ must derive that scope on the coordinator, never trust a phone's claimed scope.
 from pathlib import Path
 import hashlib,importlib,json,os,re,sys,time
 HERE=Path(__file__).resolve().parent
-SOURCE_DIGEST='745613813fc2429bd387cc6e05718a29687816ff62be4e06d666512b7383b601'
-NAMES={'__init__.py','workspace_provider.py','broker_protocol.py','local_pipe.py','broker_enrollment.py','operator_file.py','read_host.py'}
+SOURCE_DIGEST='fb97f2099acdc8a612f77356059e760fabc910bb4116c83132e5398a1cb4bdf1'
+NAMES={'__init__.py','workspace_provider.py','broker_protocol.py','local_pipe.py','broker_enrollment.py','operator_file.py','read_host.py',
+       'approval_envelope.py','protected_operator_file.py','reviewed_checkout.py','reviewed_dispatch.py',
+       'reviewed_operator.py','reviewed_channel.py','reviewed_host.py'}
 
 
 def _runtime():
@@ -50,8 +52,8 @@ def _policy(worker,modules):
 
 class Host:
  """Optional component; never changes existing execution queue/receipts."""
- def __init__(self,worker):
-  self.worker=worker;self.manager=None;self.modules=None;self.failure=None;self.enabled=False
+ def __init__(self,worker,*,reviewed=False):
+  self.worker=worker;self.manager=None;self.modules=None;self.failure=None;self.enabled=False;self.reviewed=None
   if not (HERE/'workspace-read-policy.json').exists():return
   self.enabled=True;sessions=[]
   try:
@@ -69,16 +71,35 @@ class Host:
   except BaseException:
    for session in sessions:session.close()
    self.failure='UNAVAILABLE'
+  if reviewed and self.manager is not None and (HERE/'workspace-write-policy.json').exists():
+   try:
+    service=importlib.import_module(self.modules[0].__package__+'.reviewed_host')
+    self.reviewed=service.ReviewedHost(worker,HERE,sessions)
+   except Exception:
+    self.reviewed=None
+ def lookup_reviewed(self,ident):
+  if self.reviewed is None:raise ValueError('Reviewed owner unavailable')
+  return self.reviewed.lookup(ident)
  def tick(self):
   if self.manager is None:return
   e,f,h,p=self.modules
   try:
    raw=h.encode_projection(self.manager.statuses(),device=self.worker.DEVICE,observed=time.time());self.worker.atomic(HERE/'state/workspace-reads.safe.json',json.loads(raw))
+   if self.reviewed is not None:
+    try:self.reviewed.tick()
+    except Exception:
+     review,self.reviewed=self.reviewed,None
+     try:review.close()
+     except Exception:pass
   except Exception:
    self.failure='UNAVAILABLE'
    try:self.manager.close()
    except Exception:pass
  def close(self):
+  if self.reviewed is not None:
+   review,self.reviewed=self.reviewed,None
+   try:review.close()
+   except Exception:pass
   if self.manager is None:return True
   try:
    self.manager.close();settled=self.manager.wait_closed();self.tick();return settled
@@ -94,6 +115,13 @@ def rpc(worker,data):
  try:modules=_runtime()
  except Exception:return dict(transport='error',code='UNAVAILABLE',request_submitted=False)
  e,f,h,p=modules;action=data.get('action') if isinstance(data,dict) else None
+ if action=='workspace_reviewed':
+  try:
+   service=importlib.import_module(e.__package__+'.reviewed_host')
+   return service.rpc(worker,HERE,data)
+  except p.ReadTransportError as error:return dict(transport='error',code=error.code,request_submitted=error.request_submitted)
+  except e.WorkspaceError as error:return dict(transport='error',code=error.code,request_submitted=False)
+  except Exception:return dict(transport='error',code='UNAVAILABLE',request_submitted=True)
  expected={'action','scope_id'} if action=='workspace_status' else {'action','scope_id','frame'}
  if action not in {'workspace_status','workspace_read'} or set(data)!=expected:raise ValueError('Fixed workspace RPC schema')
  scope=data['scope_id']

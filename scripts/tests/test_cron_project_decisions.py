@@ -115,3 +115,35 @@ class ProjectCheckoutReviewTest(unittest.TestCase):
         self.assertEqual("DUPLICATE", duplicate.exception.code)
         self.assertEqual([self.selection.execution_id()], self.reservations)
         self.dispatch.assert_called_once()
+
+
+    def test_worker_refresh_rejects_checkout_scope_drift_before_native_claim(self):
+        refreshed = replace(self.scope, checkout_revision="e" * 64, write_policy_revision="f" * 64)
+        seen = []
+
+        def refresh(actor, profile, local):
+            self.assertEqual((self.actor, "worker", self.scope), (actor, profile, local))
+            self.assertEqual([], self.reservations)
+            seen.append(local)
+            return refreshed
+
+        self.service = projects.ProjectScheduleOperator(lambda *_: self.scope, self.dispatch, refresh_scope=refresh)
+        preview = self.service.prepare(self.selection, self.verify)
+        refreshed = replace(refreshed, checkout_revision="d" * 64)
+        with self.assertRaises(ReadRefused) as error:
+            self.decide(preview)
+        self.assertEqual("CHANGED", error.exception.code)
+        self.assertFalse(error.exception.request_submitted)
+        self.assertEqual([self.scope] * 2, seen)
+        self.assertEqual([], self.reservations)
+        self.dispatch.assert_not_called()
+
+    def test_worker_refresh_cannot_replace_the_approved_task(self):
+        self.service = projects.ProjectScheduleOperator(
+            lambda *_: self.scope, self.dispatch,
+            refresh_scope=lambda *args: replace(self.scope, task="Other task"),
+        )
+        with self.assertRaisesRegex(ReadRefused, "CHANGED"):
+            self.service.prepare(self.selection, self.verify)
+        self.assertEqual([], self.reservations)
+        self.dispatch.assert_not_called()

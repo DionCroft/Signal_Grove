@@ -47,10 +47,19 @@ def stage_broker(source):
   if admission is None:worker.start(data)
   else:worker.start(data,admission=admission)
 ''').replace("def main():", "def main(reviewed_lookup=None):").replace(
-        "if ready:step()", "if ready:step(reviewed_lookup)")
+        "workspace_reads=WorkspaceReadHost(worker)", "workspace_reads=WorkspaceReadHost(worker,reviewed=True)").replace(
+        "if ready:step()", "if ready:step(workspace_reads.lookup_reviewed if reviewed_lookup is None else reviewed_lookup)")
 
 
 def stage_worker(source):
+    source = replace(source, "in {'workspace_status','workspace_read'}:", "in {'workspace_status','workspace_read','workspace_reviewed'}:")
+    source = replace(source, """   raw=sys.stdin.read(32769)
+   if len(raw)>32768:raise ValueError('Budget')
+   print(json.dumps({'ok':True,'result':rpc(json.loads(raw))}))""", """   raw=sys.stdin.buffer.read(98305)
+   if len(raw)>98304:raise ValueError('Budget')
+   packet=json.loads(raw)
+   if len(raw)>32768 and not (type(packet) is dict and packet.get('action')=='workspace_reviewed'):raise ValueError('Budget')
+   print(json.dumps({'ok':True,'result':rpc(packet)}))""")
     for operation in ("result", "cancel"):
         legacy = f"def {operation}(ident):\n ident=valid_id(ident)\n with queue_db() as d:\n"
         source = replace(source, legacy, legacy +
@@ -167,9 +176,28 @@ def main():
         changed = (stage_worker if name == "worker.py" else stage_broker)(text)
         ast.parse(changed, filename=name)
         files[name] = changed.encode("utf-8")
+    runtime = Path(__file__).resolve().parents[1] / "server_extensions" / "worker_workspaces"
+    from importlib.util import module_from_spec, spec_from_file_location
+
+    template = runtime / "host_integration.py"
+    spec = spec_from_file_location("_staged_broker_template", template)
+    host = module_from_spec(spec)
+    spec.loader.exec_module(host)
+    runtime_files = {name: (runtime / name).read_bytes().replace(b"\r\n", b"\n") for name in host.NAMES}
+    hashes = {name: hashlib.sha256(data).hexdigest() for name, data in runtime_files.items()}
+    digest = hashlib.sha256(json.dumps(hashes, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    if digest != host.SOURCE_DIGEST:
+        raise ValueError("Broker runtime source pin differs from committed modules")
+    runtime_root = Path("workspace-read-runtime") / digest
+    files["workspace_reads.py"] = template.read_bytes().replace(b"\r\n", b"\n")
+    for name, data in runtime_files.items():
+        files[(runtime_root / "workspace_reads_runtime" / name).as_posix()] = data
+    files[(runtime_root / "manifest.json").as_posix()] = (json.dumps({"schema": 1, "files": hashes}) + "\n").encode()
     output.mkdir()
     for name, data in files.items():
-        (output / name).write_bytes(data)
+        target = output / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
     manifest = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
     (output / "source-manifest.json").write_text(json.dumps({"input": SOURCE_HASHES, "candidate": manifest}) + "\n",
                                                 encoding="utf-8")

@@ -81,6 +81,16 @@ cannot be renewed or cancelled through the legacy result and cancel calls.
 [Windows named pipe security](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-security-and-access-rights)
 and [Windows pipe process identity](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeserverprocessid).
 
+The staged bundle enables the reviewed host only when the existing read
+enrollment and separate protected write configuration are present. The owner
+supplies `workspace-write-policy.json`, `workspace-write-key.bin` and a
+`workspace-write-git.json` with schema 1 and the local Git executable. These
+are outside the public source package. The daemon owns the pipe and writes a
+short-lived projection. The existing private stdio command forwards one
+`workspace_reviewed` request to the authenticated pipe without Git or project
+access from the SSH helper. The scoped observation opens the worker ledger
+read-only.
+
 ## Native filesystem behavior
 
 Every existing disk handle opens with OPEN_EXISTING and

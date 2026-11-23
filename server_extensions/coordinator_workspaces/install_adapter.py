@@ -14,7 +14,7 @@ import textwrap
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
          'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
          'cron_run_once.py','cron_run_once_approval.py','cron_run_once_operator.py',
-         'cron_project_holds.py','cron_project_decisions.py','reviewed_worker.py')
+         'cron_project_holds.py','cron_project_decisions.py','reviewed_worker.py','reviewed_ssh.py')
 
 
 def patch_source(source):
