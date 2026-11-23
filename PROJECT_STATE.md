@@ -7,6 +7,28 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native ARM64 scheduler and exact original receipt
+
+The real Pi ran the approved isolated ARM64 environment with a fresh
+owner-only scheduler profile. Native Hermes checked defer, denial, expiry
+and worker-scope drift. One approved occurrence sent one signed admission
+through the installed SSH route and launched one inert Windows child. The
+reply was lost after admission. A new transport read the original completed
+receipt, and repeating the approval was refused. An ordinary automatic
+fixture schedule stayed due. The temporary Pi profile was removed.
+[Validation](docs/VALIDATION.md#native-arm64-scheduler-and-exact-original-receipt).
+
+A separate read-only workspace overlay matches the current v0.23.1 source
+anchors and leaves all four scheduler modules byte-identical. The live
+enabled job's exact spec passed the preservation check in memory on the Pi.
+Its protected policy needs a separate rollout from the read-only workspace
+capability because the live scheduler home crosses group-writable ancestors.
+
+Next prepare the isolated read-only source and explicit owner grant for
+review, then obtain separate activation approval before switching the live
+service. Verify the app's actual read-only workspace attachment. Live
+scheduler activation, the Xiaomi upgrade and the signed APK remain open.
+
 ## Real Pi-to-Windows reviewed SSH trial
 
 The exact staged coordinator client ran in memory on the ARM64 Pi and used

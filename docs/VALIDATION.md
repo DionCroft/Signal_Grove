@@ -1,5 +1,51 @@
 # Current development validation — audit follow-up
 
+## Native ARM64 scheduler and exact original receipt
+
+The previously approved isolated v0.23.1 generation supplied its existing
+Linux ARM64 Python 3.14.9 runtime. Four native scheduler inputs matched
+the Git-verified bytes before the staged hooks were loaded in memory. A
+fresh owner-only fixture on the Pi supplied the catalogue, SQLite ledger,
+protected job policy and a synthetic signing key. The Windows fixture
+used the exact admitted broker bundle and the installed SSH route. This
+trial used a trusted fixture actor and no live gateway session.
+
+The native run verified all seven planned outcomes. Defer preserved the
+catalogue and created neither a decision nor an execution. Deny recorded a
+cancelled native receipt. Expiry and changed worker scope refused before
+submission. Approval sent exactly one request, lost its reply after
+admission and produced one Windows child. Native settlement and a new
+transport recovered its original completed receipt. The same occurrence
+could not dispatch again. A separately allowed automatic schedule stayed
+due. The earlier test assertion that the ledger file must be absent failed
+before submission. Native reads may initialize the ledger, so the final
+check inspected the relevant decision and execution.
+
+The disposable Pi profile was removed and both live service identities
+and the installed Windows source hashes matched their preflight values.
+Proof and failure evidence stayed on E:. Final ledger/worker proof SHA-256
+`7743eccc7489012ecd265873fcdec40b85ada6218cd72bb6800e8397b9ebedde`.
+The first failure log SHA-256 is
+`42d23fce2cf076e642e5638047bbd5a9900607ffca2b4fd684d0637589fcb8f5`.
+The [exact source hosted worker workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45275399843)
+also passed its protocol, Linux and Windows checks.
+
+The narrow read-only staging preview and apply matched. The sealed overlay
+contained 19 changed or added gateway files and preserved all four
+scheduler inputs byte-for-byte. It configured no operator or grant. The
+local manifest SHA-256 is
+`556bff8c21e0859a6a6e83519c08742176485fd8aad5e18cf1c74f3aa1cfe93c`.
+The first inventory command failed after staging; the isolated overlay was
+reconciled in place without repeating the write. In a separate read-only
+Pi check, the exact definition of the one enabled live job matched the
+automatic-schedule digest and an in-memory changed definition was refused.
+The protected scheduler rollout must preserve that job and resolve its
+group-writable ancestry through separately reviewed operations.
+
+The next live gate is native app-to-Pi read-only workspace attachment after
+an approved activation. Live scheduling, physical Android upgrade and
+release verification remain open.
+
 ## Real Pi-to-Windows reviewed SSH trial
 
 Source `7c5e1b81886fc56b980c2b4008be0dcb6f1511b5` qualified two separate

@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Isolated native Pi scheduler trial
+
+The ARM64 Hermes scheduler issued one signed approval to the disposable
+Windows broker over the real SSH route. The test recovered the original
+receipt after reply loss and a new transport. A read-only activation overlay
+matches the live source anchors and preserves the current scheduler modules.
+Live workspace authentication and a separately reviewed scheduler rollout
+remain open. [Validation](VALIDATION.md#native-arm64-scheduler-and-exact-original-receipt).
+
 ## Verified private transport and live scheduler preflight
 
 The isolated Windows bundle launched once from a signed approval sent by
