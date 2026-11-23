@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Windows branch reference hold
+
+The checkout guard now holds the approved branch at its reviewed commit
+while the broker uses the admission context. A real verify-only Git
+transaction locks both loose and packed branches, then aborts when the
+guard exits. Windows passed 86 native provider checks, including 14
+checkout cases. The live queue, final launch and protected Pi policy
+still need integration. The scheduler review still needs to carry the
+exact commit. [Validation](docs/VALIDATION.md#windows-branch-reference-hold).
+
 ## Hermes Activity and compact Chat
 
 Chat opens a timeline for the selected profile and conversation, including

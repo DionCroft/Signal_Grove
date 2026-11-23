@@ -59,6 +59,69 @@ class ReviewedCheckoutTest(unittest.TestCase):
             self.assertNotEqual(attempt.returncode, 0)
         self.assertEqual(self.observe(), expected)
 
+    def assert_branch_reference_held(self):
+        expected = self.observe()
+        new_tip = self.git_call(
+            "commit-tree", "HEAD^{tree}", "-p", expected.commit, "-m", "new fixture tip",
+        ).stdout.decode().strip()
+        ref = "refs/heads/review/feature"
+        with self.assertRaisesRegex(RuntimeError, "fixture admission failed"):
+            with self.hold(expected):
+                attempt = self.git_call("update-ref", ref, new_tip, expected.commit, check=False)
+                self.assertNotEqual(attempt.returncode, 0)
+                self.assertEqual(self.git_call("rev-parse", "HEAD").stdout.decode().strip(), expected.commit)
+                raise RuntimeError("fixture admission failed")
+        self.assertEqual(self.observe(), expected)
+        self.git_call("update-ref", ref, new_tip, expected.commit)
+        self.assertEqual(self.observe().commit, new_tip)
+
+    def test_loose_branch_tip_is_held_and_released_on_admission_failure(self):
+        self.assert_branch_reference_held()
+
+    def test_packed_branch_tip_is_held_and_released_on_admission_failure(self):
+        self.git_call("pack-refs", "--all", "--prune")
+        self.assertFalse((self.root / ".git/refs/heads/review/feature").exists())
+        self.assert_branch_reference_held()
+
+    def test_verify_only_transaction_excludes_checkout_hooks(self):
+        expected = self.observe()
+        marker = self.root / "hook.marker"
+        hook = self.root / ".git/hooks/reference-transaction"
+        hook.write_bytes(b'#!/bin/sh\nif test "$1" = prepared; then echo active > hook.marker; fi\n')
+        packet = f"start\nverify refs/heads/review/feature {expected.commit}\nprepare\nabort\n".encode()
+        subprocess.run(
+            [str(self.git), "update-ref", "--stdin"], cwd=self.root, env=self.fixture_env,
+            input=packet, capture_output=True, timeout=10, check=True,
+        )
+        self.assertTrue(marker.exists())
+        marker.unlink()
+        with self.hold(expected):
+            self.assertFalse(marker.exists())
+        self.assertFalse(marker.exists())
+        self.assertEqual(self.observe(), expected)
+
+    def test_branch_alias_cannot_hold_a_different_reference_at_the_same_commit(self):
+        self.git_call("branch", "other")
+        self.git_call("symbolic-ref", "refs/heads/review/feature", "refs/heads/other")
+        with self.assertRaisesRegex(WorkspaceError, "UNSUPPORTED"):
+            self.observe()
+
+    def test_tip_change_between_observation_and_prepare_refuses_admission(self):
+        from server_extensions.worker_workspaces import reviewed_checkout
+
+        expected = self.observe()
+        real_hold = reviewed_checkout._hold_branch_ref
+
+        def race(*args):
+            self.git_call("commit", "--allow-empty", "--message=changed between check and hold")
+            return real_hold(*args)
+
+        # HEAD is held against replacement, but this commit may still advance
+        # the ref until the verify-only transaction acquires its own lock.
+        with patch.object(reviewed_checkout, "_hold_branch_ref", side_effect=race):
+            with self.assertRaisesRegex(WorkspaceError, "CHANGED"), self.hold(expected):
+                self.fail("A stale reviewed commit reached admission")
+
     def test_branch_switch_at_same_commit_and_changed_tip_both_refuse(self):
         expected = self.observe()
         self.git_call("switch", "-c", "other")
@@ -108,6 +171,14 @@ class ReviewedCheckoutTest(unittest.TestCase):
             "GIT_CONFIG_VALUE_0": str(self.base),
         }):
             self.assertEqual(self.observe(), expected)
+
+    def test_redirected_git_common_directory_cannot_inherit_a_review(self):
+        expected = self.observe()
+        common = self.base / "other-git-metadata"
+        shutil.copytree(self.root / ".git", common)
+        (self.root / ".git/commondir").write_text(common.as_posix() + "\n", encoding="utf-8")
+        with self.assertRaisesRegex(WorkspaceError, "CHANGED"), self.hold(expected):
+            self.fail("Redirected Git metadata cannot reach admission")
 
     def test_repository_worktree_redirect_is_refused(self):
         self.git_call("config", "core.worktree", str(self.base))

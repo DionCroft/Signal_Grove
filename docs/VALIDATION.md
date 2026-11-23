@@ -1,5 +1,29 @@
 # Current development validation — audit follow-up
 
+## Windows branch reference hold
+
+A disposable fixture previously advanced a branch while the native guard
+held HEAD open. The admission path now keeps Git's verify-only transaction
+prepared for the exact reviewed commit, alongside the existing Windows
+handles for the root, Git metadata and HEAD. Git aborts the transaction on
+pipe closure and releases the ref lock. This is a temporary Git metadata
+operation in the authorized admission path. Checkout observation remains
+read-only. Git's checkout hooks are disabled for the guard.
+[Git reference transaction semantics](https://git-scm.com/docs/git-update-ref).
+
+Native Windows fixtures passed **86 cases**, including **14 checkout
+cases**, with zero failures, errors or skips and matching source hashes.
+The six new cases prove that Git cannot advance loose or packed refs while
+the guard holds them, and can advance them again after admission fails.
+They also cover drift before transaction preparation, a symbolic branch
+at the same commit, a redirected Git common directory, and hook exclusion.
+Receipt SHA-256: `2e9209515aaad0aaecf8b5df2ed6b1e8216bd6d86a39d0b6175d368fc686ae49`.
+
+The covered boundary is a local context for cooperating Git writers.
+The native queue and final launcher still need to apply it with a
+project-write grant. Pi activation and NAS behavior still need their
+own acceptance.
+
 ## Hermes Activity and compact Chat
 
 Chat now uses the selected profile and session for the Activity control.

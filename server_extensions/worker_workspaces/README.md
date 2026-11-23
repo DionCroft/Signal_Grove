@@ -225,8 +225,10 @@ reviewed one. Keep the context around the local admission boundary.
 
 The owner selects the installed Git executable. Git runs fixed local read
 commands from the registered checkout. The observation uses an in-place
-`.git` directory, an attached branch and a resolvable commit. The Windows
-handles keep the root, metadata directory and HEAD fixed during the check.
+`.git` directory, a direct attached branch and a resolvable commit. The
+Windows handles keep the root, metadata directory and HEAD fixed. During
+admission, Git holds a verify-only transaction on the exact approved branch
+and commit. Closing its input aborts the transaction and releases its lock.
 The checkout check is separate from project-write authority and durable
 request handling. Any later native launch needs a fresh scope check.
-[Windows fixture evidence](../../docs/VALIDATION.md#exact-reviewed-windows-checkout).
+[Windows fixture evidence](../../docs/VALIDATION.md#windows-branch-reference-hold).
