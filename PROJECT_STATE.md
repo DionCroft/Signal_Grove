@@ -7,6 +7,25 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reviewed worker queue and launch candidate
+
+The exact installed Windows source now has a staged candidate that
+puts the checkout and independent write-grant checks around the native
+SQLite claim and actual child creation. The reviewed path stays in the
+interactive owning broker. It hands the already-verified task to the
+child during process creation and retains uncertain launches under the
+original receipt.
+
+94 Windows provider tests and nine exact-source fixtures passed.
+The fixtures used a disposable checkout and inert process. The installed
+broker still matched the reviewed input hashes after validation.
+[Validation](docs/VALIDATION.md#reviewed-worker-queue-and-launch-candidate).
+
+Next provide the broker's reviewed lookup from protected owner policy
+and the coordinator's original scoped approval. Rebuild the isolated
+candidate with that authorization path and verify it before requesting
+live activation.
+
 ## Exact commit in project approvals
 
 The native scheduler now requires a full Git commit and branch when a
@@ -29,9 +48,8 @@ The checkout guard now holds the approved branch at its reviewed commit
 while the broker uses the admission context. A real verify-only Git
 transaction locks both loose and packed branches, then aborts when the
 guard exits. Windows passed 86 native provider checks, including 14
-checkout cases. The live queue, final launch and protected Pi policy
-still need integration. The scheduler review still needs to carry the
-exact commit. [Validation](docs/VALIDATION.md#windows-branch-reference-hold).
+checkout cases at this checkpoint.
+[Validation](docs/VALIDATION.md#windows-branch-reference-hold).
 
 ## Hermes Activity and compact Chat
 

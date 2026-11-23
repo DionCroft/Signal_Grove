@@ -1,5 +1,48 @@
 # Current development validation — audit follow-up
 
+## Reviewed worker queue and launch candidate
+
+The staging script verifies the exact installed broker and worker input
+hashes and creates a fresh directory. A changed input was refused before
+any candidate output was created. Installed source hashes matched again
+after the trial.
+
+| Source | Final candidate SHA-256 |
+| --- | --- |
+| Windows worker | `c0fdf246601fdda8c26f1dd08a0fe4ecdc6d17f1f9e87f9db3165836217c08e0` |
+| Windows broker | `24c28bd6535cbd0a20e58147531d6c3ae6a09105b647bd848c149d536f16dd9b` |
+
+The staged broker consumes one local approval and holds a fresh checkout
+and write-grant check through the original SQLite claim. The owning
+broker keeps the approval object for its reviewed launch thread. The
+launch holds the exact branch and commit again, creates fixed native job
+directories without traversing reparse points, and supplies the verified
+request to the actual child at creation. Project files within a reviewed
+job are created exclusively. The ordinary fixed RPC rejects the reviewed
+row shape.
+
+All **94 Windows provider cases** and **130 portable workspace cases**
+passed. Nine additional tests imported the staged worker and broker and
+ran the original SQLite transaction and receipt path with a disposably
+registered checkout and a real inert child process. A competing Git ref
+update was refused at the SQLite commit and at process creation. A
+changed commit or revoked grant after claim spawned nothing and created
+no job directory. Linked metadata and output collisions were refused.
+A possible launch failure and a recovered claimed row stayed under their
+original IDs without another launch. An unconfigured broker refused the
+reviewed row.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Windows provider report | `e8082c505d134d89cc741dd707bdf54e5ed134e5c6f21e4be9e222fedd49ef45` |
+| Source manifest | `c4b2b591f15e887d143bd04642defeecf65cfed34b87598167b79ed917ebed61` |
+| Exact-source fixture harness | `c8e41ead745d89e774f6d483000498978517fa570375e6590467fba2243f76ba` |
+| Exact-source fixture result | `505fa98058742affc88a252857162ba35439bf785628367a84756ffed23aece9` |
+
+Fixture authorization and native result projection were supplied locally.
+The protected write-grant lookup, coordinator connection through the
+real Pi and execution of a real approved schedule remain open.
+
 ## Exact commit in project approvals
 
 The shared scheduler scope validates the exact branch and full lowercase

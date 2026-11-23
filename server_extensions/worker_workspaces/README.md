@@ -232,3 +232,20 @@ and commit. Closing its input aborts the transaction and releases its lock.
 The checkout check is separate from project-write authority and durable
 request handling. Any later native launch needs a fresh scope check.
 [Windows fixture evidence](../../docs/VALIDATION.md#windows-branch-reference-hold).
+
+## Reviewed queue and process creation
+
+`reviewed_dispatch.py` binds an original execution ID, approved profile,
+write access, native task and exact checkout to one worker admission. A
+configured owner write-grant verifier must authorize the approval during
+both transitions. The admitted checkout and write grant are checked before
+committing the original queue claim and again at child creation.
+
+`scripts/stage_reviewed_worker_dispatch.py` creates a fresh candidate from
+the exact admitted Windows inputs. The reviewed lookup is a local owner
+callback supplied to the candidate broker. It resolves the original ID to
+the same broker-owned admission object and derives its grant from protected
+policy. The generic worker RPC provides no reviewed intake. The separate
+trusted grant resolver and coordinator integration are still needed before
+live activation.
+[Exact-source fixture evidence](../../docs/VALIDATION.md#reviewed-worker-queue-and-launch-candidate).
