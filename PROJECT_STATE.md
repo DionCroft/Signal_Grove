@@ -7,6 +7,21 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Real read enrollment and Android 8 release gate
+
+The live Pi owner, profile and node match the existing protected Windows
+read grant. Its one local project and eight terminal receipts verify. Three
+closed sessions qualify by persisted metadata. The private source review
+draft selects one and pins the exact read grant, operator transport, source
+and original rollback bytes. All hosted workspace checks passed.
+[Validation](docs/VALIDATION.md#real-owner-and-windows-enrollment-reconciliation).
+
+Next complete managed generation and rollback verification before asking
+for separate live activation approval. In parallel, reproduce the retained
+API 26 document-review timeout on the exact build and verify its fix. The
+phone-to-Pi attachment, scheduler rollout and signed APK remain open.
+[Failed shard](docs/VALIDATION.md#android-8-document-review-failure-retained).
+
 ## Workspace-only installer and rollout preflight
 
 The earlier controls-only overlay still registered the combined scheduling

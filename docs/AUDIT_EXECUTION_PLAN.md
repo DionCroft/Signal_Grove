@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## Real enrollment and workspace attachment review
+
+The installed Pi and Windows worker agree on the existing single local
+read grant. Three existing canonical owner sessions pass persisted metadata
+checks and one is paired with the enrolled root in the private review draft.
+The draft retains the exact original source for rollback. A complete
+managed runtime and separately approved live service switch remain necessary
+before the app can prove live attachment. Hosted workspace checks passed.
+
+The Android 8 document-review timeout is an open release gate. Reproduce
+the precise Review sources action with keyboard and transition evidence,
+then run final-source Android checks. [Validation](VALIDATION.md#real-owner-and-windows-enrollment-reconciliation).
+
 ## Workspace-only rollout boundary
 
 Use the explicit workspace-only installer for live attachment preparation.

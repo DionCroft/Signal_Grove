@@ -1,5 +1,70 @@
 # Current development validation — audit follow-up
 
+## Real owner and Windows enrollment reconciliation
+
+Read-only Pi process observations agreed across both live services and two
+observations. The services have the same canonical profile, stock workspace
+source and host owner. The protected Windows enrollment recognizes the scope
+derived from that owner, profile and the current Tailscale node under the
+reviewed authority namespace. One project is granted, on a local Windows
+root. Its protected policy, registry and installed sources match the prior
+review. The broker projection was ready and the eight completed receipts
+matched. No worker RPC, model request or scheduler request was sent.
+
+A read-only Pi SQLite query considered only the bound session, workspace and
+admission metadata. Three closed, visible ordinary sessions have consistent
+native-owner receipts, absolute workspace directories and no pending or
+unknown admissions or worker executions. An earlier filter excluded all
+historical admissions and found none. The accepted filter uses Hermes'
+queued/started/unknown definition plus its unresolved worker states. No
+session was resumed and no transcript or message content was retrieved.
+
+One most-recent eligible session is selected in the private draft. Its exact
+cwd, separately registered Windows root, owner, profile, project and fixed
+SSH route are bound to the seven-module source overlay, patched controls
+and operator bootstrap. The draft includes the original controls bytes and
+identifies the still-running prior generation for rollback. The offline
+scope parser verified the grant and refused a foreign profile, API actor
+and different session. Windows used the target's POSIX path semantics for
+this parser test. Native file protection was not substituted by this test.
+All 12 listed draft files verify on readback. The package is a source/policy
+review, not a full managed generation or exercised service rollback.
+
+The initial scope observation compared the raw Tailscale node ID with the
+namespaced one and stopped before worker access. The next stopped reading
+the registry wrapper because the base interpreter lacked its YAML runtime.
+The verified run used the exact reviewed namespace and the existing cached
+YAML dependency on E:. Both failures are preserved along with the first
+Windows-only path interpretation of the draft. No service, configuration,
+grant, project, session or queue mutation was performed.
+
+The private manifest SHA-256 is
+`6fdb472540f460f445f843ddab359ff5cac2a72c379e8f8a88efa6b442ac2a88`.
+Keep the scope, session identifiers and protected policy off Git. Build the
+full managed read-only derivative, verify its runtime and rollback, then
+review the exact live activation separately. The actual app-followed session
+and end-to-end worker reads remain the live acceptance gate.
+
+[Hosted workspace-only protocol, Windows native and Linux policy checks](https://github.com/DionCroft/Signal_Grove/actions/runs/45279968912).
+
+## Android 8 document review failure retained
+
+The API 26 shard of source `675fb536f3914a5b9760ab0f7991e49b7fc66194`
+started all 667 tests. It had 666 positive results and one failed assertion.
+`LocalAiFlowTest.phoneDocumentsReviewExactSourcesBeforeInvokingTheLoadedModel`
+timed out on line 286 waiting for the first reviewed source after the Review
+sources click. The test source is unchanged at the current checkpoint. The
+failure proves that the expected source did not appear in the test. The
+device evidence does not yet identify whether the click or transition failed.
+
+The original diagnostic ZIP is 15,425,782 bytes, SHA-256
+`f53328540ad160fd041f559bcad8f2ce7812cecaa1a5b04c005fb5ab7e87a430`.
+ADB's zero exit and the 666 positives do not make the shard a pass. Preserve
+the original artifact, reproduce the exact interaction with real IME and
+viewport evidence, and keep the exact citation and explicit model-invocation
+assertions in the final gate.
+[Original failed shard](https://github.com/DionCroft/Signal_Grove/actions/runs/45259789094/job/138040745844).
+
 ## Workspace-only installer and native authority gate
 
 The previous controls-only overlay kept stock scheduler files but loaded the
