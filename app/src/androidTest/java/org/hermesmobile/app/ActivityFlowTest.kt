@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
@@ -63,11 +64,16 @@ class ActivityFlowTest {
             val answer=vm.messages.value.first {it.role=="assistant"};assertFalse(answer.telemetryJson.contains("total_tokens"))
             compose.onAllNodesWithContentDescription(word(Words.Chat),useUnmergedTree=true).onLast().performClick()
             compose.onNodeWithContentDescription(word(Words.ToolActivity),substring=true).performClick()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("fallback-model"))
+            compose.onNodeWithText("fallback-model").assertExists()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("requested-provider"))
+            compose.onNodeWithText("requested-provider").assertExists()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("child-1"));compose.onNodeWithText("child-1").assertExists();shot("rich-child-activity")
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("call-b"));compose.onNodeWithText("call-b").assertExists()
             compose.onNodeWithText(word(Words.Close)).performClick()
+            compose.onNodeWithTag("chat-messages").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             compose.onNodeWithTag("chat-messages").performScrollToNode(hasTestTag("runtime-usage-${answer.id}"))
-            compose.onNodeWithTag("runtime-usage-${answer.id}").performClick()
+            compose.onNodeWithTag("runtime-usage-${answer.id}").performScrollTo().assertIsDisplayed().performClick()
             compose.onNodeWithTag("runtime-usage-list").performScrollToNode(hasText("fallback-model"));compose.onNodeWithText("fallback-model").assertExists();shot("served-runtime")
             compose.onNodeWithTag("runtime-usage-list").performScrollToNode(hasText("requested-model"));compose.onNodeWithText("requested-model").assertExists()
             compose.onNodeWithText(word(Words.Close)).performClick()

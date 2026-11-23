@@ -57,16 +57,22 @@ import org.hermesmobile.app.data.*
     val operations by remember(profile.id) {dao.managementOperations(profile.id)}.collectAsStateWithLifecycle(emptyList())
     var selected by remember(profile.id) {mutableStateOf<Conversation?>(null)}
     val current=selected
+    var runtimeMessageId by remember(profile.id,current?.key) { mutableStateOf<String?>(null) }
     val messages by remember(current?.key) {if(current==null) kotlinx.coroutines.flow.flowOf(emptyList()) else dao.messages(current.key)}.collectAsStateWithLifecycle(emptyList())
     AlertDialog(onDismissRequest=close,title={Text(current?.title ?: profile.name)},text={
         LazyColumn(Modifier.heightIn(max=480.dp).testTag("connection-cache"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             item {Text(label(Words.ReadOnlyCache),style=MaterialTheme.typography.bodySmall)}
             if(current==null) items(rows,key={it.key}) {row ->Text(row.title.ifBlank {row.remoteId},Modifier.fillMaxWidth().clickable {selected=row}.padding(vertical=12.dp))}
-            else items(messages,key={it.id}) {MessageCard(it,current)}
+            else items(messages,key={it.id}) { message -> MessageCard(message, current) { runtimeMessageId = message.id } }
             if(current==null && operations.isNotEmpty()) {
                 item {Text(label(Words.ManagementReceipts),style=MaterialTheme.typography.titleMedium)}
                 items(operations.filter {it.apiScope==profile.id},key={it.key}) {ManagementReceiptCard(it)}
             }
         }
     },confirmButton={TextButton(close,Modifier.testTag("close-connection-cache")) {Text(label(Words.Close))}},dismissButton={if(current!=null) TextButton({selected=null}) {Text(label(Words.History))}})
+    runtimeMessageId?.let { id ->
+        messages.firstOrNull { it.id == id && it.sessionKey == current?.key }?.let { message ->
+            RuntimeUsageDialog(message.telemetryJson) { runtimeMessageId = null }
+        }
+    }
 }

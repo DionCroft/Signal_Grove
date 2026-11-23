@@ -1,5 +1,72 @@
 # Current development validation — audit follow-up
 
+## Hermes Activity and compact Chat
+
+Chat now uses the selected profile and session for the Activity control.
+Retained tool and subagent events show the reported outcome, receipt time
+and reported duration where present. The run's served and requested model
+details appear only for a matching report. Blank read-only replies with no
+attachment explain that there is no saved reply text. The saved content and
+read-only behavior are verified. When there are no retained activity rows,
+the dialog says those details are unavailable.
+
+The first compact runs at 840×1470, 420 dpi and 1.3× text showed that the
+translated Chat and app controls could reduce the transcript below 48 dp.
+The retained screenshots showed the transcript squeezed between the header
+and footer. The corrected layout uses a compact app header and lets the
+translated Chat heading use the full width. The read-only action keeps its
+48 dp minimum target and translated caption. The test scrolls to the actual
+caption and checks visibility along with the read-only controls. A separate
+Android 8 compact check showed the translated composer covering the
+transcript. The short localized composer label and compact line limit keep
+message space available. The runtime dialog belongs to the selected
+conversation, so scrolling a message row cannot dismiss it. Both
+emulators returned to their original display and font settings.
+
+Frozen source `29eb108a36a192d6aa5303fc40f88c1e52d769d008a14e9ba348ce8665015611` passed 1,241 JVM tests without failures,
+errors or skips, debug and release lint without errors, and both APK
+assemblies. The signed debug pair passed eight standard and three compact
+cases each on Android 8 and 17. Checks include run identity isolation,
+requested and served runtime, subagent activity, existing history and
+profile isolation, the bilingual read-only flow, saved connection cache, and Demo approval denial.
+The focused Android 17 model-filter case passed on the exact pair. The 45
+focused scheduling and device-accounting policy cases and the dependency
+checksum policy passed.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Debug app APK | `98c0c14ea2d24f7d9f8775e6b958c3f4d72ddcfd4cf8e961753fbf3b0150ac5a` |
+| Debug test APK | `eb2606f6d2931aead104bfff261d2f39715cd8a0914d737a5278f62c593721b3` |
+| Android 8 standard | `ea08d6d1f835052b5b4f1542825a10df4f5595f50aecd6a94b605bdfa445caf4` |
+| Android 8 compact | `6f00b2f38570a03bbaddd3badba5fd09c65b5973cd4cc19d6a0971c1b2288577` |
+| Android 17 standard | `d138931b8e7d0d00b7f0edbe5a1cd09947e304e14f14682ef732af2276b24ff9` |
+| Android 17 compact | `7c5b9ba98ce9ef4f21f1d01f38142e430609369556ae5cebf6fcef214d4ae03c` |
+
+The focused Android 17 model-filter log has SHA-256
+`49867e3ad2e75368c2383174b8a077bdcaf61cb6a794ccdf0fce7376b6ee853f`.
+
+Hosted Android 8 shard 1 at `dbaa6ad` passed all 666 cases, including the
+literal history query and Demo clarification. Hosted Android 17 shard 1
+passed 665 of 666. Its installed-model search case found the no-matches node
+but failed the viewport visibility assertion. The matching downloaded
+artifact had SHA-256
+`3e5fc3fe673df9b3ba0140b7ea12135865af42836f76422788bea7ad054310e4`.
+The failure did not recur locally in isolation, at compact size, or in the
+27-case Local AI class. The full hosted matrix remains a release gate.
+[Hosted Android 17 result](https://github.com/DionCroft/Signal_Grove/actions/runs/44897895935/job/136848291946).
+
+The real Windows workspace fixtures passed all 80 cases again. An additional
+disposable Git fixture advanced the approved branch's ref while the current
+checkout guard held HEAD open. A separate verify-only Git transaction blocked
+the competing update for both loose and packed refs and released the lock on
+abort. A hook fixture confirmed the verify process can exclude checkout
+hooks. These findings define the next queue and final-launch checks. The
+live Pi adapter, protected policy, and registered-worker acceptance stay open.
+[Git reference transaction semantics](https://git-scm.com/docs/git-update-ref).
+
+Authenticated replay for older detailed history, verified workspace and
+worker attribution, and physical upgrade acceptance remain open.
+
 ## Phone history inline model choices
 
 The earlier hosted Android 8 shard at `7d2ccb6` passed 664 of 665 cases.

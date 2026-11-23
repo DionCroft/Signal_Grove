@@ -21,21 +21,35 @@ import java.time.format.DateTimeFormatter
     val rows by vm.controls.collectAsStateWithLifecycle()
     val selected by vm.selected.collectAsStateWithLifecycle()
     val events by vm.toolEvents.collectAsStateWithLifecycle()
+    val reports by vm.runReports.collectAsStateWithLifecycle()
+    val current by vm.selectedConversation.collectAsStateWithLifecycle()
+    val scope by vm.profileScope.collectAsStateWithLifecycle()
+    val busy by vm.busy.collectAsStateWithLifecycle()
     val sending by vm.controlBusy.collectAsStateWithLifecycle()
+    val conversation = current?.takeIf { it.key == selected && it.scope == scope }
+    val ownEvents = remember(conversation?.key, events) {
+        events.filter { it.sessionKey == conversation?.key }
+    }
     var dismissed by rememberSaveable {mutableStateOf("")}
-    var timeline by rememberSaveable {mutableStateOf(false)}
+    var timeline by remember(conversation?.key, conversation?.remoteId, scope) {mutableStateOf(false)}
     val control=rows.firstOrNull {it.sessionKey==selected}
     Row(Modifier.fillMaxWidth()) {
-        if(events.any {it.sessionKey==selected}) {
-            if(compact) IconButton({timeline=true}) {BadgedBox(badge={Badge {Text(events.size.toString())}}) {Icon(Icons.Outlined.Build,label(Words.ToolActivity)+" (${events.size})")}}
-            else TextButton({timeline=true},Modifier.weight(1f)) {Text(label(Words.ToolActivity)+" (${events.size})")}
+        if(conversation != null) {
+            if(compact) IconButton({timeline=true}) {
+                BadgedBox(badge = { if (ownEvents.isNotEmpty()) Badge { Text(ownEvents.size.toString()) } }) {
+                    Icon(Icons.Outlined.Build, label(Words.ToolActivity))
+                }
+            } else TextButton({timeline=true},Modifier.weight(1f)) {Text(label(Words.HermesActivity))}
         }
         if(control!=null) {
             if(compact) IconButton({dismissed=""}) {BadgedBox(badge={Badge {Text(rows.size.toString())}}) {Icon(Icons.Outlined.HelpOutline,label(Words.ReviewRequest)+" (${rows.size})")}}
             else TextButton({dismissed=""},Modifier.weight(1f)) {Text(label(Words.ReviewRequest)+" (${rows.size})")}
         }
     }
-    if(timeline) ActivityDialog(events.filter {it.sessionKey==selected}) {timeline=false}
+    if(timeline && conversation != null) {
+        ActivityDialog(conversation, ownEvents, activityReport(conversation, reports),
+            live = busy && !SessionOrigin.readOnly(conversation)) {timeline=false}
+    }
     if(control!=null && dismissed!=control.key) PendingControlDialog(control,sending,{dismissed=control.key},vm::respondControl,vm::retryOrRefresh)
 }
 @Composable private fun PendingControlDialog(c:PendingControl,sending:Boolean,dismiss:()->Unit,respond:(PendingControl,String)->Unit,refresh:()->Unit) {

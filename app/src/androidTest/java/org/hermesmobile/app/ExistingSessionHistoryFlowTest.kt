@@ -66,7 +66,11 @@ class ExistingSessionHistoryFlowTest {
                         }
                         path.startsWith("api/sessions/") && path.endsWith("/messages")->{
                             assertEquals("GET",q.method);val id=path.removePrefix("api/sessions/").removeSuffix("/messages");history+=id
-                            json(buildJsonObject {put("session_id",id);put("data",buildJsonArray {add(buildJsonObject {put("id","u");put("role","user");put("content","Existing user "+id);put("timestamp",1)});add(buildJsonObject {put("id","a");put("role","assistant");put("content","Existing reply "+id);put("timestamp",2)})})})
+                            json(buildJsonObject {put("session_id",id);put("data",buildJsonArray {add(buildJsonObject {put("id","u");put("role","user");put("content","Existing user "+id);put("timestamp",1)});add(buildJsonObject {put("id","a");put("role","assistant");put("content","Existing reply "+id);put("timestamp",2)})
+                                if(mode=="empty-activity") add(buildJsonObject {
+                                    put("id","empty");put("role","assistant");put("content","");put("timestamp",3)
+                                })
+                            })})
                         }
                         path.startsWith("api/sessions/") && q.method=="GET"->{val id=path.removePrefix("api/sessions/");metadata+=id;json(buildJsonObject {put("session",row(id,"Metadata",source(id),1))})}
                         path=="v1/runs" && q.method=="POST"->{writes.incrementAndGet();turns+=Json.parseToJsonElement(q.body.readUtf8()).jsonObject;json(buildJsonObject {put("run_id","origin-run")})}
@@ -161,6 +165,24 @@ class ExistingSessionHistoryFlowTest {
             if(bilingual) shot("bilingual-read-only")
         }
     }
+    @Test fun emptyReadOnlyReplyHasAnExplanationAndActivityUsesSavedDataOnly() {
+        Fixture("empty-activity-fixture", "empty-activity").use { fixture ->
+            connect(fixture, bilingual = true)
+            open("desk_saved")
+            readableChat()
+            compose.onNodeWithTag("chat-messages").performScrollToNode(hasTestTag("history-reply-unavailable"))
+            compose.onNodeWithTag("history-reply-unavailable").performScrollTo().assertIsDisplayed()
+            assertTrue(vm.messages.value.any { it.role == "assistant" && it.content.isEmpty() })
+            compose.onNodeWithContentDescription(text(Words.ToolActivity)).assertIsDisplayed().performClick()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText(text(Words.ActivityUnavailable)))
+            compose.onNodeWithText(text(Words.ActivityUnavailable)).assertIsDisplayed()
+            compose.onNodeWithText(text(Words.Close)).performClick()
+            compose.onNodeWithTag("chat-read-only-send").assertIsNotEnabled()
+            assertEquals(0, fixture.writes.get())
+            assertTrue(fixture.unexpected.toString(), fixture.unexpected.isEmpty())
+        }
+    }
+
     @Test fun desktopHistoryIsReadableWhileSendLockAndForkStayUnavailable()=foreign("desk_saved")
     @Test fun discordHistoryKeepsItsOriginalSourceAndThread()=foreign("disc_saved")
     @Test fun unknownInventoryAndMetadataOriginsNeverGainWriteAuthority()=foreign("unknown_saved")

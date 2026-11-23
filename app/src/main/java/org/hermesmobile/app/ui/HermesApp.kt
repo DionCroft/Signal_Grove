@@ -67,6 +67,8 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
     sharedImages?.let {ImageShareReview(vm,it,shareHandled) {go("Chat")}}
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).pixelPaper(MaterialTheme.colorScheme.onBackground)) {
         val wide=maxWidth>=840.dp
+        val compactChat = current == "Chat" && maxHeight < 620.dp
+        val inlineConnection = keyboardOpen || compactChat
         Row(Modifier.fillMaxSize()) {
             if(wide) NavigationRail(Modifier.fillMaxHeight().width(124.dp),containerColor=MaterialTheme.colorScheme.surface,header={ Text("SG",style=MaterialTheme.typography.headlineLarge,modifier=Modifier.padding(20.dp).semantics {contentDescription=brand}) }) {
                 destinations.forEach { d -> NavigationRailItem(colors=NavigationRailItemDefaults.colors(indicatorColor=androidx.compose.ui.graphics.Color.Transparent),selected=current==d.route,onClick={go(d.route)},icon={PixelNavIcon(d.route,current==d.route)},label={Text(label(d.word))},modifier=Modifier.padding(vertical=4.dp).testTag("nav-${d.route.lowercase()}")) }
@@ -74,11 +76,11 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
             Scaffold(modifier=Modifier.weight(1f),containerColor=androidx.compose.ui.graphics.Color.Transparent,
                 topBar={ Column(Modifier.statusBarsPadding().fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp)) {
                     FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                        Row(Modifier.padding(end=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {PixelIcon("Home",tint=MaterialTheme.colorScheme.primary);Text(brand,style=MaterialTheme.typography.titleLarge,color=MaterialTheme.colorScheme.onBackground)}
-                        if(keyboardOpen) Icon(if(connection=="connected") Icons.Outlined.CloudDone else if(connection=="demo") Icons.Outlined.SmartToy else Icons.Outlined.CloudOff,label(when(connection) {"demo"->Words.Demo;"connected"->Words.Connected;else->Words.Offline}))
+                        Row(Modifier.padding(end=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {PixelIcon("Home",tint=MaterialTheme.colorScheme.primary);Text(brand,style=if(compactChat) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,color=MaterialTheme.colorScheme.onBackground)}
+                        if(inlineConnection) Icon(if(connection=="connected") Icons.Outlined.CloudDone else if(connection=="demo") Icons.Outlined.SmartToy else Icons.Outlined.CloudOff,label(when(connection) {"demo"->Words.Demo;"connected"->Words.Connected;else->Words.Offline}))
                         Text(org.hermesmobile.app.BuildConfig.VERSION_NAME,style=MaterialTheme.typography.labelSmall,maxLines=1)
                     }
-                    if(!keyboardOpen) {
+                    if(!inlineConnection) {
                         Spacer(Modifier.height(8.dp))
                         Text(label(when(connection) { "demo"->Words.Demo; "connected"->Words.Connected; else->Words.Offline }),style=MaterialTheme.typography.labelMedium)
                     }

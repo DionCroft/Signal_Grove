@@ -10,6 +10,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.*
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 private fun metricWord(key:String)=when(key) {
     "input_tokens"->Words.InputTokens;"output_tokens"->Words.OutputTokens;"total_tokens"->Words.TotalTokens
@@ -41,21 +45,74 @@ private fun metricWord(key:String)=when(key) {
         }
     },confirmButton={TextButton(dismiss) {Text(label(Words.Close))}})
 }
-@Composable fun ActivityDialog(events:List<ToolEvent>,dismiss:()->Unit) {
-    val timeline=remember(events) {activityTimeline(events)}
-    AlertDialog(onDismissRequest=dismiss,title={Text(label(Words.ToolActivity))},text={
+private val publicActivityDetails = setOf("child_session_id", "subagent_id", "delegation_id", "parent_id",
+    "model", "status", "summary", "duration_seconds", "tool_count", "api_calls", "depth", "task_index", "task_count")
+
+@Composable private fun activityName(event: ToolEvent): String = when {
+    event.category == "subagent" -> label(Words.Subagent)
+    else -> event.tool.takeIf { it.isNotBlank() && it.length <= 256 && it.none(Char::isISOControl) }
+        ?: label(Words.ToolActivity)
+}
+
+@Composable internal fun ActivityDialog(
+    conversation: Conversation, events: List<ToolEvent>, report: RunReport?, live: Boolean, dismiss: () -> Unit,
+) {
+    val timeline = remember(events) { activityTimeline(events) }
+    val currentTool = if (live && conversation.status in setOf("running", "queued")) {
+        activeActivity(conversation, timeline)
+    } else null
+    val runtime = remember(report?.telemetryJson) {
+        RunTelemetry.parse(report?.telemetryJson.orEmpty())["runtime"] as? JsonObject
+    }
+    val displayTime = remember {
+        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault())
+    }
+    AlertDialog(onDismissRequest=dismiss,title={Text(label(Words.HermesActivity))},text={
         LazyColumn(Modifier.testTag("activity-timeline").heightIn(max=480.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            item {Text(label(Words.RecentActivityInfo),style=MaterialTheme.typography.bodySmall)}
+            if (conversation.status != "idle") item {
+                Text(label(if (live) Words.RunStatus else Words.ActivityLastRunStatus), style = MaterialTheme.typography.titleSmall)
+                Text(label(statusWord(conversation.status)), style = MaterialTheme.typography.bodySmall)
+                currentTool?.let {
+                    Text(label(Words.ActivityInProgress).replace("{name}", activityName(it)),
+                        style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            item {
+                Text(label(Words.ServedRuntime), style = MaterialTheme.typography.titleSmall)
+                val served = runtime?.filterKeys { it == "provider" || it == "model" }.orEmpty()
+                if (served.isEmpty()) Text(label(Words.ActivityRuntimeUnavailable), style = MaterialTheme.typography.bodySmall)
+                else served.forEach { (key, value) -> ServerField(key, value) }
+                (runtime?.get("requested") as? JsonObject)?.let { requested ->
+                    Text(label(Words.RequestedModel), style = MaterialTheme.typography.titleSmall)
+                    requested.forEach { (key, value) -> ServerField(key, value) }
+                }
+            }
+            item {Text(label(if (timeline.isEmpty()) Words.ActivityUnavailable else Words.RecentActivityInfo),
+                style=MaterialTheme.typography.bodySmall)}
             items(timeline,key={it.key}) {entry ->
                 val e=entry.latest
                 Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                    Text(if(e.category=="subagent") label(Words.Subagent) else e.tool,style=MaterialTheme.typography.titleSmall)
-                    Text(label(when(e.kind) {"started"->Words.Started;"failed"->Words.Failed;"cancelled"->Words.Cancelled;else->Words.Completed}),style=MaterialTheme.typography.labelMedium)
+                    Text(activityName(e), style=MaterialTheme.typography.titleSmall)
+                    Text(label(when(e.kind) {
+                        "started" -> Words.Started
+                        "failed" -> Words.Failed
+                        "cancelled" -> Words.Cancelled
+                        "completed" -> Words.Completed
+                        else -> Words.Unknown
+                    }), style=MaterialTheme.typography.labelMedium)
+                    Text(label(Words.ActivityUpdateReceived).replace("{time}", displayTime.format(Instant.ofEpochMilli(e.receivedAt))),
+                        style = MaterialTheme.typography.labelSmall)
                     if(e.callId.isNotBlank()) {Text(label(Words.ActivityIdentity));SelectionContainer {Text(e.callId,style=MaterialTheme.typography.bodySmall)}}
                     if(e.runId.isNotBlank()) {Text(label(Words.RunIdentity));Text(e.runId,style=MaterialTheme.typography.bodySmall)}
                     e.durationMs?.let {Text("${it} ms",style=MaterialTheme.typography.labelSmall)}
-                    entry.previews.forEach {SelectionContainer {Text(it,style=MaterialTheme.typography.bodySmall)}}
-                    entry.details.filterKeys {it!="error"}.forEach {(key,value)->ServerField(key,value)}
+                    entry.previews.forEach { preview ->
+                        val visible = preview.take(1000).filter { !it.isISOControl() || it in "\n\r\t" }
+                        if (visible.isNotBlank()) SelectionContainer {Text(visible, style=MaterialTheme.typography.bodySmall)}
+                    }
+                    entry.details.filterKeys { it in publicActivityDetails }.forEach { (key, value) ->
+                        if (value is JsonPrimitive && value !is JsonNull && value.content.length <= 1000 &&
+                            value.content.none { it.isISOControl() && it !in "\n\r\t" }) ServerField(key, value)
+                    }
                     HorizontalDivider()
                 }
             }

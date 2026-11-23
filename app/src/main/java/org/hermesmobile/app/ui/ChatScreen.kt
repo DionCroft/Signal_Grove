@@ -49,6 +49,7 @@ import java.time.format.DateTimeFormatter
     val status by vm.runStatus.collectAsStateWithLifecycle()
     val activity by vm.activity.collectAsStateWithLifecycle()
     val current by vm.selectedConversation.collectAsStateWithLifecycle()
+    var runtimeMessageId by remember(current?.key) { mutableStateOf<String?>(null) }
     val readOnly=current?.let(SessionOrigin::readOnly)==true
     var readOnlyInfo by remember(current?.key,readOnly) {mutableStateOf(false)}
     var statusDetails by rememberSaveable {mutableStateOf(false)}
@@ -67,49 +68,66 @@ import java.time.format.DateTimeFormatter
             if(last!=null) list.scrollBy((last.offset+last.size-list.layoutInfo.viewportEndOffset).coerceAtLeast(0).toFloat())
         }
     }
-    Column(Modifier.fillMaxSize().imePadding().padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            Word(Words.Chat,Modifier.weight(1f))
-            IconButton({modelOverview=true},Modifier.testTag("chat-model-status-open")) {Icon(Icons.Outlined.Info,label(Words.ModelStatus))}
-            IconButton({runtimePicker=true},enabled=!busy && !controlling && !connecting) {Icon(Icons.Outlined.Tune,label(Words.Models))}
-            IconButton({history=true},enabled=!busy && !controlling) { Icon(Icons.Outlined.History,label(Words.History)) }
-            if(current?.transport!="compat") IconButton(vm::refreshHistory,enabled=!busy && !controlling && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
-            IconButton(vm::newChat,enabled=!busy && !controlling) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
-        }
-        if(busy || historyLoading || controlling) QuietProgress()
-        if(draft.isNotBlank()) PhoneDraftRoute(vm,vm.reviewPhoneDraft()!=null)
-        if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
-            Word(Words.NoChats)
-            if(LocalPreferences.current.demo) {TextButton({vm.sendDemoExercise("approval")},enabled=!busy) {Text(label(Words.DemoApproval))};TextButton({vm.sendDemoExercise("clarify")},enabled=!busy) {Text(label(Words.DemoClarification))}}
-        }
-        else LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("chat-messages"),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
-            items(messages,key={it.id}) { MessageCard(it,current) }
-        }
-        if(activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
-        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            LocalAiEntry(compact=true)
-            Box(Modifier.weight(1f)) {RunControls(vm,compact=true)}
-            SessionControls(vm)
-            if(status!="idle") IconButton({statusDetails=true}) {Icon(if(status=="completed") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(statusWord(status)))}
-            if(status !in HermesViewModel.terminal && status!="idle" && (LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true))) IconButton(vm::stop,enabled=!controlling) {Icon(Icons.Outlined.StopCircle,label(Words.Stop))}
-            if(!busy && status !in setOf("completed","idle","response_finished")) IconButton(vm::retryOrRefresh,enabled=!controlling) {Icon(Icons.Outlined.Refresh,label(Words.CheckRun))}
-            if(!busy && status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) IconButton(vm::prepareRetry,enabled=!controlling) {Icon(Icons.Outlined.Replay,label(Words.Retry))}
-        }
-        if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy && !controlling) {Text(label(Words.ResolveUnknown))}
-        DraftImageStrip(vm)
-        if(readOnly) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            TextButton({readOnlyInfo=true},Modifier.weight(1f).heightIn(min=48.dp).testTag("chat-read-only")) {
-                Icon(Icons.Outlined.Info,null);Spacer(Modifier.width(8.dp));Text(label(Words.ReadOnlyHistory),Modifier.weight(1f))
+    BoxWithConstraints(Modifier.fillMaxSize().imePadding()) {
+        val compactLayout = maxWidth < 360.dp || (readOnly && maxHeight < 340.dp)
+        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (compactLayout && LocalPreferences.current.chinese) Text(label(Words.Chat).replace("\n", " · "), style = MaterialTheme.typography.titleSmall)
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                if (!compactLayout || !LocalPreferences.current.chinese) Word(Words.Chat,Modifier.weight(1f))
+                IconButton({modelOverview=true},Modifier.testTag("chat-model-status-open")) {Icon(Icons.Outlined.Info,label(Words.ModelStatus))}
+                IconButton({runtimePicker=true},enabled=!busy && !controlling && !connecting) {Icon(Icons.Outlined.Tune,label(Words.Models))}
+                IconButton({history=true},enabled=!busy && !controlling) { Icon(Icons.Outlined.History,label(Words.History)) }
+                if(current?.transport!="compat") IconButton(vm::refreshHistory,enabled=!busy && !controlling && !historyLoading && !LocalPreferences.current.demo && caps?.sessions==true) {Icon(Icons.Outlined.Refresh,label(Words.RefreshHistory))}
+                IconButton(vm::newChat,enabled=!busy && !controlling) { Icon(Icons.Outlined.Add,label(Words.NewChat)) }
             }
-            IconButton({},enabled=false,modifier=Modifier.testTag("chat-read-only-send")) {Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send))}
-        } else OutlinedTextField(draft,{vm.changeDraft(it)},Modifier.fillMaxWidth(),enabled=!readOnly,placeholder={Text(label(Words.Message))},maxLines=5,
-            leadingIcon={if(!readOnly) ImagePickerButton(vm)},
-            trailingIcon={IconButton({vm.send()},enabled=(draft.isNotBlank() || pictureDraft?.refs?.isNotEmpty()==true) && !busy && !controlling && !connecting && !readOnly) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
-        Spacer(Modifier.height(4.dp))
+            if(busy || historyLoading || controlling) QuietProgress()
+            if(draft.isNotBlank()) PhoneDraftRoute(vm,vm.reviewPhoneDraft()!=null)
+            if(messages.isEmpty()) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
+                Word(Words.NoChats)
+                if(LocalPreferences.current.demo) {TextButton({vm.sendDemoExercise("approval")},enabled=!busy) {Text(label(Words.DemoApproval))};TextButton({vm.sendDemoExercise("clarify")},enabled=!busy) {Text(label(Words.DemoClarification))}}
+            }
+            else LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("chat-messages"),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
+                items(messages,key={it.id}) { message -> MessageCard(message, current) { runtimeMessageId = message.id } }
+            }
+            if(busy && activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                LocalAiEntry(compact=true)
+                Box(Modifier.weight(1f)) {RunControls(vm,compact=true)}
+                SessionControls(vm)
+                if(status!="idle") IconButton({statusDetails=true}) {Icon(if(status=="completed") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(statusWord(status)))}
+                if(status !in HermesViewModel.terminal && status!="idle" && (LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true))) IconButton(vm::stop,enabled=!controlling) {Icon(Icons.Outlined.StopCircle,label(Words.Stop))}
+                if(!busy && status !in setOf("completed","idle","response_finished")) IconButton(vm::retryOrRefresh,enabled=!controlling) {Icon(Icons.Outlined.Refresh,label(Words.CheckRun))}
+                if(!busy && status in setOf("failed","cancelled","interrupted","incomplete","response_failed","response_cancelled","response_incomplete")) IconButton(vm::prepareRetry,enabled=!controlling) {Icon(Icons.Outlined.Replay,label(Words.Retry))}
+            }
+            if(status=="unknown" && caps?.has("run_unknown_resolution")==true && caps?.endpoints?.containsKey("run_unknown_resolution")==true && current?.admissionId?.isNotBlank()==true && current?.executionGeneration!=null) TextButton({resolve=true},enabled=!busy && !controlling) {Text(label(Words.ResolveUnknown))}
+            DraftImageStrip(vm)
+            if(readOnly) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                TextButton({readOnlyInfo=true},Modifier.weight(1f).heightIn(min=48.dp).testTag("chat-read-only")) {
+                    Icon(Icons.Outlined.Info,null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(label(Words.ReadOnlyHistory), Modifier.weight(1f),
+                        style = if (compactLayout) MaterialTheme.typography.bodySmall else LocalTextStyle.current)
+                }
+                IconButton({},enabled=false,modifier=Modifier.testTag("chat-read-only-send")) {Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send))}
+            } else OutlinedTextField(draft,{vm.changeDraft(it)},Modifier.fillMaxWidth(),enabled=!readOnly,
+                placeholder = {
+                    if (compactLayout) Text(label(Words.ChatMessagePlaceholder).replace("\n", " · "), style = MaterialTheme.typography.bodySmall)
+                    else Text(label(Words.Message))
+                },
+                maxLines = if (compactLayout) 3 else 5,
+                leadingIcon={if(!readOnly) ImagePickerButton(vm)},
+                trailingIcon={IconButton({vm.send()},enabled=(draft.isNotBlank() || pictureDraft?.refs?.isNotEmpty()==true) && !busy && !controlling && !connecting && !readOnly) { Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send)) }})
+            Spacer(Modifier.height(4.dp))
+        }
     }
     if(readOnly && readOnlyInfo) AlertDialog(onDismissRequest={readOnlyInfo=false},title={Text(label(Words.ReadOnlyHistory))},text={
         Column(Modifier.heightIn(max=440.dp).verticalScroll(rememberScrollState()).testTag("chat-read-only-reason")) {Text(label(Words.ReadOnlySession))}
     },confirmButton={TextButton({readOnlyInfo=false},Modifier.heightIn(min=48.dp).testTag("chat-read-only-close")) {Text(label(Words.Close))}})
+    runtimeMessageId?.let { id ->
+        messages.firstOrNull { it.id == id && it.sessionKey == current?.key }?.let { message ->
+            RuntimeUsageDialog(message.telemetryJson) { runtimeMessageId = null }
+        }
+    }
     if(accountingHistory) AccountingHistoryDialog(reports) {accountingHistory=false}
     if(statusDetails) AlertDialog(onDismissRequest={statusDetails=false},title={Text(label(Words.RunStatus))},text={Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Text(label(statusWord(status)))
@@ -124,22 +142,25 @@ import java.time.format.DateTimeFormatter
     if(resolve) AlertDialog(onDismissRequest={resolve=false},title={Text(label(Words.ResolveUnknown))},text={Text(label(Words.ResolveInfo))},confirmButton={TextButton({resolve=false;vm.acknowledgeUnknown()}) {Text(label(Words.ResolveUnknown))}},dismissButton={TextButton({resolve=false}) {Text(label(Words.Cancel))}})
 }
 @Suppress("DEPRECATION")
-@Composable fun MessageCard(message: ChatMessage,conversation:org.hermesmobile.app.data.Conversation?=null) {
+@Composable internal fun MessageCard(message: ChatMessage, conversation: org.hermesmobile.app.data.Conversation?, openRuntime: () -> Unit) {
     val clipboard=LocalClipboardManager.current
     var copied by remember {mutableStateOf(false)}
-    var runtimeUsage by remember(message.id) {mutableStateOf(false)}
     val ink=MaterialTheme.colorScheme.onSurface.toArgb()
     val primary=MaterialTheme.colorScheme.primary.toArgb()
-    if(runtimeUsage) RuntimeUsageDialog(message.telemetryJson) {runtimeUsage=false}
     val density=androidx.compose.ui.platform.LocalDensity.current
     HermesCard(Modifier.padding(start=if(message.role=="user") 24.dp else 0.dp,end=if(message.role=="assistant") 8.dp else 0.dp)) {
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             Text(if(message.role=="user") label(Words.You) else "Hermes",Modifier.weight(1f),style=MaterialTheme.typography.labelLarge)
             Text(DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(message.timestamp)),style=MaterialTheme.typography.labelSmall)
-            if(message.role=="assistant" && message.telemetryJson.isNotBlank()) IconButton({runtimeUsage=true},Modifier.testTag("runtime-usage-${message.id}")) {Icon(Icons.Outlined.Assessment,label(Words.RuntimeUsage),Modifier.size(18.dp))}
+            if(message.role=="assistant" && message.telemetryJson.isNotBlank()) IconButton(openRuntime,Modifier.testTag("runtime-usage-${message.id}")) {Icon(Icons.Outlined.Assessment,label(Words.RuntimeUsage),Modifier.size(18.dp))}
             if(message.content.isNotBlank()) IconButton({clipboard.setText(AnnotatedString(message.content));copied=true}) { Icon(Icons.Outlined.ContentCopy,label(if(copied) Words.Copied else Words.Copy),Modifier.size(18.dp)) }
         }
-        if(message.content.isNotEmpty()) AndroidView(factory={context -> TextView(context).apply {setTextIsSelectable(true);setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,16f);tag=Markwon.create(context)}},
+        if(message.role=="assistant" && message.content.isBlank() &&
+            (message.imagesJson.isBlank() || message.imagesJson=="[]") &&
+            conversation?.key==message.sessionKey && SessionOrigin.readOnly(conversation)) {
+            Text(label(Words.HistoryReplyUnavailable), Modifier.testTag("history-reply-unavailable"),
+                style=MaterialTheme.typography.bodySmall)
+        } else if(message.content.isNotEmpty()) AndroidView(factory={context -> TextView(context).apply {setTextIsSelectable(true);setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,16f);tag=Markwon.create(context)}},
             modifier=Modifier.fillMaxWidth().testTag("message-body-${message.id}"),update={ view ->
                 view.setTextColor(ink);view.setLinkTextColor(primary)
                 view.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,16f*density.density*density.fontScale)

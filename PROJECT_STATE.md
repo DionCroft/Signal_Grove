@@ -1,11 +1,31 @@
 # Signal Grove project state
 
-21 November 2026. The full goal is **active**. The owner approved the order:
+23 November 2026. The full goal is **active**. The owner approved the order:
 phone context and request review, measured larger windows and Hermes-reported
 context, then verified workspace attachment, project approvals and scheduling.
 The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
+
+## Hermes Activity and compact Chat
+
+Chat opens a timeline for the selected profile and conversation, including
+read-only history. It shows retained tool and subagent activity, receipt time,
+reported duration and the exact run's served and requested model information.
+An empty saved reply now has an explanatory caption. Compact Chat reserves
+space for history and keeps the connection state available through its icon.
+
+The frozen Android build passed 1,241 JVM tests and both lint variants.
+Android 8 and 17 each passed eight standard and three compact activity and
+history cases. The earlier hosted Android 17 model-library failure remains
+open despite local isolation and full-class passes. [Validation](docs/VALIDATION.md#hermes-activity-and-compact-chat).
+
+The exact Windows checkout suite still passes. A disposable Git fixture
+showed that the current admission guard can hold HEAD open while Git changes
+the branch's commit. The next worker change must hold the verified branch
+reference through queue admission and final launch. The scheduler's reviewed
+scope also needs to carry and check the exact commit. The Pi workspace adapter
+and protected policy still need isolated-to-live acceptance.
 
 ## Phone history inline model choices
 
