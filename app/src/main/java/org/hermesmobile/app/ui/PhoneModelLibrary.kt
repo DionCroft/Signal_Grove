@@ -10,6 +10,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import org.hermesmobile.app.local.CuratedPhoneModel
 import org.hermesmobile.app.local.InstalledLocalModel
@@ -35,6 +38,21 @@ internal fun ColumnScope.PhoneModelLibrary(
             model.metadata.architecture.contains(search, ignoreCase = true) ||
             model.sha256.contains(search, ignoreCase = true)
     }
+    if (state.models.size > 1) {
+        OutlinedTextField(
+            query,
+            { query = it.take(128) },
+            Modifier.fillMaxWidth().testTag("phone-model-search"),
+            label = { Text(label(Words.PhoneModelSearch)) },
+            singleLine = true
+        )
+        if (models.isEmpty()) {
+            Text(
+                label(Words.PhoneModelNoMatches),
+                Modifier.testTag("phone-model-no-matches").semantics { liveRegion = LiveRegionMode.Polite }
+            )
+        }
+    }
     Column(
         Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("phone-model-list"),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -59,16 +77,6 @@ internal fun ColumnScope.PhoneModelLibrary(
         }
         TextButton(openSetup, Modifier.testTag("phone-offline-setup-models-entry")) { Text(label(Words.PhoneOfflineSetup)) }
         TextButton(actions.refresh, enabled = !state.busy) { Text(label(Words.Refresh)) }
-        if (state.models.size > 1) {
-            OutlinedTextField(
-                query,
-                { query = it.take(128) },
-                Modifier.fillMaxWidth().testTag("phone-model-search"),
-                label = { Text(label(Words.PhoneModelSearch)) },
-                singleLine = true
-            )
-            if (models.isEmpty()) Text(label(Words.PhoneModelNoMatches), Modifier.testTag("phone-model-no-matches"))
-        }
         for (model in models) {
             key(model.sha256) { PhoneModel(model, state, supported, actions, reviewUpdate) { remove(model) } }
         }

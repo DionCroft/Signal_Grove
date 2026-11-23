@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## Compact Android release fixes and complete Pi source
+
+The keyboard-aware document footer and fixed model search passed both
+affected methods on Android 8 and 17 on the same debug build. Preserve the
+two original hosted failures and the initial local tap warnings. Run the
+complete hosted device matrix on the corrected source before the next
+signed physical upgrade.
+
+The complete workspace-only source packet preserves the maintained runtime,
+vendor files and stock scheduler. Native PM staging, rollback verification,
+separate activation approval and app-to-Pi-to-worker acceptance remain open.
+[Validation](VALIDATION.md#compact-document-review-and-model-search).
+
 ## Real enrollment and workspace attachment review
 
 The installed Pi and Windows worker agree on the existing single local

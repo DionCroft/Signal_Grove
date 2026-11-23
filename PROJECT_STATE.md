@@ -7,6 +7,25 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Focused Android fixes and workspace-only source package
+
+The active debug candidate passed all 1,242 JVM tests, both lint variants
+with zero errors, and the two changed Android UI methods on each API 26
+and API 37. The document test verified the exact citation and one native
+review tap with the keyboard present. The model search kept the empty state
+visible while typing and still required explicit model selection. Original
+hosted failures and local timing warnings are preserved.
+[Validation](docs/VALIDATION.md#compact-document-review-and-model-search).
+
+The complete Pi workspace-only archive now has byte and mode verification
+for all 23,689 source and vendor members. Native PM/runtime and rollback
+checks are next before the separately approved live switch.
+[Archive evidence](docs/VALIDATION.md#complete-workspace-only-pi-source-derivative).
+
+Next run the full Android matrix for the updated source, then the signed
+physical upgrade, main branch and release gates. Phone workspace attachment,
+live scheduler acceptance and remaining audit items are still open.
+
 ## Real read enrollment and Android 8 release gate
 
 The live Pi owner, profile and node match the existing protected Windows

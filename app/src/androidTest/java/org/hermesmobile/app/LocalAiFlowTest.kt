@@ -267,8 +267,10 @@ class LocalAiFlowTest {
         val document = PhoneDocument("fixture", "Museum.md", "a".repeat(64), 24, 2)
         val source = PhoneDocumentSource(document, 1, 2, "Opening hours.\nCloses at five.")
         val requests = mutableListOf<PhoneDocumentReview>()
+        var sourceReviews = 0
         state = LocalAiState(models = listOf(model), loaded = model, documents = listOf(document))
         show(bilingual = true, documents = PhoneDocumentActions({}, {}, {}, {}, {}, { ids, question ->
+                sourceReviews++
                 assertEquals(listOf(document.id), ids)
                 assertEquals("When does it close?", question)
                 state = state.copy(documentReview = PhoneDocumentReview(question, listOf(source)))
@@ -278,18 +280,28 @@ class LocalAiFlowTest {
             }, { state = state.copy(documentReview = null, documentAnswer = null) }))
         compose.onNodeWithTag("phone-documents-open").performClick()
         compose.onNodeWithTag("phone-document-select-fixture").performScrollTo().performClick()
-        compose.onNodeWithTag("phone-document-question").performScrollTo().performTextInput("When does it close?")
+        compose.onNodeWithTag("phone-document-question").performScrollTo().performClick()
+            .performTextInput("When does it close?")
+        val review = compose.onNodeWithTag("phone-document-review")
         compose.waitUntil(10_000) {
-            compose.onAllNodes(hasTestTag("phone-document-review") and isEnabled()).fetchSemanticsNodes().size == 1
+            focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true &&
+                compose.onAllNodes(hasTestTag("phone-document-review") and isEnabled()).fetchSemanticsNodes().size == 1
         }
-        compose.onNodeWithTag("phone-document-review").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+        compose.runOnIdle { assertEquals(0, sourceReviews); assertTrue(requests.isEmpty()) }
+        val viewport = checkNotNull(focusedDialogViewport())
+        val bounds = review.assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInWindow
+        assertTrue(bounds.height > 0f && bounds.width > 0f)
+        assertTrue("Review sources must stay above the actual keyboard",
+            bounds.top + viewport.screenOffsetY >= viewport.visible.top &&
+                bounds.bottom + viewport.screenOffsetY <= viewport.visible.bottom)
+        tapFocusedDialogWindowPoint(bounds.center.x, bounds.center.y, NativeDialogTapAction.PhoneDocumentReview)
         compose.waitUntil(10_000) {
             compose.onAllNodesWithTag("phone-document-source-0").fetchSemanticsNodes().size == 1
         }
         compose.onNodeWithTag("phone-document-source-0").performScrollTo().assertIsDisplayed().assertTextEquals(source.text)
         compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("Museum.md", substring = true)
         compose.onNodeWithTag("phone-document-answer-confirm").assertIsDisplayed()
-        compose.runOnIdle { assertTrue(requests.isEmpty()); assertEquals(0, sends) }
+        compose.runOnIdle { assertEquals(1, sourceReviews); assertTrue(requests.isEmpty()); assertEquals(0, sends) }
         compose.onNodeWithTag("phone-document-answer-confirm").performClick()
         compose.onNodeWithTag("phone-document-answer").performScrollTo().assertTextEquals("It closes at five [S1].")
         compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("[S1]", substring = true)
@@ -487,9 +499,14 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-model-storage").performScrollTo().assertTextContains("Free storage", substring = true)
         compose.onNodeWithTag("phone-model-saved-downloads").performScrollTo().assertIsDisplayed()
         val search = compose.onNodeWithTag("phone-model-search")
-        search.performScrollTo().performTextInput("no such model")
-        compose.onNodeWithTag("phone-model-no-matches").performScrollTo().assertIsDisplayed()
-        search.performScrollTo().performTextReplacement("QWEN2")
+        search.assertIsDisplayed().performClick().performTextInput("no such model")
+        compose.waitUntil(10_000) { focusedWindowKeyboardVisible() }
+        compose.onNodeWithTag("phone-model-no-matches").assertIsDisplayed()
+            .assertTextEquals(Words.PhoneModelNoMatches.en)
+        search.assertIsDisplayed().assertTextContains("no such model").performTextReplacement("QWEN2")
+        compose.onNodeWithTag("phone-model-no-matches").assertDoesNotExist()
+        closeFocusedKeyboard()
+        compose.waitUntil(10_000) { !focusedWindowKeyboardVisible() }
         compose.onNodeWithTag("phone-installed-${model.sha256}").assertDoesNotExist()
         compose.onNodeWithTag("phone-installed-${qwen.sha256}").performScrollTo().assertIsDisplayed()
         compose.runOnIdle { assertTrue(requestedLoads.isEmpty()); assertTrue(downloads.isEmpty()) }

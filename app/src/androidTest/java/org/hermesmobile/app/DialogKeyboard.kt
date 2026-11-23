@@ -26,11 +26,21 @@ fun closeDialogKeyboard() {
 
 /** Default Espresso root selection can choose a stale activity behind the foreground window. */
 fun closeFocusedKeyboard() {
-    val focusedWindow=object:TypeSafeMatcher<Root>() {
-        override fun describeTo(description:Description) {description.appendText("an app window with focus")}
-        override fun matchesSafely(root:Root)=root.decorView.hasWindowFocus()
+    onView(isRoot()).inRoot(focusedAppWindow()).perform(closeSoftKeyboard())
+}
+
+private fun focusedAppWindow() = object : TypeSafeMatcher<Root>() {
+    override fun describeTo(description: Description) { description.appendText("an app window with focus") }
+    override fun matchesSafely(root: Root) = root.decorView.hasWindowFocus()
+}
+
+internal fun focusedWindowKeyboardVisible(): Boolean {
+    var visible = false
+    onView(isRoot()).inRoot(focusedAppWindow()).check { view, error ->
+        if (error != null) throw error
+        visible = ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime()) == true
     }
-    onView(isRoot()).inRoot(focusedWindow).perform(closeSoftKeyboard())
+    return visible
 }
 
 private fun focusedAppDialog()=object:TypeSafeMatcher<Root>() {

@@ -1,5 +1,75 @@
 # Current development validation — audit follow-up
 
+## Compact document review and model search
+
+The same signed debug APKs passed each affected method on API 26 and API 37.
+Both model-search checks passed in the first run. Both document checks
+initially stopped on an Android tap timing warning after a single accepted
+DOWN/UP pair inside the visible keyboard viewport. API 26 took 857 ms on
+DOWN against the guest's 400 ms long-press threshold. The original failed
+transactions were retained. A sequential run on the same installed APK
+bytes passed the document method on each emulator. The native receipts
+confirm one DOWN/UP pair, with the IME visible before dispatch. DOWN took
+54 ms on API 26 and 155 ms on API 37. The tests verified the exact excerpt,
+citation, confirmation and result. The prior IME settings were restored.
+
+| Focused document test log | SHA-256 |
+| --- | --- |
+| API 26 | `f3f100a4c93a808a76d5a5f72c7907411f103318c0cbbb1cb294456ae59dd089` |
+| API 37 | `04c4680dca6fd44f3f5494895749f4259f4d39603f63f881bb92116c2d5c8eae` |
+
+These are four method/device positives across the retained runs. The full
+hosted matrix and signed physical-phone upgrade remain release gates.
+
+The original hosted API 26 shard failed waiting for the selected document
+excerpt after the Review sources tap. On API 37 a separate test failed the
+empty model-search state's visibility assertion. Each shard recorded 666
+positive results and one failure. The API 37 artifact SHA-256 is
+`cb1cb956d4b79ca89aa791cef99bc23d055e323c900cdcfa4b20a4f6a07c5908`.
+The original API 26 ZIP remains recorded below.
+[Original device matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45259789094).
+
+The document review action now sits in the fixed keyboard-aware footer.
+The model search field and its accessibility announcement remain above the
+scrolling model list. The short keyboard viewport gives priority to the
+editor. The two instrumented regressions still verify the exact selected
+sources, a separate model-invocation confirmation and explicit model load.
+The source-review test observes the real keyboard and sends one native tap.
+
+The source snapshot passed `testDebugUnitTest lint lintRelease assembleDebug
+assembleDebugAndroidTest` under strict dependency verification. Its 118
+JUnit reports record 1,242 tests, zero failures and zero skips. Debug and
+release lint report zero errors and 56 and 55 warnings, respectively. Two
+portable diagnostic and device coverage cohorts pass 23 tests. Offline
+KSP resolution, stale Gradle transforms and an incomplete SDK stopped
+earlier attempts before compilation. Their logs are retained. The verified
+run used a fresh E-drive build cache and the complete pinned SDK.
+
+| Exact debug artifact | SHA-256 |
+| --- | --- |
+| App APK | `bbc82917b80d5008e97a14ba5e1f9213d7ac9233f76d581f58e4368898520d7e` |
+| Instrumentation APK | `7f24bdaf56ea4a0251f82e6269209e6935bf74e8f65f787e69ac3e80fdea6585` |
+
+Both signatures verify with the same original debug certificate. This
+build is for local device validation. The signed production upgrade and
+full final-source device matrix remain separate gates.
+
+## Complete workspace-only Pi source derivative
+
+The source-only package preserves 79 maintained runtime anchors, all four
+stock scheduler files and 61 exact vendor files while replacing the old
+workspace overlay with the seven workspace-only modules and one reviewed
+operator binding. Its 23,689 archive members passed independent hash and
+mode readback. The first loose-source attempt stopped at a missing file.
+The successful derivative verified the sealed prior source and every
+carried member before packaging. The protected read policy remains
+separate from the source archive.
+
+The 98,538,824-byte archive SHA-256 is
+`8ca83172bfce10213991539f6d4807eab2fd24305dbf26fccb3e44c5ca3a4740`.
+Native ARM64 PM staging and rollback acceptance remain open, followed by
+separately approved live activation and actual phone workspace acceptance.
+
 ## Real owner and Windows enrollment reconciliation
 
 Read-only Pi process observations agreed across both live services and two

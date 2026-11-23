@@ -242,11 +242,12 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(12.dp)) {
             val keyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-            // Reserve the remaining height for chat controls and the composer on short IME viewports.
-            val compactComposer = tab == 0 && keyboardOpen && maxHeight < 360.dp
+            // Keep an editor and its feedback visible when the IME leaves a short viewport.
+            val compactEditor = keyboardOpen && maxHeight < 360.dp && (tab == 0 || tab == 1)
+            val compactComposer = tab == 0 && compactEditor
             val scrollSetupActions = tab == 0 && maxHeight < 560.dp && !compactComposer
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!compactComposer) {
+                if (!compactEditor) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                         if (handoffState.isEmpty()) {
@@ -299,7 +300,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                         remove = { deleteModel = it })
                     2 -> PhoneHistory(state, actions, {actions.openChat(it); tab = 0}, {deleteChat = it})
                 }
-                if (!compactComposer && !scrollSetupActions) setupActions()
+                if (!compactEditor && !scrollSetupActions) setupActions()
             }
         }
     }

@@ -45,6 +45,8 @@ internal fun PhoneDocuments(
     val answer = state.documentAnswer
     val selected = state.documents.filter { it.id in scope }
     val showLibrary = !pending && removing == null && review == null && answer == null
+    val trimmedQuestion = question.trim()
+    val canReview = idle && PhoneDocumentQuestions.validQuestion(trimmedQuestion)
     LaunchedEffect(pending, removing, review, answer?.review) { bodyScroll.scrollTo(0) }
     LaunchedEffect(state.documents) { scope = scope.intersect(state.documents.map { it.id }.toSet()) }
     Dialog(onDismissRequest = { if (idle) close() },
@@ -131,14 +133,9 @@ internal fun PhoneDocuments(
                                     Modifier.fillMaxWidth().testTag("phone-document-question"),
                                     label = { Text(label(Words.PhoneDocumentQuestion)) }, maxLines = 4
                                 )
-                                if (question.isNotBlank() && !PhoneDocumentQuestions.validQuestion(question.trim())) {
+                                if (trimmedQuestion.isNotEmpty() && !PhoneDocumentQuestions.validQuestion(trimmedQuestion)) {
                                     Text(label(Words.PhoneDocumentQuestionLimit), style = MaterialTheme.typography.bodySmall)
                                 }
-                                Button({
-                                    focus.clearFocus(); keyboard?.hide()
-                                    actions.review(selected.map { it.id }, question.trim())
-                                }, enabled = idle && PhoneDocumentQuestions.validQuestion(question.trim()),
-                                    modifier = Modifier.testTag("phone-document-review")) { Text(label(Words.PhoneDocumentReview)) }
                             }
                         }
                     }
@@ -163,6 +160,23 @@ internal fun PhoneDocuments(
                         TextButton(actions.clearReview, Modifier.fillMaxWidth()) { Text(label(Words.Cancel)) }
                     }
                     answer != null -> TextButton(actions.clearReview, Modifier.fillMaxWidth()) { Text(label(Words.PhoneDocuments)) }
+                    selected.isNotEmpty() -> Row(
+                        Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = {
+                                focus.clearFocus()
+                                keyboard?.hide()
+                                actions.review(selected.map { it.id }, trimmedQuestion)
+                            },
+                            enabled = canReview,
+                            modifier = Modifier.weight(2f).testTag("phone-document-review")
+                        ) { Text(label(Words.PhoneDocumentReview)) }
+                        TextButton(close, Modifier.weight(1f).testTag("phone-documents-close")) {
+                            Text(label(Words.Close))
+                        }
+                    }
                     else -> TextButton(close, Modifier.fillMaxWidth().testTag("phone-documents-close")) { Text(label(Words.Close)) }
                 }
             }
