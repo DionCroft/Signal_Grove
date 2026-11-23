@@ -27,6 +27,7 @@ def stage_broker(source):
   admission=None
   if data.get('action')=='reviewed_start':
    try:
+    if data.get('id')!=row[0]:raise ValueError('Reviewed queue identity changed')
     if reviewed_lookup is None:raise ValueError('Reviewed operator unavailable')
     admission=reviewed_lookup(data['id'])
     with admission.claim(data):

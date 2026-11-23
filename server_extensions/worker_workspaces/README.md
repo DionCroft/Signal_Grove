@@ -50,6 +50,25 @@ transport, bind it to the selected worker, validate response framing and call
 not URLs/logs. Process restart, registration/root/entry change and expiry require
 an explicit fresh review; this module performs no retries.
 
+## Reviewed write intake
+
+The optional `ReviewedWorkerOperator` runs inside the existing Windows owner
+broker. Its policy and authentication key come from fixed local configuration
+paths, with native owner and protected ACL checks. A write grant identifies one
+enrolled scope, profile and project. It supplies the native model and scope.
+The checkout review binds the registered workspace, its native identities,
+branch, exact commit and worker instance. The coordinator's approval must
+also bind the exact task, original execution ID, review digest and expiry.
+
+The native queue reserves the request and approval digest in one SQLite
+transaction. A retransmitted approval observes that same row. The matching
+in-process admission is available only until expiry. It rechecks policy,
+key, session and checkout at claim and child creation. Restart recovery holds
+uncertain claims under the original execution ID. The fixed workspace read RPC
+retains its current operations. Coordinator signing, the private intake route
+and production enrollment still require integration and live verification.
+[Isolated validation](../../docs/VALIDATION.md#protected-worker-approval-intake).
+
 ## Native filesystem behavior
 
 Every existing disk handle opens with OPEN_EXISTING and

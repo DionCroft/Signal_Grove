@@ -7,6 +7,24 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Protected worker approval intake
+
+The Windows owner can reserve a reviewed request in the existing SQLite queue
+using a short-lived authenticated approval and a separate protected write
+grant. The review binds the authority, profile, project, exact checkout,
+worker instance, task and original execution ID. The queue commits the original
+ID and proof digest together. The broker checks the grant and native checkout
+again at claim and child creation. Retransmission observes the existing row.
+An uncertain claim remains held after broker recovery.
+
+105 native Windows cases, 137 portable workspace cases and 12 exact staged
+broker cases passed. [Validation](docs/VALIDATION.md#protected-worker-approval-intake).
+
+Next bind the Pi's consumed scheduler decision to the prepared worker review,
+then carry it over the authenticated owner route and verify original-receipt
+recovery through that route. The installed broker and live Pi still require
+a separately approved activation after isolated acceptance.
+
 ## Reviewed worker queue and launch candidate
 
 The exact installed Windows source now has a staged candidate that

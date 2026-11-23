@@ -1,5 +1,29 @@
 # Current development validation — audit follow-up
 
+## Protected worker approval intake
+
+The Windows fixture exercised protected ACLs, real Git checkouts, and SQLite.
+The worker authenticated a bounded approval against the separately protected key
+and policy. The signed data bound the authority, profile, path, branch, commit,
+worker instance, native checkout identity, task, expiry and original receipt ID.
+The broker rechecked policy, key, owner session and checkout before claim and
+before child creation. SQLite stored the original request and approval digest
+together. Concurrent delivery and process restart preserved the original row.
+
+The strict native suite passed 105 cases with zero failures, errors or skips.
+Portable workspace tests passed 137 cases. Twelve additional Windows cases
+exercised the staged installed-source daemon and worker with a disposable
+SQLite queue, checkout and inert child. They observed exactly one native child
+and recovered its completed receipt. A bad signature, changed checkout, revoked
+write grant and mismatched queue row prevented launch. A lost process-creation
+result remained unknown under the original ID. The staged source matched the
+reviewed installed input hashes. The test setup's preliminary ACL failures are
+retained with the final private evidence on the execution host.
+
+This verification used fixture keys, grants, policy and Git content. Live
+scheduler signing, private transport, enrollment and end-to-end production
+acceptance remain open.
+
 ## Reviewed worker queue and launch candidate
 
 The staging script verifies the exact installed broker and worker input
