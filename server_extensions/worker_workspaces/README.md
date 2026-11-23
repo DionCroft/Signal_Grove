@@ -69,6 +69,18 @@ retains its current operations. Coordinator signing, the private intake route
 and production enrollment still require integration and live verification.
 [Isolated validation](../../docs/VALIDATION.md#protected-worker-approval-intake).
 
+### Reviewed owner pipe and original receipt
+
+`ReviewedPipeAdapter` exposes fixed prepare, submit and observe exchanges on
+a separate owner-verified Windows named pipe. These use the same Windows
+security and server process checks as the existing read transport, with
+separate message bounds. The scoped observer returns the exact ID and queue
+state through a read-only SQLite connection. Its original instance selector
+survives process replacement. Reviewed IDs require the scoped observer and
+cannot be renewed or cancelled through the legacy result and cancel calls.
+[Windows named pipe security](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-security-and-access-rights)
+and [Windows pipe process identity](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeserverprocessid).
+
 ## Native filesystem behavior
 
 Every existing disk handle opens with OPEN_EXISTING and

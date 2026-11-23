@@ -7,7 +7,7 @@ from threading import Lock
 from time import monotonic, time
 
 from .approval_envelope import (
-    ApprovalRefused, _DEVICE, _HEX, _ID, _PROJECT, _json, _matches, _read, _text, sign, verify,
+    ApprovalRefused, _DEVICE, _HEX, _ID, _INSTANCE, _PROJECT, _json, _matches, _read, _text, sign, verify,
 )
 from .broker_enrollment import OwnerObservation, observe_owner
 from .protected_operator_file import read_protected_file
@@ -22,6 +22,8 @@ _SID = re.compile(r"S-1-(?:[0-9]+-){1,15}[0-9]+")
 _NATIVE_SCOPE = re.compile(r"[a-f0-9]{64}:[a-zA-Z0-9_-]{1,80}")
 _GRANT_FIELDS = {"scope_id", "profile", "project", "model_profile", "native_scope"}
 _APPROVAL_TABLE = "signal_grove_reviewed_queue"
+_RECEIPT_FIELDS = ("authority", "scope_id", "profile", "project", "worker_instance")
+_QUEUE_STATES = frozenset({"ready", "claimed", "running", "completed", "failed", "cancelled", "unknown"})
 
 
 @dataclass(frozen=True, repr=False)
@@ -105,11 +107,12 @@ class ReviewedWorkerOperator:
     """Trusted broker configuration and the native queue's in-process lookup."""
 
     def __init__(self, *, policy_path, key_path, provider_for_scope, queue_db, git_executable,
-                 owner_observer=observe_owner, wall_clock=time, clock=monotonic):
+                 read_queue=None, owner_observer=observe_owner, wall_clock=time, clock=monotonic):
         self._policy_path = policy_path
         self._key_path = key_path
         self._provider_for_scope = provider_for_scope
         self._queue_db = queue_db
+        self._read_queue = read_queue
         self._git = git_executable
         self._observe_owner = owner_observer
         self._wall_clock = wall_clock
@@ -189,13 +192,30 @@ class ReviewedWorkerOperator:
             raise WorkspaceError("CHANGED")
         return {"id": ident, "state": row[0]}
 
-    def accept(self, raw):
+    @staticmethod
+    def _prepare_receipt_table(db):
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS signal_grove_reviewed_queue "
+            "(id TEXT PRIMARY KEY, approval_sha256 TEXT NOT NULL, authority TEXT, scope_id TEXT, "
+            "profile TEXT, project TEXT, worker_instance TEXT)",
+        )
+        # An earlier staged candidate stored only the replay fence. Such rows
+        # retain that fence but lack the evidence for an authenticated receipt.
+        columns = {row[1] for row in db.execute("PRAGMA table_info(signal_grove_reviewed_queue)")}
+        for name in _RECEIPT_FIELDS:
+            if name not in columns:
+                db.execute(f"ALTER TABLE signal_grove_reviewed_queue ADD COLUMN {name} TEXT")
+
+    def accept(self, raw, *, expected_route=None):
         """Authenticate a consumed scheduler review; return the same receipt on retry."""
         policy, key = self._credentials()
         try:
             approval = verify(raw, key, now=self._wall_clock())
         except ApprovalRefused as error:
             raise WorkspaceError(str(error)) from None
+        route = (approval.scope_id, approval.profile, approval.project, approval.worker_instance)
+        if expected_route is not None and route != expected_route:
+            raise WorkspaceError("DENIED")
         deadline = self._clock() + (approval.expires_at - self._wall_clock())
         grant = self._grant(policy, approval)
         ident = approval.execution_id
@@ -236,17 +256,45 @@ class ReviewedWorkerOperator:
                 }
                 if len(self._admissions) >= _MAX_ADMISSIONS:
                     raise WorkspaceError("BUSY")
-                db.execute(
-                    "CREATE TABLE IF NOT EXISTS signal_grove_reviewed_queue "
-                    "(id TEXT PRIMARY KEY, approval_sha256 TEXT NOT NULL)",
-                )
+                self._prepare_receipt_table(db)
                 received = self._wall_clock()
                 db.execute("INSERT INTO requests VALUES(?,?,?,?,?)",
                            (ident, json.dumps(intent.queue_payload(), sort_keys=True), "ready", received, received))
-                db.execute("INSERT INTO signal_grove_reviewed_queue VALUES(?,?)", (ident, digest))
+                db.execute(
+                    "INSERT INTO signal_grove_reviewed_queue "
+                    "(id,approval_sha256,authority,scope_id,profile,project,worker_instance) VALUES(?,?,?,?,?,?,?)",
+                    (ident, digest, approval.authority, *route),
+                )
                 db.commit()
                 self._admissions[ident] = deadline, admission
         return {"id": ident, "state": "ready"}
+
+    def observe(self, scope_id, profile, project, execution_id, worker_instance):
+        """Read the exact durable scope on the original row, including after restart."""
+        if self._read_queue is None:
+            raise WorkspaceError("UNAVAILABLE")
+        if not _matches(_ID, execution_id) or not _matches(_INSTANCE, worker_instance):
+            raise WorkspaceError("INVALID")
+        policy, key = self._credentials()
+        policy.grant(scope_id, profile, project)
+        with self._read_queue() as db:
+            columns = {row[1] for row in db.execute("PRAGMA table_info(signal_grove_reviewed_queue)")}
+            if not set(_RECEIPT_FIELDS) <= columns:
+                raise WorkspaceError("NOT_FOUND")
+            row = db.execute(
+                "SELECT q.state FROM requests q JOIN signal_grove_reviewed_queue r ON q.id=r.id "
+                "WHERE r.id=? AND r.authority=? AND r.scope_id=? AND r.profile=? "
+                "AND r.project=? AND r.worker_instance=?",
+                (execution_id, policy.authority, scope_id, profile, project, worker_instance),
+            ).fetchone()
+        current, current_key = self._credentials()
+        if (current.revision, current_key) != (policy.revision, key):
+            raise WorkspaceError("CHANGED")
+        if row is None:
+            raise WorkspaceError("NOT_FOUND")
+        if row[0] not in _QUEUE_STATES:
+            raise WorkspaceError("CHANGED")
+        return {"id": execution_id, "state": row[0]}
 
     def lookup(self, ident):
         if not _matches(_ID, ident):

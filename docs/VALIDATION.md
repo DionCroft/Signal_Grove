@@ -1,5 +1,30 @@
 # Current development validation — audit follow-up
 
+## Private Windows worker approval and receipt pipe
+
+The reviewed channel uses closed prepare, submit and observe frames. The
+Windows exchange checks the owner SID, server process, worker instance and
+scope. The approval signature also binds profile and project. A separate
+receipt lookup checks the persisted authority, profile, project, scope and
+original instance through a read-only SQLite connection. Startup can expose
+a new pipe instance while the selector retains the original instance and ID.
+Earlier digest-only rows keep their replay fence and have no scoped receipt.
+
+The strict Windows run passed 109 cases and the portable suite passed 137.
+Native tests sent a Unicode approval larger than 16 KiB through the pipe,
+refused mismatched routes and reopened an unknown receipt without a lease
+change. The exact staged broker passed 13 additional cases with a disposable
+queue and an inert child. One signed submission produced one child. A
+read-only pipe call recovered its original completed receipt. The generic
+legacy result, cancel and observe actions refused reviewed IDs, and unrelated
+legacy result and cancel still worked. The first fenced trial exposed a
+legacy result name collision. The corrected candidate passed the same trial.
+The installed worker and broker hashes matched their approved inputs.
+
+These checks cover the native Windows boundary. Cross-host SSH routing,
+operator enrollment, live scheduler acceptance and the Android release
+checks remain open.
+
 ## Consumed scheduler approvals and original worker receipts
 
 The coordinator signs after confirming the original job, occurrence, native

@@ -173,7 +173,10 @@ class _Windows:
 
 class LocalReadPipe:
     """One opt-in owner pipe; the existing broker owns serving/thread lifecycle."""
-    def __init__(self,adapter):
+    def __init__(self,adapter,*,request_limit=MAX_REQUEST_BYTES,reply_limit=MAX_REPLY_BYTES):
+        if any(type(size) is not int or not 1 <= size <= MAX_REPLY_BYTES for size in (request_limit,reply_limit)):
+            raise WorkspaceError('INVALID')
+        self._request_limit=request_limit;self._reply_limit=reply_limit
         adapter._context()
         self._windows=_Windows();self._adapter=adapter;self._lock=threading.Lock();self._serving=False;self._closed=False;self._closed_event=threading.Event();self._listening=threading.Event()
         sid,started,session=self._windows.process_identity(os.getpid())
@@ -230,8 +233,9 @@ class LocalReadPipe:
             try:self._windows.wait(operation,deadline)
             finally:self._listening.clear()
             deadline=_deadline(timeout)
-            raw=self._read(MAX_REQUEST_BYTES,deadline);self._windows.client_owner(self._handle,self.endpoint.owner_sid)
+            raw=self._read(self._request_limit,deadline);self._windows.client_owner(self._handle,self.endpoint.owner_sid)
             reply=self._adapter.handle(raw)
+            if type(reply) is not bytes or not 1 <= len(reply) <= self._reply_limit:raise WorkspaceError('TOO_LARGE')
             if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
             self._write(reply,deadline)
             if self._read(35,deadline)!=b'ACK'+hashlib.sha256(reply).digest():raise WorkspaceError('INVALID')
@@ -269,16 +273,31 @@ def _reply(raw,request,endpoint):
     return raw
 
 
+def _read_request(raw,endpoint):
+    request=decode_frame(raw)
+    if request['worker_instance']!=endpoint.worker_instance or request['payload'].get('scope_id')!=endpoint.scope_id:
+        raise WorkspaceError('CHANGED')
+    return request
+
+
 def call_once(endpoint,raw,*,timeout=3,deadline=None):
-    """Return one authenticated reply or a fixed error with submission uncertainty."""
+    """Return one authenticated read reply or a fixed error with submission uncertainty."""
+    return call_owner_frame(endpoint,raw,request_check=_read_request,reply_check=_reply,
+                            timeout=timeout,deadline=deadline)
+
+
+def call_owner_frame(endpoint,raw,*,request_check,reply_check,reply_limit=MAX_REPLY_BYTES,timeout=3,deadline=None):
+    """Perform one authenticated native exchange under a trusted protocol adapter."""
     submitted=False;handle=None;windows=None
     try:
         limit=_deadline(timeout)
         if deadline is None:deadline=limit
         elif type(deadline) not in (float,int) or not 0<deadline<=limit or not math.isfinite(deadline):raise WorkspaceError('INVALID')
         if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
-        _endpoint(endpoint);request=decode_frame(raw)
-        if request['worker_instance']!=endpoint.worker_instance or request['payload'].get('scope_id')!=endpoint.scope_id:raise WorkspaceError('CHANGED')
+        if (type(raw) is not bytes or not 1 <= len(raw) <= MAX_REPLY_BYTES
+                or type(reply_limit) is not int or not 1 <= reply_limit <= MAX_REPLY_BYTES):
+            raise WorkspaceError('INVALID')
+        _endpoint(endpoint);request=request_check(raw,endpoint)
         windows=_Windows();sid,_,_=windows.process_identity(os.getpid())
         if endpoint.owner_sid!=sid:raise WorkspaceError('DENIED')
         windows.wait_available(endpoint.address,deadline)
@@ -292,7 +311,7 @@ def call_once(endpoint,raw,*,timeout=3,deadline=None):
         if time.monotonic()>=deadline:raise WorkspaceError('UNAVAILABLE')
         windows.api.SetNamedPipeHandleState(handle,2,None,None)
         submitted=True # A failed/expired write can still have reached the broker.
-        windows.write(handle,raw,deadline);reply=windows.read(handle,MAX_REPLY_BYTES,deadline);_reply(reply,request,endpoint)
+        windows.write(handle,raw,deadline);reply=windows.read(handle,reply_limit,deadline);reply_check(reply,request,endpoint)
         windows.write(handle,b'ACK'+hashlib.sha256(reply).digest(),deadline)
         return reply
     except WorkspaceError as error:raise ReadTransportError(error.code,request_submitted=submitted) from None

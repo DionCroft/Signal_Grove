@@ -18,6 +18,7 @@ class PipeDeadlineTest(unittest.TestCase):
         native.wait.side_effect=accepted
         pipe=object.__new__(t.LocalReadPipe);pipe._lock=threading.RLock();pipe._closed=False;pipe._serving=False;pipe._handle=123
         pipe._listening=threading.Event();pipe._windows=native;pipe.endpoint=SimpleNamespace(owner_sid='fixture-owner')
+        pipe._request_limit=t.MAX_REQUEST_BYTES;pipe._reply_limit=t.MAX_REPLY_BYTES
         def read(limit,deadline):
             deadlines.append(('read',deadline));clock[0]+=.1
             if limit==35:

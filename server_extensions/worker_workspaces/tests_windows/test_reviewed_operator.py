@@ -11,10 +11,12 @@ import unittest
 
 from server_extensions.worker_workspaces.approval_envelope import ReviewedWrite, sign
 from server_extensions.worker_workspaces.broker_enrollment import OwnerObservation
+from server_extensions.worker_workspaces.broker_protocol import CheckedReadContext
 from server_extensions.worker_workspaces.local_pipe import _Windows
 from server_extensions.worker_workspaces.protected_operator_file import read_protected_file
+from server_extensions.worker_workspaces.reviewed_channel import ReviewedPipeAdapter, reviewed_call, reviewed_pipe
 from server_extensions.worker_workspaces.reviewed_operator import ReviewedWorkerOperator, parse_write_policy
-from server_extensions.worker_workspaces.workspace_provider import WorkspaceError
+from server_extensions.worker_workspaces.workspace_provider import WorkspaceError, WorkspaceProvider
 from server_extensions.worker_workspaces.tests_windows import test_reviewed_checkout as checkout_fixture
 
 
@@ -72,7 +74,7 @@ class ReviewedOperatorTest(unittest.TestCase):
             policy_path=str(self.policy_path), key_path=str(self.key_path), queue_db=self.queue_db,
             provider_for_scope=lambda scope: self.fixture.provider if scope == self.fixture.provider.scope else None,
             git_executable=self.fixture.git, owner_observer=lambda: self.owner, wall_clock=lambda: self.wall,
-            clock=lambda: self.monotonic,
+            clock=lambda: self.monotonic, read_queue=self.read_queue,
         )
 
     @contextmanager
@@ -85,6 +87,44 @@ class ReviewedOperatorTest(unittest.TestCase):
                 yield db
         finally:
             db.close()
+
+    @contextmanager
+    def read_queue(self):
+        db = sqlite3.connect(self.db_path.as_uri() + "?mode=ro", uri=True)
+        try:
+            yield db
+        finally:
+            db.close()
+
+    def call_pipe(self, operation, *, operator=None, **fields):
+        provider = self.fixture.provider
+        scope = provider.scope
+        adapter = ReviewedPipeAdapter(
+            operator or self.operator, scope_id=scope, instance=provider.instance,
+            verify_scope=lambda: CheckedReadContext(scope, provider.device, "fixture", True),
+        )
+        with self.subTest(operation=operation):
+            pipe = reviewed_pipe(adapter)
+            errors = []
+
+            def serve():
+                try:
+                    pipe.serve_one(timeout=10)
+                except Exception as error:
+                    errors.append(error)
+
+            thread = Thread(target=serve, daemon=True)
+            thread.start()
+            try:
+                payload = dict(scope_id=scope, profile="test-profile", project_id="fixture", operation=operation)
+                reply = reviewed_call(pipe.endpoint, payload | fields)
+            finally:
+                thread.join(12)
+                pipe.close()
+                self.assertTrue(pipe.wait_closed())
+            self.assertFalse(thread.is_alive())
+            self.assertEqual([], errors)
+            return reply
 
     def rows(self):
         with self.queue_db() as db:
@@ -242,3 +282,50 @@ class ReviewedOperatorTest(unittest.TestCase):
         self.monotonic += 30
         with self.assertRaisesRegex(WorkspaceError, "DENIED"):
             self.operator.lookup(ident)
+
+    def test_real_owner_pipe_preserves_large_signed_frame_and_original_receipt(self):
+        prepared = self.call_pipe("reviewed_prepare")["result"]
+        self.assertEqual(self.approval.commit, prepared["commit"])
+        self.assertEqual(self.approval.checkout_revision, prepared["checkout_revision"])
+        packet = self.packet(task="林🌲" * 4096)
+        self.assertGreater(len(packet), 16 * 1024)
+        original = self.call_pipe("reviewed_submit", approval=json.loads(packet))["result"]
+        self.assertEqual({"id": self.approval.execution_id, "state": "ready"}, original)
+        self.assertEqual(original, self.call_pipe("reviewed_submit", approval=json.loads(packet))["result"])
+        with self.queue_db() as db:
+            self.assertEqual((1,), db.execute("SELECT COUNT(*) FROM requests").fetchone())
+            db.execute("UPDATE requests SET state='unknown'")
+            lease = db.execute("SELECT lease FROM requests").fetchone()
+        self.fixture.provider = WorkspaceProvider(
+            lambda _, __: self.fixture.registration, scope_id=self.fixture.provider.scope,
+        )
+        self.assertNotEqual(self.approval.worker_instance, self.fixture.provider.instance)
+        after_restart = self.make_operator()
+        selector = dict(execution_id=original["id"], receipt_worker_instance=self.approval.worker_instance)
+        self.assertEqual({"id": original["id"], "state": "unknown"},
+                         self.call_pipe("reviewed_observe", operator=after_restart, **selector)["result"])
+        with self.queue_db() as db:
+            self.assertEqual(lease, db.execute("SELECT lease FROM requests").fetchone())
+
+    def test_owner_pipe_checks_signed_route_before_reserving(self):
+        reply = self.call_pipe("reviewed_submit", profile="other-profile", approval=json.loads(self.packet()))
+        self.assertEqual("DENIED", reply["code"])
+        self.assertFalse(self.rows())
+
+    def test_receipt_scope_check_requires_original_project_profile_and_instance(self):
+        original = self.operator.accept(self.packet())["id"]
+        selector = dict(execution_id=original, receipt_worker_instance=self.approval.worker_instance)
+        self.assertEqual("DENIED", self.call_pipe("reviewed_observe", profile="other-profile", **selector)["code"])
+        self.assertEqual("DENIED", self.call_pipe("reviewed_observe", project_id="other", **selector)["code"])
+        selector["receipt_worker_instance"] = "457a6d7f-24b2-4f27-8d9c-a3bf64cc5fd2"
+        self.assertEqual("NOT_FOUND", self.call_pipe("reviewed_observe", **selector)["code"])
+
+    def test_legacy_replay_fence_does_not_turn_into_a_scoped_receipt(self):
+        with self.queue_db() as db:
+            db.execute("CREATE TABLE signal_grove_reviewed_queue (id TEXT PRIMARY KEY, approval_sha256 TEXT NOT NULL)")
+            db.execute("INSERT INTO signal_grove_reviewed_queue VALUES(?,?)", ("f" * 32, "a" * 64))
+            db.execute("INSERT INTO requests VALUES(?,?,?,?,?)", ("f" * 32, "{}", "unknown", self.wall, self.wall))
+        self.operator.accept(self.packet())
+        selector = dict(execution_id="f" * 32, receipt_worker_instance=self.approval.worker_instance)
+        self.assertEqual("NOT_FOUND", self.call_pipe("reviewed_observe", **selector)["code"])
+        self.assertEqual(2, len(self.rows()))

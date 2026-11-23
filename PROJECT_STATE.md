@@ -7,6 +7,24 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Private Windows worker approval and receipt pipe
+
+The isolated Windows broker now accepts three fixed reviewed operations over
+an owner-verified named pipe. It can prepare, submit and observe. Signed requests can
+carry the full supported task size. Original receipt scope is recorded with
+the queue admission. The observer uses a read-only connection and can recover
+that scope when a new broker instance replaces the original. Legacy result,
+cancel and observe calls refuse reviewed IDs.
+
+109 Windows native, 137 portable and 13 exact staged broker cases passed.
+The staged broker received the signed approval over the real pipe, launched
+one inert child and returned its original terminal state through the scoped
+observer. [Validation](docs/VALIDATION.md#private-windows-worker-approval-and-receipt-pipe).
+
+Next package and connect the pipe to the authenticated SSH helper and the
+Pi scheduler, then verify the combined path in isolation before any live
+activation.
+
 ## Consumed scheduler approvals and original worker receipts
 
 The staged coordinator signs the exact worker scope only after checking the

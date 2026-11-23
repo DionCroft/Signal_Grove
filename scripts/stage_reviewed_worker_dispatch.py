@@ -51,6 +51,28 @@ def stage_broker(source):
 
 
 def stage_worker(source):
+    for operation in ("result", "cancel"):
+        legacy = f"def {operation}(ident):\n ident=valid_id(ident)\n with queue_db() as d:\n"
+        source = replace(source, legacy, legacy +
+                         "  d.execute('BEGIN IMMEDIATE')\n"
+                         "  require_legacy_request(d,ident)\n")
+    source = replace(source, "def result(ident):", '''def require_legacy_request(db,ident):
+ table=db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='signal_grove_reviewed_queue'").fetchone()
+ if table and db.execute('SELECT 1 FROM signal_grove_reviewed_queue WHERE id=?',(ident,)).fetchone():
+  raise PermissionError('Reviewed receipt requires the scoped owner route')
+
+def verify_legacy_observation(ident):
+ path=STATE/'requests.sqlite3'
+ if not path.exists():return
+ db=sqlite3.connect(path.absolute().as_uri()+'?mode=ro',uri=True,timeout=1)
+ try:require_legacy_request(db,ident)
+ finally:db.close()
+
+def result(ident):''')
+    source = replace(source, "  return observe(STATE,valid_id(data['id']))", '''  ident=valid_id(data['id']);verify_legacy_observation(ident)
+  observation=observe(STATE,ident)
+  verify_legacy_observation(ident)
+  return observation''')
     source = replace(source, "from contextlib import contextmanager", "from contextlib import ExitStack,contextmanager")
     source = replace(source, "def start(data):", """def start(data,*,admission=None):
  if (data.get('action')=='reviewed_start') != (admission is not None):
