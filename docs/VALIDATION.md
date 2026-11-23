@@ -1,5 +1,67 @@
 # Current development validation — audit follow-up
 
+## Native workspace-only successor and rollback inputs
+
+The first isolated Pi generation verified all 23,689 archive members
+and 124 executable modes. Its PM guard refused before starting the
+build because the live auxiliary client differed from the archived
+maintained snapshot. A follow-up confirmed the PM receipt, changed PM
+seeds, install stamp and new environment were absent. The first staged
+generation and the original failure were retained.
+
+A full comparison found 2,653 line-ending-only differences, six
+semantic Python differences and two new Python modules. Seven paths
+matched the exact canonical fleet inference-controls manifest. The
+remaining file matched the live Discord phone-decision hook, including
+the owner check and private-reply interception. The existing 13-file
+phone bridge package matched both trees byte-for-byte. All 3,214
+observed live Python paths were present in the separate successor.
+The isolated successor verified each of its 23,691 source and vendor
+members, including the eight exact maintained runtime files.
+
+Supported native PM lock and sync completed in the successor's ARM64
+environment. The parsed dependency graph differed only in the vendor
+path. Python 3.14.9, ContextGraph 0.8.1 and PyYAML 6.0.3 loaded, and
+only the four workspace methods appeared. The native authority fixture
+passed 19 cases using four synthetic worker calls. It refused the
+scheduler methods, absent operator policy, unrelated profile and
+closed transport. No admission, worker execution, session or message
+rows were left in its fixture databases. The native PM check compared
+92 live files and the loaded service identities before and after.
+
+Rollback input verification hashed the four loaded user unit files
+and checked the original and candidate PM facts and ARM64 interpreters.
+The original runtime remains selected and the live workspace policy
+is absent. These observations establish the rollback inputs. The
+rollback service transaction, activation approval and real phone
+attachment remain open. Portable cutover tests passed 37 cases, with
+62 native-only cases skipped on Windows.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Successor source manifest | `1319300ac1b61a0df87cb3e1fffa24dbfb90d9045cffe0dae3fe4470c3920620` |
+| ARM64 candidate provenance | `03a88145e5d7d4e25b884bc28be59883851f903dc0c3eda4ac5ed628416c5793` |
+| ARM64 candidate PM facts | `a38e66aed6c8c3153a461440e28a1f81b3723d6fd9af00608b1fcba507dbb297` |
+| ARM64 workspace fixture output | `a65fe528f46adcd3d71fcfe6db26bb5a22c3fe9b7133bb863a1f2156f4648054` |
+| Loaded unit and rollback facts observation | `afcd57426bbe604f7fdcc604e94af9cb6ecb53e1bc280192570bf0b26ca265a8` |
+
+## Focused Hermes Activity on the Android candidate
+
+The exact APK pair for the document review and model search changes
+also passed five Activity and read-only history checks on each API
+26 and 37. The loopback fixtures verified distinct parallel tools,
+subagents, requested and served runtime, identity isolation and
+accounting retention. Read-only history explained unavailable
+activity, preserved the transcript and issued zero writes. Both
+emulator keyboard settings were restored. These are focused fixture
+checks while the complete exact-source Android matrix remains queued.
+[Full Android candidate run](https://github.com/DionCroft/Signal_Grove/actions/runs/45287698016).
+
+| Emulator instrumentation log | SHA-256 |
+| --- | --- |
+| API 26 | `708bbdc92f5ac83c02f96ec9ed39465a41d31dcabf0e14d0e9c796c5b3a69027` |
+| API 37 | `3f1424e265f933638316a34bc44f86ebe1ee6ec85ce548e5a56740bc2fa635b1` |
+
 ## Compact document review and model search
 
 The same signed debug APKs passed each affected method on API 26 and API 37.

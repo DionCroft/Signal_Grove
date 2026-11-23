@@ -7,6 +7,27 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native successor built and focused Activity verified
+
+The preserved first isolated PM attempt refused stale maintained
+source before changes. The complete successor carries six changed
+files and two additional modules that match the live inference and
+Discord phone controls. All 23,691 members verify. Native PM passed
+with only a vendor-path rebase and 19 native workspace authority cases
+passed. The original runtime and its loaded config and PM facts remain
+verified rollback inputs.
+[Native validation](docs/VALIDATION.md#native-workspace-only-successor-and-rollback-inputs).
+
+Five confirmed Activity and read-only history cases passed on both
+Android APIs with the current candidate. The exact full matrix, signed
+physical upgrade and release remain open.
+[Android validation](docs/VALIDATION.md#focused-hermes-activity-on-the-android-candidate).
+
+Next rehearse the bounded runtime rollback and prepare the exact
+activation review. Await separate live approval before enabling the
+one-project read policy or switching services. Verify app attachment,
+live scheduling and the remaining audit in their own gates.
+
 ## Focused Android fixes and workspace-only source package
 
 The active debug candidate passed all 1,242 JVM tests, both lint variants

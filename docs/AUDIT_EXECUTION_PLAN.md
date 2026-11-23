@@ -1,5 +1,20 @@
 # Signal Grove audit execution plan
 
+## Native workspace-only successor
+
+The first isolated PM preflight caught newer maintained live runtime
+files before any build writes. The verified successor carries the
+seven canonical inference-control changes and the Discord phone
+hook, with unchanged stock scheduler and bridge package bytes.
+Native PM and 19 workspace authority cases passed. Verify the exact
+activation and rollback transaction before seeking separate live
+approval, then prove the real phone-to-Pi-to-Windows attachment.
+
+The same Android candidate also passed five Activity and read-only
+history checks on each API. The full matrix and original-key
+physical upgrade remain release gates.
+[Validation](VALIDATION.md#native-workspace-only-successor-and-rollback-inputs).
+
 ## Compact Android release fixes and complete Pi source
 
 The keyboard-aware document footer and fixed model search passed both
