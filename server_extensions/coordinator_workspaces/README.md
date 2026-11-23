@@ -337,6 +337,24 @@ file-identity support remains unresolved; UNSUPPORTED must remain explicit.
 Phone files, the broader audit, physical/model gates and the signed downloadable
 GitHub APK remain open. This source chunk does not publish a new application.
 
+## Sign the consumed project decision for the worker
+
+Configure `WorkerProjectDispatch` as the project scheduler operator's dispatch
+callback. Each worker route supplies an owner-protected local key location,
+an authenticated one-shot submit callback and a scoped read-only receipt
+observer. The scope resolver must capture the Windows checkout revision and
+write policy revision from the enrolled worker before preparing the review.
+Both revisions participate in the review digest and the recheck before native
+reservation.
+
+After native reservation, dispatch verifies the running decision in the
+owning profile and signs its exact execution ID and remaining review lifetime.
+A missing submit response still permits observation of the original receipt.
+Only an exact observed terminal state can settle the scheduler. Unknown cases
+retain the original execution ID. This integration uses the canonical shared
+approval codec copied by the optional installer. Remote route commissioning
+requires separate verification.
+
 ## Actual HTTP-owner investigation — 13 November 2026
 
 The new opt-in --coordinator-http-reads mode on the owner-workspace probe uses

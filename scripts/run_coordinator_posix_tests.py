@@ -37,7 +37,8 @@ def main():
     package=ROOT/'server_extensions/coordinator_workspaces'
     sys.path.insert(0,str(ROOT))
     def sources():
-        inputs=[Path(__file__).resolve(),*sorted(package.rglob('*.py'))]
+        shared_approval = ROOT / 'server_extensions/worker_workspaces/approval_envelope.py'
+        inputs = [Path(__file__).resolve(), shared_approval, *sorted(package.rglob('*.py'))]
         return {p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs}
     before=sources();suite=unittest.defaultTestLoader.discover(str(package/'tests_posix'),pattern='test_*.py')
     expected=list(identities(suite));result=unittest.TextTestRunner(verbosity=2,resultclass=RecordedResult).run(suite)

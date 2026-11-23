@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Consumed scheduler approvals and original worker receipts
+
+The coordinator signs after confirming the original job, occurrence, native
+fire claim and running execution in the owning profile. The signed scope uses
+the prepared Windows checkout and write-policy revisions, the original approval
+digest and the remaining review time. The optional installer copies the same
+approval codec bytes used by the Windows worker. The transport issues one
+submission and checks settlement through a separate read of the original
+receipt. A lost submit reply triggers receipt observation.
+
+Both Git-object-verified staged Hermes inputs, v0.23.1 and main `242315c`,
+passed eight native-focused cases each. They covered expiry, defer and deny,
+changed scope, concurrent reviews, lost client and worker replies, native
+settlement, pruning and held uncertainty. Each also passed one fresh-process
+recovery with zero submissions. The source hashes and candidate approval codec
+matched. The Windows runs used fixture credentials and route callbacks, and
+Hermes used its SQLite DELETE-journal fallback after the runtime warning.
+Portable tests passed 32 scheduler and 137 workspace cases. Hosted POSIX
+tests cover the owner key and SQLite decision reader with actual descriptors.
+
+The privately enrolled transport and the Pi-to-Windows scheduled run remain
+open. The synthetic receipt tests supply no live worker evidence.
+
 ## Protected worker approval intake
 
 The Windows fixture exercised protected ACLs, real Git checkouts, and SQLite.

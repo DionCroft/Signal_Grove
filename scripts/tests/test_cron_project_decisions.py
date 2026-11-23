@@ -108,6 +108,8 @@ class ProjectCheckoutReviewTest(unittest.TestCase):
         self.assertEqual(self.selection.execution_id(), acknowledged["execution_id"])
         self.assertEqual(self.scope, self.dispatch.call_args.args[0].scope)
         self.assertEqual(self.actor, self.dispatch.call_args.args[0].actor)
+        self.assertEqual(latest["review_digest"], self.dispatch.call_args.args[0].review_digest)
+        self.assertGreater(self.dispatch.call_args.args[0].expires_at, projects.monotonic())
         with self.assertRaises(ReadRefused) as duplicate:
             self.decide(latest)
         self.assertEqual("DUPLICATE", duplicate.exception.code)

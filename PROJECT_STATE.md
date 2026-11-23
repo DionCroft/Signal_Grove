@@ -7,6 +7,23 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Consumed scheduler approvals and original worker receipts
+
+The staged coordinator signs the exact worker scope only after checking the
+original approved execution in the native scheduler ledger. The approval
+keeps the original review digest and expiry. The dispatch sends through the
+configured worker route once, then checks the original receipt through the
+separate observation callback. Foreign and unsettled receipts remain unknown.
+
+Git-object-verified Hermes v0.23.1 and main `242315c` each passed eight
+native scheduling cases and a fresh-process check with the fixture route.
+The 32 portable scheduling cases and 137 workspace cases passed.
+[Validation](docs/VALIDATION.md#consumed-scheduler-approvals-and-original-worker-receipts).
+
+Next implement the operator-enrolled private worker transport for preparation,
+submission and scoped receipt observation, then connect it to the staged
+Windows queue and test the full path before live activation.
+
 ## Protected worker approval intake
 
 The Windows owner can reserve a reviewed request in the existing SQLite queue

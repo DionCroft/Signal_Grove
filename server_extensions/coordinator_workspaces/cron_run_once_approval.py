@@ -33,11 +33,18 @@ class RunOnceScope:
     policy_revision: str
     task: str
     commit: str | None = None
+    checkout_revision: str | None = None
+    write_policy_revision: str | None = None
 
     def values(self):
         identity = (self.workspace, self.worker, self.worker_instance)
         optional = (self.project, self.branch)
-        if (not all(_identity(value) for value in identity)
+        worker_revisions = (self.checkout_revision, self.write_policy_revision)
+        if ((worker_revisions != (None, None)
+                and (self.project is None or self.access != "write"
+                     or any(type(value) is not str or not _DIGEST.fullmatch(value)
+                            for value in worker_revisions)))
+                or not all(_identity(value) for value in identity)
                 or any(value is not None and not _identity(value) for value in optional)
                 or type(self.access) is not str or self.access not in ("read", "write")
                 or (self.commit is not None
@@ -49,7 +56,7 @@ class RunOnceScope:
                 or any(ord(char) < 32 and char not in "\n\t" or ord(char) == 127
                        or 0xd800 <= ord(char) <= 0xdfff for char in self.task)):
             raise ReadRefused("DENIED")
-        return [*identity, *optional, self.access, self.policy_revision, self.task, self.commit]
+        return [*identity, *optional, self.access, self.policy_revision, self.task, self.commit, *worker_revisions]
 
     def review_payload(self):
         payload = {"project": self.project, "workspace": self.workspace, "branch": self.branch,

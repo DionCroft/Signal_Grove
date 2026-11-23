@@ -14,7 +14,7 @@ import textwrap
 FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
          'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
          'cron_run_once.py','cron_run_once_approval.py','cron_run_once_operator.py',
-         'cron_project_holds.py','cron_project_decisions.py')
+         'cron_project_holds.py','cron_project_decisions.py','reviewed_worker.py')
 
 
 def patch_source(source):
@@ -598,6 +598,8 @@ def main():
         expected = args.expected_cron_provider_sha256
         updates.append((provider, expected, prepare(provider, expected, patch_cron_project_provider)))
     modules={name:Path(__file__).with_name(name).read_bytes() for name in FILES}
+    shared_approval = Path(__file__).resolve().parents[1] / 'worker_workspaces' / 'approval_envelope.py'
+    modules['approval_envelope.py'] = shared_approval.read_bytes()
     for value in modules.values(): ast.parse(value)
     target=source.parent/'signal_grove_workspaces'
     if target.exists() or target.is_symlink(): raise ValueError('Preserve existing extension; review first.')

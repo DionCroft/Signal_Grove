@@ -51,6 +51,8 @@ class ApprovedOccurrence:
     scheduled_instant: str
     snapshot: dict
     actor: NativeReadContext
+    review_digest: str
+    expires_at: float
 
 
 @dataclass(frozen=True, repr=False)
@@ -229,7 +231,8 @@ class ProjectScheduleOperator:
                 publish({**selection.fields(), "scheduled_instant": review.scheduled_instant,
                          "execution_id": selection.execution_id(), "state": "claimed" if claimed else "denied"})
                 if claimed and executions.mark_execution_running(selection.execution_id()) is not None:
-                    run = ApprovedOccurrence(selection, review.scope, review.scheduled_instant, snapshot, actor)
+                    run = ApprovedOccurrence(selection, review.scope, review.scheduled_instant, snapshot, actor,
+                                             request.digest, review.expires_at)
                     try:
                         status = self._dispatch(run)
                     except Exception:
