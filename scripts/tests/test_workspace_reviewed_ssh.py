@@ -73,6 +73,7 @@ class ReviewedSshTest(unittest.TestCase):
         root = Path(sys.executable).parent
         argv = reviewed_ssh_argv(root / "ssh", root / "fixture-config", "enrolled-device", "fixed approved command")
         self.assertIn("-oStrictHostKeyChecking=yes", argv)
+        self.assertIn("-oUpdateHostKeys=no", argv)
         self.assertIn("-T", argv)
         self.assertIn("-oBatchMode=yes", argv)
         self.assertIn("-oClearAllForwardings=yes", argv)

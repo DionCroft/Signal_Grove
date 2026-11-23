@@ -32,7 +32,8 @@ def reviewed_ssh_argv(executable, config, alias, command):
             or not command or len(command) > 4096 or command.startswith("-")):
         raise ReadRefused("INVALID")
     return (str(executable), "-T", "-F", str(config), "-oBatchMode=yes", "-oStrictHostKeyChecking=yes",
-            "-oVerifyHostKeyDNS=no", "-oClearAllForwardings=yes", "-oForwardAgent=no", "-oControlPath=none",
+            "-oVerifyHostKeyDNS=no", "-oUpdateHostKeys=no", "-oClearAllForwardings=yes",
+            "-oForwardAgent=no", "-oControlPath=none",
             alias, command)
 
 

@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Verified private transport and live scheduler preflight
+
+The isolated Windows bundle launched once from a signed approval sent by
+the in-memory coordinator on the real Pi. Its original receipt survived
+the lost reply and disposable-broker replacement. The live Pi scheduler
+still needs protected ancestry and preservation of its enabled schedule
+before a separately approved activation. Native isolated scheduler acceptance
+comes next. [Evidence](VALIDATION.md#real-pi-to-windows-reviewed-ssh-trial).
+
 ## Published beta.10 checkpoint
 
 The compact keyboard fixes, signed phone upgrade and Android 8

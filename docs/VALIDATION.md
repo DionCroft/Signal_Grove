@@ -1,5 +1,56 @@
 # Current development validation — audit follow-up
 
+## Real Pi-to-Windows reviewed SSH trial
+
+Source `7c5e1b81886fc56b980c2b4008be0dcb6f1511b5` qualified two separate
+disposable Windows fixtures over the existing strict-host-key Pi-to-Windows
+SSH route. The first used the Windows-side coordinator with a Pi SSH relay.
+The second used the byte-compared coordinator modules in an in-memory
+ARM64 Pi interpreter and its installed OpenSSH client and configuration.
+The fixture key remained on Windows. A signed synthetic approval arrived
+once, the submit reply was dropped after admission, and one inert child
+ran on Windows. The original completed receipt was readable after reconnect
+and after changing the disposable broker's instance. A false original
+instance was refused. The package involved no live scheduler decision.
+
+No test files were written to the Pi. Before and after observations matched
+the live gateway and serve process identities and the installed Windows
+worker, daemon and read-wrapper hashes. The protected credentials, checkout,
+test queue, tooling and detailed evidence remained on the Windows owner.
+The exact hosted worker workflow passed protocol, POSIX and Windows checks.
+[Hosted results](https://github.com/DionCroft/Signal_Grove/actions/runs/45273153087).
+
+| Retained evidence | SHA-256 |
+| --- | --- |
+| Qualified Windows worker manifest | `45f07f0ccfb7fd7f689a9ca4339ab7278182c5a32fa2729a452534a23fcc31de` |
+| Pi-relay proof | `8e9e6b3cf05af8cec77517e61fc74f47d9f1466c8ed5cc6424fa454a38d3d5a1` |
+| Native Pi client package | `b8afc2a457e96e232ed83a43088e3511eeaebda40d99f7d362dd59fb2be8770d` |
+| Native Pi client proof | `fcfc02a5dcee8622bacc7d17945add9b27cb8e127e3990a7d6e7cd74965acfd8` |
+| Active Pi source and mode preflight | `92d12dace515634f04654a334ec7b96767b24ba20bc2984a5a4e90a6878799dd` |
+| Active Pi native scheduler facts | `50903ce9c547ad969632a90c1f5914b94d94fddc3047aa0a0a88f88b10607bd5` |
+| Host-key-pinned native Pi package | `44c24318c5555080e7259fddca70bd14491c4ace063f7dbf958ef28a81ee3ddd` |
+| Native Pi proof with host-key updates disabled | `918ac2d591513926f78dba3dca613f64e6536bd9a784fc3245196454a99d0445` |
+
+The confirmed route disables automatic host-key updates. The in-memory Pi
+trial passed again with that option and the Pi known-hosts file had identical
+bytes before and after. All 142 portable workspace tests passed.
+[OpenSSH host-key update option](https://man.openbsd.org/ssh_config#UpdateHostKeys).
+
+The running gateway and serve match all five pinned v0.23.1 scheduler and
+gateway source inputs and lack the workspace extension. Their actual
+scheduler home is outside the protected default home. Two of its ancestors
+are group-writable. The protected file reader requires secure ancestry, so
+an isolated test uses protected fixture state and any production path change
+needs separate review. The real catalogue had one enabled and eleven disabled
+jobs. The live Windows queue reported eight completed states at observation.
+These are preflight facts and must be refreshed before a cutover.
+
+The next test is one native ARM64 scheduler occurrence with isolated
+protected state, the real private route and exact receipt recovery. Live
+activation must preserve the existing enabled schedule and configured access,
+validate recovery and obtain separate approval. Android-to-Pi workspace
+acceptance, live scheduling and signed APK publication remain open.
+
 ## Reviewed Windows stdio and coordinator SSH candidate
 
 The exact staged Windows bundle contains the reviewed owner host, immutable

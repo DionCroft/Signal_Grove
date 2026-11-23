@@ -7,6 +7,27 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Real Pi-to-Windows reviewed SSH trial
+
+The exact staged coordinator client ran in memory on the ARM64 Pi and used
+the installed private SSH route to the disposable Windows broker. One
+synthetic approval launched one inert child. The original completed receipt
+survived both a lost submit reply and replacement of the disposable broker.
+The live gateway and installed Windows source kept their observed identities.
+[Validation](docs/VALIDATION.md#real-pi-to-windows-reviewed-ssh-trial).
+
+Both live Pi services still use the verified upstream v0.23.1 inputs and
+share a scheduler home whose path crosses two group-writable ancestors.
+The protected scheduler reader refuses those paths. The live catalogue
+contains one enabled and eleven disabled jobs. Windows reported eight
+completed receipts and no active or uncertain queue entries at observation.
+
+Next run the native ARM64 scheduler with protected isolated state and the
+reviewed Windows route. The live rollout requires a reviewed resolution for
+the ancestor permissions and preservation of the existing enabled job before
+separate activation approval. The exact Android matrix is queued behind the
+preceding device run. A physical Xiaomi was absent at this checkpoint.
+
 ## Reviewed Windows stdio and coordinator SSH candidate
 
 The packaged Windows broker starts the reviewed pipe for already enrolled
