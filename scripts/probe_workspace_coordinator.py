@@ -16,6 +16,8 @@ parser.add_argument('--source-root',type=Path,required=True)
 parser.add_argument('--work-root',type=Path,required=True)
 parser.add_argument('--windows-attached-worker', action='store_true',
                     help='Use a disposable Hermes workspace and a real Windows read-only named pipe')
+parser.add_argument('--workspace-reads-only', action='store_true',
+                    help='Check only workspace methods are registered on the isolated native authority')
 args=parser.parse_args()
 R=Path(__file__).resolve().parents[1]
 S=args.source_root.resolve()
@@ -62,13 +64,22 @@ from server_extensions.coordinator_workspaces.install_adapter import patch_sourc
 package=types.ModuleType('gateway.signal_grove_workspaces');package.__path__=[str(R/'server_extensions/coordinator_workspaces')]
 sys.modules[package.__name__]=package
 c=importlib.import_module(package.__name__+'.coordinator')
-adapter=importlib.import_module(package.__name__+'.native_adapter')
+adapter_name = 'native_workspace_adapter' if args.workspace_reads_only else 'native_adapter'
+adapter = importlib.import_module(package.__name__ + '.' + adapter_name)
 from tui_gateway.contracts import registry as contract_registry
 assert contract_registry.STRICT is True
 controls=types.ModuleType('gateway.session_controls'); controls.__file__=str(S/'gateway/session_controls.py'); controls.__package__='gateway'
 sys.modules[controls.__name__]=controls
-raw=(S/'gateway/session_controls.py').read_bytes();patched=patch_source(raw.decode('utf8'))
+raw = (S/'gateway/session_controls.py').read_bytes()
+patched = patch_source(raw.decode('utf8'), workspace_reads_only=args.workspace_reads_only)
 exec(compile(patched,controls.__file__,'exec'),controls.__dict__)
+if args.workspace_reads_only:
+    workspace_methods = {adapter.DESCRIBE, adapter.READ, adapter.DESCRIBE_ATTACHED, adapter.READ_ATTACHED}
+    declared = {method for method in contract_registry.CANONICAL_METHODS if method.startswith('signal_grove.')}
+    handlers = {method for method in adapter.handlers(None) if method.startswith('signal_grove.')}
+    assert declared == handlers == workspace_methods, (declared, handlers)
+    assert package.__name__ + '.native_adapter' not in sys.modules
+    assert not any(name.startswith(package.__name__ + '.cron_') for name in sys.modules)
 if args.windows_attached_worker:
     import probe_attached_windows_workspace as attached_worker
     policy = importlib.import_module(package.__name__ + '.operator_policy')
@@ -80,6 +91,7 @@ if args.windows_attached_worker:
             sourceControlsSha256=hashlib.sha256(raw).hexdigest(),
             patchedControlsSha256=hashlib.sha256(patched.encode()).hexdigest(),
             fixtureSha256=hashlib.sha256(Path(attached_worker.__file__).read_bytes()).hexdigest(),
+            workspaceReadsOnly=args.workspace_reads_only,
             noExternalNetworkOrExecution=True,
             productionChanged=False,
         )
@@ -129,6 +141,12 @@ async def call(connection,method,params):
 async def main():
     global retire_in_route
     outcomes=[];peer=connect()
+    if args.workspace_reads_only:
+        for method in ('signal_grove.cron.edit_apply_v1', 'signal_grove.cron.project_decide_v1'):
+            refused = await call(peer, method, {})
+            assert refused['error']['code'] == -32601, refused
+            assert not calls
+        outcomes.append('workspace-only-scheduler-methods-are-unknown')
     good=await call(peer,adapter.DESCRIBE,dict(device=DEVICE));assert good['result']['state']=='ok';outcomes.append('actual-owner-describe')
     good=await call(peer,adapter.READ,dict(device=DEVICE,request=request()));assert good['result']['payload']['status']=='ok';outcomes.append('actual-owner-prepare')
     no_instance=connect(omit_instance=True)

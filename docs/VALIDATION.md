@@ -1,5 +1,56 @@
 # Current development validation — audit follow-up
 
+## Workspace-only installer and native authority gate
+
+The previous controls-only overlay kept stock scheduler files but loaded the
+combined adapter, which also declared the Signal Grove scheduling methods.
+The new explicit installer mode, `--workspace-reads-only`, selects a separate
+workspace adapter and stages seven modules. It rejects all five scheduler
+hook options before creating any files. The combined mode remains available
+for separate scheduler verification.
+
+A pristine Git checkout of v0.23.1 at
+`3b421578588243f920886e6fe79a6faa87ea026e` matched the five observed live Pi
+source anchors. Preview and apply agreed in E-drive staging. The native
+process imported the actual staged files and registered exactly four Signal
+Grove workspace contracts and handlers. All four stock cron modules matched
+their original hashes. The patched controls SHA-256 is
+`3094f054055f9398cd2b6daf78b39aeb483aa688a41604480c97e42df105bb2d`.
+
+- 143 portable workspace and 34 scheduler tests passed.
+- The native workspace-only probe passed 19 cases. The actual gateway
+  dispatcher returned JSON-RPC `-32601` for schedule apply and project
+  decision with zero worker calls from those requests. The original 18
+  combined-adapter cases also passed after restoring its JSON type import.
+- The workspace-only Windows test passed 12 existing and 10 attached-read
+  checks using a disposable named pipe. It read the expected 26 bytes, kept
+  the chat and subscription, discarded an in-flight reply after a workspace
+  change, and recorded zero admissions and executions. It used an injected
+  owner identity and synthetic project registration.
+- The first runs on the base interpreter stopped on a missing YAML package.
+  Later runs used the existing cached package on E:. The first attachment
+  wrapper lacked the probe's script import path. Both failed attempts are
+  retained. The native environment reported its SQLite WAL advisory and
+  used DELETE journaling; these are dispatch and attachment results.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Workspace-only file inventory | `4ccd8b7eb31795f5c29eadcf68142b30fb3b634c44b199deabca7925b3281228` |
+| Native workspace-only dispatch | `a40fa6d401dd061b0e2727e2b1727ff170b2ee85c8ef74f5e1c846162e6029be` |
+| Native combined regression | `8fe12575a1ebd79a1b2e961a4c2e652530535b495df3c076fcd309c3e298487b` |
+| Native workspace-only Windows attachment | `f35583447faea76a19e7f71ca8b0aa3931ba995bfb513b44830ff7a5009712c4` |
+| Pi protection preflight | `b0bb5e6d9c2f73f00fb0fc9b09690e7272c62942c6fec4531774ec28a165ead5` |
+
+The Pi preflight used anchored no-follow directory descriptors. The existing
+account-state path passed the owner/mode checks. The maintained fleet root
+and systemd configuration ancestry still fail this check. Both Pi services
+were active with the workspace extension absent. A separately reviewed
+deployment can evaluate an owner-only read grant under the protected account
+state. The read policy, runtime/source install, launcher, existing permissions
+and scheduler activation still require their own rollout review. No live
+configuration, service, policy or job was changed. Phone-to-Pi workspace
+acceptance is still pending.
+
 ## Native ARM64 scheduler and exact original receipt
 
 The previously approved isolated v0.23.1 generation supplied its existing

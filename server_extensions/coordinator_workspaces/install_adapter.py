@@ -5,19 +5,22 @@ Deployment requires the owner's existing reviewed recovery/idle procedure.
 """
 import argparse
 import ast
+from functools import partial
 import hashlib
 import os
 from pathlib import Path
 import stat
 import textwrap
 
-FILES = ('__init__.py','coordinator.py','ssh_transport.py','native_adapter.py',
-         'operator_policy.py','policy_file.py','attached.py','cron_history.py','cron_output.py','cron_edit.py',
-         'cron_run_once.py','cron_run_once_approval.py','cron_run_once_operator.py',
-         'cron_project_holds.py','cron_project_decisions.py','reviewed_worker.py','reviewed_ssh.py')
+WORKSPACE_FILES = ('__init__.py', 'coordinator.py', 'ssh_transport.py', 'native_workspace_adapter.py',
+                   'operator_policy.py', 'policy_file.py', 'attached.py')
+FILES = WORKSPACE_FILES + ('native_adapter.py', 'cron_history.py', 'cron_output.py', 'cron_edit.py',
+                           'cron_run_once.py', 'cron_run_once_approval.py', 'cron_run_once_operator.py',
+                           'cron_project_holds.py', 'cron_project_decisions.py', 'reviewed_worker.py',
+                           'reviewed_ssh.py')
 
 
-def patch_source(source):
+def patch_source(source, *, workspace_reads_only=False):
     known_imports = (
         'from hermes_state_runtime import RuntimeStoreError\n',
         'from persistence.core.errors import STORE_FAILURES, AuthorityRefusal, PersistenceError\n',
@@ -26,9 +29,10 @@ def patch_source(source):
     if len(anchors) != 1 or sum(source.count(line) for line in known_imports) != 1:
         raise ValueError('Native runtime differs from reviewed anchors; no change.')
     imported = anchors[0]
+    adapter = 'native_workspace_adapter' if workspace_reads_only else 'native_adapter'
     edits = (
         (imported, imported +
-         'from gateway.signal_grove_workspaces.native_adapter import handlers as worker_workspace_handlers\n'),
+         f'from gateway.signal_grove_workspaces.{adapter} import handlers as worker_workspace_handlers\n'),
         ('        handlers.update(stored_read_handlers(self))\n        return handlers\n',
          '        handlers.update(stored_read_handlers(self))\n'
          '        handlers.update(worker_workspace_handlers(self))\n        return handlers\n'))
@@ -558,6 +562,8 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--runtime-root',type=Path,required=True)
     parser.add_argument('--expected-controls-sha256',required=True)
+    parser.add_argument('--workspace-reads-only', action='store_true',
+                        help='Stage only the four registered workspace-read methods.')
     parser.add_argument('--expected-scheduler-sha256', help='Also bind owned output in this reviewed runtime generation.')
     parser.add_argument('--expected-cron-jobs-sha256', help='Also stage the strict paused scheduler edit hook.')
     parser.add_argument('--expected-cron-executions-sha256',
@@ -568,13 +574,18 @@ def main():
                         help='Required native provider hash when holding project schedules.')
     parser.add_argument('--apply',action='store_true')
     args=parser.parse_args()
+    if args.workspace_reads_only and any((args.expected_scheduler_sha256, args.expected_cron_jobs_sha256,
+            args.expected_cron_executions_sha256, args.expected_cron_provider_sha256,
+            args.hold_project_schedules)):
+        parser.error('Workspace reads only cannot stage scheduling hooks.')
     if args.hold_project_schedules and not all((args.expected_scheduler_sha256, args.expected_cron_jobs_sha256,
             args.expected_cron_executions_sha256, args.expected_cron_provider_sha256)):
         parser.error('Holding project schedules requires verified scheduler, jobs, executions and provider hashes.')
     if args.expected_cron_provider_sha256 and not args.hold_project_schedules:
         parser.error('The provider hook requires --hold-project-schedules.')
     source=args.runtime_root/'gateway/session_controls.py'
-    updates = [(source, args.expected_controls_sha256, prepare(source, args.expected_controls_sha256, patch_source))]
+    controls_patch = partial(patch_source, workspace_reads_only=args.workspace_reads_only)
+    updates = [(source, args.expected_controls_sha256, prepare(source, args.expected_controls_sha256, controls_patch))]
     if args.expected_scheduler_sha256 is not None:
         scheduler = args.runtime_root / 'cron/scheduler.py'
         scheduler_patch = patch_cron_project_scheduler if args.hold_project_schedules else patch_scheduler_output
@@ -597,9 +608,11 @@ def main():
         provider = args.runtime_root / 'cron/scheduler_provider.py'
         expected = args.expected_cron_provider_sha256
         updates.append((provider, expected, prepare(provider, expected, patch_cron_project_provider)))
-    modules={name:Path(__file__).with_name(name).read_bytes() for name in FILES}
-    shared_approval = Path(__file__).resolve().parents[1] / 'worker_workspaces' / 'approval_envelope.py'
-    modules['approval_envelope.py'] = shared_approval.read_bytes()
+    files = WORKSPACE_FILES if args.workspace_reads_only else FILES
+    modules = {name: Path(__file__).with_name(name).read_bytes() for name in files}
+    if not args.workspace_reads_only:
+        shared_approval = Path(__file__).resolve().parents[1] / 'worker_workspaces' / 'approval_envelope.py'
+        modules['approval_envelope.py'] = shared_approval.read_bytes()
     for value in modules.values(): ast.parse(value)
     target=source.parent/'signal_grove_workspaces'
     if target.exists() or target.is_symlink(): raise ValueError('Preserve existing extension; review first.')

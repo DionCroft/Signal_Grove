@@ -307,6 +307,13 @@ is added. The Windows broker still owns request deduplication and lease expiry.
 
 ## Reviewed installation and acceptance
 
+For a workspace-only generation, add `--workspace-reads-only`. This stages
+only the seven workspace modules and registers the four standalone and
+attached workspace read methods in the native handler table and contract
+catalog. Scheduler hook options are incompatible with this mode. Verify in
+a fresh process so it cannot inherit a previously imported combined catalog.
+[Native gate](../../docs/VALIDATION.md#workspace-only-installer-and-native-authority-gate).
+
 `install_adapter.py --runtime-root <reviewed-runtime>
 --expected-controls-sha256 <exact-live-hash>` previews the two guarded source
 anchors and module hashes. `--apply` is explicit; it stages the complete module

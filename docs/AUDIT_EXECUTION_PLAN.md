@@ -1,5 +1,20 @@
 # Signal Grove audit execution plan
 
+## Workspace-only rollout boundary
+
+Use the explicit workspace-only installer for live attachment preparation.
+An isolated native gateway declared exactly the four workspace methods. Its
+native Windows attachment test proved the enrolled read and stale-workspace
+refusal with zero execution admissions. The source overlay preserved all four
+live-matching scheduler inputs. Pi preflight found a protected account-state
+parent for a potential read policy while the existing fleet source and service
+configuration paths still require separate review.
+
+Next verify the real owner/profile/session and Windows read enrollment, stage
+the exact operator binding and rollback, and review that cutover before asking
+for live approval. The isolated scheduler proof remains a separate checkpoint.
+[Validation](VALIDATION.md#workspace-only-installer-and-native-authority-gate).
+
 ## Isolated native Pi scheduler trial
 
 The ARM64 Hermes scheduler issued one signed approval to the disposable

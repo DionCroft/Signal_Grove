@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Workspace-only installer and rollout preflight
+
+The earlier controls-only overlay still registered the combined scheduling
+methods. The explicit workspace-only mode now registers only four read
+methods. The native v0.23.1 combined and workspace-only checks passed, and the
+workspace-only candidate read through the real disposable Windows pipe.
+The staged file hashes and stock scheduler inputs verify. Both live Pi services
+are active on the original source. A read-only preflight confirmed a protected
+account-state parent for the read grant.
+[Validation](docs/VALIDATION.md#workspace-only-installer-and-native-authority-gate).
+
+Next reconcile the actual owner, followed session and existing Windows grant,
+then stage the matching protected binding and exact rollback for review.
+Obtain separate approval before live activation or service changes. Phone
+attachment, live scheduling and the next signed APK remain open.
+
 ## Native ARM64 scheduler and exact original receipt
 
 The real Pi ran the approved isolated ARM64 environment with a fresh

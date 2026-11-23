@@ -1,7 +1,11 @@
 import asyncio
 from dataclasses import replace
+import hashlib
 import json
+from pathlib import Path
+import subprocess
 import sys
+import tempfile
 import unittest
 
 from server_extensions.coordinator_workspaces import coordinator as c
@@ -228,3 +232,44 @@ class InstallerPolicyTest(unittest.TestCase):
         for changed in (source.replace(stable_import, ''), source.replace(stable_import, stable_import + main_import)):
             with self.assertRaises(ValueError):
                 patch_source(changed)
+
+    def test_workspace_only_stages_no_scheduler_modules_or_hooks(self):
+        from server_extensions.coordinator_workspaces import install_adapter
+
+        stock = (b'from hermes_state_runtime import RuntimeStoreError\n\n'
+                 b'class C:\n    def handlers(self):\n        handlers = {}\n'
+                 b'        handlers.update(stored_read_handlers(self))\n        return handlers\n')
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            gateway = root / 'gateway'
+            gateway.mkdir()
+            controls = gateway / 'session_controls.py'
+            controls.write_bytes(stock)
+            extension = gateway / 'signal_grove_workspaces'
+            command = [sys.executable, '-B', str(Path(install_adapter.__file__)),
+                       '--runtime-root', str(root), '--expected-controls-sha256',
+                       hashlib.sha256(stock).hexdigest(), '--workspace-reads-only']
+            incompatible = [('--expected-scheduler-sha256', 'a' * 64),
+                            ('--expected-cron-jobs-sha256', 'a' * 64),
+                            ('--expected-cron-executions-sha256', 'a' * 64),
+                            ('--expected-cron-provider-sha256', 'a' * 64),
+                            ('--hold-project-schedules',)]
+            for flags in incompatible:
+                with self.subTest(flags=flags):
+                    result = subprocess.run([*command, *flags, '--apply'], capture_output=True, timeout=15)
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertIn(b'Workspace reads only cannot stage scheduling hooks', result.stderr)
+                    self.assertEqual(controls.read_bytes(), stock)
+                    self.assertFalse(extension.exists())
+
+            preview = subprocess.check_output(command, text=True, timeout=15)
+            self.assertEqual(controls.read_bytes(), stock)
+            self.assertFalse(extension.exists())
+            applied = subprocess.check_output([*command, '--apply'], text=True, timeout=15)
+            self.assertEqual(preview.removeprefix('Preview'), applied.removeprefix('Applied'))
+            self.assertEqual({file.name for file in extension.iterdir()},
+                             {'__init__.py', 'coordinator.py', 'ssh_transport.py',
+                              'native_workspace_adapter.py', 'operator_policy.py',
+                              'policy_file.py', 'attached.py'})
+            self.assertIn(b'from gateway.signal_grove_workspaces.native_workspace_adapter import handlers',
+                          controls.read_bytes())
