@@ -1,5 +1,17 @@
 # Signal Grove audit execution plan
 
+## Isolated Pi runtime selection and rollback
+
+The staged successor and the exact original runtime passed the original,
+candidate, and restored selection sequence in three owned systemd units.
+All three stopped normally. The live unit identities and loaded files were
+preserved, and the production workspace policy remained absent.
+[Validation](VALIDATION.md#isolated-pi-runtime-selection-and-rollback).
+
+Complete the production packet with fresh quiescence, backup, protected
+policy, bounded activation and recovery verification before seeking separate
+approval. Keep the read-only workspace rollout separate from scheduling.
+
 ## Native workspace-only successor
 
 The first isolated PM preflight caught newer maintained live runtime

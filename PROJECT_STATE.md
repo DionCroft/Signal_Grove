@@ -7,6 +7,20 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Isolated runtime selection and rollback verified
+
+Three transient Pi services ran the exact original, workspace-only candidate,
+and original runtime again. The confirmed workspace method count was 0, 4,
+and 0. Each incarnation shut down on normal SIGTERM, the private selector
+was restored byte-for-byte, and the fixture state and live service identities
+were preserved. [Validation](docs/VALIDATION.md#isolated-pi-runtime-selection-and-rollback).
+
+Next complete the private live activation packet for the single read-only
+workspace binding, including the drain, fresh backup, health and recovery
+checks. Obtain separate approval for activation and prove phone-to-worker
+attachment after that review. The full Android CI run remains queued and
+the Xiaomi is needed for the signed upgrade.
+
 ## Native successor built and focused Activity verified
 
 The preserved first isolated PM attempt refused stale maintained

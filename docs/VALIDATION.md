@@ -1,5 +1,32 @@
 # Current development validation — audit follow-up
 
+## Isolated Pi runtime selection and rollback
+
+On the ARM64 Pi, three unique transient user systemd units ran the exact
+original, candidate and restored original Python 3.14.9 environments. Each
+used a fresh isolated home with writes confined to its own fixture.
+Independent PID, invocation, cgroup, executable, source and PM facts checks
+bound the readiness receipt to the actual service process. The candidate
+loaded exactly the four reviewed workspace handlers. The original and
+restored registry both had zero Signal Grove methods.
+
+Each exact test service handled normal SIGTERM, wrote its stop receipt and
+became inactive with its process gone. The private fixture selector returned
+byte-for-byte to the original runtime and a fixture history canary kept its
+digest. The two live unit PIDs, start times, loaded configuration file
+hashes, source directories and executable hashes matched the recorded
+preflight throughout. The production workspace policy remained absent.
+The probes permitted native imports and fixture writes only, with no worker
+dispatch, network calls or job replay.
+
+This validates runtime selection, native process replacement and graceful
+probe shutdown in isolation. Live drain, protected policy publication,
+backup, native gateway and dashboard health and production recovery remain
+separate gates. The original gateway and dashboard stayed active.
+
+Private phase evidence SHA-256
+`8772eb828a639e315f84e2dd3cb232fa7db2c4eeb21fbb18c3a04bc3ab7db78e`.
+
 ## Native workspace-only successor and rollback inputs
 
 The first isolated Pi generation verified all 23,689 archive members
