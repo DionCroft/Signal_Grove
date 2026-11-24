@@ -1,5 +1,59 @@
 # Current development validation — audit follow-up
 
+## Hermes live open-tool progress
+
+Chat and Activity use the existing authenticated Runs status poll
+to show the open tool Hermes reports for the selected execution.
+The projection checks the exact run, session and submission, and
+requires a valid admission, execution generation and progress marker.
+An admission change or a lower reported generation clears the
+observation. A newer tool stream event takes precedence over a poll
+already in flight. The displayed name expires after five seconds
+without a fresh observation. An observed empty tool set clears the
+headline. Approvals and answer waits retain priority. The status
+sample stays in memory and adds no history entries.
+
+The exact public Hermes v0.23.1 progress fixture passed. It verified
+that the owner sees an open tool only for the started admission.
+A different credential was refused, the queued follower saw no
+progress from the active run, a different-generation callback left
+the status unchanged, and completion removed the tool.
+[Upstream run-progress fixture](https://github.com/NousResearch/hermes-agent/blob/3b421578588243f920886e6fe79a6faa87ea026e/tests/gateway/test_api_run_progress.py).
+
+The exact app source passed 1,252 JVM tests in 118 reports and both
+lint variants with zero errors. Both debug APKs built. Seven compact
+Android 17 cases passed at 840 × 1470, 420 dpi and 1.3× text. The new
+device case confirmed that the same tool appears in Chat and Activity
+before any tool stream event, clears when the poll says it finished,
+and leaves the saved timeline empty. The first fixture tried to
+start its mock loopback server on Android's UI thread. The corrected
+test moves setup off that thread. Both attempts used the same app
+APK digest and both logs were retained.
+
+A separate isolated registry check on the same public revision
+registered two synthetic MCP servers in separate profile scopes.
+Their normalized tool names were identical and their scoped
+registry entries retained the two exact owners. It executed no
+tools. The live headline shows the reported tool name. Worker,
+workspace, skill and integration attribution still require
+run-bound metadata.
+[Upstream MCP name normalization](https://github.com/NousResearch/hermes-agent/blob/3b421578588243f920886e6fe79a6faa87ea026e/tools/mcp_tool_schema.py#L146-L183).
+
+The hosted standard Android workflow for the earlier timestamp
+checkpoint `6d63326` passed its build, unit and lint verification.
+All four device shards were running at this checkpoint.
+[Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45499834488).
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Exact corrected Windows build receipt | `213ebe2c0a5b7d5b939ae6c849c576e9f440490588100b9fe6e7d41a0a663b56` |
+| Debug APK | `b23efecd0baa3c1843e3e4620c1b790cc0c7ee49e20be682f43b073a4bb31625` |
+| Corrected instrumentation APK | `95bc649ed691f37518a284311cfd8913283c3d1a3af5dec243ae04cfa32b5ebd` |
+| Initial compact fixture failure | `e6e5735730d908220c54180b9e8ddaf6369b91709f13e3d15f44bcb55d231289` |
+| Corrected compact Android 17 log | `ac8515806385710628bb4edacb53ae5276d84a09947b3e13b971c160601e195e` |
+| Native Hermes progress test report | `ccbd6c3ae9da717d1ab5c8aa794f4d004c755576a44b63dbd88df54158eb7737` |
+| Scoped MCP name collision receipt | `00ed04c3889a54a8ad8d8708d6db4204b5b393a2adc068796d6012d3463247be` |
+
 ## Native Hermes v0.23.1 subagent delivery
 
 The exact upstream proposal `4a10a1e` applies cleanly to public

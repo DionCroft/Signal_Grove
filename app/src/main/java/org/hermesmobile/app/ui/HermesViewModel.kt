@@ -54,6 +54,14 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     val connecting=MutableStateFlow(true)
     val runStatus=MutableStateFlow("idle")
     val activity=MutableStateFlow("")
+    private val progressObservation = MutableStateFlow<ReportedRunProgress?>(null)
+    internal val runProgress = progressObservation.transformLatest { observation ->
+        emit(observation)
+        if (observation?.tool != null) {
+            delay(5_000)
+            emit(observation.withoutTool())
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val controls=selected.flatMapLatest {if(it.isBlank()) flowOf(emptyList()) else dao.controls(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val runReports=selected.flatMapLatest {if(it.isBlank()) flowOf(emptyList()) else dao.reports(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
     val toolEvents=selected.flatMapLatest {if(it.isBlank()) flowOf(emptyList()) else dao.events(it)}.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
@@ -515,12 +523,26 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             "runs" -> {if(c.runId.isBlank()) {c=dao.recordAdmission(c,client.submitRun(request!!.body,c.pendingKey,request.channelKey))};path="v1/runs/${OkHttpHermesApiClient.segment(c.runId)}/events"}
             else -> {path=request!!.path;body=request.body}
         }
+        var toolRevision = 0L
         val monitor=viewModelScope.launch {
+            var lastReported: ReportedRunProgress? = null
             while(isActive) {
                 delay(2500)
-                if(c.runId.isNotBlank() && c.transport!="compat") try {
-                    interactionsRepo.synchronize(c,client.run(c.runId))
-                } catch(e: CancellationException) {throw e} catch(_: Exception) { /* The stream remains authoritative; recovery is explicit. */ }
+                val receipt = c
+                val revision = toolRevision
+                if(receipt.runId.isNotBlank() && receipt.transport!="compat") try {
+                    val snapshot = client.run(receipt.runId)
+                    interactionsRepo.synchronize(receipt, snapshot)
+                    if (current(operation) && selected.value == receipt.key && revision == toolRevision) {
+                        val observed = ReportedRunProgress.from(c, snapshot)?.takeIf { it.follows(lastReported) }
+                        if (observed != null) lastReported = observed
+                        progressObservation.value = observed ?: progressObservation.value?.withoutTool()
+                    }
+                } catch(e: CancellationException) {throw e} catch(_: Exception) {
+                    if (current(operation) && selected.value == receipt.key && revision == toolRevision) {
+                        progressObservation.value = progressObservation.value?.withoutTool()
+                    }
+                }
             }
         }
         try {
@@ -541,7 +563,13 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     status?.let {runStatus.value=it;c=c.copy(status=it);terminalSeen=it in terminal}
                     update.sequence?.let {c=c.copy(lastEventSeq=it)}
                     val control=update.control?.copy(runId=update.control.runId.ifBlank {c.runId})?.stored(c.key)
-                    val event=update.tool?.let {t -> ToolEvent("${c.key}|${c.runId}|${update.sequence ?: java.util.UUID.randomUUID()}",c.key,c.runId,t.tool,t.kind,t.preview,t.durationMs,System.currentTimeMillis(),t.callId,t.category,t.details.toString(),t.generation,update.sequence)}
+                    val event=update.tool?.let {t ->
+                        toolRevision++
+                        progressObservation.value = null
+                        ToolEvent("${c.key}|${c.runId}|${update.sequence ?: java.util.UUID.randomUUID()}", c.key,
+                            c.runId, t.tool, t.kind, t.preview, t.durationMs, System.currentTimeMillis(),
+                            t.callId, t.category, t.details.toString(), t.generation, update.sequence)
+                    }
                     dao.saveTurn(c,assistant.copy(content=text,status=c.status,telemetryJson=telemetry),control,event,update.settledRequestId,update.settledGeneration)
                 }
             if(!terminalSeen) {
@@ -552,7 +580,10 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         } catch(e: CancellationException) {throw e}
         catch(e: Exception) {
             if(!terminalSeen) {c=c.copy(status="unknown");dao.saveTurn(c,assistant.copy(content=text,status="unknown",telemetryJson=telemetry),null,null,"");runStatus.value="unknown";throw e}
-        } finally {monitor.cancel()}
+        } finally {
+            monitor.cancel()
+            progressObservation.value = null
+        }
     }
     fun prepareRetry() {
         val c=selectedConversation.value ?: return

@@ -85,6 +85,44 @@ class ActivityProtocolTest {
         }
         assertNull(activeActivity(current.copy(detailsJson = """{"source":"cli"}"""), timeline))
     }
+    @Test fun canonicalToolObservationMatchesTheCurrentSubmissionOnly() {
+        val running = Conversation("key", "profile", "session", transport = "runs", runId = "r",
+            status = "running", pendingKey = "turn", pendingAt = 1)
+        val raw = obj("""{"status":"running","run_id":"r","session_id":"session","admission_id":"a",
+            "execution_generation":2,"progress_at":1700000000.5,"tool":"workspace_read","preview":"private"}""")
+        val reported = ReportedRunProgress.from(running, raw)!!
+        assertEquals("workspace_read", reported.tool)
+        assertTrue(reported.matches(running.copy(admissionId = "a", executionGeneration = 2)))
+        assertNull(ReportedRunProgress.from(running, JsonObject(raw - "tool"))!!.tool)
+        assertNotNull(reported.withoutTool().takeIf { it.matches(running) })
+        assertNull(reported.withoutTool().tool)
+        for (foreign in listOf(running.copy(status = "waiting_for_approval"), running.copy(pendingAt = 2),
+            running.copy(remoteId = "other"), running.copy(runId = "other"), running.copy(scope = "other"),
+            running.copy(admissionId = "other"), running.copy(executionGeneration = 3),
+            running.copy(detailsJson = """{"source":"cli"}"""))) {
+            assertFalse(reported.matches(foreign))
+        }
+        assertFalse(reported.toString().contains("private"))
+    }
+
+    @Test fun canonicalProgressRefusesStaleOrIncompleteReports() {
+        val running = Conversation("key", "profile", "session", transport = "runs", runId = "r", status = "running")
+        val raw = obj("""{"status":"running","run_id":"r","session_id":"session","admission_id":"a",
+            "execution_generation":2,"progress_at":1700000000.5,"tool":"workspace_read"}""")
+        val current = ReportedRunProgress.from(running, raw)!!
+        for (missing in listOf("run_id", "session_id", "admission_id", "execution_generation", "progress_at")) {
+            assertNull(missing, ReportedRunProgress.from(running, JsonObject(raw - missing)))
+        }
+        for ((key, invalid) in listOf("session_id" to JsonPrimitive("foreign"), "run_id" to JsonPrimitive("foreign"),
+            "execution_generation" to JsonPrimitive("2"), "tool" to JsonNull, "progress_at" to JsonPrimitive(-1))) {
+            assertNull(key, ReportedRunProgress.from(running, JsonObject(raw + (key to invalid))))
+        }
+        for ((field, stale) in listOf("execution_generation" to JsonPrimitive(1), "admission_id" to JsonPrimitive("b"))) {
+            val observation = ReportedRunProgress.from(running, JsonObject(raw + (field to stale)))!!
+            assertFalse(observation.follows(current))
+        }
+    }
+
     @Test fun activityShowsOnlyCurrentIdentifiedWaitsWithoutRequestContent() {
         val conversation = Conversation("scope-a:session", "scope-a", "session", runId = "run",
             status = "waiting_for_approval", executionGeneration = 4)

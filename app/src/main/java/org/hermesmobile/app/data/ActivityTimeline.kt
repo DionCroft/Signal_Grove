@@ -58,6 +58,45 @@ internal fun activityReport(conversation: Conversation, reports: List<RunReport>
             (conversation.runId.isNotBlank() || conversation.pendingKey.isNotBlank())
     }
 
+internal class ReportedRunProgress private constructor(
+    private val submission: Conversation,
+    private val admissionId: String,
+    private val generation: Long,
+    val tool: String?,
+) {
+    fun matches(conversation: Conversation): Boolean =
+        conversation.status == "running" && !SessionOrigin.readOnly(conversation) &&
+            submission.sameSubmission(conversation) && submission.remoteId == conversation.remoteId &&
+            (conversation.admissionId.isBlank() || conversation.admissionId == admissionId) &&
+            (conversation.executionGeneration == null || conversation.executionGeneration == generation)
+
+    fun follows(previous: ReportedRunProgress?): Boolean =
+        previous == null || (admissionId == previous.admissionId && generation >= previous.generation)
+
+    fun withoutTool() = if (tool == null) this else ReportedRunProgress(submission, admissionId, generation, null)
+
+    override fun toString() = "ReportedRunProgress(redacted)"
+
+    companion object {
+        fun from(conversation: Conversation, snapshot: JsonObject): ReportedRunProgress? {
+            fun string(key: String) = (snapshot[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
+            if (conversation.transport != "runs" || conversation.runId.isBlank() || conversation.remoteId.isBlank() ||
+                string("status") != "running" || string("run_id") != conversation.runId ||
+                string("session_id") != conversation.remoteId) return null
+            val id = string("admission_id")?.takeIf { it.isNotBlank() && it.length <= 256 && it.none(Char::isISOControl) }
+                ?: return null
+            val generation = (snapshot["execution_generation"] as? JsonPrimitive)
+                ?.takeUnless { it.isString }?.longOrNull?.takeIf { it >= 0 } ?: return null
+            val time = (snapshot["progress_at"] as? JsonPrimitive)?.takeUnless { it.isString }?.doubleOrNull
+            if (time == null || !time.isFinite() || time < 0) return null
+            val tool = if ("tool" in snapshot) {
+                string("tool")?.takeIf { it.isNotBlank() && it.length <= 256 && it.none(Char::isISOControl) } ?: return null
+            } else null
+            return ReportedRunProgress(conversation, id, generation, tool).takeIf { it.matches(conversation) }
+        }
+    }
+}
+
 internal data class ActivityWait(val approval: Boolean, val state: String, val receivedAt: Long)
 
 internal fun activityWaits(conversation: Conversation, controls: List<PendingControl>): List<ActivityWait> {

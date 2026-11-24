@@ -23,6 +23,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 class ActivityFlowTest {
     @get:Rule(order=0) val credentialFixture=CredentialFixtureRule()
@@ -116,6 +119,63 @@ class ActivityFlowTest {
             compose.onNodeWithText(word(Words.Close)).performClick();compose.onNodeWithText(word(Words.Close)).performClick()
         }
     }
+    @Test fun liveActivityUsesTheCanonicalOpenToolBeforeAnyToolFrame() {
+        val target = AtomicReference("")
+        val toolOpen = AtomicBoolean(true)
+        val stream = "data: {\"event\":\"run.started\",\"run_id\":\"current-run\",\"seq\":0}\n\n" +
+            ": keepalive\n\n".repeat(240) +
+            "data: {\"event\":\"run.completed\",\"run_id\":\"current-run\",\"output\":\"Finished\",\"seq\":1}\n\n"
+        MockWebServer().use { server ->
+            server.dispatcher = object : Dispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse = when {
+                    request.path == "/v1/capabilities" ->
+                        json("""{"features":{"session_resources":true,"session_chat":true,"run_events_sse":true},"endpoints":{"runs":{}}}""")
+                    request.path.orEmpty().startsWith("/api/jobs?") -> json("""{"jobs":[]}""")
+                    request.path.orEmpty().startsWith("/api/sessions?") -> json("""{"data":[],"has_more":false}""")
+                    request.path == "/api/sessions" -> {
+                        target.set(Json.parseToJsonElement(request.body.readUtf8()).jsonObject.text("id"))
+                        json("""{"session":{"id":"${target.get()}","title":"Canonical tool fixture"}}""")
+                    }
+                    request.path == "/v1/runs" -> json("""{"run_id":"current-run"}""")
+                    request.path == "/v1/runs/current-run/events" -> MockResponse()
+                        .setHeader("Content-Type", "text/event-stream")
+                        .setBody(stream)
+                        .throttleBody(256, 1, TimeUnit.SECONDS)
+                    request.path == "/v1/runs/current-run" -> json(buildJsonObject {
+                        put("status", "running")
+                        put("run_id", "current-run")
+                        put("session_id", target.get())
+                        put("admission_id", "admission")
+                        put("execution_generation", 2)
+                        put("progress_at", 1_700_000_000.125)
+                        if (toolOpen.get()) put("tool", "workspace_read")
+                    }.toString())
+                    else -> json("{}").setResponseCode(404)
+                }
+            }
+            compose.waitUntil(10_000) { !vm.connecting.value }
+            val url = server.url("/").toString()
+            compose.runOnUiThread { vm.configure(url, "activity-fixture", true) }
+            compose.waitUntil(10_000) { !vm.connecting.value && vm.connectionStatus.value == "connected" }
+            compose.runOnUiThread { vm.newChat(); vm.send("Review test progress") }
+            compose.onAllNodesWithContentDescription(word(Words.Chat), useUnmergedTree = true).onLast().performClick()
+            compose.waitUntil(10_000) { vm.runProgress.value?.tool == "workspace_read" }
+            compose.onNodeWithTag("chat-current-activity").assertTextContains("workspace_read", substring = true)
+            assertTrue(vm.toolEvents.value.isEmpty())
+            compose.onNodeWithContentDescription(word(Words.ToolActivity), substring = true).performClick()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("workspace_read", substring = true))
+            val dialogTool = hasText("workspace_read", substring = true) and hasAnyAncestor(hasTestTag("activity-timeline"))
+            compose.onNode(dialogTool).assertIsDisplayed()
+            toolOpen.set(false)
+            compose.waitUntil(7_000) { vm.runProgress.value?.let { it.tool == null } == true }
+            compose.onNode(dialogTool).assertDoesNotExist()
+            compose.onNodeWithText(word(Words.Close)).performClick()
+            compose.waitUntil(15_000) { !vm.busy.value && vm.runStatus.value == "completed" && vm.runProgress.value == null }
+            assertNull(vm.runProgress.value)
+            assertTrue(vm.toolEvents.value.isEmpty())
+        }
+    }
+
     @Test fun anotherRunIdentityCannotRewriteTheReceiptOrItsActivity() {
         var admissions=0
         MockWebServer().use {server ->

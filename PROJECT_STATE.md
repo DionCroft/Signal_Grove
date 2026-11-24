@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes live open-tool progress
+
+Chat and Activity show the selected execution's currently reported
+tool from the existing authenticated Runs status poll. The compact
+Android 17 check verified the label before any tool stream event,
+its removal when the tool finished, and the empty saved timeline.
+All 1,252 JVM tests, both lint variants and seven focused device
+cases passed. The native v0.23.1 progress case verified the same
+ownership and lifecycle rules. Exact worker and integration
+attribution remain open.
+[Validation](docs/VALIDATION.md#hermes-live-open-tool-progress).
+
+The earlier timestamp checkpoint `6d63326` passed hosted
+verification. Its full standard Android device matrix is running.
+[Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45499834488).
+
 ## Native Hermes v0.23.1 subagent delivery
 
 The public v0.23.1 paired native suite ran the same 78 named tests.

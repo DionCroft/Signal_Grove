@@ -47,8 +47,9 @@ import java.time.format.DateTimeFormatter
         }
     }
     if(timeline && conversation != null) {
+        val progress by vm.runProgress.collectAsStateWithLifecycle()
         ActivityDialog(conversation, ownEvents, activityReport(conversation, reports), activityWaits(conversation, rows),
-            live = busy && !SessionOrigin.readOnly(conversation)) {timeline=false}
+            live = busy && !SessionOrigin.readOnly(conversation), progress = progress) {timeline=false}
     }
     if(control!=null && dismissed!=control.key) PendingControlDialog(control,sending,{dismissed=control.key},vm::respondControl,vm::retryOrRefresh)
 }

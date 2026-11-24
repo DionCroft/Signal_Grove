@@ -53,6 +53,11 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
         ?: label(Words.ToolActivity)
 }
 
+@Composable internal fun currentActivityName(
+    conversation: Conversation, timeline: List<ActivityEntry>, progress: ReportedRunProgress?,
+): String? = if (progress?.matches(conversation) == true) progress.tool
+    else activeActivity(conversation, timeline)?.let { activityName(it) }
+
 @Composable private fun ActivityEventTimes(event: ToolEvent, earlierStart: Boolean, displayTime: DateTimeFormatter) {
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         event.serverEventAt?.let { time ->
@@ -68,10 +73,10 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
 
 @Composable internal fun ActivityDialog(
     conversation: Conversation, events: List<ToolEvent>, report: RunReport?, waits: List<ActivityWait>,
-    live: Boolean, dismiss: () -> Unit,
+    live: Boolean, progress: ReportedRunProgress?, dismiss: () -> Unit,
 ) {
     val timeline = remember(events) { activityTimeline(events) }
-    val currentTool = if (live) activeActivity(conversation, timeline) else null
+    val currentTool = if (live && waits.isEmpty()) currentActivityName(conversation, timeline, progress) else null
     val runtime = remember(report?.telemetryJson) {
         RunTelemetry.parse(report?.telemetryJson.orEmpty())["runtime"] as? JsonObject
     }
@@ -84,7 +89,7 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                 Text(label(if (live) Words.RunStatus else Words.ActivityLastRunStatus), style = MaterialTheme.typography.titleSmall)
                 Text(label(statusWord(conversation.status)), style = MaterialTheme.typography.bodySmall)
                 currentTool?.let {
-                    Text(label(Words.ActivityInProgress).replace("{name}", activityName(it)),
+                    Text(label(Words.ActivityInProgress).replace("{name}", it),
                         style = MaterialTheme.typography.bodySmall)
                 }
             }

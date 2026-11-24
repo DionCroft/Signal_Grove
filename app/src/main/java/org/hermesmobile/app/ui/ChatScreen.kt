@@ -28,7 +28,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.noties.markwon.Markwon
 import org.hermesmobile.app.data.ChatMessage
 import org.hermesmobile.app.data.SessionOrigin
-import org.hermesmobile.app.data.activeActivity
 import org.hermesmobile.app.data.activityTimeline
 import org.hermesmobile.app.data.activityWaits
 import java.time.Instant
@@ -150,19 +149,20 @@ import java.time.format.DateTimeFormatter
     val events by vm.toolEvents.collectAsStateWithLifecycle()
     val controls by vm.controls.collectAsStateWithLifecycle()
     val localStatus by vm.activity.collectAsStateWithLifecycle()
+    val progress by vm.runProgress.collectAsStateWithLifecycle()
     val conversation = current?.takeIf { it.key == selected && it.scope == scope && !SessionOrigin.readOnly(it) }
 
     val summary = conversation?.let { chat ->
         val wait = activityWaits(chat, controls).firstOrNull()
         val tool = if (wait == null && chat.status == "running") {
             val timeline = remember(events) { activityTimeline(events) }
-            activeActivity(chat, timeline)
+            currentActivityName(chat, timeline, progress)
         } else null
         when {
             wait?.state == "unknown" -> label(Words.DecisionUnknown)
             wait?.state == "responding" -> label(Words.ResponseSending)
             wait != null -> label(if (wait.approval) Words.ActivityApprovalWait else Words.WaitingInput)
-            tool != null -> label(Words.ActivityInProgress).replace("{name}", activityName(tool))
+            tool != null -> label(Words.ActivityInProgress).replace("{name}", tool)
             else -> localStatus
         }
     }.orEmpty()
