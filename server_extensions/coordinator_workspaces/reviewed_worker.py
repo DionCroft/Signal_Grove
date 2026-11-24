@@ -1,6 +1,7 @@
 """Carry a consumed native project decision to the enrolled Windows owner."""
 from collections.abc import Callable
 from dataclasses import dataclass
+from hashlib import sha256
 import math
 from pathlib import Path
 from time import monotonic, time
@@ -24,6 +25,7 @@ class OriginalWorkerReceipt:
     project: str
     worker: str
     worker_instance: str
+    approval_sha256: str | None = None
 
 
 @dataclass(frozen=True, repr=False)
@@ -112,6 +114,7 @@ class WorkerProjectDispatch:
             raise ReadRefused("EXPIRED")
         selector = OriginalWorkerReceipt(
             packet.execution_id, packet.scope_id, packet.profile, packet.project, packet.worker, packet.worker_instance,
+            sha256(signed).hexdigest(),
         )
         try:
             route.submit(signed)
@@ -122,8 +125,9 @@ class WorkerProjectDispatch:
             result = route.observe(selector)
         except Exception:
             return None
-        if (type(result) is dict and set(result) == {"id", "state"}
-                and result["id"] == selector.execution_id and type(result["state"]) is str
+        if (type(result) is dict and set(result) == {"id", "state", "approval_sha256"}
+                and result["id"] == selector.execution_id and result["approval_sha256"] == selector.approval_sha256
+                and type(result["state"]) is str
                 and result["state"] in ("completed", "failed")):
             return result["state"]
         return None

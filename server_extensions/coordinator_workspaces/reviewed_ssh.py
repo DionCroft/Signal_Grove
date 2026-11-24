@@ -1,6 +1,7 @@
 """The fixed, host-key-verified reviewed scheduler client on the coordinator."""
 import asyncio
 from dataclasses import replace
+from hashlib import sha256
 import json
 from pathlib import Path
 import re
@@ -12,9 +13,9 @@ from .reviewed_worker import OriginalWorkerReceipt, ProjectWorkerRoute
 from .ssh_transport import SingleCallSsh
 
 if __package__ == "gateway.signal_grove_workspaces":
-    from .approval_envelope import ApprovalRefused, MAX_APPROVAL_BYTES, _read, _matches
+    from .approval_envelope import ApprovalRefused, MAX_APPROVAL_BYTES, _json, _matches, _read
 else:
-    from ..worker_workspaces.approval_envelope import ApprovalRefused, MAX_APPROVAL_BYTES, _read, _matches
+    from ..worker_workspaces.approval_envelope import ApprovalRefused, MAX_APPROVAL_BYTES, _json, _matches, _read
 
 
 _MAX_CALL = MAX_APPROVAL_BYTES + 4096
@@ -110,8 +111,10 @@ class ReviewedWorkerSsh:
         return observed
 
     @staticmethod
-    def _receipt(result, ident, *, submitted=False):
-        if (set(result) != {"id", "state"} or not _matches(_ID, ident) or result["id"] != ident
+    def _receipt(result, ident, *, submitted=False, approval_sha256=None):
+        fields = {"id", "state"} if approval_sha256 is None else {"id", "state", "approval_sha256"}
+        if (set(result) != fields or not _matches(_ID, ident) or result["id"] != ident
+                or result.get("approval_sha256") != approval_sha256
                 or type(result["state"]) is not str or result["state"] not in _STATES):
             raise ReadRefused("CHANGED", request_submitted=submitted)
         return result
@@ -119,6 +122,7 @@ class ReviewedWorkerSsh:
     def submit(self, raw):
         try:
             signed = _read(raw, MAX_APPROVAL_BYTES)
+            digest = sha256(_json(signed)).hexdigest()
         except ApprovalRefused:
             raise ReadRefused("INVALID") from None
         approval = signed.get("approval")
@@ -127,16 +131,22 @@ class ReviewedWorkerSsh:
                 or not _matches(_INSTANCE, approval.get("worker_instance"))):
             raise ReadRefused("DENIED")
         _, result = self._call("reviewed_submit", approval.get("scope_id"), approval.get("profile"),
-                               approval.get("project"), expected=approval["worker_instance"], approval=signed)
+                               approval.get("project"), expected=approval["worker_instance"], approval=signed,
+                               approval_sha256=digest)
         return self._receipt(result, approval["execution_id"], submitted=True)
 
     def observe(self, selector):
         if (type(selector) is not OriginalWorkerReceipt or selector.worker != self._worker
                 or not _matches(_ID, selector.execution_id) or not _matches(_INSTANCE, selector.worker_instance)):
             raise ReadRefused("DENIED")
+        digest = selector.approval_sha256
+        if digest is not None and not _matches(_HEX, digest):
+            raise ReadRefused("INVALID")
+        proof = {} if digest is None else {"approval_sha256": digest}
         _, result = self._call("reviewed_observe", selector.scope_id, selector.profile, selector.project,
-                               execution_id=selector.execution_id, receipt_worker_instance=selector.worker_instance)
-        return self._receipt(result, selector.execution_id)
+                               execution_id=selector.execution_id, receipt_worker_instance=selector.worker_instance,
+                               **proof)
+        return self._receipt(result, selector.execution_id, approval_sha256=digest)
 
     def observe_until_settled(self, selector):
         deadline = monotonic() + self._receipt_wait

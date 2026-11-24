@@ -50,11 +50,13 @@ def _request(raw, scope, instance):
     payload = frame["payload"]
     operation = payload.get("operation")
     if (type(operation) is not str or operation not in _EXTRA
-            or set(payload) != _BASE | _EXTRA[operation]
+            or set(payload) - {"approval_sha256"} != _BASE | _EXTRA[operation]
             or not _text(payload["profile"], 256) or not _matches(_PROJECT, payload["project_id"])):
         raise WorkspaceError("INVALID")
     if frame["worker_instance"] != instance or payload["scope_id"] != scope:
         raise WorkspaceError("CHANGED")
+    if "approval_sha256" in payload and (operation == "reviewed_prepare" or not _matches(_HEX, payload["approval_sha256"])):
+        raise WorkspaceError("INVALID")
     if operation == "reviewed_submit" and type(payload["approval"]) is not dict:
         raise WorkspaceError("INVALID")
     if operation == "reviewed_observe" and (not _matches(_ID, payload["execution_id"])
@@ -87,7 +89,10 @@ def _reply(raw, frame, endpoint):
         approval = payload.get("approval", {}).get("approval")
         ident = payload.get("execution_id") if operation == "reviewed_observe" else (
             approval.get("execution_id") if type(approval) is dict else None)
-        if (set(result) != {"id", "state"} or not _matches(_ID, ident) or result["id"] != ident
+        digest = payload.get("approval_sha256") if operation == "reviewed_observe" else None
+        fields = {"id", "state"} if digest is None else {"id", "state", "approval_sha256"}
+        if (set(result) != fields or not _matches(_ID, ident) or result["id"] != ident
+                or result.get("approval_sha256") != digest
                 or type(result["state"]) is not str or result["state"] not in _QUEUE_STATES):
             raise WorkspaceError("CHANGED")
     return response
@@ -129,9 +134,11 @@ class ReviewedPipeAdapter:
             if operation == "reviewed_prepare":
                 result = asdict(self._operator.prepare(*scope))
             elif operation == "reviewed_submit":
-                result = self._operator.accept(_json(payload["approval"]), expected_route=(*scope, self.instance))
+                result = self._operator.accept(_json(payload["approval"]), expected_route=(*scope, self.instance),
+                                               approval_sha256=payload.get("approval_sha256"))
             else:
-                result = self._operator.observe(*scope, payload["execution_id"], payload["receipt_worker_instance"])
+                result = self._operator.observe(*scope, payload["execution_id"], payload["receipt_worker_instance"],
+                                                approval_sha256=payload.get("approval_sha256"))
             if self._context() != before:
                 raise WorkspaceError("CHANGED")
             response = {"status": "ok", "result": result}

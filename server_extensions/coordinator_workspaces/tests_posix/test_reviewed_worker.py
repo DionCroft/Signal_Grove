@@ -1,5 +1,6 @@
 """Protected POSIX signing and original worker receipt fixtures."""
 from dataclasses import replace
+from hashlib import sha256
 import os
 import unittest
 from unittest.mock import patch
@@ -44,6 +45,8 @@ class ReviewedWorkerPosixTest(unittest.TestCase):
         self.status = "completed"
         self.result_id = ident
         self.reply_lost = False
+        self.original_digest = None
+        self.legacy_receipt = False
         route = bridge.ProjectWorkerRoute(fixture.home, self.key_path.name, self.submit, self.observe)
         self.dispatch = bridge.WorkerProjectDispatch(
             "fixture-coordinator", {scope.worker: route}, clock=lambda: 100.0, wall_clock=lambda: 1200.25,
@@ -51,13 +54,18 @@ class ReviewedWorkerPosixTest(unittest.TestCase):
 
     def submit(self, raw):
         self.sent.append(verify(raw, self.key, now=1200))
+        if self.original_digest is None:
+            self.original_digest = sha256(raw).hexdigest()
         if self.reply_lost:
             raise ConnectionError("submission accepted but response lost")
         return {"id": self.result_id, "state": "completed"}
 
     def observe(self, selector):
         self.lookups.append(selector)
-        return {"id": self.result_id, "state": self.status}
+        receipt = {"id": self.result_id, "state": self.status}
+        if not self.legacy_receipt:
+            receipt["approval_sha256"] = self.original_digest
+        return receipt
 
     def test_consumed_review_signs_exact_scope_and_original_execution(self):
         self.assertEqual("completed", self.dispatch(self.run_record))
@@ -80,6 +88,7 @@ class ReviewedWorkerPosixTest(unittest.TestCase):
         self.assertEqual(packet.project, lookup.project)
         self.assertEqual(packet.worker, lookup.worker)
         self.assertEqual(packet.worker_instance, lookup.worker_instance)
+        self.assertEqual(self.original_digest, lookup.approval_sha256)
 
     def test_lost_submit_reply_recovers_original_receipt_once(self):
         self.reply_lost = True
@@ -89,6 +98,19 @@ class ReviewedWorkerPosixTest(unittest.TestCase):
 
     def test_foreign_receipt_remains_unknown(self):
         self.result_id = "d" * 32
+        self.assertIsNone(self.dispatch(self.run_record))
+        self.assertEqual(1, len(self.sent))
+
+    def test_same_execution_id_from_another_approval_cannot_settle_lost_submit(self):
+        self.reply_lost = True
+        self.original_digest = "e" * 64
+        self.assertIsNone(self.dispatch(self.run_record))
+        self.assertEqual(1, len(self.sent))
+        self.assertEqual(1, len(self.lookups))
+        self.assertNotEqual(self.original_digest, self.lookups[0].approval_sha256)
+
+    def test_legacy_receipt_lacks_evidence_for_new_signed_dispatch(self):
+        self.legacy_receipt = True
         self.assertIsNone(self.dispatch(self.run_record))
         self.assertEqual(1, len(self.sent))
 

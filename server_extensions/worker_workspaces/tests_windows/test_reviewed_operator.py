@@ -2,6 +2,7 @@
 from base64 import b64encode
 from contextlib import contextmanager
 from dataclasses import asdict, replace
+from hashlib import sha256
 import json
 import os
 import sqlite3
@@ -289,7 +290,8 @@ class ReviewedOperatorTest(unittest.TestCase):
         self.assertEqual(self.approval.checkout_revision, prepared["checkout_revision"])
         packet = self.packet(task="林🌲" * 4096)
         self.assertGreater(len(packet), 16 * 1024)
-        original = self.call_pipe("reviewed_submit", approval=json.loads(packet))["result"]
+        digest = sha256(packet).hexdigest()
+        original = self.call_pipe("reviewed_submit", approval=json.loads(packet), approval_sha256=digest)["result"]
         self.assertEqual({"id": self.approval.execution_id, "state": "ready"}, original)
         self.assertEqual(original, self.call_pipe("reviewed_submit", approval=json.loads(packet))["result"])
         with self.queue_db() as db:
@@ -304,12 +306,24 @@ class ReviewedOperatorTest(unittest.TestCase):
         selector = dict(execution_id=original["id"], receipt_worker_instance=self.approval.worker_instance)
         self.assertEqual({"id": original["id"], "state": "unknown"},
                          self.call_pipe("reviewed_observe", operator=after_restart, **selector)["result"])
+        verified = self.call_pipe("reviewed_observe", operator=after_restart, approval_sha256=digest, **selector)
+        self.assertEqual({"id": original["id"], "state": "unknown", "approval_sha256": digest}, verified["result"])
+        stale = sha256(self.packet(task="A different inert fixture task.")).hexdigest()
+        reply = self.call_pipe("reviewed_observe", operator=after_restart, approval_sha256=stale, **selector)
+        self.assertEqual("CHANGED", reply["code"])
         with self.queue_db() as db:
             self.assertEqual(lease, db.execute("SELECT lease FROM requests").fetchone())
 
     def test_owner_pipe_checks_signed_route_before_reserving(self):
         reply = self.call_pipe("reviewed_submit", profile="other-profile", approval=json.loads(self.packet()))
         self.assertEqual("DENIED", reply["code"])
+        self.assertFalse(self.rows())
+
+    def test_owner_pipe_rejects_signed_envelope_digest_mismatch_before_reserving(self):
+        original = self.packet()
+        other = self.packet(task="A different inert fixture task.")
+        reply = self.call_pipe("reviewed_submit", approval=json.loads(original), approval_sha256=sha256(other).hexdigest())
+        self.assertEqual("CHANGED", reply["code"])
         self.assertFalse(self.rows())
 
     def test_receipt_scope_check_requires_original_project_profile_and_instance(self):

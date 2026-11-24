@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Scheduled worker receipt identity
+
+The coordinator now matches the original worker receipt to the exact
+signed approval as well as its existing execution and scope fields.
+A different approval with the same execution ID leaves the outcome
+unknown. The exact path also verifies the signed digest before queue
+admission. All 110 native Windows cases and 981 portable cases passed.
+The hosted Linux coordinator and live Pi-to-worker checks remain open.
+[Validation](docs/VALIDATION.md#scheduled-worker-receipt-identity).
+
 ## Current step in Chat
 
 Chat now shows a tool or decision wait from the selected running Hermes

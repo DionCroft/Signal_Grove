@@ -12,7 +12,7 @@ must derive that scope on the coordinator, never trust a phone's claimed scope.
 from pathlib import Path
 import hashlib,importlib,json,os,re,sys,time
 HERE=Path(__file__).resolve().parent
-SOURCE_DIGEST='fb97f2099acdc8a612f77356059e760fabc910bb4116c83132e5398a1cb4bdf1'
+SOURCE_DIGEST='f645bd21694b92a581298fe084b6b3df7b51d4f4d58b48eebec87a831c5d7e74'
 NAMES={'__init__.py','workspace_provider.py','broker_protocol.py','local_pipe.py','broker_enrollment.py','operator_file.py','read_host.py',
        'approval_envelope.py','protected_operator_file.py','reviewed_checkout.py','reviewed_dispatch.py',
        'reviewed_operator.py','reviewed_channel.py','reviewed_host.py'}

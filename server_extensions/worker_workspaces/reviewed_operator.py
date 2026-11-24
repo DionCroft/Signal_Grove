@@ -206,7 +206,7 @@ class ReviewedWorkerOperator:
             if name not in columns:
                 db.execute(f"ALTER TABLE signal_grove_reviewed_queue ADD COLUMN {name} TEXT")
 
-    def accept(self, raw, *, expected_route=None):
+    def accept(self, raw, *, expected_route=None, approval_sha256=None):
         """Authenticate a consumed scheduler review; return the same receipt on retry."""
         policy, key = self._credentials()
         try:
@@ -221,6 +221,8 @@ class ReviewedWorkerOperator:
         ident = approval.execution_id
         key_digest = sha256(key).digest()
         digest = sha256(sign(approval, key)).hexdigest()
+        if approval_sha256 is not None and approval_sha256 != digest:
+            raise WorkspaceError("CHANGED")
         with self._queue_db() as db:
             existing = self._existing(db, ident, digest)
             if existing is not None:
@@ -269,11 +271,12 @@ class ReviewedWorkerOperator:
                 self._admissions[ident] = deadline, admission
         return {"id": ident, "state": "ready"}
 
-    def observe(self, scope_id, profile, project, execution_id, worker_instance):
+    def observe(self, scope_id, profile, project, execution_id, worker_instance, *, approval_sha256=None):
         """Read the exact durable scope on the original row, including after restart."""
         if self._read_queue is None:
             raise WorkspaceError("UNAVAILABLE")
-        if not _matches(_ID, execution_id) or not _matches(_INSTANCE, worker_instance):
+        if (not _matches(_ID, execution_id) or not _matches(_INSTANCE, worker_instance)
+                or (approval_sha256 is not None and not _matches(_HEX, approval_sha256))):
             raise WorkspaceError("INVALID")
         policy, key = self._credentials()
         policy.grant(scope_id, profile, project)
@@ -282,7 +285,7 @@ class ReviewedWorkerOperator:
             if not set(_RECEIPT_FIELDS) <= columns:
                 raise WorkspaceError("NOT_FOUND")
             row = db.execute(
-                "SELECT q.state FROM requests q JOIN signal_grove_reviewed_queue r ON q.id=r.id "
+                "SELECT q.state, r.approval_sha256 FROM requests q JOIN signal_grove_reviewed_queue r ON q.id=r.id "
                 "WHERE r.id=? AND r.authority=? AND r.scope_id=? AND r.profile=? "
                 "AND r.project=? AND r.worker_instance=?",
                 (execution_id, policy.authority, scope_id, profile, project, worker_instance),
@@ -292,9 +295,13 @@ class ReviewedWorkerOperator:
             raise WorkspaceError("CHANGED")
         if row is None:
             raise WorkspaceError("NOT_FOUND")
-        if row[0] not in _QUEUE_STATES:
+        state, digest = row
+        if state not in _QUEUE_STATES or (approval_sha256 is not None and digest != approval_sha256):
             raise WorkspaceError("CHANGED")
-        return {"id": execution_id, "state": row[0]}
+        receipt = {"id": execution_id, "state": state}
+        if approval_sha256 is not None:
+            receipt["approval_sha256"] = digest
+        return receipt
 
     def lookup(self, ident):
         if not _matches(_ID, ident):

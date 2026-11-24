@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Scheduled worker receipt identity
+
+The worker's durable reviewed queue already stores the SHA-256 of the
+signed approval. The coordinator now carries that digest on submission
+and requires the same stored digest during receipt recovery. The broker
+checks the digest before reservation. Its read-only lookup matches the
+original execution, authority, profile, project and worker instance
+before checking the approval. Reconnecting through a replacement
+broker can read the original row. A changed or missing digest leaves
+the new dispatch outcome unknown. Legacy status queries retain their
+existing form.
+
+The final Windows suite passed all 110 native cases with a real owner
+pipe and disposable queue. It refused a different signed envelope
+before inserting a row. After changing the broker instance, the pipe
+returned the receipt for the original digest and refused a different
+digest with the same execution and scope. The queue's lease remained
+the same across those reads. The portable suite passed 981 applicable
+cases with 274 platform skips. The subprocess tests checked canonical
+submission bytes and refused altered or missing digest echoes.
+
+The initial full suites refused the changed package under its original
+loader pin. An independent comparison against the previous commit
+proved that exactly two of the 14 LF-normalized package members
+changed. The new immutable package digest is
+`f645bd21694b92a581298fe084b6b3df7b51d4f4d58b48eebec87a831c5d7e74`. The repeated loader tests verified the new package
+and retained the modified-byte refusal. Hosted Linux coordinator
+fixtures and live scheduled execution remain open.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Windows native receipt | `53d74182359f9679b921b7a2822712b9fa6f913fc50257214a624feef52cfef1` |
+| Portable results | `f92b9e0f96193c10cb16c2f622be3a83fb806454cccaa0924932b67f4c73b830` |
+
 ## Current step in Chat
 
 Chat uses the selected profile, conversation and run to show a current
