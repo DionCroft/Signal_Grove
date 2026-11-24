@@ -205,8 +205,24 @@ The candidate verified unchanged admission and receipt tables across
 the retry checks, SQLite integrity and foreign keys, and one claim for
 the fresh input. A retired request from a different principal was
 refused. This establishes a persistence result for the exercised
-inputs. Native gateway lookup and platform acceptance for an affected
-upgrade remain open. The strict compatibility gate remains in force.
+inputs. The exact gateway's receipt authority was then exercised on
+a byte-identical copy of the synthetic stamped store. Two reads by
+the same fixture actor returned the original queued receipt. A different
+principal, different profile, missing submit capability and mismatched
+session each produced the expected refusal. The native route gave
+not-found for the deleted session while SQLite still returned its
+original completed receipt. The active admission row and retained
+receipt matched before and after the reads. No admission or execution
+was retried.
+
+The fixture called the native handler with constructed actors and one
+dormant session. Transport authentication and production upgrade
+acceptance remain open. The first input check used the wrong cached
+Git tree schema. A second probe mistook two logical receipts for two
+current rows. Independent read-only reconciliation found one identical
+active row in both copies, and the corrected probe checked the active
+row and retained receipt separately. The strict compatibility gate
+remains in force.
 
 | Evidence | SHA-256 |
 | --- | --- |
@@ -214,6 +230,8 @@ upgrade remain open. The strict compatibility gate remains in force.
 | Pre-stamp upgrade result | `467d5670440e90b8bc991ac1ae49c7d9121286c64b2020ebe034336cce301948` |
 | Stamped-digest upgrade result | `f15e1f54cd53a619ba40542e875d898897be5f6674ed4fb4c5df5a4a890779a3` |
 | Fresh candidate result | `255c88d74db876f25c2993e522aece1304005665a0f73666bc093fefc7295245` |
+| Isolated native receipt probe | `d1512fd58a6620af14d76e5ff9341e76abb8b519b768f83e9401b06c68f7c327` |
+| Native receipt result log | `e4995ea1fe78c350c38c621df99b8ecad33d9c686e046db7b3260efc02d73ab2` |
 
 ## Focused Android keyboard and helper consent checks
 
