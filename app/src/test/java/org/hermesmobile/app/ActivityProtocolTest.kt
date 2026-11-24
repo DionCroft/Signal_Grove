@@ -21,6 +21,24 @@ class ActivityProtocolTest {
         assertEquals(5,activityTimeline(rows).size)
         assertEquals("failed",activityTimeline(listOf(event("1","a","failed",1),event("2","a","started",2))).single().latest.kind)
     }
+    @Test fun liveStepUsesOnlyAnUnfinishedIdentifiedCallForTheCurrentRun() {
+        val current = Conversation("c", "scope-a", "session", runId = "r", status = "running",
+            executionGeneration = 2)
+        val start = event("start", "current-call", "started", 1)
+        val timeline = activityTimeline(listOf(
+            start,
+            event("anonymous", "", "started", 20),
+            event("old-run", "old-call", "started", 21, run = "other"),
+            event("old-gen", "old-generation-call", "started", 22, gen = 1),
+            event("foreign", "foreign-call", "started", 23).copy(sessionKey = "other-session"),
+        ))
+        assertEquals(start, activeActivity(current, timeline))
+        assertNull(activeActivity(current, activityTimeline(listOf(start, event("end", "current-call", "failed", 2)))))
+        for (status in listOf("queued", "unknown", "completed", "waiting_for_approval")) {
+            assertNull(activeActivity(current.copy(status = status), timeline))
+        }
+        assertNull(activeActivity(current.copy(detailsJson = """{"source":"cli"}"""), timeline))
+    }
     @Test fun activityShowsOnlyCurrentIdentifiedWaitsWithoutRequestContent() {
         val conversation = Conversation("scope-a:session", "scope-a", "session", runId = "run",
             status = "waiting_for_approval", executionGeneration = 4)
@@ -49,7 +67,6 @@ class ActivityProtocolTest {
         val update=StreamDecoder.decode(SseEvent("tool.completed","""{"tool":"shell","tool_call_id":"call-b","duration":0.125,"error":true,"execution_generation":4,"seq":9,"preview":"fixture-raw-result","args":{"credential":"fixture-raw-argument"}}"""))
         val tool=update.tool!!;assertEquals("call-b",tool.callId);assertEquals("failed",tool.kind);assertEquals(125L,tool.durationMs);assertEquals(4L,tool.generation)
         assertEquals("", tool.preview)
-        assertEquals("tool.failed: shell", update.activity)
         assertFalse(update.toString().contains("fixture-raw-"))
         assertNull(ActivityProtocol.duration(JsonPrimitive(-1)));assertNull(ActivityProtocol.duration(JsonPrimitive(1e30)))
     }
@@ -85,7 +102,10 @@ class ActivityProtocolTest {
     }
     @Test fun incompleteIsAnExplicitTerminalRunOutcomeAndPrivateReasoningEventsStayUnstored() {
         assertEquals("incomplete",StreamDecoder.decode(SseEvent("run.incomplete","{} ")).status)
-        val private=StreamDecoder.decode(SseEvent("reasoning.available","""{"text":"private"}"""))
-        assertEquals("",private.delta);assertNull(private.activity);assertTrue(private.telemetry.isEmpty());assertNull(private.tool)
+        for (type in listOf("reasoning.available", "assistant.commentary", "message.interim")) {
+            val update = StreamDecoder.decode(SseEvent(type, """{"text":"private-text","seq":12}"""))
+            assertEquals(StreamUpdate(sequence = 12), update)
+            assertFalse(update.toString().contains("private-text"))
+        }
     }
 }

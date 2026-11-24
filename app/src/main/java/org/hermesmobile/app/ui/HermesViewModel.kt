@@ -448,6 +448,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     current={current(operation) && selected.value==expectedSelection},
                     knownLock=previousRuntime.reported.takeIf {previousRuntime.lockReported})
                 if(!current(operation) || selected.value!=expectedSelection) throw CancellationException("Conversation selection changed.")
+                activity.value=""
                 require(resolved.choice.isDefault || capabilities.value?.has("model_options")==true || capabilities.value?.endpoints?.containsKey("model_options")==true) {Words.NotAdvertised.localized(preferences.value)}
                 val fetched=System.currentTimeMillis()
                 resolved.runtime?.let {result->discovery.value=discovery.value.copy(results=discovery.value.results+(DiscoveryResource.RuntimeModels to result),
@@ -535,7 +536,6 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     telemetry=RunTelemetry.merge(telemetry,update.telemetry)
                     if(update.sessionId.isNotBlank()) c=c.copy(remoteId=update.sessionId)
                     text+=update.delta;update.finalText?.let {text=it}
-                    update.activity?.let {activity.value=it.take(1000)}
                     val status=update.status?.takeUnless {c.transport!="compat" && it in RunStates.responseEnded}
                         ?: "response_finished".takeIf {update.responseBoundary && c.transport=="compat" && c.status !in RunStates.responseEnded && c.status !in RunStates.authoritativeTerminal}
                     status?.let {runStatus.value=it;c=c.copy(status=it);terminalSeen=it in terminal}

@@ -34,9 +34,13 @@ internal fun activityWaits(conversation: Conversation, controls: List<PendingCon
         .toList()
 }
 
-internal fun activeActivity(conversation: Conversation, timeline: List<ActivityEntry>): ToolEvent? =
-    timeline.asSequence().map { it.latest }.filter {
-        conversation.runId.isNotBlank() && it.sessionKey == conversation.key &&
-            it.runId == conversation.runId && it.kind == "started" &&
-            (conversation.executionGeneration == null || it.generation == conversation.executionGeneration)
+internal fun activeActivity(conversation: Conversation, timeline: List<ActivityEntry>): ToolEvent? {
+    if (conversation.runId.isBlank() || conversation.status != "running" ||
+        SessionOrigin.readOnly(conversation)) return null
+
+    return timeline.asSequence().map { it.latest }.filter { event ->
+        event.sessionKey == conversation.key && event.runId == conversation.runId &&
+            event.callId.isNotBlank() && event.kind == "started" &&
+            (conversation.executionGeneration == null || event.generation == conversation.executionGeneration)
     }.maxByOrNull { it.receivedAt }
+}

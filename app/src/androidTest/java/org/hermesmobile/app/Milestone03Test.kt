@@ -109,6 +109,10 @@ class Milestone03Test {
         val prompt = vm.controls.value.single().prompt
         assertTrue(prompt.isNotBlank())
         compose.onNodeWithText(Words.Later.localized(AppPreferences())).performClick()
+        compose.onNodeWithTag("chat-current-activity")
+            .assertIsDisplayed()
+            .assertTextContains(Words.ActivityApprovalWait.localized(AppPreferences()).substringBefore('\n'), substring = true)
+        compose.onNodeWithText(prompt).assertDoesNotExist()
         compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()), substring = true).performClick()
 
         val timeline = hasTestTag("activity-timeline")
@@ -121,6 +125,7 @@ class Milestone03Test {
         compose.onNodeWithContentDescription(Words.ReviewRequest.localized(AppPreferences()), substring = true).performClick()
         compose.onNodeWithText(Words.Deny.localized(AppPreferences())).performClick()
         compose.waitUntil(10000) { !vm.busy.value && vm.runStatus.value == "completed" }
+        compose.onNodeWithTag("chat-current-activity").assertDoesNotExist()
 
         compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()), substring = true).performClick()
         compose.onNodeWithTag("activity-wait").assertDoesNotExist()

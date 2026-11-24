@@ -28,6 +28,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.noties.markwon.Markwon
 import org.hermesmobile.app.data.ChatMessage
 import org.hermesmobile.app.data.SessionOrigin
+import org.hermesmobile.app.data.activeActivity
+import org.hermesmobile.app.data.activityTimeline
+import org.hermesmobile.app.data.activityWaits
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -47,7 +50,6 @@ import java.time.format.DateTimeFormatter
     val historyLoading by vm.historyLoading.collectAsStateWithLifecycle()
     val caps by vm.capabilities.collectAsStateWithLifecycle()
     val status by vm.runStatus.collectAsStateWithLifecycle()
-    val activity by vm.activity.collectAsStateWithLifecycle()
     val current by vm.selectedConversation.collectAsStateWithLifecycle()
     var runtimeMessageId by remember(current?.key) { mutableStateOf<String?>(null) }
     val readOnly=current?.let(SessionOrigin::readOnly)==true
@@ -89,7 +91,7 @@ import java.time.format.DateTimeFormatter
             else LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("chat-messages"),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
                 items(messages,key={it.id}) { message -> MessageCard(message, current) { runtimeMessageId = message.id } }
             }
-            if(busy && activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
+            if (busy) LiveChatActivity(vm)
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                 LocalAiEntry(compact=true)
                 Box(Modifier.weight(1f)) {RunControls(vm,compact=true)}
@@ -141,6 +143,36 @@ import java.time.format.DateTimeFormatter
     if(history) ConversationBrowser(vm) {history=false}
     if(resolve) AlertDialog(onDismissRequest={resolve=false},title={Text(label(Words.ResolveUnknown))},text={Text(label(Words.ResolveInfo))},confirmButton={TextButton({resolve=false;vm.acknowledgeUnknown()}) {Text(label(Words.ResolveUnknown))}},dismissButton={TextButton({resolve=false}) {Text(label(Words.Cancel))}})
 }
+@Composable private fun LiveChatActivity(vm: HermesViewModel) {
+    val selected by vm.selected.collectAsStateWithLifecycle()
+    val scope by vm.profileScope.collectAsStateWithLifecycle()
+    val current by vm.selectedConversation.collectAsStateWithLifecycle()
+    val events by vm.toolEvents.collectAsStateWithLifecycle()
+    val controls by vm.controls.collectAsStateWithLifecycle()
+    val localStatus by vm.activity.collectAsStateWithLifecycle()
+    val conversation = current?.takeIf { it.key == selected && it.scope == scope && !SessionOrigin.readOnly(it) }
+
+    val summary = conversation?.let { chat ->
+        val wait = activityWaits(chat, controls).firstOrNull()
+        val tool = if (wait == null && chat.status == "running") {
+            val timeline = remember(events) { activityTimeline(events) }
+            activeActivity(chat, timeline)
+        } else null
+        when {
+            wait?.state == "unknown" -> label(Words.DecisionUnknown)
+            wait?.state == "responding" -> label(Words.ResponseSending)
+            wait != null -> label(if (wait.approval) Words.ActivityApprovalWait else Words.WaitingInput)
+            tool != null -> label(Words.ActivityInProgress).replace("{name}", activityName(tool))
+            else -> localStatus
+        }
+    }.orEmpty()
+
+    if (summary.isNotBlank()) {
+        Text(summary.replace("\n", " · "), Modifier.testTag("chat-current-activity"),
+            style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
 @Suppress("DEPRECATION")
 @Composable internal fun MessageCard(message: ChatMessage, conversation: org.hermesmobile.app.data.Conversation?, openRuntime: () -> Unit) {
     val clipboard=LocalClipboardManager.current

@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Current step in Chat
+
+Chat now shows a tool or decision wait from the selected running Hermes
+conversation. The tested change uses identified calls and matching control
+records. All 1,244 JVM tests passed, along with debug and release lint and
+both debug APK builds. The local emulator debug signer differs on Android 17,
+so clean hosted device coverage remains open. On the physical Xiaomi,
+scrcpy hardware-keyboard navigation opened and closed On-device AI in
+signed beta.11.
+[Validation](docs/VALIDATION.md#current-step-in-chat).
+
 ## Live gateway admission prerequisites
 
 An authenticated live status frame failed at the admission observation.

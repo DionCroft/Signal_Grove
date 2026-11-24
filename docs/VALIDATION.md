@@ -1,5 +1,42 @@
 # Current development validation — audit follow-up
 
+## Current step in Chat
+
+Chat uses the selected profile, conversation and run to show a current
+identified tool or a pending approval or answer directly under the messages.
+A finished call leaves the live indicator. Saved, unidentified and
+foreign-run events remain outside the live indicator. A matching decision
+wait takes priority. The decision dialog still owns the request prompt.
+Free-form commentary and interim text are dropped by the Runs decoder,
+with the sequence retained for reconnect. Request and serving model details
+remain available in the Activity dialog when reported by Hermes.
+
+The exact Android source passed 1,244 JVM tests in 118 reports, both lint
+variants with zero errors, and both debug APK assemblies. The first SDK
+directory lacked its Android 37 platform jar. A separate build reached Kotlin
+compilation and found an obsolete unit assertion for the removed field.
+The final build used the complete SDK and updated the assertion. The logs
+for both preparation failures remain in private evidence.
+
+The local emulator debug installs stopped before instrumentation. Android 17
+reported a signer mismatch after the non-streaming transfer. Both production
+package identities and display preferences were verified after the attempts.
+The modified compact-screen approval case and existing saved-history and
+Activity cases require clean device verification. Live Hermes and worker
+acceptance remain open.
+
+On a USB-connected Xiaomi M098FE running Android 17 and signed beta.11,
+scrcpy 4.1 with hardware keyboard mode moved focus using Tab and Shift+Tab.
+Return opened On-device AI and activated its Close control. Signal Grove
+returned to Settings with the model unloaded, and the mirror session ended.
+[Official scrcpy keyboard modes](https://github.com/Genymobile/scrcpy/blob/master/doc/keyboard.md).
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Windows build receipt | `ae7c82f8ea7ec1ce0d78de41f619b0d72c363fdfef0f80509992f8f0fe879717` |
+| Debug APK | `86d7d351d3c733637fc618a1fa4b026bea5238c8e0e26ead4efd9bb724f7d27b` |
+| Instrumentation APK | `747575eec5f9c299e9468dfc7c7571aa43e4ef8f20f17b51370e15f69e3fb59b` |
+
 ## Live gateway admission diagnosis
 
 The native gateway reader reports fixed failure phases for authenticated

@@ -47,7 +47,7 @@ private fun metricWord(key:String)=when(key) {
 private val publicActivityDetails = setOf("child_session_id", "subagent_id", "delegation_id", "parent_id",
     "model", "status", "duration_seconds", "tool_count", "api_calls", "depth", "task_index", "task_count")
 
-@Composable private fun activityName(event: ToolEvent): String = when {
+@Composable internal fun activityName(event: ToolEvent): String = when {
     event.category == "subagent" -> label(Words.Subagent)
     else -> event.tool.takeIf { it.isNotBlank() && it.length <= 256 && it.none(Char::isISOControl) }
         ?: label(Words.ToolActivity)
@@ -58,9 +58,7 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
     live: Boolean, dismiss: () -> Unit,
 ) {
     val timeline = remember(events) { activityTimeline(events) }
-    val currentTool = if (live && conversation.status in setOf("running", "queued")) {
-        activeActivity(conversation, timeline)
-    } else null
+    val currentTool = if (live) activeActivity(conversation, timeline) else null
     val runtime = remember(report?.telemetryJson) {
         RunTelemetry.parse(report?.telemetryJson.orEmpty())["runtime"] as? JsonObject
     }
