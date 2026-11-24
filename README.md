@@ -54,7 +54,8 @@ the draft after closing the helper. The current candidate also passed a
 beta.10 upgrade on an Android 17 emulator. Its native libraries use relative
 diagnostic paths. The corrected hosted build passed **1,243 JVM tests**,
 **1,245 policy tests** and both lint variants with zero errors. The full
-device matrix and physical Xiaomi upgrade remain pending.
+device matrix passed **1,262 Android 8 / 1,263 Android 17** cases. The
+physical Xiaomi upgrade remains pending.
 [Beta.11 candidate scope](docs/releases/1.1.0-beta.11.md) ·
 [Validation evidence](docs/VALIDATION.md#corrected-beta11-signed-and-offline-checks).
 

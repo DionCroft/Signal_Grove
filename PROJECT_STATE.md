@@ -20,8 +20,9 @@ The corrected hosted build passed 1,243 JVM tests, 1,245 policy tests and
 both lint variants. The earlier phone draft and Voice timeouts did not
 reproduce in isolation with the same APKs. Both methods and the interrupted
 OAuth case passed on the corrected local APK pair on Android 8 and 17.
-Full hosted device coverage, the signed Xiaomi upgrade and live retention
-still need evidence before publication.
+The complete hosted matrix passed all 1,262 Android 8 and 1,263 Android 17
+cases. The signed Xiaomi upgrade and live retention checks are next before
+publication.
 [Validation](docs/VALIDATION.md#corrected-beta11-signed-and-offline-checks).
 
 ## Native build paths in beta.11 APKs

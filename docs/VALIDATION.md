@@ -44,8 +44,17 @@ recorded as failed. The two UI methods and the OAuth test interrupted
 by the older Android 8 disconnect each passed on the corrected local
 APK pair on Android 8 and 17. These focused tests use synthetic sessions.
 
-Full device coverage for d6834a2, the signed Xiaomi upgrade and the
-production connection and data checks remain open.
+All four hosted partitions for d6834a2 passed. The downloaded archives
+matched their published digests and the exact hosted debug APK pair.
+Recomputing coverage from the raw inventories and complete execution logs
+matched the hosted aggregation. Android 8 covered all 1,262 cases in
+shards of 595 and 667. Android 17 covered all 1,263 cases in shards of
+596 and 667. The original Demo denial, both Android 17 draft and Voice
+failures, and the Android 8 OAuth method interrupted by the earlier
+ADB loss passed on the exact corrected candidate.
+
+The Xiaomi upgrade, production connection and data checks, and external
+model acceptance remain open.
 [Corrected CI run](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942).
 
 ## Native build paths in beta.11 APKs
