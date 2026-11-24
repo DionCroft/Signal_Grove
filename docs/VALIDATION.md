@@ -1,5 +1,34 @@
 # Current development validation — audit follow-up
 
+## Native build paths in beta.11 APKs
+
+The private signed 73f68da APK preserved 460 absolute workstation path
+occurrences across 16 llama.cpp and ggml libraries. The paths came from
+the fetched source tree. The Android NDK CMake build now uses Clang file
+prefix mapping for the source and build directories. Native messages
+retain relative filenames.
+[Compiler option reference](https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-ffile-prefix-map).
+
+The rebuilt debug and unsigned release APKs each contain the original
+32 native members across four ABIs and zero matches for the workstation
+path markers. Both inference ABIs still contain relative source names.
+NDK llvm-readelf verified the same library names, dependencies, and
+dynamic symbol contracts across all 32 release members. Twelve release
+members were byte-identical. All 1,243 JVM cases and both lint variants
+passed. The first offline LFM3 smoke preflight timed out hashing the
+existing model before installing either debug package. That runtime
+check remains pending.
+
+On the earlier 73f68da hosted run, Android 8 shard 0 passed 595 methods.
+Shard 1 recorded 505 positive methods of 667 before the instrumentation
+command ended with exit 255. Its archive had no final summary or assertion
+failure. Both original archives were verified against their GitHub
+digests and retained before drawing any release conclusion.
+[Earlier hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45409815501).
+
+The corrected source still requires its full device matrix, original
+production signing, signed Xiaomi upgrade, and release checks.
+
 ## Compact phone composer and standard device reconciliation
 
 The phone composer keeps Chat options beside the draft, outside the

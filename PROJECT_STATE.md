@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native build paths in beta.11 APKs
+
+The signed 73f68da candidate contained workstation paths in 16 native
+libraries. The native build now uses relative paths for source and build
+diagnostics. Both rebuilt APKs passed the path scan across all 32 native
+libraries, and the release APK retained their dynamic library and
+symbol contracts. All 1,243 JVM tests and both lint variants passed.
+The rebuilt source needs its exact hosted matrix, signed production
+build, and physical Xiaomi upgrade.
+[Validation](docs/VALIDATION.md#native-build-paths-in-beta11-apks).
+
 ## Compact phone composer and standard device reconciliation
 
 Phone Chat reserves space for the draft and its options before measuring
