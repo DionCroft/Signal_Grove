@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## Authenticated scheduling on the current Hermes pins
+
+The exact stable `8fc0374447313e276f6b9a2764bfc750190c966a` and main
+`16fd059ad8726bf29f54c014cd6200043af9dbf1` archives matched the complete
+Git trees for 27,571 and 27,656 regular files. Their selected source and
+test hashes also matched after the test runs. Separate Windows fixture
+homes on E: used Python 3.14.9 with the existing test dependency cache.
+The first preflight stopped before test collection because an alternate
+Python copy lacked its encodings module. The complete pinned interpreter
+ran the two cohorts with explicit UTC for the two known date fixtures.
+
+Each pin passed the same 112 tests for profile routing, persistence,
+run history, per-job time zones, DST, grace, and catch-up. There were no
+skips or isolation denials. A separate probe used the actual FastAPI
+dashboard with its generated fixture token and two disposable profiles.
+All six unauthenticated detail, history, and edit requests returned 401
+and left both job and SQLite files intact. With the fixture token, each
+job returned its own session, a foreign profile hint resolved to the
+actual owner, and historical output still lacked a row-level profile.
+The response envelope remained `runs` and `limit`.
+
+The probe also created a paused job with an explicit time zone and
+an empty tool allowlist. Invalid time zone and malformed allowlist edits
+both returned 400 and preserved the files. A valid schedule/time-zone
+edit kept the job paused and preserved its zero-tool allowlist. Only the
+owning profile's job file changed. Both SQLite stores reported
+`quick_check=ok` and the fixture started no execution.
+
+| Exact pin | Upstream JUnit SHA-256 | Dashboard proof SHA-256 |
+| --- | --- | --- |
+| Stable | `8c3b822326b706073cff0814f9120c0dd54d0954d09b2662469815a124609d00` | `848d2aed19a2ee89695bda963c0904fa7d0abe16c905f961044c39ea2d8f6c72` |
+| Main | `e31e83cfea6b813fd7864e603e5fc5c5267ac44433f3fbc487794f09b6500ea9` | `848d2aed19a2ee89695bda963c0904fa7d0abe16c905f961044c39ea2d8f6c72` |
+
+This is in-process HTTP evidence for the native dashboard. The older
+dashboard treats a profile as a routing hint for jobs. The app's own
+explicit profile checks and guarded mutation route still apply. Live
+Tailscale, worker grants, approved execution, receipt recovery, and exact
+result/log reads need separate end-to-end verification.
+[Exact main dashboard routes](https://github.com/NousResearch/hermes-agent/blob/16fd059ad8726bf29f54c014cd6200043af9dbf1/hermes_cli/web_routers/cron.py).
+
 ## Exact stable and main source inspection
 
 [Combined native acceptance](https://github.com/DionCroft/Signal_Grove/actions/runs/45460011738/job/138679715656)

@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Native dashboard scheduler evidence
+
+Both current Hermes pins pass the same isolated scheduler, profile,
+history, time-zone, and catch-up suite. Real dashboard HTTP probes proved
+authenticated paused edits and their storage scope. Continue with the
+approved run and reconnect receipt, then validate that the live Android
+owner path enforces the explicit profile and returns the scoped results
+and logs through the worker and Pi.
+[Validation](VALIDATION.md#authenticated-scheduling-on-the-current-hermes-pins).
+
 ## Exact upstream comparison and runtime acceptance
 
 Both hosted exact-SHA inspections now reproduce the semantic review

@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Authenticated scheduler checks on the current Hermes pins
+
+Stable and main each passed the same 112 scheduler and history tests.
+The real dashboard accepted a paused timetable edit only with
+authentication, preserved the paused state and zero-tool allowlist,
+and wrote only the owning profile's fixture job file. The native history
+route still follows the actual job owner when the supplied profile is
+a hint. Live Pi-to-worker execution and reconnect acceptance remain open.
+[Validation](docs/VALIDATION.md#authenticated-scheduling-on-the-current-hermes-pins).
+
 ## Upstream Hermes layout inspection
 
 The combined native workflow passed all 1,252 Linux policy methods.
