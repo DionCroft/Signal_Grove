@@ -20,11 +20,12 @@ attribution remain open.
 
 ## Hosted Android 8 startup-switch failure
 
-On source `6d63326`, the Android 8 shard recorded 594 passing methods
-out of 595. The phone startup test could not find the setup toggle.
-The exact failure artifact and APK pair were retained. The local
-Android 8 emulator did not supply a usable guest for reproduction.
-The later full matrix is a separate verification gate.
+The original Android 8 shard on `6d63326` recorded 594 passing
+methods out of 595. Its startup test could not find the setup toggle.
+A fresh Android 8 emulator ran the same APKs with the verified stock
+keyboard preparation. All five startup cases passed. The failing
+method and its preceding 17 hosted methods then passed in their
+original order. The full matrix remains the release gate.
 [Validation](docs/VALIDATION.md#hosted-android-8-startup-switch-failure).
 
 ## Reviewed checkout held through queue reservation
@@ -242,6 +243,28 @@ The hosted Linux suite passed all 1,247 methods and verified the isolated
 test unit stopped. The coordinated reload has an isolated fixture above. Live Pi activation
 remains open.
 [Validation](docs/VALIDATION.md#reviewed-service-startup-after-reload).
+
+## Beta.11 published
+
+The public version code 116 APK is built from `d6834a202bf5d4178fc1c27855312a6806da0986`.
+The physical Xiaomi upgrade verified the retained server connection,
+earlier messages, project details, local model, and earlier phone turns.
+Anonymous HTTPS downloads verified all five assets. The beta.10 updater
+completed the approval-based public upgrade and retained its preview
+preference in a clean emulator. Live Pi-to-worker
+workspace and automation acceptance remains part of the active audit.
+[Release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11) ·
+[Validation](docs/VALIDATION.md#beta11-public-release).
+
+## Live workspace preflight after beta.11
+
+Both Pi units still match the reviewed processes and loaded configuration.
+The staged source, isolated PM facts and launcher match the reviewed
+packet. The canonical candidate PM facts and activation policy are absent.
+The live Unix socket authenticated the gateway's identity and home.
+A separate bounded work-status request remained unproven. Workspace
+activation remains held until scope and current work are verified.
+[Validation](docs/VALIDATION.md#live-workspace-preflight-after-beta11).
 
 ## Native build paths in beta.11 APKs
 

@@ -79,6 +79,17 @@ managed-host upgrade from the affected revision, verify retained
 receipt access and reconciliation without replay against the native
 gateway. [Validation](VALIDATION.md#hermes-client-stamp-retry-compatibility).
 
+## Live workspace preflight after beta.11
+
+The published Android release has passed the physical upgrade and public
+updater checks. Fresh Pi observations match the reviewed staging packet.
+The running gateway now has an authenticated native identity observation.
+Work status remains unproven. Reconcile the registered-work and admission
+coverage before attempting the production drain. Canonical PM facts, backup
+and separate live activation approval remain prerequisites. Complete
+read-only workspace acceptance before enabling scheduled worker execution.
+[Validation](VALIDATION.md#live-workspace-preflight-after-beta11).
+
 ## Read-only workspace preflight refreshed
 
 Both live Pi process identities, loaded references, original runtime

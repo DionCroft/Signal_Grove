@@ -78,6 +78,26 @@ its own release gate.
 | Hosted failed shard app APK | `b58365d4fe6e2d5f4c996e2e4030b16c994596f4865a22c23dc8cf97e5949b42` |
 | Hosted failed shard test APK | `42543e855f40af9476abd26f03fff7f77ebc9a2fc0aa79918599d514ad484ad5` |
 
+A new Android 8 emulator used the known working system image
+configuration, a freshly zeroed initialization partition and stock
+initial userdata. It used a distinct name, serial and E: data tree.
+The installed debug app and test APK SHA-256 values matched the
+retained hosted artifacts. The existing keyboard preparation verified
+the stock keyboard after one acknowledged first-use hint dismissal.
+
+The complete `PhoneStartupRoutingTest` class passed all five cases.
+A second run selected hosted positions 484 through 501 inclusive.
+All 18 passed and the observed ordering exactly matched the hosted
+failure log. The 500-test shard prefix was outside the replay.
+The visible startup toggle failure remains a full-matrix gate.
+
+| Local replay evidence | SHA-256 |
+| --- | --- |
+| Verified stock keyboard preparation | `f1d90c0f40a14514bdd9aef21c74d799d63042a359e52c51aed362cb1de1aa55` |
+| Exact five-case instrumentation log | `c6ba912008c265c83c7d91ab0358ca6af634be786286f7d8d24779725c07bf3e` |
+| Exact 18-method neighborhood log | `71db73793019fea3874989dd8b856f8fab0edf90e4549bb7ed5a911d868aec6b` |
+| Checked method set and original-order receipt | `d4d902bf4080f53c89868fdd393b885adf76da8fab79d4ed602d2c98d448be2e` |
+
 ## Reviewed checkout held through queue reservation
 
 A checkout could change after the signed review was observed and before
@@ -879,6 +899,79 @@ verification steps. The workflow's independent upstream source scans
 stopped at missing required paths on the then-current stable and main
 revisions.
 [Hosted Linux policy job](https://github.com/DionCroft/Signal_Grove/actions/runs/45437051981/job/138597600491).
+## Live workspace preflight after beta.11
+
+The reviewed Pi packet SHA-256 is
+`36fe747034bb0008b297edcd6888b99610aa42ad62608fcf83dd30a0316e02f6`.
+Both loaded services still matched their recorded process incarnation,
+runtime source, executable and two configuration files each. Both
+were running and neither manager observation required a reload. The
+staged manifest, isolated PM facts, install stamp and launcher matched.
+The protected policy is absent and its existing parents passed the mode
+checks. The expected package-manager facts for the staged source in
+the canonical service home are also absent.
+
+The native observer selected the reviewed existing gateway, checked
+the profile home and used one kernel-owner-bound connection for status.
+The strict work-status projection remained unproven. The outcome stays
+unknown and the original status request was left unreplayed. A separate
+`identify` request on a new verified socket returned the expected gateway
+PID and home, with protocol 1 and systemd reported by the SDK. Six exact
+maintained-source digests matched on the Pi. The returned record contains
+match results and counts. Process identity does not establish work scope.
+
+The existing deployed-service configuration and both process incarnations
+matched again after observation. The status check grants no live idle or
+cutover authority. The Windows gateway-control cohort passed 23 methods
+with eight native Linux cases skipped on Windows. Live all-profile and
+worker coverage, canonical PM, fresh encrypted backup, and separately
+approved activation remain open.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Reviewed live layout and staged paths | `a62378562a5e200eb91189e2502e36809624d0ea383c31bc13afd7cf0e3771e7` |
+| Original status outcome | `5810b9f2f7aed01b491565aa35b0dd9b254e4665177a18c34be7cc13cdaa0fe9` |
+| Authenticated gateway identity | `c142c9dcba8ea5d5214e229879514c79d0f728f5f39faa91faef5d21dfbeb57d` |
+
+## Beta.11 public release
+
+The exact source `d6834a202bf5d4178fc1c27855312a6806da0986` completed
+both Android device inventories. Android 8 ran 1,262 standard methods
+and Android 17 ran 1,263. The matrix treats external-model gates
+separately. [Hosted device run](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942).
+
+The original-signed APK upgraded the enrolled Android 17 Xiaomi from
+code 115 to code 116 and retained its package UID and first installation
+timestamp. Android installed the exact staged SHA-256. The initial
+connection check failed while the existing Tailscale VPN was disconnected.
+Reconnecting that account restored Pi reachability. Signal Grove then
+connected using its saved API configuration. A refreshed history list
+opened an existing conversation and showed an earlier Hermes reply.
+The saved management session needed renewal. After renewing it in the
+app, the read-only inventory returned an existing project's details.
+The phone model library showed the previously imported LFM3 model.
+The app reopened a completed phone conversation and showed one earlier
+selectable turn with the model unloaded.
+
+The APK is 76,598,310 bytes. Its SHA-256 is
+`79522149d6c08b74256cb0af51b36d2602d933a4672c18712daa11a61bcfe6aa`.
+Its original certificate SHA-256 is
+`bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`.
+The APK, checksums, certificate, SBOM and provenance all matched their
+staged bytes after unauthenticated HTTPS downloads. The prerelease tag
+points to the signed source revision on main. [GitHub release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11).
+
+The public updater was verified on a clean Android 17 emulator with
+the original public beta.10 installed. Beta.10 found beta.11 in the
+preview feed, displayed the review, and downloaded the APK after explicit
+approval. Android still showed code 115 at its separate Update prompt.
+After confirmation, Package Manager reported code 116 using the exact
+public APK SHA-256. The first installation timestamp and enabled preview
+setting were retained. No APK was sideloaded for that transition.
+
+The live workspace attachment path, approvals, scheduled execution and
+results, broader Hermes compatibility, and outstanding phone AI cases
+remain tracked in the [full audit](AUDIT_EXECUTION_PLAN.md).
 
 ## Native build paths in beta.11 APKs
 

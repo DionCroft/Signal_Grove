@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-beta.11 - 24 November 2026 - Activity, context and scheduling preview
 
 - Open Hermes Activity in Chat to see scoped tool and subagent events,
   reported outcomes, timing and the runtime recorded for the run.
@@ -23,7 +23,7 @@
 - Verify delegation recovery after SQLite contention and keep a gateway
   drain pending while the original ledger still records unbound work.
 
-[Candidate coverage and remaining checks](docs/VALIDATION.md#integrated-audit-release-candidate).
+[Release coverage and remaining checks](docs/VALIDATION.md#beta11-public-release).
 
 ## 1.1.0-beta.10 - 21 November 2026 - offline AI and reliability preview
 
