@@ -1,5 +1,84 @@
 # Current development validation — audit follow-up
 
+## Compact phone helper and native keyboard testing
+
+[Android CI run 45306944580](https://github.com/DionCroft/Signal_Grove/actions/runs/45306944580)
+recorded 666 passes from 667 starts in Android 8 shard 1. The remaining
+helper consent target had empty visible bounds. The subsequent run
+[45313188074](https://github.com/DionCroft/Signal_Grove/actions/runs/45313188074)
+was cancelled during verify. Its device matrix was skipped.
+
+The first local candidate repositioned the target and passed eleven
+focused methods on each API at standard height. At 1080 by 1120 and
+font scale 1.3, Android 8 exposed a keyboard viewport ending at pixel
+340 and empty clipped bounds for consent. The next candidate proved
+a native typed-draft handoff on Android 8 and four one-tap consent
+and run inputs on Android 17. Android 8 still showed a visible keyboard
+in the normal and compact consent runs. A separate Android 17 case
+could not reach the helper entry from its active composer. The test
+driver restored the original emulator keyboard, display and font settings
+and rechecked both production APK digests.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Hosted Android 8 shard 1 log | `8ace7600d75a4fdf1e1608822039a0e71a67299b85e9f2a718a36d29edcfdda1` |
+| Earlier compact Android 8 log | `15b1a78feb0c04cb9af3d06e59869bb377483b5954f508074a78265627b6f3f6` |
+| Verified window-policy candidate Android 8 normal | `7818dc9888b97a93fbb33780e640854a28694c6eb360b4b0151c1cec4bc8fc3c` |
+| Verified window-policy candidate Android 17 normal | `9454541cbf8e92af29d3d82b17fee6267d2cae1dc80eb6f0ed5e04ff167e70a0` |
+| Verified window-policy candidate Android 8 compact | `ab1b5069c7eeea2a86ee25fa1e1fccee5b05a537a37391a213b795d619ec5913` |
+
+The combined candidate added a focus-triggered IME dismissal and a
+helper action in Chat's menu. Its code-116 debug pair passed 1,242 JVM
+tests, both lint variants and all 12 named Android 17 methods. The
+short Android 8 test passed with four successful single native taps
+and verified display and font restoration. The standard-height
+Android 8 cohort passed 10 of 12. One consent method started with
+a visible inherited keyboard and dispatched no taps. The other method
+expected a visible menu where the direct helper control is available.
+Using the visible helper entry passed the typed-draft test on both APIs
+and Android 17 passed all 12 methods again. Android 8 passed 11 of 12.
+Its consent test measured a visible keyboard after opening even with a
+confirmed keyboard-free parent. A fresh compact run stopped during a
+read of the emulator font setting before instrumentation and restored
+the original settings. The earlier compact pass retains its exact scope.
+
+The consent fixture now centers each target in the intersection of the
+scroll body and the native window frame. It still requires an actual
+visible target, one successful native tap per action and the exact
+consent payload. The separate typed-draft check still verifies the
+actual keyboard dismissal and that helper search can reopen it. The
+exact code-116 pair passed all 12 focused methods on each Android API
+and the compact Android 8 method at 1080 by 1120 with font scale 1.3.
+The measured native frame let the Android 8 consent test act while the
+keyboard was present. The compact run verified the four single taps and
+restored the display, font and keyboard settings. The standard runs
+restored their keyboard settings and verified the existing production
+APK hashes. The native-surface test reports come from the same pair as
+the 1,242 passing JVM tests and both lint variants with zero errors.
+
+| Final local evidence | SHA-256 |
+| --- | --- |
+| Source manifest | `3927f026b59495c7b1195d847daf2a3a096301b1a56a05aec15d1d11793c24d2` |
+| Debug APK | `d39bc6469f3c1af8073c545fa23a5b9f461f99908af4dba89b2381476a2cb7e7` |
+| Instrumentation APK | `415845444d7f59daffa6dbc7a0b471272e1b55aaa84ae49b1fd947ee6eea4569` |
+| Android 8 standard log | `2658d70cb8e100fb0617c47e5f657cdb1e54025a819cb717a85197b80fe41057` |
+| Android 17 standard log | `22fea7a28bcdfc0a3e79068d8491f33b173e7a39dc146d668c3133e6416c1d5f` |
+| Android 8 compact log | `40f881f74ea2ab080b69bacc4dc7b5623018885abd428e3708a0763b7f3c5e51` |
+
+Full hosted coverage, the signed Xiaomi upgrade and the in-app update
+retain separate release gates.
+
+| Combined candidate evidence | SHA-256 |
+| --- | --- |
+| Android 8 normal log | `d06f3e717aa5b95c8fe933530fceaa27630b7841466cca2b3698335602783366` |
+| Android 17 normal log | `58475c4b9bd5b586b490b2425db1cfbebdc1ed46c6ac3b675034a00a79f8d7b9` |
+| Android 8 compact log | `4965cca77178e624054cbd65fa22de1ae1ff31a09018b344e76da4dfefa9dd71` |
+
+The visible-entry cohort retained Android 8 normal log
+`a217b31da17ac48937c51fde5cd929a0e2f94c9b998f76cd95320c32da45554e`
+and Android 17 normal log
+`38479f4d7e62eefcc3d1f14fbb3426fabbac119605f229ae1acb241b7a353bf9`.
+
 ## Build-plugin advisory remediation
 
 Buildscript constraints replace the six flagged versions, align the

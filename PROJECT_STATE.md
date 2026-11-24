@@ -1,11 +1,32 @@
 # Signal Grove project state
 
-23 November 2026. The full goal is **active**. The owner approved the order:
+24 November 2026. The full goal is **active**. The owner approved the order:
 phone context and request review, measured larger windows and Hermes-reported
 context, then verified workspace attachment, project approvals and scheduling.
 The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
+
+## Compact phone helper and native keyboard testing
+
+The beta.11 debug candidate reproduced an inherited Android 8 keyboard
+above the helper. Its standard and 1080 by 1120 compact runs stopped
+before the first consent tap. A separate, typed-draft handoff passed on
+Android 8. That handoff exposed an unreachable launch control with the
+Android 17 keyboard open.
+
+The combined candidate's focused keyboard dismissal, scrollable body
+and phone-chat menu passed the compact Android 8 consent case and all
+12 Android 17 methods. The standard-height Android 8 cohort passed
+10 of 12. Using the visible entry then proved the typed-draft handoff
+on both APIs. Android 8 still brings up a keyboard after entering the
+consent test, even starting with no visible parent keyboard. The consent
+fixture centers the target in the intersection of the scroll body and
+the native input frame. The final signed debug pair passed all 12 focused
+methods on Android 8 and 17 and the Android 8 compact regression. The
+typed draft, native search keyboard, and exact consent payload passed.
+Full hosted coverage, the signed Xiaomi upgrade, and the release stay open.
+[Validation](docs/VALIDATION.md#compact-phone-helper-and-native-keyboard-testing).
 
 ## Build-plugin advisory remediation
 

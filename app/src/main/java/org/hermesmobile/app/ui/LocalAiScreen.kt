@@ -215,6 +215,11 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val context = LocalContext.current
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+    fun openHelper(topic: LocalHelpTopic) {
+        focus.clearFocus()
+        keyboard?.hide()
+        helper = topic
+    }
     val entryActions: @Composable () -> Unit = {
         if (handoffState.isNotEmpty()) {
             PhoneDraftNotice(handoffState) {
@@ -234,7 +239,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             TextButton({ guide = true }, Modifier.weight(1f).testTag("phone-setup-guide")) {
                 Text(label(Words.SetupGuide))
             }
-            TextButton({ helper = LocalHelpTopic.FIRST_SETUP }, Modifier.weight(1f).testTag("phone-helper-open")) {
+            TextButton({ openHelper(LocalHelpTopic.FIRST_SETUP) }, Modifier.weight(1f).testTag("phone-helper-open")) {
                 Text(label(Words.PhoneHelper))
             }
         }
@@ -289,6 +294,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 when (tab) {
                     0 -> PhoneChat(
                         state, draft, changeDraft, actions, { offlineSetup = true },
+                        openHelp = { openHelper(LocalHelpTopic.FIRST_SETUP) },
                         compactEntryActions = entryActions.takeIf { compactComposer },
                         setupActions = setupActions.takeIf { scrollSetupActions }
                     ) { review = it }
@@ -343,7 +349,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             },
             troubleshoot = {
                 offlineSetup = false
-                helper = LocalHelpTopic.OFFLINE_MODEL
+                openHelper(LocalHelpTopic.OFFLINE_MODEL)
             },
             close = { offlineSetup = false },
             startupSetting = startupSetting
@@ -445,6 +451,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     change: (String) -> Unit,
     actions: LocalAiActions,
     openSetup: () -> Unit,
+    openHelp: () -> Unit,
     compactEntryActions: (@Composable () -> Unit)?,
     setupActions: (@Composable () -> Unit)?,
     review: (String) -> Unit
@@ -494,38 +501,44 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }
         }
         IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
-        if (actions.openTemporary != null || actions.openProfiles != null) {
-            Box {
-                IconButton(
-                    onClick = { openFromChat { optionsOpen = true } },
-                    enabled = !state.busy,
-                    modifier = Modifier.testTag("phone-chat-options")
-                ) {
-                    Icon(Icons.Outlined.MoreVert, label(Words.PhoneChatOptions))
+        Box {
+            IconButton(
+                onClick = { openFromChat { optionsOpen = true } },
+                enabled = !state.busy,
+                modifier = Modifier.testTag("phone-chat-options")
+            ) {
+                Icon(Icons.Outlined.MoreVert, label(Words.PhoneChatOptions))
+            }
+            DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text(label(Words.PhoneHelper)) },
+                    onClick = {
+                        optionsOpen = false
+                        openHelp()
+                    },
+                    modifier = Modifier.testTag("phone-chat-helper")
+                )
+                actions.openTemporary?.let { open ->
+                    DropdownMenuItem(
+                        text = { Text(label(Words.PhoneTemporaryChat)) },
+                        onClick = {
+                            optionsOpen = false
+                            open()
+                        },
+                        enabled = !state.busy,
+                        modifier = Modifier.testTag("phone-temporary-open")
+                    )
                 }
-                DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
-                    actions.openTemporary?.let { open ->
-                        DropdownMenuItem(
-                            text = { Text(label(Words.PhoneTemporaryChat)) },
-                            onClick = {
-                                optionsOpen = false
-                                open()
-                            },
-                            enabled = !state.busy,
-                            modifier = Modifier.testTag("phone-temporary-open")
-                        )
-                    }
-                    actions.openProfiles?.let { open ->
-                        DropdownMenuItem(
-                            text = { Text(label(Words.PhonePersonalProfiles)) },
-                            onClick = {
-                                optionsOpen = false
-                                open()
-                            },
-                            enabled = !state.busy,
-                            modifier = Modifier.testTag("phone-profile-open")
-                        )
-                    }
+                actions.openProfiles?.let { open ->
+                    DropdownMenuItem(
+                        text = { Text(label(Words.PhonePersonalProfiles)) },
+                        onClick = {
+                            optionsOpen = false
+                            open()
+                        },
+                        enabled = !state.busy,
+                        modifier = Modifier.testTag("phone-profile-open")
+                    )
                 }
             }
         }

@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.os.Build
 import androidx.compose.runtime.*
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.platform.LocalDensity
@@ -36,6 +37,7 @@ class LocalAiFlowTest {
     private var imports = 0; private var sends = 0; private var stops = 0
     private var newChats = 0
     private var pending by mutableStateOf(false)
+    private var draft by mutableStateOf("Fresh local draft")
     private var state by mutableStateOf(LocalAiState())
     private var observationTime by mutableLongStateOf(100)
     private val helperRequests = mutableListOf<Pair<LocalHelpTopic, LocalHelpObservations?>>()
@@ -81,7 +83,7 @@ class LocalAiFlowTest {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, if (bilingual) 1.3f else density.fontScale)) {
             HermesAppTheme(AppPreferences(chinese = bilingual, pinyin = bilingual)) {
-                LocalAiScreen(state, supported, "Fresh local draft", {}, pending, actions, {},
+                LocalAiScreen(state, supported, draft, { draft = it }, pending, actions, {},
                     LocalHelpObservations(observationTime, false, LocalAddressKind.HTTPS, true, state.loaded != null), if(copied) "received" else "",
                     downloadNetworkSettings = networkStore?.let { store -> { close -> PhoneDownloadNetworkSettings(store, close) } })
             }
@@ -666,10 +668,39 @@ class LocalAiFlowTest {
         }
     }
 
+    @Test fun helperDismissesTheComposerKeyboardAndKeepsTheDraft() {
+        state = LocalAiState(loaded = model)
+        show()
+        val composer = compose.onNodeWithTag("phone-draft")
+        val editedDraft = "Keep this unsent phone draft"
+        composer.assertIsDisplayed().performClick().performTextReplacement(editedDraft)
+        compose.waitUntil(10_000) { nativeKeyboardVisible() && focusedWindowKeyboardVisible() }
+
+        val menu = compose.onNodeWithTag("phone-chat-options")
+        if (menu.isDisplayed()) {
+            menu.performClick()
+            compose.onNodeWithTag("phone-chat-helper").assertIsDisplayed().performClick()
+        } else {
+            compose.onNodeWithTag("phone-helper-open").assertIsDisplayed().performClick()
+        }
+        waitForHelperWithoutKeyboard()
+
+        val search = compose.onNodeWithTag("phone-helper-query")
+        search.performScrollTo().assertIsDisplayed().performClick().performTextInput("Earlier chats")
+        compose.waitUntil(10_000) { nativeKeyboardVisible() && focusedDialogKeyboardVisible() }
+        compose.onNodeWithTag("phone-helper-topic-HISTORY").assertExists()
+        compose.onNodeWithTag("phone-helper-close").assertIsDisplayed().performClick()
+        composer.assertTextContains(editedDraft)
+        compose.runOnIdle {
+            assertEquals(0, sends)
+            assertTrue(helperRequests.isEmpty())
+        }
+    }
+
     @Test fun helperRequiresNewOptInAfterTheObservationPreviewChanges() {
         state = LocalAiState(loaded = model)
         show()
-        compose.onNodeWithTag("phone-helper-open").performClick()
+        compose.onNodeWithTag("phone-helper-open").assertIsDisplayed().performClick()
         val include = compose.onNodeWithTag("phone-helper-observations")
         val run = compose.onNodeWithTag("phone-helper-run")
         include.assertIsOff()
@@ -688,11 +719,50 @@ class LocalAiFlowTest {
             assertEquals(2, helperRequests.size)
             assertEquals(LocalHelpTopic.FIRST_SETUP to
                 LocalHelpObservations(200, false, LocalAddressKind.HTTPS, true, true), helperRequests.last())
+            assertEquals(0, sends)
+        }
+        compose.onNodeWithTag("phone-helper-close").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-draft").assertTextContains("Fresh local draft")
+    }
+
+    private fun waitForHelperWithoutKeyboard() {
+        var observation = "No focused helper dialog"
+        try {
+            compose.waitUntil(8_000) {
+                val viewport = focusedDialogViewport(requireKeyboard = false, onIncoherentIme = {
+                    observation = "IME window=" + it.nativeImePresent + ", insets=" + it.deliveredImeVisible
+                }) ?: return@waitUntil false
+                observation = "keyboard=" + viewport.keyboardVisible + ", frame=" + viewport.visible
+                !viewport.keyboardVisible
+            }
+        } catch (error: ComposeTimeoutException) {
+            throw AssertionError("The helper keyboard did not settle. $observation", error)
         }
     }
 
     private fun tapHelperControl(control: SemanticsNodeInteraction, action: NativeDialogTapAction) {
-        control.performScrollTo().assertIsDisplayed().assertIsEnabled()
+        val body = compose.onNodeWithTag("phone-helper-body")
+        control.performScrollTo().assertIsEnabled()
+        var nativeViewport: FocusedDialogViewport? = null
+        compose.waitUntil(8_000) {
+            nativeViewport = focusedDialogViewport(requireKeyboard = false)
+            nativeViewport != null
+        }
+        val viewport = checkNotNull(nativeViewport)
+        val targetNode = control.fetchSemanticsNode()
+        val bodyBounds = body.fetchSemanticsNode().boundsInWindow
+        val bodyTop = maxOf(bodyBounds.top, (viewport.visible.top - viewport.screenOffsetY).toFloat())
+        val bodyBottom = minOf(bodyBounds.bottom, (viewport.visible.bottom - viewport.screenOffsetY).toFloat())
+        check(bodyBottom > bodyTop) { "The helper scroll viewport is empty: $bodyBounds, native=" + viewport.visible }
+        val centerY = targetNode.positionInWindow.y + targetNode.size.height / 2f
+        val scrollBy = centerY - (bodyTop + bodyBottom) / 2f
+        // Center within the part of the scroll body that native input can reach.
+        if (kotlin.math.abs(scrollBy) >= 1f) {
+            body.performSemanticsAction(SemanticsActions.ScrollBy) { scroll ->
+                assertTrue("The helper scroll content rejected repositioning", scroll(0f, scrollBy))
+            }
+        }
+        control.assertIsDisplayed()
         var point: androidx.compose.ui.geometry.Offset? = null
         var observation = "No focused dialog viewport"
         try {
@@ -700,13 +770,16 @@ class LocalAiFlowTest {
                 val viewport = focusedDialogViewport(requireKeyboard = false, onIncoherentIme = {
                     observation = "IME window=${it.nativeImePresent}, insets=${it.deliveredImeVisible}"
                 }) ?: return@waitUntil false
-                val bounds = control.fetchSemanticsNode().boundsInWindow
+                val node = control.fetchSemanticsNode()
+                val bounds = node.boundsInWindow
                 val visible = viewport.visible
                 val left = maxOf(bounds.left, (visible.left - viewport.screenOffsetX).toFloat())
                 val top = maxOf(bounds.top, (visible.top - viewport.screenOffsetY).toFloat())
                 val right = minOf(bounds.right, (visible.right - viewport.screenOffsetX).toFloat())
                 val bottom = minOf(bounds.bottom, (visible.bottom - viewport.screenOffsetY).toFloat())
-                observation = "Control=$bounds, viewport=$visible, offset=(${viewport.screenOffsetX}, ${viewport.screenOffsetY})"
+                observation = "Control=$bounds, root=${node.boundsInRoot}, position=${node.positionInRoot}, " +
+                    "size=${node.size}, viewport=$visible, keyboard=${viewport.keyboardVisible}, " +
+                    "offset=(${viewport.screenOffsetX}, ${viewport.screenOffsetY})"
                 if (right - left < 1f || bottom - top < 1f) return@waitUntil false
                 point = androidx.compose.ui.geometry.Offset((left + right) / 2, (top + bottom) / 2)
                 true

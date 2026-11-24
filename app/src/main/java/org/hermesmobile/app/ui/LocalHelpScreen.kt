@@ -1,5 +1,7 @@
 package org.hermesmobile.app.ui
 
+import android.view.WindowManager.LayoutParams.SOFT_INPUT_MASK_STATE
+import android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.rememberScrollState
@@ -11,11 +13,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import org.hermesmobile.app.local.*
 import java.time.Instant
 
@@ -31,10 +38,31 @@ import java.time.Instant
     val result = state.helper?.takeIf {it.topic == topic}
     val checks = result?.checks?.takeIf { it.isNotEmpty() } ?: LocalSetupHelper.checks(topic)
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        val view = LocalView.current
+        val window = (view.parent as? DialogWindowProvider)?.window
+        val windowFocused = LocalWindowInfo.current.isWindowFocused
+        var dismissedEntryKeyboard by remember { mutableStateOf(false) }
+        SideEffect {
+            window?.let {
+                val mode = it.attributes.softInputMode
+                val hidden = (mode and SOFT_INPUT_MASK_STATE.inv()) or SOFT_INPUT_STATE_ALWAYS_HIDDEN
+                if (hidden != mode) it.setSoftInputMode(hidden)
+            }
+        }
+        LaunchedEffect(window, windowFocused) {
+            // Android 8 can retain the old IME even after assigning focus to this dialog.
+            if (window != null && windowFocused && !dismissedEntryKeyboard) {
+                WindowCompat.getInsetsController(window, view).hide(WindowInsetsCompat.Type.ime())
+                dismissedEntryKeyboard = true
+            }
+        }
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.padding(16.dp).testTag("phone-helper")) {
-                Text(label(Words.PhoneHelper), style = MaterialTheme.typography.titleLarge)
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("phone-helper-body"),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(label(Words.PhoneHelper), style = MaterialTheme.typography.titleLarge)
                     Text(label(Words.PhoneHelperBoundary))
                     OutlinedTextField(query, { query = it.take(LocalSetupHelper.MAX_QUERY_LENGTH) },
                         label = { Text(label(Words.PhoneHelperQuery)) },
