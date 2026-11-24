@@ -7,6 +7,20 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Runtime evidence for the current execution
+
+Hermes Activity keeps the latest execution number through snapshot
+and stream writes. A model or provider bound to an older execution
+cannot appear as current. Runtime reports without an execution number
+remain visible at run level, with an explicit label when Hermes has
+otherwise reported an execution number. Transcript and run usage
+are retained.
+
+1,245 JVM tests and both lint variants passed. Android 8 and 17 each
+passed 18 standard cases and the new compact-screen check. This is a
+separate follow-up after the signed beta.11 candidate.
+[Validation](docs/VALIDATION.md#runtime-evidence-for-the-current-execution).
+
 ## Current Hermes Activity in Chat
 
 Chat shows the selected run's outstanding identified tool or subagent,

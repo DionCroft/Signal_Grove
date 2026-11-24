@@ -89,6 +89,54 @@ class ActivityProtocolTest {
         assertFalse(changed["runtime"]!!.jsonObject.containsKey("provider"))
         assertEquals("",RunTelemetry.merge("",obj("""{"reasoning":"private"}""")))
     }
+    @Test fun runtimeIdentityMustComeFromTheCurrentObservedExecution() {
+        val earlier = obj("""{"runtime":{"model":"old-model","provider":"old-provider"},"usage":{"input_tokens":11}}""")
+        val typed = RunTelemetry.mergeObserved("", earlier, 7, 7)
+        assertEquals(7L, RunTelemetry.runtimeGeneration(RunTelemetry.parse(typed)))
+
+        val advanced = RunTelemetry.mergeObserved(typed, JsonObject(emptyMap()), 8, 8)
+        assertNull(RunTelemetry.parse(advanced)["runtime"])
+        assertEquals(11L, RunTelemetry.parse(advanced)["usage"]!!.jsonObject["input_tokens"]!!.jsonPrimitive.long)
+        assertNull(RunTelemetry.parse(RunTelemetry.mergeObserved(advanced, earlier, 8, 7))["runtime"])
+        val runOnly = RunTelemetry.parse(RunTelemetry.mergeObserved(advanced, earlier, 8, null))
+        assertNull(runOnly["runtime"])
+        assertEquals("old-model", runOnly[RunTelemetry.RuntimeWithoutExecution]!!.jsonObject.text("model"))
+
+        val next = obj("""{"runtime":{"provider":"new-provider"},"observed_runtime_generation":999}""")
+        val confirmed = RunTelemetry.parse(RunTelemetry.mergeObserved(advanced, next, 8, 8))
+        assertEquals(8L, RunTelemetry.runtimeGeneration(confirmed))
+        assertEquals("new-provider", confirmed["runtime"]!!.jsonObject.text("provider"))
+        assertFalse(confirmed["runtime"]!!.jsonObject.containsKey("model"))
+        assertFalse(RunTelemetry.from(next).containsKey("observed_runtime_generation"))
+        val requested = obj("""{"runtime":{"requested":{"model":"configured"}}}""")
+        val starting = RunTelemetry.mergeObserved("", requested, 8, 8)
+        val mixed = RunTelemetry.parse(RunTelemetry.mergeObserved(starting, earlier, 8, null))
+        assertEquals("", mixed["runtime"]!!.jsonObject.text("model"))
+        assertEquals("old-model", mixed[RunTelemetry.RuntimeWithoutExecution]!!.jsonObject.text("model"))
+    }
+
+    @Test fun activityDoesNotSelectAReportFromAnotherExecutionOrProfile() {
+        val c = Conversation("profile-a:chat", "profile-a", "chat", pendingKey = "turn", transport = "runs",
+            runId = "shared-id", executionGeneration = 8)
+        val runtime = obj("""{"runtime":{"model":"reported"}}""")
+        val report = RunReport("report", c.key, c.runId, c.pendingKey, c.transport,
+            RunTelemetry.mergeObserved("", runtime, 8, 8), "running", 1)
+        val unknown = report.copy(telemetryJson = RunTelemetry.merge("", runtime))
+        val stale = report.copy(telemetryJson = RunTelemetry.mergeObserved("", runtime, 7, 7))
+        val foreign = report.copy(sessionKey = "profile-b:chat")
+        assertNull(activityReport(c, listOf(stale, foreign)))
+        assertEquals(unknown, activityReport(c, listOf(stale, unknown)))
+        assertNull(activityRuntime(c, unknown)["runtime"])
+        assertEquals("reported", activityRuntime(c, unknown)[RunTelemetry.RuntimeWithoutExecution]!!.jsonObject.text("model"))
+        assertEquals(report, activityReport(c, listOf(foreign, stale, report)))
+        assertEquals(unknown, activityReport(c.copy(executionGeneration = null), listOf(report, unknown)))
+
+        val stream = StreamDecoder.decode(SseEvent("run.started", """{"execution_generation":8}"""))
+        assertEquals(8L, stream.executionGeneration)
+        assertTrue(stream.telemetry.isEmpty())
+        assertNull(StreamDecoder.decode(SseEvent("run.started", """{"execution_generation":"8"}""")).executionGeneration)
+    }
+
     @Test fun partialAccountingMergesWithoutInventingZerosOrClearingKnownValues() {
         val first=RunTelemetry.from(obj("""{"usage":{"prompt_tokens":10,"completion_tokens":3},"runtime":{"model":"served"}}"""))
         val merged=RunTelemetry.parse(RunTelemetry.merge(first.toString(),obj("""{"usage":{"cache_read_tokens":0}}""")))

@@ -97,6 +97,53 @@ class ActivityFlowTest {
             compose.onNodeWithText(word(Words.Close)).performClick();compose.onNodeWithText(word(Words.Close)).performClick()
         }
     }
+    @Test fun activityLabelsRunLevelRuntimeWhenTheExecutionWasOmitted() {
+        val frames = listOf(
+            """{"event":"run.started","run_id":"mixed-runtime","seq":0,"execution_generation":8,"runtime":{"requested":{"model":"chosen-for-this-run"}}}""",
+            """{"event":"run.completed","run_id":"mixed-runtime","seq":1,"output":"Scope fixture complete","runtime":{"model":"run-level-model","provider":"run-level-provider"}}""",
+        ).joinToString("") { "data: $it\n\n" }
+        MockWebServer().use { server ->
+            server.dispatcher = object : Dispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse = when {
+                    request.path == "/v1/capabilities" -> json("""{"features":{"session_resources":true,"session_chat":true,"run_events_sse":true},"endpoints":{"runs":{}}}""")
+                    request.path.orEmpty().contains("/api/jobs?") -> json("""{"jobs":[]}""")
+                    request.path.orEmpty().startsWith("/api/sessions?") -> json("""{"data":[],"has_more":false}""")
+                    request.path == "/api/sessions" -> {
+                        val input = Json.parseToJsonElement(request.body.readUtf8()).jsonObject
+                        json(buildJsonObject { put("session", buildJsonObject { put("id", input.text("id")) }) }.toString())
+                    }
+                    request.path == "/v1/runs" -> json("""{"run_id":"mixed-runtime"}""")
+                    request.path == "/v1/runs/mixed-runtime/events" ->
+                        MockResponse().setHeader("Content-Type", "text/event-stream").setBody(frames)
+                    else -> json("{}").setResponseCode(404)
+                }
+            }
+            compose.waitUntil(10000) { !vm.connecting.value }
+            val url = server.url("/").toString()
+            compose.runOnUiThread { vm.configure(url, "mixed-activity-fixture", true) }
+            compose.waitUntil(10000) { !vm.connecting.value && vm.connectionStatus.value == "connected" }
+            compose.runOnUiThread { vm.newChat(); vm.send("Check the reported model") }
+            compose.waitUntil(15000) { !vm.busy.value && vm.runStatus.value == "completed" &&
+                vm.runReports.value.any { it.telemetryJson.contains("run-level-model") } }
+            val conversation = vm.selectedConversation.value!!
+            assertEquals(8L, conversation.executionGeneration)
+            val report = activityReport(conversation, vm.runReports.value)!!
+            val projected = activityRuntime(conversation, report)
+            assertEquals("", projected["runtime"]!!.jsonObject.text("model"))
+            assertEquals("run-level-model", projected[RunTelemetry.RuntimeWithoutExecution]!!.jsonObject.text("model"))
+            compose.onAllNodesWithContentDescription(word(Words.Chat), useUnmergedTree = true).onLast().performClick()
+            compose.onNodeWithContentDescription(word(Words.ToolActivity), substring = true).performClick()
+            val activity = compose.onNodeWithTag("activity-timeline")
+            activity.performScrollToNode(hasText(word(Words.ActivityRuntimeUnavailable)))
+            compose.onNodeWithText(word(Words.ActivityRuntimeUnavailable)).assertIsDisplayed()
+            activity.performScrollToNode(hasText(word(Words.RuntimeWithoutExecution)))
+            compose.onNodeWithText(word(Words.RuntimeWithoutExecution)).assertIsDisplayed()
+            activity.performScrollToNode(hasText("run-level-model"))
+            compose.onNodeWithText("run-level-model").assertIsDisplayed()
+            compose.onNodeWithText(word(Words.Close)).performClick()
+        }
+    }
+
     @Test fun anotherRunIdentityCannotRewriteTheReceiptOrItsActivity() {
         var admissions=0
         MockWebServer().use {server ->

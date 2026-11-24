@@ -3,6 +3,7 @@ package org.hermesmobile.app
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.jsonObject
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hermesmobile.app.data.*
@@ -60,6 +61,43 @@ class RunPollingProgressStorageTest {
             server.enqueue(reply("""{"run_id":"r","status":"completed","execution_generation":7,"progress_at":9999999999,"tool":"done","output":"Stale submission"}"""))
             assertNull(dao.applyRunSnapshot(current, api.run("r"))); request(server)
             assertEquals(next, dao.conversation(current.key)); assertEquals(nextAnswer, dao.message(nextAnswer.id))
+        }
+    }
+
+    @Test fun aNewExecutionClearsStaleRuntimeAcrossSnapshotAndStreamWriters() = runBlocking {
+        fixture { dao, server, api ->
+            val current = conversation()
+            val answer = ChatMessage("submission_assistant", current.key, "assistant", "Retained text", status = "running")
+            dao.save(current)
+            dao.save(answer)
+            server.enqueue(reply("""{"run_id":"r","status":"running","execution_generation":7,"runtime":{"model":"old-model","provider":"old-provider"}}"""))
+            val initial = dao.applyRunSnapshot(current, api.run("r"))!!
+            request(server)
+            assertTrue(dao.report("${current.key}|submission")!!.telemetryJson.contains("old-model"))
+
+            server.enqueue(reply("""{"run_id":"r","status":"running","execution_generation":8}"""))
+            val advanced = dao.applyRunSnapshot(initial, api.run("r"))!!
+            request(server)
+            assertEquals(8L, advanced.executionGeneration)
+            assertEquals("Retained text", dao.message(answer.id)!!.content)
+
+            val lateRuntime = answer.copy(telemetryJson = """{"runtime":{"model":"old-model","provider":"old-provider"}}""")
+            dao.saveTurn(initial, lateRuntime, null, null, "", 7)
+            dao.saveTurn(initial.copy(executionGeneration = null), lateRuntime, null, null, "")
+            assertEquals(8L, dao.conversation(current.key)!!.executionGeneration)
+            assertNull(RunTelemetry.parse(dao.message(answer.id)!!.telemetryJson)["runtime"])
+            assertNull(RunTelemetry.parse(dao.report("${current.key}|submission")!!.telemetryJson)["runtime"])
+
+            val fresh = answer.copy(telemetryJson = """{"runtime":{"model":"new-model"}}""")
+            dao.saveTurn(advanced, fresh, null, null, "", 8)
+            dao.saveTurn(initial.copy(executionGeneration = null), lateRuntime, null, null, "")
+            val saved = dao.message(answer.id)!!
+            assertEquals("Retained text", saved.content)
+            val report = dao.report("${current.key}|submission")!!
+            assertEquals(saved.telemetryJson, report.telemetryJson)
+            val runtime = RunTelemetry.parse(report.telemetryJson)["runtime"]!!.jsonObject
+            assertEquals("new-model", runtime.text("model"))
+            assertFalse(runtime.containsKey("provider"))
         }
     }
 

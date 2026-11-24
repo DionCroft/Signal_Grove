@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Runtime evidence for the current execution
+
+Activity now separates reported current-execution model and provider
+from run-level metadata without an execution number. Retained receipts
+can no longer supply an older tagged model to a newer execution.
+Android 8 and 17 covered migration, snapshot and stream merge, approval
+state, and compact rendering. Continue live verification and add the
+remaining authenticated tool, skill, worker and workspace evidence.
+[Validation](VALIDATION.md#runtime-evidence-for-the-current-execution).
+
 ## Hermes client stamp retry compatibility
 
 The isolated SQLite review distinguishes pre-stamp stores, the

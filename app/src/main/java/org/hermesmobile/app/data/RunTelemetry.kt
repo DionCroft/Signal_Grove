@@ -4,6 +4,18 @@ import kotlinx.serialization.json.*
 
 /** Only public accounting/runtime metadata, never reasoning content or arbitrary payloads. */
 object RunTelemetry {
+    private const val ObservedRuntimeGeneration = "observed_runtime_generation"
+    internal const val RuntimeWithoutExecution = "runtime_without_execution"
+
+    internal fun executionGeneration(frame: JsonObject): Long? = count(frame, "execution_generation")
+
+    internal fun runtimeGeneration(stored: JsonObject): Long? = count(stored, ObservedRuntimeGeneration)
+
+    internal fun hasRuntimeIdentity(runtime: JsonElement?): Boolean {
+        val fields = runtime as? JsonObject ?: return false
+        return fields.text("provider").isNotBlank() && fields.text("model").isNotBlank()
+    }
+
     private val counts=setOf("input_tokens","output_tokens","total_tokens","cache_read_tokens","cache_write_tokens","reasoning_tokens")
     private fun count(j:JsonObject,key:String)=(j[key] as? JsonPrimitive)?.takeUnless {it.isString}?.longOrNull?.takeIf {it>=0}
     private fun id(j:JsonObject,key:String,max:Int=256)=(j[key] as? JsonPrimitive)?.takeIf {it.isString}?.content?.takeIf {it.isNotBlank() && it.length<=max && it.none(Char::isISOControl)}
@@ -27,15 +39,51 @@ object RunTelemetry {
             if(runtime.isNotEmpty()) put("runtime",runtime)
         }
     }
-    fun parse(value:String)=runCatching {from(Json.parseToJsonElement(value).jsonObject)}.getOrDefault(buildJsonObject {})
-    fun merge(old:String,next:JsonObject):String {
-        val before=parse(old);val after=from(next)
-        val merged=buildJsonObject {for(key in listOf("usage","runtime")) {
-            val first=before[key] as? JsonObject ?: buildJsonObject {}
-            val second=after[key] as? JsonObject ?: buildJsonObject {}
-            val values=if(key=="runtime" && after.containsKey(key)) second else JsonObject(first+second)
-            if(values.isNotEmpty()) put(key,values)
-        }}
-        return if(merged.isEmpty()) "" else merged.toString()
+    fun parse(value: String): JsonObject = runCatching {
+        val raw = Json.parseToJsonElement(value).jsonObject
+        val fields = from(raw)
+        val generation = runtimeGeneration(raw)
+        val unverified = (raw[RuntimeWithoutExecution] as? JsonObject)?.let {
+            from(JsonObject(mapOf("runtime" to it)))["runtime"]
+        }
+        buildJsonObject {
+            fields.forEach { (key, field) -> put(key, field) }
+            if (generation != null && fields.containsKey("runtime")) put(ObservedRuntimeGeneration, generation)
+            if (unverified != null) put(RuntimeWithoutExecution, unverified)
+        }
+    }.getOrDefault(JsonObject(emptyMap()))
+
+    fun merge(old: String, next: JsonObject): String = mergeObserved(old, next, null, null)
+
+    /** Scope reported runtime to its explicit execution while retaining run-level usage. */
+    internal fun mergeObserved(
+        old: String,
+        next: JsonObject,
+        currentGeneration: Long?,
+        observedGeneration: Long?,
+    ): String {
+        val before = parse(old)
+        val after = if (currentGeneration != null && observedGeneration != null && observedGeneration < currentGeneration) {
+            JsonObject(emptyMap())
+        } else from(next)
+        val previousRuntime = before["runtime"]?.takeIf { runtimeGeneration(before) == currentGeneration }
+        val observedRuntime = after["runtime"]?.takeIf { observedGeneration == currentGeneration }
+        val runtime = observedRuntime ?: previousRuntime
+        // Some servers label controls and poll snapshots but omit the execution from runtime frames.
+        val unverified = if (currentGeneration == null) null else {
+            after["runtime"]?.takeIf { observedGeneration == null }
+                ?: before[RuntimeWithoutExecution]
+                ?: before["runtime"]?.takeIf { runtimeGeneration(before) == null }
+        }
+        val usage = (before["usage"] as? JsonObject).orEmpty() + (after["usage"] as? JsonObject).orEmpty()
+        val merged = buildJsonObject {
+            if (usage.isNotEmpty()) put("usage", JsonObject(usage))
+            if (runtime != null) {
+                put("runtime", runtime)
+                currentGeneration?.let { put(ObservedRuntimeGeneration, it) }
+            }
+            if (unverified != null && !hasRuntimeIdentity(runtime)) put(RuntimeWithoutExecution, unverified)
+        }
+        return if (merged.isEmpty()) "" else merged.toString()
     }
 }

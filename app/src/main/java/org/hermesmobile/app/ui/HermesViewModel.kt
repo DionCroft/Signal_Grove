@@ -506,7 +506,6 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         val assistant=dao.history(c.key).firstOrNull {it.id=="${c.pendingKey}_assistant"}
             ?: throw IllegalArgumentException("This run has no saved response receipt. Refresh its history after it settles.")
         var text=if(resuming) assistant.content else "";var terminalSeen=false
-        var telemetry=assistant.telemetryJson
         val path: String;var body: JsonObject?=null
         runStatus.value="running"
         val request=if(c.transport=="runs" && c.runId.isNotBlank()) null else savedRequest(c)
@@ -533,7 +532,6 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                         require(c.runId.isBlank() || c.runId==update.runId) {"The stream returned another run identity."}
                         c=c.copy(runId=update.runId)
                     }
-                    telemetry=RunTelemetry.merge(telemetry,update.telemetry)
                     if(update.sessionId.isNotBlank()) c=c.copy(remoteId=update.sessionId)
                     text+=update.delta;update.finalText?.let {text=it}
                     val status=update.status?.takeUnless {c.transport!="compat" && it in RunStates.responseEnded}
@@ -542,16 +540,16 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     update.sequence?.let {c=c.copy(lastEventSeq=it)}
                     val control=update.control?.copy(runId=update.control.runId.ifBlank {c.runId})?.stored(c.key)
                     val event=update.tool?.let {t -> ToolEvent("${c.key}|${c.runId}|${update.sequence ?: java.util.UUID.randomUUID()}",c.key,c.runId,t.tool,t.kind,t.preview,t.durationMs,System.currentTimeMillis(),t.callId,t.category,t.details.toString(),t.generation,update.sequence)}
-                    dao.saveTurn(c,assistant.copy(content=text,status=c.status,telemetryJson=telemetry),control,event,update.settledRequestId,update.settledGeneration)
+                    dao.saveTurn(c,assistant.copy(content=text,status=c.status,telemetryJson=update.telemetry.toString()),control,event,update.settledRequestId,update.executionGeneration)
                 }
             if(!terminalSeen) {
                 c=c.copy(status=if(c.transport=="compat" && c.status=="response_finished") "response_finished" else "unknown")
-                runStatus.value=c.status;dao.saveTurn(c,assistant.copy(content=text,status=c.status,telemetryJson=telemetry),null,null,"")
+                runStatus.value=c.status;dao.saveTurn(c,assistant.copy(content=text,status=c.status,telemetryJson=""),null,null,"")
                 if(c.runId.isNotBlank()) reconcile(c,operation=operation)
             }
         } catch(e: CancellationException) {throw e}
         catch(e: Exception) {
-            if(!terminalSeen) {c=c.copy(status="unknown");dao.saveTurn(c,assistant.copy(content=text,status="unknown",telemetryJson=telemetry),null,null,"");runStatus.value="unknown";throw e}
+            if(!terminalSeen) {c=c.copy(status="unknown");dao.saveTurn(c,assistant.copy(content=text,status="unknown",telemetryJson=""),null,null,"");runStatus.value="unknown";throw e}
         } finally {monitor.cancel()}
     }
     fun prepareRetry() {

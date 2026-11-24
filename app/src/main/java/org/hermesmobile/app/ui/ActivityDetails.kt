@@ -40,10 +40,24 @@ private fun metricWord(key:String)=when(key) {
                 val requested=runtime["requested"] as? JsonObject
                 if(requested!=null) {item {Text(label(Words.RequestedModel),style=MaterialTheme.typography.titleSmall)};requested.forEach {(key,value)->item {ServerField(key,value)}}}
             }
+            (telemetry[RunTelemetry.RuntimeWithoutExecution] as? JsonObject)?.let { unverified ->
+                item { RuntimeWithoutExecution(unverified) }
+            }
             (telemetry["usage"] as? JsonObject)?.forEach {(key,value)->item {ServerField(key,value)}}
         }
     },confirmButton={TextButton(dismiss) {Text(label(Words.Close))}})
 }
+@Composable private fun RuntimeWithoutExecution(runtime: JsonObject) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label(Words.RuntimeWithoutExecution), style = MaterialTheme.typography.titleSmall)
+        runtime.filterKeys { it == "provider" || it == "model" }.forEach { (key, value) -> ServerField(key, value) }
+        (runtime["requested"] as? JsonObject)?.let { requested ->
+            Text(label(Words.RequestedModel), style = MaterialTheme.typography.titleSmall)
+            requested.forEach { (key, value) -> ServerField(key, value) }
+        }
+    }
+}
+
 private val publicActivityDetails = setOf("child_session_id", "subagent_id", "delegation_id", "parent_id",
     "model", "status", "duration_seconds", "tool_count", "api_calls", "depth", "task_index", "task_count")
 
@@ -61,9 +75,10 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
     val currentTool = if (live && conversation.status in setOf("running", "queued")) {
         activeActivity(conversation, timeline)
     } else null
-    val runtime = remember(report?.telemetryJson) {
-        RunTelemetry.parse(report?.telemetryJson.orEmpty())["runtime"] as? JsonObject
+    val telemetry = remember(report, conversation.executionGeneration) {
+        report?.let { activityRuntime(conversation, it) }.orEmpty()
     }
+    val runtime = telemetry["runtime"] as? JsonObject
     val displayTime = remember {
         DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault())
     }
@@ -98,6 +113,9 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                     Text(label(Words.RequestedModel), style = MaterialTheme.typography.titleSmall)
                     requested.forEach { (key, value) -> ServerField(key, value) }
                 }
+            }
+            (telemetry[RunTelemetry.RuntimeWithoutExecution] as? JsonObject)?.let { unverified ->
+                item { RuntimeWithoutExecution(unverified) }
             }
             if (timeline.isNotEmpty() || waits.isEmpty()) {
                 item {Text(label(if (timeline.isEmpty()) Words.ActivityUnavailable else Words.RecentActivityInfo),

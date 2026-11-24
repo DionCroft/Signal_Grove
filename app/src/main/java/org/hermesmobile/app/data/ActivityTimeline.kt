@@ -17,8 +17,25 @@ internal fun activityReport(conversation: Conversation, reports: List<RunReport>
         report.sessionKey == conversation.key && report.transport == conversation.transport &&
             report.runId == conversation.runId &&
             (conversation.pendingKey.isBlank() || report.pendingKey == conversation.pendingKey) &&
-            (conversation.runId.isNotBlank() || conversation.pendingKey.isNotBlank())
+            (conversation.runId.isNotBlank() || conversation.pendingKey.isNotBlank()) &&
+            activityRuntime(conversation, report).isNotEmpty()
     }
+
+internal fun activityRuntime(conversation: Conversation, report: RunReport): JsonObject {
+    val telemetry = RunTelemetry.parse(report.telemetryJson)
+    return buildJsonObject {
+        val observed = RunTelemetry.runtimeGeneration(telemetry)
+        val known = conversation.executionGeneration
+        val runtime = telemetry["runtime"]
+        if (observed == known && runtime != null) put("runtime", runtime)
+        if (known != null) {
+            val unverified = telemetry[RunTelemetry.RuntimeWithoutExecution] ?: runtime?.takeIf { observed == null }
+            if (unverified != null && (observed != known || !RunTelemetry.hasRuntimeIdentity(runtime))) {
+                put(RunTelemetry.RuntimeWithoutExecution, unverified)
+            }
+        }
+    }
+}
 
 internal data class ActivityWait(val approval: Boolean, val state: String, val receivedAt: Long)
 

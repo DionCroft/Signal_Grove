@@ -144,11 +144,26 @@ object RunStates {
     @Upsert suspend fun saveReport(report:RunReport)
     @Query("DELETE FROM run_reports WHERE sessionKey=:key") suspend fun deleteReports(key:String)
     @Query("DELETE FROM run_reports") suspend fun clearReports()
-    suspend fun recordAccounting(c:Conversation,telemetry:String) {
-        if(telemetry.isBlank() || (c.pendingKey.isBlank() && c.runId.isBlank())) return
-        val key="${c.key}|${c.pendingKey.ifBlank {c.runId}}"
-        val merged=RunTelemetry.merge(report(key)?.telemetryJson.orEmpty(),RunTelemetry.parse(telemetry))
-        saveReport(RunReport(key,c.key,c.runId,c.pendingKey,c.transport,merged,c.status,System.currentTimeMillis()))
+    suspend fun recordAccounting(
+        conversation: Conversation,
+        previousMessageTelemetry: String,
+        observation: JsonObject,
+        observedGeneration: Long?,
+    ): String {
+        val submission = conversation.pendingKey.ifBlank { conversation.runId }
+        val reportKey = "${conversation.key}|$submission"
+        val previousReport = if (submission.isBlank()) null else report(reportKey)
+        val merged = RunTelemetry.mergeObserved(
+            previousReport?.telemetryJson ?: previousMessageTelemetry,
+            observation,
+            conversation.executionGeneration,
+            observedGeneration,
+        )
+        if (submission.isNotBlank() && (merged.isNotBlank() || previousReport != null)) {
+            saveReport(RunReport(reportKey, conversation.key, conversation.runId, conversation.pendingKey,
+                conversation.transport, merged, conversation.status, System.currentTimeMillis()))
+        }
+        return merged
     }
 
     @Query("SELECT * FROM server_operations WHERE scope=:scope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END, createdAt DESC LIMIT 100") fun serverOperations(scope: String): Flow<List<ServerOperation>>
@@ -255,30 +270,34 @@ object RunStates {
         if(!current.sameSubmission(expected)) return null
         val status=snapshot.text("status").ifBlank {"unknown"}
         if(current.status in RunStates.terminal && status !in RunStates.terminal) return null
-        val generation=(snapshot["execution_generation"] as? JsonPrimitive)?.longOrNull
+        val generation=RunTelemetry.executionGeneration(snapshot)
         if(generation!=null && current.executionGeneration!=null && generation<current.executionGeneration) return null
         val fresh=current.copy(status=status,remoteId=snapshot.text("session_id").ifBlank {current.remoteId},
             admissionId=snapshot.text("admission_id").ifBlank {current.admissionId},executionGeneration=generation ?: current.executionGeneration)
         save(fresh)
         val answer=history(expected.key).let {rows -> if(expected.pendingKey.isNotBlank()) rows.firstOrNull {it.id=="${expected.pendingKey}_assistant"} else rows.lastOrNull {it.role=="assistant"}}
-        if(answer!=null) {
-            val telemetry=RunTelemetry.merge(answer.telemetryJson,snapshot)
+        val telemetry = recordAccounting(fresh, answer?.telemetryJson.orEmpty(), snapshot, generation)
+        if (answer != null) {
             save(answer.copy(content=snapshot.text("output").ifBlank {answer.content},status=status,telemetryJson=telemetry))
-            recordAccounting(fresh,telemetry)
-        } else recordAccounting(fresh,RunTelemetry.merge("",snapshot))
+        }
         return fresh
     }
-    @Transaction suspend fun saveTurn(receipt: Conversation,message: ChatMessage,control: PendingControl?,event: ToolEvent?,settledId: String,settledGeneration: Long?=null) {
+    @Transaction suspend fun saveTurn(receipt: Conversation,message: ChatMessage,control: PendingControl?,event: ToolEvent?,settledId: String,observedGeneration: Long?=null) {
         val current=conversation(receipt.key) ?: return
         if(!current.sameSubmission(receipt,allowAdmission=true) || (receipt.lastEventSeq>=0 && current.lastEventSeq>receipt.lastEventSeq)) return
         if(current.status in RunStates.terminal && receipt.status !in RunStates.terminal) return
-        save(receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt,detailsJson=current.detailsJson))
-        val saved=this.message(message.id)
-        val telemetry=RunTelemetry.merge(saved?.telemetryJson.orEmpty(),RunTelemetry.parse(message.telemetryJson))
-        save(message.copy(telemetryJson=telemetry));recordAccounting(receipt,telemetry)
+        val currentGeneration = current.executionGeneration
+        val generation = observedGeneration?.takeIf { currentGeneration == null || it >= currentGeneration } ?: currentGeneration
+        val fresh = receipt.copy(title=current.title,pinned=current.pinned,hidden=current.hidden,syncedAt=current.syncedAt,
+            detailsJson=current.detailsJson,admissionId=receipt.admissionId.ifBlank { current.admissionId },executionGeneration=generation)
+        save(fresh)
+        val saved = this.message(message.id)
+        val telemetry = recordAccounting(fresh, saved?.telemetryJson.orEmpty(),
+            RunTelemetry.parse(message.telemetryJson), observedGeneration)
+        save(message.copy(telemetryJson=telemetry))
         if(control!=null && control.runId==receipt.runId) mergeControl(control)
         if(event!=null) {save(event);pruneEvents(receipt.key)}
-        if(settledId.isNotBlank()) runControls(receipt.key,receipt.runId).filter {it.requestId==settledId && (it.generation==null || it.generation==settledGeneration)}.forEach {controlState(it.key,"resolved")}
+        if(settledId.isNotBlank()) runControls(receipt.key,receipt.runId).filter {it.requestId==settledId && (it.generation==null || it.generation==observedGeneration)}.forEach {controlState(it.key,"resolved")}
         if(receipt.status in RunStates.terminal) deleteRunControls(receipt.key,receipt.runId)
     }
     @Transaction suspend fun replaceHistory(expected: Conversation, remoteId: String, messages: List<ChatMessage>) {

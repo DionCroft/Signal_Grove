@@ -1,5 +1,42 @@
 # Current development validation — audit follow-up
 
+## Runtime evidence for the current execution
+
+Hermes can send an execution number in a status snapshot while runtime
+metadata on the matching stream lacks that number. The app persists
+explicit provenance for model and provider metadata inside the existing
+serialized report. It uses the matching session, transport, run and
+submission for Activity. A newer execution drops older tagged runtime
+from the current report. An untagged report remains visible under
+“Reported for this run · execution unknown” when the current execution
+has a known number. A complete matching runtime takes precedence.
+Transcript and run-level usage remain available. Legacy runs without
+execution numbers retain run-level reporting.
+[Authority snapshot](https://github.com/NousResearch/hermes-agent/blob/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15/gateway/platforms/api_server_authority_runs.py#L89)
+and [runtime report](https://github.com/NousResearch/hermes-agent/blob/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15/gateway/platforms/api_server_runs.py#L1161).
+
+All 1,245 JVM tests passed. Debug and release lint reported zero
+errors. The required debug and companion builds passed. The newer
+snapshot and late-stream cases use an actual local HTTP client and Room
+database. Android 8 and Android 17 each passed 18 standard Activity,
+snapshot and approval cases. The new run-level report UI also passed
+on each API at 1080×1120 with 1.3× text. Display settings were restored.
+
+The initial Android test build needed a missing JSON import. The
+first run of the new UI method started its mock server on the UI
+thread and failed on both APIs. The final build changed only that
+instrumentation fixture, as verified from both source manifests.
+The final pair used the existing emulator debug signing key.
+Original build and device failures were retained.
+
+| Tested emulator APK | SHA-256 |
+| --- | --- |
+| Debug app | `4d2fffa6317f82a7aab1ababecc564ca5b60e2fd759aa149d771b8005744c5c9` |
+| Debug test companion | `0eccb099c747f4c21cd55dd4f5c7390a89c8aafe4fed8069ba6dd193690092f3` |
+
+The check used authenticated local fixtures. Live Hermes Activity, the
+physical Xiaomi upgrade and public release acceptance remain open.
+
 ## Native build paths in beta.11 APKs
 
 The private signed 73f68da APK preserved 460 absolute workstation path
