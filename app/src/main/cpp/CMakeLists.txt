@@ -3,6 +3,10 @@ project(signal_grove_llm LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OBJECT_PATH_MAX 250)
+# Keep file names in native diagnostics without embedding paths from the build host.
+add_compile_options(
+    "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=signal-grove"
+    "-ffile-prefix-map=${CMAKE_CURRENT_BINARY_DIR}=signal-grove-build")
 if(ANDROID_ABI STREQUAL "armeabi-v7a" OR ANDROID_ABI STREQUAL "x86")
     # Keep the Hermes client installable on 32-bit devices. This shim explicitly
     # reports local inference as unavailable and never loads model weights.

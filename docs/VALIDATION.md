@@ -1,5 +1,67 @@
 # Current development validation — audit follow-up
 
+## Corrected beta.11 signed and offline checks
+
+Commit d6834a2 produced the private code-116 APK of 76,598,310 bytes with
+SHA-256 `79522149d6c08b74256cb0af51b36d2602d933a4672c18712daa11a61bcfe6aa`.
+It uses the beta.10 production certificate and passed 16 KB ZIP alignment.
+All 32 native libraries passed the workstation path scan and retained
+the tested dependency and dynamic symbol contracts. The 187-component
+SBOM covers the exact signed APK. All four C++ runtime members reproduce
+from the pinned NDK after stripping and retain their build IDs.
+
+The corrected candidate's 154 Maven coordinates and llama.cpp commit match
+the 24 November OSV query exactly. The response reported zero indexed
+matches for those inputs and eight for the positive control.
+[OSV batch query reference](https://google.github.io/osv.dev/post-v1-querybatch/).
+
+An in-place Android 17 emulator upgrade from the exact public beta.10 APK
+retained the app UID, original installation time, Demo setting and one
+synthetic task. The private receipt binds the installed code-116 APK hash
+and the earlier beta.10 hash. The first home capture stopped after the
+installer succeeded. Package Manager confirmed the installed APK before
+the UI checks continued, with no second installation.
+
+With the corrected local debug libraries on an offline Android 17 emulator,
+LFM3 loaded and generated at a 512-token boundary with 489 prompt tokens
+and 23 tokens reserved for the reply. The test refused a request that
+exceeded the budget. The different garden prompt hit the 30-second
+generation deadline twice. The preceding debug build also reached that
+deadline with the same emulator, model and prompt. The corrected pair and
+model fixture were restored and the failure reports retained.
+
+Full device coverage for d6834a2, the signed Xiaomi upgrade and the
+production connection and data checks remain open.
+[Corrected CI run](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942).
+
+## Native build paths in beta.11 APKs
+
+The private signed 73f68da APK preserved 460 absolute workstation path
+occurrences across 16 llama.cpp and ggml libraries. The paths came from
+the fetched source tree. The Android NDK CMake build now uses Clang file
+prefix mapping for the source and build directories. Native messages
+retain relative filenames.
+[Compiler option reference](https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-ffile-prefix-map).
+
+The rebuilt debug and unsigned release APKs each contain the original
+32 native members across four ABIs and zero matches for the workstation
+path markers. Both inference ABIs still contain relative source names.
+NDK llvm-readelf verified the same library names, dependencies, and
+dynamic symbol contracts across all 32 release members. Twelve release
+members were byte-identical. All 1,243 JVM cases and both lint variants
+passed. The first offline LFM3 smoke preflight timed out hashing the
+existing model before installing either debug package. The later runtime
+checks are recorded above.
+
+On the earlier 73f68da hosted run, Android 8 shard 0 passed 595 methods.
+Shard 1 recorded 505 positive methods of 667 before the instrumentation
+command ended with exit 255. Its archive had no final summary or assertion
+failure. Both original archives were verified against their GitHub
+digests and retained before drawing any release conclusion.
+[Earlier hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45409815501).
+
+The corrected signed APK and the open publication gates are recorded above.
+
 ## Combined beta.11 signed rehearsal
 
 The private original-signer code-116 APK from commit 73f68da is 76,601,810

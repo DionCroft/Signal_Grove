@@ -7,6 +7,29 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Corrected beta.11 signed and offline checks
+
+The original-key code-116 APK from d6834a2 retained the app UID, original
+installation time, Demo setting and a stored task in an Android 17 emulator
+upgrade from public beta.10. The signed package and 187-component SBOM passed
+the native checks. The corrected debug libraries passed an offline LFM3
+512-token context test. The separate garden prompt reached its 30-second
+generation deadline on both the preceding and corrected builds.
+
+The exact corrected Android matrix, signed Xiaomi upgrade and live
+data-retention checks still need evidence before publication.
+[Validation](docs/VALIDATION.md#corrected-beta11-signed-and-offline-checks).
+
+## Native build paths in beta.11 APKs
+
+The signed 73f68da candidate contained workstation paths in 16 native
+libraries. The native build now uses relative paths for source and build
+diagnostics. Both rebuilt APKs passed the path scan across all 32 native
+libraries, and the release APK retained their dynamic library and
+symbol contracts. All 1,243 JVM tests and both lint variants passed.
+The corrected signed APK was subsequently verified in the rehearsal above.
+[Validation](docs/VALIDATION.md#native-build-paths-in-beta11-apks).
+
 ## Combined beta.11 signed rehearsal
 
 Commit 73f68da combines the compact composer and Hermes Activity waits.
