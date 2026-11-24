@@ -153,14 +153,10 @@ CURRENT_PATCH_FILES = {
         '82b0b1d1eb0c5bf54ff75f423b7de430816e29dc9d34ff3f8d6bd775e37c69b7',
     ),
 }
-NOVEMBER_24_PATCH_FILES = {
+NOVEMBER_24_PATCH_FILES = CURRENT_PATCH_FILES | {
     'gateway/run_shutdown.py': (
         '6370fec2c32f0768834e14e6518a5340940f7412e40e79d7cfada93104c9c7ad',
-        'fce5b71c9ee9952f0f503bb539eb7f213d925131a44683e30f0b1fc965c78905',
-    ),
-    'tui_gateway/session_reaper.py': (
-        '62d8f144b3405eff3fe323e5e934031e45aff90f9625db3512c6ac4d56bb467e',
-        'a6698a896295973b0ea75c259a5129322971c589beddb92178b90bbd7c012821',
+        '5c29c3290db0ceac9dd7edf57bb20d81da150ac9057ccabe462def42c80ff474',
     ),
 }
 CURRENT_EXECUTABLES = (131, '90f8e66ffbf463c6be1f0d7f030c3686c9253b45d768000202434c0fe2ed5e6f')

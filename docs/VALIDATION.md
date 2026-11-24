@@ -24,10 +24,16 @@ in the candidate variant.
 | 8fc0374 | 27,571 | `25b80de474c986216541919b8a6e9d87d7d11236d8900863c92b6e8248cec45f` |
 | 5725d1d | 27,575 | `95c21d7ea9cc985d958947d9cab65dd1cb11ce6ed2a091abbe4fc3bd531589e1` |
 
-Both Git trees preserve the same 131 executable paths. The existing
-patch applied cleanly and both patched Python files parsed in the
-isolated source copy. Native execution and live Pi activation remain
-separate acceptance stages.
+Both Git trees preserve the same 131 executable paths. Both pristine
+cohorts passed the hosted Linux checks. Candidate preparation stopped
+at the exact source check because the first Windows patch rehearsal
+used the machine's CRLF conversion. Repeating Git apply with the
+workflow's explicit settings reproduced the existing session-reaper
+output and the new gateway shutdown output byte for byte. The pins
+now use these canonical LF hashes. The original rejected cohorts are
+retained and the same complete source, executable and runtime checks
+still apply.
+[First hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45376000294).
 [Stable source](https://github.com/NousResearch/hermes-agent/tree/8fc0374447313e276f6b9a2764bfc750190c966a) ·
 [Main source](https://github.com/NousResearch/hermes-agent/tree/5725d1d390ac4b7cfe157ea32bd6f4db1a280368).
 
