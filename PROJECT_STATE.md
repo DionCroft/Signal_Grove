@@ -12,7 +12,11 @@ requirements. Commit and push tested chunks.
 Both new Hermes pins retain the same 11 persistence test files and
 the same pytest version as the previous cohorts. The native Linux
 matrix now applies the existing 103-case gate to v0.23.4 and the
-pinned main revision. Hosted runtime results remain open.
+pinned main revision. Both passed all 103 cases without skips.
+The raw JUnit reports, exact source maps and archive digests were
+verified independently. Authenticated transport and managed Pi
+acceptance remain open.
+[Validation](docs/VALIDATION.md#persistence-on-hermes-v0234-and-main).
 
 ## Isolated shutdown coverage for Hermes v0.23.4 and main
 

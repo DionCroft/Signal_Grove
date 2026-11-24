@@ -68,6 +68,31 @@ all-profile and worker admission, semantic compatibility and managed
 Pi recovery still require their own acceptance.
 [Corrected hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45376972076).
 
+## Persistence on Hermes v0.23.4 and main
+
+All five native SDK jobs passed from 5ea28e3. The pristine v0.23.4
+and main revisions each ran 103 tests across the same 11 unmodified
+upstream test files under the supported Linux PM runtime. The
+cohort covers session binding lineage, mutation and retirement,
+local handoff receipts and persisted desktop workspace metadata.
+
+The two raw artifacts matched their GitHub archive digests. Their
+full source maps matched independently checked official Git trees,
+and their executable paths matched the pinned catalogue. The original
+terminal receipts confirm exit zero. Local verification found all 103
+expected case identities on both pins with no failures, errors or
+skips. The cases match the earlier stable and main cohorts.
+
+| Upstream revision | Positive cases | Raw JUnit report SHA-256 |
+| --- | ---: | --- |
+| 5725d1d | 103 | `bf910dd951daba49a217c5fa782f1a0e099536c73def73527260d3f1dcfdc836` |
+| 8fc0374 | 103 | `927f281447c8807fc739972a9ffe8f53e96d6b423915559e103c426460a3c2ad` |
+
+The checks exercise upstream persistence components in disposable
+stores. Authenticated receipt reconciliation, cross-version
+transport and live managed Pi operation require separate evidence.
+[Native SDK run](https://github.com/DionCroft/Signal_Grove/actions/runs/45380258025).
+
 ## Hermes v0.23.4 and current main source review
 
 The official annotated v0.23.4 tag points to 8fc0374. Main resolved to
