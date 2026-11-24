@@ -1,5 +1,57 @@
 # Current development validation — audit follow-up
 
+## Beta.11 rehearsal runtime and build-tool review
+
+The signed rehearsal inventory was checked on 24 November 2026 at
+01:58 UTC. OSV returned complete results and zero indexed matches for
+154 exact APK runtime Maven versions and the llama.cpp commit
+`50518b64c6f2191a116d2760042f106c4b3387d7`. The separate Maven positive
+control returned eight matches. [OSV batch query reference](https://google.github.io/osv.dev/post-v1-querybatch/).
+
+The four `libc++_shared.so` files match the recorded SBOM hashes.
+For each ABI, running the installed NDK 29.0.14206865 `llvm-strip
+--strip-unneeded` on its input reproduced the APK member byte for byte.
+The original and packaged ELF build IDs matched. This check binds the
+installed NDK bytes and covers provenance for those APK members.
+
+A separate offline Gradle 9.8.2 resolution on the sealed signed-rehearsal
+source used strict dependency verification. All 111 unique build-plugin
+artifact records matched pinned SHA-256 values. It resolved 117 exact
+Maven coordinates, including AGP, Kotlin Compose and KSP. OSV matched
+seven advisories across six coordinates. None of those six occurs in
+the APK runtime inventory. This scope covers the buildscript plugin
+classpath. Annotation-processor and other standalone tool scopes retain
+their own checks.
+
+| Build-only coordinate | Selected | First fixed versions in the indexed records |
+| --- | --- | --- |
+| `com.google.guava:guava` | 33.4.0-jre | [33.7.2](https://github.com/advisories/GHSA-xxph-c9ww-hj94) |
+| `org.apache.commons:commons-lang3` | 3.16.0 | [3.18.0](https://github.com/advisories/GHSA-j288-q9x7-2f5v) |
+| `org.bitbucket.b_c:jose4j` | 0.9.5 | [0.9.6](https://github.com/advisories/GHSA-3677-xxcr-wjqv) |
+| `org.bouncycastle:bcpkix-jdk18on` | 1.80.2 | [1.84](https://github.com/advisories/GHSA-wg6q-6289-32hp) |
+| `org.bouncycastle:bcprov-jdk18on` | 1.80.2 | [1.85](https://github.com/advisories/GHSA-9pwp-9qqc-pr26) and [1.85](https://github.com/advisories/GHSA-qp49-qgx5-5m26) |
+| `org.jdom:jdom2` | 2.0.6 | [2.0.6.1](https://github.com/advisories/GHSA-2363-cqg2-863c) |
+
+Resolved edges locate the flags under the AGP tool path, including its
+APK builder, bundletool, compression and Jetifier dependencies. The
+official Google Maven 9.5.2 package declarations still refer to the
+flagged Guava, Bouncy Castle, jose4j and JDOM versions along the checked
+paths. Review a dedicated tool upgrade under strict verification.
+[Google Maven metadata](https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Rehearsal runtime advisory response | `57782df36d44ca6f624ac0635c41e4a83d9b96c080586c30fa7639d15ec4fd64` |
+| C++ origin comparison | `e7191bc7599abb610b0b430a931b6c37b96fc299d41cd1296430c5a64b8032a6` |
+| Build-plugin classpath | `498ac331ec6063632b0623a525eadce26fbb8e552454859f347b74cfaf405f49` |
+| Build-plugin dependency edges | `57c2aa5344d4bd5d01293d3da9bd613d4217f3eba1f890ac4cc2ab5cffcf59a3` |
+| Build-plugin advisory response | `0697292bf01dc6c603933f1792942d6a873ba8c7fade4a0df7d3b684e68134f7` |
+| Advisory range and APK overlap review | `1fc4c5e8e5a6091a9731a57e1ed31b46b19ddef689ff0ecb73e0ba09fcfcdace` |
+| Published Google component review | `caa3900997f9a0cf3e070e0250beaba71239e3d7f6089052c14ae3293d9d0d8f` |
+
+All generated evidence remains on E:. The checks apply to the signed
+rehearsal, with the final release inventory and advisory scan still due.
+
 ## Hermes client stamp retry compatibility
 
 The three changed modules in the reviewed main persistence layout

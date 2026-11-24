@@ -7,6 +7,21 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Beta.11 rehearsal runtime and build-tool review
+
+The exact signed rehearsal inventory returned zero indexed OSV matches
+for 154 app runtime Maven versions and the pinned llama.cpp commit.
+Each packaged C++ runtime matched its pinned NDK input after reproducing
+the strip step. The separate build-plugin scope matched seven advisories
+across six coordinates. None of the six coordinates is in the rehearsal
+APK runtime graph. [Validation](docs/VALIDATION.md#beta11-rehearsal-runtime-and-build-tool-review).
+
+The published AGP 9.5.2 dependency declarations retain several flagged
+versions. Keep build-tool remediation under review and rebind the runtime
+checks to the final APK. The full Android run passed its verify job and all
+four device shards have started.
+[Android CI](https://github.com/DionCroft/Signal_Grove/actions/runs/45306944580).
+
 ## Hermes client stamp retry compatibility
 
 The exact main-pin SQLite component accepted a fresh retry that changed
