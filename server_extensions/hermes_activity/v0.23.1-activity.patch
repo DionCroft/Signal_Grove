@@ -1,0 +1,461 @@
+--- a/agent/tool_executor.py
++++ b/agent/tool_executor.py
+@@ -744,7 +744,11 @@
+     _advance_start_order(lambda: _begin_tool_execution(agent, ref, display_index))
+     from agent.tool_progress_relay import bound_tool_progress
+     from tools.connectors.data_use import collect_data_use
+-    with bound_tool_progress(agent.tool_progress_callback, ref.name, ref.call_id), collect_data_use() as data_use:
++    with (
++        bound_tool_progress(agent.tool_progress_callback, ref.name, ref.call_id,
++                            mcp_origin=getattr(agent, "_mcp_origin_callback", None)),
++        collect_data_use() as data_use,
++    ):
+         try:
+             return _run_with_activity_heartbeat(agent, ref.name, lambda: execute(ref.args))
+         finally:
+--- a/agent/tool_progress_relay.py
++++ b/agent/tool_progress_relay.py
+@@ -23,6 +23,34 @@
+
+ ProgressReporter = Callable[[float, Optional[float], Optional[str]], None]
+ _current: contextvars.ContextVar[Optional[ProgressReporter]] = contextvars.ContextVar("tool_progress_reporter", default=None)
++_mcp_origin: contextvars.ContextVar[Optional[Callable[[str], None]]] = contextvars.ContextVar(
++    "mcp_origin_reporter", default=None)
++
++
++def _origin_reporter(callback, tool_name: str, tool_call_id: str):
++    if callback is None or not tool_call_id:
++        return None
++    lock = threading.Lock()
++    reported: set[str] = set()
++
++    def report(server_name: str) -> None:
++        if (not isinstance(server_name, str) or not server_name.strip()
++                or len(server_name) > 256 or not server_name.isprintable()):
++            return
++        with lock:
++            if server_name in reported:
++                return
++            reported.add(server_name)
++        try:
++            callback(tool_name, tool_call_id, server_name)
++        except Exception:  # health: allow BLE001 -- an observation cannot fail the actual tool call
++            logger.debug("MCP origin callback failed", exc_info=False)
++    return report
++
++
++def current_mcp_origin() -> Optional[Callable[[str], None]]:
++    """The call-scoped, metadata-only observer captured by the selected MCP handler."""
++    return _mcp_origin.get()
+
+
+ def _reporter(callback, tool_name: str, tool_call_id: str) -> ProgressReporter:
+@@ -46,12 +74,14 @@
+
+
+ @contextlib.contextmanager
+-def bound_tool_progress(callback, tool_name: str, tool_call_id: str) -> Iterator[None]:
+-    """Bind this call's relay for the block (no-op when the agent has no progress callback)."""
++def bound_tool_progress(callback, tool_name: str, tool_call_id: str, *, mcp_origin=None) -> Iterator[None]:
++    """Bind the optional progress and MCP-origin observers to this exact call."""
+     token = _current.set(_reporter(callback, tool_name, tool_call_id or "") if callback else None)
++    origin_token = _mcp_origin.set(_origin_reporter(mcp_origin, tool_name, tool_call_id))
+     try:
+         yield
+     finally:
++        _mcp_origin.reset(origin_token)
+         _current.reset(token)
+
+
+--- a/gateway/platforms/api_server_runs.py
++++ b/gateway/platforms/api_server_runs.py
+@@ -387,6 +387,17 @@
+                 event_fields["preview"] = _tool_completed_preview(
+                     kwargs.get("result"), redact_sensitive_text)
+             _push(_run_event(run_id, event_type, **event_fields))
++        elif event_type == "tool.mcp_origin":
++            fields = dict(tool=tool_name, tool_call_id=kwargs.get("tool_call_id"), mcp_server=kwargs.get("mcp_server"))
++            if not all(isinstance(value, str) and value.strip() and len(value) <= 256 and value.isprintable()
++                       for value in fields.values()):
++                return
++            generation = kwargs.get("execution_generation")
++            if generation is not None:
++                if type(generation) is not int or generation < 0:
++                    return
++                fields["execution_generation"] = generation
++            _push(_run_event(run_id, event_type, **fields))
+         elif event_type in {"subagent.start", "subagent.complete"}:
+             event = _run_event(run_id, event_type)
+             if preview is not None:
+@@ -1128,10 +1139,19 @@
+                 is_error, _ = _detect_tool_failure(name, result)
+                 tool_cb("tool.completed", name, None, args, tool_call_id=call_id, is_error=bool(is_error))
+
++            def _mcp_origin(tool_name, call_id, server_name, generation):
++                tool_cb("tool.mcp_origin", tool_name, tool_call_id=call_id,
++                        mcp_server=server_name, execution_generation=generation)
++
+             with observe_api_controls(run.admission, _control_cb):
+                 result, usage = await observe_api_turn(
+-                    run.admission, stream_delta_callback=_text_cb,
+-                    tool_start_callback=_tool_start, tool_complete_callback=_tool_complete)
++                    run.admission,
++                    stream_delta_callback=_text_cb,
++                    tool_progress_callback=tool_cb,
++                    tool_start_callback=_tool_start,
++                    tool_complete_callback=_tool_complete,
++                    mcp_origin_callback=_mcp_origin,
++                )
+             # The canonical turn has no agent object here; the served pair rides on the
+             # committed usage/result runtime metadata when the turn recorded one.
+             served_runtime = ((usage or {}).get("runtime") if isinstance(usage, dict) else None) or (
+@@ -1141,6 +1161,12 @@
+                 agent = self._create_agent(
+                     stream_delta_callback=_text_cb, tool_progress_callback=self._make_run_event_callback(run_id, loop),
+                     interim_assistant_callback=_interim_cb, **run.agent_kwargs)
++            origin_events = self._make_run_event_callback(run_id, loop)
++
++            def _direct_mcp_origin(tool_name, call_id, server_name):
++                origin_events("tool.mcp_origin", tool_name, tool_call_id=call_id, mcp_server=server_name)
++
++            agent._mcp_origin_callback = _direct_mcp_origin
+             self._active_run_agents[run_id] = agent
+             approval_notify = _make_approval_notify(self, run, _api_server=_api_server)
+             result, usage, served_runtime = await _submit_api_worker(
+--- a/gateway/session_api_turn.py
++++ b/gateway/session_api_turn.py
+@@ -17,8 +17,10 @@
+ _SETTINGS_PREFIX = 'gateway.api.settings.v1.'
+ # Request-owned sinks an API observer may register for its admission's execution.
+ _OBSERVER_KEYS = ('stream_delta_callback', 'tool_start_callback', 'tool_complete_callback',
+-                  'reasoning_callback', 'status_callback', 'interim_assistant_callback')
++                  'reasoning_callback', 'status_callback', 'interim_assistant_callback', 'mcp_origin_callback')
+ _TOOL_SINKS = {'tool_start_callback', 'tool_complete_callback'}
++_SUBAGENT_PROGRESS_EVENTS = frozenset({"subagent.start", "subagent.complete"})
++_API_PROGRESS_EVENTS = _SUBAGENT_PROGRESS_EVENTS | {"tool.started", "tool.completed"}
+ _SETTING_KEYS = ('ephemeral_system_prompt', 'requested_model', 'requested_provider',
+                  'model_options', 'route', 'session_model', 'confirmed_runtime_lock',
+                  'requested_runtime', 'route_source', 'room_dispatch', 'room_execution_policy',
+@@ -356,12 +358,19 @@
+     observers = getattr(authority, 'api_observers', None)
+     if observers is None:
+         observers = authority.api_observers = {}
+-    observer = {key: kwargs[key] for key in _OBSERVER_KEYS if kwargs.get(key) is not None}
+-    if kwargs.get('tool_progress_callback') is not None and not observer.keys() & _TOOL_SINKS:
+-        # Progress-only (the session chat stream): the producer's own tool.started / tool.completed
+-        # events with its preview and failure verdict. Structured observers keep only theirs.
+-        observer['tool_progress_callback'] = kwargs['tool_progress_callback']
+-    registered = observers.setdefault(row['admission_id'], [])
++    observer = {
++        key: kwargs[key] for key in _OBSERVER_KEYS if kwargs.get(key) is not None
++    }
++    progress = kwargs.get("tool_progress_callback")
++    if progress is not None:
++        # Structured sinks own ordinary tools. Subagent lifecycle has no structured equivalent,
++        # so retain that part of the progress stream beside them.
++        observer["tool_progress_callback"] = (
++            partial(_notify_subagent_progress, progress)
++            if observer.keys() & _TOOL_SINKS
++            else progress
++        )
++    registered = observers.setdefault(row["admission_id"], [])
+     registered.append(observer)
+     try:
+         authority._publish_pending(ref)
+@@ -473,6 +482,11 @@
+     return accepted
+
+
++def _notify_subagent_progress(callback, event_type, *args, **kwargs):
++    if event_type in _SUBAGENT_PROGRESS_EVENTS:
++        return callback(event_type, *args, **kwargs)
++
++
+ def wire_api_observers(agent, owner, want_interim):
+     """Hand this admission's API observers (Chat/Responses SSE, runs) the agent's reasoning,
+     status, commentary and tool progress callbacks, the ones the direct API path gave the agent
+@@ -502,10 +516,16 @@
+     progress = agent.tool_progress_callback
+
+     def tool_progress_callback(event_type, *args, **kwargs):
+-        if event_type in ('tool.started', 'tool.completed'):
+-            publish_api_tool_progress(authority, session_id, generation, event_type, *args, **kwargs)
++        if event_type in _API_PROGRESS_EVENTS:
++            publish_api_tool_progress(
++                authority, session_id, generation, event_type, *args, **kwargs
++            )
+         if progress is not None:
+             return progress(event_type, *args, **kwargs)
++    def mcp_origin_callback(tool_name, call_id, server_name):
++        publish('mcp_origin_callback', tool_name, call_id, server_name, generation)
++
++    agent._mcp_origin_callback = mcp_origin_callback
+     agent.reasoning_callback = lambda text: publish('reasoning_callback', text)
+     agent.status_callback = status_callback
+     agent.tool_progress_callback = tool_progress_callback
+--- a/tests/gateway/test_api_canonical_projection.py
++++ b/tests/gateway/test_api_canonical_projection.py
+@@ -114,6 +114,75 @@
+     assert tool_payloads == [('read_file', {'path': '/tmp/x'}), ('read_file', {'path': '/tmp/x'})]
+     assert 'run_test' not in api._stopping_run_ids
+     assert 'run.cancelled' in names and 'run.completed' not in names
++
++
++@pytest.mark.asyncio
++async def test_run_sse_keeps_subagent_lifecycle_beside_structured_tool_events(
++    api, owner
++):
++    admitted = admit_api_turn(
++        api, session_id="subagent-sse", user_message="hello", conversation_history=[]
++    )
++    _, ref, _row = admitted
++    launch, queue = _launch(api, admitted)
++
++    async def handle(event):
++        from gateway.session_results import execution_result
++
++        turn = _turn_runner(owner, ref)
++        progress = _wired_agent(turn).tool_progress_callback
++        assert progress is not None
++        progress("subagent.start", goal="inspect", child_session_id="child-session-1")
++        progress(
++            "tool.started",
++            "read_file",
++            "a.txt",
++            {"path": "a.txt"},
++            tool_call_id="call-1",
++        )
++        turn.combined_tool_start_callback("call-1", "read_file", {"path": "a.txt"})
++        progress(
++            "tool.completed",
++            "read_file",
++            None,
++            {"path": "a.txt"},
++            tool_call_id="call-1",
++            is_error=False,
++        )
++        turn.combined_tool_complete_callback(
++            "call-1", "read_file", {"path": "a.txt"}, "body"
++        )
++        progress(
++            "subagent.complete",
++            goal="inspect",
++            child_session_id="child-session-1",
++            status="completed",
++            summary="done",
++        )
++        execution_result.get()["result"] = {"final_response": "ok"}
++        return "ok"
++
++    owner.runner._handle_message = handle
++    await _execute_run(api, launch, _api_server=_api_server)
++    await asyncio.sleep(0)
++    events = _events(queue)
++    lifecycle = [
++        event
++        for event in events
++        if event["event"]
++        in {"tool.started", "tool.completed", "subagent.start", "subagent.complete"}
++    ]
++    assert [event["event"] for event in lifecycle] == [
++        "subagent.start",
++        "tool.started",
++        "tool.completed",
++        "subagent.complete",
++    ]
++    assert (
++        lifecycle[0]["child_session_id"]
++        == lifecycle[-1]["child_session_id"]
++        == "child-session-1"
++    )
+
+
+ def _wrap(api, run_id, loop, sink):
+--- /dev/null
++++ b/tests/gateway/test_signal_grove_mcp_origin.py
+@@ -0,0 +1,143 @@
++"""Actual MCP dispatch identity and its metadata-only Runs projection."""
++import asyncio
++from contextlib import nullcontext
++from types import SimpleNamespace
++
++import pytest
++
++from agent.tool_progress_relay import bound_tool_progress, current_mcp_origin
++from gateway.platforms import api_server as _api_server
++from gateway.platforms.api_server_runs import _execute_run
++from gateway.session_api_turn import admit_api_turn, wire_api_observers
++from tests.gateway.test_api_canonical_projection import _events, _launch, _turn_runner, _wired_agent
++from tools import mcp_tool_handlers as mcp
++from tools.mcp_tool_schema import mcp_prefixed_tool_name
++
++
++def test_selected_mcp_handler_reports_exact_server_after_checks(monkeypatch):
++    server_one, server_two = "fixture-api", "fixture_api"
++    tool_name = mcp_prefixed_tool_name(server_one, "read-entry")
++    assert tool_name == mcp_prefixed_tool_name(server_two, "read_entry")
++    events = []
++    calls = []
++
++    def connection(raw_name):
++        async def call_tool(name, *, arguments):
++            calls.append((raw_name, name, arguments))
++            return "private fixture result"
++
++        return SimpleNamespace(session=SimpleNamespace(call_tool=call_tool), _rpc_lock=asyncio.Lock())
++
++    servers = {name: connection(name) for name in (server_one, server_two)}
++    monkeypatch.setattr(mcp, "_trust_gate_check", lambda *a: None)
++    monkeypatch.setattr(mcp, "_check_circuit_breaker", lambda *a: None)
++    monkeypatch.setattr(mcp, "_acquire_call_server", lambda raw_name, timeout: (servers[raw_name], None))
++    monkeypatch.setattr(mcp, "_track_inflight_rpc", lambda *a, **kw: nullcontext())
++    monkeypatch.setattr(mcp, "_tool_is_read_only", lambda *a: True)
++    monkeypatch.setattr(mcp, "_render_call_tool_result", lambda result, *a: result)
++    monkeypatch.setattr(mcp, "_dispatch", lambda name, server, op, call, *a, **kw: asyncio.run(call()))
++    for index, server in enumerate((server_one, server_two)):
++        with bound_tool_progress(None, tool_name, f"call-{index}", mcp_origin=lambda *a: events.append(a)):
++            result = mcp._make_tool_handler(server, "read_entry", 1)({"private": "fixture"})
++        assert result == "private fixture result"
++        assert current_mcp_origin() is None
++
++    monkeypatch.setattr(mcp, "_trust_gate_check", lambda *a: "refused")
++    with bound_tool_progress(None, tool_name, "refused", mcp_origin=lambda *a: events.append(a)):
++        assert mcp._make_tool_handler(server_one, "read_entry", 1)({}) == "refused"
++
++    assert events == [(tool_name, "call-0", server_one), (tool_name, "call-1", server_two)]
++    assert len(calls) == 2
++
++
++@pytest.mark.asyncio
++async def test_dead_transport_cannot_report_an_origin():
++    def unreachable(*a, **kw):
++        pytest.fail("Dead transport must not make a call or report an origin")
++
++    server = SimpleNamespace(session=SimpleNamespace(call_tool=unreachable),
++                             _stdio_children_dead=lambda: True)
++    with pytest.raises(mcp._StdioChildExited):
++        await mcp._call_tool_racing_stdio_death(server, "fixture", "read_entry", {}, report_origin=unreachable)
++
++
++def test_origin_relay_deduplicates_retries_and_resets_the_binding():
++    events = []
++    with bound_tool_progress(None, "bridge", "call", mcp_origin=lambda *a: events.append(a)):
++        report = current_mcp_origin()
++        report("fixture-api")
++        report("fixture-api")
++        report("fixture_api")
++        report("")
++        report("fixture\nserver")
++        with bound_tool_progress(None, "nested", "other"):
++            assert current_mcp_origin() is None
++        assert current_mcp_origin() is report
++    assert current_mcp_origin() is None
++    assert events == [("bridge", "call", "fixture-api"), ("bridge", "call", "fixture_api")]
++
++
++@pytest.mark.asyncio
++async def test_canonical_run_receives_origin_of_its_generation(api, owner):
++    admitted = admit_api_turn(
++        api, session_id="mcp-origin", user_message="hello", conversation_history=[],
++    )
++    _, ref, _ = admitted
++    launch, queue = _launch(api, admitted)
++    recorded_generation = None
++
++    async def handle(event):
++        from gateway.session_results import execution_result
++
++        nonlocal recorded_generation
++        turn = _turn_runner(owner, ref)
++        agent = _wired_agent(turn)
++        _, session, generation = turn._approval_owner
++        recorded_generation = generation
++        turn.combined_tool_start_callback("mcp-call", "bridge", {"secret_fixture": "not on origin"})
++        with bound_tool_progress(None, "bridge", "mcp-call", mcp_origin=agent._mcp_origin_callback):
++            current_mcp_origin()("fixture-api")
++            current_mcp_origin()("fixture-api")
++
++        stale = SimpleNamespace(status_callback=None, interim_assistant_callback=None, tool_progress_callback=None)
++        wire_api_observers(stale, (owner, session, generation + 1), False)
++        with bound_tool_progress(None, "bridge", "mcp-call", mcp_origin=stale._mcp_origin_callback):
++            current_mcp_origin()("fixture-stale")
++        turn.combined_tool_complete_callback("mcp-call", "bridge", {}, "private fixture result")
++        execution_result.get()["result"] = {"final_response": "ok"}
++        return "ok"
++
++    owner.runner._handle_message = handle
++    await _execute_run(api, launch, _api_server=_api_server)
++    await asyncio.sleep(0)
++    visible = [event for event in _events(queue) if event["event"] in
++               {"tool.started", "tool.mcp_origin", "tool.completed"}]
++    assert [event["event"] for event in visible] == ["tool.started", "tool.mcp_origin", "tool.completed"]
++    assert all(event["tool_call_id"] == "mcp-call" for event in visible)
++    assert recorded_generation is not None
++    origin = dict(visible[1])
++    assert isinstance(origin.pop("timestamp"), float)
++    assert origin == {"event": "tool.mcp_origin", "run_id": "run_test", "tool": "bridge",
++                      "tool_call_id": "mcp-call", "mcp_server": "fixture-api",
++                      "execution_generation": recorded_generation}
++
++
++@pytest.mark.asyncio
++async def test_direct_runs_origin_encoder_allows_only_the_metadata(api):
++    queue = asyncio.Queue()
++    api._run_streams["direct"] = queue
++    callback = api._make_run_event_callback("direct", asyncio.get_running_loop())
++    callback("tool.mcp_origin", "bridge", "private fixture preview", {"secret_fixture": "private"},
++             tool_call_id="call", mcp_server="fixture-api", result="private fixture result")
++    callback("tool.mcp_origin", "bridge", tool_call_id="call", mcp_server="invalid\nserver")
++    callback("tool.mcp_origin", "bridge", tool_call_id="", mcp_server="fixture-api")
++    callback("tool.mcp_origin", "bridge", tool_call_id="call", mcp_server="fixture-api",
++             execution_generation=True)
++    await asyncio.sleep(0)
++    events = _events(queue)
++    assert len(events) == 1
++    event = events[0]
++    assert isinstance(event.pop("timestamp"), float)
++    assert event == {"event": "tool.mcp_origin", "run_id": "direct", "tool": "bridge",
++                     "tool_call_id": "call", "mcp_server": "fixture-api"}
++
+--- a/tools/mcp_tool_handlers.py
++++ b/tools/mcp_tool_handlers.py
+@@ -503,7 +503,8 @@
+             inflight.discard(task)
+
+
+-async def _call_tool_racing_stdio_death(server, server_name: str, tool_name: str, args: dict, progress_callback=None):
++async def _call_tool_racing_stdio_death(server, server_name: str, tool_name: str, args: dict, progress_callback=None,
++                                       *, report_origin=None):
+     """``session.call_tool`` that fails fast when the stdio child is/gets dead: pre-call (a dead
+     child must not hold the slot for the full timeout) and mid-call (race against
+     ``_watch_stdio_children``). Both raise :class:`_StdioChildExited` for the respawn path, which
+@@ -521,6 +522,8 @@
+     # ``notifications/progress``; without one the server must stay silent.
+     extra = {"progress_callback": progress_callback} if progress_callback is not None else {}
+     _call_coro = server.session.call_tool(tool_name, arguments=args, **extra)
++    if report_origin is not None:
++        report_origin(server_name)
+     _watch_children = getattr(server, "_watch_stdio_children", None)
+     if not (inspect.iscoroutinefunction(_watch_children) and asyncio.iscoroutine(_call_coro)):
+         # Stubbed sessions return a non-awaitable, or there is no child-watcher to race: plain await.
+@@ -715,8 +718,9 @@
+         read_only = _tool_is_read_only(server_name, tool_name)
+         image_paths: list[str] = []  # the LAST attempt's cached images (a recoverer may retry _call)
+         # Read on the agent's thread: the coroutine below runs on the MCP loop, outside this context.
+-        from agent.tool_progress_relay import current_tool_progress
++        from agent.tool_progress_relay import current_mcp_origin, current_tool_progress
+         report = current_tool_progress()
++        report_origin = current_mcp_origin()
+
+         async def _on_progress(progress, total, message):
+             if report is not None:
+@@ -727,7 +731,8 @@
+                 server._pending_call_context = contextvars.copy_context()  # for the elicitation callback
+                 try:
+                     result = await _call_tool_racing_stdio_death(
+-                        server, server_name, tool_name, args, _on_progress if report is not None else None)
++                        server, server_name, tool_name, args, _on_progress if report is not None else None,
++                        report_origin=report_origin)
+                 finally:
+                     server._pending_call_context = None
+             if getattr(server, "_mark_session_proven", None) is not None:  # round-trip done: transport healthy

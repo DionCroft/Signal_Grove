@@ -22,6 +22,22 @@ object ActivityProtocol {
             put("error", kind == "failed")
             putEventTime(j)
         },generation=(j["execution_generation"] as? JsonPrimitive)?.longOrNull)
+    internal fun mcpOrigin(event: JsonObject): ToolUpdate? {
+        activityIdentifier(event["run_id"]) ?: return null
+        val tool = activityIdentifier(event["tool"]) ?: return null
+        val call = activityIdentifier(event["tool_call_id"]) ?: return null
+        val server = activityIdentifier(event[MCP_SERVER]) ?: return null
+        val generation = if ("execution_generation" in event) {
+            (event["execution_generation"] as? JsonPrimitive)?.takeUnless { it.isString }
+                ?.longOrNull?.takeIf { it >= 0 } ?: return null
+        } else null
+        val details = buildJsonObject {
+            put(MCP_SERVER, server)
+            putEventTime(event)
+        }
+        return ToolUpdate(tool, MCP_ORIGIN, "", null, call, MCP_ORIGIN, details, generation)
+    }
+
     fun subagent(j:JsonObject,complete:Boolean):ToolUpdate {
         val outcome = if (complete) reportedSubagentOutcome(text(j, "status")) else "started"
         val details=buildJsonObject {

@@ -85,6 +85,39 @@ class ActivityProtocolTest {
         }
         assertNull(activeActivity(current.copy(detailsJson = """{"source":"cli"}"""), timeline))
     }
+    @Test fun mcpOriginKeepsTheExactReportedServerAndNoToolPayload() {
+        val payload = obj("""{"run_id":"r","tool":"mcp__fixture_api__read_entry","tool_call_id":"call",
+            "mcp_server":"fixture-api","execution_generation":2,"timestamp":1700000000,
+            "preview":"private fixture","args":{"key":"private fixture"},
+            "result":"private fixture","runtime":{"model":"private fixture"}}""")
+        val update = StreamDecoder.decode(SseEvent("tool.mcp_origin", payload.toString()))
+        val origin = update.tool!!
+        assertEquals(MCP_ORIGIN, origin.category)
+        assertEquals("fixture-api", origin.details.text(MCP_SERVER))
+        assertEquals("call", origin.callId)
+        assertEquals(2L, origin.generation)
+        assertEquals("", origin.preview)
+        assertNull(origin.durationMs)
+        assertFalse(update.toString().contains("private fixture"))
+        for (field in listOf("run_id", "tool", "tool_call_id", "mcp_server")) {
+            val without = StreamDecoder.decode(SseEvent("tool.mcp_origin", JsonObject(payload - field).toString()))
+            assertNull(field, without.tool)
+        }
+        assertNull(ActivityProtocol.mcpOrigin(JsonObject(payload + ("execution_generation" to JsonPrimitive("2")))))
+        assertNull(ActivityProtocol.mcpOrigin(JsonObject(payload + (MCP_SERVER to JsonPrimitive("fixture\u202E-api")))))
+    }
+
+    @Test fun mcpOriginsStayDistinctEvenWhenTheReportedToolNameAndCallIdMatch() {
+        val tool = event("a", "call", "started", 1)
+        val origin = tool.copy(key = "b", kind = MCP_ORIGIN, category = MCP_ORIGIN,
+            detailsJson = """{"mcp_server":"fixture-api"}""")
+        val other = origin.copy(key = "c", detailsJson = """{"mcp_server":"fixture_api"}""")
+        val timeline = activityTimeline(listOf(tool, origin, other, origin.copy(key = "replay")))
+        assertEquals(3, timeline.size)
+        assertEquals(setOf("fixture-api", "fixture_api"), timeline.mapNotNull { it.latest.mcpServer }.toSet())
+        assertNull(tool.copy(detailsJson = origin.detailsJson).mcpServer)
+    }
+
     @Test fun canonicalToolObservationMatchesTheCurrentSubmissionOnly() {
         val running = Conversation("key", "profile", "session", transport = "runs", runId = "r",
             status = "running", pendingKey = "turn", pendingAt = 1)

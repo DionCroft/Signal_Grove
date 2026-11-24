@@ -1,5 +1,64 @@
 # Current development validation — audit follow-up
 
+## Hermes Activity MCP server attribution
+
+The app accepts the optional `tool.mcp_origin` event on an authenticated
+Runs connection. It records the exact run, execution generation, tool
+call ID, server name and available event time. The timeline keeps
+distinct server names separate even when their tool names normalize to
+the same identifier. A dispatch entry adds no outcome or progress
+transition. Arguments, tool responses and previews are excluded from the
+entry. The Android test verified the exact server name and event order.
+
+The Hermes Activity overlay targets public Hermes v0.23.1 at
+`3b421578588243f920886e6fe79a6faa87ea026e`. The selected MCP handler
+reports its server after the existing trust, transport and scope
+checks. A skipped or refused dispatch adds no origin. The canonical
+observer fences delivery to the admitted run and execution generation.
+The overlay includes the earlier subagent delivery fix. Both observers
+register together, and the emitter limits the new event to metadata.
+This evidence verifies the server selected for dispatch. Successful
+remote execution still requires the separate reported outcome.
+[Hermes Activity overlay](../server_extensions/hermes_activity/v0.23.1-activity.patch),
+[Public Hermes v0.23.1 source](https://github.com/NousResearch/hermes-agent/tree/3b421578588243f920886e6fe79a6faa87ea026e),
+[upstream subagent proposal](https://github.com/NousResearch/hermes-agent/pull/156889).
+
+The isolated MCP-only suite passed 83 cases after a stalled initial
+attempt was stopped and rerun with per-test progress and UTF-8
+subprocess output. The combined overlay passed 84 cases. Its initial sandboxed run stalled
+in Windows asyncio loopback setup. The completed test used isolated
+test directories and allowed local loopback sockets. The suites
+covered scoped MCP name collisions, trust refusal, a stopped transport,
+canonical generation fencing, the metadata-only Runs event, ordered
+subagent events and loopback API authority. Both forward and reverse
+application checks passed for the combined overlay. Live delivery on the
+maintained Pi and worker, workspace and skill attribution remain open.
+
+The exact Android build passed 1,254 JVM tests in 118 reports, both lint
+variants with zero errors, and seven compact Android 17 cases at
+840 × 1470, 420 dpi and 1.3× text. Both debug APKs built and matched
+the versions installed on the isolated emulator.
+
+On the Xiaomi M098FE, USB launched the app and Back, Tab and D-pad Select worked.
+A coordinate tap left the debug UI unchanged. Keyboard focus and
+activation opened its Settings. The installed production beta.11,
+code 116, matched the GitHub APK SHA-256 and displayed Connected to
+Hermes. This production check used the existing APK and saved
+configuration. [Published beta.11](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Exact Windows build receipt | `71c0322ee0f8da9bd77353e79a51d61657674e16b4d967e3b3629ab0d0e22bdc` |
+| Debug APK | `ddc04041b7b740d318e372d091621bed36f155c8304c6f2b01e0fd71ac56ad48` |
+| Instrumentation APK | `69a9db57e91b071714c79882e4aa54908f686bef50e20ba3319333942f76c3c8` |
+| Compact Android 17 log | `fc5ded1d64ff1ccce2237bb0a61c12469664ff9ea7f06f29e9fe5c930cf7f9ce` |
+| MCP-only native result XML | `2ac88038502d5af4ec7f9121adc1157e5e17eab30d3ee7dc818af9fa16a9e1dd` |
+| Combined public overlay | `a2d6eeaa4e77649ecb9356687dc07e81b4c3094befd244c2c2b6fc59319f9e89` |
+| Combined native result XML | `ad714d1a51a8f8466376a0555a6fd967632dd1ee3e22ebd1db3f49526b5c7066` |
+| Combined sandbox loopback stall log | `9e85c8f2977399d73077e89c9fdccd85c4c233457435d0cf577bbafd455f8ce1` |
+| Combined native log | `77e49a8fa3f62235ca74b0281de2d7bd9dee27f3983377dfbb23cf5dcb2945c2` |
+| Xiaomi USB and APK receipt | `3c06f2d0a1ed0d726f8370f3e814655ae1f5008c588618f634fe0b49841dd8fd` |
+
 ## Hermes live open-tool progress
 
 Chat and Activity use the existing authenticated Runs status poll

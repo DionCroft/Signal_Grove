@@ -3,6 +3,14 @@ package org.hermesmobile.app.data
 import kotlinx.serialization.json.*
 
 internal const val ACTIVITY_SERVER_EVENT_AT = "server_event_ms"
+internal const val MCP_ORIGIN = "mcp_origin"
+internal const val MCP_SERVER = "mcp_server"
+
+internal fun activityIdentifier(value: JsonElement?): String? =
+    (value as? JsonPrimitive)?.takeIf { it.isString }?.content?.takeIf { text ->
+        text.isNotBlank() && text.length <= 256 &&
+            text.none { it.isISOControl() || Character.getType(it) == Character.FORMAT.toInt() }
+    }
 
 private fun ToolEvent.activityDetails(): JsonObject =
     runCatching { Json.parseToJsonElement(detailsJson).jsonObject }.getOrElse { JsonObject(emptyMap()) }
@@ -10,6 +18,10 @@ private fun ToolEvent.activityDetails(): JsonObject =
 internal val ToolEvent.serverEventAt: Long?
     get() = (activityDetails()[ACTIVITY_SERVER_EVENT_AT] as? JsonPrimitive)
         ?.takeUnless { it.isString }?.longOrNull?.takeIf { it >= 0 }
+
+internal val ToolEvent.mcpServer: String?
+    get() = if (category == MCP_ORIGIN && kind == MCP_ORIGIN && callId.isNotBlank())
+        activityIdentifier(activityDetails()[MCP_SERVER]) else null
 
 internal fun reportedSubagentOutcome(status: String): String = when (status) {
     "completed", "cancelled", "interrupted", "incomplete", "timeout", "stalled" -> status
@@ -45,6 +57,7 @@ fun activityTimeline(events: List<ToolEvent>): List<ActivityEntry> = events.grou
             add(event.generation?.let { JsonPrimitive(it) } ?: JsonNull)
             add(event.category)
             add(event.callId)
+            event.mcpServer?.let { add(it) }
         }
     }.toString()
 }.map { (key, rows) -> ActivityEntry(key, rows) }

@@ -41,6 +41,7 @@ object StreamDecoder {
                 val kind=if(name=="tool.failed" || (j["error"] as? JsonPrimitive)?.booleanOrNull==true) "failed" else name.removePrefix("tool.")
                 StreamUpdate(tool=ActivityProtocol.tool(j,kind))
             }
+            "tool.mcp_origin" -> StreamUpdate(tool = ActivityProtocol.mcpOrigin(j))
             "subagent.start","subagent.complete" -> StreamUpdate(tool=ActivityProtocol.subagent(j,name=="subagent.complete"))
             "assistant.commentary","message.interim" -> StreamUpdate()
             "replay.truncated"->StreamUpdate(replayGap=true)
@@ -51,6 +52,6 @@ object StreamDecoder {
                 StreamUpdate(delta=(d?.get("content") as? JsonPrimitive)?.contentOrNull.orEmpty(),status=when(finish) {"cancelled"->"response_cancelled";"error"->"response_failed";"length"->"response_incomplete";null->null;else->"response_finished"})
             }
         }
-        return update.copy(telemetry=org.hermesmobile.app.data.RunTelemetry.from(j),settledGeneration=(j["execution_generation"] as? JsonPrimitive)?.longOrNull,runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())
+        return update.copy(telemetry=if (name == "tool.mcp_origin") buildJsonObject {} else org.hermesmobile.app.data.RunTelemetry.from(j),settledGeneration=(j["execution_generation"] as? JsonPrimitive)?.longOrNull,runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())
     }
 }

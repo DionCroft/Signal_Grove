@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes Activity MCP server attribution
+
+Activity now shows the exact MCP server identity reported for a tool
+dispatch. The tested public Hermes v0.23.1 overlay includes the MCP
+and subagent observers and passed all 84 native cases. The app passed
+1,254 JVM tests, both lint variants and seven compact Android 17
+cases. The connected Xiaomi verified keyboard navigation over USB,
+the published beta.11 digest and its existing Hermes connection.
+Live delivery with the maintained Pi and exact worker, workspace and
+skill attribution remain open.
+[Validation](docs/VALIDATION.md#hermes-activity-mcp-server-attribution).
+
 ## Hermes live open-tool progress
 
 Chat and Activity show the selected execution's currently reported

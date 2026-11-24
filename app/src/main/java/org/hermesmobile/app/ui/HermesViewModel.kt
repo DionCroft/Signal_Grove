@@ -563,9 +563,11 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     status?.let {runStatus.value=it;c=c.copy(status=it);terminalSeen=it in terminal}
                     update.sequence?.let {c=c.copy(lastEventSeq=it)}
                     val control=update.control?.copy(runId=update.control.runId.ifBlank {c.runId})?.stored(c.key)
-                    val event=update.tool?.let {t ->
-                        toolRevision++
-                        progressObservation.value = null
+                    val event=update.tool?.takeUnless { it.category == MCP_ORIGIN && c.transport != "runs" }?.let { t ->
+                        if (t.category != MCP_ORIGIN) {
+                            toolRevision++
+                            progressObservation.value = null
+                        }
                         ToolEvent("${c.key}|${c.runId}|${update.sequence ?: java.util.UUID.randomUUID()}", c.key,
                             c.runId, t.tool, t.kind, t.preview, t.durationMs, System.currentTimeMillis(),
                             t.callId, t.category, t.details.toString(), t.generation, update.sequence)

@@ -123,7 +123,11 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                 val e=entry.latest
                 Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     Text(activityName(e), style=MaterialTheme.typography.titleSmall)
-                    Text(label(when(e.kind) {
+                    val mcpServer = e.mcpServer
+                    if (mcpServer != null) {
+                        Text(label(Words.ActivityMcpServer), style = MaterialTheme.typography.labelMedium)
+                        SelectionContainer { Text(mcpServer, style = MaterialTheme.typography.bodySmall) }
+                    } else Text(label(when(e.kind) {
                         "started" -> Words.Started
                         "failed" -> Words.Failed
                         "cancelled" -> Words.Cancelled
