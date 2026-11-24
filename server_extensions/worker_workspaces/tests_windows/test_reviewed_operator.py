@@ -9,6 +9,7 @@ import sqlite3
 import subprocess
 from threading import Barrier, Thread
 import unittest
+from unittest.mock import patch
 
 from server_extensions.worker_workspaces.approval_envelope import ReviewedWrite, sign
 from server_extensions.worker_workspaces.broker_enrollment import OwnerObservation
@@ -185,6 +186,52 @@ class ReviewedOperatorTest(unittest.TestCase):
         with self.assertRaisesRegex(WorkspaceError, "CHANGED"):
             self.operator.accept(self.packet())
         self.assertFalse(self.rows())
+
+    def test_branch_drift_after_observation_cannot_reserve_the_original_id(self):
+        observe = self.operator._observe
+
+        def observe_then_move(scope_id, project):
+            observed = observe(scope_id, project)
+            self.fixture.git_call("commit", "--allow-empty", "--message=after reservation observation")
+            return observed
+
+        with patch.object(self.operator, "_observe", side_effect=observe_then_move):
+            with self.assertRaisesRegex(WorkspaceError, "CHANGED"):
+                self.operator.accept(self.packet())
+        self.assertFalse(self.rows())
+
+    def test_branch_ref_is_held_through_the_queue_commit(self):
+        head = self.fixture.observe()
+        next_commit = self.fixture.git_call(
+            "commit-tree", "HEAD^{tree}", "-p", head.commit, "-m", "new fixture tip",
+        ).stdout.decode().strip()
+        ref = f"refs/heads/{head.branch}"
+        attempts = []
+
+        def move_during_commit(statement):
+            if statement == "COMMIT":
+                result = self.fixture.git_call("update-ref", ref, next_commit, head.commit, check=False)
+                attempts.append(result.returncode)
+
+        @contextmanager
+        def observed_queue():
+            with self.queue_db() as db:
+                db.set_trace_callback(move_during_commit)
+                try:
+                    yield db
+                finally:
+                    db.set_trace_callback(None)
+
+        with patch.object(self.operator, "_queue_db", observed_queue):
+            receipt = self.operator.accept(self.packet())
+
+        self.assertEqual({"id": self.approval.execution_id, "state": "ready"}, receipt)
+        self.assertEqual(1, len(attempts))
+        self.assertNotEqual(0, attempts[0])
+        self.assertEqual(head, self.fixture.observe())
+        self.fixture.git_call("update-ref", ref, next_commit, head.commit)
+        self.assertEqual(next_commit, self.fixture.observe().commit)
+        self.assertEqual(1, len(self.rows()))
 
     def test_native_reservation_is_idempotent_and_one_use(self):
         original = self.packet()

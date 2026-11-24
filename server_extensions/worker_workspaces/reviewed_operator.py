@@ -11,7 +11,7 @@ from .approval_envelope import (
 )
 from .broker_enrollment import OwnerObservation, observe_owner
 from .protected_operator_file import read_protected_file
-from .reviewed_checkout import observe_checkout
+from .reviewed_checkout import hold_reviewed_checkout, observe_checkout
 from .reviewed_dispatch import ApprovedProjectWrite, ReviewedWorkerAdmission
 from .workspace_provider import WorkspaceError, WorkspaceProvider
 
@@ -250,25 +250,28 @@ class ReviewedWorkerOperator:
                 existing = self._existing(db, ident, digest)
                 if existing is not None:
                     return existing
-                now = self._clock()
-                if deadline <= now:
-                    raise WorkspaceError("EXPIRED")
-                self._admissions = {
-                    entry_id: slot for entry_id, slot in self._admissions.items() if slot[0] > now
-                }
-                if len(self._admissions) >= _MAX_ADMISSIONS:
-                    raise WorkspaceError("BUSY")
-                self._prepare_receipt_table(db)
-                received = self._wall_clock()
-                db.execute("INSERT INTO requests VALUES(?,?,?,?,?)",
-                           (ident, json.dumps(intent.queue_payload(), sort_keys=True), "ready", received, received))
-                db.execute(
-                    "INSERT INTO signal_grove_reviewed_queue "
-                    "(id,approval_sha256,authority,scope_id,profile,project,worker_instance) VALUES(?,?,?,?,?,?,?)",
-                    (ident, digest, approval.authority, *route),
-                )
-                db.commit()
-                self._admissions[ident] = deadline, admission
+                # Admission, claim and launch each verify the same checkout independently.
+                with hold_reviewed_checkout(provider, checkout, git_executable=self._git):
+                    current(intent)
+                    now = self._clock()
+                    if deadline <= now:
+                        raise WorkspaceError("EXPIRED")
+                    self._admissions = {
+                        entry_id: slot for entry_id, slot in self._admissions.items() if slot[0] > now
+                    }
+                    if len(self._admissions) >= _MAX_ADMISSIONS:
+                        raise WorkspaceError("BUSY")
+                    self._prepare_receipt_table(db)
+                    received = self._wall_clock()
+                    db.execute("INSERT INTO requests VALUES(?,?,?,?,?)",
+                               (ident, json.dumps(intent.queue_payload(), sort_keys=True), "ready", received, received))
+                    db.execute(
+                        "INSERT INTO signal_grove_reviewed_queue "
+                        "(id,approval_sha256,authority,scope_id,profile,project,worker_instance) VALUES(?,?,?,?,?,?,?)",
+                        (ident, digest, approval.authority, *route),
+                    )
+                    db.commit()
+                    self._admissions[ident] = deadline, admission
         return {"id": ident, "state": "ready"}
 
     def observe(self, scope_id, profile, project, execution_id, worker_instance, *, approval_sha256=None):

@@ -1,5 +1,43 @@
 # Current development validation — audit follow-up
 
+## Reviewed checkout held through queue reservation
+
+A checkout could change after the signed review was observed and before
+the Windows broker committed the ready row. One native test moved the
+actual branch immediately after observation. A second used SQLite's
+COMMIT trace to attempt a real Git reference update during reservation.
+Both tests failed with the previous source.
+
+The Windows operator now uses the existing native checkout hold across
+the transaction that inserts the request and original signed receipt
+identity. It verifies the protected grant and expiry during the hold.
+The stale observation was refused without a queue row. The concurrent
+Git update was refused at COMMIT and succeeded after release. Claim
+and final child creation retain their separate verified holds.
+Duplicate submissions continue to observe the original receipt.
+
+The exact module pin was recomputed and verified before packaging.
+All 112 native Windows cases passed without skips, and all 144 portable
+workspace tests passed. The native suite verified both new races,
+concurrent retries, and scope and receipt isolation.
+
+The stager refused the first fixture input because its bytes differed
+from the expected source hash. The completed package was generated
+from both exact hash-matching sources and exercised from a disposable
+Windows broker directory. The staged test group passed 33 methods,
+including the package acceptance that loaded the verified runtime,
+read the fixture workspace, admitted one synthetic approval, launched
+one inert child, and recovered the same receipt after reopening its
+owner broker. The live broker and Pi are outside this evidence.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Original Windows reservation regression failures | `38b90e6e19807a1b59ea27d4ada23c0d5d742f711c4c0c1c8b1378b80b28c36e` |
+| Exact native Windows suite report | `f6d28ee84c0ed7e16cfcbc2b15a78601fbd6ed1c281603a0a9706993b3eeead0` |
+| Exact portable workspace suite log | `1a69d338cfb1954cd28d24d5fe7837980352f8e235148b3e8b15ae113470c3f6` |
+| Verified staged source manifest | `767db864b09285c0d89b014fd81742954d16f27708c544fe68a39f37e00ebf53` |
+| Staged owner broker acceptance log | `2daff0a807350068b877cac3a0366f8b1446aba90137d0a4ab4d05255bf9ee49` |
+
 ## Hermes Activity MCP server attribution
 
 The app accepts the optional `tool.mcp_origin` event on an authenticated

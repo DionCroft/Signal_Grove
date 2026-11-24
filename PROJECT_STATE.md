@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reviewed checkout held through queue reservation
+
+The Windows broker holds the reviewed Git branch through the SQLite
+reservation commit and rechecks the protected grant while the hold is active.
+Checkout drift before reservation leaves no queue row. Claim and child creation
+still perform their own checks. All 112 native Windows and 144 portable
+workspace tests passed. The exact packaged fixture launched one inert child
+and recovered the original receipt after reopening its owner broker.
+Live worker deployment and app-to-Pi-to-worker acceptance remain open.
+[Validation](docs/VALIDATION.md#reviewed-checkout-held-through-queue-reservation).
+
 ## Hermes Activity MCP server attribution
 
 Activity now shows the exact MCP server identity reported for a tool
