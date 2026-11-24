@@ -68,6 +68,39 @@ all-profile and worker admission, semantic compatibility and managed
 Pi recovery still require their own acceptance.
 [Corrected hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45376972076).
 
+## Authenticated uncertain stamped receipt recovery
+
+The isolated Linux matrix at Signal Grove source
+`0f01274ad79fdb1950c94aa282764376fed3f589` passed all five
+[hosted jobs](https://github.com/DionCroft/Signal_Grove/actions/runs/45391560659).
+Both destinations passed the 103-case persistence cohort and the
+completed and crash recovery scenarios. The writer was Hermes
+`0357a14b76e4f604d2fa6b9c3a973f9a76f7968d`. The evidence
+checks reviewed whole SDK source maps before and after, and identical
+dependency lock, manifest and recovery helper bytes.
+
+In a fresh synthetic profile per destination, the writer started one
+request against a held loopback model and durably queued a follower.
+The test killed the owned writer and verified the old client stamps
+participated in both stored digests. The new gateway advanced the
+authority epoch. Two separately authenticated connections per pin
+reported the original first receipt as unknown with no outcome, and
+the original follower as queued. Receipt IDs and sequences persisted.
+The SQLite rows preserved every checked field except the transition
+from started to unknown. No model answer was added and the loopback
+call count stayed at one across the entire restart.
+
+| Hermes destination | Hosted archive ID | Verified archive SHA-256 | Crash report SHA-256 |
+| --- | --- | --- | --- |
+| v0.23.4 / `8fc0374` | 14918264496 | `0f1771564c99424bbb9265357281dbd98caaacefe64419984999ce70fd02af23` | `d472284086c7f368bc628f1fe8e6a20b873c868eeca4f423c892ef3765dc8ba7` |
+| Pinned main / `5725d1d` | 14918578481 | `02a8933c0d0e16c3debdddc91388c90e7f42a33401b10a6934a4264ae590e79a` | `e7c4fd42c47e19f1fc8909caeb7ebab87b67a164351f4b8d132969cb8190bbb0` |
+
+All 21 local shutdown-controller checks passed before dispatch. The
+hosted ZIP digests, both reports and gateway logs per destination were
+checked independently. This proves the authenticated receipts in the
+isolated Linux fixture. Live managed-Pi drain, worker admission,
+activation and recovery are still acceptance gates.
+
 ## Authenticated recovery from the stamped-digest writer
 
 The isolated Linux transaction created one completed admission through

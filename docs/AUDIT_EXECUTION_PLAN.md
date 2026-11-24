@@ -8,11 +8,14 @@ and retired receipts persist in all cases. The intermediary store's
 old digests refuse exact retries after upgrade, with no duplicate
 admission. Both pinned current native gateways reopened an original
 completed stamped receipt after a real authenticated reconnect with
-zero additional model calls. Continue the strict semantic review for
-retained uncertain work and the exact managed-host upgrade before
-production activation.
+zero additional model calls. A separate Linux crash trial on both pins
+retained the interrupted receipt as unknown and the follower as queued
+across two authenticated reconnects per pin, with zero new inference.
+Continue strict review of the remaining semantic differences and the
+exact managed-host upgrade before production activation.
 [Stored digest review](VALIDATION.md#hermes-client-stamp-retry-compatibility) ·
-[Authenticated transaction](VALIDATION.md#authenticated-recovery-from-the-stamped-digest-writer).
+[Completed receipt](VALIDATION.md#authenticated-recovery-from-the-stamped-digest-writer) ·
+[Uncertain receipts](VALIDATION.md#authenticated-uncertain-stamped-receipt-recovery).
 
 ## Read-only workspace preflight refreshed
 

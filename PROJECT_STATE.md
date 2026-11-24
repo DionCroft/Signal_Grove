@@ -9,13 +9,14 @@ requirements. Commit and push tested chunks.
 
 ## Unknown stamped receipt after an owner crash
 
-An independent disposable profile now exercises the harder case.
-The old gateway receives one blocked model request and admits a
-queued follower. The test kills that owned process while inference
-is held. Each destination must report the original receipt as
-unknown and preserve the follower's queued receipt across two
-authenticated reconnects, with zero new model calls. Native hosted
-results remain open.
+Both current pins passed the isolated crash recovery trial. The old
+gateway was killed with inference held and a second admission queued.
+Each upgraded gateway reported the first receipt as unknown with no
+outcome and the follower as queued on two authenticated reconnects.
+Both preserved their original receipt identities and made zero new
+model calls. The hosted archive digests and both results per pin were
+verified independently. Managed Pi shutdown and recovery remain open.
+[Validation](docs/VALIDATION.md#authenticated-uncertain-stamped-receipt-recovery).
 
 ## Authenticated receipt after a stamped-store upgrade
 
