@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Current Hermes stable and main source layouts
+
+The compatibility checker can again inspect the exact stable and main
+revisions from the 24 November upstream job. Both use the ten reviewed
+plugin settings, cron and persistence source moves. Static comparison
+still flags 220 stable and 224 main used-handler differences and 29
+persistence changes on each. The new cron resolver needs acceptance for
+profiles hosted elsewhere, including its HTTP 409 behavior.
+[Validation](docs/VALIDATION.md#current-hermes-stable-and-main-source-layouts).
+
 ## Native build paths in beta.11 APKs
 
 The signed 73f68da candidate contained workstation paths in 16 native

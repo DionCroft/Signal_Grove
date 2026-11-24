@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Current Hermes stable and main source layouts
+
+The earlier hosted comparison stopped before writing either report.
+Complete GitHub trees and archive member blob hashes prove the same ten
+source moves on the exact stable and main revisions. In each tree, all
+245 watched source files matched their Git blob and size. The checker
+now resolves each layout and preserves its handler, request and
+persistence review.
+[Original failed inspection](https://github.com/DionCroft/Signal_Grove/actions/runs/45437051981/job/138598502727).
+
+| Upstream revision | Used-handler differences | Changed persistence sources | Report SHA-256 |
+| --- | ---: | ---: | --- |
+| [v0.23.4 stable](https://github.com/NousResearch/hermes-agent/commit/8fc0374447313e276f6b9a2764bfc750190c966a) | 220 | 29 | 835e01dba248c98f987d947764a9be031ce85b2efc8e050b731642de5dca92ae |
+| [Main revision](https://github.com/NousResearch/hermes-agent/commit/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15) | 224 | 29 | 2619b1e2239d02926195cfb8c9c123f9e12a38b51c09adc5ef40cc3df3812012 |
+
+The new shared cron profile lookup rejects requests for profiles run
+elsewhere with HTTP 409. The four additional main-only watched changes
+touch environment setting writes and removal, Kanban home selection,
+and PM virtual environment synchronization. Both semantic reports still
+require review. The focused Windows tests passed 119 methods. The full
+portable inventory passed 972 with 273 platform skips and zero failures
+or errors. The source check parsed public files without executing them.
+
 ## Native build paths in beta.11 APKs
 
 The private signed 73f68da APK preserved 460 absolute workstation path

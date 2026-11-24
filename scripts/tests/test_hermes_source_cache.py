@@ -166,11 +166,13 @@ class SourceCacheTest(unittest.TestCase):
                         with self.assertRaises(c.MissingSourcePaths):
                             c.source_identities(pin)
 
-    def test_main_pins_use_all_ten_verified_relocations(self):
+    def test_reviewed_pins_use_all_ten_verified_relocations(self):
         pins = (
             '242315ce571cde721e717a544cf8ae6c343315cf',
             'eb49b8920a25ffa7bb2fadf548fe819221ca79d7',
             'a15b9710395aa1c4858fb6dd9e4c5014c5ced4e9',
+            '8fc0374447313e276f6b9a2764bfc750190c966a',
+            '2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15',
         )
         for pin in pins:
             with self.subTest(pin=pin):
