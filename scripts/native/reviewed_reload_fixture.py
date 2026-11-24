@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import re
+import socket
 import subprocess
 import sys
 import time
@@ -22,12 +23,13 @@ from cutover_coordinator import (
 )
 from cutover_journal import CutoverJournal, Unknown
 from native_service_manager import BusAuthority, NativeServiceManager, UnitBinding
-from native_retirement_owner import read_process_owner
+from native_retirement_owner import LinuxSocketOwner, read_process_owner
+from native_service_readiness import observe_gateway_readiness, observe_serve_readiness
 from retirement_guard import Owner
 
 ROLES = ("gateway", "serve")
-EXE = "/usr/bin/sleep"
-DURATIONS = {"old": ("150", "151"), "new": ("160", "161")}
+EXE = sys.executable
+HOME_DIGEST = "a" * 64
 STOPS = {"stop_gateway": "gateway", "stop_serve": "serve"}
 STARTS = {"start_gateway": "gateway", "start_serve": "serve"}
 
@@ -40,21 +42,69 @@ def systemctl(*args):
     return subprocess.run(["systemctl", "--user", *args], check=True, capture_output=True, timeout=35).stdout
 
 
-def argv(role, generation):
-    return EXE, DURATIONS[generation][ROLES.index(role)]
+def gateway_address(work):
+    return b"\0sg-readiness-" + hashlib.sha256(str(work).encode()).hexdigest()[:32].encode()
 
 
-def fixture_text(role, generation):
+def argv(role, generation, work):
+    directory = Path(__file__).resolve().parent
+    if role == "gateway":
+        return (EXE, "-I", "-B", str(directory / "gateway_control_server.py"), str(work / role),
+                gateway_address(work).hex(), "readiness-" + generation)
+    return EXE, "-I", "-B", str(directory / "serve_retirement_server.py"), str(work / role), generation
+
+
+def fixture_text(role, generation, work):
+    command = argv(role, generation, work)
+    assert all(re.fullmatch(r"[A-Za-z0-9_./-]+", arg) for arg in command)
     return (
-        f"[Service]\nType=exec\nExecStart={' '.join(argv(role, generation))}\n"
+        f"[Service]\nType=exec\nExecStart={' '.join(command)}\n"
         "KillMode=control-group\nRuntimeMaxSec=140\n"
     )
 
 
-def expected_configuration(path, role, generation):
+def expected_configuration(path, role, generation, work):
     return digest(dict(unit=path.name, fragment=str(path), dropins=[], kill_mode="control-group",
-                       service_type="exec", commands={"ExecStart": ((EXE, argv(role, generation), False),),
+                       service_type="exec", commands={"ExecStart": ((EXE, argv(role, generation, work), False),),
                                                       "ExecStop": (), "ExecStopPost": ()}))
+
+
+def ready_marker(work, role, owner):
+    path = work / role / "observations.json"
+    deadline = time.monotonic() + 3
+    while time.monotonic() < deadline:
+        if path.is_file() and not path.is_symlink():
+            data = json.loads(path.read_bytes())
+            if data["pid"] == owner.pid:
+                return data
+        time.sleep(.025)
+    raise AssertionError("Owned readiness listener did not report its expected process")
+
+
+def gateway_connection():
+    connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    connection.settimeout(2)
+    return connection
+
+
+def fixture_ready(manager, scope, work, role, state, *, reject=False):
+    fact = ready_marker(work, role, state.owner)
+    if role == "gateway":
+        with gateway_connection() as connection:
+            connection.connect(gateway_address(work))
+            return observe_gateway_readiness(manager, scope, state, connection,
+                                             "b" * 64 if reject else HOME_DIGEST)
+    port = fact["port"]
+    assert type(port) is int and 0 < port <= 65535
+    with socket.create_connection(("127.0.0.1", port), timeout=2) as connection:
+        observe_owner = LinuxSocketOwner(state.owner)
+        deadline = time.monotonic() + 2
+        while observe_owner(connection) != state.owner:
+            if time.monotonic() >= deadline:
+                raise AssertionError("Owned Serve socket was not accepted by the expected process")
+            time.sleep(.025)
+        return observe_serve_readiness(manager, scope, state, connection,
+                                       "fixture_incorrect" if reject else "fixture_access")
 
 
 def snapshots(manager):
@@ -66,7 +116,7 @@ def snapshot_digest(units):
 
 
 class ServiceOperations:
-    """Only service actions and the fixture's unit definitions have native effects."""
+    """Drive owned service actions and read the exact running process's authenticated wire."""
 
     def __init__(self, manager, paths, work, executable):
         self.manager, self.paths, self.work = manager, paths, work
@@ -83,17 +133,17 @@ class ServiceOperations:
         assert not self.running
         for role, path in self.paths.items():
             assert path.is_file() and not path.is_symlink()
-            assert path.read_bytes() == fixture_text(role, self.definitions).encode("ascii")
+            assert path.read_bytes() == fixture_text(role, self.definitions, self.work).encode("ascii")
             staged = path.with_suffix(".fixture-tmp")
             with staged.open("x", encoding="ascii", newline="\n") as stream:
-                stream.write(fixture_text(role, generation))
+                stream.write(fixture_text(role, generation, self.work))
             staged.replace(path)
         self.definitions = generation
 
     def observe(self, step, phase, execution):
         states = snapshots(self.manager)
         for role, unit in zip(ROLES, states, strict=True):
-            known = expected_configuration(self.paths[role], role, self.loaded)
+            known = expected_configuration(self.paths[role], role, self.loaded, self.work)
             assert unit.unit == self.paths[role].name and unit.load_state == "loaded", (step, role, unit.load_state)
             assert unit.configuration_sha256 == known, (step, role, "commands", unit.configuration_sha256, known)
             assert unit.needs_daemon_reload == (self.definitions != self.loaded), (step, role, "reload flag")
@@ -102,7 +152,7 @@ class ServiceOperations:
             if role in self.running:
                 assert unit.owner is not None and unit.executable == self.executable, (step, role, "owner", unit.executable)
                 cmdline = Path("/proc", str(unit.main_pid), "cmdline").read_bytes()
-                assert cmdline.split(b"\0") == [*(arg.encode() for arg in argv(role, self.loaded)), b""], (
+                assert cmdline.split(b"\0") == [*(arg.encode() for arg in argv(role, self.loaded, self.work)), b""], (
                     step, role, "command line", hashlib.sha256(cmdline).hexdigest())
             else:
                 assert unit.main_pid == 0 and unit.owner is None, (step, role, "inactive owner")
@@ -121,8 +171,17 @@ class ServiceOperations:
                 role = next(role for role in ROLES if receipt["unit"] == self.paths[role].name)
                 assert actual == states[ROLES.index(role)].sha256, step
 
+        checks = required_checks(step, phase)
+        require_pair = step in ("verify_new", "verify_rollback") and phase == "after"
+        readiness = {
+            role: fixture_ready(self.manager, execution.scope, self.work, role, unit)
+            for role, unit in zip(ROLES, states, strict=True)
+            if require_pair or role + "_ready" in checks
+        }
+        if readiness:
+            assert snapshots(self.manager) == states, "Service pair changed during the readiness observations"
         proof = dict(step=step, phase=phase, operation=execution.operation, snapshots=observed,
-                     receipt=receipt, synthetic_prerequisites=True)
+                     receipt=receipt, readiness=readiness, synthetic_prerequisites=True)
         proof_sha = digest(proof)
         if phase == "after":
             self.proofs[step] = proof
@@ -132,7 +191,7 @@ class ServiceOperations:
         # observations. Other coordinator prerequisites are fixture assertions.
         return Observation(execution.operation, execution.packet_sha256, execution.authority_sha256,
                            execution.scope, step, phase, time.monotonic(), observed, proof_sha,
-                           tuple((name, True) for name in sorted(required_checks(step, phase))))
+                           tuple((name, True) for name in sorted(checks)))
 
     def perform(self, step, execution):
         base = step.removeprefix("rollback_")
@@ -169,6 +228,9 @@ def main():
     work = Path(os.environ["RUNNER_TEMP"]).resolve(strict=True) / "signal-grove-reload-fixture"
     work.mkdir(mode=0o700)
     private_directory(work)
+    for role in ROLES:
+        (work / role).mkdir(mode=0o700)
+    write_json(work / "serve/server-config.json", {"mode": "busy"})
     seed = uuid.uuid4().hex
     unit_home = private_directory(Path("/run/user") / str(os.geteuid())) / "systemd/user"
     unit_home.mkdir(parents=True, exist_ok=True)
@@ -179,14 +241,14 @@ def main():
     paths = {role: unit_home / f"signal-grove-acceptance-{seed}-{role}.service" for role in ROLES}
     for role, path in paths.items():
         with path.open("x", encoding="ascii", newline="\n") as stream:
-            stream.write(fixture_text(role, "old"))
+            stream.write(fixture_text(role, "old", work))
     systemctl("daemon-reload")
     systemctl("start", *(path.name for path in paths.values()))
     bus = native_authority()
     authority = BusAuthority(bus["uid"], *bus["busIdentity"], Owner(**bus["peerOwner"]),
                              bus["managerUnique"], Owner(**bus["managerOwner"]))
-    bindings = tuple(UnitBinding(role, paths[role].name, expected_configuration(paths[role], role, "old"),
-                        expected_configuration(paths[role], role, "new"), executable, executable) for role in ROLES)
+    bindings = tuple(UnitBinding(role, paths[role].name, expected_configuration(paths[role], role, "old", work),
+                        expected_configuration(paths[role], role, "new", work), executable, executable) for role in ROLES)
     review = Plan(digest([seed, "forward"]), digest(bus), digest([seed, "preflight"]), digest([seed, "recovery"]))
     info = work.stat()
     with CutoverJournal(work, expected_identity=(info.st_dev, info.st_ino)) as journal:
@@ -208,6 +270,14 @@ def main():
             replaced = snapshots(manager)
             assert all(before.invocation != after.invocation for before, after in zip(old, replaced, strict=True))
             assert operations.proofs["verify_new"]["snapshots"] == snapshot_digest(replaced)
+            refusals = []
+            for role, unit in zip(ROLES, replaced, strict=True):
+                try:
+                    fixture_ready(manager, "forward", work, role, unit, reject=True)
+                except Unknown:
+                    refusals.append(role)
+                else:
+                    raise AssertionError("An unbound readiness observation succeeded")
 
             recovery_packet = digest([seed, journal.history_sha256])
             case = RecoveryCase(recovery_packet, plan.rollback_packet_sha256, forward.operation, forward.packet_sha256,
@@ -226,12 +296,13 @@ def main():
             report = dict(source=source, state="verified", originalOperation=forward.operation,
                           forwardHold="backup_post", recovery=result, receipts=operations.receipts,
                           journal_sha256=journal.history_sha256, sameManager=native_authority() == bus,
-                          synthetic_prerequisites=True, verified_units=[path.name for path in paths.values()])
+                          synthetic_prerequisites=True, readinessRefusals=refusals,
+                          verified_units=[path.name for path in paths.values()])
 
     systemctl("stop", *(path.name for path in paths.values()))
     assert all(read_process_owner(unit.main_pid) != unit.owner for unit in restored)
     for role, path in paths.items():
-        assert path.is_file() and not path.is_symlink() and path.read_bytes() == fixture_text(role, "old").encode("ascii")
+        assert path.is_file() and not path.is_symlink() and path.read_bytes() == fixture_text(role, "old", work).encode("ascii")
         path.unlink()
     systemctl("daemon-reload")
     report["fixtureCleanupVerified"] = True
