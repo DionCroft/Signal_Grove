@@ -20,6 +20,16 @@ workspace and automation acceptance remains part of the active audit.
 [Release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11) ·
 [Validation](docs/VALIDATION.md#beta11-public-release).
 
+## Live workspace preflight after beta.11
+
+Both Pi units still match the reviewed processes and loaded configuration.
+The staged source, isolated PM facts and launcher match the reviewed
+packet. The canonical candidate PM facts and activation policy are absent.
+The live Unix socket authenticated the gateway's identity and home.
+A separate bounded work-status request remained unproven. Workspace
+activation remains held until scope and current work are verified.
+[Validation](docs/VALIDATION.md#live-workspace-preflight-after-beta11).
+
 ## Native build paths in beta.11 APKs
 
 The signed 73f68da candidate contained workstation paths in 16 native

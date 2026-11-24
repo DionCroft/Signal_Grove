@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Live workspace preflight after beta.11
+
+The reviewed Pi packet SHA-256 is
+`36fe747034bb0008b297edcd6888b99610aa42ad62608fcf83dd30a0316e02f6`.
+Both loaded services still matched their recorded process incarnation,
+runtime source, executable and two configuration files each. Both
+were running and neither manager observation required a reload. The
+staged manifest, isolated PM facts, install stamp and launcher matched.
+The protected policy is absent and its existing parents passed the mode
+checks. The expected package-manager facts for the staged source in
+the canonical service home are also absent.
+
+The native observer selected the reviewed existing gateway, checked
+the profile home and used one kernel-owner-bound connection for status.
+The strict work-status projection remained unproven. The outcome stays
+unknown and the original status request was left unreplayed. A separate
+`identify` request on a new verified socket returned the expected gateway
+PID and home, with protocol 1 and systemd reported by the SDK. Six exact
+maintained-source digests matched on the Pi. The returned record contains
+match results and counts. Process identity does not establish work scope.
+
+The existing deployed-service configuration and both process incarnations
+matched again after observation. The status check grants no live idle or
+cutover authority. The Windows gateway-control cohort passed 23 methods
+with eight native Linux cases skipped on Windows. Live all-profile and
+worker coverage, canonical PM, fresh encrypted backup, and separately
+approved activation remain open.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Reviewed live layout and staged paths | `a62378562a5e200eb91189e2502e36809624d0ea383c31bc13afd7cf0e3771e7` |
+| Original status outcome | `5810b9f2f7aed01b491565aa35b0dd9b254e4665177a18c34be7cc13cdaa0fe9` |
+| Authenticated gateway identity | `c142c9dcba8ea5d5214e229879514c79d0f728f5f39faa91faef5d21dfbeb57d` |
+
 ## Beta.11 public release
 
 The exact source `d6834a202bf5d4178fc1c27855312a6806da0986` completed
