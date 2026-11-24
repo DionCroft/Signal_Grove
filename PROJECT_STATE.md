@@ -13,9 +13,11 @@ A disposable Linux fixture now runs the exact old stamped-digest
 writer and a current pinned gateway against the same synthetic
 profile. The test requires two fresh, authenticated reconnects to read the original
 receipt. It checks the stored digest, single admission, preserved
-transcript and zero new model calls. The old and new pins have
-identical dependency locks and helper bytes. Hosted results are
-pending.
+transcript and zero new model calls. Both current pins passed the
+hosted native upgrade test using the same old dependency lock and
+helper bytes. The raw reports confirm the original completed
+receipt over two new authenticated connections per pin.
+[Validation](docs/VALIDATION.md#authenticated-recovery-from-the-stamped-digest-writer).
 
 ## Native gateway transport and recovery checks
 

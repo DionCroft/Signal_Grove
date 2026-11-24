@@ -68,6 +68,36 @@ all-profile and worker admission, semantic compatibility and managed
 Pi recovery still require their own acceptance.
 [Corrected hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45376972076).
 
+## Authenticated recovery from the stamped-digest writer
+
+The isolated Linux transaction created one completed admission through
+the real 0357a14 gateway using an authenticated fixture client.
+The earlier writer's stored digest included the client stamp. Each
+new gateway started the same disposable profile at a higher owner
+epoch. Two independent, authenticated WebSocket connections reopened
+the transcript and retrieved the original completed receipt. The
+single SQLite row, request identity, digest and outcome matched
+after shutdown. Each cohort had one original loopback model call
+and zero new calls during recovery.
+
+Both official source trees were verified before and after execution.
+The old archive matched all 27,532 official Git blobs and modes.
+Its dependency lock, package manifest and upstream recovery helper
+matched both destination pins. The job preserved the earlier gateway,
+SDK source and standalone persistence checks. The first dispatch
+was refused for a malformed workflow expression. The corrected run
+retained the original evidence paths and passed all five jobs.
+
+| Destination | Authenticated reconnects | Retained admissions | New model calls | Result SHA-256 |
+| --- | ---: | ---: | ---: | --- |
+| 5725d1d | 2 | 1 | 0 | `13dcd0892b7e5804331e5091abbb51b5826398d0aae7669243b39d7b53c9b18c` |
+| 8fc0374 | 2 | 1 | 0 | `e61cc4d2e399233868e87e65fb5bca6c935794b9d5ede42ccfa1ff9782798800` |
+
+The results establish authenticated recovery for an old completed
+admission. Retained uncertain legacy work and production managed
+activation remain open.
+[Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45389405604).
+
 ## Authenticated native gateway on Hermes v0.23.4 and main
 
 The exact pinned upstream test files and supporting fixtures were

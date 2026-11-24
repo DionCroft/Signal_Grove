@@ -6,10 +6,13 @@ The isolated SQLite review distinguishes pre-stamp stores, the
 intermediary stamped-digest writer and the new retry identity. Queued
 and retired receipts persist in all cases. The intermediary store's
 old digests refuse exact retries after upgrade, with no duplicate
-admission. Keep the strict semantic review open. Before approving a
-managed-host upgrade from the affected revision, verify retained
-receipt access and reconciliation without replay against the native
-gateway. [Validation](VALIDATION.md#hermes-client-stamp-retry-compatibility).
+admission. Both pinned current native gateways reopened an original
+completed stamped receipt after a real authenticated reconnect with
+zero additional model calls. Continue the strict semantic review for
+retained uncertain work and the exact managed-host upgrade before
+production activation.
+[Stored digest review](VALIDATION.md#hermes-client-stamp-retry-compatibility) ·
+[Authenticated transaction](VALIDATION.md#authenticated-recovery-from-the-stamped-digest-writer).
 
 ## Read-only workspace preflight refreshed
 
