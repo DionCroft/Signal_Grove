@@ -14,11 +14,16 @@ The Linux shutdown matrix includes pristine and patched cohorts for
 verification checked 27,571 and 27,575 official Git blobs and modes.
 The reviewed patch applies to both new sources with the exact two
 expected output files. The 31 controller tests and both exact source
-map checks passed locally. Both pristine Linux cohorts passed.
-The first patched cohorts correctly rejected CRLF-derived output
-hashes. The recorded pins now match canonical patch output. The
-candidate lifecycle, held-writer recovery and comparison remain open.
-[Validation](docs/VALIDATION.md#hermes-v0234-and-main-shutdown-inputs).
+map checks passed locally. Both pristine and patched Linux cohorts
+passed the corrected hosted run. An independent replay of both pairing
+checks reproduced all four reports byte for byte. On each patched pin
+the held writer preserved an unknown delegation with no replay and an
+intact checkpoint. The released writer recorded the child as interrupted.
+
+The isolated shutdown comparison is complete for these two pins. The
+original-journal drain, all-profile and worker admission, semantic
+compatibility and managed Pi recovery remain open.
+[Validation](docs/VALIDATION.md#hermes-v0234-and-main-shutdown-results).
 
 ## Current upstream Hermes source layout
 

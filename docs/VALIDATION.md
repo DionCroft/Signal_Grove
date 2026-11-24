@@ -37,6 +37,37 @@ still apply.
 [Stable source](https://github.com/NousResearch/hermes-agent/tree/8fc0374447313e276f6b9a2764bfc750190c966a) ·
 [Main source](https://github.com/NousResearch/hermes-agent/tree/5725d1d390ac4b7cfe157ea32bd6f4db1a280368).
 
+## Hermes v0.23.4 and main shutdown results
+
+The corrected hosted run from 218295e passed all ten source cohorts
+and all five comparison jobs. The stable and main snapshots each
+passed the same 50 upstream tests for both pristine and patched
+sources. The lifecycle comparison reproduced a retained row after
+pristine one-shot stop and a database reopen warning after pristine
+periodic stop. Both patched pins passed seven lifecycle cases with
+no reopen warning and SQLite integrity `ok`, including a bounded
+stop while the competing transaction was still live.
+
+On both patched pins, the delegation fixture retained its checkpoint
+and performed zero replays. A released SQLite writer allowed the
+child to be recorded as interrupted. A held writer caused two
+competing-writer timeouts and preserved the child and delegation as
+unknown. All eight captured stop and restart phase logs matched their
+terminal receipts. The six downloaded archives matched GitHub's
+SHA-256 digests. Repeating the pairing tools over the raw reports
+reproduced these four files byte for byte.
+
+| Upstream commit | Paired upstream tests report SHA-256 | Paired heartbeat report SHA-256 |
+| --- | --- | --- |
+| 8fc0374 | `bbf969c748a25672ee57ea7079c7a1ab46eeb6ca829df8e3e595acb18bf49347` | `405fd3d7cfc811cf002ec016e06c55abcae7e0ec45930a2ed91bc212d2ea7d06` |
+| 5725d1d | `79646cc0053bff67aa393091f369614daa5092083a6d4f546cbd8a0e69b6e261` | `cc104388f1a5d1b6af73d12d1d8600064d73d71f8e80040742d6bf3998116345` |
+
+This evidence covers isolated native Linux shutdown and delegation
+recovery at the two pinned upstream sources. Original-journal drain,
+all-profile and worker admission, semantic compatibility and managed
+Pi recovery still require their own acceptance.
+[Corrected hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45376972076).
+
 ## Hermes v0.23.4 and current main source review
 
 The official annotated v0.23.4 tag points to 8fc0374. Main resolved to
