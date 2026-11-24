@@ -68,6 +68,37 @@ all-profile and worker admission, semantic compatibility and managed
 Pi recovery still require their own acceptance.
 [Corrected hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45376972076).
 
+## Authenticated native gateway on Hermes v0.23.4 and main
+
+The exact pinned upstream test files and supporting fixtures were
+checked against the complete public Git trees. The corrected hosted
+run from 959a892 passed all five jobs. Each new pin retained the same
+nine gateway case identities across four files with no errors,
+failures, skips or retries. The cases include one-use and
+purpose-bound HTTP grants, profile confinement, authenticated
+WebSocket access, no replay of unknown work after an owner crash,
+and a missing workspace refusal before a model call.
+
+The earlier run passed all nine gateway cases on each pin. The
+subsequent source guard refused the upstream runner timing cache
+in the SDK checkout. The corrected workflow verified its exact
+four timing keys and archived the file. The existing pristine SDK
+source guard and persistence cases then passed on both pins.
+Independent checks matched both archive digests, verified each
+gateway JUnit identity and exit receipt, and reproduced the known
+103-case persistence digest from the raw XML.
+
+| Upstream revision | Gateway cases | Persistence cases | Artifact SHA-256 |
+| --- | ---: | ---: | --- |
+| 5725d1d | 9 | 103 | `fb57e00cb1d015b7259c55e02863682ddcff95edc7795d45e1d730f76d8977a1` |
+| 8fc0374 | 9 | 103 | `fe479f9a9c6285c995c82fd18ecc2f17124c8bd663c98d2319818211fd6d14ae` |
+
+The gateway tests run on isolated Linux with disposable profiles
+and a test model. Receipt reconciliation across the old stamped
+store, the live Pi-to-worker path and production TLS remain open.
+[Earlier run](https://github.com/DionCroft/Signal_Grove/actions/runs/45381906696) ·
+[Corrected run](https://github.com/DionCroft/Signal_Grove/actions/runs/45382804309).
+
 ## Persistence on Hermes v0.23.4 and main
 
 All five native SDK jobs passed from 5ea28e3. The pristine v0.23.4
