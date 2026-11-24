@@ -1,5 +1,33 @@
 # Current development validation — audit follow-up
 
+## Restored upstream main source inspection
+
+The [upstream compatibility run](https://github.com/DionCroft/Signal_Grove/actions/runs/45248203973)
+reported semantic changes on stable Hermes v0.23.3 and stopped before
+producing a main report because ten legacy source paths were absent.
+The complete official Git trees at `eb49b89` and `a15b971` have all
+31 previously reviewed replacements and transitive dependency paths.
+All ten legacy paths are absent in both trees. No required source is
+missing with the relocated layout. Only three files in that 31-file set
+differ from the previous `242315c` main pin. Their exact Git blobs were
+verified. They now exclude the owner-client stamp from session input retry
+identity while retaining it in stored input, including the admission,
+retarget and terminal retry paths. Runtime acceptance remains open.
+
+The checker uses the existing strict layout for these two exact commits.
+Its source coverage, unknown-commit refusal and semantic review gates
+remain in place. Each full comparison verified the cached source against a
+fresh official tree, read 249 tracked modules and recorded ten
+relocations. Both returned exit 2 for used-contract review. Stable's
+preserved report carries 205 used-handler differences and 29 changed
+persistence sources. The compatibility and source-cache tests passed all
+129 cases.
+
+| Exact main pin | Changed used handlers | Changed persistence sources | Report SHA-256 |
+| --- | ---: | ---: | --- |
+| `eb49b89` | 218 | 29 | `063a8af169b3ceb348a435e2e9deac624906e8d9e887f2a79806d2e4e5de05af` |
+| `a15b971` | 219 | 29 | `8773afdf803bfdb1dc96c853f7492512edf4e15ff937b265b3efdeead381dc3f` |
+
 ## Isolated service-home provisioning and launch
 
 The exact explicit-store SDK prepared a new isolated service home via

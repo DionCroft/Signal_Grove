@@ -166,22 +166,28 @@ class SourceCacheTest(unittest.TestCase):
                         with self.assertRaises(c.MissingSourcePaths):
                             c.source_identities(pin)
 
-    def test_main_pin_uses_all_ten_verified_relocations(self):
-        pin = '242315ce571cde721e717a544cf8ae6c343315cf'
-        legacy = c.SOURCES | c.EXTRA_SOURCES
-        actual = c.contract_source_paths(pin)
-        relocated = {key: actual[key] for key in legacy if actual[key] != legacy[key]}
-        self.assertEqual(
-            c.PERSISTENCE_SOURCE_MOVES | {
-                'plugin_settings': c.PLUGIN_SETTINGS_FIELDS_PATH,
-                'cron_format': c.CRON_FORMAT_PATH,
-            },
-            relocated,
+    def test_main_pins_use_all_ten_verified_relocations(self):
+        pins = (
+            '242315ce571cde721e717a544cf8ae6c343315cf',
+            'eb49b8920a25ffa7bb2fadf548fe819221ca79d7',
+            'a15b9710395aa1c4858fb6dd9e4c5014c5ced4e9',
         )
-        self.assertEqual(10, len(relocated))
-        self.assertEqual(c.PERSISTENCE_SOURCE_DEPENDENCIES, {
-            key: actual[key] for key in actual.keys() - legacy.keys()
-        })
+        for pin in pins:
+            with self.subTest(pin=pin):
+                legacy = c.SOURCES | c.EXTRA_SOURCES
+                actual = c.contract_source_paths(pin)
+                relocated = {key: actual[key] for key in legacy if actual[key] != legacy[key]}
+                self.assertEqual(
+                    c.PERSISTENCE_SOURCE_MOVES | {
+                        'plugin_settings': c.PLUGIN_SETTINGS_FIELDS_PATH,
+                        'cron_format': c.CRON_FORMAT_PATH,
+                    },
+                    relocated,
+                )
+                self.assertEqual(10, len(relocated))
+                self.assertEqual(c.PERSISTENCE_SOURCE_DEPENDENCIES, {
+                    key: actual[key] for key in actual.keys() - legacy.keys()
+                })
 
     def test_persistence_split_requires_every_dependency_only_at_verified_pins(self):
         legacy = {name: c.EXTRA_SOURCES[name] for name in c.PERSISTENCE_SOURCE_MOVES}

@@ -25,21 +25,24 @@ import os
 import tempfile
 
 REPO = 'NousResearch/hermes-agent'
+# Exact complete trees verified for the ten main-branch source relocations.
+# This does not authorize handler or transitive behavior changes.
+REVIEWED_MAIN_SOURCE_RELOCATIONS = frozenset({
+    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
+    '242315ce571cde721e717a544cf8ae6c343315cf',
+    'eb49b8920a25ffa7bb2fadf548fe819221ca79d7',
+    'a15b9710395aa1c4858fb6dd9e4c5014c5ced4e9',
+})
 LEGACY_CRON_FORMAT_PATH = 'tools/cronjob_job_args.py'
 CRON_FORMAT_PATH = 'cron/job_args.py'
 REVIEWED_CRON_FORMAT_MOVES = frozenset({
     'ae2a81ccc00e9b7c06301523e5bb09608397149c',
     '364aded7ee2a2888421fc7aec96adbe6c07748a5',
     'caafe5389ae585ef77387a962aee05b1bcf17029',
-    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
-    '242315ce571cde721e717a544cf8ae6c343315cf',
-})
+}) | REVIEWED_MAIN_SOURCE_RELOCATIONS
 LEGACY_PLUGIN_SETTINGS_PATH = 'hermes_cli/plugins_settings.py'
 PLUGIN_SETTINGS_FIELDS_PATH = 'hermes_cli/plugins_settings/fields.py'
-REVIEWED_PLUGIN_SETTINGS_SPLITS = frozenset({
-    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
-    '242315ce571cde721e717a544cf8ae6c343315cf',
-})
+REVIEWED_PLUGIN_SETTINGS_SPLITS = REVIEWED_MAIN_SOURCE_RELOCATIONS
 SOURCES = {
     'api': 'gateway/platforms/api_server.py',
     'runs': 'gateway/platforms/api_server_runs.py',
@@ -202,9 +205,7 @@ EXTRA_SOURCES.update(MAIN_AUTHORITY_CONTRACT_SOURCES)
 # Keep legacy keys so module changes remain visible against the existing baseline.
 PERSISTENCE_LAYOUT_PINS = frozenset({
     'caafe5389ae585ef77387a962aee05b1bcf17029',
-    '2de9f51b8008a7d49a49221c184f2f11cbfc4af1',
-    '242315ce571cde721e717a544cf8ae6c343315cf',
-})
+}) | REVIEWED_MAIN_SOURCE_RELOCATIONS
 PERSISTENCE_SOURCE_MOVES = {
     'canonical_workspace_actions': 'persistence/sqlite/authority/_mutation.py',
     'canonical_workspace_commit': 'persistence/sqlite/authority/_runtime_picks.py',

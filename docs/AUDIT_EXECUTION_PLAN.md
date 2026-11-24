@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Upstream main source inspection restored
+
+The compatibility checker now follows the ten already-reviewed source
+relocations at the two newly verified pins. The strict semantic gate
+continues to fail on used handlers and persistence changes. Triage the
+actual differences, exercise the affected contracts and keep the original
+stable and main result distinctions.
+[Validation](VALIDATION.md#restored-upstream-main-source-inspection).
+
 ## Independent service-home provisioning
 
 The actual SDK synchronized the candidate into a fresh isolated service

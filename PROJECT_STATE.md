@@ -7,6 +7,14 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Upstream main compatibility inspection restored
+
+Two official main revisions had the same ten reviewed path relocations.
+The strict checker now produces reports for both exact pins. The reports
+still require review of 218 and 219 used-handler changes and 29 persistence
+modules despite a complete source inventory.
+[Validation](docs/VALIDATION.md#restored-upstream-main-source-inspection).
+
 ## Independent service-home dependencies verified
 
 Supported Hermes PM prepared a new isolated service home using the pinned
