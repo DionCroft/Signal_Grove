@@ -13,7 +13,9 @@ requirements. Commit and push tested chunks.
 The public version code 116 APK is built from `d6834a202bf5d4178fc1c27855312a6806da0986`.
 The physical Xiaomi upgrade verified the retained server connection,
 earlier messages, project details, local model, and earlier phone turns.
-Anonymous HTTPS downloads verified all five assets. Live Pi-to-worker
+Anonymous HTTPS downloads verified all five assets. The beta.10 updater
+completed the approval-based public upgrade and retained its preview
+preference in a clean emulator. Live Pi-to-worker
 workspace and automation acceptance remains part of the active audit.
 [Release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11) ·
 [Validation](docs/VALIDATION.md#beta11-public-release).

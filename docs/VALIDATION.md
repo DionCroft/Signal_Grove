@@ -28,6 +28,14 @@ The APK, checksums, certificate, SBOM and provenance all matched their
 staged bytes after unauthenticated HTTPS downloads. The prerelease tag
 points to the signed source revision on main. [GitHub release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11).
 
+The public updater was verified on a clean Android 17 emulator with
+the original public beta.10 installed. Beta.10 found beta.11 in the
+preview feed, displayed the review, and downloaded the APK after explicit
+approval. Android still showed code 115 at its separate Update prompt.
+After confirmation, Package Manager reported code 116 using the exact
+public APK SHA-256. The first installation timestamp and enabled preview
+setting were retained. No APK was sideloaded for that transition.
+
 The live workspace attachment path, approvals, scheduled execution and
 results, broader Hermes compatibility, and outstanding phone AI cases
 remain tracked in the [full audit](AUDIT_EXECUTION_PLAN.md).
