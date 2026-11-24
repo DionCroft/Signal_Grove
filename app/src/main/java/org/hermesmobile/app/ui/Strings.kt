@@ -1864,6 +1864,8 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     ActivityTimedOut("Timed out","已超时","Yǐ chāoshí"),
     ActivityStalled("Stalled","已停滞","Yǐ tíngzhì"),
     ActivityOutcomeUnknown("Outcome unknown","结果未知","Jiéguǒ wèizhī"),
+    ActivityHermesStartTime("Hermes start event {time}","Hermes 开始事件时间 {time}","Hermes kāishǐ shìjiàn shíjiān {time}"),
+    ActivityHermesEventTime("Hermes event {time}","Hermes 事件时间 {time}","Hermes shìjiàn shíjiān {time}"),
     ActivityStartReceived("Start received {time}","开始事件接收时间 {time}","Kāishǐ shìjiàn jiēshōu shíjiān {time}"),
     ActivityUpdateReceived("Received {time}","接收时间 {time}","Jiēshōu shíjiān {time}"),
     ToolActivity("Tool activity","工具活动","Gōngjù huódòng"), Started("Started","已开始","Yǐ kāishǐ"),

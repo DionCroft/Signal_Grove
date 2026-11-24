@@ -41,6 +41,32 @@ class ActivityProtocolTest {
         assertNull(activityTimeline(listOf(completion)).single().startReceipt)
     }
 
+    @Test fun reportedEventTimesStayWithTheirBoundaryAcrossLateReceiptAndReplay() {
+        val start = StreamDecoder.decode(SseEvent("tool.started", """{"timestamp":1700000000.125}""")).tool!!
+        val end = StreamDecoder.decode(SseEvent("tool.completed", """{"timestamp":1700000005.75}""")).tool!!
+        val first = event("start", "a", start.kind, 1).copy(receivedAt = 1_700_000_100_000L,
+            detailsJson = start.details.toString())
+        val last = event("end", "a", end.kind, 2).copy(receivedAt = 1_700_000_100_100L,
+            detailsJson = end.details.toString())
+        val entry = activityTimeline(listOf(last, first.copy(receivedAt = last.receivedAt + 5), first)).single()
+        assertEquals(1_700_000_000_125L, entry.startReceipt?.serverEventAt)
+        assertEquals(1_700_000_005_750L, entry.latest.serverEventAt)
+        assertEquals(first.receivedAt, entry.startReceipt?.receivedAt)
+        assertEquals(last.receivedAt, entry.latest.receivedAt)
+        val child = StreamDecoder.decode(SseEvent("subagent.complete", """{"timestamp":1700000005.75}""")).tool!!
+        assertEquals(last.serverEventAt, last.copy(detailsJson = child.details.toString()).serverEventAt)
+    }
+
+    @Test fun invalidAndMissingServerTimesKeepReceiptOnly() {
+        for (raw in listOf("null", "true", "\"1700000000.125\"", "-1", "1e309", "9223372036854776", """{"time":2}""")) {
+            val tool = StreamDecoder.decode(SseEvent("tool.completed", """{"timestamp":$raw}""")).tool!!
+            assertFalse(raw, tool.details.containsKey(ACTIVITY_SERVER_EVENT_AT))
+        }
+        assertNull(event("legacy", "a", "completed", 1).serverEventAt)
+        val quoted = event("quoted", "a", "started", 1).copy(detailsJson = """{"server_event_ms":"1700000000000"}""")
+        assertNull(quoted.serverEventAt)
+    }
+
     @Test fun liveStepUsesOnlyAnUnfinishedIdentifiedCallForTheCurrentRun() {
         val current = Conversation("c", "scope-a", "session", runId = "r", status = "running",
             executionGeneration = 2)

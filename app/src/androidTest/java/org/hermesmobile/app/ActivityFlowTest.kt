@@ -19,6 +19,10 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class ActivityFlowTest {
     @get:Rule(order=0) val credentialFixture=CredentialFixtureRule()
@@ -35,9 +39,9 @@ class ActivityFlowTest {
     @Test fun parallelToolAndChildActivityAndServedRuntimeAreReadableAfterStreaming() {
         val frames=listOf(
             """{"event":"run.started","run_id":"activity-run","seq":0}""",
-            """{"event":"tool.started","tool":"shell","tool_call_id":"call-a","preview":"First local fixture","seq":1}""",
+            """{"event":"tool.started","tool":"shell","tool_call_id":"call-a","preview":"First local fixture","timestamp":1700000000.125,"seq":1}""",
             """{"event":"tool.started","tool":"shell","tool_call_id":"call-b","preview":"Second local fixture","seq":2}""",
-            """{"event":"tool.completed","tool":"shell","tool_call_id":"call-a","preview":"fixture-raw-result","duration":.1,"seq":3}""",
+            """{"event":"tool.completed","tool":"shell","tool_call_id":"call-a","preview":"fixture-raw-result","duration":.1,"timestamp":1700000005.75,"seq":3}""",
             """{"event":"tool.completed","tool":"shell","tool_call_id":"call-b","error":true,"duration":.2,"seq":4}""",
             """{"event":"subagent.start","subagent_id":"agent-1","child_session_id":"child-1","goal":"Review fixture","seq":5}""",
             """{"event":"subagent.complete","subagent_id":"agent-1","child_session_id":"child-1","summary":"fixture-raw-agent-summary","output_tail":"fixture-raw-agent-output","status":"timeout","input_tokens":20,"cost_usd":.001,"seq":6}""",
@@ -83,6 +87,17 @@ class ActivityFlowTest {
             compose.onNodeWithText(word(Words.ActivityTimedOut)).assertIsDisplayed()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("child-1"));compose.onNodeWithText("child-1").assertExists();shot("rich-child-activity")
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("call-b"));compose.onNodeWithText("call-b").assertExists()
+            val format = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM)
+                .withZone(ZoneId.systemDefault())
+            val times = listOf(
+                Words.ActivityHermesStartTime to 1_700_000_000_125L,
+                Words.ActivityHermesEventTime to 1_700_000_005_750L,
+            )
+            for ((label, millis) in times) {
+                val stamp = word(label).replace("{time}", format.format(Instant.ofEpochMilli(millis)))
+                compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText(stamp))
+                compose.onNodeWithText(stamp).assertIsDisplayed()
+            }
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("legacy-call"))
             compose.onNodeWithText("legacy-call").assertExists()
             compose.onNodeWithText("fixture-raw-", substring = true).assertDoesNotExist()

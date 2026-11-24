@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes Activity server event time
+
+Activity displays the event time reported by Hermes alongside the
+phone's receipt time when both are available. Start and outcome times
+stay attached to their own events across replay. The exact snapshot
+passed 1,250 JVM tests, both lint variants and six compact Android 17
+checks. Older history retains its receipt time. Live Hermes and
+full-matrix verification remain open on this source.
+[Validation](docs/VALIDATION.md#hermes-activity-server-event-time).
+
 ## Reported subagent outcomes and Hermes delivery
 
 Activity now preserves reported child timeouts and interruptions and

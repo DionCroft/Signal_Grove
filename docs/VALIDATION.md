@@ -1,5 +1,33 @@
 # Current development validation — audit follow-up
 
+## Hermes Activity server event time
+
+Tool and subagent events retain a valid numeric `timestamp` from
+the Runs envelope as Unix milliseconds in their existing detail
+record. The timestamp is stored on the individual event. Activity
+can display the Hermes start and outcome event times alongside
+the corresponding phone receipt times. Both use the phone's local
+timezone with seconds visible. Server time does not drive call
+ordering, replay deduplication, duration or run settlement. Older
+rows and invalid or absent timestamps retain their receipt display.
+[Reviewed Runs event envelope](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/gateway/platforms/api_server_runs.py#L225-L227).
+
+The exact snapshot passed 1,250 JVM tests in 118 reports and both
+lint variants with zero errors. Both debug APKs built. Six focused
+cases passed on the compact Android 17 emulator at 840 × 1470,
+420 dpi and 1.3× text. The Runs fixture rendered and verified both
+server times for the same tool call in the Activity timeline.
+Regression coverage also checks delayed receipt, replay, malformed
+timestamp values, and legacy rows. The full matrix and live Hermes
+attribution remain open on this source.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Windows build receipt | `8110735ede8f26799fae96b7f32f0fb50be364b9f0f252a0ee1b73b34872b595` |
+| Debug APK | `0a0cee009ca6a6c6e619b5d9f03071dd5e163e14cef54c8268f73e8f087747c9` |
+| Instrumentation APK | `f820615c9cefac030fdae935111a20c137da682987aaa26d04df0479e6906faf` |
+| Compact Android 17 instrumentation log | `3d2559648b2a993c5840c70b76317a3214468a6c44f3bfd378949e80fe61c449` |
+
 ## Reported subagent outcomes and Hermes delivery
 
 The Runs decoder requires an explicit reported child outcome before

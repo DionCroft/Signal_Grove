@@ -53,6 +53,19 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
         ?: label(Words.ToolActivity)
 }
 
+@Composable private fun ActivityEventTimes(event: ToolEvent, earlierStart: Boolean, displayTime: DateTimeFormatter) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        event.serverEventAt?.let { time ->
+            val word = if (earlierStart) Words.ActivityHermesStartTime else Words.ActivityHermesEventTime
+            Text(label(word).replace("{time}", displayTime.format(Instant.ofEpochMilli(time))),
+                style = MaterialTheme.typography.labelSmall)
+        }
+        val receipt = if (earlierStart) Words.ActivityStartReceived else Words.ActivityUpdateReceived
+        Text(label(receipt).replace("{time}", displayTime.format(Instant.ofEpochMilli(event.receivedAt))),
+            style = MaterialTheme.typography.labelSmall)
+    }
+}
+
 @Composable internal fun ActivityDialog(
     conversation: Conversation, events: List<ToolEvent>, report: RunReport?, waits: List<ActivityWait>,
     live: Boolean, dismiss: () -> Unit,
@@ -63,7 +76,7 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
         RunTelemetry.parse(report?.telemetryJson.orEmpty())["runtime"] as? JsonObject
     }
     val displayTime = remember {
-        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault())
+        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withZone(ZoneId.systemDefault())
     }
     AlertDialog(onDismissRequest=dismiss,title={Text(label(Words.HermesActivity))},text={
         LazyColumn(Modifier.testTag("activity-timeline").heightIn(max=480.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -117,11 +130,9 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                         else -> Words.ActivityOutcomeUnknown
                     }), style=MaterialTheme.typography.labelMedium)
                     entry.startReceipt?.takeIf { it != e }?.let { start ->
-                        Text(label(Words.ActivityStartReceived).replace("{time}", displayTime.format(Instant.ofEpochMilli(start.receivedAt))),
-                            style = MaterialTheme.typography.labelSmall)
+                        ActivityEventTimes(start, earlierStart = true, displayTime = displayTime)
                     }
-                    Text(label(Words.ActivityUpdateReceived).replace("{time}", displayTime.format(Instant.ofEpochMilli(e.receivedAt))),
-                        style = MaterialTheme.typography.labelSmall)
+                    ActivityEventTimes(e, earlierStart = false, displayTime = displayTime)
                     if(e.callId.isNotBlank()) {Text(label(Words.ActivityIdentity));SelectionContainer {Text(e.callId,style=MaterialTheme.typography.bodySmall)}}
                     if(e.runId.isNotBlank()) {Text(label(Words.RunIdentity));Text(e.runId,style=MaterialTheme.typography.bodySmall)}
                     e.durationMs?.let {Text("${it} ms",style=MaterialTheme.typography.labelSmall)}
