@@ -118,6 +118,18 @@ The raw instrumentation log has SHA-256
 `5bb6d8c3a33efd4f31a232864bbb1d958257bacb4c38dc6a2f1a79550dc59ab9`.
 [Original failed shard](https://github.com/DionCroft/Signal_Grove/actions/runs/45374110760/job/138388766559).
 
+The corrected source d6834a2 passed the Android 8 shard that contains
+the original Demo denial check. The native log reports a positive
+completion for
+\`Milestone03Test#demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure\`.
+The artifact digest matches GitHub, and the repository verifier
+independently reproduced all 595 positive cases from the raw logs
+against the 1,262-case Android 8 inventory. The case and the full shard
+are verified. The second Android 8 shard, both Android 17 shards and the
+physical signed upgrade remain separate gates.
+
+[Exact Android 8 shard](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942/job/138558535640).
+
 ## Runs Activity payload privacy
 
 Hermes v0.23.4 can populate the Runs stream preview from tool progress
