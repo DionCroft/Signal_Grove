@@ -1,12 +1,11 @@
-"""Read a receipt from the stamped-digest writer over an authenticated gateway upgrade."""
+"""Recover stamped receipts over authenticated transports across an exact gateway upgrade."""
 
 from argparse import ArgumentParser
 import asyncio
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from http.server import ThreadingHTTPServer
 import copy
 import json
-import os
 from pathlib import Path
 import signal
 import sqlite3
@@ -28,6 +27,7 @@ CURRENT = {
 LABEL = 'signal-grove-receipt-fixture'
 TEXT = 'STAMPED_RECEIPT_CHECK'
 REQUEST = 'stamped-digest-request'
+FOLLOWER = 'stamped-follower-request'
 
 
 def verify_source(path, commit, count, digest):
@@ -37,25 +37,28 @@ def verify_source(path, commit, count, digest):
     return inputs
 
 
-def saved_admission(home):
-    with sqlite3.connect((home / 'state.db').as_uri() + '?mode=ro', uri=True) as db:
+def saved_admissions(home):
+    with closing(sqlite3.connect((home / 'state.db').as_uri() + '?mode=ro', uri=True)) as db:
+        db.row_factory = sqlite3.Row
         rows = db.execute(
             'SELECT admission_id, target_session_id, principal_id, request_id, payload_json, '
             'payload_digest, intent, status, outcome, generation FROM session_admissions'
         ).fetchall()
-        assert db.execute('PRAGMA integrity_check').fetchone() == ('ok',)
+        assert tuple(db.execute('PRAGMA integrity_check').fetchone()) == ('ok',)
         assert not db.execute('PRAGMA foreign_key_check').fetchall()
-    row, = rows
-    assert row[3] == REQUEST and row[7:9] == ('terminal', 'completed')
-    return row
+    admissions = {row['request_id']: dict(row) for row in rows}
+    assert len(admissions) == len(rows)
+    return admissions
 
 
-def run(legacy, current, evidence):
+def run(legacy, current, evidence, *, interrupt=False):
     sys.path.insert(0, str(current))
     from persistence.authority.vocabulary import admission_fingerprint
     from tests.gateway.fixtures.local_recovery_probe import Model, child_env, daemon, rpc, websocket
 
-    home, user = evidence / 'owned-profile', evidence / 'owned-account'
+    case = 'uncertain' if interrupt else 'completed'
+    log_prefix = 'gateway-uncertain-stamp' if interrupt else 'gateway-stamp'
+    home, user = evidence / f'owned-profile-{case}', evidence / f'owned-account-{case}'
     home.mkdir(mode=0o700)
     user.mkdir(mode=0o700)
     peer = ThreadingHTTPServer(('127.0.0.1', 0), Model)
@@ -75,7 +78,7 @@ def run(legacy, current, evidence):
     (home / 'config.yaml').write_text(json.dumps(cfg), encoding='utf-8')
 
     @contextmanager
-    def gateway(root, phase):
+    def gateway(root, phase, *, crash=False):
         env = child_env()
         env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
                    OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=endpoint, PYTHONDONTWRITEBYTECODE='1',
@@ -83,13 +86,16 @@ def run(legacy, current, evidence):
         try:
             with daemon(root, home, env, barrier=False) as (proc, descriptor):
                 assert descriptor['api_origin'].startswith('http://127.0.0.1:')
-                yield descriptor
-                proc.send_signal(signal.SIGINT)
-                assert proc.wait(timeout=55) == 0
+                yield proc, descriptor
+                if crash:
+                    assert proc.returncode == -signal.SIGKILL
+                else:
+                    proc.send_signal(signal.SIGINT)
+                    assert proc.wait(timeout=55) == 0
         finally:
             log = home / 'restart.log'
             if log.is_file():
-                log.rename(evidence / f'gateway-stamp-{phase}.log')
+                log.rename(evidence / f'{log_prefix}-{phase}.log')
 
     async def result(ws, method, **params):
         reply = await rpc(ws, method, **params)
@@ -99,55 +105,94 @@ def run(legacy, current, evidence):
     async def stamp(ws, version):
         await result(ws, 'client.capabilities', client={'name': LABEL, 'kind': 'mobile', 'version': version})
 
-    async def legacy_turn(descriptor):
+    async def receipt(ws, session, admission):
+        return await result(ws, 'prompt.receipt', session_id=session, admission_id=admission)
+
+    async def legacy_turn(proc, descriptor):
         async with websocket(home, descriptor, proxy=None) as ws:
             await stamp(ws, '1.0')
             opened = await result(ws, 'session.create', request_id='stamped-fixture-session',
                                   source='tui', cwd=str(home), toolsets=[])
             session = opened['session_id']
-            sent = await result(ws, 'prompt.submit', session_id=session, input_id=REQUEST, text=TEXT)
+            sent = await result(ws, 'prompt.submit', session_id=session, input_id=REQUEST,
+                                text='BLOCK_STARTED' if interrupt else TEXT)
+            if interrupt:
+                assert await asyncio.to_thread(peer.blocked.wait, 25)
+                active = await receipt(ws, session, sent['admission_id'])
+                assert active['status'] == 'started' and active['outcome'] is None
+                follower = await result(ws, 'prompt.submit', session_id=session, input_id=FOLLOWER,
+                                        text='NEVER_REPLAY')
+                assert follower['status'] == 'queued'
+                assert not peer.release.is_set() and len(peer.requests) == 1
+                proc.kill()
+                assert await asyncio.to_thread(proc.wait, 10) == -signal.SIGKILL
+                return session, {REQUEST: active, FOLLOWER: follower}
             async with asyncio.timeout(65):
                 while True:
-                    receipt = await result(ws, 'prompt.receipt', session_id=session,
-                                           admission_id=sent['admission_id'])
-                    if receipt['status'] == 'terminal':
-                        assert receipt['outcome'] == 'completed'
-                        return session, receipt
+                    completed = await receipt(ws, session, sent['admission_id'])
+                    if completed['status'] == 'terminal':
+                        assert completed['outcome'] == 'completed'
+                        return session, {REQUEST: completed}
                     await asyncio.sleep(0.05)
 
-    async def recover(descriptor, session, original):
+    async def recover(descriptor, session, original, expected):
         for version in ('2.0', '2.1'):
             async with websocket(home, descriptor, proxy=None) as ws:
                 await stamp(ws, version)
                 restored = await result(ws, 'session.resume', session_id=session)
-                assert 'RECOVERY_ACK_' + TEXT in json.dumps(restored['messages'])
-                receipt = await result(ws, 'prompt.receipt', session_id=session, admission_id=original['admission_id'])
-                assert all(receipt[key] == original[key] for key in ('admission_id', 'status', 'outcome', 'sequence'))
+                transcript = json.dumps(restored['messages'])
+                if interrupt:
+                    assert 'RECOVERY_ACK_' not in transcript
+                    pending = {row['admission_id']: row['status'] for row in restored['pending']}
+                    assert pending == {item['admission_id']: expected[key]['status']
+                                       for key, item in original.items()}
+                else:
+                    assert 'RECOVERY_ACK_' + TEXT in transcript
+                for key, item in original.items():
+                    recovered = await receipt(ws, session, item['admission_id'])
+                    assert recovered['admission_id'] == item['admission_id']
+                    assert recovered['sequence'] == item['sequence']
+                    assert recovered['status'] == expected[key]['status']
+                    assert recovered['outcome'] == expected[key]['outcome']
 
     try:
-        with gateway(legacy, 'legacy') as first:
-            session, original = asyncio.run(legacy_turn(first))
-        before = saved_admission(home)
-        payload = json.loads(before[4])
-        assert payload['surface_v1']['client'] == {'name': LABEL, 'kind': 'mobile', 'version': '1.0'}
-        unlabelled = copy.deepcopy(payload)
-        unlabelled['surface_v1'].pop('client')
-        original_digest = admission_fingerprint(canonical_target=session, payload={'input': payload, 'intent': before[6]})
-        different_digest = admission_fingerprint(canonical_target=session, payload={'input': unlabelled, 'intent': before[6]})
-        assert before[0:2] == (original['admission_id'], session)
-        assert before[5] == original_digest and original_digest != different_digest
+        with gateway(legacy, 'legacy', crash=interrupt) as (proc, first):
+            session, original = asyncio.run(legacy_turn(proc, first))
+        before = saved_admissions(home)
+        assert before.keys() == original.keys()
+        for key, row in before.items():
+            payload = json.loads(row['payload_json'])
+            assert payload['surface_v1']['client'] == {'name': LABEL, 'kind': 'mobile', 'version': '1.0'}
+            unlabelled = copy.deepcopy(payload)
+            unlabelled['surface_v1'].pop('client')
+            original_digest = admission_fingerprint(canonical_target=session, payload={'input': payload, 'intent': row['intent']})
+            different_digest = admission_fingerprint(canonical_target=session, payload={'input': unlabelled, 'intent': row['intent']})
+            assert row['admission_id'] == original[key]['admission_id'] and row['target_session_id'] == session
+            assert (row['status'], row['outcome']) == (original[key]['status'], original[key]['outcome'])
+            assert row['payload_digest'] == original_digest and original_digest != different_digest
+        expected = copy.deepcopy(before)
+        if interrupt:
+            expected[REQUEST]['status'] = 'unknown'
+        peer.release.set()
         assert len(peer.requests) == 1
-        with gateway(current, 'current') as second:
+        with gateway(current, 'current') as (_, second):
             assert second['instance_id'] != first['instance_id']
             assert second['authority_epoch'] > first['authority_epoch']
-            asyncio.run(recover(second, session, original))
-        assert saved_admission(home) == before and len(peer.requests) == 1
+            asyncio.run(recover(second, session, original, expected))
+        assert saved_admissions(home) == expected and len(peer.requests) == 1
     finally:
+        peer.release.set()
         peer.shutdown()
         peer.server_close()
         thread.join(timeout=5)
-    return {'oldStampWasPartOfDigest': True, 'authenticatedNewConnections': 2,
-            'newInferenceCalls': 0, 'retainedAdmissions': 1, 'originalOutcome': 'completed'}
+    report = {'oldStampWasPartOfDigest': True, 'authenticatedNewConnections': 2,
+              'newInferenceCalls': 0, 'retainedAdmissions': len(expected)}
+    if interrupt:
+        return report | {'legacyOwnerKilledWhileRunning': True,
+                         'retainedUnknownStatus': expected[REQUEST]['status'],
+                         'unresolvedOutcome': expected[REQUEST]['outcome'],
+                         'retainedQueueStatus': expected[FOLLOWER]['status']}
+    return report | {'originalOutcome': 'completed'}
 
 
 def main():
@@ -168,13 +213,15 @@ def main():
     earlier, later = verify_source(old, *LEGACY), verify_source(new, *current)
     assert all(earlier[name] == later[name] for name in
                ('uv.lock', 'pyproject.toml', 'tests/gateway/fixtures/local_recovery_probe.py'))
-    report = run(old, new, evidence)
+    completed = run(old, new, evidence)
+    uncertain = run(old, new, evidence, interrupt=True)
     verify_source(old, *LEGACY)
     verify_source(new, *current)
-    report.update(legacyCommit=LEGACY[0], currentCommit=args.current_commit, sourceTreesVerified=True)
-    with (evidence / 'gateway-stamp-result.json').open('x', encoding='utf-8') as stream:
-        json.dump(report, stream, indent=2, sort_keys=True)
-    print(json.dumps(report, sort_keys=True))
+    for name, report in (('gateway-stamp-result.json', completed), ('gateway-uncertain-stamp-result.json', uncertain)):
+        report.update(legacyCommit=LEGACY[0], currentCommit=args.current_commit, sourceTreesVerified=True)
+        with (evidence / name).open('x', encoding='utf-8') as stream:
+            json.dump(report, stream, indent=2, sort_keys=True)
+        print(json.dumps(report, sort_keys=True))
 
 
 if __name__ == '__main__':

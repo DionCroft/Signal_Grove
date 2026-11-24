@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Unknown stamped receipt after an owner crash
+
+An independent disposable profile now exercises the harder case.
+The old gateway receives one blocked model request and admits a
+queued follower. The test kills that owned process while inference
+is held. Each destination must report the original receipt as
+unknown and preserve the follower's queued receipt across two
+authenticated reconnects, with zero new model calls. Native hosted
+results remain open.
+
 ## Authenticated receipt after a stamped-store upgrade
 
 A disposable Linux fixture now runs the exact old stamped-digest
