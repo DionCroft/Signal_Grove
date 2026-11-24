@@ -11,9 +11,15 @@ requirements. Commit and push tested chunks.
 
 An authenticated live status frame failed at the admission observation.
 The reviewed home had no ledger and no explicit project-control section.
-Four maintained-SDK cases in disposable homes confirmed that enabling
-the fixture alone leaves admission unobserved until its native ledger
-exists. The live scope and initialization plan still require review.
+Four maintained-SDK cases established the initialization prerequisites.
+A second isolated test ran one enrolled project turn alongside ordinary
+chat. The reviewed observer reported both active turns, while the staged
+workspace runtime's observer reported only the project turn. The
+staged source also lacks the peer-request module used by scoped turns.
+A verified two-file overlay and new source inventory are ready on the
+Windows host. The next step is to stage a fresh isolated Pi generation,
+repeat native verification there, and review the live scope separately.
+The Xiaomi is connected with signed beta.11, code 116.
 [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
 
 ## Authenticated scheduler checks on the current Hermes pins

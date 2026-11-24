@@ -54,6 +54,45 @@ scoping eligibility to the reviewed projects and workers. Qualify live
 work coverage and recovery before asking for separate approval. The
 fixture's enrollment setting confers no production permission.
 
+### Scoped project and general-chat admission
+
+The dormant workspace generation's verified 23,691-member inventory
+contains the original status observer and lacks the peer-request
+module. The maintained SDK needs a native ledger and an absolute
+routing-registry path under opt-in enrollment. The isolated check
+used a separate generated registry and ledger for each profile.
+It observed refusals for held and stale project revisions and used
+a distinct session bound to the authorized fixture revision.
+
+Using the corrected SDK source and an actual native admission receipt,
+the fixture held one enrolled project turn and one ordinary chat
+turn active at the same time. The corrected observer counted two,
+the original counted one, and the second profile remained idle.
+The peer binding matched the exact project, revision and resolved
+session. Changing any of those three fields caused refusal. The
+fence refused both kinds of new work and refused an early thaw.
+After both existing receipts finished once, a reviewed fixture thaw
+succeeded. Read-only observations preserved the generated files.
+Six source files matched their reviewed hashes before and after,
+and the live preflight was byte-identical.
+
+The Windows source overlay uses the repository patch and the verified
+local staging archive. It changes exactly one source entry and adds
+exactly one, producing a 23,692-member proposed inventory. The isolated
+component exercised native SDK methods without a gateway listener,
+worker dispatch or inference. Native PM and authenticated tests on
+the new exact generation, the live workspace read and the phone
+workspace acceptance remain open.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Scoped SDK report | D468B3E196C26A497068DCC01320B39054697F77C501AD3DBC0C6D27B10C5AE6 |
+| Preflight before and after | A62378562A5E200EB91189E2502E36809624D0EA383C31BC13AFD7CF0E3771E7 |
+| Source overlay receipt | 6E1EC0FB1E757F42A45BB1C0CF06CBF748E50A40258A606C9A57CE58529303F5 |
+| Proposed source inventory | 505013d83c4a3cd8ca42b7e481f2a3e1202fdcc96d4748e13626ab1dc2aea42d |
+
+[Reviewed source correction](contracts/2026-11-15-maintained-unbound-dependency-and-status.md).
+
 ## Authenticated scheduling on the current Hermes pins
 
 The exact stable `8fc0374447313e276f6b9a2764bfc750190c966a` and main

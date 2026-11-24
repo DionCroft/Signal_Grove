@@ -5,10 +5,14 @@
 The live gateway now has an authenticated work-status sample that
 identifies unobserved admission. The real home lacks an initialized
 ledger. A four-case isolated SDK run verified the status prerequisites.
-Review the supported initialization and conservative enrollment scope
-for the actual host. Canonical PM preparation, current work proof,
-fresh backup, and separately approved activation and recovery remain
-required. Keep the reading path separate from scheduled execution.
+A second isolated run qualified opt-in enrollment with an absolute
+profile-specific routing registry, an authorized project revision and
+the two corrected SDK files. Stage and verify a new isolated generation
+from the reviewed overlay before proposing the live scope. Validate the
+supported initialization procedure for the actual host. Canonical PM
+preparation, current work proof, a fresh backup and separately approved
+activation and recovery remain required. Keep workspace reading
+separate from scheduled execution.
 [Validation](VALIDATION.md#live-gateway-admission-diagnosis).
 
 ## Native dashboard scheduler evidence
