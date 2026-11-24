@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## Journal-bound workspace service reload
+
+Forward and recovery reloads bind both idle unit snapshots to the exact
+approved journal step. The action claims the intent once before invoking
+the bound user manager. Both loaded fingerprint and reload-required fields
+must match the expected post-reload state. Drift after the claim or an
+unproven reply holds the original operation without replay. The call
+reloads the whole user manager under the existing reviewed reload stage.
+[systemd manager reload documentation](https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.systemd1.html).
+
+Five portable regressions cover the forward and recovery stages, a
+foreign or active unit, an incomplete stage prefix, observed drift and
+ambiguous replies. The focused Windows policy group had 58 passes and
+48 platform skips. The full group had 979 passes and 273 platform skips.
+Both reported zero errors or failures. The first private run exposed a
+mock that did not declare the journal's assertion method. The corrected
+fixture names the journal interface and retains the original log.
+
+The hosted fixture will load and restore two distinct inactive unit
+configurations on a disposable Linux runner. The full live transaction,
+work drain, approved publication and authenticated startup remain open.
+
 ## Reviewed service startup after reload
 
 The native service adapter reads the reload-required property at both

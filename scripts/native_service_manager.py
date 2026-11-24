@@ -1,12 +1,13 @@
-"""Pinned user-manager start/stop adapter, never an autonomous live cutover.
+"""Pinned user-manager adapter for reviewed stop, reload and start stages.
 
 Use the reviewed hash-pinned Jeepney 0.9.0 side environment. One native user-bus
 connection watches JobRemoved before any dispatch, addresses the manager's exact
 unique name and correlates the job with fresh native process/cgroup outcomes.
 Only the two bound Hermes roles (or explicitly named owned acceptance units) are
 accepted. The caller/coordinator still owns real work/retirement/PM/backup gates,
-reviewed file evidence and approval. No restart, kill, cancel, reload, reset,
-configuration write, credential read, fallback, reconnect or action retry exists.
+reviewed file evidence and approval. Manager.Reload applies to the bound user
+manager. Its reviewed stages require both roles to be stopped and verify the
+loaded command fingerprints again before the coordinator may start them.
 """
 from __future__ import annotations
 
@@ -278,6 +279,11 @@ def validate_preimage(binding,action,scope,current,expected):
             raise Refused('Reviewed inactive native start preimage is required')
 
 
+def inactive_reload_unit(binding, unit):
+    return (unit.unit == binding.unit and unit.load_state == 'loaded' and unit.active_state == 'inactive'
+            and unit.main_pid == 0 and unit.owner is None and unit.job_id == 0 and unit.control_pid == 0)
+
+
 class _LimitedSocket:
     def __init__(self, sock):
         self.sock = sock; self.received = 0; self.sent = 0
@@ -395,9 +401,10 @@ class NativeServiceManager:
             raise Unknown('Native service deadline elapsed')
         return deadline-now
 
-    def _rpc(self,message,signature,sender=None,deadline=None):
+    def _rpc(self,message,signature,sender=None,deadline=None,*,reply_timeout=3):
         if self.state in ('closed','unknown'): raise Unknown('Pinned service connection is unavailable')
-        deadline=min(time.monotonic()+3,deadline) if deadline is not None else time.monotonic()+3
+        expires=time.monotonic()+reply_timeout
+        deadline=min(expires,deadline) if deadline is not None else expires
         self._native()
         with _Deadline(self._raw,deadline): reply=self._conn.send_and_get_reply(message,timeout=self._remaining(deadline))
         self._native(); self._remaining(deadline)
@@ -407,9 +414,10 @@ class NativeServiceManager:
             raise Unknown('Native service reply refused; no automatic retry')
         return reply.body
 
-    def _manager(self,method,signature,body,result_signature,deadline=None):
+    def _manager(self,method,signature,body,result_signature,deadline=None,*,reply_timeout=3):
         address=self._Address(MANAGER_PATH,bus_name=self.authority.manager_unique,interface=MANAGER)
-        return self._rpc(self._method(address,method,signature,body),result_signature,deadline=deadline)
+        return self._rpc(self._method(address,method,signature,body),result_signature,deadline=deadline,
+                         reply_timeout=reply_timeout)
 
     def _get(self,path,interface,name,signature,deadline):
         address=self._Address(path,bus_name=self.authority.manager_unique,interface='org.freedesktop.DBus.Properties')
@@ -514,11 +522,12 @@ class NativeServiceManager:
             raise Unknown('Maintenance scope observation is unproven') from None
         finally:self._busy.release()
 
-    def _stage(self,role,action,execution):
+    def _stage(self,step,execution):
         if type(execution) is not ApprovedExecution or execution.authority_sha256!=self.plan.authority_sha256:
             raise Refused('Exact native execution approval required')
-        step=('rollback_' if execution.scope=='recovery' else '')+action+'_'+role
         stages=RECOVERY if execution.scope=='recovery' else FORWARD
+        if step not in stages:
+            raise Refused('Stage does not belong to the approved execution scope')
         self.journal.assert_current(); view=self.journal.view
         if (view['state']!='pending' or view['pending']!=step or view['operation']!=execution.operation
                 or view['plan_sha256']!=execution.packet_sha256 or view['authorization_sha256']!=execution.binding_sha256
@@ -538,12 +547,14 @@ class NativeServiceManager:
         return self._attempt
 
     def change(self,role,action,expected,execution):
-        if role not in self.bindings or action not in ('start','stop') or type(expected) is not UnitSnapshot:
+        if (type(execution) is not ApprovedExecution or role not in self.bindings
+                or action not in ('start','stop') or type(expected) is not UnitSnapshot):
             raise Refused('One exact bound start/stop request is required')
         if not self._busy.acquire(False): raise Refused('Another native service operation is active')
         dispatched=False
         try:
-            step=self._stage(role,action,execution); key=(execution.operation,step)
+            step=('rollback_' if execution.scope=='recovery' else '')+action+'_'+role
+            self._stage(step,execution); key=(execution.operation,step)
             if key in self._spent: raise Refused('This native service action has already been spent')
             binding=self.bindings[role]; current=self._snapshot(role)
             validate_preimage(binding,action,execution.scope,current,expected)
@@ -553,7 +564,7 @@ class NativeServiceManager:
             if binding.unit not in self._pinned:
                 self._manager('RefUnit','s',(binding.unit,),'',execution.deadline); self._pinned.add(binding.unit)
             if self._snapshot(role)!=expected: raise Unknown('Native service changed before dispatch')
-            self._stage(role,action,execution); self._native()
+            self._stage(step,execution); self._native()
             deadline=min(execution.deadline,time.monotonic()+30)
             body=self._manager('StartUnit' if action=='start' else 'StopUnit','ss',(binding.unit,'fail'),'o',deadline)
             if len(body)!=1 or type(body[0]) is not str or not JOB.fullmatch(body[0]): raise Unknown('Native job acceptance is unproven')
@@ -568,7 +579,7 @@ class NativeServiceManager:
                 if not completed:
                     with _Deadline(self._raw,deadline): self._conn.recv_messages(timeout=self._remaining(deadline))
             self._attempt=replace(self._attempt,phase='job_done')
-            after=self._snapshot(role); self._stage(role,action,execution)
+            after=self._snapshot(role); self._stage(step,execution)
             if after.job_id or after.control_pid or after.result!='success': raise Unknown('Native service job outcome is not ready')
             if action=='stop':
                 group=Path('/sys/fs/cgroup')/expected.cgroup.lstrip('/')
@@ -595,6 +606,66 @@ class NativeServiceManager:
             if not isinstance(exc,Exception) or isinstance(exc,Refused): raise
             self.close(); self.state='unknown'; raise Unknown('Native service preflight is unproven') from None
         finally: self._busy.release()
+
+    def reload_units(self, expected, execution):
+        """Apply the reviewed user-manager reload once, with gateway and serve in that order."""
+        if (type(execution) is not ApprovedExecution or type(expected) is not tuple or len(expected) != 2
+                or any(type(unit) is not UnitSnapshot for unit in expected)):
+            raise Refused('An approved reload and both exact observed units are required')
+        if not self._busy.acquire(False):
+            raise Refused('Another native service operation is active')
+        claimed = False
+        try:
+            roles = ('gateway', 'serve')
+            step = 'rollback_reload' if execution.scope == 'recovery' else 'reload_units'
+            recovery = execution.scope == 'recovery'
+            self._stage(step, execution)
+            key = (execution.operation, step)
+            if key in self._spent:
+                raise Refused('This native reload has already been spent')
+            bindings = tuple(self.bindings[role] for role in roles)
+            for binding, unit in zip(bindings, expected, strict=True):
+                allowed = {binding.old_configuration_sha256}
+                if recovery:
+                    allowed.add(binding.new_configuration_sha256)
+                if not inactive_reload_unit(binding, unit) or unit.configuration_sha256 not in allowed:
+                    raise Refused('Reload requires both reviewed inactive units without pending jobs')
+            if tuple(self._snapshot(role) for role in roles) != expected:
+                raise Refused('The observed unit pair changed before reload')
+            self._stage(step, execution)
+            self.journal.claim_dispatch(execution.operation, step, execution.binding_sha256)
+            self._spent.add(key)
+            claimed = True
+            for binding in bindings:
+                if binding.unit not in self._pinned:
+                    self._manager('RefUnit', 's', (binding.unit,), '', execution.deadline)
+                    self._pinned.add(binding.unit)
+            if tuple(self._snapshot(role) for role in roles) != expected:
+                raise Unknown('The observed unit pair changed before dispatch')
+            self._stage(step, execution)
+            reply = self._manager('Reload', '', (), '', execution.deadline, reply_timeout=30)
+            if reply != ():
+                raise Unknown('Native reload completion is unproven')
+            after = tuple(self._snapshot(role) for role in roles)
+            self._stage(step, execution)
+            for binding, unit in zip(bindings, after, strict=True):
+                config = binding.old_configuration_sha256 if recovery else binding.new_configuration_sha256
+                if (not inactive_reload_unit(binding, unit) or unit.needs_daemon_reload
+                        or unit.configuration_sha256 != config):
+                    raise Unknown('Reviewed loaded configuration is unproven after reload')
+            return dict(state='native_reload_verified', step=step, operation=execution.operation,
+                        before_sha256={role: unit.sha256 for role, unit in zip(roles, expected, strict=True)},
+                        after_sha256={role: unit.sha256 for role, unit in zip(roles, after, strict=True)})
+        except BaseException as exc:
+            if not claimed and isinstance(exc, Refused):
+                raise
+            self.close()
+            self.state = 'unknown'
+            if not isinstance(exc, Exception):
+                raise
+            raise Unknown('Native reload outcome unproven; inspect the original operation without replay') from None
+        finally:
+            self._busy.release()
 
     def close(self):
         self.state='closed'

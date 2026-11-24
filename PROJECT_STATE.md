@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Journal-bound workspace service reload
+
+The native service adapter can now execute the existing forward or
+recovery reload stage on the pinned user manager. It checks both inactive
+units and the approved journal prefix, consumes the reload intent once,
+and verifies both loaded configurations before reporting success.
+Windows policy tests passed 979 methods with 273 platform skips. The
+disposable Linux transition fixture is ready for verification.
+[Validation](docs/VALIDATION.md#journal-bound-workspace-service-reload).
+
 ## Reviewed service startup after reload
 
 The native workspace cutover adapter now reads systemd's reload-required

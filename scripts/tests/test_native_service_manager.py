@@ -3,14 +3,18 @@ import importlib.util
 from pathlib import Path
 import socket
 import sys
+import threading
 import time
 import unittest
+from unittest.mock import Mock
 
 for name in ('retirement_guard','native_retirement_owner','cutover_journal','cutover_coordinator','native_service_manager'):
     spec=importlib.util.spec_from_file_location(name,Path(__file__).resolve().parents[1]/(name+'.py'))
     module=importlib.util.module_from_spec(spec);sys.modules[name]=module;spec.loader.exec_module(module)
 from retirement_guard import Owner
-from cutover_journal import Refused,Unknown
+from cutover_coordinator import ApprovedExecution, Plan, FORWARD, RECOVERY
+from cutover_journal import CutoverJournal,Refused,Unknown
+from native_service_manager import NativeServiceManager
 from native_service_manager import BusAuthority,UnitBinding,UnitSnapshot,NativeAttempt,command_rows,invocation_id,job_result,validate_preimage,_Deadline,_LimitedSocket,_Signals
 
 BOOT='00000000-0000-4000-8000-000000000001'
@@ -28,6 +32,111 @@ def active(**changes):
 
 def inactive(**changes):
     return replace(active(),active_state='inactive',sub_state='dead',main_pid=0,owner=None,executable='',configuration_sha256=NEW,**changes)
+
+
+class NativeReloadBoundaryTests(unittest.TestCase):
+    def setup_reload(self, scope="forward"):
+        plan = Plan("1" * 64, "2" * 64, "3" * 64, "4" * 64)
+        recovery = scope == "recovery"
+        step, stages = ("rollback_reload", RECOVERY) if recovery else ("reload_units", FORWARD)
+        approval = ApprovedExecution("5" * 32, plan.rollback_packet_sha256 if recovery else plan.packet_sha256,
+                                     plan.authority_sha256, scope, "6" * 64, time.monotonic() + 60)
+        prefix = stages[:stages.index(step)]
+        view = dict(state="pending", pending=step, operation=approval.operation,
+                    plan_sha256=approval.packet_sha256, authorization_sha256=approval.binding_sha256,
+                    root_plan_sha256=plan.packet_sha256, mode=scope,
+                    records=[dict(operation=approval.operation, kind=kind, step=item)
+                             for item in prefix for kind in ("intent", "verified")]
+                            + [dict(operation=approval.operation, kind="intent", step=step)])
+        actor = NativeServiceManager.__new__(NativeServiceManager)
+        serve = UnitBinding("serve", "hermes-serve.service", "c" * 64, "d" * 64, "/old/python", "/new/python")
+        actor.plan, actor.journal, actor.bindings = plan, Mock(spec=CutoverJournal, view=view), {"gateway": BIND, "serve": serve}
+        actor._busy, actor._spent = threading.Lock(), set()
+        actor._pinned = {BIND.unit, serve.unit}
+        actor._conn = actor._raw = None
+        actor.state = "connected"
+        actor._manager = Mock(return_value=())
+        start = tuple(replace(inactive(), unit=b.unit,
+                              configuration_sha256=b.new_configuration_sha256 if recovery else b.old_configuration_sha256,
+                              needs_daemon_reload=True) for b in (BIND, serve))
+        end = tuple(replace(unit, configuration_sha256=b.old_configuration_sha256 if recovery else b.new_configuration_sha256,
+                            needs_daemon_reload=False) for b, unit in zip((BIND, serve), start, strict=True))
+        actor._snapshot = Mock(side_effect=[*start, *start, *end])
+        return actor, approval, step, start, end
+
+    def test_forward_and_recovery_each_bind_one_reload_to_both_verified_snapshots(self):
+        for scope in ("forward", "recovery"):
+            with self.subTest(scope=scope):
+                actor, approval, step, before, after = self.setup_reload(scope)
+                result = actor.reload_units(before, approval)
+                actor._manager.assert_called_once_with("Reload", "", (), "", approval.deadline, reply_timeout=30)
+                actor.journal.claim_dispatch.assert_called_once_with(approval.operation, step, approval.binding_sha256)
+                self.assertEqual(result["step"], step)
+                self.assertEqual(result["operation"], approval.operation)
+                self.assertEqual(result["before_sha256"], dict(zip(("gateway", "serve"), (u.sha256 for u in before))))
+                self.assertEqual(result["after_sha256"], dict(zip(("gateway", "serve"), (u.sha256 for u in after))))
+                with self.assertRaises(Refused):
+                    actor.reload_units(before, approval)
+                self.assertEqual(actor._manager.call_count, 1)
+
+    def test_foreign_or_active_role_refuses_before_claiming(self):
+        for fault in ("foreign", "active", "job", "already-new"):
+            with self.subTest(fault=fault):
+                actor, approval, _, before, after = self.setup_reload()
+                serve = before[1]
+                if fault == "foreign":
+                    serve = replace(serve, unit="unreviewed.service")
+                elif fault == "active":
+                    serve = active(unit=serve.unit, configuration_sha256=serve.configuration_sha256)
+                elif fault == "job":
+                    serve = replace(serve, job_id=1, job_path="/org/freedesktop/systemd1/job/1")
+                else:
+                    serve = after[1]
+                with self.assertRaises(Refused):
+                    actor.reload_units((before[0], serve), approval)
+                actor.journal.claim_dispatch.assert_not_called()
+                actor._manager.assert_not_called()
+
+    def test_missing_stage_prefix_or_preclaim_drift_refuses_without_reload(self):
+        for fault in ("prefix", "drift"):
+            with self.subTest(fault=fault):
+                actor, approval, _, before, after = self.setup_reload()
+                if fault == "prefix":
+                    actor.journal.view["records"].pop(0)
+                else:
+                    actor._snapshot.side_effect = [before[0], after[1]]
+                with self.assertRaises(Refused):
+                    actor.reload_units(before, approval)
+                actor.journal.claim_dispatch.assert_not_called()
+                actor._manager.assert_not_called()
+
+    def test_drift_after_claim_holds_the_original_operation_without_dispatch(self):
+        actor, approval, step, before, after = self.setup_reload()
+        actor._snapshot.side_effect = [*before, before[0], after[1]]
+        with self.assertRaises(Unknown):
+            actor.reload_units(before, approval)
+        self.assertEqual(actor.state, "unknown")
+        actor.journal.claim_dispatch.assert_called_once_with(approval.operation, step, approval.binding_sha256)
+        actor._manager.assert_not_called()
+        with self.assertRaises(Refused):
+            actor.reload_units(before, approval)
+
+    def test_lost_reply_or_wrong_postimage_keeps_the_original_reload_spent(self):
+        for fault in ("timeout", "stale", "wrong-configuration"):
+            with self.subTest(fault=fault):
+                actor, approval, _, before, after = self.setup_reload()
+                if fault == "timeout":
+                    actor._manager.side_effect = Unknown("Reply lost")
+                elif fault == "stale":
+                    actor._snapshot.side_effect = [*before, *before, after[0], replace(after[1], needs_daemon_reload=True)]
+                else:
+                    actor._snapshot.side_effect = [*before, *before, after[0], before[1]]
+                with self.assertRaises(Unknown):
+                    actor.reload_units(before, approval)
+                self.assertEqual(actor.state, "unknown")
+                with self.assertRaises(Refused):
+                    actor.reload_units(before, approval)
+                self.assertEqual(actor._manager.call_count, 1)
 
 
 class NativeServiceBoundaryTests(unittest.TestCase):

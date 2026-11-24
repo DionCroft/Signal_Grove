@@ -24,6 +24,23 @@ jobs:
       - run: |
           python3 --version
           python3 -B -m unittest discover -s server_extensions/runtime_models -v
+      - name: Exercise the reviewed forward and recovery daemon reloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+          export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+          "$RUNNER_TEMP/signal-grove-policy-tools/tools/python/bin/python" -I -B scripts/native/reviewed_reload_fixture.py
+      - name: Retain exact reload evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reviewed-reload-evidence
+          path: ${{ runner.temp }}/signal-grove-reload-fixture/
+          if-no-files-found: warn
+          retention-days: 7
+
+
   upstream:
     if: github.event_name != 'pull_request'
     needs: parser-tests
