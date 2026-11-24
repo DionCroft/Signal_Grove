@@ -132,7 +132,28 @@ jobs:
           cache: 'false'
           cache-python: 'false'
           cache-node: 'false'
+      - name: Exercise native gateway authentication, recovery and missing-workspace refusal
+        id: gateway_auth
+        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '5725d1d390ac4b7cfe157ea32bd6f4db1a280368'
+        working-directory: sdk
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -o pipefail
+          overall=0
+          for suite in test_native_http_auth test_native_plugin_ws_auth test_session_authority test_session_policy_workspace_readiness; do
+            report="$RUNNER_TEMP/persistence/gateway-$suite"
+            if scripts/run_tests.sh "tests/gateway/$suite.py" -j 1 --file-retries 0 --fail-on-skip \
+              --file-timeout 240 -- -v --junitxml="$report.xml" 2>&1 | tee "$report.log"; then
+              printf '%s\n' 0 > "$report.exit-code"
+            else
+              printf '%s\n' "$?" > "$report.exit-code"
+              overall=1
+            fi
+          done
+          exit "$overall"
       - name: Run one unchanged, source-bound persistence cohort
+        if: ${{ !cancelled() && (success() || steps.gateway_auth.conclusion == 'failure') }}
         env:
           PM_PYTHON: ${{ steps.pm.outputs.python-path }}
         run: |
@@ -148,5 +169,6 @@ jobs:
             ${{ runner.temp }}/persistence/persistence-*.json
             ${{ runner.temp }}/persistence/persistence.xml
             ${{ runner.temp }}/persistence/persistence.log
+            ${{ runner.temp }}/persistence/gateway-*
           if-no-files-found: error
           retention-days: 30

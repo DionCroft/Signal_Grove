@@ -7,6 +7,14 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native gateway transport and recovery checks
+
+The isolated Linux matrix now includes nine upstream gateway
+methods on both current pins. They exercise actual HTTP grants,
+authenticated WebSockets, owner-crash recovery and removed-workspace
+refusal. The four test files and three supporting fixtures match
+the reviewed source maps at both pins. Hosted outcomes remain open.
+
 ## Pinned stored-session runtime checks
 
 Both new Hermes pins retain the same 11 persistence test files and
