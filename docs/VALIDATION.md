@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Signed beta.11 rehearsal and Android 8 retention
+
+The exact clean snapshot `2960384` built and linted with the original
+production key, preview version `1.1.0-beta.11` and code 116. The APK is
+76,586,494 bytes. The package is `org.hermesmobile.app` with min SDK 26,
+target SDK 37 and verified 16 KB alignment. Release lint counted zero
+errors and 55 warnings. The certificate DER SHA-256 is
+`bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`,
+matching the previously published beta.10 certificate and APK.
+
+The initial PEM comparison detected different file bytes. Decoding
+both public certificates independently proved identical DER bytes before
+signing was allowed. A separate post-build Git probe inherited an empty
+Git directory variable and failed. Fresh Git and the guarded receipt
+confirmed the same clean source, successful signing and the recorded
+APK digest without another build.
+
+Android 8 upgraded in place from the exact released beta.10 APK to this
+signed build. The installed SHA-256 matched before and after. The package
+UID, first install time and Demo mode were preserved. The original local
+test task reopened as a full visible row above bottom navigation.
+The Android 17 emulator separately installed the verified public beta.10
+APK as a baseline for an eventual updater test. That test is still open.
+
+The signed APK remains a private rehearsal from the feature branch.
+Final exact-source CI, physical Xiaomi retention, release inventory
+and public GitHub delivery are not represented by this evidence.
+
+| Private rehearsal evidence | SHA-256 |
+| --- | --- |
+| Signed APK | `b6fa21b2721717650f099156e994adc6e1149ffc005866a24bdf2f6b2bcea13d` |
+| Verified signed build report | `bff98adc0243c718f3f4ae8f604a5d8baaa915159dd2f371d6e9b9f0cdba3e20` |
+| Actual Android 8 upgrade result | `e9ae10a1b41d298a0d0d4e01172f051d339e5ae33666f5df29b13fe3a4cb5eb6` |
+
 ## Unsigned beta.11 release rehearsal
 
 Gradle assembled and linted an unsigned private rehearsal from the clean

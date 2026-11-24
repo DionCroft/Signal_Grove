@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Original-signer beta.11 rehearsal and Android 8 retention
+
+The code-116 beta.11 APK built from the clean feature-branch snapshot.
+The verified signer matched public beta.10. An actual in-place upgrade
+from the public APK on Android 8 kept the app UID, original install time,
+Demo mode and the visible existing test task. Android 17 has the exact
+beta.10 baseline for the later updater test.
+[Validation](docs/VALIDATION.md#signed-beta11-rehearsal-and-android-8-retention).
+
+Full Android device CI, final release source, Xiaomi upgrade,
+reviewed release assets and GitHub publication remain open.
+
 ## Code-116 Android release rehearsal
 
 A private unsigned build exercised version code 116 and the beta.11
