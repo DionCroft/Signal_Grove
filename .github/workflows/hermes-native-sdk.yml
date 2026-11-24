@@ -140,8 +140,13 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           set -o pipefail
+          if [[ -e test_durations.json || -L test_durations.json ]]; then
+            echo "Unexpected pre-existing SDK timing cache" >&2
+            exit 1
+          fi
+          suites=(test_native_http_auth test_native_plugin_ws_auth test_session_authority test_session_policy_workspace_readiness)
           overall=0
-          for suite in test_native_http_auth test_native_plugin_ws_auth test_session_authority test_session_policy_workspace_readiness; do
+          for suite in "${suites[@]}"; do
             report="$RUNNER_TEMP/persistence/gateway-$suite"
             if scripts/run_tests.sh "tests/gateway/$suite.py" -j 1 --file-retries 0 --fail-on-skip \
               --file-timeout 240 -- -v --junitxml="$report.xml" 2>&1 | tee "$report.log"; then
@@ -151,6 +156,24 @@ jobs:
               overall=1
             fi
           done
+          # Preserve the runner's generated cache without mixing it with SDK source.
+          python3 -I -B - "$RUNNER_TEMP/persistence/gateway-durations.json" "${suites[@]}" <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import sys
+          cache = Path("test_durations.json")
+          destination = Path(sys.argv[1])
+          expected = {f"tests/gateway/{name}.py" for name in sys.argv[2:]}
+          if cache.exists() or cache.is_symlink():
+              assert cache.is_file() and not cache.is_symlink() and cache.stat().st_size <= 4096
+              durations = json.loads(cache.read_bytes())
+              assert type(durations) is dict and bool(durations) and durations.keys() <= expected
+              assert all(type(value) in (float, int) and math.isfinite(value) and value >= 0
+                         for value in durations.values())
+              assert not destination.exists()
+              cache.rename(destination)
+          PY
           exit "$overall"
       - name: Run one unchanged, source-bound persistence cohort
         if: ${{ !cancelled() && (success() || steps.gateway_auth.conclusion == 'failure') }}

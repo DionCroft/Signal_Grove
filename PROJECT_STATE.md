@@ -13,7 +13,12 @@ The isolated Linux matrix now includes nine upstream gateway
 methods on both current pins. They exercise actual HTTP grants,
 authenticated WebSockets, owner-crash recovery and removed-workspace
 refusal. The four test files and three supporting fixtures match
-the reviewed source maps at both pins. Hosted outcomes remain open.
+the reviewed source maps at both pins. Both hosted gateway cohorts
+passed. The following persistence check refused the generated
+runner duration cache in the SDK checkout. The corrected workflow
+validates and archives the cache before repeating the unchanged
+source checks. The first run and raw reports remain available.
+[First run](https://github.com/DionCroft/Signal_Grove/actions/runs/45381906696).
 
 ## Pinned stored-session runtime checks
 
