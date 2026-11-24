@@ -1,6 +1,7 @@
 package org.hermesmobile.app
 
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.NoMatchingRootException
 import androidx.test.espresso.Root
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
@@ -33,6 +34,21 @@ private fun focusedAppWindow() = object : TypeSafeMatcher<Root>() {
     override fun describeTo(description: Description) { description.appendText("an app window with focus") }
     override fun matchesSafely(root: Root) = root.decorView.hasWindowFocus()
 }
+
+private fun observeRoot(root: Matcher<Root>, observe: (View) -> Unit): Boolean {
+    return try {
+        onView(isRoot()).inRoot(root).check { view, error ->
+            if (error != null) throw error
+            observe(view)
+        }
+        true
+    } catch (_: NoMatchingRootException) {
+        // Neither app window owns focus while Android hands it over.
+        false
+    }
+}
+
+internal fun focusedAppWindowAvailable(): Boolean = observeRoot(focusedAppWindow()) {}
 
 internal fun focusedWindowKeyboardVisible(): Boolean {
     var visible = false
@@ -92,15 +108,11 @@ data class DialogImeDisagreement(val nativeImePresent:Boolean,val nativeImeTopPx
     val readSeparationMs:Long,val readSeparationCapped:Boolean)
 
 fun focusedDialogViewport(requireKeyboard:Boolean=true,onIncoherentIme:((DialogImeDisagreement)->Unit)?=null):FocusedDialogViewport? {
-    var nativeSampleAt=0L
-    val nativeIme=withInteractiveWindows {windows->
-        val bounds=windows.filter {it.type==android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD}.map {item->android.graphics.Rect().also {item.getBoundsInScreen(it)}}.filter {!it.isEmpty}
-        bounds.minOfOrNull {it.top}.also {if(onIncoherentIme!=null) nativeSampleAt=android.os.SystemClock.uptimeMillis()}
-    }
+    val nativeIme = nativeImeTop()
+    val nativeSampleAt = if (onIncoherentIme != null) android.os.SystemClock.uptimeMillis() else 0L
     if(requireKeyboard && nativeIme==null) return null // Insets can precede the native IME window.
     var result:FocusedDialogViewport?=null
-    onView(isRoot()).inRoot(focusedAppDialog()).check {view,error->
-        if(error!=null) throw error
+    if (!observeRoot(focusedAppDialog()) { view ->
         val frame=android.graphics.Rect();view.getWindowVisibleDisplayFrame(frame)
         val screen=IntArray(2);val window=IntArray(2);view.getLocationOnScreen(screen);view.getLocationInWindow(window)
         val insets=checkNotNull(ViewCompat.getRootWindowInsets(view))
@@ -118,7 +130,7 @@ fun focusedDialogViewport(requireKeyboard:Boolean=true,onIncoherentIme:((DialogI
                     elapsed.coerceAtMost(10000),elapsed>10000)
                 runCatching {observer(sample)}
             }
-            return@check
+            return@observeRoot
         }
         val ime=if(keyboardVisible) insets.getInsets(WindowInsetsCompat.Type.ime()).bottom else 0
         val metrics=android.util.DisplayMetrics()
@@ -131,8 +143,18 @@ fun focusedDialogViewport(requireKeyboard:Boolean=true,onIncoherentIme:((DialogI
             frame.bottom=minOf(frame.bottom,metrics.heightPixels-ime,top)
         }
         result=FocusedDialogViewport(frame,screen[0]-window[0],screen[1]-window[1],ime,metrics.heightPixels,keyboardVisible)
-    }
+    }) return null
     return if(requireKeyboard) checkNotNull(result) else result
+}
+
+internal fun nativeKeyboardVisible(): Boolean = nativeImeTop() != null
+
+private fun nativeImeTop(): Int? = withInteractiveWindows { windows ->
+    windows.asSequence()
+        .filter { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+        .map { window -> android.graphics.Rect().also { window.getBoundsInScreen(it) } }
+        .filterNot { it.isEmpty }
+        .minOfOrNull { it.top }
 }
 
 

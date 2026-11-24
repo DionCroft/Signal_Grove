@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Focused Android keyboard and helper consent checks
+
+The four Android 8 failures pass in the corrected nine-method cohort on
+Android 8 and 17. The cohort also covers document review above the native
+keyboard, exact reply copying, search controls and private draft retention.
+All 1,242 JVM tests and debug lint passed. The changes affect instrumentation
+only. [Validation](docs/VALIDATION.md#focused-android-keyboard-and-helper-consent-checks).
+
+Run the full hosted Android matrix on the pushed correction. The signed
+rehearsal remains private. The final-source matrix, Xiaomi upgrade,
+updater and production publication gates remain open.
+
 ## Beta.11 rehearsal inventory and Android 8 failures
 
 The signed rehearsal has a validated CycloneDX 1.6 inventory and matching

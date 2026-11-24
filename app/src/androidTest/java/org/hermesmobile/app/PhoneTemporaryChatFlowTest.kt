@@ -23,8 +23,12 @@ class PhoneTemporaryChatFlowTest {
         draft.assertTextContains("Unsent private draft")
         val review = compose.onNodeWithTag("phone-temporary-end-review")
         val close = compose.onNodeWithTag("phone-temporary-close")
-        compose.waitUntil(5_000) { focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true }
-        val viewport = checkNotNull(focusedDialogViewport(requireKeyboard = false))
+        var keyboardViewport: FocusedDialogViewport? = null
+        compose.waitUntil(5_000) {
+            keyboardViewport = focusedDialogViewport(requireKeyboard = false)?.takeIf { it.keyboardVisible }
+            keyboardViewport != null
+        }
+        val viewport = checkNotNull(keyboardViewport)
         val bounds = close.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertTrue(
             "Temporary chat must keep its End action above the keyboard",

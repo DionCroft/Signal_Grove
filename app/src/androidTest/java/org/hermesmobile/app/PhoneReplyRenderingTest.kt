@@ -129,20 +129,11 @@ class PhoneReplyRenderingTest {
             assertTrue(clip.description.extras!!.getBoolean("android.content.extra.IS_SENSITIVE"))
         }
         compose.onNodeWithTag("phone-full-close").assertIsDisplayed().performClick()
-        val initialBottom = java.util.concurrent.atomic.AtomicInteger()
-        compose.runOnUiThread {
-            val frame = android.graphics.Rect()
-            compose.activity.window.decorView.getWindowVisibleDisplayFrame(frame)
-            initialBottom.set(frame.bottom)
-        }
-        assertTrue(initialBottom.get() > 0)
-        compose.onNodeWithTag("reader-fixture-editor").performScrollTo().assertIsNotFocused().performClick().assertIsFocused()
-        compose.waitUntil(5000) {
-            val frame = android.graphics.Rect()
-            InstrumentationRegistry.getInstrumentation().runOnMainSync {
-                compose.activity.window.decorView.getWindowVisibleDisplayFrame(frame)
-            }
-            frame.bottom < initialBottom.get() * 0.8
-        }
+        compose.onNodeWithTag("phone-full-close").assertDoesNotExist()
+        compose.waitUntil(5_000) { focusedAppWindowAvailable() && !nativeKeyboardVisible() }
+        val editor = compose.onNodeWithTag("reader-fixture-editor")
+        editor.performScrollTo().assertIsNotFocused().performClick().assertIsFocused()
+        compose.waitUntil(5_000) { focusedAppWindowAvailable() && nativeKeyboardVisible() }
+        editor.assertIsFocused()
     }
 }

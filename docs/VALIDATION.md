@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Focused Android keyboard and helper consent checks
+
+The original [hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45287698016)
+passed both Android 17 shards and Android 8 shard 0. Android 8 shard 1
+failed four methods. The first local correction passed eight of nine
+checks on each API. Android 8 stopped before the helper's first tap.
+Android 17 passed fresh helper consent and failed the document control's
+position check while the keyboard was visible. Both intermediate logs
+are retained alongside the original hosted evidence.
+
+The corrected tests choose a visible portion of each helper control and
+send one guarded Android tap per action. They still require fresh consent
+when the observations change. The document test waits for a complete
+Review sources button above the real keyboard before performing one tap.
+The other checks observe actual app window focus and native IME visibility
+and retain their existing consent, clipboard and draft assertions.
+
+The sealed debug build passed all 1,242 JVM tests across 118 suites and
+debug lint reported 56 warnings and zero errors. Both API 26 and API 37
+passed all nine named methods. Each reported two successful consent taps
+and two successful Run taps, with one accepted DOWN and UP per tap.
+The runner checked the existing debug signer and each installed artifact,
+restored both emulator keyboard settings and verified the production APK
+digests on both devices. These are focused emulator checks.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Sealed source snapshot | `ac181435fa6c9371265d64a6b7772e8aeb825d4f354ac009a0c0d063bb7b14fa` |
+| Corrected API 26 log | `311f60b960b949632698d2ef2a8911c86893424d7f7634ba3562842cc99f8639` |
+| Corrected API 37 log | `7563e73ba221ebe31caac0128f73c652b2ed6455d26edf8de4d044c136a41ecf` |
+
+The full hosted matrix on the new source and the physical upgrade and
+release gates remain open.
+
 ## Beta.11 inventory and Android 8 shard failures
 
 The exact signed rehearsal produces a [CycloneDX 1.6](https://cyclonedx.org/schema/bom-1.6.schema.json)

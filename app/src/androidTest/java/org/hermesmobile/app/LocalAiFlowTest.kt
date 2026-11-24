@@ -283,17 +283,26 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-document-question").performScrollTo().performClick()
             .performTextInput("When does it close?")
         val review = compose.onNodeWithTag("phone-document-review")
-        compose.waitUntil(10_000) {
-            focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true &&
-                compose.onAllNodes(hasTestTag("phone-document-review") and isEnabled()).fetchSemanticsNodes().size == 1
+        var readyBounds: androidx.compose.ui.geometry.Rect? = null
+        var observation = "No focused dialog with the native keyboard visible"
+        try {
+            compose.waitUntil(10_000) {
+                val viewport = focusedDialogViewport(requireKeyboard = false)
+                    ?.takeIf { it.keyboardVisible } ?: return@waitUntil false
+                val bounds = compose.onAllNodes(hasTestTag("phone-document-review") and isEnabled())
+                    .fetchSemanticsNodes().singleOrNull()?.boundsInWindow ?: return@waitUntil false
+                observation = "Control=$bounds, viewport=${viewport.visible}, offsetY=${viewport.screenOffsetY}"
+                if (bounds.isEmpty || bounds.top + viewport.screenOffsetY < viewport.visible.top ||
+                    bounds.bottom + viewport.screenOffsetY > viewport.visible.bottom) return@waitUntil false
+                readyBounds = bounds
+                true
+            }
+        } catch (error: ComposeTimeoutException) {
+            throw AssertionError("Review sources must stay above the actual keyboard. $observation", error)
         }
         compose.runOnIdle { assertEquals(0, sourceReviews); assertTrue(requests.isEmpty()) }
-        val viewport = checkNotNull(focusedDialogViewport())
-        val bounds = review.assertIsDisplayed().assertIsEnabled().fetchSemanticsNode().boundsInWindow
-        assertTrue(bounds.height > 0f && bounds.width > 0f)
-        assertTrue("Review sources must stay above the actual keyboard",
-            bounds.top + viewport.screenOffsetY >= viewport.visible.top &&
-                bounds.bottom + viewport.screenOffsetY <= viewport.visible.bottom)
+        review.assertIsDisplayed().assertIsEnabled()
+        val bounds = checkNotNull(readyBounds)
         tapFocusedDialogWindowPoint(bounds.center.x, bounds.center.y, NativeDialogTapAction.PhoneDocumentReview)
         compose.waitUntil(10_000) {
             compose.onAllNodesWithTag("phone-document-source-0").fetchSemanticsNodes().size == 1
@@ -663,22 +672,52 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-helper-open").performClick()
         val include = compose.onNodeWithTag("phone-helper-observations")
         val run = compose.onNodeWithTag("phone-helper-run")
-        include.performScrollTo().assertIsOff().performClick()
+        include.assertIsOff()
+        tapHelperControl(include, NativeDialogTapAction.PhoneHelperConsent)
         include.assertIsOn()
         compose.runOnIdle { observationTime = 200 }
         include.performScrollTo().assertIsOff()
-        run.performScrollTo().performClick()
+        tapHelperControl(run, NativeDialogTapAction.PhoneHelperRun)
         compose.runOnIdle { assertEquals(listOf(LocalHelpTopic.FIRST_SETUP to null), helperRequests) }
 
-        include.performScrollTo().assertIsOff().performClick()
+        include.assertIsOff()
+        tapHelperControl(include, NativeDialogTapAction.PhoneHelperConsent)
         include.assertIsOn()
-        run.performScrollTo().performClick()
+        tapHelperControl(run, NativeDialogTapAction.PhoneHelperRun)
         compose.runOnIdle {
             assertEquals(2, helperRequests.size)
             assertEquals(LocalHelpTopic.FIRST_SETUP to
                 LocalHelpObservations(200, false, LocalAddressKind.HTTPS, true, true), helperRequests.last())
         }
     }
+
+    private fun tapHelperControl(control: SemanticsNodeInteraction, action: NativeDialogTapAction) {
+        control.performScrollTo().assertIsDisplayed().assertIsEnabled()
+        var point: androidx.compose.ui.geometry.Offset? = null
+        var observation = "No focused dialog viewport"
+        try {
+            compose.waitUntil(5_000) {
+                val viewport = focusedDialogViewport(requireKeyboard = false, onIncoherentIme = {
+                    observation = "IME window=${it.nativeImePresent}, insets=${it.deliveredImeVisible}"
+                }) ?: return@waitUntil false
+                val bounds = control.fetchSemanticsNode().boundsInWindow
+                val visible = viewport.visible
+                val left = maxOf(bounds.left, (visible.left - viewport.screenOffsetX).toFloat())
+                val top = maxOf(bounds.top, (visible.top - viewport.screenOffsetY).toFloat())
+                val right = minOf(bounds.right, (visible.right - viewport.screenOffsetX).toFloat())
+                val bottom = minOf(bounds.bottom, (visible.bottom - viewport.screenOffsetY).toFloat())
+                observation = "Control=$bounds, viewport=$visible, offset=(${viewport.screenOffsetX}, ${viewport.screenOffsetY})"
+                if (right - left < 1f || bottom - top < 1f) return@waitUntil false
+                point = androidx.compose.ui.geometry.Offset((left + right) / 2, (top + bottom) / 2)
+                true
+            }
+        } catch (error: ComposeTimeoutException) {
+            throw AssertionError("No visible native target for ${action.wire}. $observation", error)
+        }
+        val target = checkNotNull(point)
+        tapFocusedDialogWindowPoint(target.x, target.y, action)
+    }
+
     @Test fun bilingualLargeTextKeepsTheConversationAndComposerReachable() {
         state = LocalAiState(loaded = model)
         show(bilingual = true)
