@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Upstream Hermes layout inspection
+
+The combined native workflow passed all 1,252 Linux policy methods.
+Its stable source report reached the semantic review gate. Main moved
+during the audit and initially stopped at the source layout gate.
+All 245 watched paths at exact main `16fd059` were verified against
+its Git tree, with ten relocations and no missing sources after
+resolution. Manual compatibility runs can now select the two exact
+commits independently. Semantic and live qualification remain open.
+[Validation](docs/VALIDATION.md#exact-stable-and-main-source-inspection).
+
 ## Authenticated gateway and Serve readiness
 
 The coordinator's isolated cutover and recovery now use authenticated

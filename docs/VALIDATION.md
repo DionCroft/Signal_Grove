@@ -1,5 +1,53 @@
 # Current development validation — audit follow-up
 
+## Exact stable and main source inspection
+
+[Combined native acceptance](https://github.com/DionCroft/Signal_Grove/actions/runs/45460011738/job/138679715656)
+on `377aa6f5935944e3256d54bddaeb28718997bbae` passed 1,252 Linux policy
+methods and independently verified eight authenticated readiness
+observations and two expected refusals. The native policy archive SHA-256
+was `61ac27327865dbf66053a30065ffa2d23e673c4c0fce557522af273a3e544216`.
+The disposable fixture used actual systemd and local transports.
+
+The [independent upstream job](https://github.com/DionCroft/Signal_Grove/actions/runs/45460011738/job/138681127345)
+stopped for two distinct reasons. Stable `8fc0374447313e276f6b9a2764bfc750190c966a`
+returned review required. Its artifact `14950764695` matched the
+published SHA-256
+`2c48debdc1d733bbff7d456a8b063d2d60487319d352ca1bc806487f5f3d32c7`
+and independently verified source. Main had advanced to
+`16fd059ad8726bf29f54c014cd6200043af9dbf1`. The job rejected ten
+missing legacy paths before parsing and emitted no main report.
+
+The complete main Git tree and source archive were checked independently.
+All 245 distinct source paths matched their Git blob identities,
+covering 249 watch keys. Ten moved paths and all persistence dependencies
+were present. The archive SHA-256 was
+`9cc747c44d9b69692c883fbf5828b010e2c762cb266e7b1a17af6caa4431ec74`.
+The watcher now maps those relocations for this exact commit. Manual
+runs can provide exact stable and main SHAs. Scheduled runs still
+inspect latest stable and moving main. All 129 portable Hermes tests and
+12 Bash input cases passed. The updated checker returned review required
+for both exact pins after re-verifying all 249 cached aliases per pin.
+
+| Exact source | Changed used handlers | Changed persistence sources |
+| --- | ---: | ---: |
+| Stable `8fc0374` | 220 | 29 |
+| Main `16fd059` | 224 | 29 |
+
+Neither comparison found a removed used route or changed watched
+request fields, flags, or schedule constraints. Both still require
+review under the unchanged baseline. This is static source evidence.
+
+On the earlier exact main `2506f5b`, isolated source checks confirmed
+that a context-bound profile path is preserved literally and that PM
+refuses dependency sync in a named installer environment before
+dispatch. Stable expands the bound path and delegates the client calls
+to the next layer. The reviewed Signal Grove PM child environment
+omits the named-install state variable. Authenticated cross-profile
+routes, full PM behavior, and the live Pi rollout still need verification.
+[Main profile selector](https://github.com/NousResearch/hermes-agent/blob/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15/hermes_constants.py#L208) ·
+[Main PM client](https://github.com/NousResearch/hermes-agent/blob/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15/pm/client.py#L220).
+
 ## Authenticated gateway and Serve readiness
 
 The read-only readiness adapters match the exact running systemd unit,

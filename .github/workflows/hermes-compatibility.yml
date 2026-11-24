@@ -3,6 +3,15 @@ on:
   schedule:
     - cron: '27 7 * * 1'
   workflow_dispatch:
+    inputs:
+      stable_commit:
+        description: Exact stable commit SHA to reproduce an inspection. Blank checks latest stable.
+        required: false
+        type: string
+      main_commit:
+        description: Exact main commit SHA to reproduce an inspection. Blank checks current main.
+        required: false
+        type: string
   push:
     branches: [main]
     paths: ['scripts/check_hermes_contract.py', 'scripts/compatibility_probe_dashboard_registry.py', 'scripts/ci_native_policy.py', '.github/actions/native-policy/**', 'scripts/tests/**', 'docs/contracts/**', '.github/workflows/hermes-compatibility.yml']
@@ -57,13 +66,25 @@ jobs:
       - name: Inspect latest stable source without executing it
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref latest --output "$RUNNER_TEMP/hermes-contract-latest.json"
+          HERMES_REVIEW_COMMIT: ${{ inputs.stable_commit }}
+        run: |
+          if [[ -n "$HERMES_REVIEW_COMMIT" && ! "$HERMES_REVIEW_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            printf '%s\n' 'The stable review commit must be a full lowercase Git SHA.' >&2
+            exit 3
+          fi
+          python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref "${HERMES_REVIEW_COMMIT:-latest}" --output "$RUNNER_TEMP/hermes-contract-latest.json"
       - name: Inspect main source without executing it
         # A stable-source review failure must not hide the independent main report.
         if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref main --output "$RUNNER_TEMP/hermes-contract-main.json"
+          HERMES_REVIEW_COMMIT: ${{ inputs.main_commit }}
+        run: |
+          if [[ -n "$HERMES_REVIEW_COMMIT" && ! "$HERMES_REVIEW_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            printf '%s\n' 'The main review commit must be a full lowercase Git SHA.' >&2
+            exit 3
+          fi
+          python3 -B scripts/check_hermes_contract.py --source-cache "$RUNNER_TEMP/hermes-public-source-cache" --request-interval 1 --ref "${HERMES_REVIEW_COMMIT:-main}" --output "$RUNNER_TEMP/hermes-contract-main.json"
       - name: Check public blobs for safe retention
         if: always()
         id: cache-publication
