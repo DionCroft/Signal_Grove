@@ -68,8 +68,9 @@ def snapshot_digest(units):
 class ServiceOperations:
     """Only service actions and the fixture's unit definitions have native effects."""
 
-    def __init__(self, manager, paths, work):
+    def __init__(self, manager, paths, work, executable):
         self.manager, self.paths, self.work = manager, paths, work
+        self.executable = executable
         self.loaded = self.definitions = "old"
         self.running = set(ROLES)
         self.before = {}
@@ -99,10 +100,10 @@ class ServiceOperations:
             assert unit.job_id == unit.control_pid == 0, (step, role, "pending job or control process")
             assert unit.active_state == ("active" if role in self.running else "inactive"), (step, role, unit.active_state)
             if role in self.running:
-                assert unit.owner is not None and unit.executable == EXE, (step, role, "owner", unit.executable)
+                assert unit.owner is not None and unit.executable == self.executable, (step, role, "owner", unit.executable)
                 cmdline = Path("/proc", str(unit.main_pid), "cmdline").read_bytes()
                 assert cmdline.split(b"\0") == [*(arg.encode() for arg in argv(role, self.loaded)), b""], (
-                    step, role, "command line", cmdline)
+                    step, role, "command line", hashlib.sha256(cmdline).hexdigest())
             else:
                 assert unit.main_pid == 0 and unit.owner is None, (step, role, "inactive owner")
 
@@ -173,6 +174,8 @@ def main():
     unit_home.mkdir(parents=True, exist_ok=True)
     if unit_home.resolve() != unit_home or unit_home.stat().st_uid != os.geteuid():
         raise ValueError("The test manager's runtime unit directory must be locally owned")
+    # systemd retains the literal argv while procfs exposes the resolved executable.
+    executable = str(Path(EXE).resolve(strict=True))
     paths = {role: unit_home / f"signal-grove-acceptance-{seed}-{role}.service" for role in ROLES}
     for role, path in paths.items():
         with path.open("x", encoding="ascii", newline="\n") as stream:
@@ -183,7 +186,7 @@ def main():
     authority = BusAuthority(bus["uid"], *bus["busIdentity"], Owner(**bus["peerOwner"]),
                              bus["managerUnique"], Owner(**bus["managerOwner"]))
     bindings = tuple(UnitBinding(role, paths[role].name, expected_configuration(paths[role], role, "old"),
-                        expected_configuration(paths[role], role, "new"), EXE, EXE) for role in ROLES)
+                        expected_configuration(paths[role], role, "new"), executable, executable) for role in ROLES)
     review = Plan(digest([seed, "forward"]), digest(bus), digest([seed, "preflight"]), digest([seed, "recovery"]))
     info = work.stat()
     with CutoverJournal(work, expected_identity=(info.st_dev, info.st_ino)) as journal:
@@ -191,7 +194,7 @@ def main():
             old = snapshots(observation)
         plan = Plan(review.packet_sha256, review.authority_sha256, snapshot_digest(old), review.rollback_packet_sha256)
         with NativeServiceManager(authority, plan, journal, bindings) as manager:
-            operations = ServiceOperations(manager, paths, work)
+            operations = ServiceOperations(manager, paths, work, executable)
             forward = ApprovedExecution(uuid.uuid4().hex, plan.packet_sha256, plan.authority_sha256, "forward",
                                         digest([seed, "fixture-forward"]), time.monotonic() + 85)
             checked = operations.observe("preflight", "before", forward)
