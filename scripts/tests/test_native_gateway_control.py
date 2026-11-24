@@ -139,6 +139,30 @@ class GatewayRegisteredStatusTests(unittest.TestCase):
         for key,value in (('lifecycle','stopped'),('secondary_profile_maps_observed',None),('busy',0)):
             body=self.status();body['live_activity'][key]=value
             with self.assertRaises(m.Unknown):self.project(body)
+    def test_unproven_status_reports_only_a_fixed_validation_phase(self):
+        vectors = (
+            (None, 'protocol', 'fixture-secret', 'reply_identity'),
+            (None, 'answered_at', 98, 'reply_freshness'),
+            ('live_activity', 'contract', 'fixture-secret', 'activity_contract'),
+            ('live_activity', 'state', 'fixture-secret', 'activity_unobserved'),
+            ('live_activity', 'observed_at', 98, 'activity_sample'),
+            ('live_activity', 'counters', {}, 'activity_counts'),
+            ('project_admission', 'contract', 'fixture-secret', 'admission_contract'),
+            ('project_admission', 'state', 'fixture-secret', 'admission_unobserved'),
+            ('project_admission', 'home_digest', 'fixture-secret', 'admission_sample'),
+            ('project_admission', 'fence', {}, 'admission_fence'),
+        )
+        for section, field, value, expected in vectors:
+            with self.subTest(field=field, expected=expected):
+                body = self.status()
+                target = body if section is None else body[section]
+                target[field] = value
+                with self.assertRaises(m.Unknown) as error:
+                    self.project(body)
+                self.assertIsInstance(error.exception, m.RegisteredStatusUnknown)
+                self.assertEqual(expected, error.exception.reason)
+                self.assertNotIn('fixture-secret', str(error.exception))
+
     def test_legacy_state_file_zeroes_and_unenrolled_ledger_are_unknown(self):
         body=dict(protocol=1,answering_pid=4000,answered_at=100,gateway_state='draining',active_agents=0)
         with self.assertRaises(m.Unknown):self.project(body)
@@ -190,6 +214,17 @@ class NativeGatewayControlTests(unittest.TestCase):
             control=self.m.NativeGatewayControl(self.owner,self.connect())
             with self.assertRaises(self.m.Refused):control.exchange(verb)
         self.assertEqual([],self.observations()['requests'])
+    def test_registered_scope_failure_keeps_authenticated_frame_outcome_unknown(self):
+        self.start()
+        control = self.m.NativeGatewayControl(self.owner, self.connect())
+        with self.assertRaises(self.m.RegisteredStatusUnknown) as error:
+            control.registered_status('a' * 64)
+        self.assertEqual('reply_identity', error.exception.reason)
+        self.assertEqual('unknown', control.state)
+        with self.assertRaises(self.m.Refused):
+            control.exchange('status')
+        self.assertEqual(['status'], [row['verb'] for row in self.observations()['requests']])
+
     def test_wrong_id_and_sdk_errors_stay_unknown_without_replay(self):
         self.start('wrong_id');control=self.m.NativeGatewayControl(self.owner,self.connect())
         with self.assertRaises(self.m.Unknown):control.exchange('status')

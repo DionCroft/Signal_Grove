@@ -29,44 +29,102 @@ LIVE_COUNTERS=frozenset({'owned_async_tasks','cron','delegations','background_pr
 LEDGER_COUNTERS=frozenset({'active_turns','active_tools','processes_awaiting_reconciliation','unverified_operations'})
 
 
-def project_registered_status(body,owner_pid,home_digest,earliest,latest):
-    """A live one-home registered-work observation, never fleet/stop permission."""
+class RegisteredStatusUnknown(Unknown):
+    """An authenticated frame whose registered work could not be verified."""
+
+    def __init__(self, reason):
+        super().__init__('Registered gateway work observation is unproven; no idle permission')
+        self.reason = reason
+
+
+def project_registered_status(body, owner_pid, home_digest, earliest, latest):
+    """Verify registered work for one exact gateway and home."""
+
+    def exact_pid(value):
+        if type(value) is not int or value != owner_pid:
+            raise ValueError('Wrong responding process')
+
+    def fresh(value):
+        if type(value) is str:
+            parsed = datetime.fromisoformat(value)
+            if parsed.tzinfo is None:
+                raise ValueError('Unscoped timestamp')
+            value = parsed.timestamp()
+        if type(value) not in (int, float) or not math.isfinite(value) or not earliest <= value <= latest:
+            raise ValueError('Stale observation')
+
+    def counts(value, names):
+        if type(value) is not dict or set(value) != names or any(type(n) is not int or n < 0 for n in value.values()):
+            raise ValueError('Incomplete work counts')
+        return dict(value)
+
+    reason = 'observer_scope'
     try:
-        if (type(body) is not dict or type(owner_pid) is not int or owner_pid<=1 or type(home_digest) is not str
-            or not re.fullmatch('[a-f0-9]{64}',home_digest) or any(type(t) not in (int,float) or not math.isfinite(t) for t in (earliest,latest))
-            or not 0<=earliest<=latest or latest-earliest>5):raise ValueError('Invalid observation scope')
-        def exact_pid(value):
-            if type(value) is not int or value!=owner_pid:raise ValueError('Wrong responding process')
-        def fresh(value):
-            if type(value) is str:
-                parsed=datetime.fromisoformat(value)
-                if parsed.tzinfo is None:raise ValueError('Unscoped timestamp')
-                value=parsed.timestamp()
-            if type(value) not in (int,float) or not math.isfinite(value) or not earliest<=value<=latest:raise ValueError('Stale observation')
-        def counts(value,names):
-            if type(value) is not dict or set(value)!=names or any(type(n) is not int or n<0 for n in value.values()):raise ValueError('Incomplete work counts')
-            return dict(value)
-        if type(body['protocol']) is not int or body['protocol']!=1:raise ValueError('Wrong status protocol')
-        exact_pid(body['answering_pid']);fresh(body['answered_at'])
-        live=body['live_activity'];ledger=body['project_admission']
-        if (live['contract']!='gateway_live_work_v1' or live['state']!='OBSERVED' or live['coverage']!='REGISTERED_WORK_ONLY'
-            or live['fleet_ready_to_switch'] is not False or ledger['contract']!='native_admission_snapshot_v1'
-            or ledger['state']!='OBSERVED' or ledger['fleet_ready_to_switch'] is not False or ledger['home_digest']!=home_digest):raise ValueError('Incomplete registered scope')
-        exact_pid(live['responding_pid']);exact_pid(ledger['responding_pid']);fresh(live['observed_at']);fresh(ledger['observed_at'])
-        live_counts=counts(live['counters'],LIVE_COUNTERS);fence=ledger['fence']
-        if type(fence) is not dict or set(fence)!=LEDGER_COUNTERS|{'epoch','owner','frozen'}:raise ValueError('Incomplete ledger scope')
-        ledger_counts=counts({k:fence[k] for k in LEDGER_COUNTERS},LEDGER_COUNTERS)
-        if (type(live['busy']) is not bool or live['busy']!=any(live_counts.values()) or live['lifecycle'] not in ('running','draining')
-            or type(fence['frozen']) is not bool or type(fence['epoch']) is not int or fence['epoch']<0
-            or (fence['epoch']==0 and (fence['owner'] is not None or fence['frozen']))
-            or (fence['epoch']>0 and (type(fence['owner']) is not str or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}',fence['owner'])))
-            or any(type(live[k]) is not int or live[k]<0 for k in ('adapter_instances_observed','secondary_profile_maps_observed'))):raise ValueError('Invalid native lifecycle/fence')
-        return dict(coverage='REGISTERED_WORK_ONLY',home_digest=home_digest,pid=owner_pid,lifecycle=live['lifecycle'],
-            busy=live['busy'] or any(ledger_counts.values()),live_counters=live_counts,ledger_counters=ledger_counts,
-            admission_frozen=fence['frozen'],fence_epoch=fence['epoch'],fence_owner=fence['owner'],adapter_instances=live['adapter_instances_observed'],
-            secondary_profile_maps=live['secondary_profile_maps_observed'],fleet_ready_to_switch=False)
-    except (KeyError,ValueError,TypeError,OverflowError,AttributeError):
-        raise Unknown('Registered gateway work observation is unproven; no idle permission') from None
+        if (type(owner_pid) is not int or owner_pid <= 1 or type(home_digest) is not str
+                or not re.fullmatch('[a-f0-9]{64}', home_digest)
+                or any(type(t) not in (int, float) or not math.isfinite(t) for t in (earliest, latest))
+                or not 0 <= earliest <= latest or latest - earliest > 5):
+            raise ValueError('Invalid observation scope')
+
+        reason = 'reply_identity'
+        if type(body) is not dict or type(body['protocol']) is not int or body['protocol'] != 1:
+            raise ValueError('Wrong status protocol')
+        exact_pid(body['answering_pid'])
+        reason = 'reply_freshness'
+        fresh(body['answered_at'])
+
+        reason = 'activity_contract'
+        live = body['live_activity']
+        if (live['contract'] != 'gateway_live_work_v1'
+                or live['coverage'] != 'REGISTERED_WORK_ONLY' or live['fleet_ready_to_switch'] is not False):
+            raise ValueError('Incomplete registered activity scope')
+        reason = 'activity_unobserved'
+        if live['state'] != 'OBSERVED':
+            raise ValueError('Registered activity is unavailable')
+        reason = 'activity_sample'
+        exact_pid(live['responding_pid'])
+        fresh(live['observed_at'])
+        reason = 'activity_counts'
+        live_counts = counts(live['counters'], LIVE_COUNTERS)
+        if (type(live['busy']) is not bool or live['busy'] != any(live_counts.values())
+                or live['lifecycle'] not in ('running', 'draining')
+                or any(type(live[k]) is not int or live[k] < 0
+                       for k in ('adapter_instances_observed', 'secondary_profile_maps_observed'))):
+            raise ValueError('Invalid activity counters or lifecycle')
+
+        reason = 'admission_contract'
+        ledger = body['project_admission']
+        if ledger['contract'] != 'native_admission_snapshot_v1' or ledger['fleet_ready_to_switch'] is not False:
+            raise ValueError('Incomplete registered admission scope')
+        reason = 'admission_unobserved'
+        if ledger['state'] != 'OBSERVED':
+            raise ValueError('Registered admission is unavailable')
+        reason = 'admission_sample'
+        exact_pid(ledger['responding_pid'])
+        fresh(ledger['observed_at'])
+        if ledger['home_digest'] != home_digest:
+            raise ValueError('Wrong admission home')
+        reason = 'admission_fence'
+        fence = ledger['fence']
+        if type(fence) is not dict or set(fence) != LEDGER_COUNTERS | {'epoch', 'owner', 'frozen'}:
+            raise ValueError('Incomplete ledger scope')
+        ledger_counts = counts({k: fence[k] for k in LEDGER_COUNTERS}, LEDGER_COUNTERS)
+        if (type(fence['frozen']) is not bool or type(fence['epoch']) is not int or fence['epoch'] < 0
+                or (fence['epoch'] == 0 and (fence['owner'] is not None or fence['frozen']))
+                or (fence['epoch'] > 0 and (type(fence['owner']) is not str
+                    or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}', fence['owner'])))):
+            raise ValueError('Invalid native admission fence')
+
+        return dict(
+            coverage='REGISTERED_WORK_ONLY', home_digest=home_digest, pid=owner_pid,
+            lifecycle=live['lifecycle'], busy=live['busy'] or any(ledger_counts.values()),
+            live_counters=live_counts, ledger_counters=ledger_counts, admission_frozen=fence['frozen'],
+            fence_epoch=fence['epoch'], fence_owner=fence['owner'],
+            adapter_instances=live['adapter_instances_observed'],
+            secondary_profile_maps=live['secondary_profile_maps_observed'], fleet_ready_to_switch=False,
+        )
+    except (KeyError, ValueError, TypeError, OverflowError, AttributeError):
+        raise RegisteredStatusUnknown(reason) from None
 
 
 def _object(pairs):
@@ -116,8 +174,14 @@ class NativeGatewayControl:
     def __repr__(self):return '<one-use native read-only gateway control>'
 
     def registered_status(self,home_digest):
-        started=time.time();body=self.exchange('status');finished=time.time()
-        return project_registered_status(body,self._owner.pid,home_digest,started,finished)
+        started = time.time()
+        body = self.exchange('status')
+        finished = time.time()
+        try:
+            return project_registered_status(body, self._owner.pid, home_digest, started, finished)
+        except RegisteredStatusUnknown:
+            self.state = 'unknown'
+            raise
 
     def _peer(self):
         try:
