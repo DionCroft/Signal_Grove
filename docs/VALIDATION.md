@@ -1,5 +1,47 @@
 # Current development validation — audit follow-up
 
+## Explicit-store Pi runtime and launcher
+
+A fresh isolated generation on ARM64 reconstructed the sealed 23,691
+source and vendor files, including 124 executable modes. The original
+lock and project seeds matched the sealed manifest. The prior generation,
+source seal, native PM facts, launcher and failed negative probe were
+retained. The new installation stamp binds its own permanent tools
+directory. No runtime override was needed. Supported PM lock and sync
+passed and the dependency graph matched after the expected vendor-path
+rebase. Python 3.14.9, ContextGraph 0.8.1 and PyYAML 6.0.3 loaded.
+The PM step compared the hashes of 92 live files and both unit identities.
+
+The pinned SDK published its own launcher. Its shell syntax, interpreter
+binding and runtime selection passed from the source directory, the
+generation directory and a separate fixture directory. All three used the
+same prepared dependency facts and site-packages. The separate unprepared
+home exited 1 with the SDK's dependency-environment refusal, no standard
+output and no new install state. The original relative-path issue remains
+recorded below.
+
+All 19 workspace authority cases passed in the exact new environment
+using four synthetic worker calls. No worker execution, sessions or
+messages were admitted. Three isolated systemd units verified original,
+candidate and restored runtime selection, with respectively zero, four
+and zero workspace methods. All three stopped normally. The fixture
+history and live service identities were preserved. The production policy
+remained absent.
+
+Canonical-home provisioning, deployment packet review, live approval,
+authenticated gateway/serve health and real phone attachment remain open.
+The Android release is a separate gate.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Reviewed source manifest | `1319300ac1b61a0df87cb3e1fffa24dbfb90d9045cffe0dae3fe4470c3920620` |
+| Explicit-store install stamp | `444c62ff56485b024ed359abb1937e5169f496882c0736c7b144c9fd37de5e36` |
+| Native PM facts | `66f085373a3f59213fddddeb976aa56a3afd32493d56188bd14d8bf07d71f868` |
+| SDK launcher executable | `2ddc2707f57b547eca30705f79cee6a931ed1b13ac2357d12dfaee35b0a85a67` |
+| Launcher verification output | `3f04cef245bc2024fbd4885c686759b2ec7f1efc83674ef94fb1a58610afcf01` |
+| Native authority output | `a65fe528f46adcd3d71fcfe6db26bb5a22c3fe9b7133bb863a1f2156f4648054` |
+| Isolated runtime rollback output | `a05b0c56a520fae1e6dffe1f15325c3c9f0ccce332b85aa4b11988b397ab74be` |
+
 ## Workspace activation inputs and SDK launcher
 
 The read-only preflight verified all nine workspace overlay files against

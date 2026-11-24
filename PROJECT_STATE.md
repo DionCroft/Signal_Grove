@@ -7,6 +7,23 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Explicit-store Pi runtime and launcher verified
+
+The fresh workspace-only runtime carried all 23,691 reviewed source and
+vendor files. Its absolute tools path resolved from three directories
+with no runtime override. Supported PM lock and sync passed, the SDK
+launcher selected the exact prepared facts from all three directories
+and refused an unprepared home. All 19 native workspace cases and exact
+candidate rollback passed. The previous candidate, its failed launcher
+probe and the two live units were preserved.
+[Validation](docs/VALIDATION.md#explicit-store-pi-runtime-and-launcher).
+
+Next render and verify the live review packet against this exact
+candidate, including canonical-home PM, protected entrypoints, a fresh
+encrypted backup, clean drain, authenticated health and recovery.
+Seek separate approval before live activation. Run the physical upgrade
+after the full exact-source Android matrix passes.
+
 ## Workspace activation inputs and launcher blocker verified
 
 All nine files in the proposed read-only source change matched the staged

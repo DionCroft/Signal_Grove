@@ -1,5 +1,18 @@
 # Signal Grove audit execution plan
 
+## Explicit-store Pi runtime
+
+The workspace-only candidate now uses an absolute permanent tools
+path. Native PM, the real SDK launcher from three working directories,
+the unprepared-home refusal, 19 native workspace authority cases and
+isolated rollback passed on the exact candidate.
+[Validation](VALIDATION.md#explicit-store-pi-runtime-and-launcher).
+
+Use the new launcher and facts in the review-only deployment packet.
+Canonical-home provisioning, live permission changes, reboot and
+health checks, and production recovery remain gated. Verify one real
+phone-to-worker attachment after separate activation approval.
+
 ## Workspace activation source and launcher review
 
 The exact one-project read-only review and rollback source match the Pi.
