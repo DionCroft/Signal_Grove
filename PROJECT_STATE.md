@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Authenticated receipt after a stamped-store upgrade
+
+A disposable Linux fixture now runs the exact old stamped-digest
+writer and a current pinned gateway against the same synthetic
+profile. The test requires two fresh, authenticated reconnects to read the original
+receipt. It checks the stored digest, single admission, preserved
+transcript and zero new model calls. The old and new pins have
+identical dependency locks and helper bytes. Hosted results are
+pending.
+
 ## Native gateway transport and recovery checks
 
 The isolated Linux matrix now includes nine upstream gateway

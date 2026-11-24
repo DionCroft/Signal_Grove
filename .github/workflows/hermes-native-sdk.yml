@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py', 'scripts/hermes_persistence_compatibility.py', 'scripts/canonical_shutdown_gate.py']
+    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py', 'scripts/hermes_persistence_compatibility.py', 'scripts/canonical_shutdown_gate.py', 'scripts/native/stamped_receipt_transport.py']
   pull_request:
-    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py', 'scripts/hermes_persistence_compatibility.py', 'scripts/canonical_shutdown_gate.py']
+    paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py', 'scripts/hermes_persistence_compatibility.py', 'scripts/canonical_shutdown_gate.py', 'scripts/native/stamped_receipt_transport.py']
 permissions:
   contents: read
 concurrency:
@@ -175,8 +175,38 @@ jobs:
               cache.rename(destination)
           PY
           exit "$overall"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '5725d1d390ac4b7cfe157ea32bd6f4db1a280368'
+        with:
+          repository: NousResearch/hermes-agent
+          ref: 0357a14b76e4f604d2fa6b9c3a973f9a76f7968d
+          path: stamped-sdk
+          persist-credentials: false
+      - name: Read a retained stamped receipt over the upgraded authenticated gateway
+        id: stamped_receipt
+        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '5725d1d390ac4b7cfe157ea32bd6f4db1a280368'
+        env:
+          SOURCE_COMMIT: ${{ matrix.source_commit }
+          PM_PYTHON: ${{ steps.pm.outputs.python-path }
+        run: |
+          python3 -I -B - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          source = Path('stamped-sdk')
+          with (source / '.git/info/attributes').open('x', encoding='utf-8') as attributes:
+              attributes.write('*.ps1 -text\n')
+          files = subprocess.check_output(['git', '-C', str(source), 'ls-files', '-z', '*.ps1'])
+          for raw in files.split(b'\0'):
+              if raw:
+                  name = raw.decode('utf-8')
+                  (source / name).write_bytes(subprocess.check_output(['git', '-C', str(source), 'show', 'HEAD:' + name]))
+          PY
+          "$PM_PYTHON" -I -B client/scripts/native/stamped_receipt_transport.py \
+            --legacy stamped-sdk --current sdk --current-commit "$SOURCE_COMMIT" \
+            --evidence "$RUNNER_TEMP/stamped-receipt"
       - name: Run one unchanged, source-bound persistence cohort
-        if: ${{ !cancelled() && (success() || steps.gateway_auth.conclusion == 'failure') }}
+        if: ${{ !cancelled() && (success() || steps.gateway_auth.conclusion == 'failure' || steps.stamped_receipt.conclusion == 'failure') }}
         env:
           PM_PYTHON: ${{ steps.pm.outputs.python-path }}
         run: |
@@ -193,5 +223,6 @@ jobs:
             ${{ runner.temp }}/persistence/persistence.xml
             ${{ runner.temp }}/persistence/persistence.log
             ${{ runner.temp }}/persistence/gateway-*
+            ${{ runner.temp }}/stamped-receipt/gateway-*
           if-no-files-found: error
           retention-days: 30
