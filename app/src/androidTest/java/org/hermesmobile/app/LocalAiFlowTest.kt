@@ -674,16 +674,31 @@ class LocalAiFlowTest {
         show()
         val composer = compose.onNodeWithTag("phone-draft")
         val editedDraft = "Keep this unsent phone draft"
-        composer.assertIsDisplayed().performClick().performTextReplacement(editedDraft)
-        compose.waitUntil(10_000) { nativeKeyboardVisible() && focusedWindowKeyboardVisible() }
-
+        composer.assertIsDisplayed().performClick()
         val menu = compose.onNodeWithTag("phone-chat-options")
-        if (menu.isDisplayed()) {
-            menu.performClick()
-            compose.onNodeWithTag("phone-chat-helper").assertIsDisplayed().performClick()
-        } else {
-            compose.onNodeWithTag("phone-helper-open").assertIsDisplayed().performClick()
+        try {
+            compose.waitUntil(10_000) {
+                nativeKeyboardVisible() && focusedWindowKeyboardVisible() &&
+                    composer.isDisplayed() && menu.isDisplayed()
+            }
+        } catch (failure: ComposeTimeoutException) {
+            val editor = runCatching { composer.fetchSemanticsNode().boundsInWindow }.getOrNull()
+            val options = runCatching { menu.fetchSemanticsNode().boundsInWindow }.getOrNull()
+            throw AssertionError("Composer and Chat options did not fit above the keyboard. Editor=$editor, options=$options", failure)
         }
+
+        // Resizing for the IME can restart the editor input connection.
+        composer.assertIsFocused().performTextReplacement(editedDraft)
+        composer.assertTextContains(editedDraft)
+        compose.runOnIdle { assertEquals(editedDraft, draft) }
+
+        menu.assertIsDisplayed().assertIsEnabled()
+        val editorBounds = composer.assertIsDisplayed().fetchSemanticsNode().boundsInWindow
+        val optionBounds = menu.fetchSemanticsNode().boundsInWindow
+        assertTrue("Chat options must remain beside the draft with the keyboard open",
+            optionBounds.center.y in editorBounds.top..editorBounds.bottom)
+        menu.performClick()
+        compose.onNodeWithTag("phone-chat-helper").assertIsDisplayed().performClick()
         waitForHelperWithoutKeyboard()
 
         val search = compose.onNodeWithTag("phone-helper-query")
@@ -693,6 +708,7 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-helper-close").assertIsDisplayed().performClick()
         composer.assertTextContains(editedDraft)
         compose.runOnIdle {
+            assertEquals(editedDraft, draft)
             assertEquals(0, sends)
             assertTrue(helperRequests.isEmpty())
         }

@@ -7,6 +7,20 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Compact phone composer and standard device reconciliation
+
+Phone Chat reserves space for the draft and its options before measuring
+the transcript. The helper, Temporary chat and Personal profiles remain
+available from the composer menu. Eight focused cases and the compact
+keyboard/draft check passed on each of Android 8 and 17. The compact test
+checks that the revised draft reached the editor before opening the helper
+and remains after closing it.
+
+The previous a6e3704 candidate now has a verified standard-device union on
+both Android versions. The revised composer still needs the full matrix
+on the final release source, original-key Xiaomi upgrade and updater
+acceptance. [Validation](docs/VALIDATION.md#compact-phone-composer-and-standard-device-reconciliation).
+
 ## Demo denial and private Activity data
 
 The beta.11 Android 8 shard ran 594 methods and passed 593. The

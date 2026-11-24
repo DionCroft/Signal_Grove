@@ -27,7 +27,9 @@ import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -198,6 +200,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     requestedDownloads: Boolean = false, downloadsOpened: () -> Unit = {}, replacing: InstalledLocalModel? = null,
     pendingDocument: Boolean = false) {
     var tab by rememberSaveable {mutableIntStateOf(0)}
+    var draftFocused by remember { mutableStateOf(false) }
     var documentsOpen by rememberSaveable { mutableStateOf(false) }
     var guide by rememberSaveable {mutableStateOf(false)}
     var offlineSetup by rememberSaveable { mutableStateOf(false) }
@@ -248,7 +251,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(12.dp)) {
             val keyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
             // Keep an editor and its feedback visible when the IME leaves a short viewport.
-            val compactEditor = keyboardOpen && maxHeight < 360.dp && (tab == 0 || tab == 1)
+            val editingChat = tab == 0 && (keyboardOpen || draftFocused)
+            val compactEditor = maxHeight < 360.dp && (editingChat || (tab == 1 && keyboardOpen))
             val compactComposer = tab == 0 && compactEditor
             val scrollSetupActions = tab == 0 && maxHeight < 560.dp && !compactComposer
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -292,12 +296,15 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     TextButton({errorDetails = true}, Modifier.testTag("phone-error")) {Text(label(Words.PhoneIssue), color = MaterialTheme.colorScheme.error)}
                 }
                 when (tab) {
-                    0 -> PhoneChat(
-                        state, draft, changeDraft, actions, { offlineSetup = true },
-                        openHelp = { openHelper(LocalHelpTopic.FIRST_SETUP) },
-                        compactEntryActions = entryActions.takeIf { compactComposer },
-                        setupActions = setupActions.takeIf { scrollSetupActions }
-                    ) { review = it }
+                    0 -> Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        PhoneChat(
+                            state, draft, changeDraft, actions, { offlineSetup = true },
+                            openHelp = { openHelper(LocalHelpTopic.FIRST_SETUP) },
+                            compactEntryActions = entryActions.takeIf { compactComposer },
+                            setupActions = setupActions.takeIf { scrollSetupActions },
+                            onDraftFocusChanged = { draftFocused = it }
+                        ) { review = it }
+                    }
                     1 -> PhoneModelLibrary(state, supported, actions,
                         openCatalogue = { catalogueOpen = true },
                         openSetup = { offlineSetup = true },
@@ -454,6 +461,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     openHelp: () -> Unit,
     compactEntryActions: (@Composable () -> Unit)?,
     setupActions: (@Composable () -> Unit)?,
+    onDraftFocusChanged: (Boolean) -> Unit,
     review: (String) -> Unit
 ) {
     var optionsOpen by remember { mutableStateOf(false) }
@@ -482,25 +490,108 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
         open()
     }
 
-    Row(Modifier.fillMaxWidth()) {
-        Text(
-            loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"),
-            style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
-        )
-        compactEntryActions?.invoke()
-        actions.openVoice?.let { open ->
-            IconButton({ openFromChat(open) }, enabled = !state.busy, modifier = Modifier.testTag("phone-voice-open")) {
-                Icon(Icons.Outlined.MicNone, label(Words.PhoneVoice))
+    // Reserve the composer before measuring the transcript and its optional controls.
+    Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.fillMaxWidth()) {
+            Text(
+                loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"),
+                style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
+            )
+            compactEntryActions?.invoke()
+            actions.openVoice?.let { open ->
+                IconButton({ openFromChat(open) }, enabled = !state.busy, modifier = Modifier.testTag("phone-voice-open")) {
+                    Icon(Icons.Outlined.MicNone, label(Words.PhoneVoice))
+                }
+            }
+            selectEarlierTurns?.let { select ->
+                IconButton({ openFromChat(select) },
+                    enabled = !state.busy && state.history.size < LocalConversationStore.MAX_CHATS,
+                    modifier = Modifier.testTag("phone-select-context")) {
+                    Icon(Icons.Outlined.AccountTree, label(Words.PhoneSelectContext))
+                }
+            }
+            IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
+        }
+        LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            val exchanges = state.chat?.exchanges.orEmpty()
+            state.chat?.origin?.let { origin -> item {
+                Column {
+                    val indices = origin.selectedExchanges
+                    if (indices == null && origin.kind != LocalBranchKind.REVIEWED_SUMMARY) {
+                        Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()),
+                            style = MaterialTheme.typography.labelSmall)
+                    } else if (indices != null) {
+                        val numbers = indices.joinToString(", ") { (it + 1).toString() }
+                        Text(label(Words.PhoneContextFromTurns).replace("{turns}", numbers),
+                            Modifier.testTag("phone-context-origin"), style = MaterialTheme.typography.labelSmall)
+                    }
+                    val linkedParent = origin.linkedParentId
+                    if (linkedParent != null && state.history.any { it.id == linkedParent }) TextButton({actions.openChat(linkedParent)}, enabled = !state.busy,
+                        modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
+                }
+            } }
+            state.chat?.reviewedSummary?.let { summary -> item(key = "reviewed-summary") {
+                PhoneReviewedSummary(summary)
+            } }
+            if (loaded == null) item {
+                Column {
+                    Text(label(Words.PhoneNotLoaded))
+                    TextButton(openSetup, Modifier.testTag("phone-offline-setup-chat-entry")) {
+                        Text(label(Words.PhoneOfflineSetup))
+                    }
+                }
+            }
+            if (setupActions != null) item(key = "setup-actions") { setupActions() }
+            if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
+            if (state.chat?.hasSavedContent != true) item {Text(label(Words.PhoneEmpty))}
+            if (state.history.size >= LocalConversationStore.MAX_CHATS) item { Text(label(Words.PhoneBranchHistoryFull)) }
+            items(exchanges.size) { index -> val row = exchanges[index]
+                HermesCard {
+                    SelectionContainer {Text(row.question)}
+                    HorizontalDivider()
+                    PhoneReply(row.reply, row.state, index)
+                    Text(label(phoneReplyState(row.state)), style = MaterialTheme.typography.labelSmall)
+                    if (row.reply.isNotBlank() && row.state != LocalReplyState.GENERATING) TextButton({review(row.reply)}) {Text(label(Words.PhoneReview))}
+                    TextButton({generationReview = PhoneGenerationReview(state.chat!!.modelSha256, row.generation)},
+                        modifier = Modifier.testTag("phone-generation-$index")) {Text(label(Words.PhoneGenerationSettings))}
+                    if (row.state !in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT, LocalReplyState.GENERATING))
+                        Text(label(Words.PhoneForkNeedsReply), style = MaterialTheme.typography.bodySmall)
+                    val source = state.chat!!
+                    val allowed = !state.busy && row.state != LocalReplyState.GENERATING && state.history.size < LocalConversationStore.MAX_CHATS
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.EDIT)},
+                            enabled = allowed && loaded != null && !mismatch, modifier = Modifier.testTag("phone-edit-$index")) {Text(label(Words.PhoneEditSend))}
+                        TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.REGENERATE)},
+                            enabled = allowed && loaded != null && !mismatch, modifier = Modifier.testTag("phone-regenerate-$index")) {Text(label(Words.PhoneRegenerate))}
+                        TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.FORK)},
+                            enabled = allowed && row.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT),
+                            modifier = Modifier.testTag("phone-branch-$index")) {Text(label(Words.PhoneBranchHere))}
+                    }
+                }
             }
         }
-        selectEarlierTurns?.let { select ->
-            IconButton({ openFromChat(select) },
-                enabled = !state.busy && state.history.size < LocalConversationStore.MAX_CHATS,
-                modifier = Modifier.testTag("phone-select-context")) {
-                Icon(Icons.Outlined.AccountTree, label(Words.PhoneSelectContext))
-            }
+        continuation?.let { selected ->
+            PhoneContinuationDialog(selected, state, draft, actions) { continuation = null }
         }
-        IconButton(actions.newChat, enabled = loaded != null && !state.busy, modifier = Modifier.testTag("phone-new-chat")) {Icon(Icons.Outlined.Add, label(Words.NewChat))}
+        generationReview?.let { PhoneGenerationDialog(it) { generationReview = null } }
+        branchReview?.let { selected ->
+            PhoneBranchDialog(selected, state, actions, { edited ->
+                branchReview = null
+                actions.branch(selected.source, selected.index, selected.kind, edited)
+            }) { branchReview = null }
+        }
+        if (draft.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
+        if (budget != null || (!state.busy && state.error == "engine_2")) {
+            PhonePromptUse(budget, state.error == "engine_2",
+                reviewEarlierTurns = selectEarlierTurns?.takeIf {
+                    !state.busy && state.history.size < LocalConversationStore.MAX_CHATS
+                }?.let { select -> { openFromChat(select) } })
+        }
+        if ((contextFull || full || state.error == "engine_2") && copyDraft != null) {
+            TextButton(copyDraft, modifier = Modifier.testTag("phone-fresh-draft")) { Text(label(Words.PhoneUseDraftInNewChat)) }
+        }
+    }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box {
             IconButton(
                 onClick = { openFromChat { optionsOpen = true } },
@@ -542,87 +633,9 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 }
             }
         }
-    }
-    LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("phone-messages"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        val exchanges = state.chat?.exchanges.orEmpty()
-        state.chat?.origin?.let { origin -> item {
-            Column {
-                val indices = origin.selectedExchanges
-                if (indices == null && origin.kind != LocalBranchKind.REVIEWED_SUMMARY) {
-                    Text(label(Words.PhoneBranchedAt).replace("{number}", (origin.exchangeIndex + 1).toString()),
-                        style = MaterialTheme.typography.labelSmall)
-                } else if (indices != null) {
-                    val numbers = indices.joinToString(", ") { (it + 1).toString() }
-                    Text(label(Words.PhoneContextFromTurns).replace("{turns}", numbers),
-                        Modifier.testTag("phone-context-origin"), style = MaterialTheme.typography.labelSmall)
-                }
-                val linkedParent = origin.linkedParentId
-                if (linkedParent != null && state.history.any { it.id == linkedParent }) TextButton({actions.openChat(linkedParent)}, enabled = !state.busy,
-                    modifier = Modifier.testTag("phone-open-parent")) { Text(label(Words.PhoneOpenParent)) }
-            }
-        } }
-        state.chat?.reviewedSummary?.let { summary -> item(key = "reviewed-summary") {
-            PhoneReviewedSummary(summary)
-        } }
-        if (loaded == null) item {
-            Column {
-                Text(label(Words.PhoneNotLoaded))
-                TextButton(openSetup, Modifier.testTag("phone-offline-setup-chat-entry")) {
-                    Text(label(Words.PhoneOfflineSetup))
-                }
-            }
-        }
-        if (setupActions != null) item(key = "setup-actions") { setupActions() }
-        if (mismatch || full) item {Text(label(if(mismatch) Words.PhoneMismatch else Words.PhoneTurnLimit), style = MaterialTheme.typography.bodySmall)}
-        if (state.chat?.hasSavedContent != true) item {Text(label(Words.PhoneEmpty))}
-        if (state.history.size >= LocalConversationStore.MAX_CHATS) item { Text(label(Words.PhoneBranchHistoryFull)) }
-        items(exchanges.size) { index -> val row = exchanges[index]
-            HermesCard {
-                SelectionContainer {Text(row.question)}
-                HorizontalDivider()
-                PhoneReply(row.reply, row.state, index)
-                Text(label(phoneReplyState(row.state)), style = MaterialTheme.typography.labelSmall)
-                if (row.reply.isNotBlank() && row.state != LocalReplyState.GENERATING) TextButton({review(row.reply)}) {Text(label(Words.PhoneReview))}
-                TextButton({generationReview = PhoneGenerationReview(state.chat!!.modelSha256, row.generation)},
-                    modifier = Modifier.testTag("phone-generation-$index")) {Text(label(Words.PhoneGenerationSettings))}
-                if (row.state !in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT, LocalReplyState.GENERATING))
-                    Text(label(Words.PhoneForkNeedsReply), style = MaterialTheme.typography.bodySmall)
-                val source = state.chat!!
-                val allowed = !state.busy && row.state != LocalReplyState.GENERATING && state.history.size < LocalConversationStore.MAX_CHATS
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.EDIT)},
-                        enabled = allowed && loaded != null && !mismatch, modifier = Modifier.testTag("phone-edit-$index")) {Text(label(Words.PhoneEditSend))}
-                    TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.REGENERATE)},
-                        enabled = allowed && loaded != null && !mismatch, modifier = Modifier.testTag("phone-regenerate-$index")) {Text(label(Words.PhoneRegenerate))}
-                    TextButton({branchReview = PhoneBranchReview(source, index, LocalBranchKind.FORK)},
-                        enabled = allowed && row.state in setOf(LocalReplyState.COMPLETE, LocalReplyState.TOKEN_LIMIT),
-                        modifier = Modifier.testTag("phone-branch-$index")) {Text(label(Words.PhoneBranchHere))}
-                }
-            }
-        }
-    }
-    continuation?.let { selected ->
-        PhoneContinuationDialog(selected, state, draft, actions) { continuation = null }
-    }
-    generationReview?.let { PhoneGenerationDialog(it) { generationReview = null } }
-    branchReview?.let { selected ->
-        PhoneBranchDialog(selected, state, actions, { edited ->
-            branchReview = null
-            actions.branch(selected.source, selected.index, selected.kind, edited)
-        }) { branchReview = null }
-    }
-    if (draft.toByteArray().size > 8192) Text(label(Words.PhoneQuestionLimit), color = MaterialTheme.colorScheme.error)
-    if (budget != null || (!state.busy && state.error == "engine_2")) {
-        PhonePromptUse(budget, state.error == "engine_2",
-            reviewEarlierTurns = selectEarlierTurns?.takeIf {
-                !state.busy && state.history.size < LocalConversationStore.MAX_CHATS
-            }?.let { select -> { openFromChat(select) } })
-    }
-    if ((contextFull || full || state.error == "engine_2") && copyDraft != null) {
-        TextButton(copyDraft, modifier = Modifier.testTag("phone-fresh-draft")) { Text(label(Words.PhoneUseDraftInNewChat)) }
-    }
-    Row {
-        OutlinedTextField(draft, change, Modifier.weight(1f).testTag("phone-draft"), placeholder = {Text(label(Words.PhoneMessage))}, maxLines = 4, enabled = !state.busy)
+        OutlinedTextField(draft, change,
+            Modifier.weight(1f).onFocusChanged { onDraftFocusChanged(it.isFocused) }.testTag("phone-draft"),
+            placeholder = { Text(label(Words.PhoneMessage)) }, maxLines = 4, enabled = !state.busy)
         IconButton(actions.send, enabled = loaded != null && !state.busy && !mismatch && !full && !contextFull && draft.isNotBlank() && draft.toByteArray().size <= 8192,
             modifier = Modifier.testTag("phone-send")) {Icon(Icons.AutoMirrored.Outlined.Send, label(Words.Send))}
     }

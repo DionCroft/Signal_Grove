@@ -1,5 +1,38 @@
 # Current development validation — audit follow-up
 
+## Compact phone composer and standard device reconciliation
+
+The phone composer keeps Chat options beside the draft, outside the
+weighted transcript and optional controls. The compact header responds to
+the editor focus and IME inset. The regression waits for a focused visible
+editor and native IME, verifies the edit reached the composer, then checks
+the same unsent draft after closing the helper. It checks zero sends and
+zero helper model requests.
+
+The revised snapshot passed 1,242 JVM cases and both lint variants. The
+debug and instrumentation pair passed eight focused cases per API on
+Android 8 and 17. Both emulators also passed the focused draft regression
+at 840 × 1470 pixels, 420 dpi and 1.3× font scale and restored the original
+display settings. The main emulator packages retained their installed APK
+digests. The earlier compact logs preserve the preceding menu visibility
+and original-draft failures. The revised Android 17 compact attempt lost
+window focus while an older production app had an Android “Application Not
+Responding” dialog. After stopping that emulator process, the same debug
+APK pair passed the compact test. Both the failed and passing logs remain
+in private evidence.
+
+The separate a6e3704 candidate passed the complete standard device
+inventory with 1,261 Android 8 cases from hosted CI and 1,262 Android 17
+cases from the owned emulator using the byte-identical hosted APK pair.
+The Android 17 rerun passed 595 and 667 cases in its two shards. The
+original hosted run retains the compact helper and workspace review
+failures. Physical-model cases require separate acceptance.
+[Hosted run and its original result](https://github.com/DionCroft/Signal_Grove/actions/runs/45386612152).
+
+The revised composer requires a full matrix on the final release source.
+The signed Xiaomi upgrade, production retention and public updater checks
+remain open.
+
 ## Demo denial Activity on Android 8
 
 The exact 9dd1b7d Android 8 shard 0 started all 594 declared
