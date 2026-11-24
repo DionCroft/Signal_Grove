@@ -2,10 +2,10 @@
 
 ## Exact upstream comparison and runtime acceptance
 
-Reproduce the stable and main source inspections at the reviewed SHAs
-while the scheduled watcher follows upstream. The latest hosted stable
-report and exact main source comparison both require review against the
-unchanged mobile contract. Prioritize the changed routes and persistence
+Both hosted exact-SHA inspections now reproduce the semantic review
+requirement against the existing mobile contract. The scheduled watcher
+still follows upstream. The two exact main pins have the same watched
+source fingerprints. Prioritize the changed routes and persistence
 used by workspace attachment, run receipts, and schedules. Verify the
 authenticated profile boundaries, PM preparation, and real shutdown
 behavior before live activation.

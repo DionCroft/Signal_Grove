@@ -14,8 +14,9 @@ Its stable source report reached the semantic review gate. Main moved
 during the audit and initially stopped at the source layout gate.
 All 245 watched paths at exact main `16fd059` were verified against
 its Git tree, with ten relocations and no missing sources after
-resolution. Manual compatibility runs can now select the two exact
-commits independently. Semantic and live qualification remain open.
+resolution. The exact replay published both reports and reproduced the
+expected semantic review requirement on each pin. Its native fixture
+passed again. Authenticated runtime qualification remains open.
 [Validation](docs/VALIDATION.md#exact-stable-and-main-source-inspection).
 
 ## Authenticated gateway and Serve readiness

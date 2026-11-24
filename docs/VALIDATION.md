@@ -29,6 +29,23 @@ inspect latest stable and moving main. All 129 portable Hermes tests and
 12 Bash input cases passed. The updated checker returned review required
 for both exact pins after re-verifying all 249 cached aliases per pin.
 
+The [exact replay](https://github.com/DionCroft/Signal_Grove/actions/runs/45462474978/job/138689442547)
+on `cca92f4951f725ad6895966a256c274b18fde24e` retained both reports.
+Their archives matched the GitHub digests and their parsed contracts
+matched the local exact-pin checks. Both returned review required.
+
+| Replay artifact | SHA-256 |
+| --- | --- |
+| Stable `14954396340` | `dc0ec61de94a91d46973c7cc85666313bb5fe69324a9364e34697f66424996a4` |
+| Main `14954616173` | `1e3e301f221dc5617f59a070c40705c507466b200045d2f21e015aba4cce53af` |
+| Native policy | `e0e0a35fe4a9e6529a38b7844760d921fe59e15b5ac036565d2445ec86478b01` |
+| Readiness and recovery | `21de8e5f83725786ff2e2ec9bf2f2eed73a2ced97c053dc1acbf1294122099c9` |
+
+The [native replay](https://github.com/DionCroft/Signal_Grove/actions/runs/45462474978/job/138688524449)
+passed all 1,252 policy methods. The journal and authenticated socket
+observations verified eight service jobs, two reloads, eight readiness
+checks, and the expected wrong-home and invalid-token refusals.
+
 | Exact source | Changed used handlers | Changed persistence sources |
 | --- | ---: | ---: |
 | Stable `8fc0374` | 220 | 29 |
@@ -38,11 +55,13 @@ Neither comparison found a removed used route or changed watched
 request fields, flags, or schedule constraints. Both still require
 review under the unchanged baseline. This is static source evidence.
 
-On the earlier exact main `2506f5b`, isolated source checks confirmed
-that a context-bound profile path is preserved literally and that PM
-refuses dependency sync in a named installer environment before
-dispatch. Stable expands the bound path and delegates the client calls
-to the next layer. The reviewed Signal Grove PM child environment
+All 249 watched source fingerprints match the previous main
+`2506f5b`. Five independently verified profile and PM blobs also
+match. The isolated checks ran against both main revisions. A
+context-bound profile path is preserved literally and PM refuses
+dependency sync before dispatch in all six cases with an absolute
+named-install state path. Stable expands the bound path and delegates
+those calls to the next layer. The fixture used inert dispatch sinks. The reviewed Signal Grove PM child environment
 omits the named-install state variable. Authenticated cross-profile
 routes, full PM behavior, and the live Pi rollout still need verification.
 [Main profile selector](https://github.com/NousResearch/hermes-agent/blob/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15/hermes_constants.py#L208) ·
