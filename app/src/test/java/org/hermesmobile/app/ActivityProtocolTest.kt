@@ -21,6 +21,30 @@ class ActivityProtocolTest {
         assertEquals(5,activityTimeline(rows).size)
         assertEquals("failed",activityTimeline(listOf(event("1","a","failed",1),event("2","a","started",2))).single().latest.kind)
     }
+    @Test fun activityShowsOnlyCurrentIdentifiedWaitsWithoutRequestContent() {
+        val conversation = Conversation("scope-a:session", "scope-a", "session", runId = "run",
+            status = "waiting_for_approval", executionGeneration = 4)
+        val approval = PendingControl("approval", conversation.key, "run", "request", 4, "approval",
+            "private task", "[\"private choice\"]", false, receivedAt = 100)
+        val answer = approval.copy(key = "answer", requestId = "answer-request", kind = "clarify",
+            state = "unknown", receivedAt = 200)
+        val stale = listOf(
+            approval.copy(sessionKey = "scope-b:session"),
+            approval.copy(runId = "older-run"),
+            approval.copy(generation = 3),
+            approval.copy(generation = null),
+            approval.copy(requestId = ""),
+            approval.copy(state = "resolved"),
+            approval.copy(kind = "unsupported")
+        )
+        val waits = activityWaits(conversation, stale + listOf(approval, answer))
+        assertEquals(listOf(ActivityWait(true, "pending", 100), ActivityWait(false, "unknown", 200)), waits)
+        assertFalse(waits.toString().contains("private"))
+        assertTrue(activityWaits(conversation.copy(status = "completed"), listOf(approval)).isEmpty())
+        assertTrue(activityWaits(conversation.copy(detailsJson = """{"source":"cli"}"""), listOf(approval)).isEmpty())
+        assertEquals(listOf(ActivityWait(true, "responding", 100)),
+            activityWaits(conversation.copy(executionGeneration = null), listOf(approval.copy(state = "responding"))))
+    }
     @Test fun toolWireIdentityAndErrorRemainBoundToTheExactCompletion() {
         val update=StreamDecoder.decode(SseEvent("tool.completed","""{"tool":"shell","tool_call_id":"call-b","duration":0.125,"error":true,"execution_generation":4,"seq":9,"preview":"fixture-raw-result","args":{"credential":"fixture-raw-argument"}}"""))
         val tool=update.tool!!;assertEquals("call-b",tool.callId);assertEquals("failed",tool.kind);assertEquals(125L,tool.durationMs);assertEquals(4L,tool.generation)

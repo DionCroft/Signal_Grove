@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes Activity approval and answer waits
+
+Hermes Activity shows when a confirmed approval or answer request was received
+and whether a response is sending or its delivery is uncertain. It limits
+the summary to the selected conversation and run, checks a reported generation,
+and omits prompts and choices. The original review handles the decision.
+The same debug APK pair passed ten focused checks and the compact approval
+check on Android 8 and 17. This branch is separate from the signed beta.11
+candidate. [Validation](docs/VALIDATION.md#hermes-activity-approval-and-answer-waits).
+
 ## Demo denial and private Activity data
 
 The beta.11 Android 8 shard ran 594 methods and passed 593. The

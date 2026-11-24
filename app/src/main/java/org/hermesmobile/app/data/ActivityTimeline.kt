@@ -20,6 +20,20 @@ internal fun activityReport(conversation: Conversation, reports: List<RunReport>
             (conversation.runId.isNotBlank() || conversation.pendingKey.isNotBlank())
     }
 
+internal data class ActivityWait(val approval: Boolean, val state: String, val receivedAt: Long)
+
+internal fun activityWaits(conversation: Conversation, controls: List<PendingControl>): List<ActivityWait> {
+    if (conversation.runId.isBlank() || conversation.status !in RunStates.active ||
+        SessionOrigin.readOnly(conversation)) return emptyList()
+    return controls.asSequence()
+        .filter { it.sessionKey == conversation.key && it.runId == conversation.runId && it.requestId.isNotBlank() }
+        .filter { conversation.executionGeneration == null || it.generation == conversation.executionGeneration }
+        .filter { it.kind == "approval" || it.kind == "clarify" }
+        .filter { it.state == "pending" || it.state == "responding" || it.state == "unknown" }
+        .map { ActivityWait(it.kind == "approval", it.state, it.receivedAt) }
+        .toList()
+}
+
 internal fun activeActivity(conversation: Conversation, timeline: List<ActivityEntry>): ToolEvent? =
     timeline.asSequence().map { it.latest }.filter {
         conversation.runId.isNotBlank() && it.sessionKey == conversation.key &&

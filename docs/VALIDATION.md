@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Hermes Activity approval and answer waits
+
+The Activity panel now uses the existing authenticated control records for the
+selected conversation and run. It filters foreign, stale-generation, resolved
+and unidentified requests, and omits live waits for read-only history.
+The summary shows approval or answer status, response state and the original
+local receipt time. The existing decision dialog handles prompts, choices and
+submission. The same source passed 1,243 JVM tests in 118 reports, debug and
+release lint with zero errors, and both debug APK assemblies.
+
+The signed debug pair passed ten focused native cases on Android 8 and 17.
+These cover the new Demo approval wait, its settled removal and prompt privacy,
+plus existing approvals, clarification, Activity telemetry, migration and
+profile/history cases. The exact new approval case passed on both emulators
+at 840 × 1470, 420 dpi and 1.3× text. Screen settings and installed production
+APK digests verified after the runs. Live Hermes and the separate beta.11
+production gates still need their own evidence.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Verified source snapshot | `2ea9734ee6da03455c2e6fc5ec73a70615eaf5115cc11b0e3c31f737f8663357` |
+| Debug app APK | `d1f0c1090930a4994386675d262e5c2d08b811bd7b2dfbbf7f326aca9266ac43` |
+| Debug test APK | `f72081addcc08f77f4e5b1ba8babff5e0b8dc123113ea0e7163853f89c94a8d4` |
+| Android 8 focused raw result | `0caa5dec9dd485bfe2adcf97c4c236c12970bca89e9f2894c0af44dc934763ef` |
+| Android 17 focused raw result | `b6c447966117c07298d73b7d68c335d88af46981d5b5289f9d442dc87accc266` |
+| Android 8 compact raw result | `d2ef29396b0e80a88eea692e8df33ec52d9609f736f8d805e9d0b627f3a30d00` |
+| Android 17 compact raw result | `db0a41954c0abafa785e6aea67f264dcfa73e7c0e8fbce32c769f657013f5e71` |
+
+The initial build selected the incomplete emulator SDK. Its failure is
+retained and the same source was built with the complete Windows SDK. The
+debug signing preflight refused the first assembled pair before installation.
+Repackaging used the existing emulator debug signer. The production signer
+and signed beta.11 candidate were outside this branch's build.
+
 ## Demo denial Activity on Android 8
 
 The exact 9dd1b7d Android 8 shard 0 started all 594 declared
