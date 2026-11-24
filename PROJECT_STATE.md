@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+
+## Beta.11 published
+
+The public version code 116 APK is built from `d6834a202bf5d4178fc1c27855312a6806da0986`.
+The physical Xiaomi upgrade verified the retained server connection,
+earlier messages, project details, local model, and earlier phone turns.
+Anonymous HTTPS downloads verified all five assets. Live Pi-to-worker
+workspace and automation acceptance remains part of the active audit.
+[Release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11) ·
+[Validation](docs/VALIDATION.md#beta11-public-release).
+
 ## Native build paths in beta.11 APKs
 
 The signed 73f68da candidate contained workstation paths in 16 native

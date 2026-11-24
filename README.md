@@ -2,56 +2,30 @@
 
 An unofficial, open-source Android companion for [Hermes Agent](https://github.com/NousResearch/hermes-agent), with a pixel-art interface and optional on-device text AI. Hermes runs on your infrastructure; local phone conversations keep their own model and history.
 
-**[Download beta.10 APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.10/hermes-agent-mobile-1.1.0-beta.10.apk)** · [GitHub prerelease](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.10) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
+**[Download beta.11 APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.11/hermes-agent-mobile-1.1.0-beta.11.apk)** · [GitHub prerelease](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11) · [Active goal](docs/GOAL.md) · [Remaining audit](docs/AUDIT_EXECUTION_PLAN.md).
 
-Beta.10 adds local chat editing and branching,
-search and labels, Markdown and protected backups, reviewed summaries,
-a two-model verified catalogue, document questions, writing presets,
-personal profiles and temporary chats. It includes compact keyboard
-layouts, a model-free setup checklist and the llama.cpp b12556 update.
+Beta.11 adds **Hermes Activity** with scoped tools, subagents, waits,
+outcomes, and the model and provider reported for the run. Read-only
+history shows when saved text or activity is unavailable.
 
-The signed release passed **1,203 JVM tests** and zero-error lint. The independently verified hosted matrix executed **1,241 Android 8** and **1,242 Android 17** methods. Each API also passed 13 standard and seven compact checks locally.
-The physical upgrade verified saved Hermes history and projects and
-an offline LFM3 reply. An Android 8 upgrade path from the public
-beta.9 APK retained a local task through the final signed candidate.
-[Full hosted suite](https://github.com/DionCroft/Signal_Grove/actions/runs/44836131279).
-[Offline AI guide](docs/ON_DEVICE_AI.md) ·
-[Beta.10 release scope](docs/releases/1.1.0-beta.10.md) ·
-[Validation evidence](docs/VALIDATION.md).
+On-device AI previews the formatted prompt and reply budgets before
+sending. Phone history has model and date filters. Connected sessions
+show Hermes-reported context and compression. The qualified LFM3 phone
+context remains 4K.
 
-The earlier UI readiness and native keyboard checks on `a992cf4` passed **1,149 Android 8 / 1,150 Android 17** standard methods. The Hermes v0.23.2
-watcher now produces a complete static review report. The reviewed Hermes
-main revision remains incomplete with eight retired storage paths. Runtime
-compatibility and owner shutdown remain open.
-[Watcher and storage evidence](docs/contracts/2026-11-19-hermes-main-stored-history.md).
+Supported servers can show bounded previews of registered workspace
+files. The schedule review shows upcoming occurrences, time-zone offsets,
+and missed-run policy. Paused edits, reviewed project occurrences, and
+scoped receipts depend on the connected Hermes runtime.
+
+The exact release source passed **1,262 Android 8** and **1,263 Android 17**
+standard instrumentation methods. The **76,598,310-byte** production APK
+uses version code **116**. Its original-signer Xiaomi upgrade retained the
+Hermes connection, server history, project access, phone model, and local
+chat history. [Hosted device suite](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942) ·
+[Release scope](docs/releases/1.1.0-beta.11.md) · [Validation](docs/VALIDATION.md#beta11-public-release).
 
 **Android 8.0+ · Kotlin / Jetpack Compose · Five themes · English / 简体中文 / pinyin · MIT**
-
-## Development candidate
-
-Beta.11 adds a scoped **Hermes Activity** view in Chat. It shows retained
-tool and subagent events, reported outcomes and timing, and the model and
-provider reported for the matching run. Read-only history explains when
-there is no saved reply text or when activity details are unavailable.
-
-On-device AI now shows the formatted prompt and reply budgets before
-sending, with a review of what fits. Phone history offers date and model filters.
-The qualified LFM3 phone window remains 4K. Connected sessions display
-context and compression reported by Hermes separately.
-
-Servers with the matching capability can preview registered workspace
-files from a followed conversation. Schedule review shows upcoming
-occurrences, time-zone offsets and missed-run behavior. The candidate
-also includes paused schedule editing, an inbox for reviewed project
-occurrences and scoped run receipts. Live Pi and worker acceptance is
-tracked in the audit.
-
-The compact UI fixes passed **1,242 JVM tests**, both lint variants with
-zero errors and focused Android 8 and 17 checks. The 76.6 MB signed private
-APK upgraded the owned Android 17 emulator from beta.10. The final-source
-hosted matrix, physical Xiaomi upgrade and public release remain open.
-[Beta.11 candidate scope](docs/releases/1.1.0-beta.11.md) ·
-[Validation evidence](docs/VALIDATION.md#private-beta11-artifact-and-pi-preflight).
 
 ## Download and release status
 
@@ -61,6 +35,7 @@ hosted matrix, physical Xiaomi upgrade and public release remain open.
 | [1.1.0-beta.8](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) · code 111 | Published preview: serving-model selection, reasoning/service presets, existing chats and stored projects | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.8/hermes-agent-mobile-1.1.0-beta.8.apk) |
 | [1.1.0-beta.9](docs/releases/1.1.0-beta.9.md) · code 114 | Published experimental preview: offline AI, model management, setup helper and packaging improvements; full acceptance remains open | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.9/hermes-agent-mobile-1.1.0-beta.9.apk) |
 | [1.1.0-beta.10](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.10) · code 115 | Published preview with expanded offline AI and compact-screen fixes | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.10/hermes-agent-mobile-1.1.0-beta.10.apk) |
+| [1.1.0-beta.11](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11) · code 116 | Published preview with Hermes Activity, context review, and schedule previews | [Download production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.11/hermes-agent-mobile-1.1.0-beta.11.apk) |
 
 The table below describes current `main`; release notes define what is included in each published APK. Production and debug are separate packages with separate signing keys. Upgrade the matching package to preserve its data; see [installation and migration](docs/USER_GUIDE.md). The [approved GitHub updater](docs/APP_UPDATES.md) requires your download/install approval, validates the APK and preserves active-work guards. Enable **Include preview releases** to discover betas.
 
@@ -74,13 +49,13 @@ The [offline AI guide](docs/ON_DEVICE_AI.md) covers chat editing and branching, 
 
 | Area | What is implemented | Details |
 | --- | --- | --- |
-| Hermes chat and history | Capability-based Runs/session/compatibility transports; streaming, conversation search/paging, model choices, session locks/forks/steering, tool/subagent activity and reviewed approvals | [Protocol scope](docs/COMPATIBILITY.md) |
+| Hermes chat and history | Capability-based Runs/session/compatibility transports; streaming, conversation search/paging, model choices, session locks/forks/steering, scoped tool/subagent Activity, reported model and provider, and reviewed approvals | [Protocol scope](docs/COMPATIBILITY.md) |
 | Serving-model awareness | Distinguish the verified serving model, server default and conversation selection. Automatic follows the freshly verified serving model for new turns; reasoning/service use presets | [Model status/setup](docs/RUNTIME_MODEL_STATUS.md) |
-| Optional on-device AI | Separate offline text chat/history, streamed cancellable generation, context/load/unload/delete controls, pinned LFM3 and Qwen downloads, compatible GGUF import, local history search and backups, personal context and temporary chat | [Usage and current limits](docs/ON_DEVICE_AI.md) |
+| Optional on-device AI | Separate offline text chat/history, streamed cancellable generation, context/load/unload/delete controls, pinned LFM3 and Qwen downloads, compatible GGUF import, local history filters and backups, prompt budget review, personal context and temporary chat | [Usage and current limits](docs/ON_DEVICE_AI.md) |
 | Setup and troubleshooting | Static setup guide works without a model; the optional helper selects versioned source-backed checks for setup, network, authentication, models, history and projects | [Set up Hermes](docs/SETUP_GUIDE.md) |
 | Conversations and projects | Canonical read-only conversation viewer, hosted room browsing, stored project management and project-conversation navigation | [Feature and validation matrix](docs/FEATURES.md) |
 | Host management | Reviewed provider/device-code accounts, credential pools, fallback chains, custom endpoints, MCPs, plugins, skills, channels and Kanban controls | [Management scopes](docs/MANAGEMENT.md) |
-| Tasks and automation | Phone tasks with notes, filters, due dates/priorities and reviewed JSON transfer; opt-in supported Hermes scheduled-job controls | [User guide](docs/USER_GUIDE.md) |
+| Tasks and automation | Phone tasks with notes, filters, due dates/priorities and reviewed JSON transfer; Hermes schedule previews, paused edits, and scoped run receipts on supported hosts | [User guide](docs/USER_GUIDE.md) |
 | Voice and notifications | Foreground dictation/read-aloud through installed Android services; opt-in task/run monitoring and task-count widget | [Compatibility](docs/COMPATIBILITY.md) |
 | Pixel interface | Starhaven Grove, Lavender Original, Jade Terminal, Solar Archive and Mint Circuit; stepped panels/icons, original animations, phone/tablet navigation, reduced motion and scalable text | [Themes](docs/THEMING.md) |
 | Private connections and updates | Trusted HTTPS, profile path prefixes, Keystore-backed credential encryption, exact review of sensitive effects and signed, checksum-verified APK updates | [Security](SECURITY.md) |

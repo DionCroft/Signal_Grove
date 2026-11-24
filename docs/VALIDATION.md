@@ -1,5 +1,37 @@
 # Current development validation — audit follow-up
 
+## Beta.11 public release
+
+The exact source `d6834a202bf5d4178fc1c27855312a6806da0986` completed
+both Android device inventories. Android 8 ran 1,262 standard methods
+and Android 17 ran 1,263. The matrix treats external-model gates
+separately. [Hosted device run](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942).
+
+The original-signed APK upgraded the enrolled Android 17 Xiaomi from
+code 115 to code 116 and retained its package UID and first installation
+timestamp. Android installed the exact staged SHA-256. The initial
+connection check failed while the existing Tailscale VPN was disconnected.
+Reconnecting that account restored Pi reachability. Signal Grove then
+connected using its saved API configuration. A refreshed history list
+opened an existing conversation and showed an earlier Hermes reply.
+The saved management session needed renewal. After renewing it in the
+app, the read-only inventory returned an existing project's details.
+The phone model library showed the previously imported LFM3 model.
+The app reopened a completed phone conversation and showed one earlier
+selectable turn with the model unloaded.
+
+The APK is 76,598,310 bytes. Its SHA-256 is
+`79522149d6c08b74256cb0af51b36d2602d933a4672c18712daa11a61bcfe6aa`.
+Its original certificate SHA-256 is
+`bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`.
+The APK, checksums, certificate, SBOM and provenance all matched their
+staged bytes after unauthenticated HTTPS downloads. The prerelease tag
+points to the signed source revision on main. [GitHub release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11).
+
+The live workspace attachment path, approvals, scheduled execution and
+results, broader Hermes compatibility, and outstanding phone AI cases
+remain tracked in the [full audit](AUDIT_EXECUTION_PLAN.md).
+
 ## Native build paths in beta.11 APKs
 
 The private signed 73f68da APK preserved 460 absolute workstation path
