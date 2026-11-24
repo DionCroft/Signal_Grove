@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Unsigned beta.11 release rehearsal
+
+Gradle assembled and linted an unsigned private rehearsal from the clean
+`4c5ce11` source snapshot, using version `1.1.0-beta.11` and code 116.
+The sealed APK had package `org.hermesmobile.app`, minimum API 26, target
+API 37 and four native ABIs. Alignment verification passed with 16 KB
+native alignment. Release lint had zero errors and 55 warnings. The APK
+is 76,574,062 bytes.
+
+A parallel Pi-source edit advanced the working copy during the build.
+The source revalidation guard refused to copy the result into the
+checkout after Gradle exit 0. The sealed output was examined privately on
+E: to verify its build inputs and package metadata. The original receipt
+and held output are preserved. Use a fixed checkout for the final build
+and verify signed device upgrades separately. This unsigned artifact has
+no signature, installation or publication evidence.
+
+| Private rehearsal evidence | SHA-256 |
+| --- | --- |
+| Unsigned APK | `e12a7781794f612ee4d5e8c14f0beade370c5b3f287db2d9182774f104170b82` |
+| Gradle output | `c816042078241dced081060504b80fa53ad4c987f83acbd3b0ec93a10b707c05` |
+| APK metadata and alignment report | `abb6274b060b0531f819a8a901df129f4590344cd2df482d7a89660317a746b4` |
+
 ## Protected workspace policy publication target
 
 The staged workspace operator reads the policy under the operator's

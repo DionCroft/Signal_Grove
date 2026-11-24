@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Code-116 Android release rehearsal
+
+A private unsigned build exercised version code 116 and the beta.11
+version name. Manifest, 16 KB APK alignment and release lint passed.
+The source guard held the output after a parallel Pi-source change.
+[Validation](docs/VALIDATION.md#unsigned-beta11-release-rehearsal).
+The final-source build, full device matrix, original-key Xiaomi upgrade
+and signed GitHub release remain open.
+
 ## Workspace publication matches the protected operator path
 
 The publication catalog now uses the policy path rendered for the
