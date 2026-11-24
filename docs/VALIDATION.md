@@ -1,5 +1,38 @@
 # Current development validation — audit follow-up
 
+## Reproducible reviewed Windows worker bundle
+
+The original staging generator iterated the runtime module set in
+process-dependent order. Two independent builds from the same source
+produced different inner and outer manifest bytes with the same
+runtime modules and entrypoints. The generator now emits the modules
+in sorted order. Two fresh builds matched across all 19 output files.
+Both installed input hashes were verified again after staging.
+
+- Source manifest SHA-256
+  `b1f478b07237e3375f78267835c28f29b021902bf12d1290950ad91e72e2adec`
+- Inner runtime manifest SHA-256
+  `78f1b18d26f604eeb989d75c1623d4dbff31dc86da8045cb7f35fb9ee9efca39`
+
+The isolated native Windows fixture loaded and verified the exact
+package via its pinned loader. It used the current interactive owner,
+disposable protected policy and signing material, a disposable Git
+checkout, the staged named-pipe host, and the staged SQLite broker.
+It read a fixture file, prepared and submitted a signed exact checkout
+review, observed the same ready receipt on an identical submission,
+created one real inert child, and observed the original completed
+receipt after reopening with a new worker instance. The queue retained
+exactly one execution and one original receipt. The fixture provided
+its own registered root and inert command and result projections.
+It used no Pi, production grants, inference or real scheduled job.
+
+An initial fixture read used transient in-memory status after
+publication and missed the next pipe window. The corrected fixture
+waited for the exact published projection. A second fixture attempt
+supplied floating-point approval times and was refused by the closed
+envelope. The final fixture used integer seconds as required and passed.
+Both original failures were retained privately.
+
 ## Reviewed checkout at Windows queue insertion
 
 The existing queue path observed the checkout before acquiring the

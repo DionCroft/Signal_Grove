@@ -197,7 +197,7 @@ def main():
     spec = spec_from_file_location("_staged_broker_template", template)
     host = module_from_spec(spec)
     spec.loader.exec_module(host)
-    runtime_files = {name: (runtime / name).read_bytes().replace(b"\r\n", b"\n") for name in host.NAMES}
+    runtime_files = {name: (runtime / name).read_bytes().replace(b"\r\n", b"\n") for name in sorted(host.NAMES)}
     hashes = {name: hashlib.sha256(data).hexdigest() for name, data in runtime_files.items()}
     digest = hashlib.sha256(json.dumps(hashes, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     if digest != host.SOURCE_DIGEST:

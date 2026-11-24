@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reproducible reviewed Windows worker bundle
+
+The reviewed installed worker and broker hashes matched. Two isolated
+staging runs produced identical bytes across all 19 output files.
+The exact package served a registered fixture read through native IPC,
+launched one approved inert child, and returned the original completed
+receipt after reopening the broker. Live deployment, phone attachment
+through the Pi, and real schedule acceptance remain open.
+[Validation](docs/VALIDATION.md#reproducible-reviewed-windows-worker-bundle).
+
 ## Reviewed checkout at Windows queue insertion
 
 The worker now holds the exact reviewed checkout through queue

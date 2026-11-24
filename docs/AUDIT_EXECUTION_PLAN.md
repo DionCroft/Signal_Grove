@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Reproducible reviewed Windows worker bundle
+
+Two staging runs from both reviewed installed inputs now match
+byte-for-byte. The exact pinned runtime passed isolated Windows read,
+review, one child launch, and original-receipt recovery after reopening
+the broker. Use the verified manifest and a fresh host preflight in the
+separately reviewed rollout. Live Pi-to-worker attachment and a real
+reviewed schedule remain open.
+[Validation](VALIDATION.md#reproducible-reviewed-windows-worker-bundle).
+
 ## Reviewed checkout at Windows queue insertion
 
 Windows now holds the reviewed checkout across the original queue
