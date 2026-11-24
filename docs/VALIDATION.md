@@ -1,5 +1,53 @@
 # Current development validation — audit follow-up
 
+## Full-size APK updater on Android 8 and 17
+
+The first owned Android 17 run reached download approval. Its loopback
+test server exhausted the app's 192 MiB heap in the dispatcher while
+copying the approximately 100 MB APK into memory. Package Manager still
+reported debug code 116. The revised standalone companion streams the
+same full APK from disk through MockWebServer 5.5.1. The standard suite
+continues to discover its normal tests independently of this opt-in driver.
+
+Both owned emulators rejected the unrelated signer, opened update
+review, required download approval, verified the exact APK, deferred
+installation during active work, granted source permission through
+Android Settings and confirmed the real Android installation. Android
+terminated the driver when it replaced the package. Independent installed
+APK digests, package version and UID, and a separate successful verifier
+proved code 117 and the retained private marker. Both emulators returned
+to the exact original debug and companion APKs and UIDs. The original
+update preference bytes and source permission were restored, and the
+production package digests matched their pre-test values. The code-117
+APKs are private fixtures. The public GitHub download and physical
+production upgrade gates remain open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Original driver outcome | `7e4f5c22386eb74331d4dd206826efb345dd2cec7606a40b1df95af05eb4e434` |
+| Crash record | `04f38b660608324718177ad2ab36e624aac2c2904ebe36a007bd972504103c80` |
+| Corrected test companion | `391e51381d7ce0be94a8fa1de424370e40d8d359abbffd384dae61357ec75d6c` |
+| Installed full debug fixture | `caaa997aaad35bba9dda6c8c096cace6c9c04c26994a0ea7b30ad301e270aca1` |
+| Completed install driver, identical on both APIs | `df111627695777cfa0aff5668979996c0fa1d946700e5bbd329fb67d5d1bc452` |
+| Android 8 independent verifier | `8e77ec8c5a25c5620161b20cbde57af897df39c9df987c96036e678503faf673` |
+| Android 17 independent verifier | `3674a2c3c79d3cec50a1643bf08263b085fd318600f8b409b39f1bdb4b9d5728` |
+
+The separate hosted verify job for 6d85b6e passed. Independent XML
+inspection found 1,242 tests in 118 reports with zero errors, failures
+or skips, plus zero lint errors and 57 debug and 56 release warnings.
+The isolated native policy receipt records 1,245 cases and its result,
+stdout and stderr digests matched the artifact. The XML summary digest
+is `d5154386f7defce8e3c968420b7133cdee3380b2d355add094922aeec7956763`.
+[Hosted verify job](https://github.com/DionCroft/Signal_Grove/actions/runs/45355709971/job/138312879094).
+
+The previously failing hosted Android 8 shard completed all 667 methods
+on 6d85b6e. The raw log records a positive status for
+`LocalAiFlowTest.helperRequiresNewOptInAfterTheObservationPreviewChanges`.
+The raw log digest is
+`36a0e9141e41b7518c3a1cfaedef516a4496905fd31a804be10688cfeb85404f`.
+[Android 8 shard 1](https://github.com/DionCroft/Signal_Grove/actions/runs/45355709971/job/138322168800).
+
+
 ## Private beta.11 artifact and Pi preflight
 
 The exact private build from 290f7fe verified version code 116, package

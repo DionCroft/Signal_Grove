@@ -16,7 +16,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.mockwebserver.*
+import mockwebserver3.Dispatcher
+import mockwebserver3.MockResponse
+import mockwebserver3.MockResponseBody
+import mockwebserver3.MockWebServer
+import mockwebserver3.RecordedRequest
+import okio.BufferedSink
+import okio.source
 import org.hermesmobile.app.data.AppPreferences
 import org.hermesmobile.app.ui.*
 import org.hermesmobile.app.updates.*
@@ -82,7 +88,30 @@ class SelfUpdateInstrumentation:Instrumentation() {
             val release=candidate(apk,version)
             MockWebServer().use {server->
                 val payload=buildJsonObject {put("id",release.id);put("tag_name",release.tag);put("draft",false);put("prerelease",true);put("body",release.notes);put("assets",buildJsonArray {add(buildJsonObject {put("name",release.assetName);put("state","uploaded");put("size",release.bytes);put("digest","sha256:"+release.sha256);put("browser_download_url",release.assetUrl.toString())})})}
-                server.dispatcher=object:Dispatcher() {override fun dispatch(q:RecordedRequest):MockResponse {check(q.getHeader("Authorization")==null && q.getHeader("Cookie")==null);return if(q.path.orEmpty().startsWith("/repos/")) MockResponse().setHeader("Content-Type","application/json").setBody(JsonArray(listOf(payload)).toString()) else MockResponse().setBody(okio.Buffer().write(apk.readBytes()))}}
+                val artifactPath = requireNotNull(release.assetUrl).encodedPath
+                val artifactBody = object : MockResponseBody {
+                    override val contentLength = apk.length()
+
+                    override fun writeTo(sink: BufferedSink) {
+                        apk.source().use { source -> sink.writeAll(source) }
+                    }
+                }
+                server.dispatcher = object : Dispatcher() {
+                    override fun dispatch(request: RecordedRequest): MockResponse {
+                        check(request.headers["Authorization"] == null && request.headers["Cookie"] == null)
+                        val path = request.url?.encodedPath
+                        val response = MockResponse.Builder()
+                        return when {
+                            path?.startsWith("/repos/") == true -> response
+                                .setHeader("Content-Type", "application/json")
+                                .body(JsonArray(listOf(payload)).toString())
+                                .build()
+                            path == artifactPath -> response.body(artifactBody).build()
+                            else -> response.code(404).build()
+                        }
+                    }
+                }
+                server.start()
                 val base=server.url("/")
                 val http=OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).addInterceptor {chain->val q=chain.request();chain.proceed(q.newBuilder().url(base.newBuilder().encodedPath(q.url.encodedPath).encodedQuery(q.url.encodedQuery).build()).build())}.build()
                 val activity=launchOwnedActivity()

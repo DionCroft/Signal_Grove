@@ -1,5 +1,22 @@
 # Current feature and validation matrix
 
+## Beta.11 candidate
+
+The scoped Chat Activity view uses retained Hermes reports. Model and
+provider labels depend on a matching run report. Blank read-only replies
+explain missing saved text, and the Activity view explains unavailable
+details. The phone prompt review shows which context fits and keeps the
+draft when a request exceeds its budget. Workspace browsing and schedule
+controls depend on the matching server capabilities and permissions.
+
+The integrated fixture checks covered Activity, history, migration, reconnect,
+workspace attachment and scheduling on Android 8 and 17. An owned Android 17
+emulator kept its package identity, Demo setting and test task during the
+original-signer beta.10 upgrade. Live workspace and scheduler acceptance,
+the exact final-source matrix and the physical upgrade remain open.
+[Candidate scope](releases/1.1.0-beta.11.md) ·
+[Validation](VALIDATION.md#private-beta11-artifact-and-pi-preflight).
+
 ## Published beta.10 offline AI and compact UI
 
 The preview adds local chat branches, history search and protected

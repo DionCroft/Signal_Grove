@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Open Hermes Activity in Chat to see scoped tool and subagent events,
+  reported outcomes, timing and the runtime recorded for the run.
+  Read-only history explains missing saved text and unavailable activity.
+- Preview upcoming schedule occurrences with time-zone offsets and the
+  missed-run policy. Review edits to paused schedules and decisions
+  for individual project occurrences when supported by the server.
+- Keep the phone helper's consent and draft handoff controls within
+  reach when the Android keyboard is open on compact displays.
 - See the exact formatted phone prompt budget and what fits before sending.
   Review earlier turns while keeping the draft. The tested larger LFM3
   windows remain experimental.

@@ -7,6 +7,25 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Full-size updater and release preparation
+
+The beta.11 branch defaults now match the intended code 116 release.
+The README, feature matrix, changelog and draft notes separate candidate
+features and figures from the published beta.10 download.
+The hosted verify job for 6d85b6e supplied 118 JVM reports with 1,242
+passing tests, both lint reports with zero errors, and a verified
+1,245-case policy receipt. Full hosted device results remain a separate gate.
+
+The previous owned-emulator installer driver exhausted its 192 MiB heap
+while serving a full APK. The test companion now streams the signed
+file from disk. Android 8 and Android 17 each passed the complete debug
+116-to-117 updater and independently verified the retained private marker.
+Both owned emulator baselines, updater preferences and source permissions
+were restored. Continued release qualification requires the exact final
+source matrix, a newly signed final-source APK, the Xiaomi upgrade and
+the public download check.
+[Validation](docs/VALIDATION.md#full-size-apk-updater-on-android-8-and-17).
+
 ## Private beta.11 inventory and current Pi workspace preflight
 
 The signed code-116 build from commit 290f7fe matches the beta.10

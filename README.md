@@ -29,24 +29,29 @@ compatibility and owner shutdown remain open.
 
 ## Development candidate
 
-The unreleased candidate shows formatted prompt use and reply budget before
-sending a phone request. It also shows context and compression reported by
-the connected Hermes session, puts date presets directly in phone-history
-search, and can preview registered workspace files from a followed chat
-when the server advertises the authenticated read capability. The qualified
-LFM3 phone window remains 4K.
+Beta.11 adds a scoped **Hermes Activity** view in Chat. It shows retained
+tool and subagent events, reported outcomes and timing, and the model and
+provider reported for the matching run. Read-only history explains when
+there is no saved reply text or when activity details are unavailable.
 
-The combined source passed **1,213 JVM tests** and zero-error lint.
-Hosted worker checks passed **72 Windows provider** and **9 POSIX policy**
-methods. The authenticated workspace fixture passed on Android 8 and 17.
-The full Android matrix, live Pi verification and signed upgrade checks
-remain part of release qualification. [Candidate evidence](docs/VALIDATION.md#integrated-audit-release-candidate).
+On-device AI now shows the formatted prompt and reply budgets before
+sending, with a review of what fits. Phone history offers date and model filters.
+The qualified LFM3 phone window remains 4K. Connected sessions display
+context and compression reported by Hermes separately.
 
-The newer schedule-review build also previews upcoming occurrences with
-UTC offsets and explains the missed-run policy before paused creation.
-It passed **1,222 JVM tests** and the creation-review check at both
-viewports on Android 8 and 17.
-[Schedule preview evidence](docs/VALIDATION.md#calendar-and-missed-run-preview-in-the-schedule-review).
+Servers with the matching capability can preview registered workspace
+files from a followed conversation. Schedule review shows upcoming
+occurrences, time-zone offsets and missed-run behavior. The candidate
+also includes paused schedule editing, an inbox for reviewed project
+occurrences and scoped run receipts. Live Pi and worker acceptance is
+tracked in the audit.
+
+The compact UI fixes passed **1,242 JVM tests**, both lint variants with
+zero errors and focused Android 8 and 17 checks. The 76.6 MB signed private
+APK upgraded the owned Android 17 emulator from beta.10. The final-source
+hosted matrix, physical Xiaomi upgrade and public release remain open.
+[Beta.11 candidate scope](docs/releases/1.1.0-beta.11.md) ·
+[Validation evidence](docs/VALIDATION.md#private-beta11-artifact-and-pi-preflight).
 
 ## Download and release status
 
@@ -84,10 +89,12 @@ A feature being implemented does not establish interoperability with every Herme
 
 ## Current figures
 
-Updated **21 November 2026** for the published beta.10 build. Earlier figures retain their original build and test scope.
+Updated **24 November 2026**. Each figure identifies its APK, source or test scope.
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
+| Private beta.11 candidate APK, code 116 | **76.6 MB** | 76,592,130 bytes from source 290f7fe. Original signer and owned Android 17 upgrade verified. |
+| Beta.11 hosted verify checkpoint | **1,242 JVM / 1,245 policy cases** | Source 6d85b6e. Both lint variants reported zero errors. Final-source device coverage remains open. [Hosted workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45355709971) |
 | Published beta.10 production APK, code 115 | **76.1 MB** | 76,066,678 bytes, original signer and anonymous download verified. [Release files](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.10) |
 | Beta.10 local JVM | **1,203 tests across 113 reports** | No failures, errors or skips. |
 | Beta.10 signed-source lint | **0 errors**, 55 debug and 54 release warnings | Both actual lint reports for source d651a33 |
