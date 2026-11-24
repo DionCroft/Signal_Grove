@@ -7,6 +7,19 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reviewed service startup after reload
+
+The native workspace cutover adapter now reads systemd's reload-required
+state as part of the observed unit identity. Forward and recovery starts
+require a freshly loaded configuration. A reviewed stop can still occur
+before the reload, and a stale configuration after a start holds the
+outcome for inspection using its original receipt.
+
+Windows policy validation passed 974 cases with 273 platform skips.
+Hosted native verification, the coordinated reload, and live Pi
+activation remain open.
+[Validation](docs/VALIDATION.md#reviewed-service-startup-after-reload).
+
 ## Native build paths in beta.11 APKs
 
 The signed 73f68da candidate contained workstation paths in 16 native

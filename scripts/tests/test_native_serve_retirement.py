@@ -23,7 +23,7 @@ class ServeRetirementSchemaTests(unittest.TestCase):
     def specimen(self):
         root=lambda n:schema.DirectoryAnchor('/fixture/'+n,1,abs(hash(n))%10000+1,1000,1000,0o700)
         owner=schema.UnitSnapshot('hermes-serve.service','loaded','active','running',4000,0,'1'*32,'/fixture/hermes-serve.service',0,'/','success','a'*64,
-            SchemaOwner(4000,123,'00000000-0000-4000-8000-000000000001'),'/fixture/python',True)
+            SchemaOwner(4000,123,'00000000-0000-4000-8000-000000000001'),'/fixture/python',True,needs_daemon_reload=False)
         return schema.ServeRetirementSpec(schema.SourceInventory(root('sdk'),tuple((n,'a'*64) for n in sorted(schema.SDK_REQUIRED))),
             schema.SourceInventory(root('executor'),tuple((n,'b'*64) for n in sorted(schema.EXECUTOR_REQUIRED))),root('home'),owner,9118,'c'*64,'old_source')
     def test_required_source_and_executor_bindings_cannot_be_dropped(self):

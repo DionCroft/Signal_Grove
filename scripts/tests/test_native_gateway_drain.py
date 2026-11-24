@@ -183,7 +183,7 @@ class DrainSpecTests(unittest.TestCase):
     def specimen(self):
         directory=lambda name:m.DirectoryAnchor('/fixture/'+name,1,abs(hash(name))%10000+1,1000,1000,0o700)
         home=directory('home');owner=m.UnitSnapshot('hermes-gateway.service','loaded','active','running',4000,0,'1'*32,'/fixture/hermes-gateway.service',0,'/','success','a'*64,
-            SchemaOwner(4000,123,'00000000-0000-4000-8000-000000000001'),'/fixture/python',True)
+            SchemaOwner(4000,123,'00000000-0000-4000-8000-000000000001'),'/fixture/python',True,needs_daemon_reload=False)
         address=str(PurePosixPath('/run/user/1000')/('hermes-gw-'+hashlib.sha256(os.path.normcase(home.path).encode()).hexdigest()[:16])/'control.sock')
         return m.GatewayDrainSpec(m.SourceInventory(directory('sdk'),tuple((n,'a'*64) for n in sorted(m.SDK_REQUIRED))),m.SourceInventory(directory('executor'),tuple((n,'b'*64) for n in sorted(m.EXECUTOR_REQUIRED))),home,owner,address,m.FencePreimage(0,None),(1,2,1000,1000,0o600,1),'c'*64,'/fixture/sdk-venv','d'*64,'old_source')
     def test_sdk_and_executor_requirements_cannot_be_dropped(self):

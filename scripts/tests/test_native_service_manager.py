@@ -22,7 +22,7 @@ BIND=UnitBinding('gateway','hermes-gateway.service',OLD,NEW,'/old/python','/new/
 def active(**changes):
     row=dict(unit='hermes-gateway.service',load_state='loaded',active_state='active',sub_state='running',main_pid=4000,control_pid=0,
              invocation='1'*32,cgroup='/user.slice/hermes-gateway.service',job_id=0,job_path='/',result='success',
-             configuration_sha256=OLD,owner=OWNER,executable='/old/python',stop_helpers_ok=False)
+             configuration_sha256=OLD,owner=OWNER,executable='/old/python',stop_helpers_ok=False,needs_daemon_reload=False)
     row.update(changes);return UnitSnapshot(**row)
 
 
@@ -99,7 +99,7 @@ class NativeServiceBoundaryTests(unittest.TestCase):
 
     def test_snapshot_refuses_bool_pids_bad_owners_and_mixed_job_identity(self):
         for change in (dict(main_pid=True),dict(owner=None),dict(control_pid=True),dict(job_id=True),dict(job_id=3,job_path='/'),
-                       dict(job_path='/other'),dict(stop_helpers_ok=1),dict(invocation='private')):
+                       dict(job_path='/other'),dict(stop_helpers_ok=1),dict(needs_daemon_reload=0),dict(invocation='private')):
             with self.subTest(change=change),self.assertRaises(ValueError):active(**change)
 
     def test_forward_stop_accepts_only_old_loaded_config_and_old_executable(self):
@@ -117,6 +117,20 @@ class NativeServiceBoundaryTests(unittest.TestCase):
         wrong=inactive()
         with self.assertRaises(Refused):validate_preimage(BIND,'start','recovery',wrong,wrong)
         good=replace(wrong,configuration_sha256=OLD);validate_preimage(BIND,'start','recovery',good,good)
+
+    def test_start_refuses_a_matching_loaded_config_until_the_manager_has_reloaded(self):
+        for scope, config in (('forward', NEW), ('recovery', OLD)):
+            snapshot = replace(inactive(), configuration_sha256=config)
+            stale = replace(snapshot, needs_daemon_reload=True)
+            with self.subTest(scope=scope):
+                self.assertNotEqual(snapshot.sha256, stale.sha256)
+                with self.assertRaisesRegex(Refused, 'requires a daemon reload'):
+                    validate_preimage(BIND, 'start', scope, stale, stale)
+                validate_preimage(BIND, 'start', scope, snapshot, snapshot)
+
+    def test_forward_stop_can_drain_the_reviewed_incarnation_before_reload(self):
+        snapshot = active(needs_daemon_reload=True)
+        validate_preimage(BIND, 'stop', 'forward', snapshot, snapshot)
 
     def test_recovery_stop_accepts_each_exact_reviewed_incarnation_configuration(self):
         for snap in (active(),active(configuration_sha256=NEW,executable='/new/python')):

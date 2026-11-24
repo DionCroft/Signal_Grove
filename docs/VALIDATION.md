@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## Reviewed service startup after reload
+
+The native service adapter reads the reload-required property at both
+ends of its unit observation. A change during observation holds the
+operation. A stale unit cannot enter either the forward or the recovery
+start stage even if systemd still reports the exact reviewed loaded
+commands. A stale observation after a reported start leaves the existing
+operation unresolved. The old unit remains eligible for the reviewed
+stop before a reload.
+[systemd D-Bus Unit properties](https://freedesktop.org/software/systemd/man/latest/org.freedesktop.systemd1.html).
+
+The focused Windows group collected 101 cases with 53 passes and 48
+platform skips. The full policy suite collected 1,247 cases with 974
+passes and 273 platform skips. Both had zero failures and errors. An
+initial private verification wrapper omitted the checkout root from
+its isolated Python path. Its 18 import errors were retained. The
+corrected wrapper loaded the same project sources.
+
+The component still needs the hosted native service fixture. The
+coordinator's reload action and the live Pi transaction require their
+own verification before activation.
+
 ## Native build paths in beta.11 APKs
 
 The private signed 73f68da APK preserved 460 absolute workstation path

@@ -229,6 +229,7 @@ class UnitSnapshot:
     owner: Owner | None
     executable: str
     stop_helpers_ok: bool
+    needs_daemon_reload: bool
 
     def __post_init__(self):
         if (type(self.unit) is not str or not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}\.service',self.unit)
@@ -242,6 +243,7 @@ class UnitSnapshot:
                     not JOB.fullmatch(self.job_path) or int(JOB.fullmatch(self.job_path)[1])!=self.job_id)
                 or type(self.result) is not str or not re.fullmatch(r'[a-z][a-z-]{0,63}',self.result)
                 or not _hash(self.configuration_sha256) or type(self.stop_helpers_ok) is not bool
+                or type(self.needs_daemon_reload) is not bool
                 or (self.main_pid and (type(self.owner) is not Owner or self.owner.pid!=self.main_pid
                                       or not _path(self.executable) or not self.cgroup or not self.invocation))
                 or (not self.main_pid and (self.owner is not None or self.executable!=''))):
@@ -270,6 +272,8 @@ def validate_preimage(binding,action,scope,current,expected):
             raise Refused('Exact active native stop owner is required')
     else:
         required=binding.old_configuration_sha256 if scope=='recovery' else binding.new_configuration_sha256
+        if current.needs_daemon_reload:
+            raise Refused('Native manager reports that the reviewed unit requires a daemon reload')
         if current.configuration_sha256!=required or current.active_state!='inactive' or current.main_pid or current.owner is not None:
             raise Refused('Reviewed inactive native start preimage is required')
 
@@ -425,6 +429,7 @@ class NativeServiceManager:
             raise Unknown('Native unit process or job shape is unproven')
         invocation=invocation_id(invocation)
         properties={name:get(name,'s') for name in ('Id','LoadState','ActiveState','SubState','FragmentPath')}
+        needs_reload=get('NeedDaemonReload','b')
         drops=get('DropInPaths','as'); control=get('ControlPID','u',SERVICE); group=get('ControlGroup','s',SERVICE)
         result=get('Result','s',SERVICE); kill=get('KillMode','s',SERVICE); service_type=get('Type','s',SERVICE)
         commands={name:get(name,'a(sasbttttuii)',SERVICE) for name in ('ExecStart','ExecStop','ExecStopPost')}
@@ -449,11 +454,12 @@ class NativeServiceManager:
         if group and PurePosixPath(group).name!=binding.unit: raise Unknown('Service cgroup scope refused')
         last_stop=all(row[6]>0 and row[8]==1 and row[9]==0 for name in ('ExecStop','ExecStopPost') for row in commands[name])
         if (get('MainPID','u',SERVICE)!=pid or invocation_id(get('InvocationID','ay'))!=invocation
-                or get('Job','(uo)')!=job or (pid and read_process_owner(pid)!=owner)):
+                or get('Job','(uo)')!=job or get('NeedDaemonReload','b') is not needs_reload
+                or (pid and read_process_owner(pid)!=owner)):
             raise Unknown('Native service changed during its snapshot')
         self._native(); self._remaining(deadline)
         return UnitSnapshot(binding.unit,properties['LoadState'],properties['ActiveState'],properties['SubState'],
-            pid,control,invocation,group,job[0],job[1],result,configuration,owner,executable,last_stop)
+            pid,control,invocation,group,job[0],job[1],result,configuration,owner,executable,last_stop,needs_reload)
 
     def snapshot(self,role):
         if role not in self.bindings or not self._busy.acquire(False): raise Refused('One bound native role observation at a time')
@@ -576,7 +582,7 @@ class NativeServiceManager:
                 exe=binding.old_executable if execution.scope=='recovery' else binding.new_executable
                 if (after.active_state!='active' or after.sub_state!='running' or after.owner is None
                         or not after.invocation or after.invocation==expected.invocation
-                        or after.configuration_sha256!=config or after.executable!=exe):
+                        or after.configuration_sha256!=config or after.executable!=exe or after.needs_daemon_reload):
                     raise Unknown('Native start process/configuration outcome is unproven')
             self._attempt=replace(self._attempt,phase='verified')
             return dict(state='native_service_effect_verified',step=step,unit=binding.unit,job_path=job_path,
