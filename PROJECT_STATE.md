@@ -7,6 +7,19 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Beta.11 rehearsal inventory and Android 8 failures
+
+The signed rehearsal has a validated CycloneDX 1.6 inventory and matching
+provenance. The files bind 154 Maven modules and 32 native APK members
+to the original signed APK and source. Android 8 shard 0 passed. Shard 1
+recorded four failures among 667 started methods. A focused local run on
+the verified debug pair reproduced the helper test failure.
+[Validation](docs/VALIDATION.md#beta11-inventory-and-android-8-shard-failures).
+
+Correct and verify the four methods while retaining the exact hosted
+artifact. Repeat the candidate matrix and rebind the release inventory to
+the final signed source. The Xiaomi and release gates remain open.
+
 ## Original-signer beta.11 rehearsal and Android 8 retention
 
 The code-116 beta.11 APK built from the clean feature-branch snapshot.

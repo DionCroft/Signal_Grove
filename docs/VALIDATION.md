@@ -1,5 +1,45 @@
 # Current development validation — audit follow-up
 
+## Beta.11 inventory and Android 8 shard failures
+
+The exact signed rehearsal produces a [CycloneDX 1.6](https://cyclonedx.org/schema/bom-1.6.schema.json)
+inventory with 187 components. The sealed source was verified before and
+after a successful offline release runtime resolution. It records 154
+Maven modules and 99 binary artifact observations, including one exact
+duplicate androidx.core AAR record. The 98 distinct file hashes all
+match Gradle's pinned verification metadata. Maven coordinates and
+artifact hashes agree with the released beta.10 inventory.
+
+All 32 native libraries were hashed from the signed APK. Their ELF
+architectures matched the four ABI directories, and the packaged native
+dependencies were checked against their actual ELF imports. The APK paths
+agree with beta.10, while 20 native file hashes differ. Provenance binds
+the SBOM, exact build and source receipts, signing certificate, native
+upstream pin and verified API 26 upgrade. Generated artifacts remain on
+E: and are scoped to this rehearsal.
+
+Android 8 shard 0 passed in the [hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45287698016).
+Shard 1 started all 667 methods and had 663 distinct positive results.
+The four failures were:
+
+- Fresh helper consent left its checkbox off after selecting it.
+- The copied long reply test did not observe the activity resize for its keyboard.
+- The temporary chat observed no focused dialog during the IME transition.
+- The plugin settings test observed no focused window while closing the keyboard.
+
+On the locally verified debug pair, three of those methods passed. The
+helper test failed after the observation changed because the unshared
+request was never dispatched. This differs from the hosted checkbox
+failure and preserves the need to verify both interactions under load.
+The failed hosted artifact and focused local log remain separate.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Validated rehearsal SBOM | `fa3f06563206d3676513d4101577d104e276aa0ee02ad65abce23909325fb256` |
+| Rehearsal provenance | `aa6f5b15cd5eb3cde9af598fc9c045765306b2213930d284b2b4149037ad1f02` |
+| Hosted Android 8 shard 1 archive | `d0f846f8a36cb160fcf4c2226985bc71603ab4927600f0afb1c6adc20f0e45a8` |
+| Focused Android 8 baseline log | `5185be99ff33408e46e6d5109a89262914c5184e28e10a40f2cd232ad7cd32bb` |
+
 ## Signed beta.11 rehearsal and Android 8 retention
 
 The exact clean snapshot `2960384` built and linted with the original
