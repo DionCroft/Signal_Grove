@@ -15,6 +15,19 @@ class ActivityProtocolTest {
         assertEquals("completed",entries.first {it.first.callId=="a"}.latest.kind)
         assertEquals("failed",entries.first {it.first.callId=="b"}.latest.kind)
         assertTrue(entries.all {it.events.size==2})
+
+        val conversation = Conversation("c", "profile", "session", runId = "r",
+            status = "running", executionGeneration = 2)
+        val outstanding = event("new", "current", "started", 7)
+        val unrelated = listOf(
+            event("anonymous", "", "started", 8),
+            event("other-run", "stale", "started", 9, run = "previous"),
+            event("other-generation", "stale", "started", 10, gen = 1),
+            event("other-session", "stale", "started", 11).copy(sessionKey = "other"),
+        )
+        assertEquals(outstanding, activeActivity(conversation,
+            activityTimeline(entries.flatMap { it.events } + outstanding + unrelated)))
+        assertNull(activeActivity(conversation, activityTimeline(entries.flatMap { it.events } + unrelated)))
     }
     @Test fun absentIdentityDifferentRunsAndGenerationsNeverMerge() {
         val rows=listOf(event("1","","started",1),event("2","","completed",2),event("3","a","started",3),event("4","a","completed",4,run="other"),event("5","a","completed",5,gen=3))
@@ -49,7 +62,6 @@ class ActivityProtocolTest {
         val update=StreamDecoder.decode(SseEvent("tool.completed","""{"tool":"shell","tool_call_id":"call-b","duration":0.125,"error":true,"execution_generation":4,"seq":9,"preview":"fixture-raw-result","args":{"credential":"fixture-raw-argument"}}"""))
         val tool=update.tool!!;assertEquals("call-b",tool.callId);assertEquals("failed",tool.kind);assertEquals(125L,tool.durationMs);assertEquals(4L,tool.generation)
         assertEquals("", tool.preview)
-        assertEquals("tool.failed: shell", update.activity)
         assertFalse(update.toString().contains("fixture-raw-"))
         assertNull(ActivityProtocol.duration(JsonPrimitive(-1)));assertNull(ActivityProtocol.duration(JsonPrimitive(1e30)))
     }
@@ -85,7 +97,12 @@ class ActivityProtocolTest {
     }
     @Test fun incompleteIsAnExplicitTerminalRunOutcomeAndPrivateReasoningEventsStayUnstored() {
         assertEquals("incomplete",StreamDecoder.decode(SseEvent("run.incomplete","{} ")).status)
-        val private=StreamDecoder.decode(SseEvent("reasoning.available","""{"text":"private"}"""))
-        assertEquals("",private.delta);assertNull(private.activity);assertTrue(private.telemetry.isEmpty());assertNull(private.tool)
+        for (name in listOf("reasoning.available", "assistant.commentary", "message.interim")) {
+            val update = StreamDecoder.decode(SseEvent(name, """{"text":"fixture-private-content"}"""))
+            assertEquals("", update.delta)
+            assertTrue(update.telemetry.isEmpty())
+            assertNull(update.tool)
+            assertFalse(update.toString().contains("fixture-private-content"))
+        }
     }
 }

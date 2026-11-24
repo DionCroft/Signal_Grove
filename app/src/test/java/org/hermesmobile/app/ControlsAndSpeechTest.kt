@@ -65,7 +65,7 @@ class ControlsAndSpeechTest {
             assertEquals(status,StreamDecoder.decode(SseEvent("message","""{"choices":[{"delta":{},"finish_reason":"$finish"}]}""")).status)
         }
         val reasoning=StreamDecoder.decode(SseEvent("reasoning.available","""{"text":"hidden"}"""))
-        assertNull(reasoning.activity);assertEquals("",reasoning.delta)
+        assertNull(reasoning.tool);assertEquals("",reasoning.delta)
     }
     @Test fun resumePassesTheSavedEventCursorAndDetectsReplayGaps()=runBlocking {
         MockWebServer().use {server ->

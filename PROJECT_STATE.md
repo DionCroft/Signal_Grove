@@ -7,6 +7,20 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Current Hermes Activity in Chat
+
+Chat shows the selected run's outstanding identified tool or subagent,
+approval or answer wait, and pending response delivery state. A finished
+parallel call leaves any other confirmed active call visible. Anonymous
+and foreign-session events stay outside the live status. The Activity
+timeline remains available from the same icon. Model commentary stays
+separate from the factual status and does not change the final transcript.
+
+The follow-up branch passed 1,243 JVM tests and both lint
+variants, plus three compact instrumentation checks on each Android
+version. This is a separate post-beta.11 change.
+[Validation](docs/VALIDATION.md#current-hermes-activity-in-chat).
+
 ## Native build paths in beta.11 APKs
 
 The signed 73f68da candidate contained workstation paths in 16 native

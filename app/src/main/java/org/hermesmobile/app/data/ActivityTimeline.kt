@@ -37,6 +37,6 @@ internal fun activityWaits(conversation: Conversation, controls: List<PendingCon
 internal fun activeActivity(conversation: Conversation, timeline: List<ActivityEntry>): ToolEvent? =
     timeline.asSequence().map { it.latest }.filter {
         conversation.runId.isNotBlank() && it.sessionKey == conversation.key &&
-            it.runId == conversation.runId && it.kind == "started" &&
+            it.runId == conversation.runId && it.kind == "started" && it.callId.isNotBlank() &&
             (conversation.executionGeneration == null || it.generation == conversation.executionGeneration)
-    }.maxByOrNull { it.receivedAt }
+    }.maxWithOrNull(compareBy<ToolEvent> { it.receivedAt }.thenBy { it.sequence })

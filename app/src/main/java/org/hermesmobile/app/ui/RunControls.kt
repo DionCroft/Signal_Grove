@@ -9,7 +9,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.data.*
@@ -17,7 +23,11 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@Composable fun RunControls(vm:HermesViewModel,compact:Boolean=false) {
+@Composable internal fun RunControls(
+    vm: HermesViewModel,
+    leading: @Composable RowScope.() -> Unit,
+    trailing: @Composable RowScope.() -> Unit,
+) {
     val rows by vm.controls.collectAsStateWithLifecycle()
     val selected by vm.selected.collectAsStateWithLifecycle()
     val events by vm.toolEvents.collectAsStateWithLifecycle()
@@ -26,29 +36,65 @@ import java.time.format.DateTimeFormatter
     val scope by vm.profileScope.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val sending by vm.controlBusy.collectAsStateWithLifecycle()
+    val feedback by vm.activity.collectAsStateWithLifecycle()
     val conversation = current?.takeIf { it.key == selected && it.scope == scope }
     val ownEvents = remember(conversation?.key, events) {
         events.filter { it.sessionKey == conversation?.key }
     }
     var dismissed by rememberSaveable {mutableStateOf("")}
     var timeline by remember(conversation?.key, conversation?.remoteId, scope) {mutableStateOf(false)}
-    val control=rows.firstOrNull {it.sessionKey==selected}
-    Row(Modifier.fillMaxWidth()) {
-        if(conversation != null) {
-            if(compact) IconButton({timeline=true}) {
-                BadgedBox(badge = { if (ownEvents.isNotEmpty()) Badge { Text(ownEvents.size.toString()) } }) {
-                    Icon(Icons.Outlined.Build, label(Words.ToolActivity))
-                }
-            } else TextButton({timeline=true},Modifier.weight(1f)) {Text(label(Words.HermesActivity))}
+    val control = rows.firstOrNull { it.sessionKey == selected }
+    val waits = if (conversation == null) emptyList() else activityWaits(conversation, rows)
+    val live = conversation != null && busy && !SessionOrigin.readOnly(conversation)
+    val currentTool = if (live && conversation.status in setOf("running", "queued")) {
+        val entries = remember(ownEvents) { activityTimeline(ownEvents) }
+        activeActivity(conversation, entries)
+    } else null
+    val latestWait = waits.maxByOrNull { it.receivedAt }
+    val statusText = when {
+        latestWait?.state == "unknown" -> label(Words.DecisionUnknown)
+        latestWait?.state == "responding" -> label(Words.ResponseSending)
+        latestWait != null -> label(if (latestWait.approval) Words.ActivityApprovalWait else Words.WaitingInput)
+        currentTool != null -> label(Words.ActivityInProgress).replace("{name}", activityName(currentTool))
+        busy -> feedback
+        else -> ""
+    }
+
+    Column(Modifier.fillMaxWidth()) {
+        if (statusText.isNotBlank()) {
+            Text(
+                statusText.replace("\n", " · "),
+                Modifier.testTag("chat-current-activity").semantics { liveRegion = LiveRegionMode.Polite },
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
-        if(control!=null) {
-            if(compact) IconButton({dismissed=""}) {BadgedBox(badge={Badge {Text(rows.size.toString())}}) {Icon(Icons.Outlined.HelpOutline,label(Words.ReviewRequest)+" (${rows.size})")}}
-            else TextButton({dismissed=""},Modifier.weight(1f)) {Text(label(Words.ReviewRequest)+" (${rows.size})")}
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            leading()
+            Row(Modifier.weight(1f)) {
+                if (conversation != null) {
+                    IconButton({ timeline = true }) {
+                        BadgedBox(badge = { if (ownEvents.isNotEmpty()) Badge { Text(ownEvents.size.toString()) } }) {
+                            Icon(Icons.Outlined.Build, label(Words.ToolActivity))
+                        }
+                    }
+                }
+                if (control != null) {
+                    IconButton({ dismissed = "" }) {
+                        BadgedBox(badge = { Badge { Text(rows.size.toString()) } }) {
+                            Icon(Icons.Outlined.HelpOutline, label(Words.ReviewRequest) + " (${rows.size})")
+                        }
+                    }
+                }
+            }
+            trailing()
         }
     }
-    if(timeline && conversation != null) {
-        ActivityDialog(conversation, ownEvents, activityReport(conversation, reports), activityWaits(conversation, rows),
-            live = busy && !SessionOrigin.readOnly(conversation)) {timeline=false}
+    if (timeline && conversation != null) {
+        ActivityDialog(conversation, ownEvents, activityReport(conversation, reports), waits, live = live) {
+            timeline = false
+        }
     }
     if(control!=null && dismissed!=control.key) PendingControlDialog(control,sending,{dismissed=control.key},vm::respondControl,vm::retryOrRefresh)
 }

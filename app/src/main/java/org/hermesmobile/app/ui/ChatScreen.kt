@@ -47,7 +47,6 @@ import java.time.format.DateTimeFormatter
     val historyLoading by vm.historyLoading.collectAsStateWithLifecycle()
     val caps by vm.capabilities.collectAsStateWithLifecycle()
     val status by vm.runStatus.collectAsStateWithLifecycle()
-    val activity by vm.activity.collectAsStateWithLifecycle()
     val current by vm.selectedConversation.collectAsStateWithLifecycle()
     var runtimeMessageId by remember(current?.key) { mutableStateOf<String?>(null) }
     val readOnly=current?.let(SessionOrigin::readOnly)==true
@@ -69,11 +68,29 @@ import java.time.format.DateTimeFormatter
         }
     }
     BoxWithConstraints(Modifier.fillMaxSize().imePadding()) {
-        val compactLayout = maxWidth < 360.dp || (readOnly && maxHeight < 340.dp)
-        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (compactLayout && LocalPreferences.current.chinese) Text(label(Words.Chat).replace("\n", " · "), style = MaterialTheme.typography.titleSmall)
+        val compactWidth = maxWidth < 360.dp
+        val compactHeight = maxHeight < 340.dp
+        val compactLayout = compactWidth || compactHeight
+        val splitHeading = compactWidth && LocalPreferences.current.chinese
+        Column(
+            Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compactHeight) 4.dp else 8.dp),
+        ) {
+            if (splitHeading) {
+                Text(label(Words.Chat).replace("\n", " · "), style = MaterialTheme.typography.titleSmall)
+            }
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                if (!compactLayout || !LocalPreferences.current.chinese) Word(Words.Chat,Modifier.weight(1f))
+                if (!splitHeading) {
+                    if (compactHeight) {
+                        Text(
+                            label(Words.Chat).replace("\n", " · "),
+                            Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    } else Word(Words.Chat, Modifier.weight(1f))
+                }
                 IconButton({modelOverview=true},Modifier.testTag("chat-model-status-open")) {Icon(Icons.Outlined.Info,label(Words.ModelStatus))}
                 IconButton({runtimePicker=true},enabled=!busy && !controlling && !connecting) {Icon(Icons.Outlined.Tune,label(Words.Models))}
                 IconButton({history=true},enabled=!busy && !controlling) { Icon(Icons.Outlined.History,label(Words.History)) }
@@ -89,10 +106,7 @@ import java.time.format.DateTimeFormatter
             else LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("chat-messages"),state=list,verticalArrangement=Arrangement.spacedBy(12.dp),contentPadding=PaddingValues(vertical=8.dp)) {
                 items(messages,key={it.id}) { message -> MessageCard(message, current) { runtimeMessageId = message.id } }
             }
-            if(busy && activity.isNotBlank()) Text(activity,style=MaterialTheme.typography.labelSmall,maxLines=1)
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                LocalAiEntry(compact=true)
-                Box(Modifier.weight(1f)) {RunControls(vm,compact=true)}
+            RunControls(vm, leading = { LocalAiEntry(compact = true) }) {
                 SessionControls(vm)
                 if(status!="idle") IconButton({statusDetails=true}) {Icon(if(status=="completed") Icons.Outlined.CheckCircle else Icons.Outlined.Info,label(statusWord(status)))}
                 if(status !in HermesViewModel.terminal && status!="idle" && (LocalPreferences.current.demo || (current?.runId?.isNotBlank()==true && caps?.has("run_stop")==true))) IconButton(vm::stop,enabled=!controlling) {Icon(Icons.Outlined.StopCircle,label(Words.Stop))}
@@ -111,7 +125,12 @@ import java.time.format.DateTimeFormatter
                 IconButton({},enabled=false,modifier=Modifier.testTag("chat-read-only-send")) {Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send))}
             } else OutlinedTextField(draft,{vm.changeDraft(it)},Modifier.fillMaxWidth(),enabled=!readOnly,
                 placeholder = {
-                    if (compactLayout) Text(label(Words.ChatMessagePlaceholder).replace("\n", " · "), style = MaterialTheme.typography.bodySmall)
+                    if (compactLayout) Text(
+                        label(Words.ChatMessagePlaceholder).replace("\n", " · "),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     else Text(label(Words.Message))
                 },
                 maxLines = if (compactLayout) 3 else 5,

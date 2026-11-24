@@ -449,6 +449,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     knownLock=previousRuntime.reported.takeIf {previousRuntime.lockReported})
                 if(!current(operation) || selected.value!=expectedSelection) throw CancellationException("Conversation selection changed.")
                 require(resolved.choice.isDefault || capabilities.value?.has("model_options")==true || capabilities.value?.endpoints?.containsKey("model_options")==true) {Words.NotAdvertised.localized(preferences.value)}
+                if (stored.followServing) activity.value=""
                 val fetched=System.currentTimeMillis()
                 resolved.runtime?.let {result->discovery.value=discovery.value.copy(results=discovery.value.results+(DiscoveryResource.RuntimeModels to result),
                     fetchedAt=discovery.value.fetchedAt+(DiscoveryResource.RuntimeModels to fetched),errors=discovery.value.errors-DiscoveryResource.RuntimeModels)}
@@ -535,7 +536,6 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     telemetry=RunTelemetry.merge(telemetry,update.telemetry)
                     if(update.sessionId.isNotBlank()) c=c.copy(remoteId=update.sessionId)
                     text+=update.delta;update.finalText?.let {text=it}
-                    update.activity?.let {activity.value=it.take(1000)}
                     val status=update.status?.takeUnless {c.transport!="compat" && it in RunStates.responseEnded}
                         ?: "response_finished".takeIf {update.responseBoundary && c.transport=="compat" && c.status !in RunStates.responseEnded && c.status !in RunStates.authoritativeTerminal}
                     status?.let {runStatus.value=it;c=c.copy(status=it);terminalSeen=it in terminal}
@@ -624,7 +624,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 require(c!=null && c.key==selected.value && c.scope==scope.value) {"Select the current conversation first."}
                 SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 interactionsRepo.respond(operation.client,c,control,response)
-                activity.value="Response delivered; waiting for the server's run status."
+                activity.value=Words.ResponseSubmitted.localized(preferences.value)
                 runStatus.value="response_submitted"
                 if(!busy.value) reconcile(c,operation=operation)
             } catch(e: CancellationException) {throw e}

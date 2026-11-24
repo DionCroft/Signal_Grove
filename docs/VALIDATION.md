@@ -62,6 +62,42 @@ The revised composer requires a full matrix on the final release source.
 The signed Xiaomi upgrade, production retention and public updater checks
 remain open.
 
+## Current Hermes Activity in Chat
+
+The live line uses recorded tool and subagent lifecycle events, scoped
+to the selected session, run and reported execution generation.
+A pending approval or request for an answer takes precedence. The
+previous free-form stream label is no longer used as the step
+indicator. Tool and subagent details remain available in the timeline,
+and final assistant text still comes from the existing transcript
+path. See the [Hermes API event contract](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server).
+
+The full Windows debug build, JVM suite and both lint variants passed.
+All 1,243 tests across 118 JVM reports passed with
+zero failures, errors or skips. The existing test verifies concurrent
+tool completion, foreign runs, older generations and missing call IDs.
+The privacy cases verify that commentary and reasoning remain outside
+the structured Activity result.
+
+Short Chat layouts reduce the space used by the heading and placeholder.
+The pre-change Android 8 APK and the first Activity build both reproduced
+an undersized transcript and a timed-out Demo approval in the compact
+viewport. The original reports are preserved.
+
+The exact debug and instrumentation APKs ran three compact checks
+each on Android 8 and 17 at 1080 by 1120. These covered the inline
+approval wait after deferral, its removal after resolution, retained
+tool and subagent events with reported runtime, and refusal of another
+run's event. The owned emulators' display settings and production APKs
+were verified after the checks. Live integration and physical-device
+acceptance remain open. The signed beta.11 candidate has its own gates.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Tested source snapshot | `7822f076b340db29f9c8f7255786c25b5408dbabc843ff8690c011105cbf319e` |
+| Android 8 instrumentation | `df576881abaa3ce9159dcf1c3a8754a484b3bc196d2edc768a2633bc2584daa8` |
+| Android 17 instrumentation | `b4ad5e98d386d3582d64619c91a6cfc01cdc32d15c8be3a84c98a944838ebb7a` |
+
 ## Hermes Activity approval and answer waits
 
 The Activity panel now uses the existing authenticated control records for the
@@ -121,7 +157,7 @@ The raw instrumentation log has SHA-256
 The corrected source d6834a2 passed the Android 8 shard that contains
 the original Demo denial check. The native log reports a positive
 completion for
-\`Milestone03Test#demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure\`.
+`Milestone03Test#demoApprovalWaitsForAnExplicitDenyAndRecordsToolFailure`.
 The artifact digest matches GitHub, and the repository verifier
 independently reproduced all 595 positive cases from the raw logs
 against the 1,262-case Android 8 inventory. The case and the full shard

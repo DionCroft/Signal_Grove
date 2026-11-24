@@ -109,6 +109,8 @@ class Milestone03Test {
         val prompt = vm.controls.value.single().prompt
         assertTrue(prompt.isNotBlank())
         compose.onNodeWithText(Words.Later.localized(AppPreferences())).performClick()
+        compose.onNodeWithTag("chat-current-activity").assertIsDisplayed()
+            .assertTextEquals(Words.ActivityApprovalWait.localized(AppPreferences()).replace("\n", " · "))
         compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()), substring = true).performClick()
 
         val timeline = hasTestTag("activity-timeline")
@@ -124,6 +126,8 @@ class Milestone03Test {
 
         compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()), substring = true).performClick()
         compose.onNodeWithTag("activity-wait").assertDoesNotExist()
+        compose.onNodeWithText(Words.Close.localized(AppPreferences())).performClick()
+        compose.onNodeWithTag("chat-current-activity").assertDoesNotExist()
     }
 
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {

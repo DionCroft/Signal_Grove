@@ -14,7 +14,7 @@ class HermesStreamParser {
     }
 }
 data class ToolUpdate(val tool: String,val kind: String,val preview: String,val durationMs: Long?,val callId:String="",val category:String="tool",val details:JsonObject=buildJsonObject {},val generation:Long?=null)
-data class StreamUpdate(val delta: String="",val finalText: String?=null,val status: String?=null,val activity: String?=null,
+data class StreamUpdate(val delta: String="",val finalText: String?=null,val status: String?=null,
     val runId: String="",val sessionId: String="",val approval: org.hermesmobile.app.data.Approval?=null,
     val control: ControlRequest?=null,val tool: ToolUpdate?=null,val sequence: Long?=null,val settledRequestId: String="",val replayGap: Boolean=false,val responseBoundary: Boolean=false,val settledGeneration: Long?=null,val telemetry:JsonObject=buildJsonObject {})
 object StreamDecoder {
@@ -39,12 +39,9 @@ object StreamDecoder {
             "approval.responded","approval.settled","clarify.settled"->StreamUpdate(status="response_submitted",settledRequestId=text("prompt_id").ifBlank {text("request_id")})
             "tool.started","tool.completed","tool.failed"->{
                 val kind=if(name=="tool.failed" || (j["error"] as? JsonPrimitive)?.booleanOrNull==true) "failed" else name.removePrefix("tool.")
-                val tool = ActivityProtocol.tool(j, kind)
-                val activity = tool.tool.takeIf { it.isNotBlank() }?.let { "tool.$kind: $it" }
-                StreamUpdate(activity=activity,tool=tool)
+                StreamUpdate(tool=ActivityProtocol.tool(j,kind))
             }
-            "subagent.start","subagent.complete" -> StreamUpdate(activity=name,tool=ActivityProtocol.subagent(j,name=="subagent.complete"))
-            "assistant.commentary","message.interim"->StreamUpdate(activity=text("text"))
+            "subagent.start","subagent.complete" -> StreamUpdate(tool=ActivityProtocol.subagent(j,name=="subagent.complete"))
             "replay.truncated"->StreamUpdate(replayGap=true)
             "error","run.error"->StreamUpdate(status="failed")
             else->{
