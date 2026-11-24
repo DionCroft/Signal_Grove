@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Current upstream Hermes source layout
+
+Hermes v0.23.4 and the 24 November main snapshot use the same ten
+source relocations already followed for the prior main pins. Both
+complete official trees have every required replacement and dependency.
+The strict watcher now recognizes the two exact commits. It verified
+249 source keys for each, and both reports still require semantic
+review of consumed handlers and persistence behavior. Runtime and
+live owner acceptance remain open.
+[Evidence](docs/VALIDATION.md#hermes-v0234-and-current-main-source-review).
+
 ## Bilingual helper consent on compact Android
 
 The earlier hosted API 26 consent shard passed 667/667. Its other shard

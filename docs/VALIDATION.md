@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Hermes v0.23.4 and current main source review
+
+The official annotated v0.23.4 tag points to 8fc0374. Main resolved to
+5725d1d during this review. The two complete official trees contain
+28,856 and 28,860 entries. Each lacks exactly the ten prior legacy
+paths and contains all 245 distinct paths used by the reviewed layout,
+covering 249 source keys. The known legacy source catalogue remains the
+default for unknown commits.
+[Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4) ·
+[Main snapshot](https://github.com/NousResearch/hermes-agent/commit/5725d1d390ac4b7cfe157ea32bd6f4db1a280368).
+
+The static report checks public source bytes against each official Git
+tree and parses them without importing upstream modules. Relative to
+the current client baseline, both reports found one added API route
+and 17 added management routes, with no removed routes in the tracked
+registrations. Both require semantic review of used handlers and 29
+persistence sources. Scope includes the declared handlers, tracked
+request fields and source digests. Runtime and live Pi compatibility
+remain open.
+
+Against the prior a15b971 snapshot, both new pins changed session
+authority, profile and gateway server modules, scheduler web helpers
+and tool RPC methods. Main also changed PM client and environment
+modules. The 129 watcher tests passed. The patched watcher independently
+reproduced both semantic reports by revalidating all 249 source keys.
+
+| Upstream commit | Verified cached / fetched source keys | Used handler changes | Report SHA-256 |
+| --- | ---: | ---: | --- |
+| 8fc0374 | 220 / 29 | 220 | `185e3526492661aa83315114f3c08da8c315c7a2cbe8d6c48f5c4383711d34e2` |
+| 5725d1d | 218 / 31 | 221 | `85e28fe3c028b05c519ae446ab2d05a758d29cf595589ddd0469682cc61012d3` |
+
 ## Bilingual helper consent at compact size
 
 On 6d85b6e, the hosted Android 8 shard 0 completed 593 of its 594
