@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Explicit-store deployment review artifacts
+
+The repository renderer produced the exact candidate wrappers and
+overrides. Private ARM64 fixtures accepted the shell and unit syntax.
+The production layout and original service identities were preserved.
+Review how the prepared SDK launcher selects the canonical service
+home before any protected publication or live service activation.
+[Validation](VALIDATION.md#explicit-store-deployment-review-artifacts).
+
 ## Explicit-store Pi runtime
 
 The workspace-only candidate now uses an absolute permanent tools
@@ -9,7 +18,7 @@ isolated rollback passed on the exact candidate.
 [Validation](VALIDATION.md#explicit-store-pi-runtime-and-launcher).
 
 Use the new launcher and facts in the review-only deployment packet.
-Canonical-home provisioning, live permission changes, reboot and
+Canonical-home provisioning, live permission changes, service activation and
 health checks, and production recovery remain gated. Verify one real
 phone-to-worker attachment after separate activation approval.
 

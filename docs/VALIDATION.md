@@ -1,5 +1,26 @@
 # Current development validation — audit follow-up
 
+## Explicit-store deployment review artifacts
+
+The repository renderer generated two shell wrappers and two systemd
+overrides for the exact candidate facts and launcher. Both wrappers
+passed native shell syntax checks. Both overrides passed
+`systemd-analyze --user verify --man=no` in fixture units. The assembled
+Serve fixture pointed to its private copy of the reviewed wrapper while
+retaining the original proposed override bytes. Production fragments,
+environment values and credentials were outside this parser test.
+
+A separate read verified the launcher's digest and live service
+identities. The canonical service home still had no PM facts for this
+candidate. The proposed policy, wrappers and drop-ins remained
+unpublished. The Windows publication catalog suite passed eight tests
+and skipped eight POSIX-only tests.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Review-only rendered packet | `eee14a65ccfd4327c399b603cbd5f34651a4333a532d194750b4dea55ed8fe19` |
+| Native syntax verification output | `a82873e9bca10ba9f94b1ec92b2494918087ca11a0ce9ed44791cdbb64654bcb` |
+
 ## Explicit-store Pi runtime and launcher
 
 A fresh isolated generation on ARM64 reconstructed the sealed 23,691

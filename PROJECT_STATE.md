@@ -7,6 +7,14 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Explicit-store deployment review artifacts
+
+The review-only packet renders the exact two wrapper scripts and two
+proposed systemd overrides for the new candidate. They passed syntax
+checks in Pi fixtures. Production activation still needs canonical-home
+PM provisioning, protected publication and fresh backup, drain, health
+and recovery checks. [Validation](docs/VALIDATION.md#explicit-store-deployment-review-artifacts).
+
 ## Explicit-store Pi runtime and launcher verified
 
 The fresh workspace-only runtime carried all 23,691 reviewed source and
