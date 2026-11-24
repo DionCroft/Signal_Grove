@@ -16,8 +16,9 @@ before the reload, and a stale configuration after a start holds the
 outcome for inspection using its original receipt.
 
 Windows policy validation passed 974 cases with 273 platform skips.
-Hosted native verification, the coordinated reload, and live Pi
-activation remain open.
+The hosted Linux suite passed all 1,247 methods and verified the isolated
+test unit stopped. The coordinated reload and live Pi activation remain
+open.
 [Validation](docs/VALIDATION.md#reviewed-service-startup-after-reload).
 
 ## Native build paths in beta.11 APKs

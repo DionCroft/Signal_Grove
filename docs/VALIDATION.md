@@ -18,9 +18,15 @@ initial private verification wrapper omitted the checkout root from
 its isolated Python path. Its 18 import errors were retained. The
 corrected wrapper loaded the same project sources.
 
-The component still needs the hosted native service fixture. The
-coordinator's reload action and the live Pi transaction require their
-own verification before activation.
+The hosted Linux policy job for 1fb4115 passed all 1,247 methods with
+zero skips and verified the isolated test unit stopped. The uploaded
+archive, inventory, per-case results and process cleanup summary were
+independently verified. Both new reload regressions were present. The
+coordinator's reload action and live Pi transaction remain separate
+verification steps. The workflow's independent upstream source scans
+stopped at missing required paths on the then-current stable and main
+revisions.
+[Hosted Linux policy job](https://github.com/DionCroft/Signal_Grove/actions/runs/45437051981/job/138597600491).
 
 ## Native build paths in beta.11 APKs
 
