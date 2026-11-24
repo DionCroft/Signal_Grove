@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## Coordinator-driven service sequence
+
+The fixture now drives the reviewed sequence through CutoverCoordinator
+with an actual user-systemd manager, original exclusive journal, bound
+service snapshots and fresh observations. It verifies service command
+lines in procfs and writes the durable coordinator evidence. A simulated
+backup-stage failure holds the original operation after the replacement
+services have been verified. Recovery loads and starts the original
+runtime under a separate approval bound to that exact history.
+Work admission, PM, backups and other non-service prerequisites use
+explicitly identified fixture results.
+
+The fixture Python and workflow YAML passed local validation. A direct
+invocation refused the local Windows host at the disposable-runner guard.
+The native hosted sequence still needs verification on the exact commit.
+
 ## Journal-bound workspace service reload
 
 Forward and recovery reloads bind both idle unit snapshots to the exact

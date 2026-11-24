@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Coordinator-driven service sequence
+
+The disposable integration fixture runs the existing coordinator with
+real systemd stop, reload and start actions for two owned services.
+It injects a backup-stage fault after reviewing replacement startup
+and submits a separate recovery approval against the original journal.
+The fixture source and CI wiring passed local validation. Hosted service
+transition evidence is pending.
+[Validation](docs/VALIDATION.md#coordinator-driven-service-sequence).
+
 ## Journal-bound workspace service reload
 
 The native service adapter can now execute the existing forward or

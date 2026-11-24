@@ -24,7 +24,7 @@ jobs:
       - run: |
           python3 --version
           python3 -B -m unittest discover -s server_extensions/runtime_models -v
-      - name: Exercise the reviewed forward and recovery daemon reloads
+      - name: Exercise real service cutover and recovery through the coordinator
         shell: bash
         run: |
           set -euo pipefail
