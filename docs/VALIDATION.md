@@ -1,5 +1,53 @@
 # Current development validation — audit follow-up
 
+## Build-plugin advisory remediation
+
+Buildscript constraints replace the six flagged versions, align the
+Bouncy Castle provider and helpers at 1.85, and preserve Checker Framework
+qualifiers at 3.43.0 after the Guava update. The first strict isolated
+resolution stopped at missing checker and JUnit checksums. The new
+constraint retained the prior qualifier selection and the two JUnit
+metadata files were verified separately before retry.
+
+The policy retains all 501 previous component records and adds 19
+reviewed components with 34 artifact hashes. Publisher SHA-256 sidecars or
+matching downloads from both official Maven Central endpoints confirmed
+the additions. Strict resolution verified 112 unique plugin binaries.
+The OSV response covered all 118 selected plugin coordinates and showed
+zero indexed matches, with a positive control.
+
+The exact isolated input set changes only the root buildscript and
+Gradle verification metadata. The release runtime export matches the signed
+rehearsal byte for byte for 154 Maven modules and 98 distinct binaries.
+On this source, all 1,242 JVM tests and all five checksum-policy tests
+passed. Debug and release lint reported zero errors with 51 and 50
+warnings respectively. The debug app, instrumentation app and unsigned
+release packaged successfully.
+
+Both Android 8 and 17 passed all eleven named instrumentation methods.
+The cases included keyboard and fresh consent checks, updater
+cancellation and tampered-APK refusal. The first device preflight
+timed out on read-only ADB commands before package installation. The
+second used the same verified APKs after both guests responded. It
+restored the keyboard settings and confirmed the production APK
+digests on both emulators. The unsigned private APK passed ZIP
+alignment. All 32 native library paths and imported-library lists
+match the rehearsal. Twenty native file hashes differ in this rebuild.
+All 64-bit load segment alignments were at least 16 KB.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Isolated exact input manifest | `81a03af531406895aa3ca91fd43fc18f737025b757c84cd2179b3b42d910fd7c` |
+| Candidate classpath review | `bc067503361b7fbf48a7b33de17b24426ecb0c4381c59ff00fd663a7690fe4e5` |
+| Candidate classpath OSV response | `4471e9d3244339270379479c4bd2188c3874e01eae347409c2e98df9d760030f` |
+| Verified private APK set | `80e286175be1b7453d0f4255b4d8199ee8f5a893c19cef1b4abb41e870d7edce` |
+| Native ABI and import comparison | `2630af009b3812afcc15cd5ba881fca3672706dc31ca415d901360abf2744906` |
+| API 26 instrumented checks | `a5a666228be5a16d443b285925cd8c5a2c4aa1194910ca1bafa520bc0f5034ad` |
+| API 37 instrumented checks | `6eb0ed6b6b232e5da1b55833b73e01a269d6041031b1ea26acb5c244072d408e` |
+
+The exact hosted matrix, final signed release inventory, physical
+upgrade and public updater flow retain their own checks.
+
 ## Beta.11 rehearsal runtime and build-tool review
 
 The signed rehearsal inventory was checked on 24 November 2026 at

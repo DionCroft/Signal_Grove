@@ -7,6 +7,20 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Build-plugin advisory remediation
+
+The Gradle buildscript now constrains the flagged library versions and
+pins the reviewed Maven artifacts. OSV found zero indexed matches for
+the resulting 118 exact plugin coordinates. All 1,242 JVM tests, both
+lint variants and eleven device methods on each of Android 8 and 17
+passed, including updater cancellation and integrity checks.
+[Validation](docs/VALIDATION.md#build-plugin-advisory-remediation).
+
+The resolved runtime inventory matches the signed rehearsal. The new
+unsigned build has its own native hashes and provenance. Run the full
+hosted checks on the updated source before the final signing, Xiaomi
+upgrade and publication gates.
+
 ## Beta.11 rehearsal runtime and build-tool review
 
 The exact signed rehearsal inventory returned zero indexed OSV matches

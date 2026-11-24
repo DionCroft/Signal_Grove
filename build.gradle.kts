@@ -1,5 +1,33 @@
 import java.io.File
 
+buildscript {
+    dependencies {
+        constraints {
+            add("classpath", "org.checkerframework:checker-qual:3.43.0") {
+                because("Retain the existing qualifier version after the Guava update")
+            }
+            add("classpath", "com.google.guava:guava:33.7.2-jre") {
+                because("GHSA-xxph-c9ww-hj94")
+            }
+            add("classpath", "org.apache.commons:commons-lang3:3.18.0") {
+                because("GHSA-j288-q9x7-2f5v")
+            }
+            add("classpath", "org.bitbucket.b_c:jose4j:0.9.6") {
+                because("GHSA-3677-xxcr-wjqv")
+            }
+            add("classpath", "org.bouncycastle:bcpkix-jdk18on:1.85") {
+                because("align the tool classpath with the fixed Bouncy Castle provider")
+            }
+            add("classpath", "org.bouncycastle:bcprov-jdk18on:1.85") {
+                because("GHSA-9pwp-9qqc-pr26 and GHSA-qp49-qgx5-5m26")
+            }
+            add("classpath", "org.jdom:jdom2:2.0.6.1") {
+                because("GHSA-2363-cqg2-863c")
+            }
+        }
+    }
+}
+
 plugins {
     id("com.android.application") version "9.5.0" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.4.21" apply false
