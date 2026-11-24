@@ -1,5 +1,44 @@
 # Current development validation — audit follow-up
 
+## Private beta.11 artifact and Pi preflight
+
+The exact private build from 290f7fe verified version code 116, package
+org.hermesmobile.app, minimum SDK 26 and target SDK 37,
+the original production signer and 16 KB ZIP alignment. Release lint
+reported zero errors and 55 warnings. Its SBOM validated against
+CycloneDX 1.6, and each of the 32 packaged native paths and hashes
+matched the inventory. Running the NDK 29.0.14206865 strip step
+reproduced the C++ runtime bytes and build IDs for all four ABIs.
+
+On 24 November 2026 the current batch query found zero indexed
+advisories for the exact 154 Maven coordinates and the pinned
+llama.cpp commit. Its positive control returned eight matches.
+[OSV query batch reference](https://google.github.io/osv.dev/post-v1-querybatch/).
+The hosted workflow for 6d85b6e passed verify and started all four
+device shards. The signed Xiaomi upgrade and public release checks
+are independent gates.
+[Hosted Android workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45355709971).
+
+The read-only Pi recheck bound both running services to the prior
+incarnations, source and executable hashes, and all four loaded
+configuration files. The staged source manifest, launcher, install
+stamp and isolated PM facts matched the reviewed packet. Both proposed
+unit override links and the protected workspace policy were absent.
+The CLI entry existed, and the candidate's CLI reference remained
+unapplied. The staged source still lacked canonical PM facts. Service
+observations matched before and after the check. Fresh backup, work
+drain, canonical provisioning, activation approval and phone-to-worker
+acceptance remain open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Signed private APK | `d7332f7ac43c9b28d6f444f1729f59d53198de39218c475f2ac92634dc92d631` |
+| Runtime SBOM | `1c70b7b3f231bdc1e286e381d2498eaf9b118b05eae8dfe2e09a5c5d2f3b7b15` |
+| Candidate provenance | `408f4a4f560db4e90a96534ea6599bae5e5ec14b93791c21349a8489cd70e6d9` |
+| Packaged NDK comparison | `992dc9bd92c6badb47f3997031f7a73aa5a53dbbff0a01203ab23221bab9fe7f` |
+| OSV response | `57782df36d44ca6f624ac0635c41e4a83d9b96c080586c30fa7639d15ec4fd64` |
+| Read-only Pi preflight | `a62378562a5e200eb91189e2502e36809624d0ea383c31bc13afd7cf0e3771e7` |
+
 ## Compact phone helper and native keyboard testing
 
 [Android CI run 45306944580](https://github.com/DionCroft/Signal_Grove/actions/runs/45306944580)

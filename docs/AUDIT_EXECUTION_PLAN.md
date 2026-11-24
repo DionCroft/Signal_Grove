@@ -11,6 +11,19 @@ managed-host upgrade from the affected revision, verify retained
 receipt access and reconciliation without replay against the native
 gateway. [Validation](VALIDATION.md#hermes-client-stamp-retry-compatibility).
 
+## Read-only workspace preflight refreshed
+
+Both live Pi process identities, loaded references, original runtime
+and executable, and four loaded configuration files matched the
+reviewed baseline. The staged manifest, isolated PM facts, install
+stamp and launcher matched the corrected packet. The protected policy
+and canonical PM facts for the staged generation remain absent.
+
+The next review still requires canonical PM preparation, a fresh
+verified backup, work drain, bounded cutover and recovery, and the
+separate activation approval. Recheck the live identities at that gate.
+[Preflight evidence](VALIDATION.md#private-beta11-artifact-and-pi-preflight).
+
 ## Protected workspace policy destination
 
 The staged workspace operator, deployment renderer and native

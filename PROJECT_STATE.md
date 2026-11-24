@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Private beta.11 inventory and current Pi workspace preflight
+
+The signed code-116 build from commit 290f7fe matches the beta.10
+certificate. Its validated 187-component SBOM includes all 32 native
+members and a current review of 154 Maven coordinates, the pinned
+llama.cpp revision and the packaged NDK C++ runtime. The full hosted
+Android matrix for the compact-helper code has reached its four device
+shards. The full release-source check and Xiaomi upgrade remain open.
+[Validation](docs/VALIDATION.md#private-beta11-artifact-and-pi-preflight).
+
+Read-only Pi observations match both live service incarnations, their
+loaded configuration and the previously rehearsed staged candidate.
+The private runtime has its own PM facts. The live runtime still needs
+canonical PM preparation and the reviewed backup, drain, activation
+and rollback checks. The production workspace policy remains absent.
+
 ## Compact phone helper and native keyboard testing
 
 The beta.11 debug candidate reproduced an inherited Android 8 keyboard
