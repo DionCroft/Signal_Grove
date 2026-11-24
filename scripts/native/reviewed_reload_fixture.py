@@ -92,17 +92,19 @@ class ServiceOperations:
     def observe(self, step, phase, execution):
         states = snapshots(self.manager)
         for role, unit in zip(ROLES, states, strict=True):
-            assert unit.unit == self.paths[role].name and unit.load_state == "loaded", step
-            assert unit.configuration_sha256 == expected_configuration(self.paths[role], role, self.loaded), step
-            assert unit.needs_daemon_reload == (self.definitions != self.loaded), step
-            assert unit.job_id == unit.control_pid == 0, step
-            assert unit.active_state == ("active" if role in self.running else "inactive"), step
+            known = expected_configuration(self.paths[role], role, self.loaded)
+            assert unit.unit == self.paths[role].name and unit.load_state == "loaded", (step, role, unit.load_state)
+            assert unit.configuration_sha256 == known, (step, role, "commands", unit.configuration_sha256, known)
+            assert unit.needs_daemon_reload == (self.definitions != self.loaded), (step, role, "reload flag")
+            assert unit.job_id == unit.control_pid == 0, (step, role, "pending job or control process")
+            assert unit.active_state == ("active" if role in self.running else "inactive"), (step, role, unit.active_state)
             if role in self.running:
-                assert unit.owner is not None and unit.executable == EXE, step
+                assert unit.owner is not None and unit.executable == EXE, (step, role, "owner", unit.executable)
                 cmdline = Path("/proc", str(unit.main_pid), "cmdline").read_bytes()
-                assert cmdline.split(b"\0") == [*(arg.encode() for arg in argv(role, self.loaded)), b""], step
+                assert cmdline.split(b"\0") == [*(arg.encode() for arg in argv(role, self.loaded)), b""], (
+                    step, role, "command line", cmdline)
             else:
-                assert unit.main_pid == 0 and unit.owner is None, step
+                assert unit.main_pid == 0 and unit.owner is None, (step, role, "inactive owner")
 
         observed = snapshot_digest(states)
         receipt = self.receipts.get(step)
@@ -192,6 +194,8 @@ def main():
             operations = ServiceOperations(manager, paths, work)
             forward = ApprovedExecution(uuid.uuid4().hex, plan.packet_sha256, plan.authority_sha256, "forward",
                                         digest([seed, "fixture-forward"]), time.monotonic() + 85)
+            checked = operations.observe("preflight", "before", forward)
+            assert checked.snapshot_sha256 == plan.preflight_snapshot_sha256, "Reviewed fixture preflight drifted"
             try:
                 CutoverCoordinator(plan, journal, operations).run(forward)
             except Unknown:
