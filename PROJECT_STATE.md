@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reviewed checkout at Windows queue insertion
+
+The worker now holds the exact reviewed checkout through queue
+insertion and receipt commit. The original receipt lookup and the
+independent claim and launch checks remain in place. All 111 Windows
+worker, 41 portable and 13 staged broker checks passed. Live worker
+deployment and Pi-to-worker acceptance remain open.
+[Validation](docs/VALIDATION.md#reviewed-checkout-at-windows-queue-insertion).
+
 ## Native build paths in beta.11 APKs
 
 The signed 73f68da candidate contained workstation paths in 16 native

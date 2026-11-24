@@ -1,5 +1,41 @@
 # Current development validation — audit follow-up
 
+## Reviewed checkout at Windows queue insertion
+
+The existing queue path observed the checkout before acquiring the
+SQLite write transaction. A real branch move between observation and
+insertion could leave a stale ready row. The native claim and launch
+guards still checked the checkout before starting a child.
+
+New admissions now recheck the exact reviewed checkout after acquiring
+the SQLite transaction. Native handles and the prepared Git verification
+transaction hold the root, HEAD and branch tip through the ready row
+and original receipt commit. The operator confirms the grant, signing
+key, provider and deadline inside that hold. Exact retries still read
+the original durable row, and independent claim and child-creation
+checks still require the original binding.
+
+Two new native regressions failed on the original implementation.
+One advanced the branch before the insert and demonstrated the stale
+admission. The other advanced it during the actual SQLite commit. Both
+passed after the change. The first full suite then caught a stale
+runtime manifest digest. The updated pin was derived after verifying
+the old digest and confirming `reviewed_operator.py` was the only
+changed file in the 14-module runtime manifest.
+
+- Windows worker suite: 111 passes, including the pinned loader and
+  native named-pipe checks.
+- Portable loader, approval and scheduler suite: 41 passes.
+- Staged worker and broker: 13 passes through the verified fixture,
+  including claim, real inert child creation and original receipt
+  recovery. The two staged entrypoint files matched their prior
+  manifest. The updated queue operator came from this checkout.
+
+The new runtime manifest digest is
+`0ceeaf32e7bb89a47d171ad897d1bdb18561b137aedde9ae677d20ca66d1cd8f`.
+All checks used disposable local workspaces. Deployment, the live Pi
+route and production scheduling acceptance remain open.
+
 ## Native build paths in beta.11 APKs
 
 The private signed 73f68da APK preserved 460 absolute workstation path

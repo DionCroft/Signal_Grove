@@ -69,9 +69,9 @@ class ReviewedOperatorTest(unittest.TestCase):
     def acl(self, path, *args):
         subprocess.run(["icacls.exe", str(path), *args], check=True, capture_output=True, timeout=10)
 
-    def make_operator(self):
+    def make_operator(self, *, queue_db=None):
         return ReviewedWorkerOperator(
-            policy_path=str(self.policy_path), key_path=str(self.key_path), queue_db=self.queue_db,
+            policy_path=str(self.policy_path), key_path=str(self.key_path), queue_db=queue_db or self.queue_db,
             provider_for_scope=lambda scope: self.fixture.provider if scope == self.fixture.provider.scope else None,
             git_executable=self.fixture.git, owner_observer=lambda: self.owner, wall_clock=lambda: self.wall,
             clock=lambda: self.monotonic, read_queue=self.read_queue,
@@ -184,6 +184,53 @@ class ReviewedOperatorTest(unittest.TestCase):
         with self.assertRaisesRegex(WorkspaceError, "CHANGED"):
             self.operator.accept(self.packet())
         self.assertFalse(self.rows())
+
+    def test_queue_refuses_checkout_drift_after_initial_observation(self):
+        opened = 0
+
+        @contextmanager
+        def queue_db():
+            nonlocal opened
+            opened += 1
+            if opened == 2:
+                self.fixture.git_call("commit", "--allow-empty", "--message=checkout changed before insert")
+            with self.queue_db() as db:
+                yield db
+
+        operator = self.make_operator(queue_db=queue_db)
+        with self.assertRaisesRegex(WorkspaceError, "CHANGED"):
+            operator.accept(self.packet())
+        self.assertEqual(2, opened)
+        self.assertFalse(self.rows())
+        with self.assertRaisesRegex(WorkspaceError, "DENIED"):
+            operator.lookup(self.approval.execution_id)
+
+    def test_queue_keeps_reviewed_branch_locked_through_commit(self):
+        ref = f"refs/heads/{self.approval.branch}"
+        next_commit = self.fixture.git_call(
+            "commit-tree", "HEAD^{tree}", "-p", self.approval.commit, "-m", "competing fixture update",
+        ).stdout.decode().strip()
+        attempts = []
+
+        def trace(statement):
+            if statement == "COMMIT":
+                attempt = self.fixture.git_call("update-ref", ref, next_commit, self.approval.commit, check=False)
+                attempts.append(attempt.returncode)
+
+        @contextmanager
+        def queue_db():
+            with self.queue_db() as db:
+                db.set_trace_callback(trace)
+                yield db
+
+        operator = self.make_operator(queue_db=queue_db)
+        self.assertEqual("ready", operator.accept(self.packet())["state"])
+        self.assertEqual(1, len(attempts))
+        self.assertNotEqual(0, attempts[0])
+        self.assertEqual(self.approval.commit, self.fixture.observe().commit)
+        self.fixture.git_call("update-ref", ref, next_commit, self.approval.commit)
+        self.assertEqual(next_commit, self.fixture.observe().commit)
+        self.assertEqual(1, len(self.rows()))
 
     def test_native_reservation_is_idempotent_and_one_use(self):
         original = self.packet()

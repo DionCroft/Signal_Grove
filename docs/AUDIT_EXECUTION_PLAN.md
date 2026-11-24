@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Reviewed checkout at Windows queue insertion
+
+Windows now holds the reviewed checkout across the original queue
+insert and receipt commit, as well as the existing independent claim
+and launch guards. Native and staged broker fixtures verified refusal
+of a moved checkout and original-receipt reconciliation. Qualify the
+repinned worker bundle before any live rollout. App-to-Pi-to-worker
+attachment and a live reviewed scheduled run remain open.
+[Validation](VALIDATION.md#reviewed-checkout-at-windows-queue-insertion).
+
 ## Hermes client stamp retry compatibility
 
 The isolated SQLite review distinguishes pre-stamp stores, the
