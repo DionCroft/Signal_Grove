@@ -1,5 +1,41 @@
 # Current development validation — audit follow-up
 
+## Hermes client stamp retry compatibility
+
+The three changed modules in the reviewed main persistence layout
+normalize only the owner-stamped client label for input retry identity.
+The original payload written to a new queued admission still carries
+the label. [First stamped writer](https://github.com/NousResearch/hermes-agent/commit/0357a14b76e4f604d2fa6b9c3a973f9a76f7968d) ·
+[Normalization change](https://github.com/NousResearch/hermes-agent/commit/6dae08d3b8b8c2d56e93553175502e318036d783).
+
+The isolated probe used the original SQLite modules and three disposable
+profile stores. Each Python source matched the official complete Git
+tree for its exact revision. The candidate ran on Windows CPython 3.14.3
+with the locked YAML wheels. Hermes selected the DELETE journal fallback
+for the installed SQLite 3.50.4. The 239 imported candidate files were
+byte-identical at `a15b971` and `eb49b89`. The executable check ran
+at `a15b971`.
+
+| Stored input | Queued and retired readback after upgrade |
+| --- | --- |
+| Written at `242315c` before the stamp existed | The same request recovered the original receipt with a new stamp or without one. |
+| Written at `0357a14` with a stamp included in the old digest | The original admission IDs and receipts survived. Identical, changed and absent stamp retries each returned `admission_conflict`. |
+| Written at `a15b971` with normalized retry identity | A changed or absent stamp recovered the original receipt. The queued record preserved its first stamp. Changes to text, intent or other surface fields were refused in the exercised paths. |
+
+The candidate verified unchanged admission and receipt tables across
+the retry checks, SQLite integrity and foreign keys, and one claim for
+the fresh input. A retired request from a different principal was
+refused. This establishes a persistence result for the exercised
+inputs. Native gateway lookup and platform acceptance for an affected
+upgrade remain open. The strict compatibility gate remains in force.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Retained evidence manifest | `6bec8cb5eea7f663d237d9213dd0fd72e5dfde46d8770e4436c422fed899372a` |
+| Pre-stamp upgrade result | `467d5670440e90b8bc991ac1ae49c7d9121286c64b2020ebe034336cce301948` |
+| Stamped-digest upgrade result | `f15e1f54cd53a619ba40542e875d898897be5f6674ed4fb4c5df5a4a890779a3` |
+| Fresh candidate result | `255c88d74db876f25c2993e522aece1304005665a0f73666bc093fefc7295245` |
+
 ## Focused Android keyboard and helper consent checks
 
 The original [hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45287698016)

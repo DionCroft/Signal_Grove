@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes client stamp retry compatibility
+
+The exact main-pin SQLite component accepted a fresh retry that changed
+only the owner-client stamp and returned the original receipt. A store
+written before the stamp existed also reopened and recovered its original
+queued and retired receipts. The specific intermediary commit that
+wrote stamped digests retained its receipts but refused their retries
+after upgrade. The checks created no duplicate admissions.
+[Validation](docs/VALIDATION.md#hermes-client-stamp-retry-compatibility).
+
+Keep this upgrade edge case open for managed-runtime acceptance. Preserve
+the request identity and use authenticated receipt lookup to reconcile
+a refusal or unknown result. Android run
+[45306944580](https://github.com/DionCroft/Signal_Grove/actions/runs/45306944580)
+covers the prior instrumentation commit.
+
 ## Focused Android keyboard and helper consent checks
 
 The four Android 8 failures pass in the corrected nine-method cohort on

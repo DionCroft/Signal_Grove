@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## Hermes client stamp retry compatibility
+
+The isolated SQLite review distinguishes pre-stamp stores, the
+intermediary stamped-digest writer and the new retry identity. Queued
+and retired receipts persist in all cases. The intermediary store's
+old digests refuse exact retries after upgrade, with no duplicate
+admission. Keep the strict semantic review open. Before approving a
+managed-host upgrade from the affected revision, verify retained
+receipt access and reconciliation without replay against the native
+gateway. [Validation](VALIDATION.md#hermes-client-stamp-retry-compatibility).
+
 ## Protected workspace policy destination
 
 The staged workspace operator, deployment renderer and native
