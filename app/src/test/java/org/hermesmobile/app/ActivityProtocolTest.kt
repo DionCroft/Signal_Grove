@@ -21,6 +21,26 @@ class ActivityProtocolTest {
         assertEquals(5,activityTimeline(rows).size)
         assertEquals("failed",activityTimeline(listOf(event("1","a","failed",1),event("2","a","started",2))).single().latest.kind)
     }
+    @Test fun separatorsInsideIdsCannotMergeAnOlderCompletionWithTheLiveCall() {
+        val current = Conversation("c", "scope-a", "session", runId = "r|2|tool|first",
+            status = "running", executionGeneration = 2)
+        val start = event("start", "second", "started", 1, run = current.runId)
+        val olderCompletion = event("done", "first|2|tool|second", "completed", 2)
+        val timeline = activityTimeline(listOf(start, olderCompletion))
+        assertEquals(2, timeline.size)
+        assertEquals(start, activeActivity(current, timeline))
+    }
+
+    @Test fun timelineKeepsTheFirstObservedStartReceiptAcrossLateEvents() {
+        val start = event("start", "a", "started", 2).copy(receivedAt = 10)
+        val completion = event("done", "a", "completed", 3).copy(receivedAt = 20)
+        val lateStart = event("late", "a", "started", 1).copy(receivedAt = 30)
+        val entry = activityTimeline(listOf(completion, lateStart, start)).single()
+        assertEquals(start, entry.startReceipt)
+        assertEquals(completion, entry.latest)
+        assertNull(activityTimeline(listOf(completion)).single().startReceipt)
+    }
+
     @Test fun liveStepUsesOnlyAnUnfinishedIdentifiedCallForTheCurrentRun() {
         val current = Conversation("c", "scope-a", "session", runId = "r", status = "running",
             executionGeneration = 2)

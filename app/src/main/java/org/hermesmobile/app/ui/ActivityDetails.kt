@@ -112,6 +112,10 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                         "completed" -> Words.Completed
                         else -> Words.Unknown
                     }), style=MaterialTheme.typography.labelMedium)
+                    entry.startReceipt?.takeIf { it != e }?.let { start ->
+                        Text(label(Words.ActivityStartReceived).replace("{time}", displayTime.format(Instant.ofEpochMilli(start.receivedAt))),
+                            style = MaterialTheme.typography.labelSmall)
+                    }
                     Text(label(Words.ActivityUpdateReceived).replace("{time}", displayTime.format(Instant.ofEpochMilli(e.receivedAt))),
                         style = MaterialTheme.typography.labelSmall)
                     if(e.callId.isNotBlank()) {Text(label(Words.ActivityIdentity));SelectionContainer {Text(e.callId,style=MaterialTheme.typography.bodySmall)}}

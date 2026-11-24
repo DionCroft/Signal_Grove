@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes Activity tool-call identities and receipt times
+
+The Activity panel keeps calls separate by exact session, run,
+generation, category and call ID. It shows when the phone received the
+first start and the displayed outcome when both are stored. The exact
+build passed all 1,246 JVM tests, both lint variants, and six focused
+compact Android 17 cases. Full Android 8 coverage and live Hermes
+attribution for the worker, workspace, skill and integration remain
+open. [Validation](docs/VALIDATION.md#hermes-activity-tool-call-identities-and-receipt-times).
+
 ## Newer Hermes shutdown pins
 
 The active shutdown workflow now covers Hermes v0.23.4 and the reviewed

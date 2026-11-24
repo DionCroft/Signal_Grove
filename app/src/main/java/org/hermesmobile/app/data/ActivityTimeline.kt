@@ -5,12 +5,24 @@ import kotlinx.serialization.json.*
 data class ActivityEntry(val key:String,val events:List<ToolEvent>) {
     private val ordered=events.sortedWith(compareBy<ToolEvent> {it.sequence ?: Long.MIN_VALUE}.thenBy {it.receivedAt})
     val first get()=ordered.first()
+    val startReceipt get()=events.asSequence().filter { it.kind == "started" }.minByOrNull { it.receivedAt }
     val latest get()=ordered.lastOrNull {it.kind in setOf("completed","failed","cancelled")} ?: ordered.last()
     val details:JsonObject get()=JsonObject(ordered.flatMap {runCatching {Json.parseToJsonElement(it.detailsJson).jsonObject.entries.toList()}.getOrDefault(emptyList())}.associate {it.key to it.value})
 }
-fun activityTimeline(events:List<ToolEvent>):List<ActivityEntry> = events.groupBy {e ->
-    if(e.callId.isBlank()) "legacy:${e.key}" else "${e.sessionKey}|${e.runId}|${e.generation}|${e.category}|${e.callId}"
-}.map {(key,rows) -> ActivityEntry(key,rows)}.sortedByDescending {it.events.maxOf {e -> e.receivedAt}}
+fun activityTimeline(events: List<ToolEvent>): List<ActivityEntry> = events.groupBy { event ->
+    buildJsonArray {
+        if (event.callId.isBlank()) {
+            add(event.key)
+        } else {
+            add(event.sessionKey)
+            add(event.runId)
+            add(event.generation?.let { JsonPrimitive(it) } ?: JsonNull)
+            add(event.category)
+            add(event.callId)
+        }
+    }.toString()
+}.map { (key, rows) -> ActivityEntry(key, rows) }
+    .sortedByDescending { entry -> entry.events.maxOf { it.receivedAt } }
 
 internal fun activityReport(conversation: Conversation, reports: List<RunReport>): RunReport? =
     reports.firstOrNull { report ->

@@ -1861,6 +1861,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     ActivityLastRunStatus("Last reported run status","上次报告的运行状态","Shàng cì bàogào de yùnxíng zhuàngtài"),
     ActivityInProgress("In progress · {name}","进行中 · {name}","Jìnxíng zhōng · {name}"),
     ActivityApprovalWait("Waiting for approval","等待批准","Děngdài pīzhǔn"),
+    ActivityStartReceived("Start received {time}","开始事件接收时间 {time}","Kāishǐ shìjiàn jiēshōu shíjiān {time}"),
     ActivityUpdateReceived("Received {time}","接收时间 {time}","Jiēshōu shíjiān {time}"),
     ToolActivity("Tool activity","工具活动","Gōngjù huódòng"), Started("Started","已开始","Yǐ kāishǐ"),
     Incomplete("Stopped short of completion","未完全完成","Wèi wánquán wánchéng"), WaitingInput("An answer is needed","需要回答","Xūyào huídá"),

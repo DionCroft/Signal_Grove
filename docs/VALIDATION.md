@@ -1,5 +1,37 @@
 # Current development validation — audit follow-up
 
+## Hermes Activity tool-call identities and receipt times
+
+Activity groups identified calls by the exact session, run, generation,
+category and call ID. Older rows without a call ID retain an individual
+entry. A start and a terminal event show separate phone receipt times
+when both were observed. The paired call retains the server-reported
+duration when present. The first observed start stays visible when a
+lower-sequence start arrives late.
+
+The exact source passed 1,246 JVM tests in 118 reports and both lint
+variants with zero errors. Both debug APKs built. Regressions cover
+separator-bearing IDs, a completion from a different run, reordered
+starts and a terminal event without a start. The matching installed APK
+pair passed six Activity, receipt and saved-history cases on Android 17
+at 840 × 1470, 420 dpi and 1.3× text. The child-activity fixture
+screenshot showed the reported lineage and a reachable Close control.
+
+The reviewed Hermes v0.23.4 tool event format supplies the reported
+tool, optional call ID, duration and error. Skill, integration, worker
+and workspace attribution still require authenticated run-bound
+evidence. Full Android 8 coverage on this source and live Pi acceptance
+remain open.
+[Hermes Runs tool events](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/gateway/platforms/api_server_runs.py#L124-L133).
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Windows build receipt | `a324590bb77b7aa53203ded73bb1260a84ac00cb58e2aef4501ad0c2edf56d2f` |
+| Debug APK | `f856b3fa549a78961fe9126786cc06acdf2e0ca11e2a62d8277bd9c863acdd72` |
+| Instrumentation APK | `747575eec5f9c299e9468dfc7c7571aa43e4ef8f20f17b51370e15f69e3fb59b` |
+| Android 17 compact instrumentation log | `fb83d6fd7862d8487e29439bdf1ea50a67ab8e979270940eb1af470934b2be11` |
+| Android 17 child-activity fixture screenshot | `782649aaf64b977e915a4376e574b3036681b96318db9bdce7c964da23473995` |
+
 ## Newer Hermes shutdown pins
 
 The active audit branch imports the verified workflow and source anchors
