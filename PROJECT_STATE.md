@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Live gateway admission prerequisites
+
+An authenticated live status frame failed at the admission observation.
+The reviewed home had no ledger and no explicit project-control section.
+Four maintained-SDK cases in disposable homes confirmed that enabling
+the fixture alone leaves admission unobserved until its native ledger
+exists. The live scope and initialization plan still require review.
+[Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
+
 ## Authenticated scheduler checks on the current Hermes pins
 
 Stable and main each passed the same 112 scheduler and history tests.

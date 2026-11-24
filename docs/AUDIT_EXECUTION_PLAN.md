@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## Live gateway admission diagnosis
+
+The live gateway now has an authenticated work-status sample that
+identifies unobserved admission. The real home lacks an initialized
+ledger. A four-case isolated SDK run verified the status prerequisites.
+Review the supported initialization and conservative enrollment scope
+for the actual host. Canonical PM preparation, current work proof,
+fresh backup, and separately approved activation and recovery remain
+required. Keep the reading path separate from scheduled execution.
+[Validation](VALIDATION.md#live-gateway-admission-diagnosis).
+
 ## Native dashboard scheduler evidence
 
 Both current Hermes pins pass the same isolated scheduler, profile,

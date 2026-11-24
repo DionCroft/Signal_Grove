@@ -1,5 +1,59 @@
 # Current development validation — audit follow-up
 
+## Live gateway admission diagnosis
+
+The native gateway reader reports fixed failure phases for authenticated
+status frames. A failed projection sets the result to unknown and leaves
+the connection spent. It exposes no raw response fields. The drain
+requirements and successful projection remain the same.
+
+A separate read-only sample on source
+`343fc418b5f7cdca969b2f48d94dbbb36b68dd8f` authenticated the exact
+live peer and frame. It held at `admission_unobserved`. The reviewed
+home had no `project-control.db` and its local YAML had no explicit
+`project_control` section. The config check did not resolve defaults
+or inheritance. Three maintained SDK sources matched their prior hashes
+on the Pi. File contents and work data did not leave the Pi.
+
+Four fresh homes in the approved isolated Pi generation used the
+actual maintained SDK Python. Five relevant source hashes matched both
+installed copies. The listener handler used synthetic empty work owners.
+Initialized homes used the SDK's `Ledger` constructor with no real
+projects or turns. Enabled cases selected the fixture's all-enrollment
+mode. The tested cases did not start or stop any service.
+
+| Disposable setup | Registered admission |
+| --- | --- |
+| Project-control section absent and ledger absent | Unobserved |
+| Enabled and ledger absent | Unobserved |
+| Enabled and ledger initialized by the SDK | Observed |
+| Explicitly disabled and ledger initialized by the SDK | Unobserved |
+
+Read-only status created no file. Observed fixture admission provided
+no fleet drain permission. Production preflight reports before and after
+the isolated run matched byte for byte. The production service and
+staged runtime review therefore keep their existing held status.
+
+All 1,254 hosted native Linux methods passed, including the new
+authenticated-socket regression. The native rollout fixture repeated
+eight readiness observations and two expected refusals. Windows passed
+980 portable methods with 274 platform skips. The stable and main
+reports still require semantic review.
+[Exact native run](https://github.com/DionCroft/Signal_Grove/actions/runs/45474947571/job/138732566719) ·
+[Upstream source run](https://github.com/DionCroft/Signal_Grove/actions/runs/45474947571/job/138733609823).
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Classified live gateway sample | `7c585ce8e06b97d791e8973bbac22d8ed44afdbcd4df65abcd4f5bde5033aad9` |
+| Pi-side source and config classification | `0a1538ef87294cc24b71285815c71d5f2f7f8561a6bbb959da6ffbabf5737595` |
+| Isolated SDK admission matrix | `d4f3e01f70b423bde6709250c57550479368f2bc2ca7505735059e42e726f563` |
+| Native policy archive | `7e3514a818c865c8a960dc45cfc034b6f6611723dcd2d8f4011c08fea9c7499e` |
+
+Review how the actual host can initialize its admission boundary while
+scoping eligibility to the reviewed projects and workers. Qualify live
+work coverage and recovery before asking for separate approval. The
+fixture's enrollment setting confers no production permission.
+
 ## Authenticated scheduling on the current Hermes pins
 
 The exact stable `8fc0374447313e276f6b9a2764bfc750190c966a` and main
