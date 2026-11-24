@@ -39,8 +39,9 @@ object StreamDecoder {
             "approval.responded","approval.settled","clarify.settled"->StreamUpdate(status="response_submitted",settledRequestId=text("prompt_id").ifBlank {text("request_id")})
             "tool.started","tool.completed","tool.failed"->{
                 val kind=if(name=="tool.failed" || (j["error"] as? JsonPrimitive)?.booleanOrNull==true) "failed" else name.removePrefix("tool.")
-                val tool=text("tool_name").ifBlank {text("tool")}
-                StreamUpdate(activity="tool.$kind: $tool",tool=ActivityProtocol.tool(j,kind))
+                val tool = ActivityProtocol.tool(j, kind)
+                val activity = tool.tool.takeIf { it.isNotBlank() }?.let { "tool.$kind: $it" }
+                StreamUpdate(activity=activity,tool=tool)
             }
             "subagent.start","subagent.complete" -> StreamUpdate(activity=name,tool=ActivityProtocol.subagent(j,name=="subagent.complete"))
             "assistant.commentary","message.interim"->StreamUpdate(activity=text("text"))

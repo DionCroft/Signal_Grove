@@ -37,10 +37,10 @@ class ActivityFlowTest {
             """{"event":"run.started","run_id":"activity-run","seq":0}""",
             """{"event":"tool.started","tool":"shell","tool_call_id":"call-a","preview":"First local fixture","seq":1}""",
             """{"event":"tool.started","tool":"shell","tool_call_id":"call-b","preview":"Second local fixture","seq":2}""",
-            """{"event":"tool.completed","tool":"shell","tool_call_id":"call-a","preview":"First result","duration":.1,"seq":3}""",
+            """{"event":"tool.completed","tool":"shell","tool_call_id":"call-a","preview":"fixture-raw-result","duration":.1,"seq":3}""",
             """{"event":"tool.completed","tool":"shell","tool_call_id":"call-b","error":true,"duration":.2,"seq":4}""",
             """{"event":"subagent.start","subagent_id":"agent-1","child_session_id":"child-1","goal":"Review fixture","seq":5}""",
-            """{"event":"subagent.complete","subagent_id":"agent-1","child_session_id":"child-1","summary":"Reviewed synthetic fixture","status":"completed","input_tokens":20,"cost_usd":.001,"seq":6}""",
+            """{"event":"subagent.complete","subagent_id":"agent-1","child_session_id":"child-1","summary":"fixture-raw-agent-summary","output_tail":"fixture-raw-agent-output","status":"completed","input_tokens":20,"cost_usd":.001,"seq":6}""",
             """{"event":"run.completed","run_id":"activity-run","output":"Activity fixture complete","usage":{"input_tokens":200,"output_tokens":15,"cache_read_tokens":150},"runtime":{"model":"fallback-model","provider":"fallback-provider","route_source":"global","requested":{"model":"requested-model","provider":"requested-provider"}},"seq":7}"""
         ).joinToString("") {"data: $it\n\n"}.replace(":.",":0.")
         MockWebServer().use {server ->
@@ -59,9 +59,18 @@ class ActivityFlowTest {
             compose.runOnUiThread {vm.newChat();vm.send("Harmless activity fixture")}
             compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed" && vm.toolEvents.value.size==6 && vm.messages.value.any {it.telemetryJson.contains("fallback-model")}}
             val entries=activityTimeline(vm.toolEvents.value);assertEquals(3,entries.size)
+            assertTrue(vm.toolEvents.value.all { it.preview.isEmpty() && !it.detailsJson.contains("fixture-raw-") })
             assertEquals("failed",entries.first {it.first.callId=="call-b"}.latest.kind)
             assertEquals("child-1",entries.first {it.first.category=="subagent"}.details.text("child_session_id"))
             val answer=vm.messages.value.first {it.role=="assistant"};assertFalse(answer.telemetryJson.contains("total_tokens"))
+            val legacy = vm.toolEvents.value.first().copy(
+                key = "legacy-" + answer.id,
+                callId = "legacy-call",
+                preview = "fixture-raw-legacy-preview",
+                detailsJson = """{"summary":"fixture-raw-legacy-summary","output_tail":"fixture-raw-legacy-output"}"""
+            )
+            runBlocking { (context as HermesApplication).database.dao().save(legacy) }
+            compose.waitUntil(10000) { vm.toolEvents.value.any { it.key == legacy.key } }
             compose.onAllNodesWithContentDescription(word(Words.Chat),useUnmergedTree=true).onLast().performClick()
             compose.onNodeWithContentDescription(word(Words.ToolActivity),substring=true).performClick()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("fallback-model"))
@@ -70,6 +79,9 @@ class ActivityFlowTest {
             compose.onNodeWithText("requested-provider").assertExists()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("child-1"));compose.onNodeWithText("child-1").assertExists();shot("rich-child-activity")
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("call-b"));compose.onNodeWithText("call-b").assertExists()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("legacy-call"))
+            compose.onNodeWithText("legacy-call").assertExists()
+            compose.onNodeWithText("fixture-raw-", substring = true).assertDoesNotExist()
             compose.onNodeWithText(word(Words.Close)).performClick()
             compose.onNodeWithTag("chat-messages").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             compose.onNodeWithTag("chat-messages").performScrollToNode(hasTestTag("runtime-usage-${answer.id}"))

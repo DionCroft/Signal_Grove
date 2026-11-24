@@ -20,9 +20,8 @@ private fun metricWord(key:String)=when(key) {
     "cache_read_tokens"->Words.CacheReadTokens;"cache_write_tokens"->Words.CacheWriteTokens;"reasoning_tokens"->Words.ReasoningTokens
     "provider"->Words.Provider;"model"->Words.ModelId;"route_source"->Words.RouteSource;"model_lock"->Words.LastLockAck
     "child_session_id"->Words.ChildSession;"subagent_id"->Words.AgentIdentity;"delegation_id"->Words.DelegationIdentity;"parent_id"->Words.ParentIdentity
-    "goal"->Words.AgentGoal;"summary"->Words.AgentSummary;"output_tail"->Words.AgentOutput
     "status"->Words.RunStatus;"cost_usd"->Words.ReportedCost;"duration_seconds"->Words.DurationSeconds
-    "files_read"->Words.FilesRead;"files_written"->Words.FilesWritten;"api_calls"->Words.ApiCalls
+    "api_calls"->Words.ApiCalls
     "tool_count"->Words.ToolCount;"depth"->Words.AgentDepth;"task_index"->Words.TaskIndex;"task_count"->Words.TaskCount
     else->Words.ServerValue
 }
@@ -46,7 +45,7 @@ private fun metricWord(key:String)=when(key) {
     },confirmButton={TextButton(dismiss) {Text(label(Words.Close))}})
 }
 private val publicActivityDetails = setOf("child_session_id", "subagent_id", "delegation_id", "parent_id",
-    "model", "status", "summary", "duration_seconds", "tool_count", "api_calls", "depth", "task_index", "task_count")
+    "model", "status", "duration_seconds", "tool_count", "api_calls", "depth", "task_index", "task_count")
 
 @Composable private fun activityName(event: ToolEvent): String = when {
     event.category == "subagent" -> label(Words.Subagent)
@@ -105,10 +104,6 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                     if(e.callId.isNotBlank()) {Text(label(Words.ActivityIdentity));SelectionContainer {Text(e.callId,style=MaterialTheme.typography.bodySmall)}}
                     if(e.runId.isNotBlank()) {Text(label(Words.RunIdentity));Text(e.runId,style=MaterialTheme.typography.bodySmall)}
                     e.durationMs?.let {Text("${it} ms",style=MaterialTheme.typography.labelSmall)}
-                    entry.previews.forEach { preview ->
-                        val visible = preview.take(1000).filter { !it.isISOControl() || it in "\n\r\t" }
-                        if (visible.isNotBlank()) SelectionContainer {Text(visible, style=MaterialTheme.typography.bodySmall)}
-                    }
                     entry.details.filterKeys { it in publicActivityDetails }.forEach { (key, value) ->
                         if (value is JsonPrimitive && value !is JsonNull && value.content.length <= 1000 &&
                             value.content.none { it.isISOControl() && it !in "\n\r\t" }) ServerField(key, value)

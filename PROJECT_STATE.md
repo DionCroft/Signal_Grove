@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes Activity payload privacy
+
+The beta.11 Activity follow-up keeps tool identities, outcomes, timing
+and subagent metadata in the timeline. Incoming tool previews and
+subagent payloads can carry arguments, results or file lists. The
+Runs Activity decoder retains the reviewed metadata, and the viewer
+also applies that boundary to legacy saved rows. The original
+conversation transcript remains available.
+
+All 1,242 JVM cases passed and both lint variants reported zero
+errors. Seven focused methods passed on each of Android 8 and 17,
+including the live and legacy payload regression and read-only history.
+The Activity change requires a newly signed beta.11 candidate and its
+own full hosted matrix before the physical upgrade and publication.
+[Validation](docs/VALIDATION.md#runs-activity-payload-privacy).
+
 ## Bilingual helper consent on compact Android
 
 The earlier hosted API 26 consent shard passed 667/667. Its other shard

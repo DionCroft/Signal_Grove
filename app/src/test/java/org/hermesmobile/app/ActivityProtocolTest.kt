@@ -22,17 +22,28 @@ class ActivityProtocolTest {
         assertEquals("failed",activityTimeline(listOf(event("1","a","failed",1),event("2","a","started",2))).single().latest.kind)
     }
     @Test fun toolWireIdentityAndErrorRemainBoundToTheExactCompletion() {
-        val update=StreamDecoder.decode(SseEvent("tool.completed","""{"tool":"shell","tool_call_id":"call-b","duration":0.125,"error":true,"execution_generation":4,"seq":9}"""))
+        val update=StreamDecoder.decode(SseEvent("tool.completed","""{"tool":"shell","tool_call_id":"call-b","duration":0.125,"error":true,"execution_generation":4,"seq":9,"preview":"fixture-raw-result","args":{"credential":"fixture-raw-argument"}}"""))
         val tool=update.tool!!;assertEquals("call-b",tool.callId);assertEquals("failed",tool.kind);assertEquals(125L,tool.durationMs);assertEquals(4L,tool.generation)
+        assertEquals("", tool.preview)
+        assertEquals("tool.failed: shell", update.activity)
+        assertFalse(update.toString().contains("fixture-raw-"))
         assertNull(ActivityProtocol.duration(JsonPrimitive(-1)));assertNull(ActivityProtocol.duration(JsonPrimitive(1e30)))
     }
-    @Test fun publicSubagentMetadataRetainsLineageAndBoundsTextAndFiles() {
-        val raw=buildJsonObject {put("subagent_id","agent-a");put("child_session_id","child-a");put("goal","Goal");put("summary","x".repeat(5000));put("reasoning","private");put("cost_usd",0.02);put("input_tokens",12);put("files_read",JsonArray(List(100) {JsonPrimitive("f".repeat(1000))}))}
-        val update=StreamDecoder.decode(SseEvent("subagent.complete",raw.toString())).tool!!
-        assertEquals("subagent",update.category);assertEquals("agent-a",update.callId);assertEquals("child-a",update.details.text("child_session_id"));assertEquals(1000,update.preview.length)
-        assertEquals("",ActivityProtocol.subagent(obj("""{"delegation_id":"batch"}"""),false).callId)
-        assertEquals("batch:1",ActivityProtocol.subagent(obj("""{"delegation_id":"batch","task_index":1}"""),false).callId)
-        assertFalse(update.details.containsKey("reasoning"));assertEquals(20,update.details["files_read"]!!.jsonArray.size);assertTrue(update.details.toString().length<20000)
+    @Test fun subagentActivityKeepsLineageAndAccountingWithoutRawPayloads() {
+        val raw = obj("""{"subagent_id":"agent-a","child_session_id":"child-a","status":"completed",
+            "goal":"fixture-private-goal","summary":"fixture-private-summary","reasoning":"fixture-private-reasoning",
+            "output_tail":"fixture-private-output","files_read":["fixture-private-path"],
+            "cost_usd":0.02,"input_tokens":12}""")
+        val update = StreamDecoder.decode(SseEvent("subagent.complete", raw.toString())).tool!!
+        assertEquals("subagent", update.category)
+        assertEquals("agent-a", update.callId)
+        assertEquals("child-a", update.details.text("child_session_id"))
+        assertEquals("completed", update.kind)
+        assertEquals(12L, update.details["input_tokens"]!!.jsonPrimitive.long)
+        assertEquals("", update.preview)
+        assertFalse(update.toString().contains("fixture-private-"))
+        assertEquals("", ActivityProtocol.subagent(obj("""{"delegation_id":"batch"}"""), false).callId)
+        assertEquals("batch:1", ActivityProtocol.subagent(obj("""{"delegation_id":"batch","task_index":1}"""), false).callId)
     }
     @Test fun accountingKeepsMissingUnknownAndSeparatesRequestedFromServedRuntime() {
         val j=obj("""{"usage":{"input_tokens":120,"output_tokens":4,"cache_read_tokens":100,"cache_write_tokens":-3,"reasoning":"private","total_tokens":"bad"},"runtime":{"model":"fallback","provider":"provider-b","requested":{"model":"original","provider":"provider-a","api_key":"private"},"api_key":"private"},"model":"echoed-request"}""")

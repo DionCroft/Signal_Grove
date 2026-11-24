@@ -1,5 +1,37 @@
 # Current development validation — audit follow-up
 
+## Runs Activity payload privacy
+
+Hermes v0.23.4 can populate the Runs stream preview from tool progress
+and serialized results. The prior beta.11 candidate stored that preview
+and displayed it as selectable timeline text. The static wire scope
+also accepted free-form subagent goals, output and file lists. The new
+decoder retains tool identities, timings, reported outcomes, subagent
+lineage and accounting. Legacy rows use the same display boundary.
+[Upstream preview producer](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/gateway/platforms/api_server_runs.py#L136-L158).
+
+The method fixtures send distinct synthetic raw tool and delegated
+payloads, then inject a saved legacy row containing both a preview
+and summary. The UI verifies the legacy call is displayed without its
+payload. The live timeline retains separate parallel calls and the
+requested and served runtime identities. The suite also covers
+unavailable read-only history, profile switching, migration and
+receipt ownership.
+
+The verified debug pair passed all seven selected methods on Android 8
+and 17. Both owned production package digests matched their preflight
+values. The JVM suite passed 1,242 cases across 118 reports. Debug
+lint reported 56 warnings and release lint 55, with zero errors in
+either. The exact release-source matrix and final candidate signing
+are separate gates.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| App debug APK | `7ee9d5cb13a9ebf99db55f663ba52efaf538df5e48b399505d0aaee33a2190c5` |
+| Companion debug APK | `744670b786542b57401768893dcf2725fb5ac4a6ebba397a46b5ed1ecdbd28db` |
+| Android 8 log | `502792e9e60272c7c0cfbf7a5474f4462102defe95dccaa24ef7df3b21294509` |
+| Android 17 log | `b22432f3fe77ca15d2c3d916bf63403fac3ef52546f75ec1231d56162990fd77` |
+
 ## Bilingual helper consent at compact size
 
 On 6d85b6e, the hosted Android 8 shard 0 completed 593 of its 594
