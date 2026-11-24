@@ -186,8 +186,8 @@ jobs:
         id: stamped_receipt
         if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '5725d1d390ac4b7cfe157ea32bd6f4db1a280368'
         env:
-          SOURCE_COMMIT: ${{ matrix.source_commit }
-          PM_PYTHON: ${{ steps.pm.outputs.python-path }
+          SOURCE_COMMIT: ${{ matrix.source_commit }}
+          PM_PYTHON: ${{ steps.pm.outputs.python-path }}
         run: |
           python3 -I -B - <<'PY'
           from pathlib import Path
@@ -204,7 +204,7 @@ jobs:
           PY
           "$PM_PYTHON" -I -B client/scripts/native/stamped_receipt_transport.py \
             --legacy stamped-sdk --current sdk --current-commit "$SOURCE_COMMIT" \
-            --evidence "$RUNNER_TEMP/stamped-receipt"
+            --evidence "$RUNNER_TEMP/persistence/stamped-receipt"
       - name: Run one unchanged, source-bound persistence cohort
         if: ${{ !cancelled() && (success() || steps.gateway_auth.conclusion == 'failure' || steps.stamped_receipt.conclusion == 'failure') }}
         env:
@@ -223,6 +223,6 @@ jobs:
             ${{ runner.temp }}/persistence/persistence.xml
             ${{ runner.temp }}/persistence/persistence.log
             ${{ runner.temp }}/persistence/gateway-*
-            ${{ runner.temp }}/stamped-receipt/gateway-*
+            ${{ runner.temp }}/persistence/stamped-receipt/gateway-*
           if-no-files-found: error
           retention-days: 30
