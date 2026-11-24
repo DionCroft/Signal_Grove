@@ -7,6 +7,19 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Independent service-home dependencies verified
+
+Supported Hermes PM prepared a new isolated service home using the pinned
+candidate. The real published launcher selected that home's own facts and
+site-packages. Native ContextGraph and PyYAML imports worked. The live
+service home is still unprovisioned for the candidate.
+[Validation](docs/VALIDATION.md#isolated-service-home-provisioning-and-launch).
+
+Next compose the protected publication, verified backup, drain, health
+and rollback steps for review. Keep live provisioning and deployment
+behind separate approval. Android verify passed and four device shards
+are running.
+
 ## Explicit-store deployment review artifacts
 
 The review-only packet renders the exact two wrapper scripts and two

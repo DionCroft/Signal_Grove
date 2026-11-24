@@ -1,5 +1,25 @@
 # Current development validation — audit follow-up
 
+## Isolated service-home provisioning and launch
+
+The exact explicit-store SDK prepared a new isolated service home via
+`pm.sync_venv` with the reviewed dependency extras. The SDK receipt confirmed
+a successful rebuild and its current-environment check passed. The result
+has separate installation facts and its own dependency environment. The
+known launcher, invoked from outside the source directory, reported the
+exact supplied Hermes home, its activation facts and its site-packages.
+The selected ARM64 interpreter loaded ContextGraph 0.8.1 and PyYAML 6.0.3.
+
+The original PM facts, launcher, lock and package declaration retained
+their digests. Both live service identities and loaded configuration
+matched preflight. The canonical home still had no facts for this candidate
+and the workspace policy remained absent.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Isolated service-home PM facts | `a212e3959ddf018cfabbd9e03d3d6578d5ec751dbecc269bf2cd57f4165650bf` |
+| Isolated service-home and launcher output | `846d28a1d9d02d84c2fabb0e5c071ac378cd99e7d16a359a05e37695f10e485e` |
+
 ## Explicit-store deployment review artifacts
 
 The repository renderer generated two shell wrappers and two systemd

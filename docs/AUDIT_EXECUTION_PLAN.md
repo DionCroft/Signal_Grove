@@ -1,5 +1,13 @@
 # Signal Grove audit execution plan
 
+## Independent service-home provisioning
+
+The actual SDK synchronized the candidate into a fresh isolated service
+home. The launcher selected that home's PM facts from outside the source
+directory, and the original runtime facts and live units were preserved.
+Use this result to prepare the canonical-home provisioning step in the
+activation review. [Validation](VALIDATION.md#isolated-service-home-provisioning-and-launch).
+
 ## Explicit-store deployment review artifacts
 
 The repository renderer produced the exact candidate wrappers and
