@@ -1,5 +1,37 @@
 # Current development validation — audit follow-up
 
+## Schedule refresh when the profile is hosted elsewhere
+
+The upstream cron profile resolver returns HTTP 409 if a plugin runs the
+selected profile on another backend. The app handles a conflict on the
+profile-scoped inventory read, keeps the selected profile and drops stale
+jobs, details and creation state. It displays a localized scheduler message.
+The fixture verifies the response body stays out of the screen, no writes
+or fallback reads occur, and manual refresh uses the original profile.
+[Hermes v0.23.4 scheduler source](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/hermes_cli/web_server_cron.py).
+
+The exact follow-up passed 1,243 JVM tests from 118 reports with zero
+failures, errors or skips. Both lint variants reported zero errors. Five
+instrumentation methods passed on each Android version. The other four
+covered paused creation and receipt observation, timing reply loss, Run
+once reply loss and scoped history. The connected checks used fixtures.
+Live scheduling on the enrolled worker remains open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Tested source snapshot | 82aa0c0738e9858ffd1d25e4a83cea4ffaa359111aebf5bb163288663b325dae |
+| Android 8 raw instrumentation | df08ad0402476ea4cbb74ad6916cf025f7f412cc4f40c140c60102ef4ee97c53 |
+| Android 17 raw instrumentation | 53d3a33d8893b2807546dfcb43fd2d8fa9d1a4f429f98459ce94bb05c351e0e0 |
+
+The exact main dotenv helper also passed six isolated parser and
+write-callback cases using CPython 3.14.3 and the lock-verified dotenv
+1.2.4 wheel. Cases covered BOM and CRLF retention, multiline and
+repeated assignments, quoted keys, fallback and absent keys, and
+non-UTF-8 refusal or preservation. This fixture isolates assignment
+handling. Native atomic writes and authenticated environment routes
+still need acceptance.
+[Hermes main dotenv source](https://github.com/NousResearch/hermes-agent/blob/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15/hermes_cli/env_loader.py).
+
 ## Current Hermes stable and main source layouts
 
 The earlier hosted comparison stopped before writing either report.

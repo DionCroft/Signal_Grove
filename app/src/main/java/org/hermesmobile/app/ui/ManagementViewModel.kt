@@ -1402,15 +1402,29 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         val target=target() ?: error("Verify management profile first.")
         val record=app.database.dao().managementOperation(key) ?: error("Missing receipt.")
         require(record.resourceScope==target.resourceScope && record.apiScope==target.apiScope && record.action=="CronCreate")
-        val current=tokens ?: error("Sign in first.");val api=client(state.value);api.identity(current)
-        val rows=ManagedCronJob.inventory(api.cronJobs(current,target.profile),target.profile)
-        if(id==generation) state.value=state.value.copy(cron=HostCronState(jobs=rows,loaded=true),notice=Words.ManagementObservationOnly)
+        readHostCronInventory(id, target, Words.ManagementObservationOnly)
     }
-    fun loadHostCron()=operation {id ->
-        val target=target() ?: error("Verify management profile first.");val current=tokens ?: error("Sign in first.")
-        val api=client(state.value);api.identity(current)
-        val rows=ManagedCronJob.inventory(api.cronJobs(current,target.profile),target.profile)
-        if(id==generation) state.value=state.value.copy(cron=HostCronState(jobs=rows,loaded=true))
+    fun loadHostCron() = operation { id ->
+        val target = target() ?: error("Verify management profile first.")
+        readHostCronInventory(id, target)
+    }
+    private suspend fun readHostCronInventory(id: Long, target: ManagementTarget, notice: Words? = null) {
+        val current = tokens ?: error("Sign in first.")
+        val api = client(state.value)
+        api.identity(current)
+        val inventory = try {
+            api.cronJobs(current, target.profile)
+        } catch (error: HermesHttpException) {
+            if (error.code != 409) throw error
+            if (id == generation) {
+                state.value = state.value.copy(cron = HostCronState(), error = Words.HostCronProfileConflict)
+            }
+            return
+        }
+        val jobs = ManagedCronJob.inventory(inventory, target.profile)
+        if (id == generation) {
+            state.value = state.value.copy(cron = HostCronState(jobs = jobs, loaded = true), notice = notice)
+        }
     }
     fun loadHostCronDetail(job:ManagedCronJob)=operation {id ->
         val saved=state.value;val target=target() ?: error("Verify management profile first.")

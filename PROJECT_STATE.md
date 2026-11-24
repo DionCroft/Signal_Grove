@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Schedule refresh when the profile is hosted elsewhere
+
+A conflict while reading the selected host scheduler's inventory clears
+its stale job and review data. The selected connection and profile remain
+available with a scheduler-specific message. The next read needs an
+explicit refresh. Five device fixtures passed on each Android version,
+including the conflict, manual recovery and separate original-receipt
+flows. The live profile and worker trial remains open.
+[Validation](docs/VALIDATION.md#schedule-refresh-when-the-profile-is-hosted-elsewhere).
+
 ## Current Hermes stable and main source layouts
 
 The compatibility checker can again inspect the exact stable and main

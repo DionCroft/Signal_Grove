@@ -2,11 +2,13 @@
 
 ## Current upstream source layouts and cron profile routing
 
-Both exact stable and main source layouts are verified. Review their
-semantic differences and verify the app handles a profile-run-elsewhere
-HTTP 409 while preserving the originally selected profile and scheduler
-state. Check the main changes to environment edits, Kanban home selection
-and PM synchronization before accepting that revision.
+Both exact stable and main source layouts are verified. Android 8 and
+17 fixtures now cover a profile-run-elsewhere HTTP 409 on scheduler
+refresh, preserving the selected profile and requiring explicit refresh.
+The live conflict and scheduler trial remain open. Six synthetic dotenv
+cases cover the new main parser. Complete authenticated environment,
+Kanban home selection and PM synchronization acceptance and continue the
+remaining stable and main semantic review.
 [Validation](VALIDATION.md#current-hermes-stable-and-main-source-layouts).
 
 ## Hermes client stamp retry compatibility

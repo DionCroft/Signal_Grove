@@ -17,6 +17,7 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 
 class HostCronFlowTest {
@@ -28,6 +29,8 @@ class HostCronFlowTest {
     private fun json(text:String)=MockResponse().setHeader("Content-Type","application/json").setBody(text)
     @Test fun advancedScheduleInventoryUsesItsExplicitProfileAndLoadsTheSelectedJob() {
         val writes=AtomicInteger()
+        val inventoryProfiles = ConcurrentLinkedQueue<String>()
+        val inventoryReads = AtomicInteger()
         credentials.managementServer().use {server ->
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse=when {
@@ -36,9 +39,13 @@ class HostCronFlowTest {
                     request.path=="/dashboard/api/auth/me"->json("""{"user_id":"fixture-user","provider":"password","display_name":"Creation fixture"}""")
                     request.path=="/dashboard/api/profiles"->json("""{"profiles":[{"name":"worker"}]}""")
                     request.path=="/dashboard/api/mcp/servers?profile=worker"->json("""{"servers":[]}""")
-                    request.path=="/dashboard/api/cron/jobs?profile=worker"->{
-                        assertEquals("Bearer management-create-fixture",request.getHeader("Authorization"))
-                        json("""[{"id":"other-fixture","name":"Other schedule","profile":"worker","enabled":true,"state":"scheduled","schedule_display":"Every hour"},{"id":"advanced-fixture","name":"Advanced fixture","profile":"worker","enabled":false,"state":"paused","schedule_display":"0 9 * * *"}]""")
+                    request.method == "GET" && request.requestUrl?.encodedPath == "/dashboard/api/cron/jobs" -> {
+                        inventoryProfiles.add(request.requestUrl?.queryParameter("profile").orEmpty())
+                        assertEquals("Bearer management-create-fixture", request.getHeader("Authorization"))
+                        if (inventoryReads.incrementAndGet() == 2) {
+                            json("""{"detail":"Profile 'worker' runs elsewhere: a private-scheduler-plugin runs its backend. Marker: /private-profile-marker"}""")
+                                .setResponseCode(409)
+                        } else json("""[{"id":"other-fixture","name":"Other schedule","profile":"worker","enabled":true,"state":"scheduled","schedule_display":"Every hour"},{"id":"advanced-fixture","name":"Advanced fixture","profile":"worker","enabled":false,"state":"paused","schedule_display":"0 9 * * *"}]""")
                     }
                     request.path=="/dashboard/api/cron/jobs/advanced-fixture?profile=worker"->json("""{"id":"advanced-fixture","name":"Advanced fixture","profile":"worker","enabled":false,"state":"paused","schedule_display":"0 9 * * *","script":"safe-fixture.py","no_agent":true,"timezone":"UTC","repeat":{"times":null,"completed":2},"last_error":"private-error-fixture","hermes_home":"/private-home-fixture"}""")
                     request.method!="GET"->{writes.incrementAndGet();json("{}").setResponseCode(405)}
@@ -65,6 +72,33 @@ class HostCronFlowTest {
             val shot=File(compose.activity.getExternalFilesDir(null),"qa/host-cron-detail.png");shot.parentFile!!.mkdirs()
             shot.outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             compose.onNodeWithTag("host-cron-detail-close").performClick()
+            val list = compose.onNodeWithTag("host-cron-list")
+            list.performScrollToNode(hasTestTag("host-cron-refresh"))
+            compose.onNodeWithTag("host-cron-refresh").performClick()
+            compose.waitUntil(10000) {
+                val state = management.state.value
+                !state.busy && state.error == Words.HostCronProfileConflict
+            }
+            assertEquals("worker", management.state.value.profile)
+            assertEquals(HostCronState(), management.state.value.cron)
+            list.performScrollToNode(hasText(Words.HostCronProfileConflict.en))
+            compose.onNodeWithText(Words.HostCronProfileConflict.en).assertIsDisplayed()
+            compose.onNodeWithText("private-scheduler-plugin", substring = true).assertDoesNotExist()
+            compose.onNodeWithText("private-profile-marker", substring = true).assertDoesNotExist()
+            compose.onNodeWithText("Advanced fixture").assertDoesNotExist()
+            list.performScrollToNode(hasTestTag("cron-create-open"))
+            compose.onNodeWithTag("cron-create-open").assertIsNotEnabled()
+            assertEquals(listOf("worker", "worker"), inventoryProfiles.toList())
+            assertEquals(0, writes.get())
+
+            list.performScrollToNode(hasTestTag("host-cron-refresh"))
+            compose.onNodeWithTag("host-cron-refresh").performClick()
+            compose.waitUntil(10000) {!management.state.value.busy && management.state.value.cron.loaded}
+            assertEquals(listOf("worker", "worker", "worker"), inventoryProfiles.toList())
+            assertEquals("worker", management.state.value.profile)
+            assertEquals(listOf("other-fixture", "advanced-fixture"), management.state.value.cron.jobs.map { it.id })
+            assertNull(management.state.value.error)
+            assertEquals(0, writes.get())
             compose.runOnUiThread {management.bind("unconfigured")};compose.waitUntil(5000) {management.state.value.apiScope=="unconfigured"}
             assertTrue(management.state.value.cron.jobs.isEmpty());assertNull(management.state.value.cron.detail);assertEquals(0,writes.get())
         }
