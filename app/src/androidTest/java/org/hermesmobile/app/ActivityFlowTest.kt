@@ -40,7 +40,7 @@ class ActivityFlowTest {
             """{"event":"tool.completed","tool":"shell","tool_call_id":"call-a","preview":"fixture-raw-result","duration":.1,"seq":3}""",
             """{"event":"tool.completed","tool":"shell","tool_call_id":"call-b","error":true,"duration":.2,"seq":4}""",
             """{"event":"subagent.start","subagent_id":"agent-1","child_session_id":"child-1","goal":"Review fixture","seq":5}""",
-            """{"event":"subagent.complete","subagent_id":"agent-1","child_session_id":"child-1","summary":"fixture-raw-agent-summary","output_tail":"fixture-raw-agent-output","status":"completed","input_tokens":20,"cost_usd":.001,"seq":6}""",
+            """{"event":"subagent.complete","subagent_id":"agent-1","child_session_id":"child-1","summary":"fixture-raw-agent-summary","output_tail":"fixture-raw-agent-output","status":"timeout","input_tokens":20,"cost_usd":.001,"seq":6}""",
             """{"event":"run.completed","run_id":"activity-run","output":"Activity fixture complete","usage":{"input_tokens":200,"output_tokens":15,"cache_read_tokens":150},"runtime":{"model":"fallback-model","provider":"fallback-provider","route_source":"global","requested":{"model":"requested-model","provider":"requested-provider"}},"seq":7}"""
         ).joinToString("") {"data: $it\n\n"}.replace(":.",":0.")
         MockWebServer().use {server ->
@@ -61,9 +61,11 @@ class ActivityFlowTest {
             val entries=activityTimeline(vm.toolEvents.value);assertEquals(3,entries.size)
             assertTrue(vm.toolEvents.value.all { it.preview.isEmpty() && !it.detailsJson.contains("fixture-raw-") })
             assertEquals("failed",entries.first {it.first.callId=="call-b"}.latest.kind)
-            assertEquals("child-1",entries.first {it.first.category=="subagent"}.details.text("child_session_id"))
+            val child = entries.first { it.first.category == "subagent" }
+            assertEquals("child-1", child.details.text("child_session_id"))
+            assertEquals("timeout", child.latest.kind)
             val answer=vm.messages.value.first {it.role=="assistant"};assertFalse(answer.telemetryJson.contains("total_tokens"))
-            val legacy = vm.toolEvents.value.first().copy(
+            val legacy = vm.toolEvents.value.first { it.category == "tool" }.copy(
                 key = "legacy-" + answer.id,
                 callId = "legacy-call",
                 preview = "fixture-raw-legacy-preview",
@@ -77,6 +79,8 @@ class ActivityFlowTest {
             compose.onNodeWithText("fallback-model").assertExists()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("requested-provider"))
             compose.onNodeWithText("requested-provider").assertExists()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText(word(Words.ActivityTimedOut)))
+            compose.onNodeWithText(word(Words.ActivityTimedOut)).assertIsDisplayed()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("child-1"));compose.onNodeWithText("child-1").assertExists();shot("rich-child-activity")
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("call-b"));compose.onNodeWithText("call-b").assertExists()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("legacy-call"))

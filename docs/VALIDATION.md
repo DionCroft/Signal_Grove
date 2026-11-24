@@ -1,5 +1,79 @@
 # Current development validation — audit follow-up
 
+## Reported subagent outcomes and Hermes delivery
+
+The Runs decoder requires an explicit reported child outcome before
+displaying success. Timeouts, stalls, interruptions, failures and
+cancellations retain their outcome. Missing or unrecognized values
+display as unknown. The timeline interprets older completion rows
+using the saved completion's own status and retains that outcome
+when a start arrives later. Child outcome does not settle the parent
+run. Unrecognized status text and raw child payloads stay out of
+the Activity projection.
+
+The exact corrected source passed 1,248 JVM tests across 118 reports
+and both lint variants with zero errors. Both debug APKs built. Six
+focused cases passed on the compact Android 17 emulator at
+840 × 1470, 420 dpi and 1.3× text, including the visible timeout label,
+approval waits and read-only history. The initial device test copied
+the timed-out subagent as its legacy privacy fixture and found two
+matching labels. The corrected fixture copies a tool row. The app
+APK hash was identical across both runs. Both instrumentation logs
+were retained.
+
+The isolated Hermes probe verified Git blob hashes and executed the
+upstream Runs emitter, canonical observer registration, generation
+fence and progress functions with a synthetic turn. The direct Runs
+callback emitted both child lifecycle events at v0.23.1 `3b42157`,
+v0.23.4 `8fc0374` and the reviewed main pin `5725d1d`. The
+canonical path emitted only the ordinary tool start and completion
+on all three. Supplying the existing progress callback alongside the
+structured sinks did not restore child delivery on those revisions.
+
+The exact upstream proposal `4a10a1e` emitted tool start, child
+start, child completion and tool completion in order in the same
+probe. It preserved the child identity and timeout, invoked the
+summary redactor, rejected a stale-generation event, and emitted
+each ordinary tool event once. This was an isolated source comparison
+with synthetic inputs. Native end-to-end verification and live Pi
+activation remain open.
+[Upstream delivery proposal](https://github.com/NousResearch/hermes-agent/pull/156889).
+
+The reviewed Runs emitter also attaches a server-generated
+`timestamp` to each event. The app currently displays phone receipt
+time. The two times can be compared after validating and retaining
+the server timestamp.
+[Reviewed Runs event envelope](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/gateway/platforms/api_server_runs.py#L225-L227).
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Corrected Windows build receipt | `f4ee5da9b9f5a2ebbb9d62c2666a4f9b7e524c4f940b3d29b266449e2e516b7f` |
+| Debug APK | `2ee82eb42f925bdd5ff30204d120d35a64eda03f3ce8ff3d39f3dce5a4a37bcd` |
+| Corrected instrumentation APK | `fe4abde6ce6c5293a45e6901719a387d0a381a2c1e5317e5a6269af9513f8061` |
+| Initial Android 17 fixture failure | `02abe0eb197676a4b762b5e936e5e77693578f7d47f07d11e1b21df1d7158317` |
+| Corrected Android 17 instrumentation log | `04b4cc876222a2eaf7f1272464eaf6b07e35f6558d17e7b3470ed7d9c2be4fff` |
+| Isolated upstream comparison | `74ee29648b6dbee95608dcef7a88b20fb8f50245229ae0bb70de5722ea513117` |
+| Isolated upstream probe script | `a30c21211fbb01e659aed9bff3a157e56c4f73e52fac30b4709ce915f45d98b5` |
+
+## Hosted standard Android matrix for the live step source
+
+Hosted commit `d834f37` passed Linux verification and both Android 8
+standard partitions. The runner and partition manifests agreed on
+595 and 667 passed cases. Together they contained all 1,262 distinct
+Android 8 inventory cases, with no gap or overlap. Both partitions
+used the same recorded app and test APKs. Android 17 shard 0 passed
+596 cases. Android 17 shard 1 was still running at this checkpoint.
+Archive and instrumentation log digests matched the retained receipts.
+This run applies to the earlier live-step source. External model tests
+and the full hosted matrix for the newer outcome fix remain open.
+[Hosted Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/45483867006).
+
+| Hosted artifact | Archive SHA-256 | Instrumentation log SHA-256 |
+| --- | --- | --- |
+| Android 8 shard 0 | `6ee40baa817bd0b92fef228a3668b6ab78242b5ebaf4210ef68367ff1d55ca47` | `63929c70691275d91cd9bdbb322dc5bf0f691afa45537fc61dd30a905a32239f` |
+| Android 8 shard 1 | `9c8db2745c9c4e0153abf38135101f42722a90ca7c9fd2921a979a64e5fa02db` | `2bca1975b1cf176b7f6f05f2c771feae2c79e521836b9a291b479a576a20916e` |
+| Android 17 shard 0 | `b0a77fd134986c60a462a0947ab7658ed80cf6b4f4030ab10f9738abe628e874` | `63b1fe946865c19dc6fcdd4df68174fd8fee14eaaae497f8898200e212be6ba7` |
+
 ## Hermes Activity tool-call identities and receipt times
 
 Activity groups identified calls by the exact session, run, generation,

@@ -7,6 +7,23 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Reported subagent outcomes and Hermes delivery
+
+Activity now preserves reported child timeouts and interruptions and
+shows an unknown outcome when Hermes omits or changes its status.
+Older rows use their saved completion status. The corrected build
+passed 1,248 JVM tests, both lint variants and six compact Android 17
+checks. An isolated comparison reproduced missing canonical child
+events on three audited Hermes revisions. The exact upstream proposal
+restored both child events in order with no duplicate tool events.
+Live delivery and worker attribution remain open.
+[Validation](docs/VALIDATION.md#reported-subagent-outcomes-and-hermes-delivery).
+
+The earlier live-step source `d834f37` passed all 1,262 Android 8
+standard cases across both hosted shards and 596 Android 17 cases
+in shard 0. Android 17 shard 1 remains in progress at this checkpoint.
+[Hosted validation](docs/VALIDATION.md#hosted-standard-android-matrix-for-the-live-step-source).
+
 ## Hermes Activity tool-call identities and receipt times
 
 The Activity panel keeps calls separate by exact session, run,

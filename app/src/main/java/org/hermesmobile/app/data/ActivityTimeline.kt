@@ -2,11 +2,29 @@ package org.hermesmobile.app.data
 
 import kotlinx.serialization.json.*
 
+internal fun reportedSubagentOutcome(status: String): String = when (status) {
+    "completed", "cancelled", "interrupted", "incomplete", "timeout", "stalled" -> status
+    "failed", "error" -> "failed"
+    else -> "unknown"
+}
+
+private val terminalActivityKinds = setOf(
+    "completed", "failed", "cancelled", "interrupted", "incomplete", "timeout", "stalled", "unknown",
+)
+
 data class ActivityEntry(val key:String,val events:List<ToolEvent>) {
     private val ordered=events.sortedWith(compareBy<ToolEvent> {it.sequence ?: Long.MIN_VALUE}.thenBy {it.receivedAt})
     val first get()=ordered.first()
     val startReceipt get()=events.asSequence().filter { it.kind == "started" }.minByOrNull { it.receivedAt }
-    val latest get()=ordered.lastOrNull {it.kind in setOf("completed","failed","cancelled")} ?: ordered.last()
+    val latest: ToolEvent
+        get() {
+            val event = ordered.lastOrNull { it.kind in terminalActivityKinds } ?: ordered.last()
+            if (event.category != "subagent" || event.kind != "completed") return event
+            // Earlier clients recorded any unrecognized child outcome as completed.
+            val status = runCatching { Json.parseToJsonElement(event.detailsJson).jsonObject.text("status") }
+                .getOrDefault("")
+            return event.copy(kind = reportedSubagentOutcome(status))
+        }
     val details:JsonObject get()=JsonObject(ordered.flatMap {runCatching {Json.parseToJsonElement(it.detailsJson).jsonObject.entries.toList()}.getOrDefault(emptyList())}.associate {it.key to it.value})
 }
 fun activityTimeline(events: List<ToolEvent>): List<ActivityEntry> = events.groupBy { event ->

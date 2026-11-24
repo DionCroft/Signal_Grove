@@ -106,6 +106,40 @@ class ActivityProtocolTest {
         assertEquals("", ActivityProtocol.subagent(obj("""{"delegation_id":"batch"}"""), false).callId)
         assertEquals("batch:1", ActivityProtocol.subagent(obj("""{"delegation_id":"batch","task_index":1}"""), false).callId)
     }
+    @Test fun subagentCompletionRequiresARecognizedReportedOutcome() {
+        val outcomes = mapOf(
+            "completed" to "completed", "timeout" to "timeout", "stalled" to "stalled",
+            "failed" to "failed", "error" to "failed", "cancelled" to "cancelled",
+            "interrupted" to "interrupted", "incomplete" to "incomplete",
+            "running" to "unknown", "fixture-unknown-status" to "unknown",
+        )
+        outcomes.forEach { (status, expected) ->
+            val body = buildJsonObject { put("subagent_id", "child"); put("status", status) }
+            val reported = StreamDecoder.decode(SseEvent("subagent.complete", body.toString()))
+            assertEquals(status, expected, reported.tool?.kind)
+            if (expected == "unknown") assertFalse(reported.toString().contains(status))
+        }
+        assertEquals("unknown", StreamDecoder.decode(SseEvent("subagent.complete", "{}")).tool?.kind)
+    }
+
+    @Test fun legacySubagentHistoryKeepsAnUncertainOutcomeAfterAReplayedStart() {
+        val oldTimeout = event("done", "child", "completed", 2).copy(
+            category = "subagent", detailsJson = """{"status":"timeout"}""",
+        )
+        val lateStart = event("late", "child", "started", 3).copy(
+            category = "subagent", detailsJson = """{"status":"completed"}""",
+        )
+        val noOutcome = oldTimeout.copy(detailsJson = "{}")
+        val current = Conversation("c", "scope-a", "session", runId = "r", status = "running",
+            executionGeneration = 2)
+        assertEquals("timeout", activityTimeline(listOf(oldTimeout, lateStart)).single().latest.kind)
+        val timeline = activityTimeline(listOf(noOutcome, lateStart))
+        assertEquals("unknown", timeline.single().latest.kind)
+        assertNull(activeActivity(current, timeline))
+        val newUnknown = noOutcome.copy(kind = "unknown")
+        assertEquals("unknown", activityTimeline(listOf(newUnknown, lateStart)).single().latest.kind)
+    }
+
     @Test fun accountingKeepsMissingUnknownAndSeparatesRequestedFromServedRuntime() {
         val j=obj("""{"usage":{"input_tokens":120,"output_tokens":4,"cache_read_tokens":100,"cache_write_tokens":-3,"reasoning":"private","total_tokens":"bad"},"runtime":{"model":"fallback","provider":"provider-b","requested":{"model":"original","provider":"provider-a","api_key":"private"},"api_key":"private"},"model":"echoed-request"}""")
         val result=RunTelemetry.from(j);assertEquals("fallback",result["runtime"]!!.jsonObject.text("model"));assertEquals("original",result["runtime"]!!.jsonObject["requested"]!!.jsonObject.text("model"))

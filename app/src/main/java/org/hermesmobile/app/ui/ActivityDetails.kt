@@ -45,7 +45,7 @@ private fun metricWord(key:String)=when(key) {
     },confirmButton={TextButton(dismiss) {Text(label(Words.Close))}})
 }
 private val publicActivityDetails = setOf("child_session_id", "subagent_id", "delegation_id", "parent_id",
-    "model", "status", "duration_seconds", "tool_count", "api_calls", "depth", "task_index", "task_count")
+    "model", "duration_seconds", "tool_count", "api_calls", "depth", "task_index", "task_count")
 
 @Composable internal fun activityName(event: ToolEvent): String = when {
     event.category == "subagent" -> label(Words.Subagent)
@@ -109,8 +109,12 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                         "started" -> Words.Started
                         "failed" -> Words.Failed
                         "cancelled" -> Words.Cancelled
+                        "interrupted" -> Words.Interrupted
+                        "incomplete" -> Words.Incomplete
+                        "timeout" -> Words.ActivityTimedOut
+                        "stalled" -> Words.ActivityStalled
                         "completed" -> Words.Completed
-                        else -> Words.Unknown
+                        else -> Words.ActivityOutcomeUnknown
                     }), style=MaterialTheme.typography.labelMedium)
                     entry.startReceipt?.takeIf { it != e }?.let { start ->
                         Text(label(Words.ActivityStartReceived).replace("{time}", displayTime.format(Instant.ofEpochMilli(start.receivedAt))),
