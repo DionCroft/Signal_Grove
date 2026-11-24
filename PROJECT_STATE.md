@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Newer Hermes shutdown pins
+
+The active shutdown workflow now covers Hermes v0.23.4 and the reviewed
+main pin alongside the three previous revisions. The retained hosted run
+passed all ten source cohorts and five comparisons. The active branch
+reproduced all four paired reports for the two added pins byte for byte
+and verified the eight delegation phase logs. Held SQLite writers left
+the child and delegation outcome unknown without replay. Managed Pi
+recovery and full compatibility remain open.
+[Validation](docs/VALIDATION.md#newer-hermes-shutdown-pins).
+
 ## Scheduled worker receipt identity
 
 The coordinator now matches the original worker receipt to the exact
@@ -23,8 +34,9 @@ Windows cases. Live Pi-to-worker acceptance remains open.
 Chat now shows a tool or decision wait from the selected running Hermes
 conversation. The tested change uses identified calls and matching control
 records. All 1,244 JVM tests passed, along with debug and release lint and
-both debug APK builds. The local emulator debug signer differs on Android 17,
-so clean hosted device coverage remains open. On the physical Xiaomi,
+both debug APK builds. Six focused cases passed on a fresh Android 17
+emulator. The local Android 8 fixture stopped before instrumentation.
+The clean hosted matrix remains open. On the physical Xiaomi,
 scrcpy hardware-keyboard navigation opened and closed On-device AI in
 signed beta.11.
 [Validation](docs/VALIDATION.md#current-step-in-chat).

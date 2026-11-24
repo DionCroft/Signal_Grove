@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Newer Hermes shutdown pins
+
+The active audit branch imports the verified workflow and source anchors
+from the separate shutdown branch at `97f5295`. The Hermes v0.23.4
+`8fc0374447313e276f6b9a2764bfc750190c966a` and reviewed main
+`5725d1d390ac4b7cfe157ea32bd6f4db1a280368` pins now run alongside the
+three prior revisions. The retained hosted run on exact client source
+`218295e` passed ten source cohorts and five comparisons. Each added
+pin passed the same 50 upstream checks on pristine and patched sources.
+Its patched native process passed all seven lifecycle cases.
+
+The pristine periodic process reproduced the late database reopen.
+The patched process passed the close-order check and retained SQLite
+integrity under the held writer. After an interrupted owner process,
+the checkpoint survived. Released SQLite writers allowed the child
+to be recorded as interrupted. Held writers left the child and the
+delegation outcome unknown. Both cases recorded zero replays.
+All eight captured phase logs matched their terminal receipts.
+
+Six retained archives verified against GitHub's SHA-256 values. The
+active branch reproduced both comparison reports for both pins byte
+for byte. All 981 applicable portable policy tests passed with 274
+platform skips. The original owner-runtime warning, managed Pi
+recovery, wider compatibility and live acceptance remain open.
+[Hosted shutdown evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/45376972076).
+
+| Hermes pin | Paired upstream checks SHA-256 | Paired heartbeat SHA-256 |
+| --- | --- | --- |
+| 8fc0374 | `bbf969c748a25672ee57ea7079c7a1ab46eeb6ca829df8e3e595acb18bf49347` | `405fd3d7cfc811cf002ec016e06c55abcae7e0ec45930a2ed91bc212d2ea7d06` |
+| 5725d1d | `79646cc0053bff67aa393091f369614daa5092083a6d4f546cbd8a0e69b6e261` | `cc104388f1a5d1b6af73d12d1d8600064d73d71f8e80040742d6bf3998116345` |
+
 ## Scheduled worker receipt identity
 
 The worker's durable reviewed queue already stores the SHA-256 of the
@@ -58,9 +89,13 @@ for both preparation failures remain in private evidence.
 The local emulator debug installs stopped before instrumentation. Android 17
 reported a signer mismatch after the non-streaming transfer. Both production
 package identities and display preferences were verified after the attempts.
-The modified compact-screen approval case and existing saved-history and
-Activity cases require clean device verification. Live Hermes and worker
-acceptance remain open.
+The exact installed debug pair then passed six cases on a fresh Android 17
+emulator on E: at 840 × 1470, 420 dpi and 1.3× text. These include the
+approval label, history explanation and four receipt, telemetry and Activity
+cases. Both APK digests matched after installation. The local fresh Android 8
+guest timed out before reaching instrumentation. Cold-boot diagnostics
+are retained. Full hosted coverage and live Hermes acceptance remain open.
+[Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45483867006).
 
 On a USB-connected Xiaomi M098FE running Android 17 and signed beta.11,
 scrcpy 4.1 with hardware keyboard mode moved focus using Tab and Shift+Tab.
@@ -73,6 +108,7 @@ returned to Settings with the model unloaded, and the mirror session ended.
 | Windows build receipt | `ae7c82f8ea7ec1ce0d78de41f619b0d72c363fdfef0f80509992f8f0fe879717` |
 | Debug APK | `86d7d351d3c733637fc618a1fa4b026bea5238c8e0e26ead4efd9bb724f7d27b` |
 | Instrumentation APK | `747575eec5f9c299e9468dfc7c7571aa43e4ef8f20f17b51370e15f69e3fb59b` |
+| Android 17 compact-device log | `a5bdda034a184f68a117d96a6e88b91d8841c9a249cecbb0679a9297ad78d1f9` |
 
 ## Live gateway admission diagnosis
 
