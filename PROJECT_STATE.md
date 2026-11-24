@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Bilingual helper consent on compact Android
+
+The earlier hosted API 26 consent shard passed 667/667. Its other shard
+passed 593/594 and exposed a second bilingual helper tap failure.
+The exact candidate companion now opens the helper from Chat options
+and gives each consent and run control one native tap inside the visible
+window. It keeps the original three exact payload assertions. All three
+related checks passed on Android 8 and 17 at standard size, and the
+bilingual test passed on Android 8 in the 1080 × 1120 viewport.
+The next complete hosted run will verify this source at code 116.
+[Evidence](docs/VALIDATION.md#bilingual-helper-consent-at-compact-size).
+
 ## Full-size updater and release preparation
 
 The beta.11 branch defaults now match the intended code 116 release.

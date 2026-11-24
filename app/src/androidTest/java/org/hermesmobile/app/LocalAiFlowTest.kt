@@ -642,16 +642,17 @@ class LocalAiFlowTest {
     @Test fun helperObservationsRequireExplicitOptInForTheRequest() {
         state = LocalAiState(loaded = model)
         show(bilingual = true)
-        compose.onNodeWithTag("phone-helper-open").performClick()
+        compose.onNodeWithTag("phone-chat-options").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("phone-chat-helper").assertIsDisplayed().performClick()
         val include = compose.onNodeWithTag("phone-helper-observations")
         val run = compose.onNodeWithTag("phone-helper-run")
         include.performScrollTo().assertIsOff()
-        run.performScrollTo().performClick()
+        tapHelperControl(run, NativeDialogTapAction.PhoneHelperRun)
         compose.runOnIdle { assertEquals(listOf(LocalHelpTopic.FIRST_SETUP to null), helperRequests) }
 
-        include.performScrollTo().assertIsEnabled().performTouchInput { click(center.copy(x = width * 0.75f)) }
+        tapHelperControl(include, NativeDialogTapAction.PhoneHelperConsent)
         include.assertIsOn()
-        run.performScrollTo().performClick()
+        tapHelperControl(run, NativeDialogTapAction.PhoneHelperRun)
         compose.runOnIdle {
             assertEquals(2, helperRequests.size)
             assertEquals(LocalHelpTopic.FIRST_SETUP to
@@ -659,7 +660,7 @@ class LocalAiFlowTest {
         }
 
         include.performScrollTo().assertIsOff()
-        run.performScrollTo().performClick()
+        tapHelperControl(run, NativeDialogTapAction.PhoneHelperRun)
         compose.runOnIdle {
             assertEquals(3, helperRequests.size)
             assertEquals(LocalHelpTopic.FIRST_SETUP to null, helperRequests.last())

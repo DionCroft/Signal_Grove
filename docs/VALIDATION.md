@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Bilingual helper consent at compact size
+
+On 6d85b6e, the hosted Android 8 shard 0 completed 593 of its 594
+methods. The first run tap in the bilingual helper test recorded an
+empty callback list. The retained raw log has SHA-256
+`54fea9e3442874be4417d0e15ce57e701afa3a01c09559ee4ebca9409a972364`.
+[Hosted shard](https://github.com/DionCroft/Signal_Grove/actions/runs/45355709971/job/138322168869).
+
+A native-tap-only test revision passed at standard size on both APIs,
+then failed at 1080 × 1120 before it reached the dialog. Its raw compact
+log has SHA-256
+`f612fcd0c8345fb967f593b28d3a705e615bfa525c2737c0af5b93342c21a3cd`.
+The final fixture opens the helper through the existing Chat menu,
+scrolls consent and run controls into the visible native dialog window,
+and sends one acknowledged DOWN/UP per action. It checks no observations
+before opt-in, the exact reviewed observations once, and no observations
+on the next request. No application controls or consent behavior changed.
+
+The code-116 app APK and the corrected debug companion passed all three
+focused helper methods at standard size on Android 8 and 17. Each run
+recorded eight verified native gestures. The compact Android 8 run
+passed its bilingual test with the expected four native gestures.
+The original display and IME settings were restored, and both emulator
+production APK digests matched preflight. The full hosted matrix for
+the corrected source remains separate.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Debug app | `9e131e202031717a026fb805fb9fcb326f430088cc3f47acf941eb4cb7c1930b` |
+| Corrected companion | `76c25b60bdc6fb39fdd3633b676c04c9443a45c225035b6ea1adf5205dcec305` |
+| Android 8 standard | `d4291d88b212396cc1d5fe571ed7d42e9e5f71c2fbb589de850cf6950f1dc082` |
+| Android 8 compact | `a1b66cda5376b880d937f5f68d5a82d32243d94356bc79b73dd35ebef49d6b04` |
+| Android 17 standard | `51b4d71a0a3d8d6b7160cfe9839c23432c808e4a725acbf0c4e66acabdce5ac0` |
+
 ## Full-size APK updater on Android 8 and 17
 
 The first owned Android 17 run reached download approval. Its loopback
