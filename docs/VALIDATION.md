@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Hermes v0.23.4 and main shutdown inputs
+
+The existing six canonical upstream test files match the v0.23.3
+blobs at both new pins. The runtime and supporting modules include
+changes, so the earlier native execution does not establish current
+lifecycle behavior. The Linux matrix now prepares and runs pristine
+and exact two-file candidate cohorts for both pins, including the
+native heartbeat and candidate delegation-recovery checks. The
+independent pairing jobs retain the same controls and comparisons.
+
+Every archive member was checked against its complete official Git
+tree and executable mode. GitHub exported 42 PowerShell files in
+CRLF at each pin. Reversal to each exact Git blob matched the official
+size and object ID. Both archives and the computed full SHA-256 maps
+remain in the private evidence directory. The local controller
+passed 21 canonical shutdown and 10 native heartbeat tests and
+accepted each complete map with only the two reviewed substitutions
+in the candidate variant.
+
+| Upstream commit | Files | Canonical source map SHA-256 |
+| --- | ---: | --- |
+| 8fc0374 | 27,571 | `25b80de474c986216541919b8a6e9d87d7d11236d8900863c92b6e8248cec45f` |
+| 5725d1d | 27,575 | `95c21d7ea9cc985d958947d9cab65dd1cb11ce6ed2a091abbe4fc3bd531589e1` |
+
+Both Git trees preserve the same 131 executable paths. The existing
+patch applied cleanly and both patched Python files parsed in the
+isolated source copy. Native execution and live Pi activation remain
+separate acceptance stages.
+[Stable source](https://github.com/NousResearch/hermes-agent/tree/8fc0374447313e276f6b9a2764bfc750190c966a) ·
+[Main source](https://github.com/NousResearch/hermes-agent/tree/5725d1d390ac4b7cfe157ea32bd6f4db1a280368).
+
 ## Hermes v0.23.4 and current main source review
 
 The official annotated v0.23.4 tag points to 8fc0374. Main resolved to

@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Isolated shutdown coverage for Hermes v0.23.4 and main
+
+The Linux shutdown matrix includes pristine and patched cohorts for
+8fc0374 and 5725d1d, beside the previous reviewed pins. Whole-source
+verification checked 27,571 and 27,575 official Git blobs and modes.
+The reviewed patch applies to both new sources with the exact two
+expected output files. The 31 controller tests and both exact source
+map checks passed locally. Hosted lifecycle, held-writer recovery and
+comparison results are the next acceptance evidence.
+[Validation](docs/VALIDATION.md#hermes-v0234-and-main-shutdown-inputs).
+
 ## Current upstream Hermes source layout
 
 Hermes v0.23.4 and the 24 November main snapshot use the same ten
