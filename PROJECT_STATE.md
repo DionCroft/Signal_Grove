@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Demo denial and private Activity data
+
+The beta.11 Android 8 shard ran 594 methods and passed 593. The
+Demo approval fixture confirmed denial and a stored failed event,
+then looked for raw result text that Activity deliberately omits.
+The updated test checks the exact failed tool, the denial in Chat,
+the public Activity status and absence of the raw result text.
+Final-source device results remain open.
+[Validation](docs/VALIDATION.md#demo-denial-activity-on-android-8).
+
 ## Hermes Activity payload privacy
 
 The beta.11 Activity follow-up keeps tool identities, outcomes, timing

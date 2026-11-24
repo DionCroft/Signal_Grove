@@ -84,11 +84,23 @@ class Milestone03Test {
         assertTrue(vm.busy.value);assertEquals("pending",vm.controls.value.single().state)
         compose.onNodeWithText(Words.Deny.localized(AppPreferences())).performClick()
         compose.waitUntil(10000) {!vm.busy.value && vm.runStatus.value=="completed"}
-        assertTrue(runBlocking {app.database.dao().events(vm.selected.value).first().any {it.kind=="failed"}})
+        val failedCall = runBlocking {
+            app.database.dao().events(vm.selected.value).first().single { it.callId == "demo-note" && it.kind == "failed" }
+        }
+        assertEquals("Demo note", failedCall.tool)
         assertTrue(vm.controls.value.isEmpty())
-        compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()),substring=true).performClick()
-        compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("The simulated action was denied."))
-        compose.onNodeWithText("The simulated action was denied.").assertExists()
+        assertTrue(vm.messages.value.last().content.contains("Demo decision: **deny**."))
+
+        compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()), substring = true).performClick()
+        val timeline = hasTestTag("activity-timeline")
+        val tool = hasText("Demo note")
+        val failed = hasText(Words.Failed.localized(AppPreferences()))
+        compose.onNode(timeline).performScrollToNode(tool)
+        compose.onNode(tool and hasAnyAncestor(timeline)).assertExists()
+        compose.onNode(timeline).performScrollToNode(failed)
+        compose.onNode(failed and hasAnyAncestor(timeline)).assertExists()
+        compose.onNode(hasText("The simulated action was denied.", substring = true) and hasAnyAncestor(timeline))
+            .assertDoesNotExist()
     }
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {
         inputTrace?.mark("home-new-chat")

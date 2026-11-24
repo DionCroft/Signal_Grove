@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## Demo denial Activity on Android 8
+
+The exact 9dd1b7d Android 8 shard 0 started all 594 declared
+methods. It finished 593 positives and one failure in the Demo
+approval fixture. The original method reached the Activity
+timeline after explicit denial, a failed event in storage and
+completion of the Demo reply. The last assertion searched for
+the raw tool-result preview. Activity no longer renders that
+preview after the payload privacy change.
+
+The fixture now checks the failed event for the exact Demo
+call, the denial in the Chat reply, the tool name and failed
+status in Activity, and absence of raw result text. This is a
+test change. The candidate still requires final-source device
+checks and a physical upgrade.
+
+The retained shard archive has SHA-256
+`ac2dd1f39f7331fc3605bced197d676225ebf8d6c6fd8284deed2d1b23d71fa1`.
+The raw instrumentation log has SHA-256
+`5bb6d8c3a33efd4f31a232864bbb1d958257bacb4c38dc6a2f1a79550dc59ab9`.
+[Original failed shard](https://github.com/DionCroft/Signal_Grove/actions/runs/45374110760/job/138388766559).
+
 ## Runs Activity payload privacy
 
 Hermes v0.23.4 can populate the Runs stream preview from tool progress
