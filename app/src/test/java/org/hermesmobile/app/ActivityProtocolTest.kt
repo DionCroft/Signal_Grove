@@ -118,6 +118,41 @@ class ActivityProtocolTest {
         assertNull(tool.copy(detailsJson = origin.detailsJson).mcpServer)
     }
 
+    @Test fun skillLoadRequiresTheActualSkillViewCallAndKeepsNoSessionOrContentFields() {
+        val payload = obj("""{"run_id":"r","tool":"skill_view","tool_call_id":"skill-call",
+            "skill_name":"plugin:fixture","execution_generation":4,"timestamp":1700000000,
+            "session_id":"foreign-session","content":"private instructions","path":"private path",
+            "preview":"private","runtime":{"model":"private"}}""")
+        val update = StreamDecoder.decode(SseEvent("skill.loaded", payload.toString(), "12"))
+        val loaded = update.tool!!
+        assertEquals(SKILL_LOADED, loaded.category)
+        assertEquals("plugin:fixture", loaded.details.text(SKILL_NAME))
+        assertEquals("skill-call", loaded.callId)
+        assertEquals(4L, loaded.generation)
+        assertEquals(12L, update.sequence)
+        assertEquals("r", update.runId)
+        assertEquals("", update.sessionId)
+        assertNull(update.settledGeneration)
+        assertFalse(update.toString().contains("private"))
+        for (field in listOf("run_id", "tool", "tool_call_id", SKILL_NAME)) {
+            assertNull(field, ActivityProtocol.skillLoaded(JsonObject(payload - field)))
+        }
+        assertNull(ActivityProtocol.skillLoaded(JsonObject(payload + ("tool" to JsonPrimitive("skills_list")))))
+        assertNull(ActivityProtocol.skillLoaded(JsonObject(payload + (SKILL_NAME to JsonPrimitive("/private/SKILL.md")))))
+    }
+
+    @Test fun savedSkillLoadsDeduplicateReplayAndStaySeparateAcrossRuns() {
+        val call = event("a", "skill-call", "started", 1)
+        val loaded = call.copy(key = "b", tool = "skill_view", kind = SKILL_LOADED, category = SKILL_LOADED,
+            detailsJson = """{"skill_name":"plugin:fixture"}""")
+        val entries = activityTimeline(listOf(call, loaded, loaded.copy(key = "replay"),
+            loaded.copy(key = "c", runId = "different-run")))
+        assertEquals(3, entries.size)
+        assertEquals(setOf(call.runId, "different-run"), entries.filter { it.latest.loadedSkill == "plugin:fixture" }
+            .map { it.latest.runId }.toSet())
+        assertNull(call.copy(detailsJson = loaded.detailsJson).loadedSkill)
+    }
+
     @Test fun canonicalToolObservationMatchesTheCurrentSubmissionOnly() {
         val running = Conversation("key", "profile", "session", transport = "runs", runId = "r",
             status = "running", pendingKey = "turn", pendingAt = 1)

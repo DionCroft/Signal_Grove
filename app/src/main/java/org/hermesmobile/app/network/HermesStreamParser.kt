@@ -25,6 +25,7 @@ object StreamDecoder {
         fun text(key: String)=(j[key] as? JsonPrimitive)?.contentOrNull.orEmpty()
         val name=if(event.name=="message") text("type").ifBlank {text("event")}.ifBlank {event.name} else event.name
         val run=text("run_id");val session=text("session_id")
+        val identityOnly = name == "tool.mcp_origin" || name == "skill.loaded"
         val update=when(name) {
             "assistant.delta","message.delta","response.output_text.delta"->StreamUpdate(delta=text("delta"))
             "assistant.completed"->StreamUpdate(finalText=text("content"))
@@ -42,6 +43,7 @@ object StreamDecoder {
                 StreamUpdate(tool=ActivityProtocol.tool(j,kind))
             }
             "tool.mcp_origin" -> StreamUpdate(tool = ActivityProtocol.mcpOrigin(j))
+            "skill.loaded" -> StreamUpdate(tool = ActivityProtocol.skillLoaded(j))
             "subagent.start","subagent.complete" -> StreamUpdate(tool=ActivityProtocol.subagent(j,name=="subagent.complete"))
             "assistant.commentary","message.interim" -> StreamUpdate()
             "replay.truncated"->StreamUpdate(replayGap=true)
@@ -52,6 +54,8 @@ object StreamDecoder {
                 StreamUpdate(delta=(d?.get("content") as? JsonPrimitive)?.contentOrNull.orEmpty(),status=when(finish) {"cancelled"->"response_cancelled";"error"->"response_failed";"length"->"response_incomplete";null->null;else->"response_finished"})
             }
         }
-        return update.copy(telemetry=if (name == "tool.mcp_origin") buildJsonObject {} else org.hermesmobile.app.data.RunTelemetry.from(j),settledGeneration=(j["execution_generation"] as? JsonPrimitive)?.longOrNull,runId=run,sessionId=session,sequence=(j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull())
+        val sequence = (j["seq"] as? JsonPrimitive)?.longOrNull ?: event.id.toLongOrNull()
+        if (identityOnly) return if (update.tool == null) update else update.copy(runId = run, sequence = sequence)
+        return update.copy(telemetry=org.hermesmobile.app.data.RunTelemetry.from(j),settledGeneration=(j["execution_generation"] as? JsonPrimitive)?.longOrNull,runId=run,sessionId=session,sequence=sequence)
     }
 }

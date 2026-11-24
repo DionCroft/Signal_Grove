@@ -7,6 +7,26 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Hermes Activity skill loads
+
+Activity shows the resolved name of a full skill view reported by the
+authenticated Hermes Runs endpoint. Errors, linked-file reads and
+unchanged-skill stubs add no loaded-skill entry. The patched public
+Hermes v0.23.1 suite passed 101 cases. The app passed 1,256 JVM tests,
+both lint variants and seven focused compact Android 17 cases.
+Live delivery on the maintained Pi and exact worker and workspace
+attribution remain open.
+[Validation](docs/VALIDATION.md#hermes-activity-skill-loads).
+
+## Hosted Android 8 startup-switch failure
+
+On source `6d63326`, the Android 8 shard recorded 594 passing methods
+out of 595. The phone startup test could not find the setup toggle.
+The exact failure artifact and APK pair were retained. The local
+Android 8 emulator did not supply a usable guest for reproduction.
+The later full matrix is a separate verification gate.
+[Validation](docs/VALIDATION.md#hosted-android-8-startup-switch-failure).
+
 ## Reviewed checkout held through queue reservation
 
 The Windows broker holds the reviewed Git branch through the SQLite
@@ -15,6 +35,7 @@ Checkout drift before reservation leaves no queue row. Claim and child creation
 still perform their own checks. All 112 native Windows and 144 portable
 workspace tests passed. The exact packaged fixture launched one inert child
 and recovered the original receipt after reopening its owner broker.
+The exact hosted workflow also passed 112 Windows and 47 Linux cases.
 Live worker deployment and app-to-Pi-to-worker acceptance remain open.
 [Validation](docs/VALIDATION.md#reviewed-checkout-held-through-queue-reservation).
 

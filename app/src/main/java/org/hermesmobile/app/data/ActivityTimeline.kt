@@ -5,6 +5,11 @@ import kotlinx.serialization.json.*
 internal const val ACTIVITY_SERVER_EVENT_AT = "server_event_ms"
 internal const val MCP_ORIGIN = "mcp_origin"
 internal const val MCP_SERVER = "mcp_server"
+internal const val SKILL_LOADED = "skill_loaded"
+internal const val SKILL_NAME = "skill_name"
+
+internal fun isRunActivityMetadata(category: String): Boolean =
+    category == MCP_ORIGIN || category == SKILL_LOADED
 
 internal fun activityIdentifier(value: JsonElement?): String? =
     (value as? JsonPrimitive)?.takeIf { it.isString }?.content?.takeIf { text ->
@@ -19,9 +24,17 @@ internal val ToolEvent.serverEventAt: Long?
     get() = (activityDetails()[ACTIVITY_SERVER_EVENT_AT] as? JsonPrimitive)
         ?.takeUnless { it.isString }?.longOrNull?.takeIf { it >= 0 }
 
+private fun ToolEvent.metadataIdentity(expectedCategory: String, field: String): String? =
+    if (category == expectedCategory && kind == expectedCategory && callId.isNotBlank())
+        activityIdentifier(activityDetails()[field]) else null
+
 internal val ToolEvent.mcpServer: String?
-    get() = if (category == MCP_ORIGIN && kind == MCP_ORIGIN && callId.isNotBlank())
-        activityIdentifier(activityDetails()[MCP_SERVER]) else null
+    get() = metadataIdentity(MCP_ORIGIN, MCP_SERVER)
+
+internal fun isSkillIdentity(name: String): Boolean = '/' !in name && '\\' !in name
+
+internal val ToolEvent.loadedSkill: String?
+    get() = metadataIdentity(SKILL_LOADED, SKILL_NAME)?.takeIf { tool == "skill_view" && isSkillIdentity(it) }
 
 internal fun reportedSubagentOutcome(status: String): String = when (status) {
     "completed", "cancelled", "interrupted", "incomplete", "timeout", "stalled" -> status
@@ -57,7 +70,7 @@ fun activityTimeline(events: List<ToolEvent>): List<ActivityEntry> = events.grou
             add(event.generation?.let { JsonPrimitive(it) } ?: JsonNull)
             add(event.category)
             add(event.callId)
-            event.mcpServer?.let { add(it) }
+            (event.mcpServer ?: event.loadedSkill)?.let { add(it) }
         }
     }.toString()
 }.map { (key, rows) -> ActivityEntry(key, rows) }

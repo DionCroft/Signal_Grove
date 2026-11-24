@@ -551,6 +551,9 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 .collect {update ->
                     if(update.replayGap) {c=c.copy(lastEventSeq=-2);throw IllegalArgumentException("The server's event replay expired. Check run status; this request will not be resent.")}
                     if(update.sequence!=null && update.sequence<=c.lastEventSeq) return@collect
+                    val identityOnly = update.tool?.let { isRunActivityMetadata(it.category) } == true
+                    if (identityOnly && (c.transport != "runs" || c.runId.isBlank() ||
+                            c.executionGeneration?.let { it != update.tool?.generation } == true)) return@collect
                     if(update.runId.isNotBlank()) {
                         require(c.runId.isBlank() || c.runId==update.runId) {"The stream returned another run identity."}
                         c=c.copy(runId=update.runId)
@@ -563,8 +566,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                     status?.let {runStatus.value=it;c=c.copy(status=it);terminalSeen=it in terminal}
                     update.sequence?.let {c=c.copy(lastEventSeq=it)}
                     val control=update.control?.copy(runId=update.control.runId.ifBlank {c.runId})?.stored(c.key)
-                    val event=update.tool?.takeUnless { it.category == MCP_ORIGIN && c.transport != "runs" }?.let { t ->
-                        if (t.category != MCP_ORIGIN) {
+                    val event=update.tool?.let { t ->
+                        if (!identityOnly) {
                             toolRevision++
                             progressObservation.value = null
                         }

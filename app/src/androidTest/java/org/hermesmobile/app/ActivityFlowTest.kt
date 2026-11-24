@@ -49,7 +49,8 @@ class ActivityFlowTest {
             """{"event":"subagent.start","subagent_id":"agent-1","child_session_id":"child-1","goal":"Review fixture","seq":5}""",
             """{"event":"subagent.complete","subagent_id":"agent-1","child_session_id":"child-1","summary":"fixture-raw-agent-summary","output_tail":"fixture-raw-agent-output","status":"timeout","input_tokens":20,"cost_usd":.001,"seq":6}""",
             """{"event":"tool.mcp_origin","run_id":"activity-run","tool":"mcp__fixture_api__read_entry","tool_call_id":"mcp-call","mcp_server":"fixture-api","execution_generation":2,"timestamp":1700000006,"preview":"fixture-raw-mcp-argument","seq":7}""",
-            """{"event":"run.completed","run_id":"activity-run","output":"Activity fixture complete","usage":{"input_tokens":200,"output_tokens":15,"cache_read_tokens":150},"runtime":{"model":"fallback-model","provider":"fallback-provider","route_source":"global","requested":{"model":"requested-model","provider":"requested-provider"}},"seq":8}"""
+            """{"event":"skill.loaded","run_id":"activity-run","tool":"skill_view","tool_call_id":"skill-call","skill_name":"fixtures:planning","execution_generation":2,"timestamp":1700000007,"content":"fixture-raw-skill-instructions","seq":8}""",
+            """{"event":"run.completed","run_id":"activity-run","output":"Activity fixture complete","usage":{"input_tokens":200,"output_tokens":15,"cache_read_tokens":150},"runtime":{"model":"fallback-model","provider":"fallback-provider","route_source":"global","requested":{"model":"requested-model","provider":"requested-provider"}},"seq":9}"""
         ).joinToString("") {"data: $it\n\n"}.replace(":.",":0.")
         MockWebServer().use {server ->
             server.dispatcher=object:Dispatcher() {override fun dispatch(request:RecordedRequest):MockResponse=when {
@@ -65,8 +66,9 @@ class ActivityFlowTest {
             compose.runOnUiThread {vm.configure(url,"activity-fixture",true)}
             compose.waitUntil(10000) {!vm.connecting.value && vm.connectionStatus.value=="connected"}
             compose.runOnUiThread {vm.newChat();vm.send("Harmless activity fixture")}
-            compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed" && vm.toolEvents.value.size==7 && vm.messages.value.any {it.telemetryJson.contains("fallback-model")}}
-            val entries=activityTimeline(vm.toolEvents.value);assertEquals(4,entries.size)
+            compose.waitUntil(15000) {!vm.busy.value && vm.runStatus.value=="completed" && vm.toolEvents.value.size==8 && vm.messages.value.any {it.telemetryJson.contains("fallback-model")}}
+            val entries=activityTimeline(vm.toolEvents.value);assertEquals(5,entries.size)
+            assertEquals("fixtures:planning", entries.first { it.first.callId == "skill-call" }.latest.loadedSkill)
             assertEquals("fixture-api", entries.first { it.first.callId == "mcp-call" }.latest.mcpServer)
             assertTrue(vm.toolEvents.value.all { it.preview.isEmpty() && !it.detailsJson.contains("fixture-raw-") })
             assertEquals("failed",entries.first {it.first.callId=="call-b"}.latest.kind)
@@ -86,6 +88,10 @@ class ActivityFlowTest {
             compose.onNodeWithContentDescription(word(Words.ToolActivity),substring=true).performClick()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("fixture-api"))
             compose.onNodeWithText("fixture-api").assertIsDisplayed()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("fixtures:planning"))
+            compose.onNodeWithText("fixtures:planning").assertIsDisplayed()
+            compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText(word(Words.ActivitySkillLoaded)))
+            compose.onNodeWithText(word(Words.ActivitySkillLoaded)).assertIsDisplayed()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("fallback-model"))
             compose.onNodeWithText("fallback-model").assertExists()
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText("requested-provider"))

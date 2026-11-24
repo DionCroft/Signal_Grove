@@ -22,20 +22,27 @@ object ActivityProtocol {
             put("error", kind == "failed")
             putEventTime(j)
         },generation=(j["execution_generation"] as? JsonPrimitive)?.longOrNull)
-    internal fun mcpOrigin(event: JsonObject): ToolUpdate? {
+    internal fun mcpOrigin(event: JsonObject): ToolUpdate? =
+        identityMetadata(event, MCP_ORIGIN, MCP_SERVER)
+
+    internal fun skillLoaded(event: JsonObject): ToolUpdate? =
+        identityMetadata(event, SKILL_LOADED, SKILL_NAME)
+
+    private fun identityMetadata(event: JsonObject, category: String, field: String): ToolUpdate? {
         activityIdentifier(event["run_id"]) ?: return null
         val tool = activityIdentifier(event["tool"]) ?: return null
         val call = activityIdentifier(event["tool_call_id"]) ?: return null
-        val server = activityIdentifier(event[MCP_SERVER]) ?: return null
+        val identity = activityIdentifier(event[field]) ?: return null
+        if (category == SKILL_LOADED && (tool != "skill_view" || !isSkillIdentity(identity))) return null
         val generation = if ("execution_generation" in event) {
             (event["execution_generation"] as? JsonPrimitive)?.takeUnless { it.isString }
                 ?.longOrNull?.takeIf { it >= 0 } ?: return null
         } else null
         val details = buildJsonObject {
-            put(MCP_SERVER, server)
+            put(field, identity)
             putEventTime(event)
         }
-        return ToolUpdate(tool, MCP_ORIGIN, "", null, call, MCP_ORIGIN, details, generation)
+        return ToolUpdate(tool, category, "", null, call, category, details, generation)
     }
 
     fun subagent(j:JsonObject,complete:Boolean):ToolUpdate {

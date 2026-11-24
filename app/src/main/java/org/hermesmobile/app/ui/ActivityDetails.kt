@@ -49,6 +49,7 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
 
 @Composable internal fun activityName(event: ToolEvent): String = when {
     event.category == "subagent" -> label(Words.Subagent)
+    event.loadedSkill != null -> label(Words.ActivitySkillLoaded)
     else -> event.tool.takeIf { it.isNotBlank() && it.length <= 256 && it.none(Char::isISOControl) }
         ?: label(Words.ToolActivity)
 }
@@ -124,9 +125,10 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                 Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     Text(activityName(e), style=MaterialTheme.typography.titleSmall)
                     val mcpServer = e.mcpServer
-                    if (mcpServer != null) {
-                        Text(label(Words.ActivityMcpServer), style = MaterialTheme.typography.labelMedium)
-                        SelectionContainer { Text(mcpServer, style = MaterialTheme.typography.bodySmall) }
+                    val identity = mcpServer ?: e.loadedSkill
+                    if (identity != null) {
+                        if (mcpServer != null) Text(label(Words.ActivityMcpServer), style = MaterialTheme.typography.labelMedium)
+                        SelectionContainer { Text(identity, style = MaterialTheme.typography.bodySmall) }
                     } else Text(label(when(e.kind) {
                         "started" -> Words.Started
                         "failed" -> Words.Failed

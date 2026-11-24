@@ -1,5 +1,83 @@
 # Current development validation — audit follow-up
 
+## Hermes Activity skill loads
+
+Signal Grove displays a resolved skill identity when a recognized
+`skill.loaded` frame belongs to the existing authenticated Runs
+receipt. Its details contain the skill name and available event time.
+The frame cannot rewrite the session, model telemetry or decision
+state. A different known generation is ignored. Replay groups by
+the original run, generation, call and resolved identity. Ordinary
+tool calls and their outcomes remain separate.
+
+The public Hermes v0.23.1 overlay reports the resolved name when
+`skill_view` returns full instructions to the model. Refused views,
+linked files and unchanged-content stubs emit no new loaded-skill row.
+The canonical observer checks ownership and execution generation.
+The Runs payload carries no instructions, file paths, arguments,
+results or previews. The earlier MCP and subagent observers continue
+to pass together. The patch applied cleanly to the exact upstream pin,
+and its replay matched the tested source with normalized line endings.
+[Hermes v0.23.1 source](https://github.com/NousResearch/hermes-agent/tree/3b421578588243f920886e6fe79a6faa87ea026e).
+[Activity overlay](../server_extensions/hermes_activity/v0.23.1-activity.patch).
+
+All 101 isolated native cases passed. The first fixture runs exposed
+an incorrect API module import and a conflicting temporary profile
+root. The corrected fixture used the same profile as the admitted
+run. It verified the resolved name, deduplication, linked-file and
+missing-skill behavior, stale-generation refusal, and the direct Runs
+metadata fields.
+
+The Android source passed 1,256 JVM tests in 118 reports, debug and
+release lint with zero errors, and built both debug APKs. Seven
+instrumentation cases passed on compact Android 17 at 840 × 1470,
+420 dpi and 1.3× text. The test displayed the resolved skill name
+and heading separately. The initial test scrolled the heading above
+the viewport. The corrected test scrolls to each item it checks.
+The app APK digest was identical across both attempts. The retained
+failure belongs to the earlier instrumentation APK.
+Live Pi and full device-matrix delivery remain open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Public Hermes Activity overlay | `0f88937665ff130521cbf36802f8cc951fc26bfe0b8800e02f31c63b2eb7f224` |
+| Exact native result XML | `c6eeee166e7f12d192a518f51ff55c6450680ce36475860a6ff78b48867b4c43` |
+| Exact native test log | `195faeb5c78f4f240355a37167036fc4c5dcecff3bdb11b00f8e1a64cb8e7ab2` |
+| Exact Windows build receipt | `1e967f66e06131ac7169435ddd6d84ca1fa889d35c01061da074a4275d37e771` |
+| Debug APK | `c6945137621463528ae9662ce77530f20fd8f7c9639c926bad95f4bcd5e8ecff` |
+| Debug instrumentation APK | `104c78cda31673c55bcd8099ba4dbb02c1c5fd5be0d251daf33236ef2292c92e` |
+| Initial compact assertion failure | `eec724a069cebdafab20805ad432fbb0e19ef5f41f86aa192e55a51485b06d6e` |
+| Corrected compact instrumentation log | `dcff07ab5efc4815343e66ce3160f8102bebc10b635a1800bf8623ec0950fd66` |
+
+## Hosted Android 8 startup-switch failure
+
+The Android 8 shard for source `6d63326` reached the normal
+instrumentation summary with 594 successful methods and one failure.
+The runner reported no timeout and the emulator remained present.
+`PhoneStartupRoutingTest.setupSwitchPersistsAndFreshLauncherOpensAnUnloadedPhone`
+could not find `phone-startup-toggle` after opening the phone setup
+entry. The preceding full hosted matrix on `d834f37` passed. The startup test and four related app source files have
+identical bytes across those commits. The failed shard does not
+establish a deterministic cause.
+
+The retained app and test APKs from this run are available for an exact
+reproduction. The first local Android 8 launch refused its missing
+encryption image. The compatibility retry exposed ADB transport but
+its guest shell did not answer the bounded boot probe. A read-only
+fork of the earlier AVD could not start alongside its writable
+instance. No local Android
+8 instrumentation result was obtained. The newer hosted matrix has
+its own release gate.
+[Failed Android 8 shard](https://github.com/DionCroft/Signal_Grove/actions/runs/45499834488/job/138831605535).
+[Newer full matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45508816155).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Hosted failed shard instrumentation log | `53d7a9b9dfd4ed872c3d159844c318949e73ff6fa3bb18e65f1ce4fbb356d852` |
+| Hosted failed shard result | `294bb232010023b50e0942f1d060a6e22687c7146447fd09624844267a843b14` |
+| Hosted failed shard app APK | `b58365d4fe6e2d5f4c996e2e4030b16c994596f4865a22c23dc8cf97e5949b42` |
+| Hosted failed shard test APK | `42543e855f40af9476abd26f03fff7f77ebc9a2fc0aa79918599d514ad484ad5` |
+
 ## Reviewed checkout held through queue reservation
 
 A checkout could change after the signed review was observed and before
