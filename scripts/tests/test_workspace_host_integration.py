@@ -39,7 +39,7 @@ class HostIntegrationPolicyTest(unittest.TestCase):
     def test_starting_rechecks_exact_policy_then_admits_one_original_frame(self):
         self.states=['starting','starting','ready'];reply=self.call()
         self.assertEqual('reply',reply['transport']);self.assertTrue(reply['reply']['result']['fixture'])
-        self.assertEqual(4,self.policy_reads);self.assertEqual(3,self.projection_reads);self.native.assert_called_once()
+        self.assertEqual(5,self.policy_reads);self.assertEqual(3,self.projection_reads);self.native.assert_called_once()
         args=self.native.call_args;self.assertEqual(self.frame,json.loads(args.args[1]));self.assertEqual(10,args.kwargs['deadline'])
     def test_policy_byte_revision_change_never_restores_or_rebinds_the_wait(self):
         self.states=['starting','ready'];self.change=lambda n:self.policy if n<3 else self.policy+b' '
@@ -48,6 +48,26 @@ class HostIntegrationPolicyTest(unittest.TestCase):
     def test_revoked_grant_is_not_satisfied_by_a_current_ready_endpoint(self):
         self.change=lambda n:self.policy if n==1 else self.policy.replace(b'fixture',b'another')
         self.assertEqual('CHANGED',self.call()['code']);self.assertEqual(0,self.projection_reads);self.native.assert_not_called()
+    def test_policy_revised_after_native_read_cannot_release_the_reply(self):
+        self.change = lambda n: self.policy if n < 3 else self.policy.replace(b'fixture', b'another')
+        self.assertEqual(dict(transport='error', code='CHANGED', request_submitted=True), self.call())
+        self.assertEqual(1, self.projection_reads)
+        self.assertEqual(3, self.policy_reads)
+        self.native.assert_called_once()
+
+    def test_readback_policy_error_is_redacted_without_repeating_the_native_read(self):
+        def changed(n):
+            if n == 3:
+                raise RuntimeError('private diagnostic must not escape')
+            return self.policy
+
+        self.change = changed
+        observed = self.call()
+        self.assertEqual(dict(transport='error', code='UNAVAILABLE', request_submitted=True), observed)
+        self.assertEqual(1, self.projection_reads)
+        self.assertEqual(3, self.policy_reads)
+        self.native.assert_called_once()
+
     def test_foreign_frame_scope_or_project_is_denied_before_projection(self):
         for field,value in [('scope_id','3'*64),('project_id','another')]:
             with self.subTest(field=field):

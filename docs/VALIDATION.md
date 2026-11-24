@@ -1,5 +1,37 @@
 # Current development validation — audit follow-up
 
+## Windows workspace grant check at readback
+
+The installed Windows read wrapper already includes the bounded
+starting-state wait. A fresh read-only observation reported one ready
+scope and no maintenance flag. The installed seven-module package
+and staged fourteen-module package were independently verified.
+The currently installed wrapper remains the observed baseline.
+
+The staged Windows wrapper checks the same protected grant and byte
+revision again after a successful native pipe exchange. A changed
+grant withholds the payload and reports `CHANGED`. An unreadable
+policy withholds the payload and reports `UNAVAILABLE` with a bounded
+error. Both record `request_submitted=true`, preserving the original
+native admission and preventing replay. The existing readiness wait,
+scope checks and native refusal semantics remain in force.
+
+Two portable regressions and the native Windows preview regression
+failed before the fix. The native fixture changed the disposable
+grant after the actual named pipe replied and verified that one call
+was made and its result was withheld. The final source passed all
+111 native Windows methods, all 56 selected portable policy, routing
+and scheduling methods, and a separate exact staged-bundle case.
+The staged case exercised read, signed review, one inert child and
+original-receipt recovery after reopening the broker.
+
+The restaged manifest SHA-256 is
+`526271f2392c64e4ccec7ff913bf3b65fdc9827d45dcc0f86b2fd5366cdaf9d5`.
+Its 18 payload files match the previously qualified bundle except
+for the updated wrapper. Both installed input hashes still match.
+The live Pi-to-worker attachment, rollout and scheduled job checks
+remain open.
+
 ## Reproducible reviewed Windows worker bundle
 
 The original staging generator iterated the runtime module set in

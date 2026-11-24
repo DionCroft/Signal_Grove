@@ -140,13 +140,19 @@ def rpc(worker,data):
   if frame['payload'].get('scope_id')!=scope:raise e.WorkspaceError('DENIED')
   if not isinstance(project,str):raise e.WorkspaceError('INVALID')
   if project not in policy.projects(scope):raise e.WorkspaceError('DENIED')
+  def require_same_policy():
+   # Bind reply delivery to the same protected grant and exact policy revision.
+   if _policy(worker,modules)!=policy:raise e.WorkspaceError('CHANGED')
   def read_projection():
-   # revision hashes the exact protected policy bytes, including grant changes.
-   # An SSH client reads no registry/project/NAS path to make this observation.
-   fresh=_policy(worker,modules)
-   if fresh!=policy:raise e.WorkspaceError('CHANGED')
+   require_same_policy()
+   # The SSH client reads no registry, project or NAS path for this observation.
    return f.read_operator_file(str(HERE/'state/workspace-reads.safe.json'),maximum=32768)
   reply=h.call_current_projected(read_projection,request,scope_id=scope,device=worker.DEVICE,timeout=10)
+  try:require_same_policy()
+  except e.WorkspaceError as error:
+   raise p.ReadTransportError(error.code,request_submitted=True) from None
+  except Exception:
+   raise p.ReadTransportError('UNAVAILABLE',request_submitted=True) from None
   return dict(transport='reply',reply=json.loads(reply))
  except p.ReadTransportError as error:return dict(transport='error',code=error.code,request_submitted=error.request_submitted)
  except e.WorkspaceError as error:return dict(transport='error',code=error.code,request_submitted=False)

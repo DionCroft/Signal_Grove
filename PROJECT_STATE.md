@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Windows workspace grant check at readback
+
+The worker verifies the exact protected grant again after the native
+pipe replies, before returning the workspace result. Policy change or
+unavailability withholds the reply and retains that one native read
+was submitted. All 111 Windows worker tests and 56 portable cases
+passed. The exact restaged bundle passed its isolated read and receipt
+check. The live Pi attachment remains open.
+[Validation](docs/VALIDATION.md#windows-workspace-grant-check-at-readback).
+
 ## Reproducible reviewed Windows worker bundle
 
 The reviewed installed worker and broker hashes matched. Two isolated

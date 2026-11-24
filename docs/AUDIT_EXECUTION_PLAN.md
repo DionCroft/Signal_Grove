@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Windows workspace grant check at readback
+
+The native worker now keeps a successful preview private if the protected
+grant changes before the wrapper returns it. Isolated real Windows and
+staged-bundle verification passed. Use the updated manifest in the
+reviewed rollout. The active Pi gateway still needs canonical readiness
+and separate activation before live Android-to-worker acceptance.
+[Validation](VALIDATION.md#windows-workspace-grant-check-at-readback).
+
 ## Reproducible reviewed Windows worker bundle
 
 Two staging runs from both reviewed installed inputs now match

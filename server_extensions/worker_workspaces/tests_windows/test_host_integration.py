@@ -56,4 +56,17 @@ class HostIntegrationNativeTest(unittest.TestCase):
                     self.assertEqual(4,native.call_count)
                     foreign=frame('prepare');foreign['payload']['project_id']='foreign'
                     denied=w.rpc(worker,dict(action='workspace_read',scope_id=scope,frame=foreign));self.assertEqual(dict(transport='error',code='DENIED',request_submitted=False),denied);self.assertEqual(4,native.call_count)
+                def change_grant_after_native_reply(*args, **kwargs):
+                    reply = original_call(*args, **kwargs)
+                    policy_path = base/'workspace-read-policy.json'
+                    policy_path.write_bytes(raw_policy.replace(b'fixture', b'another'))
+                    return reply
+
+                original_call = p.call_once
+                publish()
+                request = frame('preview', binding_token=binding, relative_path='note.txt', entry_token=row['entry_token'])
+                with patch.object(p, 'call_once', side_effect=change_grant_after_native_reply) as native:
+                    reply = w.rpc(worker, dict(action='workspace_read', scope_id=scope, frame=request))
+                    self.assertEqual(dict(transport='error', code='CHANGED', request_submitted=True), reply)
+                    native.assert_called_once()
             finally:host.close();self.assertTrue(host.wait_closed())
