@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Workspace publication matches the protected operator path
+
+The publication catalog now uses the policy path rendered for the
+staged Hermes operator under protected account state. The exact Pi
+bootstrap and review packet agree. All 113 native tests and the eight
+owned file publication and rollback stages passed.
+[Validation](docs/VALIDATION.md#protected-workspace-policy-publication-target).
+
+Next prepare the full production transaction and fresh backup, drain
+and health gates for separate approval. The staged policy remains absent
+from the live Pi.
+
 ## Upstream main compatibility inspection restored
 
 Two official main revisions had the same ten reviewed path relocations.

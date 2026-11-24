@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Protected workspace policy destination
+
+The staged workspace operator, deployment renderer and native
+publication role now agree on the path under protected account state.
+The exact updated review packet has unchanged wrapper and override
+bytes. Owned native publication and rollback passed. Complete the
+remaining live transaction gates with this corrected packet.
+[Validation](VALIDATION.md#protected-workspace-policy-publication-target).
+
 ## Upstream main source inspection restored
 
 The compatibility checker now follows the ten already-reviewed source

@@ -101,7 +101,7 @@ class RenderedCatalog:
         result=[TargetSpec(role,fleet+'/'+name,'file',p['source_artifacts'][name].encode()) for role,name in sources]
         result.extend(TargetSpec(role,commands+'/'+name,'file',p['deployed_wrappers'][commands+'/'+name].encode())
             for role,name in (('runtime_client','hermes-client'),('runtime_server','hermes-serve')))
-        result.append(TargetSpec('policy',p['canonical_home']+'/signal-grove-control/workspace-read-policy.json','file',self.policy_bytes))
+        result.append(TargetSpec('policy',p['policy_path'],'file',self.policy_bytes))
         units=p['layout']['account_home']+'/.config/systemd/user'
         for role,name in (('gateway_link','hermes-gateway.service'),('serve_link','hermes-serve.service')):
             path=units+'/'+name+'.d/100-signal-grove.conf';result.append(TargetSpec(role,path,'link',p['proposed_dropin_links'][path]))

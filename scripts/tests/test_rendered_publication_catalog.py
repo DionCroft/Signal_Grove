@@ -33,7 +33,7 @@ class RenderedCatalogSchemaTests(unittest.TestCase):
         catalog=definition();targets={s.role:s.path for s in catalog.specs()};base='/home/owner/Projects/fleet';runtime=base+'/hermes/runtime-generations/next-v1/commands-signal-grove-v1'
         expected=dict(source_gateway=base+'/scripts/systemd/next-v1/hermes-gateway.service.conf',source_serve=base+'/scripts/systemd/next-v1/hermes-serve.service.conf',
             source_client=base+'/scripts/bin/next-v1/hermes-client',source_server=base+'/scripts/bin/next-v1/hermes-serve',runtime_client=runtime+'/hermes-client',runtime_server=runtime+'/hermes-serve',
-            policy=base+'/hermes/signal-grove-control/workspace-read-policy.json',gateway_link='/home/owner/.config/systemd/user/hermes-gateway.service.d/100-signal-grove.conf',
+            policy='/home/owner/.local/state/signal-grove-workspace/workspace-read-policy.json',gateway_link='/home/owner/.config/systemd/user/hermes-gateway.service.d/100-signal-grove.conf',
             serve_link='/home/owner/.config/systemd/user/hermes-serve.service.d/100-signal-grove.conf',client_link='/home/owner/.local/bin/hermes')
         self.assertEqual(targets,expected);self.assertEqual(tuple(targets),tuple(FILE_ROLES));self.assertEqual(catalog.scope,'production_review_only')
 
@@ -83,6 +83,7 @@ class NativeRenderedCatalogTests(unittest.TestCase):
         self.launcher=self.commands/'hermes';self.launcher.write_bytes(LAUNCHER);self.launcher.chmod(0o755)
         client=account/'.local/bin';client.mkdir(parents=True,mode=0o700);(client/'hermes').write_bytes(b'original-owner-client');(client/'hermes').chmod(0o755)
         (account/'.config/systemd/user').mkdir(parents=True,mode=0o700)
+        (account/'.local/state').mkdir(mode=0o700)
         for _,path in self.catalog.mode_paths():
             directory=Path(path);directory.mkdir(parents=True,exist_ok=True,mode=0o700);directory.chmod(0o775)
 

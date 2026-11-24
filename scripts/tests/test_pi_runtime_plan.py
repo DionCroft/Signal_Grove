@@ -59,7 +59,13 @@ class PiRuntimePlanTests(unittest.TestCase):
 
     def test_permission_observations_cover_every_entry_ancestor(self):
         result = m.render(self.layout)
+        self.assertEqual(
+            '/home/operator/.local/state/signal-grove-workspace/workspace-read-policy.json',
+            result['policy_path'],
+        )
         for path in ['/home/operator/.local/bin', '/home/operator/.config',
+                     '/home/operator/.local/state',
+                     '/home/operator/.local/state/signal-grove-workspace',
                      '/home/operator/Projects/fleet/scripts/bin',
                      '/home/operator/Projects/fleet/hermes/runtime-generations']:
             self.assertIn(path, result['permission_paths_for_observation'])

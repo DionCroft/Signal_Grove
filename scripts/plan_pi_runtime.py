@@ -52,6 +52,7 @@ def render(layout):
     serve = commands / 'hermes-serve'
     service_env = fleet / 'scripts/hermes-service.env'
     scratch = home / 'cache/scratch'
+    policy_path = account / '.local/state/signal-grove-workspace/workspace-read-policy.json'
     units = account / '.config/systemd/user'
     gateway = f'''[Service]
 ExecStart=
@@ -119,13 +120,13 @@ exec {launcher} serve --host "$HERMES_DASHBOARD_HOST" --port "${{HERMES_DASHBOAR
                                ("hermes-serve.service", f'scripts/systemd/{generation}/hermes-serve.service.conf'))}
     return dict(schema=1, state='REVIEW_ONLY_NOT_AUTHORIZED_OR_ACTIVATED', layout=dict(layout),
                 canonical_home=str(home), source=str(source), runtime=str(runtime),
-                command_directory=str(commands), sdk_launcher=str(launcher),
+                command_directory=str(commands), sdk_launcher=str(launcher), policy_path=str(policy_path),
                 deployed_wrappers={str(client): cli, str(serve): server},
                 source_artifacts=artifacts, proposed_dropin_links=links,
                 proposed_user_command_link={str(account / '.local/bin/hermes'): str(client)},
                 permission_paths_for_observation=sorted({str(parent) for path in
                     [*map(PurePosixPath, links), client, serve, launcher, account / '.local/bin/hermes',
-                     *[fleet / key for key in artifacts], home / 'signal-grove-control/workspace-read-policy.json']
+                     *[fleet / key for key in artifacts], policy_path]
                     for parent in path.parents}),
                 required_gates=['exact-source-and-runtime-inventory', 'exact-existing-units-and-links',
                     'protected-config-and-credential-conservation', 'supported-old-stop-launcher-pm',

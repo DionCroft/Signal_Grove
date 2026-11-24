@@ -1,5 +1,33 @@
 # Current development validation — audit follow-up
 
+## Protected workspace policy publication target
+
+The staged workspace operator reads the policy under the operator's
+protected account state. The prior publication catalog pointed under
+the Hermes project home. The renderer now supplies a single fixed policy
+destination derived from the account home, and the catalog consumes it.
+The deployment review packet changes only the policy path and its
+observed ancestors. The exact two wrappers and two systemd overrides
+retain their previously checked bytes.
+
+A first Pi preflight stopped before creating a fixture. Read-only
+reconciliation showed a new dashboard process and start time, with the
+same runtime, executable and loaded configuration. The gateway identity
+matched the original observation. The fresh observation bounded the
+subsequent owned test.
+
+All 113 cases passed on the Pi without skips. A separate owned fixture
+published at the corrected path and rolled the policy and runtime
+references back in eight actual file stages. It retained fixture data.
+The renderer's production target matched the exact staged operator
+bootstrap. Live unit identities and configuration were conserved
+during the successful run, and the real policy remained absent.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Updated private renderer packet | `36fe747034bb0008b297edcd6888b99610aa42ad62608fcf83dd30a0316e02f6` |
+| Owned Pi publication and rollback output | `189c25cc4c3c86039be20f425f4426bb403839d7ca4f74cda95ce8e804e33754` |
+
 ## Restored upstream main source inspection
 
 The [upstream compatibility run](https://github.com/DionCroft/Signal_Grove/actions/runs/45248203973)

@@ -23,6 +23,7 @@ def build(parent):
     source=commands.parent/packet['layout']['source_name'];source.mkdir(mode=0o700)
     client=account/'.local/bin';client.mkdir(parents=True,mode=0o700);(client/'hermes').write_bytes(b'original-cli');(client/'hermes').chmod(0o755)
     (account/'.config/systemd/user').mkdir(parents=True,mode=0o700)
+    (account/'.local/state').mkdir(mode=0o700)
     for _,path in definition.mode_paths():
         p=Path(path);p.mkdir(parents=True,exist_ok=True,mode=0o700);p.chmod(0o775)
     operation=root/'operation';operation.mkdir(mode=0o700);paths={}

@@ -50,6 +50,7 @@ class NativeAncestryTests(unittest.TestCase):
         self.source=self.commands.parent/p['layout']['source_name'];self.source.mkdir(mode=0o700)
         client=account/'.local/bin';client.mkdir(parents=True,mode=0o700);(client/'hermes').write_bytes(b'original-cli');(client/'hermes').chmod(0o755)
         (account/'.config/systemd/user').mkdir(parents=True,mode=0o700)
+        (account/'.local/state').mkdir(mode=0o700)
         for _,path in self.definition.mode_paths():
             directory=Path(path);directory.mkdir(parents=True,exist_ok=True,mode=0o700);directory.chmod(0o775)
         self.captured=capture_native(self.definition,self.definition.sha256)

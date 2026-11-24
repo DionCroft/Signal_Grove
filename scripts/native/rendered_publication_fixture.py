@@ -35,6 +35,7 @@ def run(home):
     (commands.parent/packet['layout']['source_name']).mkdir(mode=0o700) # Inert source-root scaffold, not SDK source acceptance.
     client=account/'.local/bin';client.mkdir(parents=True,mode=0o700);(client/'hermes').write_bytes(old_client);(client/'hermes').chmod(0o755)
     (account/'.config/systemd/user').mkdir(parents=True,mode=0o700)
+    (account/'.local/state').mkdir(mode=0o700)
     for _,path in definition.mode_paths():
         directory=Path(path);directory.mkdir(parents=True,exist_ok=True,mode=0o700);directory.chmod(0o775)
     datafile=fleet/'hermes/newer-history-fixture';datafile.write_bytes(b'newer-owned-data-before-forward')
