@@ -1,5 +1,43 @@
 # Current development validation — audit follow-up
 
+## Beta.11 Android 17 release-gate failures
+
+[The exact hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45386612152)
+at `a6e3704328062ad68a4f66268539629cd48b78e1` passed the verify job and
+both Android 8 shards. Independent verification reconstructed 594 and
+667 disjoint named Android 8 positives from the raw logs. Their union
+matches the full Android 8 standard inventory. The original Demo denial
+regression passed.
+
+Both Android 17 shards completed every declared start and recorded one
+negative result each. Shard 0 returned 594 of 595 positives.
+`LocalAiFlowTest.helperDismissesTheComposerKeyboardAndKeepsTheDraft`
+could not find a displayed Setup helper entry with the composer IME
+visible. Shard 1 returned 666 of 667 positives.
+`CanonicalViewerUiTest.checkedWorkspaceReviewSendsOnceAndRequiresAFreshAttachmentAfterAcknowledgement`
+reported a native tap WARNING. The focused window and complete control
+were inside the observed viewport. Android accepted one DOWN and one UP
+533 ms apart against a 400 ms long-press threshold. The review opened
+and required consent. The fixture stopped before confirmation and
+performed no second tap. Both original shards and the aggregate
+workflow remain failed.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Android 17 shard 0 archive (14922073229) | `94ed25ea7cf372e427f9d91d3ac9de3e40023024db05a2522125e000689cedd5` |
+| Android 17 shard 1 archive (14922067551) | `334f8f5a9749d0c4c2c41a3f185c0f4f6868ea3b4aad6bc00b44c28c115bdb43` |
+| Exact hosted debug app | `355d4c50bce133ec5cddcb594086c80398bb772622c7a842ef7bc29588816d16` |
+| Exact hosted debug test APK | `ba425e9a89798df410c6724e38347ac8d5e42f66eba09ad21be44a36673287aa` |
+| Two-method isolated exact-hosted-pair output | `cb4195f5ea2ff0006627d647cf9c8c3fbf8e6a665470d6511ee5428fee954ab1` |
+
+The same two methods passed once when run in isolation on an owned
+Android 17 emulator with byte-identical hosted debug APKs. The separate
+original-signer production APK on that emulator retained its digest.
+An independent run of both complete Android 17 partitions is underway
+using those exact hosted APKs. It must establish the same named inventory
+and successful raw case union. OEM acceptance and public publication remain
+pending.
+
 ## Demo denial Activity on Android 8
 
 The exact 9dd1b7d Android 8 shard 0 started all 594 declared

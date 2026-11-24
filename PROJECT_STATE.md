@@ -7,6 +7,18 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Beta.11 Android 17 release-gate failures
+
+The exact build and Android 8 gates pass, including all 1,261
+distinct standard Android 8 cases. The Android 17 shard results were
+594/595 and 666/667. One failed setup-helper reachability with the
+composer keyboard open. The other stopped at a workspace Review
+touch timing warning before confirmation. Both methods passed in
+isolation on the exact hosted APKs. A complete independent run of
+both Android 17 shards is in progress on the owned emulator.
+Preserve both hosted failures and complete the physical Xiaomi
+upgrade before publishing. [Validation](docs/VALIDATION.md#beta11-android-17-release-gate-failures).
+
 ## Demo denial and private Activity data
 
 The beta.11 Android 8 shard ran 594 methods and passed 593. The
