@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Pinned environment removal differences
+
+The exact stable environment helper reported removal of a multiline
+assignment while leaving a parse error. The audited main helper removed
+the full assignment, and its native atomic writer passed three separate
+Windows cases. Preserve this distinction when reviewing the host
+environment controls. Verify scoped authenticated requests, native Linux
+locking and readback before marking host environment acceptance complete.
+[Validation](VALIDATION.md#pinned-hermes-environment-removal).
+
 ## Native reload and recovery for workspace cutover
 
 The disposable Linux fixture verified the real user-manager reload and

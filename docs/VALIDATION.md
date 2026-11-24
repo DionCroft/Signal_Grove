@@ -1,5 +1,35 @@
 # Current development validation — audit follow-up
 
+## Pinned Hermes environment removal
+
+The upstream source blobs and the python-dotenv 1.2.4 wheel were
+verified against both pins. Three disposable Windows file cases per
+pin exercised the exact `remove_env_value`, line helpers and native
+atomic publisher. The fixture supplied the file path and observed the
+publication callback. The route, lock and process mirror were outside
+this test.
+
+| Upstream pin | Single-line removal | Multiline removal | Missing key |
+| --- | --- | --- | --- |
+| Stable `8fc0374` | Clean | Reported removed, one parser error remained | No rewrite |
+| Main `2506f5b` | Clean | Complete assignment removed, no parser errors | No rewrite |
+
+The neighboring assignments retained their exact values in all six
+cases. The Windows single-line rewrite produced CRLF on both pins.
+Main's whole-assignment rewrite retained the multiline fixture's LF.
+[Stable source](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/hermes_cli/config.py#L2591)
+and [main source](https://github.com/NousResearch/hermes-agent/blob/2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15/hermes_cli/env_loader.py#L830).
+
+Three separate tests of main's exact Windows atomic writer confirmed
+preservation of the neighboring content, BOM and line endings in a
+whole-assignment rewrite, exact bytes for a fresh file, and cleanup
+after a single injected non-retryable replace error with old bytes
+intact. The first private removal fixture omitted a source helper.
+Its corrected fixture recorded native newline behavior separately
+from parsed content. Native Linux locking and authenticated route
+qualification remain open. The stable multiline limitation stays in
+the compatibility audit.
+
 ## Coordinator-driven service sequence
 
 The fixture now drives the reviewed sequence through CutoverCoordinator

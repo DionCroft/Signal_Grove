@@ -7,6 +7,15 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Pinned Hermes environment removal
+
+Exact stable and main removal helpers were checked against disposable
+Windows files. Both removed a simple assignment; stable left a parse
+error after reporting removal of a multiline entry. Main removed the
+complete entry and preserved neighboring assignments. Authenticated
+routes, native Linux locking and live acceptance remain open.
+[Validation](docs/VALIDATION.md#pinned-hermes-environment-removal).
+
 ## Coordinator-driven service sequence
 
 The disposable integration fixture runs the existing coordinator with
