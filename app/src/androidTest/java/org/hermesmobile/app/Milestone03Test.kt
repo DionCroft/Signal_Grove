@@ -102,6 +102,30 @@ class Milestone03Test {
         compose.onNode(hasText("The simulated action was denied.", substring = true) and hasAnyAncestor(timeline))
             .assertDoesNotExist()
     }
+    @Test fun activityShowsThePendingApprovalWithoutRepeatingThePrivatePrompt() {
+        compose.openHomeNewChatOnce()
+        demoExercise(Words.DemoApproval)
+        compose.waitUntil(5000) { vm.controls.value.singleOrNull()?.state == "pending" }
+        val prompt = vm.controls.value.single().prompt
+        assertTrue(prompt.isNotBlank())
+        compose.onNodeWithText(Words.Later.localized(AppPreferences())).performClick()
+        compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()), substring = true).performClick()
+
+        val timeline = hasTestTag("activity-timeline")
+        compose.onNode(timeline).performScrollToNode(hasTestTag("activity-wait"))
+        compose.onNode(hasText(Words.ActivityApprovalWait.localized(AppPreferences())) and hasAnyAncestor(timeline))
+            .assertIsDisplayed()
+        compose.onNode(hasText(prompt) and hasAnyAncestor(timeline)).assertDoesNotExist()
+
+        compose.onNodeWithText(Words.Close.localized(AppPreferences())).performClick()
+        compose.onNodeWithContentDescription(Words.ReviewRequest.localized(AppPreferences()), substring = true).performClick()
+        compose.onNodeWithText(Words.Deny.localized(AppPreferences())).performClick()
+        compose.waitUntil(10000) { !vm.busy.value && vm.runStatus.value == "completed" }
+
+        compose.onNodeWithContentDescription(Words.ToolActivity.localized(AppPreferences()), substring = true).performClick()
+        compose.onNodeWithTag("activity-wait").assertDoesNotExist()
+    }
+
     @Test fun demoClarificationChoiceIsReviewedBeforeSubmission() {
         inputTrace?.mark("home-new-chat")
         compose.openHomeNewChatOnce()

@@ -54,7 +54,8 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
 }
 
 @Composable internal fun ActivityDialog(
-    conversation: Conversation, events: List<ToolEvent>, report: RunReport?, live: Boolean, dismiss: () -> Unit,
+    conversation: Conversation, events: List<ToolEvent>, report: RunReport?, waits: List<ActivityWait>,
+    live: Boolean, dismiss: () -> Unit,
 ) {
     val timeline = remember(events) { activityTimeline(events) }
     val currentTool = if (live && conversation.status in setOf("running", "queued")) {
@@ -76,6 +77,18 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                         style = MaterialTheme.typography.bodySmall)
                 }
             }
+            items(waits) { wait ->
+                Column(Modifier.testTag("activity-wait"), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(label(if (wait.approval) Words.ActivityApprovalWait else Words.WaitingInput),
+                        style = MaterialTheme.typography.titleSmall)
+                    when (wait.state) {
+                        "responding" -> Text(label(Words.ResponseSending), style = MaterialTheme.typography.bodySmall)
+                        "unknown" -> Text(label(Words.DecisionUnknown), style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text(label(Words.ActivityUpdateReceived).replace("{time}", displayTime.format(Instant.ofEpochMilli(wait.receivedAt))),
+                        style = MaterialTheme.typography.labelSmall)
+                }
+            }
             item {
                 Text(label(Words.ServedRuntime), style = MaterialTheme.typography.titleSmall)
                 val served = runtime?.filterKeys { it == "provider" || it == "model" }.orEmpty()
@@ -86,8 +99,10 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
                     requested.forEach { (key, value) -> ServerField(key, value) }
                 }
             }
-            item {Text(label(if (timeline.isEmpty()) Words.ActivityUnavailable else Words.RecentActivityInfo),
-                style=MaterialTheme.typography.bodySmall)}
+            if (timeline.isNotEmpty() || waits.isEmpty()) {
+                item {Text(label(if (timeline.isEmpty()) Words.ActivityUnavailable else Words.RecentActivityInfo),
+                    style=MaterialTheme.typography.bodySmall)}
+            }
             items(timeline,key={it.key}) {entry ->
                 val e=entry.latest
                 Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
