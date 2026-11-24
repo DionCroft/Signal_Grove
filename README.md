@@ -52,9 +52,9 @@ Chat options stay beside the draft on compact screens, so the setup helper
 is reachable with the keyboard open. The earlier signed candidate retained
 the draft after closing the helper. The current candidate also passed a
 beta.10 upgrade on an Android 17 emulator. Its native libraries use relative
-diagnostic paths, with **1,243 JVM tests** and both lint variants passing
-in the local rebuild. The full hosted matrix and physical Xiaomi upgrade
-remain pending.
+diagnostic paths. The corrected hosted build passed **1,243 JVM tests**,
+**1,245 policy tests** and both lint variants with zero errors. The full
+device matrix and physical Xiaomi upgrade remain pending.
 [Beta.11 candidate scope](docs/releases/1.1.0-beta.11.md) ·
 [Validation evidence](docs/VALIDATION.md#corrected-beta11-signed-and-offline-checks).
 
@@ -99,7 +99,7 @@ Updated **24 November 2026**. Each figure identifies its APK, source or test sco
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
 | Private beta.11 candidate APK, code 116 | **76.6 MB** | 76,598,310 bytes from source d6834a2. Original signer and emulator upgrade verified. |
-| Beta.11 local rebuild | **1,243 JVM tests** | Native path correction and zero lint errors verified locally. [Exact hosted workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942) |
+| Beta.11 hosted verification | **1,243 JVM / 1,245 policy tests** | Both lint variants reported zero errors. The hosted debug APK passed the native path scan. [Exact hosted workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942) |
 | Published beta.10 production APK, code 115 | **76.1 MB** | 76,066,678 bytes, original signer and anonymous download verified. [Release files](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.10) |
 | Beta.10 local JVM | **1,203 tests across 113 reports** | No failures, errors or skips. |
 | Beta.10 signed-source lint | **0 errors**, 55 debug and 54 release warnings | Both actual lint reports for source d651a33 |

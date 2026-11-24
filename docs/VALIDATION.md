@@ -30,6 +30,20 @@ generation deadline twice. The preceding debug build also reached that
 deadline with the same emulator, model and prompt. The corrected pair and
 model fixture were restored and the failure reports retained.
 
+The corrected hosted archives matched their public digests. The 118 JVM
+reports cover 1,243 positive tests without skips. The isolated policy
+report covers 1,245 tests. Both lint variants reported zero errors.
+The Linux-hosted debug APK's 32 native members passed the path scan, and
+both inference ABIs retained relative source paths.
+
+On the older hosted Android 17 run, 1,261 methods passed and the edited
+phone draft and Voice opening methods timed out. In isolation, both
+methods passed on the byte-identical hosted build. Together the results
+cover all 1,263 named Android 17 methods, with the original shard still
+recorded as failed. The two UI methods and the OAuth test interrupted
+by the older Android 8 disconnect each passed on the corrected local
+APK pair on Android 8 and 17. These focused tests use synthetic sessions.
+
 Full device coverage for d6834a2, the signed Xiaomi upgrade and the
 production connection and data checks remain open.
 [Corrected CI run](https://github.com/DionCroft/Signal_Grove/actions/runs/45420870942).

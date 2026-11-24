@@ -16,8 +16,12 @@ the native checks. The corrected debug libraries passed an offline LFM3
 512-token context test. The separate garden prompt reached its 30-second
 generation deadline on both the preceding and corrected builds.
 
-The exact corrected Android matrix, signed Xiaomi upgrade and live
-data-retention checks still need evidence before publication.
+The corrected hosted build passed 1,243 JVM tests, 1,245 policy tests and
+both lint variants. The earlier phone draft and Voice timeouts did not
+reproduce in isolation with the same APKs. Both methods and the interrupted
+OAuth case passed on the corrected local APK pair on Android 8 and 17.
+Full hosted device coverage, the signed Xiaomi upgrade and live retention
+still need evidence before publication.
 [Validation](docs/VALIDATION.md#corrected-beta11-signed-and-offline-checks).
 
 ## Native build paths in beta.11 APKs
