@@ -14,7 +14,9 @@ recovery reload stage on the pinned user manager. It checks both inactive
 units and the approved journal prefix, consumes the reload intent once,
 and verifies both loaded configurations before reporting success.
 Windows policy tests passed 979 methods with 273 platform skips. The
-disposable Linux transition fixture is ready for verification.
+hosted Linux suite passed all 1,252 methods. A disposable user manager
+loaded both replacement commands, then restored both originals under
+a separately approved fixture recovery. Production cutover remains open.
 [Validation](docs/VALIDATION.md#journal-bound-workspace-service-reload).
 
 ## Reviewed service startup after reload
@@ -27,8 +29,8 @@ outcome for inspection using its original receipt.
 
 Windows policy validation passed 974 cases with 273 platform skips.
 The hosted Linux suite passed all 1,247 methods and verified the isolated
-test unit stopped. The coordinated reload and live Pi activation remain
-open.
+test unit stopped. The coordinated reload has an isolated fixture above. Live Pi activation
+remains open.
 [Validation](docs/VALIDATION.md#reviewed-service-startup-after-reload).
 
 ## Native build paths in beta.11 APKs

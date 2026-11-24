@@ -1,5 +1,14 @@
 # Signal Grove audit execution plan
 
+## Native reload and recovery for workspace cutover
+
+The disposable Linux fixture verified the real user-manager reload and
+separate rollback reload. Each used one approved journal intent and
+verified both inactive unit command fingerprints before returning.
+Continue with the combined native cutover, work drain and authenticated
+health checks. Live Pi activation still requires separate approval.
+[Validation](VALIDATION.md#journal-bound-workspace-service-reload).
+
 ## Hermes client stamp retry compatibility
 
 The isolated SQLite review distinguishes pre-stamp stores, the

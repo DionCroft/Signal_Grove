@@ -18,9 +18,23 @@ Both reported zero errors or failures. The first private run exposed a
 mock that did not declare the journal's assertion method. The corrected
 fixture names the journal interface and retains the original log.
 
-The hosted fixture will load and restore two distinct inactive unit
-configurations on a disposable Linux runner. The full live transaction,
-work drain, approved publication and authenticated startup remain open.
+Hosted Linux passed all 1,252 policy methods with zero skips and the
+finite policy service stopped. Two inactive units on the disposable
+user manager transitioned from their reviewed old commands to their
+reviewed new commands, then back to the originals under a separate
+fixture recovery. Both spent intents refused a second dispatch. The
+observed manager owner stayed the same. The fixture removed its unit
+definitions after it verified both reloads. The journal digests match
+both native stage receipts. Preceding non-systemd steps were synthetic.
+The full live transaction, work drain, reviewed publication and
+authenticated startup remain open.
+[Hosted reload fixture](https://github.com/DionCroft/Signal_Grove/actions/runs/45443660998/job/138621426980).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Native policy archive | 04f8f6d19955eaeed7ff8d5e455be6846c710249f46b72d4f288f44335a3a4ba |
+| Reload evidence archive | 13ee92bda1acc3bc18ddefa3e99e259dd6a016cedbd2f3510514a91cdabe2c3b |
+| Native reload journal | 8a222ee37b04fda4759515da3697e66a33fde828f96b110e3dd4b8b8588ce963 |
 
 ## Reviewed service startup after reload
 
