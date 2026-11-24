@@ -5,9 +5,12 @@
 The disposable Linux fixture verified the real user-manager reload and
 separate rollback reload. Each used one approved journal intent and
 verified both inactive unit command fingerprints before returning.
-Continue with the combined native cutover, work drain and authenticated
-health checks. Live Pi activation still requires separate approval.
-[Validation](VALIDATION.md#journal-bound-workspace-service-reload).
+The combined coordinator fixture also verified eight actual stop/start
+jobs and two reloads. It retained the injected failure and restored the
+original service commands through separate recovery.
+Continue with live work drain, backup, provisioning, publication and
+authenticated health checks. Live Pi activation requires separate approval.
+[Validation](VALIDATION.md#coordinator-driven-service-sequence).
 
 ## Hermes client stamp retry compatibility
 

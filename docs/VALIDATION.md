@@ -14,7 +14,32 @@ explicitly identified fixture results.
 
 The fixture Python and workflow YAML passed local validation. A direct
 invocation refused the local Windows host at the disposable-runner guard.
-The native hosted sequence still needs verification on the exact commit.
+The first hosted fixture stopped before any journal intent. A second run
+identified the runner's symlink from the ExecStart file to the observed
+process executable. The corrected fixture binds both observations while
+retaining the literal reviewed ExecStart argument vector.
+[Original run](https://github.com/DionCroft/Signal_Grove/actions/runs/45445261331/job/138627163213)
+and [preflight diagnostic](https://github.com/DionCroft/Signal_Grove/actions/runs/45446067140/job/138630067009).
+
+On source `dbf6eb0a22d450caa46a62a2060efcf2dc7227a1`, the disposable
+Linux manager completed eight distinct stop/start jobs and two verified
+reloads. Both replacement process owners and both restored owners were
+observed. The journal recorded the original cutover as unknown at the
+injected backup failure and linked a separate, completed recovery to that
+operation. Independent verification matched each observation to its
+journal digest and confirmed fixture cleanup. The native policy suite
+passed all 1,252 methods with zero skips. The same workflow's
+independent upstream source inspection failed on missing paths at its
+stable and main pins. Live Pi work drain, backups, provisioning,
+publication and authenticated service readiness remain open.
+[Verified hosted fixture](https://github.com/DionCroft/Signal_Grove/actions/runs/45446735403/job/138632455709)
+and [upstream inspection](https://github.com/DionCroft/Signal_Grove/actions/runs/45446735403/job/138633727164).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Native policy archive | 0d91513f802e9c8c8ec8ea787270a713adbc7caeb16fd8ab1dbcd137b3a1b7c6 |
+| Coordinator fixture archive | 4e1671da30146265e08f13602f3d1a583a6b43655d302bdd49dfa41a2025e45b |
+| Coordinator journal | 0ac6435e3ffd6b239fb3dd0eeb16a032e4dc5f6c39690646e69af4398cbba3cc |
 
 ## Journal-bound workspace service reload
 

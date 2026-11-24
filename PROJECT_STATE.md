@@ -13,8 +13,11 @@ The disposable integration fixture runs the existing coordinator with
 real systemd stop, reload and start actions for two owned services.
 It injects a backup-stage fault after reviewing replacement startup
 and submits a separate recovery approval against the original journal.
-The fixture source and CI wiring passed local validation. Hosted service
-transition evidence is pending.
+The hosted Linux fixture verified all eight service jobs and both
+reloads. The original operation held at the injected failure and
+separate recovery restored both original commands. All 1,252 native
+policy methods passed. Live work drain, backup, provisioning and
+authenticated readiness remain open.
 [Validation](docs/VALIDATION.md#coordinator-driven-service-sequence).
 
 ## Journal-bound workspace service reload
