@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Authenticated gateway and Serve readiness
+
+The coordinator's isolated cutover and recovery now use authenticated
+readiness observations for both exact systemd service incarnations.
+Eight readiness results match their journal and process snapshots.
+The wrong home and invalid token were refused. All 1,252 hosted native
+policy methods passed. The distinct upstream source inspection remains
+open, along with the production Pi rollout and live workspace acceptance.
+[Validation](docs/VALIDATION.md#authenticated-gateway-and-serve-readiness).
+
 ## Pinned Hermes environment removal
 
 Exact stable and main removal helpers were checked against disposable

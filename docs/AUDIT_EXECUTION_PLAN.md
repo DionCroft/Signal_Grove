@@ -1,5 +1,15 @@
 # Signal Grove audit execution plan
 
+## Authenticated post-start readiness
+
+The isolated coordinator qualified both post-start roles using their
+actual systemd incarnation and authenticated loopback or Unix transport.
+Forward and recovery observations are tied to the exact journal.
+Use these adapters with pinned managed endpoints in the real cutover
+review. Canonical PM preparation, encrypted backup, work drain and live
+Pi-to-worker verification remain open.
+[Validation](VALIDATION.md#authenticated-gateway-and-serve-readiness).
+
 ## Pinned environment removal differences
 
 The exact stable environment helper reported removal of a multiline

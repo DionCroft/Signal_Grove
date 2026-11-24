@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Authenticated gateway and Serve readiness
+
+The read-only readiness adapters match the exact running systemd unit,
+reviewed configuration, executable and owner before and after the
+exchange. The gateway uses a single Unix control connection and the
+registered status for the reviewed home. Its admission must be open.
+Serve samples the authenticated identity and idle routes on one
+kernel-owner-verified local HTTP socket. Busy and idle observations
+remain separate from readiness.
+
+Hosted source `19dd03c600f56d28fd77de1eec12e630b50e5cfb` verified
+eight readiness observations tied to the actual service start
+and final verification records across forward and rollback.
+The native journal also verifies eight stop/start jobs and two reloads.
+The fixture refused a mismatched gateway home and an invalid Serve
+bearer. The restored processes recorded six gateway status requests
+and four pairs of Serve GETs. No retirement permit was created.
+All 1,252 native Linux policy methods passed, with no skips.
+[Hosted fixture](https://github.com/DionCroft/Signal_Grove/actions/runs/45459004730/job/138676113526).
+
+The local portable group passed 82 methods with 40 platform skips.
+The integration used actual systemd and kernel-authenticated transports
+with synthetic endpoint responders and test credentials. Other
+coordinator prerequisites used fixture evidence. Real Pi source and
+PM provisioning, backup, work drain, health and attachment acceptance
+remain separate gates. The independent upstream source job still failed
+on missing paths at its stable and main pins.
+[Upstream source inspection](https://github.com/DionCroft/Signal_Grove/actions/runs/45459004730/job/138677236481).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Native policy archive | 9980c824ab7bc31c5dcb16639fccaf81b4e93e372496834e96eedaebc28fad93 |
+| Readiness and cutover archive | 7354360a2eb5e386aa556e91ee73639673842951f38084a65accc0c00bff6546 |
+| Coordinator journal | 105d67ec50ef2bb733aba7d18315a8365026d80f294eae90c716cdf6522177d6 |
+
 ## Pinned Hermes environment removal
 
 The upstream source blobs and the python-dotenv 1.2.4 wheel were
