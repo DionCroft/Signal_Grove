@@ -7,6 +7,16 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Native Hermes v0.23.1 subagent delivery
+
+The public v0.23.1 paired native suite ran the same 78 named tests.
+The pristine copy failed only the missing-child-event regression.
+The upstream patch passed all 78, including the child identity and
+ordering checks and the loopback authority fixture. This validates
+the public source in isolation. Live delivery on the maintained Pi
+remains open.
+[Validation](docs/VALIDATION.md#native-hermes-v0231-subagent-delivery).
+
 ## Hermes Activity server event time
 
 Activity displays the event time reported by Hermes alongside the
@@ -29,9 +39,9 @@ restored both child events in order with no duplicate tool events.
 Live delivery and worker attribution remain open.
 [Validation](docs/VALIDATION.md#reported-subagent-outcomes-and-hermes-delivery).
 
-The earlier live-step source `d834f37` passed all 1,262 Android 8
-standard cases across both hosted shards and 596 Android 17 cases
-in shard 0. Android 17 shard 1 remains in progress at this checkpoint.
+The earlier live-step source `d834f37` passed the full hosted standard
+matrix with 1,262 Android 8 cases and 1,263 Android 17 cases. The four
+shard manifests, exact APKs and final coverage receipt were verified.
 [Hosted validation](docs/VALIDATION.md#hosted-standard-android-matrix-for-the-live-step-source).
 
 ## Hermes Activity tool-call identities and receipt times

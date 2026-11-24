@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Native Hermes v0.23.1 subagent delivery
+
+The exact upstream proposal `4a10a1e` applies cleanly to public
+Hermes v0.23.1 `3b42157`. The paired Windows runtimes used the same
+upstream regression fixture. The pristine copy kept the two original
+production blobs. The candidate applied the proposal to the Runs
+emitter and the canonical session observer.
+[Upstream proposal](https://github.com/NousResearch/hermes-agent/pull/156889).
+
+Both copies executed the same 78 named cases from the canonical Runs
+projection, Runs adapter and API authority test files. The pristine
+copy passed 77 cases and failed only the subagent regression. It
+emitted the ordinary tool events and lost both child events. The
+candidate passed all 78 cases, including the ordered child events
+with their child session ID and the real loopback HTTP/WebSocket
+authority case using a fixture inference peer. The earlier source
+probe and its stale-generation result remain separate evidence.
+
+Initial Windows attempts used an incomplete shared test environment.
+The retained traces showed missing HTTP, WebSocket and provider
+modules, plus Windows subprocess decoding. Both final runs used the
+same disposable Python 3.14.9 environment with hash-pinned binary wheels
+from the upstream lockfile and UTF-8 output decoding. The public
+sources and test homes were isolated on the Windows host. The
+maintained Pi runtime and its live acceptance remain open.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Exact public proposal patch | `9a6f537e9b104b2a8c60f32fdadad2d4b3b1a707246b6220ecaed5ed43aa9573` |
+| Pristine native result XML | `7a51797e0dc9fc69df60fd77eed534c45c7760882b74c12f69587116e6029f98` |
+| Pristine native log | `c9989e1fa8a136a7c2a7e64759d24094e5bddc3d6fb0d530877dbdceb16afe25` |
+| Patched native result XML | `ef75ef914548343222f7c97514066149b97101dc2de396144c68e7c05900504c` |
+| Patched native log | `15d2e33164243c849ad6f38d852b777af27bfea7635de1956aa1499c453586ca` |
+
 ## Hermes Activity server event time
 
 Tool and subagent events retain a valid numeric `timestamp` from
@@ -85,15 +119,16 @@ the server timestamp.
 
 ## Hosted standard Android matrix for the live step source
 
-Hosted commit `d834f37` passed Linux verification and both Android 8
-standard partitions. The runner and partition manifests agreed on
-595 and 667 passed cases. Together they contained all 1,262 distinct
-Android 8 inventory cases, with no gap or overlap. Both partitions
-used the same recorded app and test APKs. Android 17 shard 0 passed
-596 cases. Android 17 shard 1 was still running at this checkpoint.
-Archive and instrumentation log digests matched the retained receipts.
-This run applies to the earlier live-step source. External model tests
-and the full hosted matrix for the newer outcome fix remain open.
+Hosted commit `d834f37` passed Linux verification, all four Android
+standard partitions and the final coverage job. Android 8 passed
+595 and 667 cases. Android 17 passed 596 and 667 cases. Across the
+two partitions for each OS, the 1,262 Android 8 and 1,263 Android 17
+distinct executed cases matched the exact inventories. All four
+partitions used the same recorded app and test APKs. The four archives,
+their instrumentation logs and the final coverage archive matched the
+retained digests. The full matrix applies to the earlier live-step
+source. External model gates and full coverage of the newer changes
+remain separate acceptance items.
 [Hosted Android run](https://github.com/DionCroft/Signal_Grove/actions/runs/45483867006).
 
 | Hosted artifact | Archive SHA-256 | Instrumentation log SHA-256 |
@@ -101,6 +136,8 @@ and the full hosted matrix for the newer outcome fix remain open.
 | Android 8 shard 0 | `6ee40baa817bd0b92fef228a3668b6ab78242b5ebaf4210ef68367ff1d55ca47` | `63929c70691275d91cd9bdbb322dc5bf0f691afa45537fc61dd30a905a32239f` |
 | Android 8 shard 1 | `9c8db2745c9c4e0153abf38135101f42722a90ca7c9fd2921a979a64e5fa02db` | `2bca1975b1cf176b7f6f05f2c771feae2c79e521836b9a291b479a576a20916e` |
 | Android 17 shard 0 | `b0a77fd134986c60a462a0947ab7658ed80cf6b4f4030ab10f9738abe628e874` | `63b1fe946865c19dc6fcdd4df68174fd8fee14eaaae497f8898200e212be6ba7` |
+| Android 17 shard 1 | `bc71425aaa99e8417210f1ccb8efd9593901c23da6c88c96ba13700c871959c4` | `71d4d5763016f17771ccca6fa01db6c426ef73c7231d7726aba019a97f285fd5` |
+| Final coverage | `221e6d115241318333f744559122d199cc8a1bee5490689359537451b39ca140` | — |
 
 ## Hermes Activity tool-call identities and receipt times
 
