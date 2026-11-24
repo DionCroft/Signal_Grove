@@ -39,6 +39,36 @@ acceptance remain open.
 | OSV response | `57782df36d44ca6f624ac0635c41e4a83d9b96c080586c30fa7639d15ec4fd64` |
 | Read-only Pi preflight | `a62378562a5e200eb91189e2502e36809624d0ea383c31bc13afd7cf0e3771e7` |
 
+### Focused Activity, automation, and Android 17 upgrade
+
+The verified code-116 debug pair passed all 30 selected methods on
+both Android 8 and Android 17. The selected methods cover parallel
+tool and child activity, served model reporting, stale identity
+isolation, read-only history, SQLite migration, reconnect without
+resubmission, attached workspace reads, and scheduler approval,
+lost replies, timing, history and scoped output. Both emulators
+restored their original keyboard preferences and preserved their
+installed production APKs during the fixture runs. Two selector
+preflights stopped before device access. The final selector derived
+each method's class from the verified instrumentation source.
+
+The owned Android 17 emulator then upgraded in place from the
+exact public beta.10 APK to the private signed beta.11 candidate
+listed above. The actual installed APK hash, app UID, first
+installation time, Demo setting and visible synthetic local task
+verified after one Package Manager install. The initial editor tap
+was intercepted by the beta.10 keyboard and changed the draft. The
+unobscured editor saved the exact revised test title before the
+installation. This is emulator and synthetic data acceptance.
+The original-source Xiaomi upgrade, real Hermes connection retention
+and public updater acceptance remain open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Android 8 fixture log | `abfcf8e5a38e730228c2b8801eb075756adeeb7dc762290505eec426cc7185d9` |
+| Android 17 fixture log | `87521c9433906b43dc34b65fa94874f283a3974396a7531c0b52d6bac11f302c` |
+| Android 17 in-place upgrade result | `86b1a97ba614206627a17667f278d73e78bd11f5ad4579f5812c1f0262e13e06` |
+
 ## Compact phone helper and native keyboard testing
 
 [Android CI run 45306944580](https://github.com/DionCroft/Signal_Grove/actions/runs/45306944580)

@@ -17,6 +17,13 @@ Android matrix for the compact-helper code has reached its four device
 shards. The full release-source check and Xiaomi upgrade remain open.
 [Validation](docs/VALIDATION.md#private-beta11-artifact-and-pi-preflight).
 
+All 30 focused Activity, history, attachment, scheduler and recovery
+methods passed on each Android API using the verified debug pair.
+The exact signed private APK upgraded the owned Android 17 emulator
+from public beta.10. Package Manager retained its app UID and original
+installation time. The app retained Demo mode and the test task.
+Physical Xiaomi data and connection acceptance remain open.
+
 Read-only Pi observations match both live service incarnations, their
 loaded configuration and the previously rehearsed staged candidate.
 The private runtime has its own PM facts. The live runtime still needs
