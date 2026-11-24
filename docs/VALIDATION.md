@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Combined beta.11 signed rehearsal
+
+The private original-signer code-116 APK from commit 73f68da is 76,601,810
+bytes. Its SHA-256 is
+`0f45fa6b9143efa6491fa3d609730404c94f6075687210ec29f695250ab8b80c`.
+The schema-validated 187-component SBOM matches 154 resolved Maven
+coordinates and all 32 native libraries in the signed APK. The native
+libraries match the exact release strip outputs. The four C++ runtime
+members and three packaged licence texts match the earlier reviewed build.
+
+The hosted build archive matched its GitHub digest. Its 118 reports
+contain 1,243 JVM tests with zero failures, errors or skips. Debug lint has
+57 warnings and release lint has 56, with zero errors in both. The
+isolated policy archive verifies 1,245 tests and a stopped fixture service.
+[Exact hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45409815501).
+
+On an owned Android 17 emulator, an in-place upgrade from the exact public
+beta.10 APK preserved the app UID, first installation time, trilingual
+Demo preference and one synthetic task. In the signed beta.11 app
+at 840 × 1470, 420 dpi and 1.3× font scale, a native tap opened Chat options
+with the keyboard visible. The helper closed the keyboard and the same
+unsent draft remained on return. The emulator display settings were restored.
+
+The combined local debug pair passed 11 standard checks on Android 8. The
+Android 17 group passed 10. Its consent tap had a 956 ms DOWN-to-UP
+interval against the 400 ms long-press threshold. The test stopped after
+that gesture. The same synthetic method passed in an isolated invocation
+with the identical APKs, and the original failure remains recorded.
+The compact composer and Activity checks then passed on both Android APIs.
+
+The hosted device matrix, physical Xiaomi upgrade and live data-retention
+checks remain open. The isolated GitHub metadata check selected the exact
+signed asset and verified its filename and digest. Anonymous beta.11
+download and the approved updater acceptance follow public release.
+
 ## Compact phone composer and standard device reconciliation
 
 The phone composer keeps Chat options beside the draft, outside the

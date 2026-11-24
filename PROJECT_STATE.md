@@ -7,6 +7,17 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Combined beta.11 signed rehearsal
+
+Commit 73f68da combines the compact composer and Hermes Activity waits.
+The signed code-116 APK preserved the original application identity, Demo
+setting and one task in an Android 17 emulator upgrade from public beta.10.
+The exact signed app also preserved an unsent draft across the setup helper
+at 1.3× font scale. Hosted verification passed 1,243 JVM cases, 1,245 policy
+cases and both lint variants. The full matrix, signed Xiaomi upgrade and
+release checks remain open.
+[Validation](docs/VALIDATION.md#combined-beta11-signed-rehearsal).
+
 ## Compact phone composer and standard device reconciliation
 
 Phone Chat reserves space for the draft and its options before measuring

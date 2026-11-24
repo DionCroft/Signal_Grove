@@ -31,8 +31,10 @@ compatibility and owner shutdown remain open.
 
 Beta.11 adds a scoped **Hermes Activity** view in Chat. It shows retained
 tool and subagent events, reported outcomes and timing, and the model and
-provider reported for the matching run. Read-only history explains when
-there is no saved reply text or when activity details are unavailable.
+provider reported for the matching run. It shows when Hermes is waiting for
+approval or an answer and whether the response is sending or its delivery is
+uncertain. Read-only history explains when saved reply text or activity
+details are unavailable.
 
 On-device AI now shows the formatted prompt and reply budgets before
 sending, with a review of what fits. Phone history offers date and model filters.
@@ -46,12 +48,14 @@ also includes paused schedule editing, an inbox for reviewed project
 occurrences and scoped run receipts. Live Pi and worker acceptance is
 tracked in the audit.
 
-The compact UI fixes passed **1,242 JVM tests**, both lint variants with
-zero errors and focused Android 8 and 17 checks. The 76.6 MB signed private
-APK upgraded the owned Android 17 emulator from beta.10. The final-source
-hosted matrix, physical Xiaomi upgrade and public release remain open.
+Chat options stay beside the draft on compact screens, so the setup helper
+is reachable with the keyboard open. The signed beta.11 candidate retained
+the draft after closing the helper and passed a beta.10 upgrade on an Android
+17 emulator. Hosted verification passed **1,243 JVM tests**, **1,245 policy
+tests** and both lint variants with zero errors. The full device matrix and
+physical Xiaomi upgrade remain pending.
 [Beta.11 candidate scope](docs/releases/1.1.0-beta.11.md) ·
-[Validation evidence](docs/VALIDATION.md#private-beta11-artifact-and-pi-preflight).
+[Validation evidence](docs/VALIDATION.md#combined-beta11-signed-rehearsal).
 
 ## Download and release status
 
@@ -93,8 +97,8 @@ Updated **24 November 2026**. Each figure identifies its APK, source or test sco
 
 | Check or measurement | Verified result | Scope |
 | --- | ---: | --- |
-| Private beta.11 candidate APK, code 116 | **76.6 MB** | 76,592,130 bytes from source 290f7fe. Original signer and owned Android 17 upgrade verified. |
-| Beta.11 hosted verify checkpoint | **1,242 JVM / 1,245 policy cases** | Source 6d85b6e. Both lint variants reported zero errors. Final-source device coverage remains open. [Hosted workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45355709971) |
+| Private beta.11 candidate APK, code 116 | **76.6 MB** | 76,601,810 bytes from source 73f68da. Original signer and emulator upgrade verified. |
+| Beta.11 hosted verify checkpoint | **1,243 JVM / 1,245 policy cases** | Source 73f68da. Both lint variants reported zero errors. Full device coverage remains pending. [Hosted workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45409815501) |
 | Published beta.10 production APK, code 115 | **76.1 MB** | 76,066,678 bytes, original signer and anonymous download verified. [Release files](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.10) |
 | Beta.10 local JVM | **1,203 tests across 113 reports** | No failures, errors or skips. |
 | Beta.10 signed-source lint | **0 errors**, 55 debug and 54 release warnings | Both actual lint reports for source d651a33 |
