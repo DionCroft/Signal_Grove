@@ -14,7 +14,8 @@ signed approval as well as its existing execution and scope fields.
 A different approval with the same execution ID leaves the outcome
 unknown. The exact path also verifies the signed digest before queue
 admission. All 110 native Windows cases and 981 portable cases passed.
-The hosted Linux coordinator and live Pi-to-worker checks remain open.
+Hosted verification passed all 47 Linux coordinator and 110 native
+Windows cases. Live Pi-to-worker acceptance remains open.
 [Validation](docs/VALIDATION.md#scheduled-worker-receipt-identity).
 
 ## Current step in Chat

@@ -26,8 +26,11 @@ loader pin. An independent comparison against the previous commit
 proved that exactly two of the 14 LF-normalized package members
 changed. The new immutable package digest is
 `f645bd21694b92a581298fe084b6b3df7b51d4f4d58b48eebec87a831c5d7e74`. The repeated loader tests verified the new package
-and retained the modified-byte refusal. Hosted Linux coordinator
-fixtures and live scheduled execution remain open.
+and retained the modified-byte refusal. The exact hosted commit passed
+47 Linux coordinator cases and 110 Windows native cases. The Linux
+receipt includes the lost-response, stale-approval and missing-digest
+regressions. Live scheduled execution remains open.
+[Hosted worker verification](https://github.com/DionCroft/Signal_Grove/actions/runs/45485760436).
 
 | Private evidence | SHA-256 |
 | --- | --- |
