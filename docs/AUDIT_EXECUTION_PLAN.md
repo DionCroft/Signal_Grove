@@ -1,5 +1,16 @@
 # Signal Grove audit execution plan
 
+## Workspace activation source and launcher review
+
+The exact one-project read-only review and rollback source match the Pi.
+Seven entrypoint directories still report group write. The protected policy
+path under account state is ready for review, with the policy file absent.
+The isolated SDK launcher starts with prepared PM facts. Its relative tools
+stamp selects different locations from different working directories.
+Create the explicit-store isolated variant and verify its own PM selection
+before finalizing and reviewing live activation.
+[Validation](VALIDATION.md#workspace-activation-inputs-and-sdk-launcher).
+
 ## Isolated Pi runtime selection and rollback
 
 The staged successor and the exact original runtime passed the original,

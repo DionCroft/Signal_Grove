@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Workspace activation inputs and SDK launcher
+
+The read-only preflight verified all nine workspace overlay files against
+both the reviewed input and the native Pi candidate. It matched the saved
+rollback session controls to the live source. Five existing components of
+the account-state policy path passed the native protected-directory criteria.
+The policy was absent. Seven entrypoint directories still had mode 0775.
+Both live units retained their observed configuration, PID and source.
+
+The first isolated SDK launcher call returned before publication because
+the test omitted the required command directory. Independent observation
+confirmed the destination was absent. After creating the isolated
+directory, the pinned SDK published the executable, its shell syntax
+passed, and a normal launch selected the exact prepared home's dependency
+facts and site-packages. The borrowed-home probe failed its expected SDK
+refusal check and left the unprepared home empty. The launcher was retained.
+
+The follow-up used the SDK resolver with its runtime override disabled.
+From the source directory it found the intended tools and facts. From
+another directory it resolved the relative stamp elsewhere and found no
+tool facts. The candidate install key was identical. The canonical home
+had no candidate facts. Use a fresh isolated variant with the
+[reviewed explicit-store preparation](contracts/2026-11-14-runtime-source-binding.md)
+before testing deployment. Live policy and services were preserved.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Read-only activation input reconciliation | `506c3b056d7f19afee35da5dcb639c571eb893cb41f2584cd3212017e0d9f4fe` |
+| Isolated SDK launcher executable | `f89d6e00b5e900f2f240191427fdc367f870da44146e67d8613b79adba7ed655` |
+| Multi-directory store reconciliation | `13d42d02cf67d270383947370a9b4db38e3f105671dfafe32cac9f43640b45c3` |
+
 ## Isolated Pi runtime selection and rollback
 
 On the ARM64 Pi, three unique transient user systemd units ran the exact

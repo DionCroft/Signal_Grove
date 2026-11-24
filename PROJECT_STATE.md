@@ -7,6 +7,22 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Workspace activation inputs and launcher blocker verified
+
+All nine files in the proposed read-only source change matched the staged
+Pi candidate. The saved rollback control matched the live source. The
+account-state policy path passed its protection check. The SDK launcher
+selected the prepared isolated home's PM facts. The borrowed-home probe
+exposed a working-directory-dependent tools path, and the canonical home
+has no candidate PM facts. [Validation](docs/VALIDATION.md#workspace-activation-inputs-and-sdk-launcher).
+
+Next prepare a fresh isolated variant with an explicit tools path and its
+own PM facts. Verify launcher startup from multiple directories and the
+unprepared-home refusal. Preserve the current generation and original
+failure. The live packet still needs its protected entrypoints, backup,
+health gates and separate activation approval. The exact-source Android
+CI run has started.
+
 ## Isolated runtime selection and rollback verified
 
 Three transient Pi services ran the exact original, workspace-only candidate,
