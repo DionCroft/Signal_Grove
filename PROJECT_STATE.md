@@ -7,6 +7,13 @@ The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
 [offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
 requirements. Commit and push tested chunks.
 
+## Pinned stored-session runtime checks
+
+Both new Hermes pins retain the same 11 persistence test files and
+the same pytest version as the previous cohorts. The native Linux
+matrix now applies the existing 103-case gate to v0.23.4 and the
+pinned main revision. Hosted runtime results remain open.
+
 ## Isolated shutdown coverage for Hermes v0.23.4 and main
 
 The Linux shutdown matrix includes pristine and patched cohorts for
