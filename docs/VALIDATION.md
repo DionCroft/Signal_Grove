@@ -95,6 +95,34 @@ shutdown recovery still require their separate checks.
 | `441af48` public archive | `5c556266a274249357de83a90e471bbd23605b5b5f8e2a2366ce49e7a3fdfee8` |
 | `441af48` watcher report | `c7d75df187e6177d0c9c06381e24aa1170e7795a3c6b6809f601902db7cdb7e7` |
 
+## Hermes main watchdog shutdown gate
+
+The complete `441af486d09a2f7910aa3043ebe633f439cf92c9` archive contains
+27,687 files with verified Git blob identities and 131 matching executable
+paths. Its 42 PowerShell files with archive line-ending conversion were
+verified against their original Git bytes. The existing heartbeat patch
+applied cleanly to the exact gateway shutdown and session reaper files.
+The revised upstream gateway consults an already loaded API worker module
+and keeps the watchdog armed when teardown exits before shutdown begins.
+
+Five selected upstream test files have identical Git blobs to the previous
+main pin. The sixth adds six watchdog cases covering cancellation, early
+failure, completed and late-failed teardown, and stop and service-restart
+exit verdicts. The new pin requires all 56 exact positive identities on both
+pristine and patched source. Both variants also run the native heartbeat
+gate. The patched variant runs delegation recovery. The older pins keep
+their 50 cases.
+
+All 22 local shutdown gate tests and 10 native-heartbeat evidence tests passed.
+Replaying the retained stable and previous main comparison packets reproduced
+both published reports byte for byte. The new native Linux run must still
+verify the complete cases and recovery behavior.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Whole-source verification | `6255d0e7273f88300b4ab6b9a497cd9f73f542db41b34aaff8f700186bac9797` |
+| Patch and test inventory review | `64fa8c475d1009ae1d3ace26a66b756f461d023572ebc412cc4cfba8c6355a37` |
+
 ## Hermes Activity skill loads
 
 Signal Grove displays a resolved skill identity when a recognized

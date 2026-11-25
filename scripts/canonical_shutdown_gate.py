@@ -131,6 +131,16 @@ CASES = {'tests/tui_gateway/test_backend_heartbeat.py': [('tests.tui_gateway.tes
                                              'test_shutdown_mcp_servers_nonblocking_keeps_loop_responsive'),
                                             ('tests.gateway.test_gateway_shutdown',
                                              'test_shutdown_mcp_servers_nonblocking_completes_fast_path')]}
+WATCHDOG_PIN = '441af486d09a2f7910aa3043ebe633f439cf92c9'
+WATCHDOG_TEST_FILE = 'tests/gateway/test_gateway_shutdown.py'
+WATCHDOG_TESTS = (
+    'test_stop_that_does_not_complete_is_still_ended_by_the_watchdog[phase_raises]',
+    'test_stop_that_does_not_complete_is_still_ended_by_the_watchdog[stop_cancelled]',
+    'test_stop_that_completes_disarms_the_watchdog',
+    'test_stop_that_fails_after_shutdown_began_disarms_the_watchdog',
+    'test_start_gateway_turns_a_failed_stop_into_an_exit_verdict[stop]',
+    'test_start_gateway_turns_a_failed_stop_into_an_exit_verdict[service_restart]',
+)
 VARIANTS = ('pristine', 'candidate')
 class ShutdownPin(NamedTuple):
     file_count: int
@@ -159,6 +169,12 @@ NOVEMBER_24_PATCH_FILES = CURRENT_PATCH_FILES | {
         '5c29c3290db0ceac9dd7edf57bb20d81da150ac9057ccabe462def42c80ff474',
     ),
 }
+WATCHDOG_PATCH_FILES = CURRENT_PATCH_FILES | {
+    'gateway/run_shutdown.py': (
+        '77e046083c3e96ca758cdbe12a3045863cfa5212811b1c04dfccd27f757e8642',
+        '7149ced953596c69922f153c5462455fbb6cdbac34813e241c0d006a8fc75feb',
+    ),
+}
 CURRENT_EXECUTABLES = (131, '90f8e66ffbf463c6be1f0d7f030c3686c9253b45d768000202434c0fe2ed5e6f')
 REVIEWED_PINS = {
     rpc.PIN: ShutdownPin(
@@ -181,6 +197,10 @@ REVIEWED_PINS = {
     '5725d1d390ac4b7cfe157ea32bd6f4db1a280368': ShutdownPin(
         27575, '95c21d7ea9cc985d958947d9cab65dd1cb11ce6ed2a091abbe4fc3bd531589e1',
         CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, NOVEMBER_24_PATCH_FILES,
+    ),
+    WATCHDOG_PIN: ShutdownPin(
+        27687, 'e9f7ba211d8985f39c63c791b4494930ad7200fa8b5757dfd4a42b8eac31461b',
+        CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, WATCHDOG_PATCH_FILES,
     ),
 }
 PYTEST_CACHE = frozenset({'.gitignore', 'README.md', 'CACHEDIR.TAG',
@@ -397,7 +417,14 @@ def run(source, evidence, python):
     save()
 
 
-def positive_cases(raw, test_file):
+def expected_cases(test_file, source_commit):
+    cases = set(CASES[test_file])
+    if source_commit == WATCHDOG_PIN and test_file == WATCHDOG_TEST_FILE:
+        cases.update(('tests.gateway.test_gateway_shutdown', name) for name in WATCHDOG_TESTS)
+    return cases
+
+
+def positive_cases(raw, test_file, source_commit=rpc.PIN):
     if len(raw) > 2 * 1024 * 1024 or b'<!DOCTYPE' in raw.upper():
         raise ValueError('Invalid JUnit input')
     root = ET.fromstring(raw)
@@ -405,7 +432,7 @@ def positive_cases(raw, test_file):
     if root.tag not in ('testsuite', 'testsuites') or len(suites) != 1 or suites[0].tag != 'testsuite':
         raise ValueError('Expected exactly one raw suite')
     suite = suites[0]
-    expected = {tuple(pair) for pair in CASES[test_file]}
+    expected = expected_cases(test_file, source_commit)
     if {k: suite.get(k) for k in ('tests', 'failures', 'errors', 'skipped')} != dict(tests=str(len(expected)), failures='0', errors='0', skipped='0'):
         raise ValueError('Non-positive or incomplete suite totals')
     rows = suite.findall('testcase')
@@ -444,7 +471,7 @@ def accepted_evidence(evidence):
     for index, (test_file, row) in enumerate(zip(CASES, rows)):
         raw = (evidence / f'{index}.xml').read_bytes()
         log = (evidence / f'{index}.log').read_bytes()
-        results.append(dict(file=test_file, cases=positive_cases(raw, test_file),
+        results.append(dict(file=test_file, cases=positive_cases(raw, test_file, source_commit),
                             junitSha256=snapshot.digest(raw), logSha256=snapshot.digest(log)))
     return dict(variant=variant, sourceCommit=source_commit, sourceMapSha256=before['sourceMapSha256'],
                 caseCount=sum(len(r['cases']) for r in results), files=results,
@@ -481,26 +508,29 @@ def verify(source, evidence):
                             observations=evidence / 'observed-tree.json')
     write_new(evidence / 'after.json', actual)
     result = accepted_evidence(evidence)
-    result['state'] = 'NATIVE_LINUX_CANONICAL_SHUTDOWN_FIFTY_PASS'
+    result['state'] = ('NATIVE_LINUX_CANONICAL_SHUTDOWN_PASS' if source_commit == WATCHDOG_PIN
+                       else 'NATIVE_LINUX_CANONICAL_SHUTDOWN_FIFTY_PASS')
     write_new(evidence / 'result.json', result)
     print(json.dumps({k: v for k, v in result.items() if k not in ('files', 'runtime')}))
 
 
 def compare(pristine, candidate, output, source_commit=None):
     a, b = accepted_evidence(pristine), accepted_evidence(candidate)
-    if a['variant'] != 'pristine' or b['variant'] != 'candidate' or a['caseCount'] != 50 or b['caseCount'] != 50:
-        raise ValueError('Need the two distinct complete cohorts')
     pin_commit = a['sourceCommit']
     if b['sourceCommit'] != pin_commit or (source_commit is not None and source_commit != pin_commit):
         raise ValueError('Paired evidence must match the same requested SDK revision')
+    count = sum(len(expected_cases(test_file, pin_commit)) for test_file in CASES)
+    if a['variant'] != 'pristine' or b['variant'] != 'candidate' or a['caseCount'] != count or b['caseCount'] != count:
+        raise ValueError('Need the two distinct complete cohorts')
     if [r['cases'] for r in a['files']] != [r['cases'] for r in b['files']]:
         raise ValueError('Paired case identities differ')
     if read_json(pristine / 'before.json')['modes'] != read_json(candidate / 'before.json')['modes']:
         raise ValueError('Paired source modes differ')
-    result = dict(state='PAIRED_LINUX_CANONICAL_SHUTDOWN_FIFTY_IDENTITIES_PASS',
-                  sourceCommit=pin_commit, patchSha256=REVIEWED_PINS[pin_commit].patch_digest,
-                  pristine=a, candidate=b, exactSameFiftyCases=True,
-                  piActivationAccepted=False, completeUpstreamLifecycleAccepted=False)
+    state = ('PAIRED_LINUX_CANONICAL_SHUTDOWN_IDENTITIES_PASS' if pin_commit == WATCHDOG_PIN
+             else 'PAIRED_LINUX_CANONICAL_SHUTDOWN_FIFTY_IDENTITIES_PASS')
+    result = dict(state=state, sourceCommit=pin_commit, patchSha256=REVIEWED_PINS[pin_commit].patch_digest,
+                  pristine=a, candidate=b, piActivationAccepted=False, completeUpstreamLifecycleAccepted=False)
+    result['exactSameCases' if pin_commit == WATCHDOG_PIN else 'exactSameFiftyCases'] = True
     write_new(output, result)
     print(result['state'])
 

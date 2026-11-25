@@ -31,6 +31,21 @@ class ShutdownEvidenceTests(unittest.TestCase):
         self.assertEqual([len(r) for r in rows], [5, 17, 10, 2, 2, 14])
         self.assertEqual(sum(map(len, rows)), 50)
 
+    def test_watchdog_pin_requires_all_six_additional_case_identities(self):
+        root, suite, test_file = self.suite(gate.WATCHDOG_TEST_FILE)
+        with self.assertRaisesRegex(ValueError, 'incomplete suite totals'):
+            gate.positive_cases(ET.tostring(root), test_file, gate.WATCHDOG_PIN)
+        for name in gate.WATCHDOG_TESTS:
+            ET.SubElement(suite, 'testcase', classname='tests.gateway.test_gateway_shutdown', name=name)
+        suite.set('tests', str(len(suite)))
+        cases = gate.positive_cases(ET.tostring(root), test_file, gate.WATCHDOG_PIN)
+        self.assertEqual(20, len(cases))
+        self.assertEqual(56, sum(len(gate.expected_cases(name, gate.WATCHDOG_PIN)) for name in gate.CASES))
+        self.reject(root, test_file)
+        suite[-1].set('name', 'unexpected_watchdog_case')
+        with self.assertRaisesRegex(ValueError, 'Exact case identities'):
+            gate.positive_cases(ET.tostring(root), test_file, gate.WATCHDOG_PIN)
+
     def test_reviewed_maps_select_the_pin_specific_patch_and_refuse_cross_pin_inputs(self):
         cases = {
             'first': {'gateway.py': 'a', 'reaper.py': 'b'},

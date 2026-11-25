@@ -24,6 +24,14 @@ handler and persistence review. The beta.12 matrix remains bound to
 client commit `48559324bb8ac909af24a125835d0284441d80c9`.
 [Validation](docs/VALIDATION.md#verified-hermes-main-source-relocations).
 
+## Hermes main watchdog audit
+
+The current shutdown audit pin adds six upstream watchdog cases to the
+paired Linux gate. Whole-source and patch inputs are verified. Local
+verification passed and reproduced both retained historical reports.
+The new native runtime results and managed Pi recovery remain open.
+[Validation](docs/VALIDATION.md#hermes-main-watchdog-shutdown-gate).
+
 ## Hermes Activity skill loads
 
 Activity shows the resolved name of a full skill view reported by the
