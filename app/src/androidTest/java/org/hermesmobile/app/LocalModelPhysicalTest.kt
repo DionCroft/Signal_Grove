@@ -151,6 +151,8 @@ class LocalModelPhysicalTest {
         assumeTrue("Requires an explicit context capacity", requested != null)
         val capacity = requireNotNull(requested).toInt()
         require(capacity in setOf(4096, 8192, 16384))
+        val workload = InstrumentationRegistry.getArguments().getString("localContextProbeWorkload")
+        require(workload == null || (workload == "handoff" && capacity > 4096))
         val (root, model) = modelInput()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val memory = ActivityManager.MemoryInfo().also {
@@ -187,6 +189,11 @@ class LocalModelPhysicalTest {
             val common = localChatPrompt(emptyList(), LOCAL_BENCHMARK_PROMPT)
             val commonTokens = engine.countPromptTokens(common)
             probeGeneration("common", engine, common, commonTokens, LOCAL_BENCHMARK_OUTPUT_CAP)
+            if (workload == "handoff") {
+                verifyLongHandoff(engine, capacity)
+                stage("context-probe-complete")
+                return@runBlocking
+            }
 
             stage("context-probe-near-window-count-start")
             val (near, nearTokens) = withTimeout(30_000) { nearWindowPrompt(engine, capacity) }
@@ -226,13 +233,14 @@ class LocalModelPhysicalTest {
     }
 
     private suspend fun probeGeneration(
-        name: String, engine: NativeLocalEngine, messages: List<LocalChatMessage>, tokens: Int, outputCap: Int
+        name: String, engine: NativeLocalEngine, messages: List<LocalChatMessage>, tokens: Int, outputCap: Int,
+        onText: (String) -> Unit = {}
     ) {
         probeMetric("${name}_prompt_tokens", tokens.toLong())
         probeMetric("${name}_output_cap", outputCap.toLong())
         stage("context-probe-${name}-generation-start")
         val started = SystemClock.elapsedRealtime()
-        val result = withTimeout(180_000) { engine.generateMeasured(messages, outputCap) {} }
+        val result = withTimeout(180_000) { engine.generateMeasured(messages, outputCap, onText) }
         stage("context-probe-${name}-generation-complete", SystemClock.elapsedRealtime() - started)
         assertTrue(result.end in setOf(LocalGenerationEnd.COMPLETE, LocalGenerationEnd.TOKEN_LIMIT))
         val measurement = requireNotNull(result.measurement) { "Missing generation measurement for $name" }
@@ -240,6 +248,62 @@ class LocalModelPhysicalTest {
         probeMetric("${name}_sampling_ms", measurement.generationNanos / 1_000_000)
         val visible = requireNotNull(measurement.firstAnswerNanos) { "No visible answer within the $name output reserve" }
         probeMetric("${name}_first_answer_ms", visible / 1_000_000)
+    }
+
+    private suspend fun verifyLongHandoff(engine: NativeLocalEngine, capacity: Int) {
+        val inputBand = if (capacity == 8192) 4608..5376 else 8448..9728
+        var low = 1
+        var high = 320
+        var best: Pair<List<LocalChatMessage>, Int>? = null
+        stage("context-probe-handoff-count-start")
+        withTimeout(30_000) {
+            while (low <= high) {
+                val rows = (low + high) / 2
+                val prompt = handoffPrompt(rows)
+                val count = engine.countPromptTokens(prompt)
+                if (count <= inputBand.last) {
+                    best = prompt to count
+                    low = rows + 1
+                } else {
+                    high = rows - 1
+                }
+            }
+        }
+        val (prompt, count) = requireNotNull(best)
+        assertTrue("Handoff input did not reach the measured band",
+            count in inputBand && count + LOCAL_BENCHMARK_OUTPUT_CAP <= capacity)
+
+        val output = StringBuilder()
+        probeGeneration("handoff", engine, prompt, count, LOCAL_BENCHMARK_OUTPUT_CAP) { output.append(it) }
+        val words = Regex("[A-Za-z]+").findAll(output.toString()).map { it.value.lowercase() }.toSet()
+        val matches = listOf("amethyst", "cedar", "thursday").count(words::contains)
+        probeMetric("handoff_matched_facts", matches.toLong())
+        assertEquals("Recall the intake label, storage shelf and current pickup day", 3, matches)
+        assertFalse("The pickup day in the older handoff was replaced", "monday" in words)
+    }
+
+    private fun handoffPrompt(rowsPerShift: Int): List<LocalChatMessage> {
+        val jobs = listOf("poster proofs", "spare cables", "lighting checks", "stool repairs", "label sheets", "plant trays")
+        val outcomes = listOf("checked by both volunteers", "packed for the next shift", "ready for the workshop",
+            "returned to the supply desk", "counted and recorded")
+        val notes = listOf(
+            "Intake for the Meadow exhibit: the label colour is Amethyst and the original pickup day is Monday.",
+            "Storage for the Meadow exhibit: the reserved shelf is Cedar.",
+            "Pickup update for the Meadow exhibit: the team moved pickup to Thursday. This replaces Monday."
+        )
+        val history = notes.mapIndexed { shift, note ->
+            val log = buildString {
+                appendLine("Volunteer workshop log for shift ${shift + 1}.")
+                appendLine(note)
+                repeat(rowsPerShift) { row ->
+                    val ticket = shift * rowsPerShift + row + 1
+                    appendLine("Ticket $ticket: ${jobs[row % jobs.size]} were ${outcomes[(row + shift) % outcomes.size]}.")
+                }
+            }
+            LocalExchange(log, "I recorded the shift handoff.", LocalReplyState.COMPLETE)
+        }
+        return localChatPrompt(history, "For the Meadow exhibit, give the intake label colour, reserved shelf, " +
+            "and latest pickup day, in that order. Answer with the three values only.")
     }
 
     private suspend fun nearWindowPrompt(engine: NativeLocalEngine, capacity: Int): Pair<List<LocalChatMessage>, Int> {

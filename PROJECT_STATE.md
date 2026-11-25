@@ -13,7 +13,8 @@ signing identity. Two startup regressions triggered on the prior hosted
 matrix. The compact layout and composer setup route passed 1,256 JVM tests,
 both lint variants. The exact release commit passed 1,263 Android 8
 and 1,264 Android 17 cases with independently verified raw coverage.
-`main` now points at that commit and its push validation is running.
+`main` points at that commit. Its build verification passed and all four
+main device shards are running.
 Original-key signing, Xiaomi upgrade, updater and publication remain open.
 The exact-source unsigned APK, lint, native inventory and disposable
 signature rehearsal passed.
@@ -194,10 +195,23 @@ warnings. Its isolated launcher and separate PM service home passed.
 Both proposed wrappers and systemd overrides passed syntax checks.
 The protected policy destination and disposable rollback match the
 reviewed scope. Next complete live work-drain and recovery evidence for
-activation review. The last verified Xiaomi installation was signed
-beta.11, code 116.
+activation review. A fresh authenticated sample again reported admission
+unobserved. The Xiaomi production installation is signed beta.11, code 116.
 [Isolated native evidence](docs/VALIDATION.md#authenticated-workspace-and-heartbeat-recovery-on-the-isolated-pi).
 [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
+
+## Xiaomi handoff and upstream compatibility
+
+At 8K the Xiaomi recalled three facts from 5,352 input tokens. A short
+offline answer passed. The 16K trial timed out with 9,727 input tokens
+and the phone's previous network state was restored. Production context
+is 4K. The beta.12 release upgrade remains a separate device check.
+[Context evidence](docs/VALIDATION.md#representative-lfm3-handoff-on-the-xiaomi).
+
+Both exact upstream pins passed 93 approval, room and run cases.
+Thirteen Kanban and notification fixture cases passed with Git discovery
+disabled. Live acceptance for those features remains open.
+[Compatibility evidence](docs/VALIDATION.md#hermes-approval-room-and-run-compatibility).
 
 ## Authenticated scheduler checks on the current Hermes pins
 

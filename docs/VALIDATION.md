@@ -54,7 +54,11 @@ the hosted summary. Physical model checks are a separate gate.
 [Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45706417153).
 
 A normal fast-forward advanced main to that exact source. The main-push
-validation, original-key signing and Xiaomi upgrade and updater remain open.
+verification job passed. The independent artifact check counted 1,256
+JVM cases across 118 XML reports with zero failures or skips and both
+lint variants with zero errors. The CI debug APK pair matches code 117
+and has one shared signer. Main device checks, original-key signing,
+the Xiaomi release upgrade and updater remain open.
 Offline Gradle resolution on the exact Git archive verified 154 Maven modules
 and 98 unique runtime artifacts against their SHA-256 pins. The dependency
 graph and artifact hashes match beta.11. The resolver returned one identical
@@ -99,6 +103,7 @@ passes, then generate evidence for the original-key-signed APK.
 | Hosted Android 17 shard 0 archive | `33f043a7fa4f4e1ea0f5efe22bac9d3cb8e24e96f2be0a2cae16cd926f57bb59` |
 | Hosted Android 17 shard 1 archive | `870b4366bba829de7ff3812ed11e2c6484bef8aed9ac86db7ea6afbc9de1f66d` |
 | Independently verified two-API coverage | `778dddd11bbb1ffc93ce42dd39b92b8ce934b7da709ee58f750829f7db39baea` |
+| Main-push build evidence receipt | `529dff288ef9817cfbfd77329a9377e0a205863a7c6f7aa636e7c06d49fdf417` |
 | Exact release runtime Maven preview | `c3e5987e9a4c0f7330bbbde005f5728e062d00629b193c3d8377f0799df6e13d` |
 | Independent hosted build verification | `d28ef0d5460c2de47b6daa35b71e5a377fad9fb8c50be5c3ef5381e98ce45bf8` |
 | Focused Android 8 result | `2f08f0f4f52928834e86abddea80de99b19d417e779cef3668a5e23406930de2` |
@@ -142,6 +147,38 @@ shutdown recovery still require their separate checks.
 | `c84e8d7` watcher report | `d2494ddba25e10101d004bc57eecb98cb054cb678d5fac5a6e1a04b4effd5d41` |
 | `441af48` public archive | `5c556266a274249357de83a90e471bbd23605b5b5f8e2a2366ce49e7a3fdfee8` |
 | `441af48` watcher report | `c7d75df187e6177d0c9c06381e24aa1170e7795a3c6b6809f601902db7cdb7e7` |
+
+## Hermes approval, room and run compatibility
+
+Four upstream gateway modules passed the same 93 methods on both exact
+revisions. The disposable Windows homes used loopback transports. The
+cohorts covered approval aliases, room grants requiring the exact request
+ID, rejection of wider room approval policy, grant revocation, run event
+projection and exact retry receipts. The 27,571 stable and 27,687 main
+source files matched their verified archive digests before and after.
+Both final runs had zero isolation denials. The initial harness needed an
+explicit private pytest log and descriptor-scoped permission checks for
+Hermes installation identity files.
+
+The same revisions passed 13 selected Kanban and notification methods for
+project association, board lifecycle, task-update hooks and muted wake
+persistence. The harness blocked six child invocations per pin. The main
+diagnostic identified them as Git top-level lookups. The outcomes cover
+the tested dashboard and persistence behavior with Git discovery
+unavailable. Live workspace attribution and Android notification delivery
+remain open.
+
+| Check | SHA-256 |
+| --- | --- |
+| Paired run, approval and room receipts | `7d45d21c1f5e2d74c9c56dc98e0705442a727e13ae8afb29aecbbabff6413059` |
+| Stable Kanban and notification receipt | `73f93d7612c814fb5381e2fa0cb0477945b32584d378577c48d639a4dfe67f3d` |
+| Main Kanban and notification receipt with command classification | `dc079bc6b268ac767a3701966ee1bff22e3292aaea8f8e0f4ad2ae186ad153c7` |
+
+The tested pins were `8fc0374447313e276f6b9a2764bfc750190c966a` and
+`441af486d09a2f7910aa3043ebe633f439cf92c9`. Broader handler and
+persistence review continues.
+[Stable source](https://github.com/NousResearch/hermes-agent/tree/8fc0374447313e276f6b9a2764bfc750190c966a/tests/gateway).
+[Main source](https://github.com/NousResearch/hermes-agent/tree/441af486d09a2f7910aa3043ebe633f439cf92c9/tests/gateway).
 
 ## Hermes main watchdog shutdown gate
 
@@ -805,6 +842,12 @@ returned to Settings with the model unloaded, and the mirror session ended.
 | Android 17 compact-device log | `a5bdda034a184f68a117d96a6e88b91d8841c9a249cecbb0679a9297ad78d1f9` |
 
 ## Live gateway admission diagnosis
+
+A fresh authenticated status sample bound to the r5 review packet again
+returned `admission_unobserved`. The gateway incarnation and canonical
+home matched. The project-control ledger and protected policy file were
+absent, so this sample grants no work-drain permission. Its SHA-256 is
+`9f60a94ad4dfa93a8a6e55309ef4a05d4fe7a0579499969ad186b6a24292f399`.
 
 The native gateway reader reports fixed failure phases for authenticated
 status frames. A failed projection sets the result to unknown and leaves
@@ -4247,6 +4290,46 @@ export the probe only on ARM64 and x86_64 debug. All four release ABIs
 expose only standard load. The external-model inventory now lists 15
 explicit methods, including one debug probe with three separate capacity
 arguments. Its 65 policy and standard-matrix accounting checks passed.
+
+## Representative LFM3 handoff on the Xiaomi
+
+The debug-only external-model test accepts `localContextProbeWorkload=handoff`
+at 8,192 or 16,384 context tokens. It uses the actual chat template and three
+synthetic volunteer-workshop turns. The checks cover three facts across the
+turns and reject the superseded pickup day. The existing boundary and
+cancellation workload runs when the optional argument is absent.
+
+The Xiaomi accepted the verified debug APK pair in place over USB and
+retained both debug package UIDs, the staged GGUF and the existing
+production APK digest. The test used the pinned LFM3 QAD Q4_0 model and
+four CPU threads. The companion build passed 1,256 JVM cases, debug lint
+with zero errors, and debug and instrumentation assembly. The actual
+device trials produced the following results.
+
+| Capacity | Input tokens | Outcome | Peak sampled PSS |
+| --- | ---: | --- | ---: |
+| 8,192 | 5,352 | Recalled all three facts. First visible answer at 111.537 s. | 2,427,849 KiB |
+| 16,384 | 9,727 | Offline generation reached the 180 s deadline. | 2,613,355 KiB |
+
+The 8K trial retained the phone's network settings. Before the 16K trial,
+a short-answer control passed with no active network during the observed
+samples. The first offline preflight misread a VPN request template as
+an active connection and restored Wi-Fi before dispatch. The corrected
+check inspected actual Android network agents and verified the offline
+condition throughout 58 samples of the 16K run. The final readback
+matched the original Wi-Fi, mobile-data and VPN state. The phone had no
+active VPN to the Pi and could not reach it both before and after this
+trial. The production context limit remains 4,096.
+
+| Check | SHA-256 |
+| --- | --- |
+| 8K handoff result | `590d47a489e78fbf21b488faa30f71503d14673a4341899d1e0acad530fe41c3` |
+| Offline answer control | `b13d8c1c278c0310e4ae6844b43399d38b67f60e7d91ba3bb22c941e63e0d06f` |
+| 16K handoff timeout | `fcfd18f2fff1b7f36d7a431a31f90c35e1beea5d668879da4df88f4d71295a4a` |
+| Restored phone network observation | `dd6c6c421557fed5a883aaf7ae682c5519e5f5ff83f7ac7ee64b73e212136c01` |
+| Debug app APK | `7b24a8394cdff8f8e084f7062198679cabc4251005c49c0eaace780955ebff5c` |
+| Debug instrumentation APK | `1e7fd7676a38d2c13ce9450c2bc97601dd8291ec2d767349345ed260639d3383` |
+
 
 ## Phone context review and request budget
 
