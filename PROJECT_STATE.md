@@ -16,6 +16,14 @@ both lint variants and focused Android 8 and 17 replays. The full matrix,
 original-key signing, Xiaomi upgrade and updater are the release gates.
 [Validation](docs/VALIDATION.md#beta12-release-candidate-and-startup-routing).
 
+## Hermes main relocation review
+
+Two exact upstream revisions now produce the full watcher comparison after
+Git verification of all 245 source files. The comparison still requires
+handler and persistence review. The beta.12 matrix remains bound to
+client commit `48559324bb8ac909af24a125835d0284441d80c9`.
+[Validation](docs/VALIDATION.md#verified-hermes-main-source-relocations).
+
 ## Hermes Activity skill loads
 
 Activity shows the resolved name of a full skill view reported by the

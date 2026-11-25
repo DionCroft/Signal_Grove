@@ -65,6 +65,36 @@ The beta.12 candidate remains unsigned while the release gates run.
 | Focused compact Android 17 result | `cd548a2504cc9b7b2f96cb137da4923faf5cedba60dfdf05addca11c3eaff67c` |
 | Public signer preflight receipt | `4babc867dbc2b26fd84bd7ce3269c4aaf0af663298add9b860470884f8168947` |
 
+## Verified Hermes main source relocations
+
+The hosted source inspection of `c84e8d7f81a8a12860dd802c24910c74115e36b6`
+stopped before parsing because ten legacy paths were missing. Stable
+`8fc0374447313e276f6b9a2764bfc750190c966a` produced a comparison with review
+required. The registry, sidecar, and parser jobs passed.
+[Original hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45704045823).
+
+At `c84e8d7f81a8a12860dd802c24910c74115e36b6` and
+`441af486d09a2f7910aa3043ebe633f439cf92c9`, the official archive matched
+Git blob identities for all 245 selected public files. The watcher reads
+249 logical source keys, including all 21 persistence dependencies. The ten
+relocated keys use the existing reviewed destinations at both exact pins.
+Watched source fingerprints are identical between these pins. The baseline
+and behavior review rules remain in effect.
+
+The normal watcher CLI fetched fresh Git identities and matched all 249
+source keys from the verified cache on both pins. Both comparisons returned
+review required with 224 changed handler or constant fingerprints and 29
+changed persistence sources against the baseline. The 129 local Hermes
+watcher, parser, and fixture tests passed. Runtime compatibility and live
+shutdown recovery still require their separate checks.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| `c84e8d7` public archive | `61b74cde13b8fa88a626002ffbca7e0943724765778bb2d8a3d44c9e223aea85` |
+| `c84e8d7` watcher report | `d2494ddba25e10101d004bc57eecb98cb054cb678d5fac5a6e1a04b4effd5d41` |
+| `441af48` public archive | `5c556266a274249357de83a90e471bbd23605b5b5f8e2a2366ce49e7a3fdfee8` |
+| `441af48` watcher report | `c7d75df187e6177d0c9c06381e24aa1170e7795a3c6b6809f601902db7cdb7e7` |
+
 ## Hermes Activity skill loads
 
 Signal Grove displays a resolved skill identity when a recognized
