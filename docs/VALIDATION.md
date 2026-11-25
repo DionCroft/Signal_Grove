@@ -44,13 +44,23 @@ The hosted verification artifact for `48559324bb8ac909af24a125835d0284441d80c9`
 independently confirmed 1,256 JVM tests in 118 reports with zero failures or
 skips and both lint variants with zero errors. The two hosted debug APKs
 have the same CI signer, and the app manifest is beta.12, code 117.
-Both Android 8 shards for that exact commit used the same hosted APKs. The
-independent check verified the two archive digests and parsed the raw
-instrumentation records with the release commit's verifier. It counted
-595 and 668 completed cases. The partitions were disjoint and their union
-matched all 1,263 cases in both inventories. Android 17, the combined
-coverage check, main validation and physical phone checks remain open.
+All four hosted device shards used the same APKs from the exact release
+commit. The independent check verified the four archives and applied the
+release commit's verifier to their raw instrumentation and inventory logs.
+Android 8 passed 1,263 cases across shards of 595 and 668. Android 17
+passed 1,264 across shards of 596 and 668. Each version's disjoint
+partitions exactly covered its inventory. The reconstructed report matched
+the hosted summary. Physical model checks are a separate gate.
 [Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45706417153).
+
+A normal fast-forward advanced main to that exact source. The main-push
+validation, original-key signing and Xiaomi upgrade and updater remain open.
+Offline Gradle resolution on the exact Git archive verified 154 Maven modules
+and 98 unique runtime artifacts against their SHA-256 pins. The dependency
+graph and artifact hashes match beta.11. The resolver returned one identical
+AndroidX Core artifact twice. The final SBOM must also bind the signed APK
+and its native files.
+[Main-push validation](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692500).
 The existing production keystore's public certificate matches the beta.11
 public release certificate. SHA-256 over DER is
 `bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`.
@@ -74,6 +84,10 @@ The beta.12 candidate remains unsigned while the release gates run.
 | Hosted Android 8 shard 0 archive | `92aa5525a74974fa4a89c7dc505ea6c52221ead07d086e0de508bfc3a434569f` |
 | Hosted Android 8 shard 1 archive | `1d3a29d6270e9ce20c4c44bb422867a86076995371adb949603b06152836fbdf` |
 | Independently verified Android 8 case union | `07ce0e2d8d14746f258c9fb4fc6eac1459cbef19d18e6f5f0de761593ec56092` |
+| Hosted Android 17 shard 0 archive | `33f043a7fa4f4e1ea0f5efe22bac9d3cb8e24e96f2be0a2cae16cd926f57bb59` |
+| Hosted Android 17 shard 1 archive | `870b4366bba829de7ff3812ed11e2c6484bef8aed9ac86db7ea6afbc9de1f66d` |
+| Independently verified two-API coverage | `778dddd11bbb1ffc93ce42dd39b92b8ce934b7da709ee58f750829f7db39baea` |
+| Exact release runtime Maven preview | `c3e5987e9a4c0f7330bbbde005f5728e062d00629b193c3d8377f0799df6e13d` |
 | Independent hosted build verification | `d28ef0d5460c2de47b6daa35b71e5a377fad9fb8c50be5c3ef5381e98ce45bf8` |
 | Focused Android 8 result | `2f08f0f4f52928834e86abddea80de99b19d417e779cef3668a5e23406930de2` |
 | Focused compact Android 17 result | `cd548a2504cc9b7b2f96cb137da4923faf5cedba60dfdf05addca11c3eaff67c` |
@@ -218,8 +232,11 @@ its executable to the private wrapper copy.
 Hermes PM provisioned a second isolated service home with its own dependency
 facts. The launcher validated that home's dependency binding and imported
 ContextGraph and PyYAML. The checks also verified both live service identities.
-The rollout artifacts are ready for review. Live activation still requires
-the protected policy, recovery evidence, work-drain proof and approval.
+The exact candidate's operator bootstrap and renderer agree on the
+protected policy destination. The Pi passed 113 native policy tests and
+eight disposable file publication and rollback stages. Activation still
+requires live work-drain proof, recovery evidence and approval for the
+protected policy and unit changes.
 
 | Evidence | SHA-256 |
 | --- | --- |
@@ -238,6 +255,7 @@ the protected policy, recovery evidence, work-drain proof and approval.
 | r5 isolated SDK launcher result | `2a12d4c10c587e79ef62c8cf5a4c73b9fb3f8cabefb674ab89a462b2c052d962` |
 | r5 wrapper and systemd syntax result | `a82873e9bca10ba9f94b1ec92b2494918087ca11a0ce9ed44791cdbb64654bcb` |
 | r5 isolated service-home provisioning result | `c15cb20d7829df72f3023b4348eebda7988b41f22ce360d7e94f28e239bf1afb` |
+| r5 protected policy destination and disposable rollback | `04935b91f4f3b1618af49316a5dd2ebd4155816e6a0f34edb86eab6c94eeccc6` |
 
 ## Hermes Activity skill loads
 
