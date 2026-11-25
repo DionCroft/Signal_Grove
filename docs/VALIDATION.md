@@ -84,9 +84,12 @@ and behavior review rules remain in effect.
 The normal watcher CLI fetched fresh Git identities and matched all 249
 source keys from the verified cache on both pins. Both comparisons returned
 review required with 224 changed handler or constant fingerprints and 29
-changed persistence sources against the baseline. The 129 local Hermes
+changed persistence sources against the baseline. Hosted inspection now
+retains both exact stable and main reports and keeps the review-required
+result. The 129 local Hermes
 watcher, parser, and fixture tests passed. Runtime compatibility and live
 shutdown recovery still require their separate checks.
+[Exact hosted comparison](https://github.com/DionCroft/Signal_Grove/actions/runs/45708523790).
 
 | Evidence | SHA-256 |
 | --- | --- |
@@ -115,13 +118,46 @@ their 50 cases.
 
 All 22 local shutdown gate tests and 10 native-heartbeat evidence tests passed.
 Replaying the retained stable and previous main comparison packets reproduced
-both published reports byte for byte. The new native Linux run must still
-verify the complete cases and recovery behavior.
+both published reports byte for byte. The new native Linux run passed all
+56 exact cases on each variant. Independent replay reproduced the hosted
+shutdown and heartbeat comparisons byte for byte. The patched process passed
+seven heartbeat scenarios. The held SQLite writer left the child and delegation
+outcomes unknown. After release of the writer the child was recorded as
+interrupted. Both native recovery cases preserved the checkpoint, returned an
+intact SQLite database and performed zero replays. Managed Pi recovery remains
+open. [Exact hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45709272127).
 
 | Evidence | SHA-256 |
 | --- | --- |
 | Whole-source verification | `6255d0e7273f88300b4ab6b9a497cd9f73f542db41b34aaff8f700186bac9797` |
 | Patch and test inventory review | `64fa8c475d1009ae1d3ace26a66b756f461d023572ebc412cc4cfba8c6355a37` |
+| Exact paired shutdown report | `96936f6b6c0e93cc90464fd4aa01aa7c1a79d45bb05e0bb99e3adfe7291c1a84` |
+| Exact paired heartbeat report | `89458f2a9d7a3c358c7901ee1daa1e3326d6474aa9839e2b7bc05310857f2f86` |
+| Patched delegation recovery receipt | `0d3c5572bde4de67bcf1f4e1906eddf3d59c2449129cdb655665d1a8a9f27155` |
+
+## Isolated Pi workspace successor
+
+A read-only check found the original two managed services still active.
+The live workspace ledger and protected policy were absent. The existing
+reviewed staging operation verified its predecessor and copied the exact
+23,692-member scoped workspace source into a fresh isolated generation on
+the Pi. All 124 executable entries and the source manifest matched.
+
+Supported PM lock and sync qualified the isolated aarch64 environment.
+The dependency graph matched after the expected local vendor-path rebase,
+and the runtime used its own permanent tools directory. Native Python
+3.14.9, ContextGraph 0.8.1 and PyYAML 6.0.3 passed four workspace checks.
+The operation verified the stable service identities and 92 live source
+files. Independent readback matched the isolated manifest, package-manager
+facts and install stamp. Authenticated route acceptance, protected live
+rollout, phone workspace use and one scheduled receipt remain open.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Live read-only observation | `93f50a4ef3cbe74485653d7425b22db27778b47d949c1de99e6008b4dae468fa` |
+| Verified source staging receipt | `bf69d25c6959d842010746ac5bb29b1c9ec667f495a30e453ce144490cb974cf` |
+| Local native PM result | `a8f9dba2121e4639df9de36d89907c1f87b380fb8dab6d9e25462ca41c687c7a` |
+| Persisted Pi native PM receipt | `b328cd8728624d5143127eecf5587d53987657c6ec5eb8d1cf9d641c3fc7f307` |
 
 ## Hermes Activity skill loads
 

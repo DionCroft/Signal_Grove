@@ -26,10 +26,9 @@ client commit `48559324bb8ac909af24a125835d0284441d80c9`.
 
 ## Hermes main watchdog audit
 
-The current shutdown audit pin adds six upstream watchdog cases to the
-paired Linux gate. Whole-source and patch inputs are verified. Local
-verification passed and reproduced both retained historical reports.
-The new native runtime results and managed Pi recovery remain open.
+The current shutdown audit pin passed the 56-case pristine and patched
+Linux suites. Independent comparison verified both reports and the
+heartbeat cases. Managed Pi recovery remains open.
 [Validation](docs/VALIDATION.md#hermes-main-watchdog-shutdown-gate).
 
 ## Hermes Activity skill loads
@@ -183,10 +182,12 @@ A second isolated test ran one enrolled project turn alongside ordinary
 chat. The reviewed observer reported both active turns, while the staged
 workspace runtime's observer reported only the project turn. The
 staged source also lacks the peer-request module used by scoped turns.
-A verified two-file overlay and new source inventory are ready on the
-Windows host. The next step is to stage a fresh isolated Pi generation,
-repeat native verification there, and review the live scope separately.
-The Xiaomi is connected with signed beta.11, code 116.
+The corrected workspace successor is staged on the Pi in an isolated
+generation. Its locked PM environment and four native workspace checks
+passed. Next verify authenticated routes there and review the live scope
+separately. The last verified Xiaomi installation was signed beta.11, code
+116. The current USB inventory has no physical phone.
+[Isolated native evidence](docs/VALIDATION.md#isolated-pi-workspace-successor).
 [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
 
 ## Authenticated scheduler checks on the current Hermes pins
