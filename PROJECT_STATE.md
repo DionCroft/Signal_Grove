@@ -182,12 +182,13 @@ A second isolated test ran one enrolled project turn alongside ordinary
 chat. The reviewed observer reported both active turns, while the staged
 workspace runtime's observer reported only the project turn. The
 staged source also lacks the peer-request module used by scoped turns.
-The corrected workspace successor is staged on the Pi in an isolated
-generation. Its locked PM environment and four native workspace checks
-passed. Next verify authenticated routes there and review the live scope
-separately. The last verified Xiaomi installation was signed beta.11, code
-116. The current USB inventory has no physical phone.
-[Isolated native evidence](docs/VALIDATION.md#isolated-pi-workspace-successor).
+The isolated r4 runtime passed owner authentication and reproduced one
+heartbeat cleanup warning. The corrected r5 generation passed native
+admission, owner HTTP authentication and original workspace receipt replay.
+It passed held-writer shutdown and closed both profile handles with zero
+warnings. Next review the protected live rollout and exact deployed work
+scope. The last verified Xiaomi installation was signed beta.11, code 116.
+[Isolated native evidence](docs/VALIDATION.md#authenticated-workspace-and-heartbeat-recovery-on-the-isolated-pi).
 [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
 
 ## Authenticated scheduler checks on the current Hermes pins

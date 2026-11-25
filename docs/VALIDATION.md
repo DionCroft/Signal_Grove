@@ -40,6 +40,10 @@ Compact Android 17 at 840 × 1470, 420 dpi and 1.3× text passed all five
 startup cases and eight focused Activity and offline setup cases. The
 Android 8 APK install response timed out. Package Manager already held
 the exact app digest, so only the missing test-companion update was needed.
+The hosted verification artifact for `48559324bb8ac909af24a125835d0284441d80c9`
+independently confirmed 1,256 JVM tests in 118 reports with zero failures or
+skips and both lint variants with zero errors. The two hosted debug APKs
+have the same CI signer, and the app manifest is beta.12, code 117.
 The standard hosted suites, main validation and physical phone release checks
 remain open.
 The existing production keystore's public certificate matches the beta.11
@@ -61,6 +65,8 @@ The beta.12 candidate remains unsigned while the release gates run.
 | Unsigned beta.12 release APK | `ed1a1e3502f848a152a45924f6afb2feba77ac5453a931b36586a9133405b125` |
 | Final beta.12 debug APK | `d716aac37b860dfa1db8359a60ae549930a8696daa2fe225ad51a3ce7d8ceacf` |
 | Final beta.12 test companion | `c81bb891edc269cb6a9041b1e8b804745b6f63c114ee50170db5104787b62a6a` |
+| Hosted beta.12 verify job artifact | `c7c4bf385a90d2d98f19993f150cf9a654069dadbb8786808a3e572476357c69` |
+| Independent hosted build verification | `d28ef0d5460c2de47b6daa35b71e5a377fad9fb8c50be5c3ef5381e98ce45bf8` |
 | Focused Android 8 result | `2f08f0f4f52928834e86abddea80de99b19d417e779cef3668a5e23406930de2` |
 | Focused compact Android 17 result | `cd548a2504cc9b7b2f96cb137da4923faf5cedba60dfdf05addca11c3eaff67c` |
 | Public signer preflight receipt | `4babc867dbc2b26fd84bd7ce3269c4aaf0af663298add9b860470884f8168947` |
@@ -158,6 +164,54 @@ rollout, phone workspace use and one scheduled receipt remain open.
 | Verified source staging receipt | `bf69d25c6959d842010746ac5bb29b1c9ec667f495a30e453ce144490cb974cf` |
 | Local native PM result | `a8f9dba2121e4639df9de36d89907c1f87b380fb8dab6d9e25462ca41c687c7a` |
 | Persisted Pi native PM receipt | `b328cd8728624d5143127eecf5587d53987657c6ec5eb8d1cf9d641c3fc7f307` |
+
+## Authenticated workspace and heartbeat recovery on the isolated Pi
+
+The r4 generation passed 19 actual ARM64 authority cases and the scoped
+admission comparison using its native PM environment. It observed one
+registered project turn and one ordinary chat turn. The earlier observer
+counted only the project turn. A sibling profile remained idle. The new
+observer checked exact project, revision and session attribution, refused
+three changed binding fields and blocked both admissions under a fence.
+It refused early thaw and verified two original terminal receipts before
+thawing.
+
+The r4 dashboard fixture completed 16 authenticated cases. Actual PKCE,
+refresh, one-use tickets and loopback WebSocket used synthetic credentials.
+Six calls reached the bounded synthetic worker. The real owner route
+changed a disposable workspace, returned the same receipt on replay, and
+refused changed payload, stale revision, sibling profile and missing
+folder. Both profile SQLite checks passed. The fixture produced one
+shutdown warning because `_atexit_clear` reopened a closed SQLite database.
+
+Both affected files matched the input hashes of the existing reviewed
+heartbeat patch. The r5 isolated generation applied only those two
+changes and retained the 23,692-member source inventory. Native PM
+verified its dependency graph, own permanent tools directory and four
+workspace methods. It again passed all 19 native authority cases, the
+scoped admission comparison and all 16 loopback authentication cases.
+
+Under a real held SQLite writer on r5, shutdown kept both profile database
+handles open. Releasing the writer let the heartbeat cleanup drain without
+retry. Both handles closed with zero admitted writes and no shutdown
+warnings or boundary refusals. A separate Pi readback matched the reports,
+manifest, stamp and native PM facts. The actual live service identities
+matched the original throughout. This qualifies the isolated workspace
+runtime for rollout review. Live phone attachment, worker attribution,
+approval decisions and scheduled execution remain open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Scoped admission result on r4 and r5 | `d468b3e196c26a497068dcc01320b39054697f77c501ad3dbc0c6d27b10c5ae6` |
+| r4 authentication result | `5c5d589822faa25f77631a9e85e4471f2d8a0758a0715c2f12a46f221fdb8e7d` |
+| r4 shutdown warning receipt | `e548429e72ca081d20ac297662d3f5a8c86e72c3967f46d888601cc5e16792a1` |
+| r5 exact patch review | `51f4f4dd9065fad9a893701d45d5b696d08142f09e8fde5594b35641ff83c807` |
+| r5 isolated source staging | `f4a1d4161c174b6a761942dbf11f8bf31ccc8bea040f5a110429e16e8a86d965` |
+| r5 persisted native PM receipt | `c5209c779b8d7db17b859627b7628399dbfa655fb06094fd08eca0e170089031` |
+| r5 native workspace authority | `bedaf465aed73743f2a952dea4fdd4dc18a5281349ac116ebeb82a6c2a958772` |
+| r5 authentication report | `9523fb66b95a7974aec175c6bc0b18af817b610834a8ab607f4c5b5ace7d1780` |
+| r5 clean exit report | `f33d7ea8cb32f9a704f28eaab9c53e7188c1b443beb72999e6106768f42199e1` |
+| r5 after-test Pi readback | `365286fa193345a5b3e2e99056cc21bca6f8437640b31b26812dbf1b40be6e37` |
 
 ## Hermes Activity skill loads
 
