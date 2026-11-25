@@ -44,8 +44,13 @@ The hosted verification artifact for `48559324bb8ac909af24a125835d0284441d80c9`
 independently confirmed 1,256 JVM tests in 118 reports with zero failures or
 skips and both lint variants with zero errors. The two hosted debug APKs
 have the same CI signer, and the app manifest is beta.12, code 117.
-The standard hosted suites, main validation and physical phone release checks
-remain open.
+Both Android 8 shards for that exact commit used the same hosted APKs. The
+independent check verified the two archive digests and parsed the raw
+instrumentation records with the release commit's verifier. It counted
+595 and 668 completed cases. The partitions were disjoint and their union
+matched all 1,263 cases in both inventories. Android 17, the combined
+coverage check, main validation and physical phone checks remain open.
+[Hosted run](https://github.com/DionCroft/Signal_Grove/actions/runs/45706417153).
 The existing production keystore's public certificate matches the beta.11
 public release certificate. SHA-256 over DER is
 `bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`.
@@ -66,6 +71,9 @@ The beta.12 candidate remains unsigned while the release gates run.
 | Final beta.12 debug APK | `d716aac37b860dfa1db8359a60ae549930a8696daa2fe225ad51a3ce7d8ceacf` |
 | Final beta.12 test companion | `c81bb891edc269cb6a9041b1e8b804745b6f63c114ee50170db5104787b62a6a` |
 | Hosted beta.12 verify job artifact | `c7c4bf385a90d2d98f19993f150cf9a654069dadbb8786808a3e572476357c69` |
+| Hosted Android 8 shard 0 archive | `92aa5525a74974fa4a89c7dc505ea6c52221ead07d086e0de508bfc3a434569f` |
+| Hosted Android 8 shard 1 archive | `1d3a29d6270e9ce20c4c44bb422867a86076995371adb949603b06152836fbdf` |
+| Independently verified Android 8 case union | `07ce0e2d8d14746f258c9fb4fc6eac1459cbef19d18e6f5f0de761593ec56092` |
 | Independent hosted build verification | `d28ef0d5460c2de47b6daa35b71e5a377fad9fb8c50be5c3ef5381e98ce45bf8` |
 | Focused Android 8 result | `2f08f0f4f52928834e86abddea80de99b19d417e779cef3668a5e23406930de2` |
 | Focused compact Android 17 result | `cd548a2504cc9b7b2f96cb137da4923faf5cedba60dfdf05addca11c3eaff67c` |
@@ -200,6 +208,19 @@ matched the original throughout. This qualifies the isolated workspace
 runtime for rollout review. Live phone attachment, worker attribution,
 approval decisions and scheduled execution remain open.
 
+The SDK launcher guard refused publication against a superseded Serve
+process snapshot. Using the verified current snapshot, the isolated launcher
+started from three working directories and refused an unprepared home.
+The two proposed wrappers passed shell syntax checks. Both unit overrides
+passed systemd verification with fixture units. The Serve fixture resolves
+its executable to the private wrapper copy.
+
+Hermes PM provisioned a second isolated service home with its own dependency
+facts. The launcher validated that home's dependency binding and imported
+ContextGraph and PyYAML. The checks also verified both live service identities.
+The rollout artifacts are ready for review. Live activation still requires
+the protected policy, recovery evidence, work-drain proof and approval.
+
 | Evidence | SHA-256 |
 | --- | --- |
 | Scoped admission result on r4 and r5 | `d468b3e196c26a497068dcc01320b39054697f77c501ad3dbc0c6d27b10c5ae6` |
@@ -212,6 +233,11 @@ approval decisions and scheduled execution remain open.
 | r5 authentication report | `9523fb66b95a7974aec175c6bc0b18af817b610834a8ab607f4c5b5ace7d1780` |
 | r5 clean exit report | `f33d7ea8cb32f9a704f28eaab9c53e7188c1b443beb72999e6106768f42199e1` |
 | r5 after-test Pi readback | `365286fa193345a5b3e2e99056cc21bca6f8437640b31b26812dbf1b40be6e37` |
+| r5 rollout review packet | `a2e701286fe8d963dfa5b4674e76032552523712161aaba781e07c39daad28a7` |
+| r5 isolated SDK launcher | `5c3661dce5fa40ac8fe46c35b6ee44b9c781158e04b71ec7035b7558a2c39793` |
+| r5 isolated SDK launcher result | `2a12d4c10c587e79ef62c8cf5a4c73b9fb3f8cabefb674ab89a462b2c052d962` |
+| r5 wrapper and systemd syntax result | `a82873e9bca10ba9f94b1ec92b2494918087ca11a0ce9ed44791cdbb64654bcb` |
+| r5 isolated service-home provisioning result | `c15cb20d7829df72f3023b4348eebda7988b41f22ce360d7e94f28e239bf1afb` |
 
 ## Hermes Activity skill loads
 

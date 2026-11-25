@@ -11,9 +11,10 @@ retains the underlying evidence and remaining checks.
 Version code 117 keeps the production package and the previous release's
 signing identity. Two startup regressions triggered on the prior hosted
 matrix. The compact layout and composer setup route passed 1,256 JVM tests,
-both lint variants and focused Android 8 and 17 replays. The full matrix,
-`main` validation,
-original-key signing, Xiaomi upgrade and updater are the release gates.
+both lint variants and focused Android 8 and 17 replays. Both hosted
+Android 8 shards passed all 1,263 standard cases in the exact release
+build. Android 17, the combined coverage check, `main` validation, original-key
+signing, Xiaomi upgrade and updater remain the release gates.
 [Validation](docs/VALIDATION.md#beta12-release-candidate-and-startup-routing).
 
 ## Hermes main relocation review
@@ -186,8 +187,11 @@ The isolated r4 runtime passed owner authentication and reproduced one
 heartbeat cleanup warning. The corrected r5 generation passed native
 admission, owner HTTP authentication and original workspace receipt replay.
 It passed held-writer shutdown and closed both profile handles with zero
-warnings. Next review the protected live rollout and exact deployed work
-scope. The last verified Xiaomi installation was signed beta.11, code 116.
+warnings. Its isolated launcher and separate PM service home passed.
+Both proposed wrappers and systemd overrides passed syntax checks.
+Next complete the protected policy, recovery and work-drain evidence for
+live activation review. The last verified Xiaomi installation was signed
+beta.11, code 116.
 [Isolated native evidence](docs/VALIDATION.md#authenticated-workspace-and-heartbeat-recovery-on-the-isolated-pi).
 [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
 
