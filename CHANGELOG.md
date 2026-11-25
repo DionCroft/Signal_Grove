@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.0-beta.12 (unreleased)
+
+- Open offline setup from the phone composer menu. Compact title and tab
+  layouts leave more room for chat, models and history. The return-to-Hermes
+  and draft status controls stay with the composer when the keyboard is open.
+- See which tool Hermes reports as open in Chat while a run is active.
+- See the exact MCP server and the resolved skill name in Activity when
+  the connected Hermes runtime reports that information.
+- Compare Hermes event times with phone receipt times. Activity
+  preserves reported subagent interruptions and timeouts.
+- Reviewed Windows workers verify the approved checkout at queue
+  reservation, claim and launch. Reconnecting can recover the original
+  approved receipt through the scoped worker route.
+
 ## 1.1.0-beta.11 - 24 November 2026 - Activity, context and scheduling preview
 
 - Open Hermes Activity in Chat to see scoped tool and subagent events,

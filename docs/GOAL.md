@@ -1,4 +1,14 @@
-# Expanded Signal Grove goal
+# Signal Grove goal
+
+## Active scope · 25 November 2026
+
+Complete these three milestones, then stop implementation for an audit with the owner.
+
+1. **Release beta.12.** Finish version code 117. Pass the full Android 8 and 17 suites on the exact release source and validate it on `main`. Sign with the original production key. Verify the Xiaomi in-place upgrade, retained data and Hermes connection, and the updater. Publish the verified APK, checksums, public signing certificate, reviewed SBOM and provenance. Verify the public download and return the direct APK link.
+2. **Prove the live Pi-to-Windows workflow.** Verify authenticated workspace attachment from the phone, exact worker and workspace attribution, and approval decisions. Verify one approved scheduled run executes once. After reconnect, recover its original receipt without replaying it.
+3. **Finish the wider audit.** Verify upstream Hermes compatibility and shutdown recovery, integrations, Kanban, rooms, notifications, accessibility and physical offline operation. Run representative LFM3 tests above 4K on the Xiaomi. Keep the production limit at 4K until larger contexts pass.
+
+Commit and push tested chunks. The [current project state](../PROJECT_STATE.md) records the next gate. The following dated entries record earlier scope and decisions for the audit.
 
 ## Resumed UI checkpoint - 18 November 2026
 

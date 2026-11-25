@@ -1,5 +1,70 @@
 # Current development validation — audit follow-up
 
+## Beta.12 release candidate and startup routing
+
+Beta.12 uses version code 117 and the existing production package. The
+[previous hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45508816155)
+on `3fa94d2` passed verify and both shard 1 jobs. The remaining shards
+finished instrumentation. Android 8 shard 0 passed 594 of 595 methods and
+missed the setup toggle. Android 17 shard 0 passed 595 of 596 methods and
+queried the second share review before its Compose hierarchy was available.
+
+The two candidate replays located a compact-layout problem. The actual
+Android 17 app at 840 × 1470, 420 dpi and 1.3× text displayed a tall
+multilingual title and tab strip. The remaining area clipped the setup
+controls. A second test route through Phone models passed the isolated
+Android 8 class but lost the tab after the original 18-method sequence.
+On compact screens, the revised title and tab labels reserve space for the
+body. The composer menu also opens the existing offline setup sheet. The first
+composer-menu build passed both Android 8 cohorts and reached the startup
+switch on compact Android 17. Its keyboard check found the return action
+outside the visible area. The return action and draft status now sit in the
+composer row, which reserves space before measuring the transcript.
+
+The startup fixture waits for its test-owned resumed activity and the
+expected Compose node. It opens setup from the composer menu, toggles the
+switch once and verifies that the stored setting opens an unloaded phone
+chat from the launcher. The single and multiple share intents check their
+exact image counts and review action on the respective activity instances.
+The Chat and Phone models setup links have separate catalogue and import
+coverage. Earlier failures are retained below.
+
+The final local build passed 1,256 JVM tests across 118 suites and had
+zero lint errors in both variants. The unsigned APK has the production
+package, minimum SDK 26 and target SDK 37. All 32 native libraries matched
+their declared ABI and had no workstation path markers in the reviewed set.
+
+The exact debug pair passed five startup cases and the original ordered
+18-case cohort on Android 8 at 1.3× text with a verified stock keyboard.
+Compact Android 17 at 840 × 1470, 420 dpi and 1.3× text passed all five
+startup cases and eight focused Activity and offline setup cases. The
+Android 8 APK install response timed out. Package Manager already held
+the exact app digest, so only the missing test-companion update was needed.
+The standard hosted suites, main validation and physical phone release checks
+remain open.
+The existing production keystore's public certificate matches the beta.11
+public release certificate. SHA-256 over DER is
+`bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`.
+The beta.12 candidate remains unsigned while the release gates run.
+
+| Retained evidence | SHA-256 |
+| --- | --- |
+| Hosted Android 8 shard 0 instrumentation summary | `395a918f2c978a13ea5b4529a54e95c34f8f953ecf9b36595022ad00cd3f7e79` |
+| Hosted Android 17 shard 0 instrumentation summary | `c1f174ad00c9e4b861a90da862fd0c04088337ed72f9e408490f984172dc44cd` |
+| Initial compact Android 17 instrumentation log | `9e422d0a4652a9903159fbfe6a882d33a5538aace12154efec59803ebcbede71` |
+| Phone models route in the Android 8 ordered replay | `c76449226a82100173c1423be8042aba88a34605c31caa5b0dbcf768301fafd4` |
+| Phone models route on compact Android 17 | `3be1e8149df275b2df59c0c22a420a02f4cc18158e59edb3867366648e5c9d7f` |
+| Initial compact Android 17 demo UI hierarchy | `a5ab73adeecb5c29c1772a5cacef3ca5027c9a78b7a27fef7067f0aa1743fc6e` |
+| Composer setup route, Android 8 focused results | `40058b40db6b392cf0ddc008816bf1733092f49c76d1372be2ad14fba3d69857` |
+| Compact Android 17 keyboard return-action failure | `8638309e260aa567a8ab689eb86a64d7f3a0d602be5547481bc5d539aacf8189` |
+| Final Windows build receipt | `adb08c600da8345005085ede56491c1e84c273a703f05ddd75549deb06262f1f` |
+| Unsigned beta.12 release APK | `ed1a1e3502f848a152a45924f6afb2feba77ac5453a931b36586a9133405b125` |
+| Final beta.12 debug APK | `d716aac37b860dfa1db8359a60ae549930a8696daa2fe225ad51a3ce7d8ceacf` |
+| Final beta.12 test companion | `c81bb891edc269cb6a9041b1e8b804745b6f63c114ee50170db5104787b62a6a` |
+| Focused Android 8 result | `2f08f0f4f52928834e86abddea80de99b19d417e779cef3668a5e23406930de2` |
+| Focused compact Android 17 result | `cd548a2504cc9b7b2f96cb137da4923faf5cedba60dfdf05addca11c3eaff67c` |
+| Public signer preflight receipt | `4babc867dbc2b26fd84bd7ce3269c4aaf0af663298add9b860470884f8168947` |
+
 ## Hermes Activity skill loads
 
 Signal Grove displays a resolved skill identity when a recognized

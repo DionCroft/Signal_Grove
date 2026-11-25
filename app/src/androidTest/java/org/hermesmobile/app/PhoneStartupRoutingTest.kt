@@ -15,6 +15,7 @@ import androidx.test.runner.lifecycle.Stage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.hermesmobile.app.data.ImageContent
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -69,9 +70,9 @@ class PhoneStartupRoutingTest {
         selected("home")
         instrumentation.runOnMainSync { main.startActivity(Intent(main, LocalAiActivity::class.java)) }
         val phoneFromHermes = awaitActivity<LocalAiActivity>()
-        compose.onNodeWithTag("phone-messages").performScrollToNode(hasTestTag("phone-offline-setup-chat-entry"))
-        compose.onNodeWithTag("phone-offline-setup-chat-entry").performClick()
-        val toggle = compose.onNodeWithTag("phone-startup-toggle").performScrollTo().assertIsOff()
+        awaitNode("phone-chat-options").assertIsDisplayed().performClick()
+        awaitNode("phone-chat-offline-setup").assertIsDisplayed().performClick()
+        val toggle = awaitNode("phone-startup-toggle").performScrollTo().assertIsOff()
         toggle.assertIsEnabled().performClick()
         runBlocking { withTimeout(10_000) { app.preferences.phoneStartup.first { it } } }
         toggle.assertIsOn()
@@ -93,6 +94,7 @@ class PhoneStartupRoutingTest {
             }
         }
         compose.onNodeWithTag("phone-draft").assertIsDisplayed()
+        compose.waitUntil(10_000) { openHermes.isDisplayed() }
         openHermes.assertIsDisplayed().performTouchInput { click() }
 
         awaitActivity<MainActivity>()
@@ -138,16 +140,28 @@ class PhoneStartupRoutingTest {
         val second = Uri.parse("content://signal-grove-fixture/startup-two")
         start(Intent(app, MainActivity::class.java).setAction(Intent.ACTION_SEND).setType("image/png")
             .putExtra(Intent.EXTRA_STREAM, first), fresh = false)
-        awaitActivity<MainActivity>()
-        compose.onNodeWithTag("share-image-review").assertIsDisplayed()
-        compose.onNodeWithTag("use-shared-images").assertExists()
+        val singleReviewActivity = awaitActivity<MainActivity>()
+        assertSharedImageReview(1)
 
         start(Intent(app, MainActivity::class.java).setAction(Intent.ACTION_SEND_MULTIPLE).setType("image/png")
             .putParcelableArrayListExtra(Intent.EXTRA_STREAM, arrayListOf(first, second)))
-        awaitActivity<MainActivity>()
-        compose.onNodeWithTag("share-image-review").assertIsDisplayed()
-        compose.onNodeWithTag("use-shared-images").assertExists()
+        awaitActivity<MainActivity> { it !== singleReviewActivity }
+        assertSharedImageReview(2)
         assertTrue(readStartup())
+    }
+
+    private fun assertSharedImageReview(count: Int) {
+        val imageCount = "$count / ${ImageContent.MAX_IMAGES}"
+        awaitNode("share-image-review").assertIsDisplayed().performScrollToNode(hasText(imageCount))
+        compose.onNodeWithText(imageCount).assertIsDisplayed()
+        compose.onNodeWithTag("use-shared-images").assertExists()
+    }
+
+    private fun awaitNode(tag: String): SemanticsNodeInteraction {
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag(tag).fetchSemanticsNodes(atLeastOneRootRequired = false).size == 1
+        }
+        return compose.onNodeWithTag(tag)
     }
 
     private fun readStartup() = runBlocking { withTimeout(10_000) { app.preferences.phoneStartup.first() } }
@@ -174,7 +188,8 @@ class PhoneStartupRoutingTest {
 
     private fun selected(destination: String) {
         compose.waitUntil(10_000) {
-            compose.onAllNodes(hasTestTag("nav-$destination") and isSelected()).fetchSemanticsNodes().size == 1
+            compose.onAllNodes(hasTestTag("nav-$destination") and isSelected())
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).size == 1
         }
         compose.onNodeWithTag("nav-$destination").assertIsSelected()
     }
@@ -183,7 +198,9 @@ class PhoneStartupRoutingTest {
         var resumed: T? = null
         compose.waitUntil(10_000) {
             instrumentation.runOnMainSync {
-                resumed = lifecycle.getActivitiesInStage(Stage.RESUMED).filterIsInstance<T>().singleOrNull { keep(it) }
+                resumed = lifecycle.getActivitiesInStage(Stage.RESUMED).filterIsInstance<T>().singleOrNull {
+                    it in created && !it.isFinishing && keep(it)
+                }
             }
             resumed != null
         }

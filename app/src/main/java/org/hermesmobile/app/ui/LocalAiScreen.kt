@@ -254,11 +254,17 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             val editingChat = tab == 0 && (keyboardOpen || draftFocused)
             val compactEditor = maxHeight < 360.dp && (editingChat || (tab == 1 && keyboardOpen))
             val compactComposer = tab == 0 && compactEditor
+            val compactHeader = maxWidth < 360.dp || maxHeight < 560.dp
             val scrollSetupActions = tab == 0 && maxHeight < 560.dp && !compactComposer
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (!compactEditor) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(label(Words.PhoneAi), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            label(Words.PhoneAi), Modifier.weight(1f),
+                            style = if (compactHeader) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleLarge,
+                            maxLines = if (compactHeader) 3 else Int.MAX_VALUE,
+                            overflow = TextOverflow.Ellipsis
+                        )
                         if (handoffState.isEmpty()) {
                             IconButton({boundary = true}) {Icon(Icons.Outlined.Info, label(Words.PhoneBoundary))}
                         }
@@ -279,7 +285,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                     Row(Modifier.fillMaxWidth()) {
                         listOf(Words.Chat, Words.PhoneModels, Words.PhoneHistory).forEachIndexed { index, word ->
                             Tab(selected = tab == index, onClick = {tab = index}, modifier = Modifier.weight(1f).testTag("phone-tab-$index"),
-                                text = {Text(label(word))})
+                                text = {
+                                    Text(
+                                        label(word),
+                                        style = if (compactHeader) MaterialTheme.typography.labelSmall else LocalTextStyle.current,
+                                        maxLines = if (compactHeader) 3 else Int.MAX_VALUE,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                })
                         }
                     }
                 }
@@ -497,7 +510,6 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 loaded?.metadata?.name.orEmpty(), Modifier.weight(1f).testTag("phone-loaded"),
                 style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
             )
-            compactEntryActions?.invoke()
             actions.openVoice?.let { open ->
                 IconButton({ openFromChat(open) }, enabled = !state.busy, modifier = Modifier.testTag("phone-voice-open")) {
                     Icon(Icons.Outlined.MicNone, label(Words.PhoneVoice))
@@ -602,6 +614,14 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }
             DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
                 DropdownMenuItem(
+                    text = { Text(label(Words.PhoneOfflineSetup)) },
+                    onClick = {
+                        optionsOpen = false
+                        openSetup()
+                    },
+                    modifier = Modifier.testTag("phone-chat-offline-setup")
+                )
+                DropdownMenuItem(
                     text = { Text(label(Words.PhoneHelper)) },
                     onClick = {
                         optionsOpen = false
@@ -633,6 +653,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 }
             }
         }
+        compactEntryActions?.invoke()
         OutlinedTextField(draft, change,
             Modifier.weight(1f).onFocusChanged { onDraftFocusChanged(it.isFocused) }.testTag("phone-draft"),
             placeholder = { Text(label(Words.PhoneMessage)) }, maxLines = 4, enabled = !state.busy)

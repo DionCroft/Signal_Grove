@@ -1,11 +1,20 @@
 # Signal Grove project state
 
-24 November 2026. The full goal is **active**. The owner approved the order:
-phone context and request review, measured larger windows and Hermes-reported
-context, then verified workspace attachment, project approvals and scheduling.
-The [goal](docs/GOAL.md), [full audit](docs/AUDIT_EXECUTION_PLAN.md) and
-[offline backlog](docs/ON_DEVICE_AI_BACKLOG.md) retain the original acceptance
-requirements. Commit and push tested chunks.
+25 November 2026. The [active goal](docs/GOAL.md#active-scope--25-november-2026)
+contains three milestones: release beta.12, prove the live phone-to-Pi-to-Windows
+workflow, then finish the wider compatibility and device audit. Stop after those
+milestones for the owner's review. The [audit ledger](docs/AUDIT_EXECUTION_PLAN.md)
+retains the underlying evidence and remaining checks.
+
+## Beta.12 release candidate
+
+Version code 117 keeps the production package and the previous release's
+signing identity. Two startup regressions triggered on the prior hosted
+matrix. The compact layout and composer setup route passed 1,256 JVM tests,
+both lint variants and focused Android 8 and 17 replays. The full matrix,
+`main` validation,
+original-key signing, Xiaomi upgrade and updater are the release gates.
+[Validation](docs/VALIDATION.md#beta12-release-candidate-and-startup-routing).
 
 ## Hermes Activity skill loads
 
