@@ -66,6 +66,18 @@ public release certificate. SHA-256 over DER is
 `bbffacc53cc2dfecd78c598a41a44caf89623827b315bb873f62129da771e40f`.
 The beta.12 candidate remains unsigned while the release gates run.
 
+The independent build from the exact Git archive produced a 76,608,090-byte
+unsigned APK and release lint reported zero errors and 50 warnings. All
+1,263 tracked input files matched their archived bytes after the build.
+Manifest checks confirmed the production package at code 117, Android 8
+minimum and Android 17 target. The APK passed 16 KiB alignment and all
+32 native files matched their ABI without local path markers. The
+CycloneDX preview passed schema and dependency validation. A disposable
+v2 signing rehearsal preserved every APK entry and passed alignment and
+single-signer verification. The original-key preflight matched the beta.11
+public certificate. Use the production key after the exact main workflow
+passes, then generate evidence for the original-key-signed APK.
+
 | Retained evidence | SHA-256 |
 | --- | --- |
 | Hosted Android 8 shard 0 instrumentation summary | `395a918f2c978a13ea5b4529a54e95c34f8f953ecf9b36595022ad00cd3f7e79` |
@@ -92,6 +104,11 @@ The beta.12 candidate remains unsigned while the release gates run.
 | Focused Android 8 result | `2f08f0f4f52928834e86abddea80de99b19d417e779cef3668a5e23406930de2` |
 | Focused compact Android 17 result | `cd548a2504cc9b7b2f96cb137da4923faf5cedba60dfdf05addca11c3eaff67c` |
 | Public signer preflight receipt | `4babc867dbc2b26fd84bd7ce3269c4aaf0af663298add9b860470884f8168947` |
+| Exact Git-archive unsigned APK | `7e8d7b7046de34e9ecbcaa416cb0cf5fdd00fb45c0a3e150223812b484642351` |
+| Exact unsigned build receipt | `c32201bf2fc46725af86e6e09432d19e55083842ce1004f4f29cb8de157a45dc` |
+| Exact unsigned manifest and native inventory | `64411efbf9f182903deea9ba0f95233d15afcf8193b06dae6878b39ef0c323ce` |
+| Exact unsigned runtime SBOM | `dcc06f45aad7d4dc27b7ad5dfaf6af67882e4862e776c20224f16b923185dcd3` |
+| Disposable v2 signing rehearsal | `8856904306e151be212612dc93f75546ae1cf01a2c47138bcb9f95359dffd6f8` |
 
 ## Verified Hermes main source relocations
 

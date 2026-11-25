@@ -15,6 +15,8 @@ both lint variants. The exact release commit passed 1,263 Android 8
 and 1,264 Android 17 cases with independently verified raw coverage.
 `main` now points at that commit and its push validation is running.
 Original-key signing, Xiaomi upgrade, updater and publication remain open.
+The exact-source unsigned APK, lint, native inventory and disposable
+signature rehearsal passed.
 [Main-push validation](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692500).
 [Validation](docs/VALIDATION.md#beta12-release-candidate-and-startup-routing).
 
