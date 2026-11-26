@@ -241,6 +241,16 @@ local asyncio socket setup. Local loopback access allowed the complete
 test run with the upstream external-network fence active. Authenticated
 turns on the deployment and the wider handler and persistence review
 remain open.
+
+A local comparison reused the previously reviewed source layout for all
+249 logical inputs and independently checked the 245 distinct files.
+Environment routes, fallback transport, auxiliary models, legacy plugin
+settings and provider authentication differ from the prior pin. The
+watcher still requires review across 224 handler fingerprints and 29
+persistence inputs relative to the mobile baseline. These observations
+use the reviewed layout explicitly for this pin. The normal watcher's
+pin allowlist has its own review gate.
+
 [Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4) ·
 [Exact source comparison](https://github.com/NousResearch/hermes-agent/compare/441af486d09a2f7910aa3043ebe633f439cf92c9...6e447b2c2f01c12c4a6544e2e92c5de4944743f1).
 
@@ -248,6 +258,8 @@ Verified source-delta receipt SHA-256
 `b7a892b07c67723ae0a99fa954d5895a2e0b00946fa5a6e848b7f31a2ad81f45`.
 Exact provider fixture receipt SHA-256
 `8ca5010d3f784ea1433927be444c1b70ef453bf747b06c8f515f0ad14a73da25`.
+Exact mapped contract comparison SHA-256
+`956e4b0c947ef7557f08973459dea47c7f3671b633e770c7399f4e9149a79918`.
 
 ## Hermes approval, room and run compatibility
 
