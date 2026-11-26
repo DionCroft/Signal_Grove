@@ -33,8 +33,9 @@ At 200% Android text, the signed beta.12 Xiaomi kept three labeled
 Chat controls enabled and keyboard-focusable with 48 dp touch
 targets. The original 90% setting was restored. A foreground-controlled
 offline LFM3 test recalled all three facts from a 5,352-token prompt
-at 8K. Its first visible answer took 109.1 s. The 16K handoff
-deadline remains open and production stays at 4K.
+at 8K. Its first visible answer took 109.1 s. The foreground
+16K handoff again reached the 180-second deadline. Production stays
+at 4K.
 [Context result](docs/VALIDATION.md#representative-lfm3-handoff-on-the-xiaomi).
 The same 39 job and session cases passed at each
 exact Hermes pin with common lockfile-pinned wheels. The physical
@@ -45,6 +46,10 @@ Live run notifications, precise targeting and TalkBack remain open.
 [API](docs/VALIDATION.md#paired-hermes-job-and-session-api-tests).
 
 ## Hermes main relocation review
+
+The official main ref advanced to e0dcc39. Git tree verification
+found website and install CI changes with identical runtime and
+gateway test trees to the previously tested 6e447b2 revision.
 
 Two exact upstream revisions now produce the full watcher comparison after
 Git verification of all 245 source files. The comparison still requires

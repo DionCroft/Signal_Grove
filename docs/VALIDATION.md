@@ -290,6 +290,18 @@ shutdown recovery still require their separate checks.
 
 ## Upstream Hermes main source delta
 
+The official main ref advanced from 6e447b2c2f01c12c4a6544e2e92c5de4944743f1 to e0dcc39fb8ed409d5c848f6386f1f1143b69ca56. The exact
+comparison lists five commits and 11 changed files. Git tree hashing
+independently verified both root trees and both test trees. The root
+change is confined to the website, GitHub configuration and install
+CI tests. The gateway test tree and all runtime trees are identical
+across these revisions. The previously reported runtime test results
+remain tied to the revision actually run.
+[Exact upstream comparison](https://github.com/NousResearch/hermes-agent/compare/6e447b2c2f01c12c4a6544e2e92c5de4944743f1...e0dcc39fb8ed409d5c848f6386f1f1143b69ca56).
+
+Verified Git tree receipt SHA-256 4f12ea7eb79fdf18855ef112c493c9bfc60d753ebc9ca5ad5f9ba38a8575e7fb.
+Official compare receipt SHA-256 761cc463658e74a58108c35fed849dcfbfcb51a6046bee1f297191996222a13a.
+
 On 26 November 2026 the latest stable GitHub release remained v0.23.4.
 The observed main commit, 6e447b2c2f01c12c4a6544e2e92c5de4944743f1,
 was 13 commits ahead of 441af486d09a2f7910aa3043ebe633f439cf92c9.
@@ -4538,6 +4550,22 @@ explicit methods, including one debug probe with three separate capacity
 arguments. Its 65 policy and standard-matrix accounting checks passed.
 
 ## Representative LFM3 handoff on the Xiaomi
+
+The 16K foreground follow-up passed the short disconnected control.
+The 9,727-token handoff then reached the 180-second generation deadline.
+All 42 samples showed the same awake foreground debug process
+with Android network agents disconnected. Its CPU time advanced and
+sampled thermal status stayed at zero. Peak sampled PSS reached
+2,636,362 KiB. The terminal test result was a
+generation timeout with no completed handoff. Wi-Fi, mobile data,
+VPN, Pi reachability, the staged model and the signed APK verified after
+the trial. The production context remains 4,096.
+
+| Check | SHA-256 |
+| --- | --- |
+| Foreground 16K timeout | 582a1b3689d1b89dae5c55651fa4f2b90650d5717ab2cc57c9e4b4fff999ae82 |
+| Foreground 16K samples | 961fcc1fba612424695f9f51caaacf1f58420cad337d61eeb84c895e1a6bb19c |
+| Foreground 16K network restoration | dd6c6c421557fed5a883aaf7ae682c5519e5f5ff83f7ac7ee64b73e212136c01 |
 
 The post-release foreground comparison reproduced a short-control
 stall with Android's normal restart-based instrumentation. Android
