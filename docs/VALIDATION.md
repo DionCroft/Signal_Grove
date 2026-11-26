@@ -60,9 +60,18 @@ lint variants with zero errors. The CI debug APK pair matches code 117
 and has one shared signer. The two Android 8 jobs on main passed all
 1,263 inventoried cases. The independent check parsed both native logs
 against the exact APK pair and verified disjoint partitions of 595 and
-668 cases. Main Android 17, the combined coverage gate, original-key
-signing and the Xiaomi release upgrade remain open. The earlier
-private updater fixture covered wrong-signer refusal, user review,
+668 cases. Main Android 17 shard 0 passed its 596 cases. Shard 1 started
+all 668 and returned 667 positive method results. The failing method was
+`PhoneTemporaryChatFlowTest.endingTemporaryChatPreservesTheSavedChatDraftAndReopensEmpty`.
+It reported that the End action did not satisfy the visible keyboard
+boundary. ADB exited normally, and the runner reported one assertion
+failure rather than a transport error or deadline. The combined gate
+correctly reported the missing passing partition. The first attempt's
+artifact was downloaded and checked against its GitHub SHA-256. The
+same main push is rerunning only the failed jobs. A fresh Android 17
+emulator is checking the same debug APKs separately. Production signing
+and upgrade are pending the full main gate. The earlier private updater
+fixture covered wrong-signer refusal, user review,
 verified download, active-work gating, Android permission and install
 confirmation, and retained fixture data.
 Offline Gradle resolution on the exact Git archive verified 154 Maven modules
@@ -110,6 +119,7 @@ passes, then generate evidence for the original-key-signed APK.
 | Hosted Android 17 shard 1 archive | `870b4366bba829de7ff3812ed11e2c6484bef8aed9ac86db7ea6afbc9de1f66d` |
 | Independently verified two-API coverage | `778dddd11bbb1ffc93ce42dd39b92b8ce934b7da709ee58f750829f7db39baea` |
 | Android 8 main coverage receipt | `93fa78fd0ce266bc149c84c4e5bfed9f2dd98f04f34c556dda59a55d3d4a839d` |
+| Android 17 main shard 1 failure archive from attempt 1 | `42105f414fed52c4f6034b1d8d7dc87e10bc2e72b7caca86f9124572d6056f69` |
 | Exact-source private updater receipt | `79a9c7a723cd6cf8e9d0e723e72a91789c3b2f07dbd1e7359a4b487db3c8387a` |
 | Main-push build evidence receipt | `529dff288ef9817cfbfd77329a9377e0a205863a7c6f7aa636e7c06d49fdf417` |
 | Exact release runtime Maven preview | `c3e5987e9a4c0f7330bbbde005f5728e062d00629b193c3d8377f0799df6e13d` |

@@ -14,8 +14,12 @@ matrix. The compact layout and composer setup route passed 1,256 JVM tests,
 both lint variants. The exact release commit passed 1,263 Android 8
 and 1,264 Android 17 cases with independently verified raw coverage.
 `main` points at that commit. Its build verification and 1,263 Android 8
-cases passed. Android 17 and the combined coverage check are running.
-Original-key signing, Xiaomi upgrade, updater and publication remain open.
+cases passed. Main Android 17 shard 0 passed 596 cases. Shard 1 passed
+667 of 668 cases and failed the temporary-chat End action's keyboard
+geometry check. The combined coverage gate rejected the incomplete
+partition. The same main workflow is rerunning the failed jobs, and a
+fresh Android 17 emulator is checking the exact APK pair.
+Original-key signing, Xiaomi upgrade and publication remain open.
 The exact-source unsigned APK, lint, native inventory and disposable
 signature rehearsal passed.
 [Main-push validation](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692500).
