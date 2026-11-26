@@ -3,6 +3,8 @@ package org.hermesmobile.app
 import android.graphics.Bitmap
 import android.graphics.Rect
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import kotlinx.coroutines.flow.first
@@ -240,6 +242,9 @@ class NavigationTest {
                 assertEquals(theme.title, !theme.dark, systemBars.isAppearanceLightStatusBars)
                 assertEquals(theme.title, !theme.dark, systemBars.isAppearanceLightNavigationBars)
             }
+            val header = compose.onNodeWithText(Words.Demo.localized(AppPreferences()))
+                .assertIsDisplayed().captureToImage().toPixelMap()
+            assertTrue("Connection text uses ${theme.title} ink", theme.ink.toArgb() in header.buffer)
             screenshot("home-${theme.name.lowercase()}")
         }
     }

@@ -85,7 +85,12 @@ val LocalReducedMotion=staticCompositionLocalOf { false }
     val default=Typography()
     val display=FontFamily.Monospace
     val typography=default.copy(headlineLarge=default.headlineLarge.copy(fontFamily=display),headlineMedium=default.headlineMedium.copy(fontFamily=display),titleLarge=default.titleLarge.copy(fontFamily=display,fontWeight=FontWeight.Bold),labelLarge=default.labelLarge.copy(fontFamily=display,fontWeight=FontWeight.Bold))
-    CompositionLocalProvider(LocalPreferences provides p,LocalHermesTheme provides t,LocalReducedMotion provides (p.reducedMotion || systemMotion)) {
+    CompositionLocalProvider(
+        LocalPreferences provides p,
+        LocalHermesTheme provides t,
+        LocalReducedMotion provides (p.reducedMotion || systemMotion),
+        LocalContentColor provides colors.onBackground
+    ) {
         MaterialTheme(colorScheme=colors,typography=typography,
             shapes=Shapes(extraSmall=CutCornerShape(3.dp),small=CutCornerShape(4.dp),medium=CutCornerShape(6.dp),large=CutCornerShape(8.dp),extraLarge=CutCornerShape(10.dp)),content=content)
     }
