@@ -1,6 +1,20 @@
 # Current feature and validation matrix
 
-## Beta.11 candidate
+## Published beta.12 preview
+
+The phone composer opens offline setup and keeps return-to-Hermes and
+draft controls reachable with the keyboard visible. Hermes Activity
+can show the currently open tool, MCP server, resolved skill, event and
+receipt times, and subagent interruptions when the connected runtime
+reports those fields.
+
+A reviewed Windows checkout is checked at reservation, claim and launch.
+The scoped receipt route supports reconnect recovery where the runtime
+and worker advertise the necessary capabilities. Physical Pi-to-Windows
+execution and scheduled receipt recovery remain in the live audit.
+[Beta.12 release and verification](releases/1.1.0-beta.12.md).
+
+## Published beta.11 preview
 
 The scoped Chat Activity view uses retained Hermes reports. Model and
 provider labels depend on a matching run report. Blank read-only replies
@@ -10,12 +24,10 @@ draft when a request exceeds its budget. Workspace browsing and schedule
 controls depend on the matching server capabilities and permissions.
 
 The integrated fixture checks covered Activity, history, migration, reconnect,
-workspace attachment and scheduling on Android 8 and 17. An owned Android 17
-emulator kept its package identity, Demo setting and test task during the
-original-signer beta.10 upgrade. Live workspace and scheduler acceptance,
-the exact final-source matrix and the physical upgrade remain open.
-[Candidate scope](releases/1.1.0-beta.11.md) ·
-[Validation](VALIDATION.md#private-beta11-artifact-and-pi-preflight).
+workspace attachment and scheduling on Android 8 and 17. The final exact
+matrix and original-key physical Xiaomi upgrade passed. Live workspace and
+scheduler execution remain separate audit items.
+[Beta.11 release record](releases/1.1.0-beta.11.md).
 
 ## Published beta.10 offline AI and compact UI
 

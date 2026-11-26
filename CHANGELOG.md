@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0-beta.12 (unreleased)
+## 1.1.0-beta.12 - 26 November 2026 - Compact offline chat and Hermes Activity
 
 - Open offline setup from the phone composer menu. Compact title and tab
   layouts leave more room for chat, models and history. The return-to-Hermes

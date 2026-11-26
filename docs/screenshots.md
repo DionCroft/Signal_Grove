@@ -1,5 +1,15 @@
 # Signal Grove screenshots
 
+## Beta.12 preview
+
+These captures use the exact beta.12 UI on the Android 8 emulator at
+1.3× system text. Demo mode shows the jade theme. The Activity screen
+uses a synthetic subagent and conversation identity.
+
+| Demo home | Hermes Activity |
+| --- | --- |
+| <img src="screenshots/beta12-demo-home.png" width="360" alt="Signal Grove jade theme with its pixel-art orbital garden"> | <img src="screenshots/beta12-hermes-activity.png" width="360" alt="Hermes Activity showing a synthetic run, subagent and child session identity"> |
+
 ## Beta.10 signed candidate
 
 Android 17 emulator at 1080 × 1920, 420 dpi and 100% system font. Both

@@ -1,5 +1,31 @@
 # Current development validation — audit follow-up
 
+## Published beta.12 release verification
+
+The exact release commit 48559324bb8ac909af24a125835d0284441d80c9 passed 1,256 JVM tests and both
+lint variants on main. The successful standard device report independently
+reconciled 1,263 Android 8 and 1,264 Android 17 cases with four raw shards
+and the exact debug APK pair. The first attempt reported one temporary-chat
+keyboard visibility assertion on Android 17. The same-source rerun passed
+that shard and the complete coverage check. The first failure evidence is
+retained.
+[Main release workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692500).
+
+The signed production APK uses code 117 and the original certificate.
+Its full payload matches the independently built unsigned APK. The Xiaomi
+accepted the in-place update, kept its installation identity, connected
+using its saved Hermes profile, and showed a matching existing conversation
+in the history samples. The previous phone network state was restored.
+The exact-code private updater fixture verified wrong-signer rejection,
+user-confirmed download, active-work delay, Android approval, install and
+retained fixture data.
+
+All five public GitHub assets were downloaded without authentication and
+matched their reviewed hashes. The APK is 76,614,430 bytes. The runtime
+SBOM covers 154 Maven modules, 98 unique Maven artifacts and 32 native
+libraries. Stable remains 1.0.0.
+[Release and assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.12) · [Release record](releases/1.1.0-beta.12.md).
+
 ## Beta.12 release candidate and startup routing
 
 Beta.12 uses version code 117 and the existing production package. The

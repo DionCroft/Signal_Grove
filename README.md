@@ -8,17 +8,17 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.11/hermes-agent-mobile-1.1.0-beta.11.apk"><strong>Download beta.11 preview APK</strong></a>
+  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.12/hermes-agent-mobile-1.1.0-beta.12.apk"><strong>Download beta.12 preview APK</strong></a>
   · <a href="https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0">Stable release</a>
   · <a href="docs/SETUP_GUIDE.md">Setup guide</a>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/beta10-demo-home.png" width="228" alt="Signal Grove Demo home with a pixel-art orbital garden and a New conversation button">
+  <img src="docs/screenshots/beta12-demo-home.png" width="228" alt="Signal Grove beta.12 Demo home with jade navigation and an original pixel-art orbital garden">
   <img src="docs/screenshots/beta10-phone-models.png" width="228" alt="On-device model catalogue showing the LFM3 licence, download size and memory requirement before download">
 </p>
 
-<p align="center"><em>Demo home and on-device model catalogue, captured in beta.10.</em> <a href="docs/screenshots.md">More screenshots</a></p>
+<p align="center"><em>Beta.12 Demo home and beta.10 phone model catalogue.</em> <a href="docs/screenshots.md">More screenshots</a></p>
 
 ## Install or update
 
@@ -26,7 +26,7 @@ Signal Grove runs on **Android 8.0 and later**. It is an independent community a
 
 | Channel | Version | Download |
 | --- | --- | --- |
-| **Preview** | **1.1.0-beta.11**, version code 116 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.11/hermes-agent-mobile-1.1.0-beta.11.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11) |
+| **Preview** | **1.1.0-beta.12**, version code 117 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.12/hermes-agent-mobile-1.1.0-beta.12.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.12) |
 | **Stable** | **1.0.0** | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.0.0/hermes-agent-mobile-1.0.0.apk) · [Release notes and assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
 
 For an in-place update, install the matching production APK over your existing production installation. Matching the package and signing key preserves its data. Preview builds with the updater can check **Settings → App updates**. Enable **Include preview releases** to find betas, review the download, and confirm the installation in Android. [Update and migration guide](docs/APP_UPDATES.md)
@@ -35,14 +35,14 @@ For an in-place update, install the matching production APK over your existing p
 
 1. **Explore in Demo mode.** It starts enabled on a fresh installation. Try the interface, chat, tasks and sample approvals without a Hermes server. [User guide](docs/USER_GUIDE.md)
 2. **Connect your Hermes server.** Use its authenticated API over trusted HTTPS, for example through a private Tailscale network. In **Settings → Server**, enter the API root and bearer token, then tap **Save & test connection**. Management features use a separate dashboard sign-in. [Full connection guide](docs/SETUP_GUIDE.md)
-3. **Try offline chat.** In beta.11, open **Settings → On-device AI → Phone models**. Review a catalogue model's licence or import a compatible GGUF file, then tap **Load**. You’ll need a supported 64-bit device, enough memory and storage, and a separately installed model. Phone chat has its own history. [Model and offline chat guide](docs/ON_DEVICE_AI.md)
+3. **Try offline chat.** In the preview, open **Settings → On-device AI → Phone models**. Review a catalogue model's licence or import a compatible GGUF file, then tap **Load**. You’ll need a supported 64-bit device, enough memory and storage, and a separately installed model. Phone chat has its own history. [Model and offline chat guide](docs/ON_DEVICE_AI.md)
 
-## What you can do in beta.11
+## What you can do in beta.12
 
 | Area | How it helps |
 | --- | --- |
-| **Follow Hermes conversations** | Stream replies, browse existing history, and see reported tool and subagent activity, waits, outcomes, and model and provider. Automatic model selection can follow the verified serving model. |
-| **Work offline on your phone** | Generate text locally, review the prompt budget, edit or branch a chat, search history, and export or back it up. LFM3 is verified at up to 4K on the tested phone. |
+| **Follow Hermes conversations** | Stream replies and browse existing history. See which tool is open and the reported MCP server, skill, subagent outcome, model and provider. Automatic model selection can follow the verified serving model. |
+| **Work offline on your phone** | Open offline setup from the phone composer. Generate locally, review prompt fit, edit or branch a chat, search history, and export or back it up. The production LFM3 context is 4K. |
 | **Review work before it runs** | Follow approval requests, browse bounded read-only workspace previews, and review upcoming schedules, time-zone offsets and scoped run receipts where supported. |
 | **Make it yours** | Use built-in phone tasks, a task widget, five pixel-art themes, scalable text and reduced motion. Dictation and read-aloud use Android’s installed speech services. |
 
@@ -50,7 +50,7 @@ Hermes controls depend on the connected runtime, authentication, and configured 
 
 ## Release verification
 
-The published beta.11 APK is **76.6 MB**. Its exact source passed **1,262 Android 8** and **1,263 Android 17** instrumentation methods. A physical Xiaomi in-place upgrade retained the saved Hermes connection, existing history and local model library. The APK checksum, public signing certificate, runtime SBOM and build provenance are available with the release. [Beta.11 verification](docs/releases/1.1.0-beta.11.md) · [Full validation evidence](docs/VALIDATION.md)
+The beta.12 APK is **76.6 MB**. Its exact release commit on main passed **1,256 JVM tests**, **1,263 Android 8** cases and **1,264 Android 17** cases. The original-key Xiaomi upgrade retained the installation, saved Hermes connection and an existing conversation verified in both history samples. The public APK, checksums, signing certificate, runtime SBOM and build provenance were downloaded and verified. [Beta.12 verification](docs/releases/1.1.0-beta.12.md) · [Full validation evidence](docs/VALIDATION.md)
 
 ## Help and development
 
