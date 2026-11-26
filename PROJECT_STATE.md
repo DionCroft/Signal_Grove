@@ -19,13 +19,26 @@ five release assets were downloaded and checksum verified.
 
 ## Next live acceptance gate
 
-The post-release read-only probe authenticated the existing gateway and
-canonical home. Its registered status returned admission_unobserved.
-The live project-control ledger and protected workspace-read policy were
-absent. Complete the reviewed admission and activation prerequisites
-before testing workspace attachment, exact attribution and approved
-execution. Recover the scheduled occurrence's original receipt after
-reconnect. [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
+The authenticated gateway reported registered activity busy with only
+the cron counter nonzero. Project admission remained unobserved. The
+live project-control ledger and protected workspace-read policy were
+absent. A verified work-drain and reviewed activation remain
+prerequisites for phone attachment, exact attribution, approvals and
+one scheduled occurrence with original receipt recovery.
+[Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
+
+## Device and upstream audit checkpoint
+
+At 200% Android text, the signed beta.12 Xiaomi kept three labeled
+Chat controls enabled and keyboard-focusable with 48 dp touch
+targets. The original 90% setting was restored. A disconnected 8K LFM3
+rerun stopped progressing during short control generation. The debug
+runner was closed and the network state and model hash were verified.
+Production stays at 4K. The same 39 job and session cases passed at each
+exact Hermes pin with common lockfile-pinned wheels. Physical Android
+notification delivery and TalkBack remain open.
+[Device](docs/VALIDATION.md#signed-beta12-200-percent-text) ·
+[API](docs/VALIDATION.md#paired-hermes-job-and-session-api-tests).
 
 ## Hermes main relocation review
 

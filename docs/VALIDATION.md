@@ -166,6 +166,23 @@ passes, then generate evidence for the original-key-signed APK.
 | Exact unsigned runtime SBOM | `dcc06f45aad7d4dc27b7ad5dfaf6af67882e4862e776c20224f16b923185dcd3` |
 | Disposable v2 signing rehearsal | `8856904306e151be212612dc93f75546ae1cf01a2c47138bcb9f95359dffd6f8` |
 
+## Signed beta.12 200 percent text
+
+The exact original-key code 117 APK ran Tasks and Chat at 90% and
+200% Android text. The Tasks title grew from 98 to 145 px, and Chat
+from 65 to 126 px. At 200%, the Android accessibility tree exposed
+Conversation history, Models & connection and New conversation as
+enabled, focusable controls with at least 48 dp geometry inside the
+view. The first observer checked the wrong label for New conversation.
+The original font, radio settings and APK identity were verified
+afterward. TalkBack spoken output remains untested.
+[Android font scaling](https://developer.android.com/about/versions/14/features#non-linear-font-scaling).
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Physical targets and viewport report | d9a823ce84716cd1ac932b2f341dffbc27dfc983e08bf17c48c157832f861ee0 |
+| Font, radios and APK restoration | 90a9371a8215e2b291711724a3d05081a88b32d62ba72bc74b312d8516a6edfc |
+
 ## Xiaomi saved connection and physical controls
 
 The installed production beta.11 APK matched the public release SHA-256.
@@ -284,6 +301,29 @@ Exact provider fixture receipt SHA-256
 `8ca5010d3f784ea1433927be444c1b70ef453bf747b06c8f515f0ad14a73da25`.
 Exact mapped contract comparison SHA-256
 `956e4b0c947ef7557f08973459dea47c7f3671b633e770c7399f4e9149a79918`.
+
+## Paired Hermes job and session API tests
+
+Six official upstream modules passed the same 39 test identities at
+stable 8fc0374447313e276f6b9a2764bfc750190c966a and main
+6e447b2c2f01c12c4a6544e2e92c5de4944743f1. The fixtures cover cron job
+CRUD, trigger responses, malformed PATCH values against the real job
+store, API authentication, continuation, memory session scope, deleted
+sessions, idempotency and error responses.
+
+The first run on each pin passed 35 methods and failed four during
+setup because the environment lacked croniter. The exact reruns used
+croniter 6.2.4, python-dateutil, six and tzdata from the shared verified
+lock entries. Source hashes before and after matched. All cases ran
+over disposable adapters and local loopback.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Common locked wheel manifest | 2159d2909b6424aee937cce1cc3694f5cfef2507608856112623da321f19ae58 |
+| Stable original result | 46c95ec760a75a8d273187128feddf86e9bd0f7c0ec089dee352885426b34619 |
+| Main original result | 394ab891c3d0dbb8b3c678b69766328e37473d5629b91a5d10dec87fe6a48c61 |
+| Stable complete result | c22985e49dafa36def6dcf0c4ebc531ade577ef322fd4686872dfedf2144cea7 |
+| Main complete result | dcdafd06728e0c32264e5ff7a88d1612588e4c80d7c912dc2e4e39511d51add2 |
 
 ## Hermes approval, room and run compatibility
 
@@ -1003,6 +1043,15 @@ returned to Settings with the model unloaded, and the mirror session ended.
 | Android 17 compact-device log | `a5bdda034a184f68a117d96a6e88b91d8841c9a249cecbb0679a9297ad78d1f9` |
 
 ## Live gateway admission diagnosis
+
+The post-release authenticated frame independently verified the gateway
+identity, freshness and the registered activity counter schema. It
+reported three adapter instances, one secondary profile map and busy
+registered activity with only the cron counter nonzero. Project admission
+remained unobserved, with the ledger and protected policy still absent.
+The receipt supplies no work-drain or switch authority. The probe used
+one status request and left the gateway and registered work state intact.
+Classified receipt SHA-256 921d5e4f0cc71b49ea388df3f9ccd2efda0f07b657ad721dfefc91a5a0d73038.
 
 A fresh authenticated status sample bound to the r5 review packet again
 returned `admission_unobserved`. The post-beta.12 observation matched
@@ -4454,6 +4503,18 @@ explicit methods, including one debug probe with three separate capacity
 arguments. Its 65 policy and standard-matrix accounting checks passed.
 
 ## Representative LFM3 handoff on the Xiaomi
+
+A post-release 8,192-context attempt used the verified debug pair and
+LFM3 model on the disconnected Xiaomi. All 86 network samples showed
+no active transport. The engine loaded the context and counted its
+64-token control prompt. The host's 290-second window ended during
+that short control generation, before the long handoff. The Android
+instrumentation was still active, then the owned debug run was stopped
+and its terminal event retained. The phone's prior Wi-Fi, mobile data,
+VPN and private-host reachability were restored. The model and signed
+production APK retained their hashes. The earlier successful 8K result
+and 16K deadline remain in evidence. Production stays at 4K.
+Reconciled receipt SHA-256 8dc497a67a9e6021204b4722b72d801000308b690222cfd68f401bba1600b9d7.
 
 The debug-only external-model test accepts `localContextProbeWorkload=handoff`
 at 8,192 or 16,384 context tokens. It uses the actual chat template and three
