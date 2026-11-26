@@ -198,6 +198,11 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             } catch(e: Exception) {if(!configured) scope.value="unconfigured";error.value=connectionError(e)}
         }
     }
+    internal val groveWeatherArea = graph.preferences.groveWeatherArea
+    internal fun setGroveWeatherArea(area: GroveWeatherArea?) {
+        viewModelScope.launch { graph.preferences.setGroveWeatherArea(area) }
+    }
+
     fun updatePreferences(p: AppPreferences,base: AppPreferences=preferences.value) {viewModelScope.launch {graph.preferences.patchUserSettings(p,base)}}
     fun setDemo(enabled: Boolean) {
         if(switchingBlocked()) return

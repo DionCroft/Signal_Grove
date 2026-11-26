@@ -27,7 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp).widthIn(max=1100.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
         Surface(shape=PixelPanelShape,color=t.surface,border=BorderStroke(1.5.dp,t.ink.copy(alpha=.3f))) {
             Column(verticalArrangement=Arrangement.spacedBy(0.dp)) {
-                PixelHomestead()
+                GroveHomeArt(vm)
                 Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 Text(label(Words.OrbitalHomestead),style=MaterialTheme.typography.labelSmall,color=t.button)
                 Word(Words.Greeting,heading=true)

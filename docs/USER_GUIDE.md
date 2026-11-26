@@ -1,5 +1,26 @@
 # Using Signal Grove
 
+## Home scenery and weather
+
+The observatory follows your phone's local time and calendar. The artwork
+changes between dawn, daytime, dusk and night, with seasonal vegetation and
+occasional visitors, meteors, fireflies or rainbows. With the default
+offline scenery, the weather is drawn from the calendar.
+
+Tap the cloud on Home to search for a town. A search sends the text you
+enter to Open-Meteo. Selecting a result stores its name and quarter-degree
+coordinates on your phone. Home can request the town's weather while
+visible. The selected town also chooses the northern or southern seasonal
+palette. **Use offline scenery** clears the saved town. **Settings →
+Reduce motion** keeps the scene still while preserving calendar and weather
+changes.
+
+Weather and location data come from [Open-Meteo and its credited sources](https://open-meteo.com/en/licence)
+under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Signal Grove
+maps weather codes to original pixel effects. The free service is for
+[non-commercial use](https://open-meteo.com/en/terms).
+
+
 The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.8`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8), code 111; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
 
 

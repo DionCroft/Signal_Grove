@@ -3,6 +3,8 @@ package org.hermesmobile.app
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.testTag
@@ -28,7 +30,11 @@ class PixelMotionTest {
         val registry=LifecycleRegistry(this)
         override val lifecycle:Lifecycle get()=registry
     }
-    private fun scene(reduced:Boolean=false,progress:Float?=null):Owner {
+    private fun scene(
+        reduced: Boolean = false,
+        progress: Float? = null,
+        sky: State<GroveSky?> = mutableStateOf(null)
+    ): Owner {
         compose.mainClock.autoAdvance=false
         lateinit var owner:Owner
         compose.runOnUiThread {
@@ -37,7 +43,7 @@ class PixelMotionTest {
                 HermesAppTheme(AppPreferences(theme="STARHAVEN",chinese=false,pinyin=false,reducedMotion=reduced)) {
                     CompositionLocalProvider(LocalLifecycleOwner provides owner,LocalReducedMotion provides reduced) {
                         Column {
-                            PixelHomestead(Modifier.testTag("scene"))
+                            PixelHomestead(Modifier.testTag("scene"), sky = sky.value)
                             PixelProgress(progress,Modifier.testTag("progress"))
                         }
                     }
@@ -81,6 +87,20 @@ class PixelMotionTest {
         val progress=pixels("progress");compose.mainClock.advanceTimeBy(2250);compose.waitForIdle()
         assertArrayEquals(progress,pixels("progress"))
     }
+    @Test fun weatherChangesTheStillSceneWhenMotionIsReduced() {
+        val sky = mutableStateOf<GroveSky?>(GroveSky.CLEAR)
+        scene(reduced = true, sky = sky)
+        val clear = pixels("scene")
+        compose.runOnUiThread { sky.value = GroveSky.SNOW }
+        compose.mainClock.advanceTimeBy(64)
+        compose.waitForIdle()
+        val snow = pixels("scene")
+        assertFalse(clear.contentEquals(snow))
+        compose.mainClock.advanceTimeBy(2250)
+        compose.waitForIdle()
+        assertArrayEquals(snow, pixels("scene"))
+    }
+
     @Test fun loadingIndicatorReportsIndeterminateProgress() {
         scene(reduced=true)
         compose.onNodeWithTag("progress").assert(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo,ProgressBarRangeInfo.Indeterminate))

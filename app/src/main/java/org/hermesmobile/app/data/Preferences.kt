@@ -50,6 +50,15 @@ class PreferenceStore(context: Context) {
         store.edit { it[unmeteredModelDownloads] = enabled }
     }
 
+    private val groveTown = stringPreferencesKey("grove_weather_area")
+    internal val groveWeatherArea = store.data.map { GroveWeatherArea.decode(it[groveTown]) }.distinctUntilChanged()
+
+    internal suspend fun setGroveWeatherArea(area: GroveWeatherArea?) {
+        store.edit { values ->
+            if (area == null) values.remove(groveTown) else values[groveTown] = area.encode()
+        }
+    }
+
     private val writingKey = stringPreferencesKey("phone_writing_library")
     internal val phoneWritingLibrary = store.data.map { decodeWritingLibrary(it[writingKey]) }.distinctUntilChanged()
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0-beta.13 - Living Grove
+
+- Home's pixel observatory changes at dawn, daytime, dusk and night.
+- The calendar brings seasonal foliage, snow cover and occasional visitors,
+  meteors, fireflies or rainbows. Offline skies follow the local calendar.
+- The Home weather control can use a chosen town's weather through Open-Meteo.
+  The Home scene still updates with an offline sky when weather is unavailable.
+- Gentle scene transitions and pixel motion follow Reduce motion and pause
+  with the Home screen in the background.
+
 ## 1.1.0-beta.12 - 26 November 2026 - Compact offline chat and Hermes Activity
 
 - Open offline setup from the phone composer menu. Compact title and tab
