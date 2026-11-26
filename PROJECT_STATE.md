@@ -31,10 +31,12 @@ one scheduled occurrence with original receipt recovery.
 
 At 200% Android text, the signed beta.12 Xiaomi kept three labeled
 Chat controls enabled and keyboard-focusable with 48 dp touch
-targets. The original 90% setting was restored. A disconnected 8K LFM3
-rerun stopped progressing during short control generation. The debug
-runner was closed and the network state and model hash were verified.
-Production stays at 4K. The same 39 job and session cases passed at each
+targets. The original 90% setting was restored. A foreground-controlled
+offline LFM3 test recalled all three facts from a 5,352-token prompt
+at 8K. Its first visible answer took 109.1 s. The 16K handoff
+deadline remains open and production stays at 4K.
+[Context result](docs/VALIDATION.md#representative-lfm3-handoff-on-the-xiaomi).
+The same 39 job and session cases passed at each
 exact Hermes pin with common lockfile-pinned wheels. The physical
 Xiaomi task reminder passed opt-in delivery, privacy and deduplication.
 Live run notifications, precise targeting and TalkBack remain open.

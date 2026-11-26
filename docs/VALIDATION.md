@@ -1073,6 +1073,12 @@ returned to Settings with the model unloaded, and the mirror session ended.
 
 ## Live gateway admission diagnosis
 
+The authenticated follow-up after the notification work matched
+the previous classified frame byte for byte. The only nonzero
+registered activity counter was again cron. Project admission
+was unobserved and the protected policy and ledger were absent.
+The gateway remained held for live acceptance.
+
 The post-release authenticated frame independently verified the gateway
 identity, freshness and the registered activity counter schema. It
 reported three adapter instances, one secondary profile map and busy
@@ -4532,6 +4538,37 @@ explicit methods, including one debug probe with three separate capacity
 arguments. Its 65 policy and standard-matrix accounting checks passed.
 
 ## Representative LFM3 handoff on the Xiaomi
+
+The post-release foreground comparison reproduced a short-control
+stall with Android's normal restart-based instrumentation. Android
+reported the debug process outside the foreground, and its scheduled
+CPU time stayed flat in the late samples. The same test eventually
+ended with a 30-second generation timeout. The original runner reached
+its terminal state before the foreground-controlled trial began.
+
+A separate run used Android's no-restart instrumentation with the
+existing empty debug activity in the foreground. The short offline
+control passed in 9.35 s. At 8,192 capacity,
+the 5,352-token handoff recalled all three current facts and excluded
+the superseded one. First visible text took 109.080 s, with a
+115.26 s instrumented wall time and peak sampled PSS of 2,453,400
+KiB. All 26 handoff samples showed the same foreground
+process, an awake phone and no active network transport. The process
+accumulated CPU time throughout the measured run.
+
+Wi-Fi, mobile data, VPN and Pi reachability matched their original
+states. The GGUF and signed beta.12 APK matched their original hashes.
+This qualifies one disconnected 8K handoff on this Xiaomi. The longer
+16K workload still has an outstanding deadline result. Production
+stays at 4,096 while performance and general acceptance remain open.
+
+| Check | SHA-256 |
+| --- | --- |
+| Restart-based control failure | 2950fccba211f4b9cba98275e67a3fc13e2b9aa88173a2a6bbbe9aaa46655ecc |
+| Same-process short offline control | c90cc04afba83d1015775eb0a76b6218807f9abbbbbb5780562892bf263a7a2a |
+| Offline 8K handoff | df9f8b0e12adea6807e6eecf3be1800dc892301ce0037a34d4df91e999fbf115 |
+| Offline foreground and CPU observations | 78b0de1c61f7859b6fa4da2a7781c729336976c33f0e7968319612a3be8c42d6 |
+| Network and production APK restoration | dd6c6c421557fed5a883aaf7ae682c5519e5f5ff83f7ac7ee64b73e212136c01 |
 
 A post-release 8,192-context attempt used the verified debug pair and
 LFM3 model on the disconnected Xiaomi. All 86 network samples showed
