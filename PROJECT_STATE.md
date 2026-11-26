@@ -23,6 +23,8 @@ standard size and four times at 840 × 1470 and 1.3× text. The failing
 method also passed after its exact 20 predecessor methods. The original
 hosted assertion remains unexplained and the full main gate remains open.
 Original-key signing, Xiaomi upgrade and publication remain open.
+The current Xiaomi build reached two existing Hermes conversation rows
+over the saved connection. The private comparison baseline is ready.
 The exact-source unsigned APK, lint, native inventory and disposable
 signature rehearsal passed.
 [Main-push validation](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692500).
@@ -33,8 +35,9 @@ signature rehearsal passed.
 Two exact upstream revisions now produce the full watcher comparison after
 Git verification of all 245 source files. The comparison still requires
 handler and persistence review. Upstream main at 6e447b2 retains the
-reviewed gateway and scheduler source and test tree identities. Shared
-agent transport and provider setup changed and still need runtime checks.
+reviewed gateway and scheduler source and test tree identities. All 23
+upstream provider setup and migration fixtures passed on the exact
+source. Authenticated turn and managed recovery checks remain open.
 [Exact source delta](docs/VALIDATION.md#upstream-hermes-main-source-delta).
 The beta.12 matrix remains bound to
 client commit `48559324bb8ac909af24a125835d0284441d80c9`.

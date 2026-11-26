@@ -151,6 +151,12 @@ The production app then displayed Connected to Hermes using its saved
 profile. The original app UID, Wi-Fi, radio settings and disconnected
 VPN state matched the starting observations after restoration. The
 beta.12 in-place upgrade and its post-upgrade connection remain open.
+Android's temporary USB HID keyboard reached and opened Conversation
+history. A scroll-only input device brought two existing conversation
+rows into view. Each sampled title has a private salted fingerprint
+for the in-place comparison. Both USB input devices detached, and
+the original network state was verified afterward.
+[Android HID tool](https://android.googlesource.com/platform/frameworks/base/%2Bshow/1789c71c123e/cmds/hid/README.md) ·
 [Published beta.11 APK](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11).
 
 The first synthetic large-text chat case returned a positive Android
@@ -226,15 +232,22 @@ also retain their blob IDs.
 The delta changes shared agent setup and completion transport, provider
 credentials and model catalogue paths, and the migration from the Gemini
 and Solstice provider plugins into the Google plugin. Vertex routing also
-changed. The native runtime results remain bound to the tested pin.
-Provider discovery, migration, and authenticated turn behavior on the
-new pin still need representative runtime checks. The comparison leaves
-the earlier handler and persistence review open.
+changed. A fresh exact-source archive matched all 27,693 Git blobs and
+rechecked all file hashes after the run. All 23 exact native cases passed
+with fixture credentials, including migration precedence, custom local
+endpoint exclusion, Vertex catalogue visibility and the core route with
+the provider plugin unavailable. The sandbox attempt stopped at Windows'
+local asyncio socket setup. Local loopback access allowed the complete
+test run with the upstream external-network fence active. Authenticated
+turns on the deployment and the wider handler and persistence review
+remain open.
 [Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4) ·
 [Exact source comparison](https://github.com/NousResearch/hermes-agent/compare/441af486d09a2f7910aa3043ebe633f439cf92c9...6e447b2c2f01c12c4a6544e2e92c5de4944743f1).
 
 Verified source-delta receipt SHA-256
 `b7a892b07c67723ae0a99fa954d5895a2e0b00946fa5a6e848b7f31a2ad81f45`.
+Exact provider fixture receipt SHA-256
+`8ca5010d3f784ea1433927be444c1b70ef453bf747b06c8f515f0ad14a73da25`.
 
 ## Hermes approval, room and run compatibility
 
