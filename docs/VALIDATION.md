@@ -1,5 +1,29 @@
 # Current development validation — audit follow-up
 
+## Published beta.12 release verification
+
+Main's exact beta.12 workflow passed 1,256 JVM tests, both lint variants,
+1,263 Android 8 and 1,264 Android 17 instrumentation cases. The successful
+rerun's four artifact IDs were matched to the hosted summary and the raw
+partition evidence. The first Android 17 assertion remains in evidence.
+
+The signed APK used the original production key and upgraded the Xiaomi
+in place. The installed APK hash and Android installation identity matched.
+The saved Hermes profile connected, and an existing conversation appeared
+in both history samples. The prior network state was restored. The private
+fixture passed the updater consent, integrity, Android installer and
+retention checks.
+
+The published anonymous GitHub feed also passed the exact production
+release selector, which is shared with beta.11. It selected the
+signed beta.12 APK with previews enabled, kept previews out of
+the stable feed, withheld the production download from debug
+installations, and omitted beta.12 after installation.
+
+The public APK is 76,614,430 bytes. All five anonymous downloads agree
+with GitHub's asset digests and the reviewed checksum file.
+[Download the APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.12/hermes-agent-mobile-1.1.0-beta.12.apk) · [Release evidence](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.12).
+
 ## Beta.12 release candidate and startup routing
 
 Beta.12 uses version code 117 and the existing production package. The
@@ -981,7 +1005,8 @@ returned to Settings with the model unloaded, and the mirror session ended.
 ## Live gateway admission diagnosis
 
 A fresh authenticated status sample bound to the r5 review packet again
-returned `admission_unobserved`. The gateway incarnation and canonical
+returned `admission_unobserved`. The post-beta.12 observation matched
+this receipt byte for byte. The gateway incarnation and canonical
 home matched. The project-control ledger and protected policy file were
 absent, so this sample grants no work-drain permission. Its SHA-256 is
 `9f60a94ad4dfa93a8a6e55309ef4a05d4fe7a0579499969ad186b6a24292f399`.
