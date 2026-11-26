@@ -1984,6 +1984,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     Chinese("Show Simplified Chinese","显示简体中文","Xiǎnshì jiǎntǐ Zhōngwén"), Pinyin("Show accented pinyin","显示带声调的拼音","Xiǎnshì dài shēngdiào de pīnyīn"),
     Accessibility("Accessibility","无障碍","Wú zhàng'ài"), ReducedMotion("Reduce motion","减少动画","Jiǎnshǎo dònghuà"),
     About("About & security","关于与安全","Guānyú yǔ ānquán"),
+    AboutDeveloper("Developed by Dr Dion Mariyanayagam", "由 Dr Dion Mariyanayagam 开发", "Yóu Dr Dion Mariyanayagam kāifā"),
     AboutBody("Signal Grove · {version}. An independent community client, not endorsed by NousResearch. Conversations are stored in app-private storage; the bearer token is encrypted with Android Keystore. Device backups are disabled.","Signal Grove · {version}。独立社区客户端，未经 NousResearch 官方认可。对话保存在应用私有存储中；令牌由 Android Keystore 加密。设备备份已禁用。","Signal Grove · {version}. Dúlì shèqū kèhùduān, wèi jīng NousResearch guānfāng rènkě. Duìhuà bǎocún zài yìngyòng sīyǒu cúnchǔ zhōng; lìngpái yóu Android Keystore jiāmì. Shèbèi bèifèn yǐ jìnyòng."),
     Security("Your token can grant powerful server access. Use a private VPN or trusted HTTPS. Approvals always require your explicit choice.","令牌可能授予强大的服务器权限。请使用私有 VPN 或可信 HTTPS。批准操作始终需要你明确选择。","Lìngpái kěnéng shòuyǔ qiángdà de fúwùqì quánxiàn. Qǐng shǐyòng sīyǒu VPN huò kěxìn HTTPS. Pīzhǔn cāozuò shǐzhōng xūyào nǐ míngquè xuǎnzé."),
     Github("Source on GitHub","GitHub 源代码","GitHub yuán dàimǎ"), Licences("Open-source licences","开源许可证","Kāiyuán xǔkězhèng"),

@@ -17,7 +17,9 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import org.hermesmobile.app.R
 import androidx.compose.ui.Alignment
@@ -70,7 +72,17 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
         val compactChat = current == "Chat" && maxHeight < 620.dp
         val inlineConnection = keyboardOpen || compactChat
         Row(Modifier.fillMaxSize()) {
-            if(wide) NavigationRail(Modifier.fillMaxHeight().width(124.dp),containerColor=MaterialTheme.colorScheme.surface,header={ Text("SG",style=MaterialTheme.typography.headlineLarge,modifier=Modifier.padding(20.dp).semantics {contentDescription=brand}) }) {
+            if(wide) NavigationRail(
+                modifier = Modifier.fillMaxHeight().width(124.dp),
+                containerColor = MaterialTheme.colorScheme.surface,
+                header = {
+                    Image(
+                        painter = painterResource(R.drawable.ic_launcher),
+                        contentDescription = brand,
+                        modifier = Modifier.padding(vertical = 12.dp).size(56.dp).clip(PixelPanelShape)
+                    )
+                }
+            ) {
                 Column(
                     Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,

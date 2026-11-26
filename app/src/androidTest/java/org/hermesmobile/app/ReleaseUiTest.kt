@@ -39,6 +39,7 @@ class ReleaseUiTest {
         go(Words.Automation);shot("automation")
         go(Words.Settings);compose.onNodeWithText(text(Words.TaskFiles)).performScrollTo();shot("task-files")
         compose.onNodeWithText(text(Words.Notifications)).performScrollTo();shot("notifications")
+        compose.onNodeWithText("Developed by Dr Dion Mariyanayagam").performScrollTo().assertIsDisplayed()
         compose.runOnUiThread {vm.updatePreferences(AppPreferences())}
     }
 }

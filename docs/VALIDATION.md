@@ -1,5 +1,14 @@
 # Current development validation — audit follow-up
 
+## Development branding check
+
+The 26 November branding changes passed 1,262 JVM tests, debug and release
+lint, and both debug APK builds. The Android 17 emulator passed ReleaseUiTest
+with the About credit assertion. At 2400 × 1600, the rail displayed the
+existing launcher logo and Settings showed the developer credit after
+scrolling. This evidence applies to the development source for the next
+build. [Google Play rollout plan](GOOGLE_PLAY.md).
+
 ## Published beta.15 release verification
 
 The exact release source b679327b47999b72695981729c08ac01a7da1520 passed 1,262 JVM tests, both lint variants,

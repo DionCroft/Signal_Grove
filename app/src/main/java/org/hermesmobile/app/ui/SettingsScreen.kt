@@ -80,6 +80,7 @@ import org.hermesmobile.app.BuildConfig
         HermesCard {Word(Words.Accessibility);Toggle(Words.ReducedMotion,p.reducedMotion) {vm.updatePreferences(p.copy(reducedMotion=it),p)}}
         HermesCard {
             Word(Words.About)
+            Text(label(Words.AboutDeveloper), style = MaterialTheme.typography.titleSmall)
             Text(label(Words.AboutBody).replace("{version}",BuildConfig.VERSION_NAME),style=MaterialTheme.typography.bodySmall)
             Text(label(Words.Security),style=MaterialTheme.typography.bodySmall)
             TextButton({uri.openUri("https://github.com/DionCroft/Signal_Grove")}) {Text(label(Words.Github))}
