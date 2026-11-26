@@ -1977,6 +1977,8 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     Connect("Save & test connection","保存并测试连接","Bǎocún bìng cèshì liánjiē"), Forget("Forget saved server and token","删除已存服务器和令牌","Shānchú yǐ cún fúwùqì hé lìngpái"),
     ServerHelp("Use your server's trusted HTTPS or VPN address. Port 8642 is the default. On Android, 127.0.0.1 means this phone.","请使用服务器的可信 HTTPS 或 VPN 地址。默认端口为 8642。在 Android 上，127.0.0.1 指手机本身。","Qǐng shǐyòng fúwùqì de kěxìn HTTPS huò VPN dìzhǐ. Mòrèn duānkǒu wéi 8642. Zài Android shàng, 127.0.0.1 zhǐ shǒujī běnshēn."),
     DebugHttp("Debug only: allow local HTTP testing","仅调试：允许本地 HTTP 测试","Jǐn tiáoshì: yǔnxǔ běndì HTTP cèshì"),
+    DarkThemes("Dark themes", "深色主题", "Shēnsè zhǔtí"),
+    LightThemes("Light themes", "浅色主题", "Qiǎnsè zhǔtí"),
     Appearance("Make it yours","个性化外观","Gèxìnghuà wàiguān"), Theme("Theme","主题","Zhǔtí"),
     Preview("Live preview","实时预览","Shíshí yùlǎn"), Language("Interface language","界面语言","Jièmiàn yǔyán"),
     Chinese("Show Simplified Chinese","显示简体中文","Xiǎnshì jiǎntǐ Zhōngwén"), Pinyin("Show accented pinyin","显示带声调的拼音","Xiǎnshì dài shēngdiào de pīnyīn"),

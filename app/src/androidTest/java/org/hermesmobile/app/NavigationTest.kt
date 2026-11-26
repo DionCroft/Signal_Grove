@@ -224,13 +224,22 @@ class NavigationTest {
         compose.waitUntil(5000) {vm.tasks.value.none {it.title=="QA edited"}}
         compose.onNodeWithText("QA edited").assertDoesNotExist()
     }
-    @Test fun allFourThemesPersistAndRender() {
-        HermesTheme.entries.forEach {theme ->
+    @Test fun everyThemePersistsAndRenders() {
+        for (theme in HermesTheme.entries) {
             go(Words.Settings)
-            compose.onNodeWithText(theme.title).performScrollTo().performClick()
-            compose.waitUntil(5000) {runBlocking {app.preferences.flow.first().theme==theme.name}}
+            val option = compose.onNodeWithTag("theme-" + theme.name)
+            option.performScrollTo().assertIsDisplayed().performClick()
+            compose.waitUntil(5000) { vm.preferences.value.theme == theme.name }
+            option.assertIsSelected()
+            assertEquals(theme.name, runBlocking { app.preferences.flow.first().theme })
             go(Words.Home)
             compose.onNodeWithText("A little space to think.").assertExists()
+            compose.runOnIdle {
+                val window = compose.activity.window
+                val systemBars = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+                assertEquals(theme.title, !theme.dark, systemBars.isAppearanceLightStatusBars)
+                assertEquals(theme.title, !theme.dark, systemBars.isAppearanceLightNavigationBars)
+            }
             screenshot("home-${theme.name.lowercase()}")
         }
     }

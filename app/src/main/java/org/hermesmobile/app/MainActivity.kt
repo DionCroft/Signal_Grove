@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.compose.runtime.mutableStateOf
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.withResumed
@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
             } else sharedImages.value=org.hermesmobile.app.data.SharedImages.parse(intent)
         }
         destination.value=(if(savedInstanceState?.containsKey("requested_destination")==true) savedInstanceState.getString("requested_destination") else intent.getStringExtra("destination"))?.takeIf {it in setOf("Tasks","Chat")}
-        enableEdgeToEdge()
+        WindowCompat.enableEdgeToEdge(window)
         if (savedInstanceState?.getBoolean("hermes_opened") != true && intent.isLauncherEntry()) {
             routeLauncher()
         } else {
@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
                     true -> openPhone()
                     false -> openHermes()
                     null -> setContent {
-                        HermesAppTheme(AppPreferences()) { PhoneStartupUnavailable(::openPhone, ::openHermes) }
+                        HermesAppTheme(AppPreferences(), window) { PhoneStartupUnavailable(::openPhone, ::openHermes) }
                     }
                 }
             }
@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
             val activeRun by vm.busy.collectAsStateWithLifecycle()
             val activeControl by vm.controlBusy.collectAsStateWithLifecycle()
             val activeJob by vm.jobBusy.collectAsStateWithLifecycle()
-            HermesAppTheme(p) { AppUpdateHost(updates,activeRun || activeControl || activeJob || connecting) { HermesApp(vm,destination.value,handled={destination.value=null},sharedImages=sharedImages.value,shareHandled={shareConsumed=true;sharedImages.value=null}) } }
+            HermesAppTheme(p, window) { AppUpdateHost(updates,activeRun || activeControl || activeJob || connecting) { HermesApp(vm,destination.value,handled={destination.value=null},sharedImages=sharedImages.value,shareHandled={shareConsumed=true;sharedImages.value=null}) } }
         }
     }
 }

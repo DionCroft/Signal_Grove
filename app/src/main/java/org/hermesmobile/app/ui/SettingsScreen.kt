@@ -2,11 +2,14 @@ package org.hermesmobile.app.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalUriHandler
@@ -60,13 +63,13 @@ import org.hermesmobile.app.BuildConfig
         TaskFiles(vm)
         BackgroundSettings(vm)
         Word(Words.Appearance)
-        HermesTheme.entries.forEach { t ->
-            Surface(Modifier.fillMaxWidth().clickable {vm.updatePreferences(p.copy(theme=t.name),p)},color=t.background,shape=PixelPanelShape,border=BorderStroke(if(p.theme==t.name) 2.dp else 1.dp,t.button)) {
-                Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                    Text(t.title,color=t.ink,style=MaterialTheme.typography.titleLarge)
-                    Text(label(Words.Preview),color=t.ink,style=MaterialTheme.typography.labelMedium)
-                    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) { listOf(t.surface,t.accent,t.button).forEach { color -> Box(Modifier.size(28.dp).background(color,RoundedCornerShape(8.dp)).border(1.dp,t.ink.copy(alpha=.25f),RoundedCornerShape(8.dp))) } }
-                }
+        val selectedTheme = HermesTheme.from(p.theme)
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            ThemeChoices(Words.DarkThemes, HermesTheme.entries.filter { it.dark }, selectedTheme) {
+                vm.updatePreferences(p.copy(theme = it.name), p)
+            }
+            ThemeChoices(Words.LightThemes, HermesTheme.entries.filterNot { it.dark }, selectedTheme) {
+                vm.updatePreferences(p.copy(theme = it.name), p)
             }
         }
         HermesCard {
@@ -88,6 +91,35 @@ import org.hermesmobile.app.BuildConfig
     if(clear) AlertDialog(onDismissRequest={clear=false},title={Text(label(Words.ClearChats))},text={Text(label(Words.ClearConfirm))},confirmButton={TextButton({vm.clearLocalChats();clear=false}) {Text(label(Words.Delete))}},dismissButton={TextButton({clear=false}) {Text(label(Words.Cancel))}})
     if(licences) AlertDialog(onDismissRequest={licences=false},title={Text(label(Words.Licences))},text={Text(remember {context.assets.open("NOTICE.txt").bufferedReader().use {it.readText()}},Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),style=MaterialTheme.typography.bodySmall)},confirmButton={TextButton({licences=false}) {Text(label(Words.Close))}})
 }
+@Composable private fun ThemeChoices(
+    title: Words,
+    themes: List<HermesTheme>,
+    selected: HermesTheme,
+    onSelect: (HermesTheme) -> Unit
+) {
+    Word(title)
+    for (theme in themes) {
+        val current = theme == selected
+        Surface(
+            Modifier.fillMaxWidth().testTag("theme-" + theme.name)
+                .selectable(selected = current, role = Role.RadioButton, onClick = { onSelect(theme) }),
+            color = theme.background, shape = PixelPanelShape,
+            border = BorderStroke(if (current) 2.dp else 1.dp, theme.button)
+        ) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(theme.title, Modifier.weight(1f), color = theme.ink, style = MaterialTheme.typography.titleLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    for (color in listOf(theme.surface, theme.accent, theme.button)) {
+                        Box(Modifier.size(16.dp).background(color, RoundedCornerShape(3.dp))
+                            .border(1.dp, theme.ink.copy(alpha = .35f), RoundedCornerShape(3.dp)))
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable private fun Toggle(word: Words, checked: Boolean, enabled: Boolean=true, change: (Boolean)->Unit) {
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
         Text(label(word),Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)

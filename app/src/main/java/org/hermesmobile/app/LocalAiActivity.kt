@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
@@ -22,7 +22,8 @@ class LocalAiActivity : ComponentActivity() {
     private val model by lazy { ViewModelProvider(this)[LocalAiViewModel::class.java] }
     private val showDownloads = mutableStateOf(false)
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState); enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        WindowCompat.enableEdgeToEdge(window)
         model.receiveDraft(intent.getStringExtra(DRAFT_TOKEN))
         if (savedInstanceState == null) receiveWriting(intent)
         showDownloads.value = savedInstanceState == null && intent.getBooleanExtra(OPEN_DOWNLOADS, false)
@@ -30,7 +31,7 @@ class LocalAiActivity : ComponentActivity() {
         val standalone = intent.getBooleanExtra(FROM_LAUNCHER, false)
         setContent {
             val preferences by store.flow.collectAsStateWithLifecycle(AppPreferences())
-            HermesAppTheme(preferences) {
+            HermesAppTheme(preferences, window) {
                 LocalAiRoute(
                     model,
                     close = ::finish,

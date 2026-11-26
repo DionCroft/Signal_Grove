@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-beta.15 - Dark themes
+
+- Choose Moonlit Grove, Midnight Observatory or Amber Terminal in
+  **Settings → Make it yours → Dark themes**.
+- The palette covers the main app and on-device AI. Android's system-bar
+  icons adapt to the selected palette, which stays selected when the app
+  reopens.
+
 ## 1.1.0-beta.14 - Shared Hermes chats
 
 - Open **Continue in Hermes** from conversation history to send a

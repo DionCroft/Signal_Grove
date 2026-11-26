@@ -23,8 +23,8 @@ android {
         applicationId = "org.hermesmobile.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = providers.gradleProperty("hermesVersionCode").orNull?.toInt()?.also {require(it>0)} ?: 119
-        versionName = providers.gradleProperty("hermesVersionName").orNull ?: "1.1.0-beta.14"
+        versionCode = providers.gradleProperty("hermesVersionCode").orNull?.toInt()?.also {require(it>0)} ?: 120
+        versionName = providers.gradleProperty("hermesVersionName").orNull ?: "1.1.0-beta.15"
         require(versionName!!.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?")))
         buildConfigField("String", "LOCAL_RUNTIME_SOURCE_SHA256", "\"$localRuntimeSourceDigest\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
