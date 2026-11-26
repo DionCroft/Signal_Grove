@@ -1,5 +1,40 @@
 # Current development validation — audit follow-up
 
+## Published beta.13 release verification
+
+The exact source c2c1bf7b69ec10c9a05b2335c788edbd5cff4481 passed 1,260 JVM cases and both
+lint variants. The independently reconstructed same-source matrix counted
+1,264 Android 8 and 1,265 Android 17 standard device cases. Six
+focused motion cases also passed on each owned emulator, including
+weather changes with reduced motion and an unchanged still frame
+between updates. [Same-source device workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45744464334).
+
+The duplicate main device run reported three Android 8 Home
+navigation failures and one Android 17 Kanban keyboard timeout.
+Their original logs and archive digests are retained. Each case
+passed twice on owned emulators with the exact main-run APK pair.
+[Main workflow and retained evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/45745428800).
+
+The original-key signed APK kept the Android 17 emulator's existing
+installation and saved task when upgraded from beta.12. The signed
+preview used live weather for a sample town and cleared it to resume
+offline scenery. The exact development APK showed distinct day and
+night home art using the emulator's local clock. The original
+timezone and automatic detection setting were restored.
+
+The runtime SBOM binds the published APK to 154 Maven components,
+98 distinct Maven artifact records and 32 packaged native libraries.
+All five assets were downloaded anonymously and checked by SHA-256.
+[Public release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.13).
+
+| Public or private evidence | SHA-256 |
+| --- | --- |
+| Signed APK | 781600662f5628d2c6cfef9d5b8166a0735e8a7412059f0ccff48bfde2cb0f98 |
+| Same-source matrix receipt | fbd44940989288dd31f99aff5fcc4f37ccf5a1cb0fa0d1c7689bd78c669221e2 |
+| Signed upgrade receipt | c106d53a51dcaf904e4d85ef3ea0c3d0feb5c97424354d6f09f2c67bca9df826 |
+| Signed weather smoke | e52ea4de6d1f4d411a16299da263adabd04daee2c7143f3ab70385ef3e2df373 |
+| Public download receipt | fa416746639e14aaa27976737f6204f26bee91b12fa344134ba0d5436e25258e |
+
 ## Published beta.12 release verification
 
 The exact release commit 48559324bb8ac909af24a125835d0284441d80c9 passed 1,256 JVM tests and both

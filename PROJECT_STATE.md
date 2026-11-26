@@ -1,10 +1,18 @@
 # Signal Grove project state
 
-26 November 2026. The [active goal](docs/GOAL.md#active-scope--25-november-2026)
-contains three milestones: release beta.12, prove the live phone-to-Pi-to-Windows
-workflow, then finish the wider compatibility and device audit. Stop after those
-milestones for the owner's review. The [audit ledger](docs/AUDIT_EXECUTION_PLAN.md)
-retains the underlying evidence and remaining checks.
+26 November 2026. The verified beta.13 preview adds the living Home
+scene and optional town weather. This release is the checkpoint for
+the owner's progress review. The original
+[audit goal](docs/GOAL.md#active-scope--25-november-2026) and
+[execution ledger](docs/AUDIT_EXECUTION_PLAN.md) retain the live
+acceptance criteria.
+
+## Beta.13 released
+
+Signal Grove 1.1.0-beta.13, code 118, is available as an Android
+preview. Same-source Android 8 and 17 suites passed. The original-key
+emulator upgrade and anonymous download were verified.
+[Download the APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.13/hermes-agent-mobile-1.1.0-beta.13.apk) · [Release evidence](docs/releases/1.1.0-beta.13.md).
 
 ## Beta.12 released
 

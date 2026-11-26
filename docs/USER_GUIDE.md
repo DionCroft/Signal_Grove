@@ -21,7 +21,7 @@ maps weather codes to original pixel effects. The free service is for
 [non-commercial use](https://open-meteo.com/en/terms).
 
 
-The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.8`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8), code 111; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
+The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.13`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.13), code 118; preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
 
 
 ### Existing Hermes chats and projects (beta.8)
@@ -32,7 +32,7 @@ For project metadata, open **Settings → Hermes management**, refresh your reta
 
 ## Install and migrate
 
-The `1.1.0-beta.1` preview introduced the pixel interface and approved in-app updates. Install the [current beta.8 preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8) once to get the current updater; 1.0.0 cannot check for updates itself. After the repository rename, previews through beta.3 need one matching signed APK upgrade from the [current beta.8 release page](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8). Install over the existing package with the original signer; do not uninstall. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
+The `1.1.0-beta.1` preview introduced the pixel interface and approved in-app updates. If you use 1.0.0 or a preview through beta.3, install the [current signed preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.13) over the existing app to get the current update feed. The matching package and original signing key preserve your app data. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
 
 Get `hermes-agent-mobile-1.0.0.apk` from the [community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). Verify its SHA-256 and signer against the release record before installing. Android may ask you to allow installation from your browser/file manager. This is a GitHub-distributed APK, not a Play Store listing.
 

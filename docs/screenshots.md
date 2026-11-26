@@ -1,5 +1,16 @@
 # Signal Grove screenshots
 
+## Beta.13 Living Grove
+
+The night view comes from the signed preview after an Android 17
+upgrade rehearsal. The daytime view comes from a debug APK built from
+the same release source. The emulator's clock was set to midday for
+the daytime capture and its original timezone was restored.
+
+| Night | Day |
+| --- | --- |
+| <img src="screenshots/beta13-demo-home.png" width="360" alt="Signal Grove's night scene with a ringed moon and a lit observatory"> | <img src="screenshots/beta13-day-scene.png" width="360" alt="Signal Grove's daytime scene with clouds and a blue-green valley"> |
+
 ## Beta.12 preview
 
 These captures use the exact beta.12 UI on the Android 8 emulator at
