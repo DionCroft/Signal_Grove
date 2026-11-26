@@ -35,9 +35,11 @@ targets. The original 90% setting was restored. A disconnected 8K LFM3
 rerun stopped progressing during short control generation. The debug
 runner was closed and the network state and model hash were verified.
 Production stays at 4K. The same 39 job and session cases passed at each
-exact Hermes pin with common lockfile-pinned wheels. Physical Android
-notification delivery and TalkBack remain open.
+exact Hermes pin with common lockfile-pinned wheels. The physical
+Xiaomi task reminder passed opt-in delivery, privacy and deduplication.
+Live run notifications, precise targeting and TalkBack remain open.
 [Device](docs/VALIDATION.md#signed-beta12-200-percent-text) ·
+[Notifications](docs/VALIDATION.md#physical-android-17-task-reminders) ·
 [API](docs/VALIDATION.md#paired-hermes-job-and-session-api-tests).
 
 ## Hermes main relocation review
@@ -49,8 +51,8 @@ reviewed gateway and scheduler source and test tree identities. All 23
 upstream provider setup and migration fixtures passed on the exact
 source. The same upstream pin also passed 93 Runs and room cases, 24
 scheduler cases, and 13 Kanban and notification persistence cases in
-isolated Windows fixtures. Authenticated deployment, real-device
-notification delivery and managed recovery checks remain open.
+isolated Windows fixtures. Authenticated deployment, physical live-run
+notifications and managed recovery checks remain open.
 [Exact source delta](docs/VALIDATION.md#upstream-hermes-main-source-delta).
 The beta.12 matrix remains bound to
 client commit `48559324bb8ac909af24a125835d0284441d80c9`.

@@ -166,6 +166,35 @@ passes, then generate evidence for the original-key-signed APK.
 | Exact unsigned runtime SBOM | `dcc06f45aad7d4dc27b7ad5dfaf6af67882e4862e776c20224f16b923185dcd3` |
 | Disposable v2 signing rehearsal | `8856904306e151be212612dc93f75546ae1cf01a2c47138bcb9f95359dffd6f8` |
 
+## Physical Android 17 task reminders
+
+The AndroidJUnitRunner task-reminder fixture passed on the owner's
+Xiaomi M098FE running Android 17. It verified app opt-in, a posted
+private notification without the fixture title or notes, and durable
+deduplication across worker instances. The test used an ARM64-only
+debug build of beta.12 source 48559324bb8ac909af24a125835d0284441d80c9 with separate
+application and instrumentation package IDs.
+
+The initial USB install was refused. The phone's Files installer
+admitted the separate audit app. Android rejected the first companion
+because the full test manifest reused the installed test app's image
+provider authority. A disposable manifest omitted that unrelated
+provider and the auxiliary runners. The APK manifest then identified
+one runner targeting only the isolated app. The owner completed the
+phone's fingerprint step for the corrected companion.
+
+Both audit packages and their staged APKs were removed. The existing
+three package UIDs, APK digests and notification permissions matched
+their original baselines. The Files and Shell install permission
+modes remained at their defaults. Live run event targeting,
+multi-connection delivery and reboot and battery behavior remain open.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Physical result and restoration | 3ae4be004d3252acb2706295267bdcd17dbaf85b51c34d5147d4b6fd84abeadf |
+| AndroidJUnitRunner output | f3219c5a72043573bd2be949809925539ae54c81d7d5431f680b56ee27f4c551 |
+| Isolated companion identity | 5197e6303ae89e5ade70d09fc6ba1ca1b1ff1f2098fce72b40f69a020254fa16 |
+
 ## Signed beta.12 200 percent text
 
 The exact original-key code 117 APK ran Tasks and Chat at 90% and
