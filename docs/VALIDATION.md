@@ -293,6 +293,30 @@ persistence review continues.
 [Stable source](https://github.com/NousResearch/hermes-agent/tree/8fc0374447313e276f6b9a2764bfc750190c966a/tests/gateway).
 [Main source](https://github.com/NousResearch/hermes-agent/tree/441af486d09a2f7910aa3043ebe633f439cf92c9/tests/gateway).
 
+## Exact upstream main service fixtures
+
+The same approval and room cohort on 6e447b2 passed all 93 native methods.
+Separate scheduler checks passed 24 methods covering idempotent receipt
+bookkeeping, lost replies, previous known outcomes, occurrence identity,
+misfire policy, and delivery on shutdown. The Kanban and notification
+cohort passed 13 cases, including project inheritance, board lifecycle,
+task updates and notification persistence.
+
+The Windows fixtures used private disposable E: state and loopback
+only. The final Kanban harness identified and refused six repository
+root discovery commands. The earlier harness passed the same native
+assertions and exited with an isolation diagnostic because its command
+classifier did not recognize Windows' argument representation. All
+27,693 source file hashes were verified before and after each run.
+Live phone-to-worker attribution, one scheduled occurrence on the
+maintained Pi and Android notification delivery remain open.
+
+| Exact cohort | Passed | Receipt SHA-256 |
+| --- | ---: | --- |
+| Runs, approval choices, rooms and event projection | 93 | `62edc7c9d66c4aefd900b57b589407c874f464e999977c4ece6fbc2cfaa8454e` |
+| Scheduler, occurrence identity, receipt recovery and shutdown | 24 | `57190c6e6c8094b4ae00bd455b2e42aa12b983b4b9249bea4d1605770112e18d` |
+| Kanban and notification persistence | 13 | `b0aef0b67d6d9e1ddd3f336ab461df974bcdad8aee779c7b4bf4dfec25729ae2` |
+
 ## Hermes main watchdog shutdown gate
 
 The complete `441af486d09a2f7910aa3043ebe633f439cf92c9` archive contains

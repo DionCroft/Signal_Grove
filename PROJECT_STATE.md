@@ -37,7 +37,10 @@ Git verification of all 245 source files. The comparison still requires
 handler and persistence review. Upstream main at 6e447b2 retains the
 reviewed gateway and scheduler source and test tree identities. All 23
 upstream provider setup and migration fixtures passed on the exact
-source. Authenticated turn and managed recovery checks remain open.
+source. The same upstream pin also passed 93 Runs and room cases, 24
+scheduler cases, and 13 Kanban and notification persistence cases in
+isolated Windows fixtures. Authenticated deployment, real-device
+notification delivery and managed recovery checks remain open.
 [Exact source delta](docs/VALIDATION.md#upstream-hermes-main-source-delta).
 The beta.12 matrix remains bound to
 client commit `48559324bb8ac909af24a125835d0284441d80c9`.
