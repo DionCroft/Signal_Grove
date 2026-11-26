@@ -68,8 +68,14 @@ boundary. ADB exited normally, and the runner reported one assertion
 failure rather than a transport error or deadline. The combined gate
 correctly reported the missing passing partition. The first attempt's
 artifact was downloaded and checked against its GitHub SHA-256. The
-same main push is rerunning only the failed jobs. A fresh Android 17
-emulator is checking the same debug APKs separately. Production signing
+same main push is rerunning only the failed jobs. On a fresh Android 17
+emulator, both temporary-chat methods passed in six standard sessions
+and in four sessions at 840 × 1470, 420 dpi and 1.3× text. Both installed
+packages matched the exact CI digests. A separate 21-method replay proved
+that the failing method passed after its 20 predecessors, in the
+observed order. The emulator returned to its original display settings
+and shut down. The focused results leave the original hosted assertion
+unexplained. Production signing
 and upgrade are pending the full main gate. The earlier private updater
 fixture covered wrong-signer refusal, user review,
 verified download, active-work gating, Android permission and install
@@ -120,6 +126,9 @@ passes, then generate evidence for the original-key-signed APK.
 | Independently verified two-API coverage | `778dddd11bbb1ffc93ce42dd39b92b8ce934b7da709ee58f750829f7db39baea` |
 | Android 8 main coverage receipt | `93fa78fd0ce266bc149c84c4e5bfed9f2dd98f04f34c556dda59a55d3d4a839d` |
 | Android 17 main shard 1 failure archive from attempt 1 | `42105f414fed52c4f6034b1d8d7dc87e10bc2e72b7caca86f9124572d6056f69` |
+| Six exact Android 17 temporary-chat replays | `80362300f2d98e86b771beeeda1b567192716abb5cd476903bee4735b104af1d` |
+| Exact ordered 21-method Android 17 replay | `4af7e68c725f101fbf8b2a59154f6c3cc24e264e8f4f62050b5a003feaf0b2f3` |
+| Four exact compact Android 17 temporary-chat replays | `de15f4e91e086b0eba0bfaa3d9762fc2b9947ec9d1d41bcb2320954387466bc1` |
 | Exact-source private updater receipt | `79a9c7a723cd6cf8e9d0e723e72a91789c3b2f07dbd1e7359a4b487db3c8387a` |
 | Main-push build evidence receipt | `529dff288ef9817cfbfd77329a9377e0a205863a7c6f7aa636e7c06d49fdf417` |
 | Exact release runtime Maven preview | `c3e5987e9a4c0f7330bbbde005f5728e062d00629b193c3d8377f0799df6e13d` |

@@ -17,8 +17,11 @@ and 1,264 Android 17 cases with independently verified raw coverage.
 cases passed. Main Android 17 shard 0 passed 596 cases. Shard 1 passed
 667 of 668 cases and failed the temporary-chat End action's keyboard
 geometry check. The combined coverage gate rejected the incomplete
-partition. The same main workflow is rerunning the failed jobs, and a
-fresh Android 17 emulator is checking the exact APK pair.
+partition. The same main workflow is rerunning the failed jobs. A fresh
+Android 17 emulator passed the exact temporary-chat flow six times at
+standard size and four times at 840 × 1470 and 1.3× text. The failing
+method also passed after its exact 20 predecessor methods. The original
+hosted assertion remains unexplained and the full main gate remains open.
 Original-key signing, Xiaomi upgrade and publication remain open.
 The exact-source unsigned APK, lint, native inventory and disposable
 signature rehearsal passed.
