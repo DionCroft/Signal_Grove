@@ -20,6 +20,12 @@ The exact-code private updater fixture verified wrong-signer rejection,
 user-confirmed download, active-work delay, Android approval, install and
 retained fixture data.
 
+The published anonymous GitHub feed also passed the exact production
+release selector, which is shared with beta.11. It selected the
+signed beta.12 APK with previews enabled, kept previews out of
+the stable feed, withheld the production download from debug
+installations, and omitted beta.12 after installation.
+
 All five public GitHub assets were downloaded without authentication and
 matched their reviewed hashes. The APK is 76,614,430 bytes. The runtime
 SBOM covers 154 Maven modules, 98 unique Maven artifacts and 32 native

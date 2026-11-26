@@ -1,20 +1,31 @@
 # Signal Grove project state
 
-25 November 2026. The [active goal](docs/GOAL.md#active-scope--25-november-2026)
+26 November 2026. The [active goal](docs/GOAL.md#active-scope--25-november-2026)
 contains three milestones: release beta.12, prove the live phone-to-Pi-to-Windows
 workflow, then finish the wider compatibility and device audit. Stop after those
 milestones for the owner's review. The [audit ledger](docs/AUDIT_EXECUTION_PLAN.md)
 retains the underlying evidence and remaining checks.
 
-## Beta.12 release candidate
+## Beta.12 released
 
-Version code 117 keeps the production package and the previous release's
-signing identity. Two startup regressions triggered on the prior hosted
-matrix. The compact layout and composer setup route passed 1,256 JVM tests,
-both lint variants and focused Android 8 and 17 replays. The full matrix,
-`main` validation,
-original-key signing, Xiaomi upgrade and updater are the release gates.
-[Validation](docs/VALIDATION.md#beta12-release-candidate-and-startup-routing).
+Signal Grove 1.1.0-beta.12, code 117, is available as a public prerelease.
+The exact source on main passed 1,256 JVM tests, both lint variants,
+1,263 Android 8 cases and 1,264 Android 17 cases. The original-signer
+Xiaomi upgrade retained the Android installation, its saved Hermes
+connection and a matching existing conversation. The public updater
+feed offers the verified APK to beta.11 with previews enabled. All
+five release assets were downloaded and checksum verified.
+[Download the APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.12/hermes-agent-mobile-1.1.0-beta.12.apk) · [Release evidence](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.12).
+
+## Next live acceptance gate
+
+The post-release read-only probe authenticated the existing gateway and
+canonical home. Its registered status returned admission_unobserved.
+The live project-control ledger and protected workspace-read policy were
+absent. Complete the reviewed admission and activation prerequisites
+before testing workspace attachment, exact attribution and approved
+execution. Recover the scheduled occurrence's original receipt after
+reconnect. [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
 
 ## Hermes Activity skill loads
 
