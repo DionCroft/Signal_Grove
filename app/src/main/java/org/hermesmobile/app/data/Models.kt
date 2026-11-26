@@ -103,12 +103,12 @@ object RunStates {
 }
 
 @Dao interface HermesDao {
-    @Query("SELECT * FROM management_operations WHERE apiScope=:apiScope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementOperations(apiScope:String):Flow<List<ManagementOperation>>
+    @Query("SELECT * FROM management_operations WHERE apiScope=:apiScope AND action!='SharedChatPrompt' ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementOperations(apiScope:String):Flow<List<ManagementOperation>>
     @Query("SELECT * FROM management_operations WHERE resourceScope=:scope ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementResourceOperations(scope:String):Flow<List<ManagementOperation>>
     // Filter foreign settled history BEFORE paging; foreign pending work still shares the barrier.
-    @Query("SELECT * FROM management_operations WHERE (resourceScope=:scope AND (apiScope=:apiScope OR state IN ('sending','unknown'))) OR (url=:url AND (action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe','KanbanBoardCreate','KanbanBoardUpdate','KanbanBoardArchive','KanbanBoardDelete','KanbanBoardSwitch','KanbanTaskCreate','KanbanTaskMetadata','KanbanTaskPriority','KanbanTaskAssignee','KanbanTaskComment','KanbanTaskLink','KanbanTaskUnlink','KanbanTaskDelete','KanbanTaskModelOverride','KanbanTaskReasoningOverride','KanbanTaskStatus') OR (:projectHome!='' AND projectHome=:projectHome)) AND state IN ('sending','unknown')) ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementVisibleResourceOperations(scope:String,apiScope:String,url:String="",projectHome:String=""):Flow<List<ManagementOperation>>
+    @Query("SELECT * FROM management_operations WHERE action!='SharedChatPrompt' AND ((resourceScope=:scope AND (apiScope=:apiScope OR state IN ('sending','unknown'))) OR (url=:url AND (action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe','KanbanBoardCreate','KanbanBoardUpdate','KanbanBoardArchive','KanbanBoardDelete','KanbanBoardSwitch','KanbanTaskCreate','KanbanTaskMetadata','KanbanTaskPriority','KanbanTaskAssignee','KanbanTaskComment','KanbanTaskLink','KanbanTaskUnlink','KanbanTaskDelete','KanbanTaskModelOverride','KanbanTaskReasoningOverride','KanbanTaskStatus') OR (:projectHome!='' AND projectHome=:projectHome)) AND state IN ('sending','unknown'))) ORDER BY CASE WHEN state IN ('sending','unknown') THEN 0 ELSE 1 END,createdAt DESC LIMIT 100") fun managementVisibleResourceOperations(scope:String,apiScope:String,url:String="",projectHome:String=""):Flow<List<ManagementOperation>>
     // Instance controls span the exact URL; project writes additionally share a verified home across aliases.
-    @Query("SELECT * FROM management_operations WHERE (resourceScope=:scope OR (url=:url AND (action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe','KanbanBoardCreate','KanbanBoardUpdate','KanbanBoardArchive','KanbanBoardDelete','KanbanBoardSwitch','KanbanTaskCreate','KanbanTaskMetadata','KanbanTaskPriority','KanbanTaskAssignee','KanbanTaskComment','KanbanTaskLink','KanbanTaskUnlink','KanbanTaskDelete','KanbanTaskModelOverride','KanbanTaskReasoningOverride','KanbanTaskStatus') OR (:projectHome!='' AND projectHome=:projectHome)))) AND state IN ('sending','unknown')") suspend fun unresolvedManagementOperations(scope:String,url:String="",projectHome:String=""):List<ManagementOperation>
+    @Query("SELECT * FROM management_operations WHERE action!='SharedChatPrompt' AND (resourceScope=:scope OR (url=:url AND (action IN ('RelayLinkStart','RelayUnlink','CustomEndpointProbe','KanbanBoardCreate','KanbanBoardUpdate','KanbanBoardArchive','KanbanBoardDelete','KanbanBoardSwitch','KanbanTaskCreate','KanbanTaskMetadata','KanbanTaskPriority','KanbanTaskAssignee','KanbanTaskComment','KanbanTaskLink','KanbanTaskUnlink','KanbanTaskDelete','KanbanTaskModelOverride','KanbanTaskReasoningOverride','KanbanTaskStatus') OR (:projectHome!='' AND projectHome=:projectHome)))) AND state IN ('sending','unknown')") suspend fun unresolvedManagementOperations(scope:String,url:String="",projectHome:String=""):List<ManagementOperation>
     @Query("SELECT * FROM management_operations WHERE `key`=:key") suspend fun managementOperation(key:String):ManagementOperation?
     @Insert suspend fun insertManagementOperation(receipt:ManagementOperation)
     @Transaction suspend fun claimManagementOperation(receipt:ManagementOperation) {
@@ -118,6 +118,19 @@ object RunStates {
         if(unresolvedManagementOperations(receipt.resourceScope,receipt.url,accessHome).isNotEmpty()) throw ManagementOutcomePending()
         insertManagementOperation(receipt)
     }
+    @Query("SELECT * FROM management_operations WHERE action='SharedChatPrompt' AND projectHome=:home AND target=:session AND state IN ('sending','unknown','acknowledged') LIMIT 2")
+    suspend fun pendingSharedPrompts(home: String, session: String): List<ManagementOperation>
+
+    @Transaction suspend fun claimSharedPrompt(row: ManagementOperation) {
+        require(row.action == "SharedChatPrompt" && row.state == "sending")
+        if (pendingSharedPrompts(row.projectHome, row.target).isNotEmpty() ||
+            unresolvedManagementOperations(row.resourceScope, row.url, row.projectHome).isNotEmpty()) throw ManagementOutcomePending()
+        insertManagementOperation(row)
+    }
+
+    @Query("UPDATE management_operations SET state='reviewed' WHERE action='SharedChatPrompt' AND `key`=:key AND state='unknown'")
+    suspend fun dismissUnknownSharedPrompt(key: String): Int
+
     @Query("UPDATE management_operations SET state='unknown' WHERE state='sending'") suspend fun recoverManagementOperations()
     @Query("UPDATE management_operations SET state=:state,resultSummary=:result WHERE `key`=:key AND state IN ('sending','unknown')") suspend fun finishManagementOperation(key:String,state:String,result:String)
     @Query("UPDATE management_operations SET resultSummary=:result WHERE `key`=:key AND action='OAuthStart' AND state='acknowledged'") suspend fun updateMcpOAuthObservation(key:String,result:String)

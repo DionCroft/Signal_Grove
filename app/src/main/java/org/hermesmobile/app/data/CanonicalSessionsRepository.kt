@@ -15,7 +15,8 @@ internal class CanonicalSessionConnection(
     private val channel: CanonicalGatewayChannel,
     override val attachment: CanonicalGatewayChannel.Attachment,
     override val receipt: ManagementOperation,
-    private val verifyScope:suspend ()->Unit
+    private val verifyScope:suspend ()->Unit,
+    private val dao: HermesDao
 ) : CanonicalViewerLink {
     override fun observations(): Flow<CanonicalFeedDelivery> = channel.observations()
     override suspend fun heartbeat() {channel.heartbeat();verifyScope()}
@@ -33,6 +34,15 @@ internal class CanonicalSessionConnection(
         readWorker { channel.listWorker(it, binding, entry) }
     override suspend fun previewWorker(binding: AttachedWorkerBinding, entry: AttachedWorkerEntry) =
         readWorker { channel.previewWorker(it, binding, entry) }
+
+    private val sharedChat = SharedChatOperations(dao, channel, attachment.snapshot, verifyScope)
+    override val sharedChatAvailable get() = sharedChat.available
+    override suspend fun pendingPrompt() = sharedChat.pending()
+    override suspend fun sendPrompt(text: String) = sharedChat.send(text)
+    override suspend fun checkPrompt(pending: SharedChatPending) = sharedChat.observe(pending)
+    override suspend fun reviewUnknownPrompt(pending: SharedChatPending) = sharedChat.reviewUnknown(pending)
+    override suspend fun answerApproval(approval: SharedApproval, choice: String): Boolean =
+        readWorker { channel.answerApproval(it, approval, choice) }
 
     override fun close() = channel.close()
     override fun toString() = "CanonicalSessionConnection(redacted)"
@@ -78,7 +88,8 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
                 })
             home(target,homeId,api,tokens)
             withContext(NonCancellable) { dao.confirmManagementOperation(record.key,attachment.snapshot.receiptSummary()) }
-            return CanonicalSessionConnection(channel,attachment,checkNotNull(dao.managementOperation(record.key))) {api.identity(tokens);home(target,homeId,api,tokens)}
+            return CanonicalSessionConnection(channel,attachment,checkNotNull(dao.managementOperation(record.key)),
+                {api.identity(tokens);home(target,homeId,api,tokens)}, dao)
         } catch (error: Exception) {
             channel?.close()
             val receipt = withContext(NonCancellable) {

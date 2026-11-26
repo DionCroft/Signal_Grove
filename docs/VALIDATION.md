@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## Shared Hermes chat and approvals
+
+The local app build passed 1,262 JVM tests, both lint variants and both
+debug APK assemblies. The gateway fixture checked that a phone prompt
+used the attached session, that receipt lookup included its admission ID
+and that a foreign session receipt was rejected. Approval uses one exact
+prompt ID and execution generation with either the offered one-time
+permission or denial.
+
+The same debug APK pair passed 42 executions each on Android 8 and
+Android 17 emulators. The focused continuation check sent a prompt,
+displayed its settled reply, and resolved two synthetic approvals with
+Allow once and Deny. The existing canonical viewer and REST history
+suites also passed. Live Pi and cross-client execution acceptance
+remain open.
+
 ## Published beta.13 release verification
 
 The exact source c2c1bf7b69ec10c9a05b2335c788edbd5cff4481 passed 1,260 JVM cases and both

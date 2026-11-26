@@ -75,6 +75,30 @@ class CanonicalAttachmentWireTest {
                                 put("truncated",mode=="truncated");put("snapshot_required",mode=="truncated");put("count",2)
                             })
                         }
+                        SharedChatProtocol.Submit, SharedChatProtocol.Receipt -> {
+                            val lookup = q["method"] == JsonPrimitive(SharedChatProtocol.Receipt)
+                            val ref = if (mode == "foreign-prompt") "other-chat" else "history"
+                            reply(buildJsonObject {
+                                put("admission_id", "admission-1")
+                                put("ref", buildJsonObject { put("profile_id", "/fixture/home"); put("session_id", ref) })
+                                put("authority_epoch", 7)
+                                put("sequence", 1)
+                                put("status", if (lookup) "terminal" else "queued")
+                                put("execution_generation", if (lookup) JsonPrimitive(2) else JsonNull)
+                                put("outcome", if (lookup) JsonPrimitive("completed") else JsonNull)
+                                if (lookup) put("result", buildJsonObject {
+                                    put("final_response", "Fixture reply")
+                                    put("reasoning", "private")
+                                })
+                            })
+                        }
+                        SharedChatProtocol.Respond -> {
+                            val params = q.getValue("params").jsonObject
+                            reply(buildJsonObject {
+                                put("prompt_id", params.getValue("prompt_id"))
+                                put("status", if (mode == "approval-already") "already_resolved" else "resolved")
+                            })
+                        }
                         AttachedWorkerProtocol.Describe -> {
                             if (mode == "worker-unsupported") {
                                 ws.send(buildJsonObject {
@@ -154,6 +178,42 @@ class CanonicalAttachmentWireTest {
             } finally {channel.close()}
         }}
     }
+    @Test fun sharedChatUsesOneAttachedSocketAndReadsTheExactReceipt() = runBlocking {
+        Fixture().use { f -> withTimeout(6000) {
+            f.connect().use { channel ->
+                val snapshot = channel.resumeReviewed(channel.sessionInventory().review("history"),
+                    beforeSend = {}, acknowledged = {}).snapshot
+                val prompt = channel.submitPrompt(snapshot, "test-submission", "Continue the original chat")
+                assertEquals(SharedPromptStatus.Queued, prompt?.status)
+                assertTrue(prompt?.reply.isNullOrEmpty())
+                val final = channel.promptReceipt(snapshot, "admission-1")
+                assertEquals(SharedPromptStatus.Terminal, final.status)
+                assertEquals("completed", final.outcome)
+                assertEquals("Fixture reply", final.reply)
+                val approval = SharedApproval("prompt-1", 2, "fixture read", "Read fixture", setOf("once", "deny"))
+                assertTrue(channel.answerApproval(snapshot, approval, "once"))
+                val calls = f.calls.takeLast(3).map { it.getValue("params").jsonObject }
+                assertEquals(Json.parseToJsonElement("""{"session_id":"history","submission_id":"test-submission","text":"Continue the original chat"}"""), calls[0])
+                assertEquals(Json.parseToJsonElement("""{"session_id":"history","admission_id":"admission-1","include_result":true}"""), calls[1])
+                assertEquals(Json.parseToJsonElement("""{"session_id":"history","prompt_id":"prompt-1","execution_generation":2,"choice":"once"}"""), calls[2])
+                assertTrue(runCatching { channel.answerApproval(snapshot, approval, "always") }.isFailure)
+                assertEquals(1, f.calls.count { it["method"] == JsonPrimitive(SharedChatProtocol.Respond) })
+            }
+        }}
+    }
+
+    @Test fun sharedChatRejectsAnAdmissionForADifferentChat() = runBlocking {
+        Fixture("foreign-prompt").use { f -> withTimeout(6000) {
+            f.connect().use { channel ->
+                val snapshot = channel.resumeReviewed(channel.sessionInventory().review("history"),
+                    beforeSend = {}, acknowledged = {}).snapshot
+                assertTrue(runCatching { channel.submitPrompt(snapshot, "once", "Fixture") }.isFailure)
+                assertEquals(1, f.calls.count { it["method"] == JsonPrimitive(SharedChatProtocol.Submit) })
+                assertTrue(f.calls.none { it["method"] in listOf(JsonPrimitive("session.create"), JsonPrimitive(SharedChatProtocol.Receipt)) })
+            }
+        }}
+    }
+
     @Test fun attachedProjectReadsUseTheSameFollowedSocketAndOnlyTheReviewedReference() = runBlocking {
         Fixture("worker-ready").use { f -> withTimeout(6000) {
             f.connect().use { channel ->

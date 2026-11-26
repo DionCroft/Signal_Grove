@@ -146,7 +146,8 @@ class ExistingSessionHistoryFlowTest {
     }
     private fun foreign(id:String,bilingual:Boolean=false) {
         Fixture(credentials.uniqueToken("origin")).use {f->
-            connect(f,bilingual);open(id);compose.onNodeWithTag("chat-read-only").assertIsDisplayed();compose.onNodeWithContentDescription(text(Words.Send)).assertIsNotEnabled()
+            connect(f,bilingual);open(id);compose.onNodeWithTag("chat-read-only").assertIsDisplayed();if (id == "unknown_saved") compose.onNodeWithContentDescription(text(Words.Send)).assertIsNotEnabled()
+            else compose.onNodeWithTag("chat-continue").assertIsDisplayed().assertIsEnabled()
             val c=vm.selectedConversation.value!!;assertTrue(SessionOrigin.readOnly(c));assertEquals(listOf("Existing user "+id,"Existing reply "+id),vm.messages.value.map {it.content});readableChat()
             if(bilingual) shot("bilingual-readable-chat")
             compose.onNodeWithTag("chat-read-only").assertHeightIsAtLeast(48.dp).performClick()
@@ -177,7 +178,7 @@ class ExistingSessionHistoryFlowTest {
             compose.onNodeWithTag("activity-timeline").performScrollToNode(hasText(text(Words.ActivityUnavailable)))
             compose.onNodeWithText(text(Words.ActivityUnavailable)).assertIsDisplayed()
             compose.onNodeWithText(text(Words.Close)).performClick()
-            compose.onNodeWithTag("chat-read-only-send").assertIsNotEnabled()
+            compose.onNodeWithTag("chat-continue").assertIsDisplayed().assertIsEnabled()
             assertEquals(0, fixture.writes.get())
             assertTrue(fixture.unexpected.toString(), fixture.unexpected.isEmpty())
         }

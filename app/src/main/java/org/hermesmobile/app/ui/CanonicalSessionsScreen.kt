@@ -19,9 +19,11 @@ import java.text.DateFormat
 import java.util.Date
 
 @Composable internal fun CanonicalSessionsDialog(
-    controller:CanonicalViewerController,available:Boolean,pending:Boolean,selection:CanonicalViewerSelection?=null,close:()->Unit
+    controller:CanonicalViewerController,available:Boolean,pending:Boolean,selection:CanonicalViewerSelection?=null,
+    continuing: Boolean = false, close:()->Unit
 ) {
     val s by controller.state.collectAsStateWithLifecycle()
+    val shared by controller.sharedChat.state.collectAsStateWithLifecycle()
     var workspaceDetails by remember(s.sessionId,s.workspaceObservedAt) {mutableStateOf(false)}
     var workspaceEdit by remember(s.sessionId,s.workspaceObservedAt) {mutableStateOf(false)}
     val lifecycle=LocalLifecycleOwner.current.lifecycle
@@ -30,11 +32,14 @@ import java.util.Date
         lifecycle.addObserver(observer)
         onDispose {lifecycle.removeObserver(observer);controller.close()}
     }
-    LaunchedEffect(controller,selection) {if(selection==null) controller.load(CanonicalSessionScope.Live) else controller.loadSelection(selection)}
-    AlertDialog(onDismissRequest=close,title={Text(label(Words.ViewerTitle))},text={
-        LazyColumn(Modifier.heightIn(max=480.dp).testTag("canonical-viewer-list"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            item {Text(label(Words.ViewerBoundary))}
-            if(s.phase!=CanonicalViewerPhase.Following) {
+    LaunchedEffect(controller,selection) {if(selection==null) controller.load(CanonicalSessionScope.Live) else controller.loadSelection(selection, continuing)}
+    val title = if (continuing) Words.SharedChatOpen else Words.ViewerTitle
+    AlertDialog(onDismissRequest=close,title={Text(label(title))},text={
+      Column {
+        LazyColumn(Modifier.heightIn(max=480.dp).weight(1f, fill = false).testTag("canonical-viewer-list"),
+            verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            item {Text(label(if (continuing) Words.SharedChatInfo else Words.ViewerBoundary))}
+            if(!continuing && s.phase!=CanonicalViewerPhase.Following) {
                 item {TextButton({controller.load(CanonicalSessionScope.Live)},enabled=available && !s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-live")) {Text(label(Words.ViewerLive))}}
                 item {TextButton({controller.load(CanonicalSessionScope.Stored)},enabled=available && !s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-stored")) {Text(label(Words.ViewerStored))}}
                 if(!available) item {Text(label(Words.ManagementVerify))}
@@ -45,7 +50,7 @@ import java.util.Date
                 Text(label(Words.ViewerReceiptNote))
                 TextButton(close,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-return-receipts")) {Text(label(Words.ViewerReturnReceipts))}
             }
-            s.inventory?.takeIf {s.phase==CanonicalViewerPhase.Inventory}?.let {inventory->
+            s.inventory?.takeIf { !continuing && s.phase==CanonicalViewerPhase.Inventory }?.let {inventory->
                 item {Text(label(if(inventory.scope==CanonicalSessionScope.Live) Words.ViewerLive else Words.ViewerStored));Text(label(Words.ViewerLimited))}
                 if(inventory.rows.isEmpty()) item {Text(label(Words.ViewerEmpty))}
                 items(inventory.rows,key={it.sessionId}) {row->
@@ -61,7 +66,13 @@ import java.util.Date
             if(s.sessionId.isNotBlank() && s.phase in setOf(CanonicalViewerPhase.Following,CanonicalViewerPhase.Held)) {
                 item {Text(s.title.ifBlank {s.sessionId},style=MaterialTheme.typography.titleMedium);SelectionContainer {Text(s.sessionId)};Text(label(Words.ViewerSnapshotNote))}
                 if(s.phase==CanonicalViewerPhase.Following) item {Text(label(Words.ViewerFollowing),modifier=Modifier.testTag("canonical-following"))}
-                s.workspace?.let {directory->item {
+                if (continuing) {
+                    item(key = "shared-status") { SharedChatStatus(shared, controller.sharedChat) }
+                    if (s.phase == CanonicalViewerPhase.Following && !shared.available) {
+                        item { Text(label(Words.SharedChatUnavailable)) }
+                    }
+                }
+                s.workspace?.takeUnless { continuing }?.let {directory->item {
                     TextButton({workspaceDetails=!workspaceDetails},Modifier.heightIn(min=48.dp).testTag("canonical-workspace-open")) {Text(label(Words.ViewerWorkspace))}
                     if(workspaceDetails) Column(Modifier.testTag("canonical-workspace-details"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                         Text(label(Words.ViewerWorkspaceSnapshot))
@@ -77,7 +88,7 @@ import java.util.Date
                         if(pending) Text(label(Words.ManagementOutcomePending))
                     }
                 }}
-                if (s.phase == CanonicalViewerPhase.Following) {
+                if (!continuing && s.phase == CanonicalViewerPhase.Following) {
                     item(key = "project-files") {
                         TextButton(controller::reviewProjectFiles, enabled = !s.workspaceChanging && !s.projectReading,
                             modifier = Modifier.heightIn(min = 48.dp).testTag("canonical-project-files")) {
@@ -132,6 +143,10 @@ import java.util.Date
             s.workspaceNotice?.let {message->item {Text(label(message),Modifier.testTag("workspace-result"))}}
             s.error?.let {message->item {Text(label(message),color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("canonical-error"))}}
         }
+        if (continuing && s.phase == CanonicalViewerPhase.Following && shared.available) {
+            SharedChatComposer(shared, controller.sharedChat)
+        }
+      }
     },confirmButton={TextButton(close,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-close")) {Text(label(Words.Close))}})
     s.projectFiles?.takeIf { s.phase == CanonicalViewerPhase.Following }?.let {
         CanonicalProjectFilesDialog(it, controller)

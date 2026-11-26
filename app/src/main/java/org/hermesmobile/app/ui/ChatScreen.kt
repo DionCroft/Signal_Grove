@@ -53,6 +53,10 @@ import java.time.format.DateTimeFormatter
     var runtimeMessageId by remember(current?.key) { mutableStateOf<String?>(null) }
     val readOnly=current?.let(SessionOrigin::readOnly)==true
     var readOnlyInfo by remember(current?.key,readOnly) {mutableStateOf(false)}
+    var continueChat by remember(current?.key,readOnly) {mutableStateOf(false)}
+    val sharedSession = current?.takeIf {
+        readOnly && it.remoteId.isNotBlank() && it.transport != "compat" && SessionOrigin.source(it) != SessionOrigin.Unknown
+    }
     var statusDetails by rememberSaveable {mutableStateOf(false)}
     var resolve by rememberSaveable {mutableStateOf(false)}
     var history by rememberSaveable { mutableStateOf(false) }
@@ -109,7 +113,14 @@ import java.time.format.DateTimeFormatter
                     Text(label(Words.ReadOnlyHistory), Modifier.weight(1f),
                         style = if (compactLayout) MaterialTheme.typography.bodySmall else LocalTextStyle.current)
                 }
-                IconButton({},enabled=false,modifier=Modifier.testTag("chat-read-only-send")) {Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send))}
+                if (sharedSession != null) {
+                    TextButton({ continueChat = true }, Modifier.heightIn(min = 48.dp).testTag("chat-continue"),
+                        enabled = !busy && !connecting && !controlling && !historyLoading) {
+                        Text(label(Words.SharedChatOpen), style = MaterialTheme.typography.labelMedium)
+                    }
+                } else IconButton({},enabled=false,modifier=Modifier.testTag("chat-read-only-send")) {
+                    Icon(Icons.AutoMirrored.Outlined.Send,label(Words.Send))
+                }
             } else OutlinedTextField(draft,{vm.changeDraft(it)},Modifier.fillMaxWidth(),enabled=!readOnly,
                 placeholder = {
                     if (compactLayout) Text(label(Words.ChatMessagePlaceholder).replace("\n", " · "), style = MaterialTheme.typography.bodySmall)
@@ -124,6 +135,10 @@ import java.time.format.DateTimeFormatter
     if(readOnly && readOnlyInfo) AlertDialog(onDismissRequest={readOnlyInfo=false},title={Text(label(Words.ReadOnlyHistory))},text={
         Column(Modifier.heightIn(max=440.dp).verticalScroll(rememberScrollState()).testTag("chat-read-only-reason")) {Text(label(Words.ReadOnlySession))}
     },confirmButton={TextButton({readOnlyInfo=false},Modifier.heightIn(min=48.dp).testTag("chat-read-only-close")) {Text(label(Words.Close))}})
+    if (continueChat && sharedSession != null) SharedChatEntry(sharedSession) { refresh ->
+        continueChat = false
+        if (refresh) vm.refreshHistory()
+    }
     runtimeMessageId?.let { id ->
         messages.firstOrNull { it.id == id && it.sessionKey == current?.key }?.let { message ->
             RuntimeUsageDialog(message.telemetryJson) { runtimeMessageId = null }

@@ -9,6 +9,12 @@ internal interface CanonicalViewerLink:Closeable {
     val receipt:ManagementOperation
     fun observations():Flow<CanonicalFeedDelivery>
     suspend fun heartbeat()
+    val sharedChatAvailable: Boolean get() = false
+    suspend fun pendingPrompt(): SharedChatPending? = null
+    suspend fun sendPrompt(text: String): SharedPromptReceipt? = throw CanonicalNotSupported()
+    suspend fun checkPrompt(pending: SharedChatPending): SharedPromptReceipt = throw CanonicalNotSupported()
+    suspend fun reviewUnknownPrompt(pending: SharedChatPending): Unit = throw CanonicalNotSupported()
+    suspend fun answerApproval(approval: SharedApproval, choice: String): Boolean = throw CanonicalNotSupported()
     suspend fun describeWorker(): AttachedWorkerProject = throw CanonicalNotSupported()
     suspend fun prepareWorker(project: AttachedWorkerProject): AttachedWorkerBinding = throw CanonicalNotSupported()
     suspend fun listWorker(binding: AttachedWorkerBinding, entry: AttachedWorkerEntry?): AttachedWorkerListing =

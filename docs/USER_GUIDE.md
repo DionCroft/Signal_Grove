@@ -30,6 +30,29 @@ Open **Chat → Conversation history**. Scroll the history body to the source fi
 
 For project metadata, open **Settings → Hermes management**, refresh your retained sign-in, then choose **Host projects → Read stored projects**. Review the address/profile/read effects and confirm. Use **Refresh project details** on the intended row to inspect its canonical record. Stored folders and the host active-project pointer do not select a phone chat workspace or prove Windows/NAS worker access. Keep engineering operations on their verified owner. [Beta.8 release scope](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.8).
 
+### Continue a shared Hermes chat (development)
+
+1. In **Settings → Hermes management**, sign in to the trusted dashboard
+   for your connection and select the profile that owns the chat.
+2. In **Chat → Conversation history**, open an existing Hermes chat and
+   tap **Continue in Hermes**. Refresh the saved management identity if
+   prompted. Check the profile and conversation in the review, then tap
+   **Open live view**.
+3. Write a follow-up in **Message this chat** and tap Send. Hermes admits
+   or queues it in the original session. The live view follows activity
+   and shows the final reply when Hermes returns its settled receipt.
+   Close the live view to refresh the conversation history.
+4. When Hermes asks for approval, tap **Review approval**, read the
+   request, then choose **Allow once** or **Deny**. Each decision applies
+   to the displayed request.
+
+This uses the authenticated shared Hermes gateway. Chats outside the
+selected profile or absent from the gateway's eligible sessions remain
+readable in history. Reopen an attached chat to check a known receipt
+after a disconnect. If the submit acknowledgement was lost, check the
+original chat before clearing the unknown outcome.
+[Hermes shared-session contract](https://hermes-agent.nousresearch.com/docs/developer-guide/gateway-local-sessions).
+
 ## Install and migrate
 
 The `1.1.0-beta.1` preview introduced the pixel interface and approved in-app updates. If you use 1.0.0 or a preview through beta.3, install the [current signed preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.13) over the existing app to get the current update feed. The matching package and original signing key preserve your app data. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).

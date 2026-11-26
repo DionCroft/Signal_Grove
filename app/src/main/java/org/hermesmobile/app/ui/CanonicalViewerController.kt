@@ -66,6 +66,8 @@ internal class CanonicalViewerController(
     private val heartbeatDeadline:Long=20_000
 ) {
     val state=MutableStateFlow(CanonicalViewerState())
+    val sharedChat = SharedChatController(scope, guard)
+    private var continuing = false
     private var generation=0L
     private var task:Job?=null
     private var workspaceTask:Job?=null
@@ -101,22 +103,23 @@ internal class CanonicalViewerController(
         }.also {it.invokeOnCompletion {guard(owner,false)}}
     }
     fun load(selected:CanonicalSessionScope)=load(selected,null)
-    internal fun loadSelection(selection:CanonicalViewerSelection)=load(CanonicalSessionScope.Stored,selection)
-    private fun load(selected:CanonicalSessionScope,selection:CanonicalViewerSelection?) {
+    internal fun loadSelection(selection: CanonicalViewerSelection, continueChat: Boolean = false) =
+        load(CanonicalSessionScope.Stored, selection, continueChat)
+    private fun load(selected:CanonicalSessionScope,selection:CanonicalViewerSelection?, continueChat: Boolean = false) {
         if(state.value.busy || state.value.phase==CanonicalViewerPhase.Following) return
         close()
         val access=context() ?: run {state.value=CanonicalViewerState(error=Words.ManagementVerify);return}
         if(selection!=null && (selection.target!=access.target || selection.home!=access.home || selection.contextGeneration!=access.generation)) {
             state.value=CanonicalViewerState(error=Words.ManagementReviewChanged);return
         }
-        val id=generation;acceptedContext=access
+        val id=generation;acceptedContext=access;continuing=continueChat
         state.value=CanonicalViewerState(phase=CanonicalViewerPhase.Loading,scope=selected)
         launch(id,access) {
             val inventory=repository.prepare(access.target,access.home,access.api,access.tokens,selected)
             requireCurrent(id,access)
             state.value=state.value.copy(phase=CanonicalViewerPhase.Inventory,inventory=inventory)
             if(selection!=null) {
-                if(inventory.rows.none {it.sessionId==selection.sessionId}) state.value=state.value.copy(error=Words.ProjectConversationNotListed)
+                if(inventory.rows.none {it.sessionId==selection.sessionId}) state.value=state.value.copy(error=if (continuing) Words.SharedChatUnavailable else Words.ProjectConversationNotListed)
                 else review(selection.sessionId)
             }
         }
@@ -152,8 +155,10 @@ internal class CanonicalViewerController(
                     workspace=attached.attachment.snapshot.workspace,workspaceObservedAt=now(),workspaceSnapshot=attached.attachment.snapshot)
                 beat(attached)
                 requireCurrent(id,access)
+                if (continuing) sharedChat.attach(attached) { current(id, access) && connection === attached }
                 apply(id,access,attached,attached.attachment.initial)
                 state.value=state.value.copy(phase=CanonicalViewerPhase.Following,heartbeatAt=now())
+                if (continuing) sharedChat.start()
                 coroutineScope {
                     launch {
                         while(isActive) {
@@ -161,7 +166,7 @@ internal class CanonicalViewerController(
                             requireCurrent(id,access)
                             // The native socket serializes RPCs. Do not start a heartbeat timeout
                             // while a bounded worker read is already checking that same scope.
-                            if (projectTask?.isActive == true) continue
+                            if (projectTask?.isActive == true || sharedChat.state.value.let { it.busy || it.checking }) continue
                             beat(attached)
                             requireCurrent(id,access)
                             state.value=state.value.copy(heartbeatAt=now())
@@ -174,6 +179,7 @@ internal class CanonicalViewerController(
                 link?.close()
                 if (connection === link) {
                     connection = null
+                    sharedChat.hold()
                     clearContextRead()
                     clearProjectRead()
                 }
@@ -189,6 +195,7 @@ internal class CanonicalViewerController(
         val before=state.value
         if(before.cursor?.let {it.epoch!=delivery.status.cursor.epoch || it.sequence>delivery.status.cursor.sequence}==true)
             throw GatewayProtocolException()
+        if (continuing) sharedChat.apply(delivery.events)
         val activities=delivery.events.map(::activity)
         require(delivery.events.size.toLong()<=Long.MAX_VALUE-before.observed)
         // "Applied" means committed to this viewer's projection, not merely queued by the socket.
@@ -401,6 +408,8 @@ internal class CanonicalViewerController(
         }
     }
     fun close() {
+        continuing = false
+        sharedChat.close()
         generation++;task?.cancel();task=null;workspaceTask?.cancel();workspaceTask=null;connection?.close();connection=null;acceptedContext=null
         clearContextRead()
         clearProjectRead()

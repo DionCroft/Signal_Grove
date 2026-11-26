@@ -184,6 +184,25 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
     }
     internal val canonicalViewer get()=canonicalDelegate.value
     internal fun canonicalAvailable()= !state.value.busy && canonicalAccess()!=null
+    internal fun sharedChatSelection(apiScope: String, sessionId: String): CanonicalViewerSelection? {
+        val access = canonicalAccess() ?: return null
+        if (state.value.busy || access.target.apiScope != apiScope || sessionId.isBlank()) return null
+        return CanonicalViewerSelection(access.target, access.home, access.generation, sessionId)
+    }
+
+    internal fun refreshSharedChatAccess(apiScope: String) {
+        if (state.value.apiScope != apiScope || tokens == null) return
+        operation { id ->
+            val saved = state.value
+            val api = client(saved)
+            val current = checkNotNull(tokens)
+            val identity = api.identity(current)
+            val profiles = api.profiles(current)
+            if (id == generation) state.value = state.value.copy(identity = identity, profiles = profiles,
+                profile = saved.profile.takeIf { name -> profiles.any { it.name == name } }.orEmpty())
+        }
+    }
+
     private fun canonicalAccess():CanonicalViewerAccess?=runCatching {
         val owner=target() ?: return null
         val current=tokens ?: return null

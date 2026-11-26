@@ -47,10 +47,31 @@ class CanonicalViewerUiTest {
         val registry=LifecycleRegistry(this)
         override val lifecycle:Lifecycle get()=registry
     }
+    private var sharedMode = false
+    private val prompt = SharedChatPending("fixture-submission", "fixture-admission", 1)
+    private val sent = mutableListOf<String>()
+    private val decisions = mutableListOf<Pair<String, String>>()
+
     private inner class Link:CanonicalViewerLink {
+        override val sharedChatAvailable get() = sharedMode
+        override suspend fun pendingPrompt() = prompt.takeIf { sent.isNotEmpty() }
+        override suspend fun sendPrompt(text: String): SharedPromptReceipt {
+            sent += text
+            return SharedPromptReceipt("fixture-admission", 1, SharedPromptStatus.Queued, null)
+        }
+        override suspend fun checkPrompt(pending: SharedChatPending): SharedPromptReceipt {
+            assertSame(prompt, pending)
+            return SharedPromptReceipt("fixture-admission", 1, SharedPromptStatus.Terminal, "completed", "Same conversation reply")
+        }
+        override suspend fun answerApproval(approval: SharedApproval, choice: String): Boolean {
+            assertEquals(3L, approval.generation)
+            decisions += approval.id to choice
+            return true
+        }
         val events=Channel<CanonicalFeedDelivery>(Channel.UNLIMITED)
         val initial=CanonicalFeedDelivery(CanonicalFeedStatus(CanonicalFeedPhase.Following,cursor,null,0),emptyList())
-        val snapshot=CanonicalSessionSnapshot(owner,"fixture-history","fixture-history","fixture-subscription",cursor,2,3,false,2,true,CanonicalWorkspaceDirectory.Reported("/fixture/private-project"))
+        val snapshot=CanonicalSessionSnapshot(owner,"fixture-history","fixture-history","fixture-subscription",cursor,2,3,false,2,true,CanonicalWorkspaceDirectory.Reported("/fixture/private-project"),
+            if (sharedMode) JsonArray(listOf(approval("fixture-read"), approval("fixture-skip"))) else JsonArray(emptyList()))
         override val attachment=CanonicalGatewayChannel.Attachment(snapshot,initial)
         override val receipt=ManagementOperation("native-viewer-receipt",target.resourceScope,target.apiScope,target.url,target.profile,target.actor,
             CanonicalResumeAction.Id,"fixture-history",inventory(CanonicalSessionScope.Live).review("fixture-history").summary(),"confirmed",snapshot.receiptSummary(),1,home)
@@ -112,9 +133,18 @@ class CanonicalViewerUiTest {
             assertEquals(link.receipt.key,key);assertEquals(this@CanonicalViewerUiTest.owner,owner);assertEquals(expectedApplied,cursor);saves++
         }
     }
-    private val repo=Repo()
+    private fun approval(id: String) = buildJsonObject {
+        put("kind", "approval")
+        put("prompt_id", id)
+        put("execution_generation", 3)
+        put("command", "read fixture")
+        put("description", "Inspect a fixture")
+        put("choices", buildJsonArray { add("once"); add("deny"); add("always") })
+    }
+
+    private val repo by lazy { Repo() }
     private var access:CanonicalViewerAccess?=null
-    private val viewer=CanonicalViewerController(scope,repo,{access},guard::set)
+    private val viewer by lazy { CanonicalViewerController(scope,repo,{access},guard::set) }
     private var shown by mutableStateOf(true)
     private var available by mutableStateOf(true)
     private fun render(pending:Boolean=false,large:Boolean=false,selection:CanonicalViewerSelection?=null) {
@@ -130,7 +160,7 @@ class CanonicalViewerUiTest {
                     val actionStyle=WorkspaceActionStyle(androidx.compose.material3.MaterialTheme.shapes.small,
                         LocalDensity.current,androidx.compose.ui.platform.LocalLayoutDirection.current)
                     SideEffect {workspaceActionStyle=actionStyle}
-                    if(shown) CanonicalSessionsDialog(viewer,available,pending,selection) {viewer.close();shown=false}
+                    if(shown) CanonicalSessionsDialog(viewer,available,pending,selection,continuing=sharedMode) {viewer.close();shown=false}
                 }
             }
         }
@@ -160,6 +190,29 @@ class CanonicalViewerUiTest {
         review();consent();compose.onNodeWithTag("canonical-open-confirm").assertIsEnabled().performClick()
         compose.waitUntil(5000) {viewer.state.value.phase==CanonicalViewerPhase.Following}
         scroll("canonical-viewer-list","canonical-following").assertIsDisplayed()
+    }
+    @Test fun continueExistingChatAndApproveOrDenyIndividually() {
+        sharedMode = true
+        render(selection = CanonicalViewerSelection(target, home, 1, owner.sessionId))
+        consent()
+        compose.onNodeWithTag("canonical-open-confirm").performClick()
+        compose.waitUntil(5000) { viewer.state.value.phase == CanonicalViewerPhase.Following }
+        compose.onNodeWithTag("shared-chat-send").assertIsNotEnabled()
+        compose.onNodeWithTag("shared-chat-draft").performTextInput("Continue this exact conversation")
+        compose.onNodeWithTag("shared-chat-send").assertIsEnabled().performClick()
+        compose.waitUntil(5000) { viewer.sharedChat.state.value.reply == "Same conversation reply" }
+        scroll("canonical-viewer-list", "shared-chat-reply").assertIsDisplayed()
+        scroll("canonical-viewer-list", "shared-chat-approval-fixture-read").performClick()
+        compose.onNodeWithText("read fixture").assertIsDisplayed()
+        compose.onNodeWithTag("shared-approval-once").performClick()
+        compose.waitUntil(5000) { decisions.size == 1 }
+        scroll("canonical-viewer-list", "shared-chat-approval-fixture-skip").performClick()
+        compose.onNodeWithTag("shared-approval-deny").performClick()
+        compose.waitUntil(5000) { decisions.size == 2 }
+        assertEquals(listOf("Continue this exact conversation"), sent)
+        assertEquals(listOf("fixture-read" to "once", "fixture-skip" to "deny"), decisions)
+        assertEquals(1, repo.adoptions)
+        assertEquals(listOf(CanonicalSessionScope.Stored), repo.reads)
     }
     @After fun stop() {
         compose.runOnUiThread {viewer.close();shown=false;scope.cancel()}

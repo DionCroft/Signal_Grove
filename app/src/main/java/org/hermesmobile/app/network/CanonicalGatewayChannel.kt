@@ -72,7 +72,7 @@ internal class CanonicalRuntimeBinding(
 
 /**
  * Separate canonical socket. Explicit reviewed resume can restore/adopt history and attach
- * a viewer. No server-request capability, work admission, mutation replay or reconnect.
+ * a viewer. Chat actions require an exact attachment. The channel never replays mutations.
  */
 internal class CanonicalGatewayChannel private constructor() : Closeable {
     private val opened = CompletableDeferred<Unit>()
@@ -86,7 +86,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
     private var describeAnswered = false
     private var notificationCount = 0
     private var receivedBytes = 0L
-    private data class Pending(val id: String, val waiter: CompletableDeferred<JsonObject>,val workspace:Boolean, val attachedRead: Boolean)
+    private data class Pending(val id: String, val waiter: CompletableDeferred<JsonObject>,val workspace:Boolean, val attachedRead: Boolean, val sharedChat: Boolean)
     private val requests = Mutex()
     private var nextId = 1L
     private var pending: Pending? = null
@@ -224,6 +224,13 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
                     waiter.completeExceptionally(CanonicalNotSupported())
                     return
                 }
+                if (!handshake && pending?.sharedChat == true) {
+                    SharedChatRefused.parse(code, error)?.let { refusal ->
+                        pending = null
+                        waiter.completeExceptionally(refusal)
+                        return
+                    }
+                }
                 val refusal = if(!handshake && pending?.workspace==true) CanonicalWorkspaceRefused.parse(code,error) ?: GatewayRpcException(code) else GatewayRpcException(code)
                 waiter.completeExceptionally(refusal)
                 throw refusal
@@ -276,14 +283,15 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         require(method in setOf("session.list", "session.stats", "session.resume", "session.events.since", "gateway.ping", "session.mutate", "projects.list", "projects.get", "projects.project_sessions", CronExecutionHistory.Method, CronExecutionOutput.Method,
             CronTimingProtocol.Prepare, CronTimingProtocol.Review, CronTimingProtocol.Apply,
             CronTimingProtocol.Observe, AttachedWorkerProtocol.Describe, AttachedWorkerProtocol.Read) ||
-            method in CronRunOnceProtocol.methods || method in CronProjectProtocol.methods)
+            method in CronRunOnceProtocol.methods || method in CronProjectProtocol.methods || method in SharedChatProtocol.methods)
         val request: Pending
         synchronized(this) {
             if (stopped.get()) throw firstFailure.get() ?: GatewayUnavailable()
             check(verified != null && pending == null && nextId < Long.MAX_VALUE)
             request = Pending((++nextId).toString(), CompletableDeferred(),
                 method == "session.mutate" && params["operation"] == JsonPrimitive("workspace"),
-                method == AttachedWorkerProtocol.Describe || method == AttachedWorkerProtocol.Read)
+                method == AttachedWorkerProtocol.Describe || method == AttachedWorkerProtocol.Read,
+                method in SharedChatProtocol.methods)
             pending = request
             val frame = buildJsonObject { put("jsonrpc","2.0"); put("id",request.id); put("method",method); put("params",params) }
             if (socket?.send(frame.toString()) != true) {
@@ -293,7 +301,7 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         try {
             withTimeoutOrNull(45000) { request.waiter.await() } ?: throw GatewayUnavailable()
         } catch (error: Exception) {
-            if (!request.attachedRead || error !is CanonicalNotSupported) {
+            if (error !is SharedChatRefused && (!request.attachedRead || error !is CanonicalNotSupported)) {
                 fail(if (error is GatewayRpcException || error is GatewayProtocolException) error else GatewayUnavailable())
             }
             throw error
@@ -546,6 +554,37 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         )
         if (binding !== current) throw CanonicalScopeChanged()
         return result
+    }
+
+    private suspend fun sharedCall(expected: CanonicalSessionSnapshot, method: String, params: JsonObject): JsonObject {
+        val current = binding
+        synchronized(this) {
+            if (resuming || snapshot !== expected || feed == null ||
+                expected.owner.sessionId != expected.requestedSessionId) throw CanonicalReviewChanged()
+        }
+        val result = call(method, params)
+        if (binding !== current) throw CanonicalScopeChanged()
+        return result
+    }
+
+    internal suspend fun submitPrompt(expected: CanonicalSessionSnapshot, id: String, text: String): SharedPromptReceipt? {
+        val result = sharedCall(expected, SharedChatProtocol.Submit, SharedChatProtocol.submit(expected.owner.sessionId, id, text))
+        if (SharedChatProtocol.voiceStopped(result)) return null
+        return SharedChatProtocol.receipt(expected.owner, result)
+    }
+
+    internal suspend fun promptReceipt(expected: CanonicalSessionSnapshot, id: String): SharedPromptReceipt {
+        val params = buildJsonObject {
+            put("session_id", expected.owner.sessionId)
+            put("admission_id", id)
+            put("include_result", true)
+        }
+        return SharedChatProtocol.receipt(expected.owner, sharedCall(expected, SharedChatProtocol.Receipt, params), id)
+    }
+
+    internal suspend fun answerApproval(expected: CanonicalSessionSnapshot, approval: SharedApproval, choice: String): Boolean {
+        val params = SharedChatProtocol.respond(expected.owner.sessionId, approval, choice)
+        return SharedChatProtocol.approvalResult(sharedCall(expected, SharedChatProtocol.Respond, params), approval.id)
     }
 
     internal suspend fun describeWorker(expected: CanonicalSessionSnapshot): AttachedWorkerProject =

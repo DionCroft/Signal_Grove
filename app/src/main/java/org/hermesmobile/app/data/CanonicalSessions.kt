@@ -86,7 +86,8 @@ internal class CanonicalSessionSnapshot(
     val reportedRunning: Boolean,
     val messageCount: Long,
     val messagesOmitted: Boolean,
-    val workspace:CanonicalWorkspaceDirectory=CanonicalWorkspaceDirectory.NotReported
+    val workspace:CanonicalWorkspaceDirectory=CanonicalWorkspaceDirectory.NotReported,
+    val approvalRows: JsonArray = JsonArray(emptyList())
 ) {
     override fun toString() = "CanonicalSessionSnapshot(redacted)"
     internal fun receiptSummary() = buildJsonObject {
@@ -170,6 +171,6 @@ internal object CanonicalSessionProtocol {
         val owner = CanonicalFeedOwner(binding.target,binding.homeId,binding.profileId,binding.instanceId,text(j,"session_id"),epoch)
         return CanonicalSessionSnapshot(owner,requested,text(j,"stored_session_id"),text(j,"subscription_id",256),
             CanonicalReplayCursor(text(j,"replay_epoch",256),number(j,"last_sequence")),number(j,"revision"),
-            number(j,"execution_generation"),flag(j,"running"),count,omitted,CanonicalWorkspaceDirectory.parse(info["cwd"]))
+            number(j,"execution_generation"),flag(j,"running"),count,omitted,CanonicalWorkspaceDirectory.parse(info["cwd"]),j["prompts"]!!.jsonArray)
     }
 }
