@@ -1,5 +1,13 @@
 # Signal Grove screenshots
 
+## Beta.16 branding
+
+The signed preview on a wide Android 17 emulator.
+
+| Wide Home | About & security |
+| --- | --- |
+| <img src="screenshots/beta16-launcher-logo.png" width="475" alt="The Signal Grove launcher logo in the left rail"> | <img src="screenshots/beta16-about-credit.png" width="475" alt="About and security displays the developer credit"> |
+
 ## Beta.15 dark themes
 
 All three built-in dark palettes on the signed preview's Demo Home,

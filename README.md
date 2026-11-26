@@ -8,17 +8,17 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.15/hermes-agent-mobile-1.1.0-beta.15.apk"><strong>Download beta.15 preview APK</strong></a>
+  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.16/hermes-agent-mobile-1.1.0-beta.16.apk"><strong>Download beta.16 preview APK</strong></a>
   · <a href="https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0">Stable release</a>
   · <a href="docs/SETUP_GUIDE.md">Setup guide</a>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/beta15-midnight-home.png" width="228" alt="Signal Grove Home with the Midnight Observatory dark theme">
+  <img src="docs/screenshots/beta16-launcher-logo.png" width="365" alt="Signal Grove on a wide display with the launcher logo on the left">
   <img src="docs/screenshots/beta10-phone-models.png" width="228" alt="On-device model catalogue showing the LFM3 licence, download size and memory requirement before download">
 </p>
 
-<p align="center"><em>Midnight Observatory and the phone model catalogue.</em> <a href="docs/screenshots.md">More screenshots</a></p>
+<p align="center"><em>Signal Grove’s wide layout and the phone model catalogue.</em> <a href="docs/screenshots.md">More screenshots</a></p>
 
 ## Install or update
 
@@ -26,7 +26,7 @@ Signal Grove runs on **Android 8.0 and later**. It is an independent community a
 
 | Channel | Version | Download |
 | --- | --- | --- |
-| **Preview** | **1.1.0-beta.15**, version code 120 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.15/hermes-agent-mobile-1.1.0-beta.15.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.15) |
+| **Preview** | **1.1.0-beta.16**, version code 121 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.16/hermes-agent-mobile-1.1.0-beta.16.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.16) |
 | **Stable** | **1.0.0** | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.0.0/hermes-agent-mobile-1.0.0.apk) · [Release notes and assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
 
 For an in-place update, install the matching production APK over your existing production installation. Matching the package and signing key preserves its data. Preview builds with the updater can check **Settings → App updates**. Enable **Include preview releases** to find betas, review the download, and confirm the installation in Android. [Update and migration guide](docs/APP_UPDATES.md)
@@ -37,7 +37,7 @@ For an in-place update, install the matching production APK over your existing p
 2. **Connect your Hermes server.** Use its authenticated API over trusted HTTPS, for example through a private Tailscale network. In **Settings → Server**, enter the API root and bearer token, then tap **Save & test connection**. Management features use a separate dashboard sign-in. [Full connection guide](docs/SETUP_GUIDE.md)
 3. **Try offline chat.** In the preview, open **Settings → On-device AI → Phone models**. Review a catalogue model's licence or import a compatible GGUF file, then tap **Load**. You’ll need a supported 64-bit device, enough memory and storage, and a separately installed model. Phone chat has its own history. [Model and offline chat guide](docs/ON_DEVICE_AI.md)
 
-## What you can do in beta.15
+## What you can do in beta.16
 
 | Area | How it helps |
 | --- | --- |
@@ -50,7 +50,7 @@ Hermes controls depend on the connected runtime, authentication, and configured 
 
 ## Release verification
 
-The beta.15 APK is **76.8 MB**. The exact release source passed **1,262 JVM tests**, **1,265 Android 8 cases** and **1,266 Android 17 cases**. The original-key upgrade from beta.14 retained the installation and a saved task on an Android 17 emulator. The five public assets were independently downloaded and checksum verified. [Beta.15 verification](docs/releases/1.1.0-beta.15.md) · [Full validation evidence](docs/VALIDATION.md)
+The beta.16 APK is **76.8 MB**. The exact source passed **1,262 JVM tests**, **1,265 Android 8 cases** and **1,266 Android 17 cases**. The original-key upgrade from beta.15 retained a saved task on Android 17. All five public assets were downloaded anonymously and checksum verified. The beta.15 app found and installed the checksum-verified public update in place on Android 8. [Beta.16 verification](docs/releases/1.1.0-beta.16.md) · [Full validation evidence](docs/VALIDATION.md)
 
 ## Help and development
 

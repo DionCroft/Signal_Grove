@@ -1,5 +1,10 @@
 # Compatibility and protocol scope
 
+## Signal Grove beta.16 preview
+
+Android 8 and later can install the signed preview. The matching production
+signer supports an in-place upgrade from beta.15. [Release and checks](releases/1.1.0-beta.16.md).
+
 ## Signal Grove beta.15 preview
 
 The signed preview includes three dark palettes on Android 8 and later.

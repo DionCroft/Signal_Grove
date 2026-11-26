@@ -21,7 +21,7 @@ maps weather codes to original pixel effects. The free service is for
 [non-commercial use](https://open-meteo.com/en/terms).
 
 
-The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.15`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.15), code 120. Preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
+The latest published stable release is 1.0.0. The current published Signal Grove preview is [`1.1.0-beta.16`](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.16), code 121. Preview additions are identified below. See [branding and upgrade compatibility](BRANDING.md) for package identities and the repository-feed migration. Later development changes are tracked in the [audit follow-up](AUDIT_FOLLOW_UP.md).
 
 
 ### Existing Hermes chats and projects (beta.8)
@@ -55,7 +55,7 @@ original chat before clearing the unknown outcome.
 
 ## Install and migrate
 
-The `1.1.0-beta.1` preview introduced the pixel interface and approved in-app updates. If you use 1.0.0 or a preview through beta.3, install the [current signed preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.15) over the existing app to get the current update feed. The matching package and original signing key preserve your app data. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
+The `1.1.0-beta.1` preview introduced the pixel interface and approved in-app updates. If you use 1.0.0 or a preview through beta.3, install the [current signed preview](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.16) over the existing app to get the current update feed. The matching package and original signing key preserve your app data. Once on the new feed, open **Settings → App updates**, review a later release and choose **Download & update**. Android asks for this app’s install-source permission when needed and confirms the installation. See [update behavior and channels](APP_UPDATES.md).
 
 Get `hermes-agent-mobile-1.0.0.apk` from the [community release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0). Verify its SHA-256 and signer against the release record before installing. Android may ask you to allow installation from your browser/file manager. This is a GitHub-distributed APK, not a Play Store listing.
 
@@ -158,6 +158,8 @@ Add the task widget from Settings where pinning is supported, or your launcher's
 On Android 17, Settings includes **Allow local network access** for LAN or private VPN servers. The app opens Android’s permission dialog only when you tap that control. Denial leaves public internet connections available. After granting access, connect or refresh the run status again; no uncertain operation is automatically repeated. If Android stops showing the dialog, open **App permission settings**. Revoking permission blocks subsequent private-address connections, including background checks.
 
 ## Appearance, privacy and help
+
+On wide displays, the rail starts with the Signal Grove launcher logo. Open **Settings → About & security** for the app version and developer credit.
 
 Open **Settings**, scroll to **Make it yours**, and choose a palette under **Dark themes** or **Light themes**. Dark options are Moonlit Grove, Midnight Observatory and Amber Terminal. Light options are Starhaven Grove, Lavender, Jade, Solar and Mint. All eight are built in and work offline. Settings also offers Chinese and accented pinyin switches, reduced motion and system font scaling. New installations start in Starhaven Grove; your saved palette remains selected after upgrading. Pixel scenery uses physical-pixel edges and a gentle eight-frame-per-second clock, read only while drawing. Scenery and decorative loading motion pause while the app is backgrounded; both app reduced motion and Android’s disabled-animations setting suppress decorative motion. Stepped progress bars retain native accessibility values, including exact download progress. Wide displays use a navigation rail. No bundled fonts, telemetry, advertisements or analytics are included. App-private Room storage and image/request files are not database/file encryption; backups/transfer are disabled. Explicit clipboard, speech services and exported task files leave that private storage boundary.
 

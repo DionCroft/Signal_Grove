@@ -1,5 +1,10 @@
 # Current feature and validation matrix
 
+## Published beta.16 preview
+
+The wide rail displays the launcher logo. Settings → About & security
+credits Dr Dion Mariyanayagam. [Release and verification](releases/1.1.0-beta.16.md).
+
 ## Published beta.15 preview
 
 Moonlit Grove, Midnight Observatory and Amber Terminal add three built-in dark

@@ -1,5 +1,11 @@
 # Current development validation — audit follow-up
 
+## Published beta.16 release verification
+
+The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)
+
+The original-key upgrade from beta.15 retained the installation and a saved task on Android 17. The signed app showed the logo and About credit in the wide layout. Its phone layout and 200% text size were also checked. All five public assets were downloaded anonymously and checksum verified. The beta.15 app found and installed the checksum-verified public update in place on Android 8.
+
 ## Development branding check
 
 The 26 November branding changes passed 1,262 JVM tests, debug and release
