@@ -1,9 +1,15 @@
 # Signal Grove project state
 
-26 November 2026. Beta.14 is published with shared Hermes chat prompts
-and individual approval decisions. The [audit goal](docs/GOAL.md#active-scope--25-november-2026)
+26 November 2026. Beta.15 adds three dark palettes to the preview. The [audit goal](docs/GOAL.md#active-scope--25-november-2026)
 and [execution ledger](docs/AUDIT_EXECUTION_PLAN.md) retain the live
 Pi-to-Windows and wider acceptance work.
+
+## Beta.15 released
+
+Signal Grove 1.1.0-beta.15, code 120, is publicly available. The exact
+source passed its Android 8 and 17 checks. The original-key emulator
+upgrade preserved a saved task, and the selected dark palette persisted
+after reopening. [Download the APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.15/hermes-agent-mobile-1.1.0-beta.15.apk) · [Release evidence](docs/releases/1.1.0-beta.15.md).
 
 ## Beta.14 released
 

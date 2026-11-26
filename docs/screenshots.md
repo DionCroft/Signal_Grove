@@ -1,5 +1,14 @@
 # Signal Grove screenshots
 
+## Beta.15 dark themes
+
+All three built-in dark palettes on the signed preview's Demo Home,
+captured on an Android 17 emulator.
+
+| Moonlit Grove | Midnight Observatory | Amber Terminal |
+| --- | --- | --- |
+| <img src="screenshots/beta15-moonlit-home.png" width="240" alt="Demo Home in Moonlit Grove with forest green panels"> | <img src="screenshots/beta15-midnight-home.png" width="240" alt="Demo Home in Midnight Observatory with navy panels"> | <img src="screenshots/beta15-amber-home.png" width="240" alt="Demo Home in Amber Terminal with warm charcoal panels"> |
+
 ## Beta.14 Home
 
 The signed preview after an in-place beta.13 upgrade on an Android 17

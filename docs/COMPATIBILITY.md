@@ -1,5 +1,12 @@
 # Compatibility and protocol scope
 
+## Signal Grove beta.15 preview
+
+The signed preview includes three dark palettes on Android 8 and later.
+Theme selection and system-bar icon appearance were tested on Android 8
+and 17 emulators. Changing palettes works without a network connection.
+[Release and checks](releases/1.1.0-beta.15.md).
+
 ## Signal Grove beta.14 preview
 
 Android 8 and later can install the public APK. Continue in Hermes

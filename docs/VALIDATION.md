@@ -1,5 +1,19 @@
 # Current development validation — audit follow-up
 
+## Published beta.15 release verification
+
+The exact release source b679327b47999b72695981729c08ac01a7da1520 passed 1,262 JVM tests, both lint variants,
+1,265 Android 8 cases and 1,266 Android 17 cases. Four focused checks on each
+emulator verified theme selection and persistence, community surfaces and reduced motion.
+[Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45849958686) · [Additional exact-source checks](https://github.com/DionCroft/Signal_Grove/actions/runs/45849962999).
+
+The initial main workflow reported three Android 8 keyboard and focus failures in On-device AI. All three cases passed twice locally with the exact APKs from that workflow. The independent run of the identical main commit supplied the complete Android 8 and 17 device matrix.
+
+The original-key upgrade from beta.14 on Android 17 retained the app
+UID, first install time and saved task. All three dark palettes rendered
+in the signed app. Amber Terminal persisted across a restart and was
+checked at 200% text size. Theme settings were reachable on the short wide layout after scrolling the navigation rail. The five public assets were independently downloaded and checksum verified. The beta.14 updater discovered the public preview on Android 8, verified the download and installed it in place.
+
 ## Published beta.14 release verification
 
 The exact source 57fc651dfe1ae03fdac715841f08e7b510aaaf3b passed 1,262 JVM tests, both lint

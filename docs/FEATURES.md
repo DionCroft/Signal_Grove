@@ -1,5 +1,13 @@
 # Current feature and validation matrix
 
+## Published beta.15 preview
+
+Moonlit Grove, Midnight Observatory and Amber Terminal add three built-in dark
+palettes. Change them in **Settings → Make it yours → Dark themes**. The
+selection applies to the main interface and on-device AI, persists across
+restarts and works offline. The five light palettes remain available.
+[Theme gallery](screenshots.md#beta15-dark-themes) · [Release and verification](releases/1.1.0-beta.15.md).
+
 ## Published beta.14 preview
 
 Open a supported existing conversation from Chat history. The authenticated
