@@ -212,6 +212,30 @@ shutdown recovery still require their separate checks.
 | `441af48` public archive | `5c556266a274249357de83a90e471bbd23605b5b5f8e2a2366ce49e7a3fdfee8` |
 | `441af48` watcher report | `c7d75df187e6177d0c9c06381e24aa1170e7795a3c6b6809f601902db7cdb7e7` |
 
+## Upstream Hermes main source delta
+
+On 26 November 2026 the latest stable GitHub release remained v0.23.4.
+The observed main commit, 6e447b2c2f01c12c4a6544e2e92c5de4944743f1,
+was 13 commits ahead of 441af486d09a2f7910aa3043ebe633f439cf92c9.
+The two complete Git trees reconcile all 85 change records, including each
+rename's old and new path. The gateway tree (423 files), gateway tests
+(2,231 files), scheduler tree (65 files), and scheduler tests (202 files)
+retain identical tree IDs. The selected Hermes state and constants files
+also retain their blob IDs.
+
+The delta changes shared agent setup and completion transport, provider
+credentials and model catalogue paths, and the migration from the Gemini
+and Solstice provider plugins into the Google plugin. Vertex routing also
+changed. The native runtime results remain bound to the tested pin.
+Provider discovery, migration, and authenticated turn behavior on the
+new pin still need representative runtime checks. The comparison leaves
+the earlier handler and persistence review open.
+[Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4) ·
+[Exact source comparison](https://github.com/NousResearch/hermes-agent/compare/441af486d09a2f7910aa3043ebe633f439cf92c9...6e447b2c2f01c12c4a6544e2e92c5de4944743f1).
+
+Verified source-delta receipt SHA-256
+`b7a892b07c67723ae0a99fa954d5895a2e0b00946fa5a6e848b7f31a2ad81f45`.
+
 ## Hermes approval, room and run compatibility
 
 Four upstream gateway modules passed the same 93 methods on both exact

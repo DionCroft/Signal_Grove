@@ -32,7 +32,11 @@ signature rehearsal passed.
 
 Two exact upstream revisions now produce the full watcher comparison after
 Git verification of all 245 source files. The comparison still requires
-handler and persistence review. The beta.12 matrix remains bound to
+handler and persistence review. Upstream main at 6e447b2 retains the
+reviewed gateway and scheduler source and test tree identities. Shared
+agent transport and provider setup changed and still need runtime checks.
+[Exact source delta](docs/VALIDATION.md#upstream-hermes-main-source-delta).
+The beta.12 matrix remains bound to
 client commit `48559324bb8ac909af24a125835d0284441d80c9`.
 [Validation](docs/VALIDATION.md#verified-hermes-main-source-relocations).
 
