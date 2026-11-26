@@ -71,7 +71,22 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
         val inlineConnection = keyboardOpen || compactChat
         Row(Modifier.fillMaxSize()) {
             if(wide) NavigationRail(Modifier.fillMaxHeight().width(124.dp),containerColor=MaterialTheme.colorScheme.surface,header={ Text("SG",style=MaterialTheme.typography.headlineLarge,modifier=Modifier.padding(20.dp).semantics {contentDescription=brand}) }) {
-                destinations.forEach { d -> NavigationRailItem(colors=NavigationRailItemDefaults.colors(indicatorColor=androidx.compose.ui.graphics.Color.Transparent),selected=current==d.route,onClick={go(d.route)},icon={PixelNavIcon(d.route,current==d.route)},label={Text(label(d.word))},modifier=Modifier.padding(vertical=4.dp).testTag("nav-${d.route.lowercase()}")) }
+                Column(
+                    Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    destinations.forEach { destination ->
+                        NavigationRailItem(
+                            selected = current == destination.route,
+                            onClick = { go(destination.route) },
+                            icon = { PixelNavIcon(destination.route, current == destination.route) },
+                            label = { Text(label(destination.word)) },
+                            colors = NavigationRailItemDefaults.colors(indicatorColor = androidx.compose.ui.graphics.Color.Transparent),
+                            modifier = Modifier.padding(vertical = 4.dp).testTag("nav-${destination.route.lowercase()}")
+                        )
+                    }
+                }
             }
             Scaffold(modifier=Modifier.weight(1f),containerColor=androidx.compose.ui.graphics.Color.Transparent,
                 topBar={ Column(Modifier.statusBarsPadding().fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp)) {
