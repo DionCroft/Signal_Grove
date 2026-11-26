@@ -1,5 +1,12 @@
 # Signal Grove screenshots
 
+## Beta.14 Home
+
+The signed preview after an in-place beta.13 upgrade on an Android 17
+emulator. The screenshot uses the synthetic Demo profile.
+
+<img src="screenshots/beta14-demo-home.png" width="360" alt="Signal Grove beta.14 Demo Home after its emulator upgrade">
+
 ## Beta.13 Living Grove
 
 The night view comes from the signed preview after an Android 17

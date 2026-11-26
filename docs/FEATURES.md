@@ -1,13 +1,13 @@
 # Current feature and validation matrix
 
-## Shared Hermes chats (development)
+## Published beta.14 preview
 
 Open a supported existing conversation from Chat history. The authenticated
 gateway attaches to the original session for follow-up prompts, live
 activity and one-time approval decisions. Signal Grove can check an
 acknowledged admission after reconnect. Native eligibility and permission
 come from the selected Hermes profile.
-[Using shared chats](USER_GUIDE.md#continue-a-shared-hermes-chat-development).
+[Using shared chats](USER_GUIDE.md#continue-a-shared-hermes-chat-beta14) · [Release and verification](releases/1.1.0-beta.14.md).
 
 ## Published beta.12 preview
 

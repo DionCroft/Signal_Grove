@@ -1,5 +1,16 @@
 # Compatibility and protocol scope
 
+## Signal Grove beta.14 preview
+
+Android 8 and later can install the public APK. Continue in Hermes
+uses a dashboard sign-in, a verified profile and the shared gateway
+session. This exposes follow-up text, live activity and approval
+decisions for attached chats where the gateway grants access. Earlier
+history remains available via the existing API. The tested prompt and
+approval flow used emulator fixtures. Live Pi interoperability remains
+in the audit.
+[Release and checks](releases/1.1.0-beta.14.md).
+
 ## Signal Grove beta.10 preview
 
 The signed APK starts on Android 8 and 17. On-device inference requires

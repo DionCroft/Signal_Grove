@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## Published beta.14 release verification
+
+The exact source 57fc651dfe1ae03fdac715841f08e7b510aaaf3b passed 1,262 JVM tests, both lint
+variants and 1,265 Android 8 and 1,266 Android 17 standard
+device cases. The versioned debug pair passed another 42 focused
+executions on each emulator, including the shared composer, one-time
+approval and denial, the canonical viewer, and conversation history.
+[Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45813963688) · [Independent device workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45815736317).
+
+The first main run lost ADB on Android 8. Its retry reported one model-status
+display failure. The independent run reported one offline keyboard timeout on
+Android 17. Both UI cases passed twice locally. The two workflow summaries retain
+their individual failures. The four passing jobs used APKs that are byte-identical
+after removing the per-run signing blocks. The repository coverage verifier
+reconstructed the exact case union from the original successful job logs.
+
+The original signing key upgraded beta.13 in place on an Android 17
+emulator, retaining its installation UID and timestamp and a saved task.
+All five release assets were fetched anonymously and passed SHA-256
+verification. Live Pi and physical phone acceptance remain open.
+The beta.13 updater discovered beta.14 on the public preview feed on Android 8. The app accepted its download hash and original signing certificate. Android installed the verified update in place.
+
 ## Shared Hermes chat and approvals
 
 The local app build passed 1,262 JVM tests, both lint variants and both
