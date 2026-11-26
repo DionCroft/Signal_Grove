@@ -57,8 +57,14 @@ A normal fast-forward advanced main to that exact source. The main-push
 verification job passed. The independent artifact check counted 1,256
 JVM cases across 118 XML reports with zero failures or skips and both
 lint variants with zero errors. The CI debug APK pair matches code 117
-and has one shared signer. Main device checks, original-key signing,
-the Xiaomi release upgrade and updater remain open.
+and has one shared signer. The two Android 8 jobs on main passed all
+1,263 inventoried cases. The independent check parsed both native logs
+against the exact APK pair and verified disjoint partitions of 595 and
+668 cases. Main Android 17, the combined coverage gate, original-key
+signing and the Xiaomi release upgrade remain open. The earlier
+private updater fixture covered wrong-signer refusal, user review,
+verified download, active-work gating, Android permission and install
+confirmation, and retained fixture data.
 Offline Gradle resolution on the exact Git archive verified 154 Maven modules
 and 98 unique runtime artifacts against their SHA-256 pins. The dependency
 graph and artifact hashes match beta.11. The resolver returned one identical
@@ -103,6 +109,8 @@ passes, then generate evidence for the original-key-signed APK.
 | Hosted Android 17 shard 0 archive | `33f043a7fa4f4e1ea0f5efe22bac9d3cb8e24e96f2be0a2cae16cd926f57bb59` |
 | Hosted Android 17 shard 1 archive | `870b4366bba829de7ff3812ed11e2c6484bef8aed9ac86db7ea6afbc9de1f66d` |
 | Independently verified two-API coverage | `778dddd11bbb1ffc93ce42dd39b92b8ce934b7da709ee58f750829f7db39baea` |
+| Android 8 main coverage receipt | `93fa78fd0ce266bc149c84c4e5bfed9f2dd98f04f34c556dda59a55d3d4a839d` |
+| Exact-source private updater receipt | `79a9c7a723cd6cf8e9d0e723e72a91789c3b2f07dbd1e7359a4b487db3c8387a` |
 | Main-push build evidence receipt | `529dff288ef9817cfbfd77329a9377e0a205863a7c6f7aa636e7c06d49fdf417` |
 | Exact release runtime Maven preview | `c3e5987e9a4c0f7330bbbde005f5728e062d00629b193c3d8377f0799df6e13d` |
 | Independent hosted build verification | `d28ef0d5460c2de47b6daa35b71e5a377fad9fb8c50be5c3ef5381e98ce45bf8` |
@@ -114,6 +122,43 @@ passes, then generate evidence for the original-key-signed APK.
 | Exact unsigned manifest and native inventory | `64411efbf9f182903deea9ba0f95233d15afcf8193b06dae6878b39ef0c323ce` |
 | Exact unsigned runtime SBOM | `dcc06f45aad7d4dc27b7ad5dfaf6af67882e4862e776c20224f16b923185dcd3` |
 | Disposable v2 signing rehearsal | `8856904306e151be212612dc93f75546ae1cf01a2c47138bcb9f95359dffd6f8` |
+
+## Xiaomi saved connection and physical controls
+
+The installed production beta.11 APK matched the public release SHA-256.
+Tailscale initially showed disconnected. A verified keyboard selection
+of the existing switch activated its VPN and made the Pi reachable.
+The production app then displayed Connected to Hermes using its saved
+profile. The original app UID, Wi-Fi, radio settings and disconnected
+VPN state matched the starting observations after restoration. The
+beta.12 in-place upgrade and its post-upgrade connection remain open.
+[Published beta.11 APK](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.11).
+
+The first synthetic large-text chat case returned a positive Android
+method result. The next room case stopped progressing behind Xiaomi's
+one-time cross-app prompt. The prompt named the signed debug companion.
+The original instrumentation remained incomplete after the prompt
+cleared and a bounded follow-up observation. The owned debug target
+was stopped, and the instrumentation and its host handle both ended.
+The incomplete cohort stays in the evidence.
+
+Direct checks launched Tasks and Chat using the same destination extras
+the app uses for reminders. On the actual Xiaomi, raising Android text
+from 0.9 to 1.3 increased the Tasks explanatory text block from 325 to
+546 pixels in height. The Chat history label belonged to an enabled,
+keyboard-focusable, clickable parent within the screen. The font
+setting was restored. The staged GGUF, production APK and debug APK
+digests matched their originals. Actual notification posting, tap
+delivery, complete room UI acceptance and screen-reader checks remain
+open.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Production beta.11 saved connection | `7657ae38a94d39b654d368eed3a368b6817fd12f86eb4aa8258026791f1309be` |
+| Restored network baseline | `41b94d81e7f5056e3ad34a933fc4d206d98eae6238fee8a96cda5fc52cb44b6f` |
+| Stopped incomplete debug suite readback | `d4901ca8ab805ae5376da4097f85f2b6cdd8b186973a1aa4760d71e9f1248868` |
+| Physical large-text and destination checks | `84ad191317df7d35181d479d86a320aac05dbc1d94f0bc1b687ba43f8a0aa7cc` |
+| Physical text-setting and package restoration | `d1df32aafa9dc0d8982de350734b640f736cd15c5555f4c9aef62361318f1b13` |
 
 ## Verified Hermes main source relocations
 

@@ -13,8 +13,8 @@ signing identity. Two startup regressions triggered on the prior hosted
 matrix. The compact layout and composer setup route passed 1,256 JVM tests,
 both lint variants. The exact release commit passed 1,263 Android 8
 and 1,264 Android 17 cases with independently verified raw coverage.
-`main` points at that commit. Its build verification passed and all four
-main device shards are running.
+`main` points at that commit. Its build verification and 1,263 Android 8
+cases passed. Android 17 and the combined coverage check are running.
 Original-key signing, Xiaomi upgrade, updater and publication remain open.
 The exact-source unsigned APK, lint, native inventory and disposable
 signature rehearsal passed.
@@ -199,6 +199,15 @@ activation review. A fresh authenticated sample again reported admission
 unobserved. The Xiaomi production installation is signed beta.11, code 116.
 [Isolated native evidence](docs/VALIDATION.md#authenticated-workspace-and-heartbeat-recovery-on-the-isolated-pi).
 [Validation](docs/VALIDATION.md#live-gateway-admission-diagnosis).
+
+## Xiaomi saved connection and physical controls
+
+The production beta.11 package reached the Pi using its saved profile
+during a temporary Tailscale connection. The original network state
+was restored. The debug app passed Tasks and Chat destination checks
+at enlarged text. The original text setting was restored. The grouped
+room fixture remained incomplete after Xiaomi's one-time prompt.
+[Physical checks](docs/VALIDATION.md#xiaomi-saved-connection-and-physical-controls).
 
 ## Xiaomi handoff and upstream compatibility
 
