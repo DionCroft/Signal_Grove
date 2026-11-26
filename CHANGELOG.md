@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0-beta.16 - Signal Grove branding
+
+- The wide navigation rail displays the Signal Grove launcher logo.
+- **Settings → About & security** credits Dr Dion Mariyanayagam.
+
 ## 1.1.0-beta.15 - Dark themes
 
 - Choose Moonlit Grove, Midnight Observatory or Amber Terminal in
