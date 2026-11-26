@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0-beta.14 - Shared Hermes chats
+
+- Open **Continue in Hermes** from conversation history to send a
+  follow-up in the same chat on a supported Hermes profile.
+- Follow live activity and view the final reply when the gateway has
+  settled the turn.
+- Open a pending approval and choose **Allow once** or **Deny** for
+  that request.
+- Reopen the chat to check a known message receipt after reconnecting.
+
 ## 1.1.0-beta.13 - Living Grove
 
 - Home's pixel observatory changes at dawn, daytime, dusk and night.
