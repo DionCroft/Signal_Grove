@@ -109,6 +109,27 @@ The revised build passed all five backup cases on Android 8 and 17, all
 hashes were checked. The complete hosted matrix is pending on the
 revised source.
 
+### Prepared offline cases on the repaired Android revision
+
+The Android 17 debug APK pair built from 7d72fb6 passed the three
+separately prepared native cases. Today opened in Airplane mode.
+Tesseract and Vosk recognized synthetic inputs and saved the reviewed
+edits. The verified Qwen GGUF produced both explicit actions and saved
+only the checked, edited task. A repeated save preserved a single task
+and its source link.
+
+The installed APKs and the four fixture files were checked by size or
+SHA-256 as applicable, including a guest-side SHA-256 for every fixture.
+Airplane mode, disabled Wi-Fi and the absence of a default network were
+verified before and after each case. The emulator radio settings were
+restored. Qwen emitted two known progress frames. Their names, ordering
+and timing were verified separately, then the strict native case
+verifier checked the remaining result envelope. Five negative controls
+confirmed that malformed prepared evidence is refused. The original
+native logs are retained and the same strict standard verifier remains
+in use for the hosted matrix.
+[Hosted Android matrix for 7d72fb6](https://github.com/DionCroft/Signal_Grove/actions/runs/46000328663)
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
