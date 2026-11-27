@@ -30,6 +30,51 @@ The local test SHA-256 is `95fe38a480ddb0dee7cb9e7985fcc2624c2edd321cc5cb54837ad
 The change is confined to Android test input. The full hosted matrix on
 this exact source and the physical release checks remain open.
 
+## Prepared offline checks on the touchscreen test source
+
+The local app and test APKs matched all 705 build inputs from
+[8b732fe](https://github.com/DionCroft/Signal_Grove/commit/8b732fec47eb427275b25a0f3d8ef913d59df676).
+On both Android versions, Today opened offline, Tesseract and Vosk
+accepted the reviewed text edits, and Qwen extracted tasks and saved
+only the reviewed result. Both installs also created the share and
+widget fixtures, verified the app process stopped and reopened the
+exact saved captures. All ten native case outcomes matched their
+original test names and both APK digests.
+
+The initial Android 8 run passed the cases and timed out enabling Wi-Fi.
+The recovery used the visible Wi-Fi switch row. A full rerun captured
+and restored the same Wi-Fi, Airplane mode, mobile-data and wake
+settings. Android 17 also restored its original radios. Full standard
+device coverage on the exact test source is tracked separately.
+[Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46030084149)
+
+## Hermes main plugin admission and Windows package cleanup
+
+The 16:11 UTC upstream snapshot `5ba1456` adds 11 commits after
+`9bba163`. Its 27,847 regular Git entries match the published tree.
+The contract scan found identical routes, management paths, job fields
+and constraints, and watched request fields. Two watched plugin
+handlers changed. The static gate still reports 238 used handler and
+29 persistence-source differences against its original baseline.
+[Exact upstream comparison](https://github.com/NousResearch/hermes-agent/compare/9bba163bc1d090852eccc86802eddc454df47d1b...5ba14569d4dd46606b179df4f0b3c6d083b56edf)
+
+The new package logic can skip a Python dependency rebuild when the
+core lock already supplies the plugin's requirements. The three
+original upstream fixtures passed, including refusal of an unattended
+update with an unsatisfied dependency and evaluation of the target
+interpreter's markers. All 13 Windows package cleanup cases passed,
+including removal of long paths during publication recovery.
+The final checks used a disposable Python 3.14.3 environment with
+23 checksum-verified lock wheels. The older Python 3.13 probe
+conservatively refused dependency satisfaction under the 3.14 lock.
+
+Gateway and shutdown source paths carry forward from the reviewed
+runtime snapshot. The native Linux runtime and replay results remain
+anchored to stable v0.23.4 and main `9bba163`. Live plugin enablement,
+delivery, public-host sign-in and phone-to-Pi recovery remain open.
+[Native SDK evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46022100001) ·
+[Native shutdown evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46022114644)
+
 ## 27 November post-workspace audit
 
 The exact development app passed 1,266 JVM tests, both lint variants and
