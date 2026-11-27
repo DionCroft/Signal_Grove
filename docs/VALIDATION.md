@@ -227,6 +227,26 @@ remains an open deployment check.
 [Initial run](https://github.com/DionCroft/Signal_Grove/actions/runs/45984263789) ·
 [Verified recovery run](https://github.com/DionCroft/Signal_Grove/actions/runs/45984906847)
 
+## Hermes main contract recheck at `28ef6e4`
+
+Stable remained v0.23.4. Public main advanced three commits from
+`1d15aad` to `28ef6e4`. The Git and GitHub trees agreed on all 27,824
+tracked entries and 131 executable paths. Five files changed, all
+in CLI backup, its tests or its documentation. The CLI now excludes
+`portal-recovery` and `lost+found` at the Hermes root and applies the
+same skip rules to import verification and restore. The shared home
+layout module adds the root exclusion set. The existing exports used
+by the gateway and profiles are identical.
+
+All 31 relocated contract and dependency files and all 28 native
+test source files for shutdown, persistence, profile receipts and
+reconnect are byte-identical between the two main revisions. The two
+shutdown overlay input digests also match. The recorded native Linux
+runs exercised v0.23.4 and `1d15aad`. The `28ef6e4` result is a
+source comparison. Live Pi recovery remains an open acceptance check.
+[Public Hermes comparison](https://github.com/NousResearch/hermes-agent/compare/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d...28ef6e4e7d1df3015bf786dea6b0d355baf5c211) ·
+[Stable v0.23.4](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and
