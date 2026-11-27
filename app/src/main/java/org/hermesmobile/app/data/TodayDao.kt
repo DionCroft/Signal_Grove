@@ -11,7 +11,8 @@ internal interface TodayDao {
     fun unprocessedCaptures(): Flow<Int>
 
     @Query("""SELECT session.scope, session.key AS sessionKey, session.title AS sessionTitle,
-        control.runId, control.requestId, control.receivedAt AS lastConfirmedAt
+        control.runId, control.requestId, control.`key` AS controlKey, control.generation,
+        control.receivedAt AS lastConfirmedAt
         FROM pending_controls control INNER JOIN sessions session ON session.key = control.sessionKey
         WHERE session.scope = :scope AND session.hidden = 0 AND session.runId = control.runId
             AND session.executionGeneration IS control.generation AND session.status NOT IN (:terminal)

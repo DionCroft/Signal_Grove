@@ -11,6 +11,8 @@ import okhttp3.mockwebserver.*
 import okio.ByteString.Companion.encodeUtf8
 import org.hermesmobile.app.data.CanonicalFeedOwner
 import org.hermesmobile.app.data.CanonicalReviewChanged
+import org.hermesmobile.app.data.CanonicalReplayCursor
+import org.hermesmobile.app.data.CanonicalSessionSnapshot
 import org.hermesmobile.app.data.HermesContextStats
 import org.hermesmobile.app.data.ManagementTarget
 import org.hermesmobile.app.data.PluginHome
@@ -45,6 +47,33 @@ class CanonicalGatewayChannelTest {
                 override fun onMessage(ws: WebSocket, text: String) {
                     val request = Json.parseToJsonElement(text).jsonObject
                     calls.add(request)
+                    if (mode.startsWith("approval")) {
+                        val id = request.getValue("id")
+                        when (request["method"]) {
+                            JsonPrimitive("session.list") -> {
+                                ws.send("""{"jsonrpc":"2.0","id":$id,"result":{"scope":"live","sessions":[
+                                    {"id":"desktop","session_id":"desktop","title":"Desktop task","source":"cli","message_count":7,"running":false},
+                                    {"id":"other","session_id":"other","title":"Second task","source":"cli","message_count":4,"running":true}
+                                ]}}""".trimIndent())
+                                return
+                            }
+                            JsonPrimitive(SharedChatProtocol.PendingApproval) -> {
+                                val session = request["params"]?.jsonObject?.get("session_id")
+                                val fields = when {
+                                    mode == "approval-unsupported" ->
+                                        """"error":{"code":-32601,"message":"Method not found"}"""
+                                    mode == "approval-partial" && session == JsonPrimitive("other") ->
+                                        """"error":{"code":4001,"message":"not_found","data":{"reason":"not_found"}}"""
+                                    session == JsonPrimitive("desktop") ->
+                                        """"result":{"approvals":[{"request_id":"desktop-request","command":"fixture read","description":"Read fixture","choices":["once","always","deny"],"allow_permanent":true}]}"""
+                                    else -> """"result":{"approvals":[]}"""
+                                }
+                                ws.send("""{"jsonrpc":"2.0","id":$id,$fields}""")
+                                return
+                            }
+                            else -> Unit
+                        }
+                    }
                     if (request["method"] == JsonPrimitive("session.stats")) {
                         val id = request.getValue("id")
                         if (mode == "stats-missing") {
@@ -128,6 +157,92 @@ class CanonicalGatewayChannelTest {
             assertEquals(Json.parseToJsonElement("""{"jsonrpc":"2.0","id":"1","method":"runtime.describe","params":{}}"""), f.calls.single())
         }
     }
+    @Test fun approvalLookupFindsAnotherClientWithoutOpeningOrAnsweringItsSession() = runBlocking {
+        Fixture("approval-found").use { fixture ->
+            withTimeout(4000) {
+                CanonicalGatewayChannel.connect(fixture.http, fixture.base, fixture.ticket, fixture.target, home()).use { channel ->
+                    val inbox = channel.pendingApprovalInbox()
+                    assertSame(channel.binding, inbox.binding)
+                    assertEquals(2, inbox.listedSessions)
+                    assertEquals(2, inbox.checkedSessions)
+                    assertFalse(inbox.incomplete)
+                    val notice = inbox.notices.single()
+                    assertEquals("desktop", notice.session.sessionId)
+                    assertEquals("desktop-request", notice.request.id)
+                    assertTrue(notice.request.reviewable)
+                    assertFalse(notice.session.reportedRunning)
+                    assertEquals("CanonicalApprovalNotice(redacted)", notice.toString())
+                    assertEquals("SharedApprovalNotice(redacted)", notice.request.toString())
+
+                    val owner = CanonicalFeedOwner(fixture.target, home(), "/fixture/default", "fixture-instance", "desktop", 7)
+                    fun snapshot(scope: CanonicalFeedOwner = owner, requested: String = "desktop", generation: Long = 9) =
+                        CanonicalSessionSnapshot(scope, requested, "stored-desktop", "sub-1", CanonicalReplayCursor("epoch", 1),
+                            revision = 3, executionGeneration = generation, reportedRunning = true, messageCount = 0, messagesOmitted = false)
+                    val approval = SharedApproval("desktop-request", 9, "fixture read", "Read fixture", setOf("deny", "once"))
+                    assertTrue(notice.matches(snapshot(), approval))
+                    for (wrongScope in listOf(
+                        owner.copy(sessionId = "other"), owner.copy(homeId = "d".repeat(64)),
+                        owner.copy(profileId = "/fixture/other"), owner.copy(instanceId = "different"),
+                        owner.copy(authorityEpoch = 8), owner.copy(target = fixture.target.copy(actor = "fixture · other")),
+                        owner.copy(target = fixture.target.copy(apiScope = "a".repeat(64)))
+                    )) assertFalse(notice.matches(snapshot(scope = wrongScope), approval))
+                    assertFalse(notice.matches(snapshot(requested = "other"), approval))
+                    assertFalse(notice.matches(snapshot(generation = 10), approval))
+                    assertFalse(notice.matches(snapshot(), approval.copy(id = "other-request")))
+                    assertFalse(notice.matches(snapshot(), approval.copy(command = "changed")))
+                    assertFalse(notice.matches(snapshot(), approval.copy(choices = setOf("once"))))
+                }
+            }
+            assertEquals(listOf("runtime.describe", "session.list", "approval.pending", "approval.pending"),
+                fixture.calls.map { it.getValue("method").jsonPrimitive.content })
+            assertEquals(buildJsonObject { put("scope", "live"); put("limit", 200) }, fixture.calls[1]["params"])
+            assertEquals(buildJsonObject { put("session_id", "desktop") }, fixture.calls[2]["params"])
+            assertEquals(buildJsonObject { put("session_id", "other") }, fixture.calls[3]["params"])
+            val upgrade = fixture.server.takeRequest(3, TimeUnit.SECONDS)!!
+            assertEquals("/prefix/api/ws", upgrade.path)
+            for (header in listOf("Authorization", "Cookie", "Origin")) assertNull(upgrade.getHeader(header))
+        }
+    }
+
+    @Test fun approvalLookupDistinguishesAnIncompleteScanAndAnUnsupportedMethod() = runBlocking {
+        Fixture("approval-partial").use { fixture ->
+            withTimeout(4000) {
+                CanonicalGatewayChannel.connect(fixture.http, fixture.base, fixture.ticket, fixture.target, home()).use { channel ->
+                    val inbox = channel.pendingApprovalInbox()
+                    assertTrue(inbox.incomplete)
+                    assertEquals(1, inbox.checkedSessions)
+                    assertEquals(2, inbox.listedSessions)
+                    assertEquals("desktop-request", inbox.notices.single().request.id)
+                }
+            }
+            assertEquals(4, fixture.calls.size)
+        }
+        Fixture("approval-unsupported").use { fixture ->
+            withTimeout(4000) {
+                CanonicalGatewayChannel.connect(fixture.http, fixture.base, fixture.ticket, fixture.target, home()).use { channel ->
+                    assertTrue(runCatching { channel.pendingApprovalInbox() }.exceptionOrNull() is CanonicalNotSupported)
+                }
+            }
+            assertEquals(listOf("runtime.describe", "session.list", "approval.pending"),
+                fixture.calls.map { it.getValue("method").jsonPrimitive.content })
+        }
+    }
+
+    @Test fun pendingApprovalRejectsAmbiguousRequestsAndKeepsUnsupportedChoicesReadOnly() {
+        val row = Json.parseToJsonElement("""{"request_id":"id","command":"read fixture","description":"","choices":["always"],"allow_permanent":true}""").jsonObject
+        fun decode(vararg rows: JsonElement) = SharedChatProtocol.pendingApprovals(buildJsonObject {
+            put("approvals", JsonArray(rows.toList()))
+        })
+        assertFalse(decode(row).single().reviewable)
+        for (ambiguous in listOf(
+            JsonObject(row + ("request_id" to JsonPrimitive(5))),
+            JsonObject(row + ("command" to JsonPrimitive("a".repeat(16385)))),
+            JsonObject(row + ("allow_permanent" to JsonPrimitive(false))),
+            JsonObject(row + ("choices" to JsonArray(listOf(JsonPrimitive("always"), JsonPrimitive("always")))))
+        )) assertNotNull(runCatching { decode(ambiguous) }.exceptionOrNull())
+        assertNotNull(runCatching { decode(row, row) }.exceptionOrNull())
+    }
+
     @Test fun contextReadUsesOnlyTheAlreadyReviewedSessionAndRejectsAnotherRuntime() = runBlocking {
         Fixture().use { fixture ->
             val channel = withTimeout(4000) {

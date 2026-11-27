@@ -54,13 +54,28 @@ import java.time.format.DateTimeFormatter
     }
     if(control!=null && dismissed!=control.key) PendingControlDialog(control,sending,{dismissed=control.key},vm::respondControl,vm::retryOrRefresh)
 }
-@Composable private fun PendingControlDialog(c:PendingControl,sending:Boolean,dismiss:()->Unit,respond:(PendingControl,String)->Unit,refresh:()->Unit) {
+@Composable
+internal fun PendingControlDialog(
+    c: PendingControl, sending: Boolean, dismiss: () -> Unit, respond: (PendingControl, String) -> Unit,
+    refresh: () -> Unit, todayStatus: Words? = null, fromToday: Boolean = false
+) {
     var answer by remember(c.key,c.generation) {mutableStateOf("")}
     val identity=c.runId.isNotBlank() && c.requestId.isNotBlank() && (c.kind=="approval" || c.generation!=null)
-    val enabled=identity && c.state=="pending" && !sending
+    val enabled=identity && c.state=="pending" && !sending && todayStatus == null
     AlertDialog(onDismissRequest=dismiss,title={Text(label(if(c.kind=="approval") Words.Approval else Words.WaitingInput))},text={
         Column(Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             SelectionContainer {Text(c.prompt)}
+            if (fromToday) {
+                Text(label(Words.TodayApprovalRequestId) + " · " + c.requestId)
+                Text(label(Words.TodayApprovalRunId) + " · " + c.runId)
+                c.generation?.let { Text(label(Words.TodayApprovalGeneration) + " · " + it) }
+                todayStatus?.let { status ->
+                    Text(label(status))
+                    if (status == Words.TodayApprovalCached) TextButton(refresh, enabled = !sending) {
+                        Text(label(Words.CheckRun))
+                    }
+                }
+            }
             if(c.limited) Text(label(Words.LimitedConsent),color=MaterialTheme.colorScheme.error)
             if(!identity) Text(label(Words.MissingIdentity),color=MaterialTheme.colorScheme.error)
             if(c.state=="responding" || sending) {Text(label(Words.ResponseSending));QuietProgress()}

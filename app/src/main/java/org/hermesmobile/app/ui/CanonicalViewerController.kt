@@ -15,7 +15,15 @@ internal class CanonicalViewerAccess(
         generation==other.generation && tokens===other.tokens
     override fun toString()="CanonicalViewerAccess(redacted)"
 }
-internal data class CanonicalViewerSelection(val target:ManagementTarget,val home:String,val contextGeneration:Long,val sessionId:String) {override fun toString()="CanonicalViewerSelection(redacted)"}
+internal data class CanonicalViewerSelection(
+    val target: ManagementTarget,
+    val home: String,
+    val contextGeneration: Long,
+    val sessionId: String,
+    val approval: CanonicalApprovalNotice? = null
+) {
+    override fun toString() = "CanonicalViewerSelection(redacted)"
+}
 internal enum class CanonicalViewerPhase { Closed, Loading, Inventory, Opening, Following, Held }
 internal class CanonicalViewerReview(val approval:CanonicalResumeReview,val generation:Long) {
     override fun toString()="CanonicalViewerReview(redacted)"
@@ -68,6 +76,7 @@ internal class CanonicalViewerController(
     val state=MutableStateFlow(CanonicalViewerState())
     val sharedChat = SharedChatController(scope, guard)
     private var continuing = false
+    private var approvalNotice: CanonicalApprovalNotice? = null
     private var generation=0L
     private var task:Job?=null
     private var workspaceTask:Job?=null
@@ -104,7 +113,7 @@ internal class CanonicalViewerController(
     }
     fun load(selected:CanonicalSessionScope)=load(selected,null)
     internal fun loadSelection(selection: CanonicalViewerSelection, continueChat: Boolean = false) =
-        load(CanonicalSessionScope.Stored, selection, continueChat)
+        load(if (selection.approval != null) CanonicalSessionScope.Live else CanonicalSessionScope.Stored, selection, continueChat)
     private fun load(selected:CanonicalSessionScope,selection:CanonicalViewerSelection?, continueChat: Boolean = false) {
         if(state.value.busy || state.value.phase==CanonicalViewerPhase.Following) return
         close()
@@ -112,11 +121,20 @@ internal class CanonicalViewerController(
         if(selection!=null && (selection.target!=access.target || selection.home!=access.home || selection.contextGeneration!=access.generation)) {
             state.value=CanonicalViewerState(error=Words.ManagementReviewChanged);return
         }
+        val notice = selection?.approval
+        if (notice != null && (!continueChat || notice.binding.target != access.target ||
+                notice.binding.homeId != access.home || notice.session.sessionId != selection.sessionId ||
+                !notice.request.reviewable)) {
+            state.value = CanonicalViewerState(error = Words.ManagementReviewChanged)
+            return
+        }
         val id=generation;acceptedContext=access;continuing=continueChat
+        approvalNotice = notice
         state.value=CanonicalViewerState(phase=CanonicalViewerPhase.Loading,scope=selected)
         launch(id,access) {
             val inventory=repository.prepare(access.target,access.home,access.api,access.tokens,selected)
             requireCurrent(id,access)
+            if (notice != null && !notice.matches(inventory)) throw CanonicalReviewChanged()
             state.value=state.value.copy(phase=CanonicalViewerPhase.Inventory,inventory=inventory)
             if(selection!=null) {
                 if(inventory.rows.none {it.sessionId==selection.sessionId}) state.value=state.value.copy(error=if (continuing) Words.SharedChatUnavailable else Words.ProjectConversationNotListed)
@@ -128,6 +146,7 @@ internal class CanonicalViewerController(
         val value=state.value;val access=acceptedContext ?: return
         if(value.phase!=CanonicalViewerPhase.Inventory || !access.same(context())) return
         val inventory=value.inventory ?: return
+        if (approvalNotice?.session?.sessionId?.let { it != sessionId } == true) return
         val approval=try {inventory.review(sessionId)} catch(_:CanonicalReviewChanged) {
             state.value=value.copy(review=null,error=Words.ManagementReviewChanged);return
         }
@@ -139,11 +158,12 @@ internal class CanonicalViewerController(
     fun approve(review:CanonicalViewerReview,fresh:Boolean) {
         if(!reviewCurrent(review)) return
         val access=checkNotNull(acceptedContext);val id=generation
+        val notice = approvalNotice
         // Remove this one-use UI approval before launching any asynchronous work.
         state.value=state.value.copy(phase=CanonicalViewerPhase.Opening,review=null,title=review.approval.row.title,
             sessionId=review.approval.row.sessionId,error=null)
         launch(id,access) {
-            val previous=if(fresh) null else repository.lastApplied(access.target,access.home,review.approval.row.sessionId)
+            val previous=if(fresh || notice != null) null else repository.lastApplied(access.target,access.home,review.approval.row.sessionId)
             requireCurrent(id,access)
             var link:CanonicalViewerLink?=null
             try {
@@ -155,7 +175,7 @@ internal class CanonicalViewerController(
                     workspace=attached.attachment.snapshot.workspace,workspaceObservedAt=now(),workspaceSnapshot=attached.attachment.snapshot)
                 beat(attached)
                 requireCurrent(id,access)
-                if (continuing) sharedChat.attach(attached) { current(id, access) && connection === attached }
+                if (continuing) sharedChat.attach(attached, notice) { current(id, access) && connection === attached }
                 apply(id,access,attached,attached.attachment.initial)
                 state.value=state.value.copy(phase=CanonicalViewerPhase.Following,heartbeatAt=now())
                 if (continuing) sharedChat.start()
@@ -409,6 +429,7 @@ internal class CanonicalViewerController(
     }
     fun close() {
         continuing = false
+        approvalNotice = null
         sharedChat.close()
         generation++;task?.cancel();task=null;workspaceTask?.cancel();workspaceTask=null;connection?.close();connection=null;acceptedContext=null
         clearContextRead()

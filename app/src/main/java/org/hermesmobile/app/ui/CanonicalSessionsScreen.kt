@@ -33,12 +33,21 @@ import java.util.Date
         onDispose {lifecycle.removeObserver(observer);controller.close()}
     }
     LaunchedEffect(controller,selection) {if(selection==null) controller.load(CanonicalSessionScope.Live) else controller.loadSelection(selection, continuing)}
-    val title = if (continuing) Words.SharedChatOpen else Words.ViewerTitle
+    val approval = selection?.approval
+    val title = when {
+        approval != null -> Words.SharedApprovalReview
+        continuing -> Words.SharedChatOpen
+        else -> Words.ViewerTitle
+    }
     AlertDialog(onDismissRequest=close,title={Text(label(title))},text={
       Column {
         LazyColumn(Modifier.heightIn(max=480.dp).weight(1f, fill = false).testTag("canonical-viewer-list"),
             verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            item {Text(label(if (continuing) Words.SharedChatInfo else Words.ViewerBoundary))}
+            item {Text(label(when {
+                approval != null -> Words.TodayApprovalAttach
+                continuing -> Words.SharedChatInfo
+                else -> Words.ViewerBoundary
+            }))}
             if(!continuing && s.phase!=CanonicalViewerPhase.Following) {
                 item {TextButton({controller.load(CanonicalSessionScope.Live)},enabled=available && !s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-live")) {Text(label(Words.ViewerLive))}}
                 item {TextButton({controller.load(CanonicalSessionScope.Stored)},enabled=available && !s.busy,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-stored")) {Text(label(Words.ViewerStored))}}
@@ -67,7 +76,7 @@ import java.util.Date
                 item {Text(s.title.ifBlank {s.sessionId},style=MaterialTheme.typography.titleMedium);SelectionContainer {Text(s.sessionId)};Text(label(Words.ViewerSnapshotNote))}
                 if(s.phase==CanonicalViewerPhase.Following) item {Text(label(Words.ViewerFollowing),modifier=Modifier.testTag("canonical-following"))}
                 if (continuing) {
-                    item(key = "shared-status") { SharedChatStatus(shared, controller.sharedChat) }
+                    item(key = "shared-status") { SharedChatStatus(shared, controller.sharedChat, approval != null) }
                     if (s.phase == CanonicalViewerPhase.Following && !shared.available) {
                         item { Text(label(Words.SharedChatUnavailable)) }
                     }
@@ -143,7 +152,7 @@ import java.util.Date
             s.workspaceNotice?.let {message->item {Text(label(message),Modifier.testTag("workspace-result"))}}
             s.error?.let {message->item {Text(label(message),color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("canonical-error"))}}
         }
-        if (continuing && s.phase == CanonicalViewerPhase.Following && shared.available) {
+        if (continuing && approval == null && s.phase == CanonicalViewerPhase.Following && shared.available) {
             SharedChatComposer(shared, controller.sharedChat)
         }
       }
@@ -164,9 +173,10 @@ import java.util.Date
             LazyColumn(Modifier.heightIn(max=360.dp).testTag("canonical-open-review"),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 item {Text(inventory.binding.target.url);Text(inventory.binding.target.profile);Text(inventory.binding.target.actor)}
                 item {SelectionContainer {Column {Text(review.approval.row.title.ifBlank {review.approval.row.sessionId});Text(review.approval.row.sessionId)}}}
-                item {Text(label(Words.ViewerResumeEffect))}
+                approval?.let { request -> item { Text(label(Words.TodayApprovalRequestId)); Text(request.request.id) } }
+                item {Text(label(if (approval == null) Words.ViewerResumeEffect else Words.TodayApprovalAttach))}
                 item {Row {Checkbox(consent,{consent=it},modifier=Modifier.testTag("canonical-consent"));Text(label(Words.ViewerConsent))}}
-                item {Row {Checkbox(fresh,{fresh=it},modifier=Modifier.testTag("canonical-fresh"));Text(label(Words.ViewerFresh))};Text(label(Words.ViewerFreshNote))}
+                if (approval == null) item {Row {Checkbox(fresh,{fresh=it},modifier=Modifier.testTag("canonical-fresh"));Text(label(Words.ViewerFresh))};Text(label(Words.ViewerFreshNote))}
             }
         },confirmButton={TextButton({controller.approve(review,fresh)},enabled=consent && !pending && controller.reviewCurrent(review),modifier=Modifier.heightIn(min=48.dp).testTag("canonical-open-confirm")) {Text(label(Words.ViewerOpen))}},
             dismissButton={TextButton(controller::cancelReview,modifier=Modifier.heightIn(min=48.dp).testTag("canonical-open-cancel")) {Text(label(Words.Cancel))}})

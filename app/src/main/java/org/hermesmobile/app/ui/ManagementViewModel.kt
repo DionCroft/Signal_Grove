@@ -190,6 +190,30 @@ class ManagementViewModel(application:Application):AndroidViewModel(application)
         return CanonicalViewerSelection(access.target, access.home, access.generation, sessionId)
     }
 
+    internal fun todayApprovalBlockReason(apiScope: String): Words? = when {
+        state.value.apiScope != apiScope -> Words.Loading
+        state.value.busy -> Words.TodayRefreshBusy
+        !state.value.signedIn || state.value.profile.isBlank() -> Words.TodayApprovalSignIn
+        tokens?.let { it.expiresAt <= System.currentTimeMillis() / 1000 } == true -> Words.ManagementExpired
+        canonicalAccess()?.target?.apiScope != apiScope -> Words.ManagementVerify
+        else -> null
+    }
+
+    internal suspend fun discoverTodayApprovals(apiScope: String): CanonicalApprovalInbox {
+        if (todayApprovalBlockReason(apiScope) != null) throw CanonicalScopeChanged()
+        val access = canonicalAccess() ?: throw CanonicalScopeChanged()
+        val inbox = canonicalOperations.discoverApprovals(access.target, access.home, access.api, access.tokens)
+        if (!access.same(canonicalAccess()) || todayApprovalBlockReason(apiScope) != null) throw CanonicalScopeChanged()
+        return inbox
+    }
+
+    internal fun reviewTodayApproval(apiScope: String, notice: CanonicalApprovalNotice): CanonicalViewerSelection? {
+        val access = canonicalAccess() ?: return null
+        if (todayApprovalBlockReason(apiScope) != null || !notice.request.reviewable ||
+            notice.binding.target != access.target || notice.binding.homeId != access.home) return null
+        return CanonicalViewerSelection(access.target, access.home, access.generation, notice.session.sessionId, notice)
+    }
+
     internal fun refreshSharedChatAccess(apiScope: String) {
         if (state.value.apiScope != apiScope || tokens == null) return
         operation { id ->

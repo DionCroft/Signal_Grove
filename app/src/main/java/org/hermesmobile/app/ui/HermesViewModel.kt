@@ -67,6 +67,22 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    internal fun todayApprovalDetails(row: TodayApproval): Flow<PendingControl?> =
+        dao.controls(row.sessionKey).map { rows -> rows.singleOrNull(row::matches) }
+
+    internal fun todayApprovalIsCurrent(row: TodayApproval, generation: Long, now: Long): Boolean {
+        val snapshot = todayRemoteSnapshot.value ?: return false
+        return row.scope == scope.value && snapshot.scope == row.scope &&
+            generation == todayGeneration.value && snapshot.connectionGeneration == generation &&
+            connectionStatus.value == "connected" &&
+            snapshot.confirmed[TodayRunIdentity(row.sessionKey, row.runId)]?.let { now - it in 0..120_000L } == true
+    }
+
+    internal fun respondTodayApproval(row: TodayApproval, generation: Long, control: PendingControl, response: String) {
+        if (busy.value || !row.matches(control) || !todayApprovalIsCurrent(row, generation, System.currentTimeMillis())) return
+        respondControl(control, response, row, generation)
+    }
+
     internal fun refreshTodayIfStale() {
         val cached = todayRemoteSnapshot.value
         if (cached?.scope != scope.value || cached.connectionGeneration != todayGeneration.value ||
@@ -809,18 +825,30 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         } catch(e: CancellationException) {throw e}
         catch(e: Exception) {if(reportErrors && current(operation) && selected.value==c.key) error.value=connectionError(e);return null}
     }
-    fun respondControl(control: PendingControl,response: String) {
+    fun respondControl(control: PendingControl, response: String) = respondControl(control, response, null)
+
+    private fun respondControl(
+        control: PendingControl, response: String, today: TodayApproval?, generation: Long = todayGeneration.value
+    ) {
         if(controlBusy.value || connecting.value) return
         val operation=context()
         controlBusy.value=true
         viewModelScope.launch {
-            val c=dao.conversation(control.sessionKey)
             try {
-                require(c!=null && c.key==selected.value && c.scope==scope.value) {"Select the current conversation first."}
+                val c = if (today == null) dao.conversation(control.sessionKey)
+                    else todayDao.visibleSession(today.scope, today.sessionKey)
+                require(c != null && current(operation) && c.scope == operation.partition &&
+                    (if (today == null) c.key == selected.value else
+                        c.runId == today.runId && c.executionGeneration == today.generation &&
+                            todayApprovalIsCurrent(today, generation, System.currentTimeMillis()))) {
+                    "The reviewed conversation or run has changed."
+                }
                 SessionOrigin.requireWritable(c,Words.ReadOnlySession.localized(preferences.value))
                 interactionsRepo.respond(operation.client,c,control,response)
-                activity.value="Response delivered; waiting for the server's run status."
-                runStatus.value="response_submitted"
+                if (selected.value == c.key) {
+                    activity.value="Response delivered; waiting for the server's run status."
+                    runStatus.value="response_submitted"
+                }
                 if(!busy.value) reconcile(c,operation=operation)
             } catch(e: CancellationException) {throw e}
             catch(e: Exception) {error.value=connectionError(e)}

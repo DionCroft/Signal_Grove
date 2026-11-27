@@ -119,6 +119,82 @@ class TodayConnectionTest {
         }
     }
 
+    @Test fun twoApprovalsOnOneRunOpenAndRespondToTheSelectedRequest() {
+        val id = UUID.randomUUID().toString().take(8)
+        val run = "today-two-$id"
+        val other = "other-$id"
+        val reviewed = "reviewed-$id"
+        val calls = CopyOnWriteArrayList<String>()
+        val decided = AtomicBoolean(false)
+        val db = app.database
+        var key = ""
+        fun json(body: String) = MockResponse().setHeader("Content-Type", "application/json").setBody(body)
+        fun prompt(request: String, description: String) =
+            """{"kind":"approval","request_id":"$request","description":"$description","choices":["once","deny"]}"""
+        try {
+            MockWebServer().use { server ->
+                server.dispatcher = object : Dispatcher() {
+                    override fun dispatch(request: RecordedRequest): MockResponse = when (request.requestUrl?.encodedPath) {
+                        "/v1/capabilities" -> json(
+                            """{"features":{"session_resources":true,"session_chat":true,"run_events_sse":true},"endpoints":{"runs":{}}}""")
+                        "/api/jobs" -> json("""{"jobs":[]}""")
+                        "/api/sessions" -> json("""{"data":[],"has_more":false}""")
+                        "/v1/runs/$run" -> {
+                            val prompts = buildList {
+                                add(prompt(other, "Different request in the same run"))
+                                if (!decided.get()) add(prompt(reviewed, "Precisely reviewed request"))
+                            }
+                            json("""{"run_id":"$run","status":"waiting_for_approval","execution_generation":4,"pending_controls":[${prompts.joinToString()}]}""")
+                        }
+                        "/v1/runs/$run/approval" -> {
+                            calls.add(request.body.readUtf8())
+                            decided.set(true)
+                            json("""{"run_id":"$run","request_id":"$reviewed","status":"resolved"}""")
+                        }
+                        else -> json("{}").setResponseCode(404)
+                    }
+                }
+                compose.waitUntil(15_000) { !vm.connecting.value }
+                val destination = server.url("/").toString()
+                val token = credentials.uniqueToken("today-two")
+                compose.runOnUiThread { vm.configure(destination, token, true) }
+                compose.waitUntil(15_000) { !vm.connecting.value && vm.connectionStatus.value == "connected" &&
+                    !vm.todayRefreshing.value }
+                val target = vm.profileScope.value
+                key = "$target:$run"
+                runBlocking {
+                    db.dao().save(Conversation(key, target, run, "Two approval requests", System.currentTimeMillis(),
+                        transport = "runs", runId = run, status = "waiting_for_approval", executionGeneration = 4))
+                }
+                compose.runOnUiThread { vm.refreshToday() }
+                compose.waitUntil(15_000) {
+                    !vm.todayRefreshing.value && vm.todayRemoteSnapshot.value?.confirmed
+                        ?.containsKey(TodayRunIdentity(key, run)) == true &&
+                        vm.todayApprovals.value.count { it.runId == run } == 2
+                }
+                compose.onNodeWithTag("today-approval-$reviewed").performScrollTo().performClick()
+                val shown = compose.onNodeWithText("Precisely reviewed request")
+                compose.waitUntil(15_000) { shown.isDisplayed() }
+                shown.assertIsDisplayed()
+                compose.onNodeWithText("Different request in the same run").assertDoesNotExist()
+                val deny = compose.onNodeWithText(Words.Deny.localized(vm.preferences.value))
+                deny.assertIsEnabled().performClick()
+                compose.waitUntil(15_000) { calls.size == 1 && !vm.controlBusy.value &&
+                    vm.todayApprovals.value.count { it.runId == run } == 1 }
+                assertEquals("""{"request_id":"$reviewed","execution_generation":4,"choice":"deny"}""", calls.single())
+                assertEquals(listOf(other), vm.todayApprovals.value.filter { it.runId == run }.map { it.requestId })
+                assertTrue(vm.selected.value.isBlank())
+            }
+        } finally {
+            if (key.isNotEmpty()) {
+                val sqlite = db.openHelper.writableDatabase
+                sqlite.execSQL("DELETE FROM pending_controls WHERE sessionKey = ?", arrayOf(key))
+                sqlite.execSQL("DELETE FROM run_reports WHERE sessionKey = ?", arrayOf(key))
+                sqlite.execSQL("DELETE FROM sessions WHERE key = ?", arrayOf(key))
+            }
+        }
+    }
+
     @Test fun refreshAndDisconnectRetainOnlyAttributableRunAndApprovalReceipts() {
         val id = UUID.randomUUID().toString().take(8)
         val activeId = "today-active-$id"

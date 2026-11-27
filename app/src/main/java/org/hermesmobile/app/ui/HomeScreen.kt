@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-@Composable fun HomeScreen(vm: HermesViewModel, go: (String)->Unit) {
+@Composable fun HomeScreen(vm: HermesViewModel, management: ManagementViewModel, go: (String)->Unit) {
     val allConversations by vm.conversations.collectAsStateWithLifecycle()
     val conversations=allConversations.filterNot {it.hidden}
     val tasks by vm.tasks.collectAsStateWithLifecycle()
@@ -39,7 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
             }
             }
         }
-        TodayOverview(vm, tasks, go)
+        TodayOverview(vm, management, tasks, go)
         HermesCard {
             TextButton({modelOverview=true},Modifier.testTag("home-model-status")) {Text(label(Words.ModelStatus))}
             ModelStatusOverview(vm,compact=true,onOpen={modelOverview=true},onChoose={modelPicker=true})

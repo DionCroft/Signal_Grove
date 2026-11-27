@@ -34,7 +34,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@Composable fun ChatScreen(vm: HermesViewModel) {
+@Composable fun ChatScreen(vm: HermesViewModel, management: ManagementViewModel) {
     val messages by vm.messages.collectAsStateWithLifecycle()
     val reports by vm.runReports.collectAsStateWithLifecycle()
     var accountingHistory by remember {mutableStateOf(false)}
@@ -135,7 +135,7 @@ import java.time.format.DateTimeFormatter
     if(readOnly && readOnlyInfo) AlertDialog(onDismissRequest={readOnlyInfo=false},title={Text(label(Words.ReadOnlyHistory))},text={
         Column(Modifier.heightIn(max=440.dp).verticalScroll(rememberScrollState()).testTag("chat-read-only-reason")) {Text(label(Words.ReadOnlySession))}
     },confirmButton={TextButton({readOnlyInfo=false},Modifier.heightIn(min=48.dp).testTag("chat-read-only-close")) {Text(label(Words.Close))}})
-    if (continueChat && sharedSession != null) SharedChatEntry(sharedSession) { refresh ->
+    if (continueChat && sharedSession != null) SharedChatEntry(sharedSession, management) { refresh ->
         continueChat = false
         if (refresh) vm.refreshHistory()
     }

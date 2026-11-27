@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 
 data class Destination(val word: Words, val icon: ImageVector) { val route get()=word.name }
@@ -34,6 +35,7 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
 @Composable fun HermesApp(vm: HermesViewModel,requestedRoute: String? = null,handled: ()->Unit = {},sharedImages:org.hermesmobile.app.data.SharedImages?=null,shareHandled:()->Unit={}) {
     val brand=stringResource(R.string.app_name)
     val nav=rememberNavController()
+    val management: ManagementViewModel = viewModel()
     val back by nav.currentBackStackEntryAsState()
     val current=back?.destination?.route ?: "Home"
     val error by vm.error.collectAsStateWithLifecycle()
@@ -119,12 +121,12 @@ val destinations=listOf(Destination(Words.Home,Icons.Outlined.Home),Destination(
                     if(error!=null) ErrorBanner(error.orEmpty(),vm::dismissError)
                     if(busy && current!="Chat") TextButton({go("Chat")},Modifier.fillMaxWidth()) { Text(label(Words.Running)) }
                     NavHost(nav,"Home",Modifier.fillMaxSize(),enterTransition={if(reduced) EnterTransition.None else fadeIn(tween(180))+slideInHorizontally(tween(220)) {it/24}},exitTransition={if(reduced) ExitTransition.None else fadeOut(tween(120))},popEnterTransition={if(reduced) EnterTransition.None else fadeIn(tween(160))},popExitTransition={if(reduced) ExitTransition.None else fadeOut(tween(120))+slideOutHorizontally(tween(180)) {it/24}}) {
-                        composable("Home") { HomeScreen(vm) { go(it) } }
-                        composable("Chat") { ChatScreen(vm) }
+                        composable("Home") { HomeScreen(vm, management) { go(it) } }
+                        composable("Chat") { ChatScreen(vm, management) }
                         composable("Tasks") { TasksScreen(vm) }
                         composable("Automation") { JobsScreen(vm) }
                         composable("Voice") { VoiceScreen(vm) { go("Chat") } }
-                        composable("Settings") { SettingsScreen(vm) {go("ServerDetails")} }
+                        composable("Settings") { SettingsScreen(vm, management) {go("ServerDetails")} }
                         composable("ServerDetails") { ServerDetailsScreen(vm) {go("Settings")} }
                     }
                 }

@@ -31,20 +31,29 @@ internal class SharedChatController(
     private var action: Job? = null
     private var poll: Job? = null
     private var ready = false
+    private var approvalOnly: SharedApproval? = null
 
-    suspend fun attach(link: CanonicalViewerLink, current: () -> Boolean) {
+    suspend fun attach(link: CanonicalViewerLink, notice: CanonicalApprovalNotice? = null, current: () -> Boolean) {
         close()
-        if (!link.sharedChatAvailable) return
-        val pending = link.pendingPrompt()
+        if (!link.sharedChatAvailable) {
+            if (notice != null) throw CanonicalNotSupported()
+            return
+        }
+        val pending = if (notice == null) link.pendingPrompt() else null
         if (!current()) return
-        val approvals = link.attachment.snapshot.approvalRows.mapNotNull {
+        val snapshot = link.attachment.snapshot
+        val approvals = snapshot.approvalRows.mapNotNull {
             SharedChatProtocol.approval(it as? JsonObject ?: throw GatewayProtocolException())
         }
         require(approvals.map { it.id }.distinct().size == approvals.size)
+        val exact = notice?.let { selected ->
+            approvals.singleOrNull { selected.matches(snapshot, it) } ?: throw CanonicalReviewChanged()
+        }
         attached = link
         isCurrent = current
+        approvalOnly = exact
         ready = false
-        state.value = SharedChatState(available = true, approvals = approvals, pending = pending,
+        state.value = SharedChatState(available = true, approvals = exact?.let(::listOf) ?: approvals, pending = pending,
             status = if (pending?.admissionId == null && pending != null) Words.SharedPromptUnknown else null)
     }
 
@@ -60,27 +69,33 @@ internal class SharedChatController(
         val snapshotSequence = link.attachment.snapshot.cursor.sequence
         val before = state.value.approvals
         var approvals = before
+        val exact = approvalOnly
         for (event in events) {
             if (event.sequence <= snapshotSequence) continue
             when (event.type) {
                 "approval.request" -> SharedChatProtocol.approval(event.payload)?.let { approval ->
-                    approvals = (approvals.filterNot { it.id == approval.id } + approval).takeLast(64)
+                    if (exact == null) {
+                        approvals = (approvals.filterNot { it.id == approval.id } + approval).takeLast(64)
+                    } else if (approval.id == exact.id && approval != exact) {
+                        approvals = emptyList()
+                    }
                 }
                 "approval.settled" -> approvals = approvals.filterNot { SharedChatProtocol.settled(it, event.payload) }
             }
         }
-        if (approvals != before) state.value = state.value.copy(approvals = approvals)
+        if (approvals != before) state.value = state.value.copy(approvals = approvals,
+            status = if (exact != null && approvals.isEmpty()) Words.ManagementReviewChanged else state.value.status)
     }
 
     fun edit(text: String) {
-        if (ready && !state.value.busy && text.length <= SharedChatProtocol.MaxPrompt) {
+        if (approvalOnly == null && ready && !state.value.busy && text.length <= SharedChatProtocol.MaxPrompt) {
             state.value = state.value.copy(draft = text)
         }
     }
 
     fun send() {
         val before = state.value
-        if (before.pending != null || !SharedChatProtocol.validPrompt(before.draft)) return
+        if (approvalOnly != null || before.pending != null || !SharedChatProtocol.validPrompt(before.draft)) return
         run(Words.SharedPromptUnknown) { link ->
             val receipt = link.sendPrompt(before.draft)
             if (!current(link)) return@run
@@ -101,8 +116,11 @@ internal class SharedChatController(
     }
 
     fun decide(approval: SharedApproval, choice: String) {
-        if (approval !in state.value.approvals || choice !in approval.choices) return
+        val exact = approvalOnly
+        if (approval !in state.value.approvals || choice !in approval.choices ||
+            (exact != null && exact !== approval)) return
         run(Words.SharedApprovalUnknown) { link ->
+            if (exact != null) state.value = state.value.copy(approvals = emptyList())
             val resolved = link.answerApproval(approval, choice)
             if (current(link)) state.value = state.value.copy(approvals = state.value.approvals - approval,
                 status = if (resolved) Words.SharedApprovalRecorded else Words.SharedApprovalAlreadyResolved)
@@ -124,7 +142,8 @@ internal class SharedChatController(
                 throw e
             } catch (e: Exception) {
                 if (current(link)) {
-                    val pending = runCatching { link.pendingPrompt() }.getOrNull() ?: state.value.pending
+                    val pending = if (approvalOnly != null) null
+                    else runCatching { link.pendingPrompt() }.getOrNull() ?: state.value.pending
                     if (current(link)) state.value = state.value.copy(
                         pending = pending,
                         draft = if (pending?.admissionId == null && pending != null) "" else state.value.draft,
@@ -178,6 +197,7 @@ internal class SharedChatController(
 
     fun hold() {
         ready = false
+        approvalOnly = null
         attached = null
         isCurrent = null
         action?.cancel()

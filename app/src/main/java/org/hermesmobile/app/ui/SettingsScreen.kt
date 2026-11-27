@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.hermesmobile.app.BuildConfig
 
-@Composable fun SettingsScreen(vm: HermesViewModel,openServer: ()->Unit) {
+@Composable fun SettingsScreen(vm: HermesViewModel, management: ManagementViewModel, openServer: ()->Unit) {
     val p by vm.preferences.collectAsStateWithLifecycle()
     val runBusy by vm.busy.collectAsStateWithLifecycle()
     val jobBusy by vm.jobBusy.collectAsStateWithLifecycle()
@@ -58,7 +58,7 @@ import org.hermesmobile.app.BuildConfig
             TextButton(vm::forgetServer,enabled=!busy && !connecting) {Text(label(Words.Forget))}
         }
         ConnectionProfiles(vm)
-        ManagementEntry(vm)
+        ManagementEntry(vm, management)
         TextButton(openServer) {Text(label(Words.ServerDetails))}
         TaskFiles(vm)
         BackgroundSettings(vm)

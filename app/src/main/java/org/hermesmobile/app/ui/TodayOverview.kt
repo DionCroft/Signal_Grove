@@ -29,13 +29,16 @@ import java.time.format.FormatStyle
 import kotlinx.coroutines.delay
 import org.hermesmobile.app.LocalAiActivity
 import org.hermesmobile.app.data.LocalTask
+import org.hermesmobile.app.data.TodayApproval
 import org.hermesmobile.app.data.TodayRun
 import org.hermesmobile.app.data.TodayRunDetails
 import org.hermesmobile.app.data.TodayRunIdentity
 import org.hermesmobile.app.data.duePhoneTasks
 
 @Composable
-internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (String) -> Unit) {
+internal fun TodayOverview(
+    vm: HermesViewModel, management: ManagementViewModel, tasks: List<LocalTask>, go: (String) -> Unit
+) {
     val context = LocalContext.current
     val date by todayClock()
     val due = remember(tasks, date.first.atZone(date.second).toLocalDate()) {
@@ -46,6 +49,7 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
     val scope by vm.profileScope.collectAsStateWithLifecycle()
     val connectionGeneration by vm.todayConnectionGeneration.collectAsStateWithLifecycle()
     var openedRun by remember(scope, connectionGeneration) { mutableStateOf<TodayRun?>(null) }
+    var openedApproval by remember(scope, connectionGeneration) { mutableStateOf<TodayApproval?>(null) }
     val connection by vm.connectionStatus.collectAsStateWithLifecycle()
     val profiles by vm.savedConnections.collectAsStateWithLifecycle()
     val approvals by vm.todayApprovals.collectAsStateWithLifecycle()
@@ -68,6 +72,7 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
         if (refreshReason == null) vm.refreshTodayIfStale()
     }
     val current = snapshot?.takeIf { it.scope == scope && it.connectionGeneration == connectionGeneration }
+    val rowTime = remember(date.first, current) { Instant.now() }
     val formatted = remember(date.second) { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(date.second) }
 
     HermesCard(Modifier.testTag("today-overview")) {
@@ -110,18 +115,20 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
             activeApprovals.forEach { approval ->
                 TodayRunRow(approval.sessionTitle, approval.runId, approval.lastConfirmedAt, formatted,
                     current?.confirmed?.get(TodayRunIdentity(approval.sessionKey, approval.runId)),
-                    connected, date.first, !busy && !controlBusy && !connecting) {
-                    vm.select(approval.sessionKey)
-                    go("Chat")
+                    connected, rowTime, !connecting,
+                    button = Modifier.testTag("today-approval-${approval.requestId}"), requestId = approval.requestId) {
+                    openedApproval = approval
                 }
             }
         }
+        TodayLiveApprovals(vm, scope, connectionGeneration, connected, connecting || busy || controlBusy,
+            date.first, formatted, management)
         if (activeRuns.isNotEmpty()) {
             Word(Words.TodayCompleted)
             activeRuns.forEach { run ->
                 TodayRunRow(run.sessionTitle, run.runId, run.lastConfirmedAt, formatted,
                     current?.confirmed?.get(TodayRunIdentity(run.sessionKey, run.runId)),
-                    connected, date.first, !connecting,
+                    connected, rowTime, !connecting,
                     button = Modifier.testTag("today-receipt-${run.runId}")) {
                     openedRun = run
                 }
@@ -130,6 +137,26 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
         if (activeApprovals.isEmpty() && activeRuns.isEmpty()) Text(label(Words.TodayNoReceipts))
     }
     openedRun?.let { row -> TodaySavedRunDialog(vm, row) { openedRun = null } }
+    openedApproval?.let { row ->
+        val details = remember(row) { vm.todayApprovalDetails(row) }
+        val control by details.collectAsStateWithLifecycle(initialValue = null)
+        val cachedReason = when {
+            refreshReason != null -> refreshReason
+            !vm.todayApprovalIsCurrent(row, connectionGeneration, rowTime.toEpochMilli()) -> Words.TodayApprovalCached
+            else -> null
+        }
+        control?.let { selected ->
+            PendingControlDialog(selected, controlBusy, { openedApproval = null },
+                { shown, choice -> vm.respondTodayApproval(row, connectionGeneration, shown, choice) },
+                vm::refreshToday, cachedReason, fromToday = true)
+        } ?: AlertDialog(
+            onDismissRequest = { openedApproval = null },
+            title = { Text(label(Words.SharedApprovalReview)) },
+            text = { Text(label(if (approvals.any { it.controlKey == row.controlKey })
+                Words.Loading else Words.TodayApprovalUnreviewable)) },
+            confirmButton = { TextButton({ openedApproval = null }) { Text(label(Words.Close)) } }
+        )
+    }
 }
 
 @Composable
@@ -156,12 +183,13 @@ private fun TodaySavedRunDialog(vm: HermesViewModel, row: TodayRun, dismiss: () 
 @Composable
 private fun TodayRunRow(sessionTitle: String, runId: String, stored: Long, formatted: DateTimeFormatter, checked: Long?,
                         connected: Boolean, now: Instant, enabled: Boolean, button: Modifier = Modifier,
-                        open: () -> Unit) {
+                        requestId: String? = null, open: () -> Unit) {
     val fresh = connected && checked != null && now.toEpochMilli() - checked in 0..120_000L
     val confirmedAt = maxOf(stored, checked ?: 0)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         TextButton(open, modifier = button, enabled = enabled) { Text(sessionTitle.ifBlank { runId }) }
         Text(runId, style = MaterialTheme.typography.labelSmall)
+        requestId?.let { Text(it, style = MaterialTheme.typography.labelSmall) }
         if (!fresh) Text(label(Words.TodayCached), style = MaterialTheme.typography.labelSmall)
         val confirmation = if (confirmedAt > 0) {
             label(Words.TodayConfirmed).replace("{time}", formatted.format(Instant.ofEpochMilli(confirmedAt)))

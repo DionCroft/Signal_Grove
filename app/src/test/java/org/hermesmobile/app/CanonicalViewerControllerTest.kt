@@ -15,10 +15,18 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class CanonicalViewerControllerTest {
     private class Link:CanonicalViewerLink {
-        override val attachment=CanonicalGatewayChannel.Attachment(CanonicalViewerFixtures.snapshot(CanonicalWorkspaceDirectory.Reported("/fixture/old")),CanonicalViewerFixtures.delivery())
+        override var attachment=CanonicalGatewayChannel.Attachment(CanonicalViewerFixtures.snapshot(CanonicalWorkspaceDirectory.Reported("/fixture/old")),CanonicalViewerFixtures.delivery())
         override val receipt=CanonicalViewerFixtures.receipt()
         val events=Channel<CanonicalFeedDelivery>(Channel.UNLIMITED)
         var beats=0;var closes=0;var beat:suspend ()->Unit={}
+        override var sharedChatAvailable = false
+        val decisions = mutableListOf<Pair<SharedApproval, String>>()
+        var decisionFailure: Exception? = null
+        override suspend fun answerApproval(approval: SharedApproval, choice: String): Boolean {
+            decisions.add(approval to choice)
+            decisionFailure?.let { throw it }
+            return true
+        }
         override fun observations()=events.receiveAsFlow()
         override suspend fun heartbeat() {beats++;beat()}
         override fun close() {if(closes==0) {closes++;events.close()}}
@@ -77,6 +85,78 @@ class CanonicalViewerControllerTest {
         put("replay_epoch",kotlinx.serialization.json.JsonPrimitive(CanonicalViewerFixtures.cursor.epoch));put("seq",kotlinx.serialization.json.JsonPrimitive(sequence))
         put("payload",kotlinx.serialization.json.buildJsonObject {for((key,value) in values) put(key,kotlinx.serialization.json.JsonPrimitive(value))})
     },CanonicalViewerFixtures.owner,CanonicalViewerFixtures.cursor,65536)
+
+    private fun Harness.approvalSelection(): CanonicalViewerSelection {
+        val request = SharedChatProtocol.pendingApprovals(Json.parseToJsonElement(
+            """{"approvals":[{"request_id":"exact-approval","command":"read fixture","description":"Reviewed action","choices":["once","deny"],"allow_permanent":false}]}"""
+        ).jsonObject).single()
+        val row = f.inventory().rows.single()
+        return CanonicalViewerSelection(f.target, f.home, 1, row.sessionId, CanonicalApprovalNotice(f.binding, row, request))
+    }
+
+    private fun Harness.serveApprovals(generation: Long = 3, effectiveSession: String = "history") {
+        val snapshot = CanonicalSessionSnapshot(f.owner.copy(sessionId = effectiveSession), "history", "reported-history",
+            "subscription", f.cursor, 2, generation, true, 0, true, approvalRows = Json.parseToJsonElement(
+                """[{"kind":"approval","prompt_id":"exact-approval","command":"read fixture","description":"Reviewed action","choices":["once","deny"],"execution_generation":3},
+                    {"kind":"approval","prompt_id":"different-approval","command":"unrelated fixture","description":"Unrelated action","choices":["once","deny"],"execution_generation":3}]"""
+            ).jsonArray)
+        repo.link.attachment = CanonicalGatewayChannel.Attachment(snapshot, f.delivery())
+        repo.link.sharedChatAvailable = true
+    }
+
+    @Test fun approvalSelectionFollowsOnlyTheExactReviewedRequestAndMakesOneDecision() = runTest {
+        for (choice in listOf("once", "deny")) exercise {
+            serveApprovals()
+            viewer.loadSelection(approvalSelection(), continueChat = true)
+            runCurrent()
+            assertEquals(CanonicalSessionScope.Live, viewer.state.value.scope)
+            val review = checkNotNull(viewer.state.value.review)
+            assertEquals(0, repo.adoptions)
+            assertTrue(repo.link.decisions.isEmpty())
+            viewer.approve(review, false)
+            runCurrent()
+            assertEquals(1, repo.adoptions)
+            assertEquals(0, repo.cursorReads)
+            val approval = viewer.sharedChat.state.value.approvals.single()
+            assertEquals("exact-approval", approval.id)
+            assertEquals(3L, approval.generation)
+
+            viewer.sharedChat.edit("Unrelated prompt")
+            viewer.sharedChat.send()
+            assertTrue(viewer.sharedChat.state.value.draft.isEmpty())
+            viewer.sharedChat.decide(approval.copy(), choice)
+            viewer.sharedChat.decide(approval.copy(id = "different-approval"), choice)
+            viewer.sharedChat.decide(approval, "always")
+            runCurrent()
+            assertTrue(repo.link.decisions.isEmpty())
+
+            if (choice == "deny") repo.link.decisionFailure = IOException("Lost fixture decision receipt")
+            viewer.sharedChat.decide(approval, choice)
+            viewer.sharedChat.decide(approval, choice)
+            runCurrent()
+            viewer.sharedChat.decide(approval, choice)
+            runCurrent()
+            assertEquals(listOf(approval to choice), repo.link.decisions)
+            assertTrue(viewer.sharedChat.state.value.approvals.isEmpty())
+            assertEquals(if (choice == "deny") Words.SharedApprovalUnknown else Words.SharedApprovalRecorded,
+                viewer.sharedChat.state.value.status)
+        }
+    }
+
+    @Test fun approvalSelectionRejectsALiveAliasOrChangedExecutionBeforeEnablingDecisions() = runTest {
+        for ((sessionId, generation) in listOf("resolved-history" to 3L, "history" to 4L)) exercise {
+            serveApprovals(generation, sessionId)
+            viewer.loadSelection(approvalSelection(), continueChat = true)
+            runCurrent()
+            viewer.approve(checkNotNull(viewer.state.value.review), false)
+            runCurrent()
+            assertEquals(CanonicalViewerPhase.Held, viewer.state.value.phase)
+            assertEquals(Words.ManagementReviewChanged, viewer.state.value.error)
+            assertFalse(viewer.sharedChat.state.value.available)
+            assertTrue(repo.link.decisions.isEmpty())
+            assertEquals(1, repo.link.closes)
+        }
+    }
 
     @Test fun contextRefreshIsExplicitAndCoalescesWhileTheBoundReadIsPending() = runTest { exercise {
         opened()

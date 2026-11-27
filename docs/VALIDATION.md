@@ -1,5 +1,26 @@
 # Current development validation — audit follow-up
 
+## Today approval inbox
+
+Today checks pending native approvals for the authenticated connection
+and profile, including requests started on another client. Its bounded
+scan explains cached, busy, unsupported and incomplete results. A
+review rechecks the session, execution and approval identities before
+showing Allow once or Deny. Both the canonical and Runs flows respond
+only to the selected request.
+
+The exact rebased build passed 1,271 JVM cases and both lint variants.
+Android 8 passed 25 focused cases and Android 17 passed 26. The cases
+covered an approval from another client, busy and cached views,
+profile switches, disconnect and reconnect, older receipts and two
+simultaneous requests on one run. Android 17 also verified offline
+Today and restored the emulator’s radio state.
+
+The newer Hermes snapshot passed the real owner-projection fixture
+and three canonical wire cases in an isolated runtime. The Android UI
+and transport cases used controlled server fixtures. The live
+Pi-to-Windows approvals and scheduled-run receipt check remain open.
+
 ## Today saved run receipts
 
 Today opens an older completed run’s own saved activity. The reader

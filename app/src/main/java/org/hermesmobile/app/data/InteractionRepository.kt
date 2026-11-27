@@ -14,7 +14,8 @@ class InteractionRepository(private val dao: HermesDao) {
         val control=dao.control(key) ?: throw IllegalStateException("This prompt has already settled.")
         require(control.sessionKey==c.key && control.runId==c.runId && control.state=="pending" && control==expected) {"Refresh the current run before responding."}
         ControlProtocol.responseBody(control,response)
-        val current=ControlProtocol.snapshot(api.run(c.runId),c.runId).firstOrNull {ControlProtocol.matches(control,it)}
+        val current = ControlProtocol.snapshot(api.run(c.runId), c.runId)
+            .singleOrNull { it.requestId == control.requestId }?.takeIf { ControlProtocol.matches(control, it) }
             ?: throw IllegalArgumentException("The prompt changed or expired. Refresh the run and review it again.")
         val fresh=current.stored(c.key)
         ControlProtocol.responseBody(fresh,response)

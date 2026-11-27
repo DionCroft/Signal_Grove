@@ -57,7 +57,9 @@ import org.hermesmobile.app.network.SharedChatProtocol
         })
 }
 
-@Composable internal fun SharedChatStatus(s: SharedChatState, controller: SharedChatController) {
+@Composable internal fun SharedChatStatus(
+    s: SharedChatState, controller: SharedChatController, showApprovalIdentity: Boolean = false
+) {
     var review by remember { mutableStateOf<SharedApproval?>(null) }
     var unknownReview by remember(s.pending) { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -89,6 +91,12 @@ import org.hermesmobile.app.network.SharedChatProtocol
                 SelectionContainer {
                     Column(Modifier.heightIn(max = 350.dp).verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (showApprovalIdentity) {
+                            Text(label(Words.TodayApprovalRequestId))
+                            Text(approval.id, Modifier.testTag("shared-reviewed-request"))
+                            Text(label(Words.TodayApprovalGeneration))
+                            Text(approval.generation.toString(), Modifier.testTag("shared-reviewed-generation"))
+                        }
                         if (approval.description.isNotBlank()) Text(approval.description)
                         if (approval.command.isNotBlank() && approval.command != approval.description) Text(approval.command)
                     }

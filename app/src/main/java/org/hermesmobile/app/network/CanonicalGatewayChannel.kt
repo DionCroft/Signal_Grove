@@ -4,6 +4,8 @@ import android.os.SystemClock
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.CompletableDeferred
@@ -317,6 +319,36 @@ internal class CanonicalGatewayChannel private constructor() : Closeable {
         val result = call("session.list", buildJsonObject { put("scope",scope.wire); put("limit",200) })
         if (binding !== identity) throw CanonicalScopeChanged()
         return CanonicalSessionProtocol.inventory(result, identity, scope)
+    }
+
+    /** A bounded read on an inventory socket. No resume or approval acknowledgement is sent. */
+    internal suspend fun pendingApprovalInbox(): CanonicalApprovalInbox {
+        val budget = TimeSource.Monotonic.markNow()
+        val inventory = sessionInventory(CanonicalSessionScope.Live)
+        val owner = inventory.binding
+        val notices = mutableListOf<CanonicalApprovalNotice>()
+        var checked = 0
+        var truncated = inventory.rows.size == 200
+        for (session in inventory.rows) {
+            if (budget.elapsedNow() >= 18.seconds || notices.size == 128) break
+            val result = try {
+                call(SharedChatProtocol.PendingApproval, buildJsonObject {
+                    put("session_id", session.sessionId)
+                })
+            } catch (error: SharedChatRefused) {
+                if (error.code == -32601) throw CanonicalNotSupported()
+                continue
+            }
+            if (binding !== owner) throw CanonicalScopeChanged()
+            val available = SharedChatProtocol.pendingApprovals(result)
+            checked++
+            val remaining = 128 - notices.size
+            truncated = truncated || available.size > remaining
+            available.take(remaining).forEach { notices += CanonicalApprovalNotice(owner, session, it) }
+        }
+        if (binding !== owner) throw CanonicalScopeChanged()
+        return CanonicalApprovalInbox(owner, notices.toList(), checked, inventory.rows.size,
+            truncated || checked != inventory.rows.size)
     }
 
     internal suspend fun cronExecutionHistory(jobId: String): CronExecutionHistory {

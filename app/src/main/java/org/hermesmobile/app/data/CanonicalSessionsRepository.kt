@@ -65,6 +65,22 @@ internal class CanonicalSessionsRepository(private val dao: HermesDao, private v
         home(target,homeId,api,tokens)
         return inventory
     }
+    suspend fun discoverApprovals(
+        target: ManagementTarget, homeId: String, api: ManagementClient, tokens: ManagementTokens
+    ): CanonicalApprovalInbox = withContext(Dispatchers.IO) {
+        ready.await()
+        scope(target, homeId, api, tokens)
+        withTimeoutOrNull(30_000) {
+            api.canonicalGateway(tokens, target, homeId).use { channel ->
+                val inbox = channel.pendingApprovalInbox()
+                api.identity(tokens)
+                home(target, homeId, api, tokens)
+                if (channel.binding !== inbox.binding) throw CanonicalScopeChanged()
+                inbox
+            }
+        } ?: throw GatewayUnavailable()
+    }
+
     override suspend fun adopt(review: CanonicalResumeReview, api: ManagementClient, tokens: ManagementTokens, previous: CanonicalReplayCheckpoint?, requireHeartbeat:Boolean): CanonicalSessionConnection {
         ready.await()
         val target = review.expected.binding.target

@@ -214,6 +214,35 @@ class CanonicalViewerUiTest {
         assertEquals(1, repo.adoptions)
         assertEquals(listOf(CanonicalSessionScope.Stored), repo.reads)
     }
+    @Test fun inboxAttachmentShowsOnlyTheSelectedApprovalWithoutAComposer() {
+        sharedMode = true
+        val request = SharedChatProtocol.pendingApprovals(Json.parseToJsonElement(
+            """{"approvals":[{"request_id":"fixture-skip","command":"read fixture","description":"Inspect a fixture","choices":["once","deny","always"],"allow_permanent":true}]}"""
+        ).jsonObject).single()
+        assertTrue(request.reviewable)
+        val row = inventory(CanonicalSessionScope.Live).rows.single()
+        val selection = CanonicalViewerSelection(target, home, 1, row.sessionId,
+            CanonicalApprovalNotice(binding, row, request))
+
+        render(selection = selection)
+        compose.onNodeWithTag("canonical-open-confirm").assertIsNotEnabled()
+        assertEquals(0, repo.adoptions)
+        consent()
+        compose.onNodeWithTag("canonical-open-confirm").assertIsEnabled().performClick()
+        compose.waitUntil(5000) { viewer.state.value.phase == CanonicalViewerPhase.Following }
+        compose.onNodeWithTag("shared-chat-draft").assertDoesNotExist()
+        compose.onNodeWithTag("shared-chat-send").assertDoesNotExist()
+        compose.onNodeWithTag("shared-chat-approval-fixture-read").assertDoesNotExist()
+        scroll("canonical-viewer-list", "shared-chat-approval-fixture-skip").performClick()
+        compose.onNodeWithText("fixture-skip").assertIsDisplayed()
+        compose.onNodeWithTag("shared-approval-deny").performClick()
+        compose.waitUntil(5000) { decisions.size == 1 }
+        assertEquals(listOf("fixture-skip" to "deny"), decisions)
+        assertTrue(sent.isEmpty())
+        assertEquals(1, repo.adoptions)
+        assertEquals(listOf(CanonicalSessionScope.Live), repo.reads)
+    }
+
     @After fun stop() {
         compose.runOnUiThread {viewer.close();shown=false;scope.cancel()}
         compose.waitForIdle();assertFalse(guard.active.value)

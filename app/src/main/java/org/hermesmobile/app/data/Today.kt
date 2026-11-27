@@ -10,8 +10,14 @@ internal data class TodayApproval(
     val sessionTitle: String,
     val runId: String,
     val requestId: String,
+    val controlKey: String,
+    val generation: Long?,
     val lastConfirmedAt: Long
-)
+) {
+    fun matches(control: PendingControl): Boolean =
+        control.key == controlKey && control.sessionKey == sessionKey && control.runId == runId &&
+            control.requestId == requestId && control.generation == generation && control.kind == "approval"
+}
 
 internal data class TodayRun(
     val scope: String,

@@ -1,5 +1,6 @@
 package org.hermesmobile.app.network
 
+import java.security.MessageDigest
 import kotlinx.serialization.json.*
 import org.hermesmobile.app.data.CanonicalFeedOwner
 
@@ -38,11 +39,25 @@ internal data class SharedApproval(
     override fun toString() = "SharedApproval(redacted)"
 }
 
+/** Discovery proves a pending request, and a reviewed live snapshot supplies the generation. */
+internal class SharedApprovalNotice(
+    val id: String,
+    val reviewable: Boolean,
+    private val fingerprint: String
+) {
+    fun matches(approval: SharedApproval): Boolean =
+        reviewable && id == approval.id &&
+            fingerprint == SharedChatProtocol.approvalFingerprint(id, approval.command, approval.description, approval.choices)
+
+    override fun toString() = "SharedApprovalNotice(redacted)"
+}
+
 internal object SharedChatProtocol {
     const val Submit = "prompt.submit"
     const val Receipt = "prompt.receipt"
     const val Respond = "approval.respond"
-    val methods = setOf(Submit, Receipt, Respond)
+    const val PendingApproval = "approval.pending"
+    val methods = setOf(Submit, Receipt, Respond, PendingApproval)
     const val MaxPrompt = 16_384
     private const val MaxReply = 32_768
 
@@ -86,13 +101,44 @@ internal object SharedChatProtocol {
     // The shared gateway can consume a typed stop phrase while voice mode is active.
     fun voiceStopped(j: JsonObject) = j == buildJsonObject { put("voice_stopped", true) }
 
+    fun pendingApprovals(j: JsonObject): List<SharedApprovalNotice> {
+        val rows = j["approvals"] as? JsonArray ?: throw GatewayProtocolException()
+        require(rows.size <= 256)
+        val notices = rows.map { value ->
+            val row = value as? JsonObject ?: throw GatewayProtocolException()
+            val id = identifier(row["request_id"])
+            val command = approvalText(row["command"])
+            val description = approvalText(row["description"])
+            val choices = approvalChoices(row)
+            require(choices.size == choices.toSet().size && row["allow_permanent"] == JsonPrimitive("always" in choices))
+            val supported = decisionChoices(choices)
+            SharedApprovalNotice(id, supported.isNotEmpty() && (command.isNotBlank() || description.isNotBlank()),
+                approvalFingerprint(id, command, description, supported))
+        }
+        require(notices.map { it.id }.toSet().size == notices.size)
+        return notices
+    }
+
+    internal fun approvalFingerprint(id: String, command: String, description: String, choices: Set<String>): String {
+        val fields = JsonArray(listOf(JsonPrimitive(id), JsonPrimitive(command), JsonPrimitive(description),
+            JsonArray(choices.sorted().map(::JsonPrimitive))))
+        return MessageDigest.getInstance("SHA-256").digest(fields.toString().toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+    }
+
+    private fun approvalChoices(j: JsonObject): List<String> {
+        val choices = j["choices"] as? JsonArray ?: throw GatewayProtocolException()
+        require(choices.size in 1..8)
+        return choices.map(::identifier)
+    }
+
+    private fun decisionChoices(choices: List<String>) = choices.filter { it == "once" || it == "deny" }.toSet()
+
     fun approval(j: JsonObject): SharedApproval? {
         if (j["kind"] != JsonPrimitive("approval")) return null
         val id = identifier(j["prompt_id"])
         val generation = number(j["execution_generation"])
-        val choices = j["choices"] as? JsonArray ?: throw GatewayProtocolException()
-        require(choices.size in 1..8)
-        val supported = choices.map(::identifier).filter { it == "once" || it == "deny" }.toSet()
+        val supported = decisionChoices(approvalChoices(j))
         val command = approvalText(j["command"])
         val description = approvalText(j["description"])
         if (supported.isEmpty() || (command.isBlank() && description.isBlank())) return null
