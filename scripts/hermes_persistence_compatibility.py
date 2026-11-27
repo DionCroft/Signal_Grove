@@ -37,6 +37,23 @@ PROFILE_RECEIPT_TESTS = (
 )
 PROFILE_RECEIPT_CASE_COUNT = 19
 PROFILE_RECEIPT_CASE_SHA256 = '5f45b0d507cc06a41be40fee7b522350636b6fd411138036842105fc3221e5d7'
+GATEWAY_RECOVERY_TESTS = (
+    'tests/gateway/test_authority_events.py',
+    'tests/gateway/test_authority_reconnect_gap.py',
+    'tests/gateway/test_completion_admission.py',
+)
+
+
+def gateway_recovery_cohort(pin: str) -> tuple[tuple[str, ...], int, str]:
+    if pin == '8fc0374447313e276f6b9a2764bfc750190c966a':
+        return GATEWAY_RECOVERY_TESTS, 5, 'e1490b46fb8b7a96ffecab48b59d060ad7e0653d5f2cb3ed47aea9986b1472c1'
+    if pin == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d':
+        return (
+            (*GATEWAY_RECOVERY_TESTS, 'tests/gateway/test_held_route_late_platform.py'),
+            20,
+            '511d130298081c21a9edb9a9089c2e15287b45beba0a91e8650322b228189743',
+        )
+    raise ValueError('Gateway recovery inventory has not been reviewed for this pin')
 
 PYTEST_DRIVER = '''
 import importlib.metadata, json, platform, sys
@@ -86,13 +103,12 @@ def main() -> None:
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--evidence', type=Path, required=True)
     parser.add_argument('--python', type=Path, required=True)
-    parser.add_argument('--profile-receipts', action='store_true',
+    cohort = parser.add_mutually_exclusive_group()
+    cohort.add_argument('--profile-receipts', action='store_true',
                         help='Run the exact native authentication, approval, history and scheduler receipts cohort')
+    cohort.add_argument('--gateway-recovery', action='store_true',
+                        help='Run the pinned admission and event replay cohort, including current main held routing')
     args = parser.parse_args()
-    tests, count, case_hash = (
-        (PROFILE_RECEIPT_TESTS, PROFILE_RECEIPT_CASE_COUNT, PROFILE_RECEIPT_CASE_SHA256)
-        if args.profile_receipts else (TESTS, CASE_COUNT, CASE_SHA256)
-    )
     source, evidence = args.source.resolve(strict=True), args.evidence.resolve(strict=True)
     spec = importlib.util.spec_from_file_location(
         'canonical_shutdown_gate', Path(__file__).with_name('canonical_shutdown_gate.py'))
@@ -104,6 +120,12 @@ def main() -> None:
     if before['variant'] != 'pristine' or pin == gate.rpc.PIN:
         raise ValueError('Expected the pristine public persistence layout')
     expected = gate.expected_map(gate.read_json(evidence / 'base-map.json'), 'pristine', pin)
+    if args.gateway_recovery:
+        tests, count, case_hash = gateway_recovery_cohort(pin)
+    elif args.profile_receipts:
+        tests, count, case_hash = PROFILE_RECEIPT_TESTS, PROFILE_RECEIPT_CASE_COUNT, PROFILE_RECEIPT_CASE_SHA256
+    else:
+        tests, count, case_hash = TESTS, CASE_COUNT, CASE_SHA256
     test_hashes = {name: expected[name] for name in tests}
     gate.inspect_source(source, expected, before['modes'], generated=True)
     gate.source_index(source, pin)
