@@ -112,6 +112,19 @@ before it can expose a decision for a discovered approval.
 [Pending projection](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/gateway/session_ancillary.py#L201) ·
 [Decision fields](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/gateway/session_controls.py#L1016)
 
+## Native profile approval and scheduled receipts
+
+The focused current-stable and main cohort includes 19 exact auth,
+approval, compressed history and receipt recovery cases. The first
+hosted run found the full case roster and passed 18 cases on each pin.
+The upstream live-firer case starts a child Python process. The test
+launcher used the evidence directory, so the child could not locate
+the SDK. A separate import probe reproduced that distinction. The
+launcher now starts this cohort from the pinned SDK root, with the
+same isolated home and exact source verification. The unchanged test
+and its original failure remain in the evidence.
+[Initial results](https://github.com/DionCroft/Signal_Grove/actions/runs/45982044743)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and

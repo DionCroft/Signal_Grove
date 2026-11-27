@@ -119,8 +119,10 @@ def main() -> None:
                PYTHONDONTWRITEBYTECODE='1')
     argv = [str(args.python.absolute()), '-I', '-B', '-c', PYTEST_DRIVER,
             str(source), str(evidence), *tests]
+    # The upstream foreign-firer test imports the SDK from a child Python process.
+    working_directory = source if args.profile_receipts else evidence
     with (evidence / 'persistence.log').open('xb') as log:
-        child = subprocess.Popen(argv, cwd=evidence, env=env, stdin=subprocess.DEVNULL,
+        child = subprocess.Popen(argv, cwd=working_directory, env=env, stdin=subprocess.DEVNULL,
                                  stdout=log, stderr=subprocess.STDOUT)
         try:
             return_code = child.wait(timeout=600)
