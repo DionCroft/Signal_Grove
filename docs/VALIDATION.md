@@ -43,6 +43,30 @@ had mode 0775. The protected-policy prerequisite and reviewed activation
 remain open before live workspace attachment, decisions and scheduling.
 [Runtime cutover review](contracts/2026-11-14-runtime-cutover-packet.md).
 
+## Hermes main scheduler and recovery recheck
+
+The latest stable release observed on 27 November is Hermes v0.23.4
+(`8fc0374`). On the observed main revision `de2b059`, 24 unchanged upstream
+test cases passed in the pinned Windows environment. All 11 XML groups
+matched the reviewed method inventory and had zero failures or skips.
+
+The scheduler cases reported configured home channels whose plugin was
+unavailable and kept a nested job from using its parent worker's delivery
+key. The recovery cases verified exact retry after an admission write
+lock, settlement of the original receipt after a lost acknowledgment,
+per-profile reconnect routing, and continued delivery during shutdown.
+The original compressed-history and exact room-approval cases also
+passed. The full native Linux shutdown gate on this revision remains
+open.
+
+[Reviewed main revision](https://github.com/NousResearch/hermes-agent/commit/de2b0590f87b2131b51557b3f30aefeec421be2c) ·
+[Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4).
+
+The complete hosted Android 8 and 17 matrix started on Signal Grove
+`9ac5e28`. This checkpoint records the run identity. Device results
+require separate verification after the run finishes.
+[Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
+
 ## Hermes admission and scheduler receipt fixtures
 
 Ten cases passed on the pinned Windows environment against exact Hermes
