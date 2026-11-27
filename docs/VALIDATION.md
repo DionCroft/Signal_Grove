@@ -25,6 +25,11 @@ a successful exact-source run.
 [Hosted run and retained artifacts](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
 [Exact-source retest at `1719943`](https://github.com/DionCroft/Signal_Grove/actions/runs/46065224105).
 
+The replacement hosted build passed. Independent artifact checks
+matched 1,278 JVM cases, 1,260 native policy cases, both lint reports
+and both build APK hashes. The four hosted device shards are still
+required for complete standard coverage.
+
 ## Xiaomi Quick Capture setup checkpoint
 
 The Xiaomi accepted an in-place USB debug upgrade of source `e50a927`.
@@ -99,6 +104,26 @@ second edit before its editor appeared. A separate offline workspace
 run passed all seven cases on the same installed APKs. A standalone
 retest also passed the four media and model cases. Both original and
 retest logs were retained.
+
+## Native Qwen recovery and reboot on the repaired Android pair
+
+Both emulators emitted real native Qwen output and saved a generating
+turn. The test host verified the exact app process, the mapped model
+and that turn's digest before force-stopping the debug process. The
+preparation logs record an intentional interruption. Cold recovery
+marked the original turn interrupted without loading weights or
+replaying it. Only the next explicit send generated a reply.
+
+Each emulator then completed a normal reboot in Airplane mode with
+no default network. Both opened the interrupted and completed turns
+with zero model loads and generations. The prepared post-reboot case
+compared the retained chat against the pre-reboot digest and removed
+the synthetic installed model without touching the retained chat.
+APK hashes, package UIDs, the staged model and radio restoration were
+verified independently. The Android 8 host file-absence probe used a
+utility unavailable as a standalone command. Its successful native
+test, shell file check and stat result establish absence without a
+second generation or reboot.
 
 ## Live workflow readiness
 
@@ -236,6 +261,19 @@ resolved all 249 aliases against fresh official Git tree identities.
 The contract and source-cache test suites passed 119 cases. The
 inspection still requires review of 220 changed handlers on stable,
 240 on main and 29 persistence-source differences on each.
+
+The exact stable and main pins also passed 41 additional unchanged HTTP
+cases across eight upstream files. They cover compacted history, profile
+isolation over JSON and SSE, session admission and the exact room
+grant and approval scope. The raw case identities match across both
+revisions and are distinct from the prior 91-case cohort.
+
+The hosted compatibility run matched both independent source scans.
+Its 1,260 native policy cases, eight registry cases, both sidecar
+cohorts and the 13-step service recovery fixture passed. Both source
+scans produced the review-required result for the documented handler
+and persistence differences. All six artifact digests matched GitHub.
+[Hosted Hermes compatibility](https://github.com/DionCroft/Signal_Grove/actions/runs/46067419481).
 
 ## Hermes admission and scheduler receipt fixtures
 
