@@ -311,6 +311,15 @@ after reconnect and scoped log delivery still need verification.
 [Stable scheduler provider](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/cron/scheduler_provider.py#L200) ·
 [Main scheduler provider](https://github.com/NousResearch/hermes-agent/blob/646c982ea7354261b355874781999b8a292a6013/cron/scheduler_provider.py#L200).
 
+The exact source also passed the hosted worker workflow. Both download
+digests, source maps and raw case records verified: 47 Linux protected
+coordinator cases and 112 Windows provider cases, with no skips. The
+official upstream main tests passed all 30 selected timezone, daylight
+saving, grace and catch-up cases in an isolated Windows fixture. All
+six selected upstream test and scheduler files matched their Git blobs
+before and after that run.
+[Hosted worker workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/46082093602).
+
 ## Hermes native gates for the current main revision
 
 Hermes stable remains v0.23.4. The latest reviewed main pin, 646c982,
