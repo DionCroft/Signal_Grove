@@ -183,7 +183,7 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val captureInbox by vm.captures.state.collectAsStateWithLifecycle()
     if (captureInbox.open) PhoneCaptureInbox(vm, state, captureInbox)
     val notebookWorkspace by vm.notebooks.state.collectAsStateWithLifecycle()
-    if (notebookWorkspace.open) PhoneNotebookScreen(vm.notebooks, state, notebookWorkspace)
+    if (notebookWorkspace.open) PhoneNotebookScreen(vm.notebooks, state, notebookWorkspace, vm::routeNotebookHandoff)
     val temporary by vm.temporary.state.collectAsStateWithLifecycle()
     temporary?.let { PhoneTemporaryChatDialog(vm, it, state) }
     val profilesOpen by vm.personalProfilesOpen.collectAsStateWithLifecycle()

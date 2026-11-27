@@ -30,7 +30,8 @@ import org.hermesmobile.app.data.*
 import org.hermesmobile.app.local.*
 
 @Composable
-internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: LocalAiState, state: NotebookWorkspaceState) {
+internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: LocalAiState, state: NotebookWorkspaceState,
+                                 handoff: (NotebookHandoffDraft) -> Unit) {
     val notebooks by workspace.notebooks.collectAsStateWithLifecycle(initialValue = emptyList())
     val selected = notebooks.firstOrNull { it.id == state.notebookId }
     val answer = state.pendingAnswer
@@ -52,7 +53,7 @@ internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: Local
                 if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (state.error != null) Text(label(Words.NotebookFailed), color = MaterialTheme.colorScheme.error)
                 if (selected != null && answer == null) {
-                    NotebookItems(Modifier.weight(1f), workspace, model, selected, state.busy)
+                    NotebookItems(Modifier.weight(1f), workspace, model, selected, state.busy, handoff)
                 } else LazyColumn(Modifier.fillMaxSize().testTag("notebook-index"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (answer != null) item {
                         Word(Words.NotebookSaveAnswer)
@@ -89,13 +90,14 @@ internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: Local
 
 @Composable
 private fun NotebookItems(modifier: Modifier, workspace: PhoneNotebookWorkspace, model: LocalAiState,
-                          notebook: PhoneNotebook, busy: Boolean) {
+                          notebook: PhoneNotebook, busy: Boolean, handoff: (NotebookHandoffDraft) -> Unit) {
     var query by rememberSaveable(notebook.id) { mutableStateOf("") }
     var picker by remember(notebook.id) { mutableStateOf<NotebookItemKind?>(null) }
     var entry by remember(notebook.id) { mutableStateOf<NotebookItem?>(null) }
     val matches = notebookRead(notebook.id to query) { workspace.entries(notebook.id, query) }
     val focus = LocalFocusManager.current
     val current = entry
+    val handoffs = notebookRead(notebook.id) { workspace.handoffs(notebook.id) }?.getOrNull().orEmpty()
     val kind = picker
     Column(modifier.fillMaxWidth()) {
         TextButton({
@@ -108,7 +110,9 @@ private fun NotebookItems(modifier: Modifier, workspace: PhoneNotebookWorkspace,
             Text(label(if (current == null && kind == null) Words.PhoneNotebooks else Words.NotebookItems))
         }
         when {
-            current != null -> NotebookEntry(Modifier.weight(1f), workspace, notebook, current)
+            current != null -> NotebookEntry(Modifier.weight(1f), workspace, notebook, current, busy) {
+                workspace.prepareHandoff(notebook.id, current, handoff)
+            }
             kind != null -> NotebookPicker(Modifier.weight(1f), workspace, model, notebook.id, kind, busy) { picker = null }
             else -> LazyColumn(Modifier.fillMaxSize().testTag("notebook-entries"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item {
@@ -131,6 +135,12 @@ private fun NotebookItems(modifier: Modifier, workspace: PhoneNotebookWorkspace,
                             TextButton({ focus.clearFocus(); entry = row },
                                 Modifier.testTag("notebook-item-" + row.id), enabled = !busy) { Text(row.title) }
                         }
+                    }
+                }
+                if (query.isBlank() && handoffs.isNotEmpty()) {
+                    item { Word(Words.NotebookHandoffResults) }
+                    items(handoffs, key = { "handoff/" + it.requestKey }) { result ->
+                        NotebookResultCard(result)
                     }
                 }
             }
@@ -170,7 +180,8 @@ private fun NotebookPicker(modifier: Modifier, workspace: PhoneNotebookWorkspace
 }
 
 @Composable
-private fun NotebookEntry(modifier: Modifier, workspace: PhoneNotebookWorkspace, notebook: PhoneNotebook, entry: NotebookItem) {
+private fun NotebookEntry(modifier: Modifier, workspace: PhoneNotebookWorkspace, notebook: PhoneNotebook, entry: NotebookItem,
+                          busy: Boolean, reviewHandoff: () -> Unit) {
     var source by remember(entry.id) { mutableStateOf<NotebookSource?>(null) }
     val citation = source
     val citations = if (entry.kind == NotebookItemKind.ANSWER.name) notebookRead(entry.id) {
@@ -206,6 +217,11 @@ private fun NotebookEntry(modifier: Modifier, workspace: PhoneNotebookWorkspace,
             result.isFailure -> Text(label(Words.NotebookSourceUnavailable))
             else -> SelectionContainer { Text(result.getOrThrow(), Modifier.testTag("notebook-source-content")) }
         }
+        if (citation == null && result?.isSuccess == true) {
+            TextButton(reviewHandoff, enabled = !busy, modifier = Modifier.testTag("notebook-handoff-open")) {
+                Text(label(Words.NotebookHandoff))
+            }
+        }
         if (citation == null) citations?.getOrNull().orEmpty().forEach { reference ->
             HermesCard {
                 val location = reference.page?.let { label(Words.PhoneDocumentPage).replace("{page}", it.toString()) }
@@ -217,6 +233,23 @@ private fun NotebookEntry(modifier: Modifier, workspace: PhoneNotebookWorkspace,
                     Text(label(Words.NotebookOpenSource))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun NotebookResultCard(result: NotebookHandoffResult) {
+    var expanded by remember(result.requestKey) { mutableStateOf(false) }
+    HermesCard {
+        TextButton({ expanded = !expanded }, Modifier.testTag("notebook-result-" + result.requestKey)) {
+            Text(result.sessionTitle ?: label(Words.NotebookHandoff))
+        }
+        Text(result.connectionName, style = MaterialTheme.typography.labelMedium)
+        Text(result.endpoint, style = MaterialTheme.typography.bodySmall)
+        Text(label(result.replyStatus?.let(::statusWord) ?: Words.NotebookSourceUnavailable))
+        if (expanded) {
+            val reply = result.replyContent
+            if (!reply.isNullOrBlank()) SelectionContainer { Text(reply, Modifier.testTag("notebook-result-content")) }
         }
     }
 }

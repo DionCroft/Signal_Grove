@@ -68,6 +68,16 @@ internal abstract class PhoneNotebookDao {
     @Query("SELECT * FROM phone_notebooks ORDER BY openedAt DESC, id LIMIT 1")
     abstract fun lastOpened(): Flow<PhoneNotebook?>
 
+    @Query("""SELECT handoff.requestKey, session.title AS sessionTitle, handoff.endpoint, handoff.connectionName,
+        handoff.submittedAt, message.content AS replyContent, message.status AS replyStatus
+        FROM phone_notebook_handoffs handoff
+        LEFT JOIN sessions session ON session.key = handoff.sessionKey AND session.scope = handoff.scope
+        LEFT JOIN messages message ON message.id = handoff.assistantId AND message.sessionKey = session.key
+            AND message.role = 'assistant'
+        WHERE handoff.notebookId = :notebookId
+        ORDER BY handoff.submittedAt DESC, handoff.requestKey LIMIT 40""")
+    abstract fun handoffs(notebookId: String): Flow<List<NotebookHandoffResult>>
+
     @Query("SELECT * FROM phone_notebooks WHERE id = :id")
     abstract suspend fun notebook(id: String): PhoneNotebook?
 

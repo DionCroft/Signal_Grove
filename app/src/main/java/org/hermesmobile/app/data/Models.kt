@@ -245,12 +245,24 @@ object RunStates {
         val current=control(expected.key) ?: return
         if(current.generation==expected.generation && current.runId==expected.runId && current.state=="responding") controlState(expected.key,state)
     }
-    @Transaction suspend fun beginTurn(receipt: Conversation,user: ChatMessage,assistant: ChatMessage) {
+    @Insert suspend fun insertNotebookHandoff(receipt: NotebookHandoffReceipt)
+    @Query("SELECT EXISTS(SELECT 1 FROM phone_notebook_items WHERE notebookId = :noteId AND id = :itemId)")
+    suspend fun hasNotebookItem(noteId: String, itemId: String): Boolean
+    @Transaction suspend fun beginTurn(
+        receipt: Conversation, user: ChatMessage, assistant: ChatMessage, notebook: NotebookHandoffReceipt? = null
+    ) {
         val previous=conversation(receipt.key)
         require(previous==null || (previous.scope==receipt.scope && previous.status in (RunStates.terminal+"idle"))) {"The previous turn must settle first."}
         require(receipt.pendingRequestHash.isNotBlank()) {"Save the exact request before admitting a turn."}
         save(if(previous==null) receipt else receipt.copy(title=previous.title,pinned=previous.pinned,hidden=previous.hidden,syncedAt=previous.syncedAt,detailsJson=previous.detailsJson))
         save(user);save(assistant)
+        if (notebook != null) {
+            check(notebook.scope == receipt.scope && notebook.sessionKey == receipt.key &&
+                notebook.requestKey == receipt.pendingKey && notebook.assistantId == assistant.id &&
+                assistant.sessionKey == receipt.key)
+            check(hasNotebookItem(notebook.notebookId, notebook.itemId))
+            insertNotebookHandoff(notebook)
+        }
     }
     @Transaction suspend fun recordAdmission(expected: Conversation,run: String): Conversation {
         val current=conversation(expected.key) ?: error("The request receipt is missing.")
@@ -322,7 +334,7 @@ object RunStates {
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
     @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearReports(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class,ManagementOperation::class, PhoneCapture::class, PhoneCaptureTaskLink::class, PhoneCaptureTaskReceipt::class, PhoneNotebook::class, NotebookItem::class, NotebookSource::class], version = 13, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class,ManagementOperation::class, PhoneCapture::class, PhoneCaptureTaskLink::class, PhoneCaptureTaskReceipt::class, PhoneNotebook::class, NotebookItem::class, NotebookSource::class, NotebookHandoffReceipt::class], version = 14, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() {
     abstract fun dao(): HermesDao
     abstract fun phoneCaptures(): PhoneCaptureDao

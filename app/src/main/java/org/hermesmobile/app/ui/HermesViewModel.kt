@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.*
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.hermesmobile.app.HermesApplication
+import org.hermesmobile.app.local.NotebookHandoffDraft
+import org.hermesmobile.app.local.NotebookHandoffReview
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 import java.util.UUID
@@ -438,7 +441,55 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             if(currentHistoryRead(operation,key,generation) && c.runId.isNotBlank() && c.status !in terminal) reconcile(c,operation=operation)
         } finally {if(currentHistoryRead(operation,key,generation)) historyLoading.value=false}}
     }
-    fun send(text: String = draft.value) {
+    private val pendingNotebook = MutableStateFlow<NotebookHandoffDraft?>(null)
+    internal val notebookHandoffDraft = pendingNotebook.asStateFlow()
+    private var notebookReview: Pair<NotebookHandoffReview, ConnectionContext>? = null
+
+    internal fun receiveNotebookHandoff(token: String) {
+        val proposed = graph.notebookHandoffs.take(token)?.let { NotebookHandoffDraft.decode(it) } ?: return
+        if (pendingNotebook.value == null) {
+            pendingNotebook.value = proposed
+            notebookReview = null
+        }
+    }
+
+    internal fun dismissNotebookHandoff() {
+        pendingNotebook.value = null
+        notebookReview = null
+    }
+
+    private fun notebookEndpoint(): String? = preferences.value.url.toHttpUrlOrNull()
+        ?.newBuilder()?.username("")?.password("")?.query(null)?.fragment(null)?.build()?.toString()
+
+    private fun notebookReady(): Boolean = !preferences.value.demo && scope.value != "demo" &&
+        connectionStatus.value == "connected" && !busy.value && !controlBusy.value && !connecting.value &&
+        !imageLoading.value && draft.value.isBlank() && imageDraft.value?.refs.isNullOrEmpty()
+
+    private fun notebookConnectionName(): String = savedConnections.value.firstOrNull { it.id == scope.value }
+        ?.name?.takeIf { it.isNotBlank() } ?: Words.Assistant.en
+
+    internal fun previewNotebookHandoff(proposed: NotebookHandoffDraft, instruction: String): NotebookHandoffReview? {
+        if (pendingNotebook.value !== proposed || !notebookReady()) return null
+        val endpoint = notebookEndpoint() ?: return null
+        val text = proposed.body(instruction) ?: return null
+        val operation = context()
+        return NotebookHandoffReview(proposed, operation.partition, endpoint, notebookConnectionName(),
+            selected.value, text).also { notebookReview = it to operation }
+    }
+
+    internal fun confirmNotebookHandoff(review: NotebookHandoffReview): Boolean {
+        val approval = notebookReview ?: return false
+        if (approval.first !== review || pendingNotebook.value !== review.draft || !notebookReady() ||
+            !current(approval.second) || selected.value != review.previousSelection ||
+            notebookEndpoint() != review.endpoint || notebookConnectionName() != review.connectionName) return false
+        dismissNotebookHandoff()
+        submit(review.body, review)
+        return true
+    }
+
+    fun send(text: String = draft.value) = submit(text)
+
+    private fun submit(text: String, notebook: NotebookHandoffReview? = null) {
         if(text.length>64000) {error.value=Words.MessageTooLong.localized(preferences.value);return}
         if((text.isBlank() && imageDraft.value?.refs.isNullOrEmpty()) || busy.value || controlBusy.value || connecting.value) return
         if(!preferences.value.demo && connectionStatus.value!="connected") { error.value="Connect to your Hermes server in Settings first."; return }
@@ -449,9 +500,17 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             try {
                 val operation=context();val expectedSelection=selected.value
                 require(dao.unresolvedServerOperations(scope.value).isEmpty()) {Words.ReviewServerOutcome.localized(preferences.value)}
-                val pictures=imageDraft.value
+                if (notebook != null) {
+                    val available = notebook.draft
+                    require(notebook.scope == operation.partition && notebook.previousSelection == expectedSelection &&
+                        notebook.endpoint == notebookEndpoint() && connectionStatus.value == "connected" &&
+                        !preferences.value.demo && dao.hasNotebookItem(available.notebookId, available.itemId)) {
+                        Words.NotebookHandoffChanged.localized(preferences.value)
+                    }
+                }
+                val pictures=if (notebook == null) imageDraft.value else null
                 require(pictures==null || (pictures.scope==scope.value && pictures.conversation==selected.value)) {Words.ImageContextChanged.localized(preferences.value)}
-                var c=expectedSelection.takeIf { it.isNotBlank() }?.let { dao.conversation(it) }
+                var c=expectedSelection.takeIf { notebook == null && it.isNotBlank() }?.let { dao.conversation(it) }
                 require(c==null || c.scope==operation.partition) {"Conversation scope changed."}
                 c?.let {SessionOrigin.requireWritable(it,Words.ReadOnlySession.localized(preferences.value))}
                 if(c != null && c.status !in terminal && c.status != "idle") { error.value="Check the previous run status before starting another turn."; return@launch }
@@ -498,7 +557,12 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
                 val hash=withContext(Dispatchers.IO) {graph.requests.freeze(c.scope,c.key,key,request)}
                 c=c.copy(pendingRequestHash=hash)
                 unsentDraft.markAttempted() // From here, preserve the frozen submission rather than routing a retry.
-                dao.beginTurn(c,user,ChatMessage("${key}_assistant",c.key,"assistant","",System.currentTimeMillis()+1,"submitting"))
+                val assistant = ChatMessage(key + "_assistant", c.key, "assistant", "", System.currentTimeMillis()+1, "submitting")
+                val link = notebook?.let {
+                    NotebookHandoffReceipt(key, it.draft.notebookId, it.draft.itemId, c.scope, c.key, assistant.id,
+                        it.endpoint, it.connectionName, c.pendingAt)
+                }
+                dao.beginTurn(c, user, assistant, link)
                 receipt=c
                 withContext(Dispatchers.IO) {runCatching {graph.requests.retainCurrent(c.scope,c.key,key)}}
                 resetDraft();clearDraftImages()

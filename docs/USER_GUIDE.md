@@ -168,6 +168,13 @@ you added. From a completed Phone documents answer, choose **Save answer
 to notebook** and select the notebook. Open a saved answer to review its
 cited excerpts and open the indexed source, if its content still matches.
 
+Open a notebook item and tap **Review Hermes handoff** to choose a request
+for the displayed excerpts. Tap **Review exact request** to see the full
+text, destination connection and endpoint. **Send to Hermes** starts a new
+conversation on that connection. The notebook's **Hermes handoffs** section
+shows the linked status and returned reply. Review a new destination if
+your connection changes.
+
 ## Voice, notices and widget
 
 Voice is foreground only. On-device-only recognition is the default; it requires Android 12+ and an available local recognizer/model. If unavailable, the app explains this. You may explicitly disable local-only mode to use the system service, which may process audio online. Grant microphone permission only when tapping to speak. Edit the transcription and transfer it to Chat; sending remains a separate action.

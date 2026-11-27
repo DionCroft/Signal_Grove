@@ -32,6 +32,13 @@ preserved the quoted source when the original document changed. No model
 needed to be loaded for these checks. The reviewed Hermes handoff is a
 separate acceptance item.
 
+The reviewed handoff app/test pair passed the JVM and lint gates and five
+Android 17 cases. A loopback Hermes fixture confirmed that review sent no
+prompt, one explicit approval sent the exact visible text to the displayed
+endpoint, and the returned reply linked only to the initiating notebook.
+The network contract uses a synthetic test destination. Direct acceptance
+against a production Hermes connection remains open.
+
 ## Published beta.16 release verification
 
 The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)

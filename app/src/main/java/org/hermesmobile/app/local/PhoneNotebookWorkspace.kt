@@ -107,6 +107,33 @@ internal class PhoneNotebookWorkspace(
     fun availableCaptures(query: String) = captures.search(query)
     fun availableTasks() = tasks.tasks()
 
+    fun handoffs(id: String) = storage.handoffs(id)
+
+    fun prepareHandoff(notebookId: String, entry: NotebookItem, ready: (NotebookHandoffDraft) -> Unit) = change {
+        val notebook = requireNotNull(storage.notebook(notebookId))
+        check(entry.notebookId == notebookId && storage.item(notebookId, entry.id) == entry)
+        val excerpts = when (NotebookItemKind.valueOf(entry.kind)) {
+            NotebookItemKind.CAPTURE -> listOf(NotebookExcerpt(entry.title, excerptPrefix(requireNotNull(capture(entry)).content)))
+            NotebookItemKind.DOCUMENT -> listOf(NotebookExcerpt(entry.title, excerptPrefix(document(entry).sections.first())))
+            NotebookItemKind.TASK -> {
+                val task = requireNotNull(task(entry))
+                listOf(NotebookExcerpt(task.title, excerptPrefix(listOf(task.title, task.dueDate, task.notes)
+                    .filter(String::isNotBlank).joinToString("\n"))))
+            }
+            NotebookItemKind.ANSWER -> sources(notebookId, entry.id).first().map {
+                NotebookExcerpt(it.documentName, it.excerpt)
+            }
+        }
+        val draft = NotebookHandoffDraft(notebookId, entry.id, notebook.name, excerpts)
+        check(draft.valid())
+        ready(draft)
+    }
+
+    private fun excerptPrefix(text: String): String {
+        val prefix = text.take(384)
+        return if (prefix.lastOrNull()?.isHighSurrogate() == true) prefix.dropLast(1) else prefix
+    }
+
     fun attachCapture(notebookId: String, captureId: String) = change {
         val capture = requireNotNull(captures.observe(captureId).first())
         val title = capture.content.lineSequence().map(String::trim)

@@ -3,6 +3,7 @@ package org.hermesmobile.app
 import android.os.Bundle
 import android.content.Intent
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
@@ -21,6 +22,11 @@ import org.hermesmobile.app.ui.*
 
 class MainActivity : ComponentActivity() {
     private val destination=mutableStateOf<String?>(null)
+    private val notebookToken = mutableStateOf<String?>(null)
+
+    companion object {
+        internal const val NOTEBOOK_HANDOFF_TOKEN = "notebook_handoff_token"
+    }
     private val sharedImages=mutableStateOf<org.hermesmobile.app.data.SharedImages?>(null)
     private var shareConsumed=false
     private var launcherRouting: Job? = null
@@ -29,6 +35,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.isLauncherEntry()) return
+        intent.getStringExtra(NOTEBOOK_HANDOFF_TOKEN)?.let { notebookToken.value = it }
         // A delivered request updates saved review state and leaves the activity launch identity intact.
         launcherRouting?.cancel()
         destination.value=intent.getStringExtra("destination")?.takeIf {it in setOf("Tasks","Chat")}
@@ -49,6 +56,7 @@ class MainActivity : ComponentActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) notebookToken.value = intent.getStringExtra(NOTEBOOK_HANDOFF_TOKEN)
         shareConsumed=savedInstanceState?.getBoolean("image_share_consumed") ?: false
         if(!shareConsumed) {
             if(savedInstanceState?.containsKey("pending_image_uris")==true) {
@@ -109,7 +117,21 @@ class MainActivity : ComponentActivity() {
             val activeRun by vm.busy.collectAsStateWithLifecycle()
             val activeControl by vm.controlBusy.collectAsStateWithLifecycle()
             val activeJob by vm.jobBusy.collectAsStateWithLifecycle()
-            HermesAppTheme(p, window) { AppUpdateHost(updates,activeRun || activeControl || activeJob || connecting) { HermesApp(vm,destination.value,handled={destination.value=null},sharedImages=sharedImages.value,shareHandled={shareConsumed=true;sharedImages.value=null}) } }
+            val transfer by vm.notebookHandoffDraft.collectAsStateWithLifecycle()
+            val intake = notebookToken.value
+            LaunchedEffect(intake) {
+                if (intake != null) {
+                    vm.receiveNotebookHandoff(intake)
+                    notebookToken.value = null
+                }
+            }
+            HermesAppTheme(p, window) {
+                AppUpdateHost(updates,activeRun || activeControl || activeJob || connecting) {
+                    HermesApp(vm,destination.value,handled={destination.value=null},sharedImages=sharedImages.value,
+                        shareHandled={shareConsumed=true;sharedImages.value=null})
+                    transfer?.let { NotebookHandoffDialog(vm, it) { destination.value = "Chat" } }
+                }
+            }
         }
     }
 }

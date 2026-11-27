@@ -2,6 +2,7 @@ package org.hermesmobile.app.local
 
 import android.app.Application
 import android.content.ContentResolver
+import android.content.Intent
 import android.provider.OpenableColumns
 import android.net.Uri
 import android.os.CancellationSignal
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.hermesmobile.app.HermesApplication
+import org.hermesmobile.app.MainActivity
 
 /** Drafts and picker results survive rotation in memory, never Android's saved-state bundle. */
 class LocalAiViewModel(application: Application, savedState: SavedStateHandle) : AndroidViewModel(application) {
@@ -24,6 +26,17 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     internal val captures = PhoneCaptureWorkspace(app.database.phoneCaptures(), controller, viewModelScope)
 
     internal val notebooks = PhoneNotebookWorkspace(app.database, controller, viewModelScope)
+
+    internal fun routeNotebookHandoff(draft: NotebookHandoffDraft) {
+        val token = draft.encode()?.let(app.notebookHandoffs::offer) ?: error("A notebook review is already awaiting delivery.")
+        try {
+            app.startActivity(Intent(app, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(MainActivity.NOTEBOOK_HANDOFF_TOKEN, token))
+        } catch (error: Exception) {
+            app.notebookHandoffs.cancel(token)
+            throw error
+        }
+    }
 
     internal fun openNotebooks(answer: PhoneDocumentAnswer? = null) {
         captures.close()
