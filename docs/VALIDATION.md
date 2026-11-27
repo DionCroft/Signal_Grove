@@ -19,6 +19,7 @@ previous test emulator lacked installation space. The full hosted gate
 still needs a successful exact-source run.
 
 [Hosted run and retained artifacts](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
+[Exact-source retest at `1719943`](https://github.com/DionCroft/Signal_Grove/actions/runs/46065224105).
 
 ## Xiaomi Quick Capture setup checkpoint
 
@@ -117,6 +118,12 @@ stale indicator. This did not establish fresh app reachability.
 The phone returned to the debug app for Quick Capture. The spoken
 test and permission recovery remain pending.
 
+At 20:14 UTC, Android reported a validated Wi-Fi default network and
+VPN. Tailscale showed Connected. The Pi identified the exact handset's
+tailnet peer and reported it online and inactive. A single bounded
+peer probe did not get a successful response. Fresh authenticated
+reachability from Signal Grove remains open.
+
 ## Hermes main scheduler and recovery recheck
 
 The latest stable release observed on 27 November is Hermes v0.23.4
@@ -134,6 +141,16 @@ passed.
 
 [Reviewed main revision](https://github.com/NousResearch/hermes-agent/commit/de2b0590f87b2131b51557b3f30aefeec421be2c) ·
 [Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4).
+
+The same 91 unchanged loopback and local fixture cases passed on
+v0.23.4 and `de2b059` in isolated Windows environments. Their case
+identities matched across all 11 upstream test files. The cases covered
+scoped approval decisions and cancellation, the replay epoch and history
+deduplication, reconnect after suspend, and the scheduler's timezone,
+validation and update behavior. The initial main test environment lacked
+the declared cron dependency. Using the verified lockfile wheels
+produced the complete paired result. These fixtures leave the live
+deployment and the broader source-difference review open.
 
 The same exact pin is registered for the native Linux persistence,
 approval and scheduler receipts, replay recovery, and paired shutdown
