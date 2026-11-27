@@ -755,6 +755,32 @@ class LocalAiControllerTest {
         assertArrayEquals(bytes, file.readBytes())
     }
 
+    @Test fun captureSuggestionsUseTheLoadedModelAndLeaveChatHistoryUntouched() = runTest {
+        val models = temp.newFolder()
+        val selected = model(models)
+        val engine = Engine()
+        val history = temp.newFolder()
+        val c = controller(models, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        val note = "Rehearsal notes. Confirm the room. Send the agenda."
+        var proposals: List<String>? = null
+        c.generateCaptureTasks(note, selected.sha256) { proposals = it }
+        advanceUntilIdle()
+        assertNull(proposals)
+        assertTrue(engine.requests.isEmpty())
+
+        c.load(selected)
+        advanceUntilIdle()
+        engine.reply = """["Confirm the room","Send the agenda"]"""
+        c.generateCaptureTasks(note, selected.sha256) { proposals = it }
+        advanceUntilIdle()
+        assertEquals(listOf("Confirm the room", "Send the agenda"), proposals)
+        assertEquals(listOf(LocalChatMessage("system", CAPTURE_TASK_INSTRUCTIONS), LocalChatMessage("user", note)),
+            engine.requests.single())
+        assertNull(c.state.value.chat)
+        assertTrue(c.state.value.history.isEmpty())
+    }
+
     @Test fun writingCancellationLeavesTheDraftAndPublishesNoNote() = runTest {
         val models = temp.newFolder()
         val selected = model(models)

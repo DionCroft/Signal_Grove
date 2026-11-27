@@ -143,6 +143,22 @@ Tasks stay on this device: create, edit, notes, ISO due date (`YYYY-MM-DD`), pri
 
 Automation lists Hermes jobs and supplied next/last-run state. A failed refresh keeps an explicitly stale profile-specific snapshot. Enable changes for this connection to use create/edit/pause/resume/run/delete. Each action has a review and confirmation; new jobs start paused with local delivery. Schedules are validated in the server's timezone. Blank replacement schedule leaves the current definition intact. Other server fields (skills/provider/delivery) are preserved; change advanced fields in Hermes itself. Resume/run can execute tools; delete also cancels an in-flight job run. A lost acknowledgement blocks further changes until you inspect the server and acknowledge the outcome marker. That acknowledgement does not send/repeat/undo anything.
 
+## Quick Capture and reviewed tasks (development)
+
+Open **Quick Capture** on Home or in Phone history. Use **Capture a note** to
+write a note from scratch, or tap the note action on the Signal Grove task
+widget. To keep a link or selected text from another app, use Android Share and
+choose Signal Grove's text destination. Review the original and tap **Save to
+Quick Capture**. Saving and searching work with the phone offline and the
+model unloaded. Entries show whether they came from shared text, a link, the
+widget or a typed note. Shared links are kept as text.
+
+To make tasks from a note, open the capture, load a compatible phone model,
+and tap **Suggest tasks on this phone**. Review the proposed titles, make any
+edits and uncheck items you want to discard. **Save selected tasks** creates
+only the checked tasks. The capture lists those tasks, and the task list
+provides a link back to the source note.
+
 ## Voice, notices and widget
 
 Voice is foreground only. On-device-only recognition is the default; it requires Android 12+ and an available local recognizer/model. If unavailable, the app explains this. You may explicitly disable local-only mode to use the system service, which may process audio online. Grant microphone permission only when tapping to speak. Edit the transcription and transfer it to Chat; sending remains a separate action.

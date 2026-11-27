@@ -120,7 +120,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val documents: PhoneDocumentActions? = null,
     val openWriting: (() -> Unit)? = null,
     val openTemporary: (() -> Unit)? = null,
-    val openProfiles: (() -> Unit)? = null, val openVoice: (() -> Unit)? = null)
+    val openProfiles: (() -> Unit)? = null, val openVoice: (() -> Unit)? = null,
+    val openCapture: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -172,11 +173,13 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
                 c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting,
             openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles,
-            openVoice = preferences?.let { vm::openPhoneVoice }),
+            openVoice = preferences?.let { vm::openPhoneVoice }, openCapture = { vm.openCapture() }),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
         replacing = pending?.previous, pendingDocument = pendingDocument)
     val writingOpen by vm.writingOpen.collectAsStateWithLifecycle()
     if (writingOpen) PhoneWritingDialog(vm, state)
+    val captureInbox by vm.captures.state.collectAsStateWithLifecycle()
+    if (captureInbox.open) PhoneCaptureInbox(vm, state, captureInbox)
     val temporary by vm.temporary.state.collectAsStateWithLifecycle()
     temporary?.let { PhoneTemporaryChatDialog(vm, it, state) }
     val profilesOpen by vm.personalProfilesOpen.collectAsStateWithLifecycle()
@@ -861,6 +864,7 @@ internal fun phoneError(code: String) = when {
     code == "temporary_no_reply" -> Words.PhoneTemporaryNoReply
     code == "writing_timeout" -> Words.PhoneWritingTimeout
     code == "writing_unusable" -> Words.PhoneWritingUnusable
+    code == "capture_tasks_unusable" -> Words.CaptureInvalidSuggestions
     code == "document_size" -> Words.PhoneDocumentSize
     code == "document_pdf_unsupported" -> Words.PhonePdfUnsupported
     code == "document_pdf_password" -> Words.PhonePdfPassword

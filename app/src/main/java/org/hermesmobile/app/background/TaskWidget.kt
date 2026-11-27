@@ -43,6 +43,11 @@ class TaskWidget:AppWidgetProvider() {
             views.setContentDescription(R.id.widget_open,Words.OpenTasksApp.localized(p))
             views.setTextViewText(R.id.widget_refresh,compact(Words.Refresh))
             views.setContentDescription(R.id.widget_refresh,Words.Refresh.localized(p))
+            views.setTextViewText(R.id.widget_capture,compact(Words.CaptureNewNote))
+            views.setContentDescription(R.id.widget_capture,Words.CaptureNewNote.localized(p))
+            views.setOnClickPendingIntent(R.id.widget_capture, PendingIntent.getActivity(context, 43,
+                LocalAiActivity.captureIntent(context, fromWidget = true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
             val launch=PendingIntent.getActivity(context,41,Intent(context,MainActivity::class.java).putExtra("destination","Tasks").addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             views.setOnClickPendingIntent(R.id.widget_open,launch)
             views.setOnClickPendingIntent(R.id.widget_count,launch)

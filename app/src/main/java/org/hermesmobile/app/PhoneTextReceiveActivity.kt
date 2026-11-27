@@ -15,7 +15,7 @@ class PhoneTextReceiveActivity : Activity() {
             val token = text?.let(app.writingIntake::offer)
             setIntent(Intent())
             startActivity(Intent(this, LocalAiActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 .putExtra(LocalAiActivity.WRITING_TOKEN, token)
                 .putExtra(LocalAiActivity.WRITING_REJECTED, token == null))
         }

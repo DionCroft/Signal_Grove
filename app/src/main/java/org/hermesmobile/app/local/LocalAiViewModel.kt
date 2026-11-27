@@ -21,6 +21,26 @@ import org.hermesmobile.app.HermesApplication
 class LocalAiViewModel(application: Application, savedState: SavedStateHandle) : AndroidViewModel(application) {
     private val app = application as HermesApplication
     val controller = app.localAi
+    internal val captures = PhoneCaptureWorkspace(app.database.phoneCaptures(), controller, viewModelScope)
+
+    internal fun openCapture(captureId: String? = null, fromWidget: Boolean = false) {
+        if (temporary.state.value != null) closeTemporary()
+        closePhoneVoice()
+        closePersonalProfiles()
+        writing.cancelReview()
+        writingOpen.value = false
+        captures.open(captureId, fromWidget)
+    }
+
+    internal fun saveSharedCapture() {
+        val draft = writing.draft.value
+        val id = draft.incomingId ?: return
+        val content = draft.incoming ?: return
+        captures.saveShared(id, content) {
+            if (writing.draft.value.incomingId == id) writing.dismissIncoming()
+            writingOpen.value = false
+        }
+    }
     internal val markdownExport = PhoneMarkdownExport(app.contentResolver, app.updateWorkGuard, savedState, viewModelScope)
 
     internal val historyBackup = PhoneHistoryBackup(app.contentResolver, controller, app.updateWorkGuard,
@@ -74,7 +94,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     }
 
     internal fun closeWriting() {
-        if (controller.state.value.busy) return
+        if (controller.state.value.busy || captures.state.value.saving) return
         writing.cancelReview()
         writingOpen.value = false
     }

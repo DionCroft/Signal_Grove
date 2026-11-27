@@ -9,17 +9,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.hermesmobile.app.LocalAiActivity
 import org.hermesmobile.app.data.*
 import java.time.LocalDate
 import java.util.UUID
 
 @Composable fun TasksScreen(vm: HermesViewModel) {
     val tasks by vm.tasks.collectAsStateWithLifecycle()
+    val sources by vm.taskCaptureSources.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     var search by rememberSaveable {mutableStateOf("")}
     var filter by rememberSaveable {mutableStateOf(TaskFilter.ALL)}
     val visible=filteredTasks(tasks,search,filter)
@@ -48,6 +52,12 @@ import java.util.UUID
                     if(task.notes.isNotBlank()) Text(task.notes,style=MaterialTheme.typography.bodySmall,maxLines=3)
                     if(task.dueDate.isNotBlank()) Text(task.dueDate,style=MaterialTheme.typography.labelMedium)
                     Text(label(listOf(Words.Low,Words.Normal,Words.High)[task.priority.coerceIn(0,2)]),style=MaterialTheme.typography.labelSmall)
+                    sources[task.id]?.let { captureId ->
+                        TextButton({ context.startActivity(LocalAiActivity.captureIntent(context, captureId)) },
+                            Modifier.testTag("task-open-capture-" + task.id)) {
+                            Text(label(Words.CaptureOpenSource))
+                        }
+                    }
                 }
                 IconButton({editing=task}) {Icon(Icons.Outlined.Edit,label(Words.Edit))}
                 IconButton({deleting=task}) {Icon(Icons.Outlined.DeleteOutline,label(Words.Delete))}

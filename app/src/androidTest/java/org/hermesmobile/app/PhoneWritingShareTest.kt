@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
@@ -11,6 +12,11 @@ import androidx.test.runner.lifecycle.ActivityLifecycleCallback
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import org.junit.Assert.*
+import org.junit.Assume.assumeTrue
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.hermesmobile.app.data.CaptureSource
+import java.util.UUID
 import org.junit.Rule
 import org.junit.Test
 
@@ -27,6 +33,91 @@ class PhoneWritingShareTest {
         assertNull(parseWritingShare(Intent(share).putExtra(Intent.EXTRA_STREAM, Uri.parse("content://fixture/attachment"))))
         assertNull(parseWritingShare(Intent(share).apply { clipData = ClipData.newRawUri("fixture", Uri.parse("content://fixture/1")) }))
         assertNull(parseWritingShare(Intent(share).setType("text/html")))
+    }
+
+    @Test fun shareAndWidgetSaveCapturesWithoutLoadingAModel() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val app = instrumentation.targetContext.applicationContext as HermesApplication
+        val lifecycle = ActivityLifecycleMonitorRegistry.getInstance()
+        val created = mutableListOf<Activity>()
+        val tracking = ActivityLifecycleCallback { activity, stage ->
+            if (activity is LocalAiActivity && stage == Stage.CREATED) created.add(activity)
+        }
+        val unique = UUID.randomUUID().toString()
+        val link = "https://example.invalid/fixture/" + unique
+        val widgetNote = "Rehearsal note " + unique
+        val sharedText = "Shared rehearsal actions " + unique
+        instrumentation.runOnMainSync { lifecycle.addLifecycleCallback(tracking) }
+        try {
+            for (content in listOf(link, sharedText)) {
+                val share = Intent(app, PhoneTextReceiveActivity::class.java).setAction(Intent.ACTION_SEND)
+                    .setType("text/plain").putExtra(Intent.EXTRA_TEXT, content).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                instrumentation.runOnMainSync { app.startActivity(share) }
+                compose.waitUntil(15_000) {
+                    compose.onAllNodesWithTag("capture-save-shared").fetchSemanticsNodes().size == 1
+                }
+                compose.onNodeWithTag("phone-writing-incoming").assertTextEquals(content)
+                compose.onNodeWithTag("capture-save-shared").performClick()
+                compose.waitUntil(15_000) { compose.onAllNodesWithTag("capture-content").fetchSemanticsNodes().size == 1 }
+                compose.onNodeWithTag("capture-content").assertTextEquals(content)
+                compose.onNodeWithTag("capture-suggest-tasks").assertIsNotEnabled()
+                compose.onNodeWithTag("capture-close").performClick()
+            }
+
+            val widget = runBlocking { org.hermesmobile.app.background.TaskWidget.buildViews(app) }
+            instrumentation.runOnMainSync {
+                val view = widget.apply(app, android.widget.FrameLayout(app))
+                assertTrue(view.findViewById<android.widget.TextView>(R.id.widget_capture).performClick())
+            }
+            compose.waitUntil(15_000) { compose.onAllNodesWithTag("capture-note").fetchSemanticsNodes().size == 1 }
+            compose.onNodeWithTag("capture-note").performTextInput(widgetNote)
+            compose.onNodeWithTag("capture-save-note").performClick()
+            compose.waitUntil(15_000) { compose.onAllNodesWithTag("capture-content").fetchSemanticsNodes().size == 1 }
+            compose.onNodeWithTag("capture-content").assertTextEquals(widgetNote)
+            compose.onNodeWithTag("capture-back-to-inbox").performClick()
+            compose.onNodeWithTag("capture-search").performTextInput(unique)
+            compose.waitUntil(15_000) { compose.onAllNodesWithTag("capture-list").fetchSemanticsNodes().size == 1 }
+            val captures = runBlocking { app.database.phoneCaptures().search(unique).first() }
+            assertEquals(CaptureSource.entries.filter { it != CaptureSource.NOTE }.map { it.name }.toSet(), captures.map { it.source }.toSet())
+            assertEquals(setOf(link, sharedText, widgetNote), captures.map { it.preview }.toSet())
+            assertNull(app.localAi.state.value.loaded)
+            instrumentation.sendStatus(2, Bundle().apply { putString("capture_fixture", unique) })
+        } finally {
+            instrumentation.runOnMainSync {
+                lifecycle.removeLifecycleCallback(tracking)
+                created.asReversed().forEach { if (!it.isFinishing) it.finish() }
+                app.phoneWriting.dismissIncoming()
+            }
+        }
+    }
+
+    /** The device driver invokes this after force-stopping the app following the share/widget test. */
+    @Test fun findCapturedFixturesAfterProcessRestart() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val fixture = InstrumentationRegistry.getArguments().getString("captureFixture").orEmpty()
+        assumeTrue("Requires a previous share/widget fixture and process restart", fixture.isNotEmpty())
+        UUID.fromString(fixture)
+        val app = instrumentation.targetContext.applicationContext as HermesApplication
+        val expected = mapOf(
+            CaptureSource.SHARED_LINK.name to "https://example.invalid/fixture/$fixture",
+            CaptureSource.SHARED_TEXT.name to "Shared rehearsal actions $fixture",
+            CaptureSource.WIDGET.name to "Rehearsal note $fixture"
+        )
+        val rows = runBlocking { app.database.phoneCaptures().search(fixture).first() }
+        assertEquals(expected, rows.associate { it.source to it.preview })
+        instrumentation.runOnMainSync { app.startActivity(LocalAiActivity.captureIntent(app).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        for (row in rows) {
+            compose.onNodeWithTag("capture-search").performTextReplacement(fixture)
+            compose.onNodeWithTag("capture-search").performImeAction()
+            compose.waitUntil(15_000) { compose.onAllNodes(hasTestTag("capture-open-" + rows.first().id)).fetchSemanticsNodes().size == 1 }
+            compose.onNodeWithTag("capture-list").performScrollToNode(hasTestTag("capture-open-" + row.id))
+            compose.onNodeWithTag("capture-open-" + row.id).performClick()
+            compose.waitUntil(15_000) { compose.onAllNodesWithTag("capture-content").fetchSemanticsNodes().size == 1 }
+            compose.onNodeWithTag("capture-content").assertTextEquals(expected.getValue(row.source))
+            compose.onNodeWithTag("capture-back-to-inbox").performClick()
+        }
+
+        assertNull(app.localAi.state.value.loaded)
     }
 
     @Test fun actualSharedTextReviewCancelsWithoutReplacingTheWritingDraft() {

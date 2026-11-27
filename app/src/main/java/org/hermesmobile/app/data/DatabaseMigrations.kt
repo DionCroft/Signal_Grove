@@ -4,6 +4,17 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_11_TO_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE phone_captures (id TEXT NOT NULL PRIMARY KEY, content TEXT NOT NULL, source TEXT NOT NULL, createdAt INTEGER NOT NULL, processedAt INTEGER)")
+            db.execSQL("CREATE INDEX index_phone_captures_createdAt ON phone_captures(createdAt)")
+            db.execSQL("CREATE TABLE phone_capture_tasks (taskId TEXT NOT NULL PRIMARY KEY, captureId TEXT NOT NULL, FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE, FOREIGN KEY (captureId) REFERENCES phone_captures(id) ON DELETE CASCADE)")
+            db.execSQL("CREATE INDEX index_phone_capture_tasks_captureId ON phone_capture_tasks(captureId)")
+            db.execSQL("CREATE TABLE phone_capture_task_reviews (reviewId TEXT NOT NULL PRIMARY KEY, captureId TEXT NOT NULL, selectionHash TEXT NOT NULL, taskCount INTEGER NOT NULL, FOREIGN KEY (captureId) REFERENCES phone_captures(id) ON DELETE CASCADE)")
+            db.execSQL("CREATE INDEX index_phone_capture_task_reviews_captureId ON phone_capture_task_reviews(captureId)")
+        }
+    }
+
     val FROM_10_TO_11=object:Migration(10,11) {
         override fun migrate(db:SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE management_operations ADD COLUMN projectHome TEXT NOT NULL DEFAULT ''")
@@ -94,4 +105,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9,DatabaseMigrations.FROM_9_TO_10,DatabaseMigrations.FROM_10_TO_11)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9,DatabaseMigrations.FROM_9_TO_10,DatabaseMigrations.FROM_10_TO_11,DatabaseMigrations.FROM_11_TO_12)

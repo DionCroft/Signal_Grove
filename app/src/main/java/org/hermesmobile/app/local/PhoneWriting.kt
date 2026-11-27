@@ -90,6 +90,7 @@ internal data class PhoneWritingDraft(
     val title: String = "",
     val template: PhoneWritingTemplate? = null,
     val incoming: String? = null,
+    val incomingId: String? = null,
     val intakeError: Boolean = false
 ) {
     val canReview: Boolean get() = validInstructions(instructions) && validWritingSource(source)
@@ -138,18 +139,19 @@ internal class PhoneWritingWorkspace {
         val latest = mutableDraft.value
         val valid = text != null && validWritingSource(text) && latest.incoming == null
         // A second share cannot replace a draft or an earlier share awaiting review.
-        edit(latest.copy(incoming = if (valid) text else latest.incoming, intakeError = !valid))
+        edit(latest.copy(incoming = if (valid) text else latest.incoming,
+            incomingId = if (valid) UUID.randomUUID().toString() else latest.incomingId, intakeError = !valid))
     }
 
     fun useIncoming() {
         val latest = mutableDraft.value
         val incoming = latest.incoming ?: return
-        edit(latest.copy(source = incoming, incoming = null, intakeError = false))
+        edit(latest.copy(source = incoming, incoming = null, incomingId = null, intakeError = false))
         dismissResult()
     }
 
     fun dismissIncoming() {
-        mutableDraft.value = mutableDraft.value.copy(incoming = null, intakeError = false)
+        mutableDraft.value = mutableDraft.value.copy(incoming = null, incomingId = null, intakeError = false)
     }
 
     fun prepare(model: InstalledLocalModel?) {

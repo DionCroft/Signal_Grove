@@ -1,5 +1,6 @@
 package org.hermesmobile.app
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -25,7 +26,7 @@ class LocalAiActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.enableEdgeToEdge(window)
         model.receiveDraft(intent.getStringExtra(DRAFT_TOKEN))
-        if (savedInstanceState == null) receiveWriting(intent)
+        if (savedInstanceState == null) receiveEntry(intent)
         showDownloads.value = savedInstanceState == null && intent.getBooleanExtra(OPEN_DOWNLOADS, false)
         val store = (application as HermesApplication).preferences
         val standalone = intent.getBooleanExtra(FROM_LAUNCHER, false)
@@ -49,11 +50,15 @@ class LocalAiActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        receiveWriting(intent)
+        receiveEntry(intent)
         if (intent.getBooleanExtra(OPEN_DOWNLOADS, false)) showDownloads.value = true
     }
 
-    private fun receiveWriting(intent: Intent) {
+    private fun receiveEntry(intent: Intent) {
+        if (intent.getBooleanExtra(OPEN_CAPTURE, false)) {
+            model.openCapture(intent.getStringExtra(CAPTURE_ID), intent.getBooleanExtra(WIDGET_NOTE, false))
+            return
+        }
         model.receiveWriting(intent.getStringExtra(WRITING_TOKEN), intent.getBooleanExtra(WRITING_REJECTED, false))
     }
 
@@ -68,6 +73,13 @@ class LocalAiActivity : ComponentActivity() {
         internal const val WRITING_REJECTED = "phone_writing_rejected"
         internal const val FROM_LAUNCHER = "phone_from_launcher"
         internal const val OPEN_DOWNLOADS = "open_phone_model_downloads"
+        private const val OPEN_CAPTURE = "open_phone_capture"
+        private const val CAPTURE_ID = "open_phone_capture_id"
+        private const val WIDGET_NOTE = "open_phone_widget_note"
+
+        internal fun captureIntent(context: Context, captureId: String? = null, fromWidget: Boolean = false) =
+            Intent(context, LocalAiActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(OPEN_CAPTURE, true).putExtra(CAPTURE_ID, captureId).putExtra(WIDGET_NOTE, fromWidget)
     }
     override fun onStart() { super.onStart(); model.controller.refreshLibrary() }
     override fun onStop() {

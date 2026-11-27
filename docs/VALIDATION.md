@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## Quick Capture and reviewed phone tasks
+
+The development chunk passed 1,265 JVM tests, debug and release lint, and
+both debug APK builds. On Android 8, six focused device checks passed with
+Airplane mode on, Wi-Fi disabled and no default network. They covered
+repeated Android Share text and link intake, the actual widget note action,
+force-stop and reopen, literal search, source labels, concurrent task save
+and receipt recovery, and the existing writing review.
+
+The verified Qwen2.5-0.5B Instruct Q4_K_M model extracted both explicit
+actions from a synthetic meeting note. Review saved only the edited,
+checked action. The task and capture links agreed, the stored note was
+unchanged, and a repeated Save did not create a duplicate. These checks used
+the real Android inference library on the x86-64 emulator. The signed
+production upgrade and physical-device acceptance are later release gates.
+
 ## Published beta.16 release verification
 
 The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)

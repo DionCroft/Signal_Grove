@@ -29,7 +29,8 @@
         <service android:name=".local.PhonePdfService" android:exported="false"
             android:process=":phone_pdf" android:isolatedProcess="true" />
         <activity android:name=".PhoneTextReceiveActivity" android:exported="true"
-            android:label="@string/phone_writing_share" android:excludeFromRecents="true">
+            android:label="@string/phone_writing_share" android:excludeFromRecents="true"
+            android:noHistory="true" android:taskAffinity="">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

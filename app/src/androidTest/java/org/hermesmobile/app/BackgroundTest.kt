@@ -49,6 +49,8 @@ class BackgroundTest {
                 assertTrue(view.findViewById<TextView>(R.id.widget_count).text.isNotBlank())
                 assertFalse(view.findViewById<TextView>(R.id.widget_count).text.contains(task.title))
                 assertTrue(view.findViewById<TextView>(R.id.widget_open).hasOnClickListeners())
+                assertTrue(view.findViewById<TextView>(R.id.widget_capture).hasOnClickListeners())
+                assertFalse(view.findViewById<TextView>(R.id.widget_capture).text.contains(task.title))
             }
         } finally {app.database.dao().delete(task)}
     }

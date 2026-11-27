@@ -375,6 +375,23 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             onPrepared(PhoneWritingNote(review.id, text, end == LocalGenerationEnd.TOKEN_LIMIT))
         }
 
+    internal fun generateCaptureTasks(content: String, modelSha256: String, onPrepared: (List<String>) -> Unit) =
+        action("generating_capture_tasks", prepareSavedHistory = false) {
+            if (mutable.value.loaded?.sha256 != modelSha256) throw LocalEngineException(4)
+            require(org.hermesmobile.app.data.validCaptureText(content))
+            val messages = listOf(LocalChatMessage("system", CAPTURE_TASK_INSTRUCTIONS), LocalChatMessage("user", content))
+            val settings = generationSettings().let { it.copy(maxOutputTokens = minOf(it.maxOutputTokens, 512)) }
+            validatePrompt(messages, settings)
+            var output = ""
+            val end = withTimeoutOrNull(90_000) {
+                checkNotNull(engine).generate(messages, settings.maxOutputTokens) { output = it }
+            } ?: throw LocalModelStorageException("writing_timeout")
+            currentCoroutineContext().ensureActive()
+            if (end == LocalGenerationEnd.CANCELLED) return@action
+            val titles = if (end == LocalGenerationEnd.COMPLETE) parseCaptureTaskOutput(output) else null
+            onPrepared(titles ?: throw LocalModelStorageException("capture_tasks_unusable"))
+        }
+
     fun clearDocumentReview() {
         mutable.update { it.copy(documentReview = null, documentAnswer = null) }
     }

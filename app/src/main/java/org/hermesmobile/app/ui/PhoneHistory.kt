@@ -57,6 +57,11 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
             modifier = Modifier.testTag("phone-history-search-clear")) {Text(label(Words.PhoneHistoryClear))}
     }
     LazyColumn(Modifier.weight(1f).testTag("phone-history"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        actions.openCapture?.let { open -> item {
+            TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-capture-open")) {
+                Text(label(Words.CaptureInbox))
+            }
+        } }
         if (actions.exportBackup != null && actions.importBackup != null) item {
             Row(Modifier.fillMaxWidth()) {
                 TextButton(actions.exportBackup,

@@ -5,4 +5,6 @@
         <TextView android:id="@+id/widget_open" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:gravity="center_vertical" android:textColor="#183D2B" android:textSize="13sp" android:textStyle="bold" />
         <TextView android:id="@+id/widget_refresh" android:layout_width="wrap_content" android:layout_height="48dp" android:minWidth="48dp" android:gravity="center" android:textColor="#183D2B" android:textSize="13sp" />
     </LinearLayout>
+    <TextView android:id="@+id/widget_capture" android:layout_width="match_parent" android:layout_height="48dp"
+        android:gravity="center_vertical" android:textColor="#183D2B" android:textSize="13sp" android:textStyle="bold" />
 </LinearLayout>

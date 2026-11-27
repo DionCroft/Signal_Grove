@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Bundle
 import android.os.SystemClock
+import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
@@ -11,6 +12,9 @@ import java.security.MessageDigest
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
+import org.hermesmobile.app.data.CaptureSource
+import org.hermesmobile.app.data.HermesDatabase
+import org.hermesmobile.app.data.PhoneCapture
 import org.hermesmobile.app.local.*
 import org.hermesmobile.app.updates.UpdateWorkGuard
 import org.junit.Assert.*
@@ -123,6 +127,57 @@ class LocalModelFamilyIntegrationTest {
             stop(controller, guard)
         }
     }
+    @Test fun verifiedQwenExtractsReviewedCaptureTasks() = runBlocking {
+        val source = input("qwen.gguf", qwenSha, 491400032L)
+        val (models, chats) = roots(source)
+        val guard = UpdateWorkGuard()
+        val controller = createController(models, chats, guard)
+        val db = Room.inMemoryDatabaseBuilder(context, HermesDatabase::class.java).build()
+        try {
+            idle(controller, guard)
+            val model = importVerified(controller, guard, source, qwenSha)
+            controller.load(model, 2048)
+            assertEquals(qwenSha, idle(controller, guard).loaded?.sha256)
+            val dao = db.phoneCaptures()
+            val note = PhoneCapture(UUID.randomUUID().toString(),
+                "Meeting actions: Send the agenda to the attendees. Book the meeting room. For context, Wednesday was sunny.",
+                CaptureSource.NOTE.name, System.currentTimeMillis())
+            dao.save(note)
+            val workspace = PhoneCaptureWorkspace(dao, controller, this)
+            workspace.open(note.id)
+            val started = SystemClock.elapsedRealtime()
+            workspace.suggestTasks(note)
+            idle(controller, guard)
+            val review = workspace.state.value.review ?: error("No capture review was produced")
+            val choices = review.choices
+            assertEquals(2, choices.size)
+            val agenda = choices.indexOfFirst { it.title.contains("agenda", ignoreCase = true) }
+            val room = choices.indexOfFirst { it.title.contains("room", ignoreCase = true) }
+            assertTrue("Both explicit actions must appear", agenda >= 0 && room >= 0 && agenda != room)
+            assertTrue(dao.linkedTasks(note.id).first().isEmpty())
+
+            val edited = "Send the approved agenda to all attendees"
+            workspace.updateChoice(agenda, choices[agenda].copy(title = edited))
+            workspace.updateChoice(room, choices[room].copy(selected = false))
+            workspace.saveReview()
+            workspace.saveReview()
+            val saved = withTimeout(10_000) { workspace.state.first { !it.saving } }
+            assertEquals(CaptureNotice.TASKS_SAVED, saved.notice)
+            assertNull(saved.review)
+            val task = dao.linkedTasks(note.id).first().single()
+            assertEquals(edited, task.title)
+            val link = dao.taskSources().first().single()
+            assertEquals(task.id, link.taskId)
+            assertEquals(note.id, link.captureId)
+            assertEquals(note.content, dao.observe(note.id).first()?.content)
+            assertTrue(LocalConversationStore(chats).list().isEmpty())
+            stage("qwen-reviewed-capture-task-complete", SystemClock.elapsedRealtime() - started)
+        } finally {
+            db.close()
+            stop(controller, guard)
+        }
+    }
+
     @Test fun verifiedLfmQwenSwitchKeepsHistoryBoundToEachFile() = runBlocking {
         val qwenSource = input("qwen.gguf", qwenSha, 491400032L)
         val lfmSource = input("lfm3.gguf", lfmSha, 1049615680L)

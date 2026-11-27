@@ -32,6 +32,7 @@ internal fun PhoneWritingDialog(vm: LocalAiViewModel, state: LocalAiState) {
     val library by vm.writingLibrary.collectAsStateWithLifecycle()
     val storageError by vm.writingStorageError.collectAsStateWithLifecycle()
     val saving by vm.writingSaving.collectAsStateWithLifecycle()
+    val capture by vm.captures.state.collectAsStateWithLifecycle()
     var notesOpen by remember { mutableStateOf(false) }
     var openedNote by remember { mutableStateOf<String?>(null) }
     val keyboard = LocalSoftwareKeyboardController.current
@@ -40,7 +41,7 @@ internal fun PhoneWritingDialog(vm: LocalAiViewModel, state: LocalAiState) {
     val incoming = draft.incoming
     val reviewed = review
     val output = result
-    val idle = !state.busy && !saving
+    val idle = !state.busy && !saving && !capture.saving
     LaunchedEffect(incoming, reviewed, output, notesOpen) { scroll.scrollTo(0) }
 
     Dialog(onDismissRequest = vm::closeWriting,
@@ -52,6 +53,9 @@ internal fun PhoneWritingDialog(vm: LocalAiViewModel, state: LocalAiState) {
                     Text(label(phoneError(it)), color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("phone-writing-error"))
                 }
                 if (storageError) Text(label(Words.PhoneWritingStorage), color = MaterialTheme.colorScheme.error)
+                if (incoming != null && capture.notice == CaptureNotice.STORAGE_ERROR) {
+                    Text(label(Words.CaptureStorageError), color = MaterialTheme.colorScheme.error)
+                }
                 if (draft.intakeError) {
                     Text(label(Words.PhoneWritingIntakeError), color = MaterialTheme.colorScheme.error)
                     if (incoming == null) TextButton(vm.writing::dismissIncoming) { Text(label(Words.Close)) }
@@ -106,8 +110,11 @@ internal fun PhoneWritingDialog(vm: LocalAiViewModel, state: LocalAiState) {
                         Text(label(Words.PhoneWritingWorking))
                         if (state.status == "generating") TextButton(vm.controller::cancel) { Text(label(Words.Stop)) }
                     }
-                    saving -> Text(label(Words.PhoneWritingWorking))
+                    saving || capture.saving -> Text(label(Words.PhoneWritingWorking))
                     incoming != null -> {
+                        TextButton(vm::saveSharedCapture, Modifier.fillMaxWidth().testTag("capture-save-shared")) {
+                            Text(label(Words.CaptureSaveToInbox))
+                        }
                         Button(vm.writing::useIncoming, Modifier.fillMaxWidth().testTag("phone-writing-use-incoming")) {
                             Text(label(if (draft.source.isEmpty()) Words.PhoneWritingUseShared else Words.PhoneWritingReplaceShared))
                         }
