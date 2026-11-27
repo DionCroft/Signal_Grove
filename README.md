@@ -48,6 +48,21 @@ For an in-place update, install the matching production APK over your existing p
 
 Hermes controls depend on the connected runtime, authentication, and configured capabilities. Workspace browsing also needs an enrolled worker. The [compatibility guide](docs/COMPATIBILITY.md) and [feature matrix](docs/FEATURES.md) explain availability by area.
 
+## In development · Offline workspace and Today
+
+| Feature | What it adds |
+| --- | --- |
+| **Quick Capture** | Save and search notes, edit or archive captures, and review suggested tasks before saving them. Optional English language packs add on-device screenshot OCR and short voice-note transcription. |
+| **Project notebooks** | Organize saved captures, ask a phone model about selected excerpts with citations, and review what will be sent when handing work to Hermes. Rename notebooks and review deletions. |
+| **Selected offline backups** | Export chosen captures and notebooks with passphrase protection. Review the restore and ID conflicts before saving anything. |
+| **Today approval inbox** | See due tasks and unprocessed captures. With a supported signed-in Hermes profile, find requests started on another client, review the exact approval, and open an older run's saved receipt. |
+
+The current preview APK is beta.16. The offline workspace and Today features above
+are on the development branch. The supported LFM3 context remains 4,096 tokens.
+[Development user guide](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/USER_GUIDE.md)
+· [Verified results](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/VALIDATION.md)
+· [Open acceptance work](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/GOAL.md#active-scope--27-november-2026)
+
 ## Release verification
 
 The beta.16 APK is **76.8 MB**. The exact source passed **1,262 JVM tests**, **1,265 Android 8 cases** and **1,266 Android 17 cases**. The original-key upgrade from beta.15 retained a saved task on Android 17. All five public assets were downloaded anonymously and checksum verified. The beta.15 app found and installed the checksum-verified public update in place on Android 8. [Beta.16 verification](docs/releases/1.1.0-beta.16.md) · [Full validation evidence](docs/VALIDATION.md)
