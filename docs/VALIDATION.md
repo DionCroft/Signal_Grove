@@ -16,6 +16,15 @@ citation, and the reviewed confirmation before inference. Android
 17 also exercised the existing workspace flows offline and restored
 its original radio settings.
 
+A separate Android 17 instrumentation companion verified the real
+LFM3 1.7B QAD native tokenizer against the same app APK at
+`486d49bb8b2095582d69cf49cec563966a34cc9f`. With Airplane mode on
+and Wi-Fi off, two exact excerpts produced 137 formatted prompt
+tokens with 384 output tokens reserved in a 4,096-token context.
+The emulator's original radios were restored. The native
+instrumentation log SHA-256 is
+`b6a287d5693611a70128e75c942f78ff2e28efad927b434a2c4078683dc0ba1b`.
+
 ## Encrypted workspace backup and restore
 
 Open Phone Notebooks to back up or restore selected local captures,
@@ -134,6 +143,14 @@ v0.23.4 and the tested main pin `9bba163`.
 [Shutdown case evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46022114644)
 
 ## Complete hosted Android baseline and receipt recovery
+
+The touchscreen-repair revision
+`8b732fec47eb427275b25a0f3d8ef913d59df676` also passed the hosted
+matrix. Android 8 executed all 1,271 cases and Android 17 executed all
+1,272. Both APK hashes matched the build and each shard artifact.
+The build passed 1,266 JVM tests, 1,260 policy tests and both lint
+variants. Prepared offline model fixtures have separate evidence.
+[Coverage job](https://github.com/DionCroft/Signal_Grove/actions/runs/46030084149/job/140671909497).
 
 All four shards on `5f74e45` passed. The disjoint raw case records
 exactly cover 1,271 Android 8 and 1,272 Android 17 standard cases.
