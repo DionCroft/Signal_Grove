@@ -15,11 +15,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import org.hermesmobile.app.data.CaptureSource
 import org.hermesmobile.app.data.MAX_CAPTURE_CHARS
 import org.hermesmobile.app.data.validCaptureText
 
-internal enum class MediaCaptureWork { INSTALL, OCR, RECORDING, TRANSCRIPTION }
+internal enum class MediaCaptureWork { INSTALL, DOWNLOAD, OCR, RECORDING, TRANSCRIPTION }
 
 internal data class MediaCaptureState(
     val kind: MediaCaptureKind? = null,
@@ -35,10 +36,12 @@ internal class MediaCaptureWorkspace(
     context: Context,
     modelRoot: File,
     private val inbox: PhoneCaptureWorkspace,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    prepareDownloadRoute: suspend (OkHttpClient) -> ModelDownloadRoute
 ) {
     private val resolver = context.contentResolver
     private val models = MediaCaptureModels(modelRoot)
+    private val packs = MediaPackDownload(models, prepareDownloadRoute)
     private val engines = MediaCaptureEngines(context)
     private val mutable = MutableStateFlow(MediaCaptureState())
     val state = mutable.asStateFlow()
@@ -63,8 +66,12 @@ internal class MediaCaptureWorkspace(
         if (job?.isCompleted == false || samples != null) close()
     }
 
-    fun downloadUnavailable() {
-        mutable.update { it.copy(error = "media_download_unavailable") }
+    fun downloadPack() {
+        val kind = mutable.value.kind ?: return
+        launch(MediaCaptureWork.DOWNLOAD) {
+            packs.install(kind)
+            updateReview { it.copy(installed = true) }
+        }
     }
 
     fun permissionDenied() {

@@ -57,10 +57,12 @@ internal fun MediaCaptureDialog(workspace: MediaCaptureWorkspace, state: MediaCa
                         Text(label(Words.MediaEnglishPack))
                         SelectionContainer { Text(kind.fileName) }
                         Text(label(Words.MediaPackLicense))
-                        TextButton({
-                            val download = Intent(Intent.ACTION_VIEW, Uri.parse(kind.download))
-                            runCatching { context.startActivity(download) }.onFailure { workspace.downloadUnavailable() }
-                        }, enabled = state.work == null) { Text(label(Words.MediaDownloadPack)) }
+                        val sizeMb = (kind.bytes + 500_000) / 1_000_000
+                        Text(label(Words.MediaDownloadSource).replace("{size}", sizeMb.toString())
+                            .replace("{publisher}", Uri.parse(kind.download).host.orEmpty()))
+                        TextButton(workspace::downloadPack, enabled = state.work == null,
+                            modifier = Modifier.testTag("media-download-model")) { Text(label(Words.MediaDownloadPack)) }
+                        if (state.work == MediaCaptureWork.DOWNLOAD) Text(label(Words.MediaPackDownloading))
                         Button({ modelFile.launch(arrayOf("*/*")) }, enabled = state.work == null,
                             modifier = Modifier.testTag("media-import-model")) { Text(label(Words.MediaImportPack)) }
                     } else if (kind == MediaCaptureKind.SCREENSHOT) {
@@ -114,6 +116,8 @@ private fun mediaCaptureError(reason: String) = when (reason) {
     "media_audio_empty" -> Words.MediaRecordingEmpty
     "media_no_text" -> Words.MediaNoText
     "media_text_limit" -> Words.MediaTextLimit
-    "media_download_unavailable" -> Words.MediaBrowserUnavailable
+    "media_download_http" -> Words.MediaPackDownloadFailed
+    "download_unmetered_required", "download_network_changed",
+    "download_network_proxy", "download_network_settings" -> phoneError(reason)
     else -> Words.MediaFailed
 }

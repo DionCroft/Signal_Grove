@@ -1,5 +1,24 @@
 # Current development validation — audit follow-up
 
+## Offline language-pack setup
+
+Quick Capture can download its published language packs directly and
+checks the pinned size and SHA-256 before making a pack available.
+Transfers use the phone-model network preference and cancel when the
+capture screen closes. Local file import remains available. The existing
+offline OCR and speech engines read the installed pack.
+
+The exact candidate passed 1,278 JVM tests and both lint variants.
+Android 8 and 17 each passed the prepared native media and microphone
+permission-denial cases in Airplane mode with Wi-Fi off. The speech
+fixture provided the pinned publisher response locally, then used the
+downloaded pack to transcribe prepared PCM with the native engine.
+The app also exercised the existing file-import and OCR checks. Both
+emulators restored their radio settings. The Android 17 Quick Capture
+UI also downloaded both original packs from their publishers, verified
+their digests and enabled the recording and screenshot controls. The
+Xiaomi microphone and permission-recovery check is still open.
+
 ## Live workflow readiness
 
 The Pi's existing gateway, serve and mobile dashboard units were active

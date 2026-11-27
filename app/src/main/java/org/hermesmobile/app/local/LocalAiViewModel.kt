@@ -25,7 +25,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     val controller = app.localAi
     internal val captures = PhoneCaptureWorkspace(app.database.phoneCaptures(), controller, viewModelScope)
     internal val mediaCapture = MediaCaptureWorkspace(app, java.io.File(app.noBackupFilesDir, "media-capture-models"),
-        captures, viewModelScope)
+        captures, viewModelScope, app.phoneDownloadNetwork::prepare)
 
     internal val notebooks = PhoneNotebookWorkspace(app.database, controller, viewModelScope)
 

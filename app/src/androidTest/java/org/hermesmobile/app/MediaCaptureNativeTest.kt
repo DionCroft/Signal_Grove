@@ -16,6 +16,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.asResponseBody
+import okio.buffer
+import okio.source
 import org.hermesmobile.app.data.*
 import org.hermesmobile.app.local.*
 import org.hermesmobile.app.updates.UpdateWorkGuard
@@ -40,6 +46,27 @@ class MediaCaptureNativeTest {
             installed.installed(screenshotKind) != null)
         val ocr = File(root, screenshotKind.fileName).inputStream().use { installed.install(screenshotKind, it) {} }
         val speech = File(root, speechKind.fileName).inputStream().use { installed.install(speechKind, it) {} }
+        assertEquals(speech, installed.installed(speechKind))
+
+        val downloaded = MediaCaptureModels(File(root, "downloaded-" + java.util.UUID.randomUUID()))
+        var fetched = 0
+        val packFile = File(root, speechKind.fileName)
+        val fixtureTransport = OkHttpClient.Builder().addInterceptor { chain ->
+            val request = chain.request()
+            assertEquals(speechKind.download, request.url.toString())
+            assertEquals("identity", request.header("Accept-Encoding"))
+            assertNull(request.header("Authorization"))
+            assertNull(request.header("Cookie"))
+            fetched++
+            Response.Builder().request(request).protocol(Protocol.HTTP_1_1)
+                .code(200).message("Prepared publisher pack")
+                .body(packFile.source().buffer().asResponseBody(contentLength = packFile.length())).build()
+        }.build()
+        val transfer = MediaPackDownload(downloaded, { ModelDownloadRoute(it) }, fixtureTransport)
+        val verifiedSpeech = transfer.install(speechKind)
+        assertEquals(verifiedSpeech, downloaded.installed(speechKind))
+        assertEquals(verifiedSpeech, transfer.install(speechKind))
+        assertEquals(1, fetched)
 
         val engines = MediaCaptureEngines(context)
         val rendered = screenshot()
@@ -59,7 +86,7 @@ class MediaCaptureNativeTest {
             assertTrue(recognized.uppercase(Locale.ROOT).contains("SEVEN"))
 
             val samples = pcm(File(root, "user.wav"))
-            val transcript = try { engines.transcript(samples, speech) {} }
+            val transcript = try { engines.transcript(samples, verifiedSpeech) {} }
                 finally { samples.fill(0) }
             assertTrue("Expected spoken keywords", transcript.contains("door", ignoreCase = true) &&
                 transcript.contains("seven", ignoreCase = true))

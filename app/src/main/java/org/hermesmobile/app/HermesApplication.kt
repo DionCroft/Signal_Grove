@@ -26,17 +26,19 @@ class HermesApplication : Application() {
     internal val writingIntake = org.hermesmobile.app.local.PhoneDraftHandoff()
     internal val notebookHandoffs = org.hermesmobile.app.local.PhoneDraftHandoff()
     val updateWorkGuard=org.hermesmobile.app.updates.UpdateWorkGuard()
-    val localAi by lazy {
-        val network = AndroidModelDownloadNetwork(checkNotNull(getSystemService(ConnectivityManager::class.java))) {
+    internal val phoneDownloadNetwork by lazy {
+        AndroidModelDownloadNetwork(checkNotNull(getSystemService(ConnectivityManager::class.java))) {
             preferences.phoneDownloadUnmetered.first()
         }
+    }
+    val localAi by lazy {
         org.hermesmobile.app.local.LocalAiController(
             java.io.File(noBackupFilesDir,"local-ai/models"),java.io.File(noBackupFilesDir,"local-ai/chats"),
             applicationInfo.nativeLibraryDir,android.os.Process.is64Bit(),
             {android.app.ActivityManager.MemoryInfo().also {getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it)}.availMem},
             updateWorkGuard,
             readLoadPssKiB = { android.os.Debug.MemoryInfo().also { android.os.Debug.getMemoryInfo(it) }.totalPss },
-            prepareDownloadRoute = network::prepare)
+            prepareDownloadRoute = phoneDownloadNetwork::prepare)
     }
     val managementReady by lazy {appScope.async {database.dao().recoverManagementOperations()}}
     val database by lazy { Room.databaseBuilder(this,HermesDatabase::class.java,"hermes.db").addMigrations(*ALL_HERMES_MIGRATIONS).build() }
