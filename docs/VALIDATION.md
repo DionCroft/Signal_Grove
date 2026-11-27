@@ -15,6 +15,12 @@ native speech model. The recording control became available. Android
 still reports microphone permission as denied. The live microphone,
 offline permission recovery and the publisher failure cause remain open.
 
+The exact signed debug app and companion also passed the Xiaomi
+microphone-denial fixture with Wi-Fi on. Android's denied permission
+was verified before and after. The existing guard returned the expected
+denial before opening the audio recorder. The recording and permission
+recovery check still needs a spoken fixture on the phone while offline.
+
 ## Offline language-pack setup
 
 Quick Capture can download its published language packs directly and
@@ -44,6 +50,16 @@ phase durations against the full test time. SHA-256 checks bound both
 installed APKs and the raw positive case records. Both emulators
 restored their radio settings.
 
+Seven workspace cases also passed per Android version on the same
+verified APK pair with no active network. The selected encrypted
+backup rejected the wrong passphrase, allowed cancellation at review,
+and restored one newly identified copy after confirming an existing
+ID conflict. A late conflict preserved all original rows. The cases
+verified task links and citations, capture edits and archiving, and
+notebook rename and removal. A separate process reopened the exact
+shared link, shared text and widget note after the app was stopped.
+Both emulators restored their radios.
+
 ## Live workflow readiness
 
 The Pi's existing gateway, serve and mobile dashboard units were active
@@ -67,6 +83,11 @@ existing registration or review the exact enrollment before selecting
 this checkout. The deployment approval must cover both protected
 policy and the exact target. This sample establishes readiness
 constraints for the live test.
+
+The private HTTPS health endpoint returned 200 from Windows. The
+Xiaomi USB-shell probe timed out with DNS and with the verified
+tailnet address while retaining the hostname for TLS. The phone's
+authenticated app connection still needs its own check.
 
 ## Hermes main scheduler and recovery recheck
 
@@ -109,9 +130,13 @@ the isolated Windows environment with the lockfile-pinned web extras.
 [Paired shutdown and lifecycle](https://github.com/DionCroft/Signal_Grove/actions/runs/46057100578).
 
 
-The complete hosted Android 8 and 17 matrix started on Signal Grove
-`9ac5e28`. This checkpoint records the run identity. Device results
-require separate verification after the run finishes.
+The hosted `9ac5e28` build artifact verified 1,278 JVM cases, 1,260
+policy cases, and both lint variants. Local enumeration using the
+verified app and companion found 1,281 standard cases on Android 8
+and 1,282 on Android 17. Each full inventory contained exactly 19
+additional prepared case identities. Enumeration records test
+identities. Native execution evidence is checked against the hosted
+shards when their run finishes.
 [Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
 
 ## Hermes admission and scheduler receipt fixtures
