@@ -135,10 +135,14 @@ def main() -> None:
     for folder in (account, temp):
         folder.mkdir(mode=0o700)
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'LC_ALL') if k in os.environ}
-    env.update(HOME=str(account), HERMES_HOME=str(account / 'hermes'), TMPDIR=str(temp),
+    env.update(HOME=str(account), TMPDIR=str(temp),
                XDG_CACHE_HOME=str(account / 'cache'), HERMES_DISABLE_LAZY_INSTALLS='1',
                HERMES_TEST_ISOLATION='1', PYTEST_DISABLE_PLUGIN_AUTOLOAD='1',
                PYTHONDONTWRITEBYTECODE='1')
+    # Let upstream create its collection-time sandbox for GatewayRunner's module paths.
+    # A pre-set custom HERMES_HOME is deliberately guarded as an operator home.
+    if not args.gateway_recovery:
+        env['HERMES_HOME'] = str(account / 'hermes')
     argv = [str(args.python.absolute()), '-I', '-B', '-c', PYTEST_DRIVER,
             str(source), str(evidence), *tests]
     # The upstream foreign-firer test imports the SDK from a child Python process.
