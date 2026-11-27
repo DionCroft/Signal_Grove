@@ -80,7 +80,7 @@ class PhoneWritingShareTest {
             assertEquals(setOf(CaptureSource.SHARED_TEXT.name, CaptureSource.SHARED_LINK.name, CaptureSource.WIDGET.name), captures.map { it.source }.toSet())
             assertEquals(setOf(link, sharedText, widgetNote), captures.map { it.preview }.toSet())
             assertNull(app.localAi.state.value.loaded)
-            instrumentation.sendStatus(2, Bundle().apply { putString("capture_fixture", unique) })
+            instrumentation.addResults(Bundle().apply { putString("capture_fixture", unique) })
         } finally {
             instrumentation.runOnMainSync {
                 lifecycle.removeLifecycleCallback(tracking)

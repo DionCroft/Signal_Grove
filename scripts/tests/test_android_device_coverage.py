@@ -40,6 +40,15 @@ class AndroidCoverageTest(unittest.TestCase):
             with self.subTest(text=text[:100]),self.assertRaises(ValueError):coverage.case_records(text,0)
         for code in [None,1,False]:
             with self.subTest(code=code),self.assertRaises(ValueError):coverage.case_records(base,code)
+    def test_capture_setup_results_do_not_add_a_native_case_status(self):
+        output = self.output(['shareAndWidgetSaveCapturesWithoutLoadingAModel'])
+        result = 'capture_fixture=9d7719db-97e7-4b06-9e37-fe79902d4104'
+        with_result = output.replace('INSTRUMENTATION_CODE: -1', 'INSTRUMENTATION_RESULT: '+result+'\nINSTRUMENTATION_CODE: -1')
+        self.assertEqual(coverage.case_records(output, 0), coverage.case_records(with_result, 0))
+        as_status = with_result.replace('INSTRUMENTATION_RESULT: '+result, 'INSTRUMENTATION_STATUS: '+result+'\nINSTRUMENTATION_STATUS_CODE: 2')
+        with self.assertRaises(ValueError):
+            coverage.case_records(as_status, 0)
+
     def test_crlf_case_evidence_parses_without_rewriting_its_hash_binding(self):
         text=self.output(['one']).replace('\n','\r\n');self.assertEqual(1,len(coverage.case_records(text,0)))
         row=self.partition(26,0,['one']);report,inventory,native=row
