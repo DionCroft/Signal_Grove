@@ -32,7 +32,7 @@ class ShutdownEvidenceTests(unittest.TestCase):
         self.assertEqual(sum(map(len, rows)), 50)
 
     def test_reviewed_main_requires_its_six_additional_watchdog_identities(self):
-        for pin in (gate.PREVIOUS_MAIN_PIN, gate.CURRENT_MAIN_PIN):
+        for pin in sorted(gate.MAIN_WATCHDOG_PINS):
             with self.subTest(pin=pin):
                 root, suite, test_file = self.suite(gate.MAIN_WATCHDOG_TEST_FILE)
                 with self.assertRaisesRegex(ValueError, 'incomplete suite totals'):

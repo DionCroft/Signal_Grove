@@ -406,6 +406,30 @@ was recorded as interrupted. These are isolated hosted Linux results.
 Deployment and phone-to-Pi recovery still require live verification.
 [Native shutdown run](https://github.com/DionCroft/Signal_Grove/actions/runs/46016249716)
 
+### Hermes main public-host sign-in and card admission review
+
+Main advanced from 337903e to 9bba163. The new source keeps all ten
+relocated contracts, the 21 dependencies and the 28 direct native
+test files. Two gateway authentication fixture dependencies changed.
+The browser sign-in may now begin again on the configured public host
+before the identity-provider redirect. The native authorization path
+and code exchange request fields remain the same. Verify a live alias
+with its configured public dashboard host during connection acceptance.
+
+Plugin cards add a separate event and an atomically stamped admission
+receipt. Legacy card replay can return an exact existing admission.
+The existing Android approval and run contracts still use their
+original request identities. Card rendering and delivery have separate
+integration acceptance.
+
+The fully verified source scan reported 236 watched handler and 29
+persistence differences against the same baseline. The 119 contract
+and cache tests, 42 native gate tests and exact shutdown overlay checks
+passed locally. The runtime workflows include this pin so that the
+updated sign-in fixtures and admission dependency run with the unchanged
+native case requirements.
+[Exact upstream comparison](https://github.com/NousResearch/hermes-agent/compare/337903eeffd696cf73936a3a00af08b43feb2028...9bba163bc1d090852eccc86802eddc454df47d1b)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and
