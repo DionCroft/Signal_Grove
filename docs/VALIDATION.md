@@ -150,6 +150,36 @@ original contents, and installed app and test APK hashes were checked.
 The Android 8 emulator used its optional cache-disabled startup mode
 after a cache file permission error.
 
+### Android dialog interaction repair
+
+The hosted matrix on 7d72fb6 passed Android 8 shard 0 and both
+Android 17 shards. Android 8 shard 1 started all 675 cases and failed
+two. The helper test attempted to scroll to the reviewed Network answer
+before checking that Network had been selected. The protected backup
+test timed out requiring the keyboard to be visible during the retry
+after a wrong passphrase. Its native log and diagnostic artifact are
+retained.
+[Hosted attempt and device jobs](https://github.com/DionCroft/Signal_Grove/actions/runs/46000328663)
+
+The helper test now waits for the focused dialog, taps the visible
+Network control, and checks the selection before reading the reviewed
+answer in English, Chinese and pinyin. The restore test taps and types
+in the focused field, dismisses the keyboard, then waits for the focused
+dialog's settled viewport before tapping Unlock. The independent
+keyboard geometry, wrong-passphrase, encrypted-data, duplicate ID,
+original-retention and helper side-effect assertions still run.
+
+The repaired APK pair passed 10 focused cases on each of Android 8 and
+17, all 1,266 JVM tests and both lint variants. Both emulators also
+reopened new Share/widget captures after a confirmed process stop.
+The Android 17 emulator passed the three prepared Today, Tesseract/Vosk
+and Qwen cases with Airplane mode on, Wi-Fi off and no default network.
+The fixture and installed APK hashes were checked before recording the
+results. The complete hosted matrix still needs to pass on this repair.
+\n\n
+
+Both complete test classes also passed all 33 cases on each API.
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d

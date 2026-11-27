@@ -826,11 +826,18 @@ class LocalAiFlowTest {
         state = LocalAiState(loaded = model, helper = LocalHelpResult(LocalHelpTopic.NETWORK, sha, null,
             LocalSetupHelper.sources(LocalHelpTopic.NETWORK),
             LocalSetupHelper.selection("[\"host.serve\",\"phone.tailnet\"]", LocalHelpTopic.NETWORK)!!, LocalReplyState.COMPLETE))
-        show(bilingual = true); compose.onNodeWithTag("phone-helper-open").performClick()
-        compose.onNodeWithTag("phone-helper-topic-NETWORK").performScrollTo().performClick()
-        compose.onNodeWithText(Words.HelpHostServe.en, substring = true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText(Words.HelpHostServe.zh, substring = true).assertExists()
-        compose.onNodeWithText(Words.HelpHostServe.pin, substring = true).assertExists()
+        show(bilingual = true)
+        compose.onNodeWithTag("phone-helper-open").performClick()
+        waitForHelperWithoutKeyboard()
+        val network = compose.onNodeWithTag("phone-helper-topic-NETWORK")
+        network.performScrollTo().assertIsDisplayed().assertIsEnabled().performTouchInput { click() }
+        network.assertIsSelected()
+        compose.onNodeWithTag("phone-helper-current-topic").assertTextContains(Words.SetupNetwork.en, substring = true)
+        val reviewedAnswer = hasAnyAncestor(hasTestTag("phone-helper-answer"))
+        compose.onNode(hasText(Words.HelpHostServe.en, substring = true) and reviewedAnswer)
+            .performScrollTo().assertIsDisplayed()
+        compose.onNode(hasText(Words.HelpHostServe.zh, substring = true) and reviewedAnswer).assertExists()
+        compose.onNode(hasText(Words.HelpHostServe.pin, substring = true) and reviewedAnswer).assertExists()
         compose.onNodeWithText(listOf(Words.PhoneHelperOnHost.en, Words.PhoneHelperOnHost.zh,
             Words.PhoneHelperOnHost.pin).joinToString("\n")).assertExists()
         assertEquals(0, sends); assertTrue(downloads.isEmpty())

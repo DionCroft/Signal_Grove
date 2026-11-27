@@ -131,9 +131,11 @@ class PhoneHistoryBackupFlowTest {
 
     private fun submitUnlockPassphrase(passphrase: String) {
         val password = compose.onNodeWithTag("phone-backup-unlock-password").performScrollTo().assertIsDisplayed()
-        password.performClick().assertIsFocused()
-        compose.waitUntil(5_000) { focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true }
-        password.performTextReplacement(passphrase)
+        password.performTouchInput { click() }
+        password.assertIsFocused().performTextReplacement(passphrase)
+        closeDialogKeyboard()
+        // Confirm only after the dialog owns the viewport and the IME has settled.
+        compose.waitUntil(8_000) { focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == false }
         compose.onNodeWithTag("phone-backup-unlock").assertIsDisplayed().assertIsEnabled().performTouchInput { click() }
     }
 
