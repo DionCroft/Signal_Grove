@@ -82,6 +82,15 @@ errors. The exact APK hashes will be checked against the four device
 shards before recording complete coverage.
 [Hosted build job](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140469264531)
 
+Android 8 passed all 1,271 standard cases on the corrected build. Both
+shard archives matched GitHub's published SHA-256 values and the build's
+app and test APK hashes. The native inventories agreed, and the two
+shards' 596 and 675 passing cases formed the full inventory without
+overlap. Android 17 remained in progress at this checkpoint. Prepared
+gates were exercised separately as described above.
+[Android 8 shard 0](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140479574216) ·
+[Android 8 shard 1](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140479574363)
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
