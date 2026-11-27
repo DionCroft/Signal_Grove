@@ -123,7 +123,13 @@ the SDK. A separate import probe reproduced that distinction. The
 launcher now starts this cohort from the pinned SDK root, with the
 same isolated home and exact source verification. The unchanged test
 and its original failure remain in the evidence.
-[Initial results](https://github.com/DionCroft/Signal_Grove/actions/runs/45982044743)
+After that correction, both pinned SDKs passed all 19 original cases.
+The native socket, owner approval projection, compressed history,
+ambiguous receipt handling and live-firer recovery tests ran in
+isolated Linux homes. The downloaded archive checksums, SDK source
+maps, JUnit case identities and terminal results were revalidated.
+[Initial results](https://github.com/DionCroft/Signal_Grove/actions/runs/45982044743) ·
+[Verified native rerun](https://github.com/DionCroft/Signal_Grove/actions/runs/45982663141)
 
 ## Quick Capture and reviewed phone tasks
 
