@@ -81,6 +81,24 @@ internal abstract class PhoneNotebookDao {
     @Query("SELECT * FROM phone_notebooks WHERE id = :id")
     abstract suspend fun notebook(id: String): PhoneNotebook?
 
+    @Query("""UPDATE phone_notebooks SET name = :name
+        WHERE id = :id AND name = :oldName AND createdAt = :createdAt""")
+    protected abstract suspend fun updateName(id: String, oldName: String, createdAt: Long, name: String): Int
+
+    @Query("DELETE FROM phone_notebooks WHERE id = :id AND name = :name AND createdAt = :createdAt")
+    protected abstract suspend fun deleteNotebook(id: String, name: String, createdAt: Long): Int
+
+    @Transaction
+    open suspend fun rename(expected: PhoneNotebook, name: String) {
+        require(validNotebookTitle(name))
+        check(updateName(expected.id, expected.name, expected.createdAt, name) == 1)
+    }
+
+    @Transaction
+    open suspend fun delete(expected: PhoneNotebook) {
+        check(deleteNotebook(expected.id, expected.name, expected.createdAt) == 1)
+    }
+
     @Query("UPDATE phone_notebooks SET openedAt = :now WHERE id = :id")
     abstract suspend fun openNotebook(id: String, now: Long)
 

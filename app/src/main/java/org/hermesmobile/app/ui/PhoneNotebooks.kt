@@ -35,6 +35,8 @@ internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: Local
     val notebooks by workspace.notebooks.collectAsStateWithLifecycle(initialValue = emptyList())
     val selected = notebooks.firstOrNull { it.id == state.notebookId }
     val answer = state.pendingAnswer
+    val rename = state.rename
+    val deletion = state.deleteReview
     var creating by rememberSaveable { mutableStateOf(false) }
     var name by rememberSaveable { mutableStateOf("") }
     val focus = LocalFocusManager.current
@@ -52,40 +54,74 @@ internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: Local
                 }
                 if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (state.error != null) Text(label(Words.NotebookFailed), color = MaterialTheme.colorScheme.error)
-                if (selected != null && answer == null) {
-                    NotebookItems(Modifier.weight(1f), workspace, model, selected, state.busy, handoff)
-                } else LazyColumn(Modifier.fillMaxSize().testTag("notebook-index"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (answer != null) item {
-                        Word(Words.NotebookSaveAnswer)
-                        Text(answer.review.question)
-                        SelectionContainer { Text(answer.text.orEmpty()) }
-                        Text(label(Words.NotebookChoose))
-                    }
-                    if (creating) item {
-                        Word(Words.NotebookName)
-                        OutlinedTextField(name, { if (it.length <= 160) name = it }, Modifier.fillMaxWidth().testTag("notebook-name"), singleLine = true)
-                        Button({
-                            focus.clearFocus()
-                            workspace.create(name)
-                            creating = false
-                        }, Modifier.testTag("notebook-create-confirm"), enabled = !state.busy && validNotebookTitle(name.trim())) {
-                            Text(label(Words.NotebookCreate))
+                when {
+                    rename != null -> NotebookRenameForm(workspace, rename, state.busy)
+                    deletion != null -> NotebookDeleteReview(workspace, deletion, state.busy)
+                    selected != null && answer == null ->
+                        NotebookItems(Modifier.weight(1f), workspace, model, selected, state.busy, handoff)
+                    else -> LazyColumn(Modifier.fillMaxSize().testTag("notebook-index"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (answer != null) item {
+                            Word(Words.NotebookSaveAnswer)
+                            Text(answer.review.question)
+                            SelectionContainer { Text(answer.text.orEmpty()) }
+                            Text(label(Words.NotebookChoose))
                         }
-                    } else item {
-                        TextButton({ creating = true; name = "" }, Modifier.testTag("notebook-create"), enabled = !state.busy) {
-                            Text(label(Words.NotebookCreate))
+                        if (creating) item {
+                            Word(Words.NotebookName)
+                            OutlinedTextField(name, { if (it.length <= 160) name = it }, Modifier.fillMaxWidth().testTag("notebook-name"), singleLine = true)
+                            Button({
+                                focus.clearFocus()
+                                workspace.create(name)
+                                creating = false
+                            }, Modifier.testTag("notebook-create-confirm"), enabled = !state.busy && validNotebookTitle(name.trim())) {
+                                Text(label(Words.NotebookCreate))
+                            }
+                        } else item {
+                            TextButton({ creating = true; name = "" }, Modifier.testTag("notebook-create"), enabled = !state.busy) {
+                                Text(label(Words.NotebookCreate))
+                            }
                         }
-                    }
-                    items(notebooks, key = PhoneNotebook::id) { notebook ->
-                        TextButton({
-                            if (answer == null) workspace.select(notebook.id)
-                            else workspace.saveAnswer(notebook.id, answer)
-                        }, Modifier.testTag("notebook-open-" + notebook.id), enabled = !state.busy) { Text(notebook.name) }
+                        items(notebooks, key = PhoneNotebook::id) { notebook ->
+                            TextButton({
+                                if (answer == null) workspace.select(notebook.id)
+                                else workspace.saveAnswer(notebook.id, answer)
+                            }, Modifier.testTag("notebook-open-" + notebook.id), enabled = !state.busy) { Text(notebook.name) }
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun ColumnScope.NotebookRenameForm(workspace: PhoneNotebookWorkspace, review: NotebookRename, busy: Boolean) {
+    val focus = LocalFocusManager.current
+    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Word(Words.NotebookRenameAction)
+        OutlinedTextField(review.name, workspace::editName, Modifier.fillMaxWidth().testTag("notebook-rename-field"),
+            enabled = !busy, singleLine = true, label = { Text(label(Words.NotebookName)) })
+    }
+    Button({ focus.clearFocus(); workspace.confirmRename() }, Modifier.fillMaxWidth().testTag("notebook-rename-confirm"),
+        enabled = !busy && validNotebookTitle(review.name.trim())) { Text(label(Words.Save)) }
+    TextButton({ focus.clearFocus(); workspace.cancelManagement() }, Modifier.fillMaxWidth().testTag("notebook-manage-cancel"),
+        enabled = !busy) { Text(label(Words.Cancel)) }
+}
+
+@Composable
+private fun ColumnScope.NotebookDeleteReview(workspace: PhoneNotebookWorkspace, notebook: PhoneNotebook, busy: Boolean) {
+    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Word(Words.NotebookDeleteAction)
+        Text(label(Words.NotebookDeleteImpact), Modifier.testTag("notebook-delete-impact"))
+        Text(notebook.name, Modifier.testTag("notebook-delete-name"))
+    }
+    Button(workspace::confirmDeletion, Modifier.fillMaxWidth().testTag("notebook-delete-confirm"), enabled = !busy,
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError)) { Text(label(Words.NotebookDeleteAction)) }
+    TextButton(workspace::cancelManagement, Modifier.fillMaxWidth().testTag("notebook-manage-cancel"),
+        enabled = !busy) { Text(label(Words.Cancel)) }
 }
 
 @Composable
@@ -135,6 +171,17 @@ private fun NotebookItems(modifier: Modifier, workspace: PhoneNotebookWorkspace,
                             TextButton({ focus.clearFocus(); entry = row },
                                 Modifier.testTag("notebook-item-" + row.id), enabled = !busy) { Text(row.title) }
                         }
+                    }
+                }
+                item {
+                    TextButton({ focus.clearFocus(); workspace.reviewRename(notebook) },
+                        modifier = Modifier.testTag("notebook-rename"), enabled = !busy) {
+                        Text(label(Words.NotebookRenameAction))
+                    }
+                    TextButton({ focus.clearFocus(); workspace.reviewDeletion(notebook) },
+                        modifier = Modifier.testTag("notebook-delete"), enabled = !busy) {
+                        Text(label(Words.NotebookDeleteAction),
+                            color = if (busy) LocalContentColor.current else MaterialTheme.colorScheme.error)
                     }
                 }
                 if (query.isBlank() && handoffs.isNotEmpty()) {

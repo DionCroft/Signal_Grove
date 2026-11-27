@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## Offline notebook lifecycle
+
+Notebook rename keeps its ID, entries, saved excerpts and links to
+Hermes replies. Deletion reviews the named notebook and removes its
+entries, citations and handoff links from the phone. Original local
+captures, files, tasks, other notebooks and Hermes conversations are
+retained. Cancel leaves the selected notebook unchanged.
+
+The exact build passed 1,271 JVM tests and both lint variants.
+Android 8 passed 11 focused cases and Android 17 passed 12, including
+notebook rename and deletion, capture controls, migrations, reviewed
+handoff and process restart. Android 17 also verified the local
+controls with Airplane mode on and Wi-Fi off and restored its
+original radio settings.
+
 ## Offline capture lifecycle
 
 Quick Capture supports editing, archiving, restoring and reviewed

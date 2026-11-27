@@ -23,12 +23,16 @@ import org.hermesmobile.app.data.PhoneCapture
 import org.hermesmobile.app.data.PhoneNotebook
 import org.hermesmobile.app.data.validNotebookTitle
 
+internal data class NotebookRename(val notebook: PhoneNotebook, val name: String)
+
 internal data class NotebookWorkspaceState(
     val open: Boolean = false,
     val notebookId: String? = null,
     val busy: Boolean = false,
     val error: String? = null,
-    val pendingAnswer: PhoneDocumentAnswer? = null
+    val pendingAnswer: PhoneDocumentAnswer? = null,
+    val rename: NotebookRename? = null,
+    val deleteReview: PhoneNotebook? = null
 )
 
 internal class PhoneNotebookWorkspace(
@@ -64,6 +68,53 @@ internal class PhoneNotebookWorkspace(
         val notebook = PhoneNotebook(UUID.randomUUID().toString(), title, now, now)
         storage.create(notebook)
         mutable.update { it.copy(open = true, notebookId = notebook.id) }
+    }
+
+    fun reviewRename(notebook: PhoneNotebook) {
+        if (!canManage(notebook)) return
+        mutable.update { it.copy(rename = NotebookRename(notebook, notebook.name), error = null) }
+    }
+
+    fun editName(name: String) {
+        if (name.length > 160) return
+        mutable.update { state ->
+            if (state.busy) state else state.copy(rename = state.rename?.copy(name = name))
+        }
+    }
+
+    fun confirmRename() {
+        val review = mutable.value.rename ?: return
+        val name = review.name.trim()
+        if (!validNotebookTitle(name)) return
+        change {
+            storage.rename(review.notebook, name)
+            mutable.update { it.copy(rename = null) }
+        }
+    }
+
+    fun reviewDeletion(notebook: PhoneNotebook) {
+        if (!canManage(notebook)) return
+        mutable.update { it.copy(deleteReview = notebook, error = null) }
+    }
+
+    fun confirmDeletion() {
+        val notebook = mutable.value.deleteReview ?: return
+        change {
+            storage.delete(notebook)
+            mutable.update { it.copy(notebookId = null, deleteReview = null) }
+        }
+    }
+
+    fun cancelManagement() {
+        mutable.update { state ->
+            if (state.busy) state else state.copy(rename = null, deleteReview = null, error = null)
+        }
+    }
+
+    private fun canManage(notebook: PhoneNotebook): Boolean {
+        val state = mutable.value
+        return state.open && !state.busy && state.notebookId == notebook.id &&
+            state.pendingAnswer == null && state.rename == null && state.deleteReview == null
     }
 
     fun entries(id: String, query: String): Flow<List<NotebookItem>> {
