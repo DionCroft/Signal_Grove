@@ -15,6 +15,7 @@ class HermesGatewayRecoveryCohortTests(unittest.TestCase):
     def test_main_runs_held_routing_in_addition_to_shared_replay_cases(self):
         stable, stable_count, stable_digest = gate.gateway_recovery_cohort('8fc0374447313e276f6b9a2764bfc750190c966a')
         main, main_count, main_digest = gate.gateway_recovery_cohort('1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d')
+        self.assertEqual((main, main_count, main_digest), gate.gateway_recovery_cohort('337903eeffd696cf73936a3a00af08b43feb2028'))
         self.assertEqual((stable_count, main_count), (5, 20))
         self.assertNotEqual(stable_digest, main_digest)
         self.assertEqual(main, (*stable, 'tests/gateway/test_held_route_late_platform.py'))

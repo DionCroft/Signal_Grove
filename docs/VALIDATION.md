@@ -341,6 +341,17 @@ tests passed. The native Linux evidence remains tied to v0.23.4 and
 runtime checks.
 [Exact upstream comparison](https://github.com/NousResearch/hermes-agent/compare/28ef6e4e7d1df3015bf786dea6b0d355baf5c211...337903eeffd696cf73936a3a00af08b43feb2028)
 
+### Exact Hermes main Linux runtime qualification
+
+The native SDK and shutdown matrices now include the reviewed Hermes
+main revision 337903e. Local preparation verified all 27,825 source
+blobs, 131 executable paths and both output hashes from the existing
+shutdown overlay. The 42 gate tests and both workflow matrices passed
+local verification. The isolated Linux runs must still produce their
+exact 103 persistence, 19 profile/receipt, 20 gateway recovery and 56
+shutdown cases per variant. The earlier passing runtime evidence
+remains bound to its original revisions.
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and

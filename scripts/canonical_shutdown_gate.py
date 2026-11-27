@@ -160,7 +160,9 @@ NOVEMBER_24_PATCH_FILES = CURRENT_PATCH_FILES | {
     ),
 }
 CURRENT_EXECUTABLES = (131, '90f8e66ffbf463c6be1f0d7f030c3686c9253b45d768000202434c0fe2ed5e6f')
-CURRENT_MAIN_PIN = '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d'
+PREVIOUS_MAIN_PIN = '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d'
+CURRENT_MAIN_PIN = '337903eeffd696cf73936a3a00af08b43feb2028'
+MAIN_WATCHDOG_PINS = frozenset({PREVIOUS_MAIN_PIN, CURRENT_MAIN_PIN})
 MAIN_WATCHDOG_TEST_FILE = 'tests/gateway/test_gateway_shutdown.py'
 MAIN_WATCHDOG_CASE_NAMES = (
     'test_stop_that_does_not_complete_is_still_ended_by_the_watchdog[phase_raises]',
@@ -170,6 +172,14 @@ MAIN_WATCHDOG_CASE_NAMES = (
     'test_start_gateway_turns_a_failed_stop_into_an_exit_verdict[stop]',
     'test_start_gateway_turns_a_failed_stop_into_an_exit_verdict[service_restart]',
 )
+
+MAIN_PATCH_FILES = CURRENT_PATCH_FILES | {
+    'gateway/run_shutdown.py': (
+        '77e046083c3e96ca758cdbe12a3045863cfa5212811b1c04dfccd27f757e8642',
+        '7149ced953596c69922f153c5462455fbb6cdbac34813e241c0d006a8fc75feb',
+    ),
+}
+
 
 REVIEWED_PINS = {
     rpc.PIN: ShutdownPin(
@@ -193,14 +203,13 @@ REVIEWED_PINS = {
         27575, '95c21d7ea9cc985d958947d9cab65dd1cb11ce6ed2a091abbe4fc3bd531589e1',
         CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, NOVEMBER_24_PATCH_FILES,
     ),
-    CURRENT_MAIN_PIN: ShutdownPin(
+    PREVIOUS_MAIN_PIN: ShutdownPin(
         27824, '17ce318b748c9a57eb86260de35ca2df43fc8aa774908b97b0a030d9065340a9',
-        CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, CURRENT_PATCH_FILES | {
-            'gateway/run_shutdown.py': (
-                '77e046083c3e96ca758cdbe12a3045863cfa5212811b1c04dfccd27f757e8642',
-                '7149ced953596c69922f153c5462455fbb6cdbac34813e241c0d006a8fc75feb',
-            ),
-        },
+        CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, MAIN_PATCH_FILES,
+    ),
+    CURRENT_MAIN_PIN: ShutdownPin(
+        27825, '939ebd0f5bcfbdfa0eb176763889c6067adf3ee406b209036db22c071c62f490',
+        CURRENT_EXECUTABLES, CURRENT_PATCH, CURRENT_PATCH_DIGEST, MAIN_PATCH_FILES,
     ),
 }
 PYTEST_CACHE = frozenset({'.gitignore', 'README.md', 'CACHEDIR.TAG',
@@ -426,7 +435,7 @@ def positive_cases(raw, test_file, source_commit=rpc.PIN):
         raise ValueError('Expected exactly one raw suite')
     suite = suites[0]
     expected = set(CASES[test_file])
-    if source_commit == CURRENT_MAIN_PIN and test_file == MAIN_WATCHDOG_TEST_FILE:
+    if source_commit in MAIN_WATCHDOG_PINS and test_file == MAIN_WATCHDOG_TEST_FILE:
         expected.update(('tests.gateway.test_gateway_shutdown', name) for name in MAIN_WATCHDOG_CASE_NAMES)
     if {k: suite.get(k) for k in ('tests', 'failures', 'errors', 'skipped')} != dict(tests=str(len(expected)), failures='0', errors='0', skipped='0'):
         raise ValueError('Non-positive or incomplete suite totals')
@@ -503,7 +512,7 @@ def verify(source, evidence):
                             observations=evidence / 'observed-tree.json')
     write_new(evidence / 'after.json', actual)
     result = accepted_evidence(evidence)
-    result['state'] = ('NATIVE_LINUX_CANONICAL_SHUTDOWN_PASS' if source_commit == CURRENT_MAIN_PIN
+    result['state'] = ('NATIVE_LINUX_CANONICAL_SHUTDOWN_PASS' if source_commit in MAIN_WATCHDOG_PINS
                        else 'NATIVE_LINUX_CANONICAL_SHUTDOWN_FIFTY_PASS')
     write_new(evidence / 'result.json', result)
     print(json.dumps({k: v for k, v in result.items() if k not in ('files', 'runtime')}))
@@ -512,7 +521,7 @@ def verify(source, evidence):
 def compare(pristine, candidate, output, source_commit=None):
     a, b = accepted_evidence(pristine), accepted_evidence(candidate)
     pin_commit = a['sourceCommit']
-    expected_count = 50 + (len(MAIN_WATCHDOG_CASE_NAMES) if pin_commit == CURRENT_MAIN_PIN else 0)
+    expected_count = 50 + (len(MAIN_WATCHDOG_CASE_NAMES) if pin_commit in MAIN_WATCHDOG_PINS else 0)
     if (a['variant'] != 'pristine' or b['variant'] != 'candidate' or
             a['caseCount'] != expected_count or b['caseCount'] != expected_count):
         raise ValueError('Need the two distinct complete cohorts')
@@ -522,7 +531,7 @@ def compare(pristine, candidate, output, source_commit=None):
         raise ValueError('Paired case identities differ')
     if read_json(pristine / 'before.json')['modes'] != read_json(candidate / 'before.json')['modes']:
         raise ValueError('Paired source modes differ')
-    current_main = pin_commit == CURRENT_MAIN_PIN
+    current_main = pin_commit in MAIN_WATCHDOG_PINS
     state = ('PAIRED_LINUX_CANONICAL_SHUTDOWN_IDENTITIES_PASS' if current_main
              else 'PAIRED_LINUX_CANONICAL_SHUTDOWN_FIFTY_IDENTITIES_PASS')
     result = dict(state=state, sourceCommit=pin_commit, patchSha256=REVIEWED_PINS[pin_commit].patch_digest,

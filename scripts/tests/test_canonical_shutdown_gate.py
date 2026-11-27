@@ -31,22 +31,24 @@ class ShutdownEvidenceTests(unittest.TestCase):
         self.assertEqual([len(r) for r in rows], [5, 17, 10, 2, 2, 14])
         self.assertEqual(sum(map(len, rows)), 50)
 
-    def test_current_main_requires_its_six_additional_watchdog_identities(self):
-        root, suite, test_file = self.suite(gate.MAIN_WATCHDOG_TEST_FILE)
-        with self.assertRaisesRegex(ValueError, 'incomplete suite totals'):
-            gate.positive_cases(ET.tostring(root), test_file, gate.CURRENT_MAIN_PIN)
+    def test_reviewed_main_requires_its_six_additional_watchdog_identities(self):
+        for pin in (gate.PREVIOUS_MAIN_PIN, gate.CURRENT_MAIN_PIN):
+            with self.subTest(pin=pin):
+                root, suite, test_file = self.suite(gate.MAIN_WATCHDOG_TEST_FILE)
+                with self.assertRaisesRegex(ValueError, 'incomplete suite totals'):
+                    gate.positive_cases(ET.tostring(root), test_file, pin)
 
-        suite.set('tests', '20')
-        for name in gate.MAIN_WATCHDOG_CASE_NAMES:
-            ET.SubElement(suite, 'testcase', classname='tests.gateway.test_gateway_shutdown', name=name)
-        accepted = gate.positive_cases(ET.tostring(root), test_file, gate.CURRENT_MAIN_PIN)
-        self.assertEqual(20, len(accepted))
-        with self.assertRaisesRegex(ValueError, 'incomplete suite totals'):
-            gate.positive_cases(ET.tostring(root), test_file)
+                suite.set('tests', '20')
+                for name in gate.MAIN_WATCHDOG_CASE_NAMES:
+                    ET.SubElement(suite, 'testcase', classname='tests.gateway.test_gateway_shutdown', name=name)
+                accepted = gate.positive_cases(ET.tostring(root), test_file, pin)
+                self.assertEqual(20, len(accepted))
+                with self.assertRaisesRegex(ValueError, 'incomplete suite totals'):
+                    gate.positive_cases(ET.tostring(root), test_file)
 
-        suite[-1].set('name', suite[-2].get('name'))
-        with self.assertRaisesRegex(ValueError, 'case identities'):
-            gate.positive_cases(ET.tostring(root), test_file, gate.CURRENT_MAIN_PIN)
+                suite[-1].set('name', suite[-2].get('name'))
+                with self.assertRaisesRegex(ValueError, 'case identities'):
+                    gate.positive_cases(ET.tostring(root), test_file, pin)
 
     def test_reviewed_maps_select_the_pin_specific_patch_and_refuse_cross_pin_inputs(self):
         cases = {
