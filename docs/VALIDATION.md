@@ -430,6 +430,19 @@ updated sign-in fixtures and admission dependency run with the unchanged
 native case requirements.
 [Exact upstream comparison](https://github.com/NousResearch/hermes-agent/compare/337903eeffd696cf73936a3a00af08b43feb2028...9bba163bc1d090852eccc86802eddc454df47d1b)
 
+The hosted native rerun then passed on stable v0.23.4 and main
+9bba163. The verified artifacts contain 103 persistence and 19
+profile and receipt cases per revision. The gateway passed five
+cases on stable and 20 on main. The native shutdown and heartbeat
+evidence passed, with 50 shutdown cases per stable variant and 56
+per main variant. Both retained delegation checkpoints with zero
+replays and intact SQLite databases. The raw case records, source
+maps, paired receipts and archive checksums were independently
+rechecked. Live alias login and plugin card delivery remain separate
+acceptance checks.
+[Native SDK run](https://github.com/DionCroft/Signal_Grove/actions/runs/46022100001) ·
+[Native shutdown run](https://github.com/DionCroft/Signal_Grove/actions/runs/46022114644)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and
