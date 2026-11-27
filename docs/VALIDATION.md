@@ -2,21 +2,25 @@
 
 ## Android management fixture sign-in ordering
 
-In hosted run `46055801684` at `9ac5e28`, the digest-verified raw
-artifacts recorded two Android 8 failures in shard 0, three in shard 1,
-and five Android 17 failures in shard 0. All ten stopped at the
-fixture's initial management sign-in wait. Home can bind the active
-connection while the test is still seeding its synthetic saved sign-in.
-A second binding to the same scope then reuses that initial observation.
+In hosted run `46055801684` at `9ac5e28`, all four digest-verified
+shard reports ran their full declared counts. Fifteen cases failed at
+the initial management sign-in wait, with five on Android 8 and ten on
+Android 17. Home can bind the active connection while the test is
+still seeding its synthetic saved sign-in. A second binding to the
+same scope then reuses that initial observation.
 
-The test fixture now binds away and back after seeding its credentials.
-There is one shared restore helper across the affected fixtures. The
-app source and all original test assertions compare unchanged. Both
-Android versions passed the ten observed failures and the existing
-authenticated Today inbox check with the same digest-verified installed
-APK pair. The Android 17 rerun used a fresh emulator because the
-previous test emulator lacked installation space. The full hosted gate
-still needs a successful exact-source run.
+The fixture now binds away and back after seeding its credentials.
+One shared helper handles the restore. All test assertions were
+preserved, and the rebuilt app APK was byte-identical to the previous
+local app APK. Both Android versions passed all 15 failed cases and the
+existing authenticated Today inbox check. Android 17 used a fresh
+emulator because the existing test emulator lacked installation space.
+The standard inventories still contain
+1,281 on Android 8 and 1,282 on Android 17, plus 19 prepared cases each.
+
+The exact repaired source passed 1,278 local JVM cases, both lint
+variants, and both debug assembles. The full hosted gate still needs
+a successful exact-source run.
 
 [Hosted run and retained artifacts](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
 [Exact-source retest at `1719943`](https://github.com/DionCroft/Signal_Grove/actions/runs/46065224105).
@@ -183,6 +187,25 @@ additional prepared case identities. Enumeration records test
 identities. Native execution evidence is checked against the hosted
 shards when their run finishes.
 [Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
+
+## Hermes main plugin and terminal update
+
+The next observed main pin, `30bff5e`, advanced 23 commits while stable
+remained v0.23.4. The public Git comparison and local Git tree agreed
+on all 60 changed paths. Of the 249 watched source aliases, five changed
+across the CLI config, environment and plugin code. The prior 11
+approval/replay test sources were byte-identical. The shared TypeScript
+contract added optional fields for terminal resume reporting and
+isolated turns. The startup changes include claiming the terminal
+resume token before child processes can inherit it.
+
+Both new upstream plugin cases passed with isolated local fixture
+repositories. An unattended install kept a disable written during the
+download. An explicitly requested install with Enable selected honored
+that approval. Signal Grove's reviewed install sends the explicit
+choice and validates the returned enabled state. Wider integration
+acceptance remains open.
+[Reviewed Hermes source delta](https://github.com/NousResearch/hermes-agent/compare/de2b0590f87b2131b51557b3f30aefeec421be2c...30bff5e45c389bdc3b6cd42515ab5bb8f2f083d6).
 
 ## Hermes admission and scheduler receipt fixtures
 
