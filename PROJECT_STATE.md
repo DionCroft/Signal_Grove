@@ -1,7 +1,11 @@
 # Signal Grove project state
 
-The active six-stage goal follows the 27 November product and release audit.
-Beta.16 is the starting point for the next signed Xiaomi upgrade.
+The owner paused the six-stage goal from the 27 November product and release
+audit. Beta.16 is the public preview and the starting point for the next signed
+Xiaomi upgrade. The beta.17 candidate and release files are staged privately.
+The public README lists the upcoming changes under development.
+[Candidate verification](docs/VALIDATION.md#beta17-signed-candidate-preflight).
+
 [Current goal](docs/GOAL.md#active-scope--27-november-2026) ·
 [Execution ledger](docs/AUDIT_EXECUTION_PLAN.md).
 

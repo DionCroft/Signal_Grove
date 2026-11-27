@@ -1,5 +1,43 @@
 # Current development validation — audit follow-up
 
+## Beta.17 signed candidate preflight
+
+The candidate uses source 1af09c6 and the original release certificate.
+Its production package is org.hermesmobile.app, version 1.1.0-beta.17
+and code 122. Release Gradle assembly and lint passed. The signed
+104,337,864-byte APK matched its unsigned contents. Its APK signature
+verified for Android API 26 and later. The hosted build's Android inputs match this
+candidate's app sources, with version and signing supplied for release.
+The hosted JVM, lint and policy reports verified 1,279 JVM cases,
+zero lint errors, and 1,260 policy cases. The four hosted device shards
+were in progress at this checkpoint.
+[Android workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/46079905078).
+
+A production-signed beta.16-to-beta.17 upgrade on the Android 17 emulator
+kept the installation UID and timestamp, retained a test task after
+restarting, and opened Quick Capture with screenshot and voice-note
+controls. The physical Xiaomi was absent from USB. Retention of the
+owner's saved connection, history and on-device data and the public
+updater install remain open.
+
+The candidate SBOM records 157 resolved Maven modules, 101 pinned
+artifact records and 56 APK native libraries. The 64-bit native libraries
+passed 16 KiB load-segment alignment. OSV returned no Maven matches.
+The two llama.cpp advisories from the exact-commit query concern the
+RPC server and externally supplied grammar. Both server targets are
+disabled in the actual build. The app generates helper grammar from a
+bounded set of choices. The separate published
+GGUF loader fix is already an ancestor of the compiled revision.
+[Runtime grammar advisory](https://github.com/advisories/GHSA-f86p-wv5j-r5vj) ·
+[RPC advisory](https://osv.dev/vulnerability/CVE-2026-137567) ·
+[Upstream loader fix](https://github.com/ggml-org/llama.cpp/pull/31336).
+
+APK SHA-256
+bea2b82cd79060ee1beb383464374509a9d67634418c1283304142596e70db58
+
+The APK, checksum list, signing certificate, SBOM and candidate provenance
+were verified locally. Beta.16 remains the public preview.
+
 ## Android management fixture sign-in ordering
 
 In hosted run `46055801684` at `9ac5e28`, all four digest-verified
