@@ -8,18 +8,29 @@ data class PhoneDocumentSource(
     val document: PhoneDocument, val firstLine: Int, val lastLine: Int, val text: String, val page: Int? = null
 )
 
-class PhoneDocumentReview internal constructor(val question: String, val sources: List<PhoneDocumentSource>)
+class PhoneDocumentReview internal constructor(
+    val question: String,
+    val sources: List<PhoneDocumentSource>,
+    internal val context: PhoneDocumentContext? = null
+)
+
+internal data class PhoneDocumentContext(
+    val modelSha256: String,
+    val settings: LocalGenerationSettings,
+    val budget: LocalPromptBudget,
+    val matchedCount: Int
+)
 data class PhoneDocumentAnswer(val review: PhoneDocumentReview, val text: String?, val state: LocalReplyState,
     val anchoredVerbatim: Boolean = false)
 
 internal object PhoneDocumentQuestions {
     const val QUESTION_BYTES = 512
     const val OUTPUT_TOKENS = 384
-    private const val MAX_EXCERPTS = 2
     private const val EXCERPT_CHARS = 320
     private val stop = setOf("a", "an", "the", "of", "to", "and", "is", "are", "in", "it", "for", "what", "how",
         "does", "do", "can", "which", "this", "的", "了", "是", "有", "吗", "如何")
     private val citation = Regex("\\[S([1-9][0-9]{0,2})\\]")
+    private data class Match(val source: PhoneDocumentSource, val matched: Set<String>)
     private val citationLike = Regex("\\[S[^\\]]*\\]", RegexOption.IGNORE_CASE)
 
     fun validQuestion(question: String): Boolean = question.isNotBlank() && question.length <= QUESTION_BYTES &&
@@ -30,7 +41,7 @@ internal object PhoneDocumentQuestions {
         require(validQuestion(question))
         val terms = terms(question)
         if (terms.isEmpty()) return null
-        val ranked = mutableListOf<Pair<Int, PhoneDocumentSource>>()
+        val ranked = mutableListOf<Match>()
         for ((info, sections) in documents) {
             sections.forEachIndexed { index, text ->
                 val page = if (info.pageCount > 0) index + 1 else null
@@ -39,14 +50,36 @@ internal object PhoneDocumentQuestions {
                     check()
                     val newlines = part.count { it == '\n' }
                     val lastLine = firstLine + newlines - if (part.endsWith('\n')) 1 else 0
-                    val score = terms(part).count { it in terms }
-                    if (score > 0) ranked.add(score to PhoneDocumentSource(info, firstLine, lastLine, part, page))
+                    val matched = terms(part).intersect(terms)
+                    if (matched.isNotEmpty()) ranked.add(Match(PhoneDocumentSource(info, firstLine, lastLine, part, page), matched))
                     firstLine += newlines
                 }
             }
         }
-        val sources = ranked.sortedByDescending { it.first }.take(MAX_EXCERPTS).map { it.second }
-        return if (sources.isEmpty()) null else PhoneDocumentReview(question, sources)
+        val ordered = ranked.sortedByDescending { it.matched.size }
+        val first = ordered.firstOrNull() ?: return null
+        val next = ordered.drop(1).filter { it.source.text.trim() != first.source.text.trim() }
+            .maxByOrNull { (it.matched - first.matched).size }
+        return PhoneDocumentReview(question, listOfNotNull(first.source, next?.source))
+    }
+
+    /** Measure the exact reviewed prompt before choosing any smaller alternative. */
+    suspend fun fit(
+        reviewed: PhoneDocumentReview, modelSha256: String, settings: LocalGenerationSettings,
+        measure: suspend (List<LocalChatMessage>) -> LocalPromptBudget?
+    ): PhoneDocumentReview {
+        val full = measure(messages(reviewed)) ?: return reviewed
+        val originalCount = reviewed.sources.size
+        if (!full.fits && originalCount > 1) {
+            for (source in reviewed.sources) {
+                val single = PhoneDocumentReview(reviewed.question, listOf(source))
+                val budget = measure(messages(single)) ?: continue
+                if (budget.fits) return PhoneDocumentReview(single.question, single.sources,
+                    PhoneDocumentContext(modelSha256, settings, budget, originalCount))
+            }
+        }
+        return PhoneDocumentReview(reviewed.question, reviewed.sources,
+            PhoneDocumentContext(modelSha256, settings, full, originalCount))
     }
 
     fun messages(review: PhoneDocumentReview): List<LocalChatMessage> {

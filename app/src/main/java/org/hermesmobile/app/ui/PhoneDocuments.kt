@@ -43,6 +43,7 @@ internal fun PhoneDocuments(
     val keyboard = LocalSoftwareKeyboardController.current
     val idle = !state.busy
     val review = state.documentReview
+    val context = review?.context?.takeIf { it.modelSha256 == state.loaded?.sha256 && it.settings == state.loadedSettings }
     val answer = state.documentAnswer
     val selected = state.documents.filter { it.id in scope }
     val showLibrary = !pending && removing == null && review == null && answer == null
@@ -75,6 +76,18 @@ internal fun PhoneDocuments(
                         review != null -> {
                             Text(label(Words.PhoneDocumentReview))
                             Text(review.question)
+                            context?.let { measured ->
+                                val budget = measured.budget
+                                Text(label(Words.PhoneContextMeter).replace("{prompt}", budget.promptTokens.toString())
+                                    .replace("{context}", budget.contextTokens.toString()), Modifier.testTag("phone-document-budget"))
+                                Text(label(Words.PhoneContextRoom).replace("{remaining}", budget.remainingTokens.toString())
+                                    .replace("{reserved}", budget.reservedTokens.toString()))
+                                if (!budget.fits) Text(label(Words.PhoneContextInputExceeds)
+                                    .replace("{limit}", budget.inputTokenLimit.toString())
+                                    .replace("{margin}", budget.excessInputTokens.toString()),
+                                    color = MaterialTheme.colorScheme.error)
+                                if (measured.matchedCount > review.sources.size) Text(label(Words.PhoneDocumentBudgetNarrowed))
+                            }
                             DocumentSources(review)
                             if (state.loaded == null) Text(label(Words.PhoneNotLoaded))
                             else Text(label(Words.PhoneLoaded).replace("{model}", state.loaded.metadata.name))
@@ -163,7 +176,7 @@ internal fun PhoneDocuments(
                     }
                     review != null -> {
                         Button({ actions.answer(review) }, Modifier.fillMaxWidth().testTag("phone-document-answer-confirm"),
-                            enabled = state.loaded != null) { Text(label(Words.PhoneDocumentAsk)) }
+                            enabled = state.loaded != null && context?.budget?.fits != false) { Text(label(Words.PhoneDocumentAsk)) }
                         TextButton(actions.clearReview, Modifier.fillMaxWidth()) { Text(label(Words.Cancel)) }
                     }
                     answer != null -> TextButton(actions.clearReview, Modifier.fillMaxWidth()) { Text(label(Words.PhoneDocuments)) }

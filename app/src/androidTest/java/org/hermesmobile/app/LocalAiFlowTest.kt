@@ -270,12 +270,14 @@ class LocalAiFlowTest {
         val source = PhoneDocumentSource(document, 1, 2, "Opening hours.\nCloses at five.")
         val requests = mutableListOf<PhoneDocumentReview>()
         var sourceReviews = 0
-        state = LocalAiState(models = listOf(model), loaded = model, documents = listOf(document))
+        val settings = LocalGenerationSettings(1024, 1, 256)
+        state = LocalAiState(models = listOf(model), loaded = model, loadedSettings = settings, documents = listOf(document))
         show(bilingual = true, documents = PhoneDocumentActions({}, {}, {}, {}, {}, { ids, question ->
                 sourceReviews++
                 assertEquals(listOf(document.id), ids)
                 assertEquals("When does it close?", question)
-                state = state.copy(documentReview = PhoneDocumentReview(question, listOf(source)))
+                val measurement = PhoneDocumentContext(model.sha256, settings, LocalPromptBudget(420, 1024, 256), 2)
+                state = state.copy(documentReview = PhoneDocumentReview(question, listOf(source), measurement))
             }, {
                 requests.add(it)
                 state = state.copy(documentReview = null, documentAnswer = PhoneDocumentAnswer(it, "It closes at five [S1].", LocalReplyState.COMPLETE))
@@ -309,6 +311,8 @@ class LocalAiFlowTest {
         compose.waitUntil(10_000) {
             compose.onAllNodesWithTag("phone-document-source-0").fetchSemanticsNodes().size == 1
         }
+        compose.onNodeWithTag("phone-document-budget").performScrollTo()
+            .assertTextContains("420 / 1024 prompt tokens", substring = true)
         compose.onNodeWithTag("phone-document-source-0").performScrollTo().assertIsDisplayed().assertTextEquals(source.text)
         compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("Museum.md", substring = true)
         compose.onNodeWithTag("phone-document-answer-confirm").assertIsDisplayed()

@@ -1,5 +1,21 @@
 # Current development validation — audit follow-up
 
+## On-device document context
+
+Source matching prefers complementary terms and skips exact
+duplicate passages. The document review counts the formatted prompt
+with the loaded model tokenizer when available. It shows the context
+and output reserve. If two excerpts exceed the budget, it offers a
+measured single excerpt when one fits. Generation uses the reviewed
+excerpts and rechecks the prompt. LFM3 keeps its 4K production limit.
+
+The exact build passed 1,276 JVM cases and both lint variants.
+Android 8 passed 20 focused cases and Android 17 passed 21. The
+document fixture verified the budget display, exact excerpt and
+citation, and the reviewed confirmation before inference. Android
+17 also exercised the existing workspace flows offline and restored
+its original radio settings.
+
 ## Encrypted workspace backup and restore
 
 Open Phone Notebooks to back up or restore selected local captures,

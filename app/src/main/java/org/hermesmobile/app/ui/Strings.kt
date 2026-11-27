@@ -569,6 +569,7 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     PhoneDocumentRemoveReview("Remove the private copy of {name}? The original file stays where you selected it.","删除 {name} 的私有副本？原始文件将保留在原处。","Shānchú {name} de sīyǒu fùběn? Yuánshǐ wénjiàn jiāng bǎoliú zài yuánchù."),
     PhoneDocumentScope("Documents selected · {count} of 4","已选文档 · {count} / 4","Yǐxuǎn wéndàng · {count} / 4"),
     PhoneDocumentQuestion("Question about these files","有关这些文件的问题","Yǒuguān zhèxiē wénjiàn de wèntí"),
+    PhoneDocumentBudgetNarrowed("One excerpt fits the current context. Review it before asking.","当前上下文可容纳一段摘录。提问前请先审阅。","Dāngqián shàngxiàwén kě róngnà yí duàn zhāilù. Tíwèn qián qǐng xiān shěnyuè."),
     PhoneDocumentReview("Review matching excerpts","审核匹配的摘录","Shěnhé pǐpèi de zhāilù"),
     PhoneDocumentAsk("Ask loaded model","询问已加载的模型","Xúnwèn yǐ jiāzài de móxíng"),
     PhoneDocumentLines("lines {first}–{last}","第 {first}–{last} 行","Dì {first}–{last} háng"),

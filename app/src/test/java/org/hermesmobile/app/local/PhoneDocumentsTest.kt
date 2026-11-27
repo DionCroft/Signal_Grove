@@ -2,6 +2,7 @@ package org.hermesmobile.app.local
 
 import java.io.File
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -117,5 +118,48 @@ class PhoneDocumentsTest {
         assertNull(PhoneDocumentQuestions.checkedReply("十一月二十日 [S1] [S2]", 1))
         assertNull(PhoneDocumentQuestions.checkedReply("十一月二十日 [s1]", 1))
         assertNull(PhoneDocumentQuestions.checkedReply("Uncited", 1))
+    }
+
+    @Test fun selectionPrefersComplementaryTermsOverARepeatedPassage() {
+        val documents = PhoneDocumentLibrary(temp.newFolder())
+        val main = "The observatory schedule begins at seven."
+        val supplement = "The gate requires the PIN MARIGOLD."
+        documents.savePdf("Rules.pdf", listOf(main, main, supplement), null) {}
+        val info = documents.list().single()
+        val review = checkNotNull(PhoneDocumentQuestions.review("observatory schedule gate PIN?",
+            documents.selected(listOf(info.id)) {}) {})
+        assertEquals(listOf(1, 3), review.sources.map { it.page })
+        assertEquals(listOf(main, supplement), review.sources.map { it.text })
+    }
+
+    @Test fun exactBudgetKeepsTheFirstFittingReviewedExcerptAndItsCitation() = runBlocking {
+        val documents = PhoneDocumentLibrary(temp.newFolder())
+        val primary = "The observatory schedule begins at seven."
+        val alternate = "The gate requires the PIN MARIGOLD."
+        documents.savePdf("Rules.pdf", listOf(primary, alternate), null) {}
+        val doc = documents.list().single()
+        val review = checkNotNull(PhoneDocumentQuestions.review("observatory schedule gate PIN?",
+            documents.selected(listOf(doc.id)) {}) {})
+        assertEquals(2, review.sources.size)
+        val settings = LocalGenerationSettings(1024, 1, 256)
+        val fitted = PhoneDocumentQuestions.fit(review, "a".repeat(64), settings) { prompt ->
+            val body = prompt.last().text
+            val count = if (body.contains(primary)) 800 else 450
+            LocalPromptBudget(count, settings.contextTokens, settings.maxOutputTokens)
+        }
+        assertEquals(listOf(alternate), fitted.sources.map { it.text })
+        val measured = checkNotNull(fitted.context)
+        assertEquals(2, measured.matchedCount)
+        assertEquals(LocalPromptBudget(450, 1024, 256), measured.budget)
+        assertTrue(measured.budget.fits)
+        val request = PhoneDocumentQuestions.messages(fitted).last().text
+        assertTrue(request.contains("[S1]"))
+        assertFalse(request.contains("[S2]"))
+        assertFalse(request.contains(primary))
+
+        val over = PhoneDocumentQuestions.fit(review, "b".repeat(64), settings) { LocalPromptBudget(900, 1024, 256) }
+        assertEquals(review.sources, over.sources)
+        assertFalse(checkNotNull(over.context).budget.fits)
+        assertSame(review, PhoneDocumentQuestions.fit(review, "a".repeat(64), settings) { null })
     }
 }

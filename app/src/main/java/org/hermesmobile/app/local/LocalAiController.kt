@@ -320,7 +320,13 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             val check = { context.ensureActive() }
             PhoneDocumentQuestions.review(question, documents.selected(ids, check), check)
         } ?: throw LocalModelStorageException("document_no_matches")
-        mutable.update { it.copy(documentReview = review) }
+        val loaded = mutable.value.loaded
+        val checked = if (loaded == null) review else {
+            val settings = generationSettings()
+            val request = documentGenerationSettings(settings)
+            PhoneDocumentQuestions.fit(review, loaded.sha256, settings) { messages -> measurePrompt(messages, request) }
+        }
+        mutable.update { it.copy(documentReview = checked) }
     }
 
     fun answerDocumentQuestion(review: PhoneDocumentReview) = action("answering_document") {
@@ -336,9 +342,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             throw LocalModelStorageException("document_changed")
         }
         val messages = PhoneDocumentQuestions.messages(review)
-        val settings = generationSettings()
-        val output = minOf(settings.maxOutputTokens, PhoneDocumentQuestions.OUTPUT_TOKENS)
-        validatePrompt(messages, settings.copy(maxOutputTokens = output))
+        val settings = documentGenerationSettings(generationSettings())
+        val output = settings.maxOutputTokens
+        validatePrompt(messages, settings)
         var reply = ""
         var result = PhoneDocumentAnswer(review, null, LocalReplyState.FAILED)
         mutable.update { it.copy(documentReview = null, documentAnswer = result.copy(state = LocalReplyState.GENERATING)) }
@@ -363,6 +369,9 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             mutable.update { it.copy(documentAnswer = result) }
         }
     }
+
+    private fun documentGenerationSettings(settings: LocalGenerationSettings): LocalGenerationSettings =
+        settings.copy(maxOutputTokens = minOf(settings.maxOutputTokens, PhoneDocumentQuestions.OUTPUT_TOKENS))
 
     internal fun generateWriting(review: PhoneWritingReview, onPrepared: (PhoneWritingNote) -> Unit) =
         action("generating") {
