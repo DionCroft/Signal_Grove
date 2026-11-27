@@ -74,6 +74,14 @@ standard run is on b106524. The later scrolling change is confined to
 the separately prepared test class.
 [Corrected hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849)
 
+The corrected hosted build passed the complete policy and strict build
+checks. The downloaded APK and report archive was independently verified
+against its GitHub checksum. It contains both debug APKs, 1,266 distinct
+passing JVM cases across 121 reports, and two lint reports with zero
+errors. The exact APK hashes will be checked against the four device
+shards before recording complete coverage.
+[Hosted build job](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140469264531)
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
