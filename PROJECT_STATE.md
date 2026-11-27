@@ -7,11 +7,12 @@ Beta.16 is the starting point for the next signed Xiaomi upgrade.
 
 ## 27 November product and release audit
 
-The offline workspace builds and passed 33 focused checks each on Android
-8 and 17. The hosted release gate is blocked by its test inventory.
-The audit records the Today and offline data-management gaps, latest
-Hermes source comparison, live Pi acceptance and release sequence.
-[Current audit](docs/audits/2026-11-27/REPORT.md).
+Hosted standard coverage passed at app source 1719943, with 1,281 cases on
+Android 8 and 1,282 on Android 17. Both versions passed the separate public
+LFM3 transfer checks. Physical checks, live Hermes acceptance and the signed
+release remain open.
+[Current audit](docs/audits/2026-11-27/REPORT.md) ·
+[Validation evidence](docs/VALIDATION.md#android-management-fixture-sign-in-ordering).
 
 ## Beta.16 released
 

@@ -19,16 +19,31 @@ The standard inventories still contain
 1,281 on Android 8 and 1,282 on Android 17, plus 19 prepared cases each.
 
 The exact repaired source passed 1,278 local JVM cases, both lint
-variants, and both debug assembles. The full hosted gate still needs
-a successful exact-source run.
+variants, and both debug assembles. The exact-source hosted standard
+matrix passed on both Android versions.
 
 [Hosted run and retained artifacts](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
 [Exact-source retest at `1719943`](https://github.com/DionCroft/Signal_Grove/actions/runs/46065224105).
 
 The replacement hosted build passed. Independent artifact checks
 matched 1,278 JVM cases, 1,260 native policy cases, both lint reports
-and both build APK hashes. The four hosted device shards are still
-required for complete standard coverage.
+and both build APK hashes. All four device shards passed. The raw case
+identities match the complete local standard inventories. Each case ran
+once, for 1,281 passes on Android 8 and 1,282 on Android 17. The 19
+prepared cases per version have separate evidence below.
+
+## Upstream approval projection and profile scope
+
+Five targeted upstream cases passed on stable v0.23.4 (8fc0374) and
+main (30bff5e). Both source archives contained the same three test
+files and both runs produced the same exact JUnit case identities.
+The cases cover discovery from the owning session projection,
+unbound and other-profile isolation, the profile that owns the
+request stream, and settlement by the exact request ID.
+
+Windows required local loopback for Python's event loop. The initial
+sandbox timeout and a broader time-limited attempt are retained. The
+live phone-to-Pi and Windows-worker approval checks remain open.
 
 ## Xiaomi Quick Capture setup checkpoint
 
@@ -146,10 +161,18 @@ cleanup failed to finish. Both staged model hashes matched afterward.
 The four temporarily archived fixture copies were restored to the
 original emulator with their original bytes, modes and modification times.
 
-Nine of the 19 prepared cases now have positive native receipts on
-each version. The intentional native interruption has its own case
-receipt. Seven physical LFM3 cases and two public transfer cases
-remain separate from the standard hosted device count.
+Eleven of the 19 prepared cases now have positive native receipts on
+each version. The intentional Qwen interruption has its own receipt.
+Seven physical LFM3 cases remain.
+
+Android 8 and 17 each passed both public LFM3 transfer cases with the
+exact repaired local debug APK pair. The tests cancelled real HTTPS
+transfers, verified discard preserved unrelated data, and resumed a
+separate retained partial only after an explicit request. The resume
+verified the entire 1,049,615,680-byte model against its pinned
+SHA-256 and installed it atomically. Android 8 used a disposable
+overlay of the verified encrypted AVD. Android 17 used a dedicated
+test AVD. Both test instances were closed afterward.
 
 The Android 8 capture edit and cancellation case also passed six
 consecutive runs offline on the original emulator after the earlier
