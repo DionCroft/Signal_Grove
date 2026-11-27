@@ -66,6 +66,23 @@ supply their own bounded evidence. Full current-main runtime and live
 Pi compatibility remain open.
 [Stable Hermes v0.23.4](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4)
 
+## Current Hermes main native shutdown cohort
+
+The public Git commit and GitHub tree for Hermes 1d15aad were compared
+across all 27,824 files and 131 executable paths. The reviewed heartbeat
+overlay still applies to its two files and produces new exact digests for
+this pin. The existing six upstream shutdown test files remain the
+native gate. Five are unchanged. The gateway shutdown file now adds six
+watchdog cases covering cancellation, early and late errors, clean
+teardown, and the service restart exit verdict.
+
+The verifier requires 56 exact positive cases per current-main variant
+and still requires 50 for the older variants. Forty local policy tests
+passed, including refusal of a partial, duplicated, or wrong-pin
+watchdog inventory. Native Linux and paired recovery results are
+tracked in the hosted shutdown workflow.
+[Current main watchdog tests](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/tests/gateway/test_gateway_shutdown.py#L495)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and

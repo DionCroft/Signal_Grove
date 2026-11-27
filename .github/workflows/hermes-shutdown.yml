@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 5725d1d390ac4b7cfe157ea32bd6f4db1a280368]
+        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 5725d1d390ac4b7cfe157ea32bd6f4db1a280368, 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d]
         variant: [pristine, candidate]
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -122,7 +122,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 5725d1d390ac4b7cfe157ea32bd6f4db1a280368]
+        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 5725d1d390ac4b7cfe157ea32bd6f4db1a280368, 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
