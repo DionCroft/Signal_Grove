@@ -114,8 +114,28 @@ class PhoneHistoryBackupFlowTest {
         compose.runOnIdle { picker.dispatchResult(pick.first, Activity.RESULT_OK, Intent().setData(uri)) }
     }
 
-    private fun waitForState(predicate: (PhoneHistoryBackupState) -> Boolean) =
-        compose.waitUntil(20_000) { predicate(backup.state.value) }
+    private fun waitForState(predicate: (PhoneHistoryBackupState) -> Boolean) {
+        try {
+            compose.waitUntil(20_000) { predicate(backup.state.value) }
+        } catch (failure: androidx.compose.ui.test.ComposeTimeoutException) {
+            val state = backup.state.value
+            val phase = when (state) {
+                is PhoneHistoryBackupState.Unlock -> "Unlock, rejected=" + state.rejected
+                is PhoneHistoryBackupState.Working -> "Working, step=" + state.step
+                is PhoneHistoryBackupState.Finished -> "Finished, result=" + state.result
+                else -> state.javaClass.simpleName
+            }
+            throw AssertionError("Backup fixture timed out in " + phase, failure)
+        }
+    }
+
+    private fun submitUnlockPassphrase(passphrase: String) {
+        val password = compose.onNodeWithTag("phone-backup-unlock-password").performScrollTo().assertIsDisplayed()
+        password.performClick().assertIsFocused()
+        compose.waitUntil(5_000) { focusedDialogViewport(requireKeyboard = false)?.keyboardVisible == true }
+        password.performTextReplacement(passphrase)
+        compose.onNodeWithTag("phone-backup-unlock").assertIsDisplayed().assertIsEnabled().performTouchInput { click() }
+    }
 
     private fun selectBackupChat(id: String) {
         compose.onNodeWithTag("phone-backup-password").assertDoesNotExist()
@@ -165,8 +185,7 @@ class PhoneHistoryBackupFlowTest {
             compose.waitUntil(10_000) { picks.size == 2 }
             deliverFile(picks.last())
             waitForState { it is PhoneHistoryBackupState.Unlock }
-            compose.onNodeWithTag("phone-backup-unlock-password").performTextReplacement(password)
-            compose.onNodeWithTag("phone-backup-unlock").assertIsDisplayed().assertIsEnabled().performClick()
+            submitUnlockPassphrase(password)
             waitForState { it is PhoneHistoryBackupState.ProfileRestoreReview }
             assertEquals(expected, runBlocking { store.phonePersonalProfiles.first() })
             compose.onNodeWithTag("phone-profile-backup-restore-confirm").assertIsNotEnabled()
@@ -238,13 +257,11 @@ class PhoneHistoryBackupFlowTest {
         }
         deliverFile(read)
         waitForState { it is PhoneHistoryBackupState.Unlock }
-        compose.onNodeWithTag("phone-backup-unlock-password").assertIsDisplayed().performTextReplacement("wrong-fixture")
-        compose.onNodeWithTag("phone-backup-unlock").performClick()
+        submitUnlockPassphrase("wrong-fixture")
         waitForState { it == PhoneHistoryBackupState.Unlock(rejected = true) }
         compose.onNodeWithText(Words.PhoneBackupRejected.en).assertIsDisplayed()
         assertEquals(originals.keys, source.list().map { it.id }.toSet())
-        compose.onNodeWithTag("phone-backup-unlock-password").assertIsDisplayed().performTextReplacement(passphrase)
-        compose.onNodeWithTag("phone-backup-unlock").performClick()
+        submitUnlockPassphrase(passphrase)
         waitForState { it is PhoneHistoryBackupState.RestoreReview }
         val item = (backup.state.value as PhoneHistoryBackupState.RestoreReview).plan.items.single()
         assertEquals(seed.id, item.source.id)

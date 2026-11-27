@@ -91,6 +91,24 @@ gates were exercised separately as described above.
 [Android 8 shard 0](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140479574216) ·
 [Android 8 shard 1](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140479574363)
 
+The hosted Android 17 run passed all 597 cases in shard 0. Shard 1
+reported one failure among 675 cases. The protected history backup test
+timed out waiting for its restore review after submitting the correct
+passphrase. The archive and native log matched GitHub's checksum. The
+isolated history case passed locally with the exact hosted APKs, while
+the full local backup class exposed a similar timeout opening the profile
+restore review.
+[Android 17 shard 0](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140479574346) ·
+[Android 17 shard 1](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849/job/140479574383)
+
+The backup fixture now waits for the focused keyboard and an enabled
+Unlock control before tapping it. The original wrong-passphrase,
+selection, conflict, encrypted-data and retention checks still run.
+The revised build passed all five backup cases on Android 8 and 17, all
+1,266 JVM tests and both lint variants. The native logs and installed APK
+hashes were checked. The complete hosted matrix is pending on the
+revised source.
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
