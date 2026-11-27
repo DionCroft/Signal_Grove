@@ -1,5 +1,39 @@
 # Current development validation — audit follow-up
 
+## Live workflow readiness
+
+The Pi's existing gateway, serve and mobile dashboard units were active
+at 18:34 UTC on 27 November. The loopback gateway health endpoint returned
+HTTP 200. All seven directories named in the runtime cutover review still
+had mode 0775. The protected-policy prerequisite and reviewed activation
+remain open before live workspace attachment, decisions and scheduling.
+[Runtime cutover review](contracts/2026-11-14-runtime-cutover-packet.md).
+
+## Hermes admission and scheduler receipt fixtures
+
+Ten cases passed on the pinned Windows environment against exact Hermes
+main source at **5ba1456**. A SQLite write lock returned a retryable HTTP
+503 with an empty admission reservation. Retrying the same key after
+releasing the lock ran the work once. Four session-cron cases verified
+scoped cron identity and exact retry behavior. Five cron recovery cases
+exercised existing receipt settlement, including a departed firer's
+execution row. The test source blobs matched their upstream identities
+and each XML report had zero failures and skips.
+[HTTP admission fixture](https://github.com/NousResearch/hermes-agent/blob/5ba14569d4dd46606b179df4f0b3c6d083b56edf/tests/gateway/test_api_runs_admission_storage_error.py) ·
+[Session cron fixtures](https://github.com/NousResearch/hermes-agent/blob/5ba14569d4dd46606b179df4f0b3c6d083b56edf/tests/gateway/test_session_cron.py) ·
+[Cron recovery fixtures](https://github.com/NousResearch/hermes-agent/blob/5ba14569d4dd46606b179df4f0b3c6d083b56edf/tests/cron/test_cron_recovery.py).
+
+## Xiaomi production upgrade baseline
+
+The published beta.16 APK, manifest, provenance, SBOM and public
+certificate matched their GitHub release digests. APK Signature Scheme
+v2 verified the single, original production signer. The APK identifies
+as **org.hermesmobile.app**, version **1.1.0-beta.16**, code **121**.
+The connected Xiaomi's installed production APK matched the published
+beta.13 hash. Establishing beta.16 on the phone and exercising the final
+candidate update and data retention remain release gates.
+[Published beta.16 artifacts](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.16).
+
 ## On-device document context
 
 Source matching prefers complementary terms and skips exact
