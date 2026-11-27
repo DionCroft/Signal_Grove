@@ -89,6 +89,14 @@ Xiaomi USB-shell probe timed out with DNS and with the verified
 tailnet address while retaining the hostname for TLS. The phone's
 authenticated app connection still needs its own check.
 
+The installed beta.13 app on the Xiaomi has the Pi's current private
+HTTPS endpoint saved, and Android 17 reports its local-network
+permission granted. On warm launch the app still displayed Connected.
+The read-only model refresh retained the previous observation and its
+stale indicator. This did not establish fresh app reachability.
+The phone returned to the debug app for Quick Capture. The spoken
+test and permission recovery remain pending.
+
 ## Hermes main scheduler and recovery recheck
 
 The latest stable release observed on 27 November is Hermes v0.23.4
