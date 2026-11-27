@@ -203,6 +203,27 @@ exact stages, monotonic timing and native case completion. It rejected
 all five malformed progress controls. The hosted standard verifier
 continues to require its original native envelopes.
 
+### Hosted Android 8 helper selection repair
+
+The hosted Android 8 shard 0 passed all 596 expected cases on da521b9
+with the same inventory and prepared exclusions. Shard 1 started all
+675 cases. The protected backup retry passed, and the only failed case
+was the bilingual helper test. Its Network control was enabled and
+visible to Compose, but the injected tap left its selected state
+false. The raw native log and GitHub archive checksum were verified.
+[Hosted Android 8 result](https://github.com/DionCroft/Signal_Grove/actions/runs/46013599559/job/140569916653)
+
+The helper test now centers the control within the scrollable dialog's
+visible viewport and sends one Android-input tap through the existing
+native test helper. It still checks the selected Network topic, its
+reviewed English, Chinese and pinyin answer, host execution location
+and absence of sends and downloads. Both Android versions passed all
+39 affected helper, backup and native-tap contract tests. The Android
+8 emulator also passed the exact helper case at 720 by 1280 and 320
+dpi. The native trace in each run shows one accepted DOWN and UP
+inside the focused dialog. The local build passed all 1,266 JVM tests
+and both lint variants. The full hosted matrix remains open.
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d

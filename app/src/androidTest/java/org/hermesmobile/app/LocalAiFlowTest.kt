@@ -830,7 +830,7 @@ class LocalAiFlowTest {
         compose.onNodeWithTag("phone-helper-open").performClick()
         waitForHelperWithoutKeyboard()
         val network = compose.onNodeWithTag("phone-helper-topic-NETWORK")
-        network.performScrollTo().assertIsDisplayed().assertIsEnabled().performTouchInput { click() }
+        tapHelperControl(network, NativeDialogTapAction.PhoneHelperNetwork)
         network.assertIsSelected()
         compose.onNodeWithTag("phone-helper-current-topic").assertTextContains(Words.SetupNetwork.en, substring = true)
         val reviewedAnswer = hasAnyAncestor(hasTestTag("phone-helper-answer"))

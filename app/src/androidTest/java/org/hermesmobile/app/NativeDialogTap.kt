@@ -24,7 +24,8 @@ enum class NativeDialogTapAction(val wire:String) {
     KanbanRead("kanban-read"),KanbanCancel("kanban-cancel"),PhoneDraftCancel("phone-draft-cancel"),
     PhoneHistoryPin("phone-history-pin"),PhoneHistoryArchive("phone-history-archive"),
     PhoneHistorySearchAll("phone-history-search-all"), PhoneDocumentReview("phone-document-review"),
-    PhoneHelperConsent("phone-helper-consent"), PhoneHelperRun("phone-helper-run")
+    PhoneHelperConsent("phone-helper-consent"), PhoneHelperRun("phone-helper-run"),
+    PhoneHelperNetwork("phone-helper-network")
 }
 
 /** Espresso's MotionEvents.sendDown can retry internally. Refuse before a second DOWN reaches Android. */
