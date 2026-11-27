@@ -11,6 +11,25 @@ requires behavior review for 238 watched handlers and 29 persistence
 sources against the recorded baseline.
 [Exact upstream tree comparison](https://github.com/NousResearch/hermes-agent/compare/9bba163bc1d090852eccc86802eddc454df47d1b...5ba14569d4dd46606b179df4f0b3c6d083b56edf)
 
+The hosted inspection on `31ca650` completed both source scans.
+Each report matched the independent local AST extraction. Stable
+v0.23.4 reports 220 changed watched handlers and main `5ba1456`
+reports 238, with 29 persistence-source differences on each. Both
+source steps returned review required. The complete 1,260-case
+policy job, eight registry cases, both sidecar cohorts and the
+13-step service recovery fixture passed.
+[Hosted compatibility evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46035016222)
+
+The native Linux evidence also verifies nine specific admission,
+reconnect, compressed-history, approval and scheduler-receipt cases
+on each tested runtime. The newer main snapshot carries the same
+source bytes for those selected test files. Both held and released
+shutdown fixtures kept their checkpoints, reported zero replays and
+passed SQLite integrity. These runtime results apply to stable
+v0.23.4 and the tested main pin `9bba163`.
+[Native SDK case evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46022100001) ·
+[Shutdown case evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46022114644)
+
 ## Hosted Android 8 and exact-source receipt recovery
 
 The two Android 8 shards on `5f74e45` passed all 1,271 standard cases.
