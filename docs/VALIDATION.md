@@ -352,6 +352,37 @@ exact 103 persistence, 19 profile/receipt, 20 gateway recovery and 56
 shutdown cases per variant. The earlier passing runtime evidence
 remains bound to its original revisions.
 
+### Hosted Hermes compatibility and recovery evidence
+
+The hosted compatibility run independently scanned 249 sources for
+stable v0.23.4 and the reviewed main pin 337903e. Both inspected all
+ten relocated modules and their 21 dependencies. Both reports match
+the local contracts and exited with review required. Stable recorded
+220 watched handler differences and main recorded 235. Each recorded
+29 changed persistence sources. Neither report removed a used REST
+or management route or changed a watched request field. All 1,260
+policy cases passed, along with eight bounded registry cases, both
+pinned sidecar response suites and the isolated systemd recovery.
+[Hosted compatibility run](https://github.com/DionCroft/Signal_Grove/actions/runs/46015199995)
+
+The exact stable and main SDKs each passed 103 native persistence
+cases and 19 authentication, approval, history and scheduler receipt
+cases. Stable passed five admission/reconnect cases. Main passed the
+same cohort plus 15 held-routing cases. All six downloaded archives
+were checked against GitHub's digests, the expected source maps,
+native JUnit records and exact case identities.
+[Native SDK run](https://github.com/DionCroft/Signal_Grove/actions/runs/46016226248)
+
+The independently recomputed shutdown results matched GitHub's paired
+records. Stable passed 50 cases per variant and main passed 56.
+Both versions passed their native gateway/heartbeat lifetime checks.
+In both versions the held and released delegation cases retained the
+original checkpoint, reported zero replays and passed SQLite integrity
+verification. The held child remained unknown and the released child
+was recorded as interrupted. These are isolated hosted Linux results.
+Deployment and phone-to-Pi recovery still require live verification.
+[Native shutdown run](https://github.com/DionCroft/Signal_Grove/actions/runs/46016249716)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and
