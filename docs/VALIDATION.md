@@ -53,6 +53,21 @@ had mode 0775. The protected-policy prerequisite and reviewed activation
 remain open before live workspace attachment, decisions and scheduling.
 [Runtime cutover review](contracts/2026-11-14-runtime-cutover-packet.md).
 
+A read-only recheck at 19:44 UTC used the live gateway's explicit
+process home. The same process answered throughout the observation.
+That home had no project-control ledger. Its config file had no explicit
+top-level project-control section. Effective inherited policy still
+needs verification. The seven named directories all had mode 0775.
+
+On the Windows execution owner, the Signal Grove checkout and remote
+matched the reviewed branch. None of the three entries in the maintained
+Project Agentic registry identified this checkout. The live acceptance
+needs one explicitly authorized registered workspace. Use a reviewed
+existing registration or review the exact enrollment before selecting
+this checkout. The deployment approval must cover both protected
+policy and the exact target. This sample establishes readiness
+constraints for the live test.
+
 ## Hermes main scheduler and recovery recheck
 
 The latest stable release observed on 27 November is Hermes v0.23.4
