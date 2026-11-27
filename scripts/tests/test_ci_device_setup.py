@@ -17,7 +17,16 @@ class DeviceSdkSetupTest(unittest.TestCase):
             log=Path(directory)/'instrumentation.log';device=Mock(return_value=Mock(returncode=0,stdout='OK (485 tests)\nINSTRUMENTATION_CODE: -1\n'))
             self.assertEqual(485,device_ci.run_instrumentation(device,log));self.assertEqual(device.return_value.stdout,log.read_text(encoding='utf-8'));device.assert_called_once();self.assertEqual(6000,device.call_args.kwargs['timeout']);self.assertFalse(device.call_args.kwargs['check'])
             args=device.call_args.args
-            self.assertEqual(('notClass',','.join(('org.hermesmobile.app.LocalModelPhysicalTest','org.hermesmobile.app.LocalImportCommitIntegrationTest','org.hermesmobile.app.LocalModelFamilyIntegrationTest','org.hermesmobile.app.LocalModelTransferIntegrationTest','org.hermesmobile.app.LocalProcessRecoveryIntegrationTest'))),args[args.index('-e')+1:args.index('-e')+3])
+            excluded = (
+                'org.hermesmobile.app.LocalModelPhysicalTest',
+                'org.hermesmobile.app.LocalImportCommitIntegrationTest',
+                'org.hermesmobile.app.LocalModelFamilyIntegrationTest',
+                'org.hermesmobile.app.LocalModelTransferIntegrationTest',
+                'org.hermesmobile.app.LocalProcessRecoveryIntegrationTest',
+                'org.hermesmobile.app.MediaCaptureNativeTest',
+                'org.hermesmobile.app.TodayOfflineTest',
+            )
+            self.assertEqual(('notClass', ','.join(excluded)), args[args.index('-e')+1:args.index('-e')+3])
             self.assertEqual(1,args.count('notClass'))
 
     def test_explicit_suite_deadline_is_forwarded_once_and_never_reset_after_timeout(self):
@@ -301,7 +310,8 @@ class ExplicitExternalModelGatesTest(unittest.TestCase):
     def test_manifest_requires_separate_acceptance_and_never_claims_execution_or_downloads(self):
         manifest=device_ci.external_model_gate_manifest()
         self.assertEqual('not_run',manifest['status']);self.assertTrue(manifest['separate_acceptance_required']);self.assertFalse(manifest['automatic_model_download'])
-        self.assertEqual(5,len(manifest['gates']));self.assertEqual(15,sum(len(g['methods']) for g in manifest['gates']))
+        self.assertEqual(7, len(manifest['gates']))
+        self.assertEqual(18, sum(len(g['methods']) for g in manifest['gates']))
         for gate in manifest['gates']:
             self.assertEqual('not_run',gate['status']);self.assertTrue(gate['requires']);self.assertNotIn('LocalNativeBoundaryTest',gate['class_name']);self.assertTrue(gate['methods'])
         manifest['gates'][0]['methods'].clear();self.assertEqual(7,len(device_ci.external_model_gate_manifest()['gates'][0]['methods']))

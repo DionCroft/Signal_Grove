@@ -1,8 +1,8 @@
 """Run the standard instrumentation suite on an owned, fresh GitHub Linux emulator.
 
 Uses runner temporary storage. Never targets a developer's existing emulator/device.
-Explicit model/import/family/download/recovery gates need staged licensed inputs,
-network consent or prepared process/device state. Keep their exact inventory and
+Explicit device gates need staged licensed inputs, network consent, language
+packs or prepared process/device state. Keep their exact inventory and
 not-run status separate; never accept assumptions, partial runs or failed native
 results as a standard-suite or model-acceptance pass.
 """
@@ -40,7 +40,8 @@ EXTERNAL_MODEL_GATES = {
         'requires': ('64-bit process', 'explicitly staged publisher-verified licensed LFM3 model'),
     },
     'org.hermesmobile.app.LocalModelFamilyIntegrationTest': {
-        'methods': ('verifiedQwenImportChatHistoryAndDelete', 'verifiedLfmQwenSwitchKeepsHistoryBoundToEachFile'),
+        'methods': ('verifiedQwenImportChatHistoryAndDelete', 'verifiedQwenExtractsReviewedCaptureTasks',
+                    'verifiedLfmQwenSwitchKeepsHistoryBoundToEachFile'),
         'requires': ('64-bit process', 'explicitly staged verified licensed LFM3 and Qwen models'),
     },
     'org.hermesmobile.app.LocalModelTransferIntegrationTest': {
@@ -50,6 +51,15 @@ EXTERNAL_MODEL_GATES = {
     'org.hermesmobile.app.LocalProcessRecoveryIntegrationTest': {
         'methods': ('prepareInterruptedNativeGeneration', 'coldRecoveryMarksInterruptedAndOnlyAnExplicitFreshSendGenerates', 'rebootKeepsCompletedAndInterruptedHistoryWithoutAutomaticLoad'),
         'requires': ('64-bit process', 'explicitly staged verified licensed Qwen model', 'externally prepared interruption and reboot state'),
+    },
+    'org.hermesmobile.app.MediaCaptureNativeTest': {
+        'methods': ('modelPacksRecognizeSyntheticInputsAndSaveOnlyEditedTextOffline',),
+        'requires': ('Airplane mode with no network', 'verified Tesseract and Vosk language packs',
+                     'synthetic PCM recording in the private mediaProbeDirectory fixture'),
+    },
+    'org.hermesmobile.app.TodayOfflineTest': {
+        'methods': ('localTodayIsAvailableInAirplaneMode',),
+        'requires': ('Airplane mode with no network', 'explicit todayOffline=true fixture flag'),
     },
 }
 

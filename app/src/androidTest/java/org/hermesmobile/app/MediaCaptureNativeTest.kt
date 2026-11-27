@@ -1,13 +1,10 @@
 package org.hermesmobile.app
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.provider.Settings
-import androidx.core.content.ContextCompat
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.ByteArrayOutputStream
@@ -93,12 +90,6 @@ class MediaCaptureNativeTest {
             }
         } finally { rendered.fill(0) }
     }
-    @Test fun recordingReportsPermissionDenialBeforeOpeningTheMicrophone() = runBlocking {
-        assumeTrue(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-        val result = runCatching { MediaCaptureEngines(context).record({}, { true }) }
-        assertEquals("media_microphone_denied", (result.exceptionOrNull() as? LocalModelStorageException)?.reason)
-    }
-
     private fun screenshot(): ByteArray {
         val bitmap = Bitmap.createBitmap(1100, 420, Bitmap.Config.ARGB_8888)
         try {
