@@ -85,6 +85,21 @@ notebook rename and removal. A separate process reopened the exact
 shared link, shared text and widget note after the app was stopped.
 Both emulators restored their radios.
 
+The repaired instrumentation APK at `1719943` passed the same 11
+case identities on Android 8 and Android 17 with Airplane mode on,
+Wi-Fi off and no default network. Four covered prepared OCR, speech,
+microphone permission denial, Today and native Qwen task selection.
+Seven covered capture and notebook edits, selected encrypted restore,
+ID conflicts, links and citations, and share and widget data after a
+forced process stop. Both emulators restored their initial radio
+settings and default network.
+
+During the first Android 8 combined run the capture test attempted a
+second edit before its editor appeared. A separate offline workspace
+run passed all seven cases on the same installed APKs. A standalone
+retest also passed the four media and model cases. Both original and
+retest logs were retained.
+
 ## Live workflow readiness
 
 The Pi's existing gateway, serve and mobile dashboard units were active
@@ -206,6 +221,12 @@ that approval. Signal Grove's reviewed install sends the explicit
 choice and validates the returned enabled state. Wider integration
 acceptance remains open.
 [Reviewed Hermes source delta](https://github.com/NousResearch/hermes-agent/compare/de2b0590f87b2131b51557b3f30aefeec421be2c...30bff5e45c389bdc3b6cd42515ab5bb8f2f083d6).
+
+The exact `30bff5e` runtime also passed the same 91 native test
+identities as v0.23.4. The pinned source and dependency lock matched
+the reviewed inputs, and the run used isolated Windows fixtures.
+Among watched handler fingerprints, the delta from `de2b059` is
+limited to the three plugin install and enable helpers.
 
 The source checker initially stopped at the ten former module paths
 for `30bff5e`. The exact commit now uses the reviewed relocation table.
