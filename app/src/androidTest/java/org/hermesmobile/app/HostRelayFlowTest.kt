@@ -53,7 +53,7 @@ class HostRelayFlowTest {
             compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && api.preferences.value.chinese==bilingual && api.preferences.value.pinyin==bilingual}
             val scope=api.profileScope.value
             app.credentials.saveManagement(scope,buildJsonObject {put("url",server.url("dashboard/").toString());put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("relay-ui-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-            compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn}
+            compose.restoreFixtureManagement(management, scope);compose.waitUntil(5000) {management.state.value.signedIn}
             compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
             compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();val s by management.state.collectAsStateWithLifecycle();HermesAppTheme(p) {HostRelayDialog(management,s,openPortal={opened.add(it)}) {management.closeHostRelay()}}}}
             assertEquals(0,relay.get());assertEquals(0,channels.get());tap("relay-list","relay-read")

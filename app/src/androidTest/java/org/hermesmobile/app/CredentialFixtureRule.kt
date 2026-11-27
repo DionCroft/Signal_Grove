@@ -1,10 +1,12 @@
 package org.hermesmobile.app
 
+import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.mockwebserver.MockWebServer
+import org.hermesmobile.app.ui.ManagementViewModel
 import org.junit.rules.ExternalResource
 
 /** Keep fixture credentials out of other tests and preserve an installed test vault. */
@@ -62,5 +64,13 @@ class CredentialFixtureRule:ExternalResource() {
             values.forEach {(key,value)->editor.putString(key,value)};check(editor.commit())
             previous?.let {runBlocking {app.preferences.connection(urlValue=it.url,demoValue=it.demo,httpValue=it.debugHttp)}}
         }
+    }
+}
+
+fun ComposeTestRule.restoreFixtureManagement(management: ManagementViewModel, scope: String) {
+    runOnUiThread {
+        // Home can bind the connection before the fixture writes its saved sign-in.
+        management.bind("demo")
+        management.bind(scope)
     }
 }

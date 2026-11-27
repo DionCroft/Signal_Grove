@@ -1,5 +1,25 @@
 # Current development validation — audit follow-up
 
+## Android management fixture sign-in ordering
+
+In hosted run `46055801684` at `9ac5e28`, the digest-verified raw
+artifacts recorded two Android 8 failures in shard 0, three in shard 1,
+and five Android 17 failures in shard 0. All ten stopped at the
+fixture's initial management sign-in wait. Home can bind the active
+connection while the test is still seeding its synthetic saved sign-in.
+A second binding to the same scope then reuses that initial observation.
+
+The test fixture now binds away and back after seeding its credentials.
+There is one shared restore helper across the affected fixtures. The
+app source and all original test assertions compare unchanged. Both
+Android versions passed the ten observed failures and the existing
+authenticated Today inbox check with the same digest-verified installed
+APK pair. The Android 17 rerun used a fresh emulator because the
+previous test emulator lacked installation space. The full hosted gate
+still needs a successful exact-source run.
+
+[Hosted run and retained artifacts](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
+
 ## Xiaomi Quick Capture setup checkpoint
 
 The Xiaomi accepted an in-place USB debug upgrade of source `e50a927`.

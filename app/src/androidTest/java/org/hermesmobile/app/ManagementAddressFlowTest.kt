@@ -43,7 +43,7 @@ class ManagementAddressFlowTest {
             try {
                 compose.waitUntil(10000) {!api.connecting.value};compose.runOnUiThread {api.configure(server.url("prefix/inference/").toString(),credentials.uniqueToken("address-inference"),true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))};compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese && !api.preferences.value.pinyin}
                 val scope=api.profileScope.value;app.credentials.saveManagement(scope,buildJsonObject {put("url",f.base);put("profile","worker");put("debugHttp",true);put("tokens",f.tokens.json())})
-                compose.runOnUiThread {management.bind(scope)};compose.waitUntil(10000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
+                compose.restoreFixtureManagement(management, scope);compose.waitUntil(10000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
                 compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(p) {ManagementEntry(api,management)}}};compose.onNodeWithTag("management-open").performClick();block(f,requests,scope)
             } finally {f.assertClean()}
         }

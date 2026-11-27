@@ -421,7 +421,7 @@ class HostCronRunsFlowTest {
             put("url",f.server.url("dashboard/").toString());put("profile","worker");put("debugHttp",true)
             put("tokens",ManagementTokens("management-runs-fixture","refresh-fixture","password","fixture-user",4102444800).json())
         })
-        compose.runOnUiThread {management.bind(scope)}
+        compose.restoreFixtureManagement(management, scope)
         compose.waitUntil(5000) {management.state.value.signedIn}
         compose.runOnUiThread {management.refresh()}
         compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}

@@ -143,7 +143,7 @@ class TodayLiveApprovalUiTest {
                 put("debugHttp", true)
                 put("tokens", fixture.tokens.json())
             })
-            compose.runOnUiThread { management.bind("demo"); management.bind(scope) }
+            compose.restoreFixtureManagement(management, scope)
             compose.waitUntil(15_000) { management.state.value.signedIn }
 
             val verify = compose.onNodeWithTag("today-live-approval-verify")

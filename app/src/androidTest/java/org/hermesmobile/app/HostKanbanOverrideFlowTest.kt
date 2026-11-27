@@ -58,7 +58,7 @@ class HostKanbanOverrideFlowTest {
                 compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && api.preferences.value.chinese==bilingual && api.preferences.value.pinyin==bilingual}
                 val scope=api.profileScope.value
                 app.credentials.saveManagement(scope,buildJsonObject {put("url",f.delegate.base);put("profile","worker");put("debugHttp",true);put("tokens",f.tokens.json())})
-                compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(10000) {vm.state.value.signedIn};compose.runOnUiThread {vm.refresh()};await()
+                compose.restoreFixtureManagement(vm, scope);compose.waitUntil(10000) {vm.state.value.signedIn};compose.runOnUiThread {vm.refresh()};await()
                 compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(p) {ManagementEntry(api,vm)}}}
                 compose.onNodeWithTag("management-open").performClick();tap("management-list","host-kanban-open")
                 for(tag in listOf("kanban-inventory-read","kanban-board-read-garden","kanban-task-read-t_child")) {tap("host-kanban-list",tag);compose.onNodeWithTag("kanban-read-confirm").performClick();await()}

@@ -50,7 +50,7 @@ class HostKanbanFlowTest {
                 compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && api.preferences.value.chinese==(mode=="normal")}
                 val scope=api.profileScope.value
                 app.credentials.saveManagement(scope,buildJsonObject {put("url",server.url("prefix/dashboard/").toString());put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("kanban-ui-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-                compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(10000) {vm.state.value.signedIn}
+                compose.restoreFixtureManagement(vm, scope);compose.waitUntil(10000) {vm.state.value.signedIn}
                 compose.runOnUiThread {vm.refresh()};await();assertTrue(vm.state.value.loaded)
                 compose.runOnUiThread {compose.activity.setContent {val prefs by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(prefs) {ManagementEntry(api,vm)}}}
                 compose.onNodeWithTag("management-open").performClick();tap("management-list","host-kanban-open")

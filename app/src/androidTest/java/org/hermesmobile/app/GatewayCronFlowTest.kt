@@ -68,7 +68,7 @@ class GatewayCronFlowTest {
             compose.waitUntil(10000) {!api.connecting.value};compose.runOnUiThread {api.configure(inference,"inference-gateway-fixture",true);api.updatePreferences(api.preferences.value.copy(chinese=false,pinyin=false))}
             compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese}
             val scope=api.profileScope.value;app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("management-gateway-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-            compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
+            compose.restoreFixtureManagement(management, scope);compose.waitUntil(5000) {management.state.value.signedIn};compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
             compose.runOnUiThread {compose.activity.setContent {val preferences by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(preferences) {ManagementEntry(api,management)}}}
             compose.onNodeWithTag("management-open").performClick();openGatewaySection();assertEquals(0,tickets.get())
             compose.onNodeWithTag("gateway-cron-list").performScrollToNode(hasTestTag("gateway-cron-load"));compose.onNodeWithTag("gateway-cron-load").performClick();assertEquals(0,tickets.get())

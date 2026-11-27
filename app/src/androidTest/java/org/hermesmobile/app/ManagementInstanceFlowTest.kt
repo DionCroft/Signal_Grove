@@ -54,7 +54,7 @@ class ManagementInstanceFlowTest {
             val row=ManagementOperation(UUID.randomUUID().toString(),owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,if(ordinary) "Probe" else if(mode in setOf("probe","probe-sending")) "CustomEndpointProbe" else if(same) "RelayUnlink" else "RelayLinkStart","private-other-target","private-other-request",if(sending) "sending" else "unknown","private-other-result",123456789)
             runBlocking {app.managementReady.await();app.database.dao().insertManagementOperation(row)}
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard.trimEnd('/'));put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("instance-ui-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-            compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(5000) {vm.state.value.signedIn}
+            compose.restoreFixtureManagement(vm, scope);compose.waitUntil(5000) {vm.state.value.signedIn}
             compose.runOnUiThread {vm.refresh()};compose.waitUntil(10000) {!vm.state.value.busy && vm.state.value.loaded && (ordinary || vm.receipts.value.any {it.key==row.key})}
             try {
                 assertFalse(vm.receipts.value.toString().contains("private-other-"));assertFalse(vm.receipts.value.toString().contains(owner.profile))

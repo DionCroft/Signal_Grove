@@ -79,7 +79,7 @@ class HostKanbanBoardFlowTest {
                 compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && api.preferences.value.chinese==(mode=="bilingual") && api.preferences.value.pinyin==(mode=="bilingual")}
                 val scope=api.profileScope.value
                 app.credentials.saveManagement(scope,buildJsonObject {put("url",f.base);put("profile","worker");put("debugHttp",true);put("tokens",f.tokens.json())})
-                compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(10000) {vm.state.value.signedIn};compose.runOnUiThread {vm.refresh()};await();assertTrue(vm.state.value.loaded)
+                compose.restoreFixtureManagement(vm, scope);compose.waitUntil(10000) {vm.state.value.signedIn};compose.runOnUiThread {vm.refresh()};await();assertTrue(vm.state.value.loaded)
                 compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(p) {ManagementEntry(api,vm)}}}
                 compose.onNodeWithTag("management-open").performClick();tap("management-list","host-kanban-open")
                 compose.onNodeWithTag("host-kanban-list").performScrollToNode(hasTestTag("board-create"));compose.onNodeWithTag("board-create").assertIsNotEnabled();assertEquals(0,f.writes.get())

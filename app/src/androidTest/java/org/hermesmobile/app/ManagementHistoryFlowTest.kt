@@ -48,7 +48,7 @@ class ManagementHistoryFlowTest {
             compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese && !api.preferences.value.pinyin}
             val scope=api.profileScope.value
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("history-native-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-            compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn}
+            compose.restoreFixtureManagement(management, scope);compose.waitUntil(5000) {management.state.value.signedIn}
             compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
             val target=ManagementTarget(scope,dashboard,"worker","password · fixture-user")
             val own=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,scope,dashboard,"worker",target.actor,"Probe","saved-own-history-fixture","{}","confirmed","",1)

@@ -50,7 +50,7 @@ class ManagedSkillsFlowTest {
             compose.waitUntil(10000) {!api.connecting.value && api.connectionStatus.value=="connected" && !api.preferences.value.chinese}
             val scope=api.profileScope.value
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("management-skill-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-            compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn}
+            compose.restoreFixtureManagement(management, scope);compose.waitUntil(5000) {management.state.value.signedIn}
             compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded}
             compose.runOnUiThread {compose.activity.setContent {val preferences by api.preferences.collectAsStateWithLifecycle();HermesAppTheme(preferences) {ManagementEntry(api,management)}}}
             compose.onNodeWithTag("management-open").performClick();compose.onNodeWithTag("management-list").performScrollToNode(hasTestTag("host-skills-open"));compose.onNodeWithTag("host-skills-open").performClick()

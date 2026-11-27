@@ -64,7 +64,7 @@ class HostProjectReceiptFlowTest {
             val row=ManagementOperation(UUID.randomUUID().toString(),owner.resourceScope,owner.apiScope,owner.url,owner.profile,owner.actor,"ProjectUpdate","9".repeat(64),"private-original-request",if(mode=="sending") "sending" else if(mode=="result") "acknowledged" else "unknown",if(mode=="result") """{"host_acknowledged":true,"requested_effect_reported":false,"configuration_observed":false,"path_mapping_unverified":true}""" else "private-original-result",123456789,PluginHome.project(JsonPrimitive(if(mode in setOf("old-home","old-home-foreign")) "/srv/old-project-home" else home.get()))!!.identity())
             runBlocking {app.managementReady.await();app.database.dao().insertManagementOperation(row)}
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("project-receipt-ui-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-            compose.runOnUiThread {vm.bind(scope)};compose.waitUntil(5000) {vm.state.value.signedIn}
+            compose.restoreFixtureManagement(vm, scope);compose.waitUntil(5000) {vm.state.value.signedIn}
             compose.runOnUiThread {vm.refresh()};compose.waitUntil(10000) {!vm.state.value.busy && vm.state.value.loaded && vm.receipts.value.any {it.key==row.key}}
             try {
                 compose.runOnUiThread {compose.activity.setContent {val p by api.preferences.collectAsStateWithLifecycle();val s by vm.state.collectAsStateWithLifecycle();HermesAppTheme(p) {if(mode=="raw") ManagementReceiptCard(row,vm,s) else ManagementEntry(api,vm)}}}

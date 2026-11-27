@@ -53,7 +53,7 @@ class ManagementResourceFlowTest {
             val record=ManagementOperation(UUID.randomUUID().toString(),target.resourceScope,removed,dashboard,"worker",target.actor,"CredentialPoolAdd","private-other-provider","private-other-request",if(sending) "sending" else "unknown","private-other-result",123456789)
             runBlocking {app.managementReady.await();app.database.dao().insertManagementOperation(record)}
             app.credentials.saveManagement(scope,buildJsonObject {put("url",dashboard);put("profile","worker");put("debugHttp",true);put("tokens",ManagementTokens("shared-native-fixture","refresh-fixture","password","fixture-user",4102444800).json())})
-            compose.runOnUiThread {management.bind(scope)};compose.waitUntil(5000) {management.state.value.signedIn}
+            compose.restoreFixtureManagement(management, scope);compose.waitUntil(5000) {management.state.value.signedIn}
             compose.runOnUiThread {management.refresh()};compose.waitUntil(10000) {!management.state.value.busy && management.state.value.loaded && management.receipts.value.any {it.key==record.key}}
             assertFalse(management.receipts.value.toString().contains("private-other-"))
             try {
