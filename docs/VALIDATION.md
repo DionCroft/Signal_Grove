@@ -27,10 +27,11 @@ APK pair also passed the prepared Today, OCR/transcription and Qwen task
 extraction cases with networking disabled.
 
 The hosted run passed its inventory policy step. Attempt 1 stopped
-during dependency resolution because its runner could not resolve the
-pinned Vosk and JNA artifacts. Both official Maven Central endpoints
-returned the pinned POM and AAR bytes from the development host. The
-standard device matrix remains a separate gate.
+during dependency resolution because its runner could not resolve
+Vosk and JNA. Both official Maven Central endpoints returned the
+pinned POM and AAR bytes from the development host. Attempt 2 built,
+tested and linted the same source with strict verification and started
+all four device shards. Complete device results are tracked separately.
 [Hosted Android matrix and attempts](https://github.com/DionCroft/Signal_Grove/actions/runs/45977016045) ·
 [Maven Central endpoints](https://central.sonatype.org/faq/ssl/)
 
@@ -79,18 +80,28 @@ teardown, and the service restart exit verdict.
 The verifier requires 56 exact positive cases per current-main variant
 and still requires 50 for the older variants. Forty local policy tests
 passed, including refusal of a partial, duplicated, or wrong-pin
-watchdog inventory. Native Linux and paired recovery results are
-tracked in the hosted shutdown workflow.
-[Current main watchdog tests](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/tests/gateway/test_gateway_shutdown.py#L495)
+watchdog inventory.
+
+The hosted current-main pristine and candidate variants passed all 56
+cases with identical case identities. The downloaded artifact hashes,
+whole SDK source and executable identities, raw case logs and paired
+heartbeat reports verified independently. The candidate's released
+writer case recovered an interrupted child. The held writer case kept
+its child outcome unknown. Both recovered the original checkpoint
+with zero replays and healthy SQLite integrity. These checks used
+isolated Linux runtimes.
+[Current main watchdog tests](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/tests/gateway/test_gateway_shutdown.py#L495) ·
+[Hosted shutdown and recovery](https://github.com/DionCroft/Signal_Grove/actions/runs/45979919724)
 
 ## Current Hermes persistence and approval contract
 
 The public Linux persistence matrix now includes v0.23.4 and 1d15aad
 with the existing 103-case identity check. All 11 test files are
-byte-identical between those two SDK pins. The earlier v0.23.4 artifact
-was rechecked against its archive, JUnit and case identity hashes.
-Current-main results depend on an independent run against its exact tree.
-[Earlier stable persistence run](https://github.com/DionCroft/Signal_Grove/actions/runs/45380258025)
+byte-identical between those two SDK pins. Both pins passed all 103
+cases on native Linux. The downloaded result archives matched their
+published checksums and the exact reviewed SDK maps. The JUnit
+identities and test file digests agreed across both pristine pins.
+[Hosted stable and main persistence](https://github.com/DionCroft/Signal_Grove/actions/runs/45980286181)
 
 The current native gateway scopes approval.pending to a live session
 and applies session:read authorization. Its pending response carries a
