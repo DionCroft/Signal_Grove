@@ -47,7 +47,13 @@ GATEWAY_RECOVERY_TESTS = (
 def gateway_recovery_cohort(pin: str) -> tuple[tuple[str, ...], int, str]:
     if pin == '8fc0374447313e276f6b9a2764bfc750190c966a':
         return GATEWAY_RECOVERY_TESTS, 5, 'e1490b46fb8b7a96ffecab48b59d060ad7e0653d5f2cb3ed47aea9986b1472c1'
-    if pin in ('1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d', '337903eeffd696cf73936a3a00af08b43feb2028', '9bba163bc1d090852eccc86802eddc454df47d1b', 'de2b0590f87b2131b51557b3f30aefeec421be2c'):
+    if pin in (
+        '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d',
+        '337903eeffd696cf73936a3a00af08b43feb2028',
+        '9bba163bc1d090852eccc86802eddc454df47d1b',
+        'de2b0590f87b2131b51557b3f30aefeec421be2c',
+        '646c982ea7354261b355874781999b8a292a6013',
+    ):
         return (
             (*GATEWAY_RECOVERY_TESTS, 'tests/gateway/test_held_route_late_platform.py'),
             20,

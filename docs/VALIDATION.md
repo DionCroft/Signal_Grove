@@ -281,6 +281,20 @@ identities. Native execution evidence is checked against the hosted
 shards when their run finishes.
 [Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
 
+## Hermes native gates for the current main revision
+
+Hermes stable remains v0.23.4. The latest reviewed main pin, 646c982,
+adds five commits about Docker dependency recovery and disk headroom.
+The official and local Git trees agree on the six changed paths since
+30bff5e. The 27,865-file native source manifest matches the official tree.
+All 131 executable identities, both shutdown patch inputs and the
+admission, persistence, profile-receipt and shutdown test sources match
+the prior native pin. The exact new revision is registered for the
+relocated source scanner and the isolated Linux native workflows.
+Native results for this revision are tracked separately.
+
+[Official upstream delta](https://github.com/NousResearch/hermes-agent/compare/30bff5e45c389bdc3b6cd42515ab5bb8f2f083d6...646c982ea7354261b355874781999b8a292a6013).
+
 ## Hermes main plugin and terminal update
 
 The next observed main pin, `30bff5e`, advanced 23 commits while stable
