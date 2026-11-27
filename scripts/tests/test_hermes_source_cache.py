@@ -174,6 +174,8 @@ class SourceCacheTest(unittest.TestCase):
             '8fc0374447313e276f6b9a2764bfc750190c966a',
             '2506f5b0a4d310b96ec2eb6f2de4ea7349ba4d15',
             '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d',
+            '28ef6e4e7d1df3015bf786dea6b0d355baf5c211',
+            '337903eeffd696cf73936a3a00af08b43feb2028',
         )
         for pin in pins:
             with self.subTest(pin=pin):

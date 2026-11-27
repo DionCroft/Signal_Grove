@@ -318,6 +318,29 @@ source comparison. Live Pi recovery remains an open acceptance check.
 [Public Hermes comparison](https://github.com/NousResearch/hermes-agent/compare/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d...28ef6e4e7d1df3015bf786dea6b0d355baf5c211) ·
 [Stable v0.23.4](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4)
 
+## Hermes main credential-pool and source layout recheck
+
+Stable remained v0.23.4. Main advanced five commits from 28ef6e4 to
+337903e. The authenticated GitHub and fetched Git trees agreed on all
+27,825 tracked entries. The 13 changed files concern Anthropic
+credential-pool cooldown and fallback behavior, the memtomem catalogue,
+and their tests and documentation. Four scanned helper definitions
+changed. The compared REST and management routes, request fields,
+feature flags, scheduler constraints and watched handler differences
+were identical to the previous main scan.
+
+All ten relocated sources, 21 required dependencies and 28 native
+recovery test files matched the previously tested main revision.
+The gateway and TUI shutdown overlay input digests also matched.
+The scanner now accepts the reviewed layouts at these two exact main
+commits. Both scans verified all 249 source aliases and continued to
+report 235 watched handler differences and 29 persistence source
+differences against the tracked baseline. All 119 contract and cache
+tests passed. The native Linux evidence remains tied to v0.23.4 and
+1d15aad. Provider behavior and live Pi recovery still need their own
+runtime checks.
+[Exact upstream comparison](https://github.com/NousResearch/hermes-agent/compare/28ef6e4e7d1df3015bf786dea6b0d355baf5c211...337903eeffd696cf73936a3a00af08b43feb2028)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and
