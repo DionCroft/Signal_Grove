@@ -31,7 +31,11 @@ during dependency resolution because its runner could not resolve
 Vosk and JNA. Both official Maven Central endpoints returned the
 pinned POM and AAR bytes from the development host. Attempt 2 built,
 tested and linted the same source with strict verification and started
-all four device shards. Complete device results are tracked separately.
+all four device shards. The build archive was independently checksummed.
+Its 121 JVM reports contain 1,266 distinct passing cases, with zero
+failures, errors or skips. Both lint reports contain zero errors.
+The recorded app and test APK hashes will be checked against the four
+shards' inventories and completed case logs.
 [Hosted Android matrix and attempts](https://github.com/DionCroft/Signal_Grove/actions/runs/45977016045) ·
 [Maven Central endpoints](https://central.sonatype.org/faq/ssl/)
 
@@ -47,10 +51,10 @@ plugin is unregistered and promotes them when the platform appears.
 The complete scanner exits 2 for this main pin. It reports zero removed
 used routes, 235 changed watched handlers and 29 changed persistence
 sources against the tracked client baseline. The exact-path addition
-preserves that review requirement. Test whether held routing records
-retain owner, recovery and retirement state across reconnect before
-accepting the new runtime. Stable v0.23.4 has separate hosted pristine and
-candidate gateway lifetime evidence and candidate delegation recovery.
+preserves that review requirement. The isolated recovery cohort below
+tests held routing through restart, profile changes and delayed plugin
+registration. Stable v0.23.4 has separate hosted pristine and candidate
+gateway lifetime evidence and candidate delegation recovery.
 [Public Hermes main pin](https://github.com/NousResearch/hermes-agent/tree/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d) ·
 [Stable shutdown evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692260)
 
@@ -130,6 +134,28 @@ isolated Linux homes. The downloaded archive checksums, SDK source
 maps, JUnit case identities and terminal results were revalidated.
 [Initial results](https://github.com/DionCroft/Signal_Grove/actions/runs/45982044743) ·
 [Verified native rerun](https://github.com/DionCroft/Signal_Grove/actions/runs/45982663141)
+
+## Native gateway reconnect and held routing recovery
+
+Both reviewed Hermes pins passed the same five upstream cases for
+admission replay, event watermarks, and the gap between replay and
+reattachment. Current main also passed all 15 held-routing cases. They
+cover delayed plugin registration, interruption recovery, clean shutdown
+markers, and removal or rekeying of durable routes. The result archives,
+whole source maps, native runtime metadata, exact JUnit case identities
+and positive outcomes were independently verified.
+
+The first run collected the full roster. On each pin, two completion
+cases stopped before their assertions because the test launcher supplied a
+custom Hermes home. Upstream's I/O guard treats that as an operator home,
+and the gateway's module-level voice path still pointed there. The
+corrected launcher leaves that variable unset for the recovery cohort.
+Upstream creates its own collection sandbox under the isolated temporary
+root. The original tests and filesystem guards remain enabled. These
+results establish the reviewed Linux SDK behavior. Live Pi recovery
+remains an open deployment check.
+[Initial run](https://github.com/DionCroft/Signal_Grove/actions/runs/45984263789) ·
+[Verified recovery run](https://github.com/DionCroft/Signal_Grove/actions/runs/45984906847)
 
 ## Quick Capture and reviewed phone tasks
 
