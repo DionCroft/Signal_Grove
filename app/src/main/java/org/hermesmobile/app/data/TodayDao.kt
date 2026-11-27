@@ -2,6 +2,7 @@ package org.hermesmobile.app.data
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -33,6 +34,31 @@ internal interface TodayDao {
                 AND report.runId = session.runId AND report.status = 'completed' AND report.transport = 'runs')
         ORDER BY lastConfirmedAt DESC, receiptKey LIMIT 6""")
     fun completedRuns(scope: String): Flow<List<TodayRun>>
+
+    @Query("SELECT * FROM sessions WHERE scope = :scope AND `key` = :sessionKey AND hidden = 0")
+    suspend fun visibleSession(scope: String, sessionKey: String): Conversation?
+
+    @Query("SELECT * FROM run_reports WHERE `key` = :receiptKey")
+    suspend fun receipt(receiptKey: String): RunReport?
+
+    @Query("""SELECT * FROM tool_events WHERE sessionKey = :sessionKey AND runId = :runId
+        ORDER BY receivedAt DESC, `key` LIMIT 200""")
+    suspend fun savedRunEvents(sessionKey: String, runId: String): List<ToolEvent>
+
+    @Transaction
+    suspend fun completedRun(row: TodayRun): TodayRunDetails? {
+        val session = visibleSession(row.scope, row.sessionKey) ?: return null
+        val report = receipt(row.receiptKey)
+        if (report != null) {
+            if (report.sessionKey != row.sessionKey || report.runId != row.runId ||
+                report.status != "completed" || report.transport != "runs") return null
+        } else {
+            // Older app versions may have only the latest completed session receipt.
+            if (row.receiptKey != session.key + ":" + row.runId || session.runId != row.runId ||
+                session.status != "completed" || session.transport != "runs") return null
+        }
+        return TodayRunDetails(report, savedRunEvents(row.sessionKey, row.runId))
+    }
 
     @Query("""SELECT session.* FROM sessions session
         WHERE session.scope = :scope AND session.hidden = 0 AND session.transport = 'runs' AND session.runId != ''

@@ -22,10 +22,18 @@ internal data class TodayRun(
     val lastConfirmedAt: Long
 )
 
+internal data class TodayRunDetails(
+    val report: RunReport?,
+    val events: List<ToolEvent>
+)
+
+internal data class TodayRunIdentity(val sessionKey: String, val runId: String)
+
 internal data class TodayRemoteSnapshot(
     val scope: String,
+    val connectionGeneration: Long,
     val endedAt: Long,
-    val confirmed: Map<String, Long>,
+    val confirmed: Map<TodayRunIdentity, Long>,
     val failed: Int
 )
 

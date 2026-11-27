@@ -73,22 +73,29 @@ private val publicActivityDetails = setOf("child_session_id", "subagent_id", "de
 }
 
 @Composable internal fun ActivityDialog(
-    conversation: Conversation, events: List<ToolEvent>, report: RunReport?, waits: List<ActivityWait>,
-    live: Boolean, progress: ReportedRunProgress?, dismiss: () -> Unit,
+    status: String, events: List<ToolEvent>, report: RunReport?, waits: List<ActivityWait>,
+    liveConversation: Conversation? = null, progress: ReportedRunProgress? = null,
+    savedRunId: String? = null, dismiss: () -> Unit,
 ) {
     val timeline = remember(events) { activityTimeline(events) }
-    val currentTool = if (live && waits.isEmpty()) currentActivityName(conversation, timeline, progress) else null
+    val currentTool = liveConversation?.takeIf { waits.isEmpty() }?.let { currentActivityName(it, timeline, progress) }
     val runtime = remember(report?.telemetryJson) {
         RunTelemetry.parse(report?.telemetryJson.orEmpty())["runtime"] as? JsonObject
     }
     val displayTime = remember {
         DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withZone(ZoneId.systemDefault())
     }
-    AlertDialog(onDismissRequest=dismiss,title={Text(label(Words.HermesActivity))},text={
+    AlertDialog(onDismissRequest=dismiss,title={
+        Text(label(if (savedRunId != null) Words.TodayRunReceipt else Words.HermesActivity))
+    },text={
         LazyColumn(Modifier.testTag("activity-timeline").heightIn(max=480.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            if (conversation.status != "idle") item {
-                Text(label(if (live) Words.RunStatus else Words.ActivityLastRunStatus), style = MaterialTheme.typography.titleSmall)
-                Text(label(statusWord(conversation.status)), style = MaterialTheme.typography.bodySmall)
+            if (savedRunId != null) item {
+                Text(label(Words.RunIdentity), style = MaterialTheme.typography.labelMedium)
+                SelectionContainer { Text(savedRunId, Modifier.testTag("saved-receipt-identity")) }
+            }
+            if (status != "idle") item {
+                Text(label(if (liveConversation != null) Words.RunStatus else Words.ActivityLastRunStatus), style = MaterialTheme.typography.titleSmall)
+                Text(label(statusWord(status)), style = MaterialTheme.typography.bodySmall)
                 currentTool?.let {
                     Text(label(Words.ActivityInProgress).replace("{name}", it),
                         style = MaterialTheme.typography.bodySmall)

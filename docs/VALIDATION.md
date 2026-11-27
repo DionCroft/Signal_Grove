@@ -1,5 +1,17 @@
 # Current development validation — audit follow-up
 
+## Today saved run receipts
+
+Today opens an older completed run’s own saved activity. The reader
+checks the connection, conversation, run and receipt identities before
+showing its timeline. Refresh results expire when the connection
+changes, and Today explains its cached, unavailable and busy states.
+
+The rebased receipt build passed all 1,266 JVM cases and both lint
+variants. Android 8 and 17 each passed the exact older-run and
+disconnect-routing cases against the same app and test APKs.
+Read-only fixture data verified the routing on the owned emulators.
+
 ## Exact Hermes source relocation inspection
 
 The scanner recognizes the ten verified source moves and 21 persistence

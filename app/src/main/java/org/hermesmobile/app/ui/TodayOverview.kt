@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,6 +29,9 @@ import java.time.format.FormatStyle
 import kotlinx.coroutines.delay
 import org.hermesmobile.app.LocalAiActivity
 import org.hermesmobile.app.data.LocalTask
+import org.hermesmobile.app.data.TodayRun
+import org.hermesmobile.app.data.TodayRunDetails
+import org.hermesmobile.app.data.TodayRunIdentity
 import org.hermesmobile.app.data.duePhoneTasks
 
 @Composable
@@ -40,6 +44,8 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
     val unprocessed by vm.todayUnprocessed.collectAsStateWithLifecycle()
     val notebook by vm.todayNotebook.collectAsStateWithLifecycle()
     val scope by vm.profileScope.collectAsStateWithLifecycle()
+    val connectionGeneration by vm.todayConnectionGeneration.collectAsStateWithLifecycle()
+    var openedRun by remember(scope, connectionGeneration) { mutableStateOf<TodayRun?>(null) }
     val connection by vm.connectionStatus.collectAsStateWithLifecycle()
     val profiles by vm.savedConnections.collectAsStateWithLifecycle()
     val approvals by vm.todayApprovals.collectAsStateWithLifecycle()
@@ -47,12 +53,21 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
     val snapshot by vm.todayRemoteSnapshot.collectAsStateWithLifecycle()
     val refreshing by vm.todayRefreshing.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
+    val controlBusy by vm.controlBusy.collectAsStateWithLifecycle()
+    val capabilities by vm.capabilities.collectAsStateWithLifecycle()
     val connected = connection == "connected"
     val connecting by vm.connecting.collectAsStateWithLifecycle()
-    LaunchedEffect(scope, connected, connecting) {
-        if (connected && !connecting) vm.refreshTodayIfStale()
+    val refreshReason = when {
+        connecting -> Words.TodayChecking
+        !connected -> Words.TodayRefreshOffline
+        capabilities?.runs != true -> Words.TodayRefreshUnsupported
+        busy || controlBusy -> Words.TodayRefreshBusy
+        else -> null
     }
-    val current = snapshot?.takeIf { it.scope == scope }
+    LaunchedEffect(scope, connectionGeneration, refreshReason) {
+        if (refreshReason == null) vm.refreshTodayIfStale()
+    }
+    val current = snapshot?.takeIf { it.scope == scope && it.connectionGeneration == connectionGeneration }
     val formatted = remember(date.second) { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(date.second) }
 
     HermesCard(Modifier.testTag("today-overview")) {
@@ -82,8 +97,11 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
                 style = MaterialTheme.typography.bodySmall)
             if (current.failed > 0) Text(label(Words.TodaySomeUnavailable), style = MaterialTheme.typography.bodySmall)
         }
-        TextButton(vm::refreshToday, Modifier.testTag("today-refresh"), enabled = connected && !refreshing && !busy) {
-            Text(label(if (refreshing) Words.TodayChecking else Words.Refresh))
+        TextButton(vm::refreshToday, Modifier.testTag("today-refresh"), enabled = refreshReason == null && !refreshing) {
+            Text(label(if (refreshing || connecting) Words.TodayChecking else Words.Refresh))
+        }
+        refreshReason?.takeIf { it != Words.TodayChecking }?.let { reason ->
+            Text(label(reason), Modifier.testTag("today-refresh-reason"), style = MaterialTheme.typography.bodySmall)
         }
         val activeApprovals = approvals.filter { it.scope == scope }
         val activeRuns = runs.filter { it.scope == scope }
@@ -91,7 +109,8 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
             Word(Words.TodayApprovals)
             activeApprovals.forEach { approval ->
                 TodayRunRow(approval.sessionTitle, approval.runId, approval.lastConfirmedAt, formatted,
-                    current?.confirmed?.get(approval.runId), connected, date.first, !busy) {
+                    current?.confirmed?.get(TodayRunIdentity(approval.sessionKey, approval.runId)),
+                    connected, date.first, !busy && !controlBusy && !connecting) {
                     vm.select(approval.sessionKey)
                     go("Chat")
                 }
@@ -101,23 +120,47 @@ internal fun TodayOverview(vm: HermesViewModel, tasks: List<LocalTask>, go: (Str
             Word(Words.TodayCompleted)
             activeRuns.forEach { run ->
                 TodayRunRow(run.sessionTitle, run.runId, run.lastConfirmedAt, formatted,
-                    current?.confirmed?.get(run.runId), connected, date.first, !busy) {
-                    vm.select(run.sessionKey)
-                    go("Chat")
+                    current?.confirmed?.get(TodayRunIdentity(run.sessionKey, run.runId)),
+                    connected, date.first, !connecting,
+                    button = Modifier.testTag("today-receipt-${run.runId}")) {
+                    openedRun = run
                 }
             }
         }
         if (activeApprovals.isEmpty() && activeRuns.isEmpty()) Text(label(Words.TodayNoReceipts))
     }
+    openedRun?.let { row -> TodaySavedRunDialog(vm, row) { openedRun = null } }
+}
+
+@Composable
+private fun TodaySavedRunDialog(vm: HermesViewModel, row: TodayRun, dismiss: () -> Unit) {
+    var receipt by remember(row) { mutableStateOf<TodayRunDetails?>(null) }
+    var loading by remember(row) { mutableStateOf(true) }
+    LaunchedEffect(row) {
+        receipt = vm.todayRunDetails(row)
+        loading = false
+    }
+    val saved = receipt
+    if (saved != null) {
+        ActivityDialog("completed", saved.events, saved.report, emptyList(), savedRunId = row.runId, dismiss = dismiss)
+    } else {
+        AlertDialog(
+            onDismissRequest = dismiss,
+            title = { Text(label(Words.TodayRunReceipt)) },
+            text = { Text(label(if (loading) Words.TodayRunLoading else Words.TodayRunUnavailable)) },
+            confirmButton = { TextButton(dismiss) { Text(label(Words.Close)) } }
+        )
+    }
 }
 
 @Composable
 private fun TodayRunRow(sessionTitle: String, runId: String, stored: Long, formatted: DateTimeFormatter, checked: Long?,
-                        connected: Boolean, now: Instant, enabled: Boolean, open: () -> Unit) {
+                        connected: Boolean, now: Instant, enabled: Boolean, button: Modifier = Modifier,
+                        open: () -> Unit) {
     val fresh = connected && checked != null && now.toEpochMilli() - checked in 0..120_000L
     val confirmedAt = maxOf(stored, checked ?: 0)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        TextButton(open, enabled = enabled) { Text(sessionTitle.ifBlank { runId }) }
+        TextButton(open, modifier = button, enabled = enabled) { Text(sessionTitle.ifBlank { runId }) }
         Text(runId, style = MaterialTheme.typography.labelSmall)
         if (!fresh) Text(label(Words.TodayCached), style = MaterialTheme.typography.labelSmall)
         val confirmation = if (confirmedAt > 0) {

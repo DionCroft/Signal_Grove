@@ -51,39 +51,76 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     internal val todayRemoteSnapshot = MutableStateFlow<TodayRemoteSnapshot?>(null)
     internal val todayRefreshing = MutableStateFlow(false)
+    private val todayGeneration = MutableStateFlow(0L)
+    internal val todayConnectionGeneration = todayGeneration.asStateFlow()
+    private var todayRefreshJob: Job? = null
+
+    internal suspend fun todayRunDetails(row: TodayRun): TodayRunDetails? {
+        val operation = context()
+        if (row.scope != operation.partition || row.runId.isBlank()) return null
+        return try {
+            todayDao.completedRun(row)?.takeIf { current(operation) }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            null
+        }
+    }
 
     internal fun refreshTodayIfStale() {
         val cached = todayRemoteSnapshot.value
-        if (cached?.scope != scope.value || System.currentTimeMillis() - cached.endedAt !in 0L..120_000L) {
+        if (cached?.scope != scope.value || cached.connectionGeneration != todayGeneration.value ||
+            System.currentTimeMillis() - cached.endedAt !in 0L..120_000L) {
             refreshToday()
         }
     }
 
+    private fun canRefreshToday() = !busy.value && !controlBusy.value && !connecting.value &&
+        connectionStatus.value == "connected" && scope.value != "demo" && capabilities.value?.runs == true
+
     internal fun refreshToday() {
-        if (todayRefreshing.value || busy.value || controlBusy.value || connecting.value ||
-            connectionStatus.value != "connected" || scope.value == "demo" || capabilities.value?.runs != true) return
+        if (todayRefreshing.value || !canRefreshToday()) return
         val operation = context()
+        val generation = todayGeneration.value
+        fun currentRead() = generation == todayGeneration.value && current(operation) && canRefreshToday()
         todayRefreshing.value = true
-        viewModelScope.launch {
+        todayRefreshJob = viewModelScope.launch {
+            val confirmed = mutableMapOf<TodayRunIdentity, Long>()
+            var failed = 0
             try {
                 val receipts = todayDao.refreshCandidates(operation.partition, todayTerminal)
-                val confirmed = mutableMapOf<String, Long>()
-                var failed = 0
                 for (receipt in receipts) {
-                    if (!current(operation) || connectionStatus.value != "connected" || busy.value || controlBusy.value) return@launch
+                    if (!currentRead()) return@launch
                     val checked = withTimeoutOrNull(4_000) {
                         reconcile(receipt, operation = operation, reportErrors = false)
                     }
-                    if (checked != null) confirmed[receipt.runId] = System.currentTimeMillis()
-                    else failed++
+                    if (checked == null) failed++
+                    else confirmed[TodayRunIdentity(receipt.key, receipt.runId)] = System.currentTimeMillis()
                 }
-                if (current(operation)) {
-                    todayRemoteSnapshot.value = TodayRemoteSnapshot(operation.partition, System.currentTimeMillis(), confirmed, failed)
+                if (currentRead()) {
+                    todayRemoteSnapshot.value = TodayRemoteSnapshot(
+                        operation.partition, generation, System.currentTimeMillis(), confirmed, failed
+                    )
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                if (currentRead()) {
+                    todayRemoteSnapshot.value = TodayRemoteSnapshot(
+                        operation.partition, generation, System.currentTimeMillis(), confirmed, failed + 1
+                    )
                 }
             } finally {
-                todayRefreshing.value = false
+                if (generation == todayGeneration.value) todayRefreshing.value = false
             }
         }
+    }
+
+    private fun beginConnectionCheck() {
+        connecting.value = true
+        todayGeneration.value += 1
+        todayRefreshJob?.cancel()
+        todayRefreshing.value = false
     }
 
     val connectionStatus=MutableStateFlow("demo")
@@ -260,12 +297,12 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     fun updatePreferences(p: AppPreferences,base: AppPreferences=preferences.value) {viewModelScope.launch {graph.preferences.patchUserSettings(p,base)}}
     fun setDemo(enabled: Boolean) {
         if(switchingBlocked()) return
-        connecting.value=true
+        beginConnectionCheck()
         viewModelScope.launch { try {graph.preferences.connection(demoValue=enabled);activate(graph.preferences.flow.first())} finally {connecting.value=false} }
     }
     fun configure(url: String, token: String, debugHttp: Boolean) {
         if(switchingBlocked()) return
-        connecting.value=true
+        beginConnectionCheck()
         viewModelScope.launch {
             error.value=null
             try {
@@ -285,7 +322,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             finally { connecting.value=false }
         }
     }
-    fun refresh() { if(switchingBlocked()) return; connecting.value=true; viewModelScope.launch {
+    fun refresh() { if(switchingBlocked()) return; beginConnectionCheck(); viewModelScope.launch {
         error.value=null
         try {
             capabilities.value=connection.test(api)
@@ -762,6 +799,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
         if(c.scope!=operation.partition) return null
         try {
             val j=operation.client.run(c.runId)
+            currentCoroutineContext().ensureActive()
             if(!current(operation)) return null
             require(j.text("run_id").ifBlank {c.runId}==c.runId) {"The server returned a different run identity."}
             val fresh=dao.applyRunSnapshot(c,j) ?: return null
@@ -833,7 +871,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }}
     fun useSavedConnection(id:String) {
         if(switchingBlocked()) return
-        connecting.value=true
+        beginConnectionCheck()
         viewModelScope.launch {try {
             val config=withContext(Dispatchers.IO) {graph.credentials.activate(id)}
             graph.preferences.connection(urlValue=config.url,demoValue=false,httpValue=config.allowDebugHttp)
@@ -848,13 +886,13 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     }
     fun removeConnectionCredential(id:String) {
         if(switchingBlocked()) return
-        connecting.value=true
+        beginConnectionCheck()
         viewModelScope.launch {try {
             val wasActive=withContext(Dispatchers.IO) {val active=graph.credentials.readConfig()?.scope==id;graph.credentials.forget(id);active}
             if(wasActive) {graph.preferences.connection(urlValue="",demoValue=true,httpValue=false);activate(graph.preferences.flow.first())} else reloadConnections()
         } catch(e:Exception) {error.value=connectionError(e)} finally {connecting.value=false}}
     }
-    fun forgetServer() { if(switchingBlocked()) return; connecting.value=true; viewModelScope.launch {try {
+    fun forgetServer() { if(switchingBlocked()) return; beginConnectionCheck(); viewModelScope.launch {try {
         withContext(Dispatchers.IO) { graph.credentials.forgetCurrent() }
         graph.preferences.connection(urlValue="",demoValue=true,httpValue=false);activate(graph.preferences.flow.first())
     } finally {connecting.value=false} } }
