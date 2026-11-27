@@ -177,7 +177,23 @@ class HostProjectChangesStorageTest {
     }
     @Test fun schemaTenMigrationAndReopenRetainAllHistoricalReceiptsAndPrivateAppData()=runBlocking {
         val name="project-home-migration10-qa.db";context.deleteDatabase(name)
-        val schema=Json.parseToJsonElement(InstrumentationRegistry.getInstrumentation().context.assets.open("org.hermesmobile.app.data.HermesDatabase/10.json").bufferedReader().use {it.readText()}).jsonObject["database"]!!.jsonObject
+        val assets = InstrumentationRegistry.getInstrumentation().context.assets
+        val schemaDirectory = HermesDatabase::class.java.name
+        fun exportedSchema(version: Int) = assets.open("$schemaDirectory/$version.json").bufferedReader().use {
+            Json.parseToJsonElement(it.readText()).jsonObject.getValue("database").jsonObject
+        }
+        val currentVersion = checkNotNull(assets.list(schemaDirectory))
+            .filter { it.endsWith(".json") }.mapNotNull { it.removeSuffix(".json").toIntOrNull() }.max()
+        val currentSchema = exportedSchema(currentVersion)
+        val schema = exportedSchema(10)
+        fun assertCurrentSchema(db: HermesDatabase) {
+            val sql = db.openHelper.readableDatabase
+            assertEquals(currentSchema.getValue("version").jsonPrimitive.int, sql.version)
+            sql.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use { rows ->
+                assertTrue(rows.moveToFirst())
+                assertEquals(currentSchema.getValue("identityHash").jsonPrimitive.content, rows.getString(0))
+            }
+        }
         context.getDatabasePath(name).parentFile!!.mkdirs();val placeholder=36.toChar().toString()+"{TABLE_NAME}"
         android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(name),null).use {old->
             schema["entities"]!!.jsonArray.forEach {entry->val entity=entry.jsonObject;val table=entity["tableName"]!!.jsonPrimitive.content;old.execSQL(entity["createSql"]!!.jsonPrimitive.content.replace(placeholder,table));entity["indices"]?.jsonArray.orEmpty().forEach {old.execSQL(it.jsonObject["createSql"]!!.jsonPrimitive.content.replace(placeholder,table))}}
@@ -191,11 +207,12 @@ class HostProjectChangesStorageTest {
             val rows=db.dao().managementOperations(owner.apiScope).first();assertEquals(5,rows.size)
             for(row in rows) {assertEquals(row.key,row.state);assertEquals("",row.projectHome);assertEquals("private-request",row.requestSummary);assertEquals("private-result",row.resultSummary);assertEquals(owner.resourceScope,row.resourceScope)}
             assertEquals("Retained private task",db.openHelper.readableDatabase.query("SELECT title FROM tasks WHERE id='saved'").use {it.moveToFirst();it.getString(0)})
-            assertEquals(11,db.openHelper.readableDatabase.version)
+            assertCurrentSchema(db)
             db.dao().claimManagementOperation(receipt(owner.copy(profile="new-profile"),"new-home",state="sending"));assertEquals(home,db.dao().managementOperation("new-home")!!.projectHome)
             db.close()
             val reopened=Room.databaseBuilder(context,HermesDatabase::class.java,name).addMigrations(*ALL_HERMES_MIGRATIONS).build()
             try {
+                assertCurrentSchema(reopened)
                 val persisted=reopened.dao().managementOperation("new-home")!!;assertEquals(home,persisted.projectHome);assertEquals("sending",persisted.state)
                 reopened.dao().recoverManagementOperations();val recovered=reopened.dao().managementOperation("new-home")!!
                 assertEquals(home,recovered.projectHome);assertEquals("unknown",recovered.state);assertEquals("private-request",recovered.requestSummary)

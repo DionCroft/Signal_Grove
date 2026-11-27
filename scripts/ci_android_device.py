@@ -61,6 +61,11 @@ EXTERNAL_MODEL_GATES = {
         'methods': ('localTodayIsAvailableInAirplaneMode',),
         'requires': ('Airplane mode with no network', 'explicit todayOffline=true fixture flag'),
     },
+    'org.hermesmobile.app.PhoneCaptureRestartTest': {
+        'methods': ('findCapturedFixturesAfterProcessRestart',),
+        'requires': ('completed share and widget capture fixture', 'app process stopped after creation',
+                     'original captureFixture UUID passed to a new instrumentation process'),
+    },
 }
 
 

@@ -16,7 +16,6 @@ import org.hermesmobile.app.data.*
 import org.hermesmobile.app.network.*
 import org.hermesmobile.app.ui.*
 import org.junit.Assert.*
-import org.junit.Assume.assumeFalse
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -45,7 +44,7 @@ class LocalNetworkPermissionTest {
         val vm=ViewModelProvider(compose.activity)[HermesViewModel::class.java]
         compose.waitUntil(10000) {!vm.connecting.value}
         // Run this case with pm revoke before instrumentation; never revoke a running test UID.
-        assumeFalse("Requires an initially denied permission",LocalNetworkAccess.granted(compose.activity))
+        assertFalse("The owned emulator must start with local-network permission denied", LocalNetworkAccess.granted(compose.activity))
         val address=NetworkInterface.getNetworkInterfaces().toList().flatMap {it.inetAddresses.toList()}.first {it is Inet4Address && !it.isLoopbackAddress && it.isSiteLocalAddress}
         MockWebServer().use {server ->
             server.start(InetAddress.getByName("0.0.0.0"),0)

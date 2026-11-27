@@ -25,6 +25,7 @@ class DeviceSdkSetupTest(unittest.TestCase):
                 'org.hermesmobile.app.LocalProcessRecoveryIntegrationTest',
                 'org.hermesmobile.app.MediaCaptureNativeTest',
                 'org.hermesmobile.app.TodayOfflineTest',
+                'org.hermesmobile.app.PhoneCaptureRestartTest',
             )
             self.assertEqual(('notClass', ','.join(excluded)), args[args.index('-e')+1:args.index('-e')+3])
             self.assertEqual(1,args.count('notClass'))
@@ -310,8 +311,8 @@ class ExplicitExternalModelGatesTest(unittest.TestCase):
     def test_manifest_requires_separate_acceptance_and_never_claims_execution_or_downloads(self):
         manifest=device_ci.external_model_gate_manifest()
         self.assertEqual('not_run',manifest['status']);self.assertTrue(manifest['separate_acceptance_required']);self.assertFalse(manifest['automatic_model_download'])
-        self.assertEqual(7, len(manifest['gates']))
-        self.assertEqual(18, sum(len(g['methods']) for g in manifest['gates']))
+        self.assertEqual(8, len(manifest['gates']))
+        self.assertEqual(19, sum(len(g['methods']) for g in manifest['gates']))
         for gate in manifest['gates']:
             self.assertEqual('not_run',gate['status']);self.assertTrue(gate['requires']);self.assertNotIn('LocalNativeBoundaryTest',gate['class_name']);self.assertTrue(gate['methods'])
         manifest['gates'][0]['methods'].clear();self.assertEqual(7,len(device_ci.external_model_gate_manifest()['gates'][0]['methods']))
@@ -321,6 +322,15 @@ class ExplicitExternalModelGatesTest(unittest.TestCase):
             text=(root/(name.rsplit('.',1)[1]+'.kt')).read_text(encoding='utf8')
             self.assertEqual(set(gate['methods']),set(re.findall(r'@Test(?:\([^)]*\))?\s+fun\s+(\w+)\(',text)),name)
             self.assertIn('assumeTrue',text)
+    def test_runtime_assumptions_belong_to_explicitly_prepared_classes(self):
+        root = Path(__file__).resolve().parents[2] / 'app/src/androidTest/java/org/hermesmobile/app'
+        assumed_classes = {
+            'org.hermesmobile.app.' + path.stem
+            for path in root.rglob('*.kt')
+            if re.search(r'\bassume[A-Z]\w*\s*\(', path.read_text(encoding='utf8'))
+        }
+        self.assertEqual(set(device_ci.EXTERNAL_MODEL_GATES), assumed_classes)
+
     def test_assumption_leaking_into_standard_output_still_fails_for_each_listed_gate(self):
         for name in [*device_ci.EXTERNAL_MODEL_GATES,'org.hermesmobile.app.UnregisteredResourceGate']:
             with self.subTest(name=name):
