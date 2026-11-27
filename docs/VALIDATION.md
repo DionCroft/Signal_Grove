@@ -30,15 +30,16 @@ v0.23.4 and the tested main pin `9bba163`.
 [Native SDK case evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46022100001) ·
 [Shutdown case evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46022114644)
 
-## Hosted Android 8 and exact-source receipt recovery
+## Complete hosted Android baseline and receipt recovery
 
-The two Android 8 shards on `5f74e45` passed all 1,271 standard cases.
-Their raw logs form the exact, disjoint inventory using the same
-verified app and test APK digests. The helper topic check recorded one
-successful touchscreen pair. Android 17 on that source and the hosted
-matrix on the newer touchscreen repair had no complete verdict at
-this checkpoint.
-[Earlier hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46025759014) ·
+All four shards on `5f74e45` passed. The disjoint raw case records
+exactly cover 1,271 Android 8 and 1,272 Android 17 standard cases.
+The inventories and report agree with both build APK hashes.
+The hosted build passed 1,266 JVM cases, both lint variants and
+1,260 policy cases. The Android 8 helper topic check recorded a
+single successful touchscreen pair. The later test-only touchscreen
+change has its own hosted run.
+[Verified Android baseline](https://github.com/DionCroft/Signal_Grove/actions/runs/46025759014/job/140635891525) ·
 [Touchscreen repair matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46030084149)
 
 On the exact local `8b732fe` APK pair, Android 8 and 17 passed 73
@@ -49,6 +50,17 @@ and retrieval of the original scheduled occurrence after disconnect.
 They preserve the exact approval scope and reject unintended replay
 or duplicate text. The live Pi-to-Windows run and physical Xiaomi
 checks remain open.
+
+## HTTP run-approval scope on reviewed Hermes main
+
+Four upstream loopback HTTP cases passed on exact `5ba1456` with
+the hash-verified Windows Python environment on E:. Room approvals
+required the exact request ID and refused broader resolution or
+permanent policy. Both legacy spellings resolved as Allow once.
+The app sends the reviewed run and request IDs and checks both
+in the acknowledgment.
+[Upstream room approval fixtures](https://github.com/NousResearch/hermes-agent/blob/5ba14569d4dd46606b179df4f0b3c6d083b56edf/tests/gateway/test_api_server_runs_hosted_room.py) ·
+[Legacy approval choice fixtures](https://github.com/NousResearch/hermes-agent/blob/5ba14569d4dd46606b179df4f0b3c6d083b56edf/tests/gateway/test_api_server_run_approval_choice.py)
 
 ## Android touchscreen dispatch under load
 
