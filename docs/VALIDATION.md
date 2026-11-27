@@ -180,6 +180,29 @@ results. The complete hosted matrix still needs to pass on this repair.
 
 Both complete test classes also passed all 33 cases on each API.
 
+### Hosted Android build and prepared offline checks on both versions
+
+The hosted build from da521b9 passed all 1,260 policy cases, 1,266 JVM
+tests and both lint variants. Its downloaded report archive matched
+GitHub's checksum. Both APK hashes were independently recorded and all
+four standard Android device shards started. Their full native case
+unions are pending.
+[Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46013599559)
+
+Both Android 8 and 17 then passed the same three prepared offline
+cases on the verified local APK pair. Today opened, Tesseract and Vosk
+saved the reviewed edits, and Qwen extracted the two actions and saved
+only the checked, edited task. A repeated save preserved the single
+task and its source link. Airplane mode, disabled Wi-Fi and no default
+network were checked before and after each case. Both emulators'
+radio state was restored. Android 8 used the system Settings controls
+and a verified binary sync transfer after its legacy shell transfer
+truncated one fixture. Its Qwen progress fields arrived in the reverse
+order from Android 17. The prepared checker verified both fields,
+exact stages, monotonic timing and native case completion. It rejected
+all five malformed progress controls. The hosted standard verifier
+continues to require its original native envelopes.
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
