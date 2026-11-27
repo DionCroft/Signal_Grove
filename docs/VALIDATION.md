@@ -1,5 +1,27 @@
 # Current development validation — audit follow-up
 
+## Encrypted workspace backup and restore
+
+Open Phone Notebooks to back up or restore selected local captures,
+tasks and notebooks. The export review lists linked records it will
+include. Saved answers and citation excerpts travel with their
+notebook. The file contains workspace records and references to the
+original document files.
+
+The passphrase-protected archive uses the existing authenticated
+backup encryption with its own format. Restore authenticates the
+whole file, lets the user pick records and reviews ID conflicts.
+Conflicts copy to new IDs and repaired links point to the copied
+records. Omitted capture and task links show the source as
+unavailable. A Room transaction inserts only the reviewed records.
+
+The exact build passed 1,274 JVM cases and both lint variants.
+Android 8 passed 19 focused cases and Android 17 passed 20. The
+fixtures covered linked sources, wrong passphrases, cancelled
+reviews, late conflicts, reopening the database and chat/profile
+backup regressions. Android 17 verified the workspace restore with
+Airplane mode on and Wi-Fi off, then restored its original radios.
+
 ## Offline notebook lifecycle
 
 Notebook rename keeps its ID, entries, saved excerpts and links to

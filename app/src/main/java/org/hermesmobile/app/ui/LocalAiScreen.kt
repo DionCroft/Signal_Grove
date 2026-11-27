@@ -185,7 +185,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     if (captureInbox.open && mediaCapture.kind == null) PhoneCaptureInbox(vm, state, captureInbox)
     if (mediaCapture.kind != null) MediaCaptureDialog(vm.mediaCapture, mediaCapture)
     val notebookWorkspace by vm.notebooks.state.collectAsStateWithLifecycle()
-    if (notebookWorkspace.open) PhoneNotebookScreen(vm.notebooks, state, notebookWorkspace, vm::routeNotebookHandoff)
+    if (notebookWorkspace.open) PhoneNotebookScreen(vm.notebooks, state, notebookWorkspace, vm::routeNotebookHandoff,
+        vm.historyBackup, backupAvailable = !state.busy)
     val temporary by vm.temporary.state.collectAsStateWithLifecycle()
     temporary?.let { PhoneTemporaryChatDialog(vm, it, state) }
     val profilesOpen by vm.personalProfilesOpen.collectAsStateWithLifecycle()

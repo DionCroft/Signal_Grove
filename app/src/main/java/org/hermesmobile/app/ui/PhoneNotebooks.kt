@@ -31,7 +31,8 @@ import org.hermesmobile.app.local.*
 
 @Composable
 internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: LocalAiState, state: NotebookWorkspaceState,
-                                 handoff: (NotebookHandoffDraft) -> Unit) {
+                                 handoff: (NotebookHandoffDraft) -> Unit, backup: PhoneHistoryBackup,
+                                 backupAvailable: Boolean) {
     val notebooks by workspace.notebooks.collectAsStateWithLifecycle(initialValue = emptyList())
     val selected = notebooks.firstOrNull { it.id == state.notebookId }
     val answer = state.pendingAnswer
@@ -80,6 +81,12 @@ internal fun PhoneNotebookScreen(workspace: PhoneNotebookWorkspace, model: Local
                             TextButton({ creating = true; name = "" }, Modifier.testTag("notebook-create"), enabled = !state.busy) {
                                 Text(label(Words.NotebookCreate))
                             }
+                        }
+                        if (answer == null && !creating) item {
+                            TextButton(backup::selectWorkspaceExport, Modifier.testTag("workspace-backup-export"),
+                                enabled = !state.busy && backupAvailable) { Text(label(Words.WorkspaceBackupExport)) }
+                            TextButton(backup::selectWorkspaceImport, Modifier.testTag("workspace-backup-import"),
+                                enabled = !state.busy && backupAvailable) { Text(label(Words.WorkspaceBackupImport)) }
                         }
                         items(notebooks, key = PhoneNotebook::id) { notebook ->
                             TextButton({

@@ -18,12 +18,12 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.room.Room
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.hermesmobile.app.data.AppPreferences
-import org.hermesmobile.app.data.PreferenceStore
+import org.hermesmobile.app.data.*
 import org.hermesmobile.app.local.*
 import org.hermesmobile.app.ui.*
 import org.hermesmobile.app.updates.UpdateWorkGuard
@@ -62,7 +62,8 @@ class PhoneHistoryBackupFlowTest {
         override val activityResultRegistry = picker
     }
 
-    private fun show(multilingual: Boolean = false, includeSummary: Boolean = false, profileStore: PreferenceStore? = null) {
+    private fun show(multilingual: Boolean = false, includeSummary: Boolean = false, profileStore: PreferenceStore? = null,
+        workspaceStore: PhoneWorkspaceBackupDao? = null) {
         val activity = compose.activity
         fixture = File(activity.cacheDir, "phone-backup-test-" + UUID.randomUUID()).apply { check(mkdir()) }
         output = File(activity.filesDir, "updates/apks/backup-test-" + UUID.randomUUID() + ".sgbackup")
@@ -76,7 +77,8 @@ class PhoneHistoryBackupFlowTest {
         compose.runOnUiThread {
             controller = LocalAiController(File(fixture, "models"), source.directory, activity.applicationInfo.nativeLibraryDir,
                 supported = false, freeMemory = { Long.MAX_VALUE }, guard = guard)
-            backup = PhoneHistoryBackup(activity.contentResolver, controller, guard, savedState, activity.lifecycleScope, profileStore)
+            backup = PhoneHistoryBackup(activity.contentResolver, controller, guard, savedState, activity.lifecycleScope,
+                profileStore, workspaceStore)
         }
         val actions = LocalAiActions({}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
             exportBackup = backup::selectExport, importBackup = backup::selectImport,
@@ -209,6 +211,90 @@ class PhoneHistoryBackupFlowTest {
                 }
             }
         }
+    }
+
+    @Test fun protectedWorkspaceBackupReviewsASelectionAndRestoresOnlyAConfirmedCopy() {
+        val db = Room.inMemoryDatabaseBuilder(compose.activity, HermesDatabase::class.java).build()
+        val note = PhoneCapture(UUID.randomUUID().toString(), "Garden workspace fixture 花", CaptureSource.NOTE.name, 100)
+        val omitted = PhoneCapture(UUID.randomUUID().toString(), "Excluded workspace fixture", CaptureSource.NOTE.name, 102)
+        val rowTag = "workspace-backup-row-CAPTURE-" + note.id
+        val omittedTag = "workspace-backup-row-CAPTURE-" + omitted.id
+        val password = "workspace-fixture-password"
+        val captureList = db.phoneCaptures()
+        val workspace = db.workspaceBackup()
+        runBlocking { captureList.save(note); captureList.save(omitted) }
+        try {
+            show(workspaceStore = workspace)
+            fun selectRow(tag: String) {
+                compose.onNodeWithTag("workspace-backup-rows").performScrollToNode(hasTestTag(tag))
+                compose.onNodeWithTag(tag).assertIsDisplayed().assertIsOff().performClick().assertIsOn()
+            }
+            compose.runOnUiThread { backup.selectWorkspaceExport() }
+            waitForState { it is PhoneHistoryBackupState.WorkspaceSelection }
+            compose.onNodeWithTag("workspace-backup-continue").assertIsNotEnabled()
+            selectRow(rowTag)
+            compose.onNodeWithTag("workspace-backup-rows").performScrollToNode(hasTestTag(omittedTag))
+            compose.onNodeWithTag(omittedTag).assertIsOff()
+            compose.onNodeWithTag("workspace-backup-continue").performClick()
+            compose.onNodeWithTag("workspace-backup-password").performScrollTo().performTextReplacement(password)
+            compose.onNodeWithTag("workspace-backup-confirm-password").performScrollTo().performTextReplacement(password)
+            compose.onNodeWithTag("workspace-backup-prepare").assertIsDisplayed().assertIsEnabled().performClick()
+            waitForState { it is PhoneHistoryBackupState.ExportReview && it.workspaceRows.size == 1 }
+            compose.onNodeWithTag("workspace-backup-choose-destination").performClick()
+            compose.waitUntil(10_000) { picks.size == 1 }
+            assertEquals(PhoneWorkspaceBackup.FILENAME, picks.single().second.getStringExtra(Intent.EXTRA_TITLE))
+            deliverFile(picks.single())
+            waitForState { it is PhoneHistoryBackupState.Finished && it.result == BackupResult.SAVED }
+            val ciphertext = output.readBytes()
+            assertTrue(LocalHistoryBackupProtection.recognizesWorkspaceEnvelope(ciphertext))
+            val phrase = password.toCharArray()
+            try {
+                val archive = PhoneWorkspaceBackup.unlock(ciphertext, phrase) {}
+                assertEquals(listOf(WorkspaceBackupCapture(note)), archive.captures)
+                assertEquals(1, archive.count)
+            } finally { phrase.fill('\u0000') }
+            compose.onNodeWithTag("phone-backup-close").performClick()
+
+            fun beginImport(expectedPicks: Int) {
+                compose.runOnUiThread { backup.selectWorkspaceImport() }
+                compose.waitUntil(10_000) { picks.size == expectedPicks }
+                deliverFile(picks.last())
+                waitForState { it is PhoneHistoryBackupState.Unlock }
+            }
+            fun reviewRestore() {
+                submitUnlockPassphrase(password)
+                waitForState { it is PhoneHistoryBackupState.WorkspaceSelection && it.incoming != null }
+                selectRow(rowTag)
+                compose.onNodeWithTag("workspace-backup-continue").performClick()
+                waitForState { it is PhoneHistoryBackupState.WorkspaceRestoreReview }
+                val conflict = "workspace-backup-conflict-" + note.id
+                compose.onNodeWithTag("workspace-backup-rows").performScrollToNode(hasTestTag(conflict))
+                compose.onNodeWithTag(conflict).assertIsDisplayed()
+                assertEquals(2, runBlocking { workspace.catalog().size })
+            }
+
+            beginImport(2)
+            submitUnlockPassphrase("wrong-passphrase")
+            waitForState { it is PhoneHistoryBackupState.Unlock && it.rejected }
+            assertEquals(2, runBlocking { workspace.catalog().size })
+            reviewRestore()
+            compose.onNodeWithTag("phone-backup-cancel").performClick()
+            assertEquals(2, runBlocking { workspace.catalog().size })
+            assertFalse(guard.active.value)
+
+            beginImport(3)
+            reviewRestore()
+            compose.onNodeWithTag("workspace-backup-restore-confirm").performClick()
+            waitForState { it is PhoneHistoryBackupState.Finished && it.result == BackupResult.RESTORED && it.restoredCount == 1 }
+            val captures = runBlocking { captureList.search("").first() }
+            val copy = captures.single { it.id != note.id && it.id != omitted.id }
+            assertNotEquals(note.id, copy.id)
+            assertEquals(note, runBlocking { captureList.observe(copy.id).first()?.copy(id = note.id) })
+            assertEquals(note, runBlocking { captureList.observe(note.id).first() })
+            assertEquals(omitted, runBlocking { captureList.observe(omitted.id).first() })
+            assertArrayEquals(ciphertext, output.readBytes())
+            compose.waitUntil(10_000) { !guard.active.value }
+        } finally { db.close() }
     }
 
     @Test fun protectedBackupMakesAReviewedCopyAndPreservesBothOriginals() {

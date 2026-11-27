@@ -339,5 +339,6 @@ abstract class HermesDatabase : RoomDatabase() {
     abstract fun dao(): HermesDao
     abstract fun phoneCaptures(): PhoneCaptureDao
     internal abstract fun phoneNotebooks(): PhoneNotebookDao
+    internal abstract fun workspaceBackup(): PhoneWorkspaceBackupDao
     internal abstract fun today(): TodayDao
 }

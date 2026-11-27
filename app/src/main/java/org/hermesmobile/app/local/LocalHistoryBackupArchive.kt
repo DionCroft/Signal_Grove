@@ -13,7 +13,7 @@ import java.security.MessageDigest
 import java.util.concurrent.CancellationException
 
 internal enum class LocalHistoryBackupProblem {
-    INVALID, UNSUPPORTED_VERSION, CHANGED, CAPACITY, IDENTIFIER_UNAVAILABLE,
+    INVALID, UNSUPPORTED_VERSION, CHANGED, CAPACITY, IDENTIFIER_UNAVAILABLE, TOO_LARGE,
     INVALID_PASSPHRASE, AUTHENTICATION, CRYPTO_UNAVAILABLE
 }
 

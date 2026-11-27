@@ -145,27 +145,31 @@ internal abstract class PhoneNotebookDao {
 
     @Transaction
     open suspend fun attach(item: NotebookItem, excerpts: List<NotebookSource>): String {
-        require(validCaptureId(item.id) && validCaptureId(item.notebookId) && item.addedAt > 0)
-        val kind = NotebookItemKind.valueOf(item.kind)
-        require(item.sourceId.isNotBlank() && item.sourceId.length <= 128 && validNotebookTitle(item.title, 512))
-        if (kind == NotebookItemKind.ANSWER) {
-            require(validNotebookBody(item.answer, 8192) && item.fingerprint.isEmpty())
-            require(excerpts.size in 1..2 && excerpts.map { it.ordinal } == excerpts.indices.toList())
-            require(excerpts.all { source ->
-                source.itemId == item.id && validCaptureId(source.documentId) &&
-                    source.fingerprint.matches(NOTEBOOK_SHA256) && validNotebookTitle(source.documentName, 512) &&
-                    source.firstLine > 0 && source.lastLine >= source.firstLine &&
-                    (source.page == null || source.page > 0) && validNotebookBody(source.excerpt, 1536)
-            })
-        } else {
-            require(item.answer.isEmpty() && excerpts.isEmpty())
-            require(if (kind == NotebookItemKind.DOCUMENT) item.fingerprint.matches(NOTEBOOK_SHA256) else item.fingerprint.isEmpty())
-        }
+        requireValidNotebookEntry(item, excerpts)
         attached(item.notebookId, item.kind, item.sourceId)?.let { return it.id }
         check(itemCount(item.notebookId) < 200)
         insertItem(item)
         if (excerpts.isNotEmpty()) insertSources(excerpts)
         return item.id
+    }
+}
+
+internal fun requireValidNotebookEntry(item: NotebookItem, excerpts: List<NotebookSource>) {
+    require(validCaptureId(item.id) && validCaptureId(item.notebookId) && item.addedAt > 0)
+    val kind = NotebookItemKind.valueOf(item.kind)
+    require(item.sourceId.isNotBlank() && item.sourceId.length <= 128 && validNotebookTitle(item.title, 512))
+    if (kind == NotebookItemKind.ANSWER) {
+        require(validNotebookBody(item.answer, 8192) && item.fingerprint.isEmpty())
+        require(excerpts.size in 1..2 && excerpts.map { it.ordinal } == excerpts.indices.toList())
+        require(excerpts.all { source ->
+            source.itemId == item.id && validCaptureId(source.documentId) &&
+                source.fingerprint.matches(NOTEBOOK_SHA256) && validNotebookTitle(source.documentName, 512) &&
+                source.firstLine > 0 && source.lastLine >= source.firstLine &&
+                (source.page == null || source.page > 0) && validNotebookBody(source.excerpt, 1536)
+        })
+    } else {
+        require(item.answer.isEmpty() && excerpts.isEmpty())
+        require(if (kind == NotebookItemKind.DOCUMENT) item.fingerprint.matches(NOTEBOOK_SHA256) else item.fingerprint.isEmpty())
     }
 }
 

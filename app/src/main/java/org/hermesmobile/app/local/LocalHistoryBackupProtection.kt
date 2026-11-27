@@ -35,6 +35,7 @@ internal class LocalHistoryProtectedInspection(
 internal object LocalHistoryBackupProtection {
     private val magic = "SGBKAE01".toByteArray(Charsets.US_ASCII)
     private val profileMagic = "SGPFAE01".toByteArray(Charsets.US_ASCII)
+    private val workspaceMagic = "SGWSAE01".toByteArray(Charsets.US_ASCII)
     private const val MAGIC_BYTES = 8
     private const val SALT_BYTES = 16
     private const val HEADER_BYTES = MAGIC_BYTES + SALT_BYTES
@@ -77,12 +78,27 @@ internal object LocalHistoryBackupProtection {
         writePayload(profileMagic, passphrase, output, checkpoint) { it.write(payload) }
     }
 
-    fun readProfilePayload(input: InputStream, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit) {
-        val header = readHeader(input, ::isProfileHeader)
+    fun readProfilePayload(input: InputStream, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit) =
+        readSmallPayload(input, passphrase, output, checkpoint, PhoneProfileBackup.MAX_PLAINTEXT, ::isProfileHeader)
+
+    fun writeWorkspacePayload(payload: ByteArray, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit) {
+        require(payload.size in 1..PhoneWorkspaceBackup.MAX_PLAINTEXT)
+        writePayload(workspaceMagic, passphrase, output, checkpoint) { it.write(payload) }
+    }
+
+    fun readWorkspacePayload(input: InputStream, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit) =
+        readSmallPayload(input, passphrase, output, checkpoint, PhoneWorkspaceBackup.MAX_PLAINTEXT, ::isWorkspaceHeader)
+
+    fun recognizesWorkspaceEnvelope(bytes: ByteArray): Boolean =
+        bytes.size in (MIN_BYTES + 1)..PhoneWorkspaceBackup.MAX_FILE && isWorkspaceHeader(bytes.copyOf(MAGIC_BYTES))
+
+    private fun readSmallPayload(input: InputStream, passphrase: CharArray, output: OutputStream,
+        checkpoint: () -> Unit, limit: Int, accepts: (ByteArray) -> Boolean) {
+        val header = readHeader(input, accepts)
         val streaming = primitive(passphrase, header.copyOfRange(MAGIC_BYTES, HEADER_BYTES))
         checkpoint()
         streaming.newDecryptingStream(input, header).use { plaintext ->
-            copyAuthenticated(plaintext, output, checkpoint, PhoneProfileBackup.MAX_PLAINTEXT)
+            copyAuthenticated(plaintext, output, checkpoint, limit)
         }
     }
 
@@ -90,6 +106,7 @@ internal object LocalHistoryBackupProtection {
         bytes.size in (MIN_BYTES + 1)..PhoneProfileBackup.MAX_FILE && isProfileHeader(bytes.copyOf(MAGIC_BYTES))
 
     private fun isProfileHeader(prefix: ByteArray): Boolean = prefix.contentEquals(profileMagic)
+    private fun isWorkspaceHeader(prefix: ByteArray): Boolean = prefix.contentEquals(workspaceMagic)
 
     private fun writePayload(kind: ByteArray, passphrase: CharArray, output: OutputStream, checkpoint: () -> Unit,
         write: (OutputStream) -> Unit) {

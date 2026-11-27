@@ -72,7 +72,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     internal val markdownExport = PhoneMarkdownExport(app.contentResolver, app.updateWorkGuard, savedState, viewModelScope)
 
     internal val historyBackup = PhoneHistoryBackup(app.contentResolver, controller, app.updateWorkGuard,
-        savedState, viewModelScope, app.preferences)
+        savedState, viewModelScope, app.preferences, app.database.workspaceBackup())
 
     internal fun prepareMarkdownExport(summary: LocalConversationSummary) {
         if (markdownExport.state.value != PhoneMarkdownExportState.Idle) return

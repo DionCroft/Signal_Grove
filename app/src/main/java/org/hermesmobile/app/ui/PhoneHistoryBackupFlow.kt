@@ -3,6 +3,8 @@ package org.hermesmobile.app.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,6 +25,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.hermesmobile.app.data.WorkspaceBackupKey
+import org.hermesmobile.app.data.WorkspaceBackupKind
+import org.hermesmobile.app.data.WorkspaceBackupRow
 import org.hermesmobile.app.local.*
 
 @Composable
@@ -32,7 +37,10 @@ internal fun PhoneHistoryBackupFlow(backup: PhoneHistoryBackup, busy: Boolean) {
         PhoneHistoryBackupState.Idle -> Unit
         is PhoneHistoryBackupState.Selection -> BackupSelection(current, backup)
         is PhoneHistoryBackupState.ProfileSelection -> ProfileBackupSelection(current, backup)
-        is PhoneHistoryBackupState.ExportReview -> BackupReview(
+        is PhoneHistoryBackupState.WorkspaceSelection -> WorkspaceBackupSelection(current, backup)
+        is PhoneHistoryBackupState.ExportReview -> if (current.collection == BackupCollection.WORKSPACE) {
+            WorkspaceExportReview(current, backup, busy)
+        } else BackupReview(
             Words.PhoneBackupExportReview, Words.PhoneMarkdownChoose, backup::dismiss,
             enabled = !busy, tag = "phone-backup-choose-destination", confirm = { backup.chooseDestination(current) }
         ) {
@@ -59,17 +67,123 @@ internal fun PhoneHistoryBackupFlow(backup: PhoneHistoryBackup, busy: Boolean) {
         is PhoneHistoryBackupState.Unlock -> BackupUnlock(current, backup)
         is PhoneHistoryBackupState.RestoreReview -> RestoreReview(current, backup, busy)
         is PhoneHistoryBackupState.ProfileRestoreReview -> ProfileBackupRestoreReview(current, backup, busy)
+        is PhoneHistoryBackupState.WorkspaceRestoreReview -> WorkspaceRestoreReview(current, backup, busy)
         is PhoneHistoryBackupState.Finished -> AlertDialog(
             onDismissRequest = backup::dismiss,
             text = {
-                val word = if (current.collection == BackupCollection.PROFILES) profileBackupResult(current.result)
-                    else backupResult(current.result)
+                val word = when (current.collection) {
+                    BackupCollection.CHATS -> backupResult(current.result)
+                    BackupCollection.PROFILES -> profileBackupResult(current.result)
+                    BackupCollection.WORKSPACE -> workspaceBackupResult(current.result)
+                }
                 Text(label(word).replace("{count}", current.restoredCount.toString()),
                     Modifier.testTag("phone-backup-result"))
             },
             confirmButton = { TextButton(backup::dismiss, Modifier.testTag("phone-backup-close")) { Text(label(Words.Close)) } }
         )
     }
+}
+
+@Composable
+private fun WorkspaceBackupSelection(selection: PhoneHistoryBackupState.WorkspaceSelection, backup: PhoneHistoryBackup) {
+    val importing = selection.incoming != null
+    var checked by remember(selection) { mutableStateOf(emptySet<WorkspaceBackupKey>()) }
+    var protecting by remember(selection) { mutableStateOf(false) }
+    var password by remember(selection) { mutableStateOf("") }
+    var confirmation by remember(selection) { mutableStateOf("") }
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val chooseTitle = if (importing) Words.WorkspaceBackupPickRestore else Words.WorkspaceBackupPickExport
+    val action = if (protecting) Words.PhoneBackupPrepare else Words.PhoneBackupContinue
+    BackupReview(if (protecting) Words.PhoneBackupProtection else chooseTitle, action, backup::dismiss,
+        enabled = checked.isNotEmpty() && (!protecting || (password.isNotEmpty() && password == confirmation)),
+        tag = if (protecting) "workspace-backup-prepare" else "workspace-backup-continue",
+        confirm = {
+            focus.clearFocus()
+            keyboard?.hide()
+            when {
+                importing -> backup.reviewWorkspaceRestore(selection, checked)
+                !protecting -> protecting = true
+                else -> {
+                    val key = password.toCharArray()
+                    password = ""
+                    confirmation = ""
+                    backup.prepareWorkspaceExport(selection, checked, key)
+                }
+            }
+        },
+        back = if (protecting) ({ protecting = false; password = ""; confirmation = "" }) else null,
+        backWord = Words.WorkspaceBackupChange,
+        secure = true,
+        scrollContent = protecting
+    ) {
+        if (protecting) {
+            Text(label(Words.PhoneBackupKeepPassword))
+            BackupPassword(password, { password = it }, Words.PhoneBackupPassword, "workspace-backup-password")
+            BackupPassword(confirmation, { confirmation = it }, Words.PhoneBackupRepeat, "workspace-backup-confirm-password",
+                confirmation.isNotEmpty() && confirmation != password)
+        } else {
+            WorkspaceRows(selection.rows, checked = checked, header = {
+                Text(label(if (importing) Words.WorkspaceBackupRestoreLinks else Words.WorkspaceBackupExportScope))
+            }) { key, included ->
+                checked = if (included) checked + key else checked - key
+            }
+        }
+    }
+}
+
+@Composable
+private fun WorkspaceExportReview(review: PhoneHistoryBackupState.ExportReview, backup: PhoneHistoryBackup, busy: Boolean) {
+    BackupReview(Words.PhoneBackupExportReview, Words.PhoneMarkdownChoose, backup::dismiss, !busy,
+        "workspace-backup-choose-destination", { backup.chooseDestination(review) }, secure = true, scrollContent = false) {
+        WorkspaceRows(review.workspaceRows, header = {
+            Text(label(Words.WorkspaceBackupSize).replace("{count}", review.count.toString()).replace("{bytes}", review.bytes.toString()))
+            Text(label(Words.WorkspaceBackupExportScope))
+            Text(label(Words.PhoneBackupDestination))
+        })
+    }
+}
+
+@Composable
+private fun WorkspaceRestoreReview(review: PhoneHistoryBackupState.WorkspaceRestoreReview, backup: PhoneHistoryBackup, busy: Boolean) {
+    BackupReview(Words.WorkspaceBackupRestoreReview, Words.WorkspaceBackupConfirmRestore, backup::dismiss, !busy,
+        "workspace-backup-restore-confirm", { backup.restoreWorkspace(review) }, secure = true, scrollContent = false) {
+        WorkspaceRows(review.plan.rows, copied = review.plan.copied, header = {
+            Text(label(Words.WorkspaceBackupRestoreLinks))
+        })
+    }
+}
+
+@Composable
+private fun ColumnScope.WorkspaceRows(rows: List<WorkspaceBackupRow>, checked: Set<WorkspaceBackupKey> = emptySet(),
+    copied: Set<WorkspaceBackupKey> = emptySet(), header: @Composable () -> Unit,
+    change: ((WorkspaceBackupKey, Boolean) -> Unit)? = null) {
+    LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("workspace-backup-rows"),
+        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        item { Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { header() } }
+        items(rows, key = { it.key.kind.name + "/" + it.key.id }) { row ->
+            val selected = row.key in checked
+            val rowTag = "workspace-backup-row-" + row.key.kind.name + "-" + row.key.id
+            val selection = if (change == null) Modifier else Modifier.toggleable(selected,
+                role = Role.Checkbox, onValueChange = { change(row.key, it) })
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).then(selection).testTag(rowTag),
+                verticalAlignment = Alignment.CenterVertically) {
+                if (change != null) Checkbox(selected, onCheckedChange = null, modifier = Modifier.padding(end = 8.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(label(workspaceKind(row.key.kind)), style = MaterialTheme.typography.labelMedium)
+                    Text(row.title, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    if (row.key in copied) Text(label(Words.WorkspaceBackupConflict),
+                        Modifier.testTag("workspace-backup-conflict-" + row.key.id))
+                }
+            }
+        }
+    }
+}
+
+private fun workspaceKind(kind: WorkspaceBackupKind) = when (kind) {
+    WorkspaceBackupKind.CAPTURE -> Words.CaptureInbox
+    WorkspaceBackupKind.TASK -> Words.Tasks
+    WorkspaceBackupKind.NOTEBOOK -> Words.PhoneNotebooks
 }
 
 @Composable
@@ -272,7 +386,7 @@ private fun BackupChatChoices(rows: List<LocalConversationSummary>, selected: Se
 private fun BackupUnlock(unlock: PhoneHistoryBackupState.Unlock, backup: PhoneHistoryBackup) {
     var passphrase by remember(unlock) { mutableStateOf("") }
     BackupReview(Words.PhoneBackupProtected, Words.PhoneBackupUnlock, backup::dismiss,
-        enabled = passphrase.isNotEmpty(), tag = "phone-backup-unlock", secure = unlock.collection == BackupCollection.PROFILES, confirm = {
+        enabled = passphrase.isNotEmpty(), tag = "phone-backup-unlock", secure = unlock.collection != BackupCollection.CHATS, confirm = {
             val value = passphrase.toCharArray()
             passphrase = ""
             backup.unlock(value)
@@ -313,13 +427,16 @@ private fun BackupPassword(value: String, change: (String) -> Unit, title: Words
 
 @Composable
 private fun BackupReview(title: Words, action: Words, cancel: () -> Unit, enabled: Boolean, tag: String,
-    confirm: () -> Unit, back: (() -> Unit)? = null, secure: Boolean = false, body: @Composable ColumnScope.() -> Unit) {
+    confirm: () -> Unit, back: (() -> Unit)? = null, secure: Boolean = false,
+    backWord: Words = Words.PhoneBackupChangeSelection, scrollContent: Boolean = true,
+    body: @Composable ColumnScope.() -> Unit) {
     Dialog(onDismissRequest = cancel, properties = DialogProperties(usePlatformDefaultWidth = false,
         decorFitsSystemWindows = false, securePolicy = if (secure) SecureFlagPolicy.SecureOn else SecureFlagPolicy.Inherit)) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding().imePadding(), color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 key(title) {
-                    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val scroll = if (scrollContent) Modifier.verticalScroll(rememberScrollState()) else Modifier
+                    Column(Modifier.weight(1f).then(scroll), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(label(title), style = MaterialTheme.typography.titleLarge)
                         if (back != null) {
                             val focus = LocalFocusManager.current
@@ -328,7 +445,7 @@ private fun BackupReview(title: Words, action: Words, cancel: () -> Unit, enable
                                 focus.clearFocus()
                                 keyboard?.hide()
                                 back()
-                            }, Modifier.testTag("phone-backup-change-selection")) { Text(label(Words.PhoneBackupChangeSelection)) }
+                            }, Modifier.testTag("phone-backup-change-selection")) { Text(label(backWord)) }
                         }
                         body()
                     }
@@ -367,7 +484,17 @@ private fun profileBackupResult(result: BackupResult) = when (result) {
     else -> backupResult(result)
 }
 
+private fun workspaceBackupResult(result: BackupResult) = when (result) {
+    BackupResult.RESTORED -> Words.WorkspaceBackupRestored
+    BackupResult.CHANGED -> Words.WorkspaceBackupChanged
+    BackupResult.CAPACITY -> Words.WorkspaceBackupCapacity
+    BackupResult.RESTORE_UNCERTAIN -> Words.WorkspaceBackupUncertain
+    else -> backupResult(result)
+}
+
 private fun backupResult(result: BackupResult) = when (result) {
+    BackupResult.EMPTY -> Words.WorkspaceBackupEmpty
+    BackupResult.TOO_LARGE -> Words.WorkspaceBackupTooLarge
     BackupResult.SAVED -> Words.PhoneBackupSaved
     BackupResult.RESTORED -> Words.PhoneBackupRestored
     BackupResult.RESTORED_REFRESH_NEEDED -> Words.PhoneBackupRefresh

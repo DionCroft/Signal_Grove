@@ -24,25 +24,8 @@ internal object PhoneProfileBackup {
         }
     }
 
-    fun readFile(input: InputStream, checkpoint: () -> Unit): ByteArray {
-        // Read at most one byte beyond the limit to distinguish a complete file from a prefix.
-        val output = ByteArrayOutputStream()
-        val buffer = ByteArray(8192)
-        while (output.size() <= MAX_FILE) {
-            checkpoint()
-            val read = input.read(buffer, 0, minOf(buffer.size, MAX_FILE + 1 - output.size()))
-            if (read < 0) {
-                return output.toByteArray().also {
-                    if (!LocalHistoryBackupProtection.recognizesProfileEnvelope(it)) {
-                        throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
-                    }
-                }
-            }
-            if (read == 0) throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
-            output.write(buffer, 0, read)
-        }
-        throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
-    }
+    fun readFile(input: InputStream, checkpoint: () -> Unit): ByteArray =
+        readSmallProtectedBackup(input, MAX_FILE, LocalHistoryBackupProtection::recognizesProfileEnvelope, checkpoint)
 
     fun unlock(ciphertext: ByteArray, passphrase: CharArray, checkpoint: () -> Unit = {}): PhonePersonalProfiles {
         if (!LocalHistoryBackupProtection.recognizesProfileEnvelope(ciphertext)) {
@@ -64,6 +47,24 @@ internal object PhoneProfileBackup {
             plaintext.wipe()
         }
     }
+}
+
+internal fun readSmallProtectedBackup(input: InputStream, limit: Int, recognizes: (ByteArray) -> Boolean,
+    checkpoint: () -> Unit): ByteArray {
+    val output = ByteArrayOutputStream()
+    val buffer = ByteArray(8192)
+    while (output.size() <= limit) {
+        checkpoint()
+        val size = input.read(buffer, 0, minOf(buffer.size, limit + 1 - output.size()))
+        if (size < 0) {
+            return output.toByteArray().also {
+                if (!recognizes(it)) throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
+            }
+        }
+        if (size == 0) throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
+        output.write(buffer, 0, size)
+    }
+    throw LocalHistoryBackupException(LocalHistoryBackupProblem.INVALID)
 }
 
 internal enum class ProfileRestoreDisposition { ADD, COPY, ALREADY_PRESENT }
