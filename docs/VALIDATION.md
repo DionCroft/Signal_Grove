@@ -9,6 +9,31 @@ were skipped. Stable Hermes v0.23.4 needs semantic review and current
 main inspection is incomplete because required source paths have moved.
 [Current audit and evidence](audits/2026-11-27/REPORT.md).
 
+## Prepared Android test gates
+
+Commit 04722aa78dab8633f4666e676f979bbd15459891 records seven explicitly
+prepared test classes with 18 methods. The policy counts and the native
+inventory keep the standard microphone-denial and Today-receipt tests
+runnable. The Qwen extraction, offline Today and OCR/transcription
+cases require their separately staged inputs or Android state.
+
+All 704 APK build inputs matched that commit. Locally, 1,266 JVM tests,
+both lint variants and both debug APK assemblies passed. The Windows
+policy suite ran 1,255 cases, with 981 passes and 274 platform skips.
+Android 8 and 17 each passed the 22-case standard selection covering
+microphone denial, Today receipt refresh, canonical gateway behavior and
+preservation of ambiguous receipts without replay. The same Android 17
+APK pair also passed the prepared Today, OCR/transcription and Qwen task
+extraction cases with networking disabled.
+
+The hosted run passed its inventory policy step. Attempt 1 stopped
+during dependency resolution because its runner could not resolve the
+pinned Vosk and JNA artifacts. Both official Maven Central endpoints
+returned the pinned POM and AAR bytes from the development host. The
+standard device matrix remains a separate gate.
+[Hosted Android matrix and attempts](https://github.com/DionCroft/Signal_Grove/actions/runs/45977016045) ·
+[Maven Central endpoints](https://central.sonatype.org/faq/ssl/)
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
@@ -27,6 +52,19 @@ accepting the new runtime. Stable v0.23.4 has separate hosted pristine and
 candidate gateway lifetime evidence and candidate delegation recovery.
 [Public Hermes main pin](https://github.com/NousResearch/hermes-agent/tree/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d) ·
 [Stable shutdown evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692260)
+
+The stable rescan also exits 2 with 220 watched handler changes against
+the same client baseline. Comparing the two pinned upstream snapshots
+directly found 20 changed watched handler fingerprints and no removed
+REST or management routes. Current main adds a native-broker check for
+loopback Webapp sign-in, attributes accepted steering to the current
+turn, and applies pending workspace changes at a turn boundary. It also
+changes how scheduler Git discovery and unregistered platform routing
+recover. These observations identify specific native checks to run.
+The isolated stable shutdown cohort and Android no-replay fixtures
+supply their own bounded evidence. Full current-main runtime and live
+Pi compatibility remain open.
+[Stable Hermes v0.23.4](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4)
 
 ## Quick Capture and reviewed phone tasks
 
