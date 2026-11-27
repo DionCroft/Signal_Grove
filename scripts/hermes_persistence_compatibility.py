@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Run the exact public persistence cohort on the supported PM Linux runtime.
+# Run exact public persistence and profile receipt cohorts on the supported PM Linux runtime.
 from __future__ import annotations
 
 import argparse
@@ -26,6 +26,18 @@ TESTS = (
 
 CASE_COUNT = 103
 CASE_SHA256 = 'd5f4c2a842a12738a340e4f77932d7c385856ef44345748e1865de588861cb94'
+PROFILE_RECEIPT_TESTS = (
+    'tests/gateway/test_authority_approval_projection.py',
+    'tests/gateway/test_api_compressed_receipt_history.py',
+    'tests/gateway/test_native_http_auth.py',
+    'tests/gateway/test_unknown_receipt_boundaries.py',
+    'tests/cron/test_canonical_receipt_bookkeeping.py',
+    'tests/cron/test_live_firer_receipt_recovery.py',
+    'tests/gateway/test_cron_canonical_receipt_regression.py',
+)
+PROFILE_RECEIPT_CASE_COUNT = 19
+PROFILE_RECEIPT_CASE_SHA256 = '5f45b0d507cc06a41be40fee7b522350636b6fd411138036842105fc3221e5d7'
+
 PYTEST_DRIVER = '''
 import importlib.metadata, json, platform, sys
 from pathlib import Path
@@ -48,7 +60,7 @@ raise SystemExit(pytest.main([
 '''
 
 
-def read_cases(raw: bytes) -> list[tuple[str, str]]:
+def read_cases(raw: bytes, count: int = CASE_COUNT) -> list[tuple[str, str]]:
     if len(raw) > 2_000_000 or b'<!DOCTYPE' in raw.upper():
         raise ValueError('Invalid persistence JUnit report')
     root = ET.fromstring(raw)
@@ -57,12 +69,12 @@ def read_cases(raw: bytes) -> list[tuple[str, str]]:
         raise ValueError('Expected one persistence suite')
     suite = suites[0]
     totals = {name: suite.get(name) for name in ('tests', 'failures', 'errors', 'skipped')}
-    if totals != dict(tests=str(CASE_COUNT), failures='0', errors='0', skipped='0'):
+    if totals != dict(tests=str(count), failures='0', errors='0', skipped='0'):
         raise ValueError('Incomplete or non-positive persistence suite')
     rows = suite.findall('testcase')
     pairs = [(row.get('classname'), row.get('name')) for row in rows]
-    if (len(pairs) != CASE_COUNT or any(not all(pair) for pair in pairs)
-            or len(set(pairs)) != CASE_COUNT):
+    if (len(pairs) != count or any(not all(pair) for pair in pairs)
+            or len(set(pairs)) != count):
         raise ValueError('Invalid persistence case identities')
     if any(row.find(tag) is not None for row in rows for tag in ('failure', 'error', 'skipped')):
         raise ValueError('Unexpected hidden persistence case outcome')
@@ -74,7 +86,13 @@ def main() -> None:
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--evidence', type=Path, required=True)
     parser.add_argument('--python', type=Path, required=True)
+    parser.add_argument('--profile-receipts', action='store_true',
+                        help='Run the exact native authentication, approval, history and scheduler receipts cohort')
     args = parser.parse_args()
+    tests, count, case_hash = (
+        (PROFILE_RECEIPT_TESTS, PROFILE_RECEIPT_CASE_COUNT, PROFILE_RECEIPT_CASE_SHA256)
+        if args.profile_receipts else (TESTS, CASE_COUNT, CASE_SHA256)
+    )
     source, evidence = args.source.resolve(strict=True), args.evidence.resolve(strict=True)
     spec = importlib.util.spec_from_file_location(
         'canonical_shutdown_gate', Path(__file__).with_name('canonical_shutdown_gate.py'))
@@ -86,11 +104,11 @@ def main() -> None:
     if before['variant'] != 'pristine' or pin == gate.rpc.PIN:
         raise ValueError('Expected the pristine public persistence layout')
     expected = gate.expected_map(gate.read_json(evidence / 'base-map.json'), 'pristine', pin)
-    test_hashes = {name: expected[name] for name in TESTS}
+    test_hashes = {name: expected[name] for name in tests}
     gate.inspect_source(source, expected, before['modes'], generated=True)
     gate.source_index(source, pin)
     gate.write_new(evidence / 'persistence-intent.json',
-                   dict(sourceCommit=pin, files=test_hashes, caseIdentitySha256=CASE_SHA256))
+                   dict(sourceCommit=pin, files=test_hashes, caseIdentitySha256=case_hash))
     account, temp = evidence / 'account', evidence / 'temp'
     for folder in (account, temp):
         folder.mkdir(mode=0o700)
@@ -100,7 +118,7 @@ def main() -> None:
                HERMES_TEST_ISOLATION='1', PYTEST_DISABLE_PLUGIN_AUTOLOAD='1',
                PYTHONDONTWRITEBYTECODE='1')
     argv = [str(args.python.absolute()), '-I', '-B', '-c', PYTEST_DRIVER,
-            str(source), str(evidence), *TESTS]
+            str(source), str(evidence), *tests]
     with (evidence / 'persistence.log').open('xb') as log:
         child = subprocess.Popen(argv, cwd=evidence, env=env, stdin=subprocess.DEVNULL,
                                  stdout=log, stderr=subprocess.STDOUT)
@@ -117,14 +135,14 @@ def main() -> None:
     if return_code:
         raise SystemExit(return_code)
     xml = (evidence / 'persistence.xml').read_bytes()
-    cases = read_cases(xml)
+    cases = read_cases(xml, count)
     digest = gate.snapshot.digest(json.dumps(cases, separators=(',', ':')).encode())
-    if digest != CASE_SHA256:
+    if digest != case_hash:
         raise ValueError('Persistence case identities differ from the reviewed cohort')
     gate.write_new(evidence / 'persistence-result.json',
                    dict(sourceCommit=pin, caseCount=len(cases), caseIdentitySha256=digest,
                         junitSha256=gate.snapshot.digest(xml), testFiles=test_hashes))
-    print(f'Verified {len(cases)} unchanged persistence cases at {pin}.')
+    print(f'Verified {len(cases)} unchanged cases at {pin}.')
 
 
 if __name__ == '__main__':

@@ -134,6 +134,26 @@ jobs:
         run: |
           python3 -I -B client/scripts/hermes_persistence_compatibility.py \
             --source sdk --evidence "$RUNNER_TEMP/persistence" --python "$PM_PYTHON"
+      - name: Run unchanged native authentication, approval and scheduler receipt tests
+        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d'
+        env:
+          PM_PYTHON: ${{ steps.pm.outputs.python-path }}
+        run: |
+          proof="$RUNNER_TEMP/profile-receipts"
+          mkdir "$proof"
+          cp "$RUNNER_TEMP/persistence/"{before,base-map}.json "$proof"
+          python3 -I -B client/scripts/hermes_persistence_compatibility.py --profile-receipts \
+            --source sdk --evidence "$proof" --python "$PM_PYTHON"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ !cancelled() && (matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d') }}
+        with:
+          name: public-linux-profile-receipts-${{ matrix.source_commit }}
+          path: |
+            ${{ runner.temp }}/profile-receipts/persistence-*.json
+            ${{ runner.temp }}/profile-receipts/persistence.xml
+            ${{ runner.temp }}/profile-receipts/persistence.log
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
