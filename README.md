@@ -48,14 +48,20 @@ For an in-place update, install the matching production APK over your existing p
 
 Hermes controls depend on the connected runtime, authentication, and configured capabilities. Workspace browsing also needs an enrolled worker. The [compatibility guide](docs/COMPATIBILITY.md) and [feature matrix](docs/FEATURES.md) explain availability by area.
 
-## Offline workspace development
+## In development · Offline workspace and Today
 
-The offline-workspace branch adds a searchable Quick Capture inbox,
-reviewed task extraction with an on-device model, project notebooks
-with cited answers and reviewed Hermes handoffs, and a Today view.
-It also includes offline screenshot text and short voice-note
-transcription with optional English language packs.
-[User guide](docs/USER_GUIDE.md) · [Validation](docs/VALIDATION.md)
+| Feature | What it adds |
+| --- | --- |
+| **Quick Capture** | Save and search notes, edit or archive captures, and review suggested tasks before saving them. Optional English language packs add on-device screenshot OCR and short voice-note transcription. |
+| **Project notebooks** | Organize saved captures, ask a phone model about selected excerpts with citations, and review what will be sent when handing work to Hermes. Rename notebooks and review deletions. |
+| **Selected offline backups** | Export chosen captures and notebooks with passphrase protection. Review the restore and ID conflicts before saving anything. |
+| **Today approval inbox** | See due tasks and unprocessed captures. With a supported signed-in Hermes profile, find requests started on another client, review the exact approval, and open an older run's saved receipt. |
+
+The current preview APK is beta.16. The offline workspace and Today features above
+are on the development branch. The supported LFM3 context remains 4,096 tokens.
+[Development user guide](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/USER_GUIDE.md)
+· [Verified results](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/VALIDATION.md)
+· [Open acceptance work](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/GOAL.md#active-scope--27-november-2026)
 
 ## Release verification
 
