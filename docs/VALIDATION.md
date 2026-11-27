@@ -68,6 +68,22 @@ settings were restored and the synthetic fixture directory was removed.
 Haru-4B Q4_K loaded on that phone offline, but the CPU-only experiment
 missed all 66 real-time frame deadlines. [Haru feasibility measurements](audits/2026-11-27-haru-android-preflight.md)
 
+## Signed offline workspace upgrade
+
+The private beta.17 candidate (version code 122) used source commit
+[bd76017](https://github.com/DionCroft/Signal_Grove/commit/bd760171bb062d9d0bf0b59e7e1ed6514fee508a).
+The build passed 1,266 JVM tests, debug and release lint, and release assembly.
+The signed APK matched the published beta.16 signing certificate and passed
+16 KiB native library alignment checks.
+
+On an Android 17 emulator, Android Package Installer upgraded the
+published beta.16 in place. The package UID and original installation
+timestamp matched after the update. A task entered on beta.16 remained
+visible after a forced restart. The upgraded Home opened Quick Capture,
+including the screenshot and short voice-note actions. This was a private
+upgrade check. The physical Xiaomi evidence above uses the corresponding
+debug builds.
+
 ## Published beta.16 release verification
 
 The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)

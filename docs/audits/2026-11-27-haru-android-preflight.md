@@ -59,5 +59,6 @@ and lifecycle acceptance.
 The earlier radio precheck stopped before loading weights because a shell
 diagnostic appended a broken-pipe line to the connectivity result. Its
 radio changes were restored. The corrected run restored networking and
-removed the temporary phone files. Screenshot OCR and recording
-transcription still need dedicated offline engines.
+removed the temporary phone files. Signal Grove’s screenshot OCR and
+recording transcription use dedicated offline engines.
+[Offline media validation](../VALIDATION.md#offline-media-capture-and-haru).
