@@ -62,6 +62,11 @@ internal enum class PhoneHistoryPeriod(val days: Long?, val word: Words) {
                 Text(label(Words.CaptureInbox))
             }
         } }
+        actions.openNotebooks?.let { open -> item {
+            TextButton(open, enabled = !state.busy, modifier = Modifier.testTag("phone-notebooks-open")) {
+                Text(label(Words.PhoneNotebooks))
+            }
+        } }
         if (actions.exportBackup != null && actions.importBackup != null) item {
             Row(Modifier.fillMaxWidth()) {
                 TextButton(actions.exportBackup,

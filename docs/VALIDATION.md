@@ -20,6 +20,18 @@ The same APK pair passed five Android 17 offline capture and writing checks.
 Android 8 also passed six focused compatibility cases for migration,
 notifications, the widget, and the release UI.
 
+## Project notebook storage and source links
+
+The local notebook development chunk passed 1,265 JVM tests, both lint
+variants and both debug APK builds. Five focused Android 17 checks verified
+an in-place upgrade retaining the prior shared text, link and widget note,
+two-notebook search and source isolation, and the existing migration
+fixtures. The notebook test used offline synthetic sources. It opened the
+original cited document, rejected a citation from another notebook and
+preserved the quoted source when the original document changed. No model
+needed to be loaded for these checks. The reviewed Hermes handoff is a
+separate acceptance item.
+
 ## Published beta.16 release verification
 
 The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)

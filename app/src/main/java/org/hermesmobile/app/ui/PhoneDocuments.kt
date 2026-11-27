@@ -26,7 +26,8 @@ data class PhoneDocumentActions(
     val remove: (PhoneDocument) -> Unit,
     val review: (List<String>, String) -> Unit,
     val answer: (PhoneDocumentReview) -> Unit,
-    val clearReview: () -> Unit
+    val clearReview: () -> Unit,
+    val saveToNotebook: ((PhoneDocumentAnswer) -> Unit)? = null
 )
 
 @Composable
@@ -93,6 +94,12 @@ internal fun PhoneDocuments(
                                 else -> Unit
                             }
                             DocumentSources(answer.review)
+                            if (answer.state == LocalReplyState.COMPLETE && actions.saveToNotebook != null) {
+                                TextButton({
+                                    actions.saveToNotebook.invoke(answer)
+                                    close()
+                                }, Modifier.testTag("phone-document-save-notebook")) { Text(label(Words.NotebookSaveAnswer)) }
+                            }
                         }
                         showLibrary -> {
                             Text(label(Words.PhoneDocumentPrivacy), style = MaterialTheme.typography.bodySmall)

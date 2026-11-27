@@ -278,6 +278,12 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
 
     fun refreshDocuments() = action("reading") { refreshDocumentLibrary() }
 
+    internal suspend fun readNotebookDocument(id: String, fingerprint: String): PhoneDocumentText = io {
+        val operation = currentCoroutineContext()
+        documents.selected(listOf(id)) { operation.ensureActive() }.single()
+            .also { if (it.info.fingerprint != fingerprint) throw LocalModelStorageException("document_changed") }
+    }
+
     internal fun indexDocument(
         previous: PhoneDocument?, name: () -> String, cancelOpen: () -> Unit,
         extractPdf: suspend (InputStream, () -> Unit) -> List<String> = { _, _ ->

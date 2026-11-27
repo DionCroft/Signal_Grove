@@ -121,7 +121,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
     val openWriting: (() -> Unit)? = null,
     val openTemporary: (() -> Unit)? = null,
     val openProfiles: (() -> Unit)? = null, val openVoice: (() -> Unit)? = null,
-    val openCapture: (() -> Unit)? = null)
+    val openCapture: (() -> Unit)? = null,
+    val openNotebooks: (() -> Unit)? = null)
 
 @Composable fun LocalAiRoute(
     vm: LocalAiViewModel,
@@ -171,15 +172,18 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 vm.pickDocument(previous)
                 documentPicker.launch(arrayOf("*/*"))
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
-                c::answerDocumentQuestion, c::clearDocumentReview), openWriting = vm::openWriting,
+                c::answerDocumentQuestion, c::clearDocumentReview, vm::openNotebooks), openWriting = vm::openWriting,
             openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles,
-            openVoice = preferences?.let { vm::openPhoneVoice }, openCapture = { vm.openCapture() }),
+            openVoice = preferences?.let { vm::openPhoneVoice }, openCapture = { vm.openCapture() },
+            openNotebooks = { vm.openNotebooks() }),
         close, observations, handoff, openHermes, startupSetting, downloadNetworkSettings, requestedDownloads, downloadsOpened,
         replacing = pending?.previous, pendingDocument = pendingDocument)
     val writingOpen by vm.writingOpen.collectAsStateWithLifecycle()
     if (writingOpen) PhoneWritingDialog(vm, state)
     val captureInbox by vm.captures.state.collectAsStateWithLifecycle()
     if (captureInbox.open) PhoneCaptureInbox(vm, state, captureInbox)
+    val notebookWorkspace by vm.notebooks.state.collectAsStateWithLifecycle()
+    if (notebookWorkspace.open) PhoneNotebookScreen(vm.notebooks, state, notebookWorkspace)
     val temporary by vm.temporary.state.collectAsStateWithLifecycle()
     temporary?.let { PhoneTemporaryChatDialog(vm, it, state) }
     val profilesOpen by vm.personalProfilesOpen.collectAsStateWithLifecycle()

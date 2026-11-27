@@ -159,6 +159,15 @@ edits and uncheck items you want to discard. **Save selected tasks** creates
 only the checked tasks. The capture lists those tasks, and the task list
 provides a link back to the source note.
 
+## Project notebooks (development)
+
+In **On-device AI → Phone history**, open **Project notebooks** and create a
+notebook. Open it before using **Add a capture**, **Add a document**, or
+**Add a task**. Search inside the selected notebook to find the sources
+you added. From a completed Phone documents answer, choose **Save answer
+to notebook** and select the notebook. Open a saved answer to review its
+cited excerpts and open the indexed source, if its content still matches.
+
 ## Voice, notices and widget
 
 Voice is foreground only. On-device-only recognition is the default; it requires Android 12+ and an available local recognizer/model. If unavailable, the app explains this. You may explicitly disable local-only mode to use the system service, which may process audio online. Grant microphone permission only when tapping to speak. Edit the transcription and transfer it to Chat; sending remains a separate action.

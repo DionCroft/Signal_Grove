@@ -23,7 +23,19 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     val controller = app.localAi
     internal val captures = PhoneCaptureWorkspace(app.database.phoneCaptures(), controller, viewModelScope)
 
+    internal val notebooks = PhoneNotebookWorkspace(app.database, controller, viewModelScope)
+
+    internal fun openNotebooks(answer: PhoneDocumentAnswer? = null) {
+        captures.close()
+        writingOpen.value = false
+        closePhoneVoice()
+        closePersonalProfiles()
+        notebooks.open(answer)
+        controller.refreshDocuments()
+    }
+
     internal fun openCapture(captureId: String? = null, fromWidget: Boolean = false) {
+        notebooks.close()
         if (temporary.state.value != null) closeTemporary()
         closePhoneVoice()
         closePersonalProfiles()

@@ -4,6 +4,15 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_12_TO_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE phone_notebooks (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, createdAt INTEGER NOT NULL, openedAt INTEGER NOT NULL)")
+            db.execSQL("CREATE TABLE phone_notebook_items (id TEXT NOT NULL PRIMARY KEY, notebookId TEXT NOT NULL, kind TEXT NOT NULL, sourceId TEXT NOT NULL, fingerprint TEXT NOT NULL, title TEXT NOT NULL, answer TEXT NOT NULL, addedAt INTEGER NOT NULL, FOREIGN KEY (notebookId) REFERENCES phone_notebooks(id) ON DELETE CASCADE)")
+            db.execSQL("CREATE UNIQUE INDEX index_phone_notebook_items_notebookId_kind_sourceId ON phone_notebook_items(notebookId, kind, sourceId)")
+            db.execSQL("CREATE TABLE phone_notebook_sources (itemId TEXT NOT NULL, ordinal INTEGER NOT NULL, documentId TEXT NOT NULL, fingerprint TEXT NOT NULL, documentName TEXT NOT NULL, page INTEGER, firstLine INTEGER NOT NULL, lastLine INTEGER NOT NULL, excerpt TEXT NOT NULL, PRIMARY KEY (itemId, ordinal), FOREIGN KEY (itemId) REFERENCES phone_notebook_items(id) ON DELETE CASCADE)")
+        }
+    }
+
     val FROM_11_TO_12 = object : Migration(11, 12) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE phone_captures (id TEXT NOT NULL PRIMARY KEY, content TEXT NOT NULL, source TEXT NOT NULL, createdAt INTEGER NOT NULL, processedAt INTEGER)")
@@ -105,4 +114,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9,DatabaseMigrations.FROM_9_TO_10,DatabaseMigrations.FROM_10_TO_11,DatabaseMigrations.FROM_11_TO_12)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9,DatabaseMigrations.FROM_9_TO_10,DatabaseMigrations.FROM_10_TO_11,DatabaseMigrations.FROM_11_TO_12,DatabaseMigrations.FROM_12_TO_13)
