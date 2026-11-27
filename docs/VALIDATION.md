@@ -291,9 +291,38 @@ All 131 executable identities, both shutdown patch inputs and the
 admission, persistence, profile-receipt and shutdown test sources match
 the prior native pin. The exact new revision is registered for the
 relocated source scanner and the isolated Linux native workflows.
-Native results for this revision are tracked separately.
-
 [Official upstream delta](https://github.com/NousResearch/hermes-agent/compare/30bff5e45c389bdc3b6cd42515ab5bb8f2f083d6...646c982ea7354261b355874781999b8a292a6013).
+
+All 161 local gate checks passed. Both workflow matrices, all 249
+scanner aliases and 28 unchanged upstream test sources were verified.
+The exact official-source scan returned the same contract as 30bff5e.
+Its review-required result still reports 240 watched handler and 29
+persistence-source differences against the client baseline.
+
+The exact Linux pin passed 103 persistence, 19 profile receipt and 20
+gateway recovery cases. The pristine and patched variants passed the
+same 56 shutdown cases and their native heartbeat lifetimes. Each
+delegation recovery scenario kept its checkpoint, passed SQLite
+integrity and reported zero replays. All six archive digests and the
+raw case identities matched the published results.
+[Native Linux SDK](https://github.com/DionCroft/Signal_Grove/actions/runs/46075119240) ·
+[Paired shutdown](https://github.com/DionCroft/Signal_Grove/actions/runs/46075119712).
+
+The two changed upstream PM test files collected 41 cases on Windows.
+Thirty-two passed, including the low-disk and stale-selection recovery
+paths. Nine symlink-dependent cases skipped because the Windows test
+process could not create links.
+
+An isolated native authority check opened two transport identities in
+one profile and a third transport in a separate profile with the same
+session ID. The second transport discovered two pending requests,
+attached to review them, then resolved the selected request. A stale
+generation was refused, a repeated decision found the request already
+settled, and reconnect returned only the remaining request. Deny
+settled that request. The other profile's request and both original
+admission counts were preserved. The fixture used synthetic waiters
+and real native RPC handlers. Android-to-Pi approval and actual
+Windows-worker effects still need live verification.
 
 ## Hermes main plugin and terminal update
 
