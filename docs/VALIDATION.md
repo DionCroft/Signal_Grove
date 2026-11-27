@@ -83,6 +83,24 @@ watchdog inventory. Native Linux and paired recovery results are
 tracked in the hosted shutdown workflow.
 [Current main watchdog tests](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/tests/gateway/test_gateway_shutdown.py#L495)
 
+## Current Hermes persistence and approval contract
+
+The public Linux persistence matrix now includes v0.23.4 and 1d15aad
+with the existing 103-case identity check. All 11 test files are
+byte-identical between those two SDK pins. The earlier v0.23.4 artifact
+was rechecked against its archive, JUnit and case identity hashes.
+Current-main results depend on an independent run against its exact tree.
+[Earlier stable persistence run](https://github.com/DionCroft/Signal_Grove/actions/runs/45380258025)
+
+The current native gateway scopes approval.pending to a live session
+and applies session:read authorization. Its pending response carries a
+request ID and display fields. The decision RPC requires a session,
+prompt ID and execution generation. Today therefore needs a supported
+session inventory and a generation-bound control projection or event
+before it can expose a decision for a discovered approval.
+[Pending projection](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/gateway/session_ancillary.py#L201) ·
+[Decision fields](https://github.com/NousResearch/hermes-agent/blob/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d/gateway/session_controls.py#L1016)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and

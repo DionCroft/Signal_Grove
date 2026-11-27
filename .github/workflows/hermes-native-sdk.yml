@@ -87,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source_commit: [caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1]
+        source_commit: [caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
