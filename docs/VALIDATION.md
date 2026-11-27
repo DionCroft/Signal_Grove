@@ -281,6 +281,36 @@ identities. Native execution evidence is checked against the hosted
 shards when their run finishes.
 [Hosted Android matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46055801684).
 
+## Held-project scheduler installer compatibility
+
+The full installer preview on Hermes stable v0.23.4 (`8fc0374`)
+and main `646c982` initially refused the scheduler provider source.
+Both pins added a profile ownership check ahead of execution receipt
+creation. The installer recognizes the earlier and current layouts and
+places its project-policy check after Hermes verifies local profile
+ownership and before it creates a receipt. Unreviewed layouts still fail
+the installer preview.
+
+On both exact pins, all five preview modes passed against Git-verified
+inputs. The full staging mode produced the previewed bytes in disposable
+source copies. In isolated Windows runtimes, the patched native provider,
+jobs store and SQLite ledger refused a held project job and refused a
+profile hosted elsewhere without creating a receipt. A separately
+allowlisted ordinary job created exactly one receipt, which reopened
+from SQLite with its original ID and passed integrity checks. The manual
+claim preserved the job's next occurrence, repeat count, timezone and
+catch-up settings. The profile ownership marker used the native resolver.
+The protected policy reader supplied fixture data on Windows. Hermes
+used its built-in rollback-journal fallback for the linked SQLite version.
+
+All 35 focused portable cron policy cases passed. The full portable
+suite discovered 1,261 cases with zero failures and 274 skips. Native
+execution and output delivery were outside this fixture. Live Pi
+activation, Windows worker dispatch, authenticated receipt recovery
+after reconnect and scoped log delivery still need verification.
+[Stable scheduler provider](https://github.com/NousResearch/hermes-agent/blob/8fc0374447313e276f6b9a2764bfc750190c966a/cron/scheduler_provider.py#L200) ·
+[Main scheduler provider](https://github.com/NousResearch/hermes-agent/blob/646c982ea7354261b355874781999b8a292a6013/cron/scheduler_provider.py#L200).
+
 ## Hermes native gates for the current main revision
 
 Hermes stable remains v0.23.4. The latest reviewed main pin, 646c982,

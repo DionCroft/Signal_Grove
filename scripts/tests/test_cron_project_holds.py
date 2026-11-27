@@ -7,7 +7,42 @@ from unittest.mock import patch
 
 from server_extensions.coordinator_workspaces import cron_project_holds as holds
 from server_extensions.coordinator_workspaces.coordinator import ReadRefused
+from server_extensions.coordinator_workspaces.install_adapter import patch_cron_project_provider
 from server_extensions.coordinator_workspaces.operator_policy import PolicyDocument
+
+
+class ProjectScheduleProviderPatchTest(unittest.TestCase):
+    def test_legacy_and_current_providers_check_project_policy_before_reserving(self):
+        source = '''class CronScheduler:
+    def claim_fire(self, job_id):
+        from cron.jobs import claim_job_for_fire
+{profile_gate}
+        execution = create_execution(job_id, source=self.name)
+        return execution, claim_job_for_fire(job_id)
+'''
+        profile_gate = '''        from hermes_cli.profiles_run_elsewhere import run_elsewhere_for_home
+        from hermes_constants import get_hermes_home
+
+        if run_elsewhere_for_home(get_hermes_home()) is not None:
+            return None
+'''
+        inserted = '''        from cron.jobs import _ordinary_cron_allowed
+        if not _ordinary_cron_allowed(job_id):
+            return None
+'''
+        for ownership in ("", profile_gate):
+            with self.subTest(profile_routing=bool(ownership)):
+                original = source.format(profile_gate=ownership)
+                staged = patch_cron_project_provider(original)
+                self.assertEqual(staged.replace(inserted, ""), original)
+                self.assertLess(staged.index(inserted), staged.index("execution = create_execution"))
+                if ownership:
+                    self.assertLess(staged.index(ownership), staged.index(inserted))
+                with self.assertRaises(ValueError):
+                    patch_cron_project_provider(staged)
+        unknown = source.format(profile_gate=profile_gate.replace("is not None", "is None"))
+        with self.assertRaises(ValueError):
+            patch_cron_project_provider(unknown)
 
 
 class ProjectScheduleHoldsTest(unittest.TestCase):

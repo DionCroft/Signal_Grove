@@ -426,18 +426,24 @@ def patch_cron_project_scheduler(source):
 def patch_cron_project_provider(source):
     # CronScheduler.claim_fire reserves a row before its ordinary job CAS.
     # Refuse held jobs before reservation, then the normal gate checks again under the lock.
-    anchor = '''        from cron.jobs import claim_job_for_fire
+    imported = "        from cron.jobs import claim_job_for_fire\n"
+    reservation = "        execution = create_execution(job_id, source=self.name)\n"
+    profile_gate = '''        from hermes_cli.profiles_run_elsewhere import run_elsewhere_for_home
+        from hermes_constants import get_hermes_home
 
-        execution = create_execution(job_id, source=self.name)
+        if run_elsewhere_for_home(get_hermes_home()) is not None:
+            return None
 '''
-    if source.count(anchor) != 1:
+    anchors = [imported + ownership + "\n" for ownership in ("", profile_gate)]
+    matches = [(anchor, source.count(anchor + reservation)) for anchor in anchors]
+    if sum(count for _, count in matches) != 1:
         raise ValueError("Native provider differs from the reviewed project gate.")
-    updated = source.replace(anchor, """        from cron.jobs import _ordinary_cron_allowed, claim_job_for_fire
-
+    anchor = next(anchor for anchor, count in matches if count)
+    gate = '''        from cron.jobs import _ordinary_cron_allowed
         if not _ordinary_cron_allowed(job_id):
             return None
-        execution = create_execution(job_id, source=self.name)
-""")
+'''
+    updated = source.replace(anchor + reservation, anchor + gate + reservation)
     ast.parse(updated)
     return updated
 
