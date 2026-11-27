@@ -65,8 +65,10 @@ All application and test APK payload entries matched the emulator-tested
 pair. The device's normal app APK matched before and after testing. Network
 settings were restored and the synthetic fixture directory was removed.
 
-Haru-4B Q4_K loaded on that phone offline, but the CPU-only experiment
-missed all 66 real-time frame deadlines. [Haru feasibility measurements](audits/2026-11-27-haru-android-preflight.md)
+Haru-4B Q4_K loaded on that phone offline. The longer CPU-only test ran
+at 0.59× real time, missing 212 of 212 audio
+frame deadlines. The native benchmark process exited after SIGTERM and
+released its mappings. [Haru feasibility measurements](audits/2026-11-27-haru-android-preflight.md)
 
 ## Signed offline workspace upgrade
 

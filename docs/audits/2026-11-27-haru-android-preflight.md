@@ -22,8 +22,8 @@ frame timing.
 [Pinned converted model](https://huggingface.co/sakasegawa/Haru-4B-GGUF/tree/fc026182f7bbfaa0400b2d44358a5e9e327b957f).
 
 The port's quantization includes the language model, codec, and speech head.
-Its published measurements are from desktop hardware. Haru advances one frame
-every 133 ms, so sustained frame times still need to be measured on the Xiaomi.
+The port's published measurements are from desktop hardware. Haru advances one
+frame every 133 ms. The following tests use the physical Xiaomi.
 [Published port measurements](https://github.com/nyosegawa/speech.cpp/blob/v0.11.0/docs/models/haru.md#speed).
 
 ## Physical Xiaomi result
@@ -50,11 +50,37 @@ default network at both ends. No app installation was involved.
 The CPU run passed compatibility for the checkpoint, input codec, speech
 head, and output decoding on this handset. **No-go for live full-duplex
 conversation with the tested CPU build.** Every frame missed its deadline.
-The harness measures decoded frames and does not play audio or transcribe
-the user's speech. The short run does not establish sustained thermal
-behavior or cancellation, and Vulkan performance is unmeasured. A future
-backend would need to meet the frame budget before longer spoken-quality
-and lifecycle acceptance.
+The harness measured the input encoding and output decoding separately.
+Those steps took 72.7 ms and 69.8 ms per frame,
+respectively, in the longer run below. The result covers codec timing.
+Audible playback, dialogue quality and Vulkan performance remain unmeasured.
+
+## Longer offline run and cancellation
+
+The same pinned CPU build processed 28.284 seconds
+of synthetic speech in a 32-second session window. The input
+repeated the original sample with two 0.8-second pauses.
+
+| Measurement | Observed |
+| --- | --- |
+| Wall time including load and warm-up | 53.47 s |
+| Warm start to first decoded frame | 145.5 ms |
+| Frame processing p50 / p90 / p99 | 226.8 / 240.5 / 253.7 ms |
+| Late frames | 212 of 212 |
+| Processing speed | 0.59× real time |
+| Peak sampled resident memory | 4.40 GiB |
+| Lowest sampled available device memory | 3.77 GiB |
+| Battery temperature before / peak / after | 30.0 / 32.1 / 32.1 °C |
+| Peak sampled Android thermal severity | 0 |
+
+A second run received SIGTERM 7.32 seconds
+after launch, with the model resident. ADB reported the exit after
+0.380 seconds, and the subsequent PID check confirmed
+the process was gone. Available device memory increased from 4.56 GiB at cancellation
+to 8.94 GiB at the next sample. This
+measured cancellation of the native benchmark process. In-app speech
+session cancellation remains unmeasured. Both tests stayed offline and
+the phone's network and temporary storage were restored afterward.
 
 The earlier radio precheck stopped before loading weights because a shell
 diagnostic appended a broken-pipe line to the connectivity result. Its
