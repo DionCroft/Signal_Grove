@@ -34,6 +34,16 @@ UI also downloaded both original packs from their publishers, verified
 their digests and enabled the recording and screenshot controls. The
 Xiaomi microphone and permission-recovery check is still open.
 
+The same `e50a927` app and instrumentation APKs passed the prepared
+Today and Qwen task-extraction cases on Android 8 and 17. Both emulators
+were in Airplane mode with Wi-Fi off and no default network. The Qwen
+case imported the pinned GGUF, extracted the two explicit tasks, saved
+only the edited selection despite a second save call, and retained the
+capture and task link. The retakes checked the two independent Qwen
+phase durations against the full test time. SHA-256 checks bound both
+installed APKs and the raw positive case records. Both emulators
+restored their radio settings.
+
 ## Live workflow readiness
 
 The Pi's existing gateway, serve and mobile dashboard units were active
@@ -56,8 +66,7 @@ key. The recovery cases verified exact retry after an admission write
 lock, settlement of the original receipt after a lost acknowledgment,
 per-profile reconnect routing, and continued delivery during shutdown.
 The original compressed-history and exact room-approval cases also
-passed. The full native Linux shutdown gate on this revision remains
-open.
+passed.
 
 [Reviewed main revision](https://github.com/NousResearch/hermes-agent/commit/de2b0590f87b2131b51557b3f30aefeec421be2c) ·
 [Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4).
@@ -68,8 +77,22 @@ checks. Both workflows accept a manual current-main-only run. Their
 default matrices include the historical pins and the new pin. All
 161 local gate tests and both workflow checks passed. The exact-source
 scan resolved all 249 aliases and still reports 239 handler and 29
-persistence-source differences against the client baseline. Native
-workflow outcomes and broader behavior review remain separate gates.
+persistence-source differences against the client baseline. Broader
+behavior review remains open.
+
+Both native Linux runs passed on the exact pin. Persistence ran **103**
+cases, profile receipts ran **19**, and gateway recovery ran **20**.
+The pristine and patched shutdown variants ran the same **56** cases
+each. The real gateway and heartbeat lifetimes passed. The held and
+released delegation fixtures retained their checkpoints, passed SQLite
+integrity, and reported zero replays. Independent verification matched
+the raw case identities and all six GitHub artifact digests. The exact
+plugin catalog and dashboard-cache fixtures also passed **30** cases in
+the isolated Windows environment with the lockfile-pinned web extras.
+
+[Native SDK and recovery](https://github.com/DionCroft/Signal_Grove/actions/runs/46057093291) ·
+[Paired shutdown and lifecycle](https://github.com/DionCroft/Signal_Grove/actions/runs/46057100578).
+
 
 The complete hosted Android 8 and 17 matrix started on Signal Grove
 `9ac5e28`. This checkpoint records the run identity. Device results
