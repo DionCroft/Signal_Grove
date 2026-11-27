@@ -1,5 +1,22 @@
 # Current development validation — audit follow-up
 
+## Offline capture lifecycle
+
+Quick Capture supports editing, archiving, restoring and reviewed
+deletion. Edits and archive actions preserve the capture ID and its
+task and notebook links. Today excludes archived captures. Deletion
+removes the source links from retained tasks. Notebook entries keep
+their saved titles and report that the capture is unavailable.
+
+The tested v14-to-v15 Room migration retained captures, tasks and
+notebook entries. Storage checks also covered stale task reviews,
+reopening the database, original capture-write retries and retained
+tasks after deletion. The exact build passed 1,271 JVM cases and both
+lint variants. Android 8 passed 10 focused cases and Android 17
+passed 11, including cancelled changes, a process restart and Android
+17 with Airplane mode on and Wi-Fi off. The Android 17 radio state was
+restored after testing.
+
 ## Today approval inbox
 
 Today checks pending native approvals for the authenticated connection

@@ -69,7 +69,7 @@ internal class PhoneNotebookWorkspace(
     fun entries(id: String, query: String): Flow<List<NotebookItem>> {
         val term = query.trim().lowercase(Locale.ROOT)
         if (term.isEmpty()) return storage.items(id)
-        return combine(storage.items(id), captures.search(query), tasks.tasks()) { items, notes, localTasks ->
+        return combine(storage.items(id), captures.search(query, archived = null), tasks.tasks()) { items, notes, localTasks ->
             val matchedNotes = notes.mapTo(mutableSetOf()) { it.id }
             val matchedTasks = localTasks.filter { hasTerm(it.title, term) || hasTerm(it.notes, term) }
                 .mapTo(mutableSetOf()) { it.id }

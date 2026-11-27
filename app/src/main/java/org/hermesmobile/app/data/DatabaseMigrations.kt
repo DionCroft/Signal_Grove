@@ -4,6 +4,13 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object DatabaseMigrations {
+    val FROM_14_TO_15 = object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE phone_captures ADD COLUMN archivedAt INTEGER")
+            db.execSQL("ALTER TABLE phone_captures ADD COLUMN originalContentHash TEXT")
+        }
+    }
+
     val FROM_13_TO_14 = object : Migration(13, 14) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE phone_notebook_handoffs (requestKey TEXT NOT NULL PRIMARY KEY, notebookId TEXT NOT NULL, itemId TEXT NOT NULL, scope TEXT NOT NULL, sessionKey TEXT NOT NULL, assistantId TEXT NOT NULL, endpoint TEXT NOT NULL, connectionName TEXT NOT NULL, submittedAt INTEGER NOT NULL, FOREIGN KEY (notebookId) REFERENCES phone_notebooks(id) ON DELETE CASCADE)")
@@ -121,4 +128,4 @@ object DatabaseMigrations {
     }
 }
 
-val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9,DatabaseMigrations.FROM_9_TO_10,DatabaseMigrations.FROM_10_TO_11,DatabaseMigrations.FROM_11_TO_12,DatabaseMigrations.FROM_12_TO_13,DatabaseMigrations.FROM_13_TO_14)
+val ALL_HERMES_MIGRATIONS = arrayOf(DatabaseMigrations.FROM_1_TO_2,DatabaseMigrations.FROM_2_TO_3,DatabaseMigrations.FROM_3_TO_4,DatabaseMigrations.FROM_4_TO_5,DatabaseMigrations.FROM_5_TO_6,DatabaseMigrations.FROM_6_TO_7,DatabaseMigrations.FROM_7_TO_8,DatabaseMigrations.FROM_8_TO_9,DatabaseMigrations.FROM_9_TO_10,DatabaseMigrations.FROM_10_TO_11,DatabaseMigrations.FROM_11_TO_12,DatabaseMigrations.FROM_12_TO_13,DatabaseMigrations.FROM_13_TO_14,DatabaseMigrations.FROM_14_TO_15)

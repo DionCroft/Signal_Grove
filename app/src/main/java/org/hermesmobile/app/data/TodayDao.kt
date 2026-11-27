@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 internal interface TodayDao {
-    @Query("SELECT COUNT(*) FROM phone_captures WHERE processedAt IS NULL")
+    @Query("SELECT COUNT(*) FROM phone_captures WHERE processedAt IS NULL AND archivedAt IS NULL")
     fun unprocessedCaptures(): Flow<Int>
 
     @Query("""SELECT session.scope, session.key AS sessionKey, session.title AS sessionTitle,

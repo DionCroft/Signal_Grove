@@ -334,7 +334,7 @@ object RunStates {
     @Query("DELETE FROM pending_controls") suspend fun clearControls()
     @Transaction suspend fun clearChats() { clearMessages(); clearControls(); clearEvents(); clearServerOperations(); clearReports(); clearSessions() }
 }
-@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class,ManagementOperation::class, PhoneCapture::class, PhoneCaptureTaskLink::class, PhoneCaptureTaskReceipt::class, PhoneNotebook::class, NotebookItem::class, NotebookSource::class, NotebookHandoffReceipt::class], version = 14, exportSchema = true)
+@Database(entities = [Conversation::class, ChatMessage::class, LocalTask::class, CachedJob::class,ToolEvent::class,PendingControl::class,JobOperation::class,NotificationReceipt::class,ServerOperation::class,RunReport::class,ManagementOperation::class, PhoneCapture::class, PhoneCaptureTaskLink::class, PhoneCaptureTaskReceipt::class, PhoneNotebook::class, NotebookItem::class, NotebookSource::class, NotebookHandoffReceipt::class], version = 15, exportSchema = true)
 abstract class HermesDatabase : RoomDatabase() {
     abstract fun dao(): HermesDao
     abstract fun phoneCaptures(): PhoneCaptureDao

@@ -49,16 +49,22 @@ internal fun parseCaptureTaskOutput(output: String): List<String>? {
     }.distinctBy { it.lowercase(Locale.ROOT) }
 }
 
-internal data class CaptureDraft(val id: String, val source: CaptureSource, val content: String = "")
+internal data class CaptureDraft(
+    val id: String, val source: CaptureSource, val content: String = "", val original: PhoneCapture? = null
+)
 internal data class CaptureTaskChoice(val title: String, val selected: Boolean = true)
-internal data class CaptureTaskReview(val id: String, val captureId: String, val choices: List<CaptureTaskChoice>)
-internal enum class CaptureNotice { SAVED, TASKS_SAVED, NO_TASKS, STORAGE_ERROR }
+internal data class CaptureTaskReview(
+    val id: String, val captureId: String, val reviewedContent: String, val choices: List<CaptureTaskChoice>
+)
+internal enum class CaptureNotice { SAVED, RESTORED, DELETED, TASKS_SAVED, NO_TASKS, STORAGE_ERROR }
 
 internal data class CaptureInboxState(
     val open: Boolean = false,
     val selectedId: String? = null,
     val draft: CaptureDraft? = null,
     val review: CaptureTaskReview? = null,
+    val deleteReview: PhoneCapture? = null,
+    val showArchived: Boolean = false,
     val saving: Boolean = false,
     val notice: CaptureNotice? = null
 )
@@ -72,7 +78,7 @@ internal class PhoneCaptureWorkspace(
     private val mutable = MutableStateFlow(CaptureInboxState())
     val state = mutable.asStateFlow()
 
-    fun search(query: String) = dao.search(query.trim())
+    fun search(query: String, archived: Boolean) = dao.search(query.trim(), archived)
     fun observe(id: String) = dao.observe(id)
     fun linkedTasks(id: String) = dao.linkedTasks(id)
 
@@ -84,6 +90,18 @@ internal class PhoneCaptureWorkspace(
             selectedId = captureId?.takeIf(::validCaptureId),
             draft = if (fromWidget) CaptureDraft(UUID.randomUUID().toString(), CaptureSource.WIDGET) else null
         )
+    }
+
+    fun viewCapture(id: String) {
+        if (mutable.value.saving || !validCaptureId(id)) return
+        cancelGeneration()
+        mutable.update { CaptureInboxState(open = true, selectedId = id, showArchived = it.showArchived) }
+    }
+
+    fun showCaptures(archived: Boolean = mutable.value.showArchived) {
+        if (mutable.value.saving) return
+        cancelGeneration()
+        mutable.value = CaptureInboxState(open = true, showArchived = archived)
     }
 
     fun close() {
@@ -106,6 +124,48 @@ internal class PhoneCaptureWorkspace(
         mutable.value = CaptureInboxState(open = true, draft = CaptureDraft(UUID.randomUUID().toString(), source, text))
     }
 
+    fun editCapture(capture: PhoneCapture) {
+        if (!canManage(capture)) return
+        val source = CaptureSource.entries.single { it.name == capture.source }
+        mutable.update { it.copy(draft = CaptureDraft(capture.id, source, capture.content, capture), notice = null) }
+    }
+
+    fun discardEdit() {
+        mutable.update { if (it.saving) it else it.copy(draft = null, notice = null) }
+    }
+
+    fun setArchived(capture: PhoneCapture) {
+        if (!canManage(capture)) return
+        val archived = capture.archivedAt == null
+        write {
+            dao.setArchived(capture, System.currentTimeMillis().takeIf { archived })
+            if (!archived) mutable.update { it.copy(notice = CaptureNotice.RESTORED) }
+        }
+    }
+
+    fun reviewDeletion(capture: PhoneCapture) {
+        if (!canManage(capture)) return
+        mutable.update { it.copy(deleteReview = capture, notice = null) }
+    }
+
+    fun cancelDeletion() {
+        mutable.update { if (it.saving) it else it.copy(deleteReview = null, notice = null) }
+    }
+
+    fun confirmDeletion() {
+        val capture = mutable.value.deleteReview ?: return
+        write {
+            dao.delete(capture)
+            mutable.update { it.copy(selectedId = null, deleteReview = null, notice = CaptureNotice.DELETED) }
+        }
+    }
+
+    private fun canManage(capture: PhoneCapture): Boolean {
+        val state = mutable.value
+        return state.open && state.selectedId == capture.id && !state.saving && state.review == null &&
+            state.draft == null && state.deleteReview == null && controller.state.value.status != "generating_capture_tasks"
+    }
+
     fun editNote(content: String) {
         if (content.length > MAX_CAPTURE_CHARS) return
         mutable.update { from -> if (from.saving) from else from.copy(draft = from.draft?.copy(content = content)) }
@@ -114,7 +174,15 @@ internal class PhoneCaptureWorkspace(
     fun saveNote() {
         val draft = mutable.value.draft ?: return
         if (!validCaptureText(draft.content)) return
-        saveCapture(draft.id, draft.source, draft.content) {}
+        val original = draft.original
+        if (original == null) {
+            saveCapture(draft.id, draft.source, draft.content) {}
+        } else {
+            write {
+                dao.edit(original, draft.content)
+                mutable.update { it.copy(draft = null, notice = CaptureNotice.SAVED) }
+            }
+        }
     }
 
     fun saveShared(id: String, content: String, onSaved: () -> Unit) {
@@ -131,15 +199,14 @@ internal class PhoneCaptureWorkspace(
     }
 
     fun suggestTasks(capture: PhoneCapture) {
-        val ui = mutable.value
         val model = controller.state.value.loaded ?: return
-        if (ui.saving || ui.selectedId != capture.id || ui.review != null || controller.state.value.busy) return
+        if (!canManage(capture) || capture.archivedAt != null || controller.state.value.busy) return
         mutable.update { it.copy(notice = null) }
         controller.generateCaptureTasks(capture.content, model.sha256) { titles ->
             mutable.update { current ->
                 if (!current.open || current.selectedId != capture.id) current
                 else if (titles.isEmpty()) current.copy(notice = CaptureNotice.NO_TASKS)
-                else current.copy(review = CaptureTaskReview(UUID.randomUUID().toString(), capture.id,
+                else current.copy(review = CaptureTaskReview(UUID.randomUUID().toString(), capture.id, capture.content,
                     titles.map { CaptureTaskChoice(it) }))
             }
         }
@@ -165,7 +232,7 @@ internal class PhoneCaptureWorkspace(
         val titles = review.choices.filter { it.selected }.map { it.title.trim() }
         if (titles.isEmpty() || titles.any { !validCaptureTaskTitle(it) }) return
         write {
-            dao.saveReviewedTasks(review.captureId, review.id, titles, System.currentTimeMillis())
+            dao.saveReviewedTasks(review.captureId, review.id, review.reviewedContent, titles, System.currentTimeMillis())
             mutable.update { it.copy(review = null, notice = CaptureNotice.TASKS_SAVED) }
         }
     }

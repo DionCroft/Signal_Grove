@@ -38,6 +38,7 @@ internal fun PhoneCaptureInbox(vm: LocalAiViewModel, model: LocalAiState, state:
     val focus = LocalFocusManager.current
     val draft = state.draft
     val review = state.review
+    val deleteReview = state.deleteReview
     val id = state.selectedId
     val generating = model.busy && model.status == "generating_capture_tasks"
     Dialog(workspace::close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
@@ -52,8 +53,10 @@ internal fun PhoneCaptureInbox(vm: LocalAiViewModel, model: LocalAiState, state:
                 state.notice?.let { CaptureStatus(it) }
                 if (state.saving) LinearProgressIndicator(Modifier.fillMaxWidth())
                 when {
+                    deleteReview != null -> CaptureDeleteReview(deleteReview, state.saving, workspace)
                     draft != null -> {
                         val valid = validCaptureText(draft.content)
+                        if (draft.original != null) Word(Words.CaptureEdit)
                         OutlinedTextField(draft.content, workspace::editNote,
                             Modifier.weight(1f, fill = false).fillMaxWidth().testTag("capture-note"),
                             label = { Text(label(Words.Notes)) }, minLines = 3, maxLines = 10,
@@ -64,19 +67,24 @@ internal fun PhoneCaptureInbox(vm: LocalAiViewModel, model: LocalAiState, state:
                         Button({ focus.clearFocus(); workspace.saveNote() },
                             Modifier.fillMaxWidth().testTag("capture-save-note"),
                             enabled = !state.saving && valid) { Text(label(Words.Save)) }
+                        if (draft.original != null) {
+                            TextButton({ focus.clearFocus(); workspace.discardEdit() },
+                                Modifier.fillMaxWidth().testTag("capture-cancel-edit"),
+                                enabled = !state.saving) { Text(label(Words.Cancel)) }
+                        }
                     }
                     review != null -> CaptureTaskReviewScreen(workspace, state, review)
                     id != null -> {
                         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).testTag("capture-detail"),
                             verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            CaptureDetail(vm, id, model, generating)
+                            CaptureDetail(vm, id, model, generating, state.saving)
                         }
-                        TextButton({ workspace.open() }, enabled = !state.saving,
+                        TextButton({ workspace.showCaptures() }, enabled = !state.saving,
                             modifier = Modifier.fillMaxWidth().testTag("capture-back-to-inbox")) {
                             Text(label(Words.CaptureBack))
                         }
                     }
-                    else -> CaptureSearch(Modifier.weight(1f), workspace, vm.mediaCapture::open)
+                    else -> CaptureSearch(Modifier.weight(1f), workspace, state.showArchived, vm.mediaCapture::open)
                 }
             }
         }
@@ -84,11 +92,13 @@ internal fun PhoneCaptureInbox(vm: LocalAiViewModel, model: LocalAiState, state:
 }
 
 @Composable
-private fun CaptureSearch(modifier: Modifier, workspace: PhoneCaptureWorkspace, openMedia: (MediaCaptureKind) -> Unit) {
+private fun CaptureSearch(
+    modifier: Modifier, workspace: PhoneCaptureWorkspace, archived: Boolean, openMedia: (MediaCaptureKind) -> Unit
+) {
     var query by rememberSaveable { mutableStateOf("") }
     val searchLabel = label(Words.CaptureSearch)
     val focus = LocalFocusManager.current
-    val results = captureRead(query) { workspace.search(query) }
+    val results = captureRead("$archived:$query") { workspace.search(query, archived) }
     val rows = results?.getOrNull()
     LazyColumn(modifier.fillMaxWidth().testTag("capture-list"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
@@ -101,6 +111,14 @@ private fun CaptureSearch(modifier: Modifier, workspace: PhoneCaptureWorkspace, 
             }
         }
         item {
+            TextButton({
+                focus.clearFocus()
+                workspace.showCaptures(!archived)
+            }, Modifier.testTag("capture-toggle-archive")) {
+                Text(label(if (archived) Words.CaptureBack else Words.CaptureArchivedList))
+            }
+        }
+        if (!archived) item {
             TextButton({
                 focus.clearFocus()
                 workspace.newNote()
@@ -117,13 +135,19 @@ private fun CaptureSearch(modifier: Modifier, workspace: PhoneCaptureWorkspace, 
         when {
             results == null -> item { QuietProgress() }
             rows == null -> item { CaptureStatus(CaptureNotice.STORAGE_ERROR) }
-            rows.isEmpty() -> item { Text(label(if (query.isBlank()) Words.CaptureEmpty else Words.CaptureNoMatches)) }
+            rows.isEmpty() -> item {
+                Text(label(when {
+                    query.isNotBlank() -> Words.CaptureNoMatches
+                    archived -> Words.CaptureArchiveEmpty
+                    else -> Words.CaptureEmpty
+                }))
+            }
             else -> items(rows, key = { it.id }) { row ->
                 HermesCard {
                     Text(label(captureSourceWord(row.source)), style = MaterialTheme.typography.labelMedium)
                     TextButton({
                         focus.clearFocus()
-                        workspace.open(row.id)
+                        workspace.viewCapture(row.id)
                     }, Modifier.testTag("capture-open-" + row.id)) {
                         Text(row.preview, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
@@ -134,7 +158,7 @@ private fun CaptureSearch(modifier: Modifier, workspace: PhoneCaptureWorkspace, 
 }
 
 @Composable
-private fun CaptureDetail(vm: LocalAiViewModel, id: String, model: LocalAiState, generating: Boolean) {
+private fun CaptureDetail(vm: LocalAiViewModel, id: String, model: LocalAiState, generating: Boolean, saving: Boolean) {
     val workspace = vm.captures
     val result = captureRead(id) { workspace.observe(id) }
     val capture = result?.getOrNull()
@@ -149,7 +173,10 @@ private fun CaptureDetail(vm: LocalAiViewModel, id: String, model: LocalAiState,
     Text(label(captureSourceWord(capture.source)), style = MaterialTheme.typography.labelMedium)
     SelectionContainer { Text(capture.content, Modifier.testTag("capture-content")) }
     HorizontalDivider()
-    if (generating) {
+    val archived = capture.archivedAt != null
+    if (archived) {
+        Text(label(Words.CaptureArchived))
+    } else if (generating) {
         Text(label(Words.CapturePreparingTasks))
         TextButton(vm.controller::cancel, Modifier.testTag("capture-stop")) { Text(label(Words.Stop)) }
     } else {
@@ -159,7 +186,7 @@ private fun CaptureDetail(vm: LocalAiViewModel, id: String, model: LocalAiState,
             PhoneInlineModelPicker(model, !model.busy) { vm.controller.load(it) }
         }
         Button({ workspace.suggestTasks(capture) }, Modifier.testTag("capture-suggest-tasks"),
-            enabled = model.loaded != null && !model.busy) { Text(label(Words.CaptureSuggestTasks)) }
+            enabled = model.loaded != null && !model.busy && !saving) { Text(label(Words.CaptureSuggestTasks)) }
     }
     val linked = captureRead(id) { workspace.linkedTasks(id) }
     if (linked?.isFailure == true) CaptureStatus(CaptureNotice.STORAGE_ERROR)
@@ -168,6 +195,32 @@ private fun CaptureDetail(vm: LocalAiViewModel, id: String, model: LocalAiState,
         Word(Words.CaptureLinkedTasks)
         tasks.forEach { task -> Text(task.title, Modifier.testTag("capture-linked-task"), style = MaterialTheme.typography.bodyMedium) }
     }
+    HorizontalDivider()
+    val canManage = !generating && !saving
+    TextButton({ workspace.editCapture(capture) }, Modifier.testTag("capture-edit"), enabled = canManage) {
+        Text(label(Words.CaptureEdit))
+    }
+    TextButton({ workspace.setArchived(capture) }, Modifier.testTag("capture-archive-action"), enabled = canManage) {
+        Text(label(if (archived) Words.CaptureRestore else Words.CaptureArchive))
+    }
+    TextButton({ workspace.reviewDeletion(capture) }, Modifier.testTag("capture-delete"), enabled = canManage) {
+        Text(label(Words.CaptureDelete), color = if (canManage) MaterialTheme.colorScheme.error else LocalContentColor.current)
+    }
+}
+
+@Composable
+private fun ColumnScope.CaptureDeleteReview(capture: PhoneCapture, saving: Boolean, workspace: PhoneCaptureWorkspace) {
+    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Word(Words.CaptureDelete)
+        Text(label(Words.CaptureDeleteImpact))
+        Text(capture.content, Modifier.testTag("capture-delete-content"))
+    }
+    Button(workspace::confirmDeletion, Modifier.fillMaxWidth().testTag("capture-confirm-delete"),
+        enabled = !saving, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError)) { Text(label(Words.CaptureDelete)) }
+    TextButton(workspace::cancelDeletion, Modifier.fillMaxWidth().testTag("capture-cancel-delete"),
+        enabled = !saving) { Text(label(Words.Cancel)) }
 }
 
 @Composable
@@ -214,6 +267,8 @@ private fun <T> captureRead(key: String, source: () -> Flow<T>): Result<T>? {
 private fun CaptureStatus(notice: CaptureNotice) {
     val word = when (notice) {
         CaptureNotice.SAVED -> Words.CaptureSaved
+        CaptureNotice.RESTORED -> Words.CaptureRestored
+        CaptureNotice.DELETED -> Words.CaptureDeleted
         CaptureNotice.TASKS_SAVED -> Words.CaptureTasksSaved
         CaptureNotice.NO_TASKS -> Words.CaptureNoTasks
         CaptureNotice.STORAGE_ERROR -> Words.CaptureStorageError
