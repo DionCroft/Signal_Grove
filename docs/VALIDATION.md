@@ -16,6 +16,10 @@ unchanged, and a repeated Save did not create a duplicate. These checks used
 the real Android inference library on the x86-64 emulator. The signed
 production upgrade and physical-device acceptance are later release gates.
 
+The same APK pair passed five Android 17 offline capture and writing checks.
+Android 8 also passed six focused compatibility cases for migration,
+notifications, the widget, and the release UI.
+
 ## Published beta.16 release verification
 
 The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)

@@ -4,8 +4,8 @@ The isolated Android arm64 CPU timing harness built on 27 November 2026. The
 build linked the Haru model layout, VibeVoice codec, MeanFlow speech head, and
 dialogue implementation. ELF inspection confirmed AArch64, Android's 64-bit
 dynamic linker, and dependencies on the platform C, math, and dynamic-loader
-libraries. This preflight covers compilation. Model loading, device memory,
-speech quality and realtime operation are unmeasured.
+libraries. The physical run below covers the verified checkpoint and CPU
+frame timing.
 
 | Input | Verified identity |
 | --- | --- |
@@ -26,12 +26,38 @@ Its published measurements are from desktop hardware. Haru advances one frame
 every 133 ms, so sustained frame times still need to be measured on the Xiaomi.
 [Published port measurements](https://github.com/nyosegawa/speech.cpp/blob/v0.11.0/docs/models/haru.md#speed).
 
-## Device acceptance still open
+## Physical Xiaomi result
 
-The Xiaomi was absent from ADB during preflight. The binary remains on the
-Windows execution host. The weights were identified from publisher metadata.
-Check available RAM and storage on the handset and verify a no-model launcher
-smoke test before staging or loading weights. Use representative synthetic or
-consented speech and measure loading, first audio, frame delay distribution,
-resident memory, heat, sustained playback and cancellation separately from
-transcript accuracy. A go/no-go for phone interaction follows those checks.
+Android 17 launched the exact verified arm64 binary. The trial used the
+verified Q4_K file, CPU backend, a 12-second session window, no voice
+reference, and 8.895 seconds of locally synthesized speech. The runtime
+completed successfully with Airplane mode enabled, Wi-Fi disabled, and no
+default network at both ends. No app installation was involved.
+
+| Measurement | Observed |
+| --- | --- |
+| End-to-end process time | 20.48 s, including load and warm-up |
+| Warm start to first decoded frame | 145.7 ms |
+| Frame duration budget | 133.3 ms |
+| Frame processing p50 / p90 / p99 | 216.0 / 237.1 / 286.4 ms |
+| Late frames | 66 of 66 |
+| Processing speed | 0.61× real time |
+| Peak sampled resident memory | 4.39 GiB |
+| Available device memory before / lowest sample | 6.31 / 3.03 GiB |
+| Battery temperature before / after | 26.2 / 26.5 °C |
+| Android thermal severity before / after | 0 / 0 |
+
+The CPU run passed compatibility for the checkpoint, input codec, speech
+head, and output decoding on this handset. **No-go for live full-duplex
+conversation with the tested CPU build.** Every frame missed its deadline.
+The harness measures decoded frames and does not play audio or transcribe
+the user's speech. The short run does not establish sustained thermal
+behavior or cancellation, and Vulkan performance is unmeasured. A future
+backend would need to meet the frame budget before longer spoken-quality
+and lifecycle acceptance.
+
+The earlier radio precheck stopped before loading weights because a shell
+diagnostic appended a broken-pipe line to the connectivity result. Its
+radio changes were restored. The corrected run restored networking and
+removed the temporary phone files. Screenshot OCR and recording
+transcription still need dedicated offline engines.
