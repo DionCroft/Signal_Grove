@@ -207,6 +207,15 @@ choice and validates the returned enabled state. Wider integration
 acceptance remains open.
 [Reviewed Hermes source delta](https://github.com/NousResearch/hermes-agent/compare/de2b0590f87b2131b51557b3f30aefeec421be2c...30bff5e45c389bdc3b6cd42515ab5bb8f2f083d6).
 
+The source checker initially stopped at the ten former module paths
+for `30bff5e`. The exact commit now uses the reviewed relocation table.
+All ten replacement blobs and 21 persistence dependencies matched
+the preceding reviewed main tree. Both stable and main inspections
+resolved all 249 aliases against fresh official Git tree identities.
+The contract and source-cache test suites passed 119 cases. The
+inspection still requires review of 220 changed handlers on stable,
+240 on main and 29 persistence-source differences on each.
+
 ## Hermes admission and scheduler receipt fixtures
 
 Ten cases passed on the pinned Windows environment against exact Hermes

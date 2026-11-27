@@ -41,6 +41,7 @@ REVIEWED_SOURCE_RELOCATIONS = frozenset({
     '9bba163bc1d090852eccc86802eddc454df47d1b',
     '5ba14569d4dd46606b179df4f0b3c6d083b56edf',
     'de2b0590f87b2131b51557b3f30aefeec421be2c',
+    '30bff5e45c389bdc3b6cd42515ab5bb8f2f083d6',
 })
 LEGACY_CRON_FORMAT_PATH = 'tools/cronjob_job_args.py'
 CRON_FORMAT_PATH = 'cron/job_args.py'
