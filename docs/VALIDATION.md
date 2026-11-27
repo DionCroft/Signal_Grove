@@ -130,6 +130,26 @@ native logs are retained and the same strict standard verifier remains
 in use for the hosted matrix.
 [Hosted Android matrix for 7d72fb6](https://github.com/DionCroft/Signal_Grove/actions/runs/46000328663)
 
+### Hosted build and capture restart for 7d72fb6
+
+The hosted build passed all 1,260 policy cases, with a one-to-one
+match between the selected, started and successfully completed case
+identities. The build archive matched GitHub's published SHA-256 and
+contained 1,266 passing JVM cases and both lint reports with zero
+errors. Both APK SHA-256 values were independently computed. The
+four Android 8 and 17 device shards started on the same source.
+Their native inventories and execution logs remain pending.
+[Hosted build job](https://github.com/DionCroft/Signal_Grove/actions/runs/46000328663/job/140510035786)
+
+The prepared capture restart passed on both local Android versions on
+the repaired source. Each emulator created a new fixture through Android
+Share and the widget, reported its UUID in the completed instrumentation
+result, force-stopped the running app process, and reopened the three
+original captures in a fresh process. The UUID, native case identities,
+original contents, and installed app and test APK hashes were checked.
+The Android 8 emulator used its optional cache-disabled startup mode
+after a cache file permission error.
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
