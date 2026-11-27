@@ -49,7 +49,7 @@ Hermes fixture verified refresh, a simulated disconnect, recovery,
 cached timestamps and exclusion of a foreign scope and an older
 approval generation.
 
-## Offline media capture and Haru
+## Offline media capture
 
 The offline media chunk passed 1,266 JVM tests, debug and release lint,
 and both debug APK builds. Android 17 passed two fixture cases for the
@@ -64,11 +64,6 @@ The physical debug APKs used the device's existing debug certificate.
 All application and test APK payload entries matched the emulator-tested
 pair. The device's normal app APK matched before and after testing. Network
 settings were restored and the synthetic fixture directory was removed.
-
-Haru-4B Q4_K loaded on that phone offline. The longer CPU-only test ran
-at 0.59× real time, missing 212 of 212 audio
-frame deadlines. The native benchmark process exited after SIGTERM and
-released its mappings. [Haru feasibility measurements](audits/2026-11-27-haru-android-preflight.md)
 
 ## Signed offline workspace upgrade
 
