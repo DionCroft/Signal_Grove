@@ -125,6 +125,36 @@ utility unavailable as a standalone command. Its successful native
 test, shell file check and stat result establish absence without a
 second generation or reboot.
 
+## Prepared native model inventory on the repaired Android pair
+
+The same signed local debug APKs on Android 8 and 17 passed three more
+prepared cases offline. Qwen import, generation, history reopened after
+unload, and model deletion retained the conversation. Cancelling an
+already committed LFM3 import made the file visible without loading it,
+reopening the app or leaving a partial file. Switching between Qwen
+and LFM3 refused generation in a chat bound to the other model. Each
+chat retained its own model and history after both models were deleted.
+
+Android 8 used a separate read-only instance of the verified
+encrypted AVD with 4 GB of guest memory. The fresh blank image lacked
+its legacy encryption initialization file. A short LFM3 transfer was
+reconciled against its exact publisher prefix, then the remaining
+77,179 bytes were copied and the full input digest matched. The three
+Android 8 native cases passed. A separate Settings switch action
+restored Wi-Fi and the saved network preferences after the host
+cleanup failed to finish. Both staged model hashes matched afterward.
+The four temporarily archived fixture copies were restored to the
+original emulator with their original bytes, modes and modification times.
+
+Nine of the 19 prepared cases now have positive native receipts on
+each version. The intentional native interruption has its own case
+receipt. Seven physical LFM3 cases and two public transfer cases
+remain separate from the standard hosted device count.
+
+The Android 8 capture edit and cancellation case also passed six
+consecutive runs offline on the original emulator after the earlier
+intermittent miss. The initial failure and every repeat are retained.
+
 ## Live workflow readiness
 
 The Pi's existing gateway, serve and mobile dashboard units were active
