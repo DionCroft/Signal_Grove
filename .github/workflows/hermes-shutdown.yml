@@ -1,6 +1,11 @@
 name: Pinned Hermes shutdown
 on:
   workflow_dispatch:
+    inputs:
+      current_main_only:
+        description: Run only the exact current Hermes main pin
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ['.github/workflows/hermes-shutdown.yml', 'scripts/canonical_shutdown_gate.py', 'scripts/hermes_snapshot_heartbeat.py', 'scripts/hermes_heartbeat_candidate.py', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_canonical_shutdown_gate.py', 'upstream_patches/hermes-3b42157-heartbeat-shutdown.patch', 'upstream_patches/hermes-caafe538-heartbeat-shutdown.patch', 'scripts/hermes_native_heartbeat_gate.py', 'scripts/native/shutdown_heartbeat_fixture.py', 'scripts/tests/test_native_heartbeat_gate.py', 'scripts/hermes_subagent_recovery_gate.py', 'scripts/native/shutdown_delegation_fixture.py']
@@ -16,7 +21,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 5725d1d390ac4b7cfe157ea32bd6f4db1a280368, 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d, 337903eeffd696cf73936a3a00af08b43feb2028, 9bba163bc1d090852eccc86802eddc454df47d1b]
+        source_commit: >-
+          ${{ fromJSON(inputs.current_main_only
+                        && '["de2b0590f87b2131b51557b3f30aefeec421be2c"]'
+                        || '["3b421578588243f920886e6fe79a6faa87ea026e", "caafe5389ae585ef77387a962aee05b1bcf17029", "2de9f51b8008a7d49a49221c184f2f11cbfc4af1", "8fc0374447313e276f6b9a2764bfc750190c966a", "5725d1d390ac4b7cfe157ea32bd6f4db1a280368", "1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d", "337903eeffd696cf73936a3a00af08b43feb2028", "9bba163bc1d090852eccc86802eddc454df47d1b", "de2b0590f87b2131b51557b3f30aefeec421be2c"]') }}
         variant: [pristine, candidate]
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -122,7 +130,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source_commit: [3b421578588243f920886e6fe79a6faa87ea026e, caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 5725d1d390ac4b7cfe157ea32bd6f4db1a280368, 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d, 337903eeffd696cf73936a3a00af08b43feb2028, 9bba163bc1d090852eccc86802eddc454df47d1b]
+        source_commit: >-
+          ${{ fromJSON(inputs.current_main_only
+                        && '["de2b0590f87b2131b51557b3f30aefeec421be2c"]'
+                        || '["3b421578588243f920886e6fe79a6faa87ea026e", "caafe5389ae585ef77387a962aee05b1bcf17029", "2de9f51b8008a7d49a49221c184f2f11cbfc4af1", "8fc0374447313e276f6b9a2764bfc750190c966a", "5725d1d390ac4b7cfe157ea32bd6f4db1a280368", "1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d", "337903eeffd696cf73936a3a00af08b43feb2028", "9bba163bc1d090852eccc86802eddc454df47d1b", "de2b0590f87b2131b51557b3f30aefeec421be2c"]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

@@ -1,6 +1,11 @@
 name: Pinned Hermes native SDK
 on:
   workflow_dispatch:
+    inputs:
+      current_main_only:
+        description: Run only the exact current Hermes main pin
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ['.github/workflows/hermes-native-sdk.yml', 'scripts/verify_canonical_rpc.py', 'scripts/tests/test_verify_canonical_rpc.py', 'scripts/hermes_persistence_compatibility.py', 'scripts/canonical_shutdown_gate.py']
@@ -13,6 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   canonical-linux-plugin-rpc:
+    if: ${{ !inputs.current_main_only }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -87,7 +93,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source_commit: [caafe5389ae585ef77387a962aee05b1bcf17029, 2de9f51b8008a7d49a49221c184f2f11cbfc4af1, 8fc0374447313e276f6b9a2764bfc750190c966a, 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d, 337903eeffd696cf73936a3a00af08b43feb2028, 9bba163bc1d090852eccc86802eddc454df47d1b]
+        source_commit: >-
+          ${{ fromJSON(inputs.current_main_only
+                        && '["de2b0590f87b2131b51557b3f30aefeec421be2c"]'
+                        || '["caafe5389ae585ef77387a962aee05b1bcf17029", "2de9f51b8008a7d49a49221c184f2f11cbfc4af1", "8fc0374447313e276f6b9a2764bfc750190c966a", "1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d", "337903eeffd696cf73936a3a00af08b43feb2028", "9bba163bc1d090852eccc86802eddc454df47d1b", "de2b0590f87b2131b51557b3f30aefeec421be2c"]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -135,7 +144,7 @@ jobs:
           python3 -I -B client/scripts/hermes_persistence_compatibility.py \
             --source sdk --evidence "$RUNNER_TEMP/persistence" --python "$PM_PYTHON"
       - name: Run unchanged native authentication, approval and scheduler receipt tests
-        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b'
+        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b' || matrix.source_commit == 'de2b0590f87b2131b51557b3f30aefeec421be2c'
         env:
           PM_PYTHON: ${{ steps.pm.outputs.python-path }}
         run: |
@@ -145,7 +154,7 @@ jobs:
           python3 -I -B client/scripts/hermes_persistence_compatibility.py --profile-receipts \
             --source sdk --evidence "$proof" --python "$PM_PYTHON"
       - name: Run unchanged authority replay and held routing recovery tests
-        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b'
+        if: matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b' || matrix.source_commit == 'de2b0590f87b2131b51557b3f30aefeec421be2c'
         env:
           PM_PYTHON: ${{ steps.pm.outputs.python-path }}
         run: |
@@ -155,7 +164,7 @@ jobs:
           python3 -I -B client/scripts/hermes_persistence_compatibility.py --gateway-recovery \
             --source sdk --evidence "$recovery" --python "$PM_PYTHON"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: ${{ !cancelled() && (matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b') }}
+        if: ${{ !cancelled() && (matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b' || matrix.source_commit == 'de2b0590f87b2131b51557b3f30aefeec421be2c') }}
         with:
           name: public-linux-gateway-recovery-${{ matrix.source_commit }}
           path: |
@@ -165,7 +174,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: ${{ !cancelled() && (matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b') }}
+        if: ${{ !cancelled() && (matrix.source_commit == '8fc0374447313e276f6b9a2764bfc750190c966a' || matrix.source_commit == '1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d' || matrix.source_commit == '337903eeffd696cf73936a3a00af08b43feb2028' || matrix.source_commit == '9bba163bc1d090852eccc86802eddc454df47d1b' || matrix.source_commit == 'de2b0590f87b2131b51557b3f30aefeec421be2c') }}
         with:
           name: public-linux-profile-receipts-${{ matrix.source_commit }}
           path: |

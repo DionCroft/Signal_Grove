@@ -62,6 +62,15 @@ open.
 [Reviewed main revision](https://github.com/NousResearch/hermes-agent/commit/de2b0590f87b2131b51557b3f30aefeec421be2c) ·
 [Stable release](https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.4).
 
+The same exact pin is registered for the native Linux persistence,
+approval and scheduler receipts, replay recovery, and paired shutdown
+checks. Both workflows accept a manual current-main-only run. Their
+default matrices include the historical pins and the new pin. All
+161 local gate tests and both workflow checks passed. The exact-source
+scan resolved all 249 aliases and still reports 239 handler and 29
+persistence-source differences against the client baseline. Native
+workflow outcomes and broader behavior review remain separate gates.
+
 The complete hosted Android 8 and 17 matrix started on Signal Grove
 `9ac5e28`. This checkpoint records the run identity. Device results
 require separate verification after the run finishes.
