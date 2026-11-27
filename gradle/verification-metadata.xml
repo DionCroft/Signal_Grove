@@ -4387,5 +4387,40 @@
             <sha256 value="33c07ab9724790a6e5859ba07d69117ac530439724545a81c4179e3272c75de8" origin="Maven Central HTTPS and published SHA-256"/>
          </artifact>
       </component>
+      <component group="com.alphacephei" name="vosk-android" version="0.3.75">
+         <artifact name="vosk-android-0.3.75.aar">
+            <sha256 value="ab2f8b91ac8051561aa325546b35fed9a68b36b8121bac5c6fb927525c4adfad" origin="Reviewed Maven Central binary"/>
+         </artifact>
+         <artifact name="vosk-android-0.3.75.module">
+            <sha256 value="4d80e117a2bfc68e94ecd39e3bd64d010cf6a7c439cbed97e0cce999b37a1615" origin="Reviewed Maven Central metadata"/>
+         </artifact>
+         <artifact name="vosk-android-0.3.75.pom">
+            <sha256 value="7cc7e139a6a37efa114da9184eaf8aea126d438f0cf6e57e74437ca906d662d0" origin="Reviewed Maven Central POM"/>
+         </artifact>
+      </component>
+      <component group="cz.adaptech.tesseract4android" name="tesseract4android" version="4.9.0">
+         <artifact name="tesseract4android-4.9.0.aar">
+            <sha256 value="bce5d6413a1a5ae3d7240033fbbc851ba3217d0a08d9769400e17a077f42cb2a" origin="Reviewed JitPack release binary"/>
+         </artifact>
+         <artifact name="tesseract4android-4.9.0.module">
+            <sha256 value="7ee10fa26c3682c9a63fc27e4574335a135004d771cf92215febde3fbdb6f78a" origin="Reviewed JitPack release metadata"/>
+         </artifact>
+         <artifact name="tesseract4android-4.9.0.pom">
+            <sha256 value="be3268bbfdc6755b23e4edcf2395fa70a253820caad8f5af5dafd679961be1c2" origin="Reviewed JitPack release POM"/>
+         </artifact>
+      </component>
+      <component group="net.java.dev.jna" name="jna" version="5.18.1">
+         <artifact name="jna-5.18.1.aar">
+            <sha256 value="7f053e3ec99e14dd71259c82c1c8a02738d64a13c31226b2acc170f3060951e0" origin="Reviewed Maven Central Android binary"/>
+         </artifact>
+         <artifact name="jna-5.18.1.pom">
+            <sha256 value="98b62ae6ff280d747fb359fc42e48fed113d45bc3729a823dc30b8308a806645" origin="Reviewed Maven Central POM"/>
+         </artifact>
+      </component>
+      <component group="androidx.annotation" name="annotation" version="1.3.0">
+         <artifact name="annotation-1.3.0.module">
+            <sha256 value="9516c2ae44284ea0bd3d0eade0ee638879b708cbe31e3af92ba96c300604ebc3" origin="Verified against official Google Maven metadata"/>
+         </artifact>
+      </component>
    </components>
 </verification-metadata>

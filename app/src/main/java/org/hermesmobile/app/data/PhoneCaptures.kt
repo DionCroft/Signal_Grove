@@ -13,7 +13,7 @@ import java.security.MessageDigest
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 
-enum class CaptureSource { SHARED_TEXT, SHARED_LINK, WIDGET, NOTE }
+enum class CaptureSource { SHARED_TEXT, SHARED_LINK, WIDGET, NOTE, SCREENSHOT_TEXT, VOICE_TRANSCRIPT }
 
 @Entity(tableName = "phone_captures", indices = [Index("createdAt")])
 data class PhoneCapture(

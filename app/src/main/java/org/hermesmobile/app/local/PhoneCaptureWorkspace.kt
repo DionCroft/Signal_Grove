@@ -98,6 +98,14 @@ internal class PhoneCaptureWorkspace(
         mutable.value = CaptureInboxState(open = true, draft = CaptureDraft(UUID.randomUUID().toString(), CaptureSource.NOTE))
     }
 
+    fun openExtractedDraft(source: CaptureSource, text: String) {
+        require(source == CaptureSource.SCREENSHOT_TEXT || source == CaptureSource.VOICE_TRANSCRIPT)
+        require(validCaptureText(text))
+        if (mutable.value.saving) return
+        cancelGeneration()
+        mutable.value = CaptureInboxState(open = true, draft = CaptureDraft(UUID.randomUUID().toString(), source, text))
+    }
+
     fun editNote(content: String) {
         if (content.length > MAX_CAPTURE_CHARS) return
         mutable.update { from -> if (from.saving) from else from.copy(draft = from.draft?.copy(content = content)) }

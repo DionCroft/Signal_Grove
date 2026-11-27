@@ -13,6 +13,10 @@ Original code is MIT. No upstream Hermes source/branding or third-party fonts ar
 - Android NDK r29 LLVM C++ runtime — Apache 2.0 with LLVM exceptions and included component notices, reproduced from the official NDK in the app and `docs/licenses/llvm-ndk-r29.txt`. Native libraries share one C++ runtime.
 - LiquidAI model weights are separate, optional downloads under their own [LFM Open License v1.0](https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/blob/cd0c74c575b5c416f3011b5b4c298077f26ca8c2/LICENSE), with commercial-use conditions. No model weights are bundled or relicensed under the application MIT licence.
 - Qwen2.5-0.5B-Instruct GGUF weights are an optional download under the publisher's [Apache 2.0 licence](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/blob/9217f5db79a29953eb74d5343926648285ec7e67/LICENSE). The development catalogue includes the publisher's licence for offline review.
+- Offline screenshot recognition uses Tesseract4Android 4.9.0 and Tesseract 5.5.1 under Apache 2.0. Its native dependencies include Leptonica, libpng and the Independent JPEG Group's software. [Pinned Android wrapper and bundled source](https://github.com/adaptech-cz/Tesseract4Android/tree/15c534717b1cb58261b58d4e4c1200c7f81f668c)
+- Offline transcription uses Vosk Android 0.3.75 and JNA 5.18.1 under their Apache 2.0 licence terms. [Vosk artifact](https://central.sonatype.com/artifact/com.alphacephei/vosk-android/0.3.75) · [JNA source](https://github.com/java-native-access/jna/tree/5.18.1)
+- The separate English language packs are available under Apache 2.0. [Tesseract language data](https://github.com/tesseract-ocr/tessdata_fast/tree/65727574dfcd264acbb0c3e07860e4e9e9b22185) · [Vosk language data](https://alphacephei.com/vosk/models)
+
 - [JUnit](https://github.com/junit-team/junit4) — EPL 1.0 (tests); [Hamcrest](https://github.com/hamcrest/JavaHamcrest) — BSD 3-clause (tests)
 
 Full runtime licence texts are included in the app's Settings → Open-source licences and under `docs/licenses/`. Tooling and test libraries remain under their own licences.

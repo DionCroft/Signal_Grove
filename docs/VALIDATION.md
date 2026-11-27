@@ -49,6 +49,25 @@ Hermes fixture verified refresh, a simulated disconnect, recovery,
 cached timestamps and exclusion of a foreign scope and an older
 approval generation.
 
+## Offline media capture and Haru
+
+The offline media chunk passed 1,266 JVM tests, debug and release lint,
+and both debug APK builds. Android 17 passed two fixture cases for the
+real Tesseract and Vosk engines, model checksum rejection, recognition
+cancellation and retry, microphone permission denial, and edited
+inbox saves. A physical Xiaomi Android 17 run repeated the recognition
+and save case with Airplane mode enabled, Wi-Fi disabled and no default
+network. The tested versions used official English packs, a synthetic
+screenshot and a 6.145-second locally synthesized recording.
+
+The physical debug APKs used the device's existing debug certificate.
+All application and test APK payload entries matched the emulator-tested
+pair. The device's normal app APK matched before and after testing. Network
+settings were restored and the synthetic fixture directory was removed.
+
+Haru-4B Q4_K loaded on that phone offline, but the CPU-only experiment
+missed all 66 real-time frame deadlines. [Haru feasibility measurements](audits/2026-11-27-haru-android-preflight.md)
+
 ## Published beta.16 release verification
 
 The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)

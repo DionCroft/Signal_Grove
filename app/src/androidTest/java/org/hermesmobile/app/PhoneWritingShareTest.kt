@@ -78,7 +78,7 @@ class PhoneWritingShareTest {
             compose.onNodeWithTag("capture-search").performTextInput(unique)
             compose.waitUntil(15_000) { compose.onAllNodesWithTag("capture-list").fetchSemanticsNodes().size == 1 }
             val captures = runBlocking { app.database.phoneCaptures().search(unique).first() }
-            assertEquals(CaptureSource.entries.filter { it != CaptureSource.NOTE }.map { it.name }.toSet(), captures.map { it.source }.toSet())
+            assertEquals(setOf(CaptureSource.SHARED_TEXT.name, CaptureSource.SHARED_LINK.name, CaptureSource.WIDGET.name), captures.map { it.source }.toSet())
             assertEquals(setOf(link, sharedText, widgetNote), captures.map { it.preview }.toSet())
             assertNull(app.localAi.state.value.loaded)
             instrumentation.sendStatus(2, Bundle().apply { putString("capture_fixture", unique) })

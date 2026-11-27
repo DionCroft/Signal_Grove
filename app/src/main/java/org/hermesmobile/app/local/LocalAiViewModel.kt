@@ -24,6 +24,8 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     private val app = application as HermesApplication
     val controller = app.localAi
     internal val captures = PhoneCaptureWorkspace(app.database.phoneCaptures(), controller, viewModelScope)
+    internal val mediaCapture = MediaCaptureWorkspace(app, java.io.File(app.noBackupFilesDir, "media-capture-models"),
+        captures, viewModelScope)
 
     internal val notebooks = PhoneNotebookWorkspace(app.database, controller, viewModelScope)
 
@@ -49,6 +51,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
 
     internal fun openCapture(captureId: String? = null, fromWidget: Boolean = false) {
         notebooks.close()
+        mediaCapture.close()
         if (temporary.state.value != null) closeTemporary()
         closePhoneVoice()
         closePersonalProfiles()
@@ -91,6 +94,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
     }
 
     internal fun leavePhone() {
+        mediaCapture.backgrounded()
         closePhoneVoice()
         closePersonalProfiles()
         if (temporary.state.value != null) closeTemporary()
@@ -113,6 +117,7 @@ class LocalAiViewModel(application: Application, savedState: SavedStateHandle) :
 
     internal fun receiveWriting(token: String?, invalid: Boolean) {
         if (token == null && !invalid) return
+        mediaCapture.close()
         if (temporary.state.value != null) closeTemporary()
         writing.receive(token?.let(app.writingIntake::take))
         writingOpen.value = true

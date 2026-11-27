@@ -76,7 +76,7 @@ internal fun PhoneCaptureInbox(vm: LocalAiViewModel, model: LocalAiState, state:
                             Text(label(Words.CaptureBack))
                         }
                     }
-                    else -> CaptureSearch(Modifier.weight(1f), workspace)
+                    else -> CaptureSearch(Modifier.weight(1f), workspace, vm.mediaCapture::open)
                 }
             }
         }
@@ -84,7 +84,7 @@ internal fun PhoneCaptureInbox(vm: LocalAiViewModel, model: LocalAiState, state:
 }
 
 @Composable
-private fun CaptureSearch(modifier: Modifier, workspace: PhoneCaptureWorkspace) {
+private fun CaptureSearch(modifier: Modifier, workspace: PhoneCaptureWorkspace, openMedia: (MediaCaptureKind) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     val searchLabel = label(Words.CaptureSearch)
     val focus = LocalFocusManager.current
@@ -105,6 +105,14 @@ private fun CaptureSearch(modifier: Modifier, workspace: PhoneCaptureWorkspace) 
                 focus.clearFocus()
                 workspace.newNote()
             }, Modifier.testTag("capture-new-note")) { Text(label(Words.CaptureNewNote)) }
+            TextButton({
+                focus.clearFocus()
+                openMedia(MediaCaptureKind.SCREENSHOT)
+            }, Modifier.testTag("capture-screenshot")) { Text(label(Words.MediaScreenshot)) }
+            TextButton({
+                focus.clearFocus()
+                openMedia(MediaCaptureKind.RECORDING)
+            }, Modifier.testTag("capture-recording")) { Text(label(Words.MediaRecording)) }
         }
         when {
             results == null -> item { QuietProgress() }
@@ -218,5 +226,7 @@ private fun captureSourceWord(source: String) = when (source) {
     CaptureSource.SHARED_LINK.name -> Words.CaptureSharedLink
     CaptureSource.SHARED_TEXT.name -> Words.CaptureSharedText
     CaptureSource.WIDGET.name -> Words.CaptureWidgetNote
+    CaptureSource.SCREENSHOT_TEXT.name -> Words.MediaScreenshotSource
+    CaptureSource.VOICE_TRANSCRIPT.name -> Words.MediaVoiceSource
     else -> Words.Notes
 }

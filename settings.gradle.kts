@@ -14,7 +14,18 @@ pluginManagement {
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories { google(); mavenCentral() }
+    repositories {
+        google()
+        mavenCentral()
+        exclusiveContent {
+            forRepository {
+                maven("https://jitpack.io") { name = "TesseractAndroidRelease" }
+            }
+            filter {
+                includeModule("cz.adaptech.tesseract4android", "tesseract4android")
+            }
+        }
+    }
 }
 rootProject.name = "SignalGrove"
 include(":app")

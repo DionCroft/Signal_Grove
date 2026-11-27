@@ -184,6 +184,20 @@ approvals and completed runs for that connection. Open a row to see the
 conversation. Refresh rechecks the status of known runs. Each saved
 receipt shows when it was confirmed if the app has a timestamp.
 
+## Offline screenshot and voice capture (development)
+
+In **Quick Capture**, choose **Read a screenshot** or **Record a voice note**.
+Use **Get the language pack** while connected, then **Import language pack**
+to choose the named English file. Signal Grove verifies its length and
+SHA-256 before installing it. Screenshot and voice each have their own pack.
+
+Choose an image through Android's picker or grant microphone access when
+starting a recording of up to 20 seconds. Choose **Transcribe on this phone**
+after recording. Select **Edit and review text**, make your corrections and
+save the note to the inbox. Recognition runs locally after setup. Use
+**Discard recording** to clear the unsaved audio. Leaving during capture
+discards the app's temporary input.
+
 ## Voice, notices and widget
 
 Voice is foreground only. On-device-only recognition is the default; it requires Android 12+ and an available local recognizer/model. If unavailable, the app explains this. You may explicitly disable local-only mode to use the system service, which may process audio online. Grant microphone permission only when tapping to speak. Edit the transcription and transfer it to Chat; sending remains a separate action.

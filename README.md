@@ -48,6 +48,15 @@ For an in-place update, install the matching production APK over your existing p
 
 Hermes controls depend on the connected runtime, authentication, and configured capabilities. Workspace browsing also needs an enrolled worker. The [compatibility guide](docs/COMPATIBILITY.md) and [feature matrix](docs/FEATURES.md) explain availability by area.
 
+## Offline workspace development
+
+The offline-workspace branch adds a searchable Quick Capture inbox,
+reviewed task extraction with an on-device model, project notebooks
+with cited answers and reviewed Hermes handoffs, and a Today view.
+It also includes offline screenshot text and short voice-note
+transcription with optional English language packs.
+[User guide](docs/USER_GUIDE.md) · [Validation](docs/VALIDATION.md)
+
 ## Release verification
 
 The beta.16 APK is **76.8 MB**. The exact source passed **1,262 JVM tests**, **1,265 Android 8 cases** and **1,266 Android 17 cases**. The original-key upgrade from beta.15 retained a saved task on Android 17. All five public assets were downloaded anonymously and checksum verified. The beta.15 app found and installed the checksum-verified public update in place on Android 8. [Beta.16 verification](docs/releases/1.1.0-beta.16.md) · [Full validation evidence](docs/VALIDATION.md)
