@@ -4,6 +4,14 @@
 and [execution ledger](docs/AUDIT_EXECUTION_PLAN.md) retain the live
 Pi-to-Windows and wider acceptance work.
 
+## 27 November product and release audit
+
+The offline workspace builds and passed 33 focused checks each on Android
+8 and 17. The hosted release gate is blocked by its test inventory.
+The audit records the Today and offline data-management gaps, latest
+Hermes source comparison, live Pi acceptance and release sequence.
+[Current audit](docs/audits/2026-11-27/REPORT.md).
+
 ## Beta.16 released
 
 Signal Grove 1.1.0-beta.16, code 121, is available as a signed preview.

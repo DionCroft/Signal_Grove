@@ -1,5 +1,14 @@
 # Current development validation — audit follow-up
 
+## 27 November post-workspace audit
+
+The exact development app passed 1,266 JVM tests, both lint variants and
+33 focused tests on each of Android 8 and 17. The hosted full release
+gate stopped at the Qwen test inventory assertion. Both API-level jobs
+were skipped. Stable Hermes v0.23.4 needs semantic review and current
+main inspection is incomplete because required source paths have moved.
+[Current audit and evidence](audits/2026-11-27/REPORT.md).
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and
