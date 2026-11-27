@@ -1,5 +1,20 @@
 # Current development validation — audit follow-up
 
+## Xiaomi Quick Capture setup checkpoint
+
+The Xiaomi accepted an in-place USB debug upgrade of source `e50a927`.
+The candidate used the phone's original debug signer. All 217 non-signature
+APK entries matched the emulator-tested APK by contents, length and
+compression. The app UID and the production APK digest matched before
+and after the update.
+
+Quick Capture's publisher download failed on this phone's current
+connection. Import of the pinned speech ZIP through Xiaomi's file picker
+succeeded. The app wrote the expected SHA-256 marker and installed the
+native speech model. The recording control became available. Android
+still reports microphone permission as denied. The live microphone,
+offline permission recovery and the publisher failure cause remain open.
+
 ## Offline language-pack setup
 
 Quick Capture can download its published language packs directly and
