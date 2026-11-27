@@ -39,6 +39,41 @@ shards' inventories and completed case logs.
 [Hosted Android matrix and attempts](https://github.com/DionCroft/Signal_Grove/actions/runs/45977016045) ·
 [Maven Central endpoints](https://central.sonatype.org/faq/ssl/)
 
+## Android matrix fixture and migration repair
+
+Attempt 2 of the original hosted matrix completed all four device shards
+with failing verdicts. Each shard 0 skipped the prepared capture reopen
+test because it had no prior capture fixture or process restart. Each
+shard 1 hit a stale schema expectation of 11 after Room migrated to 14.
+The raw shard 1 logs also show the share-and-widget setup emitting a
+custom status frame. That frame would fail exact-case verification.
+All four diagnostic archives and their original case logs were verified.
+[Original matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45977016045)
+
+The gate now names eight prepared classes and 19 methods. The standard
+suite still exercises capture intake, share and widget saves. It requires
+the prepared state of Android 17's local-network permission test to be
+denied at entry. The migration test checks the exported current version
+and Room identity on migration and reopen, preserving the original
+receipt and task assertions. Setup now supplies the capture UUID through
+the completed instrumentation result bundle, and the case verifier still
+rejects an extra status frame. All 67 focused policy checks passed.
+[Android instrumentation result API](https://developer.android.com/reference/android/app/Instrumentation#addResults(android.os.Bundle))
+
+On source b106524, the verified local APK pair had standard inventories
+of 1,271 cases on Android 8 and 1,272 on Android 17. The original failing
+migration check and the three share-and-widget cases passed on both.
+Android 17 also passed the permission denial and explicit grant check.
+The prepared restart case then passed on both after the test scrolled to
+each saved capture's exact list key. Its first Android 8 attempt had passed
+the database assertions and timed out waiting for a visible row. The
+corrected case reused each device's original three captures after
+a verified process stop. The exact updated build passed all 1,266 JVM
+tests, both lint variants and both debug APK builds. The full hosted
+standard run is on b106524. The later scrolling change is confined to
+the separately prepared test class.
+[Corrected hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/45988253849)
+
 ## Hermes main source inspection follow-up
 
 The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d

@@ -1,6 +1,8 @@
 package org.hermesmobile.app
 
 import android.content.Intent
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
@@ -32,12 +34,20 @@ class PhoneCaptureRestartTest {
         val rows = runBlocking { app.database.phoneCaptures().search(fixture).first() }
         assertEquals(expected, rows.associate { it.source to it.preview })
         instrumentation.runOnMainSync { app.startActivity(LocalAiActivity.captureIntent(app).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        val list = compose.onNodeWithTag("capture-list")
+        val search = compose.onNodeWithTag("capture-search")
         for (row in rows) {
-            compose.onNodeWithTag("capture-search").performTextReplacement(fixture)
-            compose.onNodeWithTag("capture-search").performImeAction()
-            compose.waitUntil(15_000) { compose.onAllNodes(hasTestTag("capture-open-" + rows.first().id)).fetchSemanticsNodes().size == 1 }
-            compose.onNodeWithTag("capture-list").performScrollToNode(hasTestTag("capture-open-" + row.id))
-            compose.onNodeWithTag("capture-open-" + row.id).performClick()
+            list.performScrollToIndex(0)
+            search.performTextReplacement(fixture)
+            search.assertTextContains(fixture)
+            search.performImeAction()
+            compose.waitUntil(15_000) {
+                val indexForKey = compose.onAllNodesWithTag("capture-list").fetchSemanticsNodes()
+                    .singleOrNull()?.config?.getOrNull(SemanticsProperties.IndexForKey)
+                (indexForKey?.invoke(row.id) ?: -1) >= 0
+            }
+            list.performScrollToKey(row.id)
+            compose.onNodeWithTag("capture-open-" + row.id).assertIsDisplayed().performClick()
             compose.waitUntil(15_000) { compose.onAllNodesWithTag("capture-content").fetchSemanticsNodes().size == 1 }
             compose.onNodeWithTag("capture-content").assertTextEquals(expected.getValue(row.source))
             compose.onNodeWithTag("capture-back-to-inbox").performClick()
