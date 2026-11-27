@@ -13,6 +13,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -25,6 +27,7 @@ data class PhoneDocumentActions(
     val cancelIndex: () -> Unit,
     val remove: (PhoneDocument) -> Unit,
     val review: (List<String>, String) -> Unit,
+    val selectSource: (PhoneDocumentReview, Int, Boolean) -> Unit,
     val answer: (PhoneDocumentReview) -> Unit,
     val clearReview: () -> Unit,
     val saveToNotebook: ((PhoneDocumentAnswer) -> Unit)? = null
@@ -49,7 +52,7 @@ internal fun PhoneDocuments(
     val showLibrary = !pending && removing == null && review == null && answer == null
     val trimmedQuestion = question.trim()
     val canReview = idle && PhoneDocumentQuestions.validQuestion(trimmedQuestion)
-    LaunchedEffect(pending, removing, review, answer?.review) { bodyScroll.scrollTo(0) }
+    LaunchedEffect(pending, removing, review?.question, review?.candidates, answer?.review) { bodyScroll.scrollTo(0) }
     LaunchedEffect(state.documents) { scope = scope.intersect(state.documents.map { it.id }.toSet()) }
     Dialog(onDismissRequest = { if (idle) close() },
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
@@ -88,7 +91,14 @@ internal fun PhoneDocuments(
                                     color = MaterialTheme.colorScheme.error)
                                 if (measured.matchedCount > review.sources.size) Text(label(Words.PhoneDocumentBudgetNarrowed))
                             }
-                            DocumentSources(review)
+                            if (review.sources.isEmpty()) {
+                                Text(label(Words.PhoneDocumentChooseExcerpt), Modifier.testTag("phone-document-empty-selection"))
+                            } else if (state.loaded != null && context == null) {
+                                Text(label(Words.PhoneContextUnmeasured), style = MaterialTheme.typography.bodySmall)
+                            }
+                            DocumentSources(review, enabled = idle) { index, include ->
+                                actions.selectSource(review, index, include)
+                            }
                             if (state.loaded == null) Text(label(Words.PhoneNotLoaded))
                             else Text(label(Words.PhoneLoaded).replace("{model}", state.loaded.metadata.name))
                         }
@@ -176,7 +186,9 @@ internal fun PhoneDocuments(
                     }
                     review != null -> {
                         Button({ actions.answer(review) }, Modifier.fillMaxWidth().testTag("phone-document-answer-confirm"),
-                            enabled = state.loaded != null && context?.budget?.fits != false) { Text(label(Words.PhoneDocumentAsk)) }
+                            enabled = review.sources.isNotEmpty() && state.loaded != null && context?.budget?.fits != false) {
+                            Text(label(Words.PhoneDocumentAsk))
+                        }
                         TextButton(actions.clearReview, Modifier.fillMaxWidth()) { Text(label(Words.Cancel)) }
                     }
                     answer != null -> TextButton(actions.clearReview, Modifier.fillMaxWidth()) { Text(label(Words.PhoneDocuments)) }
@@ -205,15 +217,33 @@ internal fun PhoneDocuments(
 }
 
 @Composable
-private fun DocumentSources(review: PhoneDocumentReview) {
-    review.sources.forEachIndexed { index, source ->
+private fun DocumentSources(
+    review: PhoneDocumentReview, enabled: Boolean = true, select: ((Int, Boolean) -> Unit)? = null
+) {
+    val displayed = if (select == null) review.sources else review.candidates
+    displayed.forEachIndexed { index, source ->
+        val citation = review.sources.indexOf(source)
+        val prefix = if (citation >= 0) "[S${citation + 1}] " else ""
         val range = source.page?.let { label(Words.PhoneDocumentPage).replace("{page}", it.toString()) }
             ?: label(Words.PhoneDocumentLines).replace("{first}", source.firstLine.toString())
                 .replace("{last}", source.lastLine.toString())
         HermesCard {
-            Text("[S${index + 1}] ${source.document.name} · $range",
-                Modifier.testTag("phone-document-citation-$index"), style = MaterialTheme.typography.titleSmall)
-            SelectionContainer { Text(source.text, Modifier.testTag("phone-document-source-$index")) }
+            val heading = "$prefix${source.document.name} · $range"
+            Text(heading, if (citation >= 0) Modifier.testTag("phone-document-citation-$citation") else Modifier,
+                style = MaterialTheme.typography.titleSmall)
+            if (select != null) {
+                val included = citation >= 0
+                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(included, enabled = enabled,
+                    role = Role.Checkbox, onValueChange = { select(index, it) })
+                    .semantics { contentDescription = heading }
+                    .testTag("phone-document-excerpt-choice-$index"), verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(included, onCheckedChange = null, enabled = enabled)
+                    Text(label(Words.PhoneDocumentIncludeExcerpt), Modifier.padding(start = 8.dp))
+                }
+            }
+            SelectionContainer {
+                Text(source.text, if (citation >= 0) Modifier.testTag("phone-document-source-$citation") else Modifier)
+            }
         }
     }
 }

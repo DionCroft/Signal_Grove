@@ -164,8 +164,13 @@ provides a link back to the source note.
 In **On-device AI → Phone history**, open **Project notebooks** and create a
 notebook. Open it before using **Add a capture**, **Add a document**, or
 **Add a task**. Search inside the selected notebook to find the sources
-you added. From a completed Phone documents answer, choose **Save answer
-to notebook** and select the notebook. Open a saved answer to review its
+you added. In Phone documents, review the matched excerpts before asking.
+Uncheck any excerpt you want to leave out, or include a different match.
+The token count refreshes for the current selection, and citation labels
+follow the excerpts you keep. Select at least one excerpt to ask.
+
+From a completed answer, choose **Save answer to notebook** and select
+the notebook. Open a saved answer to review its
 cited excerpts and open the indexed source, if its content still matches.
 
 Open a notebook item and tap **Review Hermes handoff** to choose a request

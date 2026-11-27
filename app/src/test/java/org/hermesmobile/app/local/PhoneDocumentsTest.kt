@@ -157,6 +157,19 @@ class PhoneDocumentsTest {
         assertFalse(request.contains("[S2]"))
         assertFalse(request.contains(primary))
 
+        assertEquals(review.sources, fitted.candidates)
+        val both = PhoneDocumentQuestions.selectSource(fitted, 0, true)
+        val overWithUserSelection = PhoneDocumentQuestions.fit(both, "a".repeat(64), settings,
+            allowSmallerSelection = false) { LocalPromptBudget(900, 1024, 256) }
+        assertEquals(review.sources, overWithUserSelection.sources)
+        assertFalse(checkNotNull(overWithUserSelection.context).budget.fits)
+        val empty = PhoneDocumentQuestions.selectSource(fitted, 1, false)
+        assertTrue(empty.sources.isEmpty())
+        assertNull(empty.context)
+        assertSame(empty, PhoneDocumentQuestions.fit(empty, "a".repeat(64), settings) {
+            error("An empty selection must not be submitted to the tokenizer")
+        })
+
         val over = PhoneDocumentQuestions.fit(review, "b".repeat(64), settings) { LocalPromptBudget(900, 1024, 256) }
         assertEquals(review.sources, over.sources)
         assertFalse(checkNotNull(over.context).budget.fits)

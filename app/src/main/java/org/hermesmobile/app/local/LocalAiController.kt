@@ -320,17 +320,33 @@ class LocalAiController(private val modelRoot: File, historyRoot: File, private 
             val check = { context.ensureActive() }
             PhoneDocumentQuestions.review(question, documents.selected(ids, check), check)
         } ?: throw LocalModelStorageException("document_no_matches")
-        val loaded = mutable.value.loaded
-        val checked = if (loaded == null) review else {
-            val settings = generationSettings()
-            val request = documentGenerationSettings(settings)
-            PhoneDocumentQuestions.fit(review, loaded.sha256, settings) { messages -> measurePrompt(messages, request) }
-        }
+        val checked = measureDocumentReview(review, allowSmallerSelection = true)
+        currentCoroutineContext().ensureActive()
         mutable.update { it.copy(documentReview = checked) }
     }
 
-    fun answerDocumentQuestion(review: PhoneDocumentReview) = action("answering_document") {
+    fun selectDocumentSource(review: PhoneDocumentReview, index: Int, include: Boolean) = action("reading") {
         if (mutable.value.documentReview !== review) return@action
+        val selected = PhoneDocumentQuestions.selectSource(review, index, include)
+        if (selected === review) return@action
+        val checked = measureDocumentReview(selected, allowSmallerSelection = false)
+        currentCoroutineContext().ensureActive()
+        mutable.update { if (it.documentReview === review) it.copy(documentReview = checked) else it }
+    }
+
+    private suspend fun measureDocumentReview(
+        review: PhoneDocumentReview, allowSmallerSelection: Boolean
+    ): PhoneDocumentReview {
+        val loaded = mutable.value.loaded ?: return review
+        val settings = generationSettings()
+        val request = documentGenerationSettings(settings)
+        return PhoneDocumentQuestions.fit(review, loaded.sha256, settings, allowSmallerSelection) { messages ->
+            measurePrompt(messages, request)
+        }
+    }
+
+    fun answerDocumentQuestion(review: PhoneDocumentReview) = action("answering_document") {
+        if (mutable.value.documentReview !== review || review.sources.isEmpty()) return@action
         if (mutable.value.loaded == null) throw LocalEngineException(4)
         val referenced = review.sources.map { it.document }.distinct()
         val current = io {

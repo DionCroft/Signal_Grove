@@ -487,6 +487,74 @@ class LocalAiControllerTest {
         assertArrayEquals(original, file.readBytes())
     }
 
+    @Test fun changingDocumentSourcesRemeasuresThePromptAndRejectsInvalidReviews() = runTest {
+        val models = temp.newFolder()
+        val history = temp.newFolder()
+        val model = model(models)
+        val engine = Engine().apply { promptTokens = 200 }
+        val c = controller(models, history, engine, UpdateWorkGuard(), StandardTestDispatcher(testScheduler))
+        advanceUntilIdle()
+        c.load(model)
+        advanceUntilIdle()
+        c.indexDocument(null, { "Hours.md" }, {}) { "The museum closes at five.".byteInputStream() }
+        advanceUntilIdle()
+        c.indexDocument(null, { "Access.md" }, {}) { "The museum entrance has a ramp.".byteInputStream() }
+        advanceUntilIdle()
+        c.reviewDocumentQuestion(c.state.value.documents.map { it.id }, "Museum closes entrance?")
+        advanceUntilIdle()
+        val both = checkNotNull(c.state.value.documentReview)
+        assertEquals(2, both.sources.size)
+        val excluded = both.sources.first()
+        val included = both.sources.last()
+
+        engine.promptTokens = 145
+        c.selectDocumentSource(both, 0, false)
+        advanceUntilIdle()
+        val one = checkNotNull(c.state.value.documentReview)
+        assertEquals(listOf(included), one.sources)
+        assertEquals(both.sources, one.candidates)
+        assertEquals(145, one.context?.budget?.promptTokens)
+        assertEquals(PhoneDocumentQuestions.messages(one), engine.measured.last())
+        assertFalse(engine.measured.last().last().text.contains(excluded.text))
+        c.answerDocumentQuestion(both)
+        advanceUntilIdle()
+        assertTrue(engine.requests.isEmpty())
+
+        c.selectDocumentSource(one, 1, false)
+        advanceUntilIdle()
+        val empty = checkNotNull(c.state.value.documentReview)
+        assertTrue(empty.sources.isEmpty())
+        assertNull(empty.context)
+        c.answerDocumentQuestion(empty)
+        advanceUntilIdle()
+        assertTrue(engine.requests.isEmpty())
+
+        c.selectDocumentSource(empty, 1, true)
+        advanceUntilIdle()
+        val restored = checkNotNull(c.state.value.documentReview)
+        engine.promptTokens = 4096
+        c.selectDocumentSource(restored, 0, true)
+        advanceUntilIdle()
+        val over = checkNotNull(c.state.value.documentReview)
+        assertEquals(both.sources, over.sources)
+        assertFalse(checkNotNull(over.context).budget.fits)
+        c.answerDocumentQuestion(over)
+        advanceUntilIdle()
+        assertTrue(engine.requests.isEmpty())
+        assertEquals("engine_2", c.state.value.error)
+
+        engine.promptTokens = 145
+        c.selectDocumentSource(over, 0, false)
+        advanceUntilIdle()
+        val reviewed = checkNotNull(c.state.value.documentReview)
+        engine.reply = "Reviewed excerpt [S1]."
+        c.answerDocumentQuestion(reviewed)
+        advanceUntilIdle()
+        assertEquals(PhoneDocumentQuestions.messages(reviewed), engine.requests.single())
+        assertEquals(listOf(included), c.state.value.documentAnswer?.review?.sources)
+        assertFalse(engine.requests.single().last().text.contains("[S2]"))
+    }
+
     @Test fun documentAnswerRequiresTheCurrentReviewedSourcesAndLeavesChatUntouched() = runTest {
         val models = temp.newFolder()
         val history = temp.newFolder()

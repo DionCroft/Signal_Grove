@@ -396,6 +396,24 @@ beta.13 hash. Establishing beta.16 on the phone and exercising the final
 candidate update and data retention remain release gates.
 [Published beta.16 artifacts](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.16).
 
+## Reviewed document excerpt selection
+
+The document review lets users include or exclude each matched excerpt.
+The app recounts the selected prompt with the loaded tokenizer and updates
+citation labels to match the current inclusions. An empty selection
+disables Ask. Explicit selections that exceed the budget stay visible
+for editing. Generation verifies the current review, source files and
+prompt limit before sending only the selected excerpts to the phone model.
+LFM3 retains its 4,096-token production context.
+
+All 1,279 JVM cases and both lint variants passed. The new controller
+case verifies remeasurement, stale and empty review refusal, an
+over-budget attempt and a one-source prompt. The same verified debug
+APK pair passed the focused document review case on Android 8 and 17,
+including the native keyboard, alternate selection, citation rebinding
+and recovery from an over-budget selection. The device fixture
+simulated token counts and the model reply.
+
 ## On-device document context
 
 Source matching prefers complementary terms and skips exact

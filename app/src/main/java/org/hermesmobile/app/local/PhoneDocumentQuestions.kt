@@ -11,7 +11,8 @@ data class PhoneDocumentSource(
 class PhoneDocumentReview internal constructor(
     val question: String,
     val sources: List<PhoneDocumentSource>,
-    internal val context: PhoneDocumentContext? = null
+    internal val context: PhoneDocumentContext? = null,
+    internal val candidates: List<PhoneDocumentSource> = sources
 )
 
 internal data class PhoneDocumentContext(
@@ -63,26 +64,36 @@ internal object PhoneDocumentQuestions {
         return PhoneDocumentReview(question, listOfNotNull(first.source, next?.source))
     }
 
-    /** Measure the exact reviewed prompt before choosing any smaller alternative. */
+    fun selectSource(review: PhoneDocumentReview, index: Int, include: Boolean): PhoneDocumentReview {
+        val candidate = review.candidates.getOrNull(index) ?: return review
+        if ((candidate in review.sources) == include) return review
+        val selected = review.candidates.filter { if (it == candidate) include else it in review.sources }
+        return PhoneDocumentReview(review.question, selected, candidates = review.candidates)
+    }
+
+    /** The initial recommendation may narrow to one fitting excerpt. Manual choices stay intact. */
     suspend fun fit(
         reviewed: PhoneDocumentReview, modelSha256: String, settings: LocalGenerationSettings,
+        allowSmallerSelection: Boolean = true,
         measure: suspend (List<LocalChatMessage>) -> LocalPromptBudget?
     ): PhoneDocumentReview {
+        if (reviewed.sources.isEmpty()) return reviewed
         val full = measure(messages(reviewed)) ?: return reviewed
         val originalCount = reviewed.sources.size
-        if (!full.fits && originalCount > 1) {
+        if (allowSmallerSelection && !full.fits && originalCount > 1) {
             for (source in reviewed.sources) {
                 val single = PhoneDocumentReview(reviewed.question, listOf(source))
                 val budget = measure(messages(single)) ?: continue
                 if (budget.fits) return PhoneDocumentReview(single.question, single.sources,
-                    PhoneDocumentContext(modelSha256, settings, budget, originalCount))
+                    PhoneDocumentContext(modelSha256, settings, budget, originalCount), reviewed.candidates)
             }
         }
         return PhoneDocumentReview(reviewed.question, reviewed.sources,
-            PhoneDocumentContext(modelSha256, settings, full, originalCount))
+            PhoneDocumentContext(modelSha256, settings, full, originalCount), reviewed.candidates)
     }
 
     fun messages(review: PhoneDocumentReview): List<LocalChatMessage> {
+        require(review.sources.isNotEmpty())
         val body = buildJsonObject {
             put("question", review.question)
             put("excerpts", buildJsonArray {

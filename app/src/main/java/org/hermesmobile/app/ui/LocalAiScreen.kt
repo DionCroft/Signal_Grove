@@ -172,7 +172,8 @@ data class LocalAiActions(val send: () -> Unit, val stop: () -> Unit, val newCha
                 vm.pickDocument(previous)
                 documentPicker.launch(arrayOf("*/*"))
             }, vm::indexSelectedDocument, vm::cancelDocumentImport, c::removeDocument, c::reviewDocumentQuestion,
-                c::answerDocumentQuestion, c::clearDocumentReview, vm::openNotebooks), openWriting = vm::openWriting,
+                c::selectDocumentSource, c::answerDocumentQuestion, c::clearDocumentReview, vm::openNotebooks),
+            openWriting = vm::openWriting,
             openTemporary = vm::openTemporary, openProfiles = vm::openPersonalProfiles,
             openVoice = preferences?.let { vm::openPhoneVoice }, openCapture = { vm.openCapture() },
             openNotebooks = { vm.openNotebooks() }),

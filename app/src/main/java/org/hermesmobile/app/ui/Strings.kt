@@ -573,6 +573,8 @@ enum class Words(val en: String, val zh: String, val pin: String) {
     PhoneDocumentQuestion("Question about these files","有关这些文件的问题","Yǒuguān zhèxiē wénjiàn de wèntí"),
     PhoneDocumentBudgetNarrowed("One excerpt fits the current context. Review it before asking.","当前上下文可容纳一段摘录。提问前请先审阅。","Dāngqián shàngxiàwén kě róngnà yí duàn zhāilù. Tíwèn qián qǐng xiān shěnyuè."),
     PhoneDocumentReview("Review matching excerpts","审核匹配的摘录","Shěnhé pǐpèi de zhāilù"),
+    PhoneDocumentIncludeExcerpt("Include this excerpt","包含此摘录","Bāohán cǐ zhāilù"),
+    PhoneDocumentChooseExcerpt("Choose at least one excerpt.","请至少选择一段摘录。","Qǐng zhìshǎo xuǎnzé yí duàn zhāilù."),
     PhoneDocumentAsk("Ask loaded model","询问已加载的模型","Xúnwèn yǐ jiāzài de móxíng"),
     PhoneDocumentLines("lines {first}–{last}","第 {first}–{last} 行","Dì {first}–{last} háng"),
     PhoneDocumentVerbatimSource("Signal Grove linked this exact quote to its source.","Signal Grove 已将此原文引用关联到来源。","Signal Grove yǐ jiāng cǐ yuánwén yǐnyòng guānlián dào láiyuán."),

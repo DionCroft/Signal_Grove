@@ -268,6 +268,8 @@ class LocalAiFlowTest {
     @Test fun phoneDocumentsReviewExactSourcesBeforeInvokingTheLoadedModel() {
         val document = PhoneDocument("fixture", "Museum.md", "a".repeat(64), 24, 2)
         val source = PhoneDocumentSource(document, 1, 2, "Opening hours.\nCloses at five.")
+        val alternate = PhoneDocumentSource(document, 3, 3, "Entry is on the west side.")
+        val requestedSelections = mutableListOf<Pair<Int, Boolean>>()
         val requests = mutableListOf<PhoneDocumentReview>()
         var sourceReviews = 0
         val settings = LocalGenerationSettings(1024, 1, 256)
@@ -277,7 +279,22 @@ class LocalAiFlowTest {
                 assertEquals(listOf(document.id), ids)
                 assertEquals("When does it close?", question)
                 val measurement = PhoneDocumentContext(model.sha256, settings, LocalPromptBudget(420, 1024, 256), 2)
-                state = state.copy(documentReview = PhoneDocumentReview(question, listOf(source), measurement))
+                state = state.copy(documentReview = PhoneDocumentReview(question, listOf(source), measurement,
+                    candidates = listOf(source, alternate)))
+            }, { current, index, include ->
+                requestedSelections.add(index to include)
+                val changed = PhoneDocumentQuestions.selectSource(current, index, include)
+                val tokens = when (changed.sources) {
+                    listOf(source) -> 420
+                    listOf(alternate) -> 275
+                    listOf(source, alternate) -> 900
+                    else -> null
+                }
+                val context = tokens?.let {
+                    PhoneDocumentContext(model.sha256, settings, LocalPromptBudget(it, 1024, 256), changed.sources.size)
+                }
+                state = state.copy(documentReview = PhoneDocumentReview(changed.question, changed.sources, context,
+                    candidates = changed.candidates))
             }, {
                 requests.add(it)
                 state = state.copy(documentReview = null, documentAnswer = PhoneDocumentAnswer(it, "It closes at five [S1].", LocalReplyState.COMPLETE))
@@ -315,8 +332,31 @@ class LocalAiFlowTest {
             .assertTextContains("420 / 1024 prompt tokens", substring = true)
         compose.onNodeWithTag("phone-document-source-0").performScrollTo().assertIsDisplayed().assertTextEquals(source.text)
         compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("Museum.md", substring = true)
-        compose.onNodeWithTag("phone-document-answer-confirm").assertIsDisplayed()
-        compose.runOnIdle { assertEquals(1, sourceReviews); assertTrue(requests.isEmpty()); assertEquals(0, sends) }
+        val ask = compose.onNodeWithTag("phone-document-answer-confirm")
+        ask.assertIsDisplayed()
+        val preferred = compose.onNodeWithTag("phone-document-excerpt-choice-0")
+        val other = compose.onNodeWithTag("phone-document-excerpt-choice-1")
+        preferred.performScrollTo().assertIsOn().performClick()
+        compose.onNodeWithTag("phone-document-empty-selection").performScrollTo().assertIsDisplayed()
+        ask.assertIsNotEnabled()
+        other.performScrollTo().assertIsOff().performClick()
+        compose.onNodeWithTag("phone-document-budget").performScrollTo()
+            .assertTextContains("275 / 1024 prompt tokens", substring = true)
+        compose.onNodeWithTag("phone-document-source-0").performScrollTo().assertTextEquals(alternate.text)
+        compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("[S1]", substring = true)
+        preferred.performScrollTo().performClick()
+        compose.onNodeWithTag("phone-document-budget").performScrollTo()
+            .assertTextContains("900 / 1024 prompt tokens", substring = true)
+        ask.assertIsNotEnabled()
+        other.performScrollTo().performClick()
+        compose.onNodeWithTag("phone-document-budget").performScrollTo()
+            .assertTextContains("420 / 1024 prompt tokens", substring = true)
+        compose.runOnIdle {
+            assertEquals(listOf(0 to false, 1 to true, 0 to true, 1 to false), requestedSelections)
+            assertEquals(1, sourceReviews)
+            assertTrue(requests.isEmpty())
+            assertEquals(0, sends)
+        }
         compose.onNodeWithTag("phone-document-answer-confirm").performClick()
         compose.onNodeWithTag("phone-document-answer").performScrollTo().assertTextEquals("It closes at five [S1].")
         compose.onNodeWithTag("phone-document-citation-0").performScrollTo().assertTextContains("[S1]", substring = true)
