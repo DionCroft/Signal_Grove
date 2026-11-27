@@ -1,5 +1,36 @@
 # Current development validation — audit follow-up
 
+## Exact Hermes source relocation inspection
+
+The scanner recognizes the ten verified source moves and 21 persistence
+dependencies at Hermes `5ba1456`. The previous scanner stopped at the
+ten missing legacy paths. The revised scanner uses fresh GitHub tree
+identities to check all 249 aliases against 245 distinct UTF-8 Git blobs.
+The existing policy selection passed all 131 cases. The scan still
+requires behavior review for 238 watched handlers and 29 persistence
+sources against the recorded baseline.
+[Exact upstream tree comparison](https://github.com/NousResearch/hermes-agent/compare/9bba163bc1d090852eccc86802eddc454df47d1b...5ba14569d4dd46606b179df4f0b3c6d083b56edf)
+
+## Hosted Android 8 and exact-source receipt recovery
+
+The two Android 8 shards on `5f74e45` passed all 1,271 standard cases.
+Their raw logs form the exact, disjoint inventory using the same
+verified app and test APK digests. The helper topic check recorded one
+successful touchscreen pair. Android 17 on that source and the hosted
+matrix on the newer touchscreen repair had no complete verdict at
+this checkpoint.
+[Earlier hosted matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46025759014) ·
+[Touchscreen repair matrix](https://github.com/DionCroft/Signal_Grove/actions/runs/46030084149)
+
+On the exact local `8b732fe` APK pair, Android 8 and 17 passed 73
+original gateway, profile, scheduler and receipt checks each. The
+fixtures exercised reconnect from a saved cursor, a replay gap, a lost
+workspace acknowledgment, request identity after a profile change,
+and retrieval of the original scheduled occurrence after disconnect.
+They preserve the exact approval scope and reject unintended replay
+or duplicate text. The live Pi-to-Windows run and physical Xiaomi
+checks remain open.
+
 ## Android touchscreen dispatch under load
 
 The prior Android 17 shard retained an exact single-tap failure from a
