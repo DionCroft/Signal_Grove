@@ -414,6 +414,17 @@ including the native keyboard, alternate selection, citation rebinding
 and recovery from an over-budget selection. The device fixture
 simulated token counts and the model reply.
 
+A separate offline API 37 probe exercised the LFM3-1.7B QAD Q4_0
+tokenizer, controller and native library on the exact application built
+from ed417a7561995c428365c2327e3854d7ca476b75. The measured prompt used
+137 tokens with both excerpts, 120 after excluding one, and 137 after
+restoring it. All three measurements kept the 384-token reply reservation
+and the 4,096-token context. The remaining citation became [S1], and the
+probe verified that the excluded text stayed out of the prompt. Airplane
+mode was on and the emulator had no active network. The probe created no
+chat and performed no generation. Physical Xiaomi microphone and offline
+permission recovery are still open.
+
 ## On-device document context
 
 Source matching prefers complementary terms and skips exact
