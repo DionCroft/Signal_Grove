@@ -175,6 +175,15 @@ conversation on that connection. The notebook's **Hermes handoffs** section
 shows the linked status and returned reply. Review a new destination if
 your connection changes.
 
+## Today on Home (development)
+
+Today shows tasks due by the phone's local date, unprocessed captures,
+and the most recently opened project notebook. These are available
+offline. With a saved Hermes connection, Today shows tracked pending
+approvals and completed runs for that connection. Open a row to see the
+conversation. Refresh rechecks the status of known runs. Each saved
+receipt shows when it was confirmed if the app has a timestamp.
+
 ## Voice, notices and widget
 
 Voice is foreground only. On-device-only recognition is the default; it requires Android 12+ and an available local recognizer/model. If unavailable, the app explains this. You may explicitly disable local-only mode to use the system service, which may process audio online. Grant microphone permission only when tapping to speak. Edit the transcription and transfer it to Chat; sending remains a separate action.

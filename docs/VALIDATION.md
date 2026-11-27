@@ -39,6 +39,16 @@ endpoint, and the returned reply linked only to the initiating notebook.
 The network contract uses a synthetic test destination. Direct acceptance
 against a production Hermes connection remains open.
 
+## Today dashboard
+
+The Today chunk passed 1,266 JVM tests, both lint variants and both
+debug APK builds. The date fixture covered a local midnight boundary in
+two time zones. Android 17 showed the local task, inbox count and last
+opened notebook in Airplane mode with Wi-Fi disabled. A separate mock
+Hermes fixture verified refresh, a simulated disconnect, recovery,
+cached timestamps and exclusion of a foreign scope and an older
+approval generation.
+
 ## Published beta.16 release verification
 
 The exact release source passed 1,262 JVM tests, both lint variants, and 1,265 Android 8 and 1,266 Android 17 device cases. Four focused checks also passed on each emulator. [Main workflow](https://github.com/DionCroft/Signal_Grove/actions/runs/45867824534)

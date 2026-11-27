@@ -9,13 +9,11 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.hermesmobile.app.LocalAiActivity
 
 @Composable fun HomeScreen(vm: HermesViewModel, go: (String)->Unit) {
     val allConversations by vm.conversations.collectAsStateWithLifecycle()
@@ -24,7 +22,6 @@ import org.hermesmobile.app.LocalAiActivity
     val jobs by vm.jobs.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val t=LocalHermesTheme.current
-    val context = LocalContext.current
     var modelPicker by remember {mutableStateOf(false)}
     var modelOverview by remember {mutableStateOf(false)}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp).widthIn(max=1100.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
@@ -42,9 +39,7 @@ import org.hermesmobile.app.LocalAiActivity
             }
             }
         }
-        TextButton({ context.startActivity(LocalAiActivity.captureIntent(context)) }, Modifier.testTag("home-capture-open")) {
-            Text(label(Words.CaptureInbox))
-        }
+        TodayOverview(vm, tasks, go)
         HermesCard {
             TextButton({modelOverview=true},Modifier.testTag("home-model-status")) {Text(label(Words.ModelStatus))}
             ModelStatusOverview(vm,compact=true,onOpen={modelOverview=true},onChoose={modelPicker=true})

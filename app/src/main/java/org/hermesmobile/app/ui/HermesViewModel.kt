@@ -38,6 +38,54 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
     internal val taskCaptureSources = graph.database.phoneCaptures().taskSources()
         .map { links -> links.associate { it.taskId to it.captureId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+    private val todayDao = graph.database.today()
+    private val todayTerminal = (RunStates.terminal + "idle").toList()
+    internal val todayUnprocessed = todayDao.unprocessedCaptures()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+    internal val todayNotebook = graph.database.phoneNotebooks().lastOpened()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    internal val todayApprovals = scope.flatMapLatest { partition ->
+        todayDao.pendingApprovals(partition, todayTerminal)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    internal val todayRuns = scope.flatMapLatest(todayDao::completedRuns)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    internal val todayRemoteSnapshot = MutableStateFlow<TodayRemoteSnapshot?>(null)
+    internal val todayRefreshing = MutableStateFlow(false)
+
+    internal fun refreshTodayIfStale() {
+        val cached = todayRemoteSnapshot.value
+        if (cached?.scope != scope.value || System.currentTimeMillis() - cached.endedAt !in 0L..120_000L) {
+            refreshToday()
+        }
+    }
+
+    internal fun refreshToday() {
+        if (todayRefreshing.value || busy.value || controlBusy.value || connecting.value ||
+            connectionStatus.value != "connected" || scope.value == "demo" || capabilities.value?.runs != true) return
+        val operation = context()
+        todayRefreshing.value = true
+        viewModelScope.launch {
+            try {
+                val receipts = todayDao.refreshCandidates(operation.partition, todayTerminal)
+                val confirmed = mutableMapOf<String, Long>()
+                var failed = 0
+                for (receipt in receipts) {
+                    if (!current(operation) || connectionStatus.value != "connected" || busy.value || controlBusy.value) return@launch
+                    val checked = withTimeoutOrNull(4_000) {
+                        reconcile(receipt, operation = operation, reportErrors = false)
+                    }
+                    if (checked != null) confirmed[receipt.runId] = System.currentTimeMillis()
+                    else failed++
+                }
+                if (current(operation)) {
+                    todayRemoteSnapshot.value = TodayRemoteSnapshot(operation.partition, System.currentTimeMillis(), confirmed, failed)
+                }
+            } finally {
+                todayRefreshing.value = false
+            }
+        }
+    }
+
     val connectionStatus=MutableStateFlow("demo")
     val capabilities=MutableStateFlow<HermesCapabilities?>(null)
     val discovery=MutableStateFlow(DiscoveryState())
@@ -709,7 +757,8 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             finally {busy.value=false}
         }
     }
-    private suspend fun reconcile(c: Conversation,resetUnknown: Boolean = false,operation: ConnectionContext=context()): Conversation? {
+    private suspend fun reconcile(c: Conversation, resetUnknown: Boolean = false, operation: ConnectionContext = context(),
+                                  reportErrors: Boolean = true): Conversation? {
         if(c.scope!=operation.partition) return null
         try {
             val j=operation.client.run(c.runId)
@@ -720,7 +769,7 @@ class HermesViewModel(application: Application) : AndroidViewModel(application) 
             if(current(operation) && selected.value==c.key) runStatus.value=fresh.status
             return fresh
         } catch(e: CancellationException) {throw e}
-        catch(e: Exception) {if(current(operation) && selected.value==c.key) error.value=connectionError(e);return null}
+        catch(e: Exception) {if(reportErrors && current(operation) && selected.value==c.key) error.value=connectionError(e);return null}
     }
     fun respondControl(control: PendingControl,response: String) {
         if(controlBusy.value || connecting.value) return

@@ -55,6 +55,11 @@ class LocalAiActivity : ComponentActivity() {
     }
 
     private fun receiveEntry(intent: Intent) {
+        intent.getStringExtra(NOTEBOOK_ID)?.let { id ->
+            model.openNotebooks()
+            model.notebooks.select(id)
+            return
+        }
         if (intent.getBooleanExtra(OPEN_CAPTURE, false)) {
             model.openCapture(intent.getStringExtra(CAPTURE_ID), intent.getBooleanExtra(WIDGET_NOTE, false))
             return
@@ -76,6 +81,12 @@ class LocalAiActivity : ComponentActivity() {
         private const val OPEN_CAPTURE = "open_phone_capture"
         private const val CAPTURE_ID = "open_phone_capture_id"
         private const val WIDGET_NOTE = "open_phone_widget_note"
+
+        private const val NOTEBOOK_ID = "open_phone_notebook_id"
+
+        internal fun notebookIntent(context: Context, id: String) =
+            Intent(context, LocalAiActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(NOTEBOOK_ID, id)
 
         internal fun captureIntent(context: Context, captureId: String? = null, fromWidget: Boolean = false) =
             Intent(context, LocalAiActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
