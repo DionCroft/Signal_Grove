@@ -9,6 +9,25 @@ were skipped. Stable Hermes v0.23.4 needs semantic review and current
 main inspection is incomplete because required source paths have moved.
 [Current audit and evidence](audits/2026-11-27/REPORT.md).
 
+## Hermes main source inspection follow-up
+
+The exact public main pin 1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d
+uses all ten previously mapped source relocations. The public Git trees
+confirm the required replacements and their 21 tracked dependencies.
+Thirty of the 31 selected blobs match the stable v0.23.4 tree. The changed
+gateway persistence file now retains routing records while a platform
+plugin is unregistered and promotes them when the platform appears.
+
+The complete scanner exits 2 for this main pin. It reports zero removed
+used routes, 235 changed watched handlers and 29 changed persistence
+sources against the tracked client baseline. The exact-path addition
+preserves that review requirement. Test whether held routing records
+retain owner, recovery and retirement state across reconnect before
+accepting the new runtime. Stable v0.23.4 has separate hosted pristine and
+candidate gateway lifetime evidence and candidate delegation recovery.
+[Public Hermes main pin](https://github.com/NousResearch/hermes-agent/tree/1d15aad1dfa8e9e5fcbd2082cad5666a0907a07d) ·
+[Stable shutdown evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/45717692260)
+
 ## Quick Capture and reviewed phone tasks
 
 The development chunk passed 1,265 JVM tests, debug and release lint, and
