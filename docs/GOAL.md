@@ -1,6 +1,24 @@
 # Signal Grove goal
 
-## Active scope · 25 November 2026
+## Active scope · 27 November 2026
+
+Execute the Signal Grove follow-up from the 27 November product and release audit. Work in the order below, commit and push tested chunks, and record evidence against each acceptance check.
+
+1. Restore release and compatibility gates. Reconcile the exact Android test inventory, including Qwen task extraction and the prepared OCR, speech and Airplane-mode fixtures. Preserve all assertions. Pass the full hosted Android 8 and 17 matrix. Review the current stable Hermes and upstream main contracts, including moved source modules, admission, history, approvals, scheduler receipts and shutdown recovery. Exercise reconnect and recovery without duplicate execution.
+
+2. Make Today a reliable Hermes action inbox. Discover pending approvals for the active authenticated profile, including ones started on another client. Route every item to its exact connection, profile, session, run and request as applicable. Explain cached, unsupported and busy states. Verify older-run links, profile switches and disconnect/reconnect. Accept or deny only the reviewed request.
+
+3. Give users control of offline workspace data. Add capture editing, archiving and deletion, notebook rename and deletion, and reviewed encrypted export and restore for selected workspace data. Preserve or explain the impact on task links and citations. Verify offline use, process restart, cancelled operations, wrong passphrases and ID conflicts. Improve prompt budgeting and source selection while keeping LFM3 at the verified 4K production limit. Check the real Xiaomi microphone workflow and offline permission recovery.
+
+4. Prove the live Pi-to-Windows workflow. From Signal Grove, continue a shared Hermes conversation, attach an authorized workspace, and verify the exact worker and checkout. Verify Allow once and Deny against their expected outcomes. Execute one approved scheduled occurrence, disconnect and recover the original receipt without replay. Verify that a live notebook handoff sends the reviewed excerpts and links the reply to its notebook. Keep production changes inside the existing approval boundaries.
+
+5. Extend the verified workflows. Provide scoped scheduler results and bounded logs with timezone and catch-up checks. Verify a real Kanban transition and override, room paging and scoped delivery, and representative MCP and messaging integrations. Check exact notification routing, denied permissions, reboot and battery behavior. Test the affected flows with TalkBack, 200% text, compact widths, keyboard and reduced motion.
+
+6. Qualify the next GitHub release. Run the complete exact-source Android matrix, review dependencies and permissions, and build with the original package and signing identity. Verify the Xiaomi upgrade from beta.16 retains its connection, history, tasks and existing offline data. Verify updater discovery and installation. Prepare the signed APK, checksums, SBOM, release notes and validation evidence.
+
+Keep the authoritative source on N: and all temporary work, builds, models and emulator data on E:. Keep screenshot OCR and short voice transcription with their dedicated offline engines. Conclude with an audit of verified outcomes and explicit remaining blockers.
+
+## Archived scope · 25 November 2026
 
 Complete these three milestones, then stop implementation for an audit with the owner.
 

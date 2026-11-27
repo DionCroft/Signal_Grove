@@ -1,8 +1,9 @@
 # Signal Grove project state
 
-26 November 2026. Beta.16 brings the launcher logo to the wide rail and credits the developer in About. The [audit goal](docs/GOAL.md#active-scope--25-november-2026)
-and [execution ledger](docs/AUDIT_EXECUTION_PLAN.md) retain the live
-Pi-to-Windows and wider acceptance work.
+The active six-stage goal follows the 27 November product and release audit.
+Beta.16 is the starting point for the next signed Xiaomi upgrade.
+[Current goal](docs/GOAL.md#active-scope--27-november-2026) ·
+[Execution ledger](docs/AUDIT_EXECUTION_PLAN.md).
 
 ## 27 November product and release audit
 
