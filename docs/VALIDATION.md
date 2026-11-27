@@ -1,5 +1,35 @@
 # Current development validation — audit follow-up
 
+## Android touchscreen dispatch under load
+
+The prior Android 17 shard retained an exact single-tap failure from a
+workspace review. The window and touch coordinates were valid. Espresso's
+synchronous DOWN took 857 ms in an environment with a 400 ms long-press
+threshold, and the suite correctly rejected the resulting WARNING.
+[Hosted Android 17 evidence](https://github.com/DionCroft/Signal_Grove/actions/runs/46013599559/job/140569916437).
+
+The instrumentation helper now queues touchscreen DOWN and UP using
+UiAutomation before Espresso waits for the UI. It retains the focus,
+coordinates, one-attempt and tap-result assertions. An initial trial
+without the explicit touchscreen source reported accepted events while
+some actual controls stayed unchanged. The corrected trial checked the
+existing UI effects in addition to the input receipts.
+
+The exact build produced both debug APKs and passed 1,266 JVM tests and both lint
+variants with zero errors. All 39 helper, backup and single-tap contract
+cases passed on each Android version. Both workspace review cases passed
+on each version, including the late keyboard check. Android 8 also passed
+the compact 720 by 1280 helper check. Across the five additional UI
+classes, Android 8 passed 74 cases with 25 native taps and
+Android 17 passed 74 with 25. The longest recorded holds
+were 44 ms and 80 ms respectively.
+
+The local app SHA-256 is `0054afaf6f329f0de657da4c029739643a7afaafd9ddc25036ea739c73c25638`.
+The local test SHA-256 is `95fe38a480ddb0dee7cb9e7985fcc2624c2edd321cc5cb54837ad3f46eeb5115`.
+
+The change is confined to Android test input. The full hosted matrix on
+this exact source and the physical release checks remain open.
+
 ## 27 November post-workspace audit
 
 The exact development app passed 1,266 JVM tests, both lint variants and

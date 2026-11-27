@@ -100,8 +100,16 @@ internal fun dispatchOneDialogTap(controller:UiController,view:View,x:Float,y:Fl
     require(x.isFinite() && y.isFinite() && UUID.fromString(id).toString()==id)
     val screen=IntArray(2);val window=IntArray(2);view.getLocationOnScreen(screen);view.getLocationInWindow(window)
     val point=floatArrayOf(x+screen[0]-window[0],y+screen[1]-window[1])
+    val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+    val enqueue = object : UiController by controller {
+        override fun injectMotionEvent(event: MotionEvent): Boolean {
+            event.source = android.view.InputDevice.SOURCE_TOUCHSCREEN
+            return automation.injectInputEvent(event, false)
+        }
+    }
     val attempt=SingleNativeTapAttempt(point,Press.FINGER.describePrecision());val before=nativeTapWindow(view);var primary:Throwable?=null
-    try {attempt.send(controller);attempt.requireSuccess();controller.loopMainThreadUntilIdle()}
+    // Queue touchscreen input before Espresso waits for the app to become idle.
+    try {attempt.send(enqueue);attempt.requireSuccess();controller.loopMainThreadUntilIdle()}
     catch(error:Throwable) {primary=error;throw error}
     finally {
         try {writeNativeTapDiagnostic("native-dialog-tap-$id",buildJsonObject {
