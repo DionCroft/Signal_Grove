@@ -496,6 +496,32 @@ and three canonical wire cases in an isolated runtime. The Android UI
 and transport cases used controlled server fixtures. The live
 Pi-to-Windows approvals and scheduled-run receipt check remain open.
 
+## Today approvals against native Hermes
+
+The real Android UI passed an isolated cross-client approval test on
+Android 8 with Hermes stable v0.23.4 and Android 17 with upstream
+646c982. Both used the same app contents at 1719943. All 217
+non-signature APK entries matched the previously verified build.
+A disposable signer and a separate companion supported the test.
+Dashboard sign-in and tool waiters were synthetic. Native Hermes
+handled inventory, pending approvals, session attachment, replay
+and both decisions.
+
+Today discovered two approvals from a separate native transport.
+The review showed the selected request ID and execution generation.
+Allow once settled the selected request. The app showed the remaining
+request read-only during a simulated connection loss. After reconnect,
+Deny settled that request. Each native trace contains exactly two
+decision calls and zero new admissions. An unrelated profile with the
+same session ID kept its approval pending.
+
+The first fixture attempt accessed a test URL from the UI thread.
+The Android 8 fixture also needed to scroll the lazy viewer list.
+Both earlier receipts confirm zero decision calls. The corrected
+fixtures kept the review, request identity and outcome assertions.
+The isolated overlays and loopback relays were closed after the tests.
+Live phone-to-Pi authorization and actual worker effects remain open.
+
 ## Today saved run receipts
 
 Today opens an older completed run’s own saved activity. The reader
