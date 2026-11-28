@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.17/hermes-agent-mobile-1.1.0-beta.17.apk"><strong>Download beta.17 preview APK</strong></a>
+  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.18/hermes-agent-mobile-1.1.0-beta.18.apk"><strong>Download beta.18 preview APK</strong></a>
   · <a href="https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0">Stable release</a>
   · <a href="docs/SETUP_GUIDE.md">Setup guide</a>
 </p>
@@ -26,7 +26,7 @@ Signal Grove runs on **Android 8.0 and later**. It is an independent community a
 
 | Channel | Version | Download |
 | --- | --- | --- |
-| **Preview** | **1.1.0-beta.17**, version code 122 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.17/hermes-agent-mobile-1.1.0-beta.17.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.17) |
+| **Preview** | **1.1.0-beta.18**, version code 123 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.18/hermes-agent-mobile-1.1.0-beta.18.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.18) |
 | **Stable** | **1.0.0** | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.0.0/hermes-agent-mobile-1.0.0.apk) · [Release notes and assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
 
 For an in-place update, install the matching production APK over your existing production installation. Matching the package and signing key preserves its data. Preview builds with the updater can check **Settings → App updates**. Enable **Include preview releases** to find betas, review the download, and confirm the installation in Android. [Update and migration guide](docs/APP_UPDATES.md)
@@ -47,6 +47,14 @@ For an in-place update, install the matching production APK over your existing p
 | **Make it yours** | Watch Home follow the local clock and calendar. Choose optional town weather or use offline scenery. Set Moonlit Grove, Midnight Observatory or Amber Terminal in **Settings → Make it yours → Dark themes**. Built-in tasks, a widget, scalable text and reduced motion are available. Dictation and read-aloud use Android’s installed speech services. |
 
 Hermes controls depend on the connected runtime, authentication, and configured capabilities. Workspace browsing also needs an enrolled worker. The [compatibility guide](docs/COMPATIBILITY.md) and [feature matrix](docs/FEATURES.md) explain availability by area.
+
+## New in beta.18 · Kokoro offline voices
+
+On compatible ARM64 phones, **Voice → Read aloud** offers an optional
+147 MB Kokoro v1.1 voice pack. After installation, select **Kokoro
+offline** to preview two English and two Mandarin voices, adjust speed,
+and read completed Hermes or Phone Chat replies offline.
+[Release details](docs/releases/1.1.0-beta.18.md)
 
 ## New in beta.17 · Offline workspace and Today
 

@@ -1,11 +1,14 @@
 # Signal Grove project state
 
-Beta.17 is the public preview. The original-key Xiaomi upgraded from beta.16
+Beta.18 is the public preview. The stock beta.17 updater can discover it
+and offer the signed APK. [Beta.18 release](docs/releases/1.1.0-beta.18.md).
+
+ The original-key Xiaomi upgraded from beta.16
 and reconnected to the saved Hermes server. The physical network-disabled
 test also ran Kokoro v1.1 alongside LFM3 at its 4,096-token context and verified
-separate LFM3-Audio-2B speech and transcription. The next preview integrates
-Kokoro v1.1 in Read aloud for Hermes and Phone Chat on ARM64. The next signed
-release and the remaining live audit checks are open.
+separate LFM3-Audio-2B speech and transcription. Beta.18 integrates
+Kokoro v1.1 in Read aloud for Hermes and Phone Chat on ARM64. Physical
+in-app voice acceptance and the remaining live audit checks are open.
 [Beta.17 release](docs/releases/1.1.0-beta.17.md) ·
 [Phone voice evidence](docs/VALIDATION.md#offline-kokoro-and-lfm3-audio-on-xiaomi).
 
