@@ -23,6 +23,15 @@ prior physical offline trial separately verifies real network isolation
 and LFM3 coexistence.
 [Physical offline measurements](#offline-kokoro-and-lfm3-audio-on-xiaomi).
 
+The ten existing voice UI regressions passed on the Android 17 emulator.
+The Android 8 emulator checks remain open after test fixture startup and
+installation problems.
+The Xiaomi test runner stalled before verifying the publisher download
+and preview through the UI. The original test companion was restored and
+its APK checksum matched the backup. The production package remained on
+beta.17. Complete the physical in-app flow and signed release checks
+before promoting beta.18.
+
 ## Offline Kokoro and LFM3 Audio on Xiaomi
 
 The physical ARM64 Xiaomi (Android 17) ran the verified Kokoro v1.1 INT8
