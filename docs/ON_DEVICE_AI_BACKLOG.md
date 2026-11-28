@@ -297,6 +297,35 @@ license decision and are not promised by this item. Helper suggestions retain
 reviewed IDs, source/version/freshness and explicit redacted-observation consent;
 freeform model commands never become actions or bypass the deterministic guide.
 
+### Natural on-device read-aloud
+
+**Status: planned after beta.17.** Compare Kokoro v1.1 for English and Mandarin
+with the smaller, English-only KittenTTS Nano 0.8 INT8. Both have published
+Android builds and sample voices through sherpa-onnx. Use the phone's installed
+offline Android voice as the baseline and select a pack only after the listening
+and performance checks. Verify the licence and notices for the exact voice
+pack, model, phonemizer and runtime before distribution.
+[Kokoro samples and Android build](https://k2-fsa.github.io/sherpa/onnx/tts/all/Chinese-English/kokoro-multi-lang-v1_1.html) ·
+[KittenTTS samples and Android build](https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kitten-nano-en-v0_8-int8.html).
+
+1. Audition identical short replies, longer explanations, dates, names and
+   mixed English/Mandarin on the Xiaomi. Record cold and warm time to first
+   audio, generation time relative to audio duration, peak memory, pack size
+   and battery/thermal behaviour. Repeat during LFM3 generation at its 4,096-token
+   limit. Playback should keep up with speech, with acceptable pauses and no
+   stalled local chat. Check compatibility on the Android 8 and 17 targets.
+2. Add an optional downloadable voice pack to Read aloud with voice preview,
+   selection, speed and removal. Verify the download and reuse Signal Grove's
+   existing read-aloud controls. Play completed sentences from the visible reply
+   as they arrive. Keep automatic spoken replies off until the user opts in.
+3. Verify playback in Airplane mode with Wi-Fi off and no active network after
+   the pack is installed. Keep speech generation on-device for both Phone Chat
+   and Hermes replies. Speak only the displayed answer text. Stop on request,
+   screen exit or audio interruptions. Check Bluetooth, calls, screen-reader
+   audio focus, language fallback and low-memory behaviour. Retain the installed
+   offline Android voice as a fallback and preserve the user's online-voice
+   preference. Dictation and Quick Capture transcription keep their own tests.
+
 ## Cross-cutting definition of done
 
 - Preserve local/server identity and history separation, original signing/package
