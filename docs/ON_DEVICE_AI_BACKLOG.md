@@ -299,13 +299,14 @@ freeform model commands never become actions or bypass the deterministic guide.
 
 ### Natural on-device read-aloud
 
-**Status: Kokoro phone feasibility passed.** The offline Xiaomi trial held
-LFM3 at 4,096 tokens while Kokoro generated English and Mandarin. See the
-[trial results](VALIDATION.md#offline-kokoro-and-lfm3-audio-on-xiaomi).
-**Kokoro v1.1 is the selected integration candidate.** Use the phone's
-installed offline Android voice as the listening baseline. Verify the
-licence and notices for the exact Kokoro voice pack, model, phonemizer
-and runtime before distribution.
+**Status: Kokoro v1.1 is integrated for the next preview.** Read aloud
+offers a verified optional download on ARM64, two English and two Mandarin
+voices, voice preview, speed and removal. The offline Xiaomi trial held
+LFM3 at 4,096 tokens while Kokoro generated English and Mandarin. The
+[app integration checks](VALIDATION.md#kokoro-v11-read-aloud-integration)
+and [feasibility measurements](VALIDATION.md#offline-kokoro-and-lfm3-audio-on-xiaomi)
+record their individual scopes. The installed Android voice remains
+available as a listening baseline.
 [Kokoro samples and Android build](https://k2-fsa.github.io/sherpa/onnx/tts/all/Chinese-English/kokoro-multi-lang-v1_1.html).
 
 1. Audition identical short replies, longer explanations, dates, names and
@@ -314,10 +315,9 @@ and runtime before distribution.
    and battery/thermal behaviour. Repeat during LFM3 generation at its 4,096-token
    limit. Playback should keep up with speech, with acceptable pauses and no
    stalled local chat. Check compatibility on the Android 8 and 17 targets.
-2. Add an optional downloadable voice pack to Read aloud with voice preview,
-   selection, speed and removal. Verify the download and reuse Signal Grove's
-   existing read-aloud controls. Play completed sentences from the visible reply
-   as they arrive. Keep automatic spoken replies off until the user opts in.
+2. For an optional conversational mode, play completed sentences from the
+   visible reply as they arrive. Require explicit opt-in for automatic speech.
+   The current manual mode reads the latest completed reply.
 3. Verify playback in Airplane mode with Wi-Fi off and no active network after
    the pack is installed. Keep speech generation on-device for both Phone Chat
    and Hermes replies. Speak only the displayed answer text. Stop on request,

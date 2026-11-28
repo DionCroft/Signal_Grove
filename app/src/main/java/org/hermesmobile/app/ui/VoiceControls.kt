@@ -35,7 +35,8 @@ internal fun RecognitionFailure.word()=when(this) {
     onLanguage:(String)->Unit,onLocalOnly:(Boolean)->Unit,onNetworkVoices:(Boolean)->Unit,onRate:(Float)->Unit,
     onMicrophone:()->Unit,onCancel:()->Unit,onChat:()->Unit,onRead:()->Unit,onRefresh:()->Unit,onPermissions:()->Unit,
     onSpeechSettings:()->Boolean,
-    phoneOnly:Boolean=false, checkingLanguage:Boolean=false, recognitionBlock:Words?=null, draftBlock:Words?=null
+    phoneOnly:Boolean=false, checkingLanguage:Boolean=false, recognitionBlock:Words?=null, draftBlock:Words?=null,
+    useKokoro: Boolean = false, readExtras: @Composable () -> Unit = {}
 ) {
     var speechSettingsUnavailable by remember {mutableStateOf(false)}
     val idle=session.phase==DictationPhase.IDLE
@@ -68,7 +69,7 @@ internal fun RecognitionFailure.word()=when(this) {
                     Button(onRead,Modifier.testTag("voice-read-reply"),enabled=speaking || readBlock==null) {Text(label(if(speaking) Words.StopSpeech else Words.ReadReply))}
                     readBlock?.let {Text(label(it),Modifier.testTag("voice-read-reason"))}
                     readError?.let {Text(label(it),Modifier.testTag("voice-read-error"),color=MaterialTheme.colorScheme.error)}
-                    TextButton({speechSettingsUnavailable=!onSpeechSettings()},Modifier.testTag("voice-speech-settings"),enabled=idle && !speaking) {Text(label(Words.SpeechSettings))}
+                    if (!useKokoro) TextButton({speechSettingsUnavailable=!onSpeechSettings()},Modifier.testTag("voice-speech-settings"),enabled=idle && !speaking) {Text(label(Words.SpeechSettings))}
                     if(readBlock==Words.SpeechEngineUnavailable || readBlock==Words.SpeechVoiceUnavailable || speechSettingsUnavailable) Text(label(Words.SpeechSetupInfo),Modifier.testTag("voice-speech-setup-info"))
                     if(speechSettingsUnavailable) Text(label(Words.SpeechSettingsUnavailable),Modifier.testTag("voice-speech-settings-error"),color=MaterialTheme.colorScheme.error)
                 }
@@ -105,13 +106,14 @@ internal fun RecognitionFailure.word()=when(this) {
                     if(!preferences.onDeviceSpeechOnly) Text(label(Words.VoiceDisclosure),style=MaterialTheme.typography.bodySmall)
                 } else {
 
-                    if(!phoneOnly) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                    if(!phoneOnly && !useKokoro) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                         Text(label(Words.NetworkSpeech),Modifier.weight(1f))
                         Switch(preferences.allowNetworkSpeech,onNetworkVoices,Modifier.testTag("voice-network-voices"),enabled=!speaking)
                     }
                     Text(label(Words.SpeechRate)+" · "+"%.2f×".format(preferences.speechRate))
                     Slider(preferences.speechRate,onRate,valueRange=.75f..1.25f,enabled=!speaking)
-                    if(!phoneOnly) Text(label(Words.SpeechDisclosure),style=MaterialTheme.typography.bodySmall)
+                    if(!phoneOnly && !useKokoro) Text(label(Words.SpeechDisclosure),style=MaterialTheme.typography.bodySmall)
+                    readExtras()
                 }
                 TextButton({speechSettingsUnavailable=false;onRefresh()},Modifier.testTag("voice-refresh"),enabled=idle && !speaking) {Text(label(Words.RefreshSpeech))}
             }

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Install the optional Kokoro v1.1 pack from **Voice → Read aloud** on ARM64
+  devices. Preview two English and two Mandarin voices, adjust speech speed,
+  and read replies aloud offline from Hermes or Phone Chat.
+
 ## 1.1.0-beta.16 - Signal Grove branding
 
 - The wide navigation rail displays the Signal Grove launcher logo.

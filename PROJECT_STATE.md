@@ -3,8 +3,9 @@
 Beta.17 is the public preview. The original-key Xiaomi upgraded from beta.16
 and reconnected to the saved Hermes server. The physical network-disabled
 test also ran Kokoro v1.1 alongside LFM3 at its 4,096-token context and verified
-separate LFM3-Audio-2B speech and transcription. App voice integration and the
-remaining live audit checks are open.
+separate LFM3-Audio-2B speech and transcription. The next preview integrates
+Kokoro v1.1 in Read aloud for Hermes and Phone Chat on ARM64. The next signed
+release and the remaining live audit checks are open.
 [Beta.17 release](docs/releases/1.1.0-beta.17.md) ·
 [Phone voice evidence](docs/VALIDATION.md#offline-kokoro-and-lfm3-audio-on-xiaomi).
 

@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.*
 import org.hermesmobile.app.data.AppPreferences
 import org.hermesmobile.app.voice.*
 import java.util.Locale
@@ -69,6 +70,19 @@ internal fun VoiceSessionPanel(
     var checkingLanguage by remember { mutableStateOf(false) }
     var foreground by remember(owner) { mutableStateOf(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
     val main=remember {Handler(Looper.getMainLooper())}
+    val scope = rememberCoroutineScope()
+    val kokoroAvailable = remember { KokoroNative.supported }
+    val pack = remember(context) { KokoroVoicePack(context.applicationContext) }
+    var packInstalled by remember { mutableStateOf(false) }
+    var kokoroJob by remember { mutableStateOf<Job?>(null) }
+    var packJob by remember { mutableStateOf<Job?>(null) }
+    var packMessage by remember { mutableStateOf<Words?>(null) }
+    var packBytes by remember { mutableLongStateOf(0L) }
+    val useKokoro = p.preferKokoro && packInstalled
+    val speaker = KokoroSpeaker.forLanguage(language, if (language == "zh-CN") p.kokoroMandarin else p.kokoroEnglish)
+    LaunchedEffect(kokoroAvailable, readAloud, foreground) {
+        if (kokoroAvailable && readAloud && foreground) packInstalled = pack.isInstalled()
+    }
     val engineNeeded = !phoneOnly || (foreground && readAloud)
     val alive=remember(refreshGeneration, engineNeeded) {AtomicBoolean(true)}
     var ttsStatus by remember(refreshGeneration, engineNeeded) {mutableIntStateOf(0)} // 0 initializing, 1 ready, -1 unavailable
@@ -85,6 +99,7 @@ internal fun VoiceSessionPanel(
     val speechAttributes = remember {
         AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
     }
+    val kokoroPlayer = remember(pack, speechAttributes) { KokoroPlayback(pack, speechAttributes) }
     var audioFocus by remember { mutableStateOf<AudioFocusRequest?>(null) }
     var draftError by remember { mutableStateOf<Words?>(null) }
     val plainReply=remember(reply) {SpeechPolicy.plainText(reply)}
@@ -108,6 +123,9 @@ internal fun VoiceSessionPanel(
         session=session.cancel(clearFailure);permissionRequest=null;grantedPermission=null;release(recognizer)
     }
     fun stopSpeaking() {
+        kokoroJob?.cancel()
+        kokoroJob = null
+        kokoroPlayer.stop()
         utterancePrefix="";lastUtterance="";speaking=false
         runCatching { tts?.stop() }
         val previous = audioFocus
@@ -130,6 +148,52 @@ internal fun VoiceSessionPanel(
         if (manager.requestAudioFocus(request) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return false
         audioFocus = request
         return true
+    }
+    fun playKokoro(message: String) {
+        if (!owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || !useKokoro || speaking || packJob != null) return
+        speechError = null
+        if (!requestFocus()) {
+            speechError = Words.SpeechPlaybackError
+            return
+        }
+        speaking = true
+        kokoroJob = scope.launch {
+            try {
+                kokoroPlayer.speak(message, speaker, p.speechRate, coroutineContext.job)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                speechError = Words.KokoroPlaybackFailed
+                packInstalled = pack.isInstalled()
+            } catch (_: LinkageError) {
+                speechError = Words.KokoroPlaybackFailed
+            } finally {
+                if (kokoroJob === coroutineContext.job) stopSpeaking()
+            }
+        }
+    }
+    fun changePack(remove: Boolean) {
+        if (packJob != null || speaking || !owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+        packMessage = null
+        packBytes = 0
+        packJob = scope.launch {
+            try {
+                if (remove) pack.remove()
+                else pack.install { bytes ->
+                    // Publish percentage steps only, instead of a recomposition for every read.
+                    val percent = bytes * 100 / KokoroVoicePack.DOWNLOAD_BYTES
+                    if (percent != packBytes) packBytes = percent
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                packMessage = if (remove) Words.KokoroRemoveFailed else Words.KokoroDownloadFailed
+            } finally {
+                // An install may have finished immediately before cancellation.
+                packInstalled = withContext(NonCancellable) { pack.isInstalled() }
+                packJob = null
+            }
+        }
     }
     fun refresh(clearFailure:Boolean) {
         val next=availability()
@@ -236,14 +300,18 @@ internal fun VoiceSessionPanel(
         cancelListening(clearFailure=true);session=session.configure(mode,language);speechError=null
     }
     val resume by rememberUpdatedState({refresh(false)})
-    val stop by rememberUpdatedState({cancelListening();stopSpeaking()})
+    val stop by rememberUpdatedState({packJob?.cancel();cancelListening();stopSpeaking()})
+    val stopOnPause by rememberUpdatedState({
+        packJob?.cancel()
+        if (useKokoro || phoneOnly) stopSpeaking()
+    })
     DisposableEffect(owner) {
         val observer=LifecycleEventObserver {_,event->when(event) {
             Lifecycle.Event.ON_RESUME -> { foreground=true;resume() }
-            Lifecycle.Event.ON_PAUSE -> if (phoneOnly) {
+            Lifecycle.Event.ON_PAUSE -> {
                 foreground=false
-                stopSpeaking()
-                if(permissionRequest==null && grantedPermission==null) cancelListening()
+                stopOnPause()
+                if (phoneOnly && permissionRequest==null && grantedPermission==null) cancelListening()
             }
             Lifecycle.Event.ON_STOP -> stop()
             else -> Unit
@@ -261,10 +329,10 @@ internal fun VoiceSessionPanel(
         })
         onDispose {alive.set(false);stopSpeaking();tts?.shutdown()}
     }
-    LaunchedEffect(reply, busy) { if(phoneOnly && speaking) stopSpeaking() }
+    LaunchedEffect(reply, busy) { if((phoneOnly || useKokoro) && speaking) stopSpeaking() }
     val noisy by rememberUpdatedState({ stopSpeaking(); speechError=Words.PhoneSpeechInterrupted })
-    DisposableEffect(phoneOnly, speaking) {
-        if (!phoneOnly || !speaking) onDispose {}
+    DisposableEffect(phoneOnly, useKokoro, speaking) {
+        if ((!phoneOnly && !useKokoro) || !speaking) onDispose {}
         else {
             val receiver=object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
@@ -282,13 +350,15 @@ internal fun VoiceSessionPanel(
         plainReply.isBlank()->Words.NoReadText
         busy->Words.SpeechChatBusy
         session.phase!=DictationPhase.IDLE->Words.SpeechListeningBusy
+        packJob != null && useKokoro -> Words.KokoroPackBusy
+        useKokoro->null
         ttsStatus==0->Words.SpeechStarting
         ttsStatus<0->Words.SpeechEngineUnavailable
         voice==null->Words.SpeechVoiceUnavailable
         else->null
     }
     VoiceControls(
-        preferences=p,readAloud=readAloud,onSection={selected->cancelListening(clearFailure=true);stopSpeaking();speechError=null;readAloud=selected},
+        preferences=p,readAloud=readAloud,onSection={selected->if (!selected) packJob?.cancel();cancelListening(clearFailure=true);stopSpeaking();speechError=null;readAloud=selected},
         session=session,transcript=transcript,onTranscript={
             if (!phoneOnly || it.length <= 8192) { transcript=it;draftError=null }
             else draftError=Words.PhoneVoiceDraftLimit
@@ -307,6 +377,7 @@ internal fun VoiceSessionPanel(
         },
         onRead={
             if(speaking) stopSpeaking()
+            else if(readBlock==null && useKokoro) playKokoro(plainReply)
             else if(readBlock==null && owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) try {
                 check(voice!=null);checkNotNull(tts)
                 if (phoneOnly) {
@@ -336,6 +407,24 @@ internal fun VoiceSessionPanel(
         phoneOnly=phoneOnly, checkingLanguage=checkingLanguage,
         recognitionBlock=if(phoneOnly && Build.VERSION.SDK_INT<33) Words.PhoneDictationNeedsLanguageCheck
             else if(phoneOnly) Words.PhoneDictationServiceMissing else null,
-        draftBlock=draftError ?: phoneDraftBlock?.invoke(transcript)
+        draftBlock=draftError ?: phoneDraftBlock?.invoke(transcript),
+        useKokoro = useKokoro,
+        readExtras = {
+            KokoroReadAloudControls(
+                supported = kokoroAvailable, installed = packInstalled, selected = useKokoro, speaker = speaker,
+                speaking = speaking, changing = packJob != null, progress = packBytes, error = packMessage,
+                onSelect = { onPreferences(preferences.copy(preferKokoro = it));speechError = null },
+                onVoice = {
+                    onPreferences(if (language == "zh-CN") preferences.copy(kokoroMandarin = it.id)
+                        else preferences.copy(kokoroEnglish = it.id))
+                },
+                onDownload = { changePack(remove = false) }, onRemove = { changePack(remove = true) },
+                onCancelDownload = { packJob?.cancel() },
+                onPreview = {
+                    playKokoro(if (speaker.language == "zh-CN") "今天的笔记已经准备好了。我们下午可以再继续。"
+                        else "Your notes are ready. We can continue this afternoon.")
+                }
+            )
+        }
     )
 }

@@ -19,7 +19,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 private val Context.dataStore by preferencesDataStore("preferences")
-data class AppPreferences(val theme: String = "STARHAVEN", val chinese: Boolean = true, val pinyin: Boolean = true, val reducedMotion: Boolean = false, val demo: Boolean = true, val url: String = "", val debugHttp: Boolean = false, val onDeviceSpeechOnly: Boolean = true, val allowNetworkSpeech: Boolean = false, val speechRate: Float = 1f, val notifications: Boolean = false, val monitorRuns: Boolean = false, val automationScope: String = "",val runtimeChoices: String="{}")
+data class AppPreferences(val theme: String = "STARHAVEN", val chinese: Boolean = true, val pinyin: Boolean = true, val reducedMotion: Boolean = false, val demo: Boolean = true, val url: String = "", val debugHttp: Boolean = false, val onDeviceSpeechOnly: Boolean = true, val allowNetworkSpeech: Boolean = false, val speechRate: Float = 1f, val notifications: Boolean = false, val monitorRuns: Boolean = false, val automationScope: String = "",val runtimeChoices: String="{}", val preferKokoro: Boolean = false, val kokoroEnglish: Int = 0, val kokoroMandarin: Int = 3)
 class PreferenceStore(context: Context) {
     private val store = context.dataStore
     private val theme = stringPreferencesKey("theme")
@@ -32,6 +32,9 @@ class PreferenceStore(context: Context) {
     private val localSpeech=booleanPreferencesKey("on_device_speech_only")
     private val networkSpeech=booleanPreferencesKey("allow_network_speech")
     private val rate=floatPreferencesKey("speech_rate")
+    private val kokoro = booleanPreferencesKey("prefer_kokoro")
+    private val kokoroEnglish = intPreferencesKey("kokoro_english")
+    private val kokoroMandarin = intPreferencesKey("kokoro_mandarin")
     private val notify=booleanPreferencesKey("notifications")
     private val monitor=booleanPreferencesKey("monitor_runs")
     private val automation=stringPreferencesKey("automation_scope")
@@ -81,8 +84,8 @@ class PreferenceStore(context: Context) {
         }
     }
 
-    val flow = store.data.map { p -> AppPreferences(p[theme] ?: "STARHAVEN", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f),p[notify] ?: false,p[monitor] ?: false,p[automation].orEmpty(),p[runtimes] ?: "{}") }.distinctUntilChanged()
-    suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp;it[localSpeech]=p.onDeviceSpeechOnly;it[networkSpeech]=p.allowNetworkSpeech;it[rate]=p.speechRate.coerceIn(.75f,1.25f);it[notify]=p.notifications;it[monitor]=p.monitorRuns;it[automation]=p.automationScope } }
+    val flow = store.data.map { p -> AppPreferences(p[theme] ?: "STARHAVEN", p[chinese] ?: true, p[pinyin] ?: true, p[motion] ?: false, p[demo] ?: true, p[url].orEmpty(), p[http] ?: false,p[localSpeech] ?: true,p[networkSpeech] ?: false,(p[rate] ?: 1f).coerceIn(.75f,1.25f),p[notify] ?: false,p[monitor] ?: false,p[automation].orEmpty(),p[runtimes] ?: "{}",p[kokoro] ?: false,p[kokoroEnglish] ?: 0,p[kokoroMandarin] ?: 3) }.distinctUntilChanged()
+    suspend fun update(p: AppPreferences) { store.edit { it[theme]=p.theme; it[chinese]=p.chinese; it[pinyin]=p.pinyin; it[motion]=p.reducedMotion; it[demo]=p.demo; it[url]=p.url; it[http]=p.debugHttp;it[localSpeech]=p.onDeviceSpeechOnly;it[networkSpeech]=p.allowNetworkSpeech;it[rate]=p.speechRate.coerceIn(.75f,1.25f);it[notify]=p.notifications;it[monitor]=p.monitorRuns;it[automation]=p.automationScope;it[kokoro]=p.preferKokoro;it[kokoroEnglish]=p.kokoroEnglish;it[kokoroMandarin]=p.kokoroMandarin } }
     suspend fun patchUserSettings(next: AppPreferences,base: AppPreferences) {store.edit {p ->
         if(next.theme!=base.theme) p[theme]=next.theme
         if(next.chinese!=base.chinese) p[chinese]=next.chinese
@@ -91,6 +94,9 @@ class PreferenceStore(context: Context) {
         if(next.onDeviceSpeechOnly!=base.onDeviceSpeechOnly) p[localSpeech]=next.onDeviceSpeechOnly
         if(next.allowNetworkSpeech!=base.allowNetworkSpeech) p[networkSpeech]=next.allowNetworkSpeech
         if(next.speechRate!=base.speechRate) p[rate]=next.speechRate.coerceIn(.75f,1.25f)
+        if(next.preferKokoro!=base.preferKokoro) p[kokoro]=next.preferKokoro
+        if(next.kokoroEnglish!=base.kokoroEnglish) p[kokoroEnglish]=next.kokoroEnglish
+        if(next.kokoroMandarin!=base.kokoroMandarin) p[kokoroMandarin]=next.kokoroMandarin
         if(next.notifications!=base.notifications) p[notify]=next.notifications
         if(next.monitorRuns!=base.monitorRuns) p[monitor]=next.monitorRuns
         if(next.automationScope!=base.automationScope) p[automation]=next.automationScope

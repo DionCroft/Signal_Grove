@@ -8,7 +8,7 @@ plugins {
 // Bind the recorded native policy to its reviewed sources and Android build configuration.
 // This is a source fingerprint, not an APK/binary digest or a runtime performance claim.
 val localRuntimeSourceDigest = MessageDigest.getInstance("SHA-256").apply {
-    val inputs = fileTree("src/main/cpp") { include("**/*.cpp", "**/*.h", "CMakeLists.txt") }.files + file("build.gradle.kts")
+    val inputs = fileTree("src/main/cpp") { include("**/*.cpp", "**/*.h", "**/*.cmake", "CMakeLists.txt") }.files + file("build.gradle.kts")
     inputs.sortedBy { it.relativeTo(projectDir).invariantSeparatorsPath }.forEach {
         update(it.relativeTo(projectDir).invariantSeparatorsPath.toByteArray(Charsets.UTF_8))
         update(0.toByte()); update(it.readBytes()); update(0.toByte())
@@ -73,6 +73,7 @@ android {
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 dependencies {
+    implementation("org.apache.commons:commons-compress:1.28.0")
     implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
     implementation("com.alphacephei:vosk-android:0.3.75")
     implementation("net.java.dev.jna:jna:5.18.1@aar")

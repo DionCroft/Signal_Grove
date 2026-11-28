@@ -146,6 +146,22 @@ services** to reload the available options. Tap **Stop speaking** or
 close Phone voice to end playback.
 [Offline voice validation](VALIDATION.md#offline-voice-in-phone-chat).
 
+### Kokoro offline voices
+
+In the next preview, compatible ARM64 phones can use Kokoro v1.1 in
+**Voice → Read aloud** or **Phone voice → Read aloud**. Choose **Download
+voice pack**, review the 147 MB download, and stay on the screen while the
+app verifies and installs it. Select **Kokoro offline**, choose English
+or Mandarin, and tap **Preview voice**. Two voices are available per
+language. The speech-speed slider also applies to Kokoro.
+
+Tap **Read latest reply aloud** for the latest completed reply. After
+installation, Kokoro synthesises speech locally for both Hermes and
+Phone Chat, including with airplane mode on. Tap **Stop speaking** or
+leave Read aloud to stop. The **Android voice** option restores Android
+speech settings. **Remove voice pack** frees the installed voice files.
+[Kokoro model and samples](https://k2-fsa.github.io/sherpa/onnx/tts/all/Chinese-English/kokoro-multi-lang-v1_1.html).
+
 ## Back up and restore personal profiles
 
 In **On-device AI → Chat → Chat options (⋮) → Personal profiles**, choose **Back up

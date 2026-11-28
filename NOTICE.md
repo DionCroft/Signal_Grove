@@ -17,6 +17,20 @@ Original code is MIT. No upstream Hermes source/branding or third-party fonts ar
 - Offline transcription uses Vosk Android 0.3.75 and JNA 5.18.1 under their Apache 2.0 licence terms. [Vosk artifact](https://central.sonatype.com/artifact/com.alphacephei/vosk-android/0.3.75) · [JNA source](https://github.com/java-native-access/jna/tree/5.18.1)
 - The separate English language packs are available under Apache 2.0. [Tesseract language data](https://github.com/tesseract-ocr/tessdata_fast/tree/65727574dfcd264acbb0c3e07860e4e9e9b22185) · [Vosk language data](https://alphacephei.com/vosk/models)
 
+- Kokoro v1.1 English and Mandarin voice weights and model data are an optional
+  [publisher download](https://k2-fsa.github.io/sherpa/onnx/tts/all/Chinese-English/kokoro-multi-lang-v1_1.html)
+  under the [model's Apache 2.0 licence](https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh).
+  Signal Grove installs the model, reviewed lexicons, dictionary data and
+  normalisation rules. The archive also carries legacy eSpeak data, which the
+  selected runtime and installed pack do not use.
+- [sherpa-onnx 2.0.3](https://github.com/k2-fsa/sherpa-onnx/tree/v2.0.3) is
+  Apache 2.0. The ARM64 runtime archive includes
+  [ONNX Runtime 1.28.2](https://github.com/csukuangfj/onnxruntime-libs/releases/tag/v1.28.2)
+  under the MIT licence. The APK includes ONNX Runtime's licence and third-party
+  notices in `assets/kokoro-onnx-runtime-notices.txt`.
+- [Apache Commons Compress](https://commons.apache.org/proper/commons-compress/),
+  Commons Codec, Commons IO and Commons Lang are Apache 2.0.
+
 - [JUnit](https://github.com/junit-team/junit4) — EPL 1.0 (tests); [Hamcrest](https://github.com/hamcrest/JavaHamcrest) — BSD 3-clause (tests)
 
 Full runtime licence texts are included in the app's Settings → Open-source licences and under `docs/licenses/`. Tooling and test libraries remain under their own licences.

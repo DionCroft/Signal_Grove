@@ -12,6 +12,11 @@ Tink, Gson and Error Prone annotations: Apache-2.0; Copyright Google and contrib
 JSR-305 annotations: Apache-2.0; Copyright their respective contributors.
 Material icons: Apache-2.0; Copyright Google and contributors.
 
+Kokoro v1.1 voice data: Apache-2.0. Optional download published by sherpa-onnx.
+sherpa-onnx 2.0.3: Apache-2.0. ONNX Runtime: MIT, Microsoft Corporation and contributors.
+ONNX Runtime licence and third-party notices are also bundled in kokoro-onnx-runtime-notices.txt.
+Apache Commons Compress, Codec, IO and Lang: Apache-2.0, The Apache Software Foundation.
+
 JUnit (test only): Eclipse Public License 1.0. Hamcrest (test only): BSD-3-Clause.
 No third-party font assets are distributed. Android's system fonts provide the UI glyphs.
 

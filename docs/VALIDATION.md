@@ -1,5 +1,28 @@
 # Current development validation — audit follow-up
 
+## Kokoro v1.1 read-aloud integration
+
+The beta.18 candidate (version code 123) introduces manual Kokoro read-aloud
+for completed Hermes and Phone Chat replies. The optional 147,052,523-byte
+publisher archive is verified before unpacking. All 18 installed entries
+matched the reviewed archive inventory. The Kotlin regression cases cover
+length and SHA-256 checks, archive selection and invalid entries, and
+language-specific voice selection with Unicode-safe chunking.
+
+All 1,283 JVM cases passed. Debug assembly, instrumentation assembly,
+debug lint, release lint and release assembly passed. The unsigned release
+APK is 117,147,725 bytes, below the current 128 MiB updater ceiling. Its
+three voice binaries are ARM64-only, with 16 KiB ELF load alignment.
+Model weights are supplied through the optional download.
+
+A standalone Android JNI probe on the physical Xiaomi opened the real
+pack with the built native bridge. It produced 124,800 finite PCM samples
+for Sol and 162,600 for the Mandarin male voice at 24 kHz, and honoured a
+cancellation callback. The beta.18 debug APK installed in place. The
+prior physical offline trial separately verifies real network isolation
+and LFM3 coexistence.
+[Physical offline measurements](#offline-kokoro-and-lfm3-audio-on-xiaomi).
+
 ## Offline Kokoro and LFM3 Audio on Xiaomi
 
 The physical ARM64 Xiaomi (Android 17) ran the verified Kokoro v1.1 INT8
