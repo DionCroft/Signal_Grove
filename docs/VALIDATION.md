@@ -33,6 +33,14 @@ acceptance remain open.
 [Sherpa-ONNX Android runtime](https://github.com/k2-fsa/sherpa-onnx/releases/tag/v2.0.3) ·
 [Liquid AI audio model and codec](https://huggingface.co/LiquidAI/LFM3-Audio-2B-GGUF).
 
+## Beta.17 public updater
+
+On Android 17, the installed beta.16 updater discovered the public preview,
+downloaded and verified the APK, and opened Android's update confirmation.
+The installed APK matched the published SHA-256. The app kept its UID,
+first-install timestamp and a saved test task.
+[Public beta.17 release](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.17).
+
 ## Beta.17 signed candidate preflight
 
 The candidate uses source 1af09c6 and the original release certificate.
