@@ -1,5 +1,38 @@
 # Current development validation — audit follow-up
 
+## Offline Kokoro and LFM3 Audio on Xiaomi
+
+The physical ARM64 Xiaomi (Android 17) ran the verified Kokoro v1.1 INT8
+pack with sherpa-onnx 2.0.3. Two speech threads generated English and Mandarin
+while four LFM3 text threads decoded 1,024 tokens at 4,096 context. Device
+monotonic timestamps and live token progress prove that all three speech
+clips fell within the text model's 28.37-second decode window. Airplane
+mode was on, Wi-Fi and the VPN were off, and Android had no active route.
+
+| Kokoro concurrent sample | First audio chunk | Generation | Audio duration |
+| --- | ---: | ---: | ---: |
+| English | 1.42 s | 4.88 s | 7.05 s |
+| Mandarin | 1.53 s | 5.18 s | 7.45 s |
+| Warm repeat | 1.46 s | 3.51 s | 4.98 s |
+
+First-chunk timing starts after loading the voice model. Concurrent model
+loading took 1.43 seconds. The shorter first LFM3 workload covered English
+and ended before the final voice sample. The extended workload proved the
+full overlap. The portable test WAVs are mono 24 kHz.
+
+A separate on-phone experiment used Liquid AI's official LFM3-Audio-2B
+Q4_0 and its matching Q4_0 audio codec. The Android CLI generated a
+3.68-second WAV in 5.90 seconds including process startup. It transcribed
+the 7.05-second synthetic English Kokoro sample exactly in 5.87 seconds,
+including startup. Both completed offline. The phone's Wi-Fi, airplane,
+cellular data and Tailscale settings were restored, and beta.17 reconnected
+to the saved Hermes server. The speech models ran in standalone test
+binaries. Voice pack installation, player lifecycle and live microphone
+acceptance remain open.
+[Kokoro model family](https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh) ·
+[Sherpa-ONNX Android runtime](https://github.com/k2-fsa/sherpa-onnx/releases/tag/v2.0.3) ·
+[Liquid AI audio model and codec](https://huggingface.co/LiquidAI/LFM3-Audio-2B-GGUF).
+
 ## Beta.17 signed candidate preflight
 
 The candidate uses source 1af09c6 and the original release certificate.

@@ -1,10 +1,12 @@
 # Signal Grove project state
 
-The owner paused the six-stage goal from the 27 November product and release
-audit. Beta.16 is the public preview and the starting point for the next signed
-Xiaomi upgrade. The beta.17 candidate and release files are staged privately.
-The public README lists the upcoming changes under development.
-[Candidate verification](docs/VALIDATION.md#beta17-signed-candidate-preflight).
+Beta.17 is the public preview. The original-key Xiaomi upgraded from beta.16
+and reconnected to the saved Hermes server. The physical network-disabled
+test also ran Kokoro v1.1 alongside LFM3 at its 4,096-token context and verified
+separate LFM3-Audio-2B speech and transcription. App voice integration and the
+remaining live audit checks are open.
+[Beta.17 release](docs/releases/1.1.0-beta.17.md) ·
+[Phone voice evidence](docs/VALIDATION.md#offline-kokoro-and-lfm3-audio-on-xiaomi).
 
 [Current goal](docs/GOAL.md#active-scope--27-november-2026) ·
 [Execution ledger](docs/AUDIT_EXECUTION_PLAN.md).

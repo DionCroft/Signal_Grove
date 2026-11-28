@@ -299,14 +299,14 @@ freeform model commands never become actions or bypass the deterministic guide.
 
 ### Natural on-device read-aloud
 
-**Status: planned after beta.17.** Compare Kokoro v1.1 for English and Mandarin
-with the smaller, English-only KittenTTS Nano 0.8 INT8. Both have published
-Android builds and sample voices through sherpa-onnx. Use the phone's installed
-offline Android voice as the baseline and select a pack only after the listening
-and performance checks. Verify the licence and notices for the exact voice
-pack, model, phonemizer and runtime before distribution.
-[Kokoro samples and Android build](https://k2-fsa.github.io/sherpa/onnx/tts/all/Chinese-English/kokoro-multi-lang-v1_1.html) ·
-[KittenTTS samples and Android build](https://k2-fsa.github.io/sherpa/onnx/tts/all/English/kitten-nano-en-v0_8-int8.html).
+**Status: Kokoro phone feasibility passed.** The offline Xiaomi trial held
+LFM3 at 4,096 tokens while Kokoro generated English and Mandarin. See the
+[trial results](VALIDATION.md#offline-kokoro-and-lfm3-audio-on-xiaomi).
+**Kokoro v1.1 is the selected integration candidate.** Use the phone's
+installed offline Android voice as the listening baseline. Verify the
+licence and notices for the exact Kokoro voice pack, model, phonemizer
+and runtime before distribution.
+[Kokoro samples and Android build](https://k2-fsa.github.io/sherpa/onnx/tts/all/Chinese-English/kokoro-multi-lang-v1_1.html).
 
 1. Audition identical short replies, longer explanations, dates, names and
    mixed English/Mandarin on the Xiaomi. Record cold and warm time to first
