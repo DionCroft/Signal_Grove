@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.16/hermes-agent-mobile-1.1.0-beta.16.apk"><strong>Download beta.16 preview APK</strong></a>
+  <a href="https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.17/hermes-agent-mobile-1.1.0-beta.17.apk"><strong>Download beta.17 preview APK</strong></a>
   · <a href="https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0">Stable release</a>
   · <a href="docs/SETUP_GUIDE.md">Setup guide</a>
 </p>
@@ -26,7 +26,7 @@ Signal Grove runs on **Android 8.0 and later**. It is an independent community a
 
 | Channel | Version | Download |
 | --- | --- | --- |
-| **Preview** | **1.1.0-beta.16**, version code 121 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.16/hermes-agent-mobile-1.1.0-beta.16.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.16) |
+| **Preview** | **1.1.0-beta.17**, version code 122 | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.1.0-beta.17/hermes-agent-mobile-1.1.0-beta.17.apk) · [Release notes and checksums](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.1.0-beta.17) |
 | **Stable** | **1.0.0** | [Production APK](https://github.com/DionCroft/Signal_Grove/releases/download/v1.0.0/hermes-agent-mobile-1.0.0.apk) · [Release notes and assets](https://github.com/DionCroft/Signal_Grove/releases/tag/v1.0.0) |
 
 For an in-place update, install the matching production APK over your existing production installation. Matching the package and signing key preserves its data. Preview builds with the updater can check **Settings → App updates**. Enable **Include preview releases** to find betas, review the download, and confirm the installation in Android. [Update and migration guide](docs/APP_UPDATES.md)
@@ -37,7 +37,7 @@ For an in-place update, install the matching production APK over your existing p
 2. **Connect your Hermes server.** Use its authenticated API over trusted HTTPS, for example through a private Tailscale network. In **Settings → Server**, enter the API root and bearer token, then tap **Save & test connection**. Management features use a separate dashboard sign-in. [Full connection guide](docs/SETUP_GUIDE.md)
 3. **Try offline chat.** In the preview, open **Settings → On-device AI → Phone models**. Review a catalogue model's licence or import a compatible GGUF file, then tap **Load**. You’ll need a supported 64-bit device, enough memory and storage, and a separately installed model. Phone chat has its own history. [Model and offline chat guide](docs/ON_DEVICE_AI.md)
 
-## What you can do in beta.16
+## What you can do
 
 | Area | How it helps |
 | --- | --- |
@@ -48,7 +48,7 @@ For an in-place update, install the matching production APK over your existing p
 
 Hermes controls depend on the connected runtime, authentication, and configured capabilities. Workspace browsing also needs an enrolled worker. The [compatibility guide](docs/COMPATIBILITY.md) and [feature matrix](docs/FEATURES.md) explain availability by area.
 
-## In development · Offline workspace and Today
+## New in beta.17 · Offline workspace and Today
 
 | Feature | What it adds |
 | --- | --- |
@@ -57,15 +57,18 @@ Hermes controls depend on the connected runtime, authentication, and configured 
 | **Selected offline backups** | Export chosen captures and notebooks with passphrase protection. Review the restore and ID conflicts before saving anything. |
 | **Today approval inbox** | See due tasks and unprocessed captures. With a supported signed-in Hermes profile, find requests started on another client, review the exact approval, and open an older run's saved receipt. |
 
-The current preview APK is beta.16. The offline workspace and Today features above
-are on the development branch. The supported LFM3 context remains 4,096 tokens.
-[Development user guide](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/USER_GUIDE.md)
-· [Verified results](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/VALIDATION.md)
+The LFM3 context limit is 4,096 tokens.
+[Beta.17 user guide](https://github.com/DionCroft/Signal_Grove/blob/v1.1.0-beta.17/docs/USER_GUIDE.md)
+· [Beta.17 release evidence](docs/releases/1.1.0-beta.17.md)
 · [Open acceptance work](https://github.com/DionCroft/Signal_Grove/blob/feat/offline-workspace/docs/GOAL.md#active-scope--27-november-2026)
 
 ## Release verification
 
-The beta.16 APK is **76.8 MB**. The exact source passed **1,262 JVM tests**, **1,265 Android 8 cases** and **1,266 Android 17 cases**. The original-key upgrade from beta.15 retained a saved task on Android 17. All five public assets were downloaded anonymously and checksum verified. The beta.15 app found and installed the checksum-verified public update in place on Android 8. [Beta.16 verification](docs/releases/1.1.0-beta.16.md) · [Full validation evidence](docs/VALIDATION.md)
+The beta.17 APK is **104.3 MB**. The build passed **1,279 JVM tests**,
+**1,281 Android 8 cases**, and **1,282 Android 17 cases**. The original-key
+Xiaomi upgrade kept the installation and showed retained task data and the
+saved Hermes connection. All five public assets were downloaded anonymously
+and checksum verified. [Beta.17 verification](docs/releases/1.1.0-beta.17.md).
 
 ## Help and development
 
